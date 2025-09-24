@@ -513,30 +513,27 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return [];
             }
 
+            SemaphoreSlim semaphore = new(25); // Limit to 25 concurrent requests
             List<Task<FileSystemObject>> tasks = [];
 
             foreach (FileSystemObject directoryFile in directoryFiles.Where(f => string.Equals(f.Type, "file", StringComparison.OrdinalIgnoreCase)))
             {
                 string filePath = $"{CodeListFolderName}/{directoryFile.Name}";
-                Task<FileSystemObject> task = GetFileAsync(org, repository, filePath, reference, cancellationToken);
-                tasks.Add(task);
+                tasks.Add(Task.Run(async () =>
+                {
+                    await semaphore.WaitAsync(cancellationToken);
+                    try
+                    {
+                        return await GetFileAsync(org, repository, filePath, reference, cancellationToken);
+                    }
+                    finally
+                    {
+                        semaphore.Release();
+                    }
+                }, cancellationToken));
             }
 
-            SemaphoreSlim semaphore = new(25); // Limit to 25 concurrent requests
-            List<Task<FileSystemObject>> limitedTasks = [.. tasks.Select(async task =>
-            {
-                await semaphore.WaitAsync(cancellationToken);
-                try
-                {
-                    return await task;
-                }
-                finally
-                {
-                    semaphore.Release();
-                }
-            })];
-
-            FileSystemObject[] files = await Task.WhenAll(limitedTasks);
+            FileSystemObject[] files = await Task.WhenAll(tasks);
             return [.. files.Where(file => file is not null)];
         }
 
