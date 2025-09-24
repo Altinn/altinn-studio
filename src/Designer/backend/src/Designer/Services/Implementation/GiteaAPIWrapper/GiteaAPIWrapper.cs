@@ -455,7 +455,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string shortCommitId)
         {
             string path = $"repos/{org}/{app}/contents/{filePath}";
-            string url = AddRefIfNotNull(path, shortCommitId);
+            string url = AddRefIfExists(path, shortCommitId);
             HttpResponseMessage response = await _httpClient.GetAsync(url);
             return await response.Content.ReadAsAsync<FileSystemObject>();
         }
@@ -463,7 +463,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string shortCommitId, CancellationToken cancellationToken)
         {
             string path = $"repos/{org}/{app}/contents/{filePath}";
-            string url = AddRefIfNotNull(path, shortCommitId);
+            string url = AddRefIfExists(path, shortCommitId);
             HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
             if (response.IsSuccessStatusCode)
             {
@@ -477,7 +477,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string reference = "", CancellationToken cancellationToken = default)
         {
             string path = $"repos/{org}/{app}/contents/{directoryPath}";
-            string url = AddRefIfNotNull(path, reference);
+            string url = AddRefIfExists(path, reference);
 
             using HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
             if (response.IsSuccessStatusCode)
@@ -645,7 +645,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return organisation;
         }
 
-        private static string AddRefIfNotNull(string path, string reference)
+        private static string AddRefIfExists(string path, string reference)
         {
             return string.IsNullOrEmpty(reference) ? $"{path}?ref={reference}" : $"{path}";
         }
