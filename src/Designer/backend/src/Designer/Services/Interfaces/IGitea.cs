@@ -137,7 +137,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>a list of files in the given directory</returns>
-        Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string reference = "", CancellationToken cancellationToken = default);
+        Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string reference = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the files in the CodeLists directory of a given repository.
@@ -148,7 +148,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A list of <see cref="FileSystemObject"/>.</returns>
-        Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(string org, string repository, string reference = "", CancellationToken cancellationToken = default);
+        Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(string org, string repository, string reference = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns list of the teams the user is member of.
