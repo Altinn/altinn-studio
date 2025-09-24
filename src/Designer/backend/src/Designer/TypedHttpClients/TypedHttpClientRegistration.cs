@@ -42,6 +42,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddTransient<PlatformBearerTokenHandler>();
             services.AddAzureDevOpsTypedHttpClient(config);
             services.AddGiteaTypedHttpClient(config);
+            services.AddGiteaBotTypedHttpClient(config);
             services.AddAltinnAuthenticationTypedHttpClient(config);
             services.AddAuthenticatedAltinnPlatformTypedHttpClient
                 <IAltinnStorageAppMetadataClient, AltinnStorageAppMetadataClient>();
@@ -54,6 +55,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();
             services.AddHttpClient<IAltinn2MetadataClient, Altinn2MetadataClient>();
             services.AddTransient<GiteaTokenDelegatingHandler>();
+            services.AddTransient<GitOpsBotTokenDelegatingHandler>();
             services.AddTransient<PlatformSubscriptionAuthDelegatingHandler>();
             services.AddMaskinportenHttpClient();
             services.AddSlackClient(config);
@@ -98,6 +100,22 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 })
                 .AddHttpMessageHandler<GiteaTokenDelegatingHandler>();
 
+        private static IHttpClientBuilder AddGiteaBotTypedHttpClient(this IServiceCollection services,
+            IConfiguration config)
+            => services.AddHttpClient<IGitea, GiteaAPIWrapper>("bot-auth", (_, httpClient) =>
+                {
+                    ServiceRepositorySettings serviceRepoSettings =
+                        config.GetSection(nameof(ServiceRepositorySettings)).Get<ServiceRepositorySettings>();
+                    Uri uri = new Uri(serviceRepoSettings.ApiEndPoint);
+                    httpClient.BaseAddress = uri;
+                })
+                .ConfigurePrimaryHttpMessageHandler((sp) =>
+                {
+                    var handler = new HttpClientHandler { AllowAutoRedirect = true };
+
+                    return new Custom401Handler(handler);
+                })
+                .AddHttpMessageHandler<GitOpsBotTokenDelegatingHandler>();
 
         private static IHttpClientBuilder AddAltinnAuthenticationTypedHttpClient(this IServiceCollection services, IConfiguration config)
             => services.AddHttpClient<IAltinnAuthenticationClient, AltinnAuthenticationClient>((sp, httpClient) =>
