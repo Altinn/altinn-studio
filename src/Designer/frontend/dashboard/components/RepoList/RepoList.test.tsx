@@ -39,7 +39,7 @@ describe('RepoList', () => {
       isLoading: true,
     });
 
-    expect(screen.getByLabelText(textMock('general.loading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
   });
 
   it('should display no repos message when repos are empty', () => {
