@@ -172,7 +172,10 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations/SqlScripts/**/*.sql" />
   </ItemGroup>
-
+  
+  <ItemGroup>
+    <EmbeddedResource Include="Services/Implementation/GitOpsManager/Templates/**/*.yaml" />
+  </ItemGroup>
   <Target Name="AfterPublishScript" AfterTargets="Publish">
     <MakeDir Directories="$(PublishDir)Templates" Condition="!Exists('$(PublishDir)Templates')" />
     <MakeDir Directories="$(PublishDir)Testdata" Condition="!Exists('$(PublishDir)Testdata')" />

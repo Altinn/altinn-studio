@@ -1,0 +1,12 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: {{ app }}
+  namespace: default
+spec:
+  interval: 5m0s
+  provider: azure
+  ref:
+    tag: main
+  timeout: 5m0s
+  url: oci://{{ org }}altinnregistry01.azurecr.io/configs/{{ app }}
