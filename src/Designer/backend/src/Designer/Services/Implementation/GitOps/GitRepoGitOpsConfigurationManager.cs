@@ -177,11 +177,11 @@ public class GitRepoGitOpsConfigurationManager(
         await WriteManifestsToFiles(AltinnOrgEditingContext.FromOrgDeveloper(context.Org, context.Developer), envManifests);
     }
 
-    public async Task<bool> PersistGitOpsConfiguration(AltinnOrgEditingContext context, AltinnEnvironment environment)
+    public async Task PersistGitOpsConfiguration(AltinnOrgEditingContext context, AltinnEnvironment environment)
     {
-        // Should be pushed with bot user. Commit details might be ok with regular
-        await Task.CompletedTask;
-        return true;
+        var repository = gitRepositoryFactory.GetAltinnGitRepository(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), context.Developer);
+
+        await sourceControl.CommitAndPushChanges(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), "master", repository.RepositoryDirectory, $"Update GitOps configuration for environment {environment}", gitOpsSettings.BotPersonalAccessToken);
     }
     private async Task WriteManifestsToFiles(AltinnOrgEditingContext context, Dictionary<string, string> manifests)
     {
