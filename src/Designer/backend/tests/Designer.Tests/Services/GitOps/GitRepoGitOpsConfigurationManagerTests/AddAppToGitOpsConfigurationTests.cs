@@ -1,4 +1,3 @@
-using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
@@ -28,6 +27,10 @@ public class AddAppToGitOpsConfigurationTests : GitRepoGitOpsConfigurationManage
             .AppDirectoryShouldExist(app)
             .And
             .EnvironmentKustomizationManifestShouldContainApp(environment, app);
+
+        await
+            And
+                .EnvironmentKustomizationManifestShouldContainBaseResource(environment);
     }
 
     [Theory]
@@ -49,6 +52,10 @@ public class AddAppToGitOpsConfigurationTests : GitRepoGitOpsConfigurationManage
             .AppDirectoryShouldExist(app)
             .And
             .EnvironmentKustomizationManifestShouldContainApp(environment, app);
+
+       await
+           And
+               .EnvironmentKustomizationManifestShouldContainBaseResource(environment);
     }
 
     [Theory]
@@ -69,7 +76,7 @@ public class AddAppToGitOpsConfigurationTests : GitRepoGitOpsConfigurationManage
         await Then
             .AppDirectoryShouldExist(app)
             .And
-            .EnvironmentKustomizationManifestShouldContainApp(environment, app);
+            .EnvironmentKustomizationManifestShouldContainApps(environment, app);
     }
 
     [Theory]
