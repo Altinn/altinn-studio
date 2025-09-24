@@ -514,7 +514,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (DirectoryNotFoundException)
             {
-                // Return empty list if CodeList folder does not exist
                 return [];
             }
 
