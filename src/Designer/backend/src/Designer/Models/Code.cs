@@ -2,15 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.Helpers.Extensions;
-using Altinn.Studio.Designer.Helpers.JsonConverterHelpers;
 
 namespace Altinn.Studio.Designer.Models;
 
 public sealed record Code
 {
-    public Code(object value,
+    public Code(string value,
         Dictionary<string, string> label,
         Dictionary<string, string>? description,
         Dictionary<string, string>? helpText,
@@ -22,8 +20,7 @@ public sealed record Code
         HelpText = helpText;
         Tags = tags;
     }
-    [JsonConverter(typeof(OptionValueConverter))]
-    public object Value { get; init; }
+    public string Value { get; init; }
     public Dictionary<string, string> Label { get; init; }
     public Dictionary<string, string>? Description { get; init; }
     public Dictionary<string, string>? HelpText { get; init; }
