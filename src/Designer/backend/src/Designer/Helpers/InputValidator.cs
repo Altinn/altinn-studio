@@ -31,6 +31,6 @@ public static partial class InputValidator
         return commitMessage.Length <= 5120;
     }
 
-    [GeneratedRegex("^[a-zA-Z0-9][a-zA-Z0-9_]*$", RegexOptions.NonBacktracking | RegexOptions.CultureInvariant)]
+    [GeneratedRegex("^[a-zA-Z0-9][a-zA-Z0-9_.-]*$", RegexOptions.NonBacktracking | RegexOptions.CultureInvariant)]
     private static partial Regex LatinCharacterAndNumbers_AllowUnderscores();
 }
