@@ -7,8 +7,8 @@ namespace Designer.Tests.Models;
 
 public class CodeTests
 {
-    private readonly object _valueA = "value-a";
-    private readonly object _valueB = "value-b";
+    private readonly string _valueA = "value-a";
+    private readonly string _valueB = "value-b";
 
     private readonly Dictionary<string, string> _labelEnOnly = new() { ["en"] = "Label A" };
     private readonly Dictionary<string, string> _labelNbOnly = new() { ["nb"] = "Etikett A" };
@@ -25,7 +25,7 @@ public class CodeTests
     private readonly List<string> _tagsAb = ["a", "b"];
 
     private static Code MakeCode(
-        object value,
+        string value,
         Dictionary<string, string> label,
         Dictionary<string, string>? description,
         Dictionary<string, string>? helpText,
@@ -36,7 +36,7 @@ public class CodeTests
     }
 
     private Code MakeCustomCode(
-        object? value = null,
+        string? value = null,
         Dictionary<string, string>? label = null,
         Dictionary<string, string>? description = null,
         Dictionary<string, string>? helpText = null,
