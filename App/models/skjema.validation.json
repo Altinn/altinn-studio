@@ -43,6 +43,18 @@
         ]
       }
     ],
+    "root.arbeidserfaring.fra": [
+      {
+        "message": "validation-from",
+        "condition": ["compare", ["component", "dato-fra"], "isAfter", ["component", "dato-til"]]
+      }
+    ],
+    "root.arbeidserfaring.til": [
+      {
+        "message": "validation-to",
+        "condition": ["compare", ["component", "dato-til"], "isBefore", ["component", "dato-fra"]]
+      }
+    ],
     "root.arbeidserfaring.prosjekter.beskrivelse": [
       {
         "message": "Beskrivelse kan ikke være kult",

@@ -148,6 +148,14 @@
     {
       "id": "test2",
       "value": "'9'"
+    },
+    {
+      "id": "validation-from",
+      "value": "Startdatoen må være før sluttdato"
+    },
+    {
+      "id": "validation-to",
+      "value": "Sluttdato må være etter startdato"
     }
   ]
 }

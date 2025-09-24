@@ -204,6 +204,7 @@
         "type": "RepeatingGroup",
         "children": [
           "arbeidsgiver",
+          "fortsatt-ansatt",
           "dato-fra",
           "dato-til",
           "erfaring-stilling",
@@ -251,6 +252,18 @@
         }
       },
       {
+        "id": "fortsatt-ansatt",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Gjeldende arbeidsgiver"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "root.arbeidserfaring.fortsattAnsatt"
+        },
+        "showValidations": ["AllExceptRequired"],
+        "options": [{ "label": "Jeg er fortsatt ansatt her", "value": true }]
+      },
+      {
         "id": "dato-fra",
         "type": "Datepicker",
         "dataModelBindings": {
@@ -280,6 +293,7 @@
         "maxDate": "2100-01-01T12:00:00.000Z",
         "timeStamp": false,
         "required": true,
+        "hidden": ["component", "fortsatt-ansatt"],
         "textResourceBindings": {
           "title": "CV.dato-til.title"
         },
