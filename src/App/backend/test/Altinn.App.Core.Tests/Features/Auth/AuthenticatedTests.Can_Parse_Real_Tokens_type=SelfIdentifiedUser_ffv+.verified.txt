@@ -1,0 +1,88 @@
+﻿{
+  Description: Altinn portal tt02 self identified, token extracted from AltinnStudioRuntime cookie,
+  AuthType: Altinn.App.Core.Features.Auth.Authenticated+User,
+  Auth: {
+    UserId: 1428813,
+    Username: martinothamar,
+    UserPartyId: 53328660,
+    SelectedPartyId: 53328660,
+    AuthenticationMethod: SelfIdentified,
+    InAltinnPortal: true,
+    IsSelfIdentified: true,
+    TokenIssuer: Altinn,
+    TokenIsExchanged: false,
+    Scopes: altinn:portal/enduser,
+    Token: eyJhbGciOiJSUzI1NiIsImtpZCI6IkQ4RDg2N0M3RDUyMTM2MEY0RjM1Q0Q1MTU4MEM0OUEwNTE2NUQ0RTEiLCJ4NXQiOiIyTmhueDlVaE5nOVBOYzFSV0F4Sm9GRmwxT0UiLCJ0eXAiOiJKV1QifQ.eyJuYW1laWQiOiIxNDI4ODEzIiwidXJuOmFsdGlubjp1c2VyaWQiOiIxNDI4ODEzIiwidXJuOmFsdGlubjp1c2VybmFtZSI6Im1hcnRpbm90aGFtYXIiLCJ1cm46YWx0aW5uOnBhcnR5aWQiOjUzMzI4NjYwLCJ1cm46YWx0aW5uOmF1dGhlbnRpY2F0ZW1ldGhvZCI6IlNlbGZJZGVudGlmaWVkIiwidXJuOmFsdGlubjphdXRobGV2ZWwiOjAsImp0aSI6Ijg3OGFkMDZiLWE0Y2EtNDFhZi04YjQzLWY3NTE2Mzk3Yzc3NyIsInNjb3BlIjoiYWx0aW5uOnBvcnRhbC9lbmR1c2VyIiwibmJmIjoxNzM3ODE1NjU0LCJleHAiOjE3Mzc4MTc0NTQsImlhdCI6MTczNzgxNTY1NH0.RLnlBcd_mfgixYkZcePG09iMsAk2XM25FdifashYcLEtebutWEub89GZyFHus7oLbCj_yDiyE1Rilpi3qBxUo9wVPH20ZsmFK5XX1jq7K_wzTsQGYlXPkjROyuXObOW1vuPZL973PEuSsFSc0MX38RfpHlOx7QZHx8gxOES3LwLFqCpdSCmTvsbPXmpHu4SKUb0BcaUFH3flexgbry4hixQbO65v6cQP7Od3A-5tTLCtPsBzCRY3u4EqbCVSJvXAj5x0PEYe-rKgQmY6nQl_dPfCre3uksPlKQeWtdDrmR1YiFfvKfg1DD_Fcf9wjeVGavyRh4qYhFV_7jueueGoqQ
+  },
+  Jwt: {
+    exp: 1737817454,
+    iat: 1737815654,
+    jti: 878ad06b-a4ca-41af-8b43-f7516397c777,
+    nameid: 1428813,
+    nbf: 1737815654,
+    scope: altinn:portal/enduser,
+    urn:altinn:authenticatemethod: SelfIdentified,
+    urn:altinn:authlevel: 0,
+    urn:altinn:partyid: 53328660,
+    urn:altinn:userid: 1428813,
+    urn:altinn:username: martinothamar
+  },
+  Details: {
+    UserParty: {
+      PartyId: 53328660,
+      PartyTypeName: Person,
+      SSN: 12345678901,
+      Name: Test Testesen,
+      IsDeleted: false,
+      OnlyHierarchyElementWithNoAccess: false,
+      ChildParties: []
+    },
+    SelectedParty: {
+      PartyId: 53328660,
+      PartyTypeName: Person,
+      SSN: 12345678901,
+      Name: Test Testesen,
+      IsDeleted: false,
+      OnlyHierarchyElementWithNoAccess: false,
+      ChildParties: []
+    },
+    Profile: {
+      UserId: 1428813,
+      IsReserved: false,
+      PartyId: 53328660,
+      Party: {
+        PartyId: 53328660,
+        PartyTypeName: Person,
+        SSN: 12345678901,
+        Name: Test Testesen,
+        IsDeleted: false,
+        OnlyHierarchyElementWithNoAccess: false,
+        ChildParties: []
+      }
+    },
+    RepresentsSelf: true,
+    Parties: [
+      {
+        PartyId: 53328660,
+        PartyTypeName: Person,
+        SSN: 12345678901,
+        Name: Test Testesen,
+        IsDeleted: false,
+        OnlyHierarchyElementWithNoAccess: false,
+        ChildParties: []
+      }
+    ],
+    PartiesAllowedToInstantiate: [
+      {
+        PartyId: 53328660,
+        PartyTypeName: Person,
+        SSN: 12345678901,
+        Name: Test Testesen,
+        IsDeleted: false,
+        OnlyHierarchyElementWithNoAccess: false,
+        ChildParties: []
+      }
+    ],
+    CanRepresent: true
+  }
+}

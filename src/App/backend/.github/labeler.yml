@@ -1,0 +1,3 @@
+# Add 'triage' label to all new issues
+'status/triage':
+  - '/.*/'

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "local>Altinn/renovate-config"
+  ],
+  "labels": [
+    "dependency"
+  ],
+  "separateMinorPatch": true,
+  "separateMultipleMajor": true,
+  "baseBranchPatterns": [
+    "main"
+  ],
+  "packageRules": [
+    {
+      "matchPackageNames": [
+        "/dotnet(-|\\/)sdk/",
+        "/^Microsoft\\.AspNetCore/",
+        "/^Microsoft\\.Extensions/",
+        "!Microsoft.Extensions.Caching.Hybrid"
+      ],
+      "allowedVersions": "<=8"
+    },
+    {
+      "matchPackageNames": [
+        "/^Microsoft\\.CodeAnalysis/",
+        "/^Microsoft\\.Build/"
+      ],
+      "enabled": false
+    },
+    {
+      // Verify.AspNetCore bumped target framework to net9.0 in 4.1, so we can't update for now
+      "matchPackageNames": [
+        "Verify.AspNetCore"
+      ],
+      "allowedVersions": "<=4.0"
+    }
+  ]
+}

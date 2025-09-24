@@ -1,0 +1,6 @@
+﻿[basic/custom-scopes] [INIT INFO] Fixture configuration updated
+[basic/custom-scopes] [INFO] ### Request: Instances.PostSimplified - User: User/1337/501337, AuthLevel: 2, AuthMethod: BankID
+[basic/custom-scopes] [INFO] IInstantiationValidator.Validate
+[basic/custom-scopes] [INFO] IProcessTaskStart.Start
+[basic/custom-scopes] [INFO] IInstantiationProcessor.DataCreation
+[basic/custom-scopes] [INFO] ### Response: Instances.PostSimplified - CreatedResult, StatusCode: 201

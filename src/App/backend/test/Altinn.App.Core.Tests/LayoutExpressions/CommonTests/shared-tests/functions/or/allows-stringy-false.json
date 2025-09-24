@@ -1,0 +1,5 @@
+{
+  "name": "Allows 'false' as false",
+  "expression": ["or", "false"],
+  "expects": false
+}

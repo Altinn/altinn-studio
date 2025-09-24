@@ -1,0 +1,5 @@
+{
+  "name": "Should replace multiple substrings",
+  "expression": ["stringReplace", "Hel lo, wo rld !", " ", ""],
+  "expects": "Hello,world!"
+}

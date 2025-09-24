@@ -1,0 +1,113 @@
+{
+  "name": "Lookup inside repeating group with component index should fail",
+  "expression": ["component", "bedriftsNavn-0"],
+  "context": {
+    "component": "topLevel",
+    "currentLayout": "Page1"
+  },
+  "expectsFailure": "Unable to find component with identifier bedriftsNavn-0",
+  "layouts": {
+    "Page1": {
+      "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "topLevel",
+            "type": "Header",
+            "textResourceBindings": {
+              "title": "Top level component"
+            },
+            "size": "L"
+          }
+        ]
+      }
+    },
+    "Page2": {
+      "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "bedrifter",
+            "type": "RepeatingGroup",
+            "dataModelBindings": {
+              "group": "Bedrifter"
+            },
+            "children": ["bedriftsNavn", "ansatte"]
+          },
+          {
+            "id": "bedriftsNavn",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Bedrifter.Navn"
+            }
+          },
+          {
+            "id": "ansatte",
+            "type": "RepeatingGroup",
+            "dataModelBindings": {
+              "group": "Bedrifter.Ansatte"
+            },
+            "children": ["navn", "alder", "myndig"]
+          },
+          {
+            "id": "navn",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Bedrifter.Ansatte.Navn"
+            }
+          },
+          {
+            "id": "alder",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Bedrifter.Ansatte.Alder"
+            }
+          },
+          {
+            "id": "myndig",
+            "type": "Paragraph",
+            "textResourceBindings": {
+              "title": "Hurra, den ansatte er myndig!"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Bedrifter": [
+      {
+        "altinnRowId": "company0",
+        "Navn": "Hell og lykke AS",
+        "Ansatte": [
+          {
+            "altinnRowId": "company0-employee0",
+            "Navn": "Kaare",
+            "Alder": 24
+          },
+          {
+            "altinnRowId": "company0-employee1",
+            "Navn": "Per",
+            "Alder": 24
+          }
+        ]
+      },
+      {
+        "altinnRowId": "company1",
+        "Navn": "Nedtur og motgang AS",
+        "Ansatte": [
+          {
+            "altinnRowId": "company1-employee0",
+            "Navn": "Arne",
+            "Alder": 24
+          },
+          {
+            "altinnRowId": "company1-employee1",
+            "Navn": "Vidar",
+            "Alder": 14
+          }
+        ]
+      }
+    ]
+  }
+}
