@@ -88,6 +88,5 @@ public class UpdateCodeListsNewTests : DesignerEndpointsTestsBase<UpdateCodeList
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         _orgCodeListService.Verify(service => service.UpdateCodeListsNew(Org, Developer, It.IsAny<List<CodeListWrapper>>(), CommitMessage, string.Empty, It.IsAny<CancellationToken>()), Times.Once);
     }
-
     private static string ApiUrl() => $"designer/api/{Org}/code-lists/new/";
 }

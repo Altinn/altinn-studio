@@ -142,7 +142,11 @@ public class OrgCodeListService : IOrgCodeListService
         List<FileOperationContext> fileOperationContexts = CreateFileOperationContexts(codeListWrappers, files);
         GiteaMultipleFilesDto dto = CreateGiteaMultipleFilesDto(developer, fileOperationContexts, commitMessage);
 
-        await _gitea.ModifyMultipleFiles(org, repository, dto, cancellationToken);
+        bool r = await _gitea.ModifyMultipleFiles(org, repository, dto, cancellationToken);
+        if (r is false)
+        {
+            throw new InvalidOperationException("Failed to update code lists in Gitea.");
+        }
     }
 
     internal static void ValidateCodeListTitles(List<CodeListWrapper> codeListWrappers)
