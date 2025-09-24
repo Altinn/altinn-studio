@@ -484,7 +484,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string reference = "", CancellationToken cancellationToken = default)
+        public async Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string reference = null, CancellationToken cancellationToken = default)
         {
             string path = $"repos/{org}/{app}/contents/{directoryPath}";
             string url = AddRefIfExists(path, reference);
