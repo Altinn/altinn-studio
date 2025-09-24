@@ -4,7 +4,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.GitOps;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Altinn.Studio.Designer.Services.Implementation.GitOpsManager;
+namespace Altinn.Studio.Designer.Services.Implementation.GitOps;
 
 /// <summary>
 /// GitOps configuration manager that uses git repositories to manage the configuration.

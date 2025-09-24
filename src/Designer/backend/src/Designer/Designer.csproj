@@ -174,7 +174,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <EmbeddedResource Include="Services/Implementation/GitOpsManager/Templates/**/*.yaml" />
+    <EmbeddedResource Include="Services/Implementation/GitOps/Templates/**/*.yaml" />
   </ItemGroup>
   <Target Name="AfterPublishScript" AfterTargets="Publish">
     <MakeDir Directories="$(PublishDir)Templates" Condition="!Exists('$(PublishDir)Templates')" />

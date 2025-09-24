@@ -5,13 +5,13 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces.GitOps;
 using Scriban;
 
-namespace Altinn.Studio.Designer.Services.Implementation.GitOpsManager;
+namespace Altinn.Studio.Designer.Services.Implementation.GitOps;
 
 public class ScribanGitOpsManifestsRenderer : IGitOpsManifestsRenderer
 {
-    private const string BaseManifestsPath = "Services/Implementation/GitOpsManager/Templates/base";
-    private const string AppManifestsPath = "Services/Implementation/GitOpsManager/Templates/apps";
-    private const string EnvironmentOverlaysPath = "Services/Implementation/GitOpsManager/Templates/environment";
+    private const string BaseManifestsPath = "Services/Implementation/GitOps/Templates/base";
+    private const string AppManifestsPath = "Services/Implementation/GitOps/Templates/apps";
+    private const string EnvironmentOverlaysPath = "Services/Implementation/GitOps/Templates/environment";
     public Dictionary<string, string> GetBaseManifests()
     {
         var baseResources = EmbeddedResourceHelper.ListEmbeddedResources(BaseManifestsPath);
