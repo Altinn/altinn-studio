@@ -56,5 +56,6 @@ export * from './StudioTable';
 export * from './StudioTabs';
 export * from './StudioTag';
 export * from './StudioTextfield';
+export * from './StudioTextarea';
 export * from './StudioToggleGroup';
 export * from './StudioValidationMessage';
