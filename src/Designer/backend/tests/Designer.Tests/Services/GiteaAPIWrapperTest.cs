@@ -986,6 +986,35 @@ namespace Designer.Tests.Services
             loggerMock.VerifyAll();
         }
 
+        [Fact]
+        public async Task GetDirectoryAsync_NoReference_DoesNotAddRefQuery()
+        {
+            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            handlerMock.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        string.IsNullOrEmpty(req.RequestUri.Query) &&
+                        req.RequestUri.AbsolutePath.Contains("/repos/ttd/apps-test-2021/contents/src/models")),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent("[]", Encoding.UTF8, "application/json"),
+                })
+                .Verifiable();
+
+            var httpClient = new HttpClient(handlerMock.Object)
+            {
+                BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
+            };
+            GiteaAPIWrapper sut = GetServiceForTest(httpClient);
+
+            List<FileSystemObject> actual = await sut.GetDirectoryAsync("ttd", "apps-test-2021", "src/models");
+            Assert.Empty(actual);
+            handlerMock.VerifyAll();
+        }
+
         private static CodeList SetupCodeList()
         {
             Dictionary<string, string> label = new() { { "nb", "tekst" }, { "en", "text" } };
