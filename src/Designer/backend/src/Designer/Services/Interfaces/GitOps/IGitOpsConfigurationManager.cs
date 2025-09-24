@@ -18,10 +18,11 @@ public interface IGitOpsConfigurationManager
     /// <summary>
     /// Checks if the application exists in the GitOps configuration for the given environment.
     /// </summary>
-    /// <param name="context">The <see cref="AltinnRepoEditingContext"/> representing the repository editing context.</param>
+    /// <param name="context">The <see cref="AltinnOrgEditingContext"/> context.</param>
+    /// <param name="altinnRepoName">Name of the app.</param>
     /// <param name="environment">The <see cref="AltinnEnvironment"/> to check against.</param>
     /// <returns>True if the application exists in the configuration; otherwise, false.</returns>
-    public Task<bool> AppExistsInGitOpsConfiguration(AltinnRepoEditingContext context, AltinnEnvironment environment);
+    public Task<bool> AppExistsInGitOpsConfiguration(AltinnOrgEditingContext context, AltinnRepoName altinnRepoName, AltinnEnvironment environment);
 
     /// <summary>
     /// Adds the application to the GitOps configuration for the specified environment.

@@ -1,0 +1,96 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Factories;
+using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Implementation.GitOps;
+using Altinn.Studio.Designer.Services.Interfaces;
+using Designer.Tests.Mocks;
+using Designer.Tests.Utils;
+using Microsoft.Extensions.Time.Testing;
+using SharedResources.Tests;
+using Xunit;
+
+namespace Designer.Tests.Services.GitOps.GitRepoGitOpsConfigurationManagerTests;
+
+public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>, IAsyncLifetime where T : GitRepoGitOpsConfigurationManagerTestsBase<T>
+{
+    protected IAltinnGitRepositoryFactory AltinnGitRepositoryFactory { get; private set; }
+    protected AltinnGitRepository AltinnGitRepository => AltinnGitRepositoryFactory.GetAltinnGitRepository(OrgEditingContext.Org, TestRepoName, OrgEditingContext.Developer);
+    protected GitRepoGitOpsConfigurationManager GitOpsConfigurationManager { get; private set; }
+    protected ScribanGitOpsManifestsRenderer ScribanGitOpsManifestsRenderer { get; private set; }
+    protected string TestRepoName {get; private set;}
+    protected AltinnOrgEditingContext OrgEditingContext { get; }
+
+    public GitRepoGitOpsConfigurationManagerTestsBase()
+    {
+        // test data are configured for ttd org and testUser.
+        OrgEditingContext = AltinnOrgEditingContext.FromOrgDeveloper("ttd", "testUser");
+    }
+    public async Task InitializeAsync()
+    {
+        string testRepoPath = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+        TestRepoName = TestDataHelper.GenerateTestRepoName($"-{OrgEditingContext.Org}");
+        await TestDataHelper.CopyRepositoryForTest(OrgEditingContext.Org, "ttd-gitops", OrgEditingContext.Developer, TestRepoName);
+        AltinnGitRepositoryFactory = new AltinnGitRepositoryFactory(testRepoPath);
+        ScribanGitOpsManifestsRenderer = new ScribanGitOpsManifestsRenderer();
+        GitOpsConfigurationManager = new GitRepoGitOpsConfigurationManager(
+            new IGiteaMock(),
+            ScribanGitOpsManifestsRenderer,
+            new ISourceControlMock(),
+            AltinnGitRepositoryFactory,
+            new FakeTimeProvider(),
+            new GitOpsSettings
+            {
+                GitOpsOrg = OrgEditingContext.Org,
+                GitOpsRepoNameFormat = TestRepoName.Replace($"-{OrgEditingContext.Org}", "-{0}")
+            });
+
+    }
+
+    protected async Task AppDirectoryExists(string app)
+    {
+        var appManifests =
+            ScribanGitOpsManifestsRenderer.GetAppManifests(AltinnRepoContext.FromOrgRepo(OrgEditingContext.Org, app));
+        await WriteManifestsToRepository(appManifests);
+    }
+
+    protected T AppDirectoryDoesNotExists(string app)
+    {
+        if(AltinnGitRepository.DirectoryExistsByRelativePath($"apps/{app}"))
+        {
+            string appFolderPath = Path.Join(AltinnGitRepository.RepositoryDirectory, $"apps/{app}");
+            Directory.Delete(appFolderPath, true);
+        }
+        return this as T;
+    }
+
+    protected async Task EnvironmentManifestsContainApps(string environment, params string[] apps)
+    {
+        var appsSet = apps.Select(app => AltinnRepoName.FromName(app)).ToHashSet();
+        var manifests =
+            ScribanGitOpsManifestsRenderer.GetEnvironmentOverlayManifests(AltinnEnvironment.FromName(environment),
+                appsSet);
+        await WriteManifestsToRepository(manifests);
+    }
+
+    protected async Task WriteManifestsToRepository(Dictionary<string, string> manifests)
+    {
+        foreach ((string filePath, string content) in manifests)
+        {
+            await AltinnGitRepository.WriteTextByRelativePathAsync(filePath, content, true);
+        }
+    }
+
+    public Task DisposeAsync()
+    {
+        TestDataHelper.DeleteAppRepository(OrgEditingContext.Org, TestRepoName, OrgEditingContext.Developer);
+        return Task.CompletedTask;
+    }
+}
+
