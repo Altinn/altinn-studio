@@ -6,7 +6,8 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { toast } from 'react-toastify';
 import { Alert, Link } from '@digdir/designsystemet-react';
 import { useDeployPermissionsQuery } from 'app-development/hooks/queries';
-import { StudioError, StudioSpinner } from '@studio/components-legacy';
+import { StudioError } from '@studio/components-legacy';
+import { StudioSpinner } from '@studio/components';
 
 export interface DeployProps {
   appDeployedVersion: string;
@@ -37,12 +38,7 @@ export const Deploy = ({
   });
 
   if (permissionsIsPending) {
-    return (
-      <StudioSpinner
-        showSpinnerTitle={false}
-        spinnerTitle={t('app_deployment.permission_checking')}
-      />
-    );
+    return <StudioSpinner aria-hidden spinnerTitle={t('app_deployment.permission_checking')} />;
   }
 
   if (permissionsIsError) return <StudioError>{t('app_deployment.permission_error')}</StudioError>;

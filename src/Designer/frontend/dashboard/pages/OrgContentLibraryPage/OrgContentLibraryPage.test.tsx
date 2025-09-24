@@ -71,18 +71,18 @@ describe('OrgContentLibraryPage', () => {
 
   it('renders a spinner while waiting for repo status', () => {
     renderOrgContentLibrary();
-    expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
   });
 
   it('renders a spinner while waiting for code lists', () => {
     renderOrgContentLibraryWithRepoStatus();
-    expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
   });
 
   it('Renders an error message when the code lists query fails', async () => {
     const getOrgCodeLists = () => Promise.reject(new Error('Test error'));
     renderOrgContentLibrary({ queries: { getOrgCodeLists } });
-    await waitFor(expect(screen.queryByTitle(textMock('general.loading'))).not.toBeInTheDocument);
+    await waitFor(expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument);
 
     const errorMessage = textMock('dashboard.org_library.fetch_error');
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
@@ -230,7 +230,7 @@ describe('OrgContentLibraryPage', () => {
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: true }));
 
     renderOrgContentLibrary({ queries: { getRepoStatus } });
-    await waitFor(expect(screen.queryByTitle(textMock('general.loading'))).not.toBeInTheDocument);
+    await waitFor(expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument);
 
     const mergeConflictWarning = screen.getByRole('heading', {
       name: textMock('merge_conflict.headline'),
@@ -245,7 +245,7 @@ describe('OrgContentLibraryPage', () => {
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
 
     renderOrgContentLibrary({ queries: { getRepoStatus } });
-    await waitFor(expect(screen.queryByTitle(textMock('general.loading'))).not.toBeInTheDocument);
+    await waitFor(expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument);
 
     const mergeConflictWarning = screen.queryByRole('heading', {
       name: textMock('merge_conflict.headline'),

@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { StudioButton, StudioErrorMessage, StudioSpinner } from '@studio/components-legacy';
+import { StudioButton, StudioErrorMessage } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
@@ -20,7 +20,7 @@ import { OptionListEditor } from './OptionListEditor';
 import classes from './EditTab.module.css';
 import type { ITextResources } from 'app-shared/types/global';
 import { ManualOptionsDialog } from './ManualOptionsDialog';
-import { StudioAlert } from '@studio/components';
+import { StudioAlert, StudioSpinner } from '@studio/components';
 
 export type EditTabProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
@@ -40,7 +40,7 @@ export function EditTab(props: EditTabProps): React.ReactElement {
 
   switch (mergedQueryStatues) {
     case 'pending':
-      return <StudioSpinner spinnerTitle={t('general.loading')} />;
+      return <StudioSpinner aria-hidden spinnerTitle={t('general.loading')} />;
     case 'error':
       return (
         <StudioErrorMessage>

@@ -27,7 +27,7 @@ describe('Deployments', () => {
       getOrgList: jest.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
     });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('overview.deployments_loading')),
+      screen.queryByText(textMock('overview.deployments_loading')),
     );
 
     expect(screen.getByText(textMock('overview.deployments_error'))).toBeInTheDocument();
@@ -53,7 +53,7 @@ describe('Deployments', () => {
       ),
     });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('overview.deployments_loading')),
+      screen.queryByText(textMock('overview.deployments_loading')),
     );
 
     expect(screen.getByText(textMock('app_deployment.private_app_owner'))).toBeInTheDocument();
@@ -86,7 +86,7 @@ describe('Deployments', () => {
       ),
     });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('overview.deployments_loading')),
+      screen.queryByText(textMock('overview.deployments_loading')),
     );
 
     expect(screen.getByText(textMock('app_deployment.no_env_title'))).toBeInTheDocument();
@@ -116,7 +116,7 @@ describe('Deployments', () => {
       ),
     });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('overview.deployments_loading')),
+      screen.queryByText(textMock('overview.deployments_loading')),
     );
 
     expect(screen.getByText(textMock('overview.activity'))).toBeInTheDocument();
