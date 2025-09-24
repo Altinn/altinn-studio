@@ -4,16 +4,16 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/**'
-      - 'test/**'
-      - 'yarn.lock'
-      - '.github/workflows/cypress.yml'
+      - 'src/App/frontend/src/**'
+      - 'src/App/frontend/test/**'
+      - 'src/App/frontend/yarn.lock'
+      - '.github/workflows/app-frontend*.yml'
   pull_request:
     paths:
-      - 'src/**'
-      - 'test/**'
-      - 'yarn.lock'
-      - '.github/workflows/cypress.yml'
+      - 'src/App/frontend/src/**'
+      - 'src/App/frontend/test/**'
+      - 'src/App/frontend/yarn.lock'
+      - '.github/workflows/app-frontend*.yml'
     types:
       - opened
       - reopened
@@ -26,6 +26,9 @@ jobs:
   install:
     name: Install
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/App/frontend/
     container:
       image: cypress/browsers:node-22.13.1-chrome-133.0.6943.53-1-ff-135.0-edge-132.0.2957.140-1@sha256:914c9814a9567f32660203db7ecd610b8f8fede6e9103885728b3bd3f6dca4ff
     steps:

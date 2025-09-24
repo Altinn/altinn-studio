@@ -3,7 +3,13 @@ name: "CodeQL"
 on:
   push:
     branches: [ "main" ]
-  pull_request: {}
+    paths:
+      - 'src/App/frontend/**'
+      - '.github/workflows/app-frontend*.yml'
+  pull_request:
+    paths:
+      - 'src/App/frontend/**'
+      - '.github/workflows/app-frontend*.yml'
   schedule:
     - cron: "5 12 * * 0"
 
@@ -11,6 +17,9 @@ jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/App/frontend/
     permissions:
       actions: read
       contents: read
