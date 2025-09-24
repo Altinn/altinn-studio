@@ -35,7 +35,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly HttpClient _httpClient;
         private const string CodeListFolderName = "CodeLists";
 
-        private static readonly JsonSerializerOptions s_jsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
+        private static readonly JsonSerializerOptions s_jsonOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+            PropertyNameCaseInsensitive = true,
+            AllowTrailingCommas = true,
+        };
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GiteaAPIWrapper"/> class
@@ -460,10 +465,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return await response.Content.ReadAsAsync<FileSystemObject>();
         }
 
-        public async Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string shortCommitId, CancellationToken cancellationToken)
+        public async Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken)
         {
             string path = $"repos/{org}/{app}/contents/{filePath}";
-            string url = AddRefIfExists(path, shortCommitId);
+            string url = AddRefIfExists(path, reference);
             HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
             if (response.IsSuccessStatusCode)
             {
