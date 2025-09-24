@@ -6,10 +6,11 @@ import classes from './mockData.module.css';
 
 export type IconButtonProps = {
   icon: React.ReactNode;
+  ariaLabel?: string;
 };
 
-const IconButton = ({ icon }: IconButtonProps): React.ReactElement => (
-  <Button variant={'tertiary'} icon>
+const IconButton = ({ icon, ariaLabel }: IconButtonProps): React.ReactElement => (
+  <Button variant={'tertiary'} icon aria-label={ariaLabel ?? 'Favorite'}>
     {icon}
   </Button>
 );

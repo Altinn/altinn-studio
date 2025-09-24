@@ -1,9 +1,11 @@
 import React, { forwardRef, useEffect, useState } from 'react';
-import { StudioTableRemotePagination } from '../StudioTableRemotePagination';
+// import { StudioTableRemotePagination } from '../StudioTableRemotePagination';
 import type { Columns, Rows, PaginationTexts } from '../StudioTableRemotePagination';
 import { useTableSorting } from '../../hooks/useTableSorting';
 import { getRowsToRender } from '../StudioTableRemotePagination/utils';
 import type { TableSortStorageKey } from '../../types/TableSortStorageKey';
+// eslint-disable-next-line no-restricted-imports
+import { StudioTableRemotePagination } from '@studio/components';
 
 export type LocalPaginationProps = {
   pageSizeOptions: number[];
@@ -77,7 +79,7 @@ export const StudioTableLocalPagination = forwardRef<
       <StudioTableRemotePagination
         columns={columns}
         rows={rowsToRender}
-        size={size}
+        data-size={size}
         isLoading={isLoading}
         loadingText={loadingText}
         emptyTableFallback={emptyTableFallback}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { Meta, StoryFn } from '@storybook/react-vite';
 import { StudioTableRemotePagination } from './StudioTableRemotePagination';
 import type { RemotePaginationProps, PaginationTexts } from './StudioTableRemotePagination';
@@ -48,10 +48,11 @@ export const Preview: Story = (args) => {
   const totalRows = rows.length;
   const totalPages = Math.ceil(totalRows / pageSize);
 
-  // Fallback to page 1 if the current page is out of bounds
-  if (!rowsToRender.length && totalRows) {
-    setCurrentPage(1);
-  }
+  useEffect(() => {
+    if (!rowsToRender.length && totalRows) {
+      setCurrentPage(1);
+    }
+  }, [rowsToRender.length, totalRows]);
 
   const paginationTexts: PaginationTexts = {
     pageSizeLabel: 'Rows per page:',

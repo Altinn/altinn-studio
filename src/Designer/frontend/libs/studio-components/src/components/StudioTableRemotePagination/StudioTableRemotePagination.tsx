@@ -101,10 +101,11 @@ export const StudioTableRemotePagination = forwardRef<
     const retainedTotalRows = useRetainWhileLoading(isLoading, totalRows);
 
     useEffect(() => {
-      if (rows.length > 0) {
-        setSpinnerHeight(tableBodyRef.current.clientHeight + 'px');
+      const tableRefCurrent = tableBodyRef.current;
+      if (rows.length > 0 && tableRefCurrent) {
+        setSpinnerHeight(tableRefCurrent.clientHeight + 'px');
       }
-    }, [tableBodyRef, rows.length]);
+    }, [rows.length]);
 
     useEffect(() => {
       const isOutOfRange = totalRows > 0 && isTableEmpty;
@@ -123,7 +124,7 @@ export const StudioTableRemotePagination = forwardRef<
                 <StudioTable.HeaderCell
                   key={accessor}
                   sort={isSortingActive && sortable ? 'none' : undefined}
-                  onClick={() => onSortClick(accessor)}
+                  onClick={sortable && onSortClick ? (): void => onSortClick(accessor) : undefined}
                   className={headerCellClass}
                 >
                   {heading}
@@ -146,7 +147,9 @@ export const StudioTableRemotePagination = forwardRef<
         {isTableEmpty && (
           <div className={classes.emptyTableFallbackContainer}>{emptyTableFallback}</div>
         )}
-        {isLoading && <StudioSpinner style={{ height: spinnerHeight }} aria-label={loadingText} />}
+        {isLoading && (
+          <StudioSpinner style={{ height: spinnerHeight }} aria-label={loadingText ?? 'Loading'} />
+        )}
         {retainedIsPaginationActive && (
           <div className={classes.paginationContainer}>
             <div className={classes.selectContainer}>
@@ -157,7 +160,7 @@ export const StudioTableRemotePagination = forwardRef<
                 label=''
                 id={selectId}
                 data-size={size}
-                defaultValue={pageSize}
+                value={pageSize}
                 className={classes.select}
                 onChange={(e) => handlePageSizeChange(Number(e.target.value))}
               >

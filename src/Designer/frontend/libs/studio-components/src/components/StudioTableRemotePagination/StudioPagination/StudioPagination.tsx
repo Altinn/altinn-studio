@@ -26,10 +26,9 @@ export function StudioPagination({
       <Pagination.List>
         <Pagination.Item hidden={safeCurrent <= 1}>
           <Pagination.Button
-            aria-label={previousButtonAriaLabel}
+            aria-label={previousButtonAriaLabel ?? 'Previous'}
             variant='tertiary'
             onClick={() => onChange(Math.max(1, safeCurrent - 1))}
-            hidden={safeCurrent <= 1}
           ></Pagination.Button>
         </Pagination.Item>
         {Array.from({ length: safeTotal }, (_, index) => index + 1).map((pageNumber) => (
@@ -46,10 +45,9 @@ export function StudioPagination({
         ))}
         <Pagination.Item hidden={safeCurrent >= safeTotal}>
           <Pagination.Button
-            aria-label={nextButtonAriaLabel}
+            aria-label={nextButtonAriaLabel ?? 'Next'}
             variant='tertiary'
             onClick={() => onChange(Math.min(safeTotal, safeCurrent + 1))}
-            hidden={safeCurrent >= safeTotal}
           ></Pagination.Button>
         </Pagination.Item>
       </Pagination.List>
