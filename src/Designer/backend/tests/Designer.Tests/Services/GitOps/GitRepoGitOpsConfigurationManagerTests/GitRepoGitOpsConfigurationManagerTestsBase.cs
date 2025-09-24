@@ -7,7 +7,6 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Implementation.GitOps;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Mocks;
@@ -85,6 +84,23 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
         {
             await AltinnGitRepository.WriteTextByRelativePathAsync(filePath, content, true);
         }
+    }
+
+    protected T AppDirectoryShouldExist(string app)
+    {
+        bool appExists = AltinnGitRepository.DirectoryExistsByRelativePath($"apps/{app}");
+        Assert.True(appExists, $"App directory for '{app}' should exist");
+        return this as T;
+    }
+
+    protected async Task EnvironmentKustomizationManifestShouldContainApp(string environment, string app)
+    {
+        string envManifest =
+            await AltinnGitRepository.ReadTextByRelativePathAsync(
+                ManifestsPathHelper.EnvironmentManifests.KustomizationPath(environment));
+
+        bool containsApp = envManifest.Contains(ManifestsPathHelper.EnvironmentManifests.KustomizationAppResource(app), StringComparison.InvariantCulture);
+        Assert.True(containsApp, $"{ManifestsPathHelper.EnvironmentManifests.KustomizationPath(environment)} should contain app resource");
     }
 
     public Task DisposeAsync()
