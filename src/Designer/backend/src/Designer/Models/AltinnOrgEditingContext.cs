@@ -2,7 +2,7 @@ using Altinn.Studio.Designer.Helpers;
 
 namespace Altinn.Studio.Designer.Models;
 
-public class AltinnOrgEditingContext : AltinnOrgContext
+public record AltinnOrgEditingContext : AltinnOrgContext
 {
     public string DeveloperName { get; }
 
