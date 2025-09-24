@@ -1,0 +1,10 @@
+.fixed {
+  position: fixed;
+  bottom: var(--fds-spacing-5);
+  right: var(--fds-spacing-5);
+  z-index: 99999999; /* Make sure this is on top of everything */
+}
+
+.disclaimer {
+  margin-top: var(--ds-size-4);
+}

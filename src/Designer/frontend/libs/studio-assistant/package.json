@@ -1,5 +1,5 @@
 {
-  "name": "@studio/assistant",
+  "name": "@studio/feedback-form",
   "packageManager": "yarn@4.9.4",
   "version": "0.1.0",
   "main": "./src/index.ts",
