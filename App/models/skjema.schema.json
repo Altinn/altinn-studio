@@ -42,6 +42,9 @@
               "arbeidsgiver": {
                 "type": "string"
               },
+              "fortsattAnsatt": {
+                "type": "boolean"
+              },
               "fra": {
                 "type": "string"
               },

@@ -18,6 +18,7 @@
                 <xs:complexType>
                   <xs:sequence>
                     <xs:element minOccurs="0" name="arbeidsgiver" type="xs:string" />
+                    <xs:element minOccurs="0" name="fortsattAnsatt" type="xs:boolean" />
                     <xs:element minOccurs="0" name="fra" type="xs:string" />
                     <xs:element minOccurs="0" name="til" type="xs:string" />
                     <xs:element minOccurs="0" name="stilling" type="xs:string" />

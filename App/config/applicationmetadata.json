@@ -1,5 +1,8 @@
 {
   "id": "ttd/expression-validation-test",
+  "onEntry": {
+    "show": "select-instance"
+  },
   "org": "ttd",
   "title": {
     "nb": "Expression Validation Test"
@@ -28,6 +31,9 @@
         "classRef": "Altinn.App.Models.skjema",
         "allowAnonymousOnStateless": false,
         "autoDeleteOnProcessEnd": false,
+        "allowUserCreate": false,
+        "allowUserDelete": false,
+        "allowInSubform": false,
         "shadowFields": {
           "prefix": "SF_"
         }
@@ -83,9 +89,7 @@
     "subUnit": false
   },
   "autoDeleteOnProcessEnd": false,
-  "onEntry": {
-    "show": "select-instance"
-  },
+  "disallowUserInstantiation": false,
   "created": "2023-09-18T10:56:49.759221Z",
   "createdBy": "bjosttveit",
   "lastChanged": "2023-09-18T10:56:49.759221Z",

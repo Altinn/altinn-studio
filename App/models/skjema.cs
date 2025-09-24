@@ -1,9 +1,9 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
@@ -37,6 +37,8 @@ namespace Altinn.App.Models
     [JsonPropertyName("alder")]
     public decimal? alder { get; set; }
 
+    public bool ShouldSerializealder() => alder.HasValue;
+
     [XmlElement("arbeidserfaring", Order = 4)]
     [JsonProperty("arbeidserfaring")]
     [JsonPropertyName("arbeidserfaring")]
@@ -52,6 +54,8 @@ namespace Altinn.App.Models
     [JsonProperty("telefonnummer")]
     [JsonPropertyName("telefonnummer")]
     public decimal? telefonnummer { get; set; }
+
+    public bool ShouldSerializetelefonnummer() => telefonnummer.HasValue;
 
     [XmlElement("bosted", Order = 7)]
     [JsonProperty("bosted")]
@@ -90,44 +94,49 @@ namespace Altinn.App.Models
     [XmlAttribute("altinnRowId")]
     [JsonPropertyName("altinnRowId")]
     [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool AltinnRowIdSpecified()
-    {
-      return AltinnRowId == default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [XmlElement("arbeidsgiver", Order = 1)]
     [JsonProperty("arbeidsgiver")]
     [JsonPropertyName("arbeidsgiver")]
     public string arbeidsgiver { get; set; }
 
-    [XmlElement("fra", Order = 2)]
+    [XmlElement("fortsattAnsatt", Order = 2)]
+    [JsonProperty("fortsattAnsatt")]
+    [JsonPropertyName("fortsattAnsatt")]
+    public bool? fortsattAnsatt { get; set; }
+
+    public bool ShouldSerializefortsattAnsatt() => fortsattAnsatt.HasValue;
+
+    [XmlElement("fra", Order = 3)]
     [JsonProperty("fra")]
     [JsonPropertyName("fra")]
     public string fra { get; set; }
 
-    [XmlElement("til", Order = 3)]
+    [XmlElement("til", Order = 4)]
     [JsonProperty("til")]
     [JsonPropertyName("til")]
     public string til { get; set; }
 
-    [XmlElement("stilling", Order = 4)]
+    [XmlElement("stilling", Order = 5)]
     [JsonProperty("stilling")]
     [JsonPropertyName("stilling")]
     public string stilling { get; set; }
 
-    [XmlElement("beskrivelse", Order = 5)]
+    [XmlElement("beskrivelse", Order = 6)]
     [JsonProperty("beskrivelse")]
     [JsonPropertyName("beskrivelse")]
     public string beskrivelse { get; set; }
 
-    [XmlElement("prosjekter", Order = 6)]
+    [XmlElement("prosjekter", Order = 7)]
     [JsonProperty("prosjekter")]
     [JsonPropertyName("prosjekter")]
     public List<prosjekter> prosjekter { get; set; }
 
-    [XmlElement("vedlegg", Order = 7)]
+    [XmlElement("vedlegg", Order = 8)]
     [JsonProperty("vedlegg")]
     [JsonPropertyName("vedlegg")]
     public List<string> vedlegg { get; set; }
@@ -139,12 +148,10 @@ namespace Altinn.App.Models
     [XmlAttribute("altinnRowId")]
     [JsonPropertyName("altinnRowId")]
     [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool AltinnRowIdSpecified()
-    {
-      return AltinnRowId == default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [MaxLength(32)]
     [XmlElement("tittel", Order = 1)]
