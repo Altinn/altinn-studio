@@ -17,7 +17,7 @@ public class RemoveAppFromGitOpsEnvironmentConfigurationTests : GitRepoGitOpsCon
             .AppDirectoryExists(app);
 
         await And
-            .EnvironmentManifestsContainApps(environment, existingAppsInEnvironment);
+            .EnvironmentManifestsExistsWithResourceApps(environment, existingAppsInEnvironment);
 
         await And
             .When
@@ -42,7 +42,7 @@ public class RemoveAppFromGitOpsEnvironmentConfigurationTests : GitRepoGitOpsCon
             .AppDirectoryExists(app);
 
         await And
-            .EnvironmentManifestsContainApps(environment, existingAppsInEnvironment);
+            .EnvironmentManifestsExistsWithResourceApps(environment, existingAppsInEnvironment);
 
         await And
             .When
@@ -69,7 +69,7 @@ public class RemoveAppFromGitOpsEnvironmentConfigurationTests : GitRepoGitOpsCon
             .AppDirectoryExists(app);
 
         await And
-            .EnvironmentManifestsContainApps(environment, existingAppsInEnvironment);
+            .EnvironmentManifestsExistsWithResourceApps(environment, existingAppsInEnvironment);
 
         await And
             .When
@@ -96,7 +96,7 @@ public class RemoveAppFromGitOpsEnvironmentConfigurationTests : GitRepoGitOpsCon
             .AppDirectoryExists(app);
 
         await And
-            .EnvironmentManifestsContainApps(environment);
+            .EnvironmentManifestsExistsWithResourceApps(environment, []);
 
         await And
             .When

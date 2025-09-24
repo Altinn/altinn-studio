@@ -48,6 +48,10 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
             {
                 GitOpsOrg = OrgEditingContext.Org,
                 GitOpsRepoNameFormat = TestRepoName.Replace($"-{OrgEditingContext.Org}", "-{0}")
+            },
+            new ServiceRepositorySettings
+            {
+                RepositoryLocation = testRepoPath
             });
 
     }
@@ -69,13 +73,19 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
         return this as T;
     }
 
-    protected async Task EnvironmentManifestsContainApps(string environment, params string[] apps)
+    protected async Task EnvironmentManifestsExistsWithResourceApps(string environment, params string[] apps)
     {
         var appsSet = apps.Select(AltinnRepoName.FromName).ToHashSet();
         var manifests =
             ScribanGitOpsManifestsRenderer.GetEnvironmentOverlayManifests(AltinnEnvironment.FromName(environment),
                 appsSet);
         await WriteManifestsToRepository(manifests);
+    }
+
+    protected async Task BaseManifestsExist()
+    {
+        var baseManifests = ScribanGitOpsManifestsRenderer.GetBaseManifests();
+        await WriteManifestsToRepository(baseManifests);
     }
 
     protected async Task WriteManifestsToRepository(Dictionary<string, string> manifests)
