@@ -2,6 +2,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation.GitOps;
+using Designer.Tests.Utils;
 using Xunit;
 
 namespace Designer.Tests.Services.GitOps.GitRepoGitOpsConfigurationManagerTests;
@@ -100,10 +101,51 @@ public class EnsureGitOpsConfigurationExistsTests : GitRepoGitOpsConfigurationMa
     [InlineData("at22")]
     public async Task WhenLocalRepositoryExists_ShouldDeleteLocalRepository_AndRecreateManifests(string environment)
     {
-        Given.That
-            .LocalRepositoryExists();
-
         await And
+            .When
+            .EnsureGitOpsConfigurationExistsCalled(environment);
+
+        await Then
+            .BaseManifestsShouldExist()
+            .And
+            .EnvironmentManifestsShouldExist(environment)
+            .And
+            .EnvironmentKustomizationManifestShouldContainBaseResource(environment);
+    }
+
+    [Theory]
+    [InlineData("tt02")]
+    [InlineData("prod")]
+    [InlineData("at22")]
+    public async Task WhenRemoteRepositoryExists_ShouldNotCreateRemoteRepository_AndCreateManifests(string environment)
+    {
+        await Given.That
+            .RemoteRepositoryExists()
+            .And
+            .LocalRepositoryDoesNotExist()
+            .And
+            .When
+            .EnsureGitOpsConfigurationExistsCalled(environment);
+
+        await Then
+            .BaseManifestsShouldExist()
+            .And
+            .EnvironmentManifestsShouldExist(environment)
+            .And
+            .EnvironmentKustomizationManifestShouldContainBaseResource(environment);
+    }
+
+    [Theory]
+    [InlineData("tt02")]
+    [InlineData("prod")]
+    [InlineData("at22")]
+    public async Task WhenRemoteRepositoryDoesNotExist_ShouldCreateRemoteRepository_AndCreateManifests(string environment)
+    {
+        await Given.That
+            .RemoteRepositoryDoesNotExist()
+            .And
+            .LocalRepositoryDoesNotExist()
+            .And
             .When
             .EnsureGitOpsConfigurationExistsCalled(environment);
 
@@ -129,15 +171,6 @@ public class EnsureGitOpsConfigurationExistsTests : GitRepoGitOpsConfigurationMa
         return this;
     }
 
-    private EnsureGitOpsConfigurationExistsTests LocalRepositoryExists()
-    {
-        if (!Directory.Exists(AltinnGitRepository.RepositoryDirectory))
-        {
-            Directory.CreateDirectory(AltinnGitRepository.RepositoryDirectory);
-        }
-        return this;
-    }
-
     private EnsureGitOpsConfigurationExistsTests BaseManifestsShouldExist()
     {
         bool baseKustomizationExists = AltinnGitRepository.FileExistsByRelativePath(ManifestsPathHelper.BaseManifests.KustomizationPath);
@@ -150,5 +183,30 @@ public class EnsureGitOpsConfigurationExistsTests : GitRepoGitOpsConfigurationMa
         bool environmentKustomizationExists = AltinnGitRepository.FileExistsByRelativePath(ManifestsPathHelper.EnvironmentManifests.KustomizationPath(environment));
         Assert.True(environmentKustomizationExists, $"Environment kustomization should exist at {ManifestsPathHelper.EnvironmentManifests.KustomizationPath(environment)}");
         return this;
+    }
+
+    private EnsureGitOpsConfigurationExistsTests RemoteRepositoryExists()
+    {
+        string remoteRepoPath = GetRemoteRepositoryPath();
+        if (!Directory.Exists(remoteRepoPath))
+        {
+            Directory.CreateDirectory(remoteRepoPath);
+        }
+        return this;
+    }
+
+    private EnsureGitOpsConfigurationExistsTests RemoteRepositoryDoesNotExist()
+    {
+        string remoteRepoPath = GetRemoteRepositoryPath();
+        if (Directory.Exists(remoteRepoPath))
+        {
+            Directory.Delete(remoteRepoPath, true);
+        }
+        return this;
+    }
+
+    private string GetRemoteRepositoryPath()
+    {
+        return TestDataHelper.GetTestDataRemoteRepository(OrgEditingContext.Org, TestRepoName);
     }
 }
