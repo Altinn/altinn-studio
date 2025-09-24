@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation;
-using Altinn.Studio.Designer.Services.Implementation.GitOpsManager;
+using Altinn.Studio.Designer.Services.Implementation.GitOps;
 using SharedResources.Tests;
 using Xunit;
 
-namespace Designer.Tests.Services.GitOpsManager;
+namespace Designer.Tests.Services.GitOps;
 
 public class ScribanGitOpsManifestsRendererTests : FluentTestsBase<ScribanGitOpsManifestsRendererTests>
 {
