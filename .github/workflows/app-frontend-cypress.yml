@@ -41,6 +41,7 @@ jobs:
       - name: Cypress install
         uses: cypress-io/github-action@v6
         with:
+          working-directory: src/App/frontend/
           # Disable running of tests within install job
           runTests: false
           build: yarn run build
@@ -48,9 +49,9 @@ jobs:
       - name: Save build folder
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: dist
+          name: app-frontend-dist
           if-no-files-found: error
-          path: dist
+          path: src/App/frontend/dist
 
   cypress-run-internal:
     name: Cypress Run Internal
@@ -63,6 +64,9 @@ jobs:
       image: cypress/browsers:node-22.13.1-chrome-133.0.6943.53-1-ff-135.0-edge-132.0.2957.140-1@sha256:914c9814a9567f32660203db7ecd610b8f8fede6e9103885728b3bd3f6dca4ff
     timeout-minutes: 60
     needs: install
+    defaults:
+      run:
+        working-directory: src/App/frontend/
     strategy:
       fail-fast: false
       matrix:
@@ -74,8 +78,8 @@ jobs:
       - name: Download the build folder
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
-          name: dist
-          path: dist
+          name: app-frontend-dist
+          path: src/App/frontend/dist
 
       - name: Set Percy command based on PR draft status or main branch
         shell: bash
@@ -98,6 +102,7 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           # quote the url to be safe against YML parsing surprises
+          working-directory: src/App/frontend/
           start: 'npx http-server dist --cors="*" -p 8080'
           wait-on: 'http://localhost:8080'
           command-prefix: ${{ env.PERCY_COMMAND }}
@@ -113,8 +118,8 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()
         with:
-          name: logs
-          path: test/logs/*
+          name: app-frontend-logs
+          path: src/App/frontend/test/logs/*
 
   cypress-run-external:
     name: Cypress Run External
@@ -126,6 +131,9 @@ jobs:
     container:
       image: cypress/browsers:node-22.13.1-chrome-133.0.6943.53-1-ff-135.0-edge-132.0.2957.140-1@sha256:914c9814a9567f32660203db7ecd610b8f8fede6e9103885728b3bd3f6dca4ff
     needs: install
+    defaults:
+      run:
+        working-directory: src/App/frontend/
 
     steps:
       - name: Checkout
@@ -134,12 +142,13 @@ jobs:
       - name: Download the build folder
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
-          name: dist
-          path: dist
+          name: app-frontend-dist
+          path: src/App/frontend/dist
 
       - name: Cypress run
         uses: cypress-io/github-action@v6
         with:
+          working-directory: src/App/frontend/
           start: 'npx http-server dist --cors="*" -p 8080'
           browser: chrome
           spec: test/e2e/integration
@@ -148,8 +157,8 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()
         with:
-          name: external-logs
+          name: app-frontend-external-logs
           path: |
-            test/logs/*
-            test/screenshots/*
-            test/videos/*
+            src/App/frontend/test/logs/*
+            src/App/frontend/test/screenshots/*
+            src/App/frontend/test/videos/*
