@@ -19,17 +19,20 @@ jobs:
   analyze:
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        os:
+          - id: ubuntu-latest
+            workingDir: src/App/backend/
+          - id: macos-latest
+            workingDir: src/App/backend/
+          - id: windows-latest
+            workingDir: src\App\backend\
     name: Run dotnet build and test
-    runs-on: ${{ matrix.os}}
-    defaults:
-      run:
-        working-directory: src/App/backend/
+    runs-on: ${{ matrix.os.id }}
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:
       - name: Enable long paths for git on Windows
-        if: matrix.os == 'windows-latest'
+        if: matrix.os.id == 'windows-latest'
         run: git config --system core.longpaths true
       - name: Setup .NET
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
@@ -40,20 +43,25 @@ jobs:
         with:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
       - name: Tool restore
+        working-directory: ${{ matrix.os.workingDir }}
         run: |
           dotnet tool restore
       - name: Build
+        working-directory: ${{ matrix.os.workingDir }}
         run: |
           dotnet build solutions/All.sln -v m
       - name: Test
-        if: matrix.os != 'ubuntu-latest'
+        if: matrix.os.id != 'ubuntu-latest'
+        working-directory: ${{ matrix.os.workingDir }}
         run: |
           dotnet test solutions/All.sln -v m --no-restore --no-build --filter "Category!=Integration"
       - name: Test (main tests)
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os.id == 'ubuntu-latest'
+        working-directory: ${{ matrix.os.workingDir }}
         run: |
           dotnet test solutions/All.sln -v m --no-restore --no-build --filter "Category!=Integration"
       - name: Test (integration tests)
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os.id == 'ubuntu-latest'
+        working-directory: ${{ matrix.os.workingDir }}
         run: |
           dotnet test solutions/All.sln --no-restore --no-build --logger "console;verbosity=detailed" --filter "Category=Integration"

@@ -11,7 +11,7 @@ jobs:
     runs-on: windows-latest
     defaults:
       run:
-        working-directory: src/App/backend/
+        working-directory: src\App\backend\
     steps:
       - name: Enable long paths for git on Windows
         run: git config --system core.longpaths true
