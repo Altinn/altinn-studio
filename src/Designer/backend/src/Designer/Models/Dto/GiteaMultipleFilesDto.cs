@@ -8,7 +8,7 @@ namespace Altinn.Studio.Designer.Models.Dto;
 /// <summary>
 /// Main request model for Git file operations
 /// </summary>
-public sealed record GiteaMultipleFilesDto(GiteaIdentity? Author, GiteaIdentity? Committer, List<FileOperationContext> Files, string? Branch = null, string? Message = null)
+public sealed record GiteaMultipleFilesDto(GiteaIdentity? Author, GiteaIdentity? Committer, IReadOnlyList<FileOperationContext> Files, string? Branch = null, string? Message = null)
 {
     public bool Equals(GiteaMultipleFilesDto? other)
     {
