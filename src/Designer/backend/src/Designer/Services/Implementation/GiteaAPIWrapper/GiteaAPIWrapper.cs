@@ -500,7 +500,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(string org, string repository, string reference = "", CancellationToken cancellationToken = default)
+        public async Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(string org, string repository, string reference = null, CancellationToken cancellationToken = default)
         {
             List<FileSystemObject> directoryFiles;
             try
