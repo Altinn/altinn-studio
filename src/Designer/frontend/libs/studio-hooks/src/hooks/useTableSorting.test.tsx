@@ -88,4 +88,28 @@ describe('useTableSorting', () => {
       direction: 'desc',
     });
   });
+
+  it('should handle equal values by returning 0 in comparator (stable order)', () => {
+    const equalRows: Rows = [
+      { id: 1, creator: 'Alpha', name: 'First' },
+      { id: 2, creator: 'alpha', name: 'Second' },
+    ];
+    const { result } = renderHook(() => useTableSorting(equalRows, { enable: true }));
+    act(() => result.current.handleSorting!('creator'));
+    expect(result.current.sortedRows![0].id).toBe(1);
+    expect(result.current.sortedRows![1].id).toBe(2);
+  });
+
+  it('should handle null/undefined cells in comparator without changing order', () => {
+    const rowsWithMissing: Rows = [
+      { id: 1, name: 'Has creator', creator: 'a' },
+      { id: 2, name: 'Missing creator', creator: undefined },
+      { id: 3, name: 'Has creator too', creator: 'b' },
+    ];
+    const { result } = renderHook(() => useTableSorting(rowsWithMissing, { enable: true }));
+    act(() => result.current.handleSorting!('creator'));
+    expect(result.current.sortedRows).toHaveLength(3);
+    const ids = result.current.sortedRows!.map((r) => Number(r.id));
+    expect(ids).toEqual([1, 2, 3]);
+  });
 });
