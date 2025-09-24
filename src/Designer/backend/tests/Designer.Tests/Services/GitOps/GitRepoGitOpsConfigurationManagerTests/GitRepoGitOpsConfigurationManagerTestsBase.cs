@@ -99,8 +99,33 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
             await AltinnGitRepository.ReadTextByRelativePathAsync(
                 ManifestsPathHelper.EnvironmentManifests.KustomizationPath(environment));
 
-        bool containsApp = envManifest.Contains(ManifestsPathHelper.EnvironmentManifests.KustomizationAppResource(app), StringComparison.InvariantCulture);
-        Assert.True(containsApp, $"{ManifestsPathHelper.EnvironmentManifests.KustomizationPath(environment)} should contain app resource");
+        AssertTextContainsTerm(envManifest, ManifestsPathHelper.EnvironmentManifests.KustomizationAppResource(app));
+    }
+    protected async Task EnvironmentKustomizationManifestShouldContainApps(string environment, params string[] apps)
+    {
+        string envManifest =
+            await AltinnGitRepository.ReadTextByRelativePathAsync(
+                ManifestsPathHelper.EnvironmentManifests.KustomizationPath(environment));
+        // Consequence is that we're
+        foreach (string app in apps)
+        {
+            AssertTextContainsTerm(envManifest, ManifestsPathHelper.EnvironmentManifests.KustomizationAppResource(app));
+        }
+    }
+
+    protected async Task EnvironmentKustomizationManifestShouldContainBaseResource(string environment)
+    {
+        string envManifest =
+            await AltinnGitRepository.ReadTextByRelativePathAsync(
+                ManifestsPathHelper.EnvironmentManifests.KustomizationPath(environment));
+
+        AssertTextContainsTerm(envManifest, "../base");
+    }
+
+    private void AssertTextContainsTerm(string text, string term)
+    {
+        bool containsApp = text.Contains(term, StringComparison.InvariantCulture);
+        Assert.True(containsApp, $"Provided text doesn't contain term {term}");
     }
 
     public Task DisposeAsync()
