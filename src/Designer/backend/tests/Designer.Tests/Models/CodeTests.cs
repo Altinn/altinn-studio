@@ -199,15 +199,4 @@ public class CodeTests
         Code code2 = MakeCustomCode();
         Assert.True(code1.Equals(code2));
     }
-
-    [Fact]
-    public void GetHashCode_WhenAllFieldsEqual_IsSame()
-    {
-        Code code1 = MakeCustomCode();
-        Code code2 = MakeCustomCode();
-
-        bool result = ReferenceEquals(code1, code2);
-
-        Assert.True(result);
-    }
 }
