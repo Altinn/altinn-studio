@@ -647,7 +647,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private static string AddRefIfExists(string path, string reference)
         {
-            return string.IsNullOrEmpty(reference) ? $"{path}?ref={reference}" : $"{path}";
+            return string.IsNullOrEmpty(reference) ? $"{path}" : $"{path}?ref={reference}";
         }
     }
 }
