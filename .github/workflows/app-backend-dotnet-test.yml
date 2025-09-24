@@ -1,4 +1,4 @@
-name: App Backend - Build and Test on windows, macos and ubuntu
+name: App Backend - Build and Test
 
 on:
   push:
@@ -26,7 +26,7 @@ jobs:
             workingDir: src/App/backend/
           - id: windows-latest
             workingDir: src\App\backend\
-    name: Run dotnet build and test
+    name: Build and test
     runs-on: ${{ matrix.os.id }}
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false

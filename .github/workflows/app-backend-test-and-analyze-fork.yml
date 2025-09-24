@@ -14,6 +14,7 @@ jobs:
         working-directory: src\App\backend\
     steps:
       - name: Enable long paths for git on Windows
+        working-directory: ${{ github.workspace }}
         run: git config --system core.longpaths true
 
       - name: Setup .NET
