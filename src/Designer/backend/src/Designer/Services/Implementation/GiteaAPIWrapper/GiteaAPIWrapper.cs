@@ -462,7 +462,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string path = $"repos/{org}/{app}/contents/{filePath}";
             string url = AddRefIfExists(path, shortCommitId);
             HttpResponseMessage response = await _httpClient.GetAsync(url);
-            return await response.Content.ReadAsAsync<FileSystemObject>();
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadAsAsync<FileSystemObject>();
+            }
+
+            return null;
         }
 
         public async Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken)
