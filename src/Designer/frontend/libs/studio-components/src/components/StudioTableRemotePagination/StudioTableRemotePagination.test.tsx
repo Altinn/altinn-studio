@@ -127,6 +127,44 @@ describe('StudioTableRemotePagination', () => {
     expect(paginationProps.onPageSizeChange).toHaveBeenCalledWith(10);
   });
 
+  it('hides the Previous button on the first page', () => {
+    render(
+      <StudioTableRemotePagination
+        columns={columns}
+        rows={rows}
+        pagination={{ ...paginationProps, currentPage: 1 }}
+      />,
+    );
+    expect(screen.getAllByRole('listitem', { hidden: true }).length).toBeGreaterThan(0);
+  });
+
+  it('hides the Next button on the last page', () => {
+    render(
+      <StudioTableRemotePagination
+        columns={columns}
+        rows={rows}
+        pagination={{ ...paginationProps, currentPage: paginationProps.totalPages }}
+      />,
+    );
+    expect(screen.getAllByRole('listitem', { hidden: true }).length).toBeGreaterThan(0);
+  });
+
+  it('renders number buttons without numberButtonAriaLabel', () => {
+    const noAriaTexts = {
+      ...paginationTexts,
+      numberButtonAriaLabel: undefined as unknown as ((n: number) => string) | undefined,
+    };
+    render(
+      <StudioTableRemotePagination
+        columns={columns}
+        rows={rows}
+        pagination={{ ...paginationProps, paginationTexts: noAriaTexts, totalPages: 2 }}
+      />,
+    );
+    expect(screen.getByRole('button', { name: '1' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '2' })).toBeInTheDocument();
+  });
+
   it('displays the empty table message when there are no rows to display', () => {
     render(
       <StudioTableRemotePagination
