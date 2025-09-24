@@ -1,0 +1,76 @@
+.buttonCell {
+  padding: 4px 36px 4px 4px;
+}
+
+.tableButtonWrapper {
+  display: flex;
+  justify-content: right;
+}
+
+.tableContainer {
+  margin-top: 26px;
+}
+
+.table {
+  width: 100%;
+}
+
+/* ====
+TODO(1779): Remove these styles after going through all the different Table styles in
+Altinn, and making sure they are consistent. */
+
+@media (max-width: 992px) {
+  .table {
+    border-top: 1px solid #dde3e5;
+  }
+}
+.table th {
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #dde3e5;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+.table td {
+  border-bottom: 1px solid #dde3e5;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.table tfoot td {
+  background-color: #f5f5f5;
+  border-top: none;
+}
+/* ==== */
+
+.table tr:hover {
+  background-color: unset;
+}
+
+.startNewButtonContainer {
+  margin-top: 12px;
+}
+
+.descriptionParagraph {
+  margin-top: 12px;
+}
+
+.paginationWrapper {
+  display: flex;
+  justify-content: left;
+}
+
+.paginationWrapperMobile {
+  display: flex;
+  justify-content: center;
+}
+
+.mobileTableCell {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.leftOffHeading {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}

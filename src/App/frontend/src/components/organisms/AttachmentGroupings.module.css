@@ -1,0 +1,11 @@
+.paddingBottom {
+  padding-bottom: var(--ds-size-2);
+}
+
+.groupList {
+  padding: 0;
+}
+
+.groupList li {
+  list-style: none;
+}

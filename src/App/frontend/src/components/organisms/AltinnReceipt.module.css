@@ -1,0 +1,20 @@
+.instanceMetaData {
+  margin-top: 36px;
+}
+
+.tableCell {
+  border-bottom: 0;
+  padding-right: 1.5625rem;
+}
+
+.tableRow {
+  height: auto;
+}
+
+.paddingTop24 {
+  padding-top: 1.5rem;
+}
+
+.wordBreak {
+  word-break: break-word;
+}
