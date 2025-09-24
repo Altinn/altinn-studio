@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
@@ -34,7 +35,7 @@ public interface IOrgCodeListService
     /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The code list</returns>
-    public Task<List<CodeListWrapper>> GetCodeListsNew(string org, string reference = "", CancellationToken cancellationToken = default);
+    public Task<List<CodeListWrapper>> GetCodeListsNew(string org, string? reference = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a new code list in the org repository.
@@ -67,7 +68,7 @@ public interface IOrgCodeListService
     /// <param name="commitMessage">The commit message, optional. If not set the default will be used</param>
     /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task UpdateCodeListsNew(string org, string developer, List<CodeListWrapper> codeListWrappers, string commitMessage = "", string reference = "", CancellationToken cancellationToken = default);
+    public Task UpdateCodeListsNew(string org, string developer, List<CodeListWrapper> codeListWrappers, string? commitMessage = null, string? reference = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a new code list in the org repository.

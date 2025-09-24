@@ -34,7 +34,8 @@ public class OrgCodeListService : IOrgCodeListService
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
+        AllowTrailingCommas = true
     };
 
     /// <summary>
@@ -84,7 +85,7 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task<List<CodeListWrapper>> GetCodeListsNew(string org, string reference = "", CancellationToken cancellationToken = default)
+    public async Task<List<CodeListWrapper>> GetCodeListsNew(string org, string? reference = null, CancellationToken cancellationToken = default)
     {
         string repository = GetStaticContentRepo(org);
         List<FileSystemObject> files = await _gitea.GetCodeListDirectoryContentAsync(org, repository, reference, cancellationToken);
@@ -130,7 +131,7 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task UpdateCodeListsNew(string org, string developer, List<CodeListWrapper> codeListWrappers, string commitMessage = "", string reference = "", CancellationToken cancellationToken = default)
+    public async Task UpdateCodeListsNew(string org, string developer, List<CodeListWrapper> codeListWrappers, string? commitMessage = null, string? reference = null, CancellationToken cancellationToken = default)
     {
         ValidateCodeListTitles(codeListWrappers);
         ValidateCommitMessage(commitMessage);
@@ -152,7 +153,7 @@ public class OrgCodeListService : IOrgCodeListService
         }
     }
 
-    internal static void ValidateCommitMessage(string commitMessage)
+    internal static void ValidateCommitMessage(string? commitMessage)
     {
         if (string.IsNullOrWhiteSpace(commitMessage))
         {
@@ -164,7 +165,7 @@ public class OrgCodeListService : IOrgCodeListService
         }
     }
 
-    internal List<FileOperationContext> CreateFileOperationContexts(List<CodeListWrapper> localWrappers, List<FileSystemObject> remoteFiles)
+    internal static List<FileOperationContext> CreateFileOperationContexts(List<CodeListWrapper> localWrappers, List<FileSystemObject> remoteFiles)
     {
         (List<CodeListWrapper> remoteWrappers, Dictionary<string, string> fileMetadata) = ExtractContentFromFiles(remoteFiles);
         return GenerateFileOperationContexts(remoteWrappers, localWrappers, fileMetadata);
@@ -191,7 +192,7 @@ public class OrgCodeListService : IOrgCodeListService
         return (remoteCodeListWrappers, fileMetadata);
     }
 
-    internal FileOperationContext PrepareFile(string operation, CodeListWrapper codeListWrapper, string? sha = null)
+    internal static FileOperationContext PrepareFile(string operation, CodeListWrapper codeListWrapper, string? sha = null)
     {
         switch (operation)
         {
@@ -223,10 +224,9 @@ public class OrgCodeListService : IOrgCodeListService
     {
         cancellationToken.ThrowIfCancellationRequested();
         string repo = GetStaticContentRepo(org);
-        string codeListId = payload.FileName.Replace(".json", "");
+        string codeListId = Path.GetFileNameWithoutExtension(payload.FileName);
 
-        List<Option>? deserializedCodeList = JsonSerializer.Deserialize<List<Option>>(payload.OpenReadStream(),
-            new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true });
+        List<Option>? deserializedCodeList = await JsonSerializer.DeserializeAsync<List<Option>>(payload.OpenReadStream(), s_jsonOptions, cancellationToken);
 
         bool codeListHasInvalidNullFields = deserializedCodeList is not null && deserializedCodeList.Exists(item => item.Value == null || item.Label == null);
         if (codeListHasInvalidNullFields)
@@ -328,19 +328,19 @@ public class OrgCodeListService : IOrgCodeListService
         );
     }
 
-    private static GiteaMultipleFilesDto CreateGiteaMultipleFilesDto(string developer, List<FileOperationContext> fileOperationContexts, string commitMessage)
+    private static GiteaMultipleFilesDto CreateGiteaMultipleFilesDto(string developer, List<FileOperationContext> fileOperationContexts, string? commitMessage, string? reference = null)
     {
         return new GiteaMultipleFilesDto(
             Author: new GiteaIdentity(Name: developer),
-            Branch: string.Empty,
+            Branch: string.IsNullOrWhiteSpace(reference) ? null : reference,
             Committer: new GiteaIdentity(Name: developer),
             Files: fileOperationContexts,
-            Message: commitMessage
+            Message: string.IsNullOrWhiteSpace(commitMessage) ? null : commitMessage
         );
 
     }
 
-    private List<FileOperationContext> GenerateFileOperationContexts(List<CodeListWrapper> remoteWrappers, List<CodeListWrapper> localWrappers, Dictionary<string, string> fileMetadata)
+    private static List<FileOperationContext> GenerateFileOperationContexts(List<CodeListWrapper> remoteWrappers, List<CodeListWrapper> localWrappers, Dictionary<string, string> fileMetadata)
     {
         List<FileOperationContext> fileOperationContexts = [];
 

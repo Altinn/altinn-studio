@@ -130,7 +130,7 @@ public class OrgCodeListServiceTests : IDisposable
         // Assert
         Assert.NotEmpty(result);
         Assert.Equal(expected, result);
-        _giteaMock.Verify(gitea => gitea.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), string.Empty, It.IsAny<CancellationToken>()), Times.Once);
+        _giteaMock.Verify(gitea => gitea.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), null, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -148,7 +148,7 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Act
         OrgCodeListService service = GetOrgCodeListService();
-        FileOperationContext result = service.PrepareFile(FileOperation.Delete, codeListWrapper, sha);
+        FileOperationContext result = OrgCodeListService.PrepareFile(FileOperation.Delete, codeListWrapper, sha);
 
         // Assert
         Assert.Equal(FileOperation.Delete, result.Operation);
@@ -173,7 +173,7 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Act
         OrgCodeListService orgListService = GetOrgCodeListService();
-        FileOperationContext result = orgListService.PrepareFile(FileOperation.Update, codeListWrapper, sha);
+        FileOperationContext result = OrgCodeListService.PrepareFile(FileOperation.Update, codeListWrapper, sha);
 
         // Assert
         Assert.NotNull(result.Content);
@@ -200,7 +200,7 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Act
         OrgCodeListService orgListService = GetOrgCodeListService();
-        FileOperationContext result = orgListService.PrepareFile(FileOperation.Create, codeListWrapper);
+        FileOperationContext result = OrgCodeListService.PrepareFile(FileOperation.Create, codeListWrapper);
 
         // Assert
         Assert.NotNull(result.Content);
@@ -229,7 +229,7 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Act and Assert
         OrgCodeListService orgListService = GetOrgCodeListService();
-        Assert.Throws<ArgumentException>(() => orgListService.PrepareFile(operation, codeListWrapper, null));
+        Assert.Throws<ArgumentException>(() => OrgCodeListService.PrepareFile(operation, codeListWrapper, null));
     }
 
     [Fact]
@@ -247,7 +247,7 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Act and Assert
         OrgCodeListService orgListService = GetOrgCodeListService();
-        Assert.Throws<ArgumentException>(() => orgListService.PrepareFile(FileOperation.Create, codeListWrapper, Sha));
+        Assert.Throws<ArgumentException>(() => OrgCodeListService.PrepareFile(FileOperation.Create, codeListWrapper, Sha));
     }
 
     [Fact]
@@ -356,7 +356,7 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Act
         OrgCodeListService orgListService = GetOrgCodeListService();
-        List<FileOperationContext> result = orgListService.CreateFileOperationContexts(codeListWrappers, existingFiles);
+        List<FileOperationContext> result = OrgCodeListService.CreateFileOperationContexts(codeListWrappers, existingFiles);
 
         FileOperationContext updateOperation = result.FirstOrDefault(fo => fo.Path == $"CodeLists/{ShouldResolveToUpdateOperation}.json");
         FileOperationContext deleteOperation = result.FirstOrDefault(fo => fo.Path == $"CodeLists/{ShouldResolveToDeleteOperation}.json");
@@ -433,7 +433,7 @@ public class OrgCodeListServiceTests : IDisposable
 
         var expectedDto = new GiteaMultipleFilesDto(
             Author: new GiteaIdentity(Name: Developer),
-            Branch: string.Empty,
+            Branch: null,
             Committer: new GiteaIdentity(Name: Developer),
             Files: files,
             Message: GiteaCommitMessage
