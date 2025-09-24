@@ -509,7 +509,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             List<Task<FileSystemObject>> tasks = [];
 
-            foreach (FileSystemObject directoryFile in directoryFiles)
+            foreach (FileSystemObject directoryFile in directoryFiles.Where(f => string.Equals(f.Type, "file", StringComparison.OrdinalIgnoreCase)))
             {
                 string filePath = $"{CodeListFolderName}/{directoryFile.Name}";
                 Task<FileSystemObject> task = GetFileAsync(org, repository, filePath, reference, cancellationToken);
