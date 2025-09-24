@@ -1,0 +1,32 @@
+.fieldset button {
+  display: inline-block;
+  margin-right: 1rem;
+}
+
+.fieldset code {
+  font-size: 0.8rem;
+  color: white;
+  background-color: #00315d;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.modal {
+  max-width: 1200px;
+  height: 90vh;
+  overflow: hidden;
+  padding: 0;
+}
+.loading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.iframe {
+  width: 100%;
+  height: 90%;
+  border: none;
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Function with wrong case gives an error",
+  "expression": ["datamodel", "test"],
+  "expectsFailure": "Function \"datamodel\" not implemented"
+}
