@@ -26,14 +26,14 @@ public class GitRepoGitOpsConfigurationManager(
     GitOpsSettings gitOpsSettings) : IGitOpsConfigurationManager
 {
 
-    private string RepoName(string org) => string.Format(gitOpsSettings.GitOpsRepoNameFormat, org);
+    private string GitOpsRepoName(string org) => string.Format(gitOpsSettings.GitOpsRepoNameFormat, org);
 
     public async Task EnsureGitOpsConfigurationExists(AltinnOrgEditingContext context, AltinnEnvironment environment)
     {
         DeleteLocalRepositoryIfExists(context);
         await EnsureRemoteRepositoryExists(context);
 
-        await sourceControl.CloneRemoteRepository(gitOpsSettings.GitOpsOrg,  RepoName(context.Org));
+        await sourceControl.CloneRemoteRepository(gitOpsSettings.GitOpsOrg,  GitOpsRepoName(context.Org));
 
         await EnsureBaseManifests(context);
         await EnsureEnvironmentManifests(context, environment);
@@ -42,12 +42,12 @@ public class GitRepoGitOpsConfigurationManager(
     private async Task EnsureRemoteRepositoryExists(AltinnOrgEditingContext context)
     {
         // Check if repo exists
-        var repoExists = await giteaApi.GetRepository(gitOpsSettings.GitOpsOrg, RepoName(context.Org));
+        var repoExists = await giteaApi.GetRepository(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org));
         if (repoExists is null)
         {
             // Create repo with template
             var createOptions = new CreateRepoOption(
-                name: RepoName(context.Org),
+                name: GitOpsRepoName(context.Org),
                 description: $"GitOps configuration for {context.Org}",
                 autoInit: true,
                 makePrivate: false
@@ -60,9 +60,9 @@ public class GitRepoGitOpsConfigurationManager(
     private async Task EnsureBaseManifests(AltinnOrgEditingContext context)
     {
         var repository =
-            gitRepositoryFactory.GetAltinnGitRepository(context.Org, RepoName(context.Org), context.Developer);
+            gitRepositoryFactory.GetAltinnGitRepository(context.Org, GitOpsRepoName(context.Org), context.Developer);
 
-        if (!repository.FileExistsByRelativePath("base/kustomization.yaml"))
+        if (!repository.FileExistsByRelativePath(ManifestsPathHelper.BaseManifests.KustomizationPath))
         {
             var baseManifests = gitOpsManifestsRenderer.GetBaseManifests();
             await WriteManifestsToFiles(context, baseManifests);
@@ -72,9 +72,9 @@ public class GitRepoGitOpsConfigurationManager(
     private async Task EnsureEnvironmentManifests(AltinnOrgEditingContext context, AltinnEnvironment environment)
     {
         var repository =
-            gitRepositoryFactory.GetAltinnGitRepository(context.Org, RepoName(context.Org), context.Developer);
+            gitRepositoryFactory.GetAltinnGitRepository(context.Org, GitOpsRepoName(context.Org), context.Developer);
 
-        if (!repository.FileExistsByRelativePath($"{environment.Name}/kustomization.yaml"))
+        if (!repository.FileExistsByRelativePath(ManifestsPathHelper.EnvironmentManifests.KustomizationPath(environment.Name)))
         {
             var envManifests = gitOpsManifestsRenderer.GetEnvironmentOverlayManifests(environment, new HashSet<AltinnRepoName>());
             await WriteManifestsToFiles(context, envManifests);
@@ -84,7 +84,7 @@ public class GitRepoGitOpsConfigurationManager(
     private void DeleteLocalRepositoryIfExists(AltinnOrgEditingContext context)
     {
         // Fast rename instead of deletion
-        var repository = gitRepositoryFactory.GetAltinnGitRepository(context.Org, RepoName(context.Org), context.Developer);
+        var repository = gitRepositoryFactory.GetAltinnGitRepository(context.Org, GitOpsRepoName(context.Org), context.Developer);
         string localPath = repository.RepositoryDirectory;
         if (!Directory.Exists(localPath))
         {
@@ -110,12 +110,12 @@ public class GitRepoGitOpsConfigurationManager(
 
     public async Task<bool> AppExistsInGitOpsConfiguration(AltinnOrgEditingContext context, AltinnRepoName app, AltinnEnvironment environment)
     {
-        string repoName = RepoName(context.Org);
-        var repository = gitRepositoryFactory.GetAltinnGitRepository(context.Org, repoName, context.Developer);
+        string gitopsRepoName = GitOpsRepoName(context.Org);
+        var repository = gitRepositoryFactory.GetAltinnGitRepository(context.Org, gitopsRepoName, context.Developer);
 
-        if (!repository.DirectoryExistsByRelativePath($"apps/{app.Name}") ||
-            !repository.FileExistsByRelativePath($"apps/{app.Name}/kustomization.yaml") ||
-            !repository.FileExistsByRelativePath($"{environment.Name}/kustomization.yaml"))
+        if (!repository.DirectoryExistsByRelativePath(ManifestsPathHelper.AppManifests.AppDirectoryPath(app.Name)) ||
+            !repository.FileExistsByRelativePath(ManifestsPathHelper.AppManifests.KustomizationPath(app.Name)) ||
+            !repository.FileExistsByRelativePath(ManifestsPathHelper.EnvironmentManifests.KustomizationPath(environment.Name)))
         {
             return false;
         }
@@ -123,34 +123,23 @@ public class GitRepoGitOpsConfigurationManager(
         return await AppIsReferencedInEnvironment(repository, app.Name, environment);
     }
 
-    private static bool AppManifestExists(AltinnGitRepository repository, string repoName)
-    {
-        return repository.FileExistsByRelativePath($"apps/{repoName}/kustomization.yaml");
-    }
-
-    private static bool EnvironmentKustomizationExists(AltinnGitRepository repository, AltinnEnvironment environment)
-    {
-        return repository.FileExistsByRelativePath($"{environment.Name}/kustomization.yaml");
-    }
-
     private static async Task<bool> AppIsReferencedInEnvironment(
         AltinnGitRepository repository,
         string repoName,
         AltinnEnvironment environment)
     {
-        string kustomizationPath = $"{environment.Name}/kustomization.yaml";
-        string content = await repository.ReadTextByRelativePathAsync(kustomizationPath);
+        string envKusomizationContent = await repository.ReadTextByRelativePathAsync(ManifestsPathHelper.EnvironmentManifests.KustomizationPath(environment.Name));
 
         string expectedResourcePath = ManifestsPathHelper.EnvironmentManifests.KustomizationAppResource(repoName);
-        return content.Contains(expectedResourcePath, StringComparison.OrdinalIgnoreCase);
+        return envKusomizationContent.Contains(expectedResourcePath, StringComparison.OrdinalIgnoreCase);
     }
 
     public async Task AddAppToGitOpsConfiguration(AltinnRepoEditingContext context, AltinnEnvironment environment)
     {
-        var repository = gitRepositoryFactory.GetAltinnGitRepository(context.Org, RepoName(context.Org), context.Developer);
+        var repository = gitRepositoryFactory.GetAltinnGitRepository(context.Org, GitOpsRepoName(context.Org), context.Developer);
 
-        if (!repository.DirectoryExistsByRelativePath($"apps/{context.Repo}") ||
-            !AppManifestExists(repository, context.Repo))
+        if (!repository.DirectoryExistsByRelativePath(ManifestsPathHelper.AppManifests.AppDirectoryPath(context.Repo)) ||
+            !repository.FileExistsByRelativePath(ManifestsPathHelper.AppManifests.KustomizationPath(context.Repo)))
         {
             var appManifests = gitOpsManifestsRenderer.GetAppManifests(context);
             await WriteManifestsToFiles(AltinnOrgEditingContext.FromOrgDeveloper(context.Org, context.Developer), appManifests);
@@ -166,7 +155,7 @@ public class GitRepoGitOpsConfigurationManager(
 
     private static async Task<HashSet<AltinnRepoName>> GetExistingAppsFromEnvironmentKustomization(AltinnGitRepository repository, AltinnEnvironment environment)
     {
-        string envKustomizationPath = $"{environment.Name}/kustomization.yaml";
+        string envKustomizationPath = ManifestsPathHelper.EnvironmentManifests.KustomizationPath(environment.Name);
         return repository.FileExistsByRelativePath(envKustomizationPath)
             ? await GetExistingAppsFromKustomization(repository, envKustomizationPath)
             : [];
@@ -174,7 +163,7 @@ public class GitRepoGitOpsConfigurationManager(
 
     public async Task RemoveAppFromGitOpsEnvironmentConfiguration(AltinnRepoEditingContext context, AltinnEnvironment environment)
     {
-        var repository = gitRepositoryFactory.GetAltinnGitRepository(context.Org, RepoName(context.Org), context.Developer);
+        var repository = gitRepositoryFactory.GetAltinnGitRepository(context.Org, GitOpsRepoName(context.Org), context.Developer);
 
         var existingApps = await GetExistingAppsFromEnvironmentKustomization(repository, environment);
 
@@ -194,7 +183,7 @@ public class GitRepoGitOpsConfigurationManager(
     private async Task WriteManifestsToFiles(AltinnOrgEditingContext context, Dictionary<string, string> manifests)
     {
         var repository =
-            gitRepositoryFactory.GetAltinnGitRepository(context.Org, RepoName(context.Org), context.Developer);
+            gitRepositoryFactory.GetAltinnGitRepository(context.Org, GitOpsRepoName(context.Org), context.Developer);
 
         foreach ((string manifestPath, string content) in manifests)
         {
@@ -213,14 +202,14 @@ public class GitRepoGitOpsConfigurationManager(
             using var reader = new StringReader(yamlContent);
             var kustomization = deserializer.Deserialize<Dictionary<object, object>>(reader);
 
-            if (kustomization?["resources"] is List<object> resources)
+            if (kustomization?[ManifestsPathHelper.EnvironmentManifests.KustomizationResourcesSection] is List<object> resources)
             {
-                const string Prefix = "../apps/";
+                string prefix = ManifestsPathHelper.EnvironmentManifests.AppResourcePrefix;
 
                 return resources
                     .Select(r => r?.ToString())
-                    .Where(p => !string.IsNullOrWhiteSpace(p) && p.StartsWith(Prefix))
-                    .Select(p => AltinnRepoName.FromName(p[Prefix.Length..]))
+                    .Where(p => !string.IsNullOrWhiteSpace(p) && p.StartsWith(prefix))
+                    .Select(p => AltinnRepoName.FromName(p[prefix.Length..]))
                     .ToHashSet();
             }
         }
