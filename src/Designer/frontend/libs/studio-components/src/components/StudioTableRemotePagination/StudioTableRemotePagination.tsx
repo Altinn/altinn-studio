@@ -92,19 +92,24 @@ export const StudioTableRemotePagination = forwardRef<
       numberButtonAriaLabel,
     } = paginationTexts || {};
 
+    const hasTotalRows = typeof totalRows === 'number';
+    const hasPageSizeOptions = Array.isArray(pageSizeOptions) && pageSizeOptions.length > 0;
+    const canChangePage = typeof handlePageChange === 'function';
+    const hasCurrentPage = typeof currentPage === 'number';
+
     const isTableEmpty = rows.length === 0 && !isLoading;
     const isSortingActive = !isTableEmpty && onSortClick;
     const isPaginationActive = Boolean(
       pagination &&
-        typeof totalRows === 'number' &&
-        Array.isArray(pageSizeOptions) &&
-        pageSizeOptions.length > 0 &&
-        totalRows > Math.min(...pageSizeOptions),
+        hasTotalRows &&
+        hasPageSizeOptions &&
+        totalRows! > Math.min(...pageSizeOptions!),
     );
 
     const retainedIsPaginationActive = useRetainWhileLoading(isLoading, isPaginationActive);
     const retainedTotalPages = useRetainWhileLoading(isLoading, totalPages);
     const retainedTotalRows = useRetainWhileLoading(isLoading, totalRows);
+    const hasTotalPages = typeof retainedTotalPages === 'number';
 
     useEffect(() => {
       const tableRefCurrent = tableBodyRef.current;
@@ -114,12 +119,14 @@ export const StudioTableRemotePagination = forwardRef<
     }, [rows.length]);
 
     useEffect(() => {
-      const isOutOfRange = totalRows > 0 && isTableEmpty;
+      const isOutOfRange = hasTotalRows && totalRows > 0 && isTableEmpty;
       if (isOutOfRange) {
-        handlePageChange(1);
+        if (canChangePage) {
+          handlePageChange(1);
+        }
         return;
       }
-    }, [totalRows, isTableEmpty, handlePageChange]);
+    }, [totalRows, isTableEmpty, handlePageChange, hasTotalRows, canChangePage]);
 
     return (
       <div className={classes.componentContainer}>
@@ -166,21 +173,22 @@ export const StudioTableRemotePagination = forwardRef<
                 label=''
                 id={selectId}
                 data-size={size}
-                value={pageSize}
+                value={pageSize ?? (Array.isArray(pageSizeOptions) ? pageSizeOptions[0] : 10)}
                 className={classes.select}
-                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                onChange={(e) => handlePageSizeChange?.(Number(e.target.value))}
               >
-                {pageSizeOptions.map((pageSizeOption) => (
-                  <option key={pageSizeOption} value={pageSizeOption}>
-                    {pageSizeOption}
-                  </option>
-                ))}
+                {Array.isArray(pageSizeOptions) &&
+                  pageSizeOptions.map((pageSizeOption) => (
+                    <option key={pageSizeOption} value={pageSizeOption}>
+                      {pageSizeOption}
+                    </option>
+                  ))}
               </StudioSelect>
               <StudioParagraph data-size={size} className={classes.rowCounter}>
                 {totalRowsText} {retainedTotalRows}
               </StudioParagraph>
             </div>
-            {retainedTotalPages > 1 && (
+            {hasTotalPages && hasCurrentPage && canChangePage && retainedTotalPages! > 1 && (
               <StudioPagination
                 currentPage={currentPage}
                 totalPages={retainedTotalPages}

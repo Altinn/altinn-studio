@@ -30,10 +30,10 @@ describe('useTableSorting', () => {
 
   it('should sort rows in ascending order when a column is clicked', async () => {
     const { result } = renderHook(() => useTableSorting(rows, { enable: true }));
-    act(() => result.current.handleSorting('creator'));
+    act(() => result.current.handleSorting!('creator'));
 
     const creatorsAscending: string[] = [];
-    result.current.sortedRows.forEach((row) => {
+    result.current.sortedRows!.forEach((row) => {
       creatorsAscending.push(String(row.creator));
     });
 
@@ -44,11 +44,11 @@ describe('useTableSorting', () => {
 
   it('should sort rows in descending order when the same column is clicked again', async () => {
     const { result } = renderHook(() => useTableSorting(rows, { enable: true }));
-    act(() => result.current.handleSorting('creator'));
-    act(() => result.current.handleSorting('creator'));
+    act(() => result.current.handleSorting!('creator'));
+    act(() => result.current.handleSorting!('creator'));
 
     const creatorsDescending: string[] = [];
-    result.current.sortedRows.forEach((row) => {
+    result.current.sortedRows!.forEach((row) => {
       creatorsDescending.push(String(row.creator));
     });
 
@@ -59,9 +59,9 @@ describe('useTableSorting', () => {
 
   it('should reset the sort direction to ascending when a different column is clicked', async () => {
     const { result } = renderHook(() => useTableSorting(rows, { enable: true }));
-    act(() => result.current.handleSorting('creator'));
-    act(() => result.current.handleSorting('id'));
-    expect(result.current.sortedRows).toEqual(rows);
+    act(() => result.current.handleSorting!('creator'));
+    act(() => result.current.handleSorting!('id'));
+    expect(result.current.sortedRows!).toEqual(rows);
   });
 
   it("should make 'sortedRows' and 'handleSorting' undefined when enable is false", () => {
@@ -76,13 +76,13 @@ describe('useTableSorting', () => {
       useTableSorting(rows, { enable: true, shouldPersistSort: true }),
     );
 
-    act(() => result.current.handleSorting('creator'));
+    act(() => result.current.handleSorting!('creator'));
     expect(setItemSpy).toHaveBeenCalledWith(TableSortStorageKey.Default, {
       column: 'creator',
       direction: 'asc',
     });
 
-    act(() => result.current.handleSorting('creator'));
+    act(() => result.current.handleSorting!('creator'));
     expect(setItemSpy).toHaveBeenCalledWith(TableSortStorageKey.Default, {
       column: 'creator',
       direction: 'desc',

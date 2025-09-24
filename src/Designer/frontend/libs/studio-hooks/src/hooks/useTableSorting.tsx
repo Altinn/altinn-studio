@@ -20,7 +20,7 @@ export const useTableSorting = (rows: Rows, options: TableSortingOptions) => {
   const { enable, shouldPersistSort = false, storageKey = TableSortStorageKey.Default } = options;
 
   const savedPreference: SortPreference | null = shouldPersistSort
-    ? typedLocalStorage.getItem<SortPreference>(storageKey)
+    ? (typedLocalStorage.getItem<SortPreference>(storageKey) ?? null)
     : null;
 
   const [sortColumn, setSortColumn] = useState<string | null>(savedPreference?.column ?? null);
@@ -67,6 +67,7 @@ export const useTableSorting = (rows: Rows, options: TableSortingOptions) => {
           cellB = cellB.toLowerCase();
         }
 
+        if (cellA == null || cellB == null) return 0;
         if (cellA > cellB) return sortDirection === 'asc' ? 1 : -1;
         if (cellA < cellB) return sortDirection === 'asc' ? -1 : 1;
         return 0;
