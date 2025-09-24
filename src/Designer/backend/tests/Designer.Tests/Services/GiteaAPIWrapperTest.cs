@@ -25,7 +25,7 @@ namespace Designer.Tests.Services
     public class GiteaAPIWrapperTest
     {
         [Fact]
-        public async Task CreateBranch_Successfull_BranchReturned()
+        public async Task CreateBranch_Successful_BranchReturned()
         {
             // Arrange
             var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
@@ -89,7 +89,7 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public async Task Search_Successfull_Repo_Returned_One_Page()
+        public async Task Search_Successful_Repo_Returned_One_Page()
         {
             // Arrange
             SearchResults searchResult = new SearchResults();
@@ -129,7 +129,7 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public async Task Search_Successfull_Repo_Returned_Multiple_Pages()
+        public async Task Search_Successful_Repo_Returned_Multiple_Pages()
         {
             // Arrange
             SearchResults searchResult = new SearchResults();
@@ -338,7 +338,6 @@ namespace Designer.Tests.Services
             };
 
             // Configuring the mock handler to return the response message for organization requests.
-            // Note the org_ prefix added to the org code, this is how it needs to be when requesting a org from Gitea.
             handlerMock
                 .Protected()
                 .Setup<Task<HttpResponseMessage>>(
