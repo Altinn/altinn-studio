@@ -1,6 +1,6 @@
 using Altinn.Studio.Designer.Helpers;
 
-namespace Altinn.Studio.Designer.Services.Implementation;
+namespace Altinn.Studio.Designer.Models;
 
 public record AltinnRepoName
 {

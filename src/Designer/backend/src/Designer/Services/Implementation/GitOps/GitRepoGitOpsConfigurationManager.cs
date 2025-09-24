@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
@@ -21,18 +22,18 @@ public class GitRepoGitOpsConfigurationManager(
     IGitOpsManifestsRenderer gitOpsManifestsRenderer,
     ISourceControl sourceControl,
     IAltinnGitRepositoryFactory gitRepositoryFactory,
-    TimeProvider timeProvider) : IGitOpsConfigurationManager
+    TimeProvider timeProvider,
+    GitOpsSettings gitOpsSettings) : IGitOpsConfigurationManager
 {
 
-    private const string GitOpsOrgOwner = "als";
-    private static string RepoName(string org) => $"{org}-gitops";
+    private string RepoName(string org) => string.Format(gitOpsSettings.GitOpsRepoNameFormat, org);
 
     public async Task EnsureGitOpsConfigurationExists(AltinnOrgEditingContext context, AltinnEnvironment environment)
     {
         DeleteLocalRepositoryIfExists(context);
         await EnsureRemoteRepositoryExists(context);
 
-        await sourceControl.CloneRemoteRepository(GitOpsOrgOwner,  RepoName(context.Org));
+        await sourceControl.CloneRemoteRepository(gitOpsSettings.GitOpsOrg,  RepoName(context.Org));
 
         await EnsureBaseManifests(context);
         await EnsureEnvironmentManifests(context, environment);
@@ -41,7 +42,7 @@ public class GitRepoGitOpsConfigurationManager(
     private async Task EnsureRemoteRepositoryExists(AltinnOrgEditingContext context)
     {
         // Check if repo exists
-        var repoExists = await giteaApi.GetRepository(GitOpsOrgOwner, RepoName(context.Org));
+        var repoExists = await giteaApi.GetRepository(gitOpsSettings.GitOpsOrg, RepoName(context.Org));
         if (repoExists is null)
         {
             // Create repo with template
@@ -52,7 +53,7 @@ public class GitRepoGitOpsConfigurationManager(
                 makePrivate: false
             );
 
-            await giteaApi.CreateRepository(GitOpsOrgOwner, createOptions);
+            await giteaApi.CreateRepository(gitOpsSettings.GitOpsOrg, createOptions);
         }
     }
 
@@ -107,23 +108,19 @@ public class GitRepoGitOpsConfigurationManager(
         });
     }
 
-    public async Task<bool> AppExistsInGitOpsConfiguration(AltinnRepoEditingContext context, AltinnEnvironment environment)
+    public async Task<bool> AppExistsInGitOpsConfiguration(AltinnOrgEditingContext context, AltinnRepoName app, AltinnEnvironment environment)
     {
-        var repository = gitRepositoryFactory.GetAltinnGitRepository(context.Org, RepoName(context.Org), context.Developer);
+        string repoName = RepoName(context.Org);
+        var repository = gitRepositoryFactory.GetAltinnGitRepository(context.Org, repoName, context.Developer);
 
-        if (!AppFolderExists(repository, context.Repo) ||
-            !AppManifestExists(repository, context.Repo) ||
-            !EnvironmentKustomizationExists(repository, environment))
+        if (!repository.DirectoryExistsByRelativePath($"apps/{app.Name}") ||
+            !repository.FileExistsByRelativePath($"apps/{app.Name}/kustomization.yaml") ||
+            !repository.FileExistsByRelativePath($"{environment.Name}/kustomization.yaml"))
         {
             return false;
         }
 
-        return await AppIsReferencedInEnvironment(repository, context.Repo, environment);
-    }
-
-    private static bool AppFolderExists(AltinnGitRepository repository, string repoName)
-    {
-        return repository.DirectoryExistsByRelativePath($"apps/{repoName}");
+        return await AppIsReferencedInEnvironment(repository, app.Name, environment);
     }
 
     private static bool AppManifestExists(AltinnGitRepository repository, string repoName)
@@ -144,7 +141,7 @@ public class GitRepoGitOpsConfigurationManager(
         string kustomizationPath = $"{environment.Name}/kustomization.yaml";
         string content = await repository.ReadTextByRelativePathAsync(kustomizationPath);
 
-        string expectedResourcePath = $"../apps/{repoName}";
+        string expectedResourcePath = ManifestsPathHelper.EnvironmentManifests.KustomizationAppResource(repoName);
         return content.Contains(expectedResourcePath, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -152,7 +149,8 @@ public class GitRepoGitOpsConfigurationManager(
     {
         var repository = gitRepositoryFactory.GetAltinnGitRepository(context.Org, RepoName(context.Org), context.Developer);
 
-        if (!AppFolderExists(repository, context.Repo))
+        if (!repository.DirectoryExistsByRelativePath($"apps/{context.Repo}") ||
+            !AppManifestExists(repository, context.Repo))
         {
             var appManifests = gitOpsManifestsRenderer.GetAppManifests(context);
             await WriteManifestsToFiles(AltinnOrgEditingContext.FromOrgDeveloper(context.Org, context.Developer), appManifests);
@@ -198,9 +196,9 @@ public class GitRepoGitOpsConfigurationManager(
         var repository =
             gitRepositoryFactory.GetAltinnGitRepository(context.Org, RepoName(context.Org), context.Developer);
 
-        foreach (var manifest in manifests)
+        foreach ((string manifestPath, string content) in manifests)
         {
-            await repository.WriteTextByRelativePathAsync(manifest.Key, manifest.Value, true);
+            await repository.WriteTextByRelativePathAsync(manifestPath, content, true);
         }
     }
 

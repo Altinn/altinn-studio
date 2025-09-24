@@ -36,7 +36,7 @@ public class ScribanGitOpsManifestsRenderer : IGitOpsManifestsRenderer
             string resourceTemplate = EmbeddedResourceHelper.ReadEmbeddedResourceAsString(resource);
             var manifestTemplate = Template.ParseLiquid(resourceTemplate);
 
-            manifests[$"./apps/{context.Repo}/{EmbeddedResourceHelper.GetFileNameFromResourceName(resource)}"] =
+            manifests[$"{ManifestsPathHelper.AppManifests.AppDirectoryPath(context.Repo)}/{EmbeddedResourceHelper.GetFileNameFromResourceName(resource)}"] =
                 manifestTemplate.Render(templateValues);
         }
         return manifests;
@@ -52,7 +52,7 @@ public class ScribanGitOpsManifestsRenderer : IGitOpsManifestsRenderer
         {
             string resourceTemplate = EmbeddedResourceHelper.ReadEmbeddedResourceAsString(resource);
             var manifestTemplate = Template.ParseLiquid(resourceTemplate);
-            manifests[$"./{environment.Name}/{EmbeddedResourceHelper.GetFileNameFromResourceName(resource)}"] =
+            manifests[$"{ManifestsPathHelper.EnvironmentManifests.DirectoryPath(environment.Name)}/{EmbeddedResourceHelper.GetFileNameFromResourceName(resource)}"] =
                 manifestTemplate.Render(templateValues);
         }
         return manifests;
