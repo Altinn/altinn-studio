@@ -43,6 +43,26 @@ public sealed record CodeList(List<Code> Codes, CodeListSource? Source, List<str
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Source?.GetHashCode(), Codes, TagNames);
+        var hash = new HashCode();
+
+        if (Codes is not null)
+        {
+            foreach (Code code in Codes)
+            {
+                hash.Add(code);
+            }
+        }
+
+        hash.Add(Source);
+
+        if (TagNames is not null)
+        {
+            foreach (string name in TagNames)
+            {
+                hash.Add(name);
+            }
+        }
+
+        return hash.ToHashCode();
     }
 }
