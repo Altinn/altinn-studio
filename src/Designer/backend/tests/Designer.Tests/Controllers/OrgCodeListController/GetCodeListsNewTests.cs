@@ -85,8 +85,9 @@ public class GetCodeListsNewTests : DesignerEndpointsTestsBase<GetCodeListsNewTe
         List<CodeListWrapper>? result = JsonSerializer.Deserialize<List<CodeListWrapper>>(responseBody, s_jsonOptions);
 
         // Assert
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(result);
         Assert.Equal(expected, result);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         _orgCodeListService.Verify(service => service.GetCodeListsNew(Org, string.Empty, It.IsAny<CancellationToken>()), Times.Once);
     }
