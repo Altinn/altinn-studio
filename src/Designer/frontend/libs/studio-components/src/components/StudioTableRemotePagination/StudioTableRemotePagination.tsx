@@ -1,6 +1,6 @@
 import React, { forwardRef, useEffect, useId, useRef } from 'react';
 import { StudioPagination } from './StudioPagination/StudioPagination';
-import { useRetainWhileLoading } from '../../../../studio-hooks/src/hooks/useRetainWhileLoading';
+import { useRetainWhileLoading } from '@studio/hooks';
 import type { ReactNode } from 'react';
 import classes from './StudioTableRemotePagination.module.css';
 import {
