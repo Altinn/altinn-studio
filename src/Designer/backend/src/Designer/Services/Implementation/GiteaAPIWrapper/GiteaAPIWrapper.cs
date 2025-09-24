@@ -668,7 +668,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private static string AddRefIfExists(string path, string reference)
         {
-            return string.IsNullOrEmpty(reference) ? $"{path}" : $"{path}?ref={reference}";
+            if (string.IsNullOrWhiteSpace(reference))
+            {
+                return path;
+            }
+            return $"{path}?ref={Uri.EscapeDataString(reference)}";
         }
     }
 }
