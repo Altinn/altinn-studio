@@ -4,14 +4,11 @@ import { StudioButton } from '../StudioButton';
 import { ChevronLeftIcon, ChevronRightIcon } from '@studio/icons';
 import { type StudioPaginatedNavigation } from './types/StudioPaginatedNavigation';
 
-type NavigationButtonTexts = {
+export type NavigationButtonTexts = {
   previous: string;
   next: string;
 };
 
-/**
- * @deprecated use `StudioPaginatedContent` from `@studio/components` instead.
- */
 export type StudioPaginatedContentProps = {
   totalPages: number;
   currentPageNumber: number;
@@ -31,19 +28,31 @@ export const StudioPaginatedContent = ({
     <div className={classes.wrapper}>
       <div>{componentToRender}</div>
       <div className={classes.buttonWrapper}>
-        <StudioButton variant='tertiary' size='sm' onClick={onPrevious} disabled={!canGoPrevious}>
+        <NavigationButton onClick={onPrevious} disabled={!canGoPrevious}>
           <ChevronLeftIcon className={classes.icon} />
           {previousButtonText}
-        </StudioButton>
+        </NavigationButton>
         <NavigationStepIndicator totalPages={totalPages} currentPageNumber={currentPageNumber} />
-        <StudioButton variant='tertiary' size='sm' onClick={onNext} disabled={!canGoNext}>
+        <NavigationButton onClick={onNext} disabled={!canGoNext}>
           {nextButtonText}
           <ChevronRightIcon />
-        </StudioButton>
+        </NavigationButton>
       </div>
     </div>
   );
 };
+
+type NavigationButtonProps = {
+  onClick: () => void;
+  disabled: boolean;
+  children: ReactNode;
+};
+
+const NavigationButton = ({ onClick, disabled, children }: NavigationButtonProps): ReactElement => (
+  <StudioButton variant='tertiary' data-size='sm' onClick={onClick} disabled={disabled}>
+    {children}
+  </StudioButton>
+);
 
 type NavigationCirclesProps = {
   totalPages: number;
@@ -56,7 +65,7 @@ const NavigationStepIndicator = ({
 }: NavigationCirclesProps): React.ReactElement => {
   return (
     <div className={classes.statusBarContainer}>
-      {getArrayFromLength(totalPages).map((_, index) => (
+      {Array.from({ length: totalPages }, (_, index) => (
         <div
           key={index}
           role='status'
@@ -66,6 +75,3 @@ const NavigationStepIndicator = ({
     </div>
   );
 };
-
-const getArrayFromLength = (length: number): number[] =>
-  Array.from({ length }, (_, index) => index);
