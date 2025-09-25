@@ -30,8 +30,12 @@ data:
         server kuberneteswrapper:3000;
       }
 
+      upstream admin {
+        server altinn-admin:3000;
+      }
+
       map $uri $spa_path {
-        ~^/(dashboard|editor|preview|resourceadm|info)(/.*)?$ $1;
+        ~^/(dashboard|editor|preview|admin|resourceadm|info)(/.*)?$ $1;
         default                                               none;
       }
 
@@ -108,11 +112,18 @@ data:
           proxy_set_header 	  X-Forwarded-For $remote_addr;
         }
 
-        location ~ ^/(dashboard|editor|preview|resourceadm|info)/assets(/.*)?$ {
+        location ^~ /admin/api/ {
+          proxy_pass 			    http://admin/;
+          proxy_set_header 	  Host {{ $host }};
+          proxy_set_header 	  X-Forwarded-For $remote_addr;
+          proxy_set_header    X-Forwarded-Proto $scheme;
+        }
+
+        location ~ ^/(dashboard|editor|preview|admin|resourceadm|info)/assets(/.*)?$ {
             proxy_pass http://designer;
         }
 
-        location ~ ^/(dashboard|editor|preview|resourceadm|info)(/.*)?$ {
+        location ~ ^/(dashboard|editor|preview|admin|resourceadm|info)(/.*)?$ {
           rewrite ^/[^/]+(/.*)?$ /$spa_path/index.html break;
           proxy_pass http://designer;
           proxy_set_header 	  Host $host;
