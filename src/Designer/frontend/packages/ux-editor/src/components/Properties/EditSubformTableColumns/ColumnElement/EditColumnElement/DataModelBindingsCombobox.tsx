@@ -5,7 +5,7 @@ import type { IDataModelBindingsKeyValueExplicit } from '../../../../../types/gl
 
 type DataModelBindingsComboboxProps = {
   componentType: string;
-  dataModelBindings?: IDataModelBindingsKeyValueExplicit;
+  dataModelBindings: IDataModelBindingsKeyValueExplicit;
   onDataModelBindingChange: (dataModelBindingKey: string) => void;
   initialDataModelBindingKey: string;
 };
