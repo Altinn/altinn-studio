@@ -24,8 +24,8 @@ A list of decision drivers. These are points which can differ in importance. If 
 - B2: An application must be able to pin a version of a resource, and this resource must be immutable (per service owner).
 - B3: An application must be able to require "latest version" of a resource, and get updates during runtime.
 - B4: The endpoint for retrieving the resources should be open.
-- B5: Nice to have: When using "lastest version", it should be faster to wait for the application to retrieve a new publish of the resource than redeploying the application
-- B6: Need to have: The SLA for the perstistent storage should not be worse than for the application.
+- B5: Nice to have: When using the "latest version", it should be faster to wait for the application to retrieve a new publish of the resource than redeploying the application
+- B6: Need to have: The SLA for the persistent storage should not be worse than for the application.
 - B7: A service owner pays for the storage of the resources they require
 - B8: Users must get an overview over published resources in Studio Library - on the service owner organisations level
 - B9: Users must get an overview over published resources in Studio Library - on a public marketplace
