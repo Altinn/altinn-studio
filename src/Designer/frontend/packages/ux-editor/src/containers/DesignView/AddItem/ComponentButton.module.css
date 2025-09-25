@@ -5,6 +5,7 @@
   padding: 2px;
   overflow: wrap;
   text-align: center;
+  background-color: var(--ds-color-neutral-background-default);
 }
 
 .componentButtonInline {
@@ -13,4 +14,5 @@
   width: 120px;
   margin: 4px;
   padding: 2px;
+  background-color: var(--ds-color-neutral-background-default);
 }
