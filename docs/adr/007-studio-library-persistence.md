@@ -47,8 +47,8 @@ List the pros and cons with the alternatives. This should be in regards to the d
 
 - Good, because it supports B1, B2, B4 and B6
 - Bad, because in order to support B3 it requires increased complexity
-  - Cache invalidation on destributed caching systems
-- Bad, because it does not fullfill the nice to have B5
+  - Cache invalidation on distributed caching systems
+- Bad, because it does not fulfill the nice to have B5
   - In Norway, Altinn CDN is refreshed every hour
 - Bad, because it does not support B7
   - It is a complex issue knowing who uses a resource from Altinn CDN
