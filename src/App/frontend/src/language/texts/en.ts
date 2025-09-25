@@ -40,6 +40,13 @@ export function en() {
     'date_picker.aria_label_year_dropdown': 'Select year',
     'date_picker.aria_label_month_dropdown': 'Select month',
     'date_picker.format_text': 'For example {0}',
+    'time_picker.invalid_time_message': 'Invalid time format. Use format {0}.',
+    'time_picker.min_time_exceeded': 'The time you selected is before the earliest allowed time ({0}).',
+    'time_picker.max_time_exceeded': 'The time you selected is after the latest allowed time ({0}).',
+    'timepicker.hours': 'Hours',
+    'timepicker.minutes': 'Minutes',
+    'timepicker.seconds': 'Seconds',
+    'timepicker.am_pm': 'AM/PM',
     'feedback.title': '## You will soon be forwarded',
     'feedback.body':
       'Waiting for verification. When this is complete you will be forwarded to the next step or receipt automatically.',
