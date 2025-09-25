@@ -1,6 +1,8 @@
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.OrgWide;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.OrgWide.Services;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.RepoUserWide;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.RepoUserWide.Services;
 using Altinn.Studio.Designer.Models;
@@ -35,6 +37,14 @@ public static class DependencyInjectionRequestSyncExtensions
         services.AddSingleton<IRequestSyncEvaluator<AltinnRepoEditingContext>, RepoUserWideRequestSyncEvaluator>();
         services.AddSingleton<IRequestContextResolver<AltinnRepoEditingContext>, RepoUserWideRequestContextResolver>();
         services.RegisterSingletonServicesByBaseType<IRepoUserSyncEligibilityEvaluator>();
+        return services;
+    }
+
+    private static IServiceCollection RegisterOrgWideSyncServices(this IServiceCollection services)
+    {
+        services.AddSingleton<IRequestSyncEvaluator<AltinnOrgContext>, OrgWideRequestSyncEvaluator>();
+        services.AddSingleton<IRequestContextResolver<AltinnOrgContext>, OrgWideRequestContextResolver>();
+        services.RegisterSingletonServicesByBaseType<IOrgWideSyncEligibilityEvaluator>();
         return services;
     }
 
