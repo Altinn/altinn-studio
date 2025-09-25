@@ -1,7 +1,7 @@
 # Studio library persistence
 
-- Status: Proposed
-- Deciders:
+- Status: Accepted
+- Deciders: Team Altinn Studio
 - Date: 04.09.2025
 
 ## Result
