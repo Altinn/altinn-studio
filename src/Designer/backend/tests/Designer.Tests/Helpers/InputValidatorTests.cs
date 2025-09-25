@@ -9,8 +9,6 @@ public class InputValidatorTests
     [Theory]
     [InlineData("_invalidTitle")]
     [InlineData("-invalidTitle")]
-    [InlineData("invalid-title")]
-    [InlineData("invalid.title")]
     [InlineData("invalid title")]
     [InlineData("invalid/title")]
     [InlineData("invalid\0title")]

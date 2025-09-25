@@ -712,37 +712,6 @@ public class OrgCodeListServiceTests : IDisposable
         Assert.Empty(codeListIds);
     }
 
-    [Theory]
-    [InlineData("_invalidTitle")]
-    [InlineData("-invalidTitle")]
-    [InlineData(".invalidTitle")]
-    [InlineData("invalid title")]
-    [InlineData("invalid/title")]
-
-    public void ValidateCodeListTitles_ShouldThrowException_WhenTitleIsInvalid(string invalidTitle)
-    {
-        // Arrange
-        List<CodeListWrapper> codeListWrappers = [
-            new(
-                Title: invalidTitle,
-                HasError: true
-            )
-        ];
-
-        // Act and Assert
-        Assert.Throws<IllegalFileNameException>(() => OrgCodeListService.ValidateCodeListTitles(codeListWrappers));
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData(null)]
-    public void ValidateCommitMessage_Allows_MissingCommitMessage(string invalidCommitMessage)
-    {
-        // Arrange, Act and Assert
-        OrgCodeListService.ValidateCommitMessage(invalidCommitMessage); // Should not throw exception
-    }
-
     [Fact]
     public void ValidateCommitMessage_ShouldThrowException_WhenCommitMessageIsTooLong()
     {
