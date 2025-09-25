@@ -3,6 +3,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
+
   <ItemGroup Label="Altinn specific packages">
     <PackageVersion Include="Altinn.App.Core" Version="8.0.0" />
     <PackageVersion Include="Altinn.Common.AccessToken" Version="5.0.5" />
@@ -11,6 +12,7 @@
     <PackageVersion Include="Altinn.Authorization.ABAC" Version="0.0.8" />
     <PackageVersion Include="Altinn.ApiClients.Maskinporten" Version="9.2.1" />
   </ItemGroup>
+
   <ItemGroup Label="Shared nuget packages">
     <PackageVersion Include="JsonSchema.Net" Version="5.5.1" />
     <PackageVersion Include="CompilerAttributes" Version="1.1.2" />
@@ -39,13 +41,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.9" />
     <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.2.1" />
     <PackageVersion Include="Scrutor" Version="5.1.2" />
-<<<<<<< HEAD
     <PackageVersion Include="Polly" Version="8.6.3" />
-    <PackageVersion Include="Altinn.Authorization.ABAC" Version="0.0.8" />
-    <PackageVersion Include="Altinn.ApiClients.Maskinporten" Version="9.2.1" />
-=======
-    <PackageVersion Include="Polly" Version="8.6.2" />
->>>>>>> c2519611e5 (fix deps and add Scriban)
     <PackageVersion Include="MediatR" Version="12.5.0" />
     <PackageVersion Include="DotNetEnv" Version="3.1.1" />
     <PackageVersion Include="NuGet.Versioning" Version="6.14.0" />
@@ -67,6 +63,7 @@
     <PackageVersion Include="Quartz.Extensions.Hosting" Version="3.14.0" />
     <PackageVersion Include="Quartz.Serialization.SystemTextJson" Version="3.14.0" />
   </ItemGroup>
+
   <ItemGroup Label="Packages used for testing">
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.9" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
