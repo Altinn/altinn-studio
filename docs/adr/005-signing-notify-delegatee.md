@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Deciders: Signing Task Force
-- Date: 2025-12-06
+- Date: 12.06.2025
 
 ## Result
 

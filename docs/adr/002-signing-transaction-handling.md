@@ -1,8 +1,8 @@
 # How we handle transactions for signing
 
--   Status: Accepted
--   Deciders: Johannes Haukland, Bjørn Tore on behalf of Team Apps
--   Date: 02.10.2024
+- Status: Accepted
+- Deciders: Johannes Haukland, Bjørn Tore on behalf of Team Apps
+- Date: 02.10.2024
 
 ## Result
 
