@@ -34,15 +34,15 @@ We will refer to step 1 as the **action** and step 2 as the **message**
 
 ## Decision drivers
 
--   B1: We must not send a **message** unless the **action** is successful
--   B2: We must guarantee "at least once delivery" of the **message** if the **action** is successful
--   B3: We should guarantee "exactly once delivery" of the **message** if the **action** is successful
--   B4: We should not rollback idempotent steps if they are to be redone.
+- B1: We must not send a **message** unless the **action** is successful
+- B2: We must guarantee "at least once delivery" of the **message** if the **action** is successful
+- B3: We should guarantee "exactly once delivery" of the **message** if the **action** is successful
+- B4: We should not rollback idempotent steps if they are to be redone.
 
 ## Alternatives considered
 
--   A1: Rollback - We use a transaction scope. If a step fails then we rollback the previous steps. We retry the transction.
--   A2: State - We store transaction state. We retry, skipping the previously succesful steps.
+- A1: Rollback - We use a transaction scope. If a step fails then we rollback the previous steps. We retry the transction.
+- A2: State - We store transaction state. We retry, skipping the previously succesful steps.
 
 ## Pros and cons
 
@@ -50,9 +50,9 @@ List the pros and cons with the alternatives. This should be in regards to the d
 
 ### A1
 
--   Good, because this alternative adheres to all descision drivers
--   Bad, because it does not fullfill the B4 decision driver, leading to unnecessary traffic.
+- Good, because this alternative adheres to all descision drivers
+- Bad, because it does not fullfill the B4 decision driver, leading to unnecessary traffic.
 
 ### A2
 
--   Good, because it adheres to all **must** decision drivers.
+- Good, because it adheres to all **must** decision drivers.
