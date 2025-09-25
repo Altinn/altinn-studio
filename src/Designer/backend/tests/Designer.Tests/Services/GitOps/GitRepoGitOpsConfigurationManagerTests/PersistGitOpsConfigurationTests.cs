@@ -22,7 +22,7 @@ public class PersistGitOpsConfigurationTests : GitRepoGitOpsConfigurationManager
 
     private async Task PersistGitOpsConfigurationCalled(string environment)
     {
-        await GitOpsConfigurationManager.PersistGitOpsConfiguration(OrgEditingContext, AltinnEnvironment.FromName(environment));
+        await GitOpsConfigurationManager.PersistGitOpsConfigurationAsync(OrgEditingContext, AltinnEnvironment.FromName(environment));
     }
 
     private async Task RepositoryHasChanges()

@@ -106,7 +106,7 @@ public class AddAppToGitOpsConfigurationTests : GitRepoGitOpsConfigurationManage
     private async Task AddAppToGitOpsConfigurationCalled(string app, string environment)
     {
         var context = AltinnRepoEditingContext.FromOrgRepoDeveloper(OrgEditingContext.Org, app, OrgEditingContext.Developer);
-        await GitOpsConfigurationManager.AddAppToGitOpsConfiguration(context, AltinnEnvironment.FromName(environment));
+        await GitOpsConfigurationManager.AddAppToGitOpsConfigurationAsync(context, AltinnEnvironment.FromName(environment));
     }
 
 

@@ -29,7 +29,7 @@ public class GitRepoGitOpsConfigurationManager(
 
     private string GitOpsRepoName(string org) => string.Format(gitOpsSettings.GitOpsRepoNameFormat, org);
 
-    public async Task EnsureGitOpsConfigurationExists(AltinnOrgEditingContext context, AltinnEnvironment environment)
+    public async Task EnsureGitOpsConfigurationExistsAsync(AltinnOrgEditingContext context, AltinnEnvironment environment)
     {
         DeleteLocalRepositoryIfExists(context);
         await EnsureRemoteRepositoryExists(context);
@@ -111,7 +111,7 @@ public class GitRepoGitOpsConfigurationManager(
         });
     }
 
-    public async Task<bool> AppExistsInGitOpsConfiguration(AltinnOrgEditingContext context, AltinnRepoName app, AltinnEnvironment environment)
+    public async Task<bool> AppExistsInGitOpsConfigurationAsync(AltinnOrgEditingContext context, AltinnRepoName app, AltinnEnvironment environment)
     {
         string gitopsRepoName = GitOpsRepoName(context.Org);
         var repository = gitRepositoryFactory.GetAltinnGitRepository(gitOpsSettings.GitOpsOrg, gitopsRepoName, context.Developer);
@@ -137,7 +137,7 @@ public class GitRepoGitOpsConfigurationManager(
         return envKusomizationContent.Contains(expectedResourcePath, StringComparison.InvariantCulture);
     }
 
-    public async Task AddAppToGitOpsConfiguration(AltinnRepoEditingContext context, AltinnEnvironment environment)
+    public async Task AddAppToGitOpsConfigurationAsync(AltinnRepoEditingContext context, AltinnEnvironment environment)
     {
         var repository = gitRepositoryFactory.GetAltinnGitRepository(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), context.Developer);
 
@@ -164,7 +164,7 @@ public class GitRepoGitOpsConfigurationManager(
             : [];
     }
 
-    public async Task RemoveAppFromGitOpsEnvironmentConfiguration(AltinnRepoEditingContext context, AltinnEnvironment environment)
+    public async Task RemoveAppFromGitOpsEnvironmentConfigurationAsync(AltinnRepoEditingContext context, AltinnEnvironment environment)
     {
         var repository = gitRepositoryFactory.GetAltinnGitRepository(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), context.Developer);
 
@@ -177,7 +177,7 @@ public class GitRepoGitOpsConfigurationManager(
         await WriteManifestsToFiles(AltinnOrgEditingContext.FromOrgDeveloper(context.Org, context.Developer), envManifests);
     }
 
-    public async Task PersistGitOpsConfiguration(AltinnOrgEditingContext context, AltinnEnvironment environment)
+    public async Task PersistGitOpsConfigurationAsync(AltinnOrgEditingContext context, AltinnEnvironment environment)
     {
         var repository = gitRepositoryFactory.GetAltinnGitRepository(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), context.Developer);
 

@@ -22,7 +22,7 @@ variables:
   # GITEA_ENVIRONMENT: ''
   # HOSTNAME: ''
   # TAGNAME: ''
-  # SHOULD_PUSH_SYNC_ROOT: 'false' # Set to 'true' to enable pushing sync-root artifact
+  # PUSH_SYNCROOT_GITOPS_IMAGE: 'false' # Set to 'true' to enable pushing sync-root artifact
 
   # Variables for generating yaml files. Paths are relative to the root of the apps repository
   FLUX_ARTIFACT_DIR: 'flux-artifact'
@@ -87,7 +87,7 @@ steps:
 
   - task: CmdLine@2
     displayName: Pull GitOps directory
-    condition: eq(variables['SHOULD_PUSH_SYNC_ROOT'], 'true')
+    condition: eq(variables['PUSH_SYNCROOT_GITOPS_IMAGE'], 'true')
     inputs:
       script: |
         git clone https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$GITOPS_ORGANIZATION/$APP_OWNER$GITOPS_REPO_SUFFIX $GITOPS_REPO_CLONE_DIR
@@ -547,7 +547,7 @@ steps:
 
   - task: AzureCLI@2
     displayName: 'Push sync-root OCI artifact to ACR'
-    condition: eq(variables['SHOULD_PUSH_SYNC_ROOT'], 'true')
+    condition: eq(variables['PUSH_SYNCROOT_GITOPS_IMAGE'], 'true')
     inputs:
       azureSubscription: 'altinn-studio-apps-deploy'
       scriptType: bash

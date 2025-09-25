@@ -115,7 +115,7 @@ public class RemoveAppFromGitOpsEnvironmentConfigurationTests : GitRepoGitOpsCon
     private async Task RemoveAppFromGitOpsEnvironmentConfigurationCalled(string app, string environment)
     {
         var context = AltinnRepoEditingContext.FromOrgRepoDeveloper(OrgEditingContext.Org, app, OrgEditingContext.Developer);
-        await GitOpsConfigurationManager.RemoveAppFromGitOpsEnvironmentConfiguration(context, AltinnEnvironment.FromName(environment));
+        await GitOpsConfigurationManager.RemoveAppFromGitOpsEnvironmentConfigurationAsync(context, AltinnEnvironment.FromName(environment));
     }
 
     private async Task EnvironmentKustomizationManifestShouldNotContainApp(string environment, string app)
