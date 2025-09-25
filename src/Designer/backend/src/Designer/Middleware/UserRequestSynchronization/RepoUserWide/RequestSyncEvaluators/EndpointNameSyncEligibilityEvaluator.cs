@@ -10,7 +10,7 @@ namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.RepoUserW
 /// Evaluates if a request is eligible for synchronization based on the endpoint name.
 /// Contains a whitelist of endpoints that are eligible for synchronization.
 /// </summary>
-public class EndpointNameSyncEvaluator : IRepoUserRequestSyncEvaluator
+public class EndpointNameSyncEligibilityEvaluator : IRepoUserSyncEligibilityEvaluator
 {
     private const string RemoveControllerSuffix = "Controller";
     private static string TrimmedControllerName(string controllerName) => controllerName.Replace(RemoveControllerSuffix, string.Empty);

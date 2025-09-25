@@ -32,9 +32,9 @@ public static class DependencyInjectionRequestSyncExtensions
 
     private static IServiceCollection RegisterRepoUserWideSyncServices(this IServiceCollection services)
     {
-        services.AddSingleton<IRequestSyncResolver<AltinnRepoEditingContext>, RequestSyncResolver>();
-        services.AddSingleton<IEditingContextResolver<AltinnRepoEditingContext>, EditingContextResolver>();
-        services.RegisterSingletonServicesByBaseType<IRepoUserRequestSyncEvaluator>();
+        services.AddSingleton<IRequestSyncEvaluator<AltinnRepoEditingContext>, RepoUserWideRequestSyncEvaluator>();
+        services.AddSingleton<IRequestContextResolver<AltinnRepoEditingContext>, RepoUserWideRequestContextResolver>();
+        services.RegisterSingletonServicesByBaseType<IRepoUserSyncEligibilityEvaluator>();
         return services;
     }
 

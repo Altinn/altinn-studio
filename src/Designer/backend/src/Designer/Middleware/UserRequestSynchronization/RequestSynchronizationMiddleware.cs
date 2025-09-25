@@ -23,11 +23,11 @@ public class RequestSynchronizationMiddleware
     }
 
     public async Task InvokeAsync(HttpContext httpContext,
-        IRequestSyncResolver<AltinnRepoEditingContext> repoUserWideRequestSyncResolver,
+        IRequestSyncEvaluator<AltinnRepoEditingContext> repoUserWideRequestSyncEvaluator,
+        IRequestSyncEvaluator<AltinnOrgContext> orgWideRequestSyncEvaluator,
         IDistributedLockProvider synchronizationProvider)
     {
-
-        if (repoUserWideRequestSyncResolver.TryResolveSyncRequest(httpContext, out AltinnRepoEditingContext editingContext))
+        if (repoUserWideRequestSyncEvaluator.TryEvaluateShouldSyncRequest(httpContext, out AltinnRepoEditingContext editingContext))
         {
             await using (await synchronizationProvider.AcquireLockAsync(editingContext, _waitTimeout, httpContext.RequestAborted))
             {
