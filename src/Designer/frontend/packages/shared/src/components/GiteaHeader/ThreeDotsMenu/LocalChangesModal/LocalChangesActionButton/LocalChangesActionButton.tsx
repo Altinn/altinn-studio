@@ -97,8 +97,8 @@ export const LocalChangesActionButton = ({
         return (
           <div className={classes.linkAndIconWrapper}>
             <Link href={action.href}>
-              {text}
               {icon}
+              {text}
             </Link>
           </div>
         );
