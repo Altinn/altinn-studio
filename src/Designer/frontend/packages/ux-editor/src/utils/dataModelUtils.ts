@@ -110,7 +110,7 @@ export function convertDataBindingToInternalFormat(
   if (isExplicitDataModelBinding(binding)) return binding;
 
   return {
-    field: binding,
+    field: binding ?? '',
     dataType: layoutDefaultDataType,
   };
 }
