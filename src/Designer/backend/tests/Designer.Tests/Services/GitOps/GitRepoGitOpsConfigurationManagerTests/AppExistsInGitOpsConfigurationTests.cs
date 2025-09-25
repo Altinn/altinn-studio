@@ -46,7 +46,7 @@ public class AppExistsInGitOpsConfigurationTests : GitRepoGitOpsConfigurationMan
 
     private async Task AppExistsInGitOpsConfigurationCalled(string app, string environment)
     {
-        AppExistCallResult = await GitOpsConfigurationManager.AppExistsInGitOpsConfiguration(OrgEditingContext, AltinnRepoName.FromName(app), AltinnEnvironment.FromName(environment));
+        AppExistCallResult = await GitOpsConfigurationManager.AppExistsInGitOpsConfigurationAsync(OrgEditingContext, AltinnRepoName.FromName(app), AltinnEnvironment.FromName(environment));
     }
 
     private void AppExistCallResultShouldBe(bool expected)

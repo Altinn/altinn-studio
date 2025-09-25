@@ -159,7 +159,7 @@ public class EnsureGitOpsConfigurationExistsTests : GitRepoGitOpsConfigurationMa
 
     private async Task EnsureGitOpsConfigurationExistsCalled(string environment)
     {
-        await GitOpsConfigurationManager.EnsureGitOpsConfigurationExists(OrgEditingContext, AltinnEnvironment.FromName(environment));
+        await GitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(OrgEditingContext, AltinnEnvironment.FromName(environment));
     }
 
     private EnsureGitOpsConfigurationExistsTests LocalRepositoryDoesNotExist()
