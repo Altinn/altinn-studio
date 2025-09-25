@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
-import { StudioButton, StudioModal } from '@studio/components-legacy';
+import { StudioModal } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { DialogContent } from './components/DialogContent';
 
@@ -15,7 +16,7 @@ export const UndeployConsequenceDialog = ({
 
   return (
     <>
-      <StudioButton size='sm' onClick={openDialog} variant='tertiary'>
+      <StudioButton onClick={openDialog} variant='tertiary'>
         {t('app_deployment.undeploy_button')}
       </StudioButton>
       <StudioModal.Dialog

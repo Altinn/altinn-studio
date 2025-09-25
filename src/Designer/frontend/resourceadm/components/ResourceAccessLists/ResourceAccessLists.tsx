@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 import classes from './ResourceAccessLists.module.css';
 import {
   StudioSpinner,
-  StudioButton,
   StudioLink,
+  StudioButton,
   StudioCheckbox,
   StudioHeading,
 } from '@studio/components';
