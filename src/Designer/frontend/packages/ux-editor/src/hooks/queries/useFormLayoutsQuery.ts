@@ -14,7 +14,8 @@ export const useFormLayoutsQuery = (
   const { getFormLayouts } = useServicesContext();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
   const layoutSetDatatype =
-    layoutSetName && layoutSets.sets.find((layoutSet) => layoutSet.id === layoutSetName).dataType;
+    layoutSetName &&
+    layoutSets?.sets?.find((layoutSet) => layoutSet.id === layoutSetName)?.dataType;
 
   return useQuery({
     queryKey: [QueryKey.FormLayouts, org, app, layoutSetName],
