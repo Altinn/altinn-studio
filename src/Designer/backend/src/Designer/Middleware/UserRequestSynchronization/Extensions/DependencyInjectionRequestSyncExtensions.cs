@@ -5,13 +5,14 @@ using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.OrgWide;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.OrgWide.Services;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.RepoUserWide;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.RepoUserWide.Services;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Services;
 using Altinn.Studio.Designer.Models;
 using Medallion.Threading;
 using Medallion.Threading.Postgres;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
+namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Extensions;
 
 public static class DependencyInjectionRequestSyncExtensions
 {
@@ -23,6 +24,7 @@ public static class DependencyInjectionRequestSyncExtensions
     /// <returns>A reference to this instance after the operation has completed.</returns>
     public static IServiceCollection RegisterSynchronizationServices(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddTransient<IHttpContextDataExtractor, HttpContextDataExtractor>();
         services.RegisterRepoUserWideSyncServices();
         services.RegisterOrgWideSyncServices();
         services.AddSingleton<IDistributedLockProvider>(_ =>

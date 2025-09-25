@@ -5,7 +5,7 @@ namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstracti
 /// <summary>
 /// Determines if the incoming request should be synchronized.
 /// </summary>
-public interface IRequestSyncEvaluator<TRequestSyncContext> where TRequestSyncContext: class
+public interface IRequestSyncEvaluator<TRequestSyncContext> where TRequestSyncContext : class
 {
     /// <summary>
     /// Determines if the incoming request should be synchronized.

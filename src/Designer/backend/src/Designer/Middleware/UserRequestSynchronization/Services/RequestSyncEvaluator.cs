@@ -3,7 +3,7 @@ using System.Linq;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;
 using Microsoft.AspNetCore.Http;
 
-namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
+namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Services;
 
 /// <summary>
 /// Generic request synchronization evaluator that works with any context type and evaluator type.
