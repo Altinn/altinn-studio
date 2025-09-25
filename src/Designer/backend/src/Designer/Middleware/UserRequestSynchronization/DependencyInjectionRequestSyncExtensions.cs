@@ -24,6 +24,7 @@ public static class DependencyInjectionRequestSyncExtensions
     public static IServiceCollection RegisterSynchronizationServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.RegisterRepoUserWideSyncServices();
+        services.RegisterOrgWideSyncServices();
         services.AddSingleton<IDistributedLockProvider>(_ =>
         {
             PostgreSQLSettings postgresSettings = configuration.GetSection(nameof(PostgreSQLSettings)).Get<PostgreSQLSettings>();
@@ -34,7 +35,8 @@ public static class DependencyInjectionRequestSyncExtensions
 
     private static IServiceCollection RegisterRepoUserWideSyncServices(this IServiceCollection services)
     {
-        services.AddSingleton<IRequestSyncEvaluator<AltinnRepoEditingContext>, RepoUserWideRequestSyncEvaluator>();
+        services.AddTransient<IRequestSyncEvaluator<AltinnRepoEditingContext>,
+            RequestSyncEvaluator<AltinnRepoEditingContext, IRepoUserSyncEligibilityEvaluator>>();
         services.AddSingleton<IRequestContextResolver<AltinnRepoEditingContext>, RepoUserWideRequestContextResolver>();
         services.RegisterSingletonServicesByBaseType<IRepoUserSyncEligibilityEvaluator>();
         return services;
@@ -42,7 +44,8 @@ public static class DependencyInjectionRequestSyncExtensions
 
     private static IServiceCollection RegisterOrgWideSyncServices(this IServiceCollection services)
     {
-        services.AddSingleton<IRequestSyncEvaluator<AltinnOrgContext>, OrgWideRequestSyncEvaluator>();
+        services.AddTransient<IRequestSyncEvaluator<AltinnOrgContext>,
+            RequestSyncEvaluator<AltinnOrgContext, IOrgWideSyncEligibilityEvaluator>>();
         services.AddSingleton<IRequestContextResolver<AltinnOrgContext>, OrgWideRequestContextResolver>();
         services.RegisterSingletonServicesByBaseType<IOrgWideSyncEligibilityEvaluator>();
         return services;
