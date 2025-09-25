@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Deciders: Team Apps, Johannes Haukland
-- Date: 2025-06-12
+- Date: 12.06.2025
 
 ## Result
 
@@ -120,6 +120,7 @@ No environment-specific support, requiring same resource ID across all environme
 The decision favors A2 (BPMN with direct correspondenceResource elements) based on the principle of consolidating related configuration while maintaining a clean, readable structure.
 
 Key factors in the decision:
+
 1. **Configuration consolidation**: Developers can see all signing configuration in one location
 2. **Compact structure**: More streamlined than wrapper-based approaches while still supporting environment-specific configuration
 3. **Flexibility**: Optional `env` attribute allows global defaults when environment-specific configuration isn't needed

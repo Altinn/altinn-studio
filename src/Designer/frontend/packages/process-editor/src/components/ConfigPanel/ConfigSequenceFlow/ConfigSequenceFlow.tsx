@@ -5,10 +5,9 @@ import {
   KeyLookupFuncName,
   PredefinedGatewayAction,
   SimpleSubexpressionValueType,
-  StudioButton,
   StudioExpression,
 } from '@studio/components-legacy';
-import { StudioSectionHeader } from '@studio/components';
+import { StudioSectionHeader, StudioButton } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { Paragraph } from '@digdir/designsystemet-react';

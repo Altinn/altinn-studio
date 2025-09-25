@@ -1,7 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { toast } from 'react-toastify';
-import { StudioButton, StudioModal } from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import { StudioModal } from '@studio/components-legacy';
+import { StudioButton, StudioParagraph } from '@studio/components';
 import type { ButtonTexts, QuestionConfig, QuestionsProps } from '../types/QuestionsProps';
 import { YesNoQuestion } from './Question/YesNoQuestion';
 import { useFeedbackFormContext } from '../contexts/FeedbackFormContext';
@@ -100,7 +100,7 @@ export function FeedbackForm({
             {disclaimer}
           </StudioParagraph>
         )}
-        <StudioButton onClick={handleSubmit} color='success'>
+        <StudioButton onClick={handleSubmit} data-color='success'>
           {buttonTexts.submit}
         </StudioButton>
       </StudioModal.Dialog>

@@ -1,6 +1,6 @@
 import React from 'react';
-import { StudioButton, StudioCombobox } from '@studio/components-legacy';
-import { StudioDeleteButton } from '@studio/components';
+import { StudioCombobox } from '@studio/components-legacy';
+import { StudioDeleteButton, StudioButton } from '@studio/components';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';

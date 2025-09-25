@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Deciders: Signing Task Force
-- Date: 2025-12-06
+- Date: 12.06.2025
 
 ## Result
 
@@ -39,6 +39,7 @@ User testing with internal team members showed conclusively that the current app
 ### A1 - Correspondence message to delegatee (CHOSEN)
 
 Send a correspondence message directly to the delegatee's inbox containing:
+
 - Clear indication that they have been delegated access
 - Direct link to the application instance
 - Context about what action is required
@@ -86,6 +87,7 @@ Maintain current approach and provide user guidance on how to navigate to delega
 The decision favors A1 (correspondence message to delegatee) based on user testing results and the need for an immediate, practical solution that works within existing system constraints.
 
 Key factors in the decision:
+
 1. **User testing evidence**: Internal testing demonstrated that even technically knowledgeable users struggled with the current approach
 2. **Practical implementation**: Solution works within existing correspondence service capabilities without requiring architectural changes
 3. **Immediate relief**: Provides direct path to delegated instances without waiting for larger inbox restructuring
