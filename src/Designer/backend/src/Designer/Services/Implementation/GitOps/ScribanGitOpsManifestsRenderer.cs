@@ -18,7 +18,7 @@ public class ScribanGitOpsManifestsRenderer : IGitOpsManifestsRenderer
         var manifests = new Dictionary<string, string>();
         foreach (string resource in baseResources)
         {
-            manifests[$"./base/{EmbeddedResourceHelper.GetFileNameFromResourceName(resource)}"] = EmbeddedResourceHelper.ReadEmbeddedResourceAsString( resource);
+            manifests[$"./base/{EmbeddedResourceHelper.GetFileNameFromResourceName(resource)}"] = EmbeddedResourceHelper.ReadEmbeddedResourceAsString(resource);
         }
         return manifests;
     }
