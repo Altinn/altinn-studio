@@ -66,13 +66,15 @@ export function AddCodeListDropdown({
     <>
       <StudioDropdown
         triggerButtonVariant='secondary'
-        triggerButtonText={t('app_content_library.code_lists.add_new_code_list')}
+        triggerButtonText={t(
+          'app_content_library.code_lists_with_text_resources.add_new_code_list',
+        )}
         icon={<PlusIcon />}
         className={classes.dropdown}
       >
         <StudioDropdown.Item>
           <StudioDropdown.Button onClick={handleOpenAddCodeListDialog} icon={<PlusCircleIcon />}>
-            {t('app_content_library.code_lists.create_new_code_list')}
+            {t('app_content_library.code_lists_with_text_resources.create_new_code_list')}
           </StudioDropdown.Button>
         </StudioDropdown.Item>
         <StudioDropdown.Item>
@@ -80,7 +82,9 @@ export function AddCodeListDropdown({
             icon={<UploadIcon />}
             onFileUpload={onSubmit}
             fileInputProps={{ accept: '.json' }}
-            uploadButtonText={t('app_content_library.code_lists.upload_code_list')}
+            uploadButtonText={t(
+              'app_content_library.code_lists_with_text_resources.upload_code_list',
+            )}
           />
         </StudioDropdown.Item>
         {hasExternalResources && (
@@ -89,7 +93,7 @@ export function AddCodeListDropdown({
               onClick={handleOpenImportCodeListDialog}
               icon={<FileImportIcon />}
             >
-              {t('app_content_library.code_lists.import_from_org_library')}
+              {t('app_content_library.code_lists_with_text_resources.import_from_org_library')}
             </StudioDropdown.Button>
           </StudioDropdown.Item>
         )}

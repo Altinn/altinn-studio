@@ -30,7 +30,7 @@ function ImportFromOrgLibraryDialog(
       <StudioDialog.Block className={classes.headingBlock}>
         <BookIcon className={classes.headingIcon} />
         <StudioHeading level={2}>
-          {t('app_content_library.code_lists.import_modal_heading')}
+          {t('app_content_library.code_lists_with_text_resources.import_modal_heading')}
         </StudioHeading>
       </StudioDialog.Block>
       <StudioDialog.Block>
@@ -73,13 +73,15 @@ function ImportCodeList({
   return (
     <div className={classes.dialogContent}>
       <StudioSelect
-        label={t('app_content_library.code_lists.import_modal_select_label')}
-        description={t('app_content_library.code_lists.import_modal_select_description')}
+        label={t('app_content_library.code_lists_with_text_resources.import_modal_select_label')}
+        description={t(
+          'app_content_library.code_lists_with_text_resources.import_modal_select_description',
+        )}
         value={selectedCodeListId}
         onChange={handleSelectCodeListId}
       >
         <StudioSelect.Option value='' disabled>
-          {t('app_content_library.code_lists.no_code_list_selected')}
+          {t('app_content_library.code_lists_with_text_resources.no_code_list_selected')}
         </StudioSelect.Option>
         <CodeListIdOptions codeListIds={codeListIds} />
       </StudioSelect>
@@ -89,7 +91,7 @@ function ImportCodeList({
         onClick={handleImportCodeList}
         disabled={!selectedCodeListId}
       >
-        {t('app_content_library.code_lists.import_modal_import_button')}
+        {t('app_content_library.code_lists_with_text_resources.import_modal_import_button')}
       </StudioButton>
     </div>
   );
