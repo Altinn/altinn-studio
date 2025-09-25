@@ -1,0 +1,9 @@
+@media print {
+  .accordion h2 > button {
+    display: unset !important;
+  }
+
+  .accordion {
+    break-inside: avoid;
+  }
+}

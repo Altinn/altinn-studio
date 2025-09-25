@@ -1,0 +1,14 @@
+{
+  "comment": "This tests our compliance to the date-time format from the JSON Schema Test Suite.",
+  "source": "https://github.com/json-schema-org/JSON-Schema-Test-Suite/blob/main/tests/draft2020-12/optional/format/date-time.json",
+  "name": "Compliance: a valid date-time string with minus offset",
+  "expression": [
+    "formatDate",
+    "1990-12-31T15:59:50.123-08:00",
+    "G yyyy-MM-dd EEEE HH:mm:ss.SSS a"
+  ],
+  "expects": "e.Kr. 1990-12-31 mandag 23:59:50.123 p.m.",
+  "profileSettings": {
+    "language": "nb"
+  }
+}

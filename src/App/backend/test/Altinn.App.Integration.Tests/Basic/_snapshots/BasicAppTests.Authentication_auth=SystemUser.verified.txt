@@ -1,0 +1,49 @@
+﻿{
+  type: SystemUser,
+  systemUserId: [
+    Guid_1
+  ],
+  systemUserOrgNr: 950474084,
+  supplierOrgNr: 913312465,
+  systemId: 913312465_sbs,
+  authenticationLevel: 3,
+  authenticationMethod: maskinporten,
+  details: {
+    party: {
+      partyId: 500700,
+      partyTypeName: Organisation,
+      partyUuid: Guid_2,
+      ssn: ,
+      orgNumber: 950474084,
+      unitType: BRL,
+      name: Oslos Vakreste Borettslag,
+      isDeleted: false,
+      onlyHierarchyElementWithNoAccess: false,
+      person: null,
+      organization: {
+        orgNumber: 950474084,
+        name: Oslos Vakreste Borettslag,
+        unitType: AS,
+        telephoneNumber: 12345678,
+        mobileNumber: 92010000,
+        faxNumber: 92110000,
+        eMailAddress: epost@setra.no,
+        internetAddress: http://setrabrl.no,
+        mailingAddress: Sofies Gate 2,
+        mailingPostalCode: 0170,
+        mailingPostalCity: Oslo,
+        businessAddress: Sofies Gate 2,
+        businessPostalCode: 0170,
+        businessPostalCity: By
+      },
+      childParties: null
+    },
+    canInstantiate: true
+  },
+  tokenIssuer: Maskinporten,
+  tokenIsExchanged: true,
+  scopes: altinn:instances.read altinn:instances.write,
+  clientId: Guid_3,
+  token: eyJhbGciOiJSUzI1NiIsImtpZCI6IjQ4Q0VFNjAzMzEwMkYzMjQzMTk2NDc4QUYwNkZCNDNBMTc2NEQ4NDMiLCJ4NXQiOiJTTTdtQXpFQzh5UXhsa2VLOEctME9oZGsyRU0iLCJ0eXAiOiJKV1QifQ.<scrubbed1>.<scrubbed2>,
+  detailsError: null
+}

@@ -1,0 +1,72 @@
+{
+  "id": "ttd/vga-dev-v8",
+  "org": "ttd",
+  "title": {
+    "nb": "vga-dev-v8",
+    "en": "vga-dev-v8"
+  },
+  "dataTypes": [
+    {
+      "id": "ref-data-as-pdf",
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
+      "maxCount": 0,
+      "minCount": 0,
+      "enablePdfCreation": true
+    },
+    {
+      "id": "Model",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.Model",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1,
+      "enablePdfCreation": true
+    },
+    {
+      "id": "Extra",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.Extra",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
+      },
+      "taskId": "Task_3",
+      "maxCount": 1,
+      "minCount": 1,
+      "enablePdfCreation": true
+    },
+    {
+      "id": "signature",
+      "allowedContentTypes": [
+        "application/json"
+      ],
+      "taskId": "Task_2",
+      "maxCount": 1,
+      "minCount": 0,
+      "enablePdfCreation": false
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": false,
+    "subUnit": false
+  },
+  "autoDeleteOnProcessEnd": false,
+  "created": "2022-10-21T07:30:47.2710111Z",
+  "createdBy": "tjololo",
+  "lastChanged": "2022-10-21T07:30:47.2710121Z",
+  "lastChangedBy": "tjololo"
+}

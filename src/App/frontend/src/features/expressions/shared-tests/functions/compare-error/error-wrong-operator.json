@@ -1,0 +1,5 @@
+{
+  "name": "Should fail when given an invalid operator",
+  "expression": ["compare", 5, "is exactly the same as", 8],
+  "expectsFailure": "Invalid operator \"is exactly the same as\""
+}

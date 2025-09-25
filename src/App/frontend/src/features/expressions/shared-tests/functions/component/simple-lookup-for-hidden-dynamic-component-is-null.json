@@ -1,0 +1,36 @@
+{
+  "name": "Simple lookup for hidden component returns null",
+  "expression": ["component", "my-hidden"],
+  "expects": null,
+  "layouts": {
+    "Page1": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "my-hidden",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "ComponentContent"
+            },
+            "hidden": ["if", ["dataModel", "hidden.condition"], true]
+          },
+          {
+            "id": "current-component",
+            "type": "Paragraph"
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "ComponentContent": "hello world",
+    "hidden": {
+      "condition": true
+    }
+  },
+  "context": {
+    "component": "current-component",
+    "currentLayout": "Page1"
+  }
+}

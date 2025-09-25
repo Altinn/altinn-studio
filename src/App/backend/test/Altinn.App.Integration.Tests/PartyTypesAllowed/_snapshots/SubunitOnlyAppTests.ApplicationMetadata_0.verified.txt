@@ -1,0 +1,118 @@
+﻿{
+  HttpResponse: {
+    Version: 1.1,
+    Content: {
+      Headers: {
+        Content-Type: [
+          application/json; charset=utf-8
+        ]
+      }
+    },
+    StatusCode: OK,
+    ReasonPhrase: OK,
+    Headers: {
+      Date: <date>,
+      Server: [
+        Kestrel
+      ],
+      Cache-Control: [
+        public, max-age=60
+      ],
+      Transfer-Encoding: [
+        chunked
+      ],
+      Request-Context: [
+        appId=
+      ],
+      X-Frame-Options: [
+        deny
+      ],
+      X-Content-Type-Options: [
+        nosniff
+      ],
+      X-XSS-Protection: [
+        0
+      ],
+      Referrer-Policy: [
+        no-referrer
+      ]
+    },
+    TrailingHeaders: {},
+    RequestMessage: {
+      Version: 1.1,
+      Method: {
+        Method: GET
+      },
+      RequestUri: http://local.altinn.cloud:<localtestPort>/ttd/basic/api/v1/applicationmetadata,
+      Headers: {
+        User-Agent: [
+          Altinn.App.Integration.Tests
+        ]
+      }
+    },
+    IsSuccessStatusCode: true
+  },
+  Response: {
+    Id: ttd/basic,
+    Features: {
+      footer: true,
+      jsonObjectInDataResponse: false,
+      processActions: true
+    },
+    AppIdentifier: {
+      Org: ttd,
+      App: basic
+    },
+    AltinnNugetVersion: 8.0.0.0,
+    ExternalApiIds: [
+      tracing-external-api
+    ],
+    Org: ttd,
+    Title: {
+      nb: basic
+    },
+    DataTypes: [
+      {
+        Id: ref-data-as-pdf,
+        AllowedContentTypes: [
+          application/pdf
+        ],
+        MaxCount: 0,
+        MinCount: 0,
+        EnablePdfCreation: true,
+        EnableFileScan: false,
+        ValidationErrorOnPendingFileScan: false
+      },
+      {
+        Id: model,
+        AllowedContentTypes: [
+          application/xml
+        ],
+        AppLogic: {
+          AutoCreate: true,
+          ClassRef: Altinn.App.Models.model.model,
+          AllowAnonymousOnStateless: false,
+          AutoDeleteOnProcessEnd: false,
+          DisallowUserCreate: false,
+          DisallowUserDelete: false
+        },
+        TaskId: Task_1,
+        EnablePdfCreation: true,
+        EnableFileScan: false,
+        ValidationErrorOnPendingFileScan: false
+      }
+    ],
+    PartyTypesAllowed: {
+      BankruptcyEstate: false,
+      Organisation: false,
+      Person: false,
+      SubUnit: true
+    },
+    AutoDeleteOnProcessEnd: false,
+    DisallowUserInstantiation: false,
+    Created: DateTime_1,
+    CreatedBy: altinn,
+    LastChanged: DateTime_2,
+    LastChangedBy: altinn
+  }
+}

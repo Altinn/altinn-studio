@@ -1,0 +1,16 @@
+{
+  "name": "Should work together with stringIndexOf + emoji (2)",
+  "expression": [
+    "concat",
+    "Good day, ",
+    [
+      "stringSlice",
+      ["dataModel", "string"],
+      ["stringIndexOf", ["dataModel", "string"], "🌍"]
+    ]
+  ],
+  "expects": "Good day, 🌍!",
+  "dataModel": {
+    "string": "Hello, 🌍!"
+  }
+}

@@ -1,10 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioCard,
-  StudioRecommendedNextAction,
-  StudioTextfield,
-} from '@studio/components-legacy';
+import { StudioRecommendedNextAction, StudioTextfield } from '@studio/components-legacy';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { SubformDataModel } from './SubformDataModel';
@@ -16,6 +12,8 @@ import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMeta
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import { extractDataTypeNamesFromAppMetadata } from 'app-development/features/dataModelling/SchemaEditorWithToolbar/TopToolbar/utils/validationUtils';
 import { useValidateSchemaName } from 'app-shared/hooks/useValidateSchemaName';
+import { StudioCard } from '@studio/components';
+import classes from './CreateNewSubformSection.module.css';
 
 type CreateNewSubformSectionProps = {
   layoutSets: LayoutSets;
@@ -97,32 +95,29 @@ export const CreateNewSubformSection = ({
       onSave={handleCreateSubformSubmit}
     >
       {!hasSubforms && <SubformInstructions />}
-      <StudioCard>
-        {/*StudioCard.Content does not pass through the data-size attribute. Will be fixed when legacy component is replaced */}
-        <StudioCard.Content data-size='sm'>
-          <StudioTextfield
-            name='subform'
-            label={t('ux_editor.component_properties.subform.created_layout_set_name')}
-            disabled={isPendingNewSubformMutation}
-            onChange={(e) => handleSubformName(e.target.value)}
-            error={newSubformNameError}
-          />
-          <SubformDataModel
-            setDisplayDataModelInput={setDisplayDataModelInput}
-            displayDataModelInput={displayDataModelInput}
-            setSelectedDataModel={setSelectedDataModel}
-            dataModelIds={dataModelIds}
-            validateName={validateName}
-            dataModelNameError={dataModelNameError}
-            setIsTextfieldEmpty={setIsNewDataModelFieldEmpty}
-          />
-          <CreateNewSubformButtons
-            isPendingNewSubformMutation={isPendingNewSubformMutation}
-            disableSaveButton={disableSaveButton}
-            displayCloseButton={hasSubforms || displayDataModelInput}
-            handleCloseButton={handleCloseButton}
-          />
-        </StudioCard.Content>
+      <StudioCard className={classes.wrapper}>
+        <StudioTextfield
+          name='subform'
+          label={t('ux_editor.component_properties.subform.created_layout_set_name')}
+          disabled={isPendingNewSubformMutation}
+          onChange={(e) => handleSubformName(e.target.value)}
+          error={newSubformNameError}
+        />
+        <SubformDataModel
+          setDisplayDataModelInput={setDisplayDataModelInput}
+          displayDataModelInput={displayDataModelInput}
+          setSelectedDataModel={setSelectedDataModel}
+          dataModelIds={dataModelIds}
+          validateName={validateName}
+          dataModelNameError={dataModelNameError}
+          setIsTextfieldEmpty={setIsNewDataModelFieldEmpty}
+        />
+        <CreateNewSubformButtons
+          isPendingNewSubformMutation={isPendingNewSubformMutation}
+          disableSaveButton={disableSaveButton}
+          displayCloseButton={hasSubforms || displayDataModelInput}
+          handleCloseButton={handleCloseButton}
+        />
       </StudioCard>
     </StudioRecommendedNextAction>
   );

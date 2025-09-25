@@ -1,0 +1,2 @@
+﻿[basic/custom-scopes] [INIT INFO] Fixture configuration updated
+[basic/custom-scopes] [INIT INFO] Scenario 'custom-scopes' specified but no services directory found at /App/scenario-overrides/services

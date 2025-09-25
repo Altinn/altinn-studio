@@ -1,0 +1,5 @@
+{
+  "name": "Single input returns the same (false)",
+  "expression": ["and", false],
+  "expects": false
+}
