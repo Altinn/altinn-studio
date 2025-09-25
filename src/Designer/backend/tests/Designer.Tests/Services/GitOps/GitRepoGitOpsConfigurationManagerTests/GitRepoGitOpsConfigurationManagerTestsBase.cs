@@ -23,7 +23,7 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
     protected AltinnGitRepository AltinnGitRepository => AltinnGitRepositoryFactory.GetAltinnGitRepository(OrgEditingContext.Org, TestRepoName, OrgEditingContext.Developer);
     protected GitRepoGitOpsConfigurationManager GitOpsConfigurationManager { get; private set; }
     protected ScribanGitOpsManifestsRenderer ScribanGitOpsManifestsRenderer { get; private set; }
-    protected string TestRepoName {get; private set;}
+    protected string TestRepoName { get; private set; }
     protected AltinnOrgEditingContext OrgEditingContext { get; }
 
     public GitRepoGitOpsConfigurationManagerTestsBase()
@@ -65,7 +65,7 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
 
     protected T AppDirectoryDoesNotExists(string app)
     {
-        if(AltinnGitRepository.DirectoryExistsByRelativePath($"apps/{app}"))
+        if (AltinnGitRepository.DirectoryExistsByRelativePath($"apps/{app}"))
         {
             string appFolderPath = Path.Join(AltinnGitRepository.RepositoryDirectory, $"apps/{app}");
             Directory.Delete(appFolderPath, true);

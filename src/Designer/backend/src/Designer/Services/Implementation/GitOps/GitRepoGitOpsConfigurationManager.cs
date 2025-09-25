@@ -34,7 +34,7 @@ public class GitRepoGitOpsConfigurationManager(
         DeleteLocalRepositoryIfExists(context);
         await EnsureRemoteRepositoryExists(context);
 
-        await sourceControl.CloneRemoteRepository(gitOpsSettings.GitOpsOrg,  GitOpsRepoName(context.Org));
+        await sourceControl.CloneRemoteRepository(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org));
 
         await EnsureBaseManifests(context);
         await EnsureEnvironmentManifests(context, environment);

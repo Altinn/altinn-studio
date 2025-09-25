@@ -6,7 +6,7 @@ public record AltinnOrgEditingContext : AltinnOrgContext
 {
     public string Developer { get; }
 
-    private AltinnOrgEditingContext(string org, string developer): base(org)
+    private AltinnOrgEditingContext(string org, string developer) : base(org)
     {
         Guard.AssertArgumentNotNullOrWhiteSpace(developer, nameof(developer));
         Developer = developer;

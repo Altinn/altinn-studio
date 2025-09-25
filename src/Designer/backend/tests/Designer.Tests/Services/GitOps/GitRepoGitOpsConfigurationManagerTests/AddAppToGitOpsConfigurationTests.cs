@@ -48,14 +48,14 @@ public class AddAppToGitOpsConfigurationTests : GitRepoGitOpsConfigurationManage
             .When
             .AddAppToGitOpsConfigurationCalled(app, environment);
 
-       await Then
-            .AppDirectoryShouldExist(app)
-            .And
-            .EnvironmentKustomizationManifestShouldContainApp(environment, app);
+        await Then
+             .AppDirectoryShouldExist(app)
+             .And
+             .EnvironmentKustomizationManifestShouldContainApp(environment, app);
 
-       await
-           And
-               .EnvironmentKustomizationManifestShouldContainBaseResource(environment);
+        await
+            And
+                .EnvironmentKustomizationManifestShouldContainBaseResource(environment);
     }
 
     [Theory]

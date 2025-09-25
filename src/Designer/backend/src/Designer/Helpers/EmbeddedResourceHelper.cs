@@ -71,12 +71,16 @@ public class EmbeddedResourceHelper
     public static string GetFileNameFromResourceName(string resourceName)
     {
         if (string.IsNullOrEmpty(resourceName))
+        {
             return resourceName;
+        }
 
         string[] parts = resourceName.Split('.');
 
         if (parts.Length >= 2)
+        {
             return string.Join(".", parts.Skip(parts.Length - 2));
+        }
 
         return resourceName;
     }

@@ -9,8 +9,8 @@ public class AppExistsInGitOpsConfigurationTests : GitRepoGitOpsConfigurationMan
     private bool AppExistCallResult { get; set; }
 
     [Theory]
-    [InlineData("test-app", "tt02",false, "dummy-app1", "dummy-app2" )]
-    [InlineData("test-app", "tt02",true, "test-app", "dummy-app2" )]
+    [InlineData("test-app", "tt02", false, "dummy-app1", "dummy-app2")]
+    [InlineData("test-app", "tt02", true, "test-app", "dummy-app2")]
     public async Task WhenAppDirectory_DoesExists_ShouldReturn_BasedOnEnvironmentManifest(string app, string environment, bool expectedShouldExist, params string[] appsInEnvironment)
     {
         await Given.That
@@ -27,8 +27,8 @@ public class AppExistsInGitOpsConfigurationTests : GitRepoGitOpsConfigurationMan
     }
 
     [Theory]
-    [InlineData("test-app", "tt02", "dummy-app1", "dummy-app2" )]
-    [InlineData("test-app", "tt02", "test-app", "dummy-app2" )]
+    [InlineData("test-app", "tt02", "dummy-app1", "dummy-app2")]
+    [InlineData("test-app", "tt02", "test-app", "dummy-app2")]
     public async Task WhenAppDirectory_DoesNotExists_ShouldReturnFalse(string app, string environment, params string[] appsInEnvironment)
     {
         Given.That
