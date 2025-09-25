@@ -120,11 +120,8 @@ export const StudioTableRemotePagination = forwardRef<
 
     useEffect(() => {
       const isOutOfRange = hasTotalRows && totalRows > 0 && isTableEmpty;
-      if (isOutOfRange) {
-        if (canChangePage) {
-          handlePageChange(1);
-        }
-        return;
+      if (isOutOfRange && canChangePage) {
+        handlePageChange(1);
       }
     }, [totalRows, isTableEmpty, handlePageChange, hasTotalRows, canChangePage]);
 

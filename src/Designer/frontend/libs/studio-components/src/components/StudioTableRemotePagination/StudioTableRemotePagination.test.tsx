@@ -118,6 +118,23 @@ describe('StudioTableRemotePagination', () => {
     expect(paginationProps.onPageChange).toHaveBeenCalledWith(2);
   });
 
+  it('calls onPageChange(1) when table is empty but totalRows > 0', () => {
+    const onPageChange = jest.fn();
+    render(
+      <StudioTableRemotePagination
+        columns={columns}
+        rows={[]}
+        pagination={{
+          ...paginationProps,
+          totalRows: 10,
+          currentPage: 3,
+          onPageChange,
+        }}
+      />,
+    );
+    expect(onPageChange).toHaveBeenCalledWith(1);
+  });
+
   it('triggers the onPageSizeChange function when the page size is changed', async () => {
     render(
       <StudioTableRemotePagination columns={columns} rows={rows} pagination={paginationProps} />,
@@ -130,6 +147,33 @@ describe('StudioTableRemotePagination', () => {
     );
 
     expect(paginationProps.onPageSizeChange).toHaveBeenCalledWith(10);
+  });
+
+  it('defaults the select value to the first option when pageSize is undefined', () => {
+    render(
+      <StudioTableRemotePagination
+        columns={columns}
+        rows={rows}
+        pagination={{
+          ...paginationProps,
+          pageSize: undefined as unknown as number,
+        }}
+      />,
+    );
+    const select = screen.getByRole('combobox', {
+      name: paginationTexts.pageSizeLabel,
+    }) as HTMLSelectElement;
+    expect(select.value).toBe(String(paginationProps.pageSizeOptions[0]));
+  });
+
+  it('renders spinner with default aria-label when loading', () => {
+    render(<StudioTableRemotePagination columns={columns} rows={rows} isLoading={true} />);
+    expect(screen.getByLabelText('Loading')).toBeInTheDocument();
+  });
+
+  it('does not render spinner when not loading', () => {
+    render(<StudioTableRemotePagination columns={columns} rows={rows} isLoading={false} />);
+    expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument();
   });
 
   it('displays the empty table message when there are no rows to display', () => {
