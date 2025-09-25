@@ -35,7 +35,10 @@ public class ManifestTestDataProvider
         var manifests = new Dictionary<string, string>();
         foreach (string file in files)
         {
-            manifests[Path.Join(keysPrefix, Path.GetFileName(file))] = File.ReadAllText(file);
+            // Normalize path construction to avoid double slashes
+            string normalizedPrefix = keysPrefix.TrimEnd('/');
+            string key = $"{normalizedPrefix}/{Path.GetFileName(file)}";
+            manifests[key] = File.ReadAllText(file);
         }
 
         return manifests;
