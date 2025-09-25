@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -16,7 +17,7 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class GiteaContentLibraryService : IGiteaContentLibraryService
 {
     private readonly IGitea _giteaApiWrapper;
-    private const string CodeListFolderPath = "CodeLists/";
+    private const string CodeListFolderPath = "CodeListsWithTextResources/";
     private const string TextResourceFolderPath = "Texts/";
 
     private static readonly JsonSerializerOptions s_jsonOptions = new()
@@ -50,7 +51,7 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     /// <inheritdoc />
     public async Task<List<Option>> GetCodeList(string orgName, string codeListId)
     {
-        string filePath = StaticContentCodeListFilePath(codeListId);
+        string filePath = CodeListUtils.FilePathWithTextResources(codeListId);
         string decodedString = await GetFileFromGitea(orgName, filePath);
         return string.IsNullOrEmpty(decodedString) ? [] : JsonSerializer.Deserialize<List<Option>>(decodedString, s_jsonOptions);
     }
@@ -82,7 +83,7 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     public async Task<string> GetShaForCodeListFile(string orgName, string codeListId)
     {
         string repoName = GetContentRepoName(orgName);
-        string filePath = StaticContentCodeListFilePath(codeListId);
+        string filePath = CodeListUtils.FilePathWithTextResources(codeListId);
         FileSystemObject file = await _giteaApiWrapper.GetFileAsync(orgName, repoName, filePath, string.Empty);
         return file.Sha ?? string.Empty;
     }
@@ -138,11 +139,6 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     private static string StaticContentTextResourceFilePath(string languageCode)
     {
         return Path.Join(TextResourceFolderPath, $"resource.{languageCode}.json");
-    }
-
-    private static string StaticContentCodeListFilePath(string optionListId)
-    {
-        return Path.Join(CodeListFolderPath, $"{optionListId}.json");
     }
 
     private static string GetContentRepoName(string orgName)

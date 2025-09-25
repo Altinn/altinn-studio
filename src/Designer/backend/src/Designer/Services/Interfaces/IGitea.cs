@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
@@ -20,7 +22,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// List the repos that the authenticated user owns or has access to
         /// </summary>
         /// <returns>List of repos</returns>
-        Task<IList<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> GetUserRepos();
+        Task<IList<RepositoryClient.Model.Repository>> GetUserRepos();
 
         /// <summary>
         /// List an organization's repos
@@ -54,7 +56,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="options">the options for creating repository.</param>
         /// <returns>The newly created repository object.</returns>
-        Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> CreateRepository(string org, CreateRepoOption options);
+        Task<RepositoryClient.Model.Repository> CreateRepository(string org, CreateRepoOption options);
 
         /// <summary>
         /// Search the repository for the given searchOptions
@@ -68,7 +70,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">the repository</param>
         /// <returns>Information about the repository of the given org.</returns>
-        Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> GetRepository(string org, string repository);
+        Task<RepositoryClient.Model.Repository> GetRepository(string org, string repository);
 
         /// <summary>
         /// Returns organisation that user has access to
@@ -113,6 +115,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string shortCommitId);
 
         /// <summary>
+        /// Gets a file from a filepath at a specific reference (commit/branch/tag).
+        /// </summary>
+        Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Takes in a ServiceResource-object and uses it to create a ListviewServiceResource-object that contains some additional fields not stored in the resourceregistry
         /// </summary>
         /// <param name="org">The org</param>
@@ -126,13 +133,25 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">The name of repository</param>
-        /// <param name="directoryPath">Path to a directort, may start with full commit sha</param>
-        /// <param name="shortCommitId">The short hash of a commit id</param>
+        /// <param name="directoryPath">Path to a directory, may start with full commit sha</param>
+        /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>a list of files in the given directory</returns>
-        Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string shortCommitId);
+        Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string reference = null, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Retuns list of the teams the user is memeber of.
+        /// Gets the files in the CodeLists directory of a given repository.
+        /// If the directory is missing, returns an empty list.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A list of <see cref="FileSystemObject"/>.</returns>
+        Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(string org, string repository, string reference = null, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Returns list of the teams the user is member of.
         /// </summary>
         /// <returns></returns>
         Task<List<Team>> GetTeams();
@@ -152,5 +171,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository.</param>
         Task<bool> DeleteRepository(string org, string repository);
+
+        /// <summary>
+        /// Modifies multiple files in the given repository. If a file does not exist, it
+        /// will be created. If it exists, it will be updated.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+        /// <param name="repository">The name of repository.</param>
+        /// <param name="files">The list of files to modify.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        Task<bool> ModifyMultipleFiles(string org, string repository, GiteaMultipleFilesDto files, CancellationToken cancellationToken = default);
     }
 }

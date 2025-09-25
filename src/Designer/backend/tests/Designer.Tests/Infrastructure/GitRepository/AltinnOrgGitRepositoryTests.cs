@@ -4,6 +4,7 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Utils;
@@ -183,7 +184,7 @@ public class AltinnOrgGitRepositoryTests : IDisposable
         await altinnOrgGitRepository.CreateCodeList(codeListId, newCodeList);
 
         // Assert
-        string fileContent = TestDataHelper.GetFileFromRepo(TargetOrg, targetRepository, Developer, RelativePathCodeList(codeListId));
+        string fileContent = TestDataHelper.GetFileFromRepo(TargetOrg, targetRepository, Developer, CodeListUtils.FilePathWithTextResources(codeListId));
         Assert.True(JsonUtils.DeepEquals(expectedCodeList, fileContent));
     }
 
@@ -202,7 +203,7 @@ public class AltinnOrgGitRepositoryTests : IDisposable
         await altinnOrgGitRepository.UpdateCodeList(codeListId, updatedCodeList);
 
         // Assert
-        string fileContent = TestDataHelper.GetFileFromRepo(TargetOrg, targetRepository, Developer, RelativePathCodeList(codeListId));
+        string fileContent = TestDataHelper.GetFileFromRepo(TargetOrg, targetRepository, Developer, CodeListUtils.FilePathWithTextResources(codeListId));
         Assert.True(JsonUtils.DeepEquals(expectedCodeList, fileContent));
     }
 
@@ -220,8 +221,8 @@ public class AltinnOrgGitRepositoryTests : IDisposable
 
         // Assert
         string repositoryDir = TestDataHelper.GetTestDataRepositoryDirectory(TargetOrg, targetRepository, Developer);
-        string oldCodeListFilePath = Path.Join(repositoryDir, RelativePathCodeList(codeListId));
-        string newCodeListFilePath = Path.Join(repositoryDir, RelativePathCodeList(newCodeListId));
+        string oldCodeListFilePath = Path.Join(repositoryDir, CodeListUtils.FilePathWithTextResources(codeListId));
+        string newCodeListFilePath = Path.Join(repositoryDir, CodeListUtils.FilePathWithTextResources(newCodeListId));
         Assert.False(File.Exists(oldCodeListFilePath));
         Assert.True(File.Exists(newCodeListFilePath));
     }
@@ -272,11 +273,9 @@ public class AltinnOrgGitRepositoryTests : IDisposable
 
         // Assert
         string repositoryDir = TestDataHelper.GetTestDataRepositoryDirectory(TargetOrg, targetRepository, Developer);
-        string codeListFilePath = Path.Join(repositoryDir, RelativePathCodeList(codeListId));
+        string codeListFilePath = Path.Join(repositoryDir, CodeListUtils.FilePathWithTextResources(codeListId));
         Assert.False(File.Exists(codeListFilePath));
     }
-
-    private static string RelativePathCodeList(string codeListId) => $"CodeLists/{codeListId}.json";
 
     private static string RelativePathText(string lang) => $"Texts/resource.{lang}.json";
 
