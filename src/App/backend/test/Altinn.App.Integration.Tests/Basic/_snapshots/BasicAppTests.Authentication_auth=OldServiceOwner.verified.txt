@@ -1,0 +1,44 @@
+﻿{
+  type: ServiceOwner,
+  name: ttd,
+  orgNo: 405003309,
+  authenticationLevel: 3,
+  authenticationMethod: localtest,
+  details: {
+    party: {
+      partyId: 500005,
+      partyTypeName: Organisation,
+      partyUuid: null,
+      ssn: null,
+      orgNumber: 405003309,
+      unitType: BEDR,
+      name: Testdepartementet,
+      isDeleted: false,
+      onlyHierarchyElementWithNoAccess: false,
+      person: null,
+      organization: {
+        orgNumber: 405003309,
+        name: Testdepartementet,
+        unitType: AS,
+        telephoneNumber: 12345678,
+        mobileNumber: 92010000,
+        faxNumber: 92110000,
+        eMailAddress: localtest@digdir.no,
+        internetAddress: http://digdir.no,
+        mailingAddress: Lørenfaret 1C,
+        mailingPostalCode: 0580,
+        mailingPostalCity: Oslo,
+        businessAddress: Lørenfaret 1C,
+        businessPostalCode: 0580,
+        businessPostalCity: Oslo
+      },
+      childParties: null
+    }
+  },
+  tokenIssuer: Maskinporten,
+  tokenIsExchanged: true,
+  scopes: ,
+  clientId: null,
+  token: eyJhbGciOiJSUzI1NiIsImtpZCI6IjQ4Q0VFNjAzMzEwMkYzMjQzMTk2NDc4QUYwNkZCNDNBMTc2NEQ4NDMiLCJ4NXQiOiJTTTdtQXpFQzh5UXhsa2VLOEctME9oZGsyRU0iLCJ0eXAiOiJKV1QifQ.<scrubbed1>.<scrubbed2>,
+  detailsError: null
+}

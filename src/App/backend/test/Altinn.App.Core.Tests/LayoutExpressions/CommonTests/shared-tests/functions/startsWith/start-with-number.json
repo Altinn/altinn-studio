@@ -1,0 +1,5 @@
+{
+  "name": "Should be true when the string starts with the given string (even when the given 'string' is a number)",
+  "expression": ["startsWith", "40 years old", 40],
+  "expects": true
+}

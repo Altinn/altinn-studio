@@ -1,0 +1,54 @@
+{
+	"title": {
+		"en": "Automation Regression",
+		"nb": "Automation Regression",
+		"nn": "Automation Regression"
+	},
+	"sector": null,
+	"status": null,
+	"validTo": "9999-12-31T23:59:59.997",
+	"homepage": null,
+	"isPartOf": null,
+	"keywords": null,
+	"validFrom": "2021-08-10T09:47:54.12",
+	"identifier": "appid-208",
+	"isComplete": false,
+	"description": null,
+	"resourceType": "MaskinportenSchema",
+	"thematicArea": null,
+	"isPublicService": true,
+	"rightDescription": {
+		"nb": "Gir anledning til a teste maskinporten som en del av automatiserte tester"
+	},
+	"resourceReferences": [
+		{
+			"reference": "fd9a3748-2c56-49dd-9860-64de0258ada3",
+			"referenceType": "DelegationSchemeId",
+			"referenceSource": "Altinn2"
+		},
+		{
+			"reference": "altinn:test/theworld.write",
+			"referenceType": "MaskinportenScope",
+			"referenceSource": "Altinn2"
+		},
+		{
+			"reference": "altinn:test/theworld.admin",
+			"referenceType": "MaskinportenScope",
+			"referenceSource": "Altinn2"
+		},
+		{
+			"reference": "AppId:208",
+			"referenceType": "ServiceCode",
+			"referenceSource": "Altinn2"
+		},
+		{
+			"reference": "1",
+			"referenceType": "ServiceEditionCode",
+			"referenceSource": "Altinn2"
+		}
+	],
+	"hasCompetentAuthority": {
+		"orgcode": "SKD",
+		"organization": "974761076"
+	}
+}

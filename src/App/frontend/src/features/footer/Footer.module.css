@@ -1,0 +1,34 @@
+.footer {
+  max-width: var(--page-max-width);
+  padding: 60px var(--footer-padding);
+  margin: 0 auto;
+}
+
+.elements {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 30px 50px;
+}
+
+@media only screen and (min-width: 600px) {
+  .elements {
+    flex-direction: row;
+  }
+}
+
+.columnLayout {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.separator {
+  margin: 36px 0;
+  background-color: var(----ds-color-neutral-base-default);
+  height: 1px;
+  width: 100%;
+}

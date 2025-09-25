@@ -1,0 +1,60 @@
+.validation-error {
+  border: 2px solid #e23b53 !important;
+}
+.disabled-date {
+  border: none !important;
+  background-color: transparent !important;
+  color: var(--colors-primary-black) !important;
+}
+.disabled {
+  border: 2px solid var(--colors-primary-grey) !important;
+  color: var(--colors-primary-black);
+  background: repeating-linear-gradient(
+    135deg,
+    var(--colors-primary-greyLight),
+    var(--colors-primary-greyLight) 2px,
+    var(--colors-primary-white) 3px,
+    var(--colors-primary-white) 5px
+  ) !important;
+}
+input:hover:not(.disabled) {
+  border-color: var(--colors-primary-blueDark) !important;
+}
+
+input.form-control:focus:not(.a-hasButton) {
+  outline: 2px solid var(--colors-primary-blueDark);
+  outline-offset: 0px;
+}
+.input-group:focus-within {
+  outline: 2px solid var(--colors-primary-blueDark);
+  outline-offset: 0px;
+}
+
+@media print {
+  /* setting explicit base font-size for print */
+  html {
+    font-size: 10px !important;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  h4,
+  h5,
+  h6 {
+    font-size: 1.125rem;
+  }
+
+  p {
+    font-size: 1rem;
+  }
+}

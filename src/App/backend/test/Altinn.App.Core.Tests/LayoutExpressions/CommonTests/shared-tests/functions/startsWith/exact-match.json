@@ -1,0 +1,5 @@
+{
+  "name": "Should be true when the string starts with the specified string, even on exact match",
+  "expression": ["startsWith", "Hello", "Hello"],
+  "expects": true
+}

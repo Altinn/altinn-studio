@@ -1,0 +1,31 @@
+{
+  "name": "Display value of Text component",
+  "expression": [
+    "displayValue",
+    "navn"
+  ],
+  "context": {
+    "component": "navn",
+    "currentLayout": "Page"
+  },
+  "expects": "Per",
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "navn",
+            "type": "Text",
+            "value": ["dataModel", "Skjema.Navn"]
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Skjema": {
+      "Navn": "Per"
+    }
+  }
+}

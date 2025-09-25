@@ -1,0 +1,9 @@
+﻿{
+  Activities: [
+    {
+      Name: EventClient.GetAsyncWithId,
+      IdFormat: W3C,
+      HasParent: false
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Should format date",
+  "expression": ["formatDate", null],
+  "expects": null
+}

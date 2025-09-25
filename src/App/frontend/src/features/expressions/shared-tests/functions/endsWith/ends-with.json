@@ -1,0 +1,5 @@
+{
+  "name": "Should be true when the string ends with the specified string",
+  "expression": ["endsWith", "Hello", "lo"],
+  "expects": true
+}

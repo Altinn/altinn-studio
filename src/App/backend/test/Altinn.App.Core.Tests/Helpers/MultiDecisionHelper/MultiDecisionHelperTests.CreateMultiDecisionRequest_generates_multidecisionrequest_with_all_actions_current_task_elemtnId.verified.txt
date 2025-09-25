@@ -1,0 +1,113 @@
+﻿{
+  Request: {
+    ReturnPolicyIdList: false,
+    CombinedDecision: false,
+    Resource: [
+      {
+        Id: r1,
+        Attribute: [
+          {
+            AttributeId: urn:altinn:task,
+            Value: Task_1,
+            Issuer: Altinn,
+            DataType: string,
+            IncludeInResult: false
+          },
+          {
+            AttributeId: urn:altinn:instance-id,
+            Value: 1337/1dd16477-187b-463c-8adf-592c7fa78459,
+            Issuer: Altinn,
+            DataType: string,
+            IncludeInResult: true
+          },
+          {
+            AttributeId: urn:altinn:partyid,
+            Value: 1337,
+            Issuer: Altinn,
+            DataType: string,
+            IncludeInResult: false
+          },
+          {
+            AttributeId: urn:altinn:org,
+            Value: tdd,
+            Issuer: Altinn,
+            DataType: string,
+            IncludeInResult: false
+          },
+          {
+            AttributeId: urn:altinn:app,
+            Value: test-app,
+            Issuer: Altinn,
+            DataType: string,
+            IncludeInResult: false
+          }
+        ]
+      }
+    ],
+    Action: [
+      {
+        Id: a1,
+        Attribute: [
+          {
+            AttributeId: urn:oasis:names:tc:xacml:1.0:action:action-id,
+            Value: sign,
+            Issuer: Altinn,
+            DataType: string,
+            IncludeInResult: true
+          }
+        ]
+      },
+      {
+        Id: a2,
+        Attribute: [
+          {
+            AttributeId: urn:oasis:names:tc:xacml:1.0:action:action-id,
+            Value: reject,
+            Issuer: Altinn,
+            DataType: string,
+            IncludeInResult: true
+          }
+        ]
+      }
+    ],
+    AccessSubject: [
+      {
+        Id: s1,
+        Attribute: [
+          {
+            AttributeId: urn:altinn:authlevel,
+            Value: 3,
+            Issuer: LOCAL AUTHORITY,
+            DataType: string,
+            IncludeInResult: false
+          },
+          {
+            AttributeId: urn:altinn:partyid,
+            Value: 1337,
+            Issuer: LOCAL AUTHORITY,
+            DataType: string,
+            IncludeInResult: false
+          }
+        ]
+      }
+    ],
+    MultiRequests: {
+      RequestReference: [
+        {
+          ReferenceId: [
+            s1,
+            a1,
+            r1
+          ]
+        },
+        {
+          ReferenceId: [
+            s1,
+            a2,
+            r1
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Should work even if end index is too large",
+  "expression": ["stringSlice", "hello", 4, 10],
+  "expects": "o"
+}

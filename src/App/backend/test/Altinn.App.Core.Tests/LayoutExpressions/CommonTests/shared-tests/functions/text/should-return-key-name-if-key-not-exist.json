@@ -1,0 +1,5 @@
+{
+  "name": "Should return 'key-name' when key does not exist",
+  "expression": ["text", "random-key"],
+  "expects": "random-key"
+}

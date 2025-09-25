@@ -1,0 +1,25 @@
+{
+  "name": "Should return a string with selected property",
+  "expression": ["_experimentalSelectAndMap", "path.to.arrayOfObjects", "name", "<li>", "</li>"],
+  "expects": "<li>Prop1</li> <li>Prop2</li> <li>Prop3</li>",
+  "dataModel": {
+    "path": {
+      "to": {
+        "arrayOfObjects": [
+          {
+            "name": "Prop1",
+            "value": "Value1"
+          },
+          {
+            "name": "Prop2",
+            "value": "Value2"
+          },
+          {
+            "name": "Prop3",
+            "value": "Value3"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,69 @@
+.mobileTable {
+  display: block;
+}
+
+.mobileTable caption {
+  display: block;
+}
+
+.mobileTable thead {
+  display: none;
+}
+
+.mobileTable th {
+  display: block;
+  border: none;
+}
+
+.mobileTable tbody,
+.mobileTable tr {
+  display: block;
+}
+
+.mobileTable td {
+  display: flex;
+  flex-direction: column;
+  border: none;
+  padding: var(--ds-size-2) 0;
+}
+
+.mobileTable td .contentWrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+}
+
+.mobileTable tbody tr:last-child {
+  border-bottom: 2px solid var(--ds-color-neutral-border-strong);
+}
+
+.mobileTable tbody tr:first-child {
+  border-top: 2px solid var(--ds-color-neutral-border-strong);
+}
+
+.mobileTable tr {
+  border-bottom: 1px solid var(--ds-color-neutral-border-strong);
+  padding-top: var(--ds-size-3);
+  padding-bottom: var(--ds-size-3);
+}
+
+.mobileTable tr:hover td {
+  background-color: unset;
+}
+
+.mobileTable td[data-header-title]:not([data-header-title=''])::before,
+.mobileTable th[data-header-title]:not([data-header-title=''])::before {
+  content: attr(data-header-title);
+  display: block;
+  text-align: left;
+  font-weight: 500;
+}
+
+.mobileTable .buttonCell {
+  align-items: start;
+}
+
+.narrowLastColumn {
+  width: 1%;
+}
