@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Deciders: Team Apps, Johannes Haukland
-- Date: 2025-06-12
+- Date: 12.06.2025
 
 ## Result
 

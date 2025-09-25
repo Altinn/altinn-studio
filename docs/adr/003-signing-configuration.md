@@ -1,8 +1,8 @@
 # Configuration of a signing task - Task and interface coupling
 
--   Status: Accepted
--   Deciders: Team Apps
--   Date: 2024-09-25
+- Status: Accepted
+- Deciders: Team Apps
+- Date: 25.09.2024
 
 ## Result
 

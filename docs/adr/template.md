@@ -1,8 +1,8 @@
 # A short descriptive title - what is the outcome of this adr?
 
--   Status: Proposed | Accepted | Exceeded by "adr-name"
--   Deciders: People | Team
--   Date: Proposal date
+- Status: Proposed | Accepted | Exceeded by "adr-name"
+- Deciders: People | Team
+- Date: Proposal date (dd.MM.yyyy)
 
 ## Result
 
