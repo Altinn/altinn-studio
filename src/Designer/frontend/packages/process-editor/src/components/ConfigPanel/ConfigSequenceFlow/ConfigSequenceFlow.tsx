@@ -6,9 +6,8 @@ import {
   PredefinedGatewayAction,
   SimpleSubexpressionValueType,
   StudioExpression,
-  StudioSectionHeader,
 } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioSectionHeader, StudioButton } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { Paragraph } from '@digdir/designsystemet-react';
