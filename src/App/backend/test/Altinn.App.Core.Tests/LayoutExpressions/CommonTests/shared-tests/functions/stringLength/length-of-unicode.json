@@ -1,0 +1,5 @@
+{
+  "name": "Should return the number of characters in a unicode string",
+  "expression": ["stringLength", "æøå"],
+  "expects": 3
+}
