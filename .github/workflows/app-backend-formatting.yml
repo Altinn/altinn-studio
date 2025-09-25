@@ -1,10 +1,11 @@
-name: App Backend - Verify dotnet format
+name: App Backend - Verify formatting
 
 on:
   pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/App/backend/**'
-      - '.github/workflows/app-backend*.yml'
+      - '.github/workflows/app-backend-formatting.yml'
 
 jobs:
   verify-no-changes:

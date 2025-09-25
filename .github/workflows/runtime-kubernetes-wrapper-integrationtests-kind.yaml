@@ -1,15 +1,12 @@
-name: K8s wrapper Integrationtests
+name: K8s wrapper - Integrationtests
 
 on:
-  push:
-    branches: [ "main" ]
-    paths:
-      - 'src/Runtime/KubernetesWrapper/**'
   pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ "main" ]
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/Runtime/KubernetesWrapper/**'
+      - '.github/workflows/runtime-kubernetes-wrapper-integrationtests-kind.yaml'
+  workflow_dispatch:
 
 jobs:
   integrationtests:

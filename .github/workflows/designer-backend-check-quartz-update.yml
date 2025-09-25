@@ -1,14 +1,11 @@
-name: Designer Verify Quartz migrations
+name: Designer Backend - Verify Quartz migrations
+
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'src/Designer/backend/Directory.Packages.props'
   pull_request:
-    branches: [ main ]
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/Designer/backend/**'
+      - '.github/workflows/designer-backend-check-quartz-update.yml'
   workflow_dispatch:
 
 jobs:

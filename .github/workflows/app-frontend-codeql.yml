@@ -1,15 +1,12 @@
-name: "App Frontend - CodeQL"
+name: App Frontend - CodeQL
 
 on:
-  push:
-    branches: [ "main" ]
-    paths:
-      - 'src/App/frontend/**'
-      - '.github/workflows/app-frontend*.yml'
   pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/App/frontend/**'
-      - '.github/workflows/app-frontend*.yml'
+      - '.github/workflows/app-frontend-codeql.yml'
+  workflow_dispatch:
   schedule:
     - cron: "5 12 * * 0"
 

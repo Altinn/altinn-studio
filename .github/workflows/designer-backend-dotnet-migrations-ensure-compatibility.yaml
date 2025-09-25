@@ -1,11 +1,11 @@
-name: Designer Ensure Migrations Compatibility
+name: Designer Backend - Ensure Migrations Compatibility
+
 on:
   pull_request:
-    branches: [ main ]
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/Designer/backend/**'
-      - '.github/workflows/designer-dotnet-migrations-ensure-compatibility.yaml'
+      - '.github/workflows/designer-backend-dotnet-migrations-ensure-compatibility.yaml'
   workflow_dispatch:
 
 jobs:
