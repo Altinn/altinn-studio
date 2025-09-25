@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 
 namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.RepoUserWide.Services;
 
-public class EditingContextResolver : IEditingContextResolver<AltinnRepoEditingContext>
+public class RepoUserWideRequestContextResolver : IRequestContextResolver<AltinnRepoEditingContext>
 {
     public bool TryResolveContext(HttpContext httpContext, out AltinnRepoEditingContext context)
     {

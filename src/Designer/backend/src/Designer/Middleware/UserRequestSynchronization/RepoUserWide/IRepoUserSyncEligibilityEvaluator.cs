@@ -5,6 +5,6 @@ namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.RepoUserW
 /// <summary>
 /// Marker interface used to identify request sync evaluators for repo user wide synchronization.
 /// </summary>
-public interface IRepoUserRequestSyncEvaluator : IRequestSyncEvaluator
+public interface IRepoUserSyncEligibilityEvaluator : ISyncEligibilityEvaluator
 {
 }
