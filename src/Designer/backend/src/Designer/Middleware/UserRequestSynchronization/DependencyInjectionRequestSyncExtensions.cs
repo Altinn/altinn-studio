@@ -1,6 +1,9 @@
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
-using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Services;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.RepoUserWide;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.RepoUserWide.Services;
+using Altinn.Studio.Designer.Models;
 using Medallion.Threading;
 using Medallion.Threading.Postgres;
 using Microsoft.Extensions.Configuration;
@@ -8,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
 
-public static class RequestSyncExtensions
+public static class DependencyInjectionRequestSyncExtensions
 {
     /// <summary>
     /// Registers all services needed for request synchronization.
@@ -18,14 +21,20 @@ public static class RequestSyncExtensions
     /// <returns>A reference to this instance after the operation has completed.</returns>
     public static IServiceCollection RegisterSynchronizationServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSingleton<IRequestSyncResolver, RequestSyncResolver>();
-        services.AddSingleton<IEditingContextResolver, EditingContextResolver>();
-        services.RegisterSingletonServicesByBaseType<IRequestSyncEvaluator>();
+        services.RegisterRepoUserWideSyncServices();
         services.AddSingleton<IDistributedLockProvider>(_ =>
         {
             PostgreSQLSettings postgresSettings = configuration.GetSection(nameof(PostgreSQLSettings)).Get<PostgreSQLSettings>();
             return new PostgresDistributedSynchronizationProvider(postgresSettings.FormattedConnectionString());
         });
+        return services;
+    }
+
+    private static IServiceCollection RegisterRepoUserWideSyncServices(this IServiceCollection services)
+    {
+        services.AddSingleton<IRequestSyncResolver<AltinnRepoEditingContext>, RequestSyncResolver>();
+        services.AddSingleton<IEditingContextResolver<AltinnRepoEditingContext>, EditingContextResolver>();
+        services.RegisterSingletonServicesByBaseType<IRepoUserRequestSyncEvaluator>();
         return services;
     }
 

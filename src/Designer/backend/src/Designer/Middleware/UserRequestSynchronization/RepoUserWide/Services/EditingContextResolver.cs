@@ -1,13 +1,14 @@
 using System;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;
 using Altinn.Studio.Designer.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
 
-namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Services;
+namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.RepoUserWide.Services;
 
-public class EditingContextResolver : IEditingContextResolver
+public class EditingContextResolver : IEditingContextResolver<AltinnRepoEditingContext>
 {
     public bool TryResolveContext(HttpContext httpContext, out AltinnRepoEditingContext context)
     {
