@@ -1,7 +1,8 @@
 import React, { useRef } from 'react';
 import { getAvailableChildComponentsForContainer } from '../../../utils/formLayoutUtils';
 import type { IInternalLayout, IToolbarElement } from '../../../types/global';
-import { StudioButton, StudioModal } from '@studio/components-legacy';
+import { StudioModal } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import type { AddedItem } from './types';
 import { AddItemContent } from './AddItemContent';
 import { PlusIcon } from '@studio/icons';

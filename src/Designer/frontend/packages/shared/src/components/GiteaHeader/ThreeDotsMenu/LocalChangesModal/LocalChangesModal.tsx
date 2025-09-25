@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import React, { useRef } from 'react';
-import { StudioButton, StudioModal } from '@studio/components-legacy';
+import { StudioModal } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { LocalChanges } from './LocalChanges/LocalChanges';
 import { MonitorIcon } from '@studio/icons';
@@ -21,6 +22,7 @@ export const LocalChangesModal = ({ triggerClassName }: LocalChangesModalProps):
         icon={<MonitorIcon />}
         onClick={openDialog}
         variant='tertiary'
+        data-size='sm'
       >
         {t('sync_header.local_changes')}
       </StudioButton>

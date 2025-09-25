@@ -10,8 +10,11 @@ import { texts } from './test-data/texts';
 import { codeListWithStrings } from './test-data/codeListWithStrings';
 import { CodeListItemTextProperty } from './types/CodeListItemTextProperty';
 import {
+  description3Resource,
   description4Resource,
+  helpText3Resource,
   helpText4Resource,
+  label3Resource,
   label4Resource,
   textResources,
 } from './test-data/textResources';
@@ -589,6 +592,25 @@ describe('StudioCodeListEditor', () => {
 
       expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
       expect(onUpdateCodeList).toHaveBeenCalledWith([{ ...codeListWithBooleans[0], value: false }]);
+    });
+  });
+
+  it('Renders the text resources correctly after an item is deleted', async () => {
+    const user = userEvent.setup();
+    const positionToDeleteFrom = 2;
+    const expectedTextsAfterDelete = new Map<CodeListItemTextProperty, string>([
+      [CodeListItemTextProperty.Label, label3Resource.value],
+      [CodeListItemTextProperty.Description, description3Resource.value],
+      [CodeListItemTextProperty.HelpText, helpText3Resource.value],
+    ]);
+
+    renderCodeListEditor();
+    const deleteButtonName = texts.deleteItem(positionToDeleteFrom);
+    await user.click(screen.getByRole('button', { name: deleteButtonName }));
+
+    expectedTextsAfterDelete.forEach((value, property) => {
+      const propertyCoords: TextPropertyCoords = [positionToDeleteFrom, property];
+      expect(getTextResourceValueInput(propertyCoords)).toHaveValue(value);
     });
   });
 });

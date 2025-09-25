@@ -2,6 +2,11 @@
   gap: 0.5rem;
 }
 
+.heading {
+  margin: var(--fds-spacing-3);
+  padding-left: var(--fds-spacing-3);
+}
+
 .button {
   margin: var(--fds-spacing-1);
   padding-left: 0;

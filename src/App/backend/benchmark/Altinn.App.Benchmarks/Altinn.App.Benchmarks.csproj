@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <LangVersion>latest</LangVersion>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>disable</Nullable>
+        <DebugType>pdbonly</DebugType>
+        <DebugSymbols>true</DebugSymbols>
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
+        <IsPackable>false</IsPackable>
+        <SonarQubeExclude>true</SonarQubeExclude>
+    </PropertyGroup>
+    <ItemGroup>
+        <Using Include="BenchmarkDotNet.Attributes" />
+        <Using Include="BenchmarkDotNet.Order" />
+        <Using Include="BenchmarkDotNet.Configs" />
+        <Using Include="BenchmarkDotNet.Jobs" />
+        <Using Include="BenchmarkDotNet.Diagnosers" />
+        <Using Include="BenchmarkDotNet.Loggers" />
+        <Using Include="BenchmarkDotNet.Columns" />
+        <Using Include="BenchmarkDotNet.Reports" />
+        <Using Include="BenchmarkDotNet.Diagnostics.dotTrace" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="BenchmarkDotNet"/>
+        <PackageReference Include="BenchmarkDotNet.Diagnostics.dotTrace"/>
+        <PackageReference Include="Buildalyzer.Workspaces"/>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="../../src/Altinn.App.Analyzers/Altinn.App.Analyzers.csproj" />
+        <ProjectReference Include="../../src/Altinn.App.Internal.Analyzers/Altinn.App.Internal.Analyzers.csproj" />
+        <ProjectReference Include="../../src/Altinn.App.Api/Altinn.App.Api.csproj" />
+        <ProjectReference Include="../../src/Altinn.App.Core/Altinn.App.Core.csproj" />
+    </ItemGroup>
+</Project>

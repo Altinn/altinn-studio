@@ -1,0 +1,127 @@
+﻿{
+  HttpResponse: {
+    Version: 1.1,
+    Content: {
+      Headers: {
+        Content-Type: [
+          application/json; charset=utf-8
+        ]
+      }
+    },
+    StatusCode: Created,
+    ReasonPhrase: Created,
+    Headers: {
+      Date: <date>,
+      Server: [
+        Kestrel
+      ],
+      Cache-Control: [
+        no-store, no-cache
+      ],
+      Location: [
+        https://app:5005/ttd/basic/instances/501337/<instanceGuid>
+      ],
+      Transfer-Encoding: [
+        chunked
+      ],
+      Request-Context: [
+        appId=
+      ],
+      X-Frame-Options: [
+        deny
+      ],
+      X-Content-Type-Options: [
+        nosniff
+      ],
+      X-XSS-Protection: [
+        0
+      ],
+      Referrer-Policy: [
+        no-referrer
+      ]
+    },
+    TrailingHeaders: {},
+    RequestMessage: {
+      Version: 1.1,
+      Content: {
+        Headers: {
+          Content-Type: [
+            application/json
+          ],
+          Content-Length: [
+            205
+          ]
+        }
+      },
+      Method: {
+        Method: POST
+      },
+      RequestUri: http://local.altinn.cloud:<localtestPort>/ttd/basic/instances/create,
+      Headers: {
+        Authorization: [
+          Bearer <token>
+        ],
+        User-Agent: [
+          Altinn.App.Integration.Tests
+        ]
+      }
+    },
+    IsSuccessStatusCode: true
+  },
+  Response: {
+    Id: 501337/<instanceGuid>,
+    InstanceOwner: {
+      PartyId: 501337,
+      PersonNumber: 01039012345
+    },
+    AppId: ttd/basic,
+    Org: ttd,
+    SelfLinks: {
+      Apps: https://app:5005/ttd/basic/instances/501337/<instanceGuid>,
+      Platform: https://platform.local.altinn.cloud/storage/api/v1/instances/501337/<instanceGuid>
+    },
+    VisibleAfter: DateTime_1,
+    Process: {
+      Started: DateTime_2,
+      StartEvent: StartEvent_1,
+      CurrentTask: {
+        Flow: 2,
+        Started: DateTime_3,
+        ElementId: Task_1,
+        Name: Utfylling,
+        AltinnTaskType: data,
+        FlowType: CompleteCurrentMoveToNext
+      }
+    },
+    Status: {
+      IsArchived: false,
+      IsSoftDeleted: false,
+      IsHardDeleted: false,
+      ReadStatus: Read
+    },
+    Data: [
+      {
+        Id: <dataElementId[0]>,
+        InstanceGuid: <instanceGuid>,
+        DataType: model,
+        ContentType: application/xml,
+        BlobStoragePath: ttd/basic/<instanceGuid>/data/<dataElementId[0]>,
+        SelfLinks: {
+          Apps: https://app:5005/ttd/basic/instances/501337/<instanceGuid>/data/<dataElementId[0]>,
+          Platform: https://platform./storage/api/v1/instances/501337/<instanceGuid>/data/<dataElementId[0]>
+        },
+        Size: 200,
+        Locked: false,
+        IsRead: true,
+        Created: DateTime_4,
+        CreatedBy: 950474084,
+        LastChanged: DateTime_4,
+        LastChangedBy: 950474084
+      }
+    ],
+    Created: DateTime_1,
+    CreatedBy: 950474084,
+    LastChanged: DateTime_1,
+    LastChangedBy: 950474084
+  }
+}

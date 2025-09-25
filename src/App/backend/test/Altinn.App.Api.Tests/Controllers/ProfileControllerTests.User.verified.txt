@@ -1,0 +1,107 @@
+﻿{
+  Telemetry: {
+    Activities: [
+      {
+        Name: GET {org}/{app}/api/v1/profile/user,
+        Kind: Server,
+        IdFormat: W3C,
+        Tags: [
+          {
+            http.request.method: GET
+          },
+          {
+            http.response.status_code: 200
+          },
+          {
+            http.route: {org}/{app}/api/v1/profile/user
+          },
+          {
+            network.protocol.version: 1.1
+          },
+          {
+            server.address: localhost
+          },
+          {
+            TestId: Guid_1
+          },
+          {
+            url.path: /tdd/contributer-restriction/api/v1/profile/user
+          },
+          {
+            url.scheme: http
+          },
+          {
+            user.authentication.inAltinnPortal: true
+          },
+          {
+            user.authentication.level: 2
+          },
+          {
+            user.authentication.method: BankID
+          },
+          {
+            user.authentication.token.isExchanged: false
+          },
+          {
+            user.authentication.token.issuer: Altinn
+          },
+          {
+            user.authentication.type: User
+          },
+          {
+            user.id: 1337
+          },
+          {
+            user.party.id: 501337
+          }
+        ],
+        HasParent: false
+      }
+    ]
+  },
+  Response: {
+    Status: 200 OK,
+    Headers: {
+      Cache-Control: no-store, no-cache,
+      Referrer-Policy: no-referrer,
+      X-Content-Type-Options: nosniff,
+      X-Frame-Options: deny,
+      X-XSS-Protection: 0
+    },
+    Content: {
+      Headers: {
+        Content-Type: application/json; charset=utf-8
+      },
+      Value: {
+        userId: 1337,
+        userUuid: null,
+        userName: SophieDDG,
+        externalIdentity: null,
+        isReserved: false,
+        phoneNumber: 90001337,
+        email: 1337@altinnstudiotestusers.com,
+        partyId: 501337,
+        party: {
+          partyId: 501337,
+          partyUuid: null,
+          partyTypeName: 0,
+          orgNumber: null,
+          ssn: 01039012345,
+          unitType: null,
+          name: null,
+          isDeleted: false,
+          onlyHierarchyElementWithNoAccess: false,
+          person: null,
+          organization: null,
+          childParties: null
+        },
+        userType: 1,
+        profileSettingPreference: {
+          language: nn,
+          preSelectedPartyId: 0,
+          doNotPromptForParty: true
+        }
+      }
+    }
+  }
+}
