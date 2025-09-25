@@ -11,7 +11,7 @@ import {
   OperationStatusResourceIcon,
 } from '@studio/icons';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { StudioHeading } from '@studio/components-legacy';
+import { StudioHeading } from '@studio/components';
 import { type Resource } from 'dashboard/types/Resource';
 
 const resources: Resource[] = [
@@ -57,7 +57,7 @@ export function Resources(): ReactElement {
   const { t } = useTranslation();
   return (
     <div className={classes.wrapper}>
-      <StudioHeading level={2} size='sm' className={classes.header}>
+      <StudioHeading level={2} className={classes.header}>
         {t('dashboard.resources')}
       </StudioHeading>
       <div className={classes.resourcesContainer}>

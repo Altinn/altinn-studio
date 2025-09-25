@@ -1,6 +1,7 @@
 import React, { type ReactElement } from 'react';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioAvatar, StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
+import { StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
+import { StudioAvatar } from '@studio/components';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { SubHeader } from './SubHeader';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
@@ -22,20 +23,22 @@ export const PageHeader = ({ showSubMenu, isRepoError }: PageHeaderProps): React
   const shouldDisplayDesktopMenu = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
   return (
-    <StudioPageHeader>
-      <StudioPageHeader.Main>
-        <StudioPageHeader.Left showTitle={shouldDisplayDesktopMenu} title={app} />
-        {shouldDisplayDesktopMenu && <CenterContent />}
-        <StudioPageHeader.Right>
-          <RightContent />
-        </StudioPageHeader.Right>
-      </StudioPageHeader.Main>
-      {showSubMenu && !isRepoError && (
-        <StudioPageHeader.Sub>
-          <SubHeader hasRepoError={isRepoError} />
-        </StudioPageHeader.Sub>
-      )}
-    </StudioPageHeader>
+    <div data-color-scheme='dark'>
+      <StudioPageHeader>
+        <StudioPageHeader.Main>
+          <StudioPageHeader.Left showTitle={shouldDisplayDesktopMenu} title={app} />
+          {shouldDisplayDesktopMenu && <CenterContent />}
+          <StudioPageHeader.Right>
+            <RightContent />
+          </StudioPageHeader.Right>
+        </StudioPageHeader.Main>
+        {showSubMenu && !isRepoError && (
+          <StudioPageHeader.Sub>
+            <SubHeader hasRepoError={isRepoError} />
+          </StudioPageHeader.Sub>
+        )}
+      </StudioPageHeader>
+    </div>
   );
 };
 

@@ -86,6 +86,7 @@ export const texts: ExpressionTexts = {
   logicalOperator: 'Logical operator',
   logicalTupleOperators,
   manual: 'Manual',
+  missingDataModelLabel: 'Det er ikke knyttet en datamodell til dette utfyllingssteget.',
   numberValidationError: 'The value must be a number.',
   or: 'or',
   predefinedGatewayActions,

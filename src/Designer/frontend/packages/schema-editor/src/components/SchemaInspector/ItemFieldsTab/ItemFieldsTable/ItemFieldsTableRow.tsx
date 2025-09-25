@@ -9,7 +9,7 @@ import { Switch } from '@digdir/designsystemet-react';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
-import { StudioCenter } from '@studio/components-legacy';
+import { StudioCenter } from '@studio/components';
 import { nameFieldClass } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
 import { ItemFieldType } from './ItemFieldType';
 

@@ -36,12 +36,13 @@ export class CellNumberfield extends BaseInputCell<HTMLInputElement, CellNumberf
 
     return (
       <StudioTable.Cell className={className}>
+        {/**No need to replace fieldStudioDecimalInput  here becuase the entire component CellNumberfield will be replaced */}
         <StudioDecimalInput hideLabel ref={ref} {...rest} {...eventProps} />
       </StudioTable.Cell>
     );
   }
 
-  shouldMoveFocusOnArrowKey({ key, currentTarget }) {
+  shouldMoveFocusOnArrowKey({ key, currentTarget }): boolean {
     if (isSomethingSelected(currentTarget)) return false;
     switch (key) {
       case 'ArrowUp':
@@ -52,8 +53,10 @@ export class CellNumberfield extends BaseInputCell<HTMLInputElement, CellNumberf
         return isCaretAtStart(currentTarget);
       case 'ArrowRight':
         return isCaretAtEnd(currentTarget);
+      default:
+        /* istanbul ignore next */ throw new Error(`Unhandled key: ${key}`);
     }
   }
 
-  shouldMoveFocusOnEnterKey = () => true;
+  shouldMoveFocusOnEnterKey = (): boolean => true;
 }

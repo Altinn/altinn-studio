@@ -1,0 +1,13 @@
+{
+  "partyId": "500002",
+  "partyTypeName": 2,
+  "orgNumber": "897069652",
+  "ssn": null,
+  "unitType": "BEDR",
+  "name": "DDG Fitness Bergen",
+  "isDeleted": false,
+  "onlyHierarchyElementWithNoAccess": false,
+  "person": null,
+  "organisation": null,
+  "childParties": null
+}

@@ -245,7 +245,7 @@ describe('DataModelBindings', () => {
       ...componentMocks[ComponentType.FileUpload],
       dataModelBindings: {
         list: { field: '', dataType: '' },
-        simpleBinding: { field: undefined, dataType: '' },
+        simpleBinding: undefined,
       },
     });
   });

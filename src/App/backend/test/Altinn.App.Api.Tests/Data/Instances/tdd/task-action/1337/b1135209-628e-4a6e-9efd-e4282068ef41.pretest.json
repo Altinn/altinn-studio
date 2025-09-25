@@ -1,0 +1,30 @@
+{
+  "id": "1337/b1135209-628e-4a6e-9efd-e4282068ef41",
+  "instanceOwner": {
+    "partyId": "1337",
+    "personNumber": "01039012345"
+  },
+  "appId": "tdd/task-action",
+  "org": "tdd",
+  "process": {
+    "started": "2019-12-05T13:24:34.8412179Z",
+    "startEvent": "StartEvent_1",
+    "currentTask": {
+      "flow": 2,
+      "started": "2019-12-05T13:24:34.9196661Z",
+      "elementId": "Task_1",
+      "name": "Utfylling",
+      "altinnTaskType": "data",
+      "validated": {
+        "timestamp": "2020-02-07T10:46:36.985894+01:00",
+        "canCompleteTask": false
+      }
+    }
+  },
+  "status": {
+    "isArchived": false,
+    "isSoftDeleted": false,
+    "isHardDeleted": false,
+    "readStatus": "Read"
+  }
+}

@@ -1,0 +1,48 @@
+.title {
+  font-size: 2.1875rem;
+  font-weight: 200;
+  padding: 12px 12px 18px;
+}
+
+.error {
+  font-size: 1.093rem;
+  font-weight: 300;
+  background-color: var(--colors-primary-redLight);
+  padding: 12px;
+  margin: 12px;
+}
+
+.searchFieldContainer {
+  padding: 8px 12px 0 12px;
+  width: 100%;
+}
+
+@media screen and (min-width: 768px) {
+  .searchFieldContainer {
+    width: 50% !important;
+  }
+}
+
+.padding {
+  padding-right: 12px;
+  padding-left: 12px;
+}
+
+.subTitleContainer {
+  padding-top: 24px;
+  padding-bottom: 12px;
+}
+
+.subTitleContainer div {
+  align-content: center;
+}
+
+.subTitle {
+  font-size: 1.093rem;
+  font-weight: 600;
+}
+
+.checkboxContainer {
+  align-items: center;
+  gap: 12px;
+}

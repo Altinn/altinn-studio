@@ -1,0 +1,5 @@
+{
+  "name": "Should accept, but just return a number",
+  "expression": ["lowerCaseFirst", 789],
+  "expects": "789"
+}

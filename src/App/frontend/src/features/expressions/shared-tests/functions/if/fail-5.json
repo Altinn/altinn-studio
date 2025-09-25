@@ -1,0 +1,5 @@
+{
+  "name": "Should fail when given a 5 as a boolean true",
+  "expression": ["if", 5, 123.456],
+  "expectsFailure": "Expected boolean, got value 5"
+}

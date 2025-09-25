@@ -98,7 +98,7 @@ describe('SchemaInspector', () => {
 
     updatedModel = getSavedModel(saveDataModel, 7);
     updatedNode = updatedModel.getNodeBySchemaPointer(schemaPointer) as FieldNode;
-    expect(updatedNode.restrictions.minLength).toEqual(parseInt(minLength));
+    expect(updatedNode.restrictions.maxLength).toEqual(parseInt(maxLength));
   });
 
   test('Adds new object field when pressing the enter key', async () => {

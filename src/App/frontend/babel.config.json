@@ -1,0 +1,23 @@
+{
+  "sourceType": "unambiguous",
+  "plugins": [
+    [
+      "@babel/plugin-transform-runtime",
+      {
+        "version": "^7.21.0",
+        "absoluteRuntime": true
+      }
+    ]
+  ],
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "useBuiltIns": "entry",
+        "corejs": 3
+      }
+    ],
+    "@babel/preset-react"
+  ],
+  "ignore": ["/**/*.json"]
+}

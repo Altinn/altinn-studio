@@ -8,7 +8,7 @@ import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSet
 import { PageAccordion } from './PageAccordion';
 import { useAppContext, useFormLayouts } from '../../hooks';
 import { FormLayout } from './FormLayout';
-import { StudioButton } from '@studio/components-legacy';
+import { StudioButton, StudioSpinner } from '@studio/components';
 import {
   duplicatedIdsExistsInLayout,
   findLayoutsContainingDuplicateComponents,
@@ -27,7 +27,6 @@ import {
   isPagesModelWithGroups,
   type PagesModelWithPageOrder,
 } from 'app-shared/types/api/dto/PagesModel';
-import { StudioSpinner } from '@studio/components';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts

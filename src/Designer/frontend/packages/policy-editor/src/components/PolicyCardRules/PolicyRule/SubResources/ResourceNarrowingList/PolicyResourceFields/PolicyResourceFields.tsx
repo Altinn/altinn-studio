@@ -2,7 +2,8 @@ import React from 'react';
 import classes from './PolicyResourceFields.module.css';
 import { MultiplyIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioLabelAsParagraph, StudioTextfield } from '@studio/components-legacy';
+import { StudioLabelAsParagraph, StudioTextfield } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { usePolicyEditorContext } from '../../../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../../../contexts/PolicyRuleContext';
 import { getUpdatedRules } from '../../../../../../utils/PolicyRuleUtils';
@@ -98,7 +99,7 @@ export const PolicyResourceFields = ({
         {canEditTypeAndId && isMultipleNarrowingResources && (
           <StudioButton
             aria-disabled={!canEditTypeAndId}
-            color='danger'
+            color-color='danger'
             hidden={!canEditTypeAndId}
             icon={<MultiplyIcon />}
             onClick={handleRemoveNarrowingResource}

@@ -1,0 +1,37 @@
+{
+  "name": "Display value of Custom component",
+  "expression": [
+    "displayValue",
+    "custom"
+  ],
+  "context": {
+    "component": "custom",
+    "currentLayout": "Page"
+  },
+  "expects": "Alice, Bob, Charlie",
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "custom",
+            "type": "Custom",
+            "dataModelBindings": {
+              "name1": "Skjema.Name1",
+              "name2": "Skjema.Name2",
+              "name3": "Skjema.Name3"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Skjema": {
+      "Name1": "Alice",
+      "Name2": "Bob",
+      "Name3": "Charlie"
+    }
+  }
+}

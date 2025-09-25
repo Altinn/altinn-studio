@@ -1,0 +1,12 @@
+{
+  "name": "Should return list of keys when using the wrong key",
+  "expression": ["value", "b"],
+  "expectsFailure": "Unknown key b, Valid keys are: v, a",
+  "valueArguments": {
+    "data": {
+      "v": "foo",
+      "a": "bar"
+    },
+    "defaultKey": "v"
+  }
+}
