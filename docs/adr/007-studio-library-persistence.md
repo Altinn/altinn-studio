@@ -11,7 +11,7 @@ A4 - Cluster hosted file persistence
 ## Problem context
 
 There is a need to enable the publishing of static resources from Altinn Studio to a persistent storage separate from the app deployment.
-Studio is launching "Studio Library" in which a service owners may share resources across applications and organisations. The publishing of these resources need to support immutability through pinning a version of a resource, as well as mutability by choosing to always opt for the "latest".
+Studio is launching "Studio Library", in which service owners may share resources across applications and organisations. The publishing of these resources needs to support immutability through pinning a version of a resource, as well as mutability by choosing to always opt for the "latest".
 When choosing to use the "latest", it should not be required to redeploy an application.
 Users must get an overview over published resources in Studio Library.
 
