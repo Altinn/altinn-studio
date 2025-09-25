@@ -31,11 +31,13 @@ help: ## Show this help message
 
 check-branch: ## Check if current branch follows chore/subtree-sync-* naming convention
 	@current_branch=$$(git branch --show-current); \
-	if [[ $$current_branch != chore/subtree-sync-* ]]; then \
-		echo "ERROR: Current branch '$$current_branch' should follow pattern 'chore/subtree-sync-*' when syncing subtrees"; \
-		exit 1; \
-	fi; \
-	echo "✓ Branch name '$$current_branch' follows expected pattern"
+	case "$$current_branch" in \
+		chore/subtree-sync-*) \
+			echo "✓ Branch name '$$current_branch' follows expected pattern" ;; \
+		*) \
+			echo "ERROR: Current branch '$$current_branch' should follow pattern 'chore/subtree-sync-*' when syncing subtrees"; \
+			exit 1 ;; \
+	esac
 
 sync-localtest: check-branch ## Sync localtest subtree
 	@echo "Syncing localtest subtree..."
