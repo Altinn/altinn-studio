@@ -37,6 +37,7 @@ export * from './StudioHelpText';
 export * from './StudioLabel';
 export * from './StudioLink';
 export * from './StudioLinkButton';
+export * from './StudioList';
 export * from './StudioNotFoundPage';
 export * from './StudioPageImageBackgroundContainer';
 export * from './StudioParagraph';
