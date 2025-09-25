@@ -7,13 +7,7 @@ import { useAppContext, useGetLayoutSetByName } from '../../hooks';
 import { useChecksum } from '../../hooks/useChecksum.ts';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/designsystemet-react';
-import {
-  StudioAlert,
-  StudioCenter,
-  StudioErrorMessage,
-  StudioSpinner,
-} from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioCenter, StudioAlert } from '@studio/components';
 import type { SupportedView } from './ViewToggler/ViewToggler';
 import { ViewToggler } from './ViewToggler/ViewToggler';
 import { ShrinkIcon } from '@studio/icons';
@@ -140,7 +134,7 @@ const PreviewFrame = () => {
     <div className={classes.root}>
       <ViewToggler onChange={setViewportToSimulate} />
       {isSubform ? (
-        <StudioAlert className={classes.alert} severity='warning'>
+        <StudioAlert className={classes.alert} data-color='warning'>
           {t('ux_editor.preview.subform_unsupported_warning')}
         </StudioAlert>
       ) : (

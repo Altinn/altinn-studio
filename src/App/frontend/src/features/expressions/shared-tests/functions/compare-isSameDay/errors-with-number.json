@@ -1,0 +1,5 @@
+{
+  "name": "errors with number",
+  "expression": ["compare", 2020, "not", "isSameDay", "2022"],
+  "expectsFailure": ""
+}

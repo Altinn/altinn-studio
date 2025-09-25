@@ -1,0 +1,20 @@
+.table {
+  border: 0;
+  margin: 36px 0 0;
+  padding: 0;
+  width: auto;
+  height: auto;
+}
+
+@media print {
+  .table {
+    margin-bottom: 1.25rem;
+  }
+}
+
+.key {
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  padding-right: 1.5625rem;
+}

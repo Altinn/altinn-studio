@@ -1,7 +1,6 @@
 import React, { useState, type ReactElement, type ReactNode } from 'react';
 import classes from './EditSubformTableColumns.module.css';
-import { StudioHeading } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioHeading } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { type IGenericEditComponent } from '../../config/componentConfig';
@@ -99,7 +98,7 @@ const EditSubformTableColumnsWrapper = ({
   const { t } = useTranslation();
   return (
     <div className={cn(className ? className : classes.wrapper)}>
-      <StudioHeading size='2xs' level={2}>
+      <StudioHeading level={2} spacing>
         {t('ux_editor.properties_panel.subform_table_columns.heading')}
       </StudioHeading>
       <div className={classes.contentWrapper}>{children}</div>

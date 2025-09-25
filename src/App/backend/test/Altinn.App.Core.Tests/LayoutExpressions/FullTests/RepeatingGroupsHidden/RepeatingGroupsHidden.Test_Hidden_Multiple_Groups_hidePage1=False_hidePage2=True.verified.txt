@@ -1,0 +1,10 @@
+﻿[
+  {
+    Field: some.data,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  }
+]

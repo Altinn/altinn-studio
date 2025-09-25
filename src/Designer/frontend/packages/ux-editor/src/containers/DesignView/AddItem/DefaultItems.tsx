@@ -1,8 +1,7 @@
 import React from 'react';
 import type { IToolbarElement } from '../../../types/global';
 import classes from './DefaultItems.module.css';
-import { StudioHeading } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioHeading } from '@studio/components';
 import { XMarkIcon } from '@studio/icons';
 import type { AddedItem } from './types';
 import { ComponentButton } from './ComponentButton';
@@ -31,7 +30,7 @@ export const DefaultItems = ({
   return (
     <div className={classes.root}>
       <div className={classes.closeButtonContainer}>
-        <StudioHeading level={4} size='xxsmall' className={classes.header}>
+        <StudioHeading level={4} className={classes.header}>
           {t('ux_editor.add_item.select_component_header')}
         </StudioHeading>
         <StudioButton

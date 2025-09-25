@@ -1,0 +1,42 @@
+﻿{
+  Description: Maskinporten exchanged service owner token,
+  AuthType: Altinn.App.Core.Features.Auth.Authenticated+ServiceOwner,
+  Auth: {
+    Name: digdir,
+    OrgNo: 991825827,
+    AuthenticationLevel: 3,
+    AuthenticationMethod: maskinporten,
+    TokenIssuer: Maskinporten,
+    TokenIsExchanged: true,
+    Scopes: altinn:serviceowner/instances.write altinn:serviceowner/instances.read,
+    ClientId: 044f5040-54e3-4a27-a221-a8514fd30ca9,
+    Token: eyJhbGciOiJSUzI1NiIsImtpZCI6IkQ4RDg2N0M3RDUyMTM2MEY0RjM1Q0Q1MTU4MEM0OUEwNTE2NUQ0RTEiLCJ4NXQiOiIyTmhueDlVaE5nOVBOYzFSV0F4Sm9GRmwxT0UiLCJ0eXAiOiJKV1QifQ.eyJzY29wZSI6ImFsdGlubjpzZXJ2aWNlb3duZXIvaW5zdGFuY2VzLndyaXRlIGFsdGlubjpzZXJ2aWNlb3duZXIvaW5zdGFuY2VzLnJlYWQiLCJ0b2tlbl90eXBlIjoiQmVhcmVyIiwiZXhwIjoxNzM3ODE5Mzc2LCJpYXQiOjE3Mzc4MTc1NzYsImNsaWVudF9pZCI6IjA0NGY1MDQwLTU0ZTMtNGEyNy1hMjIxLWE4NTE0ZmQzMGNhOSIsImNvbnN1bWVyIjp7ImF1dGhvcml0eSI6ImlzbzY1MjMtYWN0b3JpZC11cGlzIiwiSUQiOiIwMTkyOjk5MTgyNTgyNyJ9LCJ1cm46YWx0aW5uOm9yZyI6ImRpZ2RpciIsInVybjphbHRpbm46b3JnTnVtYmVyIjoiOTkxODI1ODI3IiwidXJuOmFsdGlubjphdXRoZW50aWNhdGVtZXRob2QiOiJtYXNraW5wb3J0ZW4iLCJ1cm46YWx0aW5uOmF1dGhsZXZlbCI6MywiaXNzIjoiaHR0cHM6Ly9wbGF0Zm9ybS50dDAyLmFsdGlubi5uby9hdXRoZW50aWNhdGlvbi9hcGkvdjEvb3BlbmlkLyIsImp0aSI6IjFmN2RlMDFhLTgyYjMtNDc3Yi04MmQzLTBiY2I5NDkzOGVjNyIsIm5iZiI6MTczNzgxNzU3Nn0.G9uZ_YK2IxUgv8ySP3zy_IG0kOO3qJtEqHPds2f3jh1_YHcQlHEnQXUecUR-xD-Qi8qtI_GEJizA3l-zXc9DLkxgv4HVamzBrOcm9aQWqd3s8_OuI1nF4WjWrcw5FHpaXl1DqbgqPQI8rxOJhmW-H4rE944TKHLwvBlsX-9brYU_CC1WfnymFwODKsGhT1hm5ljQeV6O6j0GkNsRANiQlUnIMJcMVQEBtcuHGBLeNq-u5JSXzs17GLB371IN9Jb8IoYKu7njW3-Pat-QWebDYT9jdMQHOYslr0WByTvlnhL6Z7aQ8KbllbNw3GoYOvCBphVVpmk7aaqcchUiBh30-g
+  },
+  Jwt: {
+    client_id: 044f5040-54e3-4a27-a221-a8514fd30ca9,
+    consumer: {
+      ValueKind: Object
+    },
+    exp: 1737819376,
+    iat: 1737817576,
+    iss: https://platform.tt02.altinn.no/authentication/api/v1/openid/,
+    jti: 1f7de01a-82b3-477b-82d3-0bcb94938ec7,
+    nbf: 1737817576,
+    scope: altinn:serviceowner/instances.write altinn:serviceowner/instances.read,
+    token_type: Bearer,
+    urn:altinn:authenticatemethod: maskinporten,
+    urn:altinn:authlevel: 3,
+    urn:altinn:org: digdir,
+    urn:altinn:orgNumber: 991825827
+  },
+  Details: {
+    Party: {
+      PartyId: 1234,
+      PartyTypeName: Organisation,
+      OrgNumber: 991825827,
+      Name: Test AS,
+      IsDeleted: false,
+      OnlyHierarchyElementWithNoAccess: false
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "Should format date with format 'uuu' as '2023'",
+  "expression": [
+    "formatDate",
+    "2023-03-04T05:06:07.120Z",
+    "uuu"
+  ],
+  "expects": "2023"
+}

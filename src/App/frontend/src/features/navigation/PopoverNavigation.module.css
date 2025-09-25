@@ -1,0 +1,24 @@
+.popoverButtonActive {
+  background-color: var(--ds-color-accent-surface-hover);
+  border-color: var(--ds-color-accent-base-active);
+  color: var(--ds-color-accent-base-active);
+}
+
+.popoverButtonIcon {
+  font-size: 1.2rem;
+}
+.popoverButtonIconMargin {
+  margin-right: 4px;
+}
+
+.modal {
+  max-width: 320px;
+  min-width: unset;
+  height: 90vh;
+}
+
+.modalContainer {
+  box-sizing: border-box;
+  padding: 16px;
+  height: 100%;
+}

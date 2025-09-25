@@ -1,0 +1,5 @@
+{
+  "name": "Disallows 2 as true",
+  "expression": ["and", 2, true],
+  "expectsFailure": "Expected boolean, got value 2"
+}

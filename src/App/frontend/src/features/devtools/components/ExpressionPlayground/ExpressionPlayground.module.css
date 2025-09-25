@@ -1,0 +1,45 @@
+.container {
+  box-sizing: border-box;
+  height: 100%;
+  width: 100%;
+  padding: 0;
+}
+
+.textbox {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  font-family: monospace;
+  line-height: 1.2;
+  resize: none;
+  font-size: 1rem;
+  outline: none;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+  padding: 8px;
+  border: none;
+}
+
+.output {
+  background: transparent;
+}
+
+.rightColumn {
+  padding: 6px;
+  background-color: white;
+  box-sizing: border-box;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.outputs,
+.outputs > div,
+.outputs > div > div:not([role='tablist']) {
+  box-sizing: border-box;
+  height: 100%;
+}
+
+.tabList {
+  overflow-x: auto;
+}

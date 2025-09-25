@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useComponentPropertyLabel, useText } from '../../../hooks';
-import { StudioCard } from '@studio/components-legacy';
-import { StudioButton, StudioProperty } from '@studio/components';
+import { StudioButton, StudioProperty, StudioCard } from '@studio/components';
 import { PlusCircleIcon, XMarkIcon } from '@studio/icons';
 import { Paragraph } from '@digdir/designsystemet-react';
 import { FormComponentConfig } from '../FormComponentConfig';
@@ -45,22 +44,24 @@ export const ConfigObjectProperties = ({
           <div key={propertyKey}>
             {isOpen ? (
               <StudioCard>
-                <div className={classes.flexContainer}>
-                  <StudioCard.Header className={classes.gridHeader} data-size='md'>
+                <StudioCard.Block data-size='md'>
+                  <div className={classes.flexContainer}>
                     {componentPropertyLabel(propertyKey)}
-                  </StudioCard.Header>
-                  <StudioButton
-                    data-size='small' // can be removed once parent component hierarchy is also from @studio/components
-                    icon={<XMarkIcon />}
-                    onClick={() => toggleObjectCard(propertyKey)}
-                    title={t('general.close')}
-                    variant='secondary'
-                  />
-                </div>
-                <StudioCard.Content>
-                  {componentPropertyDescription(propertyKey) && (
-                    <Paragraph size='small'>{componentPropertyDescription(propertyKey)}</Paragraph>
-                  )}
+                    <StudioButton
+                      icon={<XMarkIcon />}
+                      onClick={() => toggleObjectCard(propertyKey)}
+                      title={t('general.close')}
+                      variant='secondary'
+                    />
+                  </div>
+                  <div className={classes.descriptionContainer}>
+                    {componentPropertyDescription(propertyKey) && (
+                      <Paragraph size='small'>
+                        {componentPropertyDescription(propertyKey)}
+                      </Paragraph>
+                    )}
+                  </div>
+
                   <FormComponentConfig
                     schema={schema.properties[propertyKey] || {}}
                     component={component[propertyKey] || {}}
@@ -73,7 +74,7 @@ export const ConfigObjectProperties = ({
                     editFormId={editFormId}
                     hideUnsupported
                   />
-                </StudioCard.Content>
+                </StudioCard.Block>
               </StudioCard>
             ) : (
               <StudioProperty.Button

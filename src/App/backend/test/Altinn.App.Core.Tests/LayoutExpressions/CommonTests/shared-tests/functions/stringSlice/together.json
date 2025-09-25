@@ -1,0 +1,17 @@
+{
+  "name": "Should work together with stringIndexOf",
+  "expression": [
+    "concat",
+    [
+      "stringSlice",
+      ["dataModel", "string"],
+      ["stringIndexOf", ["dataModel", "string"], "Hello"],
+      ["stringIndexOf", ["dataModel", "string"], "world"]
+    ],
+    "expressions!"
+  ],
+  "expects": "Hello, expressions!",
+  "dataModel": {
+    "string": "message: Hello, world!"
+  }
+}

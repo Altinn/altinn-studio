@@ -1,0 +1,178 @@
+﻿{
+  createdResponse: {
+    id: <instancOwnerPartyId>/<instanceGuid>,
+    instanceOwner: {
+      partyId: 501337,
+      personNumber: 01039012345,
+      organisationNumber: null,
+      username: null,
+      party: {
+        partyId: 501337,
+        partyUuid: null,
+        partyTypeName: 1,
+        ssn: 01039012345,
+        orgNumber: null,
+        unitType: null,
+        name: Sophie Salt,
+        isDeleted: false
+      }
+    },
+    appId: tdd/contributer-restriction,
+    org: tdd,
+    selfLinks: {
+      apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>,
+      platform: null
+    },
+    dueBefore: null,
+    visibleAfter: null,
+    process: {
+      started: DateTimeOffset_1,
+      startEvent: StartEvent_1,
+      currentTask: {
+        flow: 2,
+        started: DateTimeOffset_2,
+        elementId: Task_1,
+        name: Utfylling,
+        altinnTaskType: data,
+        ended: null,
+        validated: null,
+        flowType: CompleteCurrentMoveToNext
+      },
+      ended: null,
+      endEvent: null
+    },
+    status: {
+      isArchived: false,
+      archived: null,
+      isSoftDeleted: false,
+      softDeleted: null,
+      isHardDeleted: false,
+      hardDeleted: null,
+      readStatus: 1,
+      substatus: null
+    },
+    completeConfirmations: null,
+    data: [
+      {
+        id: Guid_1,
+        instanceGuid: Guid_2,
+        dataType: default,
+        filename: null,
+        contentType: application/xml,
+        blobStoragePath: null,
+        selfLinks: {
+          apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>,
+          platform: null
+        },
+        size: 0,
+        contentHash: null,
+        locked: false,
+        refs: null,
+        isRead: true,
+        userDefinedMetadata: null,
+        metadata: null,
+        deleteStatus: null,
+        fileScanResult: NotApplicable,
+        references: null,
+        created: null,
+        createdBy: null,
+        lastChanged: null,
+        lastChangedBy: null
+      }
+    ],
+    presentationTexts: null,
+    dataValues: null,
+    created: null,
+    createdBy: null,
+    lastChanged: null,
+    lastChangedBy: null
+  },
+  readResponse: {
+    id: <instancOwnerPartyId>/<instanceGuid>,
+    instanceOwner: {
+      partyId: 501337,
+      personNumber: 01039012345,
+      organisationNumber: null,
+      username: null,
+      party: {
+        partyId: 501337,
+        partyUuid: null,
+        partyTypeName: 1,
+        ssn: 01039012345,
+        orgNumber: null,
+        unitType: null,
+        name: Sophie Salt,
+        isDeleted: false
+      }
+    },
+    appId: tdd/contributer-restriction,
+    org: tdd,
+    selfLinks: {
+      apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>,
+      platform: null
+    },
+    dueBefore: null,
+    visibleAfter: null,
+    process: {
+      started: DateTimeOffset_1,
+      startEvent: StartEvent_1,
+      currentTask: {
+        flow: 2,
+        started: DateTimeOffset_2,
+        elementId: Task_1,
+        name: Utfylling,
+        altinnTaskType: data,
+        ended: null,
+        validated: null,
+        flowType: CompleteCurrentMoveToNext
+      },
+      ended: null,
+      endEvent: null
+    },
+    status: {
+      isArchived: false,
+      archived: null,
+      isSoftDeleted: false,
+      softDeleted: null,
+      isHardDeleted: false,
+      hardDeleted: null,
+      readStatus: 1,
+      substatus: null
+    },
+    completeConfirmations: null,
+    data: [
+      {
+        id: Guid_1,
+        instanceGuid: Guid_2,
+        dataType: default,
+        filename: null,
+        contentType: application/xml,
+        blobStoragePath: null,
+        selfLinks: {
+          apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>,
+          platform: null
+        },
+        size: 0,
+        contentHash: null,
+        locked: false,
+        refs: null,
+        isRead: true,
+        userDefinedMetadata: null,
+        metadata: null,
+        deleteStatus: null,
+        fileScanResult: NotApplicable,
+        references: null,
+        created: null,
+        createdBy: null,
+        lastChanged: null,
+        lastChangedBy: null
+      }
+    ],
+    presentationTexts: null,
+    dataValues: null,
+    created: null,
+    createdBy: null,
+    lastChanged: DateTimeOffset_3,
+    lastChangedBy: null
+  }
+}

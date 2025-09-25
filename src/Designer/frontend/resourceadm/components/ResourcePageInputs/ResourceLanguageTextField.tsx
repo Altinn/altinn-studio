@@ -212,7 +212,7 @@ export const ResourceLanguageTextField = ({
             </div>
           </div>
         }
-        value={translations[selectedLanguage]}
+        value={translations[selectedLanguage] ?? ''}
         onChange={onFieldValueChanged}
         isTextArea={useTextArea}
         error={mainFieldError.length > 0 ? mainFieldError : undefined}

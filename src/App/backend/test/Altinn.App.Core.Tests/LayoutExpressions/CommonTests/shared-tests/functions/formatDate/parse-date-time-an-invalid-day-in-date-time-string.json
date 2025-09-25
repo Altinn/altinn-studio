@@ -1,0 +1,11 @@
+{
+  "comment": "This tests our compliance to the date-time format from the JSON Schema Test Suite.",
+  "source": "https://github.com/json-schema-org/JSON-Schema-Test-Suite/blob/main/tests/draft2020-12/optional/format/date-time.json",
+  "name": "Compliance: an invalid day in date-time string",
+  "expression": [
+    "formatDate",
+    "1990-02-31T15:59:59.123-08:00",
+    "G yyyy-MM-dd EEEE HH:mm:ss.SSS a"
+  ],
+  "expectsFailure": "Unable to parse date \"1990-02-31T15:59:59.123-08:00\": Format was recognized, but the date/time is invalid"
+}

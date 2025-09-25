@@ -1,0 +1,20 @@
+# Run this command to always ignore formatting commits in `git blame`
+# git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# More info:
+# https://www.stefanjudis.com/today-i-learned/how-to-exclude-commits-from-git-blame/
+# Also, a horrible bash script to list out the 20 commits with the most files changed:
+# git log --pretty='@%h' --shortstat | grep -v \| | tr "\n" " " | tr "@" "\n" | sed 's/,.*//' | sort -k2 -n | tail -n 20 | awk '{print "echo $(git log -1 --format=\"%H # %s\" " $1 ") - " $2 " files changed"}' | bash
+
+c55ab47f969a67a054b70ee7c82201b2e1f17388 # Altinn app platform services renaming (#3146) - 99 files changed
+9a75afa100f7635c18f82f5c821e281fb6495e2d # Remove BOM on C# files now that .editorconfig states that BOM should not be used (#620) - 137 files changed
+7f562dd57fe7c0299d29f2312b7a84ef170fca78 # Add pipeline job to verify clean dotnet format (#455) - 186 files changed
+5fa3778bd09ed608cdc563e8ee15ff1b9de31201 # Csharpier for more consistent formatting (#533) - 471 files changed
+f1ed9343c6345cf3f72bd3b9b38946176c377013 # Misc project cleanup - props, editorconfig, refactorings, docs (#661) - 482 files changed
+
+# Optional ignores. Stuff that absolutely do make code changes, but make a lot of code changes (which you might want
+# to ignore, depending on what you're looking for). Comment these in if you need them to be ignored:
+# c40e14cb84b571952981940f5871b6a349f3ad0d # merge main into v8 (#284) - 174 files changed
+# f30340be522c3d6595ebc3b5a211efda439af126 # Enable nullable annotations on Api and Core.Tests (#447) - 171 files changed
+# d9847039cbb79e1bac307c1cc004ff3d92243c4d # Feature/unittestcleanupapp (#3672) - 111 files changed
+# 590e7751010bb7786f5b492b439100d387689b5f # Chore/90 appbase simplified (#18) - 255 files changed

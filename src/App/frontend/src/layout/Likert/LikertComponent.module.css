@@ -1,0 +1,68 @@
+.likertTable {
+  width: 100%;
+}
+
+/* ====
+TODO(1779): Remove these styles after going through all the different Table styles in
+Altinn, and making sure they are consistent. */
+.likertTable {
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.12),
+    0 2px 2px rgba(0, 0, 0, 0.12);
+}
+
+.likertTable th {
+  border-bottom: 1px solid #dde3e5;
+  padding-top: var(--ds-size-3);
+  padding-bottom: var(--ds-size-3);
+}
+
+.likertTable thead th {
+  background-color: var(--ds-color-neutral-background-tinted);
+}
+
+.likertTable tr td {
+  padding-top: var(--ds-size-4);
+  padding-bottom: var(--ds-size-4);
+  border-bottom: 1px solid #dde3e5;
+}
+
+.likertTable tr:last-of-type td {
+  border-bottom: none;
+}
+
+/* ==== */
+
+.likertTable thead td:not(:first-of-type) {
+  justify-content: center;
+}
+
+.likertTable thead th:not(:first-of-type) {
+  width: 100px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.likertHeading {
+  text-align: left;
+  padding-bottom: var(--ds-size-4);
+}
+
+.likertMobileGroup {
+  gap: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.likertCellDividerStart {
+  border-inline-start: 1px solid #dde3e5;
+}
+
+.likertCellDividerEnd {
+  border-inline-end: 1px solid #dde3e5;
+}
+
+.likertCellDividerBoth {
+  border-inline-start: 1px solid #dde3e5;
+  border-inline-end: 1px solid #dde3e5;
+}
