@@ -1,8 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.OrgWide;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.RepoUserWide;
-using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.RepoUserWide.Services;
 using Altinn.Studio.Designer.Models;
 using Medallion.Threading;
 using Microsoft.AspNetCore.Http;
@@ -27,6 +27,15 @@ public class RequestSynchronizationMiddleware
         IRequestSyncEvaluator<AltinnOrgContext> orgWideRequestSyncEvaluator,
         IDistributedLockProvider synchronizationProvider)
     {
+        if(orgWideRequestSyncEvaluator.TryEvaluateShouldSyncRequest(httpContext, out AltinnOrgContext orgContext))
+        {
+            await using (await synchronizationProvider.AcquireLockAsync(orgContext, _waitTimeout, httpContext.RequestAborted))
+            {
+                await _next(httpContext);
+                return;
+            }
+        }
+
         if (repoUserWideRequestSyncEvaluator.TryEvaluateShouldSyncRequest(httpContext, out AltinnRepoEditingContext editingContext))
         {
             await using (await synchronizationProvider.AcquireLockAsync(editingContext, _waitTimeout, httpContext.RequestAborted))
