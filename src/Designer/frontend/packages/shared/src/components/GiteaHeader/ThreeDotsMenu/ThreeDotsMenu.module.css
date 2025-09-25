@@ -12,7 +12,9 @@
 }
 
 .link {
+  border-radius: 0;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .menuItems {
@@ -23,21 +25,6 @@
   margin: 0;
   padding: 1rem 0;
   align-items: stretch;
-}
-
-.menuItems li {
-  padding: 0;
-  margin: 0;
-}
-
-.menuItems li a {
-  display: block;
-  padding: var(--ds-size-2) var(--ds-size-4);
-  width: 100%;
-}
-
-.menuItems li:hover {
-  background-color: var(--ds-color-surface-hover);
 }
 
 .icon {

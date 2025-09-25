@@ -4,7 +4,7 @@ import { TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
 import { StudioPageHeader, StudioPopover } from '@studio/components-legacy';
-import { StudioLink } from '@studio/components';
+import { StudioLinkButton } from '@studio/components';
 import { LocalChangesModal } from './LocalChangesModal';
 import { ClonePopoverContent } from './ClonePopoverContent';
 import { useGiteaHeaderContext } from '../context/GiteaHeaderContext';
@@ -50,13 +50,17 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
             </li>
           )}
           <li>
-            <StudioLink
+            <StudioLinkButton
+              className={classes.link}
+              data-color=''
+              data-size='sm'
               href={repositoryPath(owner, repoName)}
               icon={<GiteaIcon />}
               rel='noopener noreferrer'
+              variant='tertiary'
             >
               {t('sync_header.repository')}
-            </StudioLink>
+            </StudioLinkButton>
           </li>
           <li>
             <LocalChangesModal triggerClassName={classes.menuButton} />

@@ -22,6 +22,7 @@ export const LocalChangesModal = ({ triggerClassName }: LocalChangesModalProps):
         icon={<MonitorIcon />}
         onClick={openDialog}
         variant='tertiary'
+        data-size='sm'
       >
         {t('sync_header.local_changes')}
       </StudioButton>
