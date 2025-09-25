@@ -64,7 +64,7 @@ List the pros and cons with the alternatives. This should be in regards to the d
 
 - Good, because it supports B1, B3, B4, B5, B6 and B8
 - Bad, because B2 leads to complexity in the implementation which goes against the purpose of a storage account
-  - For immutabiliy, we would need to duplicate data per organization
+  - For immutability, we would need to duplicate data per organization
     - If service owner X publishes a code list and service owner Y wants to use it we need duplication in order to avoid X breaking production for Y
 - Bad, because it does not support B7
   - It is a complex issue knowing who uses and should pay for using a resource from a shared storage account
