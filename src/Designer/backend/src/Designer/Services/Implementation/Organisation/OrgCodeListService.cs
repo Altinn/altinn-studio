@@ -218,7 +218,7 @@ public class OrgCodeListService : IOrgCodeListService
         return new FileOperationContext(
             Content: encodedContent,
             Operation: operation,
-            Path: $"CodeLists/{codeListWrapper.Title}.json",
+            Path: CodeListUtils.FilePath(codeListWrapper.Title),
             Sha: sha
         );
     }

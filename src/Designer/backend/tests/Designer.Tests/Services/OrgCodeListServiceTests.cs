@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.CodeList;
 using Altinn.Studio.Designer.Factories;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Implementation.Organisation;
@@ -85,23 +86,23 @@ public class OrgCodeListServiceTests : IDisposable
     public async Task GetCodeListsNew()
     {
         // Arrange
-        const string FosWithContentName = "hasContent";
-        const string FosWithoutContentName = "noContent";
+        const string FsoWithContentName = "hasContent";
+        const string FsoWithoutContentName = "noContent";
 
         CodeList validCodeList = SetupCodeList();
         List<FileSystemObject> remoteFiles =
         [
             new()
             {
-                Name = FosWithContentName,
-                Path = $"CodeLists/{FosWithContentName}.json",
+                Name = FsoWithContentName,
+                Path = CodeListUtils.FilePath(FsoWithContentName),
                 Content = FromStringToBase64String(JsonSerializer.Serialize(validCodeList)),
                 Sha = "non-descriptive-sha-1"
             },
             new()
             {
-                Name = FosWithoutContentName,
-                Path = $"CodeLists/{FosWithoutContentName}.json",
+                Name = FsoWithoutContentName,
+                Path = CodeListUtils.FilePath(FsoWithoutContentName),
                 Content = null,
                 Sha = "non-descriptive-sha-2"
             }
@@ -109,12 +110,12 @@ public class OrgCodeListServiceTests : IDisposable
         List<CodeListWrapper> expected =
         [
             new(
-                Title: FosWithContentName,
+                Title: FsoWithContentName,
                 CodeList: validCodeList,
                 HasError: false
             ),
             new(
-                Title: FosWithoutContentName,
+                Title: FsoWithoutContentName,
                 CodeList: null,
                 HasError: true
             )
@@ -147,7 +148,6 @@ public class OrgCodeListServiceTests : IDisposable
         string sha = fileMetadata[Title];
 
         // Act
-        OrgCodeListService service = GetOrgCodeListService();
         FileOperationContext result = OrgCodeListService.PrepareFile(FileOperation.Delete, codeListWrapper, sha);
 
         // Assert
@@ -172,7 +172,6 @@ public class OrgCodeListServiceTests : IDisposable
         string sha = fileMetadata[Title];
 
         // Act
-        OrgCodeListService orgListService = GetOrgCodeListService();
         FileOperationContext result = OrgCodeListService.PrepareFile(FileOperation.Update, codeListWrapper, sha);
 
         // Assert
@@ -199,7 +198,6 @@ public class OrgCodeListServiceTests : IDisposable
         );
 
         // Act
-        OrgCodeListService orgListService = GetOrgCodeListService();
         FileOperationContext result = OrgCodeListService.PrepareFile(FileOperation.Create, codeListWrapper);
 
         // Assert
@@ -228,7 +226,6 @@ public class OrgCodeListServiceTests : IDisposable
         );
 
         // Act and Assert
-        OrgCodeListService orgListService = GetOrgCodeListService();
         Assert.Throws<ArgumentException>(() => OrgCodeListService.PrepareFile(operation, codeListWrapper, null));
     }
 
@@ -246,7 +243,6 @@ public class OrgCodeListServiceTests : IDisposable
         );
 
         // Act and Assert
-        OrgCodeListService orgListService = GetOrgCodeListService();
         Assert.Throws<ArgumentException>(() => OrgCodeListService.PrepareFile(FileOperation.Create, codeListWrapper, Sha));
     }
 
@@ -254,27 +250,27 @@ public class OrgCodeListServiceTests : IDisposable
     public void ExtractContentFromFiles()
     {
         // Arrange
-        const string FosWithContentName = "hasContent";
-        const string FosWithoutContentName = "noContent";
-        const string FosWithContentSha = "non-descriptive-sha-1";
-        const string FosWithoutContentSha = "non-descriptive-sha-2";
+        const string FsoWithContentName = "hasContent";
+        const string FsoWithoutContentName = "noContent";
+        const string FsoWithContentSha = "non-descriptive-sha-1";
+        const string FsoWithoutContentSha = "non-descriptive-sha-2";
 
         CodeList validCodeList = SetupCodeList();
         List<FileSystemObject> remoteFiles =
         [
             new()
             {
-                Name = FosWithContentName,
-                Path = $"CodeLists/{FosWithContentName}.json",
+                Name = FsoWithContentName,
+                Path = CodeListUtils.FilePath(FsoWithContentName),
                 Content = FromStringToBase64String(JsonSerializer.Serialize(validCodeList)),
-                Sha = FosWithContentSha
+                Sha = FsoWithContentSha
             },
             new()
             {
-                Name = FosWithoutContentName,
-                Path = $"CodeLists/{FosWithoutContentName}.json",
+                Name = FsoWithoutContentName,
+                Path = CodeListUtils.FilePath(FsoWithoutContentName),
                 Content = null,
-                Sha = FosWithoutContentSha
+                Sha = FsoWithoutContentSha
             }
         ];
 
@@ -285,10 +281,10 @@ public class OrgCodeListServiceTests : IDisposable
         Assert.NotEmpty(result);
         Assert.Equal(2, result.Count);
         Assert.Equal(2, fileMetadata.Count);
-        Assert.True(result.First(csw => csw.Title == FosWithoutContentName).HasError);
-        Assert.False(result.First(csw => csw.Title == FosWithContentName).HasError);
-        Assert.Equal(FosWithContentSha, fileMetadata[FosWithContentName]);
-        Assert.Equal(FosWithoutContentSha, fileMetadata[FosWithoutContentName]);
+        Assert.True(result.First(csw => csw.Title == FsoWithoutContentName).HasError);
+        Assert.False(result.First(csw => csw.Title == FsoWithContentName).HasError);
+        Assert.Equal(FsoWithContentSha, fileMetadata[FsoWithContentName]);
+        Assert.Equal(FsoWithoutContentSha, fileMetadata[FsoWithoutContentName]);
     }
 
     [Fact]
@@ -337,7 +333,7 @@ public class OrgCodeListServiceTests : IDisposable
             new()
             {
                 Name = ShouldResolveToUpdateOperation,
-                Path = $"CodeLists/{ShouldResolveToUpdateOperation}.json",
+                Path = CodeListUtils.FilePath(ShouldResolveToUpdateOperation),
                 Encoding = "base64",
                 Content = FromStringToBase64String(JsonSerializer.Serialize(updatedCodeList)),
                 Sha = "non-descriptive-sha-1",
@@ -346,7 +342,7 @@ public class OrgCodeListServiceTests : IDisposable
             new()
             {
                 Name = ShouldResolveToDeleteOperation,
-                Path = $"CodeLists/{ShouldResolveToDeleteOperation}.json",
+                Path = CodeListUtils.FilePath(ShouldResolveToDeleteOperation),
                 Encoding = "base64",
                 Content = FromStringToBase64String(JsonSerializer.Serialize(codeList)),
                 Sha = "non-descriptive-sha-2",
@@ -355,12 +351,11 @@ public class OrgCodeListServiceTests : IDisposable
         };
 
         // Act
-        OrgCodeListService orgListService = GetOrgCodeListService();
         List<FileOperationContext> result = OrgCodeListService.CreateFileOperationContexts(codeListWrappers, existingFiles);
 
-        FileOperationContext updateOperation = result.FirstOrDefault(fo => fo.Path == $"CodeLists/{ShouldResolveToUpdateOperation}.json");
-        FileOperationContext deleteOperation = result.FirstOrDefault(fo => fo.Path == $"CodeLists/{ShouldResolveToDeleteOperation}.json");
-        FileOperationContext createOperation = result.FirstOrDefault(fo => fo.Path == $"CodeLists/{ShouldResolveToCreateOperation}.json");
+        FileOperationContext updateOperation = result.FirstOrDefault(fo => fo.Path == CodeListUtils.FilePath(ShouldResolveToUpdateOperation));
+        FileOperationContext deleteOperation = result.FirstOrDefault(fo => fo.Path == CodeListUtils.FilePath(ShouldResolveToDeleteOperation));
+        FileOperationContext createOperation = result.FirstOrDefault(fo => fo.Path == CodeListUtils.FilePath(ShouldResolveToCreateOperation));
 
         // Assert
         Assert.Equal(3, result.Count);
@@ -390,24 +385,26 @@ public class OrgCodeListServiceTests : IDisposable
         // Arrange
         const string GiteaCommitMessage = "some message";
         const string Reference = "some reference";
+        const string CodeListIdNoChange = "codeListOne";
+        const string CodeListIdToDelete = "codeListTwo";
         CodeList validCodeList = SetupCodeList();
         List<CodeListWrapper> localCodeListWrappers = [
-            new(Title: "codeListOne", CodeList: validCodeList),
-            new(Title: "codeListTwo")
+            new(Title: CodeListIdNoChange, CodeList: validCodeList),
+            new(Title: CodeListIdToDelete)
         ];
         List<FileSystemObject> remoteCodeLists =
         [
             new()
             {
                 Name = "codeListOne",
-                Path = "CodeLists/codeListOne.json",
+                Path = CodeListUtils.FilePath(CodeListIdNoChange),
                 Content = FromStringToBase64String(JsonSerializer.Serialize(validCodeList)),
                 Sha = "non-descriptive-sha-1"
             },
             new()
             {
                 Name = "codeListTwo",
-                Path = "CodeLists/codeListTwo.json",
+                Path = CodeListUtils.FilePath(CodeListIdToDelete),
                 Content = FromStringToBase64String(JsonSerializer.Serialize(validCodeList)),
                 Sha = "non-descriptive-sha-2"
             }
@@ -430,7 +427,7 @@ public class OrgCodeListServiceTests : IDisposable
         [
             new(
                 Operation: FileOperation.Delete,
-                Path: "CodeLists/codeListTwo.json",
+                Path: CodeListUtils.FilePath(CodeListIdToDelete),
                 Sha: "non-descriptive-sha-2"
             )
         ];
@@ -567,8 +564,8 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Assert
         string repositoryDir = TestDataHelper.GetTestDataRepositoryDirectory(TargetOrg, targetRepository, Developer);
-        string oldCodeListFilePath = Path.Join(repositoryDir, $"CodeLists/{CodeListId}.json");
-        string newCodeListFilePath = Path.Join(repositoryDir, $"CodeLists/{NewCodeListId}.json");
+        string oldCodeListFilePath = Path.Join(repositoryDir, CodeListUtils.FilePathWithTextResources(CodeListId));
+        string newCodeListFilePath = Path.Join(repositoryDir, CodeListUtils.FilePathWithTextResources(NewCodeListId));
         Assert.False(File.Exists(oldCodeListFilePath));
         Assert.True(File.Exists(newCodeListFilePath));
     }
@@ -718,8 +715,7 @@ public class OrgCodeListServiceTests : IDisposable
     [Theory]
     [InlineData("_invalidTitle")]
     [InlineData("-invalidTitle")]
-    [InlineData("invalid-title")]
-    [InlineData("invalid.title")]
+    [InlineData(".invalidTitle")]
     [InlineData("invalid title")]
     [InlineData("invalid/title")]
 
@@ -781,11 +777,13 @@ public class OrgCodeListServiceTests : IDisposable
         return codeList;
     }
 
-    private string FromStringToBase64String(string content)
+    private static string FromStringToBase64String(string content)
     {
         byte[] contentAsBytes = Encoding.UTF8.GetBytes(content);
         return Convert.ToBase64String(contentAsBytes);
     }
+    // private static string CodeListWithTextResourcesFilePath(string codeListId) => $"CodeListsWithTextResources/{codeListId}.json";
+    // private static string CodeListFilePath(string codeListId) => $"CodeLists/{codeListId}.json";
 
     private OrgCodeListService GetOrgCodeListService()
     {
