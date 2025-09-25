@@ -1,6 +1,5 @@
 import { PencilIcon } from '@studio/icons';
-import { StudioButton } from '@studio/components-legacy';
-import { StudioParagraph, StudioHeading, StudioAlert } from '@studio/components';
+import { StudioButton, StudioParagraph, StudioHeading, StudioAlert } from '@studio/components';
 import type { ReactElement } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -32,7 +31,6 @@ export const SubformMissingContentWarning = ({
       </StudioParagraph>
       <StudioButton
         onClick={handleOnRedirectClick}
-        color='second'
         icon={<PencilIcon />}
         disabled={!subformLayoutSetName}
         className={classes.redirectButton}

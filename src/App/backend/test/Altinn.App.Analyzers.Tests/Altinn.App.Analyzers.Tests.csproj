@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+    <PackageReference Include="xunit"/>
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Verify.Xunit"/>
+
+    <PackageReference Include="Buildalyzer.Workspaces"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      This is just to enforce that the project builds completely before tests in this project runs.
+      This is necessery because there are fixtures (e.g. testapp) that depend on Altinn.App.Core
+      and we may have race conditions if `dotnet test` is run in parallel with tests depending on these fixtures.
+    -->
+    <ProjectReference Include="../../src/Altinn.App.Core/Altinn.App.Core.csproj" />
+
+    <ProjectReference Include="../../src/Altinn.App.Analyzers/Altinn.App.Analyzers.csproj" />
+    <ProjectReference Include="../../src/Altinn.App.Internal.Analyzers/Altinn.App.Internal.Analyzers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="testapp/**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>

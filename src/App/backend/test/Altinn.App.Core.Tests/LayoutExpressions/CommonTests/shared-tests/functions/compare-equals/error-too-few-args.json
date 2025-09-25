@@ -1,0 +1,5 @@
+{
+  "name": "Should fail when given too few arguments",
+  "expression": ["compare", "yes", "equals"],
+  "expectsFailure": "Expected 3-4 argument(s), got 2"
+}

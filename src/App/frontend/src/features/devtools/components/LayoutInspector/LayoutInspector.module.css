@@ -1,0 +1,170 @@
+.container {
+  height: 100%;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.list {
+  padding: 0;
+  list-style: none;
+}
+
+.list .list {
+  padding-left: 12px;
+}
+
+.list .repGroupRow .list {
+  padding-left: 24px;
+}
+
+.item {
+  padding: 0 6px;
+  font-family: monospace;
+  font-size: 0.8rem;
+  position: relative;
+}
+
+.item span {
+  cursor: default;
+}
+
+.item.active {
+  background-color: #ddd;
+}
+
+.item:hover {
+  background-color: #ccc;
+}
+
+.componentType {
+  width: 1px;
+  font-weight: bold;
+}
+
+.componentId {
+  position: absolute;
+  left: 180px;
+  white-space: nowrap;
+  font-style: italic;
+}
+
+.listIcon {
+  position: absolute;
+  right: 10px;
+}
+
+.componentMetadata {
+  color: #333;
+  font-style: italic;
+  font-size: 0.8rem;
+  padding-left: 12px;
+}
+
+.properties {
+  box-sizing: border-box;
+  font-family: monospace;
+  width: 100%;
+  height: 100%;
+  background: white;
+  padding: 4px;
+  overflow-y: auto;
+}
+
+.properties > textarea {
+  box-sizing: border-box;
+  width: 100%;
+  background-color: var(--colors-primary-greyLight);
+  padding: 6px 4px;
+  border-radius: 4px;
+  line-height: 1.2;
+  resize: none;
+  font-size: 0.8rem;
+  border: none;
+  outline: none;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+}
+
+.header {
+  position: relative;
+}
+
+.title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.title h3 {
+  word-break: break-all;
+  margin: 0;
+  font-size: 1rem;
+}
+.title button {
+  margin-top: -4px;
+  margin-right: -4px;
+}
+
+.headerLink {
+  font-size: 0.8rem;
+  margin-bottom: 12px;
+}
+
+.errorAlert {
+  margin: 12px 10px;
+}
+
+.errorList {
+  font-size: 0.8rem;
+  font-family: var(--font-family);
+}
+
+.errorList code {
+  background-color: var(--colors-primary-greyLight);
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.error {
+  color: red;
+}
+
+.tabs {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tab-list {
+  overflow-y: hidden;
+  overflow-x: auto;
+  padding-right: 40px;
+  flex-shrink: 0;
+}
+
+.close-button-container {
+  position: relative;
+}
+
+.close-button-background {
+  background-color: var(--colors-primary-greyLight);
+  position: absolute;
+  right: 0;
+  z-index: 1001;
+}
+
+.close-button {
+  height: 37px;
+  width: 37px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.scrollable {
+  height: 100%;
+  overflow-y: auto;
+  width: 100%;
+  background-color: white;
+}

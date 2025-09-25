@@ -1,0 +1,5 @@
+{
+  "name": "Should work with integers (false)",
+  "expression": ["equals", 1, 2],
+  "expects": false
+}

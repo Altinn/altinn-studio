@@ -1,0 +1,53 @@
+{
+  "id": "ttd/basic",
+  "org": "ttd",
+  "title": {
+    "nb": "basic"
+  },
+  "dataTypes": [
+    {
+      "id": "ref-data-as-pdf",
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
+      "maxCount": 0,
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "model",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.model.model",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": false,
+    "subUnit": true
+  },
+  "autoDeleteOnProcessEnd": false,
+  "created": "2024-05-15T12:17:03.656228Z",
+  "createdBy": "altinn",
+  "lastChanged": "2024-05-15T12:17:03.65623Z",
+  "lastChangedBy": "altinn"
+}

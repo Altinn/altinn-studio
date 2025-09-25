@@ -1,0 +1,21 @@
+.paperWrapper {
+  max-width: 330px;
+  color: rgba(00, 00, 00, 0.87);
+  background-color: var(--colors-primary-redLight);
+  box-shadow:
+    0 2px 1px -1px rgba(0, 0, 0, 0.2),
+    0 1px 1px 0 rgba(0, 0, 0, 0.14),
+    0 1px 3px 0 rgba(0, 0, 0, 0.12);
+}
+
+.paper {
+  display: flex;
+  justify-content: flex-start;
+  padding: 12px;
+  align-items: center;
+  gap: 7px;
+}
+
+.paperIcon {
+  display: flex;
+}

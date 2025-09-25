@@ -1,0 +1,7 @@
+.validExpression {
+  background-color: var(--ds-color-background-default);
+}
+
+.validExpression .tabContent {
+  padding: var(--studio-expression-spacing);
+}

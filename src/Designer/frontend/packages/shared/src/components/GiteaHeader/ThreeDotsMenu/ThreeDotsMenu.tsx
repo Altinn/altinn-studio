@@ -3,7 +3,8 @@ import classes from './ThreeDotsMenu.module.css';
 import { TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
-import { StudioButton, StudioPageHeader, StudioPopover } from '@studio/components-legacy';
+import { StudioPageHeader, StudioPopover } from '@studio/components-legacy';
+import { StudioLinkButton } from '@studio/components';
 import { LocalChangesModal } from './LocalChangesModal';
 import { ClonePopoverContent } from './ClonePopoverContent';
 import { useGiteaHeaderContext } from '../context/GiteaHeaderContext';
@@ -27,7 +28,7 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
         color='light'
         variant='regular'
       />
-      <StudioPopover.Content className={classes.popover}>
+      <StudioPopover.Content data-color-scheme='light' className={classes.popover}>
         <ul className={classes.menuItems}>
           {isClonePossible && (
             <li>
@@ -49,18 +50,17 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
             </li>
           )}
           <li>
-            <StudioButton
-              as='a'
-              className={classes.menuButton + ' ' + classes.link}
-              fullWidth
+            <StudioLinkButton
+              className={classes.link}
+              data-color=''
+              data-size='sm'
               href={repositoryPath(owner, repoName)}
               icon={<GiteaIcon />}
               rel='noopener noreferrer'
-              size='small'
               variant='tertiary'
             >
               {t('sync_header.repository')}
-            </StudioButton>
+            </StudioLinkButton>
           </li>
           <li>
             <LocalChangesModal triggerClassName={classes.menuButton} />

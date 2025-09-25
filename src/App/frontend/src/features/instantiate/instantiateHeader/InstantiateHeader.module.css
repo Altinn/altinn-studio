@@ -1,0 +1,60 @@
+.app-bar-wrapper {
+  flex-grow: 1;
+}
+
+.app-bar {
+  background-color: transparent;
+  padding-top: 20px;
+  margin-bottom: 30px;
+  padding-left: 0;
+  padding-right: 0;
+  box-sizing: border-box;
+  min-height: 64px;
+  display: flex;
+  column-gap: 1rem;
+  position: relative;
+  align-items: center;
+}
+
+.header-link a {
+  color: var(--ds-color-accent-base-default);
+  border-bottom: 0;
+}
+.header-link a:hover {
+  border-bottom: 3px solid var(--ds-color-accent-base-default);
+}
+
+.header-link-list {
+  line-height: 1;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1rem;
+  flex-grow: 1;
+  list-style: none;
+  padding: 0;
+
+  /* Make the links line up with the altinn logo */
+  font-size: 1.125rem;
+  margin: 6px 0 0 0;
+}
+
+@media only screen and (min-width: 768px) {
+  .header-link-list {
+    /* Make the links line up with the altinn logo */
+    font-size: 1.25rem;
+    margin: 4px 0 0 0;
+  }
+  .header-link-list,
+  .app-bar {
+    column-gap: 2rem;
+  }
+}
+
+.logo {
+  margin-right: 0.75rem;
+}
+
+.party-icon {
+  flex-shrink: 0;
+  margin-left: 5px;
+}

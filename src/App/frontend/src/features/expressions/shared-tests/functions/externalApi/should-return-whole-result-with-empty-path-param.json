@@ -1,0 +1,6 @@
+{
+  "name": "Should return null with empty path param",
+  "expression": ["externalApi", "testId", ""],
+  "expects": null,
+  "externalApis": { "data": { "testId": { "cars": [{ "brand": "BMW" }, { "brand": "Lada" }] } } }
+}

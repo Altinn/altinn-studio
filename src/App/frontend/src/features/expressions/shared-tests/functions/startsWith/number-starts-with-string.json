@@ -1,0 +1,5 @@
+{
+  "name": "Should be true when the number starts with the given string (number starts with string)",
+  "expression": ["startsWith", 40, "40"],
+  "expects": true
+}

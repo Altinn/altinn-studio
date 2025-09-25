@@ -1,0 +1,5 @@
+{
+  "name": "Casts 1 to a boolean",
+  "expression": ["and", 1],
+  "expects": true
+}

@@ -1,0 +1,49 @@
+{
+  "name": "Lookup inside repeating group where row is hidden",
+  "expression": ["component", "bedriftsNavn"],
+  "context": {
+    "component": "bedriftsNavn",
+    "rowIndices": [0],
+    "currentLayout": "Page1"
+  },
+  "expects": null,
+  "layouts": {
+    "Page1": {
+      "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "bedrifter",
+            "type": "RepeatingGroup",
+            "dataModelBindings": {
+              "group": "Bedrifter"
+            },
+            "children": ["bedriftsNavn"],
+            "hiddenRow": ["dataModel", "Bedrifter.hidden"]
+          },
+          {
+            "id": "bedriftsNavn",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Bedrifter.Navn"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Bedrifter": [
+      {
+        "altinnRowId": "company0",
+        "Navn": "Hell og lykke AS",
+        "hidden": true
+      },
+      {
+        "altinnRowId": "company1",
+        "Navn": "Nedtur og motgang AS",
+        "hidden": false
+      }
+    ]
+  }
+}

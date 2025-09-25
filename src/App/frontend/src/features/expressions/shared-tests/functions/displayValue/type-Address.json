@@ -1,0 +1,38 @@
+{
+  "name": "Display value of Address",
+  "expression": [
+    "displayValue",
+    "address"
+  ],
+  "context": {
+    "component": "address",
+    "currentLayout": "Page"
+  },
+  "expects": "Stortingsgata 4 0158 Oslo",
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "address",
+            "type": "Address",
+            "dataModelBindings": {
+              "address": "Skjema.Gate",
+              "zipCode": "Skjema.Postnr",
+              "postPlace": "Skjema.Poststed"
+            },
+            "simplified": true
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Skjema": {
+      "Gate": "Stortingsgata 4",
+      "Postnr": "0158",
+      "Poststed": "Oslo"
+    }
+  }
+}
