@@ -27,7 +27,7 @@ public class RequestSynchronizationMiddleware
         IRequestSyncEvaluator<AltinnOrgContext> orgWideRequestSyncEvaluator,
         IDistributedLockProvider synchronizationProvider)
     {
-        if(orgWideRequestSyncEvaluator.TryEvaluateShouldSyncRequest(httpContext, out AltinnOrgContext orgContext))
+        if (orgWideRequestSyncEvaluator.TryEvaluateShouldSyncRequest(httpContext, out AltinnOrgContext orgContext))
         {
             await using (await synchronizationProvider.AcquireLockAsync(orgContext, _waitTimeout, httpContext.RequestAborted))
             {
