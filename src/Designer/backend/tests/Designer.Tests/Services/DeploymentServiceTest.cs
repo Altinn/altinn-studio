@@ -407,7 +407,7 @@ namespace Designer.Tests.Services
 
         [Theory]
         [InlineData("ttd", "test-app")]
-        public async Task CreateAsync_WithGitOpsFeatureDisabled_ShouldNotAddAppToGitOps_AndSetPushSyncRootImageFalse(string org, string app)
+        public async Task CreateAsync_WithGitOpsFeatureDisabled_ShouldNotCallAnyGitOpsMethods_AndSetPushSyncRootImageFalse(string org, string app)
         {
             // Arrange
             DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
@@ -461,8 +461,22 @@ namespace Designer.Tests.Services
             // Assert
             _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Once);
 
+            // Verify NO GitOps methods are called when feature is disabled
+            _gitOpsConfigurationManager.Verify(gm => gm.EnsureGitOpsConfigurationExistsAsync(
+                It.IsAny<AltinnOrgEditingContext>(),
+                It.IsAny<AltinnEnvironment>()), Times.Never);
+
+            _gitOpsConfigurationManager.Verify(gm => gm.AppExistsInGitOpsConfigurationAsync(
+                It.IsAny<AltinnOrgEditingContext>(),
+                It.IsAny<AltinnRepoName>(),
+                It.IsAny<AltinnEnvironment>()), Times.Never);
+
             _gitOpsConfigurationManager.Verify(gm => gm.AddAppToGitOpsConfigurationAsync(
                 It.IsAny<AltinnRepoEditingContext>(),
+                It.IsAny<AltinnEnvironment>()), Times.Never);
+
+            _gitOpsConfigurationManager.Verify(gm => gm.PersistGitOpsConfigurationAsync(
+                It.IsAny<AltinnOrgEditingContext>(),
                 It.IsAny<AltinnEnvironment>()), Times.Never);
 
             _azureDevOpsBuildClient.Verify(b => b.QueueAsync(
