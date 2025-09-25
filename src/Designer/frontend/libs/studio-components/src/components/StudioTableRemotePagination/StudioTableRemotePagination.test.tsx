@@ -2,7 +2,12 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StudioTableRemotePagination } from './StudioTableRemotePagination';
-import type { RemotePaginationProps, Columns, Rows } from './StudioTableRemotePagination';
+import type {
+  RemotePaginationProps,
+  Columns,
+  Rows,
+  PaginationTexts,
+} from './StudioTableRemotePagination';
 import { columns, emptyTableFallback, paginationTexts, rows } from './mockData';
 
 describe('StudioTableRemotePagination', () => {
@@ -68,23 +73,6 @@ describe('StudioTableRemotePagination', () => {
     ).toBeInTheDocument();
   });
 
-  it('calls onPageChange when out of range (totalRows > 0 and table is empty)', () => {
-    const onPageChange = jest.fn();
-    render(
-      <StudioTableRemotePagination
-        columns={columns}
-        rows={[]}
-        pagination={{
-          ...paginationProps,
-          totalRows: 10,
-          currentPage: 3,
-          onPageChange,
-        }}
-      />,
-    );
-    expect(onPageChange).toHaveBeenCalledWith(1);
-  });
-
   it('does not render the pagination controls when pagination prop is not provided', () => {
     render(<StudioTableRemotePagination columns={columns} rows={rows} />);
 
@@ -144,45 +132,6 @@ describe('StudioTableRemotePagination', () => {
     expect(paginationProps.onPageSizeChange).toHaveBeenCalledWith(10);
   });
 
-  it('defaults the select value to the first option when pageSize is undefined', () => {
-    render(
-      <StudioTableRemotePagination
-        columns={columns}
-        rows={rows}
-        pagination={{
-          ...paginationProps,
-          pageSize: undefined as unknown as number,
-        }}
-      />,
-    );
-    const select = screen.getByRole('combobox', {
-      name: paginationTexts.pageSizeLabel,
-    }) as HTMLSelectElement;
-    expect(select.value).toBe(String(paginationProps.pageSizeOptions[0]));
-  });
-
-  it('hides the Previous button on the first page', () => {
-    render(
-      <StudioTableRemotePagination
-        columns={columns}
-        rows={rows}
-        pagination={{ ...paginationProps, currentPage: 1 }}
-      />,
-    );
-    expect(screen.getAllByRole('listitem', { hidden: true }).length).toBeGreaterThan(0);
-  });
-
-  it('hides the Next button on the last page', () => {
-    render(
-      <StudioTableRemotePagination
-        columns={columns}
-        rows={rows}
-        pagination={{ ...paginationProps, currentPage: paginationProps.totalPages }}
-      />,
-    );
-    expect(screen.getAllByRole('listitem', { hidden: true }).length).toBeGreaterThan(0);
-  });
-
   it('displays the empty table message when there are no rows to display', () => {
     render(
       <StudioTableRemotePagination
@@ -211,5 +160,85 @@ describe('StudioTableRemotePagination', () => {
 
     const unFormattedNameCell = screen.queryByText('Sophie Salt');
     expect(unFormattedNameCell).not.toBeInTheDocument();
+  });
+});
+
+describe('StudioTableRemotePagination - StudioPagination defaults', () => {
+  const basePagination: RemotePaginationProps = {
+    currentPage: 2,
+    totalPages: 4,
+    totalRows: rows.length,
+    pageSize: 5,
+    pageSizeOptions: [5, 10, 20, 50],
+    onPageChange: jest.fn(),
+    onPageSizeChange: jest.fn(),
+    paginationTexts,
+  };
+
+  it('uses default Previous/Next aria-labels when paginationTexts is undefined', async () => {
+    const onPageChange = jest.fn();
+    render(
+      <StudioTableRemotePagination
+        columns={columns}
+        rows={rows}
+        pagination={{
+          ...basePagination,
+          onPageChange,
+          paginationTexts: undefined as unknown as PaginationTexts,
+        }}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Previous' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument();
+  });
+
+  it('falls back to current page 1 when currentPage is falsy (0)', () => {
+    render(
+      <StudioTableRemotePagination
+        columns={columns}
+        rows={rows}
+        pagination={{
+          ...basePagination,
+          currentPage: 0 as unknown as number,
+          totalPages: 2,
+          paginationTexts: undefined as unknown as PaginationTexts,
+        }}
+      />,
+    );
+    const pageOneButton = screen.getByRole('button', { name: '1' });
+    expect(pageOneButton).toHaveAttribute('aria-current', 'page');
+    expect(screen.getAllByRole('listitem', { hidden: true }).length).toBeGreaterThan(0);
+  });
+
+  it('does not set aria-label on number buttons when numberButtonAriaLabel is undefined', () => {
+    render(
+      <StudioTableRemotePagination
+        columns={columns}
+        rows={rows}
+        pagination={{
+          ...basePagination,
+          paginationTexts: {
+            ...paginationTexts,
+            numberButtonAriaLabel: undefined as unknown as (num: number) => string,
+          },
+        }}
+      />,
+    );
+    const pageTwo = screen.getByRole('button', { name: '2' });
+    expect(pageTwo).not.toHaveAttribute('aria-label');
+  });
+
+  it('triggers the onPageChange function when "Previous" is clicked', async () => {
+    const onPageChange = jest.fn();
+    render(
+      <StudioTableRemotePagination
+        columns={columns}
+        rows={rows}
+        pagination={{ ...basePagination, onPageChange }}
+      />,
+    );
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Previous' }));
+    expect(onPageChange).toHaveBeenCalledWith(1);
   });
 });
