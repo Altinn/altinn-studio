@@ -222,7 +222,7 @@ namespace Designer.Tests.Services
 
         [Theory]
         [InlineData("ttd", "test-app")]
-        public async Task CreateAsync_WithGitOpsFeatureEnabled_ShouldAddAppToGitOps_AndSetPushSyncRootImageTrue(string org, string app)
+        public async Task CreateAsync_WithGitOpsFeatureEnabled_AppDoesNotExist_ShouldAddAppToGitOps_AndSetPushSyncRootImageTrue(string org, string app)
         {
             // Arrange
             DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
@@ -231,9 +231,22 @@ namespace Designer.Tests.Services
             _featureManager.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
                 .ReturnsAsync(true);
 
-            // Setup GitOps configuration manager to return true (app added to GitOps)
+            // Setup GitOps configuration manager - app does not exist
+            _gitOpsConfigurationManager.Setup(gm => gm.EnsureGitOpsConfigurationExistsAsync(
+                It.IsAny<AltinnOrgEditingContext>(),
+                It.IsAny<AltinnEnvironment>())).Returns(Task.CompletedTask);
+
+            _gitOpsConfigurationManager.Setup(gm => gm.AppExistsInGitOpsConfigurationAsync(
+                It.IsAny<AltinnOrgEditingContext>(),
+                It.IsAny<AltinnRepoName>(),
+                It.IsAny<AltinnEnvironment>())).ReturnsAsync(false);
+
             _gitOpsConfigurationManager.Setup(gm => gm.AddAppToGitOpsConfigurationAsync(
                 It.IsAny<AltinnRepoEditingContext>(),
+                It.IsAny<AltinnEnvironment>())).Returns(Task.CompletedTask);
+
+            _gitOpsConfigurationManager.Setup(gm => gm.PersistGitOpsConfigurationAsync(
+                It.IsAny<AltinnOrgEditingContext>(),
                 It.IsAny<AltinnEnvironment>())).Returns(Task.CompletedTask);
 
             _releaseRepository.Setup(r => r.GetSucceededReleaseFromDb(
@@ -281,12 +294,114 @@ namespace Designer.Tests.Services
             // Assert
             _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Once);
 
+            _gitOpsConfigurationManager.Verify(gm => gm.EnsureGitOpsConfigurationExistsAsync(
+                It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
+                It.Is<AltinnEnvironment>(env => env.Name == deploymentModel.EnvName)), Times.Once);
+
+            _gitOpsConfigurationManager.Verify(gm => gm.AppExistsInGitOpsConfigurationAsync(
+                It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
+                It.Is<AltinnRepoName>(repo => repo.Name == app),
+                It.Is<AltinnEnvironment>(env => env.Name == deploymentModel.EnvName)), Times.Once);
+
             _gitOpsConfigurationManager.Verify(gm => gm.AddAppToGitOpsConfigurationAsync(
                 It.Is<AltinnRepoEditingContext>(ctx => ctx.Org == org && ctx.Repo == app),
                 It.Is<AltinnEnvironment>(env => env.Name == deploymentModel.EnvName)), Times.Once);
 
+            _gitOpsConfigurationManager.Verify(gm => gm.PersistGitOpsConfigurationAsync(
+                It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
+                It.Is<AltinnEnvironment>(env => env.Name == deploymentModel.EnvName)), Times.Once);
+
             _azureDevOpsBuildClient.Verify(b => b.QueueAsync(
                 It.Is<QueueBuildParameters>(qbp => qbp.PushSyncRootGitopsImage == "true"),
+                It.IsAny<int>()), Times.Once);
+        }
+
+        [Theory]
+        [InlineData("ttd", "test-app")]
+        public async Task CreateAsync_WithGitOpsFeatureEnabled_AppAlreadyExists_ShouldNotAddAppToGitOps_AndSetPushSyncRootImageFalse(string org, string app)
+        {
+            // Arrange
+            DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
+
+            // Setup GitOps feature flag enabled
+            _featureManager.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
+                .ReturnsAsync(true);
+
+            // Setup GitOps configuration manager - app already exists
+            _gitOpsConfigurationManager.Setup(gm => gm.EnsureGitOpsConfigurationExistsAsync(
+                It.IsAny<AltinnOrgEditingContext>(),
+                It.IsAny<AltinnEnvironment>())).Returns(Task.CompletedTask);
+
+            _gitOpsConfigurationManager.Setup(gm => gm.AppExistsInGitOpsConfigurationAsync(
+                It.IsAny<AltinnOrgEditingContext>(),
+                It.IsAny<AltinnRepoName>(),
+                It.IsAny<AltinnEnvironment>())).ReturnsAsync(true);
+
+            _releaseRepository.Setup(r => r.GetSucceededReleaseFromDb(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>())).ReturnsAsync(GetReleases("updatedRelease.json").First());
+
+            _applicationInformationService.Setup(ais => ais.UpdateApplicationInformationAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+
+            _azureDevOpsBuildClient.Setup(b => b.QueueAsync(
+                It.IsAny<QueueBuildParameters>(),
+                It.IsAny<int>())).ReturnsAsync(GetBuild());
+
+            _deploymentRepository.Setup(r => r.Create(
+                It.IsAny<DeploymentEntity>())).ReturnsAsync(GetDeployments("createdDeployment.json").First());
+
+            _deploymentRepository.Setup(r => r.Get(
+                org,
+                app,
+                It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetDeployments("createdDeployment.json").Where(d => d.Org == org && d.App == app));
+
+            DeploymentService deploymentService = new(
+                GetAzureDevOpsSettings(),
+                _azureDevOpsBuildClient.Object,
+                _httpContextAccessor.Object,
+                _deploymentRepository.Object,
+                _releaseRepository.Object,
+                _environementsService.Object,
+                _applicationInformationService.Object,
+                _deploymentLogger.Object,
+                _mediatrMock.Object,
+                _generalSettings,
+                _fakeTimeProvider,
+                _gitOpsConfigurationManager.Object,
+                _featureManager.Object);
+
+            // Act
+            await deploymentService.CreateAsync(org, app, deploymentModel);
+
+            // Assert
+            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Once);
+
+            _gitOpsConfigurationManager.Verify(gm => gm.EnsureGitOpsConfigurationExistsAsync(
+                It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
+                It.Is<AltinnEnvironment>(env => env.Name == deploymentModel.EnvName)), Times.Once);
+
+            _gitOpsConfigurationManager.Verify(gm => gm.AppExistsInGitOpsConfigurationAsync(
+                It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org),
+                It.Is<AltinnRepoName>(repo => repo.Name == app),
+                It.Is<AltinnEnvironment>(env => env.Name == deploymentModel.EnvName)), Times.Once);
+
+            // Should NOT add app or persist since app already exists
+            _gitOpsConfigurationManager.Verify(gm => gm.AddAppToGitOpsConfigurationAsync(
+                It.IsAny<AltinnRepoEditingContext>(),
+                It.IsAny<AltinnEnvironment>()), Times.Never);
+
+            _gitOpsConfigurationManager.Verify(gm => gm.PersistGitOpsConfigurationAsync(
+                It.IsAny<AltinnOrgEditingContext>(),
+                It.IsAny<AltinnEnvironment>()), Times.Never);
+
+            _azureDevOpsBuildClient.Verify(b => b.QueueAsync(
+                It.Is<QueueBuildParameters>(qbp => qbp.PushSyncRootGitopsImage == "false"),
                 It.IsAny<int>()), Times.Once);
         }
 
