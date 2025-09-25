@@ -18,6 +18,7 @@ const cellContentQueryMock: string = 'Query';
 const cellContentDefaultMock: string = 'Default';
 const columnNumberMock: number = 1;
 const addressDataField = convertDataBindingToInternalFormat(
+  '',
   subformLayoutMock.component4.dataModelBindings['address'],
 ).field;
 

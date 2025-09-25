@@ -64,13 +64,14 @@ export const addOrRemoveNavigationButtons = async (
  */
 export const convertExternalLayoutsToInternalFormat = (
   layouts: FormLayoutsResponse,
+  layoutDefaultDataType?: string,
 ): IFormLayouts => {
   const convertedLayouts: IFormLayouts = {};
   Object.entries(layouts).forEach(([name, layout]) => {
     if (!layout || !layout.data) {
       convertedLayouts[name] = createEmptyLayout();
     } else {
-      convertedLayouts[name] = externalLayoutToInternal(layouts[name]);
+      convertedLayouts[name] = externalLayoutToInternal(layouts[name], layoutDefaultDataType);
     }
   });
   return convertedLayouts;
