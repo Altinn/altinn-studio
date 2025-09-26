@@ -85,10 +85,11 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task<List<CodeListWrapper>> GetCodeListsNew(string org, string? reference = null, CancellationToken cancellationToken = default)
+    public async Task<GetCodeListResponse> GetCodeListsNew(string org, string? reference = null, CancellationToken cancellationToken = default)
     {
         string repository = GetStaticContentRepo(org);
         List<FileSystemObject> files = await _gitea.GetCodeListDirectoryContentAsync(org, repository, reference, cancellationToken);
+        string latestCommitSha = await _gitea.GetLatestCommitOnBranch(org, repository, reference);
 
         List<CodeListWrapper> codeListWrappers = [];
         foreach (FileSystemObject file in files)
@@ -101,7 +102,8 @@ public class OrgCodeListService : IOrgCodeListService
             }
             codeListWrappers.Add(WrapCodeList(codeList, title, hasError: true));
         }
-        return codeListWrappers;
+        GetCodeListResponse response = new(codeListWrappers, latestCommitSha);
+        return response;
     }
 
     /// <inheritdoc />
@@ -131,16 +133,16 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task UpdateCodeListsNew(string org, string developer, List<CodeListWrapper> codeListWrappers, string? commitMessage = null, string? reference = null, CancellationToken cancellationToken = default)
+    public async Task UpdateCodeListsNew(string org, string developer, UpdateCodeListRequest request, string? reference = null, CancellationToken cancellationToken = default)
     {
-        ValidateCodeListTitles(codeListWrappers);
-        ValidateCommitMessage(commitMessage);
+        ValidateCodeListTitles(request.CodeListWrappers);
+        ValidateCommitMessage(request.CommitMessage);
 
         string repository = GetStaticContentRepo(org);
 
         List<FileSystemObject> files = await _gitea.GetCodeListDirectoryContentAsync(org, repository, reference, cancellationToken);
-        List<FileOperationContext> fileOperationContexts = CreateFileOperationContexts(codeListWrappers, files);
-        GiteaMultipleFilesDto dto = CreateGiteaMultipleFilesDto(developer, fileOperationContexts, commitMessage);
+        List<FileOperationContext> fileOperationContexts = CreateFileOperationContexts(request.CodeListWrappers, files);
+        GiteaMultipleFilesDto dto = CreateGiteaMultipleFilesDto(developer, fileOperationContexts, request.CommitMessage, reference);
 
         bool r = await _gitea.ModifyMultipleFiles(org, repository, dto, cancellationToken);
         if (r is false)

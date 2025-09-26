@@ -579,6 +579,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return response.IsSuccessStatusCode;
         }
 
+        /// <inheritdoc/>
+        public async Task<string> GetLatestCommitOnBranch(string org, string repository, string branchName = null)
+        {
+            string basePath = $"repos/{org}/{repository}/commits";
+            string path = Path.Combine(basePath, "?limit=1", "?stat=false", "?verification=false", "?files=false", AddShaIfExists(branchName));
+            using HttpResponseMessage r = await _httpClient.GetAsync(path);
+            if (r.IsSuccessStatusCode)
+            {
+                List<GiteaCommit> commits = await r.Content.ReadAsAsync<List<GiteaCommit>>();
+                return commits?.FirstOrDefault()?.Sha;
+            }
+
+            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetLatestCommitOnBranch response failed with statuscode " + r.StatusCode + " for " + org + " / " + repository + " branch: " + branchName);
+            return null;
+        }
+
+        private static string AddShaIfExists(string branchName) => string.IsNullOrEmpty(branchName) ? string.Empty : $"&sha={HttpUtility.UrlEncode(branchName)}";
+
         private async Task<Organization> GetOrganization(string name)
         {
             HttpResponseMessage response = await _httpClient.GetAsync($"orgs/{name}");
