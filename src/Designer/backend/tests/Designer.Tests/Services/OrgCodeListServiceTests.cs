@@ -126,11 +126,11 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Act
         OrgCodeListService service = GetOrgCodeListService();
-        List<CodeListWrapper> result = await service.GetCodeListsNew(Org);
+        GetCodeListResponse result = await service.GetCodeListsNew(Org);
 
         // Assert
-        Assert.NotEmpty(result);
-        Assert.Equal(expected, result);
+        Assert.NotEmpty(result.CodeListWrappers);
+        Assert.Equal(expected, result.CodeListWrappers);
         _giteaMock.Verify(gitea => gitea.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), null, It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -420,7 +420,13 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Act
         OrgCodeListService orgListService = GetOrgCodeListService();
-        await orgListService.UpdateCodeListsNew(Org, Developer, localCodeListWrappers, GiteaCommitMessage, Reference);
+        UpdateCodeListRequest request = new(
+            CodeListWrappers: localCodeListWrappers,
+            BaseCommitSha: Reference,
+            CommitMessage: GiteaCommitMessage
+        );
+
+        await orgListService.UpdateCodeListsNew(Org, Developer, request, Reference);
 
 
         List<FileOperationContext> files =
@@ -434,7 +440,7 @@ public class OrgCodeListServiceTests : IDisposable
 
         var expectedDto = new GiteaMultipleFilesDto(
             Author: new GiteaIdentity(Name: Developer),
-            Branch: null,
+            Branch: Reference,
             Committer: new GiteaIdentity(Name: Developer),
             Files: files,
             Message: GiteaCommitMessage
@@ -467,7 +473,12 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Act and Assert
         OrgCodeListService orgListService = GetOrgCodeListService();
-        await Assert.ThrowsAsync<InvalidOperationException>(() => orgListService.UpdateCodeListsNew(Org, Developer, localCodeListWrappers, GiteaCommitMessage, Reference));
+        UpdateCodeListRequest request = new(
+            CodeListWrappers: localCodeListWrappers,
+            BaseCommitSha: Reference,
+            CommitMessage: GiteaCommitMessage
+        );
+        await Assert.ThrowsAsync<InvalidOperationException>(() => orgListService.UpdateCodeListsNew(Org, Developer, request, Reference));
         _giteaMock.Verify(s => s.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), Reference, It.IsAny<CancellationToken>()), Times.Once);
         _giteaMock.Verify(s => s.ModifyMultipleFiles(Org, It.IsAny<string>(), It.IsAny<GiteaMultipleFilesDto>(), It.IsAny<CancellationToken>()), Times.Once);
     }

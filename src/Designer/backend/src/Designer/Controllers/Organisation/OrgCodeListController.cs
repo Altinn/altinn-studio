@@ -71,11 +71,11 @@ public class OrgCodeListController : ControllerBase
     [Route("new")]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<CodeListWrapper>>> GetCodeListsNew(string org, [FromQuery] string? reference = null, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<GetCodeListResponse>> GetCodeListsNew(string org, [FromQuery] string? reference = null, CancellationToken cancellationToken = default)
     {
-        List<CodeListWrapper> codeLists = await _orgCodeListService.GetCodeListsNew(org, reference, cancellationToken);
+        GetCodeListResponse response = await _orgCodeListService.GetCodeListsNew(org, reference, cancellationToken);
 
-        return Ok(codeLists);
+        return Ok(response);
     }
 
     /// <summary>
@@ -116,12 +116,10 @@ public class OrgCodeListController : ControllerBase
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        List<CodeListWrapper> codeListWrappers = requestBody.CodeListWrappers;
-        string? commitMessage = requestBody.CommitMessage;
 
         try
         {
-            await _orgCodeListService.UpdateCodeListsNew(org, developer, codeListWrappers, commitMessage, reference, cancellationToken);
+            await _orgCodeListService.UpdateCodeListsNew(org, developer, requestBody, reference, cancellationToken);
         }
         catch (Exception ex) when (ex is IllegalFileNameException or IllegalCommitMessageException)
         {

@@ -181,5 +181,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="files">The list of files to modify.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         Task<bool> ModifyMultipleFiles(string org, string repository, GiteaMultipleFilesDto files, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets the latest commit on a given branch.
+        /// </summary>
+        /// <param name="org">The organization owner of the repository.</param>
+        /// <param name="repository">The name of repository.</param>
+        /// <param name="branchName">The name of the branch. If null or empty, the default branch (master) will be used.</param>
+        /// <returns>The latest commit SHA as a string.</returns>
+        Task<string> GetLatestCommitOnBranch(string org, string repository, string branchName = null);
     }
 }
