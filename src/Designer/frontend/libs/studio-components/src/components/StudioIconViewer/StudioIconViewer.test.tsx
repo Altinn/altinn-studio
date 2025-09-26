@@ -1,7 +1,8 @@
 import React from 'react';
 import type { RenderResult } from '@testing-library/react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { StudioIconViewer } from './StudioIconViewer';
+import userEvent from '@testing-library/user-event';
 
 describe('StudioIconViewer', () => {
   it('should render the component', () => {
@@ -15,38 +16,48 @@ describe('StudioIconViewer', () => {
     expect(iconNames.length).toBeGreaterThan(0);
   });
 
-  it('should filter icons when searching', () => {
+  it('should filter icons when searching', async () => {
+    const user = userEvent.setup();
     renderStudioIconViewer();
     const searchInput = screen.getByLabelText('Icon search');
-    fireEvent.change(searchInput, { target: { value: 'airplane' } });
-    const iconNames = screen.getAllByText(/Icon$/);
-    expect(iconNames.length).toBeGreaterThan(0);
+    const initialIconCount = screen.getAllByText(/Icon$/).length;
+    expect(initialIconCount).toBeGreaterThan(0);
+    await user.type(searchInput, 'airplane');
+    const filteredIconCount = screen.getAllByText(/Icon$/).length;
+    expect(filteredIconCount).toBeLessThan(initialIconCount);
+    expect(filteredIconCount).toBeGreaterThan(0);
   });
 
-  it('should show no results when search has no matches', () => {
+  it('should show no results when search has no matches', async () => {
+    const user = userEvent.setup();
     renderStudioIconViewer();
     const searchInput = screen.getByLabelText('Icon search');
-    fireEvent.change(searchInput, { target: { value: 'nonexistenticon' } });
+    await user.type(searchInput, 'nonexistenticon');
     const iconNames = screen.queryAllByText(/Icon$/);
     expect(iconNames.length).toBe(0);
   });
 
-  it('should clear search results when input is cleared', () => {
+  it('should clear search results when input is cleared', async () => {
+    const user = userEvent.setup();
     renderStudioIconViewer();
     const searchInput = screen.getByLabelText('Icon search');
-    fireEvent.change(searchInput, { target: { value: 'airplane' } });
-    fireEvent.change(searchInput, { target: { value: '' } });
+    await user.type(searchInput, 'airplane');
+    await user.clear(searchInput);
     const iconNames = screen.getAllByText(/Icon$/);
     expect(iconNames.length).toBeGreaterThan(0);
   });
 
-  it('should be case insensitive when searching', () => {
+  it('should be case insensitive when searching', async () => {
+    const user = userEvent.setup();
     renderStudioIconViewer();
     const searchInput = screen.getByLabelText('Icon search');
-    fireEvent.change(searchInput, { target: { value: 'AIRPLANE' } });
+    await user.type(searchInput, 'AIRPLANE');
     const uppercaseResults = screen.getAllByText(/Icon$/);
-    fireEvent.change(searchInput, { target: { value: 'airplane' } });
+    await user.clear(searchInput);
+    await user.type(searchInput, 'airplane');
     const lowercaseResults = screen.getAllByText(/Icon$/);
+    expect(uppercaseResults.length).toBeGreaterThan(0);
+    expect(lowercaseResults.length).toBeGreaterThan(0);
     expect(uppercaseResults.length).toBe(lowercaseResults.length);
   });
 });
