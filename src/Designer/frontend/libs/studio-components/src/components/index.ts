@@ -34,6 +34,7 @@ export * from './StudioFormGroup';
 export * from './StudioGridSelector';
 export * from './StudioHeading';
 export * from './StudioHelpText';
+export * from './StudioIconTextfield';
 export * from './StudioLabel';
 export * from './StudioLink';
 export * from './StudioLinkButton';

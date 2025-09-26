@@ -1,38 +1,38 @@
 import React, { forwardRef, useId } from 'react';
-import { StudioTextfield, type StudioTextfieldProps } from '../StudioTextfield';
-import cn from 'classnames';
 import classes from './StudioIconTextfield.module.css';
 import type { Override } from '../../types/Override';
-import { Label } from '@digdir/designsystemet-react';
 import { PadlockLockedFillIcon } from '@studio/icons';
+import { StudioTextfield, type StudioTextfieldProps } from '../StudioTextfield';
+import { StudioLabelAsParagraph } from '../StudioLabelAsParagraph';
+import cn from 'classnames';
 
 export type StudioIconTextfieldProps = Override<
-  {
-    icon?: React.ReactNode;
-    label: string;
-  },
+  { icon?: React.ReactNode; label: string },
   StudioTextfieldProps
 >;
 
-/**
- * @deprecated use `StudioIconTextfield` from `@studio/components` instead.
- */
 export const StudioIconTextfield = forwardRef<HTMLDivElement, StudioIconTextfieldProps>(
   (
     { icon, id, label, className: givenClassName, readOnly, ...rest }: StudioIconTextfieldProps,
     ref,
   ): React.ReactElement => {
     const generatedId = useId();
-    const textFieldId = id ?? generatedId;
+    const inputId = id ?? generatedId;
+    const labelId = `${inputId}-label`;
     const className = cn(givenClassName, classes.container);
+    const { value, onChange, error, description } = rest;
+
     return (
       <div className={className} ref={ref}>
-        <IconLabel htmlFor={textFieldId} icon={icon} label={label} readonly={readOnly} />
+        <IconLabel htmlFor={inputId} id={labelId} icon={icon} label={label} readonly={readOnly} />
         <StudioTextfield
           disabled={readOnly}
-          id={textFieldId}
           className={classes.textfield}
-          {...rest}
+          aria-labelledby={labelId}
+          value={value}
+          onChange={onChange as React.ChangeEventHandler<HTMLInputElement>}
+          error={error}
+          description={description}
         />
       </div>
     );
@@ -41,18 +41,19 @@ export const StudioIconTextfield = forwardRef<HTMLDivElement, StudioIconTextfiel
 
 type IconLabelProps = {
   htmlFor: string;
+  id: string;
   icon?: React.ReactNode;
   label: string;
   readonly?: boolean;
 };
 
-const IconLabel = ({ htmlFor, icon, label, readonly }: IconLabelProps): React.ReactElement => {
+const IconLabel = ({ htmlFor, id, icon, label, readonly }: IconLabelProps): React.ReactElement => {
   return (
     <div className={classes.iconLabel}>
       {icon}
-      <Label size='sm' htmlFor={htmlFor}>
+      <StudioLabelAsParagraph data-size='sm' htmlFor={htmlFor} id={id}>
         {label}
-      </Label>
+      </StudioLabelAsParagraph>
       {readonly && <PadlockLockedFillIcon className={classes.padLockIcon} />}
     </div>
   );
