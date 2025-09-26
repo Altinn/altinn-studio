@@ -27,6 +27,7 @@ export * from './StudioDialog';
 export * from './StudioDisplayTile';
 export * from './StudioDropdown';
 export * from './StudioErrorSummary';
+export * from './StudioExpression';
 export * from './StudioField';
 export * from './StudioFieldset';
 export * from './StudioFileUploader';
