@@ -1,13 +1,12 @@
 using Microsoft.AspNetCore.Http;
 
-namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Services;
+namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;
 
 /// <summary>
 /// Evaluates if the incoming request is eligible for synchronization.
 /// It doesn't determine if the request should be synchronized, but if it is eligible for synchronization.
-/// It is used by <see cref="RequestSyncResolver"/> to determine if the incoming request should be synchronized.
 /// </summary>
-public interface IRequestSyncEvaluator
+public interface ISyncEligibilityEvaluator
 {
     /// <summary>
     /// Evaluates if the incoming request is eligible for synchronization.

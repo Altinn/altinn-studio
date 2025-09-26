@@ -1,44 +1,39 @@
 using System;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Helpers;
-using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
 
 namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Services;
 
-public class EditingContextResolver : IEditingContextResolver
+/// <summary>
+/// Implementation of IHttpContextDataExtractor that provides common data extraction methods
+/// for resolving organization, developer, and app information from HTTP context.
+/// </summary>
+public class HttpContextDataExtractor : IHttpContextDataExtractor
 {
-    public bool TryResolveContext(HttpContext httpContext, out AltinnRepoEditingContext context)
-    {
-        context = null;
-
-        if (TryResolveOrg(httpContext, out string org) && TryResolveApp(httpContext, out string app) && TryResolveDeveloper(httpContext, out string developer))
-        {
-            context = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            return true;
-        }
-
-        return false;
-    }
-
-    private static bool TryResolveOrg(HttpContext httpContext, out string org)
+    public bool TryResolveOrg(HttpContext httpContext, out string org)
     {
         org = null;
         var routeValues = httpContext.Request.RouteValues;
         if (routeValues.TryGetValue("org", out object orgValue))
         {
             org = orgValue?.ToString();
-            return true;
+            return !string.IsNullOrEmpty(org);
         }
 
         return false;
-
     }
 
-    private static bool TryResolveApp(HttpContext httpContext, out string app)
+    public bool TryResolveDeveloper(HttpContext httpContext, out string developer)
     {
+        developer = AuthenticationHelper.GetDeveloperUserName(httpContext);
+        return !string.IsNullOrEmpty(developer);
+    }
 
+    public bool TryResolveApp(HttpContext httpContext, out string app)
+    {
         if (TryResolveAppFromRouteValues(httpContext, out app))
         {
             return true;
@@ -57,17 +52,18 @@ public class EditingContextResolver : IEditingContextResolver
         app = null;
         var routeValues = httpContext.Request.RouteValues;
 
-        if (routeValues.TryGetValue("app", out object appValue) || routeValues.TryGetValue("repo", out appValue) ||
+        if (routeValues.TryGetValue("app", out object appValue) ||
+            routeValues.TryGetValue("repo", out appValue) ||
             routeValues.TryGetValue("repository", out appValue))
         {
             app = appValue?.ToString();
-            return true;
+            return !string.IsNullOrEmpty(app);
         }
 
         return false;
     }
 
-    private static bool TryResolveAppIfResourceAdmin(HttpContext httpContext, out string app)
+    private bool TryResolveAppIfResourceAdmin(HttpContext httpContext, out string app)
     {
         app = null;
         var endpoint = httpContext.GetEndpoint();
@@ -80,8 +76,10 @@ public class EditingContextResolver : IEditingContextResolver
         }
 
         string controllerName = controllerActionDescriptor.ControllerName;
-        bool isResourceAdmin = string.Equals(controllerName, nameof(ResourceAdminController).Replace("Controller", string.Empty),
+        bool isResourceAdmin = string.Equals(controllerName,
+            nameof(ResourceAdminController).Replace("Controller", string.Empty),
             StringComparison.InvariantCulture);
+
         if (isResourceAdmin && TryResolveOrg(httpContext, out string org))
         {
             app = $"{org}-resources";
@@ -89,11 +87,5 @@ public class EditingContextResolver : IEditingContextResolver
         }
 
         return false;
-    }
-
-    private static bool TryResolveDeveloper(HttpContext httpContext, out string developer)
-    {
-        developer = AuthenticationHelper.GetDeveloperUserName(httpContext);
-        return !string.IsNullOrEmpty(developer);
     }
 }

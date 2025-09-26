@@ -17,8 +17,11 @@ using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Altinn.Studio.Designer.TypedHttpClients.Slack;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.TypedHttpClients
@@ -41,6 +44,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddTransient<EnsureSuccessHandler>();
             services.AddTransient<PlatformBearerTokenHandler>();
             services.AddAzureDevOpsTypedHttpClient(config);
+            // Order is important here. The GiteaBot client must be registered before the regular Gitea client
+            // to ensure that the regular Gitea client is injected when IGitea is requested.
+            services.AddGiteaBotTypedHttpClient(config);
             services.AddGiteaTypedHttpClient(config);
             services.AddAltinnAuthenticationTypedHttpClient(config);
             services.AddAuthenticatedAltinnPlatformTypedHttpClient
@@ -54,6 +60,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();
             services.AddHttpClient<IAltinn2MetadataClient, Altinn2MetadataClient>();
             services.AddTransient<GiteaTokenDelegatingHandler>();
+            services.AddTransient<GitOpsBotTokenDelegatingHandler>();
             services.AddTransient<PlatformSubscriptionAuthDelegatingHandler>();
             services.AddMaskinportenHttpClient();
             services.AddSlackClient(config);
@@ -98,6 +105,44 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 })
                 .AddHttpMessageHandler<GiteaTokenDelegatingHandler>();
 
+        private static IHttpClientBuilder AddGiteaBotTypedHttpClient(this IServiceCollection services,
+            IConfiguration config)
+        {
+            // Register the named HTTP client (for direct IHttpClientFactory usage)
+            var builder = services.AddHttpClient<IGitea, GiteaAPIWrapper>("bot-auth", (_, httpClient) =>
+                {
+                    ServiceRepositorySettings serviceRepoSettings =
+                        config.GetSection(nameof(ServiceRepositorySettings)).Get<ServiceRepositorySettings>();
+                    Uri uri = new Uri(serviceRepoSettings.ApiEndPoint);
+                    httpClient.BaseAddress = uri;
+                })
+                .ConfigurePrimaryHttpMessageHandler((sp) =>
+                {
+                    var handler = new HttpClientHandler { AllowAutoRedirect = true };
+
+                    return new Custom401Handler(handler);
+                })
+                .AddHttpMessageHandler<GitOpsBotTokenDelegatingHandler>();
+
+            // Register keyed service by delegating to the named HTTP client registration
+            services.AddKeyedTransient<IGitea>("bot-auth", (sp, _) =>
+            {
+                // Leverage the existing typed HTTP client factory instead of manual construction
+                var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+                var namedClient = httpClientFactory.CreateClient("bot-auth");
+
+                // Use the same dependencies that the named client would use
+                var serviceRepoSettings = sp.GetRequiredService<IConfiguration>()
+                    .GetSection(nameof(ServiceRepositorySettings)).Get<ServiceRepositorySettings>();
+                var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
+                var memoryCache = sp.GetRequiredService<IMemoryCache>();
+                var logger = sp.GetRequiredService<ILogger<GiteaAPIWrapper>>();
+
+                return new GiteaAPIWrapper(serviceRepoSettings, httpContextAccessor, memoryCache, logger, namedClient);
+            });
+
+            return builder;
+        }
 
         private static IHttpClientBuilder AddAltinnAuthenticationTypedHttpClient(this IServiceCollection services, IConfiguration config)
             => services.AddHttpClient<IAltinnAuthenticationClient, AltinnAuthenticationClient>((sp, httpClient) =>
