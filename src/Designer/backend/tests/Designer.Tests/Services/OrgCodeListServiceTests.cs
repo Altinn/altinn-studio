@@ -426,7 +426,7 @@ public class OrgCodeListServiceTests : IDisposable
             CommitMessage: GiteaCommitMessage
         );
 
-        await orgListService.UpdateCodeListsNew(Org, Developer, request, Reference);
+        await orgListService.UpdateCodeListsNew(Org, Developer, request);
 
 
         List<FileOperationContext> files =
@@ -478,7 +478,7 @@ public class OrgCodeListServiceTests : IDisposable
             BaseCommitSha: Reference,
             CommitMessage: GiteaCommitMessage
         );
-        await Assert.ThrowsAsync<InvalidOperationException>(() => orgListService.UpdateCodeListsNew(Org, Developer, request, Reference));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => orgListService.UpdateCodeListsNew(Org, Developer, request));
         _giteaMock.Verify(s => s.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), Reference, It.IsAny<CancellationToken>()), Times.Once);
         _giteaMock.Verify(s => s.ModifyMultipleFiles(Org, It.IsAny<string>(), It.IsAny<GiteaMultipleFilesDto>(), It.IsAny<CancellationToken>()), Times.Once);
     }

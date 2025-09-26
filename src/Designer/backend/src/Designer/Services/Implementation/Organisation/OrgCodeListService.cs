@@ -133,19 +133,33 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task UpdateCodeListsNew(string org, string developer, UpdateCodeListRequest request, string? reference = null, CancellationToken cancellationToken = default)
+    public async Task UpdateCodeListsNew(string org, string developer, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
     {
         ValidateCodeListTitles(request.CodeListWrappers);
         ValidateCommitMessage(request.CommitMessage);
 
-        string repository = GetStaticContentRepo(org);
+        string repositoryName = GetStaticContentRepo(org);
+        string latestCommitSha = await _gitea.GetLatestCommitOnBranch(org, repositoryName);
 
-        List<FileSystemObject> files = await _gitea.GetCodeListDirectoryContentAsync(org, repository, reference, cancellationToken);
-        List<FileOperationContext> fileOperationContexts = CreateFileOperationContexts(request.CodeListWrappers, files);
-        GiteaMultipleFilesDto dto = CreateGiteaMultipleFilesDto(developer, fileOperationContexts, request.CommitMessage, reference);
+        List<FileSystemObject> defaultBranchFiles = await _gitea.GetCodeListDirectoryContentAsync(org, repositoryName, cancellationToken: cancellationToken);
+        List<FileOperationContext> fileOperationContexts;
 
-        bool r = await _gitea.ModifyMultipleFiles(org, repository, dto, cancellationToken);
-        if (r is false)
+        if (request.BaseCommitSha == latestCommitSha)
+        {
+            // There is no conflict
+            fileOperationContexts = CreateFileOperationContexts(request.CodeListWrappers, defaultBranchFiles);
+        }
+        else
+        {
+            // Get files at the commit the changes in the request are based on
+            List<FileSystemObject> baseCommitFiles = await _gitea.GetCodeListDirectoryContentAsync(org, repositoryName, request.BaseCommitSha, cancellationToken);
+            fileOperationContexts = CreateFileOperationContexts(request.CodeListWrappers, defaultBranchFiles, baseCommitFiles);
+        }
+
+        GiteaMultipleFilesDto dto = CreateGiteaMultipleFilesDto(developer, fileOperationContexts, request.CommitMessage);
+
+        bool success = await _gitea.ModifyMultipleFiles(org, repositoryName, dto, cancellationToken);
+        if (success is false)
         {
             throw new InvalidOperationException("Failed to update code lists in Gitea.");
         }
@@ -177,7 +191,14 @@ public class OrgCodeListService : IOrgCodeListService
         return GenerateFileOperationContexts(remoteWrappers, localWrappers, fileMetadata);
     }
 
-    internal static (List<CodeListWrapper> remoteCodeListWrappers, Dictionary<string, string> fileMetadata) ExtractContentFromFiles(List<FileSystemObject> remoteFiles)
+    internal static List<FileOperationContext> CreateFileOperationContexts(List<CodeListWrapper> localWrappers, List<FileSystemObject> remoteFiles, List<FileSystemObject> baseFiles)
+    {
+        FileContents baseFileContents = ExtractContentFromFiles(baseFiles);
+        FileContents remoteFileContents = ExtractContentFromFiles(remoteFiles);
+        return GenerateFileOperationContexts(localWrappers, baseFileContents, remoteFileContents);
+    }
+
+    internal static FileContents ExtractContentFromFiles(List<FileSystemObject> remoteFiles)
     {
         List<CodeListWrapper> remoteCodeListWrappers = [];
         Dictionary<string, string> fileMetadata = [];
@@ -195,7 +216,9 @@ public class OrgCodeListService : IOrgCodeListService
             fileMetadata[title] = file.Sha;
         }
 
-        return (remoteCodeListWrappers, fileMetadata);
+        FileContents fileContents = new(remoteCodeListWrappers, fileMetadata);
+
+        return fileContents;
     }
 
     internal static FileOperationContext PrepareFile(string operation, CodeListWrapper codeListWrapper, string? sha = null)
@@ -334,11 +357,11 @@ public class OrgCodeListService : IOrgCodeListService
         );
     }
 
-    private static GiteaMultipleFilesDto CreateGiteaMultipleFilesDto(string developer, List<FileOperationContext> fileOperationContexts, string? commitMessage, string? reference = null)
+    private static GiteaMultipleFilesDto CreateGiteaMultipleFilesDto(string developer, List<FileOperationContext> fileOperationContexts, string? commitMessage, string? branch = null)
     {
         return new GiteaMultipleFilesDto(
             Author: new GiteaIdentity(Name: developer),
-            Branch: string.IsNullOrWhiteSpace(reference) ? null : reference,
+            Branch: string.IsNullOrWhiteSpace(branch) ? null : branch,
             Committer: new GiteaIdentity(Name: developer),
             Files: fileOperationContexts,
             Message: string.IsNullOrWhiteSpace(commitMessage) ? null : commitMessage
@@ -377,6 +400,46 @@ public class OrgCodeListService : IOrgCodeListService
             }
         }
 
+        return fileOperationContexts;
+    }
+
+    private static List<FileOperationContext> GenerateFileOperationContexts(List<CodeListWrapper> localWrappers, FileContents baseFileContents, FileContents remoteFileContents)
+    {
+        List<CodeListWrapper> remoteWrappers = remoteFileContents.CodeListWrappers;
+        List<CodeListWrapper> baseWrappers = baseFileContents.CodeListWrappers;
+        Dictionary<string, string> remoteFileMetadata = remoteFileContents.FileMetadata;
+        List<FileOperationContext> fileOperationContexts = [];
+
+        HashSet<string> remoteWrapperTitles = [.. remoteFileContents.CodeListWrappers.Select(wrapper => wrapper.Title)];
+
+        foreach (CodeListWrapper localWrapper in localWrappers)
+        {
+            if (remoteWrapperTitles.Contains(localWrapper.Title) is false)
+            {
+                fileOperationContexts.Add(PrepareFile(FileOperation.Create, localWrapper));
+                continue;
+            }
+
+            foreach (CodeListWrapper remoteWrapper in remoteWrappers.Where(remoteWrapper => localWrapper.Title == remoteWrapper.Title))
+            {
+                string sha = remoteFileMetadata[remoteWrapper.Title];
+                if (localWrapper.CodeList is null)
+                {
+                    fileOperationContexts.Add(PrepareFile(FileOperation.Delete, localWrapper, sha));
+                    break;
+                }
+            }
+
+            List<CodeListWrapper> candidateWrappers = [.. remoteWrappers, .. baseWrappers];
+            foreach (CodeListWrapper candidateWrapper in candidateWrappers.DistinctBy(wrapper => wrapper.Title))
+            {
+                if (localWrappers.Exists(localWrapper => localWrapper.Title == candidateWrapper.Title) is false)
+                {
+                    string sha = remoteFileMetadata[candidateWrapper.Title];
+                    fileOperationContexts.Add(PrepareFile(FileOperation.Delete, candidateWrapper, sha));
+                }
+            }
+        }
         return fileOperationContexts;
     }
 
