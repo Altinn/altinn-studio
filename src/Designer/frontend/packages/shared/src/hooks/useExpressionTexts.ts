@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import type { ExpressionTexts, RelationalOperator } from '@studio/components-legacy';
+import type { ExpressionTexts, RelationalOperator } from '@studio/components';
 import {
   ExpressionErrorKey,
   LogicalTupleOperator,
@@ -8,7 +8,7 @@ import {
   GeneralRelationOperator,
   InstanceContext,
   PredefinedGatewayAction,
-} from '@studio/components-legacy';
+} from '@studio/components';
 
 export const useExpressionTexts = (): ExpressionTexts => {
   const { t } = useTranslation();
@@ -80,7 +80,6 @@ export const useExpressionTexts = (): ExpressionTexts => {
     logicalOperator: t('expression.logicalOperator'),
     logicalTupleOperators,
     manual: t('expression.manual'),
-    missingDataModelLabel: t('expression.error.missingDataModel'),
     numberValidationError: t('validation_errors.numbers_only'),
     or: t('expression.or'),
     predefinedGatewayActions,

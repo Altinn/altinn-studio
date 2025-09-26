@@ -6,7 +6,7 @@ import {
   PredefinedGatewayAction,
   SimpleSubexpressionValueType,
   StudioExpression,
-} from '@studio/components-legacy';
+} from '@studio/components';
 import { StudioSectionHeader, StudioButton } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
