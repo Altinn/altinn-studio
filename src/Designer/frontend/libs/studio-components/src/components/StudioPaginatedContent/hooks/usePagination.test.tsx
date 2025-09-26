@@ -3,11 +3,14 @@ import { renderHook, act } from '@testing-library/react';
 import { usePagination } from './usePagination';
 import { type StudioPaginatedItem } from '../types/StudioPaginatedItem';
 
-const items: StudioPaginatedItem[] = [
-  { pageContent: <div>Page 1</div>, validationRuleForNextButton: true },
-  { pageContent: <div>Page 2</div>, validationRuleForNextButton: true },
-  { pageContent: <div>Page 3</div>, validationRuleForNextButton: false },
-];
+const createItems = (count: number, validationRules?: boolean[]): StudioPaginatedItem[] => {
+  return Array.from({ length: count }, (_, index) => ({
+    pageContent: <div>Page {index + 1}</div>,
+    validationRuleForNextButton: validationRules?.[index] ?? true,
+  }));
+};
+
+const items = createItems(3, [true, true, false]);
 
 describe('usePagination', () => {
   it('should initialize with the first page', () => {
@@ -19,12 +22,8 @@ describe('usePagination', () => {
   });
 
   it('should set canGoNext to true when validationRuleForNextButton is undefined', () => {
-    const itemsWithoutValidationRuleForNextButton: StudioPaginatedItem[] = [
-      { pageContent: <div>Page 1</div> },
-      { pageContent: <div>Page 2</div> },
-    ];
+    const itemsWithoutValidationRuleForNextButton = createItems(2);
     const { result } = renderHook(() => usePagination(itemsWithoutValidationRuleForNextButton));
-
     expect(result.current.currentPage).toBe(0);
     expect(result.current.pages).toHaveLength(2);
     expect(result.current.navigation.canGoNext).toBe(true);
@@ -42,12 +41,18 @@ describe('usePagination', () => {
   });
 
   it('should not go to the next page if validation rule does not allow', () => {
-    const { result } = renderHook(() => usePagination(items));
+    const itemsWithBlockedMiddle = createItems(3, [true, false, true]);
+    const { result } = renderHook(() => usePagination(itemsWithBlockedMiddle));
     act(() => {
       result.current.navigation.onNext();
+    });
+    expect(result.current.currentPage).toBe(1);
+    expect(result.current.navigation.canGoNext).toBe(false);
+    expect(result.current.navigation.canGoPrevious).toBe(true);
+    act(() => {
       result.current.navigation.onNext();
     });
-    expect(result.current.currentPage).toBe(2);
+    expect(result.current.currentPage).toBe(1);
     expect(result.current.navigation.canGoNext).toBe(false);
     expect(result.current.navigation.canGoPrevious).toBe(true);
   });
@@ -58,12 +63,10 @@ describe('usePagination', () => {
       result.current.navigation.onNext();
     });
     expect(result.current.currentPage).toBe(1);
-
     act(() => {
       result.current.navigation.onPrevious();
     });
     expect(result.current.currentPage).toBe(0);
-
     expect(result.current.navigation.canGoNext).toBe(true);
     expect(result.current.navigation.canGoPrevious).toBe(false);
   });
@@ -79,7 +82,7 @@ describe('usePagination', () => {
   });
 
   it('should handle empty items: no pages and cannot go next/previous', () => {
-    const { result } = renderHook(() => usePagination([]));
+    const { result } = renderHook(() => usePagination(createItems(0)));
     expect(result.current.pages).toHaveLength(0);
     expect(result.current.currentPage).toBe(0);
     expect(result.current.navigation.canGoNext).toBe(false);
@@ -87,11 +90,7 @@ describe('usePagination', () => {
   });
 
   it('should clamp current page when items shrink', () => {
-    const initialItems: StudioPaginatedItem[] = [
-      { pageContent: <div>Page 1</div>, validationRuleForNextButton: true },
-      { pageContent: <div>Page 2</div>, validationRuleForNextButton: true },
-      { pageContent: <div>Page 3</div>, validationRuleForNextButton: true },
-    ];
+    const initialItems = createItems(3);
     const { result, rerender } = renderHook(({ data }) => usePagination(data), {
       initialProps: { data: initialItems },
     });
@@ -100,10 +99,7 @@ describe('usePagination', () => {
       result.current.navigation.onNext();
     });
     expect(result.current.currentPage).toBe(2);
-    const smallerItems: StudioPaginatedItem[] = [
-      { pageContent: <div>Page 1</div>, validationRuleForNextButton: true },
-      { pageContent: <div>Page 2</div>, validationRuleForNextButton: true },
-    ];
+    const smallerItems = createItems(2);
     rerender({ data: smallerItems });
     expect(result.current.pages).toHaveLength(2);
     expect(result.current.currentPage).toBe(1);
