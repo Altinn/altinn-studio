@@ -1,13 +1,11 @@
-name: K8s wrapper Dotnet format check
+name: K8s wrapper - Dotnet format check
+
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'src/Runtime/KubernetesWrapper/src/**'
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/Runtime/KubernetesWrapper/src/**'
+      - '.github/workflows/runtime-kubernetes-wrapper-dotnet-format.yaml'
   workflow_dispatch:
 
 jobs:

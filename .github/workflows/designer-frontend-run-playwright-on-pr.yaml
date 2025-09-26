@@ -1,13 +1,14 @@
-name: Designer Playwright tests on pr
+name: Designer Frontend - Playwright tests on PR
+
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/Designer/frontend/**'
       - '!src/Designer/frontend/admin/**'
       - '!src/Designer/frontend/stats/**'
       - 'src/Designer/backend/**'
-      - '.github/workflows/designer-run-playwright-on-pr.yaml'
+      - '.github/workflows/designer-frontend-run-playwright-on-pr.yaml'
       - 'src/Designer/compose.yaml'
       - 'src/Designer/Dockerfile'
       - 'src/gitea/**'

@@ -1,17 +1,13 @@
-name: Designer run gitea and db integration tests
+name: Designer Backend - Gitea and Db integration tests
+
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'src/Designer/testdata/**'
-      - 'src/Designer/backend/**'
   pull_request:
-    branches: [ main ]
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/Designer/backend/**'
       - 'src/Designer/testdata/**'
       - 'src/gitea/**'
+      - '.github/workflows/designer-backend-gitea-and-db-integration-tests.yaml'
   workflow_dispatch:
 
 jobs:

@@ -1,13 +1,11 @@
-name: Designer Dotnet format check
+name: Designer Backend - dotnet format check
+
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'src/Designer/backend/**'
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/Designer/backend/**'
+      - '.github/workflows/designer-backend-dotnet-format.yaml'
   workflow_dispatch:
 
 jobs:

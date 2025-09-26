@@ -1,18 +1,12 @@
-name: Designer Build and Test on windows, linux and macos
-on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'src/Designer/testdata/**'
-      - 'src/Designer/backend/**'
-      - '.github/workflows/designer-dotnet-test.yaml'
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - 'src/Designer/backend/**'
-      - 'src/Designer/testdata/**'
-      - '.github/workflows/designer-dotnet-test.yaml'
+name: Designer Backend - Build and test
 
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'src/Designer/backend/**'
+      - 'src/Designer/testdata/**'
+      - '.github/workflows/designer-backend-dotnet-test.yaml'
   workflow_dispatch:
 
 jobs:
