@@ -5,9 +5,9 @@ import * as StudioIcons from '@studio/icons';
 
 import classes from './StudioIconViewer.module.css';
 
-/*
-@deprecated Use StudioIconViewer from @studio/components instead.
-*/
+/**
+ * @deprecated Use StudioIconViewer from @studio/components instead.
+ */
 const icons = Object.keys(StudioIcons);
 
 export const StudioIconViewer = (): React.ReactElement => {

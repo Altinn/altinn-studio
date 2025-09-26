@@ -6,7 +6,7 @@ const meta: Meta = {
   title: 'Components/StudioIconViewer',
   component: StudioIconViewer,
   parameters: {
-    layout: 'fullscreen-centered',
+    layout: 'padded',
   },
 };
 
