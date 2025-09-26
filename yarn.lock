@@ -74,7 +74,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/core@npm:7.28.4":
+"@babel/core@npm:7.28.4, @babel/core@npm:^7.28.4":
   version: 7.28.4
   resolution: "@babel/core@npm:7.28.4"
   dependencies:
@@ -120,7 +120,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/core@npm:^7.24.4, @babel/core@npm:^7.26.9":
+"@babel/core@npm:^7.24.4":
   version: 7.28.0
   resolution: "@babel/core@npm:7.28.0"
   dependencies:
@@ -727,7 +727,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-syntax-jsx@npm:^7.25.9, @babel/plugin-syntax-jsx@npm:^7.27.1":
+"@babel/plugin-syntax-jsx@npm:^7.27.1":
   version: 7.27.1
   resolution: "@babel/plugin-syntax-jsx@npm:7.27.1"
   dependencies:
@@ -826,7 +826,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-syntax-typescript@npm:^7.25.9, @babel/plugin-syntax-typescript@npm:^7.27.1":
+"@babel/plugin-syntax-typescript@npm:^7.27.1":
   version: 7.27.1
   resolution: "@babel/plugin-syntax-typescript@npm:7.27.1"
   dependencies:
@@ -5439,7 +5439,7 @@ __metadata:
     node-polyfill-webpack-plugin: "npm:4.1.0"
     prettier: "npm:3.6.2"
     react: "npm:19.1.1"
-    react-compiler-webpack: "npm:0.2.0"
+    react-compiler-webpack: "npm:0.2.1"
     react-content-loader: "npm:7.1.1"
     react-day-picker: "npm:9.11.0"
     react-device-detect: "npm:2.2.3"
@@ -12254,13 +12254,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"loader-utils@npm:^3.3.1":
-  version: 3.3.1
-  resolution: "loader-utils@npm:3.3.1"
-  checksum: 10c0/f2af4eb185ac5bf7e56e1337b666f90744e9f443861ac521b48f093fb9e8347f191c8960b4388a3365147d218913bc23421234e7788db69f385bacfefa0b4758
-  languageName: node
-  linkType: hard
-
 "locate-path@npm:^5.0.0":
   version: 5.0.0
   resolution: "locate-path@npm:5.0.0"
@@ -14292,17 +14285,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-compiler-webpack@npm:0.2.0":
-  version: 0.2.0
-  resolution: "react-compiler-webpack@npm:0.2.0"
+"react-compiler-webpack@npm:0.2.1":
+  version: 0.2.1
+  resolution: "react-compiler-webpack@npm:0.2.1"
   dependencies:
-    "@babel/core": "npm:^7.26.9"
-    "@babel/plugin-syntax-jsx": "npm:^7.25.9"
-    "@babel/plugin-syntax-typescript": "npm:^7.25.9"
-    loader-utils: "npm:^3.3.1"
+    "@babel/core": "npm:^7.28.4"
+    "@babel/plugin-syntax-jsx": "npm:^7.27.1"
+    "@babel/plugin-syntax-typescript": "npm:^7.27.1"
   peerDependencies:
     babel-plugin-react-compiler: "*"
-  checksum: 10c0/9394488b39592cc69894d17763b58e0c456fc8174ca13ee155be24b9432e180032ac4f0dd606d79a3bebce3e9403ace1e3d1b3eeb37b23bb07ee49175804e04c
+  checksum: 10c0/09e4982a97dd67d34f73dea10780fcd565a246cf31fbdc5a66e032e298295d9f13d882dc8273080926edeb8397b38e9850cfd78a94603cb0aacd8c3eb064c7b8
   languageName: node
   linkType: hard
 
