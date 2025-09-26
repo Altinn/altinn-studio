@@ -1,16 +1,12 @@
-import React from 'react';
+import React, { forwardRef, type ReactElement, type Ref } from 'react';
 import { StudioTextfield } from '../StudioTextfield';
-import { Paragraph } from '@digdir/designsystemet-react';
+import classes from './StudioIconViewer.module.css';
+import { StudioParagraph } from '../StudioParagraph';
 import * as StudioIcons from '@studio/icons';
 
-import classes from './StudioIconViewer.module.css';
-
-/*
-@deprecated Use StudioIconViewer from @studio/components instead.
-*/
 const icons = Object.keys(StudioIcons);
 
-export const StudioIconViewer = (): React.ReactElement => {
+function StudioIconViewer(_props: {}, ref: Ref<HTMLDivElement>): ReactElement {
   const [search, setSearch] = React.useState<string>('');
 
   const searchedIcons = icons.filter((iconName) =>
@@ -18,7 +14,7 @@ export const StudioIconViewer = (): React.ReactElement => {
   );
 
   return (
-    <div className={classes.rootContainer}>
+    <div className={classes.rootContainer} ref={ref}>
       <StudioTextfield
         label='Icon search'
         className={classes.searchField}
@@ -30,11 +26,15 @@ export const StudioIconViewer = (): React.ReactElement => {
           return (
             <div key={iconName} className={classes.iconCard}>
               <IconComponent className={classes.icon} />
-              <Paragraph>{iconName}</Paragraph>
+              <StudioParagraph>{iconName}</StudioParagraph>
             </div>
           );
         })}
       </div>
     </div>
   );
-};
+}
+
+const ForwardedStudioIconViewer = forwardRef(StudioIconViewer);
+
+export { ForwardedStudioIconViewer as StudioIconViewer };
