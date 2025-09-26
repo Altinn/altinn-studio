@@ -1,0 +1,5 @@
+{
+  "name": "Should treat stringy nulls as null",
+  "expression": ["notContains", "null", "null"],
+  "expects": true
+}

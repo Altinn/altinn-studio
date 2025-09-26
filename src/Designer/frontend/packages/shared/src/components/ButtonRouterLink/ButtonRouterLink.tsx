@@ -1,17 +1,17 @@
 import type { ComponentProps, MouseEvent } from 'react';
 import React, { forwardRef, useCallback } from 'react';
-import { StudioButton } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import type { LinkProps } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
 export type ButtonRouterLinkProps = ComponentProps<typeof StudioButton> & Pick<LinkProps, 'to'>;
 
-export const ButtonRouterLink = forwardRef<HTMLAnchorElement, ButtonRouterLinkProps>(
+export const ButtonRouterLink = forwardRef<HTMLButtonElement, ButtonRouterLinkProps>(
   ({ to, onClick, ...rest }, ref) => {
     const navigate = useNavigate();
 
     const handleClick = useCallback(
-      (event: MouseEvent<HTMLAnchorElement>): void => {
+      (event: MouseEvent<HTMLButtonElement>): void => {
         event.preventDefault();
         navigate(to);
         onClick?.(event);
@@ -19,7 +19,7 @@ export const ButtonRouterLink = forwardRef<HTMLAnchorElement, ButtonRouterLinkPr
       [navigate, to, onClick],
     );
 
-    return <StudioButton as='a' href={to} onClick={handleClick} {...rest} ref={ref} />;
+    return <StudioButton onClick={handleClick} {...rest} ref={ref} />;
   },
 );
 

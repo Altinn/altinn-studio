@@ -1,13 +1,7 @@
 import type { ReactElement } from 'react';
 import React, { useRef, useState } from 'react';
-import {
-  StudioButton,
-  StudioModal,
-  StudioTextfield,
-  StudioAlert,
-  StudioLink,
-} from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import { StudioModal, StudioTextfield, StudioAlert, StudioLink } from '@studio/components-legacy';
+import { StudioButton, StudioParagraph } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
 import classes from './ConfirmUndeployDialog.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -50,7 +44,7 @@ export const ConfirmUndeployDialog = ({
 
   return (
     <>
-      <StudioButton size='sm' onClick={openDialog} variant='primary'>
+      <StudioButton onClick={openDialog} variant='primary'>
         {t('app_deployment.undeploy_button')}
       </StudioButton>
       <StudioModal.Dialog
@@ -82,8 +76,7 @@ export const ConfirmUndeployDialog = ({
         )}
         <StudioButton
           disabled={!isAppNameConfirmed || isPendingUndeploy}
-          color='danger'
-          size='sm'
+          data-color='danger'
           className={classes.confirmUndeployButton}
           onClick={onUndeployClicked}
         >

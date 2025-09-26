@@ -1,0 +1,42 @@
+.loader {
+  position: relative;
+  display: block;
+  margin: 0 auto;
+  text-indent: -9999em;
+  transform: translateZ(0);
+  width: 0.625em;
+  height: 0.625em;
+  border-radius: 50%;
+  animation: loader-ellipsis 1.8s infinite ease-in-out;
+  animation-delay: -0.16s;
+  animation-fill-mode: both;
+}
+.loader::after,
+.loader::before {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  content: '';
+  border-radius: 50%;
+  animation: loader-ellipsis 1.8s infinite ease-in-out;
+  animation-fill-mode: both;
+}
+.loader::before {
+  left: -0.875em;
+  animation-delay: -0.32s;
+}
+.loader::after {
+  left: 0.875em;
+}
+
+@keyframes loader-ellipsis {
+  0%,
+  100%,
+  80% {
+    box-shadow: 0 0.625em 0 -0.325em var(--colors-primary-blueMedium);
+  }
+  40% {
+    box-shadow: 0 0.625em 0 0 var(--colors-primary-blueMedium);
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Should return else result on failure (2)",
+  "expression": ["if", false, 123.456, "else", false],
+  "expects": false
+}

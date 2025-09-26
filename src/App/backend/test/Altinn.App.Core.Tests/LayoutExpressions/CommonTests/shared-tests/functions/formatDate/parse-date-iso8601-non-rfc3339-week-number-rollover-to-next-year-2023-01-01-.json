@@ -1,0 +1,11 @@
+{
+  "comment": "This tests our compliance to the date format from the JSON Schema Test Suite.",
+  "source": "https://github.com/json-schema-org/JSON-Schema-Test-Suite/blob/main/tests/draft2020-12/optional/format/date.json",
+  "name": "Compliance: ISO8601 / non-RFC3339: week number rollover to next year (2023-01-01)",
+  "expression": [
+    "formatDate",
+    "2022W527",
+    "G yyyy-MM-dd EEEE HH:mm:ss.SSS a"
+  ],
+  "expectsFailure": "Unable to parse date \"2022W527\": Unknown format"
+}

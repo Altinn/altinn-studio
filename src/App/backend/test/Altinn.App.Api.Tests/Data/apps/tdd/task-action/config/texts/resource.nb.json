@@ -1,0 +1,33 @@
+{
+  "language": "nb",
+  "resources": [
+    {
+      "id": "appName",
+      "value": "vga-simple-app"
+    },
+    {
+      "id": "Side1.Input-P4VNaW.title",
+      "value": "Navn"
+    },
+    {
+      "id": "Side1.Input-P4VNaX.title",
+      "value": "Regex validation"
+    },
+    {
+      "id": "Side1.Button-Lj0cYD.title",
+      "value": "Til signering"
+    },
+    {
+      "id": "Side1.Button-Lj0cYE.title",
+      "value": "Fullfør"
+    },
+    {
+      "id": "Side1.Button-Lj0cYF.title",
+      "value": "Bekreft"
+    },
+    {
+      "id": "Side1.Button-Lj0cYG.title",
+      "value": "Avvis"
+    }
+  ]
+}

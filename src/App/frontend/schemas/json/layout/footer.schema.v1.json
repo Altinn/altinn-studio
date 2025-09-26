@@ -1,0 +1,99 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/layout/footer.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Altinn footer",
+  "description": "Schema that describes the footer configuration for Altinn applications.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "title": "Schema",
+      "description": "The schema that this file adheres to"
+    },
+    "footer": {
+      "title": "The footer",
+      "description": "Array of components to be presented in the footer.",
+      "type": "array",
+      "items": {"$ref": "#/definitions/footerLayout"}
+    }
+  },
+  "definitions": {
+    "footerLayout": {
+      "properties": {
+        "type": {
+          "type": "string",
+          "title": "Type",
+          "description": "The component type.",
+          "enum": ["Email", "Link", "Phone", "Text"]
+        }
+      },
+      "required": ["type"],
+      "allOf": [
+        { "if": {"properties": {"type": { "const": "Email"}}}, "then": { "$ref": "#/definitions/emailComponent"}},
+        { "if": {"properties": {"type": { "const": "Link"}}}, "then": { "$ref": "#/definitions/linkComponent"}},
+        { "if": {"properties": {"type": { "const": "Phone"}}}, "then": { "$ref": "#/definitions/phoneComponent"}},
+        { "if": {"properties": {"type": { "const": "Text"}}}, "then": { "$ref": "#/definitions/textComponent"}}
+      ]
+    },
+    "icon": {
+      "type": "string",
+      "title": "Icon",
+      "description": "Icon to show next to the component.",
+      "enum": ["information", "email", "phone"]
+    },
+    "title": {
+      "type": "string",
+      "title": "Title",
+      "description": "The text to display. Can be a text resource."
+    },
+    "emailComponent": {
+      "additionalProperties": false,
+      "properties": {
+        "type": true,
+        "title": { "$ref": "#/definitions/title" },
+        "target": {
+          "type": "string",
+          "title": "Target",
+          "description": "The email to link to. Can be a text resource."
+        }
+      },
+      "required": ["title", "target"]
+    },
+    "linkComponent": {
+      "additionalProperties": false,
+      "properties": {
+        "type": true,
+        "title": { "$ref": "#/definitions/title" },
+        "target": {
+          "type": "string",
+          "title": "Target",
+          "description": "The URL to link to. Can be a text resource."
+        },
+        "icon": { "$ref": "#/definitions/icon" }
+      },
+      "required": ["title", "target"]
+    },
+    "phoneComponent": {
+      "additionalProperties": false,
+      "properties": {
+        "type": true,
+        "title": { "$ref": "#/definitions/title" },
+        "target": {
+          "type": "string",
+          "title": "Target",
+          "description": "The phone number to link to. Can be a text resource."
+        }
+      },
+      "required": ["title", "target"]
+    },
+    "textComponent": {
+      "additionalProperties": false,
+      "properties": {
+        "type": true,
+        "title": { "$ref": "#/definitions/title" }
+      },
+      "required": ["title"]
+    }
+  }
+}

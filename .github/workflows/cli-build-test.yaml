@@ -1,12 +1,13 @@
-name: CLI - build and test on windows, macos and ubuntu
+name: CLI - Build and test
+
 on:
   pull_request:
-    branches: [ main ]
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - "src/cli/**"
       - .github/workflows/cli-build-test.yaml
   workflow_dispatch:
+
 jobs:
   analyze:
     strategy:

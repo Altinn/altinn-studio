@@ -1,7 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { PencilIcon } from '@studio/icons';
-import { StudioButton, StudioRedirectBox } from '@studio/components-legacy';
+import { StudioRedirectBox } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import classes from './RedirectToLayoutSet.module.css';
 import { useAppContext } from '../../../../hooks';
 
@@ -27,8 +28,7 @@ export const RedirectToLayoutSet = ({
     >
       <StudioButton
         onClick={handleOnRedirectClick}
-        variant='primary'
-        color='second'
+        variant='secondary'
         icon={<PencilIcon />}
         iconPlacement='left'
       >

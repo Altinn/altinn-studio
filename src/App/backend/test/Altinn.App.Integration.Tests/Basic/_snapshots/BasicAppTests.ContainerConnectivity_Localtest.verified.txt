@@ -1,0 +1,7 @@
+﻿{
+  Success: true,
+  StatusCode: 200,
+  Url: http://localtest:5101/health,
+  ResponseContent: Healthy,
+  Message: Localtest health endpoint connectivity verified
+}
