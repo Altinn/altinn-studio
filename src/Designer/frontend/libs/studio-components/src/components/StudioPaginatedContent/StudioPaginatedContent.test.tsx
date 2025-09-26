@@ -32,8 +32,7 @@ describe('StudioPaginatedContent', () => {
 
   it('renders the correct number of navigation circles', () => {
     renderStudioPaginatedContent();
-
-    const circles = screen.getAllByRole('status');
+    const circles = screen.getAllByRole('listitem');
     expect(circles.length).toBe(defaultProps.totalPages);
   });
 
@@ -41,7 +40,6 @@ describe('StudioPaginatedContent', () => {
     renderStudioPaginatedContent({
       navigation: { ...navigationMock, canGoPrevious: false },
     });
-
     expect(screen.getByText('Previous')).toBeDisabled();
   });
 
@@ -49,7 +47,6 @@ describe('StudioPaginatedContent', () => {
     renderStudioPaginatedContent({
       navigation: { ...navigationMock, canGoNext: undefined },
     });
-
     expect(screen.getByText('Next')).not.toBeDisabled();
   });
 
@@ -57,22 +54,19 @@ describe('StudioPaginatedContent', () => {
     renderStudioPaginatedContent({
       navigation: { ...navigationMock, canGoPrevious: undefined },
     });
-
-    expect(screen.getByText('Next')).not.toBeDisabled();
+    expect(screen.getByText('Previous')).not.toBeDisabled();
   });
 
   it('disables the next button when canGoNext is false', () => {
     renderStudioPaginatedContent({
       navigation: { ...navigationMock, canGoNext: false },
     });
-
     expect(screen.getByText('Next')).toBeDisabled();
   });
 
   it('calls onPrevious when the previous button is clicked', async () => {
     const user = userEvent.setup();
     renderStudioPaginatedContent();
-
     await user.click(screen.getByText('Previous'));
     expect(defaultProps.navigation.onPrevious).toHaveBeenCalled();
   });
@@ -80,7 +74,6 @@ describe('StudioPaginatedContent', () => {
   it('calls onNext when the next button is clicked', async () => {
     const user = userEvent.setup();
     renderStudioPaginatedContent();
-
     await user.click(screen.getByText('Next'));
     expect(defaultProps.navigation.onNext).toHaveBeenCalled();
   });
@@ -88,7 +81,7 @@ describe('StudioPaginatedContent', () => {
   it('highlights the correct navigation circle based on currentPageNumber', () => {
     renderStudioPaginatedContent();
     const activeCircles = screen
-      .getAllByRole('status')
+      .getAllByRole('listitem')
       .filter((circle) => circle.classList.contains('active'));
     expect(activeCircles.length).toBe(defaultProps.currentPageNumber + 1);
   });

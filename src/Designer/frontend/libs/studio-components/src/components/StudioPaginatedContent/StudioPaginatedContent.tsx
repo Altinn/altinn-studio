@@ -63,15 +63,27 @@ const NavigationStepIndicator = ({
   totalPages,
   currentPageNumber,
 }: NavigationCirclesProps): React.ReactElement => {
+  const safeTotal = Math.max(0, totalPages);
+  const clampedCurrent = Math.min(Math.max(0, currentPageNumber), Math.max(0, safeTotal - 1));
+
   return (
-    <div className={classes.statusBarContainer}>
-      {Array.from({ length: totalPages }, (_, index) => (
-        <div
-          key={index}
-          role='status'
-          className={`${classes.statusBarPiece} ${index <= currentPageNumber ? classes.active : ''}`}
-        />
-      ))}
+    <div
+      className={classes.statusBarContainer}
+      role='list'
+      aria-label={`Step ${clampedCurrent + 1} of ${safeTotal}`}
+    >
+      {Array.from({ length: safeTotal }, (_, index) => {
+        const isCurrent = index === clampedCurrent;
+        const isCompleted = index < clampedCurrent;
+        return (
+          <div
+            key={index}
+            role='listitem'
+            aria-current={isCurrent ? 'step' : undefined}
+            className={`${classes.statusBarPiece} ${isCurrent || isCompleted ? classes.active : ''}`}
+          />
+        );
+      })}
     </div>
   );
 };
