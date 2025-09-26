@@ -62,12 +62,11 @@ public interface IOrgCodeListService
     /// <summary>
     /// Applies batched create/update/delete to the org repo. For deletions, pass a wrapper with CodeList = null.
     /// </summary>
-    /// <param name="org"></param>
-    /// <param name="developer"></param>
+    /// <param name="org">Organisation</param>
+    /// <param name="developer">Username of developer</param>
     /// <param name="request">The update request containing org, developer, code list wrappers, commit message, and reference.</param>
-    /// <param name="reference"></param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task UpdateCodeListsNew(string org, string developer, UpdateCodeListRequest request, string? reference = null, CancellationToken cancellationToken = default);
+    public Task UpdateCodeListsNew(string org, string developer, UpdateCodeListRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a new code list in the org repository.

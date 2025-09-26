@@ -79,6 +79,35 @@ public class OrgCodeListController : ControllerBase
     }
 
     /// <summary>
+    /// Creates or overwrites the code lists.
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation.</param>
+    /// <param name="requestBody">The body of the request <see cref="UpdateCodeListRequest"/></param>
+    /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if not supplied.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    [HttpPut]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Route("new")]
+    public async Task<ActionResult> UpdateCodeListsNew(string org, [FromBody] UpdateCodeListRequest requestBody, [FromQuery] string? reference = null, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+        try
+        {
+            await _orgCodeListService.UpdateCodeListsNew(org, developer, requestBody, cancellationToken);
+        }
+        catch (Exception ex) when (ex is IllegalFileNameException or IllegalCommitMessageException)
+        {
+            return BadRequest(ex.Message);
+        }
+
+        return Ok();
+    }
+
+    /// <summary>
     /// Creates or overwrites a code list.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation.</param>
@@ -98,35 +127,6 @@ public class OrgCodeListController : ControllerBase
         List<OptionListData> codeLists = await _orgCodeListService.CreateCodeList(org, developer, codeListId, codeList, cancellationToken);
 
         return Ok(codeLists);
-    }
-
-    /// <summary>
-    /// Creates or overwrites the code lists.
-    /// </summary>
-    /// <param name="org">Unique identifier of the organisation.</param>
-    /// <param name="requestBody">The body of the request <see cref="UpdateCodeListRequest"/></param>
-    /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if not supplied.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    [HttpPut]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [Route("new")]
-    public async Task<ActionResult> UpdateCodeListsNew(string org, [FromBody] UpdateCodeListRequest requestBody, [FromQuery] string? reference = null, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
-        try
-        {
-            await _orgCodeListService.UpdateCodeListsNew(org, developer, requestBody, reference, cancellationToken);
-        }
-        catch (Exception ex) when (ex is IllegalFileNameException or IllegalCommitMessageException)
-        {
-            return BadRequest(ex.Message);
-        }
-
-        return Ok();
     }
 
     /// <summary>
