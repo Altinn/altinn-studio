@@ -1,15 +1,15 @@
 import React from 'react';
-import type { CodeListData } from '../CodeListPage';
+import type { CodeListData } from '../CodeListsWithTextResourcesPage';
 import type { CodeListWithMetadata } from '../types/CodeListWithMetadata';
 import { EditCodeList } from './EditCodeList/EditCodeList';
 import { Trans, useTranslation } from 'react-i18next';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
-import classes from './CodeLists.module.css';
+import classes from './CodeListsWithTextResources.module.css';
 import { getCodeListSourcesById, getCodeListUsageCount } from '../utils';
 import type { TextResource } from '@studio/components-legacy';
 import { StudioDetails, StudioCard, StudioAlert } from '@studio/components';
 
-export type CodeListsProps = {
+export type CodeListsWithTextResourcesProps = {
   codeListDataList: CodeListData[];
   onCreateTextResource?: (textResource: TextResource) => void;
   onDeleteCodeList: (codeListId: string) => void;
@@ -22,11 +22,11 @@ export type CodeListsProps = {
   textResources?: TextResource[];
 };
 
-export function CodeLists({
+export function CodeListsWithTextResources({
   codeListDataList,
   codeListsUsages,
   ...rest
-}: CodeListsProps): React.ReactElement[] {
+}: CodeListsWithTextResourcesProps): React.ReactElement[] {
   return codeListDataList.map((codeListData) => {
     const codeListSources = getCodeListSourcesById(codeListsUsages, codeListData.title);
     return (
@@ -40,7 +40,10 @@ export function CodeLists({
   });
 }
 
-type CodeListProps = Omit<CodeListsProps, 'codeListDataList' | 'codeListsUsages'> & {
+type CodeListProps = Omit<
+  CodeListsWithTextResourcesProps,
+  'codeListDataList' | 'codeListsUsages'
+> & {
   codeListData: CodeListData;
   codeListSources: CodeListIdSource[];
 };
@@ -80,7 +83,7 @@ function CodeListDetailsSummary({
   const { t } = useTranslation();
 
   let codeListUsagesCountTextKey: string | null =
-    'app_content_library.code_lists.code_list_details_usage_sub_title_plural';
+    'app_content_library.code_lists_with_text_resources.code_list_details_usage_sub_title_plural';
 
   switch (codeListUsagesCount) {
     case 0: {
@@ -89,14 +92,14 @@ function CodeListDetailsSummary({
     }
     case 1: {
       codeListUsagesCountTextKey =
-        'app_content_library.code_lists.code_list_details_usage_sub_title_single';
+        'app_content_library.code_lists_with_text_resources.code_list_details_usage_sub_title_single';
       break;
     }
   }
 
   return (
     <StudioDetails.Summary
-      title={t('app_content_library.code_lists.code_list_details_title', {
+      title={t('app_content_library.code_lists_with_text_resources.code_list_details_title', {
         codeListTitle: codeListTitle,
       })}
     >
@@ -140,7 +143,7 @@ function InvalidCodeListAlert(): React.ReactElement {
     <StudioAlert data-color='danger'>
       <span>
         <Trans
-          i18nKey='app_content_library.code_lists.format_error'
+          i18nKey='app_content_library.code_lists_with_text_resources.format_error'
           components={{ bold: <strong /> }}
         />
       </span>

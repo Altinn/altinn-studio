@@ -3,9 +3,9 @@ import type { CodeList, TextResource } from '@studio/components-legacy';
 import { StudioHeading } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { CodeListsActionsBar } from './CodeListsActionsBar';
-import { CodeLists } from './CodeLists';
+import { CodeListsWithTextResources } from './CodeListsWithTextResources';
 import { CodeListsCounterMessage } from './CodeListsCounterMessage';
-import classes from './CodeListPage.module.css';
+import classes from './CodeListsWithTextResourcesPage.module.css';
 import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
 import type { CodeListReference } from './types/CodeListReference';
 import {
@@ -25,7 +25,7 @@ export type CodeListData = {
   hasError?: boolean;
 };
 
-export type CodeListPageProps = {
+export type CodeListsWithTextResourcesPageProps = {
   codeListDataList: CodeListData[];
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
   onCreateTextResource?: (textResource: TextResourceWithLanguage) => void;
@@ -40,7 +40,7 @@ export type CodeListPageProps = {
   onImportCodeListFromOrg?: (codeListId: string) => void;
 };
 
-export function CodeListPage({
+export function CodeListsWithTextResourcesPage({
   codeListDataList,
   onCreateCodeList,
   onCreateTextResource,
@@ -53,7 +53,7 @@ export function CodeListPage({
   textResources,
   externalResources,
   onImportCodeListFromOrg,
-}: CodeListPageProps): React.ReactElement {
+}: CodeListsWithTextResourcesPageProps): React.ReactElement {
   const { t } = useTranslation();
   const [searchString, setSearchString] = useState<string>('');
   const [codeListInEditMode, setCodeListInEditMode] = useState<string>(undefined);
@@ -100,7 +100,9 @@ export function CodeListPage({
 
   return (
     <div className={classes.codeListsContainer}>
-      <StudioHeading level={1}>{t('app_content_library.code_lists.page_name')}</StudioHeading>
+      <StudioHeading level={1}>
+        {t('app_content_library.code_lists_with_text_resources.page_name')}
+      </StudioHeading>
       <CodeListsCounterMessage codeListsCount={codeListDataList.length} />
       <CodeListsActionsBar
         onCreateCodeList={onCreateCodeList}
@@ -113,7 +115,7 @@ export function CodeListPage({
         externalResources={externalResources}
         onImportCodeListFromOrg={onImportCodeListFromOrg}
       />
-      <CodeLists
+      <CodeListsWithTextResources
         codeListDataList={filteredCodeLists}
         onCreateTextResource={handleCreateTextResource}
         onDeleteCodeList={onDeleteCodeList}
@@ -125,7 +127,7 @@ export function CodeListPage({
         codeListsUsages={codeListsUsages}
         textResources={textResourcesForLanguage}
       />
-      {codeListIsEmpty && <InfoBox pageName='codeList' />}
+      {codeListIsEmpty && <InfoBox pageName='codeListsWithTextResources' />}
     </div>
   );
 }

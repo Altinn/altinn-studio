@@ -1,5 +1,5 @@
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
-import type { CodeListData } from '../CodeListPage';
+import type { CodeListData } from '../CodeListsWithTextResourcesPage';
 import type { TextResources } from '../../../../../types/TextResources';
 import type { TextResource } from '@studio/components-legacy';
 import type { TextResourceWithLanguage } from '../../../../../types/TextResourceWithLanguage';
@@ -25,9 +25,9 @@ export const getCodeListUsageCount = (codeListSources: CodeListIdSource[]): numb
 export const getUsageTaskTypeTextKey = (taskType: CodeListUsageTaskType): string => {
   switch (taskType) {
     case CodeListUsageTaskType.Data:
-      return 'app_content_library.code_lists.code_list_usage_table_task_type_data';
+      return 'app_content_library.code_lists_with_text_resources.code_list_usage_table_task_type_data';
     case CodeListUsageTaskType.Signing:
-      return 'app_content_library.code_lists.code_list_usage_table_task_type_signing';
+      return 'app_content_library.code_lists_with_text_resources.code_list_usage_table_task_type_signing';
     default:
       return taskType;
   }

@@ -18,16 +18,24 @@ export function CodeListUsages({ codeListSources }: CodeListUsagesProps): React.
       <Table.Head>
         <Table.Row>
           <Table.HeaderCell>
-            {t('app_content_library.code_lists.code_list_usage_table_column_header_task_type')}
+            {t(
+              'app_content_library.code_lists_with_text_resources.code_list_usage_table_column_header_task_type',
+            )}
           </Table.HeaderCell>
           <Table.HeaderCell>
-            {t('app_content_library.code_lists.code_list_usage_table_column_header_task_name')}
+            {t(
+              'app_content_library.code_lists_with_text_resources.code_list_usage_table_column_header_task_name',
+            )}
           </Table.HeaderCell>
           <Table.HeaderCell>
-            {t('app_content_library.code_lists.code_list_usage_table_column_header_layout')}
+            {t(
+              'app_content_library.code_lists_with_text_resources.code_list_usage_table_column_header_layout',
+            )}
           </Table.HeaderCell>
           <Table.HeaderCell>
-            {t('app_content_library.code_lists.code_list_usage_table_column_header_components')}
+            {t(
+              'app_content_library.code_lists_with_text_resources.code_list_usage_table_column_header_components',
+            )}
           </Table.HeaderCell>
         </Table.Row>
       </Table.Head>

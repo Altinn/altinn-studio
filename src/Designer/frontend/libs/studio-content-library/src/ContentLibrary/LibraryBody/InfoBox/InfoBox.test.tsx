@@ -5,7 +5,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { PageName } from '../../../types/PageName';
 import { infoBoxConfigs } from './infoBoxConfigs';
 
-const pageNameMock: PageName = 'codeList';
+const pageNameMock: PageName = 'codeListsWithTextResources';
 
 describe('InfoBox', () => {
   it('renders the infobox illustration, title and description', () => {

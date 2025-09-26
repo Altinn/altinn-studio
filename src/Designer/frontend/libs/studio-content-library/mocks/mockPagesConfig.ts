@@ -10,7 +10,7 @@ export const codeListData: CodeListData = {
 export const codeListsDataMock: CodeListData[] = [codeListData];
 
 export const mockPagesConfig: PagesConfig = {
-  codeList: {
+  codeListsWithTextResources: {
     props: {
       codeListDataList: codeListsDataMock,
       onCreateCodeList: () => {},

@@ -119,17 +119,19 @@ function EditCodeListTitle({
   return isCodeListEditable ? (
     <StudioToggleableTextfield
       customValidation={handleValidateCodeListId}
-      label={t('app_content_library.code_lists.code_list_edit_id_label')}
+      label={t('app_content_library.code_lists_with_text_resources.code_list_edit_id_label')}
       onBlur={(event) => handleUpdateCodeListId(event.target.value)}
-      title={t('app_content_library.code_lists.code_list_view_id_title', {
+      title={t('app_content_library.code_lists_with_text_resources.code_list_view_id_title', {
         codeListName: codeListTitle,
       })}
       value={codeListTitle}
     />
   ) : (
     <StudioDisplayTile
-      title={t('app_content_library.code_lists.code_list_edit_id_disabled_title')}
-      label={t('app_content_library.code_lists.code_list_edit_id_label')}
+      title={t(
+        'app_content_library.code_lists_with_text_resources.code_list_edit_id_disabled_title',
+      )}
+      label={t('app_content_library.code_lists_with_text_resources.code_list_edit_id_label')}
       value={codeListTitle}
       icon={<KeyVerticalIcon />}
       className={classes.displayTitle}
@@ -152,8 +154,8 @@ function CodeListButtons({
 }: CodeListButtonsProps): React.ReactElement {
   const { t } = useTranslation();
   const deleteButtonTitle = codeListHasUsages
-    ? t('app_content_library.code_lists.code_list_delete_disabled_title')
-    : t('app_content_library.code_lists.code_list_delete_enabled_title');
+    ? t('app_content_library.code_lists_with_text_resources.code_list_delete_disabled_title')
+    : t('app_content_library.code_lists_with_text_resources.code_list_delete_enabled_title');
 
   return (
     <div className={classes.buttons}>
@@ -161,11 +163,14 @@ function CodeListButtons({
         onDelete={() => onDeleteCodeList(codeListTitle)}
         title={deleteButtonTitle}
         disabled={codeListHasUsages}
-        confirmMessage={t('app_content_library.code_lists.code_list_delete_confirm', {
-          codeListTitle,
-        })}
+        confirmMessage={t(
+          'app_content_library.code_lists_with_text_resources.code_list_delete_confirm',
+          {
+            codeListTitle,
+          },
+        )}
       >
-        {t('app_content_library.code_lists.code_list_delete')}
+        {t('app_content_library.code_lists_with_text_resources.code_list_delete')}
       </StudioDeleteButton>
       {codeListHasUsages && <ShowCodeListUsagesSourcesModal codeListSources={codeListSources} />}
     </div>
@@ -188,11 +193,13 @@ function ShowCodeListUsagesSourcesModal({
         variant='tertiary'
         className={classes.codeListUsageButton}
       >
-        {t('app_content_library.code_lists.code_list_show_usage')}
+        {t('app_content_library.code_lists_with_text_resources.code_list_show_usage')}
       </StudioModal.Trigger>
       <StudioModal.Dialog
         closeButtonTitle={t('general.close')}
-        heading={t('app_content_library.code_lists.code_list_show_usage_modal_title')}
+        heading={t(
+          'app_content_library.code_lists_with_text_resources.code_list_show_usage_modal_title',
+        )}
         className={classes.codeListUsageModal}
       >
         <CodeListUsages codeListSources={codeListSources} />

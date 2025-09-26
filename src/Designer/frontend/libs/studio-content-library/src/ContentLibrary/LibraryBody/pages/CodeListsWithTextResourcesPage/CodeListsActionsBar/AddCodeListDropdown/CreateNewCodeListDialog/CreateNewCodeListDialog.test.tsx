@@ -19,7 +19,9 @@ describe('CreateNewCodeListDialog', () => {
   it('renders an empty textfield for inputting code list name', async () => {
     renderCreateNewCodeListDialog();
     const codeListNameInput = screen.getByRole('textbox', {
-      name: textMock('app_content_library.code_lists.create_new_code_list_name'),
+      name: textMock(
+        'app_content_library.code_lists_with_text_resources.create_new_code_list_name',
+      ),
     });
     expect(codeListNameInput).toHaveTextContent('');
   });
@@ -121,7 +123,7 @@ const inputCodeListTitle = async (
   codeListTitle: string = newCodeListTitleMock,
 ) => {
   const codeListNameInput = screen.getByRole('textbox', {
-    name: textMock('app_content_library.code_lists.create_new_code_list_name'),
+    name: textMock('app_content_library.code_lists_with_text_resources.create_new_code_list_name'),
   });
   await user.type(codeListNameInput, codeListTitle);
 };

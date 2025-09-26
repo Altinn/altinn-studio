@@ -13,7 +13,7 @@ describe('PagesRouter', () => {
   it('renders the pages as navigation titles', () => {
     renderPagesRouter();
     const codeListNavTitle = screen.getByRole('tab', {
-      name: textMock('app_content_library.code_lists.page_name'),
+      name: textMock('app_content_library.code_lists_with_text_resources.page_name'),
     });
     const imagesNavTitle = screen.getByRole('tab', {
       name: textMock('app_content_library.images.page_name'),
@@ -34,9 +34,11 @@ describe('PagesRouter', () => {
   });
 });
 
-const renderPagesRouter = (pageNames: PageName[] = ['codeList', 'images']) => {
+const renderPagesRouter = (pageNames: PageName[] = ['codeListsWithTextResources', 'images']) => {
   renderWithProviders(
-    <RouterContext.Provider value={{ currentPage: 'codeList', navigate: navigateMock }}>
+    <RouterContext.Provider
+      value={{ currentPage: 'codeListsWithTextResources', navigate: navigateMock }}
+    >
       <PagesRouter pageNames={pageNames} />
     </RouterContext.Provider>,
   );
