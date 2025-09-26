@@ -4,14 +4,11 @@ import { StudioButton } from '../StudioButton';
 import { ChevronLeftIcon, ChevronRightIcon } from '@studio/icons';
 import { type StudioPaginatedNavigation } from './types/StudioPaginatedNavigation';
 
-type NavigationButtonTexts = {
+export type NavigationButtonTexts = {
   previous: string;
   next: string;
 };
 
-/**
- * @deprecated use `StudioPaginatedContent` from `@studio/components` instead.
- */
 export type StudioPaginatedContentProps = {
   totalPages: number;
   currentPageNumber: number;
@@ -31,19 +28,31 @@ export const StudioPaginatedContent = ({
     <div className={classes.wrapper}>
       <div>{componentToRender}</div>
       <div className={classes.buttonWrapper}>
-        <StudioButton variant='tertiary' size='sm' onClick={onPrevious} disabled={!canGoPrevious}>
+        <NavigationButton onClick={onPrevious} disabled={!canGoPrevious}>
           <ChevronLeftIcon className={classes.icon} />
           {previousButtonText}
-        </StudioButton>
+        </NavigationButton>
         <NavigationStepIndicator totalPages={totalPages} currentPageNumber={currentPageNumber} />
-        <StudioButton variant='tertiary' size='sm' onClick={onNext} disabled={!canGoNext}>
+        <NavigationButton onClick={onNext} disabled={!canGoNext}>
           {nextButtonText}
           <ChevronRightIcon />
-        </StudioButton>
+        </NavigationButton>
       </div>
     </div>
   );
 };
+
+type NavigationButtonProps = {
+  onClick: () => void;
+  disabled: boolean;
+  children: ReactNode;
+};
+
+const NavigationButton = ({ onClick, disabled, children }: NavigationButtonProps): ReactElement => (
+  <StudioButton variant='tertiary' data-size='sm' onClick={onClick} disabled={disabled}>
+    {children}
+  </StudioButton>
+);
 
 type NavigationCirclesProps = {
   totalPages: number;
@@ -54,18 +63,27 @@ const NavigationStepIndicator = ({
   totalPages,
   currentPageNumber,
 }: NavigationCirclesProps): React.ReactElement => {
+  const safeTotal = Math.max(0, totalPages);
+  const clampedCurrent = Math.min(Math.max(0, currentPageNumber), Math.max(0, safeTotal - 1));
+
   return (
-    <div className={classes.statusBarContainer}>
-      {getArrayFromLength(totalPages).map((_, index) => (
-        <div
-          key={index}
-          role='status'
-          className={`${classes.statusBarPiece} ${index <= currentPageNumber ? classes.active : ''}`}
-        />
-      ))}
+    <div
+      className={classes.statusBarContainer}
+      role='list'
+      aria-label={`Step ${clampedCurrent + 1} of ${safeTotal}`}
+    >
+      {Array.from({ length: safeTotal }, (_, index) => {
+        const isCurrent = index === clampedCurrent;
+        const isCompleted = index < clampedCurrent;
+        return (
+          <div
+            key={index}
+            role='listitem'
+            aria-current={isCurrent ? 'step' : undefined}
+            className={`${classes.statusBarPiece} ${isCurrent || isCompleted ? classes.active : ''}`}
+          />
+        );
+      })}
     </div>
   );
 };
-
-const getArrayFromLength = (length: number): number[] =>
-  Array.from({ length }, (_, index) => index);
