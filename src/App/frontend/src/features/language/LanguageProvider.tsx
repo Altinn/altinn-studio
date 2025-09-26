@@ -4,7 +4,8 @@ import type { PropsWithChildren } from 'react';
 import { createContext } from 'src/core/contexts/context';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useGetAppLanguageQuery } from 'src/features/language/textResources/useGetAppLanguagesQuery';
-import { useProfileQuery } from 'src/features/profile/ProfileProvider';
+import { useProfile } from 'src/features/profile/ProfileProvider';
+// import { useProfileQuery } from 'src/features/profile/ProfileProvider';
 import { useIsAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
 import { appSupportsFetchAppLanguagesInAnonymous } from 'src/utils/versioning/versions';
@@ -39,10 +40,12 @@ type Loading<T> = T | typeof IsLoading;
 export const LanguageProvider = ({ children }: PropsWithChildren) => {
   // LanguageProvider is provided so early that we cannot access much state directly, so we need to get them set externally.
   const [shouldFetchAppLanguages, setShouldFetchAppLanguages] = useState<Loading<boolean>>(IsLoading);
-  const { data: profile, isLoading: isProfileLoading } = useProfileQuery();
+  // const { data: profile, isLoading: isProfileLoading } = useProfileQuery();
 
-  const userId = isProfileLoading ? undefined : profile?.userId;
-  const languageFromProfile = isProfileLoading ? undefined : profile?.profileSettingPreference.language;
+  const profile = useProfile();
+
+  const userId = profile?.userId;
+  const languageFromProfile = profile?.profileSettingPreference.language;
 
   const languageFromUrl = getLanguageFromUrl();
   const [languageFromSelector, setWithLanguageSelector] = useLocalStorageState(['selectedLanguage', userId], null);
@@ -59,7 +62,7 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
     languageFromProfile,
   });
 
-  const languageResolved = !isProfileLoading && shouldFetchAppLanguages !== IsLoading && !isFetching;
+  const languageResolved = shouldFetchAppLanguages !== IsLoading && !isFetching;
 
   return (
     <Provider

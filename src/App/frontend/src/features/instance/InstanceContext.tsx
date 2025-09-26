@@ -1,12 +1,11 @@
 import React from 'react';
-import { useNavigation } from 'react-router-dom';
+import { useNavigation, useParams } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
-import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryOptions, skipToken, useQueryClient } from '@tanstack/react-query';
 import deepEqual from 'fast-deep-equal';
 import type { UseQueryOptions } from '@tanstack/react-query';
 
-import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { FileScanResults } from 'src/features/attachments/types';
 import { removeProcessFromInstance } from 'src/features/instance/instanceUtils';
@@ -22,36 +21,47 @@ const emptyArray: never[] = [];
 const InstanceContext = React.createContext<IInstance | null>(null);
 
 export const InstanceProvider = ({ children }: PropsWithChildren) => {
-  const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
-  const instanceGuid = useNavigationParam('instanceGuid');
+  debugger;
+  // const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
+
+  const { instanceOwnerPartyId, instanceGuid } = useParams<{ instanceOwnerPartyId: string; instanceGuid: string }>();
+  // console.log('instanceOwnerPartyId', instanceOwnerPartyId);
+
+  // const instanceGuid = useNavigationParam('instanceGuid');
   const instantiation = useInstantiation();
   const navigation = useNavigation();
 
   const { isLoading: isLoadingProcess, error: processError } = useProcessQuery();
 
   const hasPendingScans = useHasPendingScans();
-  const { error: instanceDataError, data } = useInstanceDataQuery({ refetchInterval: hasPendingScans ? 5000 : false });
+  const { data } = useInstanceDataQuery({ refetchInterval: hasPendingScans ? 5000 : false });
 
   if (!instanceOwnerPartyId || !instanceGuid) {
     throw new Error('Missing instanceOwnerPartyId or instanceGuid when creating instance context');
   }
 
-  const error = instantiation.error ?? instanceDataError ?? processError;
-  if (error) {
-    return <DisplayError error={error} />;
-  }
+  // const error = instantiation.error ?? instanceDataError ?? processError;
+  // if (error) {
+  //   return <DisplayError error={error} />;
+  // }
 
   if (!data) {
+    console.log('loading-instance');
     return <Loader reason='loading-instance' />;
   }
   if (isLoadingProcess) {
+    console.log('fetching-process');
     return <Loader reason='fetching-process' />;
   }
 
   if (navigation.state === 'loading') {
+    console.log('navigating');
     return <Loader reason='navigating' />;
   }
 
+  console.log('keep on');
+
+  debugger;
   return <InstanceContext.Provider value={data}>{children}</InstanceContext.Provider>;
 };
 
@@ -108,14 +118,18 @@ export const instanceQueries = {
 };
 
 export function useInstanceDataQuery<R = IInstance>(
-  queryOptions: Omit<UseQueryOptions<IInstance, Error, R>, 'queryKey' | 'queryFn'> = {},
+  _: Omit<UseQueryOptions<IInstance, Error, R>, 'queryKey' | 'queryFn'> = {},
 ) {
-  return useQuery<IInstance, Error, R>({
-    ...instanceQueries.instanceData(useInstanceDataQueryArgs()),
-    refetchOnWindowFocus: queryOptions.refetchInterval !== false,
-    select: queryOptions.select, // FIXME: somehow TS complains if this is not here
-    ...queryOptions,
-  });
+  // @ts-ignore
+  //console.log(window.AltinnAppData.instance);
+  // @ts-ignore
+  return { data: window.AltinnAppData.instance };
+  // return useQuery<IInstance, Error, R>({
+  //   ...instanceQueries.instanceData(useInstanceDataQueryArgs()),
+  //   refetchOnWindowFocus: queryOptions.refetchInterval !== false,
+  //   select: queryOptions.select, // FIXME: somehow TS complains if this is not here
+  //   ...queryOptions,
+  // });
 }
 
 export function useInstanceDataSources(): IInstanceDataSources | null {

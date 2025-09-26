@@ -4,7 +4,7 @@ import 'core-js';
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { createHashRouter, RouterProvider, useLocation } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, useLocation } from 'react-router-dom';
 import { Slide, ToastContainer } from 'react-toastify';
 
 import '@digdir/designsystemet-css';
@@ -34,7 +34,6 @@ import { TextResourcesProvider } from 'src/features/language/textResources/TextR
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
-import { ProfileProvider } from 'src/features/profile/ProfileProvider';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import { AppPrefetcher } from 'src/queries/appPrefetcher';
 import { PartyPrefetcher } from 'src/queries/partyPrefetcher';
@@ -47,6 +46,9 @@ import 'src/index.css';
 document.addEventListener('DOMContentLoaded', () => {
   propagateTraceWhenPdf();
 
+  // @ts-ignore
+  // console.log(JSON.stringify(window.AltinnAppData, null, 2));
+
   const container = document.getElementById('root');
   const root = container && createRoot(container);
   root?.render(
@@ -58,10 +60,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <ViewportWrapper>
               <UiConfigProvider>
                 <RouterProvider
-                  router={createHashRouter(
+                  router={createBrowserRouter(
                     [
                       {
-                        path: '*',
+                        path: '/ttd/component-library/*',
                         element: (
                           <NavigationEffectProvider>
                             <ErrorBoundary>
@@ -89,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function Root() {
+  console.log('Root');
   return (
     <>
       <InstantiationUrlReset />
@@ -96,29 +99,29 @@ function Root() {
         <GlobalFormDataReadersProvider>
           <LayoutSetsProvider>
             <SetShouldFetchAppLanguages />
-            <ProfileProvider>
-              <TextResourcesProvider>
-                <OrgsProvider>
-                  <ApplicationSettingsProvider>
-                    <PartyProvider>
-                      <KeepAliveProvider>
-                        <DisplayErrorProvider>
-                          <ProcessingProvider>
-                            <App />
-                          </ProcessingProvider>
-                        </DisplayErrorProvider>
-                        <ToastContainer
-                          position='top-center'
-                          theme='colored'
-                          transition={Slide}
-                          draggable={false}
-                        />
-                      </KeepAliveProvider>
-                    </PartyProvider>
-                  </ApplicationSettingsProvider>
-                </OrgsProvider>
-              </TextResourcesProvider>
-            </ProfileProvider>
+            {/*<ProfileProvider>*/}
+            <TextResourcesProvider>
+              <OrgsProvider>
+                <ApplicationSettingsProvider>
+                  <PartyProvider>
+                    <KeepAliveProvider>
+                      <DisplayErrorProvider>
+                        <ProcessingProvider>
+                          <App />
+                        </ProcessingProvider>
+                      </DisplayErrorProvider>
+                      <ToastContainer
+                        position='top-center'
+                        theme='colored'
+                        transition={Slide}
+                        draggable={false}
+                      />
+                    </KeepAliveProvider>
+                  </PartyProvider>
+                </ApplicationSettingsProvider>
+              </OrgsProvider>
+            </TextResourcesProvider>
+            {/*</ProfileProvider>*/}
             <PartyPrefetcher />
           </LayoutSetsProvider>
         </GlobalFormDataReadersProvider>
@@ -130,7 +133,6 @@ function Root() {
 function InstantiationUrlReset() {
   const location = useLocation();
   const queryClient = useQueryClient();
-
   React.useEffect(() => {
     if (!location.pathname.includes('/instance/')) {
       const mutations = queryClient.getMutationCache().findAll({ mutationKey: ['instantiate'] });

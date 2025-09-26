@@ -7,7 +7,7 @@ import { ContextNotProvided } from 'src/core/contexts/context';
 import { useDisplayError } from 'src/core/errorHandling/DisplayErrorProvider';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { invalidateFormDataQueries } from 'src/features/formData/useFormDataQuery';
-import { useHasPendingScans, useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import {  useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -36,7 +36,7 @@ export function getProcessNextMutationKey(action?: IActionType) {
 }
 
 export function useProcessNext({ action }: ProcessNextProps = {}) {
-  const reFetchInstanceData = useInstanceDataQuery().refetch;
+  // const reFetchInstanceData = useInstanceDataQuery().refetch;
   const language = useCurrentLanguage();
   const { data: process, refetch: refetchProcessData } = useProcessQuery();
   const navigateToTask = useNavigateToTask();
@@ -47,7 +47,7 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
   const onSubmitFormValidation = useOnFormSubmitValidation();
   const queryClient = useQueryClient();
   const displayError = useDisplayError();
-  const hasPendingScans = useHasPendingScans();
+  // const hasPendingScans = useHasPendingScans();
   const optimisticallyUpdateProcess = useOptimisticallyUpdateProcess();
 
   const altinnNugetVersion = useApplicationMetadata().altinnNugetVersion;
@@ -58,9 +58,9 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
     scope: { id: 'process/next' },
     mutationKey: getProcessNextMutationKey(action),
     mutationFn: async () => {
-      if (hasPendingScans) {
-        await reFetchInstanceData();
-      }
+      // if (hasPendingScans) {
+      //   await reFetchInstanceData();
+      // }
 
       const hasErrors = await onFormSubmitValidation();
       if (hasErrors) {
@@ -94,7 +94,7 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
       if (processData) {
         optimisticallyUpdateProcess(processData);
         refetchProcessData();
-        reFetchInstanceData();
+        // reFetchInstanceData();
         await invalidateFormDataQueries(queryClient);
 
         const task = getTargetTaskFromProcess(processData);
@@ -124,7 +124,7 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
       const newCurrentTask = newProcess?.currentTask;
 
       if (newCurrentTask?.elementId && newCurrentTask?.elementId !== process?.currentTask?.elementId) {
-        await reFetchInstanceData();
+        // await reFetchInstanceData();
         navigateToTask(newCurrentTask.elementId);
       }
 

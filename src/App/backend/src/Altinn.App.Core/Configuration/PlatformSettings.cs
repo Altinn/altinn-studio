@@ -7,6 +7,11 @@ namespace Altinn.App.Core.Configuration;
 public class PlatformSettings
 {
     /// <summary>
+    /// Gets or sets the url for the Platform API endpoint.
+    /// </summary>
+    public string ApiEndpoint { get; set; } = "http://localhost:5101/";
+
+    /// <summary>
     /// Gets or sets the url for the Storage API endpoint.
     /// </summary>
     public string ApiStorageEndpoint { get; set; } = "http://localhost:5101/storage/api/v1/";

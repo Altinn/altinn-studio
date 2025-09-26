@@ -83,6 +83,16 @@ public class GeneralSettings
                 ?? AltinnPartyCookieName;
         }
     }
+
+    /// <summary>
+    /// Gets or sets the frontend base URL for the CDN.
+    /// </summary>
+    public string? FrontendBaseUrl { get; set; }
+
+    /// <summary>
+    /// Gets or sets the available language codes.
+    /// </summary>
+    public List<string>? LanguageCodes { get; set; }
 }
 
 internal static class GeneralSettingsExtensions

@@ -29,6 +29,7 @@ interface NavigationErrorProps {
 }
 
 function NavigationError({ label }: NavigationErrorProps) {
+  debugger;
   const currentTaskId = useProcessQuery().data?.currentTask?.elementId;
   const navigateToTask = useNavigateToTask();
 
@@ -67,6 +68,7 @@ function NavigationError({ label }: NavigationErrorProps) {
 }
 
 export function NavigateToStartUrl({ forceCurrentTask = true }: { forceCurrentTask?: boolean }) {
+  debugger;
   const navigate = useNavigate();
   const currentTaskId = getTargetTaskFromProcess(useProcessQuery().data);
   const startUrl = useStartUrl(forceCurrentTask ? currentTaskId : undefined);
@@ -80,7 +82,9 @@ export function NavigateToStartUrl({ forceCurrentTask = true }: { forceCurrentTa
 
   useEffect(() => {
     if (currentLocation !== startUrl && !isRunningProcessNext) {
-      navigate(startUrl, { replace: true });
+      console.log('startUrl', startUrl);
+
+      //navigate(startUrl, { replace: true });
     }
   }, [currentLocation, isRunningProcessNext, navigate, startUrl]);
 

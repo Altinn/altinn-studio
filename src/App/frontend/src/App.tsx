@@ -15,6 +15,7 @@ import { TaskKeys } from 'src/hooks/useNavigatePage';
 import { PresentationType, ProcessTaskType } from 'src/types';
 
 export const App = () => (
+  // debugger;
   <Routes>
     <Route
       path='/instance-selection'

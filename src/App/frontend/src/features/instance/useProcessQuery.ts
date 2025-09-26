@@ -29,6 +29,8 @@ export function useProcessQuery() {
   const layoutSets = useLayoutSets();
   const navigateToTask = useNavigateToTask();
 
+  // debugger
+
   const query = useQuery(processQueries.processState(instanceId));
 
   const { data, error } = query;

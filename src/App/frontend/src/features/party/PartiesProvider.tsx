@@ -12,7 +12,7 @@ import { Loader } from 'src/core/loading/Loader';
 import { instanceQueries, useInstanceDataQueryArgs } from 'src/features/instance/InstanceContext';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import { flattenParties } from 'src/features/party/partyUtils';
-import { useShouldFetchProfile } from 'src/features/profile/ProfileProvider';
+// import { useShouldFetchProfile } from 'src/features/profile/ProfileProvider';
 import type { IInstance, IParty } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
@@ -32,7 +32,7 @@ export function usePartiesQueryDef(enabled: boolean) {
 }
 
 const usePartiesAllowedToInstantiateQuery = () => {
-  const enabled = useShouldFetchProfile();
+  const enabled = true;
 
   const utils = useQuery(usePartiesQueryDef(enabled));
 
@@ -166,7 +166,7 @@ const SelectedPartyProvider = ({ children }: PropsWithChildren) => {
 };
 
 export function PartyProvider({ children }: PropsWithChildren) {
-  const shouldFetchProfile = useShouldFetchProfile();
+  const shouldFetchProfile = true;
 
   if (!shouldFetchProfile) {
     return children;

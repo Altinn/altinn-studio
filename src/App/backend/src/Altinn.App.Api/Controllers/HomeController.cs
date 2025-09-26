@@ -1,7 +1,10 @@
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features.Bootstrap;
+using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -19,6 +22,7 @@ public class HomeController : Controller
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
     private readonly IAntiforgery _antiforgery;
@@ -27,6 +31,8 @@ public class HomeController : Controller
     private readonly AppSettings _appSettings;
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
+    private readonly IInitialDataService _initialDataService;
+    private readonly GeneralSettings _generalSettings;
     private readonly List<string> _onEntryWithInstance = new List<string> { "new-instance", "select-instance" };
 
     /// <summary>
@@ -38,13 +44,17 @@ public class HomeController : Controller
     /// <param name="appSettings">The application settings</param>
     /// <param name="appResources">The application resources service</param>
     /// <param name="appMetadata">The application metadata service</param>
+    /// <param name="initialDataService">The initial data service</param>
+    /// <param name="generalSettings">The general settings</param>
     public HomeController(
         IAntiforgery antiforgery,
         IOptions<PlatformSettings> platformSettings,
         IWebHostEnvironment env,
         IOptions<AppSettings> appSettings,
         IAppResources appResources,
-        IAppMetadata appMetadata
+        IAppMetadata appMetadata,
+        IInitialDataService initialDataService,
+        IOptions<GeneralSettings> generalSettings
     )
     {
         _antiforgery = antiforgery;
@@ -53,6 +63,8 @@ public class HomeController : Controller
         _appSettings = appSettings.Value;
         _appResources = appResources;
         _appMetadata = appMetadata;
+        _initialDataService = initialDataService;
+        _generalSettings = generalSettings.Value;
     }
 
     /// <summary>
@@ -60,13 +72,27 @@ public class HomeController : Controller
     /// </summary>
     /// <param name="org">The application owner short name.</param>
     /// <param name="app">The name of the app</param>
+    /// <param name="partyId">The party identifier.</param>
+    /// <param name="instanceGuid">The instance GUID.</param>
+    /// <param name="taskId">The task identifier.</param>
+    /// <param name="pageId">The page identifier.</param>
     /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
     [HttpGet]
     [Route("{org}/{app}/")]
+    [Route("{org}/{app}/instance/{partyId}/{instanceGuid}")]
+    [Route("{org}/{app}/instance/{partyId}/{instanceGuid}/{taskId}")]
+    [Route("{org}/{app}/instance/{partyId}/{instanceGuid}/{taskId}/{pageId}")]
+    [Route("{org}/{app}/{partyId}/{instanceGuid}")]
+    [Route("{org}/{app}/{partyId}/{instanceGuid}/{taskId}")]
+    [Route("{org}/{app}/{partyId}/{instanceGuid}/{taskId}/{pageId}")]
     public async Task<IActionResult> Index(
         [FromRoute] string org,
         [FromRoute] string app,
-        [FromQuery] bool dontChooseReportee
+        [FromRoute] int? partyId = null,
+        [FromRoute] Guid? instanceGuid = null,
+        [FromRoute] string? taskId = null,
+        [FromRoute] string? pageId = null,
+        [FromQuery] bool dontChooseReportee = false
     )
     {
         // See comments in the configuration of Antiforgery in MvcConfiguration.cs.
@@ -85,9 +111,33 @@ public class HomeController : Controller
 
         if (await ShouldShowAppView())
         {
-            ViewBag.org = org;
-            ViewBag.app = app;
-            return PartialView("Index");
+            // Construct instance ID from route parameters if available
+            string? instanceId = null;
+            if (partyId.HasValue && instanceGuid.HasValue)
+            {
+                instanceId = $"{partyId}/{instanceGuid}";
+            }
+
+            // Get language from Accept-Language header or query parameter
+            var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
+
+            // Aggregate all initial data
+            var initialData = await _initialDataService.GetInitialData(org, app, instanceId, partyId, language);
+
+            // Add routing information to initial data
+            initialData.AppSettings ??= new Altinn.App.Core.Features.Bootstrap.Models.FrontendAppSettings();
+            if (taskId != null)
+            {
+                initialData.AppSettings.CurrentTaskId = taskId;
+            }
+            if (pageId != null)
+            {
+                initialData.AppSettings.CurrentPageId = pageId;
+            }
+
+            // Generate HTML with embedded data
+            var html = GenerateHtml(org, app, initialData);
+            return Content(html, "text/html; charset=utf-8");
         }
 
         string scheme = _env.IsDevelopment() ? "http" : "https";
@@ -196,6 +246,30 @@ public class HomeController : Controller
         return Content(htmlContent, "text/html");
     }
 
+    /// <summary>
+    /// Debug endpoint to test the initial data service.
+    /// </summary>
+    [HttpGet]
+    [Route("{org}/{app}/debug-initial-data")]
+    public async Task<IActionResult> DebugInitialData(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromQuery] string? instanceId = null,
+        [FromQuery] int? partyId = null,
+        [FromQuery] string? language = null
+    )
+    {
+        try
+        {
+            var initialData = await _initialDataService.GetInitialData(org, app, instanceId, partyId, language);
+            return Json(initialData);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message, stackTrace = ex.StackTrace });
+        }
+    }
+
     private async Task<bool> ShouldShowAppView()
     {
         if (User?.Identity?.IsAuthenticated == true)
@@ -241,6 +315,118 @@ public class HomeController : Controller
             return application.DataTypes.Find(d => d.Id == dataTypeId);
         }
 
+        return null;
+    }
+
+    private string GetLanguageFromHeader()
+    {
+        var acceptLanguageHeader = Request.Headers["Accept-Language"].ToString();
+        if (!string.IsNullOrEmpty(acceptLanguageHeader))
+        {
+            var languages = acceptLanguageHeader.Split(',');
+            foreach (var lang in languages)
+            {
+                var cleanLang = lang.Split(';')[0].Trim();
+                if (cleanLang.Length >= 2)
+                {
+                    cleanLang = cleanLang.Substring(0, 2).ToLower();
+                    if (_generalSettings.LanguageCodes?.Contains(cleanLang) == true)
+                    {
+                        return cleanLang;
+                    }
+                }
+            }
+        }
+        return "nb"; // Default to Norwegian Bokmål
+    }
+
+    private string GenerateHtml(
+        string org,
+        string app,
+        Altinn.App.Core.Features.Bootstrap.Models.InitialDataResponse initialData
+    )
+    {
+        var cdnUrl =
+            _generalSettings.FrontendBaseUrl?.TrimEnd('/') ?? "https://altinncdn.no/toolkits/altinn-app-frontend/4";
+        var appVersion = "4"; // Default version, can be made configurable later
+
+        // Serialize initial data to JSON
+        var initialDataJson = JsonSerializer.Serialize(initialData, _jsonSerializerOptions);
+
+        // Get custom CSS and JS if available
+        var customCss = GetCustomCss(org, app);
+        var customJs = GetCustomJs(org, app);
+
+        var html = new StringBuilder();
+        html.AppendLine("<!DOCTYPE html>");
+        html.AppendLine("<html lang=\"no\">");
+        html.AppendLine("<head>");
+        html.AppendLine("  <meta charset=\"utf-8\">");
+        html.AppendLine("  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">");
+        html.AppendLine("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\">");
+        html.AppendLine($"  <title>{org} - {app}</title>");
+        html.AppendLine("  <link rel=\"icon\" href=\"https://altinncdn.no/favicon.ico\">");
+        html.AppendLine(
+            $"  <link rel=\"stylesheet\" type=\"text/css\" href=\"{cdnUrl}/{appVersion}/altinn-app-frontend.css\">"
+        );
+
+        if (!string.IsNullOrEmpty(customCss))
+        {
+            html.AppendLine($"  <style>{customCss}</style>");
+        }
+
+        html.AppendLine("</head>");
+        html.AppendLine("<body>");
+        html.AppendLine("  <div id=\"root\"></div>");
+        html.AppendLine("  <script>");
+        html.AppendLine($"    window.AltinnAppData = {initialDataJson};");
+        html.AppendLine($"    window.org = '{org}';");
+        html.AppendLine($"    window.app = '{app}';");
+        html.AppendLine("  </script>");
+        html.AppendLine($"  <script src=\"{cdnUrl}/{appVersion}/altinn-app-frontend.js\"></script>");
+
+        if (!string.IsNullOrEmpty(customJs))
+        {
+            html.AppendLine($"  <script>{customJs}</script>");
+        }
+
+        html.AppendLine("</body>");
+        html.AppendLine("</html>");
+
+        return html.ToString();
+    }
+
+    private string? GetCustomCss(string org, string app)
+    {
+        try
+        {
+            var customCssPath = Path.Combine(_env.ContentRootPath, "App", "wwwroot", "css", "custom.css");
+            if (System.IO.File.Exists(customCssPath))
+            {
+                return System.IO.File.ReadAllText(customCssPath);
+            }
+        }
+        catch
+        {
+            // Log error but don't fail
+        }
+        return null;
+    }
+
+    private string? GetCustomJs(string org, string app)
+    {
+        try
+        {
+            var customJsPath = Path.Combine(_env.ContentRootPath, "App", "wwwroot", "js", "custom.js");
+            if (System.IO.File.Exists(customJsPath))
+            {
+                return System.IO.File.ReadAllText(customJsPath);
+            }
+        }
+        catch
+        {
+            // Log error but don't fail
+        }
         return null;
     }
 }
