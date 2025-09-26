@@ -77,4 +77,37 @@ describe('usePagination', () => {
     expect(result.current.navigation.canGoNext).toBe(true);
     expect(result.current.navigation.canGoPrevious).toBe(false);
   });
+
+  it('should handle empty items: no pages and cannot go next/previous', () => {
+    const { result } = renderHook(() => usePagination([]));
+    expect(result.current.pages).toHaveLength(0);
+    expect(result.current.currentPage).toBe(0);
+    expect(result.current.navigation.canGoNext).toBe(false);
+    expect(result.current.navigation.canGoPrevious).toBe(false);
+  });
+
+  it('should clamp current page when items shrink', () => {
+    const initialItems: StudioPaginatedItem[] = [
+      { pageContent: <div>Page 1</div>, validationRuleForNextButton: true },
+      { pageContent: <div>Page 2</div>, validationRuleForNextButton: true },
+      { pageContent: <div>Page 3</div>, validationRuleForNextButton: true },
+    ];
+    const { result, rerender } = renderHook(({ data }) => usePagination(data), {
+      initialProps: { data: initialItems },
+    });
+    act(() => {
+      result.current.navigation.onNext();
+      result.current.navigation.onNext();
+    });
+    expect(result.current.currentPage).toBe(2);
+    const smallerItems: StudioPaginatedItem[] = [
+      { pageContent: <div>Page 1</div>, validationRuleForNextButton: true },
+      { pageContent: <div>Page 2</div>, validationRuleForNextButton: true },
+    ];
+    rerender({ data: smallerItems });
+    expect(result.current.pages).toHaveLength(2);
+    expect(result.current.currentPage).toBe(1);
+    expect(result.current.navigation.canGoNext).toBe(false);
+    expect(result.current.navigation.canGoPrevious).toBe(true);
+  });
 });

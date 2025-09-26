@@ -11,18 +11,21 @@ export const usePagination = (
   const pages = useMemo<ReactNode[]>(() => mapItemsToPages(items), [items]);
 
   const totalItems = items.length;
-  const currentPage = Math.min(currentPageState, Math.max(0, totalItems - 1));
+  const lastIndex = Math.max(0, totalItems - 1);
+  const currentPage = Math.min(currentPageState, lastIndex);
 
   const hasPreviousPage: boolean = currentPage > 0;
-  const hasNextPage: boolean = currentPage < totalItems - 1;
+  const hasNextPage: boolean = currentPage < lastIndex;
   const canGoToNextPage: boolean = hasNextPage && !!validationRules[currentPage];
 
   const goNext = (): void => {
-    if (canGoToNextPage) setCurrentPageState((current: number) => current + 1);
+    if (!canGoToNextPage) return;
+    setCurrentPageState((current: number) => current + 1);
   };
 
   const goPrevious = (): void => {
-    if (hasPreviousPage) setCurrentPageState((current: number) => current - 1);
+    if (!hasPreviousPage) return;
+    setCurrentPageState((current: number) => current - 1);
   };
 
   const navigation: StudioPaginatedNavigation = {
