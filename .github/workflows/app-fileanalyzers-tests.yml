@@ -1,0 +1,45 @@
+name: App Fileanalyzers - Build and test
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'src/App/fileanalyzers/**'
+      - '.github/workflows/app-fileanalyzers-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    strategy:
+      matrix:
+        os:
+          - id: ubuntu-latest
+            workingDir: src/App/fileanalyzers/
+          - id: macos-latest
+            workingDir: src/App/fileanalyzers/
+          - id: windows-latest
+            workingDir: src\App\fileanalyzers\
+    name: Run dotnet build and test
+    runs-on: ${{ matrix.os.id }}
+    env:
+      DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
+    steps:
+      - name: Enable long paths for git on Windows
+        if: matrix.os.id == 'windows-latest'
+        run: git config --system core.longpaths true
+      - name: Setup .NET
+        uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5
+        with:
+          dotnet-version: |
+            8.0.x
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Build
+        working-directory: ${{ matrix.os.workingDir }}
+        run: |
+           dotnet build Altinn.FileAnalyzers.sln -v m
+      - name: Test
+        working-directory: ${{ matrix.os.workingDir }}
+        run: |
+           dotnet test Altinn.FileAnalyzers.sln -v m

@@ -1,11 +1,12 @@
-name: "CodeQL"
+name: App Fileanalyzers - CodeQL
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ "main" ]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'src/App/fileanalyzers/**'
+      - '.github/workflows/app-fileanalyzers-codeql.yml'
+  workflow_dispatch:
   schedule:
     - cron: '37 20 * * 3'
 
@@ -13,6 +14,9 @@ jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/App/fileanalyzers/
     permissions:
       actions: read
       contents: read
@@ -40,16 +44,18 @@ jobs:
         # Prefix the list here with "+" to use these queries and those in the config file.
         # Details on CodeQL's query packs refer to : https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
 
-        
+
     # Autobuild attempts to build any compiled languages  (C/C++, C#, Go, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
     - name: Autobuild
       uses: github/codeql-action/autobuild@192325c86100d080feab897ff886c34abd4c83a3 # v3
+      with:
+        working-directory: src/App/backend/
 
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
 
-    #   If the Autobuild fails above, remove it and uncomment the following three lines. 
+    #   If the Autobuild fails above, remove it and uncomment the following three lines.
     #   modify them (or add more) to build your code if your project, please refer to the EXAMPLE below for guidance.
 
     # - run: |
