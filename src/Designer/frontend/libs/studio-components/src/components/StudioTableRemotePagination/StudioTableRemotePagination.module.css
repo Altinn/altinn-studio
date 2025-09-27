@@ -1,5 +1,5 @@
 .componentContainer {
-  margin-bottom: var(--fds-spacing-10);
+  margin-bottom: var(--ds-size-10);
 }
 
 .table {
@@ -7,12 +7,12 @@
 }
 
 .emptyTableFallbackContainer {
-  padding: var(--fds-spacing-4);
+  padding: var(--ds-size-4);
   text-align: center;
 }
 
 .paginationContainer {
-  margin-top: var(--fds-spacing-4);
+  margin-top: var(--ds-size-4);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -20,7 +20,7 @@
 
 .selectContainer {
   display: flex;
-  gap: var(--fds-spacing-3);
+  gap: var(--ds-size-3);
   align-items: center;
 }
 
@@ -36,6 +36,6 @@
 
 .rowCounter {
   margin-block: auto;
-  margin-left: var(--fds-spacing-6);
+  margin-left: var(--ds-size-3);
   white-space: nowrap;
 }
