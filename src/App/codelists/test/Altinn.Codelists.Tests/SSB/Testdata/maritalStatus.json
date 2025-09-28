@@ -1,0 +1,121 @@
+{
+  "codes": [
+    {
+      "code": "1",
+      "parentCode": null,
+      "level": "1",
+      "name": "Ugift",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "validFromInRequestedRange": "2022-07-10",
+      "validToInRequestedRange": null,
+      "notes": ""
+    },
+    {
+      "code": "2",
+      "parentCode": null,
+      "level": "1",
+      "name": "Gift",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "validFromInRequestedRange": "2022-07-10",
+      "validToInRequestedRange": null,
+      "notes": ""
+    },
+    {
+      "code": "3",
+      "parentCode": null,
+      "level": "1",
+      "name": "Enke/enkemann",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "validFromInRequestedRange": "2022-07-10",
+      "validToInRequestedRange": null,
+      "notes": ""
+    },
+    {
+      "code": "4",
+      "parentCode": null,
+      "level": "1",
+      "name": "Skilt",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "validFromInRequestedRange": "2022-07-10",
+      "validToInRequestedRange": null,
+      "notes": ""
+    },
+    {
+      "code": "5",
+      "parentCode": null,
+      "level": "1",
+      "name": "Separert",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "validFromInRequestedRange": "2022-07-10",
+      "validToInRequestedRange": null,
+      "notes": ""
+    },
+    {
+      "code": "6",
+      "parentCode": null,
+      "level": "1",
+      "name": "Registrert partner",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "validFromInRequestedRange": "2022-07-10",
+      "validToInRequestedRange": null,
+      "notes": ""
+    },
+    {
+      "code": "7",
+      "parentCode": null,
+      "level": "1",
+      "name": "Separert partner",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "validFromInRequestedRange": "2022-07-10",
+      "validToInRequestedRange": null,
+      "notes": ""
+    },
+    {
+      "code": "8",
+      "parentCode": null,
+      "level": "1",
+      "name": "Skilt partner",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "validFromInRequestedRange": "2022-07-10",
+      "validToInRequestedRange": null,
+      "notes": ""
+    },
+    {
+      "code": "9",
+      "parentCode": null,
+      "level": "1",
+      "name": "Gjenlevende partner",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "validFromInRequestedRange": "2022-07-10",
+      "validToInRequestedRange": null,
+      "notes": ""
+    }
+  ]
+}

@@ -1,11 +1,11 @@
-name: App Fileanalyzers - CodeQL
+name: App Codelists - CodeQL
 
 on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
-      - 'src/App/fileanalyzers/**'
-      - '.github/workflows/app-fileanalyzers-codeql.yml'
+      - 'src/App/codelists/**'
+      - '.github/workflows/app-codelists-codeql.yml'
   workflow_dispatch:
   schedule:
     - cron: '37 20 * * 3'
@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: src/App/fileanalyzers/
+        working-directory: src/App/codelists/
     permissions:
       actions: read
       contents: read
@@ -50,7 +50,7 @@ jobs:
     - name: Autobuild
       uses: github/codeql-action/autobuild@192325c86100d080feab897ff886c34abd4c83a3 # v3
       with:
-        working-directory: src/App/fileanalyzers/
+        working-directory: src/App/codelists/
 
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
