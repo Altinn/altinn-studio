@@ -1,21 +1,32 @@
-name: Build and Test on windows, macos and ubuntu
+name: App Codelists - Build and test
+
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'src/App/codelists/**'
+      - '.github/workflows/app-codelists-tests.yml'
   workflow_dispatch:
+
 jobs:
   analyze:
     strategy:
       matrix:
-        os: [macos-latest,windows-latest,ubuntu-latest] # TODO: Fix test to run on ubuntu-latest also
+        os:
+          - id: ubuntu-latest
+            workingDir: src/App/codelists/
+          - id: macos-latest
+            workingDir: src/App/codelists/
+          - id: windows-latest
+            workingDir: src\App\codelists\
     name: Run dotnet build and test
-    runs-on: ${{ matrix.os}}
+    runs-on: ${{ matrix.os.id }}
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:
+      - name: Enable long paths for git on Windows
+        if: matrix.os.id == 'windows-latest'
+        run: git config --system core.longpaths true
       - name: Setup .NET
         uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5
         with:
@@ -25,8 +36,10 @@ jobs:
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: Build
+        working-directory: ${{ matrix.os.workingDir }}
         run: |
            dotnet build Altinn.Codelists.sln -v m
       - name: Test
+        working-directory: ${{ matrix.os.workingDir }}
         run: |
            dotnet test Altinn.Codelists.sln -v m

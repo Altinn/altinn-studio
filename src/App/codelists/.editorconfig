@@ -1,3 +1,6 @@
+
+root = true
+
 [*]
 # Non-configurable behaviors
 charset = utf-8
