@@ -5,29 +5,33 @@
 LOCALTEST_PREFIX = src/Runtime/localtest
 FRONTEND_PREFIX = src/App/frontend
 BACKEND_PREFIX = src/App/backend
+FILEANALYZERS_PREFIX = src/App/fileanalyzers
 
 # Remote repository paths (relative to this repo's directory)
 LOCALTEST_REPO = ../app-localtest
 FRONTEND_REPO = ../app-frontend-react
 BACKEND_REPO = ../app-lib-dotnet
+FILEANALYZERS_REPO = ../fileanalyzers-lib-dotnet
 
 # Expected GitHub remotes
 LOCALTEST_REMOTE = Altinn/app-localtest
 FRONTEND_REMOTE = Altinn/app-frontend-react
 BACKEND_REMOTE = Altinn/app-lib-dotnet
+FILEANALYZERS_REMOTE = Altinn/fileanalyzers-lib-dotnet
 
 # Default branch
 DEFAULT_BRANCH = main
 
-.PHONY: sync-localtest sync-app-frontend sync-app-backend check-branch help
+.PHONY: sync-localtest sync-app-frontend sync-app-backend sync-fileanalyzers check-branch help
 
 help: ## Show this help message
 	@echo "Available targets:"
-	@echo "  sync-localtest  - Sync localtest subtree from ../app-localtest"
+	@echo "  sync-localtest      - Sync localtest subtree from ../app-localtest"
 	@echo "  sync-app-frontend   - Sync frontend subtree from ../app-frontend-react"
 	@echo "  sync-app-backend    - Sync backend subtree from ../app-lib-dotnet"
-	@echo "  check-branch    - Check if current branch follows naming convention"
-	@echo "  help           - Show this help message"
+	@echo "  sync-fileanalyzers  - Sync fileanalyzers subtree from ../fileanalyzers-lib-dotnet"
+	@echo "  check-branch        - Check if current branch follows naming convention"
+	@echo "  help                - Show this help message"
 
 check-branch: ## Check if current branch follows chore/subtree-sync-* naming convention
 	@current_branch=$$(git branch --show-current); \
@@ -131,3 +135,34 @@ sync-app-backend: check-branch ## Sync backend subtree
 		echo "✓ $(BACKEND_REPO) is up to date with origin/$(DEFAULT_BRANCH)"
 	git subtree pull --prefix=$(BACKEND_PREFIX) $(BACKEND_REPO) $(DEFAULT_BRANCH)
 	@echo "✓ Backend subtree sync complete"
+
+sync-fileanalyzers: check-branch ## Sync fileanalyzers subtree
+	@echo "Syncing fileanalyzers subtree..."
+	@if [ ! -d "$(FILEANALYZERS_REPO)" ]; then \
+		echo "ERROR: Source directory $(FILEANALYZERS_REPO) does not exist"; \
+		exit 1; \
+	fi
+	@cd $(FILEANALYZERS_REPO) && \
+		current_remote=$$(git remote get-url origin 2>/dev/null | sed 's|.*github.com[:/]||' | sed 's|\.git$$||') && \
+		if [ "$$current_remote" != "$(FILEANALYZERS_REMOTE)" ]; then \
+			echo "ERROR: $(FILEANALYZERS_REPO) remote is $$current_remote, expected $(FILEANALYZERS_REMOTE)"; \
+			exit 1; \
+		fi && \
+		echo "✓ Remote verification passed: $$current_remote" && \
+		current_branch=$$(git branch --show-current) && \
+		if [ "$$current_branch" != "$(DEFAULT_BRANCH)" ]; then \
+			echo "ERROR: $(FILEANALYZERS_REPO) is on branch $$current_branch, expected $(DEFAULT_BRANCH)"; \
+			echo "Please checkout $(DEFAULT_BRANCH) and pull latest changes manually"; \
+			exit 1; \
+		fi && \
+		git fetch origin && \
+		local_commit=$$(git rev-parse HEAD) && \
+		remote_commit=$$(git rev-parse origin/$(DEFAULT_BRANCH)) && \
+		if [ "$$local_commit" != "$$remote_commit" ]; then \
+			echo "ERROR: $(FILEANALYZERS_REPO) is not up to date with origin/$(DEFAULT_BRANCH)"; \
+			echo "Please pull latest changes manually"; \
+			exit 1; \
+		fi && \
+		echo "✓ $(FILEANALYZERS_REPO) is up to date with origin/$(DEFAULT_BRANCH)"
+	git subtree pull --prefix=$(FILEANALYZERS_PREFIX) $(FILEANALYZERS_REPO) $(DEFAULT_BRANCH)
+	@echo "✓ Fileanalyzers subtree sync complete"
