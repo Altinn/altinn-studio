@@ -1,0 +1,35 @@
+name: Pack and publish nugets
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  build-pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+        with:
+          fetch-depth: 0
+
+      - name: Install dotnet
+        uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5
+        with:
+          dotnet-version: |
+            8.0.x
+      - name: Install deps
+        run: |
+          dotnet restore
+      - name: Build
+        run: |
+          dotnet build --configuration Release --no-restore -p:Deterministic=true -p:BuildNumber=${{ github.run_number }}
+      - name: Pack
+        run: |
+          dotnet pack Altinn.Codelists.sln --configuration Release --no-restore --no-build -p:BuildNumber=${{ github.run_number }} -p:Deterministic=true
+      - name: Versions
+        run: |
+          dotnet --version
+      - name: Publish
+        run: |
+          dotnet nuget push src/**/bin/Release/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
