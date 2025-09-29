@@ -20,6 +20,9 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+using Altinn.App.Core.Constants;
+using Microsoft.AspNetCore.Authorization;
+using Altinn.App.Core.Helpers;
 
 namespace Altinn.App.Api.Controllers;
 
@@ -94,6 +97,148 @@ public class HomeController : Controller
     /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
     [HttpGet]
     [Route("{org}/{app}/")]
+
+    public async Task<IActionResult> Index(
+        [FromRoute] string org,
+        [FromRoute] string app
+    )
+    {
+        var currentAuth = _authenticationContext.Current;
+
+        if (currentAuth is not Authenticated.User auth)
+        {
+            throw new UnauthorizedAccessException("This is frontend endpoint only");
+        }
+        var details = await auth.LoadDetails(validateSelectedParty: false);
+        return Redirect(Request.GetDisplayUrl() + "instance/" + details.Profile.Party.PartyId);
+    }
+
+    /// <summary>
+    /// Returns the index view with references to the React app.
+    /// </summary>
+    /// <param name="org">The application owner short name.</param>
+    /// <param name="app">The name of the app</param>
+    /// <param name="partyId">The party identifier.</param>
+    /// <param name="instanceGuid">The instance GUID.</param>
+    /// <param name="taskId">The task identifier.</param>
+    /// <param name="pageId">The page identifier.</param>
+    /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
+    [HttpGet]
+    [Route("{org}/{app}/instance/{partyId}")]
+    public async Task<IActionResult> Index(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int partyId
+    )
+    {
+        var currentAuth = _authenticationContext.Current;
+
+        if (currentAuth is not Authenticated.User auth)
+        {
+            throw new UnauthorizedAccessException("This is frontend endpoint only");
+        }
+        var details = await auth.LoadDetails(validateSelectedParty: false);
+
+        Dictionary<string, StringValues> queryParams = new()
+        {
+            { "appId", $"{org}/{app}" },
+            { "instanceOwner.partyId", details.UserParty.PartyId.ToString(CultureInfo.InvariantCulture) },
+            { "status.isArchived", "false" },
+            { "status.isSoftDeleted", "false" },
+        };
+
+        List<Instance> activeInstances = await _instanceClient.GetInstances(queryParams);
+
+        Instance? mostRecentInstance = activeInstances.OrderByDescending(i => i.LastChanged).FirstOrDefault();
+
+        if (mostRecentInstance != null)
+        {
+            var extractedInstanceGuid = mostRecentInstance.Id.Split('/').Last();
+
+            var url = Request.GetDisplayUrl() + "/" + extractedInstanceGuid;
+            return Redirect(url);
+        }
+        var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
+
+        var initialData = await _initialDataService.GetInitialData(org, app, null, partyId, language);
+
+        // Generate HTML with embedded data
+        var html = GenerateHtml(org, app, initialData);
+        return Content(html, "text/html; charset=utf-8");
+    }
+
+
+
+     /// <summary>
+    /// Returns the index view with references to the React app.
+    /// </summary>
+    /// <param name="org">The application owner short name.</param>
+    /// <param name="app">The name of the app</param>
+    /// <param name="partyId">The party identifier.</param>
+    /// <param name="instanceGuid">The instance GUID.</param>
+    /// <param name="taskId">The task identifier.</param>
+    /// <param name="pageId">The page identifier.</param>
+    /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
+    [HttpGet]
+    [Route("{org}/{app}/instance/{partyId}/{instanceGuid}")]
+    [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
+    public async Task<IActionResult> Index(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int partyId,
+        [FromRoute] Guid instanceGuid
+    )
+    {
+         Instance instance = await _instanceClient.GetInstance(app, org, partyId, instanceGuid);
+
+
+
+         if (instance.Process?.CurrentTask?.ElementId == null)
+         {
+             return BadRequest("Instance has no active task");
+         }
+         string currentTaskId = instance.Process.CurrentTask.ElementId;
+         string redirectUrl = $"/{org}/{app}/instance/{partyId}/{instanceGuid}/{currentTaskId}";
+         return Redirect(redirectUrl);
+    }
+
+
+    // [HttpGet]
+    // [Route("{org}/{app}/instance/{partyId}/{instanceGuid}/{taskId}")]
+    // [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
+    // public async Task<IActionResult> Index(
+    //     [FromRoute] string org,
+    //     [FromRoute] string app,
+    //     [FromRoute] int partyId,
+    //     [FromRoute] Guid instanceGuid,
+    //     [FromRoute] string taskId
+    // )
+    // {
+    //     Instance instance = await _instanceClient.GetInstance(app, org, partyId, instanceGuid);
+    //     if (instance.Process?.CurrentTask?.ElementId == null)
+    //     {
+    //         return BadRequest("Instance has no active task");
+    //     }
+    //     string currentTaskId = instance.Process.CurrentTask.ElementId;
+    //     string redirectUrl = $"/{org}/{app}/instance/{partyId}/{instanceGuid}/{currentTaskId}";
+    //     return Redirect(redirectUrl);
+    // }
+
+
+
+
+
+    /// <summary>
+    /// Returns the index view with references to the React app.
+    /// </summary>
+    /// <param name="org">The application owner short name.</param>
+    /// <param name="app">The name of the app</param>
+    /// <param name="partyId">The party identifier.</param>
+    /// <param name="instanceGuid">The instance GUID.</param>
+    /// <param name="taskId">The task identifier.</param>
+    /// <param name="pageId">The page identifier.</param>
+    /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
+    [HttpGet]
     [Route("{org}/{app}/instance/{partyId}")]
     [Route("{org}/{app}/instance/{partyId}/{instanceGuid}")]
     [Route("{org}/{app}/instance/{partyId}/{instanceGuid}/{taskId}")]
@@ -111,38 +256,6 @@ public class HomeController : Controller
         [FromQuery] bool dontChooseReportee = false
     )
     {
-        // See comments in the configuration of Antiforgery in MvcConfiguration.cs.
-        var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
-        if (tokens.RequestToken != null)
-        {
-            HttpContext.Response.Cookies.Append(
-                "XSRF-TOKEN",
-                tokens.RequestToken,
-                new CookieOptions
-                {
-                    HttpOnly = false, // Make this cookie readable by Javascript.
-                }
-            );
-        }
-        else
-        {
-            string scheme = _env.IsDevelopment() ? "http" : "https";
-            string goToUrl = HttpUtility.UrlEncode($"{scheme}://{Request.Host}/{org}/{app}");
-
-            string redirectUrl = $"{_platformSettings.ApiAuthenticationEndpoint}authentication?goto={goToUrl}";
-
-            if (!string.IsNullOrEmpty(_appSettings.AppOidcProvider))
-            {
-                redirectUrl += "&iss=" + _appSettings.AppOidcProvider;
-            }
-
-            if (dontChooseReportee)
-            {
-                redirectUrl += "&DontChooseReportee=true";
-            }
-
-            return Redirect(redirectUrl);
-        }
 
         if (partyId != null && instanceGuid != null)
         {
@@ -540,3 +653,37 @@ public class HomeController : Controller
         return null;
     }
 }
+
+
+// See comments in the configuration of Antiforgery in MvcConfiguration.cs.
+// var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
+// if (tokens.RequestToken != null)
+// {
+//     HttpContext.Response.Cookies.Append(
+//         "XSRF-TOKEN",
+//         tokens.RequestToken,
+//         new CookieOptions
+//         {
+//             HttpOnly = false, // Make this cookie readable by Javascript.
+//         }
+//     );
+// }
+// else
+// {
+//     string scheme = _env.IsDevelopment() ? "http" : "https";
+//     string goToUrl = HttpUtility.UrlEncode($"{scheme}://{Request.Host}/{org}/{app}");
+//
+//     string redirectUrl = $"{_platformSettings.ApiAuthenticationEndpoint}authentication?goto={goToUrl}";
+//
+//     if (!string.IsNullOrEmpty(_appSettings.AppOidcProvider))
+//     {
+//         redirectUrl += "&iss=" + _appSettings.AppOidcProvider;
+//     }
+//
+//     if (dontChooseReportee)
+//     {
+//         redirectUrl += "&DontChooseReportee=true";
+//     }
+//
+//     return Redirect(redirectUrl);
+// }
