@@ -24,6 +24,8 @@ const defaultProps: StudioTextResourcePickerProps = {
   label: 'Text Resource',
 };
 const arbitraryTextResourceIndex = 129;
+const textSelector = 'data.ds-chip';
+const textMissingValueId = 'missing-value-id';
 
 describe('StudioTextResourcePicker', () => {
   beforeEach(jest.clearAllMocks);
@@ -66,7 +68,7 @@ describe('StudioTextResourcePicker', () => {
   it("Renders with the text of the text resource of which the ID is given by the component's value prop", () => {
     const pickedTextResource = textResources[arbitraryTextResourceIndex];
     renderTextResourcePicker({ value: pickedTextResource.id });
-    const text = screen.getByText(pickedTextResource.value, { selector: 'data.ds-chip' });
+    const text = screen.getByText(pickedTextResource.value, { selector: textSelector });
     expect(text).toBeInTheDocument();
     expect(text).toHaveAttribute('value', pickedTextResource.id);
   });
@@ -139,7 +141,9 @@ describe('StudioTextResourcePicker', () => {
     const user = userEvent.setup();
     const pickedTextResource = textResources[arbitraryTextResourceIndex];
     renderTextResourcePicker({ value: pickedTextResource.id });
-    const removableChip = screen.getByText(pickedTextResource.value, { selector: 'data.ds-chip' });
+    const removableChip = screen.getByText(pickedTextResource.value, {
+      selector: textSelector,
+    });
     await user.click(removableChip);
     await waitFor(() => expect(onValueChange).toHaveBeenCalledWith(null));
   });
@@ -147,13 +151,13 @@ describe('StudioTextResourcePicker', () => {
   it('Displays the ID as label when text resource value is not found', () => {
     const textResourcesWithMissingValue: TextResource[] = [
       { id: 'test-id', value: 'Test Value' },
-      { id: 'missing-value-id', value: '' },
+      { id: textMissingValueId } as TextResource,
     ];
     renderTextResourcePicker({
       textResources: textResourcesWithMissingValue,
-      value: 'missing-value-id',
+      value: textMissingValueId,
     });
-    const text = screen.getByText('missing-value-id', { selector: 'data.ds-chip' });
+    const text = screen.getByText(textMissingValueId, { selector: textSelector });
     expect(text).toBeInTheDocument();
   });
 });

@@ -23,7 +23,6 @@ export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextR
     {
       emptyLabel = '',
       noTextResourceOptionLabel = '',
-      onSelect,
       onValueChange,
       required,
       textResources,
@@ -51,9 +50,9 @@ export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextR
 
     return (
       <StudioSuggestion
+        {...rest}
         onSelectedChange={handleSelectedChange}
         selected={selectedItems}
-        {...rest}
         ref={ref}
       >
         {!required && renderNoTextResourceOption(noTextResourceOptionLabel)}
