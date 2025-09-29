@@ -46,13 +46,21 @@
     "root.arbeidserfaring.fra": [
       {
         "message": "validation-from",
-        "condition": ["compare", ["component", "dato-fra"], "isAfter", ["component", "dato-til"]]
+        "condition": [
+          "and",
+          ["notEquals", ["dataModel", "root.arbeidserfaring.fortsattAnsatt"], true],
+          ["compare", ["dataModel", "root.arbeidserfaring.fra"], "isAfter", ["dataModel", "root.arbeidserfaring.til"]]
+        ]
       }
     ],
     "root.arbeidserfaring.til": [
       {
         "message": "validation-to",
-        "condition": ["compare", ["component", "dato-til"], "isBefore", ["component", "dato-fra"]]
+        "condition": [
+          "and",
+          ["notEquals", ["dataModel", "root.arbeidserfaring.fortsattAnsatt"], true],
+          ["compare", ["dataModel", "root.arbeidserfaring.til"], "isBefore", ["dataModel", "root.arbeidserfaring.fra"]]
+        ]
       }
     ],
     "root.arbeidserfaring.prosjekter.beskrivelse": [
