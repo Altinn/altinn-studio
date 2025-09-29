@@ -1,0 +1,217 @@
+{
+  "name": "Should work in nested repeating groups",
+  "expects": [
+    {
+      "message": "zero is not allowed",
+      "severity": "error",
+      "field": "form.people[0].number",
+      "componentId": "number-input-0"
+    },
+    {
+      "message": "none is not allowed",
+      "severity": "error",
+      "field": "form.people[0].names[0].name",
+      "componentId": "name-input-0-0"
+    },
+    {
+      "message": "none is not allowed",
+      "severity": "error",
+      "field": "form.people[0].names[2].name",
+      "componentId": "name-input-0-2"
+    },
+    {
+      "message": "zero is not allowed",
+      "severity": "error",
+      "field": "form.people[1].number",
+      "componentId": "number-input-1"
+    },
+    {
+      "message": "none is not allowed",
+      "severity": "error",
+      "field": "form.people[1].names[0].name",
+      "componentId": "name-input-1-0"
+    },
+    {
+      "message": "none is not allowed",
+      "severity": "error",
+      "field": "form.people[1].names[2].name",
+      "componentId": "name-input-1-2"
+    },
+    {
+      "message": "none is not allowed",
+      "severity": "error",
+      "field": "form.people[2].names[0].name",
+      "componentId": "name-input-2-0"
+    },
+    {
+      "message": "none is not allowed",
+      "severity": "error",
+      "field": "form.people[2].names[2].name",
+      "componentId": "name-input-2-2"
+    },
+    {
+      "message": "none is not allowed",
+      "severity": "error",
+      "field": "form.people[3].names[0].name",
+      "componentId": "name-input-3-0"
+    },
+    {
+      "message": "none is not allowed",
+      "severity": "error",
+      "field": "form.people[3].names[2].name",
+      "componentId": "name-input-3-2"
+    }
+  ],
+  "validationConfig": {
+    "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/validation/validation.schema.v1.json",
+    "validations": {
+      "form.people.number": ["zero-is-not-allowed"],
+      "form.people.names.name": ["none-is-not-allowed"]
+    },
+    "definitions": {
+      "zero-is-not-allowed": {
+        "message": "zero is not allowed",
+        "severity": "error",
+        "condition": ["equals", ["dataModel", ["argv", 0]], 0]
+      },
+      "none-is-not-allowed": {
+        "message": "none is not allowed",
+        "severity": "error",
+        "condition": ["equals", ["dataModel", ["argv", 0]], "none"]
+      }
+    }
+  },
+  "formData": {
+    "form": {
+      "people": [
+        {
+          "altinnRowId": "people0",
+          "number": "0",
+          "names": [
+            {
+              "altinnRowId": "people0-name0",
+              "name": "none"
+            },
+            {
+              "altinnRowId": "people0-name1",
+              "name": "John"
+            },
+            {
+              "altinnRowId": "people0-name2",
+              "name": "none"
+            },
+            {
+              "altinnRowId": "people0-name3",
+              "name": "Jane"
+            }
+          ]
+        },
+        {
+          "altinnRowId": "people1",
+          "number": "0",
+          "names": [
+            {
+              "altinnRowId": "people1-name0",
+              "name": "none"
+            },
+            {
+              "altinnRowId": "people1-name1",
+              "name": "John"
+            },
+            {
+              "altinnRowId": "people1-name2",
+              "name": "none"
+            },
+            {
+              "altinnRowId": "people1-name3",
+              "name": "Jane"
+            }
+          ]
+        },
+        {
+          "altinnRowId": "people2",
+          "number": "1234",
+          "names": [
+            {
+              "altinnRowId": "people2-name0",
+              "name": "none"
+            },
+            {
+              "altinnRowId": "people2-name1",
+              "name": "John"
+            },
+            {
+              "altinnRowId": "people2-name2",
+              "name": "none"
+            },
+            {
+              "altinnRowId": "people2-name3",
+              "name": "Jane"
+            }
+          ]
+        },
+        {
+          "altinnRowId": "people3",
+          "number": "5678",
+          "names": [
+            {
+              "altinnRowId": "people3-name0",
+              "name": "none"
+            },
+            {
+              "altinnRowId": "people3-name1",
+              "name": "John"
+            },
+            {
+              "altinnRowId": "people3-name2",
+              "name": "none"
+            },
+            {
+              "altinnRowId": "people3-name3",
+              "name": "Jane"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "people-group",
+            "type": "RepeatingGroup",
+            "dataModelBindings": {
+              "group": "form.people"
+            },
+            "children": ["number-input", "names-group"]
+          },
+          {
+            "id": "number-input",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "form.people.number"
+            }
+          },
+          {
+            "id": "names-group",
+            "type": "RepeatingGroup",
+            "dataModelBindings": {
+              "group": "form.people.names"
+            },
+            "children": ["name-input"]
+          },
+          {
+            "id": "name-input",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "form.people.names.name"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

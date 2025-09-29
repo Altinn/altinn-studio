@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useText } from '../../../hooks';
 import { EditGrid } from '../editModal/EditGrid';
-import { StudioButton } from '@studio/components-legacy';
-import { StudioProperty, StudioCard, StudioHeading } from '@studio/components';
+import { StudioButton, StudioProperty, StudioCard, StudioHeading } from '@studio/components';
 import { PlusCircleIcon, XMarkIcon } from '@studio/icons';
 import { Heading } from '@digdir/designsystemet-react';
 import classes from './ConfigGridProperties.module.css';
@@ -29,11 +28,11 @@ export const ConfigGridProperties = ({
             <div className={classes.flexContainer}>
               <Heading size='xs'>{t('ux_editor.component_properties.grid')}</Heading>
               <StudioButton
+                data-size='small' // can be removed once parent component hierarchy is also from @studio/components
                 icon={<XMarkIcon />}
                 onClick={() => setShowGrid(false)}
                 title={t('general.close')}
                 variant='secondary'
-                className={classes.button}
               />
             </div>
           </StudioHeading>

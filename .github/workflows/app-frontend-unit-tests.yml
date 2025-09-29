@@ -1,18 +1,12 @@
-name: App Frontend - Tests
+name: App Frontend - Unit tests
+
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'src/App/frontend/src/**'
-      - 'src/App/frontend/yarn.lock'
-      - '.github/workflows/app-frontend*.yml'
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/yarn.lock'
-      - '.github/workflows/app-frontend*.yml'
+      - '.github/workflows/app-frontend-unit-tests.yml'
 
 jobs:
   unit-tests:

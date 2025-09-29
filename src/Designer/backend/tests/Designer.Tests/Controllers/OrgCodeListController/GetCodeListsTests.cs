@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
@@ -34,10 +35,9 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
         string codeListLabelWithNumber = @"[{ ""value"": ""someValue"", ""label"": 12345}]";
         string codeListLabelWithBool = @"[{ ""value"": ""someValue"", ""label"": true}]";
         string repoPath = TestDataHelper.GetRepositoryDirectory(Developer, targetOrg, targetRepository);
-        string filePath = Path.Join(repoPath, "CodeLists/");
-        await File.WriteAllTextAsync(Path.Join(filePath, "codeListLabelWithObject.json"), codeListLabelWithObject);
-        await File.WriteAllTextAsync(Path.Join(filePath, "codeListLabelWithNumber.json"), codeListLabelWithNumber);
-        await File.WriteAllTextAsync(Path.Join(filePath, "codeListLabelWithBool.json"), codeListLabelWithBool);
+        await File.WriteAllTextAsync(Path.Join(repoPath, CodeListUtils.FilePathWithTextResources("codeListLabelWithObject")), codeListLabelWithObject);
+        await File.WriteAllTextAsync(Path.Join(repoPath, CodeListUtils.FilePathWithTextResources("codeListLabelWithNumber")), codeListLabelWithNumber);
+        await File.WriteAllTextAsync(Path.Join(repoPath, CodeListUtils.FilePathWithTextResources("codeListLabelWithBool")), codeListLabelWithBool);
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);

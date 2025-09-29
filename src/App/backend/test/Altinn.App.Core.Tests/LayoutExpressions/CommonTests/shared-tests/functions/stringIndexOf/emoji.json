@@ -1,0 +1,5 @@
+{
+  "name": "Should count an emoji as 2 characters (as JS counts UTF-16 code units)",
+  "expression": ["stringIndexOf", "🌍!", "!"],
+  "expects": 2
+}

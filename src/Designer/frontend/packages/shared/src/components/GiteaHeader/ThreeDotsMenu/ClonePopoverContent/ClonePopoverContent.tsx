@@ -6,7 +6,8 @@ import { Link, Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { useDataModelsXsdQuery } from 'app-shared/hooks/queries';
 import { InformationSquareFillIcon } from '@studio/icons';
-import { StudioButton, StudioLabelAsParagraph, StudioTextfield } from '@studio/components-legacy';
+import { StudioLabelAsParagraph, StudioTextfield } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useGiteaHeaderContext } from '../../context/GiteaHeaderContext';
 
@@ -56,7 +57,7 @@ export const ClonePopoverContent = () => {
       )}
       <StudioTextfield readOnly value={gitUrl} label={t('sync_header.clone_https')} />
       {canCopy && (
-        <div className={classes.buttonWrapper}>
+        <div>
           <StudioButton fullWidth onClick={copyGitUrl} className={classes.button}>
             {t('sync_header.clone_https_button')}
           </StudioButton>

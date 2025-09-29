@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
-import { StudioButton, StudioErrorMessage } from '@studio/components-legacy';
+import { StudioErrorMessage } from '@studio/components-legacy';
+import { StudioAlert, StudioButton, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
@@ -20,7 +21,6 @@ import { OptionListEditor } from './OptionListEditor';
 import classes from './EditTab.module.css';
 import type { ITextResources } from 'app-shared/types/global';
 import { ManualOptionsDialog } from './ManualOptionsDialog';
-import { StudioAlert, StudioSpinner } from '@studio/components';
 
 export type EditTabProps = Pick<
   IGenericEditComponent<SelectionComponentType>,

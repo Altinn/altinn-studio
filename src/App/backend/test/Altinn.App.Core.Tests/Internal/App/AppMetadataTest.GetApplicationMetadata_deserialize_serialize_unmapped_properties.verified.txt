@@ -1,0 +1,96 @@
+﻿{
+  "Id": "tdd/bestilling",
+  "Features": {
+    "footer": true,
+    "processActions": true,
+    "jsonObjectInDataResponse": false
+  },
+  "OnEntry": {
+    "InstanceSelection": null,
+    "Show": "select-instance"
+  },
+  "Logo": null,
+  "AltinnNugetVersion": "--AltinnNugetVersion--",
+  "ExternalApiIds": [],
+  "VersionId": null,
+  "Org": "tdd",
+  "Title": {
+    "nb": "Bestillingseksempelapp"
+  },
+  "ValidFrom": null,
+  "ValidTo": null,
+  "ProcessId": null,
+  "DataTypes": [
+    {
+      "Id": "vedlegg",
+      "Description": null,
+      "AllowedContentTypes": [
+        "application/pdf",
+        "image/png",
+        "image/jpeg"
+      ],
+      "AllowedContributers": null,
+      "AllowedContributors": null,
+      "ActionRequiredToRead": null,
+      "ActionRequiredToWrite": null,
+      "AppLogic": null,
+      "TaskId": "Task_1",
+      "MaxSize": null,
+      "MaxCount": 0,
+      "MinCount": 0,
+      "Grouping": null,
+      "EnablePdfCreation": true,
+      "EnableFileScan": false,
+      "ValidationErrorOnPendingFileScan": false,
+      "EnabledFileAnalysers": [],
+      "EnabledFileValidators": [],
+      "AllowedKeysForUserDefinedMetadata": null
+    },
+    {
+      "Id": "ref-data-as-pdf",
+      "Description": null,
+      "AllowedContentTypes": [
+        "application/pdf"
+      ],
+      "AllowedContributers": null,
+      "AllowedContributors": null,
+      "ActionRequiredToRead": null,
+      "ActionRequiredToWrite": null,
+      "AppLogic": null,
+      "TaskId": "Task_1",
+      "MaxSize": null,
+      "MaxCount": 0,
+      "MinCount": 1,
+      "Grouping": null,
+      "EnablePdfCreation": true,
+      "EnableFileScan": false,
+      "ValidationErrorOnPendingFileScan": false,
+      "EnabledFileAnalysers": [],
+      "EnabledFileValidators": [],
+      "AllowedKeysForUserDefinedMetadata": null
+    }
+  ],
+  "PartyTypesAllowed": {
+    "BankruptcyEstate": true,
+    "Organisation": true,
+    "Person": true,
+    "SubUnit": true
+  },
+  "AutoDeleteOnProcessEnd": false,
+  "PreventInstanceDeletionForDays": null,
+  "PresentationFields": null,
+  "DataFields": null,
+  "EFormidling": null,
+  "MessageBoxConfig": null,
+  "CopyInstanceSettings": null,
+  "ApiScopes": null,
+  "StorageAccountNumber": null,
+  "DisallowUserInstantiation": false,
+  "Created": "2019-09-16T22:22:22",
+  "CreatedBy": "username",
+  "LastChanged": null,
+  "LastChangedBy": null,
+  "foo": {
+    "bar": "baz"
+  }
+}

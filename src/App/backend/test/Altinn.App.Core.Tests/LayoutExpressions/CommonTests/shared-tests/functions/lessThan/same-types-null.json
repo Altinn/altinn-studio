@@ -1,0 +1,5 @@
+{
+  "name": "Should work with nulls",
+  "expression": ["lessThan", null, null],
+  "expects": false
+}
