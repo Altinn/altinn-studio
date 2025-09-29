@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
@@ -27,6 +28,7 @@ internal sealed class InitialDataService : IInitialDataService
     private readonly IRegisterClient _registerClient;
     private readonly IUserTokenProvider _userTokenProvider;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IAuthenticationContext _authenticationContext;
     private readonly AppSettings _appSettings;
     private readonly PlatformSettings _platformSettings;
     private readonly GeneralSettings _generalSettings;
@@ -48,6 +50,7 @@ internal sealed class InitialDataService : IInitialDataService
         IRegisterClient registerClient,
         IUserTokenProvider userTokenProvider,
         IHttpContextAccessor httpContextAccessor,
+        IAuthenticationContext authenticationContext,
         IOptions<AppSettings> appSettings,
         IOptions<PlatformSettings> platformSettings,
         IOptions<GeneralSettings> generalSettings,
@@ -61,6 +64,7 @@ internal sealed class InitialDataService : IInitialDataService
         _registerClient = registerClient;
         _userTokenProvider = userTokenProvider;
         _httpContextAccessor = httpContextAccessor;
+        _authenticationContext = authenticationContext;
         _appSettings = appSettings.Value;
         _platformSettings = platformSettings.Value;
         _generalSettings = generalSettings.Value;
@@ -94,6 +98,7 @@ internal sealed class InitialDataService : IInitialDataService
 
         // Get user and party information if authenticated
         var user = _httpContextAccessor.HttpContext?.User;
+
         if (user?.Identity?.IsAuthenticated == true)
         {
             var userId = user.GetUserIdAsInt();
@@ -180,8 +185,15 @@ internal sealed class InitialDataService : IInitialDataService
     {
         try
         {
-            var token = _userTokenProvider.GetUserToken();
             response.Party = await _registerClient.GetPartyUnchecked(partyId, CancellationToken.None);
+
+            // Check if the party can instantiate using the authentication context
+            // Only check for regular users, other auth types will get null
+            var currentAuth = _authenticationContext.Current;
+            if (currentAuth is Authenticated.User)
+            {
+                response.CanInstantiate = await CanPartyInstantiate(partyId);
+            }
         }
         catch
         {
@@ -319,5 +331,20 @@ internal sealed class InitialDataService : IInitialDataService
             return guid;
         }
         return null;
+    }
+
+    private async Task<bool> CanPartyInstantiate(int partyId)
+    {
+        var currentAuth = _authenticationContext.Current;
+
+        if (currentAuth is not Authenticated.User auth)
+        {
+            throw new UnauthorizedAccessException(
+                "User must be authenticated as a regular user to check instantiation permissions"
+            );
+        }
+
+        var details = await auth.LoadDetails(validateSelectedParty: false);
+        return details.CanInstantiateAsParty(partyId);
     }
 }

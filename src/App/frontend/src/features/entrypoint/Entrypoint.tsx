@@ -45,7 +45,7 @@ export const Entrypoint = () => {
     promptForParty,
   } = useApplicationMetadata();
   const profile = useProfile();
-  debugger;
+  //debugger;
   const validParties = useValidParties();
   const partyIsValid = useSelectedPartyIsValid();
   const userHasSelectedParty = useHasSelectedParty();

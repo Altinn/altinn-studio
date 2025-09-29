@@ -1,16 +1,25 @@
+using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.Bootstrap.Models;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 
 namespace Altinn.App.Api.Controllers;
 
@@ -34,6 +43,8 @@ public class HomeController : Controller
     private readonly IInitialDataService _initialDataService;
     private readonly GeneralSettings _generalSettings;
     private readonly List<string> _onEntryWithInstance = new List<string> { "new-instance", "select-instance" };
+    private readonly IAuthenticationContext _authenticationContext;
+    private readonly IInstanceClient _instanceClient;
 
     /// <summary>
     /// Initialize a new instance of the <see cref="HomeController"/> class.
@@ -54,7 +65,9 @@ public class HomeController : Controller
         IAppResources appResources,
         IAppMetadata appMetadata,
         IInitialDataService initialDataService,
-        IOptions<GeneralSettings> generalSettings
+        IOptions<GeneralSettings> generalSettings,
+        IAuthenticationContext authenticationContext,
+        IInstanceClient instanceClient
     )
     {
         _antiforgery = antiforgery;
@@ -65,6 +78,8 @@ public class HomeController : Controller
         _appMetadata = appMetadata;
         _initialDataService = initialDataService;
         _generalSettings = generalSettings.Value;
+        _authenticationContext = authenticationContext;
+        _instanceClient = instanceClient;
     }
 
     /// <summary>
@@ -79,6 +94,7 @@ public class HomeController : Controller
     /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
     [HttpGet]
     [Route("{org}/{app}/")]
+    [Route("{org}/{app}/instance/{partyId}")]
     [Route("{org}/{app}/instance/{partyId}/{instanceGuid}")]
     [Route("{org}/{app}/instance/{partyId}/{instanceGuid}/{taskId}")]
     [Route("{org}/{app}/instance/{partyId}/{instanceGuid}/{taskId}/{pageId}")]
@@ -108,54 +124,148 @@ public class HomeController : Controller
                 }
             );
         }
-
-        if (await ShouldShowAppView())
+        else
         {
-            // Construct instance ID from route parameters if available
-            string? instanceId = null;
-            if (partyId.HasValue && instanceGuid.HasValue)
+            string scheme = _env.IsDevelopment() ? "http" : "https";
+            string goToUrl = HttpUtility.UrlEncode($"{scheme}://{Request.Host}/{org}/{app}");
+
+            string redirectUrl = $"{_platformSettings.ApiAuthenticationEndpoint}authentication?goto={goToUrl}";
+
+            if (!string.IsNullOrEmpty(_appSettings.AppOidcProvider))
             {
-                instanceId = $"{partyId}/{instanceGuid}";
+                redirectUrl += "&iss=" + _appSettings.AppOidcProvider;
             }
 
-            // Get language from Accept-Language header or query parameter
-            var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
-
-            // Aggregate all initial data
-            var initialData = await _initialDataService.GetInitialData(org, app, instanceId, partyId, language);
-
-            // Add routing information to initial data
-            initialData.AppSettings ??= new Altinn.App.Core.Features.Bootstrap.Models.FrontendAppSettings();
-            if (taskId != null)
+            if (dontChooseReportee)
             {
-                initialData.AppSettings.CurrentTaskId = taskId;
-            }
-            if (pageId != null)
-            {
-                initialData.AppSettings.CurrentPageId = pageId;
+                redirectUrl += "&DontChooseReportee=true";
             }
 
-            // Generate HTML with embedded data
-            var html = GenerateHtml(org, app, initialData);
-            return Content(html, "text/html; charset=utf-8");
+            return Redirect(redirectUrl);
         }
 
-        string scheme = _env.IsDevelopment() ? "http" : "https";
-        string goToUrl = HttpUtility.UrlEncode($"{scheme}://{Request.Host}/{org}/{app}");
-
-        string redirectUrl = $"{_platformSettings.ApiAuthenticationEndpoint}authentication?goto={goToUrl}";
-
-        if (!string.IsNullOrEmpty(_appSettings.AppOidcProvider))
+        if (partyId != null && instanceGuid != null)
         {
-            redirectUrl += "&iss=" + _appSettings.AppOidcProvider;
+            if (await ShouldShowAppView())
+            {
+                // Construct instance ID from route parameters if available
+                string? instanceId = null;
+                if (partyId.HasValue && instanceGuid.HasValue)
+                {
+                    instanceId = $"{partyId}/{instanceGuid}";
+                }
+
+                // Get language from Accept-Language header or query parameter
+                var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
+
+                // Aggregate all initial data
+                var initialData = await _initialDataService.GetInitialData(org, app, instanceId, partyId, language);
+
+                // Add routing information to initial data
+                initialData.AppSettings ??= new Altinn.App.Core.Features.Bootstrap.Models.FrontendAppSettings();
+                if (taskId != null)
+                {
+                    initialData.AppSettings.CurrentTaskId = taskId;
+                }
+                if (pageId != null)
+                {
+                    initialData.AppSettings.CurrentPageId = pageId;
+                }
+
+                // Generate HTML with embedded data
+                var html = GenerateHtml(org, app, initialData);
+                return Content(html, "text/html; charset=utf-8");
+            }
         }
 
-        if (dontChooseReportee)
+        var currentAuth = _authenticationContext.Current;
+
+        if (currentAuth is not Authenticated.User auth)
         {
-            redirectUrl += "&DontChooseReportee=true";
+            throw new UnauthorizedAccessException("This is frontend endpoint only");
         }
 
-        return Redirect(redirectUrl);
+        var details = await auth.LoadDetails(validateSelectedParty: false);
+
+        if (details.PartiesAllowedToInstantiate.Count < 1)
+        {
+            return Unauthorized("You dont have any valid parties to use this form");
+        }
+
+        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+
+        var currentPartyCanInstantiate = InstantiationHelper.IsPartyAllowedToInstantiate(
+            details.Profile.Party,
+            applicationMetadata.PartyTypesAllowed
+        );
+
+        if (!currentPartyCanInstantiate)
+        {
+            return Unauthorized("Your current party is not allowed to use this form. we will soon implement redirect");
+        }
+
+        if (
+            details.PartiesAllowedToInstantiate.Count > 1
+            && applicationMetadata.PromptForParty != null
+            && applicationMetadata.PromptForParty.Equals("always", StringComparison.Ordinal)
+        )
+        {
+            return Redirect("party-selection");
+        }
+
+        if (
+            details.PartiesAllowedToInstantiate.Count > 1
+            && details.Profile.ProfileSettingPreference.DoNotPromptForParty
+            && applicationMetadata.PromptForParty != null
+            && applicationMetadata.PromptForParty.Equals("never", StringComparison.Ordinal)
+        )
+        {
+            return Redirect("party-selection");
+        }
+
+        if (partyId == null)
+        {
+            return Redirect(Request.GetDisplayUrl() + "instance/" + details.Profile.Party.PartyId);
+        }
+
+        if (instanceGuid == null)
+        {
+            Dictionary<string, StringValues> queryParams = new()
+            {
+                { "appId", $"{org}/{app}" },
+                { "instanceOwner.partyId", details.UserParty.PartyId.ToString(CultureInfo.InvariantCulture) },
+                { "status.isArchived", "false" },
+                { "status.isSoftDeleted", "false" },
+            };
+
+            List<Instance> activeInstances = await _instanceClient.GetInstances(queryParams);
+
+            Instance? mostRecentInstance = activeInstances.OrderByDescending(i => i.LastChanged).FirstOrDefault();
+
+            if (mostRecentInstance != null)
+            {
+                var displUrl = Request.GetDisplayUrl();
+                //
+                // var tempt = mostRecentInstance.Id;
+                //
+                // Debugger.Break();
+
+                var extractedInstanceGuid = mostRecentInstance.Id.Split('/').Last();
+
+                var url = Request.GetDisplayUrl() + "/" + extractedInstanceGuid;
+
+                Debugger.Break();
+                //
+                // var brokenInstanceGuid = DeconstructInstanceId()
+
+                // http://local.altinn.cloud/ttd/component-library/instance/501337instance/
+                return Redirect(url);
+            }
+
+            return Redirect(Request.GetDisplayUrl() + "/" + details.Profile.Party.PartyId);
+        }
+
+        return BadRequest();
     }
 
     /// <summary>

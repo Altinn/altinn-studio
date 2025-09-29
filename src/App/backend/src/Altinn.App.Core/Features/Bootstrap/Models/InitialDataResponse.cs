@@ -36,6 +36,12 @@ public sealed class InitialDataResponse
     public Party? Party { get; set; }
 
     /// <summary>
+    /// Whether the current party is allowed to instantiate new instances.
+    /// </summary>
+    [JsonPropertyName("canInstantiate")]
+    public bool? CanInstantiate { get; set; }
+
+    /// <summary>
     /// Text resources for the current language.
     /// </summary>
     [JsonPropertyName("textResources")]
