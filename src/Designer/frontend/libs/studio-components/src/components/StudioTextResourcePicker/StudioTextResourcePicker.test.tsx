@@ -24,7 +24,7 @@ const defaultProps: StudioTextResourcePickerProps = {
   label: 'Text Resource',
 };
 const arbitraryTextResourceIndex = 129;
-const textSelector = 'data.ds-chip';
+const textSelector = '.ds-chip';
 const textMissingValueId = 'missing-value-id';
 
 describe('StudioTextResourcePicker', () => {
