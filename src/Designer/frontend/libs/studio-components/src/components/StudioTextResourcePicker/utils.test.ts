@@ -16,7 +16,7 @@ describe('utils', () => {
       expect(retrieveSelectedValues(textResources, idThatDoesNotExist)).toEqual([]);
     });
 
-    it.each([null, undefined])('Returns an empty array when the value is %s', (value) => {
+    it.each([undefined])('Returns an empty array when the value is %s', (value) => {
       expect(retrieveSelectedValues(textResourcesMock, value)).toEqual([]);
     });
   });

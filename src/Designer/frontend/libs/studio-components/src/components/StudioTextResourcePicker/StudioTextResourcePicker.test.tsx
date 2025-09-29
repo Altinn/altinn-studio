@@ -134,6 +134,28 @@ describe('StudioTextResourcePicker', () => {
       getFirstBySelector(container, '.ds-suggestion');
     testCustomAttributes(renderTextResourcePicker, getRoot);
   });
+
+  it('Calls onValueChange with null when selection is cleared', async () => {
+    const user = userEvent.setup();
+    const pickedTextResource = textResources[arbitraryTextResourceIndex];
+    renderTextResourcePicker({ value: pickedTextResource.id });
+    const removableChip = screen.getByText(pickedTextResource.value, { selector: 'data.ds-chip' });
+    await user.click(removableChip);
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledWith(null));
+  });
+
+  it('Displays the ID as label when text resource value is not found', () => {
+    const textResourcesWithMissingValue: TextResource[] = [
+      { id: 'test-id', value: 'Test Value' },
+      { id: 'missing-value-id', value: '' },
+    ];
+    renderTextResourcePicker({
+      textResources: textResourcesWithMissingValue,
+      value: 'missing-value-id',
+    });
+    const text = screen.getByText('missing-value-id', { selector: 'data.ds-chip' });
+    expect(text).toBeInTheDocument();
+  });
 });
 
 function renderTextResourcePicker(

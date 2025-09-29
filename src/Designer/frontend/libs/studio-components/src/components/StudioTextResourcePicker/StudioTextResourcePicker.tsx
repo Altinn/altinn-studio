@@ -51,7 +51,6 @@ export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextR
 
     return (
       <StudioSuggestion
-        emptyText={emptyLabel}
         onSelectedChange={handleSelectedChange}
         selected={selectedItems}
         {...rest}
