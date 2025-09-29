@@ -724,6 +724,22 @@ public class OrgCodeListServiceTests : IDisposable
     }
 
     [Fact]
+    public void ValidateCodeListTitles_ShouldThrowException_WhenX()
+    {
+        // Arrange
+        List<CodeListWrapper> wrappers =
+        [
+            new(
+                Title: "illegal title",
+                CodeList: null,
+                HasError: true
+            )
+        ];
+        // Act and Assert
+        Assert.Throws<IllegalFileNameException>(() => OrgCodeListService.ValidateCodeListTitles(wrappers));
+    }
+
+    [Fact]
     public void ValidateCommitMessage_ShouldThrowException_WhenCommitMessageIsTooLong()
     {
         // Arrange
