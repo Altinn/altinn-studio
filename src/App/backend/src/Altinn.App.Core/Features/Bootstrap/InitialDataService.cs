@@ -7,6 +7,9 @@ using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
@@ -29,6 +32,7 @@ internal sealed class InitialDataService : IInitialDataService
     private readonly IUserTokenProvider _userTokenProvider;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IAuthenticationContext _authenticationContext;
+    private readonly IProcessStateService _processStateService;
     private readonly AppSettings _appSettings;
     private readonly PlatformSettings _platformSettings;
     private readonly GeneralSettings _generalSettings;
@@ -51,6 +55,7 @@ internal sealed class InitialDataService : IInitialDataService
         IUserTokenProvider userTokenProvider,
         IHttpContextAccessor httpContextAccessor,
         IAuthenticationContext authenticationContext,
+        IProcessStateService processStateService,
         IOptions<AppSettings> appSettings,
         IOptions<PlatformSettings> platformSettings,
         IOptions<GeneralSettings> generalSettings,
@@ -65,6 +70,7 @@ internal sealed class InitialDataService : IInitialDataService
         _userTokenProvider = userTokenProvider;
         _httpContextAccessor = httpContextAccessor;
         _authenticationContext = authenticationContext;
+        _processStateService = processStateService;
         _appSettings = appSettings.Value;
         _platformSettings = platformSettings.Value;
         _generalSettings = generalSettings.Value;
@@ -216,6 +222,20 @@ internal sealed class InitialDataService : IInitialDataService
                     instanceOwnerPartyId.Value,
                     instanceGuid.Value
                 );
+
+                // Get process state if instance has a process
+                if (response.Instance?.Process != null)
+                {
+                    var user = _httpContextAccessor.HttpContext?.User;
+                    if (user != null)
+                    {
+                        response.ProcessState = await _processStateService.GetAuthorizedProcessState(
+                            response.Instance,
+                            response.Instance.Process,
+                            user
+                        );
+                    }
+                }
             }
         }
         catch

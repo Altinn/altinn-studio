@@ -36,10 +36,9 @@
 //   }),
 // );
 
-// @ts-ignore
 console.log(window.AltinnAppData);
 
 // export const ProfileProvider = Provider;
-// @ts-ignore
-export const useProfile = () => window.AltinnAppData.profile;
+
+export const useProfile = () => window.AltinnAppData.userProfile;
 //export const useShouldFetchProfile = () => useIsAllowAnonymous(false);

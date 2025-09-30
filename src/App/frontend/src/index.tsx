@@ -35,7 +35,7 @@ import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffe
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
-import { AppPrefetcher } from 'src/queries/appPrefetcher';
+// import { AppPrefetcher } from 'src/queries/appPrefetcher';
 import { PartyPrefetcher } from 'src/queries/partyPrefetcher';
 import * as queries from 'src/queries/queries';
 
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
   root?.render(
     <AppQueriesProvider {...queries}>
       <ErrorBoundary>
-        <AppPrefetcher />
+        {/*<AppPrefetcher />*/}
         <LanguageProvider>
           <LangToolsStoreProvider>
             <ViewportWrapper>

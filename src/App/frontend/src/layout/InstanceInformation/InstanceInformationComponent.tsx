@@ -65,7 +65,7 @@ export function InstanceInformation({ elements }: Pick<CompInternal<'InstanceInf
 
   const langTools = useLanguage();
 
-  const lastChanged = useInstanceDataQuery({ select: (data) => data.lastChanged }).data;
+  const lastChanged = useInstanceDataQuery().data.lastChanged;
   const instanceId = useLaxInstanceId();
   const appReceiver = useAppReceiver();
 

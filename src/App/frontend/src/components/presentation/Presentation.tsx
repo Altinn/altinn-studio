@@ -38,9 +38,8 @@ export const PresentationComponent = ({
   showNavbar = true,
   showNavigation = true,
 }: IPresentationProvidedProps) => {
-  const instanceStatus = useInstanceDataQuery({
-    select: (instance) => instance.status,
-  }).data;
+  const { status: instanceStatus } = useInstanceDataQuery().data;
+
   const { expandedWidth } = useUiConfigContext();
   const hasGroupedNavigation = useHasGroupedNavigation();
 

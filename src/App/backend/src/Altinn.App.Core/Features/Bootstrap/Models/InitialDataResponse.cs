@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
@@ -94,6 +95,12 @@ public sealed class InitialDataResponse
     /// </summary>
     [JsonPropertyName("platformSettings")]
     public FrontendPlatformSettings? PlatformSettings { get; set; }
+
+    /// <summary>
+    /// Process state information if instance is available.
+    /// </summary>
+    [JsonPropertyName("processState")]
+    public AppProcessState? ProcessState { get; set; }
 }
 
 /// <summary>

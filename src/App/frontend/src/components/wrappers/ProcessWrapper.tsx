@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
@@ -29,7 +29,6 @@ interface NavigationErrorProps {
 }
 
 function NavigationError({ label }: NavigationErrorProps) {
-  debugger;
   const currentTaskId = useProcessQuery().data?.currentTask?.elementId;
   const navigateToTask = useNavigateToTask();
 
@@ -68,7 +67,6 @@ function NavigationError({ label }: NavigationErrorProps) {
 }
 
 export function NavigateToStartUrl({ forceCurrentTask = true }: { forceCurrentTask?: boolean }) {
-  debugger;
   const navigate = useNavigate();
   const currentTaskId = getTargetTaskFromProcess(useProcessQuery().data);
   const startUrl = useStartUrl(forceCurrentTask ? currentTaskId : undefined);
@@ -82,8 +80,6 @@ export function NavigateToStartUrl({ forceCurrentTask = true }: { forceCurrentTa
 
   useEffect(() => {
     if (currentLocation !== startUrl && !isRunningProcessNext) {
-      console.log('startUrl', startUrl);
-
       //navigate(startUrl, { replace: true });
     }
   }, [currentLocation, isRunningProcessNext, navigate, startUrl]);
@@ -97,12 +93,17 @@ export function NavigateToStartUrl({ forceCurrentTask = true }: { forceCurrentTa
 
 export function ProcessWrapper({ children }: PropsWithChildren) {
   const { data: process } = useProcessQuery();
+  console.log('process', process);
+
   const currentTaskId = process?.currentTask?.elementId;
-  const taskId = useNavigationParam('taskId');
+  const { taskId } = useParams();
   const isCurrentTask =
     currentTaskId === undefined && taskId === TaskKeys.CustomReceipt ? true : currentTaskId === taskId;
 
   const isValidTaskId = useIsValidTaskId()(taskId);
+
+  // console.log('isValidTaskId', isValidTaskId);
+
   const taskType = useGetTaskTypeById()(taskId);
   const queryClient = useQueryClient();
 

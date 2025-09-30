@@ -20,6 +20,8 @@ export const processQueries = {
     queryOptions({
       queryKey: processQueries.processStateKey(instanceId),
       queryFn: instanceId ? () => fetchProcessState(instanceId) : skipToken,
+      initialData: () => window.AltinnAppData?.processState,
+      enabled: true,
     }),
 } as const;
 
@@ -29,11 +31,10 @@ export function useProcessQuery() {
   const layoutSets = useLayoutSets();
   const navigateToTask = useNavigateToTask();
 
-  // debugger
-
   const query = useQuery(processQueries.processState(instanceId));
 
-  const { data, error } = query;
+  const data = instanceId ? query.data : window.AltinnAppData?.processState;
+  const error = instanceId ? query.error : undefined;
   const ended = !!data?.ended;
 
   // TODO: move this to a layout file on task id change instead
@@ -54,7 +55,7 @@ export function useProcessQuery() {
     error && window.logError('Fetching process state failed:\n', error);
   }, [error]);
 
-  return query;
+  return { ...query, data, error };
 }
 
 export const useIsAuthorized = () => {
@@ -136,3 +137,107 @@ export function useOptimisticallyUpdateProcess() {
 
   return (process: IProcess) => queryClient.setQueryData<IProcess>(processQueryKey, process);
 }
+
+// import { useQueryClient } from '@tanstack/react-query';
+//
+// import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+// import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+// import { TaskKeys } from 'src/hooks/useNavigatePage';
+// import { isProcessTaskType, ProcessTaskType } from 'src/types';
+// import { behavesLikeDataTask } from 'src/utils/formLayout';
+// import type { LooseAutocomplete } from 'src/types';
+// import type { IActionType, IProcess } from 'src/types/shared';
+//
+// // export const processQueries = {
+// //   all: () => ['process'],
+// //   processStateKey: (instanceId?: string) => [...processQueries.all(), instanceId],
+// //   processState: (instanceId?: string) =>
+// //     queryOptions({
+// //       queryKey: processQueries.processStateKey(instanceId),
+// //       queryFn: instanceId ? () => fetchProcessState(instanceId) : skipToken,
+// //     }),
+// // } as const;
+//
+// export function useProcessQuery() {
+//   return { data: window.AltinnAppData.process };
+// }
+//
+// export const useIsAuthorized = () => {
+//   const { data } = useProcessQuery();
+//
+//   return (action: LooseAutocomplete<IActionType>): boolean => {
+//     const userAction = data?.currentTask?.userActions?.find((a) => a.id === action);
+//     return !!userAction?.authorized;
+//   };
+// };
+//
+// /**
+//  * This returns the task type of the current process task, as we got it from the backend
+//  */
+// export function useTaskTypeFromBackend() {
+//   const { data: processData } = useProcessQuery();
+//
+//   if (processData?.ended) {
+//     return ProcessTaskType.Archived;
+//   }
+//
+//   const altinnTaskType = processData?.currentTask?.altinnTaskType;
+//   if (altinnTaskType && isProcessTaskType(altinnTaskType)) {
+//     return altinnTaskType;
+//   }
+//
+//   return ProcessTaskType.Unknown;
+// }
+//
+// /**
+//  * This hook returns the taskType of a given taskId. If the
+//  * taskId cannot be found in processTasks it will return the
+//  * taskType of the currentTask if the currentTask matches
+//  * the taskId provided.
+//  */
+// export function useGetTaskTypeById() {
+//   const { data: processData } = useProcessQuery();
+//   const isStateless = useApplicationMetadata().isStatelessApp;
+//   const layoutSets = useLayoutSets();
+//
+//   return (taskId: string | undefined) => {
+//     const task =
+//       (processData?.processTasks?.find((t) => t.elementId === taskId) ?? processData?.currentTask?.elementId === taskId)
+//         ? processData?.currentTask
+//         : undefined;
+//
+//     if (isStateless || taskId === TaskKeys.CustomReceipt || behavesLikeDataTask(taskId, layoutSets)) {
+//       // Stateless apps only have data tasks. As soon as they start creating an instance from that stateless step,
+//       // applicationMetadata.isStatelessApp will return false and we'll proceed as normal.
+//       return ProcessTaskType.Data;
+//     }
+//
+//     if (taskId === TaskKeys.ProcessEnd || processData?.ended) {
+//       return ProcessTaskType.Archived;
+//     }
+//
+//     const altinnTaskType = task?.altinnTaskType;
+//     if (altinnTaskType && isProcessTaskType(altinnTaskType)) {
+//       return altinnTaskType;
+//     }
+//
+//     return ProcessTaskType.Unknown;
+//   };
+// }
+//
+// /**
+//  * Returns the actual raw task type of a given taskId.
+//  */
+// export function useGetAltinnTaskType() {
+//   const { data: processData } = useProcessQuery();
+//   return (taskId: string | undefined) => processData?.processTasks?.find((t) => t.elementId === taskId)?.altinnTaskType;
+// }
+//
+// export function useOptimisticallyUpdateProcess() {
+//   const queryClient = useQueryClient();
+//   // const instanceId = useLaxInstanceId();
+//
+//   // const processQueryKey = processQueries.processStateKey(instanceId);
+//
+//   return (process: IProcess) => queryClient.setQueryData<IProcess>([''], process);
+// }

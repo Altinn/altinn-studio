@@ -201,8 +201,6 @@ public class HomeController : Controller
             }
         }
 
-        Debugger.Break();
-
         // Build redirect URL with task and optionally page
         string redirectUrl;
         if (!string.IsNullOrEmpty(firstPageId))
@@ -219,27 +217,6 @@ public class HomeController : Controller
         return Redirect(redirectUrl);
     }
 
-    // [HttpGet]
-    // [Route("{org}/{app}/instance/{partyId}/{instanceGuid}/{taskId}")]
-    // [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
-    // public async Task<IActionResult> Index(
-    //     [FromRoute] string org,
-    //     [FromRoute] string app,
-    //     [FromRoute] int partyId,
-    //     [FromRoute] Guid instanceGuid,
-    //     [FromRoute] string taskId
-    // )
-    // {
-    //     Instance instance = await _instanceClient.GetInstance(app, org, partyId, instanceGuid);
-    //     if (instance.Process?.CurrentTask?.ElementId == null)
-    //     {
-    //         return BadRequest("Instance has no active task");
-    //     }
-    //     string currentTaskId = instance.Process.CurrentTask.ElementId;
-    //     string redirectUrl = $"/{org}/{app}/instance/{partyId}/{instanceGuid}/{currentTaskId}";
-    //     return Redirect(redirectUrl);
-    // }
-
     /// <summary>
     /// Returns the index view with references to the React app.
     /// </summary>
@@ -255,134 +232,33 @@ public class HomeController : Controller
     public async Task<IActionResult> Index(
         [FromRoute] string org,
         [FromRoute] string app,
-        [FromRoute] int? partyId = null,
-        [FromRoute] Guid? instanceGuid = null,
-        [FromRoute] string? taskId = null,
-        [FromRoute] string? pageId = null,
+        [FromRoute] int partyId,
+        [FromRoute] Guid instanceGuid,
+        [FromRoute] string taskId,
+        [FromRoute] string pageId,
         [FromQuery] bool dontChooseReportee = false
     )
     {
-        if (partyId != null && instanceGuid != null)
+        if (await ShouldShowAppView())
         {
-            if (await ShouldShowAppView())
-            {
-                // Construct instance ID from route parameters if available
-                string? instanceId = null;
-                if (partyId.HasValue && instanceGuid.HasValue)
-                {
-                    instanceId = $"{partyId}/{instanceGuid}";
-                }
+            // Construct instance ID from route parameters if available
+            string instanceId = $"{partyId}/{instanceGuid}";
 
-                // Get language from Accept-Language header or query parameter
-                var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
+            // Get language from Accept-Language header or query parameter
+            var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
 
-                // Aggregate all initial data
-                var initialData = await _initialDataService.GetInitialData(org, app, instanceId, partyId, language);
+            // Aggregate all initial data
+            var initialData = await _initialDataService.GetInitialData(org, app, instanceId, partyId, language);
 
-                // Add routing information to initial data
-                initialData.AppSettings ??= new Altinn.App.Core.Features.Bootstrap.Models.FrontendAppSettings();
-                if (taskId != null)
-                {
-                    initialData.AppSettings.CurrentTaskId = taskId;
-                }
-                if (pageId != null)
-                {
-                    initialData.AppSettings.CurrentPageId = pageId;
-                }
+            // Add routing information to initial data
+            initialData.AppSettings ??= new Altinn.App.Core.Features.Bootstrap.Models.FrontendAppSettings();
+            initialData.AppSettings.CurrentTaskId = taskId;
+            initialData.AppSettings.CurrentPageId = pageId;
 
-                // Generate HTML with embedded data
-                var html = GenerateHtml(org, app, initialData);
-                return Content(html, "text/html; charset=utf-8");
-            }
+            // Generate HTML with embedded data
+            var html = GenerateHtml(org, app, initialData);
+            return Content(html, "text/html; charset=utf-8");
         }
-
-        var currentAuth = _authenticationContext.Current;
-
-        if (currentAuth is not Authenticated.User auth)
-        {
-            throw new UnauthorizedAccessException("This is frontend endpoint only");
-        }
-
-        var details = await auth.LoadDetails(validateSelectedParty: false);
-
-        if (details.PartiesAllowedToInstantiate.Count < 1)
-        {
-            return Unauthorized("You dont have any valid parties to use this form");
-        }
-
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
-
-        var currentPartyCanInstantiate = InstantiationHelper.IsPartyAllowedToInstantiate(
-            details.Profile.Party,
-            applicationMetadata.PartyTypesAllowed
-        );
-
-        if (!currentPartyCanInstantiate)
-        {
-            return Unauthorized("Your current party is not allowed to use this form. we will soon implement redirect");
-        }
-
-        if (
-            details.PartiesAllowedToInstantiate.Count > 1
-            && applicationMetadata.PromptForParty != null
-            && applicationMetadata.PromptForParty.Equals("always", StringComparison.Ordinal)
-        )
-        {
-            return Redirect("party-selection");
-        }
-
-        if (
-            details.PartiesAllowedToInstantiate.Count > 1
-            && details.Profile.ProfileSettingPreference.DoNotPromptForParty
-            && applicationMetadata.PromptForParty != null
-            && applicationMetadata.PromptForParty.Equals("never", StringComparison.Ordinal)
-        )
-        {
-            return Redirect("party-selection");
-        }
-
-        if (partyId == null)
-        {
-            return Redirect(Request.GetDisplayUrl() + "instance/" + details.Profile.Party.PartyId);
-        }
-
-        if (instanceGuid == null)
-        {
-            Dictionary<string, StringValues> queryParams = new()
-            {
-                { "appId", $"{org}/{app}" },
-                { "instanceOwner.partyId", details.UserParty.PartyId.ToString(CultureInfo.InvariantCulture) },
-                { "status.isArchived", "false" },
-                { "status.isSoftDeleted", "false" },
-            };
-
-            List<Instance> activeInstances = await _instanceClient.GetInstances(queryParams);
-
-            Instance? mostRecentInstance = activeInstances.OrderByDescending(i => i.LastChanged).FirstOrDefault();
-
-            if (mostRecentInstance != null)
-            {
-                var displUrl = Request.GetDisplayUrl();
-                //
-                // var tempt = mostRecentInstance.Id;
-                //
-                // Debugger.Break();
-
-                var extractedInstanceGuid = mostRecentInstance.Id.Split('/').Last();
-
-                var url = Request.GetDisplayUrl() + "/" + extractedInstanceGuid;
-
-                Debugger.Break();
-                //
-                // var brokenInstanceGuid = DeconstructInstanceId()
-
-                // http://local.altinn.cloud/ttd/component-library/instance/501337instance/
-                return Redirect(url);
-            }
-
-            return Redirect(Request.GetDisplayUrl() + "/" + details.Profile.Party.PartyId);
-        }
-
         return BadRequest();
     }
 

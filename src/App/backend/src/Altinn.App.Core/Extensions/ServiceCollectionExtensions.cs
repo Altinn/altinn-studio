@@ -351,6 +351,7 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<IProcessEngineAuthorizer, ProcessEngineAuthorizer>();
         services.TryAddTransient<IProcessNavigator, ProcessNavigator>();
         services.TryAddSingleton<IProcessReader, ProcessReader>();
+        services.TryAddTransient<IProcessStateService, ProcessStateService>();
         services.TryAddTransient<IProcessEventHandlerDelegator, ProcessEventHandlingDelegator>();
         services.TryAddTransient<IProcessEventDispatcher, ProcessEventDispatcher>();
         services.TryAddTransient<ExclusiveGatewayFactory>();

@@ -21,7 +21,6 @@ const emptyArray: never[] = [];
 const InstanceContext = React.createContext<IInstance | null>(null);
 
 export const InstanceProvider = ({ children }: PropsWithChildren) => {
-  debugger;
   // const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
 
   const { instanceOwnerPartyId, instanceGuid } = useParams<{ instanceOwnerPartyId: string; instanceGuid: string }>();
@@ -61,7 +60,6 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
 
   console.log('keep on');
 
-  debugger;
   return <InstanceContext.Provider value={data}>{children}</InstanceContext.Provider>;
 };
 
@@ -120,29 +118,17 @@ export const instanceQueries = {
 export function useInstanceDataQuery<R = IInstance>(
   _: Omit<UseQueryOptions<IInstance, Error, R>, 'queryKey' | 'queryFn'> = {},
 ) {
-  // @ts-ignore
-  //console.log(window.AltinnAppData.instance);
-  // @ts-ignore
   return { data: window.AltinnAppData.instance };
-  // return useQuery<IInstance, Error, R>({
-  //   ...instanceQueries.instanceData(useInstanceDataQueryArgs()),
-  //   refetchOnWindowFocus: queryOptions.refetchInterval !== false,
-  //   select: queryOptions.select, // FIXME: somehow TS complains if this is not here
-  //   ...queryOptions,
-  // });
 }
 
 export function useInstanceDataSources(): IInstanceDataSources | null {
   const instanceOwnerParty = useInstanceOwnerParty();
-  return (
-    useInstanceDataQuery({
-      select: (instance) => buildInstanceDataSources(instance, instanceOwnerParty),
-    }).data ?? null
-  );
+  const instance = useInstanceDataQuery().data;
+  return buildInstanceDataSources(instance, instanceOwnerParty);
 }
 
 export const useDataElementsSelectorProps = () => {
-  const dataElements = useInstanceDataQuery({ select: (instance) => instance.data }).data;
+  const dataElements = useInstanceDataQuery().data.data;
 
   return <U,>(selectDataElements: (data: IData[]) => U) =>
     dataElements ? selectDataElements(dataElements) : undefined;
@@ -150,14 +136,13 @@ export const useDataElementsSelectorProps = () => {
 
 /** Beware that in later versions, this will re-render your component after every save, as
  * the backend sends us updated instance data */
-export const useInstanceDataElements = (dataType: string | undefined) =>
-  useInstanceDataQuery({
-    select: (instance) =>
-      dataType ? instance.data.filter((dataElement) => dataElement.dataType === dataType) : instance.data,
-  }).data ?? emptyArray;
+export const useInstanceDataElements = (dataType: string | undefined) => {
+  const dataElements = useInstanceDataQuery().data;
+  return dataElements.data.filter((dataElement) => dataElement.dataType === dataType);
+};
 
 export function useHasPendingScans(): boolean {
-  const dataElements = useInstanceDataQuery({ select: (instance) => instance.data }).data ?? [];
+  const dataElements = useInstanceDataQuery().data.data;
   if (dataElements.length === 0) {
     return false;
   }
