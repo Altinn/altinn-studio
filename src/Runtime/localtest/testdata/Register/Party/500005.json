@@ -1,0 +1,13 @@
+{
+    "partyId": "500005",
+    "partyTypeName": 2,
+    "orgNumber": "405003309",
+    "ssn": null,
+    "unitType": "BEDR",
+    "name": "Testdepartementet",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
+}

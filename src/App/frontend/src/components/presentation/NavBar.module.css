@@ -1,0 +1,25 @@
+.nav {
+  max-width: var(--page-max-width);
+  padding: 0 var(--nav-padding);
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-bottom: 0.5rem;
+  gap: 1rem;
+}
+
+.wrapper {
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.button-margin {
+  margin-top: calc(2 * var(--ds-border-width-focus));
+}

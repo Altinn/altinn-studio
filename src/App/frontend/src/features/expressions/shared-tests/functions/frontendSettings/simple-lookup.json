@@ -1,0 +1,9 @@
+{
+  "name": "Simple lookup",
+  "expression": ["frontendSettings", "mySetting1"],
+  "expects": "foo",
+  "frontendSettings": {
+    "mySetting1": "foo",
+    "mySetting2": "bar"
+  }
+}

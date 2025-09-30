@@ -1,0 +1,5 @@
+{
+  "name": "Simple not-equals test with string",
+  "expression": ["compare", "yes", "equals", "no"],
+  "expects": false
+}

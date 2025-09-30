@@ -1,0 +1,48 @@
+{
+  "name": "Lookup from multiple sources with and without default values",
+  "expression": [
+    "text",
+    "found.key"
+  ],
+  "expects": "my-non-existing-setting [setting not found] [setting1 Value] non.existing [non existing] From dataModel!",
+  "textResources": [
+    {
+      "id": "found.key",
+      "value": "{5} {4} {3} {2} {1} {0}!",
+      "variables": [
+        {
+          "key": "Name",
+          "dataSource": "dataModel.default"
+        },
+        {
+          "key": "non.existing",
+          "dataSource": "dataModel.default",
+          "defaultValue": "[non existing]"
+        },
+        {
+          "key": "non.existing",
+          "dataSource": "dataModel.default"
+        },
+        {
+          "key": "mySetting1",
+          "dataSource": "applicationSettings"
+        },
+        {
+          "key": "my-non-existing-setting",
+          "dataSource": "applicationSettings",
+          "defaultValue": "[setting not found]"
+        },
+        {
+          "key": "my-non-existing-setting",
+          "dataSource": "applicationSettings"
+        }
+      ]
+    }
+  ],
+  "dataModel": {
+    "Name": "From dataModel"
+  },
+  "frontendSettings": {
+    "mySetting1": "[setting1 Value]"
+  }
+}

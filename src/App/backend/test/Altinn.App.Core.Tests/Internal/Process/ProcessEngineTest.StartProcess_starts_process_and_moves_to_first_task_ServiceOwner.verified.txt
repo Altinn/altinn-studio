@@ -1,0 +1,66 @@
+﻿{
+  Activities: [
+    {
+      Name: Process.HandleEvents,
+      IdFormat: W3C,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        }
+      ],
+      HasParent: false
+    },
+    {
+      Name: Process.Start,
+      IdFormat: W3C,
+      Status: Ok,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        }
+      ],
+      Events: [
+        {
+          Name: change,
+          Timestamp: DateTimeOffset_1,
+          Tags: [
+            {
+              events: [
+                Type=process_StartEvent DataId=,
+                Type=process_StartTask DataId=
+              ]
+            },
+            {
+              to.started: DateTime_1
+            },
+            {
+              to.task.name: Utfylling
+            }
+          ]
+        }
+      ],
+      HasParent: false
+    },
+    {
+      Name: Process.StoreEvents,
+      IdFormat: W3C,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        }
+      ],
+      HasParent: false
+    }
+  ],
+  Metrics: [
+    {
+      Name: altinn_app_lib_processes_started,
+      MeterName: test,
+      Measurements: [
+        {
+          Value: 1.0
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,367 @@
+﻿{
+  Activities: [
+    {
+      Name: ApplicationMetadata.Service.GetLayoutModel,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Service.GetLayoutModel,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Service.GetLayoutSet,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Service.GetLayoutSet,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Service.GetLayoutSet,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Service.GetLayoutSet,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Service.GetLayoutSet,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Service.GetLayoutSets,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Service.GetLayoutSets,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Service.GetLayoutSets,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Service.GetLayoutSets,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Service.GetLayoutSets,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Service.GetLayoutSetsForTask,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Service.GetLayoutSetsForTask,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Service.GetLayoutSettingsForSet,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Service.GetLayoutSettingsForSet,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Service.GetValidationConfiguration,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Service.GetValidationConfiguration,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: Authorization.Service.AuthorizeAction,
+      IdFormat: W3C,
+      Tags: [
+        {
+          authorization.action: write
+        },
+        {
+          instance.guid: Guid_1
+        },
+        {
+          instance.owner.party.id: 500600
+        },
+        {
+          task.id: Task_1
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next,
+      Kind: Server,
+      IdFormat: W3C,
+      Tags: [
+        {
+          http.request.method: PUT
+        },
+        {
+          http.response.status_code: 409
+        },
+        {
+          http.route: {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next
+        },
+        {
+          instance.owner.party.id: 500600
+        },
+        {
+          network.protocol.version: 1.1
+        },
+        {
+          problem.status: 409
+        },
+        {
+          problem.title: Validation failed for task
+        },
+        {
+          server.address: localhost
+        },
+        {
+          TestId: Guid_2
+        },
+        {
+          url.path: /tdd/contributer-restriction/instances/500600/5a2fa5ec-f97c-4816-b57a-dc78a981917e/process/next
+        },
+        {
+          url.scheme: http
+        },
+        {
+          user.authentication.inAltinnPortal: true
+        },
+        {
+          user.authentication.level: 2
+        },
+        {
+          user.authentication.method: BankID
+        },
+        {
+          user.authentication.token.isExchanged: false
+        },
+        {
+          user.authentication.token.issuer: Altinn
+        },
+        {
+          user.authentication.type: User
+        },
+        {
+          user.id: 1337
+        },
+        {
+          user.party.id: 500600
+        }
+      ],
+      HasParent: false
+    },
+    {
+      Name: ProcessClient.GetProcessDefinition,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetAltinnTaskExtension,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetFlowElement,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: SerializationService.DeserializeXml,
+      IdFormat: W3C,
+      Tags: [
+        {
+          Type: Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Validation.RunValidator,
+      IdFormat: W3C,
+      Tags: [
+        {
+          validation.issue_count: 0
+        },
+        {
+          validator.source: Required
+        },
+        {
+          validator.type: RequiredLayoutValidator
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Validation.RunValidator,
+      IdFormat: W3C,
+      Tags: [
+        {
+          validation.issue_count: 0
+        },
+        {
+          validator.source: Expression
+        },
+        {
+          validator.type: ExpressionValidator
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Validation.RunValidator,
+      IdFormat: W3C,
+      Tags: [
+        {
+          validation.issue_count: 0
+        },
+        {
+          validator.source: Altinn.App.Core.Features.Validation.Default.DefaultTaskValidator-*
+        },
+        {
+          validator.type: TaskValidatorWrapper
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Validation.RunValidator,
+      IdFormat: W3C,
+      Tags: [
+        {
+          validation.issue_count: 0
+        },
+        {
+          validator.source: Altinn.App.Core.Features.Validation.Default.DefaultDataElementValidator-*
+        },
+        {
+          validator.type: DataElementValidatorWrapper
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Validation.RunValidator,
+      IdFormat: W3C,
+      Tags: [
+        {
+          validation.issue_count: 0
+        },
+        {
+          validator.source: DataAnnotations
+        },
+        {
+          validator.type: FormDataValidatorWrapper
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Validation.RunValidator,
+      IdFormat: W3C,
+      Tags: [
+        {
+          validation.issue_count: 0
+        },
+        {
+          validator.source: Not a valid validation source
+        },
+        {
+          validator.type: FormDataValidatorWrapper
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Validation.RunValidator,
+      IdFormat: W3C,
+      Tags: [
+        {
+          validation.issue_count: 1
+        },
+        {
+          validator.source: test-source
+        },
+        {
+          validator.type: FormDataValidatorWrapper
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Validation.ValidateInstanceAtTask,
+      IdFormat: W3C,
+      Tags: [
+        {
+          task.id: Task_1
+        },
+        {
+          validation.total_issue_count: 1
+        }
+      ],
+      HasParent: true
+    }
+  ],
+  Metrics: [
+    {
+      Name: http.server.request.duration,
+      MeterName: Microsoft.AspNetCore.Hosting,
+      Measurements: [
+        {
+          Tags: [
+            {
+              http.request.method: PUT
+            },
+            {
+              http.response.status_code: 409
+            },
+            {
+              http.route: {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next
+            },
+            {
+              network.protocol.version: 1.1
+            },
+            {
+              TestId: Guid_2
+            },
+            {
+              url.scheme: http
+            },
+            {
+              user.authentication.token.isExchanged: false
+            },
+            {
+              user.authentication.token.issuer: Altinn
+            },
+            {
+              user.authentication.type: User
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Too many arguments give an error",
+  "expression": ["equals", true, ["equals", true, false, true]],
+  "expectsFailure": "Expected 2 argument(s), got 3"
+}

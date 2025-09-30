@@ -16,18 +16,19 @@ import userEvent from '@testing-library/user-event';
 import { InstanceContext } from '../../../../enums/InstanceContext';
 import { ExpressionErrorKey } from '../../../../enums/ExpressionErrorKey';
 import { PredefinedGatewayAction } from '../../../../enums/PredefinedGatewayAction';
+import { type DataLookupOptions } from '../../../../types/DataLookupOptions';
 
 describe('SubexpressionValueSelector', () => {
   it('Renders with the given legend in edit mode', () => {
     const legend = 'test-legend';
-    renderSubexpressionValueSelector({ legend, isInEditMode: true });
+    renderSubexpressionValueSelector({ props: { legend, isInEditMode: true } });
     expect(screen.getByRole('group', { name: legend })).toBeInTheDocument();
   });
 
   it('Calls the onChange function with a new value when the value type is changed', async () => {
     const user = userEvent.setup();
     const onChange = jest.fn();
-    renderSubexpressionValueSelector({ onChange, isInEditMode: true });
+    renderSubexpressionValueSelector({ props: { onChange, isInEditMode: true } });
     const select = screen.getByRole('combobox');
     const newValueType = SimpleSubexpressionValueType.Number;
     await user.selectOptions(select, newValueType);
@@ -36,14 +37,16 @@ describe('SubexpressionValueSelector', () => {
 
   describe('When the value is a string', () => {
     it('Displays the value in readonly mode', () => {
-      renderSubexpressionValueSelector({ value: stringValue, isInEditMode: false });
+      renderSubexpressionValueSelector({ props: { value: stringValue, isInEditMode: false } });
       screen.getByText('"' + stringValue.value + '"');
     });
 
     it('Lets the user edit the value in edit mode', async () => {
       const user = userEvent.setup();
       const onChange = jest.fn();
-      renderSubexpressionValueSelector({ value: stringValue, isInEditMode: true, onChange });
+      renderSubexpressionValueSelector({
+        props: { value: stringValue, isInEditMode: true, onChange },
+      });
       const input = screen.getByRole('textbox');
       const addedText = 'A';
       await user.type(input, addedText);
@@ -61,14 +64,16 @@ describe('SubexpressionValueSelector', () => {
     };
 
     it('Displays the value in readonly mode', () => {
-      renderSubexpressionValueSelector({ value: numberValue, isInEditMode: false });
+      renderSubexpressionValueSelector({ props: { value: numberValue, isInEditMode: false } });
       screen.getByText(numberValue.value.toString());
     });
 
     it('Lets the user edit the value in edit mode', async () => {
       const user = userEvent.setup();
       const onChange = jest.fn();
-      renderSubexpressionValueSelector({ value: numberValue, isInEditMode: true, onChange });
+      renderSubexpressionValueSelector({
+        props: { value: numberValue, isInEditMode: true, onChange },
+      });
       const input = screen.getByRole('textbox');
       const addedValue = 1;
       await user.type(input, addedValue.toString());
@@ -84,14 +89,16 @@ describe('SubexpressionValueSelector', () => {
     const booleanText = (b: boolean): string => (b ? texts.true : texts.false);
 
     it('Displays the value in readonly mode', () => {
-      renderSubexpressionValueSelector({ value: booleanValue, isInEditMode: false });
+      renderSubexpressionValueSelector({ props: { value: booleanValue, isInEditMode: false } });
       screen.getByText(value ? texts.true : texts.false);
     });
 
     it('Lets the user edit the value in edit mode', async () => {
       const user = userEvent.setup();
       const onChange = jest.fn();
-      renderSubexpressionValueSelector({ value: booleanValue, isInEditMode: true, onChange });
+      renderSubexpressionValueSelector({
+        props: { value: booleanValue, isInEditMode: true, onChange },
+      });
       const newValue = !value;
       await user.click(screen.getByRole('radio', { name: booleanText(newValue) }));
       expect(onChange).toHaveBeenLastCalledWith({ ...booleanValue, value: newValue });
@@ -105,20 +112,22 @@ describe('SubexpressionValueSelector', () => {
     };
 
     it('Displays the path in readonly mode', () => {
-      renderSubexpressionValueSelector({ value: dataModelValue, isInEditMode: false });
+      renderSubexpressionValueSelector({ props: { value: dataModelValue, isInEditMode: false } });
       screen.getByText(dataModelValue.path);
     });
 
     it('Renders with the given data model path value in edit mode', () => {
-      renderSubexpressionValueSelector({ value: dataModelValue, isInEditMode: true });
+      renderSubexpressionValueSelector({ props: { value: dataModelValue, isInEditMode: true } });
       const select = screen.getByRole('combobox', { name: texts.dataModelPath });
       expect(select).toHaveValue(dataModelValue.path);
     });
 
     it('Renders with an empty combobox in edit mode when the data model path is an empty string', () => {
       renderSubexpressionValueSelector({
-        value: { ...dataModelValue, path: '' },
-        isInEditMode: true,
+        props: {
+          value: { ...dataModelValue, path: '' },
+          isInEditMode: true,
+        },
       });
       const select = screen.getByRole('combobox', { name: texts.dataModelPath });
       expect(select).toHaveValue('');
@@ -127,7 +136,9 @@ describe('SubexpressionValueSelector', () => {
     it('Lets the user edit the value in edit mode', async () => {
       const user = userEvent.setup();
       const onChange = jest.fn();
-      renderSubexpressionValueSelector({ value: dataModelValue, isInEditMode: true, onChange });
+      renderSubexpressionValueSelector({
+        props: { value: dataModelValue, isInEditMode: true, onChange },
+      });
       const newPointer = dataModelPointers[1];
       await user.click(screen.getByRole('combobox', { name: texts.dataModelPath }));
       await user.click(screen.getByRole('option', { name: newPointer }));
@@ -138,7 +149,9 @@ describe('SubexpressionValueSelector', () => {
     it('Displays an error and does not call the onChange function when the user enters an invalid value', async () => {
       const user = userEvent.setup();
       const onChange = jest.fn();
-      renderSubexpressionValueSelector({ value: dataModelValue, isInEditMode: true, onChange });
+      renderSubexpressionValueSelector({
+        props: { value: dataModelValue, isInEditMode: true, onChange },
+      });
       const input = screen.getByRole('combobox', { name: texts.dataModelPath });
       await user.type(input, '{backspace}');
       await user.click(document.body);
@@ -153,20 +166,22 @@ describe('SubexpressionValueSelector', () => {
     };
 
     it('Displays the componentId in readonly mode', () => {
-      renderSubexpressionValueSelector({ value: componentValue, isInEditMode: false });
+      renderSubexpressionValueSelector({ props: { value: componentValue, isInEditMode: false } });
       screen.getByText(componentValue.id);
     });
 
     it('Renders with the given component id value in edit mode', () => {
-      renderSubexpressionValueSelector({ value: componentValue, isInEditMode: true });
+      renderSubexpressionValueSelector({ props: { value: componentValue, isInEditMode: true } });
       const select = screen.getByRole('combobox', { name: texts.componentId });
       expect(select).toHaveValue(componentValue.id);
     });
 
     it('Renders with an empty combobox in edit mode when the component id is an empty string', () => {
       renderSubexpressionValueSelector({
-        value: { ...componentValue, id: '' },
-        isInEditMode: true,
+        props: {
+          value: { ...componentValue, id: '' },
+          isInEditMode: true,
+        },
       });
       const select = screen.getByRole('combobox', { name: texts.componentId });
       expect(select).toHaveValue('');
@@ -175,7 +190,9 @@ describe('SubexpressionValueSelector', () => {
     it('Lets the user edit the value in edit mode', async () => {
       const user = userEvent.setup();
       const onChange = jest.fn();
-      renderSubexpressionValueSelector({ value: componentValue, isInEditMode: true, onChange });
+      renderSubexpressionValueSelector({
+        props: { value: componentValue, isInEditMode: true, onChange },
+      });
       const newId = componentIds[1];
       await user.click(screen.getByRole('combobox', { name: texts.componentId }));
       await user.click(screen.getByRole('option', { name: newId }));
@@ -186,7 +203,9 @@ describe('SubexpressionValueSelector', () => {
     it('Displays an error and does not call the onChange function when the user enters an invalid value', async () => {
       const user = userEvent.setup();
       const onChange = jest.fn();
-      renderSubexpressionValueSelector({ value: componentValue, isInEditMode: true, onChange });
+      renderSubexpressionValueSelector({
+        props: { value: componentValue, isInEditMode: true, onChange },
+      });
       const input = (): HTMLElement => screen.getByRole('combobox', { name: texts.componentId });
       await user.type(input(), '{backspace}');
       await user.click(document.body);
@@ -195,7 +214,9 @@ describe('SubexpressionValueSelector', () => {
 
     it('Displays initial error and handles non-existing component ID', () => {
       const id = 'non-existing-id';
-      renderSubexpressionValueSelector({ value: { ...componentValue, id }, isInEditMode: true });
+      renderSubexpressionValueSelector({
+        props: { value: { ...componentValue, id }, isInEditMode: true },
+      });
       const errorMessage = screen.getByText(
         texts.errorMessages[ExpressionErrorKey.ComponentIDNoLongerExists],
       );
@@ -214,7 +235,9 @@ describe('SubexpressionValueSelector', () => {
             type: SimpleSubexpressionValueType.PredefinedGatewayAction,
             key,
           };
-        renderSubexpressionValueSelector({ value: gatewayContextValue, isInEditMode: false });
+        renderSubexpressionValueSelector({
+          props: { value: gatewayContextValue, isInEditMode: false },
+        });
         expect(screen.getByText(texts.predefinedGatewayActions[key]));
       },
     );
@@ -222,7 +245,7 @@ describe('SubexpressionValueSelector', () => {
     it('Render GatewayAction in readonly mode', () => {
       const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.CurrentGatewayAction> =
         { type: SimpleSubexpressionValueType.CurrentGatewayAction };
-      renderSubexpressionValueSelector({ value: gatewayAction, isInEditMode: false });
+      renderSubexpressionValueSelector({ props: { value: gatewayAction, isInEditMode: false } });
       expect(screen.getByText('GatewayAction'));
     });
 
@@ -235,9 +258,11 @@ describe('SubexpressionValueSelector', () => {
       const user = userEvent.setup();
       const onChange = jest.fn();
       renderSubexpressionValueSelector({
-        value: gatewayContextValue,
-        isInEditMode: true,
-        onChange,
+        props: {
+          value: gatewayContextValue,
+          isInEditMode: true,
+          onChange,
+        },
       });
       const newKey = PredefinedGatewayAction.Sign;
       const select = screen.getByLabelText(texts.gatewayAction);
@@ -250,14 +275,14 @@ describe('SubexpressionValueSelector', () => {
     it('should display expression selector only', () => {
       const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.CurrentGatewayAction> =
         { type: SimpleSubexpressionValueType.CurrentGatewayAction };
-      renderSubexpressionValueSelector({ value: gatewayAction, isInEditMode: true });
+      renderSubexpressionValueSelector({ props: { value: gatewayAction, isInEditMode: true } });
       expect(screen.getByText(texts.valueTypes[SimpleSubexpressionValueType.CurrentGatewayAction]));
     });
 
     it('should display readonly mode', () => {
       const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.CurrentGatewayAction> =
         { type: SimpleSubexpressionValueType.CurrentGatewayAction };
-      renderSubexpressionValueSelector({ value: gatewayAction, isInEditMode: false });
+      renderSubexpressionValueSelector({ props: { value: gatewayAction, isInEditMode: false } });
       expect(screen.getByText('GatewayAction'));
     });
   });
@@ -271,7 +296,9 @@ describe('SubexpressionValueSelector', () => {
             type: SimpleSubexpressionValueType.InstanceContext,
             key,
           };
-        renderSubexpressionValueSelector({ value: instanceContextValue, isInEditMode: false });
+        renderSubexpressionValueSelector({
+          props: { value: instanceContextValue, isInEditMode: false },
+        });
         screen.getByText(texts.instanceContext[key]);
       },
     );
@@ -285,9 +312,11 @@ describe('SubexpressionValueSelector', () => {
       const user = userEvent.setup();
       const onChange = jest.fn();
       renderSubexpressionValueSelector({
-        value: instanceContextValue,
-        isInEditMode: true,
-        onChange,
+        props: {
+          value: instanceContextValue,
+          isInEditMode: true,
+          onChange,
+        },
       });
       const newKey = InstanceContext.AppId;
       const select = screen.getByRole('combobox', { name: texts.instanceContextKey });
@@ -301,8 +330,27 @@ describe('SubexpressionValueSelector', () => {
       const nullValue: SimpleSubexpressionValue<SimpleSubexpressionValueType.Null> = {
         type: SimpleSubexpressionValueType.Null,
       };
-      renderSubexpressionValueSelector({ value: nullValue, isInEditMode: false });
+      renderSubexpressionValueSelector({ props: { value: nullValue, isInEditMode: false } });
       screen.getByText('null');
+    });
+  });
+
+  describe('displays warning when datamodel is not set', () => {
+    it('Shows missing data model label when no data model options are available', () => {
+      const dataModelValue: SimpleSubexpressionValue<SimpleSubexpressionValueType.DataModel> = {
+        type: SimpleSubexpressionValueType.DataModel,
+        path: '',
+      };
+
+      renderSubexpressionValueSelector({
+        props: {
+          value: dataModelValue,
+          isInEditMode: true,
+        },
+        dataLookupOptions: { ...dataLookupOptions, dataModel: [] },
+      });
+
+      expect(screen.getByText(texts.missingDataModelLabel)).toBeInTheDocument();
     });
   });
 });
@@ -319,13 +367,24 @@ const defaultProps: SubexpressionValueSelectorProps = {
   legend: 'legend',
 };
 
-const renderSubexpressionValueSelector = (
-  props: Partial<SubexpressionValueSelectorProps> = {},
-): RenderResult =>
-  render(
+type RenderSubexpressionValueSelectorProps = {
+  props?: Partial<SubexpressionValueSelectorProps>;
+  dataLookupOptions?: DataLookupOptions;
+};
+
+const renderSubexpressionValueSelector = ({
+  props: subexpressionProps,
+  dataLookupOptions: customDataLookupOptions = dataLookupOptions,
+}: RenderSubexpressionValueSelectorProps): RenderResult => {
+  return render(
     <StudioExpressionContextProvider
-      value={{ texts, dataLookupOptions, types: Object.values(SimpleSubexpressionValueType) }}
+      value={{
+        texts,
+        dataLookupOptions: customDataLookupOptions,
+        types: Object.values(SimpleSubexpressionValueType),
+      }}
     >
-      <SubexpressionValueSelector {...defaultProps} {...props} />
+      <SubexpressionValueSelector {...defaultProps} {...subexpressionProps} />
     </StudioExpressionContextProvider>,
   );
+};

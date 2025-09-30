@@ -12,7 +12,7 @@ import { useSearchParams } from 'react-router-dom';
 import { InputPopover } from './InputPopover';
 import { ObjectUtils } from '@studio/pure-functions';
 import { useAppContext } from '../../../../hooks/useAppContext';
-import { StudioButton } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 
 export type NavigationMenuProps = {
   pageName: string;

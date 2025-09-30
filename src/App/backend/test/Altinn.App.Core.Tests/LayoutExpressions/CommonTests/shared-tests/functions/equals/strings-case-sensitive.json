@@ -1,0 +1,5 @@
+{
+  "name": "Regular strings are compared case-sensitively",
+  "expression": ["equals", "Hello World", "hello World"],
+  "expects": false
+}

@@ -1,0 +1,14 @@
+﻿{
+  Activities: [
+    {
+      Name: ProfileClient.GetUserProfile,
+      IdFormat: W3C,
+      Tags: [
+        {
+          user.id: 1234
+        }
+      ],
+      HasParent: false
+    }
+  ]
+}

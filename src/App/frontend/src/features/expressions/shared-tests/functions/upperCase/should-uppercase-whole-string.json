@@ -1,0 +1,5 @@
+{
+  "name": "Should UPPERCASE the whole string when given a string has multiple words",
+  "expression": ["upperCase", "Hola, como estas?"],
+  "expects": "HOLA, COMO ESTAS?"
+}

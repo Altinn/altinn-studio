@@ -1,0 +1,5 @@
+{
+  "name": "Should work with [string, integer] (true)",
+  "expression": ["equals", "1234", 1234],
+  "expects": true
+}

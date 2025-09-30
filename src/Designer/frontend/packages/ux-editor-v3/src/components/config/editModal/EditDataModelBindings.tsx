@@ -7,7 +7,7 @@ import { SelectDataModelComponent } from '../SelectDataModelComponent';
 import { useDataModelMetadataQuery } from '../../../hooks/queries/useDataModelMetadataQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { LinkIcon } from '@studio/icons';
-import { StudioButton } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import classes from './EditDataModelBindings.module.css';
 import { InputActionWrapper } from './InputActionWrapper';
 import { useAppContext } from '../../../hooks/useAppContext';
@@ -63,12 +63,7 @@ export const EditDataModelBindings = ({
   return (
     <div key={uniqueKey || ''}>
       {!selectedOption && !dataModelSelectVisible ? (
-        <StudioButton
-          onClick={() => setDataModelSelectVisible(true)}
-          variant='tertiary'
-          size='medium'
-          fullWidth
-        >
+        <StudioButton onClick={() => setDataModelSelectVisible(true)} variant='tertiary' fullWidth>
           <div className={classes.dataModelLink}>
             <LinkIcon className={classes.linkIcon} />
             {t('ux_editor.modal_properties_data_model_link')}

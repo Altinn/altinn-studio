@@ -1,0 +1,5 @@
+{
+  "name": "Should return true if the first string contains the second string",
+  "expression": ["contains", "abc", "abc"],
+  "expects": true
+}

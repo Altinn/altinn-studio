@@ -1,0 +1,5 @@
+{
+  "name": "Not errors on string \"notNull\"",
+  "expression": ["not", "notNull"],
+  "expectsFailure": "Expected boolean, got value \"notNull\""
+}

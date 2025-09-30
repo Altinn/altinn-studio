@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioCard, StudioNativeSelect } from '@studio/components-legacy';
+import { StudioNativeSelect } from '@studio/components-legacy';
 import type {
   Summary2OverrideConfig,
   OverrideDisplayType,
@@ -7,6 +7,7 @@ import type {
 import { type CustomConfigType, useCustomConfigType } from '../hook/useCustomConfigType';
 import { useTranslation } from 'react-i18next';
 import { mapSelectedTypeToConfig } from '../utils';
+import { StudioCard } from '@studio/components';
 
 export type Summary2OverrideDisplayTypeProps = {
   override: Summary2OverrideConfig;
@@ -30,7 +31,7 @@ export const Summary2OverrideDisplayType = ({
   };
 
   return (
-    <StudioCard.Content>
+    <StudioCard>
       <StudioNativeSelect
         size='sm'
         label={t('ux_editor.component_properties.summary.override.display_type')}
@@ -43,6 +44,6 @@ export const Summary2OverrideDisplayType = ({
           </option>
         ))}
       </StudioNativeSelect>
-    </StudioCard.Content>
+    </StudioCard>
   );
 };

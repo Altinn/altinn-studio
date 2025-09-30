@@ -1,0 +1,5 @@
+{
+  "name": "Should fail when given a string as a boolean value",
+  "expression": ["if", "string", 123.456],
+  "expectsFailure": "Expected boolean, got value \"string\""
+}

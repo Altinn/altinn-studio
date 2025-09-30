@@ -2,12 +2,10 @@ import React, { useEffect, useRef } from 'react';
 import classes from './AltinnConfirmDialog.module.css';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
-import { StudioButton, StudioPopover } from '@studio/components-legacy';
-import type {
-  StudioButtonProps,
-  StudioPopoverProps,
-  StudioPopoverTriggerProps,
-} from '@studio/components-legacy';
+import { StudioPopover } from '@studio/components-legacy';
+import type { StudioPopoverProps, StudioPopoverTriggerProps } from '@studio/components-legacy';
+import type { StudioButtonProps } from '@studio/components';
+import { StudioButton } from '@studio/components';
 import type { WithDataAttributes } from 'app-shared/types/WithDataAttributes';
 
 export type AltinnConfirmDialogProps = {
@@ -58,25 +56,25 @@ export function AltinnConfirmDialog({
           {children}
           <div className={classes.buttonContainer}>
             <StudioButton
-              color={confirmColor}
+              data-size='small' // can be removed once parent chain is designsystem v1/not legacy
+              data-color={confirmColor}
               variant='primary'
               onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                 event.stopPropagation();
                 onConfirm(event);
                 onClose(event);
               }}
-              size='small'
             >
               {confirmText || t('general.yes')}
             </StudioButton>
             <StudioButton
+              data-size='small' // can be removed once parent chain is designsystem v1/not legacy
               color='second'
               variant='tertiary'
               onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                 event.stopPropagation();
                 onClose(event);
               }}
-              size='small'
             >
               {cancelText || t('general.cancel')}
             </StudioButton>
