@@ -1,6 +1,5 @@
 import React, { forwardRef } from 'react';
 import type { ReactElement, ReactNode, Ref } from 'react';
-// import type { HeadingProps } from '@digdir/designsystemet-react';
 import { StudioPopoverTrigger } from '../StudioPopover/StudioPopover';
 import { MenuElipsisVerticalIcon } from '@studio/icons';
 import classes from './StudioIconCard.module.css';
@@ -14,8 +13,6 @@ export type StudioIconCardProps = {
   icon: ReactElement;
   iconColor?: StudioIconCardIconColors;
   menuButtonTitle?: string;
-  // header?: string;
-  // headerOptions?: HeadingProps;
   contextButtons?: ReactNode;
   children: ReactNode;
   className?: string;

@@ -1,7 +1,7 @@
 import React from 'react';
 import userEvent from '@testing-library/user-event';
 import { render, screen } from '@testing-library/react';
-import { StudioIconCard } from './StudioIconCard';
+import { StudioIconCard } from './';
 import { ClipboardIcon } from '@studio/icons';
 
 describe('StudioIconCard', () => {
