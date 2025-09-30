@@ -16,7 +16,15 @@ type TableSortingOptions<StorageKey = string> = {
   storageKey?: StorageKey;
 };
 
-export const useTableSorting = (rows: Rows, options: TableSortingOptions) => {
+export const useTableSorting = (
+  rows: Rows,
+  options: TableSortingOptions,
+): {
+  sortedRows: Rows | undefined;
+  handleSorting: ((columnKey: string) => void) | undefined;
+  sortDirection: SortDirection | undefined;
+  sortColumn: string | null | undefined;
+} => {
   const { enable, shouldPersistSort = false, storageKey = TableSortStorageKey.Default } = options;
 
   const savedPreference: SortPreference | null = shouldPersistSort
@@ -29,11 +37,11 @@ export const useTableSorting = (rows: Rows, options: TableSortingOptions) => {
   );
   const [sortedRows, setSortedRows] = useState<Rows>(rows);
 
-  const persistSortPreference = (column: string | null, direction: SortDirection) => {
+  const persistSortPreference = (column: string | null, direction: SortDirection): void => {
     typedLocalStorage.setItem(storageKey, { column, direction });
   };
 
-  const toggleSortDirection = () => {
+  const toggleSortDirection = (): void => {
     setSortDirection((prevDirection) => {
       const newDirection = prevDirection === 'asc' ? 'desc' : 'asc';
       if (shouldPersistSort && sortColumn !== null) {
@@ -44,7 +52,7 @@ export const useTableSorting = (rows: Rows, options: TableSortingOptions) => {
     });
   };
 
-  const handleSorting = (columnKey: string) => {
+  const handleSorting = (columnKey: string): void => {
     if (sortColumn === columnKey) {
       toggleSortDirection();
     } else {

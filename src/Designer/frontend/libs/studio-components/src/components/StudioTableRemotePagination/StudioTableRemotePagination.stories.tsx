@@ -3,7 +3,7 @@ import type { Meta, StoryFn } from '@storybook/react-vite';
 import { StudioTableRemotePagination } from './StudioTableRemotePagination';
 import type { RemotePaginationProps, PaginationTexts } from './StudioTableRemotePagination';
 import { columns, rows } from './mockData';
-import { useTableSorting } from '../../../../studio-hooks/src/hooks/useTableSorting';
+import { useTableSorting } from '../../hooks/useTableSorting';
 import { getRowsToRender } from './utils';
 
 type Story = StoryFn<typeof StudioTableRemotePagination>;
