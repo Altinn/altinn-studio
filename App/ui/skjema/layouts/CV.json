@@ -180,6 +180,22 @@
         }
       },
       {
+        "id": "valider-vedlegg-cv",
+        "type": "Radiobuttons",
+        "dataModelBindings": {
+          "simpleBinding": "root.SF_validate-tags"
+        },
+        "textResourceBindings": {
+          "title": "Validering av vedleggstyper",
+          "description": "Dersom dette aktiveres kommer vi til å mase frem til du har lastet opp alle vedlegsstyper"
+        },
+        "options": [
+          { "label":  "Ja", "value":  true },
+          { "label":  "Nei", "value":  false }
+        ],
+        "preselectedOptionIndex": 1
+      },
+      {
         "id": "vedlegg-cv",
         "type": "FileUploadWithTag",
         "displayMode": "list",
