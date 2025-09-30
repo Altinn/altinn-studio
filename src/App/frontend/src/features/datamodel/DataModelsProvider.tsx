@@ -156,8 +156,10 @@ function DataModelsLoader() {
   const applicationMetadata = useApplicationMetadata();
   const setDataTypes = useSelector((state) => state.setDataTypes);
   const allDataTypes = useSelector((state) => state.allDataTypes);
+
   const writableDataTypes = useSelector((state) => state.writableDataTypes);
   const layouts = useLayouts();
+
   const defaultDataType = useCurrentDataModelName();
   const isStateless = useApplicationMetadata().isStatelessApp;
   const queryClient = useQueryClient();
@@ -165,6 +167,7 @@ function DataModelsLoader() {
 
   const dataElements =
     queryClient.getQueryData(instanceQueries.instanceData({ instanceOwnerPartyId, instanceGuid }).queryKey)?.data ??
+    window.AltinnAppData?.instance?.data ??
     emptyArray;
 
   const layoutSetId = useCurrentLayoutSetId();
@@ -180,36 +183,57 @@ function DataModelsLoader() {
     const allValidDataTypes: string[] = [];
     const writableDataTypes: string[] = [];
 
+    console.log('=== DataModelsLoader Debug ===');
+    console.log('referencedDataTypes:', referencedDataTypes);
+    console.log('defaultDataType:', defaultDataType);
+    console.log('isStateless:', isStateless);
+    console.log('dataElements:', dataElements);
+    console.log('applicationMetadata.dataTypes:', applicationMetadata.dataTypes);
+
     // Verify that referenced data types are defined in application metadata, have a classRef, and have a corresponding data element in the instance data
     for (const dataType of referencedDataTypes) {
+      console.log(`Checking dataType: ${dataType}`);
+
       const typeDef = applicationMetadata.dataTypes.find((dt) => dt.id === dataType);
+      console.log(`  typeDef:`, typeDef);
 
       if (!typeDef) {
         const error = new MissingDataTypeException(dataType);
         window.logErrorOnce(error.message);
+        console.log(`  ❌ FAILED: Missing in metadata`);
         continue;
       }
       if (!typeDef?.appLogic?.classRef) {
         const error = new MissingClassRefException(dataType);
         window.logErrorOnce(error.message);
+        console.log(`  ❌ FAILED: Missing classRef`);
         continue;
       }
 
       // We don't check this if the data model is overridden, because dataElements (from the instance) may not
       // even be up to date yet when (for example) a subform has just been added.
       const isOverridden = overriddenDataType === dataType && !!overriddenDataElementId;
-      if (!isStateless && !isOverridden && !dataElements.find((data) => data.dataType === dataType)) {
+      const hasDataElement = dataElements.find((data) => data.dataType === dataType);
+      console.log(`  isOverridden:`, isOverridden);
+      console.log(`  hasDataElement:`, hasDataElement);
+
+      if (!isStateless && !isOverridden && !hasDataElement) {
         const error = new MissingDataElementException(dataType);
         window.logErrorOnce(error.message);
+        console.log(`  ❌ FAILED: Missing data element in instance`);
         continue;
       }
 
+      console.log(`  ✅ PASSED validation`);
       allValidDataTypes.push(dataType);
 
       if (isDataTypeWritable(dataType, isStateless, dataElements)) {
         writableDataTypes.push(dataType);
       }
     }
+
+    console.log('SET STUFF::::');
+    console.log({ allValidDataTypes, writableDataTypes, defaultDataType, layoutSetId });
 
     setDataTypes(allValidDataTypes, writableDataTypes, defaultDataType, layoutSetId);
   }, [
@@ -226,6 +250,7 @@ function DataModelsLoader() {
 
   // We should load form data and schema for all referenced data models, schema is used for dataModelBinding validation which we want to do even if it is readonly
   // We only need to load expression validation config for data types that are not readonly. Additionally, backend will error if we try to validate a model we are not supposed to
+
   return (
     <>
       {allDataTypes?.map((dataType) => (
@@ -409,7 +434,14 @@ export const DataModels = {
   useLookupBinding: () => {
     // Using a static selector to avoid re-rendering. While the state can update later, we don't need
     // to re-run data model validations, etc.
-    const { schemaLookup, allDataTypes } = useStaticSelector((state) => state);
+    const { schemaLookup, allDataTypes } = useStaticSelector((state) => {
+      console.log('state', state);
+      return state;
+    });
+
+    console.log('schemaLookup', schemaLookup);
+    console.log('allDataTypes', allDataTypes);
+
     return useMemo(() => {
       if (allDataTypes?.every((dt) => schemaLookup[dt])) {
         return (reference: IDataModelReference) => schemaLookup[reference.dataType].getSchemaForPath(reference.field);
