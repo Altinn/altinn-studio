@@ -26,6 +26,7 @@ public class OrgCodeListService : IOrgCodeListService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IGitea _gitea;
+    private readonly ISourceControl _sourceControl;
 
     private const string Repo = "content";
     private static readonly JsonSerializerOptions s_jsonOptions = new()
@@ -43,10 +44,12 @@ public class OrgCodeListService : IOrgCodeListService
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
     /// <param name="gitea">IGitea</param>
-    public OrgCodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IGitea gitea)
+    /// <param name="sourceControl">the source control</param>
+    public OrgCodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IGitea gitea, ISourceControl sourceControl)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _gitea = gitea;
+        _sourceControl = sourceControl;
     }
 
     /// <inheritdoc />
@@ -137,32 +140,41 @@ public class OrgCodeListService : IOrgCodeListService
     {
         ValidateCodeListTitles(request.CodeListWrappers);
         ValidateCommitMessage(request.CommitMessage);
-
         string repositoryName = GetStaticContentRepo(org);
-        string latestCommitSha = await _gitea.GetLatestCommitOnBranch(org, repositoryName);
 
-        List<FileSystemObject> defaultBranchFiles = await _gitea.GetCodeListDirectoryContentAsync(org, repositoryName, cancellationToken: cancellationToken);
-        List<FileOperationContext> fileOperationContexts;
+        /*
+         * Clone if repo does not exist locally. OK
+         * Delete old branch. OK
+         * Create branch locally. OK
+         * Checkout repo on given BaseCommitSha. OK
+         * Update files with incoming changes. OK
+         * Make a commit. OK
+         * Try to Rebase Master. OK
+         * Push changes. OK
+         */
 
-        if (request.BaseCommitSha == latestCommitSha)
+        await _sourceControl.VerifyCloneExists(org, repositoryName);
+        _sourceControl.DeleteLocalBranch(org, developer, repositoryName, developer);
+        Branch branch = _sourceControl.CreateLocalBranch(org, developer, repositoryName, developer, request.BaseCommitSha);
+        _sourceControl.CheckoutRepoOnCommit(org, developer, repositoryName, branch);
+
+        foreach (CodeListWrapper wrapper in request.CodeListWrappers)
         {
-            // There is no conflict
-            fileOperationContexts = CreateFileOperationContexts(request.CodeListWrappers, defaultBranchFiles);
-        }
-        else
-        {
-            // Get files at the commit the changes in the request are based on
-            List<FileSystemObject> baseCommitFiles = await _gitea.GetCodeListDirectoryContentAsync(org, repositoryName, request.BaseCommitSha, cancellationToken);
-            fileOperationContexts = CreateFileOperationContexts(request.CodeListWrappers, defaultBranchFiles, baseCommitFiles);
+            await UpdateCodeListNew(org, developer, wrapper.Title, wrapper.CodeList, cancellationToken);
         }
 
-        GiteaMultipleFilesDto dto = CreateGiteaMultipleFilesDto(developer, fileOperationContexts, request.CommitMessage);
+        _sourceControl.CommitToLocalRepo(org, developer, repositoryName, request.CommitMessage ?? string.Empty);
+        _sourceControl.RebaseOntoDefaultBranch(org, developer, repositoryName);
+        await _sourceControl.Push(org, repositoryName);
+    }
 
-        bool success = await _gitea.ModifyMultipleFiles(org, repositoryName, dto, cancellationToken);
-        if (success is false)
-        {
-            throw new InvalidOperationException("Failed to update code lists in Gitea.");
-        }
+    internal async Task UpdateCodeListNew(string org, string developer, string codeListId, CodeList? codeList, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string repo = GetStaticContentRepo(org);
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+
+        await altinnOrgGitRepository.UpdateCodeListNew(codeListId, codeList, cancellationToken);
     }
 
     internal static void ValidateCodeListTitles(List<CodeListWrapper> codeListWrappers)
@@ -258,7 +270,7 @@ public class OrgCodeListService : IOrgCodeListService
         List<Option>? deserializedCodeList = await JsonSerializer.DeserializeAsync<List<Option>>(payload.OpenReadStream(), s_jsonOptions, cancellationToken);
 
         bool codeListHasInvalidNullFields = deserializedCodeList is not null && deserializedCodeList.Exists(item => item.Value == null || item.Label == null);
-        if (codeListHasInvalidNullFields)
+        if (deserializedCodeList is null || codeListHasInvalidNullFields)
         {
             throw new InvalidOptionsFormatException("Uploaded file is missing one of the following attributes for an option: value or label.");
         }

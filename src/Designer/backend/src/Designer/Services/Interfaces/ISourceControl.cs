@@ -158,6 +158,51 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository</param>
         /// <returns></returns>
-        public Task DeleteRepository(string org, string repository);
+        Task DeleteRepository(string org, string repository);
+
+        /// <summary>
+        /// Checkout the repository on specified commit.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+        /// <param name="developer">The name of the user</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="commitSha">The commit to checkout</param>
+        LibGit2Sharp.Branch CheckoutRepoOnCommit(string org, string developer, string repository, LibGit2Sharp.Branch commitSha);
+
+        /// <summary>
+        /// Make a commit to local repository.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+        /// <param name="developer">The name of the user</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="message">The commit message</param>
+        void CommitToLocalRepo(string org, string developer, string repository, string message);
+
+        /// <summary>
+        /// Rebases local branch onto default remote branch.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+        /// <param name="developer">The name of the user</param>
+        /// <param name="repository">The name of repository</param>
+        void RebaseOntoDefaultBranch(string org, string developer, string repository);
+
+        /// <summary>
+        /// Deletes a local branch based on the specified name.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+        /// <param name="developer">The name of the user</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="branchName">The name of the branch</param>
+        void DeleteLocalBranch(string org, string developer, string repository, string branchName);
+
+        /// <summary>
+        /// Creates a local branch based on the specified commit sha if given.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+        /// <param name="developer">The name of the user</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="branchName">The name of the branch</param>
+        /// <param name="commitSha">The commit sha</param>
+        LibGit2Sharp.Branch CreateLocalBranch(string org, string developer, string repository, string branchName, string commitSha = null);
     }
 }

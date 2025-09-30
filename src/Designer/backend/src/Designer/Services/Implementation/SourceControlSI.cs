@@ -413,6 +413,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
+            return FindLocalRepoLocation(org, developer, repository);
+        }
+
+        private string FindLocalRepoLocation(string org, string developer, string repository)
+        {
             return Path.Combine(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? _settings.RepositoryLocation, developer, org, repository);
         }
 
@@ -471,6 +476,83 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 repo.Network.Push(b, options);
                 repo.Network.Push(remote, "refs/notes/commits", options);
             }
+        }
+
+        /// <inheritdoc/>
+        public void CommitToLocalRepo(string org, string developer, string repository, string message)
+        {
+            string localPath = FindLocalRepoLocation(org, developer, repository);
+            using var repo = new LibGit2Sharp.Repository(localPath);
+
+            if (repo.RetrieveStatus().IsDirty)
+            {
+                Commands.Stage(repo, "*");
+                LibGit2Sharp.Signature signature = GetDeveloperSignature();
+                var commit = repo.Commit(message, signature, signature);
+                var notes = repo.Notes;
+                notes.Add(commit.Id, "studio-commit", signature, signature, notes.DefaultNamespace);
+            }
+        }
+
+        /// <inheritdoc/>
+        public void RebaseOntoDefaultBranch(string org, string developer, string repository)
+        {
+            string localPath = FindLocalRepoLocation(org, developer, repository);
+            using LibGit2Sharp.Repository repo = new(localPath);
+
+            Identity identity = new(developer, $"{developer}@noreply.altinn.studio");
+            RebaseOptions options = new() { FileConflictStrategy = CheckoutFileConflictStrategy.Merge };
+            Branch masterBranch = repo.Branches.FirstOrDefault(branch => branch.FriendlyName.Equals("master"));
+
+            repo.Rebase.Start(
+                repo.Head,
+                masterBranch,
+                null,
+                identity,
+                options
+            );
+        }
+
+        /// <inheritdoc/>
+        public Branch CreateLocalBranch(string org, string developer, string repository, string branchName, string commitSha = null)
+        {
+            string localPath = FindLocalRepoLocation(org, developer, repository);
+            using var repo = new LibGit2Sharp.Repository(localPath);
+
+            Branch branch = repo.Branches.FirstOrDefault(branch => branch.FriendlyName == branchName);
+
+            if (branch is not null)
+            {
+                return branch;
+            }
+            return repo.CreateBranch(branchName, commitSha);
+        }
+
+        /// <inheritdoc/>
+        public void DeleteLocalBranch(string org, string developer, string repository, string branchName)
+        {
+            string localPath = FindLocalRepoLocation(org, developer, repository);
+            using var repo = new LibGit2Sharp.Repository(localPath);
+
+            bool branchExists = repo.Branches.Any(branch => branch.FriendlyName == branchName);
+            if (branchExists && repo.Head.FriendlyName != branchName)
+            {
+                repo.Branches.Remove(branchName);
+            }
+        }
+
+        /// <inheritdoc/>
+        public Branch CheckoutRepoOnCommit(string org, string developer, string repository, Branch branch)
+        {
+            string localPath = FindLocalRepoLocation(org, developer, repository);
+            using var repo = new LibGit2Sharp.Repository(localPath);
+
+            // if (repo.Lookup<LibGit2Sharp.Commit>(commitSha) is null)
+            // {
+            //     throw new NotFoundException($"Commit with sha {commitSha} not found.");
+            // }
+
+            return Commands.Checkout(repo, branch);
         }
 
         /// <summary>

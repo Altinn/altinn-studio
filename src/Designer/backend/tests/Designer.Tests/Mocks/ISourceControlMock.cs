@@ -158,5 +158,15 @@ namespace Designer.Tests.Mocks
         {
             return Task.FromResult(new Branch { Name = branchName });
         }
+
+        public LibGit2Sharp.Branch CheckoutRepoOnCommit(string org, string developer, string repository, string commitSha) => throw new NotImplementedException();
+
+        public void CommitToLocalRepo(string org, string developer, string repository, string message) => throw new NotImplementedException();
+
+        public void RebaseOntoDefaultBranch(string org, string developer, string repository) => throw new NotImplementedException();
+
+        public void DeleteLocalBranch(string org, string developer, string repository, string branchName) => throw new NotImplementedException();
+
+        public void CreateLocalBranch(string org, string developer, string repository, string branchName, string commitSha = null) => throw new NotImplementedException();
     }
 }

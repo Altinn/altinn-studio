@@ -14,7 +14,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository;
 
 public class AltinnOrgGitRepository : AltinnGitRepository
 {
-    private const string CodeListFolderPath = "CodeListsWithTextResources/";
+    private const string CodeListFolder = "CodeLists/";
+    private const string CodeListWithTextResourcesFolder = "CodeListsWithTextResources/";
     private const string LanguageResourceFolderName = "Texts/";
     private const string TextResourceFileNamePattern = "resource.??.json";
 
@@ -114,12 +115,12 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!DirectoryExistsByRelativePath(CodeListFolderPath))
+        if (!DirectoryExistsByRelativePath(CodeListWithTextResourcesFolder))
         {
             return [];
         }
 
-        string[] fileNames = GetFilesByRelativeDirectoryAscSorted(CodeListFolderPath, "*.json");
+        string[] fileNames = GetFilesByRelativeDirectoryAscSorted(CodeListWithTextResourcesFolder, "*.json");
         IEnumerable<string> codeListIds = fileNames.Select(Path.GetFileNameWithoutExtension);
         return codeListIds.ToList();
     }
@@ -178,6 +179,22 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     }
 
     /// <summary>
+    /// Updates a code list with the provided id.
+    /// </summary>
+    /// <param name="codeListId">The name of the cost list to update.</param>
+    /// <param name="codeList">The code list contents.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    public async Task UpdateCodeListNew(string codeListId, CodeList codeList, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string codeListString = JsonSerializer.Serialize(codeList, s_jsonOptions);
+
+        string codeListFilePath = Path.Join(CodeListFolder, codeListId);
+        await WriteTextByRelativePathAsync(codeListFilePath, codeListString, true, cancellationToken);
+    }
+
+    /// <summary>
     /// Renames a code list with the provided id.
     /// </summary>
     /// <param name="codeListId">The name of the code list to be renamed.</param>
@@ -228,7 +245,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
 
     private static string CodeListFilePath(string codeListId)
     {
-        return Path.Join(CodeListFolderPath, CodeListFileName(codeListId));
+        return Path.Join(CodeListWithTextResourcesFolder, CodeListFileName(codeListId));
     }
 
     private static string TextResourceFileName(string languageCode)
