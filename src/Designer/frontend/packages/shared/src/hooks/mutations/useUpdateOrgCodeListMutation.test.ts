@@ -1,7 +1,7 @@
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { org } from '@studio/testing/testids';
 import { queriesMock } from '../../mocks/queriesMock';
-import type { CodeList } from '../../types/CodeList';
+import type { CodeListWithTextResources } from '../../types/CodeListWithTextResources';
 import { useUpdateOrgCodeListMutation } from './useUpdateOrgCodeListMutation';
 import { createQueryClientMock } from '../../mocks/queryClientMock';
 import { QueryKey } from '../../types/QueryKey';
@@ -9,7 +9,7 @@ import type { CodeListsResponse } from '../../types/api/CodeListsResponse';
 import type { CodeListData } from '../../types/CodeListData';
 
 // Test data:
-const codeList: CodeList = [
+const codeList: CodeListWithTextResources = [
   {
     value: 'test-value',
     label: 'test-label',

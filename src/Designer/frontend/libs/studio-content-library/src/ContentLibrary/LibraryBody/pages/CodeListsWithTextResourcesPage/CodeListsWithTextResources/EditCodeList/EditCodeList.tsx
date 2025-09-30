@@ -1,4 +1,8 @@
-import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components-legacy';
+import type {
+  CodeListWithTextResources,
+  CodeListEditorTexts,
+  TextResource,
+} from '@studio/components-legacy';
 import {
   StudioModal,
   StudioDisplayTile,
@@ -18,7 +22,7 @@ import { CodeListUsages } from './CodeListUsages/CodeListUsages';
 import classes from './EditCodeList.module.css';
 
 export type EditCodeListProps = {
-  codeList: CodeList;
+  codeList: CodeListWithTextResources;
   codeListTitle: string;
   onCreateTextResource?: (textResource: TextResource) => void;
   onDeleteCodeList: (codeListId: string) => void;
@@ -44,7 +48,7 @@ export function EditCodeList({
 }: EditCodeListProps): React.ReactElement {
   const editorTexts: CodeListEditorTexts = useCodeListEditorTexts();
 
-  const handleUpdateCodeList = (updatedCodeList: CodeList): void => {
+  const handleUpdateCodeList = (updatedCodeList: CodeListWithTextResources): void => {
     const updatedCodeListWithMetadata = updateCodeListWithMetadata(
       { title: codeListTitle, codeList: codeList },
       updatedCodeList,
@@ -85,7 +89,7 @@ export function EditCodeList({
 
 export const updateCodeListWithMetadata = (
   currentCodeListWithMetadata: CodeListWithMetadata,
-  updatedCodeList: CodeList,
+  updatedCodeList: CodeListWithTextResources,
 ): CodeListWithMetadata => {
   return { ...currentCodeListWithMetadata, codeList: updatedCodeList };
 };

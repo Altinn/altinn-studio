@@ -1,11 +1,11 @@
 import type { TextResource } from '../../types/TextResource';
-import type { CodeList } from './types/CodeList';
+import type { CodeListWithTextResources } from './types/CodeListWithTextResources';
 import type { CodeListItemTextProperty } from './types/CodeListItemTextProperty';
 import { updateCodeList } from './utils';
 import { TextResourceUtils } from '@studio/pure-functions';
 
 export type ReducerState = {
-  codeList: CodeList;
+  codeList: CodeListWithTextResources;
   textResources?: TextResource[];
 };
 
@@ -18,7 +18,7 @@ export enum ReducerActionType {
 
 type SetCodeListAction = {
   type: ReducerActionType.SetCodeList;
-  codeList: CodeList;
+  codeList: CodeListWithTextResources;
 };
 
 type SetTextResourcesAction = {
@@ -73,7 +73,10 @@ function setTextResources(state: ReducerState, action: SetTextResourcesAction): 
 }
 
 function addTextResource(state: ReducerState, action: AddTextResourceAction): ReducerState {
-  const updatedCodeList: CodeList = addTextResourceToCodeList(state.codeList, action);
+  const updatedCodeList: CodeListWithTextResources = addTextResourceToCodeList(
+    state.codeList,
+    action,
+  );
   const updatedTextResources: TextResource[] = TextResourceUtils.fromArray(state.textResources)
     .set(action.textResource)
     .asArray();
@@ -96,7 +99,10 @@ const textResourceFromUpdateAction = (action: UpdateTextResourceValueAction): Te
   value: action.newValue,
 });
 
-function addTextResourceToCodeList(codeList: CodeList, action: AddTextResourceAction): CodeList {
+function addTextResourceToCodeList(
+  codeList: CodeListWithTextResources,
+  action: AddTextResourceAction,
+): CodeListWithTextResources {
   const { textResource, property, codeItemIndex } = action;
   return updateCodeList(codeList, { newValue: textResource.id, codeItemIndex, property });
 }

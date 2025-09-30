@@ -1,15 +1,15 @@
-import type { CodeList } from '../types/CodeList';
+import type { CodeListWithTextResources } from '../types/CodeListWithTextResources';
 import type { CodeListItemValue } from '../types/CodeListItemValue';
 import type { ValueError } from '../types/ValueError';
 import { ArrayUtils } from '@studio/pure-functions';
 import type { ValueErrorMap } from '../types/ValueErrorMap';
 
-export function isCodeListValid(codeList: CodeList): boolean {
+export function isCodeListValid(codeList: CodeListWithTextResources): boolean {
   const errors = findCodeListErrors(codeList);
   return !areThereCodeListErrors(errors);
 }
 
-export function findCodeListErrors(codeList: CodeList): ValueErrorMap {
+export function findCodeListErrors(codeList: CodeListWithTextResources): ValueErrorMap {
   const values: CodeListItemValue[] = codeList.map((item) => item.value);
   return mapValueErrors(values);
 }

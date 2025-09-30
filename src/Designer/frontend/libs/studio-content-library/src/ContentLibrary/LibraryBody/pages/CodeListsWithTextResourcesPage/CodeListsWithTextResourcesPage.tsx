@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import type { CodeList, TextResource } from '@studio/components-legacy';
+import type { CodeListWithTextResources, TextResource } from '@studio/components-legacy';
 import { StudioHeading } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { CodeListsActionsBar } from './CodeListsActionsBar';
@@ -21,7 +21,7 @@ import { InfoBox } from '../../InfoBox';
 
 export type CodeListData = {
   title: string;
-  data?: CodeList;
+  data?: CodeListWithTextResources;
   hasError?: boolean;
 };
 
