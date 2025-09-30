@@ -1,0 +1,68 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Kartverket\AdministrativeUnits\Testdata\fylke46_kommuner.json" />
+    <None Remove="Kartverket\AdministrativeUnits\Testdata\fylker.json" />
+    <None Remove="Kartverket\AdministrativeUnits\Testdata\kommuner.json" />
+    <None Remove="Posten\Testdata\Postnummerregister-ansi.txt" />
+    <None Remove="SSB\Testdata\baseAmountNationalInsurance.json" />
+		<None Remove="SSB\Testdata\counties.json" />
+    <None Remove="SSB\Testdata\countries.json" />
+    <None Remove="SSB\Testdata\industryGrouping.json" />
+    <None Remove="SSB\Testdata\maritalStatus.json" />
+    <None Remove="SSB\Testdata\municipalities.json" />
+    <None Remove="SSB\Testdata\occupations.json" />
+    <None Remove="SSB\Testdata\sex.json" />
+    <None Remove="SSB\Testdata\smallGame_Variant.json" />
+    <None Remove="SSB\Testdata\units.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Kartverket\AdministrativeUnits\Testdata\fylke46_kommuner.json" />
+    <EmbeddedResource Include="Kartverket\AdministrativeUnits\Testdata\fylker.json" />
+    <EmbeddedResource Include="Kartverket\AdministrativeUnits\Testdata\kommuner.json" />
+    <EmbeddedResource Include="SSB\Testdata\baseAmountNationalInsurance.json" />
+    <EmbeddedResource Include="SSB\Testdata\municipalities.json" />
+    <EmbeddedResource Include="SSB\Testdata\counties.json" />
+    <EmbeddedResource Include="SSB\Testdata\countries.json" />
+    <EmbeddedResource Include="SSB\Testdata\industryGrouping.json" />
+    <EmbeddedResource Include="SSB\Testdata\maritalStatus.json" />
+    <EmbeddedResource Include="SSB\Testdata\occupations.json" />
+    <EmbeddedResource Include="SSB\Testdata\smallGame_Variant.json" />
+    <EmbeddedResource Include="SSB\Testdata\units.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Altinn.App.Core" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="RichardSzalay.MockHttp" />
+    <PackageReference Include="WireMock.Net" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="PublicApiGenerator" />
+    <PackageReference Include="Verify.Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Altinn.Codelists\Altinn.Codelists.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="SSB\Testdata\sex.json" />
+  </ItemGroup>
+</Project>
