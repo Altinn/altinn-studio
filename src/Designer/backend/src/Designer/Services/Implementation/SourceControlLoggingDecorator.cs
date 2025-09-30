@@ -387,6 +387,71 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        public LibGit2Sharp.Branch CheckoutRepoOnCommit(string org, string developer, string repository, LibGit2Sharp.Branch commitSha)
+        {
+            try
+            {
+                return _decoratedService.CheckoutRepoOnCommit(org, developer, repository, commitSha);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "CheckoutRepoOnCommit", org, repository);
+                throw;
+            }
+        }
+
+        public void CommitToLocalRepo(string org, string developer, string repository, string message)
+        {
+            try
+            {
+                _decoratedService.CommitToLocalRepo(org, developer, repository, message);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "CommitToLocalRepo", org, repository);
+                throw;
+            }
+        }
+
+        public void RebaseOntoDefaultBranch(string org, string developer, string repository)
+        {
+            try
+            {
+                _decoratedService.RebaseOntoDefaultBranch(org, developer, repository);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "RebaseOntoDefaultBranch", org, repository);
+                throw;
+            }
+        }
+
+        public void DeleteLocalBranch(string org, string developer, string repository, string branchName)
+        {
+            try
+            {
+                _decoratedService.DeleteLocalBranch(org, developer, repository, branchName);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "DeleteLocalBranch", org, repository);
+                throw;
+            }
+        }
+
+        public LibGit2Sharp.Branch CreateLocalBranch(string org, string developer, string repository, string branchName, string commitSha = null)
+        {
+            try
+            {
+                return _decoratedService.CreateLocalBranch(org, developer, repository, branchName, commitSha);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "CreateLocalBranch", org, repository);
+                throw;
+            }
+        }
+
         private void LogError(Exception ex, string method)
         {
             LogError(ex, method, string.Empty, string.Empty);
