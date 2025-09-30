@@ -1,7 +1,11 @@
 import React, { forwardRef, useState } from 'react';
 import type { RefObject, ReactElement } from 'react';
 import { StudioCodeListEditor, StudioTextfield } from '@studio/components-legacy';
-import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components-legacy';
+import type {
+  CodeListWithTextResources,
+  CodeListEditorTexts,
+  TextResource,
+} from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useCodeListEditorTexts } from '../../../hooks/useCodeListEditorTexts';
 import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
@@ -30,7 +34,7 @@ function CreateNewCodeListDialog(
   ref: RefObject<HTMLDialogElement>,
 ): ReactElement {
   const { t } = useTranslation();
-  const newCodeList: CodeList = [];
+  const newCodeList: CodeListWithTextResources = [];
 
   const handleCloseDialog = () => {
     ref.current?.close();
@@ -68,7 +72,7 @@ const ForwardedCreateNewCodeListDialog = forwardRef(CreateNewCodeListDialog);
 export { ForwardedCreateNewCodeListDialog as CreateNewCodeListDialog };
 
 type CreateNewCodeListProps = {
-  codeList: CodeList;
+  codeList: CodeListWithTextResources;
   codeListNames: string[];
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
   onCreateTextResource?: (textResource: TextResource) => void;
@@ -117,7 +121,7 @@ function CreateNewCodeList({
     }
   };
 
-  const handleUpdateCodeList = (updatedCodeList: CodeList) => {
+  const handleUpdateCodeList = (updatedCodeList: CodeListWithTextResources) => {
     setIsCodeListValid(true);
     const updatedCodeListWithMetadata = updateCodeListInCodeListWithMetadata(
       currentCodeListWithMetadata,
@@ -170,7 +174,7 @@ function CreateNewCodeList({
 
 const updateCodeListInCodeListWithMetadata = (
   currentCodeListWithMetadata: CodeListWithMetadata,
-  updatedCodeList: CodeList,
+  updatedCodeList: CodeListWithTextResources,
 ): CodeListWithMetadata => {
   return { ...currentCodeListWithMetadata, codeList: updatedCodeList };
 };

@@ -1,6 +1,6 @@
-import type { CodeList } from '@studio/components-legacy';
+import type { CodeListWithTextResources } from '@studio/components-legacy';
 
 export type CodeListWithMetadata = {
-  codeList: CodeList;
+  codeList: CodeListWithTextResources;
   title: string;
 };
