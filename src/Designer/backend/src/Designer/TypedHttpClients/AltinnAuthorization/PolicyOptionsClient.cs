@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
@@ -36,13 +35,15 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
             try
             {
                 HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
+                response.EnsureSuccessStatusCode();
                 string accessPackageOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
                 accessPackageOptions = JsonSerializer.Deserialize<List<AccessPackageAreaGroup>>(accessPackageOptionsString, _serializerOptions);
                 return accessPackageOptions;
             }
             catch (Exception ex)
             {
-                throw new Exception($"Something went wrong when retrieving Action options", ex);
+                _logger.LogError(ex, "Failed retrieving access package options from {Url}", url);
+                throw new Exception($"Something went wrong when retrieving access package options", ex);
             }
         }
 
@@ -71,28 +72,23 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
         public async Task<List<SubjectOption>> GetSubjectOptions(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/subjectoptions.json";
+            string url = _platformSettings.RolesUrl;
 
             List<SubjectOption> subjectOptions;
 
             try
             {
                 HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
+                response.EnsureSuccessStatusCode();
                 string subjectOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
-
-                subjectOptions = System.Text.Json.JsonSerializer.Deserialize<List<SubjectOption>>(subjectOptionsString);
+                subjectOptions = System.Text.Json.JsonSerializer.Deserialize<List<SubjectOption>>(subjectOptionsString, _serializerOptions);
                 return subjectOptions;
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Failed retrieving Subject options from {Url}", url);
                 throw new Exception($"Something went wrong when retrieving Subject options", ex);
             }
-        }
-
-        private string GetOptionsPath()
-        {
-            string configTest = Path.GetDirectoryName(new Uri(typeof(PolicyOptionsClient).Assembly.Location).LocalPath);
-            return Path.Combine(configTest, "Authorization");
         }
     }
 }

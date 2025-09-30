@@ -102,6 +102,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The updated application metadata</returns>
         [HttpPut]
         [HttpPost]
+        [Authorize]
         [Route("{resourceid}")]
         public async Task<ActionResult> UpdateResourcePolicy(string org, string app, string resourceid, [FromBody] ResourcePolicy applicationPolicy)
         {

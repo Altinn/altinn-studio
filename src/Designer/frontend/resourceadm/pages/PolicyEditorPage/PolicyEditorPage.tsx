@@ -99,7 +99,7 @@ export const PolicyEditorPage = ({
     }
 
     const mergedActions = mergeActionsFromPolicyWithActionOptions(policyData.rules, actionData);
-    const subjects = getResourceSubjects(accessLists, subjectData, org, isConsentResource);
+    const subjects = getResourceSubjects(accessLists, subjectData, org, resourceData?.resourceType);
     const mergedSubjects = mergeSubjectsFromPolicyWithSubjectOptions(policyData.rules, subjects);
     const policy = getResourcePolicyRules(policyData, resourceId, isConsentResource);
 

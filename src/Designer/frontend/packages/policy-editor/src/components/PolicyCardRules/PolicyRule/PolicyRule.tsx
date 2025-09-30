@@ -6,13 +6,12 @@ import { useTranslation } from 'react-i18next';
 import { SubResources } from './SubResources';
 import { PolicyRuleContextProvider } from '../../../contexts/PolicyRuleContext';
 import { PolicyActions } from './PolicyActions';
-import { PolicySubjects } from './PolicySubjects';
 import { PolicyDescription } from './PolicyDescription';
 import { PolicyRuleErrorMessage } from './PolicyRuleErrorMessage';
 import { getNewRuleId } from '../../../utils';
 import { usePolicyEditorContext } from '../../../contexts/PolicyEditorContext';
 import { ObjectUtils } from '@studio/pure-functions';
-import { PolicyAccessPackages } from './PolicyAccessPackages';
+import { PolicySubjectsNew } from './PolicySubjectsNew';
 
 export type PolicyRuleProps = {
   policyRule: PolicyRuleCard;
@@ -89,8 +88,7 @@ export const PolicyRule = ({
         >
           <SubResources />
           <PolicyActions />
-          <PolicySubjects />
-          <PolicyAccessPackages />
+          <PolicySubjectsNew />
           <PolicyDescription />
         </ExpandablePolicyElement>
         {showErrors && <PolicyRuleErrorMessage />}

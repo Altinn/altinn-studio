@@ -13,27 +13,30 @@ import type {
   PolicyAccessPackageArea,
   PolicyAccessPackageAreaGroup,
 } from 'app-shared/types/PolicyAccessPackages';
+import { policySubjectOrg } from '@altinn/policy-editor/utils';
 
 const mockSubjects: PolicySubject[] = [
   {
-    subjectId: 's1',
-    subjectTitle: 'Subject 1',
-    subjectDescription: 'Subject 1 description',
-    subjectSource: 'altinn:rolecode',
+    legacyRoleCode: 's1',
+    name: 'Subject 1',
+    legacyUrn: 'urn:altinn:rolecode:s1',
+    urn: 'urn:altinn:rolecode:s1',
+    description: 'Subject 1 description',
+    id: '',
+    provider: {
+      code: 'sys-internal',
+      id: '',
+      name: '',
+    },
   },
-  {
-    subjectId: '[org]',
-    subjectTitle: '[ORG]',
-    subjectDescription: 'Subject 2 description',
-    subjectSource: 'altinn:org',
-  },
+  policySubjectOrg,
 ];
 const mockPolicyEditorContextValue: PolicyEditorContextProps = {
   policyRules: [
     {
       ruleId: 'r1',
       description: '',
-      subject: ['s1', '[org]'],
+      subject: [mockSubjects[0].urn, policySubjectOrg.urn],
       actions: [mockAction1.actionId, mockAction2.actionId],
       accessPackages: [],
       resources: [
