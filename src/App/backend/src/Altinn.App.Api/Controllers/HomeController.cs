@@ -5,9 +5,11 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.Bootstrap.Models;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
@@ -16,13 +18,11 @@ using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
-using Altinn.App.Core.Constants;
-using Microsoft.AspNetCore.Authorization;
-using Altinn.App.Core.Helpers;
 
 namespace Altinn.App.Api.Controllers;
 
@@ -97,11 +97,7 @@ public class HomeController : Controller
     /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
     [HttpGet]
     [Route("{org}/{app}/")]
-
-    public async Task<IActionResult> Index(
-        [FromRoute] string org,
-        [FromRoute] string app
-    )
+    public async Task<IActionResult> Index([FromRoute] string org, [FromRoute] string app)
     {
         var currentAuth = _authenticationContext.Current;
 
@@ -125,11 +121,7 @@ public class HomeController : Controller
     /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
     [HttpGet]
     [Route("{org}/{app}/instance/{partyId}")]
-    public async Task<IActionResult> Index(
-        [FromRoute] string org,
-        [FromRoute] string app,
-        [FromRoute] int partyId
-    )
+    public async Task<IActionResult> Index([FromRoute] string org, [FromRoute] string app, [FromRoute] int partyId)
     {
         var currentAuth = _authenticationContext.Current;
 
@@ -167,9 +159,7 @@ public class HomeController : Controller
         return Content(html, "text/html; charset=utf-8");
     }
 
-
-
-     /// <summary>
+    /// <summary>
     /// Returns the index view with references to the React app.
     /// </summary>
     /// <param name="org">The application owner short name.</param>
@@ -181,7 +171,7 @@ public class HomeController : Controller
     /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
     [HttpGet]
     [Route("{org}/{app}/instance/{partyId}/{instanceGuid}")]
-    [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
+    // [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
     public async Task<IActionResult> Index(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -189,19 +179,45 @@ public class HomeController : Controller
         [FromRoute] Guid instanceGuid
     )
     {
-         Instance instance = await _instanceClient.GetInstance(app, org, partyId, instanceGuid);
+        Instance instance = await _instanceClient.GetInstance(app, org, partyId, instanceGuid);
 
+        if (instance.Process?.CurrentTask?.ElementId == null)
+        {
+            return BadRequest("Instance has no active task");
+        }
 
+        string currentTaskId = instance.Process.CurrentTask.ElementId;
 
-         if (instance.Process?.CurrentTask?.ElementId == null)
-         {
-             return BadRequest("Instance has no active task");
-         }
-         string currentTaskId = instance.Process.CurrentTask.ElementId;
-         string redirectUrl = $"/{org}/{app}/instance/{partyId}/{instanceGuid}/{currentTaskId}";
-         return Redirect(redirectUrl);
+        // Get the layout set for the current task to find the first page
+        var layoutSet = _appResources.GetLayoutSetForTask(currentTaskId);
+        string? firstPageId = null;
+
+        if (layoutSet != null)
+        {
+            var layoutSettings = _appResources.GetLayoutSettingsForSet(layoutSet.Id);
+            if (layoutSettings?.Pages?.Order != null && layoutSettings.Pages.Order.Count > 0)
+            {
+                firstPageId = layoutSettings.Pages.Order[0];
+            }
+        }
+
+        Debugger.Break();
+
+        // Build redirect URL with task and optionally page
+        string redirectUrl;
+        if (!string.IsNullOrEmpty(firstPageId))
+        {
+            redirectUrl = $"/{org}/{app}/instance/{partyId}/{instanceGuid}/{currentTaskId}/{firstPageId}";
+        }
+        else
+        {
+            // Fallback to task-only URL if no page is found
+            // redirectUrl = $"/{org}/{app}/instance/{partyId}/{instanceGuid}/{currentTaskId}";
+            return NotFound("no initial page id");
+        }
+
+        return Redirect(redirectUrl);
     }
-
 
     // [HttpGet]
     // [Route("{org}/{app}/instance/{partyId}/{instanceGuid}/{taskId}")]
@@ -224,10 +240,6 @@ public class HomeController : Controller
     //     return Redirect(redirectUrl);
     // }
 
-
-
-
-
     /// <summary>
     /// Returns the index view with references to the React app.
     /// </summary>
@@ -239,13 +251,7 @@ public class HomeController : Controller
     /// <param name="pageId">The page identifier.</param>
     /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
     [HttpGet]
-    [Route("{org}/{app}/instance/{partyId}")]
-    [Route("{org}/{app}/instance/{partyId}/{instanceGuid}")]
-    [Route("{org}/{app}/instance/{partyId}/{instanceGuid}/{taskId}")]
     [Route("{org}/{app}/instance/{partyId}/{instanceGuid}/{taskId}/{pageId}")]
-    [Route("{org}/{app}/{partyId}/{instanceGuid}")]
-    [Route("{org}/{app}/{partyId}/{instanceGuid}/{taskId}")]
-    [Route("{org}/{app}/{partyId}/{instanceGuid}/{taskId}/{pageId}")]
     public async Task<IActionResult> Index(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -256,7 +262,6 @@ public class HomeController : Controller
         [FromQuery] bool dontChooseReportee = false
     )
     {
-
         if (partyId != null && instanceGuid != null)
         {
             if (await ShouldShowAppView())
