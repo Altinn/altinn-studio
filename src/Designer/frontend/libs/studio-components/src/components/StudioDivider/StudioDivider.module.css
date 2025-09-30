@@ -1,0 +1,25 @@
+.divider {
+  border: none;
+  border-top-width: var(--ds-border-width-default);
+  border-top-style: solid;
+  margin-top: var(--ds-size-1);
+  width: 100%;
+}
+
+.default {
+  border-top-color: var(--ds-color-neutral-border-default);
+}
+
+.strong {
+  border-top-color: var(--ds-color-neutral-border-strong);
+}
+
+.subtle {
+  border-top-color: var(--ds-color-neutral-border-subtle);
+}
+
+.storyContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
