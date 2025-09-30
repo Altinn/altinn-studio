@@ -9,7 +9,8 @@ module.exports = {
             patterns: [
               {
                 group: ['@tanstack/react-query'],
-                message: 'This library should not contain tanstack-query or any other data-library',
+                message:
+                  'This library should not contain Tanstack query or any other data library.',
               },
               {
                 group: ['app-shared/*', '@altinn/*'],
@@ -18,7 +19,7 @@ module.exports = {
               {
                 group: ['i18next', 'react-i18next'],
                 message:
-                  'The texts for this library should be passed through the configuration object',
+                  'The texts for this library should be passed through the configuration object.',
               },
             ],
           },

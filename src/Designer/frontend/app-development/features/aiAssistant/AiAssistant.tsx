@@ -17,7 +17,7 @@ export function AiAssistant(): React.ReactElement {
     case 'success':
       return (
         <AiAssistantWithData
-          heading='KI-assistent'
+          heading={t('ai_assistant.heading')}
           buttonTexts={buttonTexts}
           onSubmitMessage={onSubmitMessage}
         />
