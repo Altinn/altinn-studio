@@ -1,18 +1,12 @@
-name: App Frontend - Tests
+name: App Frontend - Unit tests
+
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'src/App/frontend/src/**'
-      - 'src/App/frontend/yarn.lock'
-      - '.github/workflows/app-frontend*.yml'
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/yarn.lock'
-      - '.github/workflows/app-frontend*.yml'
+      - '.github/workflows/app-frontend-unit-tests.yml'
 
 jobs:
   unit-tests:
@@ -36,7 +30,7 @@ jobs:
         id: yarn-cache-dir-path
         run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
