@@ -126,9 +126,9 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery(Name = "visibleAfter")] string visibleAfter,
             [FromQuery] string dueBefore,
             [FromQuery] string excludeConfirmedBy,
-            [FromQuery(Name = "status.isSoftDeleted")] bool isSoftDeleted,
-            [FromQuery(Name = "status.isHardDeleted")] bool isHardDeleted,
-            [FromQuery(Name = "status.isArchived")] bool isArchived,
+            [FromQuery(Name = "status.isSoftDeleted")] bool? isSoftDeleted,
+            [FromQuery(Name = "status.isHardDeleted")] bool? isHardDeleted,
+            [FromQuery(Name = "status.isArchived")] bool? isArchived,
             string continuationToken,
             int? size)
         {
@@ -136,7 +136,7 @@ namespace Altinn.Platform.Storage.Controllers
             string selfContinuationToken = null;
 
             // if user is org
-            string orgClaim = User.GetOrg();            
+            string orgClaim = User.GetOrg();
             int? userId = User.GetUserId();
             SystemUserClaim systemUser = User.GetSystemUser();
 
