@@ -82,7 +82,14 @@ namespace Altinn.App.Models
     [JsonPropertyName("SF_skjul-prosjekt")]
     public string SF_skjulprosjekt { get; set; }
 
-    [XmlElement("vedlegg", Order = 12)]
+    [XmlElement("SF_validate-tags", Order = 12)]
+    [JsonProperty("SF_validate-tags")]
+    [JsonPropertyName("SF_validate-tags")]
+    public bool? SF_validatetags { get; set; }
+
+    public bool ShouldSerializeSF_validatetags() => SF_validatetags.HasValue;
+
+    [XmlElement("vedlegg", Order = 13)]
     [JsonProperty("vedlegg")]
     [JsonPropertyName("vedlegg")]
     public List<string> vedlegg { get; set; }
