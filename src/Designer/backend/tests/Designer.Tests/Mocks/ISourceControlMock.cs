@@ -2,11 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
-
 using Designer.Tests.Utils;
 
 namespace Designer.Tests.Mocks
@@ -149,7 +147,7 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public Task VerifyCloneExists(string org, string repository)
+        public Task EnsureCloneExists(string org, string repository)
         {
             throw new NotImplementedException();
         }
@@ -159,14 +157,15 @@ namespace Designer.Tests.Mocks
             return Task.FromResult(new Branch { Name = branchName });
         }
 
-        public LibGit2Sharp.Branch CheckoutRepoOnCommit(string org, string developer, string repository, string commitSha) => throw new NotImplementedException();
+        public LibGit2Sharp.Branch CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
 
-        public void CommitToLocalRepo(string org, string developer, string repository, string message) => throw new NotImplementedException();
+        public void CommitToLocalRepo(AltinnRepoEditingContext editingContext, string message) => throw new NotImplementedException();
 
-        public void RebaseOntoDefaultBranch(string org, string developer, string repository) => throw new NotImplementedException();
+        public void RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
 
-        public void DeleteLocalBranch(string org, string developer, string repository, string branchName) => throw new NotImplementedException();
+        public void DeleteLocalBranch(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
 
-        public void CreateLocalBranch(string org, string developer, string repository, string branchName, string commitSha = null) => throw new NotImplementedException();
+        public void CreateLocalBranch(AltinnRepoEditingContext editingContext, string branchName, string commitSha = null) => throw new NotImplementedException();
+        public void MergeBranchIntoHead(AltinnRepoEditingContext editingContext, string featureBranch) => throw new NotImplementedException();
     }
 }

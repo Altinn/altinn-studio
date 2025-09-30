@@ -190,7 +190,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
 
         string codeListString = JsonSerializer.Serialize(codeList, s_jsonOptions);
 
-        string codeListFilePath = Path.Join(CodeListFolder, codeListId);
+        string codeListFilePath = Path.Join(CodeListFolder, $"{codeListId}.json");
         await WriteTextByRelativePathAsync(codeListFilePath, codeListString, true, cancellationToken);
     }
 

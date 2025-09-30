@@ -3,19 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Claims;
 using System.Threading.Tasks;
-
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
-
 using Designer.Tests.Utils;
-
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-
 using Moq;
-
 using Xunit;
 
 namespace Designer.Tests.Services

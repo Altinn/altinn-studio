@@ -105,19 +105,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<Branch> CreateBranch(string org, string repository, string branchName);
 
         /// <summary>
-        /// Gets a file from a filepath
+        /// Gets a file from a filepath at a specific reference (commit/branch/tag).
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">The name of repository</param>
         /// <param name="filePath">Path to a file, may start with full commit sha</param>
-        /// <param name="shortCommitId">The short hash of a commit id</param>
-        /// <returns></returns>
-        Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string shortCommitId);
-
-        /// <summary>
-        /// Gets a file from a filepath at a specific reference (commit/branch/tag).
-        /// </summary>
-        Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken);
+        /// <param name="reference">The short hash of a commit id</param>
+        /// <param name="cancellationToken">The cancellation token</param>
+        Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Takes in a ServiceResource-object and uses it to create a ListviewServiceResource-object that contains some additional fields not stored in the resourceregistry

@@ -6,7 +6,7 @@ namespace Altinn.Studio.Designer.Models
     /// Class representing context of an Altinn repository.
     /// This class in part of internal domain model and should not be exposed to the outside world.
     /// </summary>
-    public class AltinnRepoContext
+    public record AltinnRepoContext
     {
         /// <summary>
         /// The organization owning the repository identfied by it's short name as defined in Gitea.

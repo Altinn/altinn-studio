@@ -73,6 +73,8 @@ public class OrgCodeListController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<GetCodeListResponse>> GetCodeListsNew(string org, [FromQuery] string? reference = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         GetCodeListResponse response = await _orgCodeListService.GetCodeListsNew(org, reference, cancellationToken);
 
         return Ok(response);

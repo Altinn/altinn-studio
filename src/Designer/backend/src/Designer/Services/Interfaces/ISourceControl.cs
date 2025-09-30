@@ -132,7 +132,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository</param>
-        Task VerifyCloneExists(string org, string repository);
+        Task EnsureCloneExists(string org, string repository);
 
         /// <summary>
         /// Creates a new branch in the given repository.
@@ -163,46 +163,43 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Checkout the repository on specified commit.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="developer">The name of the user</param>
-        /// <param name="repository">The name of repository</param>
-        /// <param name="commitSha">The commit to checkout</param>
-        LibGit2Sharp.Branch CheckoutRepoOnCommit(string org, string developer, string repository, LibGit2Sharp.Branch commitSha);
+        /// <param name="editingContext">The altinn repo editing context</param>
+        /// <param name="branchName">The name of the branch</param>
+        LibGit2Sharp.Branch CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName);
 
         /// <summary>
         /// Make a commit to local repository.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="developer">The name of the user</param>
-        /// <param name="repository">The name of repository</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <param name="message">The commit message</param>
-        void CommitToLocalRepo(string org, string developer, string repository, string message);
+        void CommitToLocalRepo(AltinnRepoEditingContext editingContext, string message);
 
         /// <summary>
         /// Rebases local branch onto default remote branch.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="developer">The name of the user</param>
-        /// <param name="repository">The name of repository</param>
-        void RebaseOntoDefaultBranch(string org, string developer, string repository);
+        /// <param name="editingContext">The altinn repo editing context</param>
+        void RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Deletes a local branch based on the specified name.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="developer">The name of the user</param>
-        /// <param name="repository">The name of repository</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <param name="branchName">The name of the branch</param>
-        void DeleteLocalBranch(string org, string developer, string repository, string branchName);
+        void DeleteLocalBranch(AltinnRepoEditingContext editingContext, string branchName);
 
         /// <summary>
         /// Creates a local branch based on the specified commit sha if given.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="developer">The name of the user</param>
-        /// <param name="repository">The name of repository</param>
+        /// <param name="editingContext">The altinn repo editing context</param>
         /// <param name="branchName">The name of the branch</param>
         /// <param name="commitSha">The commit sha</param>
-        LibGit2Sharp.Branch CreateLocalBranch(string org, string developer, string repository, string branchName, string commitSha = null);
+        void CreateLocalBranch(AltinnRepoEditingContext editingContext, string branchName, string commitSha = null);
+
+        /// <summary>
+        /// Merge feature branch into head branch.
+        /// </summary>
+        /// <param name="editingContext">The altinn repo editing context</param>
+        /// <param name="featureBranch">The name of the feature branch</param>
+        public void MergeBranchIntoHead(AltinnRepoEditingContext editingContext, string featureBranch);
     }
 }

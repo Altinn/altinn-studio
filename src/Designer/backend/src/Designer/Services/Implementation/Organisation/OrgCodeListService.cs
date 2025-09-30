@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Exceptions.CodeList;
 using Altinn.Studio.Designer.Exceptions.Options;
 using Altinn.Studio.Designer.Helpers;
@@ -141,34 +142,50 @@ public class OrgCodeListService : IOrgCodeListService
         ValidateCodeListTitles(request.CodeListWrappers);
         ValidateCommitMessage(request.CommitMessage);
         string repositoryName = GetStaticContentRepo(org);
+        await _sourceControl.EnsureCloneExists(org, repositoryName);
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repositoryName, developer);
 
-        /*
-         * Clone if repo does not exist locally. OK
-         * Delete old branch. OK
-         * Create branch locally. OK
-         * Checkout repo on given BaseCommitSha. OK
-         * Update files with incoming changes. OK
-         * Make a commit. OK
-         * Try to Rebase Master. OK
-         * Push changes. OK
-         */
-
-        await _sourceControl.VerifyCloneExists(org, repositoryName);
-        _sourceControl.DeleteLocalBranch(org, developer, repositoryName, developer);
-        Branch branch = _sourceControl.CreateLocalBranch(org, developer, repositoryName, developer, request.BaseCommitSha);
-        _sourceControl.CheckoutRepoOnCommit(org, developer, repositoryName, branch);
-
-        foreach (CodeListWrapper wrapper in request.CodeListWrappers)
+        string latestCommitSha = await _gitea.GetLatestCommitOnBranch(org, repositoryName, General.DefaultBranch);
+        if (latestCommitSha == request.BaseCommitSha)
         {
-            await UpdateCodeListNew(org, developer, wrapper.Title, wrapper.CodeList, cancellationToken);
+            await HandleSimpleCommit(editingContext, request, cancellationToken);
         }
-
-        _sourceControl.CommitToLocalRepo(org, developer, repositoryName, request.CommitMessage ?? string.Empty);
-        _sourceControl.RebaseOntoDefaultBranch(org, developer, repositoryName);
+        else
+        {
+            await HandleCommitWithFeatureBranch(editingContext, request, cancellationToken);
+        }
         await _sourceControl.Push(org, repositoryName);
     }
 
-    internal async Task UpdateCodeListNew(string org, string developer, string codeListId, CodeList? codeList, CancellationToken cancellationToken = default)
+    private async Task HandleSimpleCommit(AltinnRepoEditingContext editingContext, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
+    {
+        _sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
+        foreach (CodeListWrapper wrapper in request.CodeListWrappers)
+        {
+            await UpdateCodeListFile(editingContext.Org, editingContext.Developer, wrapper.Title, wrapper.CodeList, cancellationToken);
+        }
+        _sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? string.Empty);
+    }
+
+    private async Task HandleCommitWithFeatureBranch(AltinnRepoEditingContext editingContext, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
+    {
+        string branchName = editingContext.Developer;
+        _sourceControl.DeleteLocalBranch(editingContext, branchName);
+        _sourceControl.CreateLocalBranch(editingContext, branchName, request.BaseCommitSha);
+        _sourceControl.CheckoutRepoOnBranch(editingContext, branchName);
+
+        foreach (CodeListWrapper wrapper in request.CodeListWrappers)
+        {
+            await UpdateCodeListFile(editingContext.Org, editingContext.Developer, wrapper.Title, wrapper.CodeList, cancellationToken);
+        }
+
+        _sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? string.Empty);
+        _sourceControl.RebaseOntoDefaultBranch(editingContext);
+        _sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
+        _sourceControl.MergeBranchIntoHead(editingContext, branchName);
+    }
+
+    internal async Task UpdateCodeListFile(string org, string developer, string codeListId, CodeList? codeList, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string repo = GetStaticContentRepo(org);

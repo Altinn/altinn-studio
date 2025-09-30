@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Exceptions.CodeList;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Helpers;
@@ -30,6 +31,7 @@ public class OrgCodeListServiceTests : IDisposable
     private const string Repo = "org-content";
     private const string Developer = "testUser";
     private readonly Mock<IGitea> _giteaMock = new();
+    private readonly Mock<ISourceControl> _sourceControlMock = new();
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
         WriteIndented = true,
@@ -380,8 +382,55 @@ public class OrgCodeListServiceTests : IDisposable
         Assert.Equal(codeList, createDecoded);
     }
 
+
     [Fact]
-    public async Task UpdateCodeListsNew()
+    public async Task UpdateCodeListsNew_SimpleCommit()
+    {
+        // Arrange
+        const string GiteaCommitMessage = "some message";
+        const string Reference = "some reference";
+        const string CodeListIdNoChange = "codeListOne";
+        const string CodeListIdToDelete = "codeListTwo";
+        CodeList validCodeList = SetupCodeList();
+        List<CodeListWrapper> localCodeListWrappers = [
+            new(Title: CodeListIdNoChange, CodeList: validCodeList),
+            new(Title: CodeListIdToDelete)
+        ];
+
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg, targetRepository);
+
+        _giteaMock
+            .Setup(service => service.GetLatestCommitOnBranch(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(Reference);
+        _sourceControlMock.Setup(service => service.EnsureCloneExists(It.IsAny<string>(), It.IsAny<string>()));
+        _sourceControlMock.Setup(service => service.CheckoutRepoOnBranch(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
+        _sourceControlMock.Setup(service => service.CommitToLocalRepo(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
+        _sourceControlMock.Setup(service => service.Push(It.IsAny<string>(), It.IsAny<string>()));
+
+        // Act
+        OrgCodeListService orgListService = GetOrgCodeListService();
+        UpdateCodeListRequest request = new(
+            CodeListWrappers: localCodeListWrappers,
+            BaseCommitSha: Reference,
+            CommitMessage: GiteaCommitMessage
+        );
+
+        await orgListService.UpdateCodeListsNew(TargetOrg, Developer, request);
+
+        // Assert
+        AltinnRepoEditingContext expected = AltinnRepoEditingContext.FromOrgRepoDeveloper(TargetOrg, targetRepository, Developer);
+
+        _giteaMock.Verify(service => service.GetLatestCommitOnBranch(TargetOrg, targetRepository, "master"), Times.Once);
+        _sourceControlMock.Verify(service => service.EnsureCloneExists(TargetOrg, targetRepository), Times.Once);
+        _sourceControlMock.Verify(service => service.CheckoutRepoOnBranch(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), "master"), Times.Once);
+        _sourceControlMock.Verify(service => service.CommitToLocalRepo(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), GiteaCommitMessage), Times.Once);
+        _sourceControlMock.Verify(service => service.Push(TargetOrg, targetRepository), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateCodeListsNew_FeatureBranch()
     {
         // Arrange
         const string GiteaCommitMessage = "some message";
@@ -397,26 +446,29 @@ public class OrgCodeListServiceTests : IDisposable
         [
             new()
             {
-                Name = "codeListOne",
+                Name = CodeListIdNoChange,
                 Path = CodeListUtils.FilePath(CodeListIdNoChange),
                 Content = FromStringToBase64String(JsonSerializer.Serialize(validCodeList)),
                 Sha = "non-descriptive-sha-1"
             },
             new()
             {
-                Name = "codeListTwo",
+                Name = CodeListIdToDelete,
                 Path = CodeListUtils.FilePath(CodeListIdToDelete),
                 Content = FromStringToBase64String(JsonSerializer.Serialize(validCodeList)),
                 Sha = "non-descriptive-sha-2"
             }
         ];
 
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg, targetRepository);
+
         _giteaMock
             .Setup(service => service.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(remoteCodeLists);
-
         _giteaMock
-            .Setup(s => s.ModifyMultipleFiles(Org, It.IsAny<string>(), It.IsAny<GiteaMultipleFilesDto>(), It.IsAny<CancellationToken>()))
+            .Setup(service => service.ModifyMultipleFiles(Org, It.IsAny<string>(), It.IsAny<GiteaMultipleFilesDto>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act
@@ -427,9 +479,10 @@ public class OrgCodeListServiceTests : IDisposable
             CommitMessage: GiteaCommitMessage
         );
 
-        await orgListService.UpdateCodeListsNew(Org, Developer, request);
+        await orgListService.UpdateCodeListsNew(TargetOrg, Developer, request);
 
 
+        // Assert
         List<FileOperationContext> files =
         [
             new(
@@ -438,8 +491,7 @@ public class OrgCodeListServiceTests : IDisposable
                 Sha: "non-descriptive-sha-2"
             )
         ];
-
-        var expectedDto = new GiteaMultipleFilesDto(
+        GiteaMultipleFilesDto expectedDto = new(
             Author: new GiteaIdentity(Name: Developer),
             Branch: Reference,
             Committer: new GiteaIdentity(Name: Developer),
@@ -447,7 +499,6 @@ public class OrgCodeListServiceTests : IDisposable
             Message: GiteaCommitMessage
         );
 
-        // Assert
         _giteaMock.Verify(s => s.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), Reference, It.IsAny<CancellationToken>()), Times.Once);
         _giteaMock.Verify(s => s.ModifyMultipleFiles(Org, It.IsAny<string>(), It.Is<GiteaMultipleFilesDto>(dto => expectedDto.Equals(dto)), It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -785,8 +836,7 @@ public class OrgCodeListServiceTests : IDisposable
     private OrgCodeListService GetOrgCodeListService()
     {
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        ISourceControl sourceControlMock = new ISourceControlMock();
-        return new OrgCodeListService(altinnGitRepositoryFactory, _giteaMock.Object, sourceControlMock);
+        return new OrgCodeListService(altinnGitRepositoryFactory, _giteaMock.Object, _sourceControlMock.Object);
     }
 
     public void Dispose()
