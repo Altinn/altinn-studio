@@ -13,6 +13,8 @@ import { LinkMainConfig } from './SpecificMainConfig/LinkMainConfig';
 import { PanelMainConfig } from './SpecificMainConfig/PanelMainConfig';
 import { TitleMainConfig } from './SpecificMainConfig/TitleMainConfig';
 import { CustomButtonMainConfig } from './SpecificMainConfig/CustomButtonMainConfig';
+import { TextMainConfig } from './SpecificMainConfig/TextMainConfig';
+import { ImageUploadMainConfig } from './SpecificMainConfig/ImageUploadMainConfig';
 
 export type ComponentMainConfigProps = {
   component: FormItem;
@@ -101,6 +103,14 @@ export const ComponentMainConfig = ({
           className={classes.mainConfigWrapper}
         />
       );
+    case ComponentType.Text:
+      return (
+        <TextMainConfig
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.mainConfigWrapper}
+        />
+      );
     case ComponentType.CustomButton:
       return (
         <CustomButtonMainConfig
@@ -109,6 +119,16 @@ export const ComponentMainConfig = ({
           className={classes.mainConfigWrapper}
         />
       );
+
+    case ComponentType.ImageUpload:
+      return (
+        <ImageUploadMainConfig
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.mainConfigWrapper}
+        />
+      );
+
     default:
       return null;
   }

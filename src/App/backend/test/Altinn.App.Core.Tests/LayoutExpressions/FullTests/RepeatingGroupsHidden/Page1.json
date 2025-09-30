@@ -1,0 +1,179 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": ["equals", ["dataModel", "some.hidePage1"], true],
+    "layout": [
+      {
+        "dataModelBindings": {
+          "group": "some.data"
+        },
+        "id": "RepeatingGroup-KXSlY5",
+        "type": "RepeatingGroup",
+        "children": [
+          "InputHidden-zaQrUg",
+          "InputHidden-zaQrUggg",
+          "InputHidden-H8fgpz",
+          "Group-KXSlY5"
+        ],
+        "tableHeaders": [
+          "InputHidden-zaQrUg",
+          "InputHidden-zaQrUggg",
+          "InputHidden-H8fgpz"
+        ],
+        "stickyHeader": true,
+        "edit": {
+         "addButton": false ,
+         "deleteButton": false,
+         "saveAndNextButton": true,
+         "openByDefault": "first"
+        },
+        "validateOnSaveRow": [
+          "Required"
+        ],
+        "textResourceBindings": {
+          "title": "Page1.RepeatingGroup-KXSlY5.title"
+        },
+        "hiddenRow": ["equals",["dataModel","some.data.prodVareNr"],null],
+        "hidden": ["equals", ["dataModel", "some.hideGroup1"], true]
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "some.data.prodType"
+        },
+        "id": "InputHidden-zaQrUg",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Page1.InputHidden-zaQrUg.tabletitle",
+          "tableTitle": "Page1.InputHidden-zaQrUg.tabletitle"
+        },
+        "autocomplete": "off",
+        "required": false,
+        "readOnly": true,
+        "hidden": true
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "some.data.prodBeskrivelse"
+        },
+        "id": "InputHidden-zaQrUggg",
+        "type": "TextArea",
+        "textResourceBindings": {
+          "title": "Page1.Input-zaQrUg.title",
+          "description": "Page1.Input-zaQrUg.description",
+          "tableTitle": "Page1.Input-zaQrUg.tableTitle"
+        },
+        "autocomplete": "off",
+        "required": false,
+        "hidden": true
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "some.data.prodMengde"
+        },
+        "id": "InputHidden-H8fgpz",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Page1.Input-H8fgpz.title",
+          "description": "Page1.Input-H8fgpz.description",
+          "tableTitle": "Page1.Input-H8fgpz.tableTitle"
+        },
+        "autocomplete": "off",
+        "required": false,
+        "formatting": {
+          "number": {
+            "thousandSeparator": " ",
+            "allowNegative": false,
+            "decimalScale": 0,
+            "suffix":["text","Page1.Input-H8fgpz.suffiks"]
+          }
+        },
+       "grid": {
+          "md": 12,
+          "innerGrid": {
+            "md": 3
+          }
+        },
+        "hidden": true
+      },
+      {
+        "id": "Group-KXSlY5",
+        "type": "Group",
+        "children": [
+          "Input-zaQrUg",
+          "Input-H8fgpz"
+        ],
+        "textResourceBindings": {
+          "title": "Page1.Group-qjmPVn.tittel",
+          "description": "Page1.Group-qjmPVn.description"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "some.data.prodBeskrivelse"
+        },
+        "id": "Input-zaQrUg",
+        "type": "TextArea",
+        "textResourceBindings": {
+          "title": "Page1.Input-zaQrUg.title",
+          "description": "Page1.Input-zaQrUg.description",
+          "tableTitle": "Page1.Input-zaQrUg.tableTitle",
+          "requiredValidation": "Page1.Input-zaQrUg.requiredValidation"
+        },
+        "autocomplete": "off",
+        "required": true,
+        "maxLength": 2000
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "some.data.prodMengde"
+        },
+        "id": "Input-H8fgpz",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Page1.Input-H8fgpz.title",
+          "description": "Page1.Input-H8fgpz.description",
+          "tableTitle": "Page1.Input-H8fgpz.tableTitle",
+          "requiredValidation": "Page1.Input-H8fgpz.requiredValidation"
+        },
+        "autocomplete": "off",
+        "saveWhileTyping": 700,
+        "required": true,
+        "formatting": {
+          "number": {
+            "thousandSeparator": " ",
+            "allowNegative": false,
+            "decimalScale": 0,
+            "suffix":["text","Page1.Input-H8fgpz.suffiks"]
+          }
+        },
+       "grid": {
+          "md": 12,
+          "innerGrid": {
+            "md": 3
+          }
+        }
+      },
+      {
+        "id": "NavigationButtons-7GQXGt",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "lang.tittel.navigation.neste",
+          "back": "lang.tittel.navigation.tilbake"
+        },
+        "showBackButton": true,
+        "validateOnNext": {
+          "page": "currentAndPrevious",
+          "show": [
+            "All"
+          ]
+        },
+        "validateOnPrevious": {
+          "page": "current",
+          "show": [
+            "AllExceptRequired"
+          ]
+        }
+      }
+    ]
+  }
+}

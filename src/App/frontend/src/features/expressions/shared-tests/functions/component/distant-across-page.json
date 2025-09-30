@@ -1,0 +1,45 @@
+{
+  "name": "Lookup component that cannot be found using closest() across page",
+  "expression": ["component", "navn"],
+  "expects": "Kaptein Sabeltann",
+  "context": {
+    "component": "information",
+    "currentLayout": "Summary"
+  },
+  "dataModel": {
+    "Navn": "Kaptein Sabeltann"
+  },
+  "layouts": {
+    "Form": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "group",
+            "type": "Group",
+            "dataModelBindings": {},
+            "children": ["navn"]
+          },
+          {
+            "id": "navn",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Navn"
+            }
+          }
+        ]
+      }
+    },
+    "Summary": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "information",
+            "type": "Panel"
+          }
+        ]
+      }
+    }
+  }
+}

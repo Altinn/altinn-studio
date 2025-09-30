@@ -3,7 +3,8 @@ import classes from './RedirectToCreatePageButton.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { PencilWritingIcon } from '@studio/icons';
-import { StudioButton, StudioRedirectBox } from '@studio/components-legacy';
+import { StudioRedirectBox } from '@studio/components-legacy';
+import { StudioLink } from '@studio/components';
 import { useLocalStorage } from '@studio/components-legacy/src/hooks/useLocalStorage';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
@@ -25,17 +26,13 @@ export const RedirectToCreatePageButton = (): React.ReactElement => {
       <StudioRedirectBox
         title={t('process_editor.configuration_panel_custom_receipt_navigate_to_design_title')}
       >
-        <StudioButton
-          as='a'
-          className={classes.link}
-          color='second'
-          href={packagesRouter.getPackageNavigationUrl('editorUiEditor')}
+        <StudioLink
           icon={<PencilWritingIcon />}
+          href={packagesRouter.getPackageNavigationUrl('editorUiEditor')}
           onClick={handleClick}
-          variant='primary'
         >
-          {t('process_editor.configuration_panel_custom_receipt_navigate_to_design_button')}
-        </StudioButton>
+          {t('process_editor.configuration_panel_custom_receipt_navigate_to_design_link')}
+        </StudioLink>
       </StudioRedirectBox>
     </div>
   );

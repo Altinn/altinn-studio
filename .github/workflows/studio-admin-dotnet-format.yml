@@ -1,11 +1,7 @@
-name: Dotnet format check
+name: StudioAdmin - Dotnet format check
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'src/StudioAdmin/**'
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/StudioAdmin/**'
   workflow_dispatch:

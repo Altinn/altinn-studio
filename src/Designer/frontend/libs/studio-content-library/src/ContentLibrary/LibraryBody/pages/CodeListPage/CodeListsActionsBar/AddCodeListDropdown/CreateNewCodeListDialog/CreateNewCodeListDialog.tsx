@@ -131,7 +131,7 @@ function CreateNewCodeList({
   };
 
   const shouldSaveButtonBeDisabled: boolean =
-    !isCodeListValid || !currentCodeListWithMetadata.title || !!codeListTitleError;
+    !isCodeListValid || !currentCodeListWithMetadata.title || Boolean(codeListTitleError);
 
   return (
     <div className={classes.createNewCodeList}>

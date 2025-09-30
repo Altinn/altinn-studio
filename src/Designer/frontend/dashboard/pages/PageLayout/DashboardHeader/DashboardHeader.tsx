@@ -1,7 +1,8 @@
 import React, { type ReactElement } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { StudioAvatar, StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
+import { StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
+import { StudioAvatar } from '@studio/components';
 import { useSelectedContext } from '../../../hooks/useSelectedContext';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useHeaderContext } from '../../../context/HeaderContext';
@@ -27,20 +28,22 @@ export const DashboardHeader = (): ReactElement => {
   const shouldShowSubMenu: boolean = isOrg(selectedContext) && isOrgLibraryPage;
 
   return (
-    <StudioPageHeader>
-      <StudioPageHeader.Main>
-        <StudioPageHeader.Left title={pageHeaderTitle} showTitle={shouldDisplayDesktopMenu} />
-        {shouldDisplayDesktopMenu && <CenterContent />}
-        <StudioPageHeader.Right>
-          <RightContent />
-        </StudioPageHeader.Right>
-      </StudioPageHeader.Main>
-      {shouldShowSubMenu && (
-        <StudioPageHeader.Sub>
-          <SubHeader />
-        </StudioPageHeader.Sub>
-      )}
-    </StudioPageHeader>
+    <div data-color-scheme='dark'>
+      <StudioPageHeader>
+        <StudioPageHeader.Main>
+          <StudioPageHeader.Left title={pageHeaderTitle} showTitle={shouldDisplayDesktopMenu} />
+          {shouldDisplayDesktopMenu && <CenterContent />}
+          <StudioPageHeader.Right>
+            <RightContent />
+          </StudioPageHeader.Right>
+        </StudioPageHeader.Main>
+        {shouldShowSubMenu && (
+          <StudioPageHeader.Sub>
+            <SubHeader />
+          </StudioPageHeader.Sub>
+        )}
+      </StudioPageHeader>
+    </div>
   );
 };
 

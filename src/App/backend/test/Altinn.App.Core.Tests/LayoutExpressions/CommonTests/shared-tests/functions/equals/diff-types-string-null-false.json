@@ -1,0 +1,5 @@
+{
+  "name": "Should work with [string, null] (false)",
+  "expression": ["equals", "nil", null],
+  "expects": false
+}

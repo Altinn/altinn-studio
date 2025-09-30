@@ -1,0 +1,12 @@
+{
+  "name": "Should format date with format 'GGG' as 'AD'",
+  "expression": [
+    "formatDate",
+    "2023-03-04T05:06:07.120Z",
+    "GGG"
+  ],
+  "expects": "AD",
+  "profileSettings": {
+    "language": "en"
+  }
+}

@@ -2,7 +2,8 @@ import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './LocalChangesActionButton.module.css';
 import { Link, Paragraph } from '@digdir/designsystemet-react';
-import { StudioButton, StudioLabelAsParagraph } from '@studio/components-legacy';
+import { StudioLabelAsParagraph } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 
 interface LinkAction {
   /**
@@ -96,8 +97,8 @@ export const LocalChangesActionButton = ({
         return (
           <div className={classes.linkAndIconWrapper}>
             <Link href={action.href}>
-              {text}
               {icon}
+              {text}
             </Link>
           </div>
         );
@@ -106,7 +107,7 @@ export const LocalChangesActionButton = ({
         return (
           <StudioButton
             variant='secondary'
-            color={color}
+            data-color={color}
             onClick={action.onClick}
             icon={icon}
             iconPlacement='right'

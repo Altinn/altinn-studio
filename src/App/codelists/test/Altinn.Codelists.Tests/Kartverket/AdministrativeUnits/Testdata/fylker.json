@@ -1,0 +1,46 @@
+[
+  {
+    "fylkesnavn": "Oslo",
+    "fylkesnummer": "03"
+  },
+  {
+    "fylkesnavn": "Rogaland",
+    "fylkesnummer": "11"
+  },
+  {
+    "fylkesnavn": "Møre og Romsdal",
+    "fylkesnummer": "15"
+  },
+  {
+    "fylkesnavn": "Nordland",
+    "fylkesnummer": "18"
+  },
+  {
+    "fylkesnavn": "Viken",
+    "fylkesnummer": "30"
+  },
+  {
+    "fylkesnavn": "Innlandet",
+    "fylkesnummer": "34"
+  },
+  {
+    "fylkesnavn": "Vestfold og Telemark",
+    "fylkesnummer": "38"
+  },
+  {
+    "fylkesnavn": "Agder",
+    "fylkesnummer": "42"
+  },
+  {
+    "fylkesnavn": "Vestland",
+    "fylkesnummer": "46"
+  },
+  {
+    "fylkesnavn": "Trøndelag",
+    "fylkesnummer": "50"
+  },
+  {
+    "fylkesnavn": "Troms og Finnmark",
+    "fylkesnummer": "54"
+  }
+]

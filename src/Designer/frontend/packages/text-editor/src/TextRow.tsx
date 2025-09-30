@@ -9,7 +9,8 @@ import { validateTextId } from './utils';
 import { TextEntry } from './TextEntry';
 import { Variables } from './Variables';
 import { AltinnConfirmDialog } from 'app-shared/components';
-import { StudioButton, StudioTextfield } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 
 export interface TextRowProps {
   idExists: (newTextId: string, oldTextId: string) => boolean;

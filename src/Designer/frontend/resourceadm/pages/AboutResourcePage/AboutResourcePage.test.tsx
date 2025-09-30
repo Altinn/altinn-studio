@@ -9,6 +9,7 @@ import type {
   ResourceContactPoint,
   ResourceStatusOption,
   ResourceTypeOption,
+  SupportedLanguage,
 } from 'app-shared/types/ResourceAdm';
 import {
   mapKeywordsArrayToString,
@@ -18,6 +19,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { testConsentTemplates } from '../../testing/utils/testUtils';
+import { useUrlParams } from '../../hooks/useUrlParams';
 
 const mockContactPoint: ResourceContactPoint = {
   category: 'test',
@@ -67,7 +69,7 @@ const mockConsentResource: Resource = {
 const consentTemplates = testConsentTemplates;
 
 const mockResourceType: ResourceTypeOption = textMock(
-  'resourceadm.about_resource_resource_type_system_resource',
+  'resourceadm.about_resource_resource_type_generic_access_resource',
 ) as ResourceTypeOption;
 const mockStatus: ResourceStatusOption = 'Deprecated';
 
@@ -79,14 +81,17 @@ const mockNewRightDescriptionInput: string = 'mock';
 const mockNewConsentTextInput: string = ' og andre';
 const mockId: string = 'page-content-deploy';
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({
-    resourceId: mockResource1,
-  }),
+jest.mock('../../hooks/useUrlParams', () => ({
+  useUrlParams: jest.fn(),
 }));
 
 describe('AboutResourcePage', () => {
+  beforeEach(() => {
+    (useUrlParams as jest.Mock).mockReturnValue({
+      resourceId: mockResource1.identifier,
+      org: 'ttd',
+    });
+  });
   afterEach(jest.clearAllMocks);
 
   const mockOnSaveResource = jest.fn();
@@ -114,6 +119,30 @@ describe('AboutResourcePage', () => {
     render(<AboutResourcePage {...defaultProps} />);
 
     const resourceTypeRadio = screen.getByLabelText(mockResourceType);
+    await user.click(resourceTypeRadio);
+
+    expect(resourceTypeRadio).toBeChecked();
+  });
+
+  it('should not show resource type Systemresource for org ttd', () => {
+    render(<AboutResourcePage {...defaultProps} />);
+
+    expect(
+      screen.queryByLabelText(textMock('resourceadm.about_resource_resource_type_system_resource')),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should show resource type Systemresource for org digdir', async () => {
+    (useUrlParams as jest.Mock).mockReturnValue({
+      resourceId: mockResource1.identifier,
+      org: 'digdir',
+    });
+    const user = userEvent.setup();
+    render(<AboutResourcePage {...defaultProps} />);
+
+    const resourceTypeRadio = screen.getByLabelText(
+      textMock('resourceadm.about_resource_resource_type_system_resource'),
+    );
     await user.click(resourceTypeRadio);
 
     expect(resourceTypeRadio).toBeChecked();
@@ -672,5 +701,31 @@ describe('AboutResourcePage', () => {
     expect(
       screen.queryByText(textMock('resourceadm.about_resource_limited_by_rrr_label')),
     ).not.toBeInTheDocument();
+  });
+
+  it('should display empty text in description field if language key is not set', async () => {
+    const user = userEvent.setup();
+    render(
+      <AboutResourcePage
+        {...defaultProps}
+        validationErrors={[]}
+        resourceData={{
+          ...mockResource1,
+          description: {
+            nb: mockResource1.description.nb,
+          } as SupportedLanguage,
+        }}
+      />,
+    );
+
+    const descriptionEnTab = screen.getByLabelText(
+      `${textMock('language.en')} ${textMock('resourceadm.about_resource_resource_description_label')}`,
+    );
+    await user.click(descriptionEnTab);
+
+    const descriptionEnInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_resource_description_label'),
+    });
+    expect(descriptionEnInput).toHaveValue('');
   });
 });

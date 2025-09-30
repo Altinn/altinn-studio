@@ -1,0 +1,16 @@
+{
+  "name": "Should fail when the string does not exist",
+  "expression": [
+    "concat",
+    [
+      "stringSlice",
+      ["dataModel", "string"],
+      ["stringIndexOf", ["dataModel", "string"], "does-not-exist"]
+    ],
+    "expressions!"
+  ],
+  "expectsFailure": "Start/end index cannot be null",
+  "dataModel": {
+    "string": "Hello, world!"
+  }
+}

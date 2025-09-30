@@ -11,6 +11,9 @@ export type StudioDisplayTileProps = {
   showPadlock?: boolean;
 } & HTMLAttributes<HTMLDivElement>;
 
+/**
+ * @deprecated Use `StudioDisplayTile` from `studio-components` instead.
+ */
 const StudioDisplayTile = forwardRef<HTMLDivElement, StudioDisplayTileProps>(
   (
     {

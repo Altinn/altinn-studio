@@ -1,0 +1,5 @@
+{
+  "name": "Should work with [boolean, float] (false)",
+  "expression": ["equals", false, 0],
+  "expects": false
+}

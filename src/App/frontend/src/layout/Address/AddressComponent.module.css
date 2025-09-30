@@ -1,0 +1,20 @@
+.addressComponent {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 18px;
+}
+
+.addressComponentPostplace {
+  flex-grow: 4;
+  max-width: 300px;
+}
+
+.addressComponentZipCode {
+  flex-grow: 0;
+  box-sizing: content-box;
+}
+
+.addressComponentSmallInputs {
+  max-width: 90px;
+}

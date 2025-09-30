@@ -1,0 +1,28 @@
+.responsiveButtons {
+  display: none;
+}
+
+.dropdown {
+  min-width: 200px;
+}
+
+@media only screen and (min-width: 400px) {
+  .responsiveDropdown {
+    display: none;
+  }
+  .responsiveButtons {
+    display: block;
+  }
+}
+
+.hidden {
+  display: none;
+}
+
+.chipGroup {
+  flex-wrap: wrap;
+}
+
+.hiddenPage span {
+  font-style: italic;
+}

@@ -1,7 +1,6 @@
 import React from 'react';
 import classes from './PropertiesHeader.module.css';
 import { formItemConfigs } from '../../../data/formItemConfig';
-import { StudioAlert, StudioSectionHeader } from '@studio/components-legacy';
 import { getComponentHelperTextByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
 import { EditComponentIdRow } from './EditComponentIdRow';
@@ -12,8 +11,9 @@ import { ComponentMainConfig } from './ComponentMainConfig';
 import { HeaderMainConfig } from './HeaderMainConfig';
 import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
 import { useComponentSchemaQuery } from '@altinn/ux-editor/hooks/queries/useComponentSchemaQuery';
-import { TextMainConfig } from './TextMainConfig';
+import { TextResourceMainConfig } from './TextResourceMainConfig';
 import { DataModelMainConfig } from './DataModelMainConfig';
+import { StudioAlert, StudioSectionHeader } from '@studio/components';
 
 export type PropertiesHeaderProps = {
   formItem: FormItem;
@@ -46,7 +46,7 @@ export const PropertiesHeader = ({
         }}
       />
       {isComponentDeprecated(formItem.type) && (
-        <StudioAlert size='sm' className={classes.alertWrapper} severity='warning'>
+        <StudioAlert className={classes.alertWrapper} data-color='warning'>
           {t(`ux_editor.component_properties.deprecated.${formItem.type}`)}
         </StudioAlert>
       )}
@@ -64,7 +64,7 @@ export const PropertiesHeader = ({
               component={formItem}
               handleComponentUpdate={handleComponentUpdate}
             />
-            <TextMainConfig
+            <TextResourceMainConfig
               component={formItem}
               handleComponentChange={handleComponentUpdate}
               componentSchemaTextKeys={Object.keys(textResourceBindings?.properties || {})}

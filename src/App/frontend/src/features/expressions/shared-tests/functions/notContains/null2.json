@@ -1,0 +1,5 @@
+{
+  "name": "Should always return true if the input is null",
+  "expression": ["notContains", "null", null],
+  "expects": true
+}
