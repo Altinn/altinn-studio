@@ -39,10 +39,10 @@ export const DataModelBindingsCombobox = ({
       onValueChange={(values) => onValueChange(values[0])}
     >
       {Object.keys(dataModelBindings).map((key) => {
-        const field = dataModelBindings?.[key];
+        const binding = dataModelBindings?.[key];
         return (
-          field && (
-            <StudioCombobox.Option key={key} value={key} description={field.field}>
+          binding && (
+            <StudioCombobox.Option key={key} value={key} description={binding.field}>
               {key === 'simpleBinding'
                 ? t(`ux_editor.component_title.${componentType}`)
                 : t(`ux_editor.modal_properties_data_model_label.${key}`)}
