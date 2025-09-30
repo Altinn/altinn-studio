@@ -20,6 +20,6 @@ export type Thread = {
 
 export type Message = {
   author: MessageAuthor;
-  message: string;
+  content: string;
   mode?: string;
 };

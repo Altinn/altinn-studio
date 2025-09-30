@@ -4,6 +4,6 @@ import { MessageAuthor } from '../types/MessageAuthor';
 export function createUserMessage(content: string): Message {
   return {
     author: MessageAuthor.User,
-    message: content,
+    content: content,
   };
 }
