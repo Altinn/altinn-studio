@@ -105,6 +105,9 @@
         "SF_skjul-prosjekt": {
           "type": "string"
         },
+        "SF_validate-tags": {
+          "type": "boolean"
+        },
         "vedlegg": {
           "type": "array",
           "items": {
