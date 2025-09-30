@@ -13,7 +13,6 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Implementation.Organisation;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
 using Moq;
