@@ -3,9 +3,8 @@ import type { Meta, StoryFn } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 import { StudioRecommendedNextAction } from './index';
 import type { StudioRecommendedNextActionProps } from './index';
-//TODO: We use for now StudioTextfield because StudioIconTextfield has not moved to studio/components, It will be fixed by this PR: https://github.com/Altinn/altinn-studio/pull/16344
-import { StudioTextfield } from '../StudioTextfield';
-// import { KeyVerticalIcon } from '../../../../studio-icons/src';
+import { StudioIconTextfield } from '../StudioIconTextfield';
+import { KeyVerticalIcon } from '../../../../studio-icons/src';
 
 type PreviewProps = Omit<StudioRecommendedNextActionProps, 'children'>;
 
@@ -53,11 +52,10 @@ export const ExampleUseCase: ExampleUseCase = (args): React.ReactElement => {
         onSave={args.onSave}
         onSkip={args.onSkip}
       >
-        <StudioTextfield
+        <StudioIconTextfield
           error={name !== 'Bernard' ? 'Navnet må være Bernard' : ''}
           onChange={(e) => setName(e.target.value)}
-          //TODO: This icon prop will not work until we replace StudioTextfield with StudioIconTextfield when merging PR: https://github.com/Altinn/altinn-studio/pull/16344
-          // icon={<KeyVerticalIcon />}
+          icon={<KeyVerticalIcon />}
           label='Nytt navn'
         />
       </StudioRecommendedNextAction>

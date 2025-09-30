@@ -30,7 +30,15 @@ export const StudioRecommendedNextAction = ({
 }: StudioRecommendedNextActionProps): React.ReactElement => {
   const formName = useId();
   return (
-    <form name={formName} onSubmit={onSave} data-testid='recommendedNextActionCard'>
+    <form
+      id={formName}
+      name={formName}
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSave?.(e);
+      }}
+      data-testid='recommendedNextActionCard'
+    >
       <StudioCard>
         <StudioCard.Block>
           <StudioHeading data-size='xs'>{title}</StudioHeading>
@@ -47,7 +55,7 @@ export const StudioRecommendedNextAction = ({
               </StudioButton>
             )}
             {!hideSkipButton && (
-              <StudioButton onClick={onSkip} variant='tertiary'>
+              <StudioButton type='button' onClick={onSkip} variant='tertiary'>
                 {skipButtonText}
               </StudioButton>
             )}

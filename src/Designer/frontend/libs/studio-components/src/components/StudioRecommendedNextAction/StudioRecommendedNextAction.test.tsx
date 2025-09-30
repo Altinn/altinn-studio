@@ -4,6 +4,9 @@ import React from 'react';
 import userEvent from '@testing-library/user-event';
 
 describe('StudioRecommendedNextAction', () => {
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
   const onSave = jest.fn();
   const onSkip = jest.fn();
 

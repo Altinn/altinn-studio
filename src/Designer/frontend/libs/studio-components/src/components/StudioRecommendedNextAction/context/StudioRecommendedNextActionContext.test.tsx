@@ -32,10 +32,14 @@ describe('StudioRecommendedNextActionContext', () => {
   });
 
   it('should throw an error if the context is not wrapped in a provider', () => {
-    jest.spyOn(console, 'error').mockImplementation(() => {});
-    expect(() => {
-      renderHook(useStudioRecommendedNextActionContext);
-    }).toThrow(Error);
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      expect(() => {
+        renderHook(useStudioRecommendedNextActionContext);
+      }).toThrow(Error);
+    } finally {
+      errorSpy.mockRestore();
+    }
   });
 
   const hookWrapper = ({ children }): React.ReactElement => {
