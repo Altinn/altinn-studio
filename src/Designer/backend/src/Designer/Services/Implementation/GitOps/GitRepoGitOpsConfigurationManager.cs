@@ -10,6 +10,7 @@ using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.GitOps;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 
 namespace Altinn.Studio.Designer.Services.Implementation.GitOps;
@@ -24,7 +25,8 @@ public class GitRepoGitOpsConfigurationManager(
     IAltinnGitRepositoryFactory gitRepositoryFactory,
     TimeProvider timeProvider,
     GitOpsSettings gitOpsSettings,
-    ServiceRepositorySettings serviceRepositorySettings) : IGitOpsConfigurationManager
+    ServiceRepositorySettings serviceRepositorySettings,
+    ILogger<GitRepoGitOpsConfigurationManager> logger) : IGitOpsConfigurationManager
 {
 
     private string GitOpsRepoName(string org) => string.Format(gitOpsSettings.GitOpsRepoNameFormat, org);
@@ -94,7 +96,7 @@ public class GitRepoGitOpsConfigurationManager(
             return;
         }
 
-        string renamedPath = $"{repoPath}-{timeProvider.GetUtcNow():yyyyMMddHHmmss}";
+        string renamedPath = $"{repoPath}_SCHEDULED_FOR_DELETE_{timeProvider.GetUtcNow():yyyyMMddHHmmss}";
         Directory.Move(repoPath, renamedPath);
 
         // Fire and forget deletion task
@@ -104,9 +106,9 @@ public class GitRepoGitOpsConfigurationManager(
             {
                 Directory.Delete(renamedPath, true);
             }
-            catch
+            catch (Exception ex)
             {
-                // Ignore deletion errors
+                logger.LogWarning(ex, "Failed to delete local repository directory: {Path}", renamedPath);
             }
         });
     }

@@ -11,7 +11,9 @@ using Altinn.Studio.Designer.Services.Implementation.GitOps;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
+using Moq;
 using SharedResources.Tests;
 using Xunit;
 
@@ -23,6 +25,7 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
     protected AltinnGitRepository AltinnGitRepository => AltinnGitRepositoryFactory.GetAltinnGitRepository(OrgEditingContext.Org, TestRepoName, OrgEditingContext.Developer);
     protected GitRepoGitOpsConfigurationManager GitOpsConfigurationManager { get; private set; }
     protected ScribanGitOpsManifestsRenderer ScribanGitOpsManifestsRenderer { get; private set; }
+    protected Mock<ILogger<GitRepoGitOpsConfigurationManager>> MockLogger { get; private set; }
     protected string TestRepoName { get; private set; }
     protected AltinnOrgEditingContext OrgEditingContext { get; }
 
@@ -38,6 +41,7 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
         await TestDataHelper.CopyRepositoryForTest(OrgEditingContext.Org, "ttd-gitops", OrgEditingContext.Developer, TestRepoName);
         AltinnGitRepositoryFactory = new AltinnGitRepositoryFactory(testRepoPath);
         ScribanGitOpsManifestsRenderer = new ScribanGitOpsManifestsRenderer();
+        MockLogger = new Mock<ILogger<GitRepoGitOpsConfigurationManager>>();
         GitOpsConfigurationManager = new GitRepoGitOpsConfigurationManager(
             new IGiteaMock(),
             ScribanGitOpsManifestsRenderer,
@@ -52,7 +56,8 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
             new ServiceRepositorySettings
             {
                 RepositoryLocation = testRepoPath
-            });
+            },
+            MockLogger.Object);
 
     }
 
@@ -138,7 +143,7 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
         Assert.True(containsApp, $"Provided text doesn't contain term {term}");
     }
 
-    public Task DisposeAsync()
+    public virtual Task DisposeAsync()
     {
         TestDataHelper.DeleteAppRepository(OrgEditingContext.Org, TestRepoName, OrgEditingContext.Developer);
         return Task.CompletedTask;
