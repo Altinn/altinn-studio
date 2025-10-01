@@ -157,7 +157,7 @@ public class OrgCodeListService : IOrgCodeListService
         await _sourceControl.Push(org, repositoryName);
     }
 
-    private async Task HandleSimpleCommit(AltinnRepoEditingContext editingContext, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
+    internal async Task HandleSimpleCommit(AltinnRepoEditingContext editingContext, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
     {
         _sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
         foreach (CodeListWrapper wrapper in request.CodeListWrappers)
@@ -167,7 +167,7 @@ public class OrgCodeListService : IOrgCodeListService
         _sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? string.Empty);
     }
 
-    private async Task HandleCommitWithFeatureBranch(AltinnRepoEditingContext editingContext, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
+    internal async Task HandleCommitWithFeatureBranch(AltinnRepoEditingContext editingContext, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
     {
         string branchName = editingContext.Developer;
         _sourceControl.DeleteLocalBranch(editingContext, branchName);

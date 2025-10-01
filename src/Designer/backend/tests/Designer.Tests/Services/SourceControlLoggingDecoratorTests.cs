@@ -418,7 +418,7 @@ namespace Designer.Tests.Services
             throw new NotImplementedException();
         }
 
-        public LibGit2Sharp.Branch CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string commitSha)
+        public void CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName)
         {
             throw new NotImplementedException();
         }

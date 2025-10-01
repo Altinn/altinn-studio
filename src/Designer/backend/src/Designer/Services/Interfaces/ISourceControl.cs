@@ -165,7 +165,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="editingContext">The altinn repo editing context</param>
         /// <param name="branchName">The name of the branch</param>
-        LibGit2Sharp.Branch CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName);
+        void CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName);
 
         /// <summary>
         /// Make a commit to local repository.

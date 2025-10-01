@@ -303,11 +303,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        public LibGit2Sharp.Branch CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName)
+        public void CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName)
         {
             try
             {
-                return _decoratedService.CheckoutRepoOnBranch(editingContext, branchName);
+                _decoratedService.CheckoutRepoOnBranch(editingContext, branchName);
             }
             catch (Exception ex)
             {

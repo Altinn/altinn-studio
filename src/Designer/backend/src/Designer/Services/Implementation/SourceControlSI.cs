@@ -555,13 +555,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Branch CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName)
+        public void CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName)
         {
             string localPath = FindLocalRepoLocation(editingContext);
             using LibGit2Sharp.Repository repo = new(localPath);
 
             Branch branch = repo.Branches.Single(branch => branch.FriendlyName == branchName);
-            return Commands.Checkout(repo, branch);
+            Commands.Checkout(repo, branch);
         }
 
         /// <inheritdoc/>

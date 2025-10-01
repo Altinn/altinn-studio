@@ -442,34 +442,25 @@ public class OrgCodeListServiceTests : IDisposable
             new(Title: CodeListIdNoChange, CodeList: validCodeList),
             new(Title: CodeListIdToDelete)
         ];
-        List<FileSystemObject> remoteCodeLists =
-        [
-            new()
-            {
-                Name = CodeListIdNoChange,
-                Path = CodeListUtils.FilePath(CodeListIdNoChange),
-                Content = FromStringToBase64String(JsonSerializer.Serialize(validCodeList)),
-                Sha = "non-descriptive-sha-1"
-            },
-            new()
-            {
-                Name = CodeListIdToDelete,
-                Path = CodeListUtils.FilePath(CodeListIdToDelete),
-                Content = FromStringToBase64String(JsonSerializer.Serialize(validCodeList)),
-                Sha = "non-descriptive-sha-2"
-            }
-        ];
 
         TargetOrg = TestDataHelper.GenerateTestOrgName();
         string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
         await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg, targetRepository);
 
         _giteaMock
-            .Setup(service => service.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(remoteCodeLists);
-        _giteaMock
-            .Setup(service => service.ModifyMultipleFiles(Org, It.IsAny<string>(), It.IsAny<GiteaMultipleFilesDto>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+            .Setup(service => service.GetLatestCommitOnBranch(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(Reference);
+        _sourceControlMock.Setup(service => service.EnsureCloneExists(It.IsAny<string>(), It.IsAny<string>()));
+
+        _sourceControlMock.Setup(service => service.DeleteLocalBranch(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
+        _sourceControlMock.Setup(service => service.CreateLocalBranch(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>(), It.IsAny<string>()));
+        _sourceControlMock.Setup(service => service.CheckoutRepoOnBranch(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
+
+        _sourceControlMock.Setup(service => service.CommitToLocalRepo(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
+        _sourceControlMock.Setup(service => service.RebaseOntoDefaultBranch(It.IsAny<AltinnRepoEditingContext>()));
+        _sourceControlMock.Setup(service => service.MergeBranchIntoHead(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
+
+        _sourceControlMock.Setup(service => service.Push(It.IsAny<string>(), It.IsAny<string>()));
 
         // Act
         OrgCodeListService orgListService = GetOrgCodeListService();
@@ -481,26 +472,22 @@ public class OrgCodeListServiceTests : IDisposable
 
         await orgListService.UpdateCodeListsNew(TargetOrg, Developer, request);
 
-
         // Assert
-        List<FileOperationContext> files =
-        [
-            new(
-                Operation: FileOperation.Delete,
-                Path: CodeListUtils.FilePath(CodeListIdToDelete),
-                Sha: "non-descriptive-sha-2"
-            )
-        ];
-        GiteaMultipleFilesDto expectedDto = new(
-            Author: new GiteaIdentity(Name: Developer),
-            Branch: Reference,
-            Committer: new GiteaIdentity(Name: Developer),
-            Files: files,
-            Message: GiteaCommitMessage
-        );
+        AltinnRepoEditingContext expected = AltinnRepoEditingContext.FromOrgRepoDeveloper(TargetOrg, targetRepository, Developer);
+        string expectedFeatureBranchName = expected.Developer;
 
-        _giteaMock.Verify(s => s.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), Reference, It.IsAny<CancellationToken>()), Times.Once);
-        _giteaMock.Verify(s => s.ModifyMultipleFiles(Org, It.IsAny<string>(), It.Is<GiteaMultipleFilesDto>(dto => expectedDto.Equals(dto)), It.IsAny<CancellationToken>()), Times.Once);
+        _giteaMock.Verify(service => service.GetLatestCommitOnBranch(TargetOrg, targetRepository, "master"), Times.Once);
+        _sourceControlMock.Verify(service => service.EnsureCloneExists(TargetOrg, targetRepository), Times.Once);
+
+        _sourceControlMock.Verify(service => service.DeleteLocalBranch(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), expectedFeatureBranchName), Times.Once);
+        _sourceControlMock.Verify(service => service.CreateLocalBranch(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), expectedFeatureBranchName, Reference), Times.Once);
+        _sourceControlMock.Verify(service => service.CheckoutRepoOnBranch(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), expectedFeatureBranchName), Times.Once);
+
+        _sourceControlMock.Verify(service => service.CommitToLocalRepo(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), GiteaCommitMessage), Times.Once);
+        _sourceControlMock.Verify(service => service.RebaseOntoDefaultBranch(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual))), Times.Once);
+        _sourceControlMock.Verify(service => service.CheckoutRepoOnBranch(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), "master"), Times.Once);
+        _sourceControlMock.Verify(service => service.MergeBranchIntoHead(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), expectedFeatureBranchName), Times.Once);
+        _sourceControlMock.Verify(service => service.Push(TargetOrg, targetRepository), Times.Once);
     }
 
     [Fact]
