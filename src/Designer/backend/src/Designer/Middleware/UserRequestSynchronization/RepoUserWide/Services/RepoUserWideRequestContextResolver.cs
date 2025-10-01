@@ -1,4 +1,5 @@
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Services;
 using Altinn.Studio.Designer.Models;
 using Microsoft.AspNetCore.Http;
 
@@ -6,9 +7,9 @@ namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.RepoUserW
 
 public class RepoUserWideRequestContextResolver : IRequestContextResolver<AltinnRepoEditingContext>
 {
-    private readonly IHttpContextDataExtractor _dataExtractor;
+    private readonly HttpContextDataExtractor _dataExtractor;
 
-    public RepoUserWideRequestContextResolver(IHttpContextDataExtractor dataExtractor)
+    public RepoUserWideRequestContextResolver(HttpContextDataExtractor dataExtractor)
     {
         _dataExtractor = dataExtractor;
     }

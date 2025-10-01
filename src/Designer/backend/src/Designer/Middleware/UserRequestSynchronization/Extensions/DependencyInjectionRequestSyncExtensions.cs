@@ -24,7 +24,7 @@ public static class DependencyInjectionRequestSyncExtensions
     /// <returns>A reference to this instance after the operation has completed.</returns>
     public static IServiceCollection RegisterSynchronizationServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddTransient<IHttpContextDataExtractor, HttpContextDataExtractor>();
+        services.AddTransient<HttpContextDataExtractor>();
         services.RegisterRepoUserWideSyncServices();
         services.RegisterOrgWideSyncServices();
         services.AddSingleton<IDistributedLockProvider>(_ =>

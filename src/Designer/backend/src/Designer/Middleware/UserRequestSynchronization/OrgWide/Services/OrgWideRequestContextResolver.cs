@@ -1,4 +1,5 @@
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Services;
 using Altinn.Studio.Designer.Models;
 using Microsoft.AspNetCore.Http;
 
@@ -6,9 +7,9 @@ namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.OrgWide.S
 
 public class OrgWideRequestContextResolver : IRequestContextResolver<AltinnOrgContext>
 {
-    private readonly IHttpContextDataExtractor _dataExtractor;
+    private readonly HttpContextDataExtractor _dataExtractor;
 
-    public OrgWideRequestContextResolver(IHttpContextDataExtractor dataExtractor)
+    public OrgWideRequestContextResolver(HttpContextDataExtractor dataExtractor)
     {
         _dataExtractor = dataExtractor;
     }
