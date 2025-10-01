@@ -174,13 +174,7 @@ internal sealed class InitialDataService : IInitialDataService
 
     private async Task GetTextResources(string org, string app, string language, InitialDataResponse response)
     {
-        var textResource = await _appResources.GetTexts(org, app, language);
-        if (textResource != null)
-        {
-            response.TextResources = textResource
-                .Resources?.Where(r => r.Id != null && r.Value != null)
-                .ToDictionary(r => r.Id ?? string.Empty, r => r.Value ?? string.Empty);
-        }
+        response.TextResources = await _appResources.GetTexts(org, app, language);
     }
 
     private async Task GetUserProfile(int userId, InitialDataResponse response)

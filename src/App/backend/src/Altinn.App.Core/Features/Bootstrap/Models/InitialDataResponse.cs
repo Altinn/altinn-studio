@@ -46,7 +46,7 @@ public sealed class InitialDataResponse
     /// Text resources for the current language.
     /// </summary>
     [JsonPropertyName("textResources")]
-    public Dictionary<string, string>? TextResources { get; set; }
+    public TextResource? TextResources { get; set; }
 
     /// <summary>
     /// Layout sets if available.
