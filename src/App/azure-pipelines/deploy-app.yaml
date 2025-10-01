@@ -555,6 +555,23 @@ steps:
       inlineScript: |
         ACR_NAME="${APP_OWNER}altinnregistry01"
 
+        # Determine studio environment from ALTINN_STUDIO_HOSTNAME
+        case "$ALTINN_STUDIO_HOSTNAME" in
+          "dev.altinn.studio")
+            STUDIO_ENVIRONMENT="dev"
+            ;;
+          "staging.altinn.studio")
+            STUDIO_ENVIRONMENT="staging"
+            ;;
+          "altinn.studio")
+            STUDIO_ENVIRONMENT="prod"
+            ;;
+          *)
+            echo "Unknown ALTINN_STUDIO_HOSTNAME: $ALTINN_STUDIO_HOSTNAME"
+            exit 1
+            ;;
+        esac
+
         # Create temporary directory for sync-root content (only YAML files)
         SYNC_ROOT_DIR="$(pwd)/sync-root-temp"
         mkdir -p "$SYNC_ROOT_DIR"
@@ -571,17 +588,16 @@ steps:
         fi
 
         # Push the sync-root artifact with commit ID as tag
-        flux push artifact oci://$ACR_NAME.azurecr.io/configs/sync-root:$COMMIT_ID \
+        flux push artifact oci://$ACR_NAME.azurecr.io/configs/sync-root/$STUDIO_ENVIRONMENT:$COMMIT_ID \
           --path="./sync-root-temp" \
           --source="https://$GITEA_ENVIRONMENT/$GITOPS_ORGANIZATION/$APP_OWNER$GITOPS_REPO_SUFFIX/commit/$COMMIT_ID" \
           --revision="$COMMIT_ID" \
           --provider azure
 
         # Tag the artifact with environment name as well
-        flux tag artifact oci://$ACR_NAME.azurecr.io/configs/sync-root:$COMMIT_ID \
+        flux tag artifact oci://$ACR_NAME.azurecr.io/configs/sync-root/$STUDIO_ENVIRONMENT:$COMMIT_ID \
           --tag "$APP_ENVIRONMENT" \
           --provider azure
 
         # Cleanup temporary directory
         rm -rf "$SYNC_ROOT_DIR"
-
