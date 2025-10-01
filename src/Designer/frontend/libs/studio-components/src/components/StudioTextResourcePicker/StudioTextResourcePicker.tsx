@@ -1,8 +1,7 @@
 import type { ReactElement } from 'react';
-import React, { useMemo, forwardRef, useCallback } from 'react';
-import type { TextResource } from '../../types/TextResource';
-import type { StudioComboboxProps } from '../StudioCombobox';
-import { StudioCombobox } from '../StudioCombobox';
+import React, { useMemo, forwardRef } from 'react';
+import type { TextResource } from '../../../../studio-pure-functions/src/types/TextResource';
+import { StudioSuggestion, type StudioSuggestionProps } from '../StudioSuggestion';
 import type { Override } from '../../types/Override';
 import classes from './StudioTextResourcePicker.module.css';
 import { retrieveSelectedValues } from './utils';
@@ -16,18 +15,14 @@ export type StudioTextResourcePickerProps = Override<
     textResources: TextResource[];
     value?: string;
   },
-  StudioComboboxProps
+  StudioSuggestionProps
 >;
 
-/**
- * @deprecated use StudioTextResourcePicker from `@Studio/components` instead
- */
 export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextResourcePickerProps>(
   (
     {
       emptyLabel = '',
       noTextResourceOptionLabel = '',
-      onSelect,
       onValueChange,
       required,
       textResources,
@@ -36,58 +31,55 @@ export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextR
     },
     ref,
   ) => {
-    const handleValueChange = useCallback(
-      ([id]: string[]) => onValueChange(id || null),
-      [onValueChange],
-    );
+    const handleSelectedChange = (items: { value: string }[]): void =>
+      onValueChange(items[0]?.value || null);
 
     const selectedValues: string[] = useMemo(
       () => retrieveSelectedValues(textResources, value),
       [textResources, value],
     );
 
+    const selectedItems = useMemo(
+      () =>
+        selectedValues.map((id) => ({
+          value: id,
+          label: textResources.find((tr) => tr.id === id)?.value ?? id,
+        })),
+      [selectedValues, textResources],
+    );
+
     return (
-      <StudioCombobox
-        hideLabel
-        onValueChange={handleValueChange}
-        value={selectedValues}
+      <StudioSuggestion
         {...rest}
+        onSelectedChange={handleSelectedChange}
+        selected={selectedItems}
         ref={ref}
       >
-        <StudioCombobox.Empty>{emptyLabel}</StudioCombobox.Empty>
         {!required && renderNoTextResourceOption(noTextResourceOptionLabel)}
         {renderTextResourceOptions(textResources)}
-      </StudioCombobox>
+      </StudioSuggestion>
     );
   },
 );
 
 function renderNoTextResourceOption(label: string): ReactElement {
-  // This cannot be a component function since the option component must be a direct child of the combobox component.
   return (
-    <StudioCombobox.Option
-      aria-label={label}
-      className={classes.noTextResourceOption}
-      description={label}
-      value=''
-    />
+    <StudioSuggestion.Option aria-label={label} className={classes.noTextResourceOption} value='' />
   );
 }
 
 function renderTextResourceOptions(textResources: TextResource[]): ReactElement[] {
-  // This cannot be a component function since the option components must be direct children of the combobox component.
   return textResources.map(renderTextResourceOption);
 }
 
 function renderTextResourceOption(textResource: TextResource): ReactElement {
   return (
-    <StudioCombobox.Option
-      description={textResource.id}
-      key={textResource.id}
-      value={textResource.id}
-    >
-      {textResource.value}
-    </StudioCombobox.Option>
+    <StudioSuggestion.Option key={textResource.id} value={textResource.id}>
+      <div>
+        <div>{textResource.value}</div>
+        <div className={classes.optionDescription}>{textResource.id}</div>
+      </div>
+    </StudioSuggestion.Option>
   );
 }
 
