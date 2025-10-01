@@ -67,7 +67,7 @@ const {
   useLaxMemoSelector,
   useLaxDelayedSelector,
   useDelayedSelector,
-  useDelayedSelectorProps,
+  useLaxDelayedSelectorProps,
   useLaxSelector,
   useLaxStore,
   useStore,
@@ -707,8 +707,8 @@ export const FD = {
     });
   },
 
-  useDebouncedSelectorProps() {
-    return useDelayedSelectorProps({
+  useLaxDebouncedSelectorProps() {
+    return useLaxDelayedSelectorProps({
       mode: 'simple',
       selector: debouncedSelector,
     });
