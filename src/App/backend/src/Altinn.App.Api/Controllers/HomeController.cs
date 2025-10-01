@@ -251,9 +251,9 @@ public class HomeController : Controller
             var initialData = await _initialDataService.GetInitialData(org, app, instanceId, partyId, language);
 
             // Add routing information to initial data
-            initialData.AppSettings ??= new Altinn.App.Core.Features.Bootstrap.Models.FrontendAppSettings();
-            initialData.AppSettings.CurrentTaskId = taskId;
-            initialData.AppSettings.CurrentPageId = pageId;
+            // initialData.AppSettings ??= new Altinn.App.Core.Features.Bootstrap.Models.FrontendAppSettings();
+            // initialData.AppSettings.CurrentTaskId = taskId;
+            // initialData.AppSettings.CurrentPageId = pageId;
 
             // Generate HTML with embedded data
             var html = GenerateHtml(org, app, initialData);

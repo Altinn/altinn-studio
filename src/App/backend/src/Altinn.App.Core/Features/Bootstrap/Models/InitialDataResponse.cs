@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
@@ -88,7 +89,7 @@ public sealed class InitialDataResponse
     /// Application settings visible to frontend.
     /// </summary>
     [JsonPropertyName("appSettings")]
-    public FrontendAppSettings? AppSettings { get; set; }
+    public FrontEndSettings? AppSettings { get; set; }
 
     /// <summary>
     /// Platform settings.
@@ -107,49 +108,55 @@ public sealed class InitialDataResponse
     /// </summary>
     [JsonPropertyName("footerLayout")]
     public object? FooterLayout { get; set; }
+
+    /// <summary>
+    /// Frontend settings
+    /// </summary>
+    [JsonPropertyName("frontendSettings")]
+    public object? FrontendSettings { get; set; }
 }
 
 /// <summary>
 /// Frontend-specific application settings.
 /// </summary>
-public sealed class FrontendAppSettings
-{
-    /// <summary>
-    /// CDN base URL.
-    /// </summary>
-    [JsonPropertyName("cdnUrl")]
-    public string? CdnUrl { get; set; }
-
-    /// <summary>
-    /// API base URL.
-    /// </summary>
-    [JsonPropertyName("apiUrl")]
-    public string? ApiUrl { get; set; }
-
-    /// <summary>
-    /// Whether the app is stateless.
-    /// </summary>
-    [JsonPropertyName("isStateless")]
-    public bool IsStateless { get; set; }
-
-    /// <summary>
-    /// OIDC provider if configured.
-    /// </summary>
-    [JsonPropertyName("oidcProvider")]
-    public string? OidcProvider { get; set; }
-
-    /// <summary>
-    /// Current task ID from route (for deep linking).
-    /// </summary>
-    [JsonPropertyName("currentTaskId")]
-    public string? CurrentTaskId { get; set; }
-
-    /// <summary>
-    /// Current page ID from route (for deep linking).
-    /// </summary>
-    [JsonPropertyName("currentPageId")]
-    public string? CurrentPageId { get; set; }
-}
+// public sealed class FrontendAppSettings
+// {
+//     /// <summary>
+//     /// CDN base URL.
+//     /// </summary>
+//     [JsonPropertyName("cdnUrl")]
+//     public string? CdnUrl { get; set; }
+//
+//     /// <summary>
+//     /// API base URL.
+//     /// </summary>
+//     [JsonPropertyName("apiUrl")]
+//     public string? ApiUrl { get; set; }
+//
+//     /// <summary>
+//     /// Whether the app is stateless.
+//     /// </summary>
+//     [JsonPropertyName("isStateless")]
+//     public bool IsStateless { get; set; }
+//
+//     /// <summary>
+//     /// OIDC provider if configured.
+//     /// </summary>
+//     [JsonPropertyName("oidcProvider")]
+//     public string? OidcProvider { get; set; }
+//
+//     /// <summary>
+//     /// Current task ID from route (for deep linking).
+//     /// </summary>
+//     [JsonPropertyName("currentTaskId")]
+//     public string? CurrentTaskId { get; set; }
+//
+//     /// <summary>
+//     /// Current page ID from route (for deep linking).
+//     /// </summary>
+//     [JsonPropertyName("currentPageId")]
+//     public string? CurrentPageId { get; set; }
+// }
 
 /// <summary>
 /// Frontend-specific platform settings.

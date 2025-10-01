@@ -2,7 +2,7 @@ import type { IncomingApplicationMetadata } from 'src/features/applicationMetada
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { ILayoutSets } from 'src/layout/common.generated';
-import type { IAppLanguage, IInstance, IProcess, IProfile } from 'src/types/shared';
+import type { IAppLanguage, IApplicationSettings, IInstance, IProcess, IProfile } from 'src/types/shared';
 
 export {};
 
@@ -17,6 +17,7 @@ declare global {
       footerLayout: IFooterLayout | null;
       appLanguages: IAppLanguage[];
       textResources: ITextResourceResult | null;
+      frontendSettings: IApplicationSettings;
     };
   }
 }

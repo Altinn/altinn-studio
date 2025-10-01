@@ -1,26 +1,27 @@
-import React from 'react';
+import React, { useEffect, useState as useReactState } from 'react';
 import { useMatch, useNavigate } from 'react-router-dom';
 
 import { Checkbox, Heading, Paragraph } from '@digdir/designsystemet-react';
 import { PlusIcon } from '@navikt/aksel-icons';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import cn from 'classnames';
 
 import { Button } from 'src/app-components/Button/Button';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Input } from 'src/app-components/Input/Input';
 import { AltinnParty } from 'src/components/altinnParty';
+import { useAppMutations, useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { DisplayError } from 'src/core/errorHandling/DisplayError';
+import { Loader } from 'src/core/loading/Loader';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
+import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import classes from 'src/features/instantiate/containers/PartySelection.module.css';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import {
-  usePartiesAllowedToInstantiate,
-  useSelectedParty,
-  useSetHasSelectedParty,
-  useSetSelectedParty,
-} from 'src/features/party/PartiesProvider';
+import { useSelectedParty } from 'src/features/party/PartiesProvider';
+import { flattenParties } from 'src/features/party/partyUtils';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { changeBodyBackground } from 'src/utils/bodyStyling';
 import { getPageTitle } from 'src/utils/getPageTitle';
@@ -28,17 +29,62 @@ import { HttpStatusCodes } from 'src/utils/network/networking';
 import { capitalizeName } from 'src/utils/stringHelper';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IParty } from 'src/types/shared';
+import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 export const PartySelection = () => {
   changeBodyBackground(AltinnPalette.white);
   const match = useMatch(`/party-selection/:errorCode`);
   const errorCode = match?.params.errorCode;
 
-  const selectParty = useSetSelectedParty();
-  const selectedParty = useSelectedParty();
-  const setUserHasSelectedParty = useSetHasSelectedParty();
+  // Fetch parties allowed to instantiate
+  const { fetchPartiesAllowedToInstantiate } = useAppQueries();
+  const {
+    data: partiesData,
+    isLoading: isLoadingParties,
+    error: partiesError,
+  } = useQuery({
+    queryKey: ['parties', 'allowedToInstantiate'],
+    queryFn: fetchPartiesAllowedToInstantiate,
+  });
 
-  const partiesAllowedToInstantiate = usePartiesAllowedToInstantiate() ?? [];
+  // Mutation to set selected party
+  const { doSetSelectedParty } = useAppMutations();
+  const [sentToMutation, setSentToMutation] = useReactState<IParty | undefined>(undefined);
+  const {
+    mutateAsync,
+    data: dataFromMutation,
+    error: mutationError,
+  } = useMutation({
+    mutationKey: ['doSetSelectedParty'],
+    mutationFn: (party: IParty) => doSetSelectedParty(party.partyId),
+    onError: (error: HttpClientError) => {
+      window.logError('Setting current party failed:\n', error);
+    },
+  });
+
+  const selectedParty = useSelectedParty();
+  const [userHasSelectedParty, setUserHasSelectedParty] = useReactState(false);
+
+  useEffect(() => {
+    if (partiesError) {
+      window.logError('Fetching parties failed:\n', partiesError);
+    }
+  }, [partiesError]);
+
+  if (isLoadingParties) {
+    return <Loader reason='parties' />;
+  }
+
+  const error = mutationError || partiesError;
+  if (error) {
+    return <DisplayError error={error} />;
+  }
+
+  const partiesAllowedToInstantiate = flattenParties(partiesData ?? []);
+
+  if (!partiesAllowedToInstantiate.length) {
+    return <NoValidPartiesError />;
+  }
   const appMetadata = useApplicationMetadata();
 
   // Like on altinn.no, we tick the "show deleted" checkbox by default when the
@@ -58,9 +104,16 @@ export const PartySelection = () => {
   const appOwner = useAppOwner();
 
   const onSelectParty = async (party: IParty) => {
-    await selectParty(party);
-    setUserHasSelectedParty(true);
-    navigate('/');
+    try {
+      setSentToMutation(party);
+      const result = await mutateAsync(party);
+      if (result === 'Party successfully updated') {
+        setUserHasSelectedParty(true);
+        navigate('/');
+      }
+    } catch (_err) {
+      // Error is handled by mutation's onError
+    }
   };
 
   const filteredParties = partiesAllowedToInstantiate.filter(

@@ -144,13 +144,18 @@ internal sealed class InitialDataService : IInitialDataService
         await Task.WhenAll(tasks);
 
         // Set frontend settings
-        response.AppSettings = new FrontendAppSettings
+        FrontEndSettings frontEndSettings = _frontEndSettings;
+
+        // Adding key from _appSettings to be backwards compatible.
+        if (
+            !frontEndSettings.ContainsKey(nameof(_appSettings.AppOidcProvider))
+            && !string.IsNullOrEmpty(_appSettings.AppOidcProvider)
+        )
         {
-            CdnUrl = _generalSettings.FrontendBaseUrl,
-            ApiUrl = _generalSettings.HostName,
-            IsStateless = await IsStatelessApp(response.ApplicationMetadata).ConfigureAwait(false),
-            OidcProvider = _appSettings.AppOidcProvider,
-        };
+            frontEndSettings.Add(nameof(_appSettings.AppOidcProvider), _appSettings.AppOidcProvider);
+        }
+
+        response.FrontendSettings = frontEndSettings;
 
         response.PlatformSettings = new FrontendPlatformSettings
         {
