@@ -1,5 +1,7 @@
 using System.Collections;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -66,9 +68,28 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
 
     public Instance Instance { get; }
 
+    public IReadOnlyCollection<DataType> DataTypes => _applicationMetadata.DataTypes;
+
     public Task<object> GetFormData(DataElementIdentifier dataElementIdentifier)
     {
         return Task.FromResult(_dataById[dataElementIdentifier]);
+    }
+
+    public Task<IFormDataWrapper> GetFormDataWrapper(DataElementIdentifier dataElementIdentifier)
+    {
+        return Task.FromResult(FormDataWrapperFactory.Create(_dataById[dataElementIdentifier]));
+    }
+
+    public IInstanceDataAccessor GetCleanAccessor(RowRemovalOption rowRemovalOption = RowRemovalOption.SetToNull)
+    {
+        throw new NotImplementedException("GetCleanAccessor is not yet implemented for InstanceDataAccessorFake");
+    }
+
+    public IInstanceDataAccessor GetPreviousDataAccessor()
+    {
+        throw new NotImplementedException(
+            "GetPreviousDataAccessor is not yet implemented for InstanceDataAccessorFake"
+        );
     }
 
     public Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementIdentifier dataElementIdentifier)
@@ -82,17 +103,6 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
             ?? throw new InvalidOperationException(
                 $"Data element of id {dataElementIdentifier.Id} not found on instance"
             );
-    }
-
-    public DataType? GetDataType(string dataTypeId)
-    {
-        if (_applicationMetadata is null)
-        {
-            throw new InvalidOperationException("Application metadata not set for InstanceDataAccessorFake");
-        }
-        var dataType = _applicationMetadata.DataTypes.Find(d => d.Id == dataTypeId);
-
-        return dataType;
     }
 
     public void OverrideAuthenticationMethod(DataType dataType, StorageAuthenticationMethod method) =>

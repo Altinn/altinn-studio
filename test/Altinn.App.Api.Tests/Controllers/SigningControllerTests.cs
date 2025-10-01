@@ -12,6 +12,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -33,6 +34,7 @@ public class SigningControllerTests
     private readonly Mock<ISigningService> _signingServiceMock = new(MockBehavior.Strict);
     private readonly Mock<IDataClient> _dataClientMock = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _applicationMetadataMock = new(MockBehavior.Strict);
+    private readonly Mock<ITranslationService> _translationServiceMock = new(MockBehavior.Strict);
     private readonly Mock<IAppModel> _appModelMock = new(MockBehavior.Strict);
     private readonly Mock<IAppResources> _appResourcesMock = new(MockBehavior.Strict);
     private readonly ServiceCollection _serviceCollection = new();
@@ -63,6 +65,7 @@ public class SigningControllerTests
         _serviceCollection.AddSingleton(_appModelMock.Object);
         _serviceCollection.AddSingleton(_dataClientMock.Object);
         _serviceCollection.AddSingleton(_applicationMetadataMock.Object);
+        _serviceCollection.AddSingleton(_translationServiceMock.Object);
         _serviceCollection.AddSingleton(_appResourcesMock.Object);
         _serviceCollection.AddSingleton(_processReaderMock.Object);
         _serviceCollection.AddSingleton(_httpContextAccessorMock.Object);
@@ -619,7 +622,7 @@ public class SigningControllerTests
     }
 
     [Fact]
-    public async Task GetAuthorizedOrganizations_UserIdIsNull_Returns_Unathorized()
+    public async Task GetAuthorizedOrganizations_UserIdIsNull_Returns_Unauthorized()
     {
         // Arrange
         SetupAuthenticationContextMock(authenticated: CreateAuthenticatedNone());

@@ -1,9 +1,7 @@
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Implementation;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
 

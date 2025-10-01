@@ -1,7 +1,9 @@
 using System.Diagnostics;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
@@ -46,7 +48,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
     {
         private readonly DataElement _dataElement;
         private readonly ApplicationMetadata _applicationMetadata;
-        private readonly object _data;
+        private readonly IFormDataWrapper _data;
 
         public SingleDataElementAccessor(
             Instance instance,
@@ -58,16 +60,23 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
             Instance = instance;
             _dataElement = dataElement;
             _applicationMetadata = applicationMetadata;
-            _data = data;
+            _data = FormDataWrapperFactory.Create(data);
         }
 
         public Instance Instance { get; }
 
-        public Task<object> GetFormData(DataElementIdentifier dataElementIdentifier)
+        public IReadOnlyCollection<DataType> DataTypes => _applicationMetadata.DataTypes;
+
+        public async Task<object> GetFormData(DataElementIdentifier dataElementIdentifier)
+        {
+            return (await GetFormDataWrapper(dataElementIdentifier)).BackingData<object>();
+        }
+
+        public Task<IFormDataWrapper> GetFormDataWrapper(DataElementIdentifier dataElementIdentifier)
         {
             if (dataElementIdentifier != _dataElement)
             {
-                return Task.FromException<object>(
+                return Task.FromException<IFormDataWrapper>(
                     new InvalidOperationException(
                         "Use the new ILayoutEvaluatorStateInitializer interface to support multiple data models and subforms"
                     )
@@ -76,9 +85,21 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
             return Task.FromResult(_data);
         }
 
+        public IInstanceDataAccessor GetCleanAccessor(RowRemovalOption rowRemovalOption)
+        {
+            throw new NotSupportedException("Legacy single data accessor does not implement GetCleanAccessor");
+        }
+
+        public IInstanceDataAccessor GetPreviousDataAccessor()
+        {
+            throw new NotSupportedException("Legacy single data accessor does not implement GetPreviousDataAccessor");
+        }
+
         public Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementIdentifier dataElementIdentifier)
         {
-            return Task.FromException<ReadOnlyMemory<byte>>(new NotImplementedException());
+            return Task.FromException<ReadOnlyMemory<byte>>(
+                new NotSupportedException("Legacy single data accessor does not implement GetBinaryData")
+            );
         }
 
         public DataElement GetDataElement(DataElementIdentifier dataElementIdentifier)
@@ -88,8 +109,6 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
                     $"Data element of id {dataElementIdentifier.Id} not found on instance"
                 );
         }
-
-        public DataType? GetDataType(string dataTypeId) => _applicationMetadata.DataTypes.Find(d => d.Id == dataTypeId);
 
         public void OverrideAuthenticationMethod(DataType dataType, StorageAuthenticationMethod method) =>
             throw new NotImplementedException();

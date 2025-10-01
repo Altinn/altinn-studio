@@ -50,9 +50,10 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     public ProcessControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
         : base(factory, outputHelper)
     {
+        _formDataValidatorMock.SetupGet(v => v.NoIncrementalValidation).Returns(false);
+        _formDataValidatorMock.SetupGet(v => v.ShouldRunAfterRemovingHiddenData).Returns(false);
         _formDataValidatorMock.Setup(v => v.DataType).Returns("9edd53de-f46f-40a1-bb4d-3efb93dc113d");
         _formDataValidatorMock.Setup(v => v.ValidationSource).Returns("Not a valid validation source");
-        _formDataValidatorMock.SetupGet(fdv => fdv.NoIncrementalValidation).Returns(false);
         OverrideServicesForAllTests = (services) =>
         {
             services.AddSingleton(_dataProcessorMock.Object);
@@ -249,9 +250,10 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     public async Task RunProcessNext_FailingValidator_ReturnsValidationErrors()
     {
         var dataValidator = new Mock<IFormDataValidator>(MockBehavior.Strict);
+        dataValidator.SetupGet(v => v.NoIncrementalValidation).Returns(false);
+        dataValidator.SetupGet(v => v.ShouldRunAfterRemovingHiddenData).Returns(false);
         dataValidator.Setup(v => v.DataType).Returns("*");
         dataValidator.Setup(v => v.ValidationSource).Returns("test-source");
-        dataValidator.SetupGet(v => v.NoIncrementalValidation).Returns(false);
         dataValidator
             .Setup(v =>
                 v.ValidateFormData(
@@ -310,9 +312,9 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     public async Task RunProcessNext_FailingValidator_Reject_ReturnsOk()
     {
         var dataValidator = new Mock<IFormDataValidator>(MockBehavior.Strict);
+        dataValidator.SetupGet(v => v.NoIncrementalValidation).Returns(false);
         dataValidator.Setup(v => v.DataType).Returns("*");
         dataValidator.Setup(v => v.ValidationSource).Returns("test-source");
-        dataValidator.SetupGet(v => v.NoIncrementalValidation).Returns(false);
         dataValidator
             .Setup(v =>
                 v.ValidateFormData(
@@ -420,6 +422,10 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                     PatchOperation.Add(
                         JsonPointer.Create("melding", "hidden"),
                         JsonNode.Parse("\"value that is hidden\"")
+                    ),
+                    PatchOperation.Add(
+                        JsonPointer.Create("melding", "hiddenNotRemove"),
+                        JsonNode.Parse("\"value that is not removed\"")
                     )
                 ),
                 IgnoredValidators = [],
@@ -439,6 +445,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         OutputHelper.WriteLine("Data before process next:");
         OutputHelper.WriteLine(dataString);
         dataString.Should().Contain("<hidden>value that is hidden</hidden>");
+        dataString.Should().Contain("<hiddenNotRemove>value that is not removed</hiddenNotRemove>");
 
         // Run process next
         var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
@@ -451,6 +458,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         OutputHelper.WriteLine("Data after process next:");
         OutputHelper.WriteLine(dataString);
         dataString.Should().NotContain("<hidden>value that is hidden</hidden>");
+        dataString.Should().Contain("<hiddenNotRemove>value that is not removed</hiddenNotRemove>");
 
         _dataProcessorMock.Verify();
     }
@@ -560,9 +568,10 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     public async Task RunProcessNext_NonErrorValidations_ReturnsOk()
     {
         var dataValidator = new Mock<IFormDataValidator>(MockBehavior.Strict);
+        dataValidator.SetupGet(v => v.NoIncrementalValidation).Returns(false);
+        dataValidator.SetupGet(v => v.ShouldRunAfterRemovingHiddenData).Returns(false);
         dataValidator.Setup(v => v.DataType).Returns("*");
         dataValidator.Setup(v => v.ValidationSource).Returns("test-source");
-        dataValidator.SetupGet(v => v.NoIncrementalValidation).Returns(false);
         dataValidator
             .Setup(v =>
                 v.ValidateFormData(

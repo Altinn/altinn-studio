@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <!--
-    This props file is included in the Altinn.App.Core nuget package and will
+    This props file is included in the Altinn.App.Api nuget package and will
     apply to the App projects when they reference said nuget package.
    -->
   <PropertyGroup>

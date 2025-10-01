@@ -1,0 +1,17 @@
+﻿[
+  {
+    Location: C:\temp\config\applicationmetadata.json: (9,24)-(9,67),
+    Message: Error in applicationmetadata.json: Could not find class Altinn.App.SourceGenerator.Tests.NotFound in the compilation,
+    Severity: Warning,
+    WarningLevel: 1,
+    Descriptor: {
+      Id: ALTINNAPP0002,
+      Title: Application metadata error,
+      HelpLink: https://docs.altinn.studio/nb/altinn-studio/reference/analysis/rules/altinnapp0002,
+      MessageFormat: Error in applicationmetadata.json: {0},
+      Category: Metadata,
+      DefaultSeverity: Warning,
+      IsEnabledByDefault: true
+    }
+  }
+]

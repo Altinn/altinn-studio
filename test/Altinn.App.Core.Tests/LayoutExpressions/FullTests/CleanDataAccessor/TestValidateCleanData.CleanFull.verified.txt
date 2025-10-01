@@ -1,0 +1,109 @@
+﻿[
+  {
+    Method: IValidator.ShouldRunForTask(string taskId),
+    Arguments: {
+      Arguments: {
+        taskId: Task_1-access
+      }
+    },
+    ReturnValue: true
+  },
+  {
+    Method: IValidator.get_ValidationSource(),
+    Arguments: {},
+    ReturnValue: mockValidator
+  },
+  {
+    Method: IValidator.get_ValidationSource(),
+    Arguments: {},
+    ReturnValue: mockValidator
+  },
+  {
+    Method: IValidator.get_ShouldRunAfterRemovingHiddenData(),
+    Arguments: {},
+    ReturnValue: true
+  },
+  {
+    Method: IValidator.get_ShouldRunAfterRemovingHiddenData(),
+    Arguments: {},
+    ReturnValue: true
+  },
+  {
+    Method: IValidator.Validate(IInstanceDataAccessor dataAccessor, string taskId, string language),
+    Arguments: {
+      Arguments: {
+        dataAccessor: {
+          Instance: {
+            Id: 1337/00000000-babe-0000-0000-000000000001,
+            InstanceOwner: {
+              PartyId: 1337
+            },
+            Data: [
+              {
+                Id: Guid_1,
+                DataType: mainLayout_dataType,
+                Locked: false,
+                IsRead: true
+              },
+              {
+                Id: Guid_2,
+                DataType: subLayout_dataType,
+                Locked: false,
+                IsRead: true
+              },
+              {
+                Id: Guid_3,
+                DataType: subLayout_dataType,
+                Locked: false,
+                IsRead: true
+              }
+            ]
+          },
+          DataTypes: [
+            {
+              Id: mainLayout_dataType,
+              AppLogic: {
+                ClassRef: Altinn.App.Core.Tests.LayoutExpressions.FullTests.CleanDataAccessor.MainModel,
+                AllowAnonymousOnStateless: false,
+                AutoDeleteOnProcessEnd: false,
+                DisallowUserCreate: false,
+                DisallowUserDelete: false
+              },
+              TaskId: Task_1-access,
+              MinCount: 0,
+              EnablePdfCreation: true,
+              EnableFileScan: false,
+              ValidationErrorOnPendingFileScan: false
+            },
+            {
+              Id: subLayout_dataType,
+              AppLogic: {
+                ClassRef: Altinn.App.Core.Tests.LayoutExpressions.FullTests.CleanDataAccessor.SubModel,
+                AllowAnonymousOnStateless: false,
+                AutoDeleteOnProcessEnd: false,
+                DisallowUserCreate: false,
+                DisallowUserDelete: false
+              },
+              TaskId: Task_1-access,
+              MaxCount: 0,
+              MinCount: 0,
+              EnablePdfCreation: true,
+              EnableFileScan: false,
+              ValidationErrorOnPendingFileScan: false
+            }
+          ]
+        },
+        language: test-language,
+        taskId: Task_1-access
+      }
+    },
+    ReturnValue: {
+      Status: RanToCompletion
+    }
+  },
+  {
+    Method: IValidator.get_ValidationSource(),
+    Arguments: {},
+    ReturnValue: mockValidator
+  }
+]

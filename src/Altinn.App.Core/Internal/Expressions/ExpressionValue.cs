@@ -22,27 +22,35 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
     // private readonly ExpressionValue[]? _arrayValue = null;
 
     /// <summary>
-    /// Constructor for NULL value
+    /// Constructor for NULL value (structs require a public parameterless constructor)
     /// </summary>
     public ExpressionValue()
+        : this(JsonValueKind.Null) { }
+
+    private ExpressionValue(JsonValueKind valueKind)
     {
-        _valueKind = JsonValueKind.Null;
+        _valueKind = valueKind;
     }
 
     /// <summary>
     /// Convenient accessor for NULL value
     /// </summary>
-    public static ExpressionValue Null => new();
+    public static ExpressionValue Null => new(JsonValueKind.Null);
 
     /// <summary>
     /// Convenient accessor for true value
     /// </summary>
-    public static ExpressionValue True => new(true);
+    public static ExpressionValue True => new(JsonValueKind.True);
 
     /// <summary>
     /// Convenient accessor for false value
     /// </summary>
-    public static ExpressionValue False => new(false);
+    public static ExpressionValue False => new(JsonValueKind.False);
+
+    /// <summary>
+    /// Convenient accessor for undefined value
+    /// </summary>
+    public static ExpressionValue Undefined => new(JsonValueKind.Undefined);
 
     private ExpressionValue(bool? value)
     {
@@ -261,7 +269,7 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
             JsonValueKind.Number => Number.ToString(CultureInfo.InvariantCulture),
             // JsonValueKind.Object => JsonSerializer.Serialize(Object),
             // JsonValueKind.Array => JsonSerializer.Serialize(Array),
-            _ => throw new InvalidOperationException("Invalid value kind"),
+            _ => throw new InvalidOperationException($"Invalid value kind {ValueKind}"),
         };
 
     /// <summary>
@@ -275,6 +283,7 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
         ValueKind switch
         {
             JsonValueKind.Null => null,
+            JsonValueKind.Undefined => null,
             JsonValueKind.True => "true",
             JsonValueKind.False => "false",
             JsonValueKind.String => String switch
@@ -396,6 +405,7 @@ internal class ExpressionTypeUnionConverter : JsonConverter<ExpressionValue>
         switch (value.ValueKind)
         {
             case JsonValueKind.Null:
+            case JsonValueKind.Undefined:
                 writer.WriteNullValue();
                 break;
             case JsonValueKind.True:

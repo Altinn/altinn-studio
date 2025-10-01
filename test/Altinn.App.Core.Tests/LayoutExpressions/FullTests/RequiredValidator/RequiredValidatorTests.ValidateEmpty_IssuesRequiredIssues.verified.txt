@@ -1,0 +1,50 @@
+﻿{
+  IncrementalIssues: [
+    {
+      Source: Required,
+      Issues: [
+        {
+          Severity: Error,
+          DataElementId: Guid_1,
+          Field: VisibleRequired,
+          Code: required,
+          Description: VisibleRequired is required in component with id subLayout.subPage.sub-input-visible-required for binding simpleBinding,
+          Source: Required,
+          NoIncrementalUpdates: false
+        },
+        {
+          Severity: Error,
+          DataElementId: Guid_2,
+          Field: VisibleRequired,
+          Code: required,
+          Description: VisibleRequired is required in component with id mainLayout.page1.input-visible-required for binding simpleBinding,
+          Source: Required,
+          NoIncrementalUpdates: false
+        }
+      ]
+    },
+    {
+      Source: Altinn.App.Core.Tests.LayoutExpressions.FullTests.RequiredValidator.RequiredValidatorTests+TestValidator-Task_1-access
+    }
+  ],
+  FullIssues: [
+    {
+      Severity: Error,
+      DataElementId: Guid_1,
+      Field: VisibleRequired,
+      Code: required,
+      Description: VisibleRequired is required in component with id subLayout.subPage.sub-input-visible-required for binding simpleBinding,
+      Source: Required,
+      NoIncrementalUpdates: false
+    },
+    {
+      Severity: Error,
+      DataElementId: Guid_2,
+      Field: VisibleRequired,
+      Code: required,
+      Description: VisibleRequired is required in component with id mainLayout.page1.input-visible-required for binding simpleBinding,
+      Source: Required,
+      NoIncrementalUpdates: false
+    }
+  ]
+}

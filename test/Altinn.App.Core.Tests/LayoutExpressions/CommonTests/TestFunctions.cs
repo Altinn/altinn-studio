@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Texts;
@@ -285,41 +284,33 @@ public class TestFunctions
         LayoutModel? componentModel = null;
         if (test.Layouts is not null)
         {
-            var layout = new LayoutSetComponent(test.Layouts.Values.ToList(), "layout", dataTypes[0]);
+            var layout = new LayoutSetComponent(test.Layouts, "layout", dataTypes[0]);
             componentModel = new LayoutModel([layout], null);
         }
         else if (test.Layouts is null && dataTypes.Count > 0)
         {
             // Create a working dummy layout to avoid null reference exceptions and make dataModel lookups work.
-            var componentLookup = new Dictionary<string, BaseComponent>();
-            componentLookup.Add(
-                "myParagraph",
-                new BaseComponent(
-                    "myParagraph",
-                    "Paragraph",
-                    null,
-                    new Expression(),
-                    new Expression(),
-                    new Expression(),
-                    null
-                )
+            using var document = JsonDocument.Parse(
+                """
+                {
+                    "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+                    "data": {
+                        "layout":[
+                            {
+                                "id": "myParagraph",
+                                "type": "paragraph"
+                            }
+                        ]
+                    }
+                }
+                """
             );
-            var componentList = new List<BaseComponent>();
-            componentList.Add(componentLookup["myParagraph"]);
+            var pageId = "page";
+            var layoutId = "layout";
+
             var layout = new LayoutSetComponent(
-                [
-                    new PageComponent(
-                        "formLayout",
-                        "formLayout",
-                        componentList,
-                        componentLookup,
-                        new Expression(),
-                        new Expression(),
-                        new Expression(),
-                        null
-                    ),
-                ],
-                "layout",
+                [PageComponent.Parse(document.RootElement, pageId, layoutId)],
+                layoutId,
                 dataTypes[0]
             );
             componentModel = new LayoutModel([layout], null);
@@ -351,13 +342,11 @@ public class TestFunctions
         ComponentContext? context = null;
         if (test.Context is not null)
         {
-            context = test.Context.ToContext(componentModel, state);
+            context = await test.GetContextOrNull(state);
         }
         else if (componentModel is not null)
         {
-            context = (
-                await componentModel.GenerateComponentContexts(test.Instance, new DataModel(dataAccessor))
-            ).First();
+            context = (await componentModel.GenerateComponentContexts(state)).First();
         }
 
         if (test.ExpectsFailure is not null && test.ParsingException is not null)

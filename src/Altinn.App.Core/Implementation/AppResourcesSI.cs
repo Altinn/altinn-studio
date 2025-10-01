@@ -372,16 +372,14 @@ public class AppResourcesSI : IAppResources
         string folder = Path.Join(_settings.AppBasePath, _settings.UiFolder, layoutSet.Id, "layouts");
         foreach (var page in order)
         {
-            var pageBytes = File.ReadAllBytes(Path.Join(folder, page + ".json"));
-            // Set the PageName using AsyncLocal before deserializing.
-            PageComponentConverter.SetAsyncLocalPageName(layoutSet.Id, page);
-            pages.Add(
-                System.Text.Json.JsonSerializer.Deserialize<PageComponent>(
-                    pageBytes.RemoveBom(),
-                    _jsonSerializerOptions
-                )
-                ?? throw new InvalidDataException(page + ".json is \"null\"")
+            var pagePath = Path.Join(folder, page + ".json");
+            PathHelper.EnsureLegalPath(folder, pagePath);
+            var pageBytes = File.ReadAllBytes(pagePath);
+            using var document = JsonDocument.Parse(
+                pageBytes,
+                new JsonDocumentOptions() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip }
             );
+            pages.Add(PageComponent.Parse(document.RootElement, page, layoutSet.Id));
         }
 
         // First look at the specified data type, but

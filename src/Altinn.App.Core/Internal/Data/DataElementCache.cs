@@ -21,7 +21,7 @@ internal sealed class DataElementCache<T>
                 _cache.Add(key.Guid, lazyTask);
             }
         }
-        return await lazyTask.Value;
+        return await lazyTask.Value.ConfigureAwait(false);
     }
 
     public void Set(DataElementIdentifier key, T data)

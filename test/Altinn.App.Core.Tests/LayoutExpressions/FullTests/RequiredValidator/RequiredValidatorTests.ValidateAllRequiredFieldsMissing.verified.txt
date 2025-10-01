@@ -1,0 +1,136 @@
+﻿{
+  IncrementalIssues: [
+    {
+      Source: Required,
+      Issues: [
+        {
+          Severity: Error,
+          DataElementId: Guid_1,
+          Field: VisibleRequired,
+          Code: required,
+          Description: VisibleRequired is required in component with id subLayout.subPage.sub-input-visible-required for binding simpleBinding,
+          Source: Required,
+          NoIncrementalUpdates: false
+        },
+        {
+          Severity: Error,
+          DataElementId: Guid_1,
+          Field: Group[1].VisibleRequired,
+          Code: required,
+          Description: Group[1].VisibleRequired is required in component with id subLayout.subPage.sub-input-group1-visible-required for binding simpleBinding,
+          Source: Required,
+          NoIncrementalUpdates: false
+        },
+        {
+          Severity: Error,
+          DataElementId: Guid_1,
+          Field: Group[2].VisibleRequired,
+          Code: required,
+          Description: Group[2].VisibleRequired is required in component with id subLayout.subPage.sub-input-group2-visible-required for binding simpleBinding,
+          Source: Required,
+          NoIncrementalUpdates: false
+        },
+        {
+          Severity: Error,
+          DataElementId: Guid_2,
+          Field: VisibleRequired,
+          Code: required,
+          Description: VisibleRequired is required in component with id mainLayout.page1.input-visible-required for binding simpleBinding,
+          Source: Required,
+          NoIncrementalUpdates: false
+        },
+        {
+          Severity: Error,
+          DataElementId: Guid_2,
+          Field: Group[1].VisibleRequired,
+          Code: required,
+          Description: Group[1].VisibleRequired is required in component with id mainLayout.page1.input-group1-visible-required for binding simpleBinding,
+          Source: Required,
+          NoIncrementalUpdates: false
+        },
+        {
+          Severity: Error,
+          DataElementId: Guid_2,
+          Field: Group[2].VisibleRequired,
+          Code: required,
+          Description: Group[2].VisibleRequired is required in component with id mainLayout.page1.input-group2-visible-required for binding simpleBinding,
+          Source: Required,
+          NoIncrementalUpdates: false
+        }
+      ]
+    },
+    {
+      Source: Altinn.App.Core.Tests.LayoutExpressions.FullTests.RequiredValidator.RequiredValidatorTests+TestValidator-Task_1-access,
+      Issues: [
+        {
+          Severity: Error,
+          Description: ServerValidationNotTest contains test in Model,
+          Source: Altinn.App.Core.Tests.LayoutExpressions.FullTests.RequiredValidator.RequiredValidatorTests+TestValidator-Task_1-access,
+          NoIncrementalUpdates: false
+        }
+      ]
+    }
+  ],
+  FullIssues: [
+    {
+      Severity: Error,
+      DataElementId: Guid_1,
+      Field: VisibleRequired,
+      Code: required,
+      Description: VisibleRequired is required in component with id subLayout.subPage.sub-input-visible-required for binding simpleBinding,
+      Source: Required,
+      NoIncrementalUpdates: false
+    },
+    {
+      Severity: Error,
+      DataElementId: Guid_1,
+      Field: Group[1].VisibleRequired,
+      Code: required,
+      Description: Group[1].VisibleRequired is required in component with id subLayout.subPage.sub-input-group1-visible-required for binding simpleBinding,
+      Source: Required,
+      NoIncrementalUpdates: false
+    },
+    {
+      Severity: Error,
+      DataElementId: Guid_1,
+      Field: Group[2].VisibleRequired,
+      Code: required,
+      Description: Group[2].VisibleRequired is required in component with id subLayout.subPage.sub-input-group2-visible-required for binding simpleBinding,
+      Source: Required,
+      NoIncrementalUpdates: false
+    },
+    {
+      Severity: Error,
+      DataElementId: Guid_2,
+      Field: VisibleRequired,
+      Code: required,
+      Description: VisibleRequired is required in component with id mainLayout.page1.input-visible-required for binding simpleBinding,
+      Source: Required,
+      NoIncrementalUpdates: false
+    },
+    {
+      Severity: Error,
+      DataElementId: Guid_2,
+      Field: Group[1].VisibleRequired,
+      Code: required,
+      Description: Group[1].VisibleRequired is required in component with id mainLayout.page1.input-group1-visible-required for binding simpleBinding,
+      Source: Required,
+      NoIncrementalUpdates: false
+    },
+    {
+      Severity: Error,
+      DataElementId: Guid_2,
+      Field: Group[2].VisibleRequired,
+      Code: required,
+      Description: Group[2].VisibleRequired is required in component with id mainLayout.page1.input-group2-visible-required for binding simpleBinding,
+      Source: Required,
+      NoIncrementalUpdates: false
+    },
+    {
+      Severity: Error,
+      Description: ServerValidationNotTest contains test in Model,
+      Source: Altinn.App.Core.Tests.LayoutExpressions.FullTests.RequiredValidator.RequiredValidatorTests+TestValidator-Task_1-access,
+      NoIncrementalUpdates: false
+    }
+  ]
+}
