@@ -11,13 +11,14 @@ import type {
 export const externalSimpleComponentToInternal = (
   externalComponent: ExternalSimpleComponent,
   pageIndex: number | null,
+  layoutDefaultDataType?: string,
 ): FormComponent => {
   const formItemConfig = formItemConfigs[externalComponent.type];
   const propertyPath = formItemConfig?.propertyPath;
 
   const explicitBindings =
     externalComponent.dataModelBindings &&
-    convertAllDatamodelBindings(externalComponent.dataModelBindings);
+    convertAllDatamodelBindings(layoutDefaultDataType, externalComponent.dataModelBindings);
 
   return {
     ...(propertyPath ? { propertyPath } : {}),
@@ -29,12 +30,13 @@ export const externalSimpleComponentToInternal = (
 };
 
 function convertAllDatamodelBindings(
+  layoutDefaultDataType: string,
   bindings: IDataModelBindingsKeyValue,
 ): IDataModelBindingsKeyValueExplicit {
   return Object.entries(bindings).reduce(
     (acc, [key, value]) => ({
       ...acc,
-      [key]: convertDataBindingToInternalFormat(value as IDataModelBindings),
+      [key]: convertDataBindingToInternalFormat(layoutDefaultDataType, value as IDataModelBindings),
     }),
     {},
   );
