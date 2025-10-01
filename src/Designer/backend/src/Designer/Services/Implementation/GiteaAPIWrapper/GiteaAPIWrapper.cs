@@ -582,7 +582,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return null;
         }
 
-        private static string AddShaIfExists(string branchName) => string.IsNullOrEmpty(branchName) ? string.Empty : $"&sha={HttpUtility.UrlEncode(branchName)}";
+        private static string AddShaIfExists(string sha) => string.IsNullOrEmpty(sha) ? string.Empty : $"&sha={HttpUtility.UrlEncode(sha)}";
 
         private async Task<Organization> GetOrganization(string name)
         {
