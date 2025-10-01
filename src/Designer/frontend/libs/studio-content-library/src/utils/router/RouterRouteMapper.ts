@@ -4,6 +4,7 @@ import type { PageName } from '../../types/PageName';
 import { LandingPage } from '../../ContentLibrary/LibraryBody/pages/LandingPage';
 import type { PagesConfig } from '../../types/PagesProps';
 import { ImagesPage } from '../../ContentLibrary/LibraryBody/pages/ImagesPage';
+import { CodeListsPage } from '../../ContentLibrary/LibraryBody/pages/CodeListsPage';
 
 type PageProps =
   | ComponentProps<typeof LandingPage>
@@ -35,11 +36,16 @@ export class RouterRouteMapperImpl implements RouterRouteMapper {
     pageMap.set('landingPage', LandingPage);
 
     Object.keys(pages).forEach((page: PageName) => {
-      if (page === 'codeListsWithTextResources') {
-        pageMap.set('codeListsWithTextResources', CodeListsWithTextResourcesPage);
-      }
-      if (page === 'images') {
-        pageMap.set('images', ImagesPage);
+      switch (page) {
+        case 'codeLists':
+          pageMap.set('codeLists', CodeListsPage);
+          break;
+        case 'codeListsWithTextResources':
+          pageMap.set('codeListsWithTextResources', CodeListsWithTextResourcesPage);
+          break;
+        case 'images':
+          pageMap.set('images', ImagesPage);
+          break;
       }
     });
 

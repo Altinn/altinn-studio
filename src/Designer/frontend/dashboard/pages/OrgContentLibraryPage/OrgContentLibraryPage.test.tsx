@@ -12,8 +12,8 @@ import type {
   ContentLibraryConfig,
   PagesConfig,
   ResourceContentLibraryImpl,
-  TextResourceWithLanguage,
   TextResources,
+  TextResourceWithLanguage,
 } from '@studio/content-library';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { Route, Routes } from 'react-router-dom';
@@ -60,6 +60,12 @@ const getContentResourceLibrary = jest
 const resourceLibraryTestId = 'resource-library';
 
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
+
+jest.mock('app-shared/utils/featureToggleUtils', () => ({
+  ...jest.requireActual('app-shared/utils/featureToggleUtils'),
+  shouldDisplayFeature: () => mockShouldDisplayFeatureResult,
+})); // Todo: Use the React Context API instead of jest.mock: https://github.com/Altinn/altinn-studio/issues/14877
+const mockShouldDisplayFeatureResult = jest.fn(false);
 
 describe('OrgContentLibraryPage', () => {
   beforeEach(mockConstructor.mockClear);
@@ -281,6 +287,19 @@ describe('OrgContentLibraryPage', () => {
   it('Renders with the organisation library heading', () => {
     renderOrgContentLibraryWithData();
     expect(retrieveConfig().heading).toBe(textMock('org_content_library.library_heading'));
+  });
+
+  it('Does not render with the new code list page by default', () => {
+    renderOrgContentLibraryWithData();
+    const pagesConfig = retrievePagesConfig();
+    expect(pagesConfig.codeLists).not.toHaveProperty('codeLists');
+  });
+
+  it('Renders with the new code list page when the feature flag is enabled', () => {
+    mockShouldDisplayFeatureResult.mockImplementationOnce(true);
+    renderOrgContentLibraryWithData();
+    const pagesConfig = retrievePagesConfig();
+    expect(pagesConfig).toHaveProperty('codeLists');
   });
 });
 

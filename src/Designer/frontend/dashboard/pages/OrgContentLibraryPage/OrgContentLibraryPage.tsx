@@ -4,6 +4,7 @@ import { ResourceContentLibraryImpl } from '@studio/content-library';
 import type {
   CodeListData,
   CodeListWithMetadata,
+  PagesConfig,
   TextResourceWithLanguage,
 } from '@studio/content-library';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
@@ -35,6 +36,7 @@ import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useUpdateOrgTextResourcesMutation } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
 import { useUpdateOrgCodeListIdMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListIdMutation';
 import { FeedbackForm } from './FeedbackForm';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -155,6 +157,7 @@ function OrgContentLibraryWithContextAndData({
           textResources,
         },
       },
+      ...pagesFromFeatureFlags(),
     },
   });
 
@@ -164,6 +167,14 @@ function OrgContentLibraryWithContextAndData({
       <FeedbackForm />
     </div>
   );
+}
+
+function pagesFromFeatureFlags(): Partial<PagesConfig> {
+  if (shouldDisplayFeature(FeatureFlag.NewCodeListApi)) {
+    return { codeLists: { props: {} } };
+  } else {
+    return {};
+  }
 }
 
 function ContextWithoutLibraryAccess(): ReactElement {
