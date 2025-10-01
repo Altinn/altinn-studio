@@ -23,7 +23,7 @@ import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { ProcessingProvider } from 'src/core/contexts/processingContext';
 import { DisplayErrorProvider } from 'src/core/errorHandling/DisplayErrorProvider';
-import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { VersionErrorOrChildren } from 'src/features/applicationMetadata/VersionErrorOrChildren';
 import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
@@ -95,7 +95,7 @@ function Root() {
   return (
     <>
       <InstantiationUrlReset />
-      <ApplicationMetadataProvider>
+      <VersionErrorOrChildren>
         <GlobalFormDataReadersProvider>
           <LayoutSetsProvider>
             <SetShouldFetchAppLanguages />
@@ -125,7 +125,7 @@ function Root() {
             <PartyPrefetcher />
           </LayoutSetsProvider>
         </GlobalFormDataReadersProvider>
-      </ApplicationMetadataProvider>
+      </VersionErrorOrChildren>
     </>
   );
 }
