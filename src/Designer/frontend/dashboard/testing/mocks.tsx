@@ -11,19 +11,29 @@ import {
 } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
+import { FeatureFlagsContextProvider } from '@studio/feature-flags';
+import type { FeatureFlag } from '@studio/feature-flags';
 
 type WrapperArgs = {
   queries: Partial<ServicesContextProps>;
   queryClient: QueryClient;
+  featureFlags: FeatureFlag[];
 } & Pick<MemoryRouterProps, 'initialEntries'>;
 
 const wrapper =
-  ({ queries = {}, queryClient = createQueryClientMock(), initialEntries }: WrapperArgs) =>
+  ({
+    queries = {},
+    queryClient = createQueryClientMock(),
+    featureFlags = [],
+    initialEntries,
+  }: WrapperArgs) =>
   // eslint-disable-next-line react/display-name
   (component: ReactNode) => (
     <MemoryRouter initialEntries={initialEntries}>
       <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
-        {component}
+        <FeatureFlagsContextProvider value={{ flags: featureFlags }}>
+          {component}
+        </FeatureFlagsContextProvider>
       </ServicesContextProvider>
     </MemoryRouter>
   );
@@ -34,13 +44,19 @@ export interface ProviderData extends Partial<WrapperArgs> {
 
 export function renderWithProviders(
   component: ReactNode,
-  { queries = {}, queryClient = createQueryClientMock(), initialEntries }: ProviderData = {},
+  {
+    queries = {},
+    queryClient = createQueryClientMock(),
+    featureFlags = [],
+    initialEntries,
+  }: ProviderData = {},
 ) {
   const renderOptions: RenderOptions = {
     wrapper: ({ children }) =>
       wrapper({
         queries,
         queryClient,
+        featureFlags,
         initialEntries,
       })(children),
   };
@@ -53,6 +69,7 @@ export function renderHookWithProviders<HookResult, Props>(
     queries = {},
     queryClient = createQueryClientMock(),
     externalWrapper = (children) => children,
+    featureFlags = [],
     initialEntries,
   }: ProviderData = {},
 ) {
@@ -62,6 +79,7 @@ export function renderHookWithProviders<HookResult, Props>(
         wrapper({
           queries,
           queryClient,
+          featureFlags,
           initialEntries,
         })(children),
       ),
