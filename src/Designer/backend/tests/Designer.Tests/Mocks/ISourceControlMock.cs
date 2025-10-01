@@ -157,7 +157,7 @@ namespace Designer.Tests.Mocks
             return Task.FromResult(new Branch { Name = branchName });
         }
 
-        public LibGit2Sharp.Branch CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
+        public void CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
 
         public void CommitToLocalRepo(AltinnRepoEditingContext editingContext, string message) => throw new NotImplementedException();
 
