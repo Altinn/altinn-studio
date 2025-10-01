@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -215,69 +214,6 @@ public class OrgCodeListService : IOrgCodeListService
         }
     }
 
-    internal static List<FileOperationContext> CreateFileOperationContexts(List<CodeListWrapper> localWrappers, List<FileSystemObject> remoteFiles)
-    {
-        (List<CodeListWrapper> remoteWrappers, Dictionary<string, string> fileMetadata) = ExtractContentFromFiles(remoteFiles);
-        return GenerateFileOperationContexts(remoteWrappers, localWrappers, fileMetadata);
-    }
-
-    internal static List<FileOperationContext> CreateFileOperationContexts(List<CodeListWrapper> localWrappers, List<FileSystemObject> remoteFiles, List<FileSystemObject> baseFiles)
-    {
-        FileContents baseFileContents = ExtractContentFromFiles(baseFiles);
-        FileContents remoteFileContents = ExtractContentFromFiles(remoteFiles);
-        return GenerateFileOperationContexts(localWrappers, baseFileContents, remoteFileContents);
-    }
-
-    internal static FileContents ExtractContentFromFiles(List<FileSystemObject> remoteFiles)
-    {
-        List<CodeListWrapper> remoteCodeListWrappers = [];
-        Dictionary<string, string> fileMetadata = [];
-        foreach (FileSystemObject file in remoteFiles)
-        {
-            string title = Path.GetFileNameWithoutExtension(file.Name);
-            if (TryParseFile(file.Content, out CodeList? codeList))
-            {
-                remoteCodeListWrappers.Add(WrapCodeList(codeList, title, hasError: false));
-            }
-            else
-            {
-                remoteCodeListWrappers.Add(WrapCodeList(codeList, title, hasError: true));
-            }
-            fileMetadata[title] = file.Sha;
-        }
-
-        FileContents fileContents = new(remoteCodeListWrappers, fileMetadata);
-
-        return fileContents;
-    }
-
-    internal static FileOperationContext PrepareFile(string operation, CodeListWrapper codeListWrapper, string? sha = null)
-    {
-        switch (operation)
-        {
-            case FileOperation.Create when sha is not null:
-                throw new ArgumentException("Create file operation requires sha to be null as file should not exist in Gitea.");
-            case FileOperation.Update when sha is null:
-                throw new ArgumentException("Update file operation requires sha.");
-            case FileOperation.Delete when sha is null || codeListWrapper.CodeList is not null:
-                throw new ArgumentException("Delete file operation requires sha, and empty code list.");
-        }
-
-        string? encodedContent = null;
-        if (codeListWrapper.CodeList is not null)
-        {
-            string content = JsonSerializer.Serialize(codeListWrapper.CodeList, s_jsonOptions);
-            encodedContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(content));
-        }
-
-        return new FileOperationContext(
-            Content: encodedContent,
-            Operation: operation,
-            Path: CodeListUtils.FilePath(codeListWrapper.Title),
-            Sha: sha
-        );
-    }
-
     /// <inheritdoc />
     public async Task<List<OptionListData>> UploadCodeList(string org, string developer, IFormFile payload, CancellationToken cancellationToken = default)
     {
@@ -385,92 +321,6 @@ public class OrgCodeListService : IOrgCodeListService
             CodeList: codeList,
             HasError: hasError
         );
-    }
-
-    private static GiteaMultipleFilesDto CreateGiteaMultipleFilesDto(string developer, List<FileOperationContext> fileOperationContexts, string? commitMessage, string? branch = null)
-    {
-        return new GiteaMultipleFilesDto(
-            Author: new GiteaIdentity(Name: developer),
-            Branch: string.IsNullOrWhiteSpace(branch) ? null : branch,
-            Committer: new GiteaIdentity(Name: developer),
-            Files: fileOperationContexts,
-            Message: string.IsNullOrWhiteSpace(commitMessage) ? null : commitMessage
-        );
-
-    }
-
-    private static List<FileOperationContext> GenerateFileOperationContexts(List<CodeListWrapper> remoteWrappers, List<CodeListWrapper> localWrappers, Dictionary<string, string> fileMetadata)
-    {
-        List<FileOperationContext> fileOperationContexts = [];
-
-        HashSet<string> remoteWrapperTitles = remoteWrappers.Select(wrapper => wrapper.Title).ToHashSet();
-
-        foreach (CodeListWrapper localWrapper in localWrappers)
-        {
-            if (remoteWrapperTitles.Contains(localWrapper.Title) is false)
-            {
-                fileOperationContexts.Add(PrepareFile(FileOperation.Create, localWrapper));
-                continue;
-            }
-
-            foreach (CodeListWrapper remoteWrapper in remoteWrappers.Where(remoteWrapper => localWrapper.Title == remoteWrapper.Title))
-            {
-                string sha = fileMetadata[remoteWrapper.Title];
-                if (localWrapper.CodeList is null)
-                {
-                    fileOperationContexts.Add(PrepareFile(FileOperation.Delete, localWrapper, sha));
-                    break;
-                }
-
-                if (localWrapper.CodeList.Equals(remoteWrapper.CodeList) is false)
-                {
-                    fileOperationContexts.Add(PrepareFile(FileOperation.Update, localWrapper, sha));
-                    break;
-                }
-            }
-        }
-
-        return fileOperationContexts;
-    }
-
-    private static List<FileOperationContext> GenerateFileOperationContexts(List<CodeListWrapper> localWrappers, FileContents baseFileContents, FileContents remoteFileContents)
-    {
-        List<CodeListWrapper> remoteWrappers = remoteFileContents.CodeListWrappers;
-        List<CodeListWrapper> baseWrappers = baseFileContents.CodeListWrappers;
-        Dictionary<string, string> remoteFileMetadata = remoteFileContents.FileMetadata;
-        List<FileOperationContext> fileOperationContexts = [];
-
-        HashSet<string> remoteWrapperTitles = [.. remoteFileContents.CodeListWrappers.Select(wrapper => wrapper.Title)];
-
-        foreach (CodeListWrapper localWrapper in localWrappers)
-        {
-            if (remoteWrapperTitles.Contains(localWrapper.Title) is false)
-            {
-                fileOperationContexts.Add(PrepareFile(FileOperation.Create, localWrapper));
-                continue;
-            }
-
-            foreach (CodeListWrapper remoteWrapper in remoteWrappers.Where(remoteWrapper => localWrapper.Title == remoteWrapper.Title))
-            {
-                string sha = remoteFileMetadata[remoteWrapper.Title];
-                if (localWrapper.CodeList is null)
-                {
-                    fileOperationContexts.Add(PrepareFile(FileOperation.Delete, localWrapper, sha));
-                    break;
-                }
-            }
-
-            List<CodeListWrapper> candidateWrappers = [.. remoteWrappers, .. baseWrappers];
-            foreach (CodeListWrapper candidateWrapper in candidateWrappers.DistinctBy(wrapper => wrapper.Title))
-            {
-                if (localWrappers.Exists(localWrapper => localWrapper.Title == candidateWrapper.Title) is false)
-                {
-                    string sha = remoteFileMetadata[candidateWrapper.Title];
-                    fileOperationContexts.Add(PrepareFile(FileOperation.Delete, candidateWrapper, sha));
-                }
-            }
-        }
-        return fileOperationContexts;
     }
 
     /// <summary>
