@@ -25,14 +25,20 @@ import { containerComponentTypes } from '../../data/containerComponentTypes';
 
 export const externalLayoutToInternal = (
   externalLayout: ExternalFormLayout | null,
+  layoutDefaultDataType?: string,
 ): IInternalLayout =>
-  externalLayout ? convertExternalLayout(externalLayout) : createEmptyLayout();
+  externalLayout
+    ? convertExternalLayout(externalLayout, layoutDefaultDataType)
+    : createEmptyLayout();
 
-const convertExternalLayout = (externalLayout: ExternalFormLayout): IInternalLayout => {
+const convertExternalLayout = (
+  externalLayout: ExternalFormLayout,
+  layoutDefaultDataType?: string,
+): IInternalLayout => {
   const customRootProperties = getCustomRootProperties(externalLayout);
   const { data } = externalLayout;
   const convertedData: InternalLayoutData = data
-    ? convertExternalData(data)
+    ? convertExternalData(data, layoutDefaultDataType)
     : createEmptyLayoutData();
   return { ...convertedData, customRootProperties };
 };
@@ -44,11 +50,14 @@ const getCustomRootProperties = (externalLayout: ExternalFormLayout) => {
   return customProperties;
 };
 
-const convertExternalData = (externalData: ExternalData): InternalLayoutData => {
+const convertExternalData = (
+  externalData: ExternalData,
+  layoutDefaultDataType?: string,
+): InternalLayoutData => {
   const customDataProperties = getCustomDataProperties(externalData);
   const { layout, hidden } = externalData;
   const convertedComponents: InternalLayoutComponents = layout
-    ? convertExternalComponentList(layout)
+    ? convertExternalComponentList(layout, layoutDefaultDataType)
     : createEmptyComponentStructure();
   return { ...convertedComponents, hidden, customDataProperties };
 };
@@ -62,17 +71,19 @@ const getCustomDataProperties = (externalData: ExternalData) => {
 
 const convertExternalComponentList = (
   externalComponents: ExternalComponent[],
+  layoutDefaultDataType?: string,
 ): InternalLayoutComponents => ({
-  components: getInternalComponents(externalComponents),
+  components: getInternalComponents(externalComponents, layoutDefaultDataType),
   containers: getInternalContainers(externalComponents),
   order: getOrderOfComponents(externalComponents),
 });
 
 const getInternalComponents = (
   externalComponents: ExternalComponent[],
+  layoutDefaultDataType?: string,
 ): IFormDesignerComponents => {
   const convert = (component: ExternalSimpleComponent) =>
-    convertSimpleComponent(externalComponents, component);
+    convertSimpleComponent(externalComponents, component, layoutDefaultDataType);
   const components: FormComponent[] = findSimpleComponents(externalComponents).map(convert);
   return ObjectUtils.mapByProperty(components, 'id');
 };
@@ -132,9 +143,10 @@ const getChildrenIdsOfAllContainers = (
 const convertSimpleComponent = (
   externalComponentList: ExternalComponent[],
   externalComponent: ExternalSimpleComponent,
+  layoutDefaultDataType?: string,
 ): FormComponent => {
   const pageIndex = findPageIndexOfComponent(externalComponentList, externalComponent.id);
-  return externalSimpleComponentToInternal(externalComponent, pageIndex);
+  return externalSimpleComponentToInternal(externalComponent, pageIndex, layoutDefaultDataType);
 };
 
 const convertContainerComponent = (
