@@ -1,53 +1,53 @@
 ###
 # Oversikt: https://www.ssb.no/klass/
-GET http://data.ssb.no/api/klass/v1/classifications?size=150&language=en
+GET https://data.ssb.no/api/klass/v1/classifications?size=150&language=en
 
 ###
 # Søk etter klassifikasjon
-GET http://data.ssb.no/api/klass/v1/classifications/search?query=land
+GET https://data.ssb.no/api/klass/v1/classifications/search?query=land
 
 ###
 # Land (ISO alfa 3)
-GET http://data.ssb.no/api/klass/v1/classifications/552/codesAt?date=2023-03-03
+GET https://data.ssb.no/api/klass/v1/classifications/552/codesAt?date=2023-03-03
 Accept: application/json;charset=utf-8
 
 ###
 # Fylker
-GET http://data.ssb.no/api/klass/v1/classifications/104/codes?from=2022-07-10
+GET https://data.ssb.no/api/klass/v1/classifications/104/codes?from=2022-07-10
 Accept: application/json;charset=utf-8
 
 ###
 # Kommuner
-GET http://data.ssb.no/api/klass/v1/classifications/131/codesAt?date=2023-03-02
+GET https://data.ssb.no/api/klass/v1/classifications/131/codesAt?date=2023-03-02
 Accept: application/json;charset=utf-8
 
 ###
 # Kjønn
-GET http://data.ssb.no/api/klass/v1/classifications/2/codes?from=2022-07-10&selectLevel=1
+GET https://data.ssb.no/api/klass/v1/classifications/2/codes?from=2022-07-10&selectLevel=1
 Accept: application/json;charset=utf-8
 
 ###
 # Næringsgruppering
-GET http://data.ssb.no/api/klass/v1/classifications/6/codesAt?date=2023-02-11&language=en&selectLevel=1
+GET https://data.ssb.no/api/klass/v1/classifications/6/codesAt?date=2023-02-11&language=en&selectLevel=1
 Accept: application/json;charset=utf-8
 
 ###
-GET http://data.ssb.no/api/klass/v1/classifications/6/codesAt?date=2023-02-11&language=nb
+GET https://data.ssb.no/api/klass/v1/classifications/6/codesAt?date=2023-02-11&language=nb
 Accept: application/json;charset=utf-8
 
 ###
 # Yrkesklassifisering
-GET http://data.ssb.no/api/klass/v1/classifications/7/codesAt?date=2023-02-11&language=nb
+GET https://data.ssb.no/api/klass/v1/classifications/7/codesAt?date=2023-02-11&language=nb
 Accept: application/json;charset=utf-8
 
 ###
 # Sivilstand
-GET http://data.ssb.no/api/klass/v1/classifications/19/codesAt?date=2023-02-11&language=nn
+GET https://data.ssb.no/api/klass/v1/classifications/19/codesAt?date=2023-02-11&language=nn
 Accept: application/json;charset=utf-8
 
 ###
 # Grunnbeløp i folketrygden
-GET http://data.ssb.no/api/klass/v1/classifications/20/codesAt?date=2023-03-12
+GET https://data.ssb.no/api/klass/v1/classifications/20/codesAt?date=2023-03-12
 Accept: application/json;charset=utf-8
 
 ###
@@ -61,5 +61,5 @@ Accept: application/json;charset=utf-8
 
 ###
 
-GET http://data.ssb.no/api/klass/v1/variants/2103?language=nb
+GET https://data.ssb.no/api/klass/v1/variants/2103?language=nb
 Accept: application/json;charset=utf-8
