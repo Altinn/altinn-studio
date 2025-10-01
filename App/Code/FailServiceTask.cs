@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+using Altinn.App.Core.Internal.Process.ServiceTasks;
 using Altinn.App.Core.Models;
 using Altinn.App.Models.Model2;
 using Altinn.App.Models.Model3;

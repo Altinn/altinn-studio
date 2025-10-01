@@ -30,6 +30,10 @@
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:taskType>pdf</altinn:taskType>
+          <altinn:pdfConfig>
+            <altinn:filename>pdfFileName</altinn:filename>
+            <altinn:dataTypeId>ref-data-as-pdf</altinn:dataTypeId>
+          </altinn:pdfConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0c458hu</bpmn:incoming>
@@ -106,6 +110,7 @@
             <altinn:subformComponentId>Subform-z8we7d</altinn:subformComponentId>
             <altinn:subformDatatTypeId>SubformModel</altinn:subformDatatTypeId>
             <altinn:filename>subformPdfFileName</altinn:filename>
+            <altinn:dataTypeId>ref-data-as-pdf</altinn:dataTypeId>
           </altinn:subformPdfConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>

@@ -5,8 +5,8 @@
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api.Experimental" Version="8.7.0-pr.1830.pdf-service-task.fbdbff6a" />
-    <PackageReference Include="Altinn.App.Core.Experimental" Version="8.7.0-pr.1830.pdf-service-task.fbdbff6a" />
+    <ProjectReference Include="C:/dev/app-lib-dotnet/src/Altinn.App.Api/Altinn.App.Api.csproj" />
+    <ProjectReference Include="C:/dev/app-lib-dotnet/src/Altinn.App.Core/Altinn.App.Core.csproj" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
   </ItemGroup>
   <ItemGroup>

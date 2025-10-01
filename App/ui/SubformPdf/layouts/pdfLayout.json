@@ -3,11 +3,11 @@
   "data": {
     "layout": [
       {
-        "id": "SummaryTask1",
+        "id": "SummarySubform",
         "type": "Summary2",
         "target": {
           "type": "layoutSet",
-          "taskId": "Task_1"
+          "taskId": "TestSubform"
         }
       }      
     ]

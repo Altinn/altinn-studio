@@ -31,14 +31,14 @@
     },
     {
       "id": "TestSubform",
-      "dataType": "SubformModel",
-      "type": "subform"
+      "dataType": "SubformModel"
     },
     {
-      "id": "Activity_1tp8ged",
+      "id": "SubformPdf",
       "tasks": [
-        "Activity_1tp8ged"
-      ]
+        "SubformPdf"
+      ],
+      "dataType": "SubformModel"
     }
   ],
   "uiSettings": {
@@ -50,12 +50,6 @@
       {
         "taskId": "Task_2",
         "name": "Utfylling 2"
-      },
-      {
-        "taskId": "Task_3"
-      },
-      {
-        "taskId": "Task_5"
       },
       {
         "type": "receipt"
