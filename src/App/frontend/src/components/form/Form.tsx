@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import classes from 'src/components/form/Form.module.css';
@@ -36,9 +36,9 @@ interface FormState {
 }
 
 export function Form() {
-  const currentPageId = useCurrentView();
+  const { pageKey: currentPageId } = useParams();
 
-  return <FormPage currentPageId={currentPageId} />;
+  return currentPageId && <FormPage currentPageId={currentPageId} />;
 }
 
 export function FormPage({ currentPageId }: { currentPageId: string | undefined }) {
@@ -74,6 +74,10 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   useSetExpandedWidth();
 
   if (!currentPageId || !isValidPageId(currentPageId)) {
+    console.log('currentPageId', currentPageId);
+    // @ts-ignore
+    console.log('isValidPageId(currentPageId)', isValidPageId(currentPageId));
+    // console.log('isValidPageId(currentPageId)', `${isValidPageId(currentPageId)}`);
     return <NavigateToStartUrl forceCurrentTask={false} />;
   }
 

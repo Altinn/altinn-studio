@@ -1,9 +1,7 @@
-import { useEffect } from 'react';
+import { useMemo } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
 import { v4 as uuidv4 } from 'uuid';
 
-import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
@@ -11,33 +9,33 @@ import type { ILayoutSets } from 'src/layout/common.generated';
 
 // Also used for prefetching @see appPrefetcher.ts
 export function useLayoutSetsQueryDef() {
-  const { fetchLayoutSets } = useAppQueries();
   return {
     queryKey: ['fetchLayoutSets'],
-    queryFn: async () => {
-      const layoutSets = await fetchLayoutSets();
-      if (layoutSets?.uiSettings?.taskNavigation) {
-        return {
-          ...layoutSets,
-          uiSettings: {
-            ...layoutSets.uiSettings,
-            taskNavigation: layoutSets.uiSettings.taskNavigation.map((g) => ({ ...g, id: uuidv4() })),
-          },
-        };
-      }
-      return layoutSets;
-    },
+    queryFn: async () => window.AltinnAppData?.layoutSets,
   };
 }
 
 export const useLayoutSetsQuery = () => {
-  const utils = useQuery(useLayoutSetsQueryDef());
+  const layoutSets = useMemo(() => {
+    const data = window.AltinnAppData?.layoutSets;
 
-  useEffect(() => {
-    utils.error && window.logError('Fetching layout sets failed:\n', utils.error);
-  }, [utils.error]);
+    if (data?.uiSettings?.taskNavigation) {
+      return {
+        ...data,
+        uiSettings: {
+          ...data.uiSettings,
+          taskNavigation: data.uiSettings.taskNavigation.map((g) => ({ ...g, id: uuidv4() })),
+        },
+      };
+    }
+    return data;
+  }, []);
 
-  return utils;
+  return {
+    data: layoutSets,
+    isPending: false,
+    error: null,
+  };
 };
 
 const { Provider, useCtx, useLaxCtx } = delayedContext(() =>

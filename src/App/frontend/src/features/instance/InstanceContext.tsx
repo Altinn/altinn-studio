@@ -64,9 +64,7 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
 };
 
 export const useLaxInstanceId = () => {
-  const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
-  const instanceGuid = useNavigationParam('instanceGuid');
-  return instanceOwnerPartyId && instanceGuid ? `${instanceOwnerPartyId}/${instanceGuid}` : undefined;
+  return window.AltinnAppData?.instance?.id;
 };
 
 export const useStrictInstanceId = () => {

@@ -3,7 +3,7 @@ import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 
 import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
-import { ComponentRouting, NavigateToStartUrl, ProcessWrapper } from 'src/components/wrappers/ProcessWrapper';
+import { ComponentRouting, ProcessWrapper } from 'src/components/wrappers/ProcessWrapper';
 import { Entrypoint } from 'src/features/entrypoint/Entrypoint';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
@@ -40,10 +40,10 @@ export const App = () => (
           </PresentationComponent>
         }
       />
-      <Route
-        index
-        element={<NavigateToStartUrl forceCurrentTask={false} />}
-      />
+      {/*<Route*/}
+      {/*  index*/}
+      {/*  element={<NavigateToStartUrl forceCurrentTask={false} />}*/}
+      {/*/>*/}
     </Route>
 
     <Route
@@ -54,10 +54,10 @@ export const App = () => (
         </InstanceProvider>
       }
     >
-      <Route
-        index
-        element={<NavigateToStartUrl />}
-      />
+      {/*<Route*/}
+      {/*  index*/}
+      {/*  element={<NavigateToStartUrl />}*/}
+      {/*/>*/}
 
       <Route
         path={TaskKeys.ProcessEnd}
@@ -77,10 +77,10 @@ export const App = () => (
           </PresentationComponent>
         }
       >
-        <Route
-          index
-          element={<NavigateToStartUrl forceCurrentTask={false} />}
-        />
+        {/*<Route*/}
+        {/*  index*/}
+        {/*  element={<NavigateToStartUrl forceCurrentTask={false} />}*/}
+        {/*/>*/}
         <Route path=':pageKey'>
           <Route
             index
@@ -113,10 +113,10 @@ export const App = () => (
           </ProcessWrapper>
         }
       >
-        <Route
-          index
-          element={<NavigateToStartUrl forceCurrentTask={false} />}
-        />
+        {/*<Route*/}
+        {/*  index*/}
+        {/*  element={<NavigateToStartUrl forceCurrentTask={false} />}*/}
+        {/*/>*/}
         <Route path=':pageKey'>
           <Route
             index
@@ -141,10 +141,10 @@ export const App = () => (
         </Route>
       </Route>
 
-      <Route
-        path='*'
-        element={<NavigateToStartUrl />}
-      />
+      {/*<Route*/}
+      {/*  path='*'*/}
+      {/*  element={<NavigateToStartUrl />}*/}
+      {/*/>*/}
     </Route>
 
     {/**

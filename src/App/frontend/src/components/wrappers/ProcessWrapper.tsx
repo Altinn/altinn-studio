@@ -80,7 +80,7 @@ export function NavigateToStartUrl({ forceCurrentTask = true }: { forceCurrentTa
 
   useEffect(() => {
     if (currentLocation !== startUrl && !isRunningProcessNext) {
-      //navigate(startUrl, { replace: true });
+      // navigate(startUrl, { replace: true });
     }
   }, [currentLocation, isRunningProcessNext, navigate, startUrl]);
 
@@ -118,6 +118,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   }
 
   if (process?.ended) {
+    console.log('process ended', process.ended);
     return <NavigateToStartUrl />;
   }
 

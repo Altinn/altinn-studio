@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import type { NavigateOptions } from 'react-router-dom';
 
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
@@ -209,6 +209,9 @@ export function useNavigatePage() {
   const isStatelessApp = useApplicationMetadata().isStatelessApp;
   const navigate = useOurNavigate();
   const navParams = useAllNavigationParamsAsRef();
+
+  const { taskId } = useParams();
+
   const getTaskType = useGetTaskTypeById();
   const refetchInitialValidations = useRefetchInitialValidations();
   const [_searchParams] = useSearchParams();
@@ -220,14 +223,21 @@ export function useNavigatePage() {
 
   const isValidPageId = useCallback(
     (_pageId: string) => {
+      console.log('_pageId', _pageId);
+
       // The page ID may be URL encoded already, if we got this from react-router.
       const pageId = decodeURIComponent(_pageId);
-      if (getTaskType(navParams.current.taskId) !== ProcessTaskType.Data) {
+
+      console.log('navParams.current.taskId', navParams.current.taskId);
+
+      console.log('getTaskType(navParams.current.taskId)', getTaskType(taskId));
+
+      if (getTaskType(taskId) !== ProcessTaskType.Data) {
         return false;
       }
       return orderRef.current.includes(pageId) ?? false;
     },
-    [getTaskType, navParams, orderRef],
+    [getTaskType, navParams, orderRef, taskId],
   );
 
   /**
