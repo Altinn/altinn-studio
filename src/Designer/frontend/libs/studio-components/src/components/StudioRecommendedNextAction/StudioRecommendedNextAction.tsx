@@ -3,7 +3,7 @@ import React, { useId } from 'react';
 import classes from './StudioRecommendedNextAction.module.css';
 import { StudioCard } from '../StudioCard';
 import { StudioParagraph } from '../StudioParagraph';
-import { Heading } from '@digdir/designsystemet-react';
+import { StudioHeading } from '../StudioHeading';
 
 export type StudioRecommendedNextActionProps = {
   onSave?: React.FormEventHandler<HTMLFormElement>;
@@ -17,10 +17,6 @@ export type StudioRecommendedNextActionProps = {
   children: React.ReactNode;
 };
 
-/**
- *
- * @deprecated Use StudioRecommendedNextAction from `@studio/components` instead.
- */
 export const StudioRecommendedNextAction = ({
   onSave,
   saveButtonText,
@@ -34,14 +30,21 @@ export const StudioRecommendedNextAction = ({
 }: StudioRecommendedNextActionProps): React.ReactElement => {
   const formName = useId();
   return (
-    <form name={formName} onSubmit={onSave} data-testid='recommendedNextActionCard'>
-      {/** This StudioCard is not replaced becuase the ESLint rule prevents importing from @studio/components in the legacy package. and the entire StudioRecommendedNextAction will be removed as it is a part from legacy */}
+    <form
+      id={formName}
+      name={formName}
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSave?.(e);
+      }}
+      data-testid='recommendedNextActionCard'
+    >
       <StudioCard>
-        <StudioCard.Header>
-          <Heading size='xs'>{title}</Heading>
-        </StudioCard.Header>
-        <StudioCard.Content>
-          <StudioParagraph size='sm' className={classes.description}>
+        <StudioCard.Block>
+          <StudioHeading data-size='xs'>{title}</StudioHeading>
+        </StudioCard.Block>
+        <StudioCard.Block>
+          <StudioParagraph data-size='sm' className={classes.description}>
             {description}
           </StudioParagraph>
           {children}
@@ -52,12 +55,12 @@ export const StudioRecommendedNextAction = ({
               </StudioButton>
             )}
             {!hideSkipButton && (
-              <StudioButton onClick={onSkip} variant='tertiary'>
+              <StudioButton type='button' onClick={onSkip} variant='tertiary'>
                 {skipButtonText}
               </StudioButton>
             )}
           </div>
-        </StudioCard.Content>
+        </StudioCard.Block>
       </StudioCard>
     </form>
   );
