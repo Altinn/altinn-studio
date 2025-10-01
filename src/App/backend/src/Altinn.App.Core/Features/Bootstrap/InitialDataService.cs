@@ -7,6 +7,7 @@ using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
@@ -33,6 +34,7 @@ internal sealed class InitialDataService : IInitialDataService
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly IProcessStateService _processStateService;
+    private readonly IApplicationLanguage _applicationLanguage;
     private readonly AppSettings _appSettings;
     private readonly PlatformSettings _platformSettings;
     private readonly GeneralSettings _generalSettings;
@@ -56,6 +58,7 @@ internal sealed class InitialDataService : IInitialDataService
         IHttpContextAccessor httpContextAccessor,
         IAuthenticationContext authenticationContext,
         IProcessStateService processStateService,
+        IApplicationLanguage applicationLanguage,
         IOptions<AppSettings> appSettings,
         IOptions<PlatformSettings> platformSettings,
         IOptions<GeneralSettings> generalSettings,
@@ -71,6 +74,7 @@ internal sealed class InitialDataService : IInitialDataService
         _httpContextAccessor = httpContextAccessor;
         _authenticationContext = authenticationContext;
         _processStateService = processStateService;
+        _applicationLanguage = applicationLanguage;
         _appSettings = appSettings.Value;
         _platformSettings = platformSettings.Value;
         _generalSettings = generalSettings.Value;
@@ -97,7 +101,7 @@ internal sealed class InitialDataService : IInitialDataService
         // Get language and text resources
         language ??= GetLanguageFromContext();
         response.Language = language;
-        response.AvailableLanguages = GetAvailableLanguages();
+        response.AvailableLanguages = await GetAvailableLanguages();
 
         var textResourcesTask = GetTextResources(org, app, language, response);
         tasks.Add(textResourcesTask);
@@ -306,9 +310,9 @@ internal sealed class InitialDataService : IInitialDataService
         return "nb"; // Default to Norwegian Bokmål
     }
 
-    private List<string> GetAvailableLanguages()
+    private async Task<List<Altinn.App.Core.Models.ApplicationLanguage>> GetAvailableLanguages()
     {
-        return _generalSettings.LanguageCodes ?? new List<string> { "nb", "nn", "en" };
+        return await _applicationLanguage.GetApplicationLanguages();
     }
 
     private Dictionary<string, bool> GetFeatureFlags()

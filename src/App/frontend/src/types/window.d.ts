@@ -1,7 +1,7 @@
 import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { ILayoutSets } from 'src/layout/common.generated';
-import type { IInstance, IProcess, IProfile } from 'src/types/shared';
+import type { IAppLanguage, IInstance, IProcess, IProfile } from 'src/types/shared';
 
 export {};
 
@@ -14,6 +14,7 @@ declare global {
       layoutSets: ILayoutSets;
       applicationMetadata: IncomingApplicationMetadata;
       footerLayout: IFooterLayout | null;
+      appLanguages: IAppLanguage[];
     };
   }
 }

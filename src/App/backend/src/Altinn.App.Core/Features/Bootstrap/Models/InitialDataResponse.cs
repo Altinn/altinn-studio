@@ -76,7 +76,7 @@ public sealed class InitialDataResponse
     /// Available language options.
     /// </summary>
     [JsonPropertyName("availableLanguages")]
-    public List<string>? AvailableLanguages { get; set; }
+    public List<ApplicationLanguage>? AvailableLanguages { get; set; }
 
     /// <summary>
     /// Frontend feature flags.

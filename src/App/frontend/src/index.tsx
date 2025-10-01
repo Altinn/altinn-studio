@@ -29,7 +29,7 @@ import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
-import { LanguageProvider, SetShouldFetchAppLanguages } from 'src/features/language/LanguageProvider';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
@@ -55,36 +55,34 @@ document.addEventListener('DOMContentLoaded', () => {
     <AppQueriesProvider {...queries}>
       <ErrorBoundary>
         {/*<AppPrefetcher />*/}
-        <LanguageProvider>
-          <LangToolsStoreProvider>
-            <ViewportWrapper>
-              <UiConfigProvider>
-                <RouterProvider
-                  router={createBrowserRouter(
-                    [
-                      {
-                        path: '/ttd/component-library/*',
-                        element: (
-                          <NavigationEffectProvider>
-                            <ErrorBoundary>
-                              <Root />
-                            </ErrorBoundary>
-                          </NavigationEffectProvider>
-                        ),
-                      },
-                    ],
+        <LangToolsStoreProvider>
+          <ViewportWrapper>
+            <UiConfigProvider>
+              <RouterProvider
+                router={createBrowserRouter(
+                  [
                     {
-                      future: {
-                        v7_relativeSplatPath: true,
-                      },
+                      path: '/ttd/component-library/*',
+                      element: (
+                        <NavigationEffectProvider>
+                          <ErrorBoundary>
+                            <Root />
+                          </ErrorBoundary>
+                        </NavigationEffectProvider>
+                      ),
                     },
-                  )}
-                  future={{ v7_startTransition: true }}
-                />
-              </UiConfigProvider>
-            </ViewportWrapper>
-          </LangToolsStoreProvider>
-        </LanguageProvider>
+                  ],
+                  {
+                    future: {
+                      v7_relativeSplatPath: true,
+                    },
+                  },
+                )}
+                future={{ v7_startTransition: true }}
+              />
+            </UiConfigProvider>
+          </ViewportWrapper>
+        </LangToolsStoreProvider>
       </ErrorBoundary>
     </AppQueriesProvider>,
   );
@@ -92,13 +90,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function Root() {
   console.log('Root');
+  const currentLanguage = useCurrentLanguage();
+
   return (
-    <>
+    <div lang={currentLanguage}>
       <InstantiationUrlReset />
       <VersionErrorOrChildren>
         <GlobalFormDataReadersProvider>
           <LayoutSetsProvider>
-            <SetShouldFetchAppLanguages />
             {/*<ProfileProvider>*/}
             <TextResourcesProvider>
               <OrgsProvider>
@@ -126,7 +125,7 @@ function Root() {
           </LayoutSetsProvider>
         </GlobalFormDataReadersProvider>
       </VersionErrorOrChildren>
-    </>
+    </div>
   );
 }
 
