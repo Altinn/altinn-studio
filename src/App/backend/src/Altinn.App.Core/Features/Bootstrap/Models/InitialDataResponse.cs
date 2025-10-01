@@ -101,6 +101,12 @@ public sealed class InitialDataResponse
     /// </summary>
     [JsonPropertyName("processState")]
     public AppProcessState? ProcessState { get; set; }
+
+    /// <summary>
+    /// Footer layout configuration.
+    /// </summary>
+    [JsonPropertyName("footerLayout")]
+    public object? FooterLayout { get; set; }
 }
 
 /// <summary>

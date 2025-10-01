@@ -132,6 +132,10 @@ internal sealed class InitialDataService : IInitialDataService
         var layoutTask = GetLayoutData(org, app, response);
         tasks.Add(layoutTask);
 
+        // Get footer layout
+        var footerTask = GetFooterLayout(response);
+        tasks.Add(footerTask);
+
         // Wait for all tasks to complete
         await Task.WhenAll(tasks);
 
@@ -366,5 +370,21 @@ internal sealed class InitialDataService : IInitialDataService
 
         var details = await auth.LoadDetails(validateSelectedParty: false);
         return details.CanInstantiateAsParty(partyId);
+    }
+
+    private async Task GetFooterLayout(InitialDataResponse response)
+    {
+        try
+        {
+            var footerJson = await _appResources.GetFooter();
+            if (!string.IsNullOrEmpty(footerJson))
+            {
+                response.FooterLayout = JsonSerializer.Deserialize<object>(footerJson, _jsonSerializerOptions);
+            }
+        }
+        catch
+        {
+            // Log error but don't fail the entire request
+        }
     }
 }
