@@ -38,7 +38,6 @@ export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFro
     const option = options.find((o) => o.value === value);
     return option ? langAsString(option.label).toLowerCase() : value;
   });
-
   const changeMessageGenerator = (values: string[]) => {
     const label = options
       .filter((o) => values.includes(o.value))
@@ -107,6 +106,8 @@ export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFro
         <Suggestion
           filter={(args) => optionFilter(args, selectedLabels)}
           data-size='sm'
+          key={selectedValues.toString()}
+          //TODO: Remove this when designsystemet have fixed the update https://github.com/digdir/designsystemet/issues/4109
           selected={formatSelectedValues(selectedValues, options)}
           onSelectedChange={(options) => handleChange(options.map((o) => o.value))}
           onBlur={() => debounce}
