@@ -4,8 +4,12 @@ import { StudioIconCard } from '@studio/components-legacy/src/components/StudioI
 import { PencilIcon } from '@studio/icons';
 import { getLayoutSetTypeTranslationKey } from 'app-shared/utils/layoutSetsUtils';
 import { useTranslation } from 'react-i18next';
-import { StudioButton } from '@studio/components-legacy';
-import { StudioParagraph, StudioDeleteButton, StudioHeading } from '@studio/components';
+import {
+  StudioButton,
+  StudioParagraph,
+  StudioDeleteButton,
+  StudioHeading,
+} from '@studio/components';
 import { getLayoutSetIcon } from '../../utils/getLayoutSetIcon';
 import { useDeleteLayoutSetMutation } from 'app-development/hooks/mutations/useDeleteLayoutSetMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -78,7 +82,7 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
           {layoutSetModel.dataType && ' ' + layoutSetModel.dataType}
         </StudioParagraph>
       </div>
-      <StudioButton onClick={goToFormEditor} color='second' variant='primary'>
+      <StudioButton onClick={goToFormEditor} variant='primary'>
         {t('ux_editor.task_card.ux_editor')}
       </StudioButton>
     </StudioIconCard>

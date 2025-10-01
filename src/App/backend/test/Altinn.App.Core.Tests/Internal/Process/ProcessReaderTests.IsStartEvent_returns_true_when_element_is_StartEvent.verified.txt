@@ -1,0 +1,19 @@
+﻿{
+  Activities: [
+    {
+      Name: ProcessReader.GetStartEventIds,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetStartEvents,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.IsStartEvent,
+      IdFormat: W3C,
+      HasParent: false
+    }
+  ]
+}

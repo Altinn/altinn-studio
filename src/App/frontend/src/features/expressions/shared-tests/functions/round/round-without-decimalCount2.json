@@ -1,0 +1,5 @@
+{
+  "name": "Should be able to round a number without the optional second argument",
+  "expression": ["round", 3.99],
+  "expects": "4"
+}

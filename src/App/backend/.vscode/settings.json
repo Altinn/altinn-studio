@@ -1,0 +1,10 @@
+{
+    "dotnet-test-explorer.testProjectPath": "**/*Tests*.csproj",
+    "[csharp]": {
+        "editor.defaultFormatter": "csharpier.csharpier-vscode",
+        "editor.formatOnSave": true
+    },
+    "[github-actions-workflow]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml"
+    },
+}

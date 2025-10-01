@@ -6,7 +6,7 @@ import { PageAccordion } from '../PageAccordion';
 import { Accordion } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { FormTree } from '../FormTree';
-import { StudioButton } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 
 export type ReceiptContentProps = {
   /**

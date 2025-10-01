@@ -1,0 +1,18 @@
+input[type='search'] {
+  background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221.5em%22%20height%3D%221.5em%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20focusable%3D%22false%22%20role%3D%22img%22%3E%3Cpath%20fill%3D%22currentColor%22%20fill-rule%3D%22evenodd%22%20d%3D%22M10.5%203.25a7.25%207.25%200%201%200%204.569%2012.88l5.411%205.41a.75.75%200%201%200%201.06-1.06l-5.41-5.411A7.25%207.25%200%200%200%2010.5%203.25M4.75%2010.5a5.75%205.75%200%201%201%2011.5%200%205.75%205.75%200%200%201-11.5%200%22%20clip-rule%3D%22evenodd%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E');
+  background-position: right 10px center;
+  background-repeat: no-repeat;
+  padding-right: calc(1.5rem + 10px * 2);
+}
+
+.text-padding {
+  padding: 0 var(--ds-size-2);
+  line-height: 32px;
+}
+
+.focusable:focus-visible {
+  outline: var(--ds-border-width-focus) solid var(--ds-color-neutral-text-default);
+  outline-offset: var(--ds-border-width-focus);
+  box-shadow: 0 0 0 var(--ds-border-width-focus) var(--ds-color-neutral-background-default);
+  border-radius: var(--ds-border-radius-md);
+}

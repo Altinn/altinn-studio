@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react';
 import classes from './EnumField.module.css';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
-import { StudioButton, StudioTextfield } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 
 export type EnumFieldProps = {
   value: string;
@@ -59,9 +60,8 @@ export const EnumField = ({
         className={classes.delete}
         icon={<TrashIcon aria-hidden />}
         onClick={() => onDelete()}
-        color='danger'
+        data-color='danger'
         variant='tertiary'
-        size='sm'
       />
     </div>
   );

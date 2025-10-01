@@ -1,0 +1,48 @@
+﻿{
+  Description: GetTestSystemUserToken in localtest,
+  AuthType: Altinn.App.Core.Features.Auth.Authenticated+SystemUser,
+  Auth: {
+    SystemUserId: [
+      d111dbab-d619-4f15-bf29-58fe570a9ae6
+    ],
+    SystemUserOrgNr: 0192:950474084,
+    SupplierOrgNr: 0192:913312465,
+    SystemId: 913312465_sbs,
+    AuthenticationLevel: 3,
+    AuthenticationMethod: maskinporten,
+    TokenIssuer: Maskinporten,
+    TokenIsExchanged: true,
+    Scopes: altinn:instances.read altinn:instances.write,
+    ClientId: 76c86515-907b-46dc-b4f0-fa07834ca642,
+    Token: eyJhbGciOiJSUzI1NiIsImtpZCI6IjQ4Q0VFNjAzMzEwMkYzMjQzMTk2NDc4QUYwNkZCNDNBMTc2NEQ4NDMiLCJ4NXQiOiJTTTdtQXpFQzh5UXhsa2VLOEctME9oZGsyRU0iLCJ0eXAiOiJKV1QifQ.eyJ0b2tlbl90eXBlIjoiQmVhcmVyIiwic2NvcGUiOiJhbHRpbm46aW5zdGFuY2VzLnJlYWQgYWx0aW5uOmluc3RhbmNlcy53cml0ZSIsImNsaWVudF9pZCI6Ijc2Yzg2NTE1LTkwN2ItNDZkYy1iNGYwLWZhMDc4MzRjYTY0MiIsImp0aSI6IjIzYjA4MTkzLTU5NWUtNDFhYS1iODUyLTlmNzAwZTA0MjhjMiIsInVybjphbHRpbm46b3JnTnVtYmVyIjoiOTEzMzEyNDY1IiwidXJuOmFsdGlubjphdXRoZW50aWNhdGVtZXRob2QiOiJtYXNraW5wb3J0ZW4iLCJ1cm46YWx0aW5uOmF1dGhsZXZlbCI6IjMiLCJhdXRob3JpemF0aW9uX2RldGFpbHMiOnsidHlwZSI6InVybjphbHRpbm46c3lzdGVtdXNlciIsInN5c3RlbXVzZXJfaWQiOlsiZDExMWRiYWItZDYxOS00ZjE1LWJmMjktNThmZTU3MGE5YWU2Il0sInN5c3RlbV9pZCI6IjkxMzMxMjQ2NV9zYnMiLCJzeXN0ZW11c2VyX29yZyI6eyJhdXRob3JpdHkiOiJpc282NTIzLWFjdG9yaWQtdXBpcyIsIklEIjoiMDE5Mjo5NTA0NzQwODQifX0sImNvbnN1bWVyIjp7ImF1dGhvcml0eSI6ImlzbzY1MjMtYWN0b3JpZC11cGlzIiwiSUQiOiIwMTkyOjkxMzMxMjQ2NSJ9LCJleHAiOjE3NDI5NjQ0NTQsImlhdCI6MTc0MjkwNjg1NCwibmJmIjoxNzQyOTA2ODU0fQ.nzWAs4U0u1L6m8xVlzX1S0cN45H690Aix2V4HIbqSPr5_m8fcE2FeZ3X1CP7WHk1L5VLjfJH0VRr5ODW_V_Xce2t0Q_64KpDauelDENRIrR9f4LwZHtPu0y6xMOjE3GBd901deiqqBizeVLKXRrme9e-CWifGAVAdgxFBBr7SHxAkC6WKCATfrISlKf8JAWHCkzy_UmPNGmJ3aIG0INYk8UXIJL7DJAQl5yO5hJOY4OCo9TSGT8MicNRQXZC-Naok8NnSctDWX-1MFi98-04SknvjElHbh2pZy-8b4RW-T_RCzRSSJog3AzNCHUuABTnWRHpmqudRAb-X9eU7StdeA
+  },
+  Jwt: {
+    authorization_details: {
+      ValueKind: Object
+    },
+    client_id: 76c86515-907b-46dc-b4f0-fa07834ca642,
+    consumer: {
+      ValueKind: Object
+    },
+    exp: 1742964454,
+    iat: 1742906854,
+    jti: 23b08193-595e-41aa-b852-9f700e0428c2,
+    nbf: 1742906854,
+    scope: altinn:instances.read altinn:instances.write,
+    token_type: Bearer,
+    urn:altinn:authenticatemethod: maskinporten,
+    urn:altinn:authlevel: 3,
+    urn:altinn:orgNumber: 913312465
+  },
+  Details: {
+    Party: {
+      PartyId: 1234,
+      PartyTypeName: Organisation,
+      OrgNumber: 950474084,
+      Name: Test AS,
+      IsDeleted: false,
+      OnlyHierarchyElementWithNoAccess: false
+    },
+    CanInstantiate: true
+  }
+}

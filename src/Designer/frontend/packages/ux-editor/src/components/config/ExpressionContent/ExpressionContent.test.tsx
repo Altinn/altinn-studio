@@ -10,7 +10,7 @@ import { ExpressionContent } from './ExpressionContent';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { AppContextProps } from '../../../AppContext';
-import { LogicalTupleOperator } from '@studio/components-legacy';
+import { LogicalTupleOperator } from '@studio/components';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';

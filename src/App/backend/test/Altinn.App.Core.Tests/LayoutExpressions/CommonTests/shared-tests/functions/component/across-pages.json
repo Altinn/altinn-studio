@@ -1,0 +1,129 @@
+{
+  "name": "Lookup across pages",
+  "expression": ["component", "page1-input"],
+  "context": {
+    "component": "art2",
+    "rowIndices": [0, 1],
+    "currentLayout": "Mennesker"
+  },
+  "expects": "Hei verden",
+  "layouts": {
+    "Dyr": {
+      "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "page1-input",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Side1"
+            }
+          },
+          {
+            "id": "page1-Group",
+            "type": "RepeatingGroup",
+            "dataModelBindings": {
+              "group": "Dyr"
+            },
+            "children": ["art1", "dyr-navn"]
+          },
+          {
+            "id": "art1",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Dyr.Art"
+            }
+          },
+          {
+            "id": "dyr-navn",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Dyr.Navn"
+            }
+          }
+        ]
+      }
+    },
+    "Mennesker": {
+      "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "myGroup",
+            "type": "RepeatingGroup",
+            "dataModelBindings": {
+              "group": "Mennesker"
+            },
+            "children": ["person-navn", "alder", "favoritt-dyr"]
+          },
+          {
+            "id": "person-navn",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Mennesker.Navn"
+            }
+          },
+          {
+            "id": "alder",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Mennesker.Alder"
+            }
+          },
+          {
+            "id": "favoritt-dyr",
+            "type": "RepeatingGroup",
+            "dataModelBindings": {
+              "group": "Mennesker.FavorittDyr"
+            },
+            "children": ["art2"]
+          },
+          {
+            "id": "art2",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Mennesker.FavorittDyr.Art"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Side1": "Hei verden",
+    "Dyr": [
+      {
+        "altinnRowId": "animal0",
+        "Navn": "Pia Potet",
+        "Art": "Kanin"
+      },
+      {
+        "altinnRowId": "animal1",
+        "Navn": "Erling Ert",
+        "Art": "Dovendyr"
+      },
+      {
+        "altinnRowId": "animal2",
+        "Navn": "Mona Melon",
+        "Art": "Hamster"
+      }
+    ],
+    "Mennesker": [
+      {
+        "altinnRowId": "person0",
+        "Navn": "Kåre",
+        "Alder": 28,
+        "FavorittDyr": [
+          { "altinnRowId": "person0-fav0", "Art": "Kanin" },
+          { "altinnRowId": "person0-fav1", "Art": "Hamster" }
+        ]
+      },
+      {
+        "altinnRowId": "person1",
+        "Navn": "Arild",
+        "Alder": 14,
+        "FavorittDyr": [{ "altinnRowId": "person1-fav0", "Art": "Dovendyr" }]
+      }
+    ]
+  }
+}

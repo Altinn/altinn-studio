@@ -1,0 +1,5 @@
+{
+  "name": "Should be able to round a null",
+  "expression": ["round", null],
+  "expects": "0"
+}

@@ -1,0 +1,295 @@
+﻿{
+  Activities: [
+    {
+      Name: Authorization.Service.AuthorizeAction,
+      IdFormat: W3C,
+      Tags: [
+        {
+          authorization.action: reject
+        },
+        {
+          instance.guid: Guid_1
+        },
+        {
+          instance.owner.party.id: 500600
+        },
+        {
+          task.id: Task_1
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next,
+      Kind: Server,
+      IdFormat: W3C,
+      Tags: [
+        {
+          http.request.method: PUT
+        },
+        {
+          http.response.status_code: 200
+        },
+        {
+          http.route: {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next
+        },
+        {
+          instance.owner.party.id: 500600
+        },
+        {
+          network.protocol.version: 1.1
+        },
+        {
+          server.address: localhost
+        },
+        {
+          TestId: Guid_2
+        },
+        {
+          url.path: /tdd/contributer-restriction/instances/500600/5a2fa5ec-f97c-4816-b57a-dc78a981917e/process/next
+        },
+        {
+          url.scheme: http
+        },
+        {
+          user.authentication.inAltinnPortal: true
+        },
+        {
+          user.authentication.level: 2
+        },
+        {
+          user.authentication.method: BankID
+        },
+        {
+          user.authentication.token.isExchanged: false
+        },
+        {
+          user.authentication.token.issuer: Altinn
+        },
+        {
+          user.authentication.type: User
+        },
+        {
+          user.id: 1337
+        },
+        {
+          user.party.id: 500600
+        }
+      ],
+      HasParent: false
+    },
+    {
+      Name: Process.End,
+      IdFormat: W3C,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.HandleEvents,
+      IdFormat: W3C,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.Next,
+      IdFormat: W3C,
+      Status: Ok,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        },
+        {
+          process.action: reject
+        }
+      ],
+      Events: [
+        {
+          Name: change,
+          Timestamp: DateTimeOffset_1,
+          Tags: [
+            {
+              events: [
+                Type=process_AbandonTask DataId=,
+                Type=process_EndEvent DataId=,
+                Type=Submited DataId=
+              ]
+            },
+            {
+              from.started: DateTime_1
+            },
+            {},
+            {
+              from.task.name: Utfylling
+            },
+            {
+              to.started: DateTime_1
+            }
+          ]
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.StoreEvents,
+      IdFormat: W3C,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: ProcessClient.GetProcessDefinition,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetAllFlowElements,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetAllFlowElements,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetAltinnTaskExtension,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetEndEventIds,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetEndEvents,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetEndEvents,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetEndEvents,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetExclusiveGateways,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetExclusiveGateways,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetFlowElement,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetNextElements,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetProcessTaskIds,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetProcessTasks,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetProcessTasks,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetProcessTasks,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetSequenceFlows,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetStartEvents,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetStartEvents,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.IsEndEvent,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.IsProcessTask,
+      IdFormat: W3C,
+      HasParent: true
+    }
+  ],
+  Metrics: [
+    {
+      Name: http.server.request.duration,
+      MeterName: Microsoft.AspNetCore.Hosting,
+      Measurements: [
+        {
+          Tags: [
+            {
+              http.request.method: PUT
+            },
+            {
+              http.response.status_code: 200
+            },
+            {
+              http.route: {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next
+            },
+            {
+              network.protocol.version: 1.1
+            },
+            {
+              TestId: Guid_2
+            },
+            {
+              url.scheme: http
+            },
+            {
+              user.authentication.token.isExchanged: false
+            },
+            {
+              user.authentication.token.issuer: Altinn
+            },
+            {
+              user.authentication.type: User
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

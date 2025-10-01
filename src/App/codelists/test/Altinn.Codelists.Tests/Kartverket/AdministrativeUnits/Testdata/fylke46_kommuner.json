@@ -1,0 +1,178 @@
+{
+  "fylkesnavn": "Vestland",
+  "fylkesnummer": "46",
+  "kommuner": [
+    {
+      "kommunenavn": "Bergen",
+      "kommunenummer": "4601"
+    },
+    {
+      "kommunenavn": "Kinn",
+      "kommunenummer": "4602"
+    },
+    {
+      "kommunenavn": "Etne",
+      "kommunenummer": "4611"
+    },
+    {
+      "kommunenavn": "Sveio",
+      "kommunenummer": "4612"
+    },
+    {
+      "kommunenavn": "Bømlo",
+      "kommunenummer": "4613"
+    },
+    {
+      "kommunenavn": "Stord",
+      "kommunenummer": "4614"
+    },
+    {
+      "kommunenavn": "Fitjar",
+      "kommunenummer": "4615"
+    },
+    {
+      "kommunenavn": "Tysnes",
+      "kommunenummer": "4616"
+    },
+    {
+      "kommunenavn": "Kvinnherad",
+      "kommunenummer": "4617"
+    },
+    {
+      "kommunenavn": "Ullensvang",
+      "kommunenummer": "4618"
+    },
+    {
+      "kommunenavn": "Eidfjord",
+      "kommunenummer": "4619"
+    },
+    {
+      "kommunenavn": "Ulvik",
+      "kommunenummer": "4620"
+    },
+    {
+      "kommunenavn": "Voss",
+      "kommunenummer": "4621"
+    },
+    {
+      "kommunenavn": "Kvam",
+      "kommunenummer": "4622"
+    },
+    {
+      "kommunenavn": "Samnanger",
+      "kommunenummer": "4623"
+    },
+    {
+      "kommunenavn": "Bjørnafjorden",
+      "kommunenummer": "4624"
+    },
+    {
+      "kommunenavn": "Austevoll",
+      "kommunenummer": "4625"
+    },
+    {
+      "kommunenavn": "Øygarden",
+      "kommunenummer": "4626"
+    },
+    {
+      "kommunenavn": "Askøy",
+      "kommunenummer": "4627"
+    },
+    {
+      "kommunenavn": "Vaksdal",
+      "kommunenummer": "4628"
+    },
+    {
+      "kommunenavn": "Modalen",
+      "kommunenummer": "4629"
+    },
+    {
+      "kommunenavn": "Osterøy",
+      "kommunenummer": "4630"
+    },
+    {
+      "kommunenavn": "Alver",
+      "kommunenummer": "4631"
+    },
+    {
+      "kommunenavn": "Austrheim",
+      "kommunenummer": "4632"
+    },
+    {
+      "kommunenavn": "Fedje",
+      "kommunenummer": "4633"
+    },
+    {
+      "kommunenavn": "Masfjorden",
+      "kommunenummer": "4634"
+    },
+    {
+      "kommunenavn": "Gulen",
+      "kommunenummer": "4635"
+    },
+    {
+      "kommunenavn": "Solund",
+      "kommunenummer": "4636"
+    },
+    {
+      "kommunenavn": "Hyllestad",
+      "kommunenummer": "4637"
+    },
+    {
+      "kommunenavn": "Høyanger",
+      "kommunenummer": "4638"
+    },
+    {
+      "kommunenavn": "Vik",
+      "kommunenummer": "4639"
+    },
+    {
+      "kommunenavn": "Sogndal",
+      "kommunenummer": "4640"
+    },
+    {
+      "kommunenavn": "Aurland",
+      "kommunenummer": "4641"
+    },
+    {
+      "kommunenavn": "Lærdal",
+      "kommunenummer": "4642"
+    },
+    {
+      "kommunenavn": "Årdal",
+      "kommunenummer": "4643"
+    },
+    {
+      "kommunenavn": "Luster",
+      "kommunenummer": "4644"
+    },
+    {
+      "kommunenavn": "Askvoll",
+      "kommunenummer": "4645"
+    },
+    {
+      "kommunenavn": "Fjaler",
+      "kommunenummer": "4646"
+    },
+    {
+      "kommunenavn": "Sunnfjord",
+      "kommunenummer": "4647"
+    },
+    {
+      "kommunenavn": "Bremanger",
+      "kommunenummer": "4648"
+    },
+    {
+      "kommunenavn": "Stad",
+      "kommunenummer": "4649"
+    },
+    {
+      "kommunenavn": "Gloppen",
+      "kommunenummer": "4650"
+    },
+    {
+      "kommunenavn": "Stryn",
+      "kommunenummer": "4651"
+    }
+  ]
+}

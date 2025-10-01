@@ -1,0 +1,5 @@
+{
+  "name": "Compare isAfterEq with dates and time",
+  "expression": ["compare", "2020-01-01 05:08:09", "isAfterEq", "2020-01-01 05:08:09.00"],
+  "expects": true
+}

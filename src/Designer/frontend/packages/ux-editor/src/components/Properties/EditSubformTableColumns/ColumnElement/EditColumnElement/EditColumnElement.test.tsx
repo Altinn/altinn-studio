@@ -172,11 +172,11 @@ describe('EditColumnElementComponentSelect', () => {
     });
     await user.click(componentWitMultipleBindings);
 
-    const dataModelBindingsSelect = await screen.findByText(
-      textMock(
+    const dataModelBindingsSelect = await screen.findByRole('combobox', {
+      name: textMock(
         'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_label',
       ),
-    );
+    });
 
     await user.click(dataModelBindingsSelect);
 
@@ -259,6 +259,36 @@ describe('EditColumnElementComponentSelect', () => {
     expect(onChangeMock).toHaveBeenCalledWith({
       headerContent: subformLayoutMock.component1.textResourceBindings.title,
       cellContent: { query: subformLayoutMock.component1.dataModelBindings.simpleBinding.field },
+    });
+  });
+
+  it('should render DataModelBindingsCombobox when component has multiple data model bindings', async () => {
+    const user = userEvent.setup();
+    const onChangeMock = jest.fn();
+    renderEditColumnElement({
+      tableColumn: {
+        headerContent: '',
+        cellContent: { query: '' },
+      },
+      onChange: onChangeMock,
+    });
+    const componentSelect = screen.getByRole('combobox', {
+      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    });
+    await user.click(componentSelect);
+    await user.click(
+      screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component4Id}`) }),
+    );
+    const dataModelBindingsSelect = await screen.findByRole('combobox', {
+      name: textMock(
+        'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_label',
+      ),
+    });
+    await user.click(dataModelBindingsSelect);
+    expect(onChangeMock).toHaveBeenCalledTimes(1);
+    expect(onChangeMock).toHaveBeenCalledWith({
+      headerContent: subformLayoutMock.component4.textResourceBindings.title,
+      cellContent: { query: subformLayoutMock.component4.dataModelBindings.address.field },
     });
   });
 });

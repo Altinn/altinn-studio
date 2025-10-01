@@ -1,0 +1,657 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/application/application-metadata.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Application metadata settings",
+  "description": "Schema that describes the properties that can be configured in the application metadata json file.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "title",
+    "org",
+    "partyTypesAllowed",
+    "dataTypes"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "title": "Schema",
+      "description": "The schema that the application metadata file adheres to."
+    },
+    "processId": {
+      "type": "string",
+      "title": "Process id",
+      "description": "The process id of the process model that is used by the application."
+    },
+    "onEntry": {
+      "$ref": "#/definitions/onEntry"
+    },
+    "eFormidling": {
+      "$ref": "#/definitions/eFormidling"
+    },
+    "dataFields": {
+      "type": "array",
+      "title": "Data fields",
+      "description": "The data fields that the application uses.",
+      "items": {
+        "$ref": "#/definitions/dataField"
+      }
+    },
+    "presentationFields": {
+      "type": "array",
+      "title": "Presentation fields",
+      "description": "The presentation fields that the application uses.",
+      "items": {
+        "$ref": "#/definitions/dataField"
+      }
+    },
+    "autoDeleteOnProcessEnd": {
+      "type": "boolean",
+      "title": "Auto delete on process end",
+      "description": "If true, the application data will be hard deleted when the process ends."
+    },
+    "partyTypesAllowed": {
+      "$ref": "#/definitions/partyTypesAllowed"
+    },
+    "dataTypes":{
+      "type": "array",
+      "title": "Data types",
+      "description": "The data types that the application uses.",
+      "items": {
+        "$ref": "#/definitions/dataType"
+      }
+    },
+    "copyInstanceSettings": {
+      "$ref": "#/definitions/copyInstanceSettings"
+    },
+    "disallowUserInstantiation": {
+      "type": "boolean",
+      "title": "Disallow user instantiation",
+      "description": "Disallows instantiation by users. When this value is true, only organisations/system users can can instantiate in production. Users can still copy their own instances (if copying is enabled in the app). This configuration only applies to the production environment."
+    },
+    "validTo": {
+      "type": "string",
+      "title": "Valid to",
+      "description": "The date and time when the application is no longer valid.",
+      "format": "date-time"
+    },
+    "validFrom": {
+      "type": "string",
+      "title": "Valid from",
+      "description": "The date and time from when the application is valid/can be used.",
+      "format": "date-time"
+    },
+    "title": {
+      "$ref": "#/definitions/title"
+    },
+    "org": {
+      "type": "string",
+      "title": "Organization",
+      "description": "The organization that owns the application."
+    },
+    "versionId": {
+      "type": "string",
+      "title": "Version id",
+      "description": "The version id of the application."
+    },
+    "id": {
+      "type": "string",
+      "title": "Application id",
+      "description": "The applications id, usually in the form of {organization}/{application-name}."
+    },
+    "created": {
+      "type": "string",
+      "title": "Created",
+      "description": "The date and time when the application was created.",
+      "format": "date-time"
+    },
+    "createdBy": {
+      "type": "string",
+      "title": "Created by",
+      "description": "The user that created the application."
+    },
+    "lastChanged": {
+      "type": "string",
+      "title": "Last changed",
+      "description": "The date and time when the application was last changed.",
+      "format": "date-time"
+    },
+    "lastChangedBy": {
+      "type": "string",
+      "title": "Last changed by",
+      "description": "The user that last changed the application."
+    },
+    "messageBoxConfig": {
+      "$ref": "#/definitions/messageBoxConfig"
+    },
+    "logo": {
+      "$ref": "#/definitions/logo"
+    },
+    "preventInstanceDeletionForDays": {
+      "type": "integer",
+      "title": "Prevent instance deletion for days",
+      "description": "Prevents the deletion of an instance for the specified number of days. This property takes precedence over the autoDeleteOnProcessEnd property."
+    },
+    "apiScopes": {
+      "$ref": "#/definitions/apiScopesConfiguration"
+    }
+  },
+  "definitions": {
+    "onEntry": {
+      "type": "object",
+      "title": "On entry",
+      "description": "The on entry settings for the application.",
+      "additionalProperties": false,
+      "required": [
+        "show"
+      ],
+      "properties": {
+        "show": {
+          "type": "string",
+          "title": "Show",
+          "description": "Determines what should be shown on entry, valid selections include: a string matching the layoutSetId."
+        },
+        "instanceSelection": {
+          "$ref": "#/definitions/instanceSelection"
+        }
+      }
+    },
+    "instanceSelection": {
+      "type": "object",
+      "title": "Instance selection",
+      "description": "The instance selection settings for the application.",
+      "additionalProperties": false,
+      "properties": {
+        "sortDirection": {
+          "type": "string",
+          "title": "Sort direction",
+          "description": "The direction of sorting the list of instances, asc or desc."
+        },
+        "rowsPerPageOptions": {
+          "type": "array",
+          "title": "Rows per page options",
+          "description": "A list of options for how many rows per page should be shown.",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "defaultSelectedOption": {
+          "type": "integer",
+          "title": "Default selected option",
+          "description": "The default selected option for rows per page. This value must be a valid index for the rowsPerPageOptions array."
+        }
+      }
+    },
+    "eFormidling": {
+      "type": "object",
+      "title": "EFormidling",
+      "description": "Defines the eFormidling shipment contract related to an application",
+      "additionalProperties": false,
+      "properties": {
+        "serviceId": {
+          "enum": ["DPO", "DPV", "DPF", "DPI"],
+          "title": "Enabled",
+          "description": "Service identifier for the process, available services are DPO, DPV, DPF and DPI."
+        },
+        "dpfShipmentType": {
+          "type": "string",
+          "title": "DPF shipment type",
+          "description": "The DPF shipment type used for routing in the receiving system.",
+          "examples": [
+            "altinn3.skjema"
+          ]
+        },
+        "receiver": {
+          "type": "string",
+          "title": "Description",
+          "description": "Org number for the receiver of the shipment.",
+          "pattern": "^[0-9]{9}$"
+        },
+        "sendAfterTaskId": {
+          "type": "string",
+          "title": "Send after task id",
+          "description": "The id of the last task to be completed before the shipment is sent"
+        },
+        "process": {
+          "type": "string",
+          "title": "Process",
+          "description": "Receiver must be able to support the process type. This is defined in receiver's capabilities."
+        },
+        "standard": {
+          "type": "string",
+          "title": "Standard",
+          "description": "The document standard. E.g. urn:no:difi:arkivmelding:xsd::arkivmelding."
+        },
+        "typeVersion": {
+          "type": "string",
+          "title": "Type version",
+          "description": "Version of the document type.",
+          "pattern": "^\\d+\\.\\d+$",
+          "examples": ["2.0"]
+        },
+        "type": {
+          "type": "string",
+          "title": "Type",
+          "description": "The document type e.g. 'arkivmelding'."
+        },
+        "securityLevel": {
+          "type": ["string", "integer"],
+          "title": "Security level",
+          "description": "The security level to be set for the standard business document."
+        },
+        "dataTypes": {
+          "type": "array",
+          "title": "Datatypes",
+          "description": "List of ids for the data types to include in the shipment.",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "dataField": {
+      "type": "object",
+      "title": "Data field",
+      "description": "Holds the definition of a data field for an application, ie. a named reference to a form data field.",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "path",
+        "dataTypeId"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "Id",
+          "description": "An id or key to identify the specific rule."
+        },
+        "path": {
+          "type": "string",
+          "title": "Path",
+          "description": "A path to a specific field or property in the form model."
+        },
+        "dataTypeId": {
+          "type": "string",
+          "title": "Data type id",
+          "description": "The name/id of the datatype (from the list in the dataTypes property)."
+        }
+      }
+    },
+    "partyTypesAllowed": {
+      "type": "object",
+      "title": "Party types allowed",
+      "description": "A set of settings that defines what types of parties that are allowed to instantiate an application.",
+      "additionalProperties": false,
+      "properties": {
+        "bankruptcyEstate": {
+          "type": "boolean",
+          "title": "Bankruptcy estate",
+          "description": "If true, bankruptcy estates are allowed to instantiate the application."
+        },
+        "organisation": {
+          "type": "boolean",
+          "title": "Organisation",
+          "description": "If true, organizations are allowed to instantiate the application."
+        },
+        "person": {
+          "type": "boolean",
+          "title": "Person",
+          "description": "If true, persons are allowed to instantiate the application."
+        },
+        "subUnit": {
+          "type": "boolean",
+          "title": "Sub unit",
+          "description": "If true, sub units are allowed to instantiate the application."
+        }
+      }
+    },
+    "dataType": {
+      "type": "object",
+      "title": "Data type",
+      "description": "Holds the definition of a data type for an application, ie. a named reference to a form data type.",
+      "additionalProperties": false,
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "Id",
+          "description": "The data type id. It must be unique within the scope of an application. Logical name of the schema of which data elements should be validated against. Should be in lower case and can only contain letters, dash and numbers. No space or slashes are allowed.",
+          "examples": ["main", "subschema-x", "cv", "attachment"]
+        },
+        "description": {
+          "$ref": "#/definitions/languageString"
+        },
+        "allowedContentTypes": {
+          "type": "array",
+          "title": "Allowed content types",
+          "description": "A list of allowed content types (Mime types). If null or empty all content types are allowed.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "allowedContributers": {
+          "type": "array",
+          "title": "Allowed contributers",
+          "description": "A list of allowed contributers. Value should be preceded by an approved key. If null or empty no contributer restrictions are set.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "appLogic": {
+          "$ref": "#/definitions/applicationLogic"
+        },
+        "taskId": {
+          "type": "string",
+          "title": "Task id",
+          "description": "A reference to the process element id of the task where this data element should be updated."
+        },
+        "maxSize": {
+          "type": ["integer", "null"],
+          "title": "Max size",
+          "description": "The maximum allowed size of the file in mega bytes. If missing there is no limit on file size."
+        },
+        "maxCount": {
+          "type": "integer",
+          "title": "Max count",
+          "description": "The maximum number of allowed elements of this type on the same application instance. Zero or below indicate unbounded maximum number of elements.",
+          "default": 1
+        },
+        "minCount": {
+          "type": "integer",
+          "title": "Min count",
+          "description": "The minimum number of required elements of this type on the same application instance. Zero or below indicate that the element type is optional.",
+          "default": 1
+        },
+        "grouping": {
+          "type": "string",
+          "title": "Grouping",
+          "description": "the grouping for this data type. Can be a a string ('Photos') or a text resource key ('scheme.grouping') if the grouping name should support multiple languages. Leaving field empty means that this data element should not have it's own grouping nd will be grouped with other binary attachments that do not have defined a grouping."
+        },
+        "enablePdfCreation": {
+          "type": "boolean",
+          "title": "Enable PDF creation",
+          "description": "A value indicating whether the element should trigger PDF generation."
+        },
+        "enableFileScan": {
+          "type": "boolean",
+          "title": "Enable file scan",
+          "description": "A value indicating whether file uploaded to this data type should be scanned for malware.",
+          "default": false
+        },
+        "validationErrorOnPendingFileScan": {
+          "type": "boolean",
+          "title": "Validation error on pending file scan",
+          "description": "A value indicating wheter a file scan status of pending should trigger a validation error or not.",
+          "default": false
+        },
+        "enabledFileAnalysers": {
+          "type": "array",
+          "title": "Enabled file analysers",
+          "description": "A list of enabled file analysers this data type should be analysed against to extract metadata about the file. This metadata can in turn either be used to validate against or simply to extract metadata to add to the datamodel. The id's provided should match the id's registered with IFileAnalyser implementations registered in the application.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "enabledFileValidators": {
+          "type": "array",
+          "title": "Enabled file validators",
+          "description": "A list of enabled file validators this data type should be validated against.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "allowedKeysForUserDefinedMetadata":{
+          "type":"array",
+          "title": "Allowed keys for UserDefinedMetadata",
+          "description": "A list of allowed keys for UserDefinedMetadata key-value array. If not set, any key can be used.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "actionRequiredToRead": {
+          "type": "string",
+          "title": "Action required to read",
+          "description": "When this is set, it overrides what action is required to read the blob of data elements of this data type."
+        },
+        "actionRequiredToWrite": {
+          "type": "string",
+          "title": "Action required to write",
+          "description": "When this is set, it overrides what action is required to write to the blob of data elements of this data type."
+        }
+      }
+    },
+    "languageString": {
+      "type": "object",
+      "title": "Language string",
+      "description": "A collection of data type descriptions in different languages.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "applicationLogic": {
+      "type": "object",
+      "title": "Application logic",
+      "description": "Holds information about how a data type representing a form is connected to a model.",
+      "additionalProperties": false,
+      "properties": {
+        "autoCreate": {
+          "type": "boolean",
+          "title": "Auto create",
+          "description": "A value indicating whether the data element should be automatically created once an instance moves into the process step indicated by taskId."
+        },
+        "classRef": {
+          "type": "string",
+          "title": "Class ref",
+          "description": "The name of the C# class used to represent the form as a model in application logic."
+        },
+        "schemaRef": {
+          "type": "string",
+          "title": "Schema ref",
+          "description": "A reference to the original schema used to define the model."
+        },
+        "allowAnonymousOnStateless": {
+          "type": "boolean",
+          "title": "Allow anonymous on stateless",
+          "description": "Specifies whether anonymous access is allowed in stateless mode or not for this particular data type. Defaults to false if not specified."
+        },
+        "autoDeleteOnProcessEnd": {
+          "type": "boolean",
+          "title": "Auto delete on process end",
+          "description": "A property indicating if data type should be automatically marked for hard deletion on process end."
+        },
+        "shadowFields": {
+          "$ref": "#/definitions/shadowFields"
+        }
+      }
+    },
+    "shadowFields": {
+      "type": "object",
+      "title": "Shadow fields",
+      "additionalProperties": false,
+      "properties": {
+        "prefix": {
+          "type": "string",
+          "title": "Prefix",
+          "description": "A prefix to use to filter out shadow fields."
+        },
+        "saveToDataType": {
+          "type": "string",
+          "title": "Save to data type",
+          "description": "The data type to save filtered data (without shadow fields) to. Optional. If not set, the containing data type will be updated."
+        }
+      }
+    },
+    "copyInstanceSettings": {
+      "type": "object",
+      "title": "Copy instance settings",
+      "description": "Settings for copying instance data from one instance to another.",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Enabled",
+          "description": "A value indicating if copy instance is enabled."
+        },
+        "excludedDataTypes": {
+          "type": "array",
+          "title": "Excluded data types",
+          "description": "A list of excluded data types.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "excludedDataFields": {
+          "type": "array",
+          "title": "Excluded data fields",
+          "description": "A list of excluded datafields.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "includeAttachments": {
+          "type": "boolean",
+          "title": "Include attachments",
+          "description": "Gets or sets a boolean indicating if copying of attachments is enabled."
+        }
+      }
+    },
+    "title": {
+      "type": "object",
+      "title": "Title",
+      "description": "The title of the application",
+      "additionalProperties": {
+        "type": "string",
+        "title": "Other language"
+      },
+      "properties": {
+        "nb": {
+          "type": "string",
+          "title": "Norwegian",
+          "description": "The title in Norwegian"
+        },
+        "en": {
+          "type": "string",
+          "title": "English",
+          "description": "The title in English"
+        }
+      },
+      "examples": [
+        {
+          "nb": "Tittel",
+          "nn": "Tittel",
+          "en": "Title"
+        }
+      ]
+    },
+    "messageBoxConfig": {
+      "type": "object",
+      "title": "Message box config",
+      "description": "Settings for message box",
+      "additionalProperties": false,
+      "properties": {
+        "hideSettings": {
+          "$ref": "#/definitions/hideSettings"
+        }
+      }
+    },
+    "hideSettings": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "title": "Hide settings",
+          "description": "Settings for hiding message box settings",
+          "properties": {
+            "hideAlways": {
+              "type": "boolean",
+              "title": "Hide always",
+              "description": "A boolean indicating that the instance should always be hidden"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "title": "Hide settings",
+          "description": "Settings for hiding message box settings",
+          "properties": {
+            "hideOnTask": {
+              "type": "array",
+              "title": "Hide on task",
+              "description": "A list of tasks where the instance should be hidden from the message box",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "logo": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "title": "Source",
+          "description": "The source of the logo. Can be a \"org\" or \"resource\". If \"org\" the logo will be fetched from altinn-orgs.json. If \"resource\" the logo will be fetched from text resources with the key \"appLogo.url\".",
+          "enum": ["org", "resource"]
+        },
+        "displayAppOwnerNameInHeader": {
+          "type": "boolean",
+          "title": "Display app owner name in header",
+          "description": "A boolean indicating if the app owner name should be displayed in the header next to the logo."
+        },
+        "size":  {
+          "type": "string",
+          "title": "Size",
+          "description": "The size of the logo. Can be \"small\", \"medium\", or \"large\". Defaults to \"small\"",
+          "enum": ["small", "medium", "large"]
+        }
+      },
+      "required": ["source"],
+      "additionalProperties": false
+    },
+    "apiScopesConfiguration": {
+      "type": "object",
+      "title": "API scopes configuration",
+      "description": "Custom API scopes configuration for an app",
+      "additionalProperties": false,
+      "properties": {
+        "users": {
+          "$ref": "#/definitions/apiScopes"
+        },
+        "serviceOwners": {
+          "$ref": "#/definitions/apiScopes"
+        },
+        "errorMessageTextResourceKey": {
+          "type": "string",
+          "title": "Error message text resource key",
+          "description": "Text resource key for a custom error message to show when a user tries to access the app API without having the required scopes. Will apply for both service owners and users if specified (has lower precedence than the one in 'users' and 'serviceOwners')."
+        }
+      }
+    },
+    "apiScopes": {
+      "type": "object",
+      "title": "API scopes",
+      "description": "Custom scopes for an app",
+      "additionalProperties": false,
+      "properties": {
+        "read": {
+          "type": "string",
+          "title": "Read scope",
+          "description": "Gets or sets the read scope for the app. Can use '[app]' as placeholders for the app name that will be substituted when validating the token. Example: \"<your-IDporten-org>:[app]/instances.read\""
+        },
+        "write": {
+          "type": "string",
+          "title": "Write scope",
+          "description": "Gets or sets the write scope for the app. Can use '[app]' as placeholders for the app name that will be substituted when validating the token. Example: \"<your-IDporten-org>:[app]/instances.write\""
+        },
+        "errorMessageTextResourceKey": {
+          "type": "string",
+          "title": "Error message text resource key",
+          "description": "Text resource key for a custom error message to show when a user tries to access the app API without having the required scopes. Will apply if set (takes precedence over the one in 'apiScopesConfiguration')."
+        }
+      }
+    }
+  }
+}

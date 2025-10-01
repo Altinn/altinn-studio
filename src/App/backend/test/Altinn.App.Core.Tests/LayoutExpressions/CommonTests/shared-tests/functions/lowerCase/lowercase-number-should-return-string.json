@@ -1,0 +1,5 @@
+{
+  "name": "Should return number as string when number is passed",
+  "expression": ["lowerCase", 40],
+  "expects": "40"
+}

@@ -1,0 +1,5 @@
+.container {
+  display: flex;
+  gap: var(--button-gap);
+  width: 100%;
+}

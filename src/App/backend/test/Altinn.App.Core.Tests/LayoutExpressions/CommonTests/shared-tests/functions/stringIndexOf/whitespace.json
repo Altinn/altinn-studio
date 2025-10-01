@@ -1,0 +1,5 @@
+{
+  "name": "Whitespace should be counted",
+  "expression": ["stringIndexOf", "    foo", "foo"],
+  "expects": 4
+}

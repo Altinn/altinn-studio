@@ -1,0 +1,13 @@
+.border {
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: var(--dashed-border-primary);
+}
+
+.link {
+  background: none;
+  border: none;
+  border-bottom: var(--solid-border-primary);
+  cursor: pointer;
+  padding-left: 0px;
+}

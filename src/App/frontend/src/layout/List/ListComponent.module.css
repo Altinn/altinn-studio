@@ -1,0 +1,102 @@
+.listTable {
+  width: 100%;
+}
+
+.listTable caption {
+  text-align: left;
+  padding-bottom: var(--ds-size-4);
+}
+
+.listTable th:first-of-type {
+  width: 100px;
+}
+
+.listTable th {
+  background-color: var(--ds-color-neutral-background-tinted);
+}
+
+.listTable tr {
+  cursor: pointer;
+  height: 60px;
+}
+
+.toggleControl {
+  align-content: center;
+  justify-content: center;
+}
+
+.listTable td {
+  font-size: 16px;
+}
+
+.selectedRow,
+.selectedRowCell {
+  background-color: var(--ds-color-accent-surface-tinted);
+}
+
+.pagination {
+  min-height: 60px;
+  display: flex;
+  justify-content: right;
+  align-items: center;
+  background-color: var(--ds-color-neutral-background-tinted);
+  width: 100%;
+}
+.paginationMobile {
+  justify-content: center;
+}
+
+.mobileGroup > div :hover {
+  background-color: var(--ds-color-neutral-background-tinted);
+}
+
+.mobile {
+  display: flex;
+  align-items: center;
+  width: auto;
+  border-top: 1px solid var(--ds-color-neutral-border-subtle);
+  padding: var(--ds-size-4);
+  gap: var(--ds-size-8);
+}
+
+.mobile input:checked:hover {
+  background-color: var(--ds-color-accent-base-default);
+}
+
+.mobile label {
+  width: 100%;
+}
+
+.mobile span {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+}
+
+.mobile label div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+}
+
+.listContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+}
+
+.headerContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.tableCaption {
+  text-align: left;
+}
+
+.editButton {
+  margin-left: auto;
+  min-width: unset;
+}

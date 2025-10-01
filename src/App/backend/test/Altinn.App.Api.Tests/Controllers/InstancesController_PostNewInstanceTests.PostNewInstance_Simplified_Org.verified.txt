@@ -1,0 +1,54 @@
+﻿{
+  Activities: [
+    {
+      ActivityName: POST {org}/{app}/instances/create,
+      Tags: [
+        {
+          http.request.method: POST
+        },
+        {
+          http.response.status_code: 201
+        },
+        {
+          http.route: {org}/{app}/instances/create
+        },
+        {
+          network.protocol.version: 1.1
+        },
+        {
+          organisation.number: 405003309
+        },
+        {
+          server.address: localhost
+        },
+        {
+          TestId: Guid_1
+        },
+        {
+          url.path: /tdd/permissive-app/instances/create
+        },
+        {
+          url.scheme: http
+        },
+        {
+          user.authentication.level: 3
+        },
+        {
+          user.authentication.method: Mock
+        },
+        {
+          user.authentication.token.isExchanged: True
+        },
+        {
+          user.authentication.token.issuer: Unknown
+        },
+        {
+          user.authentication.type: Org
+        }
+      ],
+      IdFormat: W3C,
+      Kind: Server
+    }
+  ],
+  Metrics: []
+}

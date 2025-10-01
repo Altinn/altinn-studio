@@ -1,0 +1,112 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "nav-bar2",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "tittel1",
+        "type": "Header",
+        "size": "L",
+        "textResourceBindings": {
+          "title": "Skjul_felter.tittel.title"
+        }
+      },
+      {
+        "id": "skjul-felter",
+        "type": "Checkboxes",
+        "dataModelBindings": {
+          "simpleBinding": "root.SF_skjul-felter"
+        },
+        "layout": "row",
+        "required": false,
+        "textResourceBindings": {
+          "title": "Skjul_felter.skjul-felter.title"
+        },
+        "options": [
+          {
+            "value": "fornavn",
+            "label": "Fornavn"
+          },
+          {
+            "value": "etternavn",
+            "label": "Etternavn"
+          },
+          {
+            "value": "alder",
+            "label": "Alder"
+          },
+          {
+            "value": "kjonn",
+            "label": "Kjønn"
+          },
+          {
+            "value": "epost",
+            "label": "E-post"
+          },
+          {
+            "value": "telefon",
+            "label": "Telefon"
+          },
+          {
+            "value": "bosted",
+            "label": "Bosted"
+          }
+        ]
+      },
+      {
+        "id": "skjul-arbeid",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "root.SF_skjul-arbeidsgiver"
+        },
+        "required": false,
+        "textResourceBindings": {
+          "title": "Skjul_felter.skjul-arbeid.title"
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
+      },
+      {
+        "id": "skjul-prosjekt",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "root.SF_skjul-prosjekt"
+        },
+        "required": false,
+        "textResourceBindings": {
+          "title": "Skjul_felter.skjul-prosjekt.title"
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
+      },
+      {
+        "id": "button-group2",
+        "type": "ButtonGroup",
+        "children": ["nav2", "send-inn2"]
+      },
+      {
+        "id": "nav2",
+        "type": "NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {
+          "next": "Skjul_felter.nav2.next",
+          "back": "Skjul_felter.nav2.back"
+        }
+      },
+      {
+        "id": "send-inn2",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Skjul_felter.send-inn2.title"
+        }
+      }
+    ]
+  }
+}

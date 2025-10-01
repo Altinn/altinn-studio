@@ -1,0 +1,103 @@
+﻿{
+  CreatedInstance: {
+    Id: <instancOwnerPartyId>/<instanceGuid>,
+    InstanceOwner: {
+      PartyId: 501337,
+      PersonNumber: 01039012345,
+      Party: {
+        PartyId: 501337,
+        PartyTypeName: Person,
+        SSN: 01039012345,
+        Name: Sophie Salt,
+        IsDeleted: false
+      }
+    },
+    AppId: tdd/contributer-restriction,
+    Org: tdd,
+    SelfLinks: {
+      Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>
+    },
+    Process: {
+      Started: DateTime_1,
+      StartEvent: StartEvent_1,
+      CurrentTask: {
+        Flow: 2,
+        Started: DateTime_2,
+        ElementId: Task_1,
+        Name: Utfylling,
+        AltinnTaskType: data,
+        FlowType: CompleteCurrentMoveToNext
+      }
+    },
+    Status: {
+      IsArchived: false,
+      IsSoftDeleted: false,
+      IsHardDeleted: false,
+      ReadStatus: Read
+    },
+    Data: [
+      {
+        Id: Guid_1,
+        InstanceGuid: Guid_2,
+        DataType: default,
+        ContentType: application/xml,
+        SelfLinks: {
+          Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>
+        },
+        Locked: false,
+        IsRead: true
+      }
+    ]
+  },
+  ReadInstance: {
+    Id: <instancOwnerPartyId>/<instanceGuid>,
+    InstanceOwner: {
+      PartyId: 501337,
+      PersonNumber: 01039012345,
+      Party: {
+        PartyId: 501337,
+        PartyTypeName: Person,
+        SSN: 01039012345,
+        Name: Sophie Salt,
+        IsDeleted: false
+      }
+    },
+    AppId: tdd/contributer-restriction,
+    Org: tdd,
+    SelfLinks: {
+      Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>
+    },
+    Process: {
+      Started: DateTime_1,
+      StartEvent: StartEvent_1,
+      CurrentTask: {
+        Flow: 2,
+        Started: DateTime_2,
+        ElementId: Task_1,
+        Name: Utfylling,
+        AltinnTaskType: data,
+        FlowType: CompleteCurrentMoveToNext
+      }
+    },
+    Status: {
+      IsArchived: false,
+      IsSoftDeleted: false,
+      IsHardDeleted: false,
+      ReadStatus: Read
+    },
+    Data: [
+      {
+        Id: Guid_1,
+        InstanceGuid: Guid_2,
+        DataType: default,
+        ContentType: application/xml,
+        SelfLinks: {
+          Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>
+        },
+        Locked: false,
+        IsRead: true
+      }
+    ],
+    LastChanged: DateTime_3
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://on.cypress.io/cypress.schema.json",
+  "baseUrl": "https://tt02.altinn.no",
+  "frontendUrl": "http://localhost:8080",
+  "env": {
+    "type": "production-like",
+
+    "defaultFullName": "RISHAUG JULIUS",
+    "defaultFirstName": "JULIUS",
+    "defaultUserName": "testuserexternal",
+    "defaultUserPwd": "r@h74Rz7XYQJ",
+
+    "accountantFullName": "FOLE DYPSINDIG",
+    "accountantFirstName": "DYPSINDIG",
+    "accountantUserName": "foledypsindig",
+    "accountantUserPwd": "eVXinPT7Qs8t5Qp",
+
+    "managerFullName": "AMBULANSE ALTERNATIV",
+    "managerFirstName": "ALTERNATIV",
+    "managerUserName": "ambulansealternativ",
+    "managerUserPwd": "vuF7cPiVWq7mWha",
+
+    "auditorFullName": "GLOBUS FORMBAR",
+    "auditorFirstName": "FORMBAR",
+    "auditorUserName": "globusformbar",
+    "auditorUserPwd": "Ks3ek5msjVKkH9V",
+
+    "selfIdentifiedFullName": "olemartinorg",
+    "selfIdentifiedFirstName": "olemartinorg",
+    "selfIdentifiedUserName": "olemartinorg",
+    "selfIdentifiedUserPwd": "qkwcaDU9qsaA3iL5bgKGMLpfYdf3vzpb",
+
+    "signingPartyId": "51826033"
+  }
+}

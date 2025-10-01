@@ -1,0 +1,19 @@
+{
+  "name": "Should format date with format 'a' as 'AM/PM' in no language",
+  "expression": [
+    "formatDate",
+    "2023-03-04T05:06:07.120Z",
+    "a"
+  ],
+  "expects": "a.m.",
+  "testCases":[
+    {
+      "expression": [
+        "formatDate",
+        "2023-03-04T15:06:07.120Z",
+        "a"
+      ],
+      "expects": "p.m."
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "partyId": "500600",
+  "partyUuid": "c25f54e6-c0a2-4298-a6b3-9cc38963f0da",
+  "partyTypeName": 2,
+  "orgNumber": "897069631",
+  "ssn": "",
+  "unitType": "AS",
+  "name": "EAS Health Consulting",
+  "isDeleted": false,
+  "onlyHierarchyElementWithNoAccess": false,
+  "person": null,
+  "organisation": null,
+  "childParties": null
+}

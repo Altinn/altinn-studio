@@ -1,0 +1,44 @@
+{
+  "id": "tdd/bestilling",
+  "org": "tdd",
+  "created": "2019-09-16T22:22:22",
+  "createdBy": "username",
+  "title": { "nb": "Bestillingseksempelapp" },
+  "dataTypes": [
+    {
+      "id": "vedlegg",
+      "allowedContentTypes": [ "application/pdf", "image/png", "image/jpeg" ],
+      "minCount": 0,
+      "taskId":  "Task_1",
+    },
+    {
+      "id": "ref-data-as-pdf",
+      "allowedContentTypes": [ "application/pdf" ],
+      "minCount":  1,
+      "taskId":  "Task_1",
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": true,
+    "organisation": true,
+    "person": true,
+    "subUnit": true
+  },
+  "eFormidling": {
+    "ServiceId": "DPF",
+    "DPFShipmentType": "altinn3.skjema",
+    "Receiver": "910123456",
+    "SendAfterTaskId": "Task_1",
+    "Process": "urn:no:difi:profile:arkivmelding:administrasjon:ver1.0",
+    "Standard": "urn:no:difi:arkivmelding:xsd::arkivmelding",
+    "TypeVersion": "2.0",
+    "Type": "arkivmelding",
+    "SecurityLevel": 3,
+    "DataTypes": [
+      "372c7af5-71e1-4e99-8e05-4716711a8b53"
+    ]
+  },
+  "onEntry": {
+    "show": "select-instance"
+  }
+}

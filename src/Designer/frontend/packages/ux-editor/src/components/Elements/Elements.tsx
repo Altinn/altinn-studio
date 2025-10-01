@@ -6,7 +6,8 @@ import { DefaultToolbar } from './DefaultToolbar';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './Elements.module.css';
 
-import { StudioButton, StudioError, StudioSpinner } from '@studio/components-legacy';
+import { StudioError, StudioSpinner } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { ShrinkIcon } from '@studio/icons';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useTranslation } from 'react-i18next';
@@ -85,7 +86,6 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
         className={classes.openElementsButton}
         onClick={onCollapseToggle}
         title={t('left_menu.open_components')}
-        fullWidth
       >
         {t('left_menu.open_components')}
       </StudioButton>

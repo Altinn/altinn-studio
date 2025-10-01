@@ -1,11 +1,5 @@
-import {
-  StudioButton,
-  StudioCard,
-  StudioNativeSelect,
-  StudioSpinner,
-  StudioTextfield,
-} from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import { StudioNativeSelect, StudioSpinner, StudioTextfield } from '@studio/components-legacy';
+import { StudioButton, StudioParagraph, StudioCard } from '@studio/components';
 import { useUpdateLayoutSetIdMutation } from 'app-development/hooks/mutations/useUpdateLayoutSetIdMutation';
 import { useUpdateProcessDataTypesMutation } from 'app-development/hooks/mutations/useUpdateProcessDataTypesMutation';
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';

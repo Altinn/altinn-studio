@@ -1,0 +1,13 @@
+{
+  "partyId": "500001",
+  "partyTypeName": 2,
+  "orgNumber": "897069651",
+  "ssn": null,
+  "unitType": "BEDR",
+  "name": "DDG Fitness Oslo",
+  "isDeleted": false,
+  "onlyHierarchyElementWithNoAccess": false,
+  "person": null,
+  "organisation": null,
+  "childParties": null
+}

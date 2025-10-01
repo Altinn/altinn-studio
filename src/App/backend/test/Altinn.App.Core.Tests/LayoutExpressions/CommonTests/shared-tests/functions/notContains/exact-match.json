@@ -1,0 +1,5 @@
+{
+  "name": "Should return false when the string does contain the substring",
+  "expression": ["notContains", "abc", "abc"],
+  "expects": false
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Should work with [-float, integer] (false)",
+  "expression": ["equals", -123, 123],
+  "expects": false
+}

@@ -53,10 +53,13 @@ internal sealed class SettingsCreator
 
             var layoutSettingsJsonString =
                 $@"{{""$schema"": ""https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json"", ""pages"": {{""order"": [{string.Join(", ", order)}]}}}}";
-            
-            var parsedJson = JsonNode.Parse(layoutSettingsJsonString) 
-                ?? throw new InvalidOperationException($"Failed to parse generated JSON string: {layoutSettingsJsonString}");
-            
+
+            var parsedJson =
+                JsonNode.Parse(layoutSettingsJsonString)
+                ?? throw new InvalidOperationException(
+                    $"Failed to parse generated JSON string: {layoutSettingsJsonString}"
+                );
+
             _settingsCollection.Add(settingsFileName, parsedJson);
         }
     }

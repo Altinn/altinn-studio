@@ -1,0 +1,14 @@
+{
+  "partyId": "501337",
+  "partyUuid": "e9dd7d91-32d8-4933-a108-07562762d572",
+  "partyTypeName": 1,
+  "orgNumber": "",
+  "ssn": "01039012345",
+  "unitType": null,
+  "name": "Sophie Salt",
+  "isDeleted": false,
+  "onlyHierarchyElementWithNoAccess": false,
+  "person": null,
+  "organisation": null,
+  "childParties": null
+}

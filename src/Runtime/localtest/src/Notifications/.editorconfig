@@ -1,0 +1,9 @@
+[API/**/*.cs]
+# Ignore CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+# because the API project uses nullable reference types, but is copied to a context where we don't use them.
+dotnet_diagnostic.CS8632.severity = none
+
+[Core/**/*.cs]
+# Ignore CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+# because the Core project uses nullable reference types, but is copied to a context where we don't use them.
+dotnet_diagnostic.CS8632.severity = none

@@ -1,0 +1,98 @@
+{
+  "valid": true,
+  "expectedHierarchy": [
+    {
+      "id": "phone"
+    },
+    {
+      "id": "group",
+      "children": [
+        {
+          "id": "name"
+        },
+        {
+          "id": "age"
+        }
+      ]
+    }
+  ],
+  "layout": {
+    "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+    "data": {
+      "layout": [
+        {
+          "id": "age",
+          "type": "Input",
+          "dataModelBindings": {
+            "simpleBinding": "form.age"
+          },
+          "textResourceBindings": {
+            "title": "some.text.binding",
+            "help": "some.other.text.binding"
+          },
+          "readOnly": false,
+          "required": true,
+          "grid": {
+            "xs": 6
+          },
+          "formatting": {
+            "number": {
+              "decimalScale": 0,
+              "allowNegative": false
+            }
+          }
+        },
+        {
+          "id": "phone",
+          "type": "Input",
+          "dataModelBindings": {
+            "simpleBinding": "form.phone"
+          },
+          "textResourceBindings": {
+            "title": "some.text.binding",
+            "help": "some.other.text.binding"
+          },
+          "readOnly": false,
+          "required": true,
+          "autocomplete": "tel",
+          "grid": {
+            "xs": 12
+          },
+          "formatting": {
+            "number": {
+              "format": "+47 ### ## ###"
+            }
+          }
+        },
+        {
+          "id": "name",
+          "type": "Input",
+          "dataModelBindings": {
+            "simpleBinding": "form.name"
+          },
+          "textResourceBindings": {
+            "title": "some.text.binding",
+            "help": "some.other.text.binding"
+          },
+          "readOnly": false,
+          "required": true,
+          "autocomplete": "name",
+          "grid": {
+            "xs": 6
+          }
+        },
+        {
+          "id": "group",
+          "type": "Group",
+          "textResourceBindings": {
+            "title": "some.text.binding"
+          },
+          "children": [
+            "name",
+            "age"
+          ]
+        }
+      ]
+    }
+  }
+}

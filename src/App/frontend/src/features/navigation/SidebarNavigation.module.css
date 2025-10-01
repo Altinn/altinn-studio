@@ -1,0 +1,13 @@
+.sidebarContainer {
+  --max-sidebar-width: 320px;
+
+  position: absolute;
+  padding: 0 14px;
+  box-sizing: border-box;
+
+  /* This is highly dependent on the width of the page, and only works for large screen sizes, see src/components/presentation/Presentation.module.css */
+  width: calc(50% - var(--page-max-width) / 2);
+  max-width: var(--max-sidebar-width);
+
+  margin-left: max(calc(50% - var(--page-max-width) / 2 - var(--max-sidebar-width)), 0px);
+}

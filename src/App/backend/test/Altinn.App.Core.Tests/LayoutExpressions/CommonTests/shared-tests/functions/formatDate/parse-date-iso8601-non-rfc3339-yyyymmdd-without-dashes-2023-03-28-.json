@@ -1,0 +1,11 @@
+{
+  "comment": "This tests our compliance to the date format from the JSON Schema Test Suite.",
+  "source": "https://github.com/json-schema-org/JSON-Schema-Test-Suite/blob/main/tests/draft2020-12/optional/format/date.json",
+  "name": "Compliance: ISO8601 / non-RFC3339: YYYYMMDD without dashes (2023-03-28)",
+  "expression": [
+    "formatDate",
+    "20230328",
+    "G yyyy-MM-dd EEEE HH:mm:ss.SSS a"
+  ],
+  "expectsFailure": "Unable to parse date \"20230328\": Unknown format"
+}

@@ -1,0 +1,125 @@
+{
+  "codes": [
+    {
+      "code": "01",
+      "parentCode": null,
+      "level": "1",
+      "name": "Storfugl",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "notes": ""
+    },
+    {
+      "code": "02",
+      "parentCode": null,
+      "level": "1",
+      "name": "Orrfugl",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "notes": ""
+    },
+    {
+      "code": "04",
+      "parentCode": null,
+      "level": "1",
+      "name": "Jerpe",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "notes": ""
+    },
+    {
+      "code": "05",
+      "parentCode": null,
+      "level": "1",
+      "name": "Ringdue",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "notes": ""
+    },
+    {
+      "code": "06",
+      "parentCode": null,
+      "level": "1",
+      "name": "Ravn",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "notes": ""
+    },
+    {
+      "code": "07",
+      "parentCode": null,
+      "level": "1",
+      "name": "Kråke",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "notes": ""
+    },
+    {
+      "code": "08.1",
+      "parentCode": null,
+      "level": "1",
+      "name": "Skjære",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "notes": ""
+    },
+    {
+      "code": "08.2",
+      "parentCode": null,
+      "level": "1",
+      "name": "Nøtteskrike",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "notes": ""
+    },
+    {
+      "code": "09.1",
+      "parentCode": null,
+      "level": "1",
+      "name": "Gråtrost",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "notes": ""
+    },
+    {
+      "code": "15.1",
+      "parentCode": null,
+      "level": "1",
+      "name": "Toppskarv",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "notes": ""
+    },
+    {
+      "code": "15.2",
+      "parentCode": null,
+      "level": "1",
+      "name": "Storskarv",
+      "shortName": "",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "notes": ""
+    }
+  ]
+}

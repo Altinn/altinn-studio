@@ -1,0 +1,22 @@
+{
+  "id": "061c0677-ea2a-4647-b754-42b08b986194",
+  "instanceGuid": "a32520b0-db9e-41a5-ac17-517474d9a0eb",
+  "signedTime": "2023-06-22T08:53:38.7521813Z",
+  "signeeInfo": {
+    "userId": null,
+    "personNumber": "01039012345",
+    "organisationNumber": null
+  },
+  "dataElementSignatures": [
+    {
+      "dataElementId": "c4e56a1e-887e-411a-baaf-3ff9d71e9b52",
+      "sha256Hash": "b21b56007c4e0b05a94053ec046e20bad5af0949cf4c0761b9b4d6832b4bf22c",
+      "signed": true
+    },
+    {
+      "dataElementId": "d076cc95-78b1-412b-942c-60559667b0f0",
+      "sha256Hash": "b098326ba147e5a17fcaddbf6bdb4c7262abb0978094300f8aaa8219435b669f",
+      "signed": true
+    }
+  ]
+}

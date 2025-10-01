@@ -1,8 +1,8 @@
 name: Gitea check local gitea locale files
+
 on:
   pull_request:
-    branches: [ main ]
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/gitea/Dockerfile'
       - 'src/gitea/files/locale/**'

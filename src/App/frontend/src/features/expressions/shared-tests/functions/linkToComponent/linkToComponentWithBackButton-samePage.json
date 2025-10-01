@@ -1,0 +1,59 @@
+{
+  "name": "Should create a link, but omit backToPage when the target page is the same",
+  "expression": ["linkToComponent", "Klikk på meg", "newLastName", true],
+  "expects": "<a href=\"/instance/510001/d00ce51c-800b-416a-a906-ccab55f597e9/Task_1/Page2?focusComponentId=newLastName\" data-link-type=\"LinkToPotentialNode\">Klikk på meg</a>",
+  "context": {
+    "component": "alder",
+    "currentLayout": "Page2"
+  },
+  "instance": {
+    "id": "510001/d00ce51c-800b-416a-a906-ccab55f597e9",
+    "appId": "org/app-name",
+    "instanceOwnerPartyId": "510001",
+    "instanceOwner": {
+      "partyId": "12345"
+    }
+  },
+  "process": {
+    "currentTask": {
+      "elementId": "Task_1"
+    }
+  },
+  "layouts": {
+    "Page1": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "newFirstName",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Person.FirstName"
+            }
+          }
+        ]
+      }
+    },
+    "Page2": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "alder",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Person.Alder"
+            }
+          },
+          {
+            "id": "newLastName",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Person.LastName"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Not errors two arguments",
+  "expression": ["not", 3, 34, 5],
+  "expectsFailure": "Expected 1 argument(s), got 3"
+}

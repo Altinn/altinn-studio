@@ -1,0 +1,38 @@
+{
+  "name": "Display value of List component",
+  "expression": [
+    "displayValue",
+    "list"
+  ],
+  "context": {
+    "component": "list",
+    "currentLayout": "Page"
+  },
+  "expects": "Alice",
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "list",
+            "type": "List",
+            "dataModelBindings": {
+              "name": "Skjema.Name",
+              "age": "Skjema.Age",
+              "city": "Skjema.City"
+            },
+            "bindingToShowInSummary": "Skjema.Name"
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Skjema": {
+      "Name": "Alice",
+      "Age": "24",
+      "City": "Oslo"
+    }
+  }
+}

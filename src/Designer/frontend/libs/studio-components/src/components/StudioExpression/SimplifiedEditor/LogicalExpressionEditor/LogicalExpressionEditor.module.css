@@ -1,0 +1,5 @@
+.fieldsetContent {
+  align-items: stretch;
+  display: grid;
+  gap: var(--studio-expression-spacing);
+}

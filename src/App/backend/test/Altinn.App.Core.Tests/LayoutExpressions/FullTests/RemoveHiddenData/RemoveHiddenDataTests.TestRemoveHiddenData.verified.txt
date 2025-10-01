@@ -1,0 +1,90 @@
+﻿[
+  {
+    Field: root.fornavn,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.etternavn,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.alder,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.kjonn,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.epost,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.telefonnummer,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.bosted,
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[2],
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[1],
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[0].prosjekter[3],
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  },
+  {
+    Field: root.arbeidserfaring[0].prosjekter[1],
+    DataElementIdentifier: {
+      Guid: Guid_1,
+      Id: Guid_1,
+      DataTypeId: default
+    }
+  }
+]

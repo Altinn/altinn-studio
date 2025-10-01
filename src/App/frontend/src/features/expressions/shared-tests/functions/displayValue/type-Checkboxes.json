@@ -1,0 +1,67 @@
+{
+  "name": "Display value of Checkboxes component",
+  "expression": [
+    "displayValue",
+    "words"
+  ],
+  "context": {
+    "component": "words",
+    "currentLayout": "Page"
+  },
+  "expects": "Happy, Five, People, Jumping",
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "words",
+            "type": "Checkboxes",
+            "dataModelBindings": {
+              "simpleBinding": "Skjema.Words"
+            },
+            "options": [
+              {
+                "value": "0",
+                "label": "Sad"
+              },
+              {
+                "value": "1",
+                "label": "Happy"
+              },
+              {
+                "value": "2",
+                "label": "Angry"
+              },
+              {
+                "value": "3",
+                "label": "Five"
+              },
+              {
+                "value": "4",
+                "label": "Ten"
+              },
+              {
+                "value": "5",
+                "label": "People"
+              },
+              {
+                "value": "6",
+                "label": "Jumping"
+              },
+              {
+                "value": "7",
+                "label": "Running"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Skjema": {
+      "Words": "1,3,5,6"
+    }
+  }
+}

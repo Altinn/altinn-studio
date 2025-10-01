@@ -1,0 +1,13 @@
+﻿{
+  actual_iss: localtest,
+  exp: {Scrubbed},
+  http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier: 1337,
+  iat: {Scrubbed},
+  jti: Guid_1,
+  nbf: {Scrubbed},
+  scope: custom:instances.read custom:instances.write,
+  urn:altinn:authenticatemethod: BankID,
+  urn:altinn:authlevel: 2,
+  urn:altinn:partyid: 501337,
+  urn:altinn:userid: 1337
+}

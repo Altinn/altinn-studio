@@ -1,0 +1,14 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "editor.rulers": [120],
+  "search.exclude": {
+    "**/node_modules": true
+  },
+  "typescript.surveys.enabled": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit"
+  }
+}

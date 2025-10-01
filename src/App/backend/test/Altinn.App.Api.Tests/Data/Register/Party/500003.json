@@ -1,0 +1,13 @@
+{
+  "partyId": "500003",
+  "partyTypeName": 2,
+  "orgNumber": "897069653",
+  "ssn": null,
+  "unitType": "BEDR",
+  "name": "DDG Fitness Trondheim",
+  "isDeleted": false,
+  "onlyHierarchyElementWithNoAccess": false,
+  "person": null,
+  "organisation": null,
+  "childParties": null
+}

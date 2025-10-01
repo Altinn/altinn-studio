@@ -1,0 +1,9 @@
+{
+  "name": "Looking up null",
+  "expression": ["frontendSettings", null],
+  "expectsFailure": "Value cannot be null. (Parameter 'key')",
+  "frontendSettings": {
+    "mySetting1": "foo",
+    "mySetting2": "bar"
+  }
+}

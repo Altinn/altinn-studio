@@ -1,0 +1,20 @@
+.textComponent {
+  display: flex;
+  flex-grow: 0;
+  max-width: 100%;
+  flex-basis: 100%;
+}
+.label span {
+  font-size: 16px;
+}
+
+.icon {
+  width: 24px;
+  margin-right: 12px;
+}
+.vertical {
+  flex-direction: column;
+}
+.horizontal {
+  flex-direction: row;
+}

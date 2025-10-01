@@ -1,0 +1,5 @@
+{
+  "name": "formatDate should error when given false",
+  "expression": ["formatDate", false],
+  "expectsFailure": ""
+}

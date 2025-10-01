@@ -1,0 +1,5 @@
+{
+  "name": "Should return result on success",
+  "expression": ["if", true, 123.456],
+  "expects": 123.456
+}

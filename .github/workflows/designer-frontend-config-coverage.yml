@@ -1,7 +1,8 @@
-name: Designer frontend Configuration coverage stats
+name: Designer Frontend - Configuration coverage stats
 
 on:
-  push:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
     - 'src/Designer/frontend/app-development/**'
     - 'src/Designer/frontend/packages/ux-editor/**'

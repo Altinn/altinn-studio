@@ -1,0 +1,31 @@
+.infoContainer {
+  display: flex;
+  gap: var(--ds-size-3);
+  flex-direction: row;
+  padding: var(--ds-size-3) 0;
+}
+
+.infoDetailsContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.senderReceiverInfoContainer {
+  display: flex;
+  width: 100%;
+  gap: var(--ds-size-4);
+
+  table {
+    width: 100%;
+
+    tr {
+      vertical-align: top;
+    }
+  }
+}
+
+.paymentSummaryContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+}

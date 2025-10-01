@@ -1,0 +1,12 @@
+{
+  "UserId": 1004,
+  "UserName": "SelvRegistrert",
+  "PhoneNumber": null,
+  "Email": "test@test.com",
+  "PartyId": 510004,
+  "Party": {},
+  "UserType": 2,
+  "ProfileSettingPreference": {
+    "Language": "nb"
+  }
+}

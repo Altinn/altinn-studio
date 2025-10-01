@@ -1,0 +1,5 @@
+{
+  "name": "Should fail when given too many arguments",
+  "expression": ["round", 3.99, 2, 3],
+  "expectsFailure": "Expected 1-2 argument(s), got 3"
+}

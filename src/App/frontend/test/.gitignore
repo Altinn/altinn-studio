@@ -1,0 +1,13 @@
+# Screenshots and videos
+/screenshots/
+/videos/
+
+# Reports
+/reports/
+
+# Downloads
+/downloads/
+
+# Various log files produced from running tests
+/redux-history/
+/logs/

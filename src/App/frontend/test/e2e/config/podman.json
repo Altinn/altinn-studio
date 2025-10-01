@@ -1,0 +1,28 @@
+{
+  "$schema": "https://on.cypress.io/cypress.schema.json",
+  "baseUrl": "http://local.altinn.cloud:8000",
+  "frontendUrl": "http://localhost:8080",
+  "env": {
+    "type": "localtest",
+
+    "defaultFullName": "Ola Nordmann",
+    "defaultFirstName": "Ola",
+    "defaultPartyId": "12345.512345",
+
+    "accountantFullName": "Pengelens Partner",
+    "accountantFirstName": "Pengelens",
+    "accountantPartyId": "1001.500000",
+
+    "managerFullName": "Sophie Salt",
+    "managerFirstName": "Sophie",
+    "managerPartyId": "1337.500000",
+
+    "auditorFullName": "Gjentagende Forelder",
+    "auditorFirstName": "Gjentagende",
+    "auditorPartyId": "1002.500000",
+
+    "selfIdentifiedFullName": "Selvregistrert Bruker",
+    "selfIdentifiedFirstName": "Selvregistrert",
+    "selfIdentifiedPartyId": "1004.510004"
+  }
+}

@@ -1,0 +1,45 @@
+﻿{
+  telemetry: {
+    Activities: [
+      {
+        Name: Validation.RunValidator,
+        IdFormat: W3C,
+        Tags: [
+          {
+            validation.issue_count: 1
+          },
+          {
+            validator.source: Altinn.App.Core.Tests.Features.Validators.ValidationServiceTests+GenericValidatorFake-default
+          },
+          {
+            validator.type: FormDataValidatorWrapper
+          }
+        ],
+        HasParent: true
+      },
+      {
+        Name: Validation.ValidateInstanceAtTask,
+        IdFormat: W3C,
+        Tags: [
+          {
+            task.id: Task_1
+          },
+          {
+            validation.total_issue_count: 1
+          }
+        ],
+        HasParent: false
+      }
+    ]
+  },
+  issues: [
+    {
+      Severity: Error,
+      DataElementId: DataElementId_0,
+      Code: TestCode,
+      Description: Test error,
+      Source: Altinn.App.Core.Tests.Features.Validators.ValidationServiceTests+GenericValidatorFake-default,
+      NoIncrementalUpdates: false
+    }
+  ]
+}

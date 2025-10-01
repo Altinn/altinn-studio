@@ -1,0 +1,9 @@
+﻿{
+  Activities: [
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: false
+    }
+  ]
+}

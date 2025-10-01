@@ -1,0 +1,6 @@
+<!-- Empty file just to make sure we don't inherit stuff -->
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+</Project>

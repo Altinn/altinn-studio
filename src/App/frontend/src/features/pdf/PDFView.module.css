@@ -1,0 +1,42 @@
+.pdf-wrapper {
+  /* Hide interactive elements from PDF
+   * This makes testing easier as cypress does not support rendering in @media print mode
+   * @see https://github.com/cypress-io/cypress/issues/790
+   */
+  & button,
+  & [role='button'] {
+    display: none !important;
+  }
+  overflow: hidden;
+}
+.pdf-wrapper h1 {
+  margin-top: 0;
+}
+
+.pdf-wrapper .page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+  margin-bottom: var(--ds-size-2);
+}
+
+.pdf-wrapper .instanceInfo {
+  margin-bottom: var(--ds-size-4);
+}
+
+.pdf-logo-container {
+  display: flex;
+  margin-bottom: var(--ds-size-12);
+}
+
+@media print {
+  .hideInPrint {
+    display: none;
+  }
+}
+
+@media screen {
+  .onlyInPrint {
+    display: none;
+  }
+}

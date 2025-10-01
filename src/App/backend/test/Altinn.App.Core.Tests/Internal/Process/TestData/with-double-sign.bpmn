@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<bpmn:definitions id="Altinn_SingleDataTask_Process_Definition" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="SingleDataTask" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_start</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_Form" name="Utfylling">
+      <bpmn:incoming>Flow_start</bpmn:incoming>
+      <bpmn:incoming>Flow_sign1_reject</bpmn:incoming>
+      <bpmn:incoming>Flow_edit</bpmn:incoming>
+      <bpmn:outgoing>Flow_form</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>data</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_Sign1" name="Signering1">
+      <bpmn:incoming>Flow_form</bpmn:incoming>
+      <bpmn:outgoing>Flow_sign1</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>signing</altinn:taskType>
+          <altinn:actions>
+            <altinn:action>sign</altinn:action>
+            <altinn:action>reject</altinn:action>
+          </altinn:actions>
+          <altinn:signatureConfig>
+            <altinn:dataTypesToSign>
+              <altinn:dataType>KRT-1008-2_M</altinn:dataType>
+              <altinn:dataType>ref-data-as-pdf</altinn:dataType>
+            </altinn:dataTypesToSign>
+            <altinn:signatureDataType>signature1</altinn:signatureDataType>
+          </altinn:signatureConfig>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_Sign1">
+      <bpmn:incoming>Flow_sign1</bpmn:incoming>
+      <bpmn:outgoing>Flow_sign1_sign</bpmn:outgoing>
+      <bpmn:outgoing>Flow_sign1_reject</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:gatewayExtension>
+          <altinn:connectedDataTypeId>KRT-1008-2_M</altinn:connectedDataTypeId>
+        </altinn:gatewayExtension>
+      </bpmn:extensionElements>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_DoubleSign">
+      <bpmn:incoming>Flow_sign1_sign</bpmn:incoming>
+      <bpmn:outgoing>Flow_DoubleSign</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SingleSign</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:gatewayExtension>
+          <altinn:connectedDataTypeId>KRT-1008-2_M</altinn:connectedDataTypeId>
+        </altinn:gatewayExtension>
+      </bpmn:extensionElements>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_Sign2" name="Signering2">
+      <bpmn:incoming>Flow_DoubleSign</bpmn:incoming>
+      <bpmn:outgoing>Flow_sign2</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>signing</altinn:taskType>
+          <altinn:actions>
+            <altinn:action>sign</altinn:action>
+            <altinn:action>reject</altinn:action>
+          </altinn:actions>
+          <altinn:signatureConfig>
+            <altinn:dataTypesToSign>
+              <altinn:dataType>KRT-1008-2_M</altinn:dataType>
+              <altinn:dataType>ref-data-as-pdf</altinn:dataType>
+              <altinn:dataType>signature1</altinn:dataType>
+            </altinn:dataTypesToSign>
+            <altinn:signatureDataType>signature2</altinn:signatureDataType>
+          </altinn:signatureConfig>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_Reject" name="Reject">
+      <bpmn:incoming>Flow_sign2_reject</bpmn:incoming>
+      <bpmn:outgoing>Flow_edit</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>signing</altinn:taskType>
+          <altinn:actions>
+            <altinn:action>reject</altinn:action>
+          </altinn:actions>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_Sign2">
+      <bpmn:incoming>Flow_sign2</bpmn:incoming>
+      <bpmn:outgoing>Flow_sign2_sign</bpmn:outgoing>
+      <bpmn:outgoing>Flow_sign2_reject</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEvent_1">
+      <bpmn:incoming>Flow_SingleSign</bpmn:incoming>
+      <bpmn:incoming>Flow_sign2_sign</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_start" sourceRef="StartEvent_1" targetRef="Task_Form" />
+    <bpmn:sequenceFlow id="Flow_form" sourceRef="Task_Form" targetRef="Task_Sign1" />
+    <bpmn:sequenceFlow id="Flow_sign1" sourceRef="Task_Sign1" targetRef="Gateway_Sign1" />
+    <bpmn:sequenceFlow id="Flow_sign1_reject" sourceRef="Gateway_Sign1" targetRef="Task_Form">
+      <bpmn:conditionExpression>["equals", ["gatewayAction"], "reject"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_sign1_sign" sourceRef="Gateway_Sign1" targetRef="Gateway_DoubleSign">
+      <bpmn:conditionExpression>["equals", ["gatewayAction"], "sign"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_DoubleSign" sourceRef="Gateway_DoubleSign" targetRef="Task_Sign2">
+      <bpmn:conditionExpression>["equals", ["dataModel", "model.ShouldDoubleSign"], true]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_SingleSign" sourceRef="Gateway_DoubleSign" targetRef="EndEvent_1">
+      <bpmn:conditionExpression>["equals", ["dataModel", "model.ShouldDoubleSign"], false]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_sign2" sourceRef="Task_Sign2" targetRef="Gateway_Sign2" />
+    <bpmn:sequenceFlow id="Flow_sign2_reject" sourceRef="Gateway_Sign2" targetRef="Task_Reject">
+      <bpmn:conditionExpression>["equals", ["gatewayAction"], "reject"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_sign2_sign" sourceRef="Gateway_Sign2" targetRef="EndEvent_1">
+      <bpmn:conditionExpression>["equals", ["gatewayAction"], "sign"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_edit" sourceRef="Task_Reject" targetRef="Task_Form" />
+  </bpmn:process>
+</bpmn:definitions>

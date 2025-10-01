@@ -1,0 +1,6 @@
+﻿[basic/custom-scopes-placeholders] [INIT INFO] Fixture configuration updated
+[basic/custom-scopes-placeholders] [INFO] ### Request: Instances.PostSimplified - User: ServiceOwner/405003309, AuthLevel: 3, AuthMethod: maskinporten
+[basic/custom-scopes-placeholders] [INFO] IInstantiationValidator.Validate
+[basic/custom-scopes-placeholders] [INFO] IProcessTaskStart.Start
+[basic/custom-scopes-placeholders] [INFO] IInstantiationProcessor.DataCreation
+[basic/custom-scopes-placeholders] [INFO] ### Response: Instances.PostSimplified - CreatedResult, StatusCode: 201

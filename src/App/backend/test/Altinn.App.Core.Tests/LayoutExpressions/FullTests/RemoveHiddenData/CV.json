@@ -1,0 +1,412 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "nav-bar",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "tittel2",
+        "type": "Header",
+        "size": "L",
+        "textResourceBindings": {
+          "title": "CV.tittel.title"
+        }
+      },
+      {
+        "id": "fornavn",
+        "type": "Input",
+        "hidden": [
+          "commaContains",
+          ["dataModel", "root.SF_skjul-felter"],
+          "fornavn"
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "root.fornavn"
+        },
+        "showValidations": ["AllExceptRequired"],
+        "required": true,
+        "autocomplete": "given-name",
+        "textResourceBindings": {
+          "title": "CV.fornavn.title"
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
+      },
+      {
+        "id": "etternavn",
+        "type": "Input",
+        "hidden": [
+          "commaContains",
+          ["dataModel", "root.SF_skjul-felter"],
+          "etternavn"
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "root.etternavn"
+        },
+        "showValidations": ["AllExceptRequired"],
+        "required": true,
+        "textResourceBindings": {
+          "title": "CV.etternav.title"
+        },
+        "autocomplete": "family-name",
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
+      },
+      {
+        "id": "alder",
+        "type": "Input",
+        "hidden": [
+          "commaContains",
+          ["dataModel", "root.SF_skjul-felter"],
+          "alder"
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "root.alder"
+        },
+        "showValidations": ["AllExceptRequired"],
+        "required": true,
+        "textResourceBindings": {
+          "title": "CV.alder.title"
+        },
+        "autocomplete": "off",
+        "formatting": {
+          "number": {
+            "allowNegative": false,
+            "decimalScale": 0
+          }
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
+      },
+      {
+        "id": "kjonn",
+        "type": "Dropdown",
+        "hidden": [
+          "commaContains",
+          ["dataModel", "root.SF_skjul-felter"],
+          "kjonn"
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "root.kjonn"
+        },
+        "showValidations": ["AllExceptRequired"],
+        "required": true,
+        "optionsId": "kjønn",
+        "textResourceBindings": {
+          "title": "CV.kj.title"
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
+      },
+      {
+        "id": "e-post",
+        "type": "Input",
+        "hidden": [
+          "commaContains",
+          ["dataModel", "root.SF_skjul-felter"],
+          "epost"
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "root.epost"
+        },
+        "showValidations": ["AllExceptRequired"],
+        "required": true,
+        "textResourceBindings": {
+          "title": "CV.e-post.title"
+        },
+        "autocomplete": "email",
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
+      },
+      {
+        "id": "telefon",
+        "type": "Input",
+        "hidden": [
+          "commaContains",
+          ["dataModel", "root.SF_skjul-felter"],
+          "telefon"
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "root.telefonnummer"
+        },
+        "showValidations": ["AllExceptRequired"],
+        "required": true,
+        "textResourceBindings": {
+          "title": "CV.telefon.title"
+        },
+        "autocomplete": "tel",
+        "formatting": {
+          "number": {
+            "format": "+47 ### ## ###"
+          }
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
+      },
+      {
+        "id": "bosted",
+        "type": "Dropdown",
+        "hidden": [
+          "commaContains",
+          ["dataModel", "root.SF_skjul-felter"],
+          "bosted"
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "root.bosted"
+        },
+        "showValidations": ["AllExceptRequired"],
+        "optionsId": "kommuner",
+        "required": true,
+        "textResourceBindings": {
+          "title": "CV.bosted.title"
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
+      },
+      {
+        "id": "vedlegg-cv",
+        "type": "FileUploadWithTag",
+        "displayMode": "list",
+        "hasCustomFileEndings": true,
+        "maxFileSizeInMB": 25,
+        "maxNumberOfAttachments": 10,
+        "minNumberOfAttachments": 0,
+        "optionsId": "applicationdocs",
+        "dataModelBindings": {
+          "list": "root.vedlegg"
+        },
+        "textResourceBindings": {
+          "title": "CV.vedlegg-cv.title",
+          "description": "CV.vedlegg-cv.description",
+          "tagTitle": "CV.vedlegg-cv.tagTitle"
+        },
+        "validFileEndings": ".pdf, .png, .jpg",
+        "required": false
+      },
+      {
+        "id": "arbeidserfaring",
+        "type": "RepeatingGroup",
+        "children": [
+          "arbeidsgiver",
+          "dato-fra",
+          "dato-til",
+          "erfaring-stilling",
+          "erfaring-beskrivelse",
+          "Vedlegg",
+          "prosjekter"
+        ],
+        "tableHeaders": [
+          "arbeidsgiver",
+          "erfaring-stilling",
+          "dato-fra",
+          "dato-til"
+        ],
+        "validateOnSaveRow": ["All"],
+        "hiddenRow": [
+          "and",
+          [
+            "equals",
+            ["dataModel", "root.arbeidserfaring.stilling"],
+            ["dataModel", "root.SF_skjul-arbeidsgiver"]
+          ],
+          [
+            "greaterThan",
+            ["stringLength", ["dataModel", "root.SF_skjul-arbeidsgiver"]],
+            0
+          ]
+        ],
+        "dataModelBindings": {
+          "group": "root.arbeidserfaring"
+        },
+        "textResourceBindings": {
+          "add_button": "arbeidserfaring.add_button"
+        }
+      },
+      {
+        "id": "arbeidsgiver",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "root.arbeidserfaring.arbeidsgiver"
+        },
+        "showValidations": ["AllExceptRequired"],
+        "required": true,
+        "textResourceBindings": {
+          "title": "CV.arbeidsgiver.title"
+        }
+      },
+      {
+        "id": "dato-fra",
+        "type": "Datepicker",
+        "dataModelBindings": {
+          "simpleBinding": "root.arbeidserfaring.fra"
+        },
+        "showValidations": ["AllExceptRequired"],
+        "minDate": "1900-01-01T12:00:00.000Z",
+        "maxDate": "2100-01-01T12:00:00.000Z",
+        "timeStamp": false,
+        "required": true,
+        "textResourceBindings": {
+          "title": "CV.dato-fra.title"
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
+      },
+      {
+        "id": "dato-til",
+        "type": "Datepicker",
+        "dataModelBindings": {
+          "simpleBinding": "root.arbeidserfaring.til"
+        },
+        "showValidations": ["AllExceptRequired"],
+        "minDate": "1900-01-01T12:00:00.000Z",
+        "maxDate": "2100-01-01T12:00:00.000Z",
+        "timeStamp": false,
+        "required": true,
+        "textResourceBindings": {
+          "title": "CV.dato-til.title"
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
+      },
+      {
+        "id": "erfaring-stilling",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "root.arbeidserfaring.stilling"
+        },
+        "showValidations": ["AllExceptRequired"],
+        "required": true,
+        "textResourceBindings": {
+          "title": "CV.stilling.title"
+        }
+      },
+      {
+        "id": "erfaring-beskrivelse",
+        "type": "TextArea",
+        "dataModelBindings": {
+          "simpleBinding": "root.arbeidserfaring.beskrivelse"
+        },
+        "showValidations": ["AllExceptRequired"],
+        "required": false,
+        "textResourceBindings": {
+          "title": "CV.erfaring-beskrivelse.title"
+        }
+      },
+      {
+        "id": "Vedlegg",
+        "type": "FileUploadWithTag",
+        "displayMode": "list",
+        "hasCustomFileEndings": true,
+        "maxFileSizeInMB": 25,
+        "maxNumberOfAttachments": 10,
+        "minNumberOfAttachments": 0,
+        "optionsId": "cert",
+        "dataModelBindings": {
+          "list": "root.arbeidserfaring.vedlegg"
+        },
+        "textResourceBindings": {
+          "title": "CV.Vedlegg.title",
+          "description": "CV.Vedlegg.description",
+          "tagTitle": "CV.Vedlegg.tagTitle"
+        },
+        "validFileEndings": ".pdf, .png, .jpg",
+        "required": false
+      },
+      {
+        "id": "prosjekter",
+        "type": "RepeatingGroup",
+        "children": ["prosjekt-tittel", "prosjekt-beskrivelse"],
+        "tableHeaders": ["prosjekt-tittel"],
+        "validateOnSaveRow": ["All"],
+        "hiddenRow": [
+          "and",
+          [
+            "equals",
+            ["dataModel", "root.arbeidserfaring.prosjekter.tittel"],
+            ["dataModel", "root.SF_skjul-prosjekt"]
+          ],
+          [
+            "greaterThan",
+            ["stringLength", ["dataModel", "root.SF_skjul-prosjekt"]],
+            0
+          ]
+        ],
+        "dataModelBindings": {
+          "group": "root.arbeidserfaring.prosjekter"
+        },
+        "textResourceBindings": {
+          "add_button": "tsnLc5YNPHLJ"
+        }
+      },
+      {
+        "id": "prosjekt-tittel",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "root.arbeidserfaring.prosjekter.tittel"
+        },
+        "showValidations": ["AllExceptRequired"],
+        "required": true,
+        "textResourceBindings": {
+          "title": "CV.prosjekt-tittel.title"
+        }
+      },
+      {
+        "id": "prosjekt-beskrivelse",
+        "type": "TextArea",
+        "dataModelBindings": {
+          "simpleBinding": "root.arbeidserfaring.prosjekter.beskrivelse"
+        },
+        "showValidations": ["AllExceptRequired"],
+        "required": false,
+        "textResourceBindings": {
+          "title": "CV.prosjekt-beskrivelse.title"
+        }
+      },
+      {
+        "id": "button-group",
+        "type": "ButtonGroup",
+        "children": ["nav", "send-inn"]
+      },
+      {
+        "id": "nav",
+        "type": "NavigationButtons",
+        "showBackButton": true,
+        "validateOnNext": {
+          "page": "current",
+          "show": ["All"]
+        },
+        "textResourceBindings": {
+          "next": "CV.nav.next",
+          "back": "CV.nav.back"
+        }
+      },
+      {
+        "id": "send-inn",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "CV.Button-U7p0KF.title"
+        }
+      }
+    ]
+  }
+}

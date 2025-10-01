@@ -1,0 +1,20 @@
+.tableCaption {
+  text-align: left;
+  padding-bottom: var(--ds-size-2);
+}
+
+.captionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.description {
+  padding-bottom: var(--ds-size-3);
+}
+
+.titleAndHelpWrapper {
+  display: flex;
+  gap: var(--ds-size-2);
+  align-items: center;
+}

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import React, { useCallback } from 'react';
-import { StudioButton } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
 import classes from './FormItemTitle.module.css';
@@ -50,7 +50,6 @@ export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormI
       <div className={classes.label}>{children}</div>
       <StudioButton
         className={classes.deleteButton}
-        color='danger'
         icon={<TrashIcon />}
         onClick={handleDelete}
         title={t('general.delete')}

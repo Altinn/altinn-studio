@@ -1,0 +1,5 @@
+{
+  "name": "Should fail with [string, null]",
+  "expression": ["lessThan", "hello world", null],
+  "expectsFailure": "Expected number, got value \"hello world\""
+}

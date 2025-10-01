@@ -1,8 +1,7 @@
 name: "Lint PR"
 on:
   pull_request:
-    branches: [ main ]
-    types: [ opened, synchronize, reopened, edited ]
+    types: [opened, reopened, synchronize, ready_for_review, edited]
 
 permissions:
   pull-requests: read

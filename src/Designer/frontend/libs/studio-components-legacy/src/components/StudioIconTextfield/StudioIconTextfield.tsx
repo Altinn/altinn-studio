@@ -14,6 +14,9 @@ export type StudioIconTextfieldProps = Override<
   StudioTextfieldProps
 >;
 
+/**
+ * @deprecated use `StudioIconTextfield` from `@studio/components` instead.
+ */
 export const StudioIconTextfield = forwardRef<HTMLDivElement, StudioIconTextfieldProps>(
   (
     { icon, id, label, className: givenClassName, readOnly, ...rest }: StudioIconTextfieldProps,

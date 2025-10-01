@@ -8,8 +8,8 @@
     <UserSecretsId>b1d8a1f7-ede4-4460-899b-797e4d913097</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.7" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="4.0.13" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.13.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="4.0.14" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.13.1" />
   </ItemGroup>
 </Project>

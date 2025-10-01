@@ -1,0 +1,11 @@
+{
+  "name": "Should return 'foo' when asked for default key",
+  "expression": ["value"],
+  "expects": "foo",
+  "valueArguments": {
+    "data": {
+      "value": "foo"
+    },
+    "defaultKey": "value"
+  }
+}

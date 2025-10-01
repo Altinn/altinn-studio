@@ -1,0 +1,5 @@
+{
+  "name": "Should fail when given an expression instead of 'not'",
+  "expression": ["compare", 5, ["if", true, "not", "else", "not-not?"], "greaterThan", 8],
+  "expectsFailure": "Second argument must be \"not\" when providing 4 arguments in total"
+}

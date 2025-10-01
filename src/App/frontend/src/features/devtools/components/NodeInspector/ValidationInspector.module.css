@@ -1,0 +1,29 @@
+.categoryList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.category {
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.listItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-radius: 4px;
+  background-color: #eee;
+  padding: 0px 0px 0px 4px;
+  list-style: none;
+  margin-bottom: 4px;
+}
+
+.listItemCategory {
+  text-align: center;
+  border-radius: 4px;
+  color: black;
+  padding: 0px 4px;
+}

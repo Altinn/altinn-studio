@@ -1,0 +1,14 @@
+@media print {
+  .container {
+    break-inside: avoid;
+  }
+}
+
+.title {
+  font-weight: 500;
+  font-size: 1.25rem;
+}
+
+.body {
+  margin: 0;
+}

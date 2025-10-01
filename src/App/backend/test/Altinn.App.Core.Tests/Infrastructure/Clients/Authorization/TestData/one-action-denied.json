@@ -1,0 +1,190 @@
+{
+  "Response": [
+    {
+      "Decision": "Permit",
+      "Status": {
+        "StatusMessage": null,
+        "StatusDetails": null,
+        "StatusCode": {
+          "Value": "urn:oasis:names:tc:xacml:1.0:status:ok",
+          "StatusCode": null
+        }
+      },
+      "Obligations": [
+        {
+          "Id": "urn:altinn:obligation:authenticationLevel1",
+          "AttributeAssignment": [
+            {
+              "AttributeId": "urn:altinn:obligation1-assignment1",
+              "Value": "2",
+              "Category": "urn:altinn:minimum-authenticationlevel",
+              "DataType": "http://www.w3.org/2001/XMLSchema#integer",
+              "Issuer": null
+            }
+          ]
+        }
+      ],
+      "AssociateAdvice": null,
+      "Category": [
+        {
+          "CategoryId": "urn:oasis:names:tc:xacml:3.0:attribute-category:action",
+          "Id": null,
+          "Content": null,
+          "Attribute": [
+            {
+              "AttributeId": "urn:oasis:names:tc:xacml:1.0:action:action-id",
+              "Value": "read",
+              "Issuer": null,
+              "DataType": "http://www.w3.org/2001/XMLSchema#string",
+              "IncludeInResult": false
+            }
+          ]
+        },
+        {
+          "CategoryId": "urn:oasis:names:tc:xacml:3.0:attribute-category:resource",
+          "Id": null,
+          "Content": null,
+          "Attribute": [
+            {
+              "AttributeId": "urn:altinn:instance-id",
+              "Value": "501337/f38820a7-3b60-45a4-8e41-34103bedc3a6",
+              "Issuer": null,
+              "DataType": "http://www.w3.org/2001/XMLSchema#string",
+              "IncludeInResult": false
+            }
+          ]
+        }
+      ],
+      "PolicyIdentifierList": null
+    },
+    {
+      "Decision": "Permit",
+      "Status": {
+        "StatusMessage": null,
+        "StatusDetails": null,
+        "StatusCode": {
+          "Value": "urn:oasis:names:tc:xacml:1.0:status:ok",
+          "StatusCode": null
+        }
+      },
+      "Obligations": [
+        {
+          "Id": "urn:altinn:obligation:authenticationLevel1",
+          "AttributeAssignment": [
+            {
+              "AttributeId": "urn:altinn:obligation1-assignment1",
+              "Value": "2",
+              "Category": "urn:altinn:minimum-authenticationlevel",
+              "DataType": "http://www.w3.org/2001/XMLSchema#integer",
+              "Issuer": null
+            }
+          ]
+        }
+      ],
+      "AssociateAdvice": null,
+      "Category": [
+        {
+          "CategoryId": "urn:oasis:names:tc:xacml:3.0:attribute-category:action",
+          "Id": null,
+          "Content": null,
+          "Attribute": [
+            {
+              "AttributeId": "urn:oasis:names:tc:xacml:1.0:action:action-id",
+              "Value": "write",
+              "Issuer": null,
+              "DataType": "http://www.w3.org/2001/XMLSchema#string",
+              "IncludeInResult": false
+            }
+          ]
+        },
+        {
+          "CategoryId": "urn:oasis:names:tc:xacml:3.0:attribute-category:resource",
+          "Id": null,
+          "Content": null,
+          "Attribute": [
+            {
+              "AttributeId": "urn:altinn:instance-id",
+              "Value": "501337/f38820a7-3b60-45a4-8e41-34103bedc3a6",
+              "Issuer": null,
+              "DataType": "http://www.w3.org/2001/XMLSchema#string",
+              "IncludeInResult": false
+            }
+          ]
+        }
+      ],
+      "PolicyIdentifierList": null
+    },
+    {
+      "Decision": "Permit",
+      "Status": {
+        "StatusMessage": null,
+        "StatusDetails": null,
+        "StatusCode": {
+          "Value": "urn:oasis:names:tc:xacml:1.0:status:ok",
+          "StatusCode": null
+        }
+      },
+      "Obligations": [
+        {
+          "Id": "urn:altinn:obligation:authenticationLevel1",
+          "AttributeAssignment": [
+            {
+              "AttributeId": "urn:altinn:obligation1-assignment1",
+              "Value": "2",
+              "Category": "urn:altinn:minimum-authenticationlevel",
+              "DataType": "http://www.w3.org/2001/XMLSchema#integer",
+              "Issuer": null
+            }
+          ]
+        }
+      ],
+      "AssociateAdvice": null,
+      "Category": [
+        {
+          "CategoryId": "urn:oasis:names:tc:xacml:3.0:attribute-category:action",
+          "Id": null,
+          "Content": null,
+          "Attribute": [
+            {
+              "AttributeId": "urn:oasis:names:tc:xacml:1.0:action:action-id",
+              "Value": "complete",
+              "Issuer": null,
+              "DataType": "http://www.w3.org/2001/XMLSchema#string",
+              "IncludeInResult": false
+            }
+          ]
+        },
+        {
+          "CategoryId": "urn:oasis:names:tc:xacml:3.0:attribute-category:resource",
+          "Id": null,
+          "Content": null,
+          "Attribute": [
+            {
+              "AttributeId": "urn:altinn:instance-id",
+              "Value": "501337/f38820a7-3b60-45a4-8e41-34103bedc3a6",
+              "Issuer": null,
+              "DataType": "http://www.w3.org/2001/XMLSchema#string",
+              "IncludeInResult": false
+            }
+          ]
+        }
+      ],
+      "PolicyIdentifierList": null
+    },
+    {
+      "Decision": "NotApplicable",
+      "Status": {
+        "StatusMessage": null,
+        "StatusDetails": null,
+        "StatusCode": {
+          "Value": "urn:oasis:names:tc:xacml:1.0:status:ok",
+          "StatusCode": null
+        }
+      },
+      "Obligations": null,
+      "AssociateAdvice": null,
+      "Category": null,
+      "PolicyIdentifierList": null
+    }
+  ]
+}

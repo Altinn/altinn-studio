@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:altinn="http://altinn.no/process"
+                  id="Definitions_1eqx4ru" targetNamespace="http://bpmn.io/schema/bpmn"
+                  exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="10.2.0">
+  <bpmn:process id="Process_1rq9ej8" isExecutable="false">
+    <bpmn:startEvent id="StartEvent">
+      <bpmn:outgoing>Flow1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow1" sourceRef="StartEvent" targetRef="Task1"/>
+    <bpmn:task id="Task1">
+      <bpmn:incoming>Flow1</bpmn:incoming>
+      <bpmn:outgoing>Flow2</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:actions>
+            <altinn:action>submit</altinn:action>
+            <altinn:action type="serverAction">lookup</altinn:action>
+          </altinn:actions>
+          <altinn:taskType>data</altinn:taskType>
+          <altinn:signatureConfig>
+            <altinn:dataTypesToSign>
+              <altinn:dataType>signatureDataType1</altinn:dataType>
+              <altinn:dataType>signatureDataType2</altinn:dataType>
+            </altinn:dataTypesToSign>
+            <altinn:signatureDataType>signature</altinn:signatureDataType>
+            <altinn:uniqueFromSignaturesInDataTypes>
+              <altinn:dataType>signature1</altinn:dataType>
+            </altinn:uniqueFromSignaturesInDataTypes>
+            <altinn:signeeProviderId>signeeProviderId</altinn:signeeProviderId>
+            <altinn:signeeStatesDataTypeId>signeeStatesDataTypeId</altinn:signeeStatesDataTypeId>
+            <altinn:correspondenceResource>correspondenceResource</altinn:correspondenceResource>
+            <altinn:correspondenceResource env="tt02">correspondenceResourceTt02</altinn:correspondenceResource>
+            <altinn:correspondenceResource env="prod">correspondenceResourceProd</altinn:correspondenceResource>
+          </altinn:signatureConfig>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow2" sourceRef="Task1" targetRef="Gateway1"/>
+    <bpmn:exclusiveGateway id="Gateway1" default="Flow3">
+      <bpmn:incoming>Flow2</bpmn:incoming>
+      <bpmn:outgoing>Flow3</bpmn:outgoing>
+      <bpmn:outgoing>Flow4</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow3" sourceRef="Gateway1" targetRef="Task2"/>
+    <bpmn:sequenceFlow id="Flow4" sourceRef="Gateway1" targetRef="EndEvent"/>
+    <bpmn:task id="Task2">
+      <bpmn:incoming>Flow3</bpmn:incoming>
+      <bpmn:outgoing>Flow5</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:actions>
+            <altinn:action>confirm</altinn:action>
+            <altinn:action>reject</altinn:action>
+          </altinn:actions>
+          <altinn:taskType>confirm</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow5" sourceRef="Task2" targetRef="EndEvent"/>
+    <bpmn:endEvent id="EndEvent">
+      <bpmn:incoming>Flow5</bpmn:incoming>
+      <bpmn:incoming>Flow4</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+</bpmn:definitions>

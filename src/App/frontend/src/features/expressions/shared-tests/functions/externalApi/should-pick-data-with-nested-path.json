@@ -1,0 +1,6 @@
+{
+  "name": "Should pick data with nested path",
+  "expression": ["externalApi", "testId", "cars[0].brand"],
+  "expects": "BMW",
+  "externalApis": { "data": { "testId": { "cars": [{ "brand": "BMW" }, { "brand": "Lada" }] } } }
+}

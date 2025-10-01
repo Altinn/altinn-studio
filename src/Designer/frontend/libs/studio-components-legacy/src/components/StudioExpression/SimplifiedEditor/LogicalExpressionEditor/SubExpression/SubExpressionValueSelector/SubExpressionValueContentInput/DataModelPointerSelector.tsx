@@ -27,9 +27,10 @@ export const DataModelPointerSelector = ({
     }
   };
 
+  const error = errorKey === null ? undefined : texts.errorMessages[errorKey];
   return (
     <Combobox
-      error={errorKey === null ? undefined : texts.errorMessages[errorKey]}
+      error={options.length === 0 ? texts.missingDataModelLabel : error}
       label={texts.dataModelPath}
       onValueChange={handleChange}
       size='small'

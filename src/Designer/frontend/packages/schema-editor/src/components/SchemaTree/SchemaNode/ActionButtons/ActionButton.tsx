@@ -2,8 +2,8 @@ import React, { forwardRef } from 'react';
 import type { TranslationKey } from '@altinn-studio/language/type';
 import { useTranslation } from 'react-i18next';
 import classes from './ActionButton.module.css';
-import { StudioButton } from '@studio/components-legacy';
-import type { StudioButtonProps } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
+import type { StudioButtonProps } from '@studio/components';
 
 export interface ActionButtonProps extends StudioButtonProps {
   titleKey: TranslationKey;

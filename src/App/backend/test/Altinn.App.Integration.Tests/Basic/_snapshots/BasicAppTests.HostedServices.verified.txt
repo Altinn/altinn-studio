@@ -1,0 +1,44 @@
+﻿[
+  {
+    isImplementationFactory: true,
+    isImplementationType: false,
+    isImplementationInstance: false,
+    lifetime: 0,
+    materializedType: Altinn.App.Core.Features.Cache.AppConfigurationCache
+  },
+  {
+    isImplementationFactory: false,
+    isImplementationType: true,
+    isImplementationInstance: false,
+    lifetime: 0,
+    materializedType: Microsoft.AspNetCore.DataProtection.Internal.DataProtectionHostedService
+  },
+  {
+    isImplementationFactory: true,
+    isImplementationType: false,
+    isImplementationInstance: false,
+    lifetime: 0,
+    materializedType: Altinn.App.Api.Infrastructure.Middleware.ScopeAuthorizationService
+  },
+  {
+    isImplementationFactory: false,
+    isImplementationType: true,
+    isImplementationInstance: false,
+    lifetime: 0,
+    materializedType: Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckPublisherHostedService
+  },
+  {
+    isImplementationFactory: false,
+    isImplementationType: true,
+    isImplementationInstance: false,
+    lifetime: 0,
+    materializedType: Altinn.App.Core.Internal.LocaltestValidation
+  },
+  {
+    isImplementationFactory: false,
+    isImplementationType: true,
+    isImplementationInstance: false,
+    lifetime: 0,
+    materializedType: Microsoft.AspNetCore.Hosting.GenericWebHostService
+  }
+]

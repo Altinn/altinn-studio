@@ -1,0 +1,65 @@
+﻿{
+  Activities: [
+    {
+      Name: GET {org}/{app}/api/v1/profile/user,
+      Kind: Server,
+      IdFormat: W3C,
+      Status: Error,
+      Tags: [
+        {
+          error.type: Altinn.App.Core.Helpers.ServiceException
+        },
+        {
+          http.request.method: GET
+        },
+        {
+          http.response.status_code: 200
+        },
+        {
+          http.route: {org}/{app}/api/v1/profile/user
+        },
+        {
+          network.protocol.version: 1.1
+        },
+        {
+          server.address: localhost
+        },
+        {
+          TestId: Guid_1
+        },
+        {
+          url.path: /tdd/contributer-restriction/api/v1/profile/user
+        },
+        {
+          url.scheme: http
+        },
+        {
+          user.authentication.inAltinnPortal: true
+        },
+        {
+          user.authentication.level: 2
+        },
+        {
+          user.authentication.method: BankID
+        },
+        {
+          user.authentication.token.isExchanged: false
+        },
+        {
+          user.authentication.token.issuer: Altinn
+        },
+        {
+          user.authentication.type: User
+        },
+        {
+          user.id: 1337
+        },
+        {
+          user.party.id: 501338
+        }
+      ],
+      Events: {Scrubbed},
+      HasParent: false
+    }
+  ]
+}

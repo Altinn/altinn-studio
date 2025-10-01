@@ -1,0 +1,14 @@
+.text-align-right,
+.text-align-right input {
+  text-align: right;
+}
+
+.text-align-left,
+.text-align-left input {
+  text-align: left;
+}
+
+.text-align-center,
+.text-align-center input {
+  text-align: center;
+}

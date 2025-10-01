@@ -1,0 +1,62 @@
+﻿[
+  {
+    Id: ALTINNAPP0500,
+    Title: HttpContextAccessor dangerous usage,
+    Severity: Warning,
+    WarningLevel: 1,
+    Location: {ProjectDirectory}testapp/App/additional/InvalidHttpContextAccessorUse.cs(20,24),
+    Code: httpContextAccessor.HttpContext,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/reference/analysis/rules/altinnapp0500,
+    MessageFormat: IHttpContextAccessor.HttpContext should not be accessed in a constructor, see guidance at: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/use-http-context?view=aspnetcore-8.0#httpcontext-isnt-thread-safe,
+    Message: IHttpContextAccessor.HttpContext should not be accessed in a constructor, see guidance at: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/use-http-context?view=aspnetcore-8.0#httpcontext-isnt-thread-safe,
+    Category: CodeSmells
+  },
+  {
+    Id: ALTINNAPP0500,
+    Title: HttpContextAccessor dangerous usage,
+    Severity: Warning,
+    WarningLevel: 1,
+    Location: {ProjectDirectory}testapp/App/additional/InvalidHttpContextAccessorUse.cs(21,44),
+    Code: .HttpContext,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/reference/analysis/rules/altinnapp0500,
+    MessageFormat: IHttpContextAccessor.HttpContext should not be accessed in a constructor, see guidance at: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/use-http-context?view=aspnetcore-8.0#httpcontext-isnt-thread-safe,
+    Message: IHttpContextAccessor.HttpContext should not be accessed in a constructor, see guidance at: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/use-http-context?view=aspnetcore-8.0#httpcontext-isnt-thread-safe,
+    Category: CodeSmells
+  },
+  {
+    Id: ALTINNAPP0500,
+    Title: HttpContextAccessor dangerous usage,
+    Severity: Warning,
+    WarningLevel: 1,
+    Location: {ProjectDirectory}testapp/App/additional/InvalidHttpContextAccessorUse.cs(35,50),
+    Code: httpContextAccessor.HttpContext,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/reference/analysis/rules/altinnapp0500,
+    MessageFormat: IHttpContextAccessor.HttpContext should not be accessed in a constructor, see guidance at: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/use-http-context?view=aspnetcore-8.0#httpcontext-isnt-thread-safe,
+    Message: IHttpContextAccessor.HttpContext should not be accessed in a constructor, see guidance at: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/use-http-context?view=aspnetcore-8.0#httpcontext-isnt-thread-safe,
+    Category: CodeSmells
+  },
+  {
+    Id: ALTINNAPP0500,
+    Title: HttpContextAccessor dangerous usage,
+    Severity: Warning,
+    WarningLevel: 1,
+    Location: {ProjectDirectory}testapp/App/additional/InvalidHttpContextAccessorUse.cs(36,50),
+    Code: httpContextAccessor.HttpContext,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/reference/analysis/rules/altinnapp0500,
+    MessageFormat: IHttpContextAccessor.HttpContext should not be accessed in a constructor, see guidance at: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/use-http-context?view=aspnetcore-8.0#httpcontext-isnt-thread-safe,
+    Message: IHttpContextAccessor.HttpContext should not be accessed in a constructor, see guidance at: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/use-http-context?view=aspnetcore-8.0#httpcontext-isnt-thread-safe,
+    Category: CodeSmells
+  },
+  {
+    Id: ALTINNAPP0500,
+    Title: HttpContextAccessor dangerous usage,
+    Severity: Warning,
+    WarningLevel: 1,
+    Location: {ProjectDirectory}testapp/App/additional/InvalidHttpContextAccessorUse.cs(37,70),
+    Code: .HttpContext,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/reference/analysis/rules/altinnapp0500,
+    MessageFormat: IHttpContextAccessor.HttpContext should not be accessed in a constructor, see guidance at: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/use-http-context?view=aspnetcore-8.0#httpcontext-isnt-thread-safe,
+    Message: IHttpContextAccessor.HttpContext should not be accessed in a constructor, see guidance at: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/use-http-context?view=aspnetcore-8.0#httpcontext-isnt-thread-safe,
+    Category: CodeSmells
+  }
+]

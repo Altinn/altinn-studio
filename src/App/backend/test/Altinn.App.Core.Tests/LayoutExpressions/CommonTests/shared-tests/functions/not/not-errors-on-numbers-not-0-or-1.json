@@ -1,0 +1,5 @@
+{
+  "name": "Not errors on numbers not 0 or 1",
+  "expression": ["not", 1337],
+  "expectsFailure": "Expected boolean, got value 1337"
+}

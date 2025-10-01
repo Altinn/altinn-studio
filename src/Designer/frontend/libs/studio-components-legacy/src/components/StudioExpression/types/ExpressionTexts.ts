@@ -32,6 +32,7 @@ export type ExpressionTexts = {
   logicalOperator: string;
   logicalTupleOperators: Record<LogicalTupleOperator, string>;
   manual: string;
+  missingDataModelLabel: string;
   numberValidationError: string;
   or: string;
   predefinedGatewayActions: Record<PredefinedGatewayAction, string>;

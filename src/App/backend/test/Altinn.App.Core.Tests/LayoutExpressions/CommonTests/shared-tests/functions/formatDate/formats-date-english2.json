@@ -1,0 +1,8 @@
+{
+  "name": "Should format date in english",
+  "expression": ["formatDate", "2023-10-26T13:12:38.069Z"],
+  "expects": "10/26/23",
+  "profileSettings": {
+    "language": "en"
+  }
+}

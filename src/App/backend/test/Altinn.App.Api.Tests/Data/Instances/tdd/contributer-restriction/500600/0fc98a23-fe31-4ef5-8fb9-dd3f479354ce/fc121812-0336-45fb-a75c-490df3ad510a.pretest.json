@@ -1,0 +1,22 @@
+{
+    "id": "fc121812-0336-45fb-a75c-490df3ad510a",
+    "instanceGuid": "0fc98a23-fe31-4ef5-8fb9-dd3f479354ce",
+    "dataType": "customElement",
+    "filename": "test.pdf",
+    "contentType": "application/pdf",
+    "blobStoragePath": null,
+    "selfLinks": null,
+    "size": 0,
+    "contentHash": null,
+    "locked": false,
+    "refs": null,
+    "isRead": true,
+    "tags": [],
+    "deleteStatus": null,
+    "fileScanResult": "NotApplicable",
+    "references": null,
+    "created": null,
+    "createdBy": null,
+    "lastChanged": "2024-01-10T22:04:31.511965Z",
+    "lastChangedBy": null
+}

@@ -1,0 +1,14 @@
+.legendHelpTextContainer {
+  display: flex;
+  flex-direction: row;
+}
+
+.legendSpan {
+  display: inline-flex;
+}
+
+.padlock {
+  margin-top: 0.2em;
+  margin-right: 0.2em;
+  flex-shrink: 0;
+}

@@ -1,0 +1,5 @@
+{
+  "name": "No string ends with a null",
+  "expression": ["endsWith", "Hello", null],
+  "expects": false
+}

@@ -9,6 +9,7 @@ import type {
   ResourceContactPoint,
   ResourceStatusOption,
   ResourceTypeOption,
+  SupportedLanguage,
 } from 'app-shared/types/ResourceAdm';
 import {
   mapKeywordsArrayToString,
@@ -700,5 +701,31 @@ describe('AboutResourcePage', () => {
     expect(
       screen.queryByText(textMock('resourceadm.about_resource_limited_by_rrr_label')),
     ).not.toBeInTheDocument();
+  });
+
+  it('should display empty text in description field if language key is not set', async () => {
+    const user = userEvent.setup();
+    render(
+      <AboutResourcePage
+        {...defaultProps}
+        validationErrors={[]}
+        resourceData={{
+          ...mockResource1,
+          description: {
+            nb: mockResource1.description.nb,
+          } as SupportedLanguage,
+        }}
+      />,
+    );
+
+    const descriptionEnTab = screen.getByLabelText(
+      `${textMock('language.en')} ${textMock('resourceadm.about_resource_resource_description_label')}`,
+    );
+    await user.click(descriptionEnTab);
+
+    const descriptionEnInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_resource_description_label'),
+    });
+    expect(descriptionEnInput).toHaveValue('');
   });
 });

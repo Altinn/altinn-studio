@@ -1,0 +1,25 @@
+.signeeList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0;
+  width: 90%;
+}
+
+.signeeListItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.divider {
+  width: 100%;
+  border-top: 1px dashed var(--ds-color-neutral-border-subtle);
+  margin-top: 0;
+  margin-bottom: var(--ds-size-1);
+}
+
+.signeeDescription {
+  color: var(--ds-color-neutral-text-subtle);
+  font-style: italic;
+}

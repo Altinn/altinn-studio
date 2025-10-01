@@ -1,0 +1,69 @@
+@media print {
+  .container {
+    display: flex !important;
+  }
+}
+
+.xs {
+  border-bottom: 1px dashed #949494;
+}
+
+.xs > div:nth-child(2) {
+  padding-left: 12px;
+}
+
+@media (min-width: 600px) {
+  .sm {
+    border-bottom: 1px dashed #949494;
+  }
+
+  .sm > div:nth-child(2) {
+    padding-left: 12px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .md {
+    border-bottom: 1px dashed #949494;
+  }
+
+  .md > div:nth-child(2) {
+    padding-left: 12px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .lg {
+    border-bottom: 1px dashed #949494;
+  }
+
+  .lg > div:nth-child(2) {
+    padding-left: 12px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .xl {
+    border-bottom: 1px dashed #949494;
+  }
+
+  .xl > div:nth-child(2) {
+    padding-left: 12px;
+  }
+}
+
+.errorFallback {
+  border: 3px solid red;
+  padding: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Gap between multiple .errorFallback over/under each other */
+.errorFallback + .errorFallback {
+  margin-top: 12px;
+}
+
+.errorFallback li {
+  white-space: pre-line;
+}

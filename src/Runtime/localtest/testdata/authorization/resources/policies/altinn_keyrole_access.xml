@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xacml:Policy xmlns:xsl="http://www.w3.org/2001/XMLSchema-instance" xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" PolicyId="urn:altinn:resource:altinn_keyrole_access:policyid:1" Version="1.0" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides">
+    <xacml:Target/>
+    <xacml:Rule RuleId="urn:altinn:resource:altinn_keyrole_access:ruleid:1" Effect="Permit">
+        <xacml:Description>SystemResource policy for resource; altinn_keyrole_access for all roles defines as key roles; SREVA, INNH, KOMP, LEDE, DTPR, DTSO, KEMN, BEST, REPR, DAGL, BOBE</xacml:Description>
+        <xacml:Target>
+            <xacml:AnyOf>
+                <xacml:AllOf>
+                    <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+                        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">SREVA</xacml:AttributeValue>
+                        <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+                    </xacml:Match>
+                </xacml:AllOf>
+                <xacml:AllOf>
+                    <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+                        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">INNH</xacml:AttributeValue>
+                        <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+                    </xacml:Match>
+                </xacml:AllOf>
+                <xacml:AllOf>
+                    <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+                        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">KOMP</xacml:AttributeValue>
+                        <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+                    </xacml:Match>
+                </xacml:AllOf>
+                <xacml:AllOf>
+                    <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+                        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">LEDE</xacml:AttributeValue>
+                        <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+                    </xacml:Match>
+                </xacml:AllOf>
+                <xacml:AllOf>
+                    <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+                        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">DTPR</xacml:AttributeValue>
+                        <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+                    </xacml:Match>
+                </xacml:AllOf>
+                <xacml:AllOf>
+                    <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+                        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">DTSO</xacml:AttributeValue>
+                        <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+                    </xacml:Match>
+                </xacml:AllOf>
+                <xacml:AllOf>
+                    <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+                        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">KEMN</xacml:AttributeValue>
+                        <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+                    </xacml:Match>
+                </xacml:AllOf>
+                <xacml:AllOf>
+                    <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+                        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">BEST</xacml:AttributeValue>
+                        <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+                    </xacml:Match>
+                </xacml:AllOf>
+                <xacml:AllOf>
+                    <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+                        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">REPR</xacml:AttributeValue>
+                        <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+                    </xacml:Match>
+                </xacml:AllOf>
+                <xacml:AllOf>
+                    <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+                        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">DAGL</xacml:AttributeValue>
+                        <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+                    </xacml:Match>
+                </xacml:AllOf>
+                <xacml:AllOf>
+                    <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+                        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">BOBE</xacml:AttributeValue>
+                        <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+                    </xacml:Match>
+                </xacml:AllOf>
+            </xacml:AnyOf>
+            <xacml:AnyOf>
+                <xacml:AllOf>
+                    <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">altinn_keyrole_access</xacml:AttributeValue>
+                        <xacml:AttributeDesignator AttributeId="urn:altinn:resource" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+                    </xacml:Match>
+                </xacml:AllOf>
+            </xacml:AnyOf>
+            <xacml:AnyOf>
+                <xacml:AllOf>
+                    <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
+                        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">access</xacml:AttributeValue>
+                        <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+                    </xacml:Match>
+                </xacml:AllOf>
+            </xacml:AnyOf>
+        </xacml:Target>
+    </xacml:Rule>
+    <xacml:ObligationExpressions>
+        <xacml:ObligationExpression FulfillOn="Permit" ObligationId="urn:altinn:obligation:1">
+            <xacml:AttributeAssignmentExpression AttributeId="urn:altinn:obligation-assignment:1" Category="urn:altinn:minimum-authenticationlevel">
+                <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#integer">3</xacml:AttributeValue>
+            </xacml:AttributeAssignmentExpression>
+        </xacml:ObligationExpression>
+    </xacml:ObligationExpressions>
+</xacml:Policy>

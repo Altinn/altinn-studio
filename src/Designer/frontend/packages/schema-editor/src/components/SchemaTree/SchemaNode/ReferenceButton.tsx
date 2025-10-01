@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ReferenceNode } from '@altinn/schema-model';
 import { extractNameFromPointer } from '@altinn/schema-model';
-import { StudioButton } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import classes from './ReferenceButton.module.css';
 import { useSavableSchemaModel } from '../../../hooks/useSavableSchemaModel';
 import { useSchemaEditorAppContext } from '../../../hooks/useSchemaEditorAppContext';
@@ -20,7 +20,7 @@ export const ReferenceButton = ({ node }: ReferenceButtonProps) => {
   const handleClick = () => setSelectedTypePointer(reference);
 
   return (
-    <StudioButton className={classes.root} color='second' onClick={handleClick} variant='secondary'>
+    <StudioButton className={classes.root} onClick={handleClick} variant='secondary'>
       {name}
     </StudioButton>
   );

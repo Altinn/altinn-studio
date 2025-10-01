@@ -1,0 +1,17 @@
+﻿{
+  Activities: [
+    {
+      Name: Validation.ValidateInstanceAtTask,
+      IdFormat: W3C,
+      Tags: [
+        {
+          task.id: Task_1
+        },
+        {
+          validation.total_issue_count: 0
+        }
+      ],
+      HasParent: false
+    }
+  ]
+}

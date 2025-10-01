@@ -40,7 +40,7 @@ export const ActionButtons = ({ schemaPointer, className, uniquePointer }: Actio
         />
       )}
       <ActionButton
-        color='danger'
+        data-color='danger'
         icon={<TrashIcon />}
         titleKey={actionButtonTitleKey}
         onClick={deleteNode}

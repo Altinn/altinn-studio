@@ -1,0 +1,48 @@
+.deleteLoader {
+  margin-bottom: 1rem;
+  margin-right: 0.5rem;
+  float: right;
+}
+
+.button {
+  float: right;
+  padding-right: 0;
+}
+
+tr.noRowSpacing td {
+  padding: inherit;
+  padding-left: 6px;
+}
+
+tr.blueUnderlineDotted td {
+  border-bottom: 1px dotted var(--border-color-primary);
+}
+
+tr.grayUnderlineDotted td {
+  border-bottom: 1px dotted var(--ds-color-neutral-border-strong);
+}
+
+tr.grayUnderline td {
+  border-bottom: 1px solid var(--ds-color-neutral-border-strong);
+}
+
+.altinnLoader {
+  margin-bottom: 1rem;
+  margin-right: 0.8125rem;
+}
+
+.marginLeftAuto {
+  margin-left: auto;
+}
+
+.statusInfected {
+  color: var(--fds-semantic-text-danger-default);
+  font-weight: 500;
+}
+
+.statusScanning {
+  color: var(--fds-semantic-text-info-default);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

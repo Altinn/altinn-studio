@@ -1,0 +1,12 @@
+.fieldWrapper {
+  display: grid;
+  gap: var(--ds-size-2);
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.leftAlign {
+  text-align: left;
+}

@@ -1,0 +1,6 @@
+﻿stdout line 1
+stdout line 2
+stdout line 3
+stderr line 1
+stderr line 2
+stderr line 3

@@ -1,0 +1,5 @@
+{
+  "name": "Should fail when given 3 arguments",
+  "expression": ["if", false, 123.456, "else"],
+  "expectsFailure": "Expected either 2 arguments (if) or 4 (if + else), got 3"
+}

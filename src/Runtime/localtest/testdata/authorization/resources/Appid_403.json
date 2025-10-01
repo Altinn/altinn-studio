@@ -1,0 +1,60 @@
+{
+	"title": {
+		"en": "The Shortcut",
+		"nb": "Snarveien",
+		"nn": "Snarvegen"
+	},
+	"sector": null,
+	"status": null,
+	"validTo": "9999-12-31T23:59:59.997",
+	"homepage": null,
+	"isPartOf": null,
+	"keywords": null,
+	"validFrom": "2020-03-04T18:04:27.27",
+	"identifier": "appid-403",
+	"isComplete": false,
+	"description": {
+		"en": "The Shortcut",
+		"nb": "Snarveien",
+		"nn": "Snarvegen"
+	},
+	"resourceType": "MaskinportenSchema",
+	"thematicArea": null,
+	"isPublicService": true,
+	"rightDescription": {
+		"en": "Gives access to shortcuts.",
+		"nb": "Gir tilgang til snarveier.",
+		"nn": "Gir tilgang til snarveger."
+	},
+	"resourceReferences": [
+		{
+			"reference": "8f08210a-d792-48f5-9e27-0f029e41111e",
+			"referenceType": "DelegationSchemeId",
+			"referenceSource": "Altinn2"
+		},
+		{
+			"reference": "nav:paa/v1/snartenkt",
+			"referenceType": "MaskinportenScope",
+			"referenceSource": "Altinn2"
+		},
+		{
+			"reference": "AppId:400",
+			"referenceType": "ServiceCode",
+			"referenceSource": "Altinn2"
+		},
+		{
+			"reference": "1",
+			"referenceType": "ServiceEditionCode",
+			"referenceSource": "Altinn2"
+		}
+	],
+	"hasCompetentAuthority": {
+		"orgcode": "PAA",
+		"organization": "985399077",
+		"name": {
+		"en": "DEPARTMENT OF HUMBUG",
+		"nb": "PÅFUNNSETATEN",
+		"nn": "PÅFUNNSETATEN"
+		}
+	}
+}

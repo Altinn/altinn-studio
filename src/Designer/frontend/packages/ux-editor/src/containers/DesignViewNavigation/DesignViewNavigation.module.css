@@ -1,9 +1,4 @@
 .menu {
-  --menu-height: 20px;
-}
-
-.menu {
-  height: var(--menu-height);
   align-items: center;
 }
 

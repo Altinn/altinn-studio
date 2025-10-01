@@ -1,0 +1,9 @@
+.header {
+  background-color: var(--ds-color-accent-surface-default);
+  font-weight: 400;
+  border-bottom-color: var(--ds-color-accent-base-hover);
+}
+
+.table tr td:last-child {
+  width: 1%;
+}

@@ -1,0 +1,5 @@
+{
+  "name": "A simple case comparing two dates",
+  "expression": ["compare", "2020-01-01", "isBefore", "2020-01-02"],
+  "expects": true
+}

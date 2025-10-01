@@ -1,0 +1,49 @@
+﻿{
+  Description: Altinn-Test-Tools GetSystemUserToken,
+  AuthType: Altinn.App.Core.Features.Auth.Authenticated+SystemUser,
+  Auth: {
+    SystemUserId: [
+      f58fe166-bc22-4899-beb7-c3e8e3332f43
+    ],
+    SystemUserOrgNr: 0192:991825827,
+    SupplierOrgNr: 0192:991825827,
+    SystemId: 53e63a18-8aca-47a8-893f-a623e96715bb,
+    AuthenticationLevel: 3,
+    AuthenticationMethod: maskinporten,
+    TokenIssuer: Maskinporten,
+    TokenIsExchanged: true,
+    Scopes: altinn:instances.read altinn:instances.write,
+    ClientId: 22714fe8-cdfa-4200-8760-4ac23804ac85,
+    Token: eyJhbGciOiJSUzI1NiIsImtpZCI6IkQ4RDg2N0M3RDUyMTM2MEY0RjM1Q0Q1MTU4MEM0OUEwNTE2NUQ0RTEiLCJ0eXAiOiJKV1QiLCJ4NWMiOiJEOEQ4NjdDN0Q1MjEzNjBGNEYzNUNENTE1ODBDNDlBMDUxNjVENEUxIn0.eyJpc3MiOiJodHRwczovL3BsYXRmb3JtLnR0MDIuYWx0aW5uLm5vL2F1dGhlbnRpY2F0aW9uL2FwaS92MS9vcGVuaWQvIiwic2NvcGUiOiJhbHRpbm46aW5zdGFuY2VzLnJlYWQgYWx0aW5uOmluc3RhbmNlcy53cml0ZSIsImNsaWVudF9pZCI6IjIyNzE0ZmU4LWNkZmEtNDIwMC04NzYwLTRhYzIzODA0YWM4NSIsImNvbnN1bWVyIjp7ImF1dGhvcml0eSI6ImlzbzY1MjMtYWN0b3JpZC11cGlzIiwiSUQiOiIwMTkyOjk5MTgyNTgyNyJ9LCJleHAiOjE3NDI5MDg3NTgsImlhdCI6MTc0MjkwNjk1OCwianRpIjoiYVkwcDJHelo5cFgycU16ZGdHOEZVUGFxaDRERHhoWS1DVDl2eGxkWDVSSCIsImF1dGhvcml6YXRpb25fZGV0YWlscyI6W3sidHlwZSI6InVybjphbHRpbm46c3lzdGVtdXNlciIsInN5c3RlbXVzZXJfaWQiOlsiZjU4ZmUxNjYtYmMyMi00ODk5LWJlYjctYzNlOGUzMzMyZjQzIl0sInN5c3RlbXVzZXJfb3JnIjp7ImF1dGhvcml0eSI6ImlzbzY1MjMtYWN0b3JpZC11cGlzIiwiSUQiOiIwMTkyOjk5MTgyNTgyNyJ9LCJzeXN0ZW1faWQiOiI1M2U2M2ExOC04YWNhLTQ3YTgtODkzZi1hNjIzZTk2NzE1YmIifV0sInVybjphbHRpbm46YXV0aGVudGljYXRlbWV0aG9kIjoibWFza2lucG9ydGVuIiwidXJuOmFsdGlubjphdXRobGV2ZWwiOjMsInRva2VuX3R5cGUiOiJCZWFyZXIiLCJuYmYiOjE3NDI5MDY5NTgsImFjdHVhbF9pc3MiOiJhbHRpbm4tdGVzdC10b29scyJ9.bVcje62YxmJ8O2Ddc46lNypolarEhWNJdG7UsyXdGMlggOHPXo3tTbKjwiRH7e0zkc4qsKqoVvptA64Sp7Qq5rhZZMAU1n_UEpXHXgrlmFCVzE0YQy2EZQtDSPMDZuXAgNIhqe0uHJXRHjQKvA2kuTzKrYD7qT6ixasX13RTd8J_g0Cn_-lmrkVUSHX08cdRmvxqEqyplo6o5Gfn3HcPZE4DwK4lFwUvc0ME7byTluMk3gGs-wdVVI7jkqRxmvb_vns5oMvRlAbeMqQi3TpRPxVA3vv48iUTqT3soecP30MfFayzGLk_y05e5rTRCfwEf9yofd9qTi-IXGpEYTP6lg
+  },
+  Jwt: {
+    actual_iss: altinn-test-tools,
+    authorization_details: {
+      ValueKind: Array
+    },
+    client_id: 22714fe8-cdfa-4200-8760-4ac23804ac85,
+    consumer: {
+      ValueKind: Object
+    },
+    exp: 1742908758,
+    iat: 1742906958,
+    iss: https://platform.tt02.altinn.no/authentication/api/v1/openid/,
+    jti: aY0p2GzZ9pX2qMzdgG8FUPaqh4DDxhY-CT9vxldX5RH,
+    nbf: 1742906958,
+    scope: altinn:instances.read altinn:instances.write,
+    token_type: Bearer,
+    urn:altinn:authenticatemethod: maskinporten,
+    urn:altinn:authlevel: 3
+  },
+  Details: {
+    Party: {
+      PartyId: 1234,
+      PartyTypeName: Organisation,
+      OrgNumber: 991825827,
+      Name: Test AS,
+      IsDeleted: false,
+      OnlyHierarchyElementWithNoAccess: false
+    },
+    CanInstantiate: true
+  }
+}

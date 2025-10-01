@@ -1,0 +1,5 @@
+{
+  "name": "Should be false when the string does not ends with the specified string",
+  "expression": ["endsWith", "Hello", "me"],
+  "expects": false
+}

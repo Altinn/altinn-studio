@@ -1,0 +1,5 @@
+{
+  "name": "Empty array inside expression gives error",
+  "expression": ["equals", [], true],
+  "expectsFailure": "Missing function name in expression"
+}

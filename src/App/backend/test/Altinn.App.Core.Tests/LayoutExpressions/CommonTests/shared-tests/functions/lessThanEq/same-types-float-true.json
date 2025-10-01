@@ -1,0 +1,5 @@
+{
+  "name": "Should work with floats (true)",
+  "expression": ["lessThanEq", 123.456, 123.456],
+  "expects": true
+}

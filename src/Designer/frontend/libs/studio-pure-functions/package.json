@@ -1,6 +1,6 @@
 {
   "name": "@studio/pure-functions",
-  "packageManager": "yarn@4.9.2",
+  "packageManager": "yarn@4.9.4",
   "version": "0.1.0",
   "main": "./src/index.ts",
   "scripts": {

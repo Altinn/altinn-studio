@@ -1,0 +1,141 @@
+{
+  "name": "Recursive group Layout with one row",
+  "layouts": {
+    "Page1": {
+      "data": {
+        "layout": [
+          {
+            "id": "comp1",
+            "type": "Header"
+          },
+          {
+            "id": "group0",
+            "type": "RepeatingGroup",
+            "children": ["group1"],
+            "dataModelBindings": {
+              "group": "group"
+            }
+          },
+          {
+            "id": "group1",
+            "type": "RepeatingGroup",
+            "children": ["comp3", "comp4"],
+            "dataModelBindings": {
+              "group": "group.subgroup"
+            }
+          },
+          {
+            "id": "comp3",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "group.subgroup.asdf"
+            }
+          },
+          {
+            "id": "comp4",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "group.subgroup.asdf"
+            }
+          }
+        ]
+      }
+    },
+    "Page2": {
+      "data": {
+        "layout": [
+          {
+            "id": "comp5",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "asdf"
+            }
+          },
+          {
+            "id": "comp6",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "asdf"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "expectedContexts": [
+    {
+      "component": "Page1",
+      "currentLayout": "Page1",
+      "children": [
+        {
+          "component": "comp1",
+          "currentLayout": "Page1"
+        },
+        {
+          "component": "group0",
+          "currentLayout": "Page1",
+          "children": [
+            {
+              "component": "group0",
+              "currentLayout": "Page1",
+              "rowIndices": [0],
+              "children": [
+                {
+                  "component": "group1",
+                  "currentLayout": "Page1",
+                  "rowIndices": [0],
+                  "children": [
+                    {
+                      "component": "group1",
+                      "currentLayout": "Page1",
+                      "rowIndices": [0, 0],
+                      "children": [
+                        {
+                          "component": "comp3",
+                          "currentLayout": "Page1",
+                          "rowIndices": [0, 0]
+                        },
+                        {
+                          "component": "comp4",
+                          "currentLayout": "Page1",
+                          "rowIndices": [0, 0]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "component": "Page2",
+      "currentLayout": "Page2",
+      "children": [
+        {
+          "component": "comp5",
+          "currentLayout": "Page2"
+        },
+        {
+          "component": "comp6",
+          "currentLayout": "Page2"
+        }
+      ]
+    }
+  ],
+  "dataModel": {
+    "group": [
+      {
+        "altinnRowId": "row0",
+        "subgroup": [
+          {
+            "altinnRowId": "row0-child0",
+            "asdf": "123"
+          }
+        ]
+      }
+    ]
+  }
+}

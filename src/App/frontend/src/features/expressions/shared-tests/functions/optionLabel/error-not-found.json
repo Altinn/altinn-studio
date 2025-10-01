@@ -1,0 +1,12 @@
+{
+  "name": "Should fail if the code list is not found",
+  "expression": ["optionLabel", "animals", "s"],
+  "expectsFailure": "Could not find options with id \"animals\"",
+  "codeLists": {
+    "foods": [
+      { "label": "foods.squash", "value": "s" },
+      { "label": "foods.pumpkin", "value": "p" },
+      { "label": "foods.zucchini", "value": "z" }
+    ]
+  }
+}

@@ -1,0 +1,42 @@
+﻿[basic/default] [INIT WARN] No scenario config directory found at /App/scenario-overrides/config
+[basic/default] [INIT INFO] Fixture configuration updated
+[basic/default] [INFO] ### Request: Instances.Post - User: User/1337/501337, AuthLevel: 2, AuthMethod: BankID
+[basic/default] [INFO] IInstantiationValidator.Validate
+[basic/default] [INFO] IInstantiationProcessor.DataCreation
+[basic/default] [INFO] IDataWriteProcessor.ProcessDataWrite
+[basic/default] [INFO] IProcessTaskStart.Start
+[basic/default] [INFO] ### Response: Instances.Post - CreatedResult, StatusCode: 201
+[basic/default] [INFO] ### Request: Instances.Get - User: User/1337/501337, AuthLevel: 2, AuthMethod: BankID
+[basic/default] [INFO] ### Response: Instances.Get - OkObjectResult, StatusCode: 200
+[basic/default] [INFO] ### Request: ApplicationMetadata.GetAction - User: None/none, AuthLevel: 0, AuthMethod: none
+[basic/default] [INFO] ### Response: ApplicationMetadata.GetAction - OkObjectResult, StatusCode: 200
+[basic/default] [INFO] ### Request: Data.Get - User: User/1337/501337, AuthLevel: 2, AuthMethod: BankID
+[basic/default] [INFO] IDataProcessor.ProcessDataRead
+[basic/default] [INFO] ### Response: Data.Get - OkObjectResult, StatusCode: 200
+[basic/default] [INFO] ### Request: Data.PatchFormDataMultiple - User: User/1337/501337, AuthLevel: 2, AuthMethod: BankID
+[basic/default] [INFO] IDataProcessor.ProcessDataWrite
+[basic/default] [INFO] IDataWriteProcessor.ProcessDataWrite
+[basic/default] [INFO] IValidator.HasRelevantChanges
+[basic/default] [INFO] IValidator.Validate
+[basic/default] [INFO] IFormDataValidator.HasRelevantChanges
+[basic/default] [INFO] IFormDataValidator.ValidateFormData
+[basic/default] [INFO] ### Response: Data.PatchFormDataMultiple - OkObjectResult, StatusCode: 200
+[basic/default] [INFO] ### Request: Process.NextElement - User: User/1337/501337, AuthLevel: 2, AuthMethod: BankID
+[basic/default] [INFO] IValidator.Validate
+[basic/default] [INFO] ITaskValidator.ValidateTask
+[basic/default] [INFO] IDataElementValidator.ValidateDataElement
+[basic/default] [INFO] IFormDataValidator.ValidateFormData
+[basic/default] [INFO] IProcessTaskEnd.End
+[basic/default] [INFO] IDataProcessor.ProcessDataRead
+[basic/default] [INFO] IExternalApiClient.GetExternalApiDataAsync
+[basic/default] [INFO] IProcessEnd.End
+[basic/default] [INFO] ### Response: Process.NextElement - OkObjectResult, StatusCode: 200
+[basic/default] [INFO] ### Request: Instances.Get - User: User/1337/501337, AuthLevel: 2, AuthMethod: BankID
+[basic/default] [INFO] ### Response: Instances.Get - OkObjectResult, StatusCode: 200
+[basic/default] [INFO] ### Request: ApplicationMetadata.GetAction - User: None/none, AuthLevel: 0, AuthMethod: none
+[basic/default] [INFO] ### Response: ApplicationMetadata.GetAction - OkObjectResult, StatusCode: 200
+[basic/default] [INFO] ### Request: Data.Get - User: User/1337/501337, AuthLevel: 2, AuthMethod: BankID
+[basic/default] [INFO] IDataProcessor.ProcessDataRead
+[basic/default] [INFO] ### Response: Data.Get - OkObjectResult, StatusCode: 200
+[basic/default] [INFO] ### Request: Data.Get - User: User/1337/501337, AuthLevel: 2, AuthMethod: BankID
+[basic/default] [INFO] ### Response: Data.Get - FileStreamResult, StatusCode: 

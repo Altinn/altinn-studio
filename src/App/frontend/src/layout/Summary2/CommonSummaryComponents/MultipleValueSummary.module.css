@@ -1,0 +1,44 @@
+.labelValueWrapper:not(.compact) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+}
+
+.labelValueWrapper.compact {
+  display: inline-block;
+}
+
+.labelValueWrapper.compact label {
+  margin-right: var(--ds-size-2);
+}
+
+.formValue {
+  font-weight: 500;
+}
+
+.emptyValue {
+  color: var(--ds-color-neutral-text-subtle);
+  font-style: italic;
+}
+
+.error {
+  border-bottom: var(--ds-color-danger-border-default) solid 2px;
+}
+
+.summaryItemWrapper {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: row;
+  break-inside: avoid;
+}
+
+.summaryItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+}
+
+.editButton {
+  margin-left: auto;
+  min-width: unset;
+}

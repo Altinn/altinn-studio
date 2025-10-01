@@ -1,0 +1,41 @@
+{
+	"title": {
+		"nb": "Automation Regression",
+		"nn": "Automation Regression"
+	},
+	"sector": null,
+	"status": null,
+	"validTo": "9999-12-31T23:59:59.997",
+	"homepage": null,
+	"isPartOf": null,
+	"keywords": null,
+	"validFrom": "2021-03-19T13:59:54.017",
+	"identifier": "appid-201",
+	"isComplete": false,
+	"description": null,
+	"resourceType": "MaskinportenSchema",
+	"thematicArea": null,
+	"isPublicService": true,
+	"rightDescription": {},
+	"resourceReferences": [
+		{
+			"reference": "45164e1d-147b-4c51-8446-19d9233a0c27",
+			"referenceType": "DelegationSchemeId",
+			"referenceSource": "Altinn2"
+		},
+		{
+			"reference": "AppId:201",
+			"referenceType": "ServiceCode",
+			"referenceSource": "Altinn2"
+		},
+		{
+			"reference": "1",
+			"referenceType": "ServiceEditionCode",
+			"referenceSource": "Altinn2"
+		}
+	],
+	"hasCompetentAuthority": {
+		"orgcode": "DIGDIR",
+		"organization": "991825827"
+	}
+}

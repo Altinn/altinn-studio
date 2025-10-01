@@ -1,6 +1,7 @@
 import React from 'react';
 import classes from './SubResources.module.css';
-import { StudioButton, StudioLabelAsParagraph } from '@studio/components-legacy';
+import { StudioLabelAsParagraph } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import { ResourceNarrowingList } from './ResourceNarrowingList';
 import { useTranslation } from 'react-i18next';
@@ -58,7 +59,6 @@ export const SubResources = (): React.ReactElement => {
         <StudioButton
           type='button'
           onClick={handleClickAddResource}
-          color='second'
           fullWidth
           icon={<PlusIcon fontSize='1.5rem' />}
         >

@@ -1,0 +1,16 @@
+{
+  "OrgNumber": "405003309",
+  "Name": "Testdepartementet",
+  "UnitType": "AS",
+  "TelephoneNumber": "12345678",
+  "MobileNumber": "92010000",
+  "FaxNumber": "92110000",
+  "EMailAddress": "localtest@digdir.no",
+  "InternetAddress": "http://digdir.no",
+  "MailingAddress": "Lørenfaret 1C",
+  "MailingPostalCode": "0580",
+  "MailingPostalCity": "Oslo",
+  "BusinessAddress": "Lørenfaret 1C",
+  "BusinessPostalCode": "0580",
+  "BusinessPostalCity": "Oslo"
+}

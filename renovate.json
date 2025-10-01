@@ -24,6 +24,11 @@
       "commitMessageSuffix": " (app)"
     },
     {
+      "matchFileNames": ["src/Runtime/localtest/**"],
+      "additionalBranchPrefix": "localtest/",
+      "commitMessageSuffix": " (localtest)"
+    },
+    {
       "matchFileNames": ["src/App/**"],
       "matchPackageNames": [
         "@digdir/designsystemet-react",

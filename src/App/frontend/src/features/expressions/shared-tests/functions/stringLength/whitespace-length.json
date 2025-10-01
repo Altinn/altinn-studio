@@ -1,0 +1,5 @@
+{
+  "name": "Should count whitespace as a character when counting string length",
+  "expression": ["stringLength", " "],
+  "expects": 1
+}

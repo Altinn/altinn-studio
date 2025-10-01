@@ -1,7 +1,6 @@
 import React from 'react';
 import classes from './PropertiesHeader.module.css';
 import { formItemConfigs } from '../../../data/formItemConfig';
-import { StudioSectionHeader } from '@studio/components-legacy';
 import { getComponentHelperTextByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
 import { EditComponentIdRow } from './EditComponentIdRow';
@@ -14,7 +13,7 @@ import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
 import { useComponentSchemaQuery } from '@altinn/ux-editor/hooks/queries/useComponentSchemaQuery';
 import { TextResourceMainConfig } from './TextResourceMainConfig';
 import { DataModelMainConfig } from './DataModelMainConfig';
-import { StudioAlert } from '@studio/components';
+import { StudioAlert, StudioSectionHeader } from '@studio/components';
 
 export type PropertiesHeaderProps = {
   formItem: FormItem;

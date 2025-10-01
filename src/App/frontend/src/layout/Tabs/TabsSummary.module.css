@@ -1,0 +1,18 @@
+.summaryContent {
+  display: flex;
+  gap: var(--ds-size-6);
+  flex-direction: column;
+}
+
+.tabDivider {
+  height: var(--ds-border-width-highlight);
+  border: none;
+  background-color: var(--ds-color-neutral-border-strong);
+  margin: 0;
+}
+
+.tabWrapper {
+  display: flex;
+  gap: var(--ds-size-8);
+  flex-direction: column;
+}

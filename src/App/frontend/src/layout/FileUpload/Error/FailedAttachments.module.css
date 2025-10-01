@@ -1,0 +1,38 @@
+.list {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.container {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: flex-start;
+}
+
+.wrapper {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.close-button {
+  color: var(--ds-color-neutral-text-default);
+  margin: -16px -16px 0 0;
+  padding: 8px;
+  min-width: 20px;
+  min-height: 20px;
+}
+
+.title {
+  word-break: break-all;
+  font-weight: 500;
+}
+
+.content {
+  margin: 0;
+}
+.content ul {
+  margin: 0;
+}

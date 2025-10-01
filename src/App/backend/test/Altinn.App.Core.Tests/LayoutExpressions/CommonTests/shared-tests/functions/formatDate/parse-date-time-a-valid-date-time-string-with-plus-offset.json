@@ -1,0 +1,14 @@
+{
+  "comment": "This tests our compliance to the date-time format from the JSON Schema Test Suite.",
+  "source": "https://github.com/json-schema-org/JSON-Schema-Test-Suite/blob/main/tests/draft2020-12/optional/format/date-time.json",
+  "name": "Compliance: a valid date-time string with plus offset",
+  "expression": [
+    "formatDate",
+    "1937-01-01T12:00:27.87+00:20",
+    "G yyyy-MM-dd EEEE HH:mm:ss.SSS a"
+  ],
+  "expects": "e.Kr. 1937-01-01 fredag 11:40:27.870 a.m.",
+  "profileSettings": {
+    "language": "nb"
+  }
+}

@@ -1,12 +1,8 @@
 import React, { forwardRef, useState } from 'react';
 import classes from './DeleteModal.module.css';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioButton,
-  StudioModal,
-  StudioSpinner,
-  StudioTextfield,
-} from '@studio/components-legacy';
+import { StudioModal, StudioSpinner, StudioTextfield } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { useForwardedRef } from '@studio/hooks';
 import { TrashIcon } from '@studio/icons';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
@@ -71,7 +67,7 @@ export const DeleteModal = forwardRef<HTMLDialogElement, DeleteModalProps>(
             <>
               <StudioButton
                 variant='secondary'
-                color='danger'
+                data-color='danger'
                 onClick={handleDelete}
                 disabled={app !== nameToDelete}
               >

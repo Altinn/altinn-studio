@@ -1,0 +1,11 @@
+{
+  "name": "Should return text resource value",
+  "expression": ["text", "found.key"],
+  "expects": "Hello world",
+  "textResources": [
+    {
+      "id": "found.key",
+      "value": "Hello world"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "name": "Lookup from multiple sources with and without default values",
+  "expression": [
+    "text",
+    "found.key"
+  ],
+  "expects": "!123/3b1d693c-83d8-486b-84a0-0e04607951d9 123 unknown ttd/app {4} {5}!",
+  "textResources": [
+    {
+      "id": "found.key",
+      "value": "!{0} {1} {2} {3} {4} {5}!",
+      "variables": [
+        {
+          "key": "instanceId",
+          "dataSource": "instanceContext"
+        },
+        {
+          "key": "instanceOwnerPartyId",
+          "dataSource": "instanceContext"
+        },
+        {
+          "key": "instanceOwnerPartyType",
+          "dataSource": "instanceContext"
+        },
+        {
+          "key": "appId",
+          "dataSource": "instanceContext"
+        }
+      ]
+    }
+  ],
+  "instance": {
+    "id": "123/3b1d693c-83d8-486b-84a0-0e04607951d9",
+    "instanceOwner": {
+      "partyId": "123",
+      "organisationNumber": null,
+      "personNumber": null,
+      "username": null
+    },
+    "appId": "ttd/app"
+  }
+}

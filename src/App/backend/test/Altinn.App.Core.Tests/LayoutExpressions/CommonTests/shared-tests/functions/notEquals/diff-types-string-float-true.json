@@ -1,0 +1,5 @@
+{
+  "name": "Should work with [string, float] (true)",
+  "expression": ["notEquals", "1234.56789", 1234.5678],
+  "expects": true
+}

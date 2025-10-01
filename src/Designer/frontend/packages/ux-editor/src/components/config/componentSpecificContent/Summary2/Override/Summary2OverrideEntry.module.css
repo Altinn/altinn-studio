@@ -21,6 +21,7 @@
   border-top: 1px solid;
   border-color: var(--fds-semantic-border-divider-subtle);
   width: 100%;
+  margin-bottom: var(--ds-size-8);
 }
 
 .buttongroup {

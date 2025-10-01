@@ -1,0 +1,30 @@
+.summaryItem {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.summaryItemWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+  break-inside: avoid;
+}
+
+.summaryValue {
+  width: -moz-fit-content;
+  width: fit-content;
+}
+
+.error {
+  border-bottom: var(--ds-color-danger-border-default) solid 2px;
+}
+
+.editButton {
+  margin-left: auto;
+  min-width: unset;
+}
+
+.footer {
+  padding-top: 12px;
+}

@@ -230,11 +230,7 @@ internal static class FrontendUpgrade
                         Environment.Exit(1);
                         return;
                     }
-                    returnCode = await LayoutSetUpgrade(
-                        uiFolder,
-                        layoutSetName,
-                        applicationMetadataFile
-                    );
+                    returnCode = await LayoutSetUpgrade(uiFolder, layoutSetName, applicationMetadataFile);
                 }
 
                 if (!skipCustomReceiptUpgrade && returnCode == 0)
@@ -271,12 +267,7 @@ internal static class FrontendUpgrade
                         Environment.Exit(1);
                         return;
                     }
-                    returnCode = await SchemaRefUpgrade(
-                        targetVersion,
-                        uiFolder,
-                        applicationMetadataFile,
-                        textsFolder
-                    );
+                    returnCode = await SchemaRefUpgrade(targetVersion, uiFolder, applicationMetadataFile, textsFolder);
                 }
 
                 if (!skipChecks && returnCode == 0)

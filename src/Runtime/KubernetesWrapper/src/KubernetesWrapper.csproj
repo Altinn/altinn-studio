@@ -7,8 +7,8 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.14.2" />
-    <PackageReference Include="Azure.Monitor.Query" Version="1.7.0" />
-    <PackageReference Include="KubernetesClient" Version="13.0.37" />
+    <PackageReference Include="Azure.Monitor.Query" Version="1.7.1" />
+    <PackageReference Include="KubernetesClient" Version="17.0.14" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
   </ItemGroup>
 

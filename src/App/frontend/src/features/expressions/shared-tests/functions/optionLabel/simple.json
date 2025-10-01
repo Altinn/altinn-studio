@@ -1,0 +1,26 @@
+{
+  "name": "Should look up a simple option label",
+  "expression": ["optionLabel", "foods", "s"],
+  "expects": "Squash",
+  "testCases":[
+    {
+      "expression": ["optionLabel", "foods", "p"],
+      "expects": "Pumpkin"
+    },
+    {
+      "expression": ["optionLabel", "foods", "z"],
+      "expects": "Zucchini"
+    },
+    {
+      "expression": ["optionLabel", "foods", "x"],
+      "expects": null
+    }
+  ],
+  "codeLists": {
+    "foods": [
+      { "label": "Squash", "value": "s" },
+      { "label": "Pumpkin", "value": "p" },
+      { "label": "Zucchini", "value": "z" }
+    ]
+  }
+}

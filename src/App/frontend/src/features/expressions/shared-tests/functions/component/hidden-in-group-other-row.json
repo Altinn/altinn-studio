@@ -1,0 +1,102 @@
+{
+  "name": "Lookup for component inside repeating group where another is hidden",
+  "expression": ["component", "alder"],
+  "expects": 24,
+  "layouts": {
+    "Page1": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "bedrifter",
+            "type": "RepeatingGroup",
+            "dataModelBindings": {
+              "group": "Bedrifter"
+            },
+            "children": ["bedriftsNavn", "ansatte"]
+          },
+          {
+            "id": "bedriftsNavn",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Bedrifter.Navn"
+            }
+          },
+          {
+            "id": "ansatte",
+            "type": "RepeatingGroup",
+            "dataModelBindings": {
+              "group": "Bedrifter.Ansatte"
+            },
+            "children": ["navn", "alder", "myndig"]
+          },
+          {
+            "id": "navn",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Bedrifter.Ansatte.Navn"
+            }
+          },
+          {
+            "id": "alder",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Bedrifter.Ansatte.Alder"
+            },
+            "hidden": ["if", ["dataModel", "Bedrifter.Ansatte.AlderSkjult"], true]
+          },
+          {
+            "id": "myndig",
+            "type": "Paragraph",
+            "textResourceBindings": {
+              "title": "Hurra, den ansatte er myndig!"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Bedrifter": [
+      {
+        "altinnRowId": "company0",
+        "Navn": "Hell og lykke AS",
+        "Ansatte": [
+          {
+            "altinnRowId": "company0-employee0",
+            "Navn": "Kaare",
+            "Alder": 24,
+            "AlderSkjult": false
+          },
+          {
+            "altinnRowId": "company0-employee1",
+            "Navn": "Per",
+            "Alder": 24
+          }
+        ]
+      },
+      {
+        "altinnRowId": "company1",
+        "Navn": "Nedtur og motgang AS",
+        "Ansatte": [
+          {
+            "altinnRowId": "company1-employee0",
+            "Navn": "Arne",
+            "Alder": 24
+          },
+          {
+            "altinnRowId": "company1-employee1",
+            "Navn": "Vidar",
+            "Alder": 14,
+            "AlderSkjult": true
+          }
+        ]
+      }
+    ]
+  },
+  "context": {
+    "component": "myndig",
+    "currentLayout": "Page1",
+    "rowIndices": [1, 0]
+  }
+}

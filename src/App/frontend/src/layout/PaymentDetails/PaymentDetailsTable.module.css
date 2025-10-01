@@ -1,0 +1,11 @@
+.orderDetailsTable {
+  width: 100%;
+}
+
+.tableCaption {
+  text-align: left;
+}
+
+.tableRow:hover td {
+  background-color: var(--ds-color-neutral-background-default);
+}

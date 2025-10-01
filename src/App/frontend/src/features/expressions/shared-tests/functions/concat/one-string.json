@@ -1,0 +1,5 @@
+{
+  "name": "One arguments returns the same",
+  "expression": ["concat", "test"],
+  "expects": "test"
+}

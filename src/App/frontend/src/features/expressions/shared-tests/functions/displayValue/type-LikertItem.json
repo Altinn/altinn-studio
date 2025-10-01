@@ -1,0 +1,47 @@
+{
+  "name": "Display value of LikertItem component",
+  "expression": [
+    "displayValue",
+    "color"
+  ],
+  "context": {
+    "component": "color",
+    "currentLayout": "Page"
+  },
+  "expects": "Green car",
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "color",
+            "type": "LikertItem",
+            "dataModelBindings": {
+              "simpleBinding": "Skjema.Color"
+            },
+            "options": [
+              {
+                "value": "red",
+                "label": "Red car"
+              },
+              {
+                "value": "blue",
+                "label": "Blue car"
+              },
+              {
+                "value": "green",
+                "label": "Green car"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Skjema": {
+      "Color": "green"
+    }
+  }
+}

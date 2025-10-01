@@ -1,0 +1,36 @@
+.errorSummary {
+  padding: var(--ds-size-4) var(--modal-padding-x);
+}
+
+.errorList {
+  list-style-position: outside;
+  margin: 0 0 0 24px;
+  padding: 0;
+}
+
+.errorList span {
+  font-size: 1rem;
+}
+
+.errorList button {
+  text-align: left;
+  border-bottom: 2px solid transparent;
+}
+
+.errorList button:hover {
+  border-bottom: 2px solid black;
+}
+.errorList button:focus-visible {
+  color: var(--ds-color-focus-inner);
+  background: var(--ds-color-focus-outer);
+  outline: transparent solid 2px;
+}
+
+.buttonAsInvisibleLink {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}

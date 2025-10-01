@@ -1,0 +1,5 @@
+{
+  "name": "Not errors zero arguments",
+  "expression": ["not"],
+  "expectsFailure": "Expected 1 argument(s), got 0"
+}

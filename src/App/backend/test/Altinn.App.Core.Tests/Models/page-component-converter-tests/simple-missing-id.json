@@ -1,0 +1,26 @@
+{
+  "valid": false,
+  "layout": {
+    "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+    "data": {
+      "layout": [
+        {
+          "type": "Input",
+          "dataModelBindings": {
+            "simpleBinding": "form.name"
+          },
+          "textResourceBindings": {
+            "title": "some.text.binding",
+            "help": "some.other.text.binding"
+          },
+          "readOnly": false,
+          "required": true,
+          "autocomplete": "name",
+          "grid": {
+            "xs": 12
+          }
+        }
+      ]
+    }
+  }
+}

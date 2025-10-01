@@ -1,0 +1,76 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Benchmarks", "..\benchmark\Altinn.App.Benchmarks\Altinn.App.Benchmarks.csproj", "{626CC2E1-1D1D-45A4-B07C-A120BB4EE973}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Analyzers", "..\src\Altinn.App.Analyzers\Altinn.App.Analyzers.csproj", "{D6C1901B-BED6-44AC-A061-5981A2DEB937}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Core", "..\src\Altinn.App.Core\Altinn.App.Core.csproj", "{8006DE72-9E93-47A0-AD15-C4B5244B08DA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Api", "..\src\Altinn.App.Api\Altinn.App.Api.csproj", "{E8F29FE8-6B62-41F1-A08C-2A318DD08BB4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Internal.Analyzers", "..\src\Altinn.App.Internal.Analyzers\Altinn.App.Internal.Analyzers.csproj", "{A1CD82E1-D0B7-4C04-9DF4-8E7277706D3F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Analyzers.Tests", "..\test\Altinn.App.Analyzers.Tests\Altinn.App.Analyzers.Tests.csproj", "{3C1E1C25-9072-42C5-8058-162ADF136B3F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Core.Tests", "..\test\Altinn.App.Core.Tests\Altinn.App.Core.Tests.csproj", "{F5732D5E-FBF2-4905-AE49-9D0171AE0698}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Tests.Common", "..\test\Altinn.App.Tests.Common\Altinn.App.Tests.Common.csproj", "{C69F2010-B4CF-42FE-9DEC-81F3B1C06294}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Api.Tests", "..\test\Altinn.App.Api.Tests\Altinn.App.Api.Tests.csproj", "{6F762771-DC24-4139-B1B2-DD0F6A4E2B5B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Integration.Tests", "..\test\Altinn.App.Integration.Tests\Altinn.App.Integration.Tests.csproj", "{0DE9F775-FE1A-4604-B239-4CFE4E105B1D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{626CC2E1-1D1D-45A4-B07C-A120BB4EE973}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{626CC2E1-1D1D-45A4-B07C-A120BB4EE973}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{626CC2E1-1D1D-45A4-B07C-A120BB4EE973}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{626CC2E1-1D1D-45A4-B07C-A120BB4EE973}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6C1901B-BED6-44AC-A061-5981A2DEB937}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6C1901B-BED6-44AC-A061-5981A2DEB937}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6C1901B-BED6-44AC-A061-5981A2DEB937}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6C1901B-BED6-44AC-A061-5981A2DEB937}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8006DE72-9E93-47A0-AD15-C4B5244B08DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8006DE72-9E93-47A0-AD15-C4B5244B08DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8006DE72-9E93-47A0-AD15-C4B5244B08DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8006DE72-9E93-47A0-AD15-C4B5244B08DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8F29FE8-6B62-41F1-A08C-2A318DD08BB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8F29FE8-6B62-41F1-A08C-2A318DD08BB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8F29FE8-6B62-41F1-A08C-2A318DD08BB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8F29FE8-6B62-41F1-A08C-2A318DD08BB4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1CD82E1-D0B7-4C04-9DF4-8E7277706D3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1CD82E1-D0B7-4C04-9DF4-8E7277706D3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1CD82E1-D0B7-4C04-9DF4-8E7277706D3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1CD82E1-D0B7-4C04-9DF4-8E7277706D3F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C1E1C25-9072-42C5-8058-162ADF136B3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C1E1C25-9072-42C5-8058-162ADF136B3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C1E1C25-9072-42C5-8058-162ADF136B3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C1E1C25-9072-42C5-8058-162ADF136B3F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5732D5E-FBF2-4905-AE49-9D0171AE0698}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5732D5E-FBF2-4905-AE49-9D0171AE0698}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5732D5E-FBF2-4905-AE49-9D0171AE0698}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5732D5E-FBF2-4905-AE49-9D0171AE0698}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C69F2010-B4CF-42FE-9DEC-81F3B1C06294}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C69F2010-B4CF-42FE-9DEC-81F3B1C06294}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C69F2010-B4CF-42FE-9DEC-81F3B1C06294}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C69F2010-B4CF-42FE-9DEC-81F3B1C06294}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F762771-DC24-4139-B1B2-DD0F6A4E2B5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F762771-DC24-4139-B1B2-DD0F6A4E2B5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F762771-DC24-4139-B1B2-DD0F6A4E2B5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F762771-DC24-4139-B1B2-DD0F6A4E2B5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0DE9F775-FE1A-4604-B239-4CFE4E105B1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0DE9F775-FE1A-4604-B239-4CFE4E105B1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0DE9F775-FE1A-4604-B239-4CFE4E105B1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0DE9F775-FE1A-4604-B239-4CFE4E105B1D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

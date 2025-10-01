@@ -1,0 +1,5 @@
+{
+  "name": "Should replace an emoji",
+  "expression": ["stringReplace", "Hello, \uD83C\uDF0D!", "\uD83C\uDF0D", "planet"],
+  "expects": "Hello, planet!"
+}

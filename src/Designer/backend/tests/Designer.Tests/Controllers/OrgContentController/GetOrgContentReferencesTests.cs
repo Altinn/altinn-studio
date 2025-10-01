@@ -25,6 +25,8 @@ public class GetOrgContentReferencesTests : DesignerEndpointsTestsBase<GetOrgCon
     private const string Username = "testUser";
     private const string SourceOrgName = "ttd";
     private const string SourceRepoName = "org-content";
+    private const string CodeListFolderPath = "CodeListsWithTextResources/";
+    private const string TextResourceFolderPath = "Texts/";
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -309,8 +311,8 @@ public class GetOrgContentReferencesTests : DesignerEndpointsTestsBase<GetOrgCon
 
     private void MockGiteaResponses()
     {
-        string[] codeListFileNames = TestDataHelper.GetRepositoryFileNames(Username, SourceOrgName, SourceRepoName, "CodeLists/");
-        string[] textResourceFileNames = TestDataHelper.GetRepositoryFileNames(Username, SourceOrgName, SourceRepoName, "Texts/");
+        string[] codeListFileNames = TestDataHelper.GetRepositoryFileNames(Username, SourceOrgName, SourceRepoName, CodeListFolderPath);
+        string[] textResourceFileNames = TestDataHelper.GetRepositoryFileNames(Username, SourceOrgName, SourceRepoName, TextResourceFolderPath);
 
         List<string> codeListIds = codeListFileNames.Select(Path.GetFileNameWithoutExtension).ToList();
         List<string> textResourceElementIds = [];

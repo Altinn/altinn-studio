@@ -1,0 +1,107 @@
+﻿{
+  type: User,
+  userId: 1004,
+  username: SelvRegistrert,
+  userPartyId: 510004,
+  selectedPartyId: 510004,
+  authenticationLevel: 0,
+  authenticationMethod: SelfIdentified,
+  inAltinnPortal: true,
+  isSelfIdentified: true,
+  details: {
+    userParty: {
+      partyId: 510004,
+      partyTypeName: SelfIdentified,
+      partyUuid: Guid_1,
+      ssn: ,
+      orgNumber: ,
+      unitType: null,
+      name: Selvregistrert Bruker,
+      isDeleted: false,
+      onlyHierarchyElementWithNoAccess: false,
+      person: null,
+      organization: null,
+      childParties: null
+    },
+    selectedParty: {
+      partyId: 510004,
+      partyTypeName: SelfIdentified,
+      partyUuid: Guid_1,
+      ssn: ,
+      orgNumber: ,
+      unitType: null,
+      name: Selvregistrert Bruker,
+      isDeleted: false,
+      onlyHierarchyElementWithNoAccess: false,
+      person: null,
+      organization: null,
+      childParties: null
+    },
+    profile: {
+      userId: 1004,
+      userUuid: null,
+      userName: SelvRegistrert,
+      phoneNumber: null,
+      email: test@test.com,
+      partyId: 510004,
+      party: {
+        partyId: 510004,
+        partyTypeName: SelfIdentified,
+        partyUuid: Guid_1,
+        ssn: ,
+        orgNumber: ,
+        unitType: null,
+        name: Selvregistrert Bruker,
+        isDeleted: false,
+        onlyHierarchyElementWithNoAccess: false,
+        person: null,
+        organization: null,
+        childParties: null
+      },
+      userType: SelfIdentified,
+      profileSettingPreference: {
+        language: nb,
+        preSelectedPartyId: 0,
+        doNotPromptForParty: false
+      }
+    },
+    representsSelf: true,
+    parties: [
+      {
+        partyId: 510004,
+        partyTypeName: SelfIdentified,
+        partyUuid: Guid_1,
+        ssn: ,
+        orgNumber: null,
+        unitType: null,
+        name: Selvregistrert Bruker,
+        isDeleted: false,
+        onlyHierarchyElementWithNoAccess: false,
+        person: null,
+        organization: null
+      }
+    ],
+    partiesAllowedToInstantiate: [
+      {
+        partyId: 510004,
+        partyTypeName: SelfIdentified,
+        partyUuid: Guid_1,
+        ssn: ,
+        orgNumber: null,
+        unitType: null,
+        name: Selvregistrert Bruker,
+        isDeleted: false,
+        onlyHierarchyElementWithNoAccess: false,
+        person: null,
+        organization: null
+      }
+    ],
+    canRepresent: true
+  },
+  tokenIssuer: Altinn,
+  tokenIsExchanged: false,
+  scopes: altinn:portal/enduser,
+  clientId: null,
+  token: eyJhbGciOiJSUzI1NiIsImtpZCI6IjQ4Q0VFNjAzMzEwMkYzMjQzMTk2NDc4QUYwNkZCNDNBMTc2NEQ4NDMiLCJ4NXQiOiJTTTdtQXpFQzh5UXhsa2VLOEctME9oZGsyRU0iLCJ0eXAiOiJKV1QifQ.<scrubbed1>.<scrubbed2>,
+  detailsError: null
+}

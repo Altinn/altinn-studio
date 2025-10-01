@@ -1,0 +1,5 @@
+{
+  "name": "Should fail when given an expression instead of an operator when using 'not'",
+  "expression": ["compare", 5, "not", ["if", true, "lessThan", "else", "greaterThan"], 8],
+  "expectsFailure": "Invalid operator (it cannot be an expression or null)"
+}

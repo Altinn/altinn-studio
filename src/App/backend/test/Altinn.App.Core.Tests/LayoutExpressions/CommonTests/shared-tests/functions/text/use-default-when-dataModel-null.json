@@ -1,0 +1,29 @@
+{
+  "name": "Text should fall back to default value when dataModel is null",
+  "expression": [
+    "text",
+    "found.key"
+  ],
+  "expects": "Hei verden!",
+  "textResources": [
+    {
+      "id": "found.key",
+      "value": "{0} {1}!",
+      "variables": [
+        {
+          "key": "Hello",
+          "dataSource": "dataModel.default",
+          "defaultValue": "Hei"
+        },
+        {
+          "key": "World",
+          "dataSource": "dataModel.default"
+        }
+      ]
+    }
+  ],
+  "dataModel": {
+    "Hello": null,
+    "World": "verden"
+  }
+}

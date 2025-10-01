@@ -1,0 +1,111 @@
+@model StartAppModel
+@{
+  ViewData["Title"] = "Altinn Studio Local Testing";
+}
+
+@{
+  if (Model.HttpException != null)
+  {
+    <div class="alert alert-dark" role="alert">
+      An exception occurred while fetching applicationData
+      @if (Model.HttpException.StatusCode == System.Net.HttpStatusCode.Unauthorized) {
+        <pre>401(Unauthorized) Could not access @(Model.LocalAppUrl)</pre>
+        <p>
+          You are currently running LocalTest in "http" mode, and this requires
+          apps created before December 2021 to update to nuget packages to fix
+          an access control issue.
+        </p>
+        <p>
+          You can either change the setting "LocalPlatformSettings.LocalAppMode"
+          to "file", or update the altinn nuget packages in your app to at least
+          4.21.0
+        </p>
+        <p>
+          See <a href="https://docs.altinn.studio/community/changelog/app-nuget/v4/breaking-changes/">https://docs.altinn.studio/community/changelog/app-nuget/v4/breaking-changes/</a> for instructions on how to update.
+        </p>
+      } else if(Model.HttpException.InnerException is System.Net.Sockets.SocketException) {
+        @if(string.IsNullOrWhiteSpace(Model.LocalAppUrl)){
+          <p>
+            LocalTest is running in "LocalPlatformSettings.LocalAppMode" == "http" mode, but
+            "LocalPlatformSettings.LocalAppUrl" is not set to a valid address.
+          </p>
+        } else {
+          <pre>No application running on @Model.LocalAppUrl</pre>
+          <p>
+            Please start your an app on this address. Typically run the following command in an app directory.
+          </p>
+          <pre>dotnet run</pre>
+        }
+      } else {
+        <pre>
+          @(Model.HttpException.ToString())
+          @(Model.HttpException.StackTrace.ToString())
+        </pre>
+      }
+    </div>
+  }
+  else if (Model.InvalidAppPath)
+  {
+    <div class="alert alert-dark" role="alert">
+      Check your configured app path in appsettings.json for localtest project  Can't find any Altinn App at this location: @Model.AppPath
+    </div>
+
+  }
+  else if (Model.InvalidTestDataPath)
+  {
+    <div class="alert alert-dark" role="alert">
+      Check your configured path to the cloned testdata for localtest project. Current path configured is: @Model.StaticTestDataPath
+    </div>
+  }
+  else
+  {
+  <div class="text-center">
+    <h1 class="display-4">Welcome to Altinn App Local Testing</h1>
+    <p>Learn about <a href="https://docs.altinn.studio" target="_blank">building and testing Altinn Apps</a>.</p>
+
+
+    <h2>Testing app:  @Model.Org/@Model.App</h2>
+
+    @using (Html.BeginForm("LogInTestUser", "Home", FormMethod.Post, new { Class = "form-signin", enctype = "multipart/form-data" }))
+    {
+      @Html.AntiForgeryToken();
+      <div class="form-group">
+        <label for="UserSelect">Select test users</label>
+        @Html.DropDownListFor(model => model.UserSelect, Model.TestUsers, new { Class = "form-control" })
+      </div>
+      @if(!Model.AppModeIsHttp)
+      {
+        <div class="form-group">
+          <label for="exampleInputEmail1">Select app to test found in @Model.AppPath</label>
+          @Html.DropDownListFor(model => model.AppPathSelection, Model.TestApps, new { Class = "form-control" })
+        </div>
+      }
+      <div class="form-group">
+        <label for="AuthenticationLevel">Select your authentication level</label>
+        @Html.DropDownListFor(model => model.AuthenticationLevel, Model.AuthenticationLevels, new { Class = "form-control" })
+      </div>
+      @if(Model.AppModeIsHttp)
+      {
+        <div class="form-group">
+          <label for="prefill">
+            Prefill xml (use this to copy all the values from a <a href="/LocalPlatformStorage/blobs/@(Model.Org)/@(Model.App)">previous instance</a>)<br />
+            A token autenticated as <strong>@Model.Org</strong> will be used for for instantiation
+          </label>
+          <input class="form-control" type="file" id="prefill" name="prefill" accept=".xml"/>
+        </div>
+      }
+      <div class="form-group">
+        <button type="submit" class="btn btn-light" name="action" value="reauthenticate">Refresh authentication</button>
+        <button type="submit" class="btn btn-primary" name="action" value="start">Proceed to app</button>
+      </div>
+    }
+
+    @if(!string.IsNullOrWhiteSpace(Model.LocalFrontendUrl))
+    {
+      <div class="alert alert-primary" role="alert">
+        You are using frontend js and css from @(Model.LocalFrontendUrl). @Html.ActionLink("Use a different frontend version", "Index", "FrontendVersion")
+      </div>
+    }
+  </div>
+  }
+}

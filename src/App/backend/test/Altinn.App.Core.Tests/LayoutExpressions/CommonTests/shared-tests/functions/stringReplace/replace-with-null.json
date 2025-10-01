@@ -1,0 +1,5 @@
+{
+  "name": "Should allow replacing with null (as empty string)",
+  "expression": ["stringReplace", "Hello, {0}!", "{0}", null],
+  "expects": "Hello, !"
+}

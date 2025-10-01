@@ -1,0 +1,12 @@
+.wrapper {
+  width: 100%;
+  min-height: 84px;
+  padding: 12px;
+  padding-left: var(--modal-padding-x);
+  border-bottom: 1px solid #eee;
+  box-sizing: border-box;
+}
+
+.no-above-header {
+  margin-top: 24px;
+}

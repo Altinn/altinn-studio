@@ -1,0 +1,13 @@
+{
+  "name": "PartyType is Self Identified",
+  "expression": ["instanceContext", "instanceOwnerPartyType"],
+  "expects": "selfIdentified",
+  "instance": {
+    "id": "d00ce51c-800b-416a-a906-ccab55f597e9",
+    "appId": "org/app-name",
+    "instanceOwner": {
+      "partyId": "12345",
+      "username": "1234567"
+    }
+  }
+}

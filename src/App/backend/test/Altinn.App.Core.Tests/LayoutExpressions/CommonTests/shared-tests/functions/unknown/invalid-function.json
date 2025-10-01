@@ -1,0 +1,5 @@
+{
+  "name": "Invalid function gives an error",
+  "expression": ["equals", true, ["functionThatDoesNotExist"]],
+  "expectsFailure": "Function \"functionThatDoesNotExist\" not implemented"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Simple greaterThan test",
+  "expression": ["compare", 5, "greaterThan", 4],
+  "expects": true
+}

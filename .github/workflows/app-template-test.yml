@@ -1,12 +1,13 @@
-name: App Template Build and Test on windows and macos
+name: App Template - Build and test
+
 on:
   pull_request:
-    branches: [ main ]
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/App/template/**'
       - '.github/workflows/app-template-test.yml'
   workflow_dispatch:
+
 jobs:
   analyze:
     strategy:

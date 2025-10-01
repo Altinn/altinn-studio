@@ -1,0 +1,5 @@
+{
+  "name": "Nulls are represented as empty strings",
+  "expression": ["concat", "foo", null, "bar"],
+  "expects": "foobar"
+}

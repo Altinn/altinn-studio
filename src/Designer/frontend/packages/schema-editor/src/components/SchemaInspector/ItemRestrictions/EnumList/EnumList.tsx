@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@studio/icons';
 import { findDuplicateValues } from './utils';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { StudioButton } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 
 export type EnumListProps = {
   schemaNode: FieldNode;
@@ -75,7 +75,6 @@ export const EnumList = ({ schemaNode }: EnumListProps): JSX.Element => {
       <div className={classes.addEnumButton}>
         <StudioButton
           aria-label={t('schema_editor.add_enum')}
-          color='second'
           fullWidth
           icon={<PlusIcon />}
           id='add-enum-button'

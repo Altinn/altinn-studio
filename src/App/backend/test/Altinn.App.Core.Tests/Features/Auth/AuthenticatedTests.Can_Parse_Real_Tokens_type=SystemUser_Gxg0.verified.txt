@@ -1,0 +1,46 @@
+﻿{
+  Description: Maskinporten for systemuser, coming from the smartcloudaltinn.azurewebsites.net/api/maskinporten test endpoint,
+  AuthType: Altinn.App.Core.Features.Auth.Authenticated+SystemUser,
+  Auth: {
+    SystemUserId: [
+      f950ddae-06c3-4b57-b940-702417a90df0
+    ],
+    SystemUserOrgNr: 0192:310702641,
+    SupplierOrgNr: 0192:991825827,
+    SystemId: 991825827_smartcloud,
+    AuthenticationLevel: 3,
+    AuthenticationMethod: maskinporten,
+    TokenIssuer: Maskinporten,
+    TokenIsExchanged: false,
+    Scopes: altinn:systembruker.demo,
+    ClientId: a2ed712d-4144-4471-839f-80ae4a68146b,
+    Token: eyJraWQiOiJiZFhMRVduRGpMSGpwRThPZnl5TUp4UlJLbVo3MUxCOHUxeUREbVBpdVQwIiwiYWxnIjoiUlMyNTYifQ.eyJhdXRob3JpemF0aW9uX2RldGFpbHMiOlt7InR5cGUiOiJ1cm46YWx0aW5uOnN5c3RlbXVzZXIiLCJzeXN0ZW11c2VyX29yZyI6eyJhdXRob3JpdHkiOiJpc282NTIzLWFjdG9yaWQtdXBpcyIsIklEIjoiMDE5MjozMTA3MDI2NDEifSwic3lzdGVtdXNlcl9pZCI6WyJmOTUwZGRhZS0wNmMzLTRiNTctYjk0MC03MDI0MTdhOTBkZjAiXSwic3lzdGVtX2lkIjoiOTkxODI1ODI3X3NtYXJ0Y2xvdWQiLCJleHRlcm5hbFJlZiI6ImVkMWMzOGY0LWY1MjgtNGVmMS04NjUyLWIxYWViODU2M2RmZSJ9XSwic2NvcGUiOiJhbHRpbm46c3lzdGVtYnJ1a2VyLmRlbW8iLCJpc3MiOiJodHRwczovL3Rlc3QubWFza2lucG9ydGVuLm5vLyIsImNsaWVudF9hbXIiOiJwcml2YXRlX2tleV9qd3QiLCJ0b2tlbl90eXBlIjoiQmVhcmVyIiwiZXhwIjoxNzM3ODEzMzk4LCJpYXQiOjE3Mzc4MTMyNzgsImNsaWVudF9pZCI6ImEyZWQ3MTJkLTQxNDQtNDQ3MS04MzlmLTgwYWU0YTY4MTQ2YiIsImp0aSI6InZrWFlhNGxIR2lyOFFpcGVtc1dvdnNUMzdIci10ZExOaTYyODlTajVzU1UiLCJjb25zdW1lciI6eyJhdXRob3JpdHkiOiJpc282NTIzLWFjdG9yaWQtdXBpcyIsIklEIjoiMDE5Mjo5OTE4MjU4MjcifX0.b3JozeLFCBn76a703n1ZqbjqHaFaaCadpZb3T0cuqJvLnELEjiOKXvwSI1kuqnpqfEqxEX1UyBIyJh-rvIOZ-B7dXj1usWoh-oWofvENT0AzJcwpPrhuBBo-ZPoCtTVIJraWBJfYbjEFfajfFZdz0D_poz2i5MbJO9mSn5FMAEMdzmjZSA7O9n8Y02uApN31B3pHlKpqIEUK1HhxGl_z8_rzcAcbs2uOKUxVCK_vnEMk3XpcaEDsk0hr-ohkALshWYVUZCxzl7MzJ2wFhyr9JZqSLSV-dS_WY09cwUA-I1dyIlQE1LW1Ye4Ow5xExArBO8UT3sB-q23EqRY07PC1lh-YdFB1rR1pO6pklnQdz8zPzyrUYYcxlQQDVTRVjRgZcF43TMxQIUmAB0LG6QvP8oRp8SV4oAAK9ZB_fCVkwd8gbVwvVIhuQdPEA6aUoV8mPRPz1IW-eVi-XXEQdkOC8OArNQd92y5DiEQE2puZI1nUmXFwypltks-3Xjam6-_5
+  },
+  Jwt: {
+    authorization_details: {
+      ValueKind: Array
+    },
+    client_amr: private_key_jwt,
+    client_id: a2ed712d-4144-4471-839f-80ae4a68146b,
+    consumer: {
+      ValueKind: Object
+    },
+    exp: 1737813398,
+    iat: 1737813278,
+    iss: https://test.maskinporten.no/,
+    jti: vkXYa4lHGir8QipemsWovsT37Hr-tdLNi6289Sj5sSU,
+    scope: altinn:systembruker.demo,
+    token_type: Bearer
+  },
+  Details: {
+    Party: {
+      PartyId: 1234,
+      PartyTypeName: Organisation,
+      OrgNumber: 310702641,
+      Name: Test AS,
+      IsDeleted: false,
+      OnlyHierarchyElementWithNoAccess: false
+    },
+    CanInstantiate: true
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "Should create a link with reference to a page when instance is provided",
+  "expression": ["linkToPage", "Klikk på meg", "grid"],
+  "expects": "<a href=\"/instance/510001/d00ce51c-800b-416a-a906-ccab55f597e9/Task_1/grid\" data-link-type=\"LinkToPotentialPage\">Klikk på meg</a>",
+  "instance": {
+    "id": "510001/d00ce51c-800b-416a-a906-ccab55f597e9",
+    "appId": "org/app-name",
+    "instanceOwnerPartyId": "510001",
+    "instanceOwner": {
+      "partyId": "12345"
+    }
+  },
+  "process": {
+    "currentTask": {
+      "elementId": "Task_1"
+    }
+  }
+}

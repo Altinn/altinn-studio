@@ -12,7 +12,9 @@
 }
 
 .link {
+  border-radius: 0;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .menuItems {
@@ -23,11 +25,6 @@
   margin: 0;
   padding: 1rem 0;
   align-items: stretch;
-}
-
-.menuItems li {
-  padding: 0;
-  margin: 0;
 }
 
 .icon {

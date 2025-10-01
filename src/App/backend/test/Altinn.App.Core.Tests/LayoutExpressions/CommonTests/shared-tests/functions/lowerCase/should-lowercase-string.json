@@ -1,0 +1,5 @@
+{
+  "name": "Should lowercase the string",
+  "expression": ["lowerCase", "HELLO"],
+  "expects": "hello"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Should work with a negative start index",
+  "expression": ["stringSlice", "filename.pdf", -3],
+  "expects": "pdf"
+}

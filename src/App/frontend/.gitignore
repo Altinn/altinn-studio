@@ -1,0 +1,413 @@
+syntax: glob
+
+### VisualStudio ###
+
+# Tool Runtime Dir
+[Tt]ools/
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Entity Framework
+Migrations/
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+msbuild.log
+
+# Cross building rootfs
+cross/rootfs/
+
+# Visual Studio 2015
+.vs/
+
+# Visual Studio 2015 Pre-CTP6
+*.sln.ide
+*.ide/
+
+# MSTest test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+#NUNIT
+*.VisualState.xml
+TestResult.xml
+
+#JUNIT
+junit.xml
+
+# Build Results of an ATL Project
+[Dd]ebugPS/
+[Rr]eleasePS/
+dlldata.c
+
+*_i.c
+*_p.c
+*_i.h
+*.ilk
+*.meta
+*.obj
+*.pch
+*.pdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.log
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
+
+# Chutzpah Test files
+_Chutzpah*
+
+# Visual C++ cache files
+ipch/
+*.aps
+*.ncb
+*.opendb
+*.opensdf
+*.sdf
+*.cachefile
+
+# Visual Studio profiler
+*.psess
+*.vsp
+*.vspx
+
+# TFS 2012 Local Workspace
+$tf/
+
+# Guidance Automation Toolkit
+*.gpState
+
+# ReSharper is a .NET coding add-in
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# JustCode is a .NET coding addin-in
+.JustCode
+
+# TeamCity is a build add-in
+_TeamCity*
+
+# DotCover is a Code Coverage Tool
+*.dotCover
+
+# NCrunch
+_NCrunch_*
+.*crunch*.local.xml
+
+# MightyMoose
+*.mm.*
+AutoTest.Net/
+
+# Web workbench (sass)
+.sass-cache/
+
+# Installshield output folder
+[Ee]xpress/
+
+# DocProject is a documentation generator add-in
+DocProject/buildhelp/
+DocProject/Help/*.HxT
+DocProject/Help/*.HxC
+DocProject/Help/*.hhc
+DocProject/Help/*.hhk
+DocProject/Help/*.hhp
+DocProject/Help/Html2
+DocProject/Help/html
+
+# Click-Once directory
+publish/
+
+# Publish Web Output
+*.[Pp]ublish.xml
+*.azurePubxml
+*.pubxml
+*.publishproj
+
+# NuGet Packages
+*.nuget.props
+*.nuget.targets
+*.nupkg
+**/packages/*
+
+# Allow frontend packages
+!**/frontend/packages/*
+
+# NuGet package restore lockfiles
+project.lock.json
+
+# yarn lock file
+package-lock.json
+
+# Windows Azure Build Output
+csx/
+*.build.csdef
+
+# Windows Store app package directory
+AppPackages/
+
+# Others
+*.Cache
+ClientBin/
+[Ss]tyle[Cc]op.*
+~$*
+*.dbmdl
+*.dbproj.schemaview
+*.publishsettings
+/node_modules
+*.metaproj
+*.metaproj.tmp
+
+# RIA/Silverlight projects
+Generated_Code/
+
+# Backup & report files from converting an old project file
+# to a newer Visual Studio version. Backup files are not needed,
+# because we have git ;-)
+_UpgradeReport_Files/
+Backup*/
+UpgradeLog*.XML
+UpgradeLog*.htm
+
+# SQL Server files
+*.mdf
+*.ldf
+
+# Business Intelligence projects
+*.rdl.data
+*.bim.layout
+*.bim_*.settings
+
+# Microsoft Fakes
+FakesAssemblies/
+
+### MonoDevelop ###
+
+*.pidb
+*.userprefs
+
+### Windows ###
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+### Linux ###
+
+*~
+
+# KDE directory preferences
+.directory
+
+### OSX ###
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Icon must end with two \r
+Icon
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# vim temporary files
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~
+/AltinnPoCExperiments
+
+# Sonarqube
+.scannerwork
+
+# ESLint report and cache
+eslint_report.json
+.eslintcache
+
+
+## -- Repositories --
+
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
+.glide/
+postgres/*
+!src/AltinnRepositories/gitea-data/
+src/AltinnRepositories/gitea-data/*
+!src/AltinnRepositories/gitea-data/gitea/
+src/AltinnRepositories/gitea-data/gitea/*
+!src/AltinnRepositories/gitea-data/gitea/conf/
+!src/AltinnRepositories/gitea-data/gitea/options/
+!src/AltinnRepositories/gitea-data/gitea/public/
+!src/AltinnRepositories/gitea-data/gitea/templates/
+
+######### Built react apps for receipt ###########
+src/Altinn.Platform/Altinn.Platform.Receipt/Receipt/wwwroot/receipt/js/react
+src/Altinn.Platform/Altinn.Platform.Receipt/Receipt/wwwroot/receipt/css
+
+######### Built react apps for designer ###########
+src/studio/src/designer/backend/wwwroot/designer/css/react
+src/studio/src/designer/backend/wwwroot/designer/js/react
+src/studio/src/designer/backend/wwwroot/designer/js/lib
+src/studio/src/designer/backend/wwwroot/designer/css/lib
+src/studio/src/designer/backend/wwwroot/designer/css/font-awesome
+src/studio/src/designer/backend/wwwroot/designer/css/fonts
+src/studio/src/designer/backend/wwwroot/designer/css/bootstrap*.css
+
+######### Testdata created by testrun #########
+src/Altinn.Platform/Altinn.Platform.Authorization/IntegrationTests/Data/blobs/output/
+
+# Jest test coverage
+coverage
+/deploy/kubernetes/helm-charts/altinn-dataservice-0.1.0.tgz
+/deploy/kubernetes/altinn-dbsettings-secret.json
+
+/src/Altinn.Platform/Altinn.Platform.Storage/Storage/values.dev.yaml
+/src/Altinn.Platform/Altinn.Platform.Storage/Storage.Interface/Storage.Interface.xml
+/src/Altinn.Platform/Altinn.Platform.Profile/Profile/charts/profile
+/src/Altinn.Platform/Altinn.Platform.Profile/Profile/azds.yaml
+/src/AltinnCore/UnitTest/coverage.opencover.xml
+/src/Altinn.Platform/Altinn.Platform.Authorization/Altinn.Authorization.ABAC/Altinn.Authorization.ABAC.xml
+
+## Java
+*.class
+.mtj.tmp/
+*.jar
+*.war
+*.ear
+hs_err_pid*
+
+## Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+## Eclipse
+.metadata
+.classpath
+.project
+.settings/
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.loadpath
+
+## NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
+
+## IntelliJ
+.idea
+src/Altinn.Apps/AppTemplates/AspNet/App/Properties/launchSettings.json
+*.iml
+
+## Dumps
+*.stackdump
+
+#https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored
+
+/.pnp.*
+/.yarn/*
+!/.yarn/patches
+!/.yarn/plugins
+!/.yarn/releases
+!/.yarn/sdks
+!/.yarn/versions
+
+# Cypress environment settings
+/cypress.env.json
+/.env
+
+# Auto-generated files (run 'yarn gen')
+*.generated.ts
+*.generated.d.ts
+*.generated.tsx
+*.generated.json
+*.generated.schema.json
+layout.schema.v1.json
+layout-sets.schema.v1.json
+layoutSettings.schema.v1.json
+
+/test/run-all-artifacts
+
+eslint-results.html
+
+runner-results
+
+# CLAUDE local context file
+CLAUDE.local.md

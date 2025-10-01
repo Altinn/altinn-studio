@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -228,7 +229,7 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
 
     private void SetupCodeListGiteaMock(string targetOrgName, string sourceRepoName, string codeListId)
     {
-        string codeListRelativePath = Path.Join(CodeListFolderPath, $"{codeListId}.json");
+        string codeListRelativePath = CodeListUtils.FilePathWithTextResources(codeListId);
         string fileContent = TestDataHelper.GetFileFromRepo(OrgName, sourceRepoName, Username, codeListRelativePath);
         List<Option> codeList = JsonSerializer.Deserialize<List<Option>>(fileContent, s_jsonOptions);
 

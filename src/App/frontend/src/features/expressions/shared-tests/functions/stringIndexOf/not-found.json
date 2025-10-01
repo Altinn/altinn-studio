@@ -1,0 +1,5 @@
+{
+  "name": "When substring is not found, returns null",
+  "expression": ["stringIndexOf", "foo bar", "baz"],
+  "expects": null
+}

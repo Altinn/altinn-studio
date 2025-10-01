@@ -1,0 +1,5 @@
+{
+  "name": "Last input false",
+  "expression": ["or", true, true, false],
+  "expects": true
+}

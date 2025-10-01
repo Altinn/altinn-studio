@@ -1,0 +1,80 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <PackageTags>Altinn;Studio;App;Core</PackageTags>
+    <Description>
+      This class library holds all the core features used by a standard Altinn 3 App.
+    </Description>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The following packages uses frozen version because of compatibility considerations for apps -->
+    <!-- See: https://github.com/Altinn/app-lib-dotnet/issues/647 -->
+    <PackageReference Include="Altinn.ApiClients.Maskinporten"/>
+
+    <PackageReference Include="JWTCookieAuthentication"/>
+    <!-- The follwoing are depencencies for JWTCookieAuthentication, but we need newer versions-->
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" />
+    <PackageReference Include="Microsoft.Rest.ClientRuntime" />
+    <PackageReference Include="Microsoft.Rest.ClientRuntime.Azure" />
+    <PackageReference Include="System.Text.RegularExpressions" />
+    <!-- End JWTCookieAuthentication deps -->
+
+    <PackageReference Include="Altinn.Common.AccessTokenClient"/>
+    <!-- End frozen versions -->
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Altinn.Common.EFormidlingClient"/>
+    <PackageReference Include="Altinn.Common.PEP"/>
+    <PackageReference Include="Altinn.Platform.Models"/>
+    <PackageReference Include="Altinn.Platform.Storage.Interface"/>
+    <PackageReference Include="JsonPatch.Net"/>
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore"/>
+    <PackageReference Include="Microsoft.Extensions.Caching.Hybrid"/>
+    <PackageReference Include="Microsoft.FeatureManagement.AspNetCore"/>
+    <PackageReference Include="Newtonsoft.Json"/>
+    <PackageReference Include="NetEscapades.EnumGenerators" PrivateAssets="all" ExcludeAssets="runtime" />
+    <PackageReference Include="OpenTelemetry.Api"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Internal analyzers are for analysis of _our_ code, so we reference this project as an analyzer (it's a build-time dep) -->
+    <ProjectReference Include="../Altinn.App.Internal.Analyzers/Altinn.App.Internal.Analyzers.csproj" PrivateAssets="all" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+
+    <!-- We reference the app analyzers to make sure it's built, but we don't really reference it. We just include it in packaging below -->
+    <ProjectReference Include="../Altinn.App.Analyzers/Altinn.App.Analyzers.csproj" PrivateAssets="all" ReferenceOutputAssembly="false" OutputItemType="None" />
+    <!-- This makes sure that the app analyzers is bundled alongside Altinn.App.Core when referenced in an app -->
+    <None Include="../Altinn.App.Analyzers/bin/$(Configuration)/netstandard2.0/Altinn.App.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="true" />
+    <!-- We will probably use System.Text.Json while analyzing in the future, this setup has been tested -->
+    <!-- <None Include="../Altinn.App.Analyzers/bin/$(Configuration)/netstandard2.0/System.Text.Json.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="true" /> -->
+    <!-- These MSBuild props are applied to the app when they reference the Altinn.App.Core package. Used for <AdditionalFile /> inclusions etc. -->
+    <None Include="packaging/Altinn.App.Core.props" Pack="true" PackagePath="build/" Visible="true" Condition="'$(MinVerVersionOverride)'==''" />
+    <!--
+      When we do PR builds/experimental releases we set tne MinVerVersionOverride from CI, and we also append '.Experimental' to package IDs.
+      The props file name must match the package ID for the package it is included in.
+     -->
+    <None Include="packaging/Altinn.App.Core.Experimental.props" Pack="true" PackagePath="build/" Visible="true" Condition="'$(MinVerVersionOverride)'!=''" />
+  </ItemGroup>
+
+  <Target Name="CreateExperimentalPropsFile" AfterTargets="Build" Condition="'$(MinVerVersionOverride)'!=''">
+    <!-- For PR/experimental builds we need to rename the props file (only happens in CI) -->
+    <Move SourceFiles="packaging/Altinn.App.Core.props" DestinationFiles="packaging/Altinn.App.Core.Experimental.props"/>
+  </Target>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Altinn.App.Api" />
+
+    <InternalsVisibleTo Include="$(AssemblyName).Tests" />
+    <InternalsVisibleTo Include="Altinn.App.Api.Tests" />
+    <InternalsVisibleTo Include="Altinn.App.Benchmarks" />
+    <InternalsVisibleTo Include="Altinn.App.Tests.Common" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+    <InternalsVisibleTo Include="Altinn.Application.For.IntegrationTesting" />
+    <InternalsVisibleTo Include="Altinn.Application.For.IntegrationTesting.Scenario" />
+  </ItemGroup>
+</Project>

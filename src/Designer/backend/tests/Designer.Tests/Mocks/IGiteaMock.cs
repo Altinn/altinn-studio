@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
-
 using Designer.Tests.Utils;
 using Organization = Altinn.Studio.Designer.RepositoryClient.Model.Organization;
 
@@ -79,10 +79,10 @@ namespace Designer.Tests.Mocks
             return Task.FromResult(new User());
         }
 
-        public Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string shortCommitId)
+        public Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string reference = null, CancellationToken cancellationToken = default)
         {
             List<FileSystemObject> fileSystemObjects = new List<FileSystemObject>();
-            string path = Path.Combine(_unitTestFolder, "..", "..", "..", "_TestData", "FileSystemObjects", org, app, directoryPath.Replace('/', Path.DirectorySeparatorChar), shortCommitId, "directoryList.json");
+            string path = Path.Combine(_unitTestFolder, "..", "..", "..", "_TestData", "FileSystemObjects", org, app, directoryPath.Replace('/', Path.DirectorySeparatorChar), reference, "directoryList.json");
 
             if (File.Exists(path))
             {
@@ -113,6 +113,11 @@ namespace Designer.Tests.Mocks
             }
 
             return Task.FromResult(fileSystemObject);
+        }
+
+        public Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string reference = null, CancellationToken cancellationToken = default)
+        {
+            return GetFileAsync(org, app, filePath, reference);
         }
 
         public Task<Repository> GetRepository(string org, string repository)
@@ -212,6 +217,16 @@ namespace Designer.Tests.Mocks
         public Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource)
         {
             return Task.FromResult(new ListviewServiceResource { CreatedBy = "testUser", Identifier = serviceResource.Identifier, Title = new Dictionary<string, string> { { "test", "test" } }, LastChanged = DateTime.Now, HasPolicy = true });
+        }
+
+        public Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(string org, string repository, string reference = null, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(new List<FileSystemObject>());
+        }
+
+        public Task<bool> ModifyMultipleFiles(string org, string repository, GiteaMultipleFilesDto files, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(true);
         }
     }
 }

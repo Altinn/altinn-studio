@@ -1,0 +1,29 @@
+{
+    "id": "500600/fad57e80-ec2f-4dee-90ac-400fa6d7720f",
+    "instanceOwner": {
+        "partyId": "500600",
+        "personNumber": "01039012345"
+    },
+    "appId": "tdd/contributer-restriction",
+    "org": "tdd",
+    "process": {
+        "started": "2024-10-10T19:54:34.291946Z",
+        "startEvent": "StartEvent_1",
+        "currentTask": {
+            "flow": 2,
+            "started": "2024-10-10T19:54:34.29671Z",
+            "elementId": "Task_1",
+            "name": "Utfylling",
+            "altinnTaskType": "data",
+            "flowType": "CompleteCurrentMoveToNext"
+        }
+    },
+    "status": {
+        "isArchived": false,
+        "isSoftDeleted": false,
+        "isHardDeleted": false,
+        "readStatus": "Read"
+    },
+    "data": [],
+    "lastChanged": "2024-10-10T19:54:34.368809Z"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Should be able to round 0 to 0 decimal places",
+  "expression": ["round", 2.9999, 0],
+  "expects": "3"
+}

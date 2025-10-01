@@ -1,0 +1,5 @@
+{
+  "name": "Should work with booleans (true)",
+  "expression": ["equals", false, false],
+  "expects": true
+}

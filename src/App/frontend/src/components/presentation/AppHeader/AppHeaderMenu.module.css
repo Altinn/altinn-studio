@@ -1,0 +1,15 @@
+.partyName {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .partyName {
+    display: none;
+  }
+}
+
+.button-active {
+  background-color: var(--ds-color-accent-surface-hover);
+  color: var(--ds-color-accent-base-active);
+}

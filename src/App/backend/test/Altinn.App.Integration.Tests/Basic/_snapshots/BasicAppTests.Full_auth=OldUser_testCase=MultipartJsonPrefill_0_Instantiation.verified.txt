@@ -1,0 +1,60 @@
+﻿{
+  HttpResponse: {
+    Version: 1.1,
+    Content: {
+      Headers: {
+        Content-Type: [
+          application/json; charset=utf-8
+        ]
+      }
+    },
+    StatusCode: BadRequest,
+    ReasonPhrase: Bad Request,
+    Headers: {
+      Date: <date>,
+      Server: [
+        Kestrel
+      ],
+      Cache-Control: [
+        no-store, no-cache
+      ],
+      Transfer-Encoding: [
+        chunked
+      ],
+      Request-Context: [
+        appId=
+      ],
+      X-Frame-Options: [
+        deny
+      ],
+      X-Content-Type-Options: [
+        nosniff
+      ],
+      X-XSS-Protection: [
+        0
+      ],
+      Referrer-Policy: [
+        no-referrer
+      ]
+    },
+    TrailingHeaders: {},
+    RequestMessage: {
+      Version: 1.1,
+      Content: [],
+      Method: {
+        Method: POST
+      },
+      RequestUri: http://local.altinn.cloud:<localtestPort>/ttd/basic/instances,
+      Headers: {
+        Authorization: [
+          Bearer <token>
+        ],
+        User-Agent: [
+          Altinn.App.Integration.Tests
+        ]
+      }
+    },
+    IsSuccessStatusCode: false
+  },
+  Response: "Error when comparing content to application metadata: The multipart section named model has a Content-Type 'application/json; charset=utf-8' which is invalid for element type 'model'"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "A date comparison with an empty string return false",
+  "expression": ["compare", "2020-01-01", "isBefore", ""],
+  "expects": false
+}

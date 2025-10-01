@@ -1,0 +1,105 @@
+{
+    "id": "tdd/permissive-app",
+    "org": "tdd",
+    "created": "2019-09-24T10:02:41.0839253Z",
+    "createdBy": "Kritsi",
+    "lastChanged": "2019-09-24T10:02:41.0839254Z",
+    "lastChangedBy": "Kritsi",
+    "title": {
+        "nb": "Endring av navn (RF-1453)",
+        "nb-NO": "Endring av navn (RF-1453)"
+    },
+    "copyInstanceSettings": {
+        "enabled": true
+    },
+    "dataTypes": [
+        {
+            "id": "default",
+            "allowedContentTypes": [
+                "application/xml"
+            ],
+            "maxCount": 1,
+            "appLogic": {
+                "autoCreate": true,
+                "ClassRef": "Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema"
+            },
+            "taskId": "Task_1",
+            "AllowedKeysForUserDefinedMetadata": [
+                "TheKey"
+            ]
+        },
+        {
+            "id": "customElement",
+            "maxCount": 1,
+            "allowedContributers": [
+                "org:tdd",
+                "orgno:405003309",
+                "invalidKey:value"
+            ],
+            "taskId": "Task_1"
+        },
+        {
+            "id": "9edd53de-f46f-40a1-bb4d-3efb93dc113d",
+            "taskId": "Task_1",
+            "maxSize": 1,
+            "maxCount": 1,
+            "minCount": 0
+        },
+        {
+            "id": "specificFileType",
+            "taskId": "Task_1",
+            "maxSize": 1,
+            "maxCount": 1,
+            "minCount": 0,
+            "allowedContentTypes": [
+                "application/pdf",
+                "image/png",
+                "application/json"
+            ],
+            "enabledFileAnalysers": [
+                "mimeTypeAnalyser"
+            ],
+            "enabledFileValidators": [
+                "mimeTypeValidator"
+            ]
+        },
+        {
+            "id": "userInteractionUnspecified",
+            "allowedContentTypes": [
+                "application/xml"
+            ],
+            "maxCount": 10,
+            "appLogic": {
+                "ClassRef": "Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema"
+            },
+            "taskId": "Task_1",
+            "AllowedKeysForUserDefinedMetadata": [
+                "TheKey"
+            ]
+        },
+        {
+            "id": "disallowUserCreate",
+            "allowedContentTypes": [
+                "application/xml"
+            ],
+            "maxCount": 10,
+            "appLogic": {
+                "ClassRef": "Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema",
+                "disallowUserCreate": true
+            },
+            "taskId": "Task_1"
+        },
+        {
+            "id": "disallowUserDelete",
+            "allowedContentTypes": [
+                "application/xml"
+            ],
+            "maxCount": 10,
+            "appLogic": {
+                "ClassRef": "Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema",
+                "diallowUserDelete": true
+            },
+            "taskId": "Task_1"
+        }
+    ]
+}

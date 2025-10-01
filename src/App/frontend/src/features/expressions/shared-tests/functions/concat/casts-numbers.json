@@ -1,0 +1,5 @@
+{
+  "name": "Casts numbers to strings",
+  "expression": ["concat", 1, " + ", 2.5, " = ", 3],
+  "expects": "1 + 2.5 = 3"
+}

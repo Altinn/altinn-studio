@@ -1,0 +1,28 @@
+.textfieldCell,
+.textareaCell,
+.textResourceCell,
+.numberfieldCell {
+  padding-block: var(--ds-size-1);
+  padding-inline-end: var(--ds-size-2);
+  padding-inline-start: 0;
+  font-size: var(--studio-input-table-font-size);
+}
+
+.buttonCell {
+  text-align: center;
+}
+
+.buttonCell button {
+  display: inline-flex;
+}
+
+:is(.textfieldCell:not(:hover) input, .textareaCell:not(:hover) textarea):not(:hover):not(
+    :active
+  ):not(:focus) {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.textfieldCell * {
+  background-color: transparent;
+}

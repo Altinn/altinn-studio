@@ -4,7 +4,7 @@ import { PageConfigPanel } from './PageConfigPanel';
 import { useAppContext } from '../../hooks';
 import { GroupConfigPanel } from './GroupConfigPanel/GroupConfigPanel';
 import { ComponentConfigPanel } from './ComponentConfigPanel/ComponentConfigPanel';
-import { StudioSectionHeader } from '@studio/components-legacy';
+import { StudioSectionHeader } from '@studio/components';
 import { FileIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { ItemType } from './ItemType';

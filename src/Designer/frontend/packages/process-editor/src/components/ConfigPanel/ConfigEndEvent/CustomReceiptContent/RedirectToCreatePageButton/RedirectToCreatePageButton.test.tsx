@@ -17,7 +17,7 @@ describe('RedirectToCreatePageButton', () => {
     renderRedirectToCreatePageButton();
 
     const navigationButton = screen.getByRole('link', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_navigate_to_design_button'),
+      name: textMock('process_editor.configuration_panel_custom_receipt_navigate_to_design_link'),
     });
     expect(navigationButton).toHaveAttribute('href', '/editor/testOrg/testApp/ui-editor');
   });

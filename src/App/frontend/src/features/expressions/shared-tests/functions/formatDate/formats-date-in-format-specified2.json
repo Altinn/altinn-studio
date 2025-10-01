@@ -1,0 +1,5 @@
+{
+  "name": "Should format date in format specified (2)",
+  "expression": ["formatDate", "2023-10-26T13:12:38.069Z", "dd.MM"],
+  "expects": "26.10"
+}

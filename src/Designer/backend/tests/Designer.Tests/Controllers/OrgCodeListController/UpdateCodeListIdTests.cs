@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -37,8 +38,8 @@ public class UpdateCodeListIdTests : DesignerEndpointsTestsBase<UpdateCodeListId
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string repositoryDir = TestDataHelper.GetTestDataRepositoryDirectory(targetOrg, targetRepository, Developer);
-        string oldCodeListFilePath = Path.Join(repositoryDir, CodeListFilePath(codeListId));
-        string newCodeListFilePath = Path.Join(repositoryDir, CodeListFilePath(newCodeListId));
+        string oldCodeListFilePath = Path.Join(repositoryDir, CodeListUtils.FilePathWithTextResources(codeListId));
+        string newCodeListFilePath = Path.Join(repositoryDir, CodeListUtils.FilePathWithTextResources(newCodeListId));
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -85,7 +86,5 @@ public class UpdateCodeListIdTests : DesignerEndpointsTestsBase<UpdateCodeListId
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
-
-    private static string CodeListFilePath(string codeListId) => $"CodeLists/{codeListId}.json";
     private static string ApiUrl(string targetOrg, string codeListId) => $"designer/api/{targetOrg}/code-lists/change-name/{codeListId}";
 }

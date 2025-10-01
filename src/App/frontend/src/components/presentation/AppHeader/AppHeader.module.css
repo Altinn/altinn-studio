@@ -1,0 +1,20 @@
+.container {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  padding: var(--header-padding-y) var(--header-padding-x);
+  box-sizing: border-box;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}

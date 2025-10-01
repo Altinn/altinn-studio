@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="System.Collections.Immutable" />
+    <Using Include="Microsoft.CodeAnalysis" />
+    <Using Include="Microsoft.CodeAnalysis.CSharp" />
+    <Using Include="Microsoft.CodeAnalysis.Diagnostics" />
+    <Using Include="Microsoft.CodeAnalysis.CSharp.Syntax" />
+
+    <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
+    <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
+  </ItemGroup>
+
+  <!--
+    NOTE:
+    InternalsVisibleTo messes with PolySharp, which we use to support newer C# features in analyzer code (such as records)
+    So it is disabled currently and relevant members sin analyzer code is public instead
+   -->
+  <!-- <ItemGroup>
+    <InternalsVisibleTo Include="Altinn.App.Analyzers.Tests" />
+  </ItemGroup> -->
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" VersionOverride="4.10.0" />
+
+    <!-- <PackageReference Include="System.Text.Json" GeneratePathProperty="true"/>
+    <None Include="$(PKGSystem_Text_Json)/lib/netstandard2.0/System.Text.Json.dll" CopyToOutputDirectory="PreserveNewest" /> -->
+  </ItemGroup>
+
+  <!-- <PropertyGroup>
+    <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
+  </PropertyGroup>
+  <Target Name="GetDependencyTargetPaths">
+    <ItemGroup>
+      <TargetPathWithTargetPlatformMoniker Include="$(PKGSystem_Text_Json)/lib/netstandard2.0/System.Text.Json.dll" IncludeRuntimeDependency="false" />
+    </ItemGroup>
+  </Target> -->
+</Project>

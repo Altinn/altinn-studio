@@ -97,6 +97,7 @@ export function StudioCodeListEditorRow({
       <TextResourceSelectorCell
         currentId={item.label}
         dispatch={dispatch}
+        key={makeKey(CodeListItemTextProperty.Label, item.label)}
         label={texts.itemLabel(number)}
         number={number}
         onChangeCurrentId={handleLabelChange}
@@ -109,6 +110,7 @@ export function StudioCodeListEditorRow({
       <TextResourceSelectorCell
         currentId={item.description}
         dispatch={dispatch}
+        key={makeKey(CodeListItemTextProperty.Description, item.description)}
         label={texts.itemDescription(number)}
         number={number}
         onChangeCurrentId={handleDescriptionChange}
@@ -121,6 +123,7 @@ export function StudioCodeListEditorRow({
       <TextResourceSelectorCell
         currentId={item.helpText}
         dispatch={dispatch}
+        key={makeKey(CodeListItemTextProperty.HelpText, item.helpText)}
         label={texts.itemHelpText(number)}
         number={number}
         onChangeCurrentId={handleHelpTextChange}
@@ -133,6 +136,10 @@ export function StudioCodeListEditorRow({
       <DeleteButtonCell onClick={onDeleteButtonClick} number={number} />
     </StudioInputTable.Row>
   );
+}
+
+function makeKey(property: CodeListItemTextProperty, textKey?: string): string {
+  return `${property}-${textKey ?? ''}`;
 }
 
 type TypedInputCellProps<T extends CodeListItemValue> = {

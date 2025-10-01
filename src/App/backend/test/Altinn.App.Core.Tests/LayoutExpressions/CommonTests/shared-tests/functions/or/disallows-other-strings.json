@@ -1,0 +1,5 @@
+{
+  "name": "Disallows other strings",
+  "expression": ["or", true, "yes"],
+  "expectsFailure": "Expected boolean, got value \"yes\""
+}

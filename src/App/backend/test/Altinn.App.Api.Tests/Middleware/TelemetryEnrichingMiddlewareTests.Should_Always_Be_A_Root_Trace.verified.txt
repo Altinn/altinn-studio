@@ -1,0 +1,99 @@
+﻿{
+  Activities: [
+    {
+      Name: GET {org}/{app}/api/v1/applicationmetadata,
+      Kind: Server,
+      IdFormat: W3C,
+      Tags: [
+        {
+          http.request.method: GET
+        },
+        {
+          http.response.status_code: 200
+        },
+        {
+          http.route: {org}/{app}/api/v1/applicationmetadata
+        },
+        {
+          network.protocol.version: 1.1
+        },
+        {
+          server.address: localhost
+        },
+        {
+          TestId: Guid_1
+        },
+        {
+          url.path: /tdd/contributer-restriction/api/v1/applicationmetadata
+        },
+        {
+          url.scheme: http
+        },
+        {
+          user.authentication.inAltinnPortal: true
+        },
+        {
+          user.authentication.level: 4
+        },
+        {
+          user.authentication.method: BankID
+        },
+        {
+          user.authentication.token.isExchanged: false
+        },
+        {
+          user.authentication.token.issuer: Altinn
+        },
+        {
+          user.authentication.type: User
+        },
+        {
+          user.id: 10
+        },
+        {
+          user.party.id: Scrubbed
+        }
+      ],
+      HasParent: false
+    }
+  ],
+  Metrics: [
+    {
+      Name: http.server.request.duration,
+      MeterName: Microsoft.AspNetCore.Hosting,
+      Measurements: [
+        {
+          Tags: [
+            {
+              http.request.method: GET
+            },
+            {
+              http.response.status_code: 200
+            },
+            {
+              http.route: {org}/{app}/api/v1/applicationmetadata
+            },
+            {
+              network.protocol.version: 1.1
+            },
+            {
+              TestId: Guid_1
+            },
+            {
+              url.scheme: http
+            },
+            {
+              user.authentication.token.isExchanged: false
+            },
+            {
+              user.authentication.token.issuer: Altinn
+            },
+            {
+              user.authentication.type: User
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

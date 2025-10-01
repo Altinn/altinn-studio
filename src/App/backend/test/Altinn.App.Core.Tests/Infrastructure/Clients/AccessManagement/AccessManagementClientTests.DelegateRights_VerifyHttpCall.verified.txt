@@ -1,0 +1,9 @@
+﻿{
+  Activities: [
+    {
+      Name: AccessManagementClient.Delegate,
+      IdFormat: W3C,
+      HasParent: false
+    }
+  ]
+}

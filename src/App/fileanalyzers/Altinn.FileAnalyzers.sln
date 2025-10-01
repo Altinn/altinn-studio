@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33516.290
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.FileAnalyzers", "src\Altinn.FileAnalyzers\Altinn.FileAnalyzers.csproj", "{FB7A3052-06C8-4A84-A198-F3AEECE1472D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.FileAnalyzers.Tests", "test\Altinn.FileAnalyzers.Tests\Altinn.FileAnalyzers.Tests.csproj", "{94532621-70D1-405D-8BBC-8330C0FCCF2D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FB7A3052-06C8-4A84-A198-F3AEECE1472D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB7A3052-06C8-4A84-A198-F3AEECE1472D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB7A3052-06C8-4A84-A198-F3AEECE1472D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB7A3052-06C8-4A84-A198-F3AEECE1472D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94532621-70D1-405D-8BBC-8330C0FCCF2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94532621-70D1-405D-8BBC-8330C0FCCF2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94532621-70D1-405D-8BBC-8330C0FCCF2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94532621-70D1-405D-8BBC-8330C0FCCF2D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C00954BE-7360-45D6-B49F-A2925CC278FB}
+	EndGlobalSection
+EndGlobal
