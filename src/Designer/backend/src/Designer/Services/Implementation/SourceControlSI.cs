@@ -522,6 +522,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             Branch branch = repo.Branches.FirstOrDefault(branch => branch.FriendlyName == branchName);
             if (branch is not null) { return; }
 
+            if (commitSha is null)
+            {
+                repo.CreateBranch(branchName);
+                return;
+            }
             LibGit2Sharp.Commit commit = repo.Lookup<LibGit2Sharp.Commit>(commitSha);
             repo.CreateBranch(branchName, commit);
         }
