@@ -9,8 +9,8 @@ import type { IFormLayouts } from '../../../types/global';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { BooleanExpression } from '@studio/components-legacy';
-import { GeneralRelationOperator } from '@studio/components-legacy';
+import type { BooleanExpression } from '@studio/components';
+import { GeneralRelationOperator } from '@studio/components';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
 
