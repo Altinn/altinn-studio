@@ -53,7 +53,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
         List<string> languages = [.. languageFilePaths
             .Select(Path.GetFileName)
             .Where(fileName => fileName is not null)
-            .Select(filename => filename!.Split('.')[0])
+            .Select(filename => filename!.Split('.')[1])
         ];
 
         languages.Sort(StringComparer.Ordinal);
