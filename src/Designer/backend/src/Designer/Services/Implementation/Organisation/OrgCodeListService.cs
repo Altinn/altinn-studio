@@ -170,7 +170,7 @@ public class OrgCodeListService : IOrgCodeListService
     internal async Task HandleCommitWithFeatureBranch(AltinnRepoEditingContext editingContext, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
     {
         string branchName = editingContext.Developer;
-        _sourceControl.DeleteLocalBranch(editingContext, branchName);
+        _sourceControl.DeleteLocalBranchIfExists(editingContext, branchName);
         _sourceControl.CreateLocalBranch(editingContext, branchName, request.BaseCommitSha);
         _sourceControl.CheckoutRepoOnBranch(editingContext, branchName);
 
@@ -183,6 +183,7 @@ public class OrgCodeListService : IOrgCodeListService
         _sourceControl.RebaseOntoDefaultBranch(editingContext);
         _sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
         _sourceControl.MergeBranchIntoHead(editingContext, branchName);
+        _sourceControl.DeleteLocalBranchIfExists(editingContext, branchName);
     }
 
     internal async Task UpdateCodeListFile(string org, string developer, string codeListId, CodeList? codeList, CancellationToken cancellationToken = default)

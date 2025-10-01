@@ -342,11 +342,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        public void DeleteLocalBranch(AltinnRepoEditingContext editingContext, string branchName)
+        public void DeleteLocalBranchIfExists(AltinnRepoEditingContext editingContext, string branchName)
         {
             try
             {
-                _decoratedService.DeleteLocalBranch(editingContext, branchName);
+                _decoratedService.DeleteLocalBranchIfExists(editingContext, branchName);
             }
             catch (Exception ex)
             {

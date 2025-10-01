@@ -433,7 +433,7 @@ namespace Designer.Tests.Services
             throw new NotImplementedException();
         }
 
-        public void DeleteLocalBranch(AltinnRepoEditingContext editingContext, string branchName)
+        public void DeleteLocalBranchIfExists(AltinnRepoEditingContext editingContext, string branchName)
         {
             throw new NotImplementedException();
         }

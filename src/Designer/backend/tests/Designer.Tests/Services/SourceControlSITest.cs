@@ -65,7 +65,7 @@ namespace Designer.Tests.Services
 
 
         [Fact]
-        public void DeleteLocalBranch()
+        public void DeleteLocalBranchIfExists()
         {
             // Arrange
             string repoName = TestDataHelper.GenerateTestRepoName();
@@ -78,7 +78,7 @@ namespace Designer.Tests.Services
                 Assert.Contains(repo.Branches, b => b.FriendlyName == branchName);
             }
 
-            _sourceControlService.DeleteLocalBranch(context, branchName);
+            _sourceControlService.DeleteLocalBranchIfExists(context, branchName);
 
             // Assert
             using Repository finalRepoState = new(_repoDir);

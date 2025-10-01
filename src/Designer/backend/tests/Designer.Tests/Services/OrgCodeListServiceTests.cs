@@ -453,7 +453,7 @@ public class OrgCodeListServiceTests : IDisposable
             .ReturnsAsync(LatestCommitOnRemote);
         _sourceControlMock.Setup(service => service.EnsureCloneExists(It.IsAny<string>(), It.IsAny<string>()));
 
-        _sourceControlMock.Setup(service => service.DeleteLocalBranch(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
+        _sourceControlMock.Setup(service => service.DeleteLocalBranchIfExists(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
         _sourceControlMock.Setup(service => service.CreateLocalBranch(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>(), It.IsAny<string>()));
         _sourceControlMock.Setup(service => service.CheckoutRepoOnBranch(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
 
@@ -480,7 +480,7 @@ public class OrgCodeListServiceTests : IDisposable
         _giteaMock.Verify(service => service.GetLatestCommitOnBranch(TargetOrg, targetRepository, "master"), Times.Once);
         _sourceControlMock.Verify(service => service.EnsureCloneExists(TargetOrg, targetRepository), Times.Once);
 
-        _sourceControlMock.Verify(service => service.DeleteLocalBranch(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), expectedFeatureBranchName), Times.Once);
+        _sourceControlMock.Verify(service => service.DeleteLocalBranchIfExists(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), expectedFeatureBranchName), Times.Exactly(2));
         _sourceControlMock.Verify(service => service.CreateLocalBranch(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), expectedFeatureBranchName, Reference), Times.Once);
         _sourceControlMock.Verify(service => service.CheckoutRepoOnBranch(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), expectedFeatureBranchName), Times.Once);
 
@@ -542,7 +542,7 @@ public class OrgCodeListServiceTests : IDisposable
         string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
         await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg, targetRepository);
 
-        _sourceControlMock.Setup(service => service.DeleteLocalBranch(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
+        _sourceControlMock.Setup(service => service.DeleteLocalBranchIfExists(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
         _sourceControlMock.Setup(service => service.CreateLocalBranch(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>(), It.IsAny<string>()));
         _sourceControlMock.Setup(service => service.CheckoutRepoOnBranch(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
 
@@ -563,7 +563,7 @@ public class OrgCodeListServiceTests : IDisposable
         // Assert
         string expectedFeatureBranchName = editingContext.Developer;
 
-        _sourceControlMock.Verify(service => service.DeleteLocalBranch(It.Is<AltinnRepoEditingContext>(actual => editingContext.Equals(actual)), expectedFeatureBranchName), Times.Once);
+        _sourceControlMock.Verify(service => service.DeleteLocalBranchIfExists(It.Is<AltinnRepoEditingContext>(actual => editingContext.Equals(actual)), expectedFeatureBranchName), Times.Exactly(2));
         _sourceControlMock.Verify(service => service.CreateLocalBranch(It.Is<AltinnRepoEditingContext>(actual => editingContext.Equals(actual)), expectedFeatureBranchName, Reference), Times.Once);
         _sourceControlMock.Verify(service => service.CheckoutRepoOnBranch(It.Is<AltinnRepoEditingContext>(actual => editingContext.Equals(actual)), expectedFeatureBranchName), Times.Once);
 

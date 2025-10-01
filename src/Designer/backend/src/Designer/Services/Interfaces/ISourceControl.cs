@@ -185,7 +185,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="editingContext">The altinn repo editing context</param>
         /// <param name="branchName">The name of the branch</param>
-        void DeleteLocalBranch(AltinnRepoEditingContext editingContext, string branchName);
+        void DeleteLocalBranchIfExists(AltinnRepoEditingContext editingContext, string branchName);
 
         /// <summary>
         /// Creates a local branch based on the specified commit sha if given.

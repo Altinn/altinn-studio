@@ -542,7 +542,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void DeleteLocalBranch(AltinnRepoEditingContext editingContext, string branchName)
+        public void DeleteLocalBranchIfExists(AltinnRepoEditingContext editingContext, string branchName)
         {
             string localPath = FindLocalRepoLocation(editingContext);
             using LibGit2Sharp.Repository repo = new(localPath);
