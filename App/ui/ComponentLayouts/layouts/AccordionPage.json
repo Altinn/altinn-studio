@@ -35,7 +35,7 @@
       },
       
       {
-        "id": "TablePage-Summary2",
+        "id": "AccordionPage-Summary2",
         "type": "Summary2",
         "target": {
           "type": "component",
