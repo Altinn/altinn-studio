@@ -43,8 +43,21 @@ function paramFrom(matches: Matches, key: keyof PathParams): string | undefined 
   return decode && param ? decodeURIComponent(param) : param;
 }
 
+/**
+ * Strips the base path (/{org}/{app}) from the pathname if present
+ */
+function stripBasePath(pathname: string): string {
+  const basePath = `/${window.org}/${window.app}`;
+  if (pathname.startsWith(basePath)) {
+    return pathname.slice(basePath.length);
+  }
+  return pathname;
+}
+
 function matchParams(path: string): PathParams {
-  const matches = matchers.map((matcher) => matchPath(matcher, path));
+  const pathWithoutBase = stripBasePath(path);
+  const matches = matchers.map((matcher) => matchPath(matcher, pathWithoutBase));
+
   return {
     instanceOwnerPartyId: paramFrom(matches, 'instanceOwnerPartyId'),
     instanceGuid: paramFrom(matches, 'instanceGuid'),
@@ -58,7 +71,8 @@ function matchParams(path: string): PathParams {
 
 export const useNavigationParam = <T extends keyof PathParams>(key: T) => {
   const location = useLocation();
-  const matches = matchers.map((matcher) => matchPath(matcher, location.pathname));
+  const pathWithoutBase = stripBasePath(location.pathname);
+  const matches = matchers.map((matcher) => matchPath(matcher, pathWithoutBase));
   return paramFrom(matches, key) as PathParams[T];
 };
 
@@ -69,7 +83,8 @@ export const useQueryKey = (key: SearchParams) => new URLSearchParams(useLocatio
 
 export const useIsSubformPage = () => {
   const location = useLocation();
-  const matches = matchers.map((matcher) => matchPath(matcher, location.pathname));
+  const pathWithoutBase = stripBasePath(location.pathname);
+  const matches = matchers.map((matcher) => matchPath(matcher, pathWithoutBase));
   const mainPageKey = paramFrom(matches, 'mainPageKey');
   const subformPageKey = paramFrom(matches, 'pageKey');
   return !!(mainPageKey && subformPageKey);
@@ -77,7 +92,8 @@ export const useIsSubformPage = () => {
 
 export const useIsReceiptPage = () => {
   const location = useLocation();
-  const matches = matchers.map((matcher) => matchPath(matcher, location.pathname));
+  const pathWithoutBase = stripBasePath(location.pathname);
+  const matches = matchers.map((matcher) => matchPath(matcher, pathWithoutBase));
   const taskId = paramFrom(matches, 'taskId');
   return taskId === 'ProcessEnd' || taskId === 'CustomReceipt';
 };

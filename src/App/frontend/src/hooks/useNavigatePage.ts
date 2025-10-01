@@ -25,6 +25,14 @@ import { useHiddenPages } from 'src/utils/layout/hidden';
 import type { NavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import type { NodeRefValidation } from 'src/features/validation';
 
+/**
+ * Prepends the base path (/{org}/{app}) to a URL path
+ */
+function prependBasePath(path: string): string {
+  const basePath = `/${window.org}/${window.app}`;
+  return `${basePath}${path}`;
+}
+
 export interface NavigateToPageOptions {
   replace?: boolean;
   skipAutoSave?: boolean;
@@ -173,7 +181,7 @@ export function useNavigateToTask() {
           ? TaskKeys.CustomReceipt
           : TaskKeys.ProcessEnd;
       }
-      const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${realTaskId}${queryKeysRef.current}`;
+      const url = prependBasePath(`/instance/${instanceOwnerPartyId}/${instanceGuid}/${realTaskId}${queryKeysRef.current}`);
       navigate(
         url,
         undefined,
@@ -228,6 +236,8 @@ export function useNavigatePage() {
       // The page ID may be URL encoded already, if we got this from react-router.
       const pageId = decodeURIComponent(_pageId);
 
+      console.log('navParams', navParams);
+
       console.log('navParams.current.taskId', navParams.current.taskId);
 
       console.log('getTaskType(navParams.current.taskId)', getTaskType(taskId));
@@ -249,7 +259,7 @@ export function useNavigatePage() {
   useEffect(() => {
     const currentPageId = navParams.current.pageKey ?? '';
     if (isStatelessApp && orderRef.current[0] !== undefined && (!currentPageId || !isValidPageId(currentPageId))) {
-      navigate(`/${orderRef.current[0]}?${searchParamsRef.current}`, { replace: true });
+      navigate(prependBasePath(`/${orderRef.current[0]}?${searchParamsRef.current}`), { replace: true });
     }
   }, [isStatelessApp, orderRef, navigate, isValidPageId, navParams, searchParamsRef]);
 
@@ -280,7 +290,7 @@ export function useNavigatePage() {
 
       const searchParams = options?.searchParams ? `?${options.searchParams.toString()}` : '';
       if (isStatelessApp) {
-        const url = `/${page}${searchParams}`;
+        const url = prependBasePath(`/${page}${searchParams}`);
         return navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
       }
 
@@ -288,11 +298,11 @@ export function useNavigatePage() {
 
       // Subform
       if (mainPageKey && componentId && dataElementId && !shouldExitSubform) {
-        const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}/${componentId}/${dataElementId}/${page}${searchParams}`;
+        const url = prependBasePath(`/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}/${componentId}/${dataElementId}/${page}${searchParams}`);
         return navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
       }
 
-      const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page}${searchParams}`;
+      const url = prependBasePath(`/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page}${searchParams}`);
       navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
     },
     [orderRef, isStatelessApp, navParams, navigate, maybeSaveOnPageChange, refetchInitialValidations],
@@ -379,7 +389,7 @@ export function useNavigatePage() {
       return;
     }
     const { instanceOwnerPartyId, instanceGuid, taskId, pageKey } = navParams.current;
-    const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page ?? pageKey}/${nodeId}/${dataElementId}${validate ? '?validate=true' : ''}`;
+    const url = prependBasePath(`/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page ?? pageKey}/${nodeId}/${dataElementId}${validate ? '?validate=true' : ''}`);
 
     await maybeSaveOnPageChange();
     refetchInitialValidations();

@@ -71,6 +71,9 @@ export const NavigationBarComponent = ({ baseComponentId }: PropsFromGenericComp
 
       const pageKey = layoutLookups.componentToPage[baseComponentId];
 
+      console.log('layoutLookups', layoutLookups);
+      console.log('baseComponentId', baseComponentId);
+
       if (pageId === currentPageId || newIndex === -1 || !pageKey) {
         return;
       }
