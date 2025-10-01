@@ -28,6 +28,7 @@ public class OrgCodeListService : IOrgCodeListService
     private readonly IGitea _gitea;
     private readonly ISourceControl _sourceControl;
 
+    private const string DefaultCommitMessage = "Update code lists.";
     private const string Repo = "content";
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
@@ -153,7 +154,11 @@ public class OrgCodeListService : IOrgCodeListService
         {
             await HandleCommitWithFeatureBranch(editingContext, request, cancellationToken);
         }
-        await _sourceControl.Push(org, repositoryName);
+        bool pushOk = await _sourceControl.Push(org, repositoryName);
+        if (!pushOk)
+        {
+            throw new InvalidOperationException($"Push failed for {org}/{repositoryName}. Remote rejected the update.");
+        }
     }
 
     internal async Task HandleSimpleCommit(AltinnRepoEditingContext editingContext, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
@@ -163,7 +168,7 @@ public class OrgCodeListService : IOrgCodeListService
         {
             await UpdateCodeListFile(editingContext.Org, editingContext.Developer, wrapper.Title, wrapper.CodeList, cancellationToken);
         }
-        _sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? string.Empty);
+        _sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? DefaultCommitMessage);
     }
 
     internal async Task HandleCommitWithFeatureBranch(AltinnRepoEditingContext editingContext, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
@@ -178,7 +183,7 @@ public class OrgCodeListService : IOrgCodeListService
             await UpdateCodeListFile(editingContext.Org, editingContext.Developer, wrapper.Title, wrapper.CodeList, cancellationToken);
         }
 
-        _sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? string.Empty);
+        _sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? DefaultCommitMessage);
         _sourceControl.RebaseOntoDefaultBranch(editingContext);
         _sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
         _sourceControl.MergeBranchIntoHead(editingContext, branchName);
@@ -198,7 +203,7 @@ public class OrgCodeListService : IOrgCodeListService
     {
         if (codeListWrappers.Exists(clw => InputValidator.IsInvalidCodeListTitle(clw.Title)))
         {
-            throw new IllegalFileNameException("One or more of the code list titles contains invalid characters. Latin characters, numbers and underscores are allowed.");
+            throw new IllegalFileNameException("One or more code list titles contains invalid characters. Allowed: letters, numbers, underscores (_), hyphens (-), and dots (.)");
         }
     }
 

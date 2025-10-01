@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -49,10 +50,11 @@ public class AltinnOrgGitRepository : AltinnGitRepository
 
         string[] languageFilePaths = GetFilesByRelativeDirectory(LanguageResourceFolderName, TextResourceFileNamePattern);
 
-        List<string> languages = languageFilePaths
+        List<string> languages = [.. languageFilePaths
             .Select(Path.GetFileName)
-            .Select(fileName => fileName.Split('.')[1])
-            .ToList();
+            .Where(fileName => fileName is not null)
+            .Select(filename => filename!.Split('.')[0])
+        ];
 
         languages.Sort(StringComparer.Ordinal);
         return languages;
@@ -77,7 +79,12 @@ public class AltinnOrgGitRepository : AltinnGitRepository
 
         string resourcePath = TextResourceFilePath(languageCode);
         string fileContent = await ReadTextByRelativePathAsync(resourcePath, cancellationToken);
-        TextResource textResource = JsonSerializer.Deserialize<TextResource>(fileContent, s_jsonOptions);
+        TextResource? textResource = JsonSerializer.Deserialize<TextResource>(fileContent, s_jsonOptions);
+
+        if (textResource is null)
+        {
+            throw new InvalidOperationException("Text resource file was empty.");
+        }
 
         return textResource;
     }
@@ -121,8 +128,9 @@ public class AltinnOrgGitRepository : AltinnGitRepository
         }
 
         string[] fileNames = GetFilesByRelativeDirectoryAscSorted(CodeListWithTextResourcesFolder, "*.json");
-        IEnumerable<string> codeListIds = fileNames.Select(Path.GetFileNameWithoutExtension);
-        return codeListIds.ToList();
+        return [.. fileNames
+            .Select(Path.GetFileNameWithoutExtension)
+            .OfType<string>()];
     }
 
     /// <summary>
@@ -141,7 +149,12 @@ public class AltinnOrgGitRepository : AltinnGitRepository
             throw new NotFoundException($"code list file {codeListId}.json was not found.");
         }
         string fileContent = await ReadTextByRelativePathAsync(codeListFilePath, cancellationToken);
-        List<Option> codeList = JsonSerializer.Deserialize<List<Option>>(fileContent, s_jsonOptions);
+        List<Option>? codeList = JsonSerializer.Deserialize<List<Option>>(fileContent, s_jsonOptions);
+
+        if (codeList is null)
+        {
+            throw new InvalidOperationException("No codes found in codelist.");
+        }
 
         return codeList;
     }
@@ -184,13 +197,23 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     /// <param name="codeListId">The name of the cost list to update.</param>
     /// <param name="codeList">The code list contents.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public async Task UpdateCodeListNew(string codeListId, CodeList codeList, CancellationToken cancellationToken = default)
+    public async Task UpdateCodeListNew(string codeListId, CodeList? codeList, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
+        string codeListFilePath = Path.Join(CodeListFolder, $"{codeListId}.json");
+
+        if (codeList is null)
+        {
+            if (FileExistsByRelativePath(codeListFilePath))
+            {
+                DeleteFileByRelativePath(codeListFilePath);
+            }
+            return;
+        }
+
         string codeListString = JsonSerializer.Serialize(codeList, s_jsonOptions);
 
-        string codeListFilePath = Path.Join(CodeListFolder, $"{codeListId}.json");
         await WriteTextByRelativePathAsync(codeListFilePath, codeListString, true, cancellationToken);
     }
 

@@ -200,6 +200,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="editingContext">The altinn repo editing context</param>
         /// <param name="featureBranch">The name of the feature branch</param>
-        public void MergeBranchIntoHead(AltinnRepoEditingContext editingContext, string featureBranch);
+        void MergeBranchIntoHead(AltinnRepoEditingContext editingContext, string featureBranch);
     }
 }

@@ -369,6 +369,10 @@ namespace Designer.Tests.Services
 
         public void Dispose()
         {
+            if (string.IsNullOrWhiteSpace(_repoDir))
+            {
+                return;
+            }
             try
             {
                 if (Directory.Exists(_repoDir))

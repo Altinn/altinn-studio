@@ -50,7 +50,7 @@ public sealed record FileContents(List<CodeListWrapper> CodeListWrappers, Dictio
 
         if (FileMetadata is not null)
         {
-            foreach (KeyValuePair<string, string> pair in FileMetadata)
+            foreach (KeyValuePair<string, string> pair in FileMetadata.OrderBy(kv => kv.Key))
             {
                 hash.Add(pair.Key);
                 hash.Add(pair.Value);

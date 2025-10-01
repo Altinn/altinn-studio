@@ -569,9 +569,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<string> GetLatestCommitOnBranch(string org, string repository, string branchName = null)
         {
-            string basePath = $"repos/{org}/{repository}/commits";
-            string path = Path.Combine(basePath, "?limit=1", "?stat=false", "?verification=false", "?files=false", AddShaIfExists(branchName));
-            using HttpResponseMessage r = await _httpClient.GetAsync(path);
+            var url = new StringBuilder($"repos/{org}/{repository}/commits?limit=1&stat=false&verification=false&files=false");
+            if (!string.IsNullOrWhiteSpace(branchName))
+            {
+                url.Append($"&sha={HttpUtility.UrlEncode(branchName)}");
+            }
+            using HttpResponseMessage r = await _httpClient.GetAsync(url.ToString());
             if (r.IsSuccessStatusCode)
             {
                 List<GiteaCommit> commits = await r.Content.ReadAsAsync<List<GiteaCommit>>();
@@ -581,8 +584,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetLatestCommitOnBranch response failed with statuscode " + r.StatusCode + " for " + org + " / " + repository + " branch: " + branchName);
             return null;
         }
-
-        private static string AddShaIfExists(string sha) => string.IsNullOrEmpty(sha) ? string.Empty : $"&sha={HttpUtility.UrlEncode(sha)}";
 
         private async Task<Organization> GetOrganization(string name)
         {

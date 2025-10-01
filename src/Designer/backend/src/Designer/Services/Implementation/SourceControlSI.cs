@@ -487,8 +487,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 Commands.Stage(repo, "*");
                 LibGit2Sharp.Signature signature = GetDeveloperSignature();
-                var commit = repo.Commit(message, signature, signature);
-                var notes = repo.Notes;
+                message ??= string.Empty;
+                LibGit2Sharp.Commit commit = repo.Commit(message, signature, signature);
+                NoteCollection notes = repo.Notes;
                 notes.Add(commit.Id, "studio-commit", signature, signature, notes.DefaultNamespace);
             }
         }
@@ -502,15 +503,26 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string developer = editingContext.Developer;
             Identity identity = new(developer, $"{developer}@noreply.altinn.studio");
             RebaseOptions options = new() { FileConflictStrategy = CheckoutFileConflictStrategy.Merge };
-            Branch masterBranch = repo.Branches.FirstOrDefault(branch => branch.FriendlyName.Equals(DefaultBranch));
+            Branch upstream = repo.Branches.FirstOrDefault(b => b.FriendlyName.Equals(DefaultBranch));
 
-            repo.Rebase.Start(
+            if (upstream is null)
+            {
+                throw new InvalidOperationException($"Default branch '{DefaultBranch}' not found locally.");
+            }
+
+            RebaseResult rebaseResult = repo.Rebase.Start(
                 repo.Head,
-                masterBranch,
+                upstream,
                 null,
                 identity,
                 options
             );
+
+            if (rebaseResult.Status != RebaseStatus.Complete)
+            {
+                repo.Rebase.Abort();
+                throw new InvalidOperationException("Rebase onto latest commit on default branch failed. Rebase aborted.");
+            }
         }
 
         /// <inheritdoc/>
@@ -575,13 +587,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string localPath = FindLocalRepoLocation(editingContext);
             using LibGit2Sharp.Repository repo = new(localPath);
 
-            var branch = repo.Branches.Single(branch => branch.FriendlyName == featureBranch);
-            var signature = GetDeveloperSignature();
+            Branch branch = repo.Branches.Single(branch => branch.FriendlyName == featureBranch);
+            LibGit2Sharp.Signature signature = GetDeveloperSignature();
             MergeResult result = repo.Merge(branch, signature);
             if (result.Status == MergeStatus.Conflicts)
             {
-                repo.Reset(ResetMode.Hard);
-                throw new InvalidOperationException("Merge failed, branch has been reset to remote.");
+                repo.Reset(ResetMode.Hard, repo.Head.Tip);
+                throw new InvalidOperationException("Merge failed; repository reset to pre-merge HEAD.");
             }
         }
 

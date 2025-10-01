@@ -146,10 +146,12 @@ public class OrgCodeListServiceTests : IDisposable
         _giteaMock
             .Setup(service => service.GetLatestCommitOnBranch(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(Reference);
-        _sourceControlMock.Setup(service => service.EnsureCloneExists(It.IsAny<string>(), It.IsAny<string>()));
+        _sourceControlMock.Setup(service => service.EnsureCloneExists(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
         _sourceControlMock.Setup(service => service.CheckoutRepoOnBranch(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
         _sourceControlMock.Setup(service => service.CommitToLocalRepo(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
-        _sourceControlMock.Setup(service => service.Push(It.IsAny<string>(), It.IsAny<string>()));
+        _sourceControlMock.Setup(service => service.Push(It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(true);
 
         // Act
         OrgCodeListService orgListService = GetOrgCodeListService();
@@ -193,7 +195,8 @@ public class OrgCodeListServiceTests : IDisposable
         _giteaMock
             .Setup(service => service.GetLatestCommitOnBranch(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(LatestCommitOnRemote);
-        _sourceControlMock.Setup(service => service.EnsureCloneExists(It.IsAny<string>(), It.IsAny<string>()));
+        _sourceControlMock.Setup(service => service.EnsureCloneExists(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
 
         _sourceControlMock.Setup(service => service.DeleteLocalBranchIfExists(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
         _sourceControlMock.Setup(service => service.CreateLocalBranch(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>(), It.IsAny<string>()));
@@ -203,7 +206,8 @@ public class OrgCodeListServiceTests : IDisposable
         _sourceControlMock.Setup(service => service.RebaseOntoDefaultBranch(It.IsAny<AltinnRepoEditingContext>()));
         _sourceControlMock.Setup(service => service.MergeBranchIntoHead(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
 
-        _sourceControlMock.Setup(service => service.Push(It.IsAny<string>(), It.IsAny<string>()));
+        _sourceControlMock.Setup(service => service.Push(It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(true);
 
         // Act
         OrgCodeListService orgListService = GetOrgCodeListService();
