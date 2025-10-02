@@ -1,6 +1,3 @@
-# App cluster ttd/tt02
-# - OCIRepo and Kustomize for: oci://altinncr.azurecr.io/studio-apps/syncroot:at_ring1 at path "tt02/"
-# - tt02/ patches base for pdf3 OCIRepo tag "tt_ring1"? But then every tt02 gets ring1?
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -15,7 +12,7 @@ spec:
   interval: 5m
   provider: azure
   ref:
-    tag: latest
+    tag: ${UPGRADE_CHANNEL}
   timeout: 5m
   url: oci://altinncr.azurecr.io/studio-apps/runtime-pdf3-repo
 ---
