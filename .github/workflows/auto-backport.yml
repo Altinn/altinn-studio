@@ -120,7 +120,7 @@ jobs:
 
       - name: Create backport PR
         if: steps.cherry-pick.outputs.success == 'true'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
             const prNumber = context.payload.pull_request.number;
@@ -192,7 +192,7 @@ jobs:
 
       - name: Comment on original PR (success)
         if: steps.cherry-pick.outputs.success == 'true'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
             const releaseBranch = '${{ steps.find-release-branch.outputs.release_branch }}';
@@ -220,7 +220,7 @@ jobs:
 
       - name: Comment on original PR (conflicts)
         if: steps.cherry-pick.outputs.success == 'false'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
             const releaseBranch = '${{ steps.find-release-branch.outputs.release_branch }}';
