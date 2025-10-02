@@ -93,7 +93,7 @@ public class OrgCodeListService : IOrgCodeListService
     {
         string repository = GetStaticContentRepo(org);
         List<FileSystemObject> files = await _gitea.GetCodeListDirectoryContentAsync(org, repository, reference, cancellationToken);
-        string latestCommitSha = await _gitea.GetLatestCommitOnBranch(org, repository, reference);
+        string latestCommitSha = await _gitea.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
 
         List<CodeListWrapper> codeListWrappers = [];
         foreach (FileSystemObject file in files)

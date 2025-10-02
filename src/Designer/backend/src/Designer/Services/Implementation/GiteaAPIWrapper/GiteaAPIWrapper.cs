@@ -567,17 +567,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<string> GetLatestCommitOnBranch(string org, string repository, string branchName = null)
+        public async Task<string> GetLatestCommitOnBranch(string org, string repository, string branchName = null, CancellationToken cancellationToken = default)
         {
             var url = new StringBuilder($"repos/{org}/{repository}/commits?limit=1&stat=false&verification=false&files=false");
             if (!string.IsNullOrWhiteSpace(branchName))
             {
                 url.Append($"&sha={HttpUtility.UrlEncode(branchName)}");
             }
-            using HttpResponseMessage r = await _httpClient.GetAsync(url.ToString());
+            using HttpResponseMessage r = await _httpClient.GetAsync(url.ToString(), cancellationToken);
             if (r.IsSuccessStatusCode)
             {
-                List<GiteaCommit> commits = await r.Content.ReadAsAsync<List<GiteaCommit>>();
+                List<GiteaCommit> commits = await r.Content.ReadAsAsync<List<GiteaCommit>>(cancellationToken);
                 return commits?.FirstOrDefault()?.Sha;
             }
 

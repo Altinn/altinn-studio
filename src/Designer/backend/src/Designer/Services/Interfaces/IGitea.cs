@@ -183,7 +183,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">The organization owner of the repository.</param>
         /// <param name="repository">The name of repository.</param>
         /// <param name="branchName">The name of the branch. If null or empty, the default branch (master) will be used.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The latest commit SHA as a string.</returns>
-        Task<string> GetLatestCommitOnBranch(string org, string repository, string branchName = null);
+        Task<string> GetLatestCommitOnBranch(string org, string repository, string branchName = null, CancellationToken cancellationToken = default);
     }
 }
