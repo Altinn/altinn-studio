@@ -34,7 +34,7 @@ function StudioToggleableTextfield(
     defaultValue,
     ...rest
   }: StudioToggleableTextfieldProps,
-  ref: Ref<HTMLDivElement>,
+  ref: Ref<HTMLInputElement>,
 ): ReactElement {
   const [isViewMode, setIsViewMode] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
