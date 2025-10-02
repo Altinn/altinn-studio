@@ -59,6 +59,7 @@ export * from './StudioTable';
 export * from './StudioTabs';
 export * from './StudioTag';
 export * from './StudioTextfield';
+export * from './StudioTextResourceInput';
 export * from './StudioTextResourcePicker';
 export * from './StudioToggleGroup';
 export * from './StudioValidationMessage';
