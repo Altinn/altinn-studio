@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - feat/runtime-syncroot
     paths:
       - infra/runtime/pdf3/**
       - .github/workflows/deploy-runtime-pdf3.yaml
