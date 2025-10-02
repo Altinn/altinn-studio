@@ -217,8 +217,10 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
 
     const editCurrentTextResource = useCallback(
       (value: string): TextResource =>
-        editTextResourceValue(currentTextResource as TextResource, value),
-      [currentTextResource],
+        currentTextResource
+          ? editTextResourceValue(currentTextResource, value)
+          : createTextResource(value),
+      [currentTextResource, createTextResource],
     );
 
     const editOrCreateTextResource = useCallback(
