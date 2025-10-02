@@ -54,7 +54,7 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
     const [currentId, setCurrentId] = usePropState<string | null | undefined>(givenCurrentId);
     const [textResources, setTextResources] = usePropState<TextResource[]>(givenTextResources);
     const [mode, setMode] = useState<Mode>(Mode.EditValue);
-    const handleChangeCurrentId = (id: string): void => {
+    const handleChangeCurrentId = (id: string | null): void => {
       setCurrentId(id);
       onChangeCurrentId(id);
     };
@@ -156,7 +156,7 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
       case Mode.Search:
         return (
           <StudioTextResourcePicker
-            emptyText={''}
+            emptyText={texts.emptyTextResourceList ?? ''}
             className={cn(className, classes.searchField)}
             label={texts.textResourcePickerLabel}
             noTextResourceOptionLabel={texts.noTextResourceOptionLabel}
@@ -275,7 +275,7 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
         ref={ref}
         value={valueState}
         data-size='md'
-        aria-label={typeof label === 'string' ? label : String(label)}
+        aria-label={ariaLabel ?? (typeof label === 'string' ? label : String(label))}
         {...rest}
       />
     );

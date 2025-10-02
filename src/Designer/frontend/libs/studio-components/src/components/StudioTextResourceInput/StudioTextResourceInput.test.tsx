@@ -132,7 +132,7 @@ describe('StudioTextResourceInput', () => {
     await switchToSearchMode(user);
     const chipButton = screen.getByRole('button', { name: /Press to remove/i });
     await user.click(chipButton);
-    await waitFor(expect(onChangeCurrentId).toHaveBeenCalled);
+    await waitFor(() => expect(onChangeCurrentId).toHaveBeenCalled());
 
     expect(onChangeCurrentId).toHaveBeenCalledTimes(1);
     expect(onChangeCurrentId).toHaveBeenCalledWith(null);
@@ -171,6 +171,29 @@ describe('StudioTextResourceInput', () => {
       renderTextResourceInput,
       getValueField,
     );
+  });
+
+  it('Calls the onBlur callback when provided and the field is blurred', async () => {
+    const user = userEvent.setup();
+    const onBlur = jest.fn();
+    renderTextResourceInput({ onBlur });
+    await user.type(getValueField(), 'test');
+    await user.tab();
+    expect(onBlur).toHaveBeenCalledTimes(1);
+  });
+
+  it('Calls the onChange callback when provided and the field value changes', async () => {
+    const user = userEvent.setup();
+    const onChange = jest.fn();
+    renderTextResourceInput({ onChange });
+    await user.type(getValueField(), 'a');
+    expect(onChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('Falls back to label string when aria-label is not provided', () => {
+    renderTextResourceInput();
+    const input = getValueField();
+    expect(input).toHaveAttribute('aria-label', texts.valueLabel);
   });
 });
 

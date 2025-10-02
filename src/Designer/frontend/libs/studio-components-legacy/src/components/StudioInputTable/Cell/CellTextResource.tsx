@@ -2,8 +2,10 @@ import { StudioTable } from '../../StudioTable';
 import type { ForwardedRef, ReactElement, FocusEvent } from 'react';
 import React, { useCallback } from 'react';
 import { BaseInputCell } from './BaseInputCell';
-import type { StudioTextResourceInputProps } from '../../StudioTextResourceInput';
-import { StudioTextResourceInput } from '../../StudioTextResourceInput';
+// eslint-disable-next-line no-restricted-imports
+import type { StudioTextResourceInputProps } from '@studio/components';
+// eslint-disable-next-line no-restricted-imports
+import { StudioTextResourceInput } from '@studio/components';
 import cn from 'classnames';
 import classes from './Cell.module.css';
 import { useFormEventProps } from './useFormEventProps';
