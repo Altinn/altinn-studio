@@ -49,17 +49,7 @@ describe('StudioToggleableTextfield', () => {
     expect(editTextfield).toBeInTheDocument();
     await user.click(editTextfield);
     await user.click(document.body);
-    expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
-  });
-
-  it('should execute onBlur method when input is blurred', async () => {
-    const user = userEvent.setup();
-    renderStudioToggleableTextfield();
-    await user.click(screen.getByRole('button', { name: label }));
-    const input = screen.getByRole('textbox', { name: label });
-    await user.click(input);
-    await user.click(document.body);
-    expect(onBlur).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('textbox', { name: label })).toBeInTheDocument();
   });
 
   it('should not toggle view on blur when input field has error', async () => {

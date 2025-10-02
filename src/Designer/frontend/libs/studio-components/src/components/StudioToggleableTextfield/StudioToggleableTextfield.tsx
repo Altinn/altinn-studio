@@ -60,7 +60,6 @@ function StudioToggleableTextfield(
   const handleOnBlur = (event: TextAreaFocusEvent & InputFocusEvent): void => {
     if (errorMessage || error) return;
     toggleViewMode();
-    onBlur?.(event);
   };
 
   const handleOnChange = (event: TextAreaChangeEvent & InputChangeEvent): void => {
