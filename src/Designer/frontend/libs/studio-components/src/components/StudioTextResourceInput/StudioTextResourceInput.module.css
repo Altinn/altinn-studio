@@ -41,6 +41,9 @@
   scale: 0.9;
 }
 
+.searchField > * {
+  margin-top: 0;
+}
 .searchField :global(label) {
   display: none;
 }

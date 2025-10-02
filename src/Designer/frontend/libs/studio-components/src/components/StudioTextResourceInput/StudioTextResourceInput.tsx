@@ -141,6 +141,7 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
         return (
           <ValueField
             className={className}
+            data-size='sm'
             currentId={currentId}
             label={texts.valueLabel}
             onChangeTextResource={onChangeTextResource}
@@ -295,7 +296,7 @@ function ModeToggle({
 }: InputModeToggleProps): ReactElement {
   const className = cn(givenClass, classes.toggle);
   return (
-    <ToggleGroup onChange={onToggle} value={inputMode} data-size='md' className={className}>
+    <ToggleGroup onChange={onToggle} value={inputMode} data-size='sm' className={className}>
       <ToggleGroup.Item icon value={Mode.EditValue} title={texts.editValue}>
         <PencilIcon />
       </ToggleGroup.Item>
