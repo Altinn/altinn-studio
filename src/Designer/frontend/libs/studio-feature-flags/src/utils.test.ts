@@ -1,5 +1,10 @@
 import { typedLocalStorage } from '@studio/pure-functions';
-import { FEATURE_FLAGS_KEY, retrieveFeatureFlags } from './utils';
+import {
+  addFeatureFlagToLocalStorage,
+  removeFeatureFlagFromLocalStorage,
+  FEATURE_FLAGS_KEY,
+  retrieveFeatureFlags,
+} from './utils';
 import { FeatureFlag } from './FeatureFlag';
 
 describe('studio-feature-flags utils', () => {
@@ -37,6 +42,52 @@ describe('studio-feature-flags utils', () => {
       typedLocalStorage.setItem<number>(FEATURE_FLAGS_KEY, 1);
       window.history.pushState({}, 'PageUrl', `/?${FEATURE_FLAGS_KEY}=${primaryFeatureToTest}`);
       expect(retrieveFeatureFlags()).toEqual([primaryFeatureToTest]);
+    });
+  });
+
+  describe('addFeatureToLocalStorage', () => {
+    beforeEach(() => typedLocalStorage.removeItem(FEATURE_FLAGS_KEY));
+
+    it('Adds the given feature to the local storage', () => {
+      addFeatureFlagToLocalStorage(primaryFeatureToTest);
+      expect(typedLocalStorage.getItem<FeatureFlag[]>(FEATURE_FLAGS_KEY)).toEqual([
+        primaryFeatureToTest,
+      ]);
+    });
+
+    it('Append provided feature to existing features in local storage', () => {
+      typedLocalStorage.setItem<FeatureFlag[]>(FEATURE_FLAGS_KEY, [secondaryFeatureToTest]);
+      addFeatureFlagToLocalStorage(primaryFeatureToTest);
+      expect(typedLocalStorage.getItem<FeatureFlag[]>(FEATURE_FLAGS_KEY)).toEqual([
+        secondaryFeatureToTest,
+        primaryFeatureToTest,
+      ]);
+    });
+  });
+
+  describe('removeFeatureFromLocalStorage', () => {
+    beforeEach(() => typedLocalStorage.removeItem(FEATURE_FLAGS_KEY));
+
+    it('Remove feature from local storage', () => {
+      typedLocalStorage.setItem<FeatureFlag[]>(FEATURE_FLAGS_KEY, [primaryFeatureToTest]);
+      removeFeatureFlagFromLocalStorage(primaryFeatureToTest);
+      expect(typedLocalStorage.getItem<FeatureFlag[]>(FEATURE_FLAGS_KEY)).toEqual([]);
+    });
+
+    it('Removes only the specified feature from local storage', () => {
+      typedLocalStorage.setItem<FeatureFlag[]>(FEATURE_FLAGS_KEY, [
+        primaryFeatureToTest,
+        secondaryFeatureToTest,
+      ]);
+      removeFeatureFlagFromLocalStorage(primaryFeatureToTest);
+      expect(typedLocalStorage.getItem<FeatureFlag[]>(FEATURE_FLAGS_KEY)).toEqual([
+        secondaryFeatureToTest,
+      ]);
+    });
+
+    it('Injects an empty array to the local storage item when no feature flags are set', () => {
+      removeFeatureFlagFromLocalStorage(primaryFeatureToTest);
+      expect(typedLocalStorage.getItem<FeatureFlag[]>(FEATURE_FLAGS_KEY)).toEqual([]);
     });
   });
 });
