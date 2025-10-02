@@ -531,7 +531,8 @@ steps:
         ACR_NAME="${APP_OWNER}altinnregistry01"
 
         # install flux cli
-        curl -s https://fluxcd.io/install.sh | sudo bash
+        export FLUX_VERSION=2.6.4
+        curl -s https://fluxcd.io/install.sh | sudo -E bash
 
         # Use Flux to push and tag the artifact
         flux push artifact oci://$ACR_NAME.azurecr.io/configs/$RELEASE_NAME:$APP_ENVIRONMENT-$TAGNAME \
@@ -584,7 +585,8 @@ steps:
 
         # Ensure flux cli is installed (reuse from previous task or install if needed)
         if ! command -v flux &> /dev/null; then
-            curl -s https://fluxcd.io/install.sh | sudo bash
+            export FLUX_VERSION=2.6.4
+            curl -s https://fluxcd.io/install.sh | sudo -E bash
         fi
 
         # Push the sync-root artifact with commit ID as tag
