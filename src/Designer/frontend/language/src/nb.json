@@ -1,4 +1,5 @@
 {
+  "ai_assistant.button.send": "Send",
   "ai_assistant.heading": "KI-assistent",
   "api_errors.AD_03": "Navnet er ugyldig. Det må ha mellom 2 og 28 tegn og kan inneholde tall, understrek, bindestrek, og store/små bokstaver fra det engelske alfabetet.",
   "api_errors.DM_01": "Kunne ikke bygge datamodellen.",
