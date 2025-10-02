@@ -290,15 +290,93 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task VerifyCloneExists(string org, string repository)
+        public async Task EnsureCloneExists(string org, string repository)
         {
             try
             {
-                await _decoratedService.VerifyCloneExists(org, repository);
+                await _decoratedService.EnsureCloneExists(org, repository);
             }
             catch (Exception ex)
             {
-                LogError(ex, "VerifyCloneExists", org, repository);
+                LogError(ex, "EnsureCloneExists", org, repository);
+                throw;
+            }
+        }
+
+        public void CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName)
+        {
+            try
+            {
+                _decoratedService.CheckoutRepoOnBranch(editingContext, branchName);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "CheckoutRepoOnCommit", editingContext.Org, editingContext.Repo);
+                throw;
+            }
+        }
+
+        public void CommitToLocalRepo(AltinnRepoEditingContext editingContext, string message)
+        {
+            try
+            {
+                _decoratedService.CommitToLocalRepo(editingContext, message);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "CommitToLocalRepo", editingContext.Org, editingContext.Repo);
+                throw;
+            }
+        }
+
+        public void RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext)
+        {
+            try
+            {
+                _decoratedService.RebaseOntoDefaultBranch(editingContext);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "RebaseOntoDefaultBranch", editingContext.Org, editingContext.Repo);
+                throw;
+            }
+        }
+
+        public void DeleteLocalBranchIfExists(AltinnRepoEditingContext editingContext, string branchName)
+        {
+            try
+            {
+                _decoratedService.DeleteLocalBranchIfExists(editingContext, branchName);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "DeleteLocalBranch", editingContext.Org, editingContext.Repo);
+                throw;
+            }
+        }
+
+        public void CreateLocalBranch(AltinnRepoEditingContext editingContext, string branchName, string commitSha = null)
+        {
+            try
+            {
+                _decoratedService.CreateLocalBranch(editingContext, branchName, commitSha);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "CreateLocalBranch", editingContext.Org, editingContext.Repo);
+                throw;
+            }
+        }
+
+        public void MergeBranchIntoHead(AltinnRepoEditingContext editingContext, string featureBranch)
+        {
+            try
+            {
+                _decoratedService.MergeBranchIntoHead(editingContext, featureBranch);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "MergeBranchIntoHead", editingContext.Org, editingContext.Repo);
                 throw;
             }
         }

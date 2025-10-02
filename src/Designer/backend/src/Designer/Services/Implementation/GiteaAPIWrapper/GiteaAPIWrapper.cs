@@ -457,20 +457,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string shortCommitId)
-        {
-            string path = $"repos/{org}/{app}/contents/{filePath}";
-            string url = AddRefIfExists(path, shortCommitId);
-            using HttpResponseMessage response = await _httpClient.GetAsync(url);
-            if (response.IsSuccessStatusCode)
-            {
-                return await response.Content.ReadAsAsync<FileSystemObject>();
-            }
-
-            return null;
-        }
-
-        public async Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken)
+        public async Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken = default)
         {
             string path = $"repos/{org}/{app}/contents/{filePath}";
             string url = AddRefIfExists(path, reference);
@@ -577,6 +564,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             HttpResponseMessage response = await _httpClient.DeleteAsync($"repos/{org}/{repository}");
             return response.IsSuccessStatusCode;
+        }
+
+        /// <inheritdoc/>
+        public async Task<string> GetLatestCommitOnBranch(string org, string repository, string branchName = null, CancellationToken cancellationToken = default)
+        {
+            var url = new StringBuilder($"repos/{org}/{repository}/commits?limit=1&stat=false&verification=false&files=false");
+            if (!string.IsNullOrWhiteSpace(branchName))
+            {
+                url.Append($"&sha={HttpUtility.UrlEncode(branchName)}");
+            }
+            using HttpResponseMessage r = await _httpClient.GetAsync(url.ToString(), cancellationToken);
+            if (r.IsSuccessStatusCode)
+            {
+                List<GiteaCommit> commits = await r.Content.ReadAsAsync<List<GiteaCommit>>(cancellationToken);
+                return commits?.FirstOrDefault()?.Sha;
+            }
+
+            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetLatestCommitOnBranch response failed with statuscode " + r.StatusCode + " for " + org + " / " + repository + " branch: " + branchName);
+            return null;
         }
 
         private async Task<Organization> GetOrganization(string name)
