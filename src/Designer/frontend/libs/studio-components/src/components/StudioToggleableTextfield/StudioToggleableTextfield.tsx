@@ -58,6 +58,7 @@ function StudioToggleableTextfield(
   };
 
   const handleOnBlur = (event: TextAreaFocusEvent & InputFocusEvent): void => {
+    onBlur?.(event);
     if (errorMessage || error) return;
     toggleViewMode();
   };
@@ -92,6 +93,7 @@ function StudioToggleableTextfield(
       title={title}
       value={value}
       defaultValue={defaultValue}
+      onClick={onClick}
       {...rest}
     />
   );
