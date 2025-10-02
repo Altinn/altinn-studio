@@ -1,6 +1,14 @@
 .root {
   display: flex;
-  flex-direction: row;
   width: 100%;
   max-width: 100vw;
+  height: 100%;
+}
+
+.horizontal {
+  flex-direction: row;
+}
+
+.vertical {
+  flex-direction: column;
 }

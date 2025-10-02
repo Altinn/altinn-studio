@@ -1,0 +1,13 @@
+.container {
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.threadTimestamp {
+  font-size: 0.75rem;
+  color: var(--fds-semantic-text-neutral-subtle);
+  margin-top: 0.25rem;
+}

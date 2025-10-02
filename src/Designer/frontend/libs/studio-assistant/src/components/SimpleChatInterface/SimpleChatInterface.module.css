@@ -1,0 +1,57 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.messagesContainer {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.userMessage {
+  background-color: #e6f3ff;
+  align-self: flex-end;
+  max-width: 80%;
+}
+
+.assistantMessage {
+  background-color: #f5f5f5;
+  align-self: flex-start;
+  max-width: 80%;
+}
+
+.messageContent {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.inputContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-top: 1px solid var(--fds-semantic-border-neutral-subtle);
+}
+
+.textarea {
+  width: 100%;
+  min-height: 60px;
+  resize: vertical;
+}
+
+.actionsRow {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.modeSelect {
+  min-width: 120px;
+}
