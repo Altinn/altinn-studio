@@ -1,0 +1,10 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: pdf3-app-sync
+  namespace: pdf3
+spec:
+  ref:
+    # TODO: postBuild substitute to get rings
+    tag: tt_ring1 # ttd/tt02 cluster
+    # tag: tt_ring2 # other xxx/tt02 clusters

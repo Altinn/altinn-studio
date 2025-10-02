@@ -49,4 +49,4 @@ jobs:
 
       - name: tag artifact at_ring1 (ttd/at22)
         run: |
-          flux tag artifact oci://altinncr.azurecr.io/studio-apps/syncroot:at_ring1 --tag latest
+          flux tag artifact oci://altinncr.azurecr.io/studio-apps/syncroot:latest --tag at_ring1
