@@ -96,7 +96,7 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
           {...rest}
         />
         <ModeToggle className={toggleClass} inputMode={mode} onToggle={setMode} texts={texts} />
-        <CurrentId className={currentIdClass} currentId={currentId} label={texts.idLabel} />
+        <CurrentId className={currentIdClass} currentId={currentId ?? ''} label={texts.idLabel} />
       </div>
     );
   },
@@ -163,7 +163,7 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
             onValueChange={onChangeCurrentId}
             required={required}
             textResources={textResources}
-            value={currentId}
+            value={currentId ?? undefined}
           />
         );
     }
@@ -200,9 +200,11 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
     ref,
   ): ReactElement => {
     const utils = useMemo(() => TextResourceUtils.fromArray(textResources), [textResources]);
-    const currentTextResource = useMemo(() => utils.get(currentId), [utils, currentId]);
+    const currentTextResource = useMemo(() => utils.get(currentId ?? ''), [utils, currentId]);
 
-    const [valueState, setValueState] = useState<string>(utils.getValueIfExists(currentId) ?? '');
+    const [valueState, setValueState] = useState<string>(
+      utils.getValueIfExists(currentId ?? '') ?? '',
+    );
 
     const createTextResource = useCallback(
       (value: string): TextResource => {
@@ -214,7 +216,8 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
     );
 
     const editCurrentTextResource = useCallback(
-      (value: string): TextResource => editTextResourceValue(currentTextResource, value),
+      (value: string): TextResource =>
+        editTextResourceValue(currentTextResource as TextResource, value),
       [currentTextResource],
     );
 

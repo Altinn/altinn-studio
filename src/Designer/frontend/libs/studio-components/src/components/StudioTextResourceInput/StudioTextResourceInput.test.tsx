@@ -53,7 +53,7 @@ describe('StudioTextResourceInput', () => {
     const user = userEvent.setup();
     renderTextResourceInput();
     const additionalText = 'a';
-    const newValue = currentTextResource.value + additionalText;
+    const newValue = currentTextResource?.value + additionalText;
     await user.type(getValueField(), additionalText);
     expect(onChangeTextResource).toHaveBeenCalledTimes(1);
     expect(onChangeTextResource).toHaveBeenCalledWith({ ...currentTextResource, value: newValue });
@@ -84,7 +84,7 @@ describe('StudioTextResourceInput', () => {
     const user = userEvent.setup();
     renderTextResourceInput();
     const additionalText = 'xyz';
-    const newValue = currentTextResource.value + additionalText;
+    const newValue = currentTextResource?.value + additionalText;
     await user.type(getValueField(), additionalText);
     await user.tab();
     expect(onUpdateTextResource).toHaveBeenCalledTimes(1);
