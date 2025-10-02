@@ -1,6 +1,6 @@
 import React from 'react';
 import { Assistant } from '../Assistant/Assistant';
-import type { AssistantConfig, Thread, ButtonTexts } from '../types/AssistantConfig';
+import type { AssistantConfig, ButtonTexts } from '../types/AssistantConfig';
 
 export class AssistantImpl {
   private readonly heading: string;
