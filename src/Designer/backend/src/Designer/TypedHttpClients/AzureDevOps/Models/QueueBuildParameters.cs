@@ -60,5 +60,11 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models
         /// </summary>
         [JsonPropertyName("ALTINN_STUDIO_HOSTNAME")]
         public string AltinnStudioHostname { get; set; }
+
+        /// <summary>
+        /// Whether or not to push the sync root gitops image
+        /// </summary>
+        [JsonPropertyName("PUSH_SYNCROOT_GITOPS_IMAGE")]
+        public string PushSyncRootGitopsImage { get; set; } = "false";
     }
 }
