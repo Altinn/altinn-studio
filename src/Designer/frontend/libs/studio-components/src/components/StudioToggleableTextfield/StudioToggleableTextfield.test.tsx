@@ -106,6 +106,44 @@ describe('StudioToggleableTextfield', () => {
     expect(screen.getByText(customError)).toBeInTheDocument();
     expect(input).toBeInvalid();
   });
+
+  it('should call onIsViewMode callback when view mode changes', async () => {
+    const user = userEvent.setup();
+    const onIsViewModeSpy = jest.fn();
+    renderStudioToggleableTextfield({ onIsViewMode: onIsViewModeSpy });
+    expect(onIsViewModeSpy).toHaveBeenCalledWith(true);
+    await user.click(screen.getByRole('button', { name: label }));
+    expect(onIsViewModeSpy).toHaveBeenCalledWith(false);
+  });
+
+  it('should use defaultValue when value is not provided', () => {
+    const defaultValue = 'default value';
+    renderStudioToggleableTextfield({ value: undefined, defaultValue });
+    expect(screen.getByRole('button', { name: label })).toHaveTextContent(defaultValue);
+  });
+
+  it('should handle custom icon prop', () => {
+    const customIcon = <span data-testid='custom-icon'></span>;
+    renderStudioToggleableTextfield({ icon: customIcon });
+    expect(screen.getByTestId('custom-icon')).toBeInTheDocument();
+  });
+
+  it('should handle title prop in view mode', () => {
+    const title = 'Custom title';
+    renderStudioToggleableTextfield({ title });
+    const button = screen.getByRole('button', { name: label });
+    expect(button).toHaveAttribute('title', title);
+  });
+
+  it('should handle onChange without custom validation', async () => {
+    const user = userEvent.setup();
+    const onChangeSpy = jest.fn();
+    renderStudioToggleableTextfield({ customValidation: undefined, onChange: onChangeSpy });
+    await user.click(screen.getByRole('button', { name: label }));
+    const input = screen.getByRole('textbox', { name: label });
+    await user.type(input, 'test');
+    expect(onChangeSpy).toHaveBeenCalled();
+  });
 });
 
 const defaultProps: StudioToggleableTextfieldProps = {
