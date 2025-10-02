@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feat/runtime-syncroot
     paths:
       - infra/runtime/syncroot/**
       - .github/workflows/deploy-runtime-syncroot.yaml
