@@ -43,6 +43,12 @@ import 'leaflet/dist/leaflet.css';
 import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
 
+new PerformanceObserver((entryList) => {
+  for (const entry of entryList.getEntries()) {
+    console.log('LCP candidate:', entry.startTime, entry);
+  }
+}).observe({ type: 'largest-contentful-paint', buffered: true });
+
 document.addEventListener('DOMContentLoaded', () => {
   propagateTraceWhenPdf();
 

@@ -22,7 +22,10 @@ export function useRulesQueryDef(layoutSetId?: string): QueryDefinition<string |
 const useRulesQuery = () => {
   const layoutSetId = useCurrentLayoutSetId();
 
-  const query = useQuery(useRulesQueryDef(layoutSetId));
+  const query = useQuery({
+    ...useRulesQueryDef(layoutSetId),
+    placeholderData: null, // Prevent showing loader while fetching
+  });
 
   useEffect(() => {
     if (query.error) {

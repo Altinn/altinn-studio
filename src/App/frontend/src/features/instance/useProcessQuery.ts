@@ -22,6 +22,7 @@ export const processQueries = {
       queryFn: instanceId ? () => fetchProcessState(instanceId) : skipToken,
       initialData: () => window.AltinnAppData?.processState,
       enabled: true,
+      staleTime: Infinity,
     }),
 } as const;
 

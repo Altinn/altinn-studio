@@ -123,7 +123,8 @@ export function createNodesDataStore({ validationsProcessedLast, ...props }: Cre
     },
     nodeData: {},
     hiddenViaRules: {},
-    hiddenViaRulesRan: false,
+    // If there are no conditional rules, mark as already run to avoid blocking render
+    hiddenViaRulesRan: !window.conditionalRuleHandlerObject,
     validationsProcessedLast,
   };
 

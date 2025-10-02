@@ -12,7 +12,7 @@
     "start": "yarn gen && cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development --progress",
     "build": "yarn gen && yarn copy-schemas && cross-env NODE_ENV=production webpack --config webpack.config.production.js --progress",
     "docker": "yarn gen && yarn copy-schemas && cross-env NODE_ENV=development webpack --config webpack.config.development.js --progress && yarn serve 8080",
-    "serve": "http-server dist --cors='*' -p",
+    "serve": "http-server dist --cors='*' -p 8080",
     "test": "yarn gen && jest",
     "test:watch": "yarn gen && jest --watch",
     "test:watchall": "yarn gen && jest --watchAll",
@@ -27,8 +27,7 @@
     "tsc": "yarn gen && tsc && tsc --project test/tsconfig.json",
     "tsc:watch": "yarn gen && tsc --watch",
     "tsc:watch:cypress": "yarn gen && tsc --watch --project test/tsconfig.json",
-    "lint": "yarn gen && eslint .",
-    "bench": "tsx --expose_gc --tsconfig benchmarks/tsconfig.json benchmarks/${0}"
+    "lint": "yarn gen && eslint ."
   },
   "devDependencies": {
     "@babel/core": "7.28.4",

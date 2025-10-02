@@ -106,7 +106,18 @@ public class HomeController : Controller
             throw new UnauthorizedAccessException("This is frontend endpoint only");
         }
         var details = await auth.LoadDetails(validateSelectedParty: false);
-        return Redirect(Request.GetDisplayUrl() + "instance/" + details.Profile.Party.PartyId);
+
+        http: //local.altinn.cloud/ttd/component-libraryinstance/512345
+
+        var redirectUrl = Request.GetDisplayUrl() + "/instance/" + details.Profile.Party.PartyId;
+
+        Console.WriteLine("redirectUrl");
+
+        Console.WriteLine(redirectUrl);
+
+        Console.WriteLine("redirectUrl");
+
+        return Redirect(redirectUrl);
     }
 
     /// <summary>

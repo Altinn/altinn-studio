@@ -25,6 +25,7 @@ function useDynamicsQuery() {
   const query = useQuery({
     ...useDynamicsQueryDef(layoutSetId),
     select: (dynamics) => dynamics?.data || null,
+    placeholderData: null, // Prevent showing loader while fetching
   });
 
   useEffect(() => {

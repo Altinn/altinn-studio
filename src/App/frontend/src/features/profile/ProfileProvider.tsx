@@ -36,8 +36,6 @@
 //   }),
 // );
 
-console.log(window.AltinnAppData);
-
 // export const ProfileProvider = Provider;
 
 export const useProfile = () => window.AltinnAppData.userProfile;
