@@ -1,0 +1,47 @@
+[project]
+name = "altinity-mcp"
+version = "0.1.0"
+description = "MCP server with specialized tools for Altinn development"
+readme = "README.md"
+authors = [
+    { name = "Daniel Skymoen", email = "danielskymoen02@gmail.com"},
+    { name = "Edward Storlien", email = "edward.storlien@gmail.com"},
+    { name = "Johanne Norland", email = "johannedn00@gmail.com"},
+    { name = "Simen Waitz", email = "simen.myhre.waitz@accenture.com"}
+]
+requires-python = ">=3.12"
+dependencies = [
+    "mcp==1.12.1",
+    "pydantic==2.11.7",
+    "pydantic-core==2.33.2",
+    "pydantic-settings==2.10.1",
+    "python-dotenv==1.1.1",
+    "fastapi==0.115.14",
+    "uvicorn==0.35.0",
+    "jinja2==3.1.6",
+    "httpx==0.28.1",
+    "typer==0.16.0",
+    "python-multipart==0.0.20",
+    "requests==2.32.4",
+    "starlette==0.46.2",
+    "typing-extensions==4.14.1",
+    "anyio==4.9.0",
+    "idna==3.10",
+    "sniffio==1.3.1",
+    "click==8.2.1",
+    "h11==0.16.0",
+    "markupsafe==3.0.2",
+    "httpcore==1.0.9",
+    "certifi==2025.6.15",
+    "colorlog==6.9.0",
+    "langchain==0.3.26",
+    "langchain-core==0.3.68",
+    "langchain-openai==0.3.27",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project.scripts]
+altinity-mcp = "server.main:main"
