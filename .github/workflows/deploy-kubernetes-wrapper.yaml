@@ -44,7 +44,7 @@ jobs:
 
       - name: Determine tag exists
         id: determine-tag-exists
-        uses: azure/CLI@089eac9d8cc39f5d003e94f8b65efc51076c9cbd # v2
+        uses: azure/CLI@9f7ce6f37c31b777ec6c6b6d1dfe7db79f497956 # v2
         with:
           azcliversion: latest
           inlineScript: |
