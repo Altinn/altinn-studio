@@ -1,17 +1,18 @@
-name: Runtime - deploy syncroot
+name: Runtime - deploy pdf3
 
 on:
   push:
     branches:
       - main
+      - feat/runtime-syncroot
     paths:
-      - infra/runtime/syncroot/**
-      - .github/workflows/deploy-runtime-syncroot.yaml
+      - infra/runtime/pdf3/**
+      - .github/workflows/deploy-runtime-pdf3.yaml
   workflow_dispatch:
 
 jobs:
-  push-syncroot-artifact:
-    name: Push syncroot as OCI artifact
+  push-pdf3-artifact:
+    name: Push pdf3 as OCI artifact
     runs-on: ubuntu-latest
     environment: dev
     permissions:
@@ -39,8 +40,8 @@ jobs:
 
       - name: push artifact
         run: |
-          cd syncroot/
-          flux push artifact oci://altinncr.azurecr.io/studio-apps/syncroot:$(git rev-parse --short HEAD) \
+          cd pdf3/
+          flux push artifact oci://altinncr.azurecr.io/studio-apps/runtime-pdf3-repo:$(git rev-parse --short HEAD) \
             --provider=generic \
             --reproducible \
             --path="." \
@@ -49,4 +50,4 @@ jobs:
 
       - name: tag artifact at_ring1 (ttd/at22)
         run: |
-          flux tag artifact oci://altinncr.azurecr.io/studio-apps/syncroot:$(git rev-parse --short HEAD) --tag at_ring1
+          flux tag artifact oci://altinncr.azurecr.io/studio-apps/runtime-pdf3-repo:$(git rev-parse --short HEAD) --tag at_ring1

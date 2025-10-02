@@ -3,4 +3,4 @@ kind: ConfigMap
 metadata:
   name: pdf3-config
 data:
-  hellow: "World"
+  hello: "World"
