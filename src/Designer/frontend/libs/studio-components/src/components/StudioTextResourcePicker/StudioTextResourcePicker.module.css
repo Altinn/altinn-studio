@@ -1,0 +1,7 @@
+.noTextResourceOption label {
+  font-style: italic;
+}
+
+.optionDescription {
+  color: var(--ds-color-neutral-text-subtle);
+}
