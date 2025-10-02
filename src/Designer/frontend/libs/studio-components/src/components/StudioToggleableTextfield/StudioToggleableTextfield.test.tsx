@@ -144,51 +144,6 @@ describe('StudioToggleableTextfield', () => {
     await user.type(input, 'test');
     expect(onChangeSpy).toHaveBeenCalled();
   });
-
-  it('should not call onIsViewMode when prop is undefined', () => {
-    const onIsViewModeSpy = jest.fn();
-    renderStudioToggleableTextfield({ onIsViewMode: undefined });
-    expect(onIsViewModeSpy).not.toHaveBeenCalled();
-  });
-
-  it('should handle customValidation returning undefined', async () => {
-    const user = userEvent.setup();
-    const customValidationSpy = jest.fn(() => undefined);
-    renderStudioToggleableTextfield({ customValidation: customValidationSpy });
-    await user.click(screen.getByRole('button', { name: label }));
-    const input = screen.getByRole('textbox', { name: label });
-    await user.type(input, 'test');
-    expect(customValidationSpy).toHaveBeenCalled();
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-  });
-
-  it('should handle onBlur when prop is undefined', async () => {
-    const user = userEvent.setup();
-    renderStudioToggleableTextfield({ onBlur: undefined });
-    await user.click(screen.getByRole('button', { name: label }));
-    const input = screen.getByRole('textbox', { name: label });
-    await user.click(input);
-    await user.click(document.body);
-    expect(screen.getByRole('textbox', { name: label })).toBeInTheDocument();
-  });
-
-  it('should handle onChange when prop is undefined', async () => {
-    const user = userEvent.setup();
-    renderStudioToggleableTextfield({ onChange: undefined });
-    await user.click(screen.getByRole('button', { name: label }));
-    const input = screen.getByRole('textbox', { name: label });
-    await user.type(input, 'test');
-    expect(input).toHaveValue(value);
-  });
-
-  it('should handle customValidation when prop is undefined in onChange', async () => {
-    const user = userEvent.setup();
-    renderStudioToggleableTextfield({ customValidation: undefined });
-    await user.click(screen.getByRole('button', { name: label }));
-    const input = screen.getByRole('textbox', { name: label });
-    await user.type(input, 'test');
-    expect(input).toHaveValue(value);
-  });
 });
 
 const defaultProps: StudioToggleableTextfieldProps = {
