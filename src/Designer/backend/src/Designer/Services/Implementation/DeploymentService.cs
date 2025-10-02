@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.Models;
@@ -12,6 +13,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Interfaces.GitOps;
 using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
@@ -21,6 +23,7 @@ using Altinn.Studio.Designer.ViewModels.Response;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -40,6 +43,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IPublisher _mediatr;
         private readonly GeneralSettings _generalSettings;
         private readonly TimeProvider _timeProvider;
+        private readonly IGitOpsConfigurationManager _gitOpsConfigurationManager;
+        private readonly IFeatureManager _featureManager;
 
         /// <summary>
         /// Constructor
@@ -54,7 +59,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IApplicationInformationService applicationInformationService,
             ILogger<DeploymentService> logger,
             IPublisher mediatr,
-            GeneralSettings generalSettings, TimeProvider timeProvider)
+            GeneralSettings generalSettings, TimeProvider timeProvider, IGitOpsConfigurationManager gitOpsConfigurationManager, IFeatureManager featureManager)
         {
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
             _deploymentRepository = deploymentRepository;
@@ -67,6 +72,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _mediatr = mediatr;
             _generalSettings = generalSettings;
             _timeProvider = timeProvider;
+            _gitOpsConfigurationManager = gitOpsConfigurationManager;
+            _featureManager = featureManager;
         }
 
         /// <inheritdoc/>
@@ -82,7 +89,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await _applicationInformationService
                 .UpdateApplicationInformationAsync(org, app, release.TargetCommitish, deployment.EnvName, cancellationToken);
-            Build queuedBuild = await QueueDeploymentBuild(release, deploymentEntity, deployment.EnvName);
+
+            bool shouldPushSyncRootImage = false;
+
+            if (await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
+            {
+                shouldPushSyncRootImage = await AddAppToGitOpsRepoIfNotExists(AltinnOrgEditingContext.FromOrgDeveloper(org, deploymentEntity.CreatedBy), AltinnRepoName.FromName(app), AltinnEnvironment.FromName(deployment.EnvName));
+            }
+
+            Build queuedBuild = await QueueDeploymentBuild(release, deploymentEntity, deployment.EnvName, shouldPushSyncRootImage);
 
             deploymentEntity.Build = new BuildEntity
             {
@@ -95,6 +110,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
             var createdEntity = await _deploymentRepository.Create(deploymentEntity);
             await PublishDeploymentPipelineQueued(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, deploymentEntity.CreatedBy), queuedBuild, PipelineType.Deploy, deployment.EnvName, CancellationToken.None);
             return createdEntity;
+        }
+
+        private async Task<bool> AddAppToGitOpsRepoIfNotExists(AltinnOrgEditingContext context, AltinnRepoName app, AltinnEnvironment environment)
+        {
+            await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(context, environment);
+
+            bool appAlreadyExists =
+                await _gitOpsConfigurationManager.AppExistsInGitOpsConfigurationAsync(context, app, environment);
+
+            if (appAlreadyExists)
+            {
+                return false;
+            }
+
+            await _gitOpsConfigurationManager.AddAppToGitOpsConfigurationAsync(AltinnRepoEditingContext.FromOrgRepoDeveloper(context.Org, app.Name, context.Developer), environment);
+
+            await _gitOpsConfigurationManager.PersistGitOpsConfigurationAsync(context, environment);
+            return true;
         }
 
         /// <inheritdoc/>
@@ -185,7 +218,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private async Task<Build> QueueDeploymentBuild(
             ReleaseEntity release,
             DeploymentEntity deploymentEntity,
-            string envName)
+            string envName,
+            bool shouldPushSyncRootImage = false)
         {
             QueueBuildParameters queueBuildParameters = new()
             {
@@ -199,6 +233,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
                 AltinnStudioHostname = _generalSettings.HostName
             };
+            if (shouldPushSyncRootImage)
+            {
+                queueBuildParameters.PushSyncRootGitopsImage = "true";
+            }
 
             return await _azureDevOpsBuildClient.QueueAsync(
                 queueBuildParameters,
