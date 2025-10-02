@@ -1,0 +1,12 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: pdf3-app-sync
+  namespace: pdf3
+spec:
+  interval: 5m0s
+  provider: azure
+  ref:
+    tag: main
+  timeout: 5m0s
+  url: oci://altinncr.azurecr.io/studio-apps/runtime-pdf3-sync
