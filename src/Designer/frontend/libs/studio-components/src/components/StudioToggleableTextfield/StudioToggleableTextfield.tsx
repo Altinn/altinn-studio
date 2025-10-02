@@ -48,7 +48,7 @@ function StudioToggleableTextfield(
   };
 
   const runCustomValidation = (event: InputChangeEvent): boolean => {
-    const errorValidationMessage = customValidation(event.target.value);
+    const errorValidationMessage = customValidation?.(event.target.value);
     if (errorValidationMessage) {
       setErrorMessage(errorValidationMessage);
       return true;
