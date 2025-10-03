@@ -1,6 +1,6 @@
 import { RouterRouteMapperImpl } from './RouterRouteMapper';
 import { LandingPage } from '../../ContentLibrary/LibraryBody/pages/LandingPage';
-import { CodeListPage } from '../../ContentLibrary/LibraryBody/pages/CodeListPage';
+import { CodeListsWithTextResourcesPage } from '../../ContentLibrary/LibraryBody/pages/CodeListsWithTextResourcesPage';
 import { mockPagesConfig } from '../../../mocks/mockPagesConfig';
 
 describe('RouterRouteMapperImpl', () => {
@@ -9,9 +9,9 @@ describe('RouterRouteMapperImpl', () => {
     const routes = routerMapper.configuredRoutes;
 
     expect(routes.has('landingPage')).toBeTruthy();
-    expect(routes.has('codeList')).toBeTruthy();
+    expect(routes.has('codeListsWithTextResources')).toBeTruthy();
     expect(routes.get('landingPage')).toBe(LandingPage);
-    expect(routes.get('codeList')).toBe(CodeListPage);
+    expect(routes.get('codeListsWithTextResources')).toBe(CodeListsWithTextResourcesPage);
   });
 
   it('should always include landingPage even when noe pages are passed', () => {
@@ -23,10 +23,10 @@ describe('RouterRouteMapperImpl', () => {
 
   it('should include configured routes only', () => {
     const routerMapper = new RouterRouteMapperImpl({
-      codeList: mockPagesConfig.codeList,
+      codeListsWithTextResources: mockPagesConfig.codeListsWithTextResources,
     });
     const routes = routerMapper.configuredRoutes;
-    expect(routes.has('codeList')).toBeTruthy();
+    expect(routes.has('codeListsWithTextResources')).toBeTruthy();
     expect(routes.get('images')).toBeUndefined();
   });
 

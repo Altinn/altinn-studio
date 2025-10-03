@@ -30,9 +30,9 @@ describe('ContentLibrary', () => {
   });
 
   it('renders the ContentLibrary with codeList content when acting as currentPage', () => {
-    renderContentLibrary('codeList');
+    renderContentLibrary('codeListsWithTextResources');
     const codeListTitle = screen.getByRole('heading', {
-      name: textMock('app_content_library.code_lists.page_name'),
+      name: textMock('app_content_library.code_lists_with_text_resources.page_name'),
     });
     expect(codeListTitle).toBeInTheDocument();
   });

@@ -15,22 +15,30 @@ describe('CodeListUsages', () => {
   it('renders table with column titles', () => {
     renderCodeListUsages();
     const taskTypeColumnTitle = getColumnHeader(
-      textMock('app_content_library.code_lists.code_list_usage_table_column_header_task_type'),
+      textMock(
+        'app_content_library.code_lists_with_text_resources.code_list_usage_table_column_header_task_type',
+      ),
     );
     expect(taskTypeColumnTitle).toBeInTheDocument();
 
     const taskNameColumnTitle = getColumnHeader(
-      textMock('app_content_library.code_lists.code_list_usage_table_column_header_task_name'),
+      textMock(
+        'app_content_library.code_lists_with_text_resources.code_list_usage_table_column_header_task_name',
+      ),
     );
     expect(taskNameColumnTitle).toBeInTheDocument();
 
     const layoutColumnTitle = getColumnHeader(
-      textMock('app_content_library.code_lists.code_list_usage_table_column_header_layout'),
+      textMock(
+        'app_content_library.code_lists_with_text_resources.code_list_usage_table_column_header_layout',
+      ),
     );
     expect(layoutColumnTitle).toBeInTheDocument();
 
     const componentIdsColumnTitle = getColumnHeader(
-      textMock('app_content_library.code_lists.code_list_usage_table_column_header_components'),
+      textMock(
+        'app_content_library.code_lists_with_text_resources.code_list_usage_table_column_header_components',
+      ),
     );
     expect(componentIdsColumnTitle).toBeInTheDocument();
   });
@@ -38,7 +46,9 @@ describe('CodeListUsages', () => {
   it('renders a row with the code list usage source', () => {
     renderCodeListUsages();
     const codeListSourceTaskType = getCell(
-      textMock('app_content_library.code_lists.code_list_usage_table_task_type_data'),
+      textMock(
+        'app_content_library.code_lists_with_text_resources.code_list_usage_table_task_type_data',
+      ),
     );
     expect(codeListSourceTaskType).toBeInTheDocument();
 
@@ -59,7 +69,9 @@ describe('CodeListUsages', () => {
     });
 
     const codeListSourceTaskType = getCell(
-      textMock('app_content_library.code_lists.code_list_usage_table_task_type_data'),
+      textMock(
+        'app_content_library.code_lists_with_text_resources.code_list_usage_table_task_type_data',
+      ),
     );
     expect(codeListSourceTaskType).toBeInTheDocument();
 

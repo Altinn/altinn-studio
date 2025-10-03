@@ -30,7 +30,9 @@ describe('LibraryHeader', () => {
 
 const renderLibraryHeader = (): void => {
   render(
-    <RouterContext.Provider value={{ currentPage: 'codeList', navigate: navigateMock }}>
+    <RouterContext.Provider
+      value={{ currentPage: 'codeListsWithTextResources', navigate: navigateMock }}
+    >
       <LibraryHeader {...defaultProps} />
     </RouterContext.Provider>,
   );

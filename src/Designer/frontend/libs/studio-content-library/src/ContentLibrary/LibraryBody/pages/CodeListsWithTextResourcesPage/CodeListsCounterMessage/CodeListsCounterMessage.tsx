@@ -9,15 +9,18 @@ export type CodeListsCounterMessageProps = {
 export function CodeListsCounterMessage({
   codeListsCount,
 }: CodeListsCounterMessageProps): React.ReactElement {
-  let codeListsCounterTextKey = 'app_content_library.code_lists.code_lists_count_info_plural';
+  let codeListsCounterTextKey =
+    'app_content_library.code_lists_with_text_resources.code_lists_count_info_plural';
 
   switch (codeListsCount) {
     case 0: {
-      codeListsCounterTextKey = 'app_content_library.code_lists.code_lists_count_info_none';
+      codeListsCounterTextKey =
+        'app_content_library.code_lists_with_text_resources.code_lists_count_info_none';
       break;
     }
     case 1: {
-      codeListsCounterTextKey = 'app_content_library.code_lists.code_lists_count_info_single';
+      codeListsCounterTextKey =
+        'app_content_library.code_lists_with_text_resources.code_lists_count_info_single';
       break;
     }
   }
