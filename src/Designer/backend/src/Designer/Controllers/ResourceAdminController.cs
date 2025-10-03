@@ -228,7 +228,7 @@ namespace Altinn.Studio.Designer.Controllers
             List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
             List<ListviewServiceResource> listviewServiceResources = new List<ListviewServiceResource>();
 
-            SemaphoreSlim semaphore = new(25); // Limit to 25 concurrent requests
+            using SemaphoreSlim semaphore = new(25); // Limit to 25 concurrent requests
             List<Task<ListviewServiceResource>> tasks = [];
 
             foreach (ServiceResource resource in repositoryResourceList)
