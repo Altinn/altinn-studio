@@ -17,6 +17,10 @@ export type StudioRecommendedNextActionProps = {
   children: React.ReactNode;
 };
 
+/**
+ *
+ * @deprecated Use StudioRecommendedNextAction from `@studio/components` instead.
+ */
 export const StudioRecommendedNextAction = ({
   onSave,
   saveButtonText,
