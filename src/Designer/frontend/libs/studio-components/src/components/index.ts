@@ -25,6 +25,7 @@ export * from './StudioDeleteButton';
 export * from './StudioDetails';
 export * from './StudioDialog';
 export * from './StudioDisplayTile';
+export * from './StudioDivider';
 export * from './StudioDropdown';
 export * from './StudioErrorSummary';
 export * from './StudioExpression';
