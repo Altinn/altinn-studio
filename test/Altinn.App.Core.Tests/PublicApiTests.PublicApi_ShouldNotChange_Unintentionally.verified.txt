@@ -3072,7 +3072,7 @@ namespace Altinn.App.Core.Internal.Expressions
         public int CountDataElements(string dataTypeId) { }
         [System.Obsolete("You need to get a context, not a component", true)]
         public void GetComponent(string pageName, string componentId) { }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Models.Expressions.ComponentContext?> GetComponentContext(string pageName, string componentId, int[]? rowIndexes = null) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Models.Expressions.ComponentContext?> GetComponentContext(string? pageName, string componentId, int[]? rowIndexes = null) { }
         public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.Expressions.ComponentContext>> GetComponentContexts() { }
         public string? GetFrontendSetting(string key) { }
         public string? GetGatewayAction() { }

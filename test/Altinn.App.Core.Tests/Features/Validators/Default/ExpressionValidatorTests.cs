@@ -176,8 +176,5 @@ public record ExpressionValidationTestModel
 
         [JsonPropertyName("field")]
         public required string Field { get; set; }
-
-        [JsonPropertyName("componentId")]
-        public required string ComponentId { get; set; }
     }
 }

@@ -117,7 +117,7 @@ public class LayoutEvaluatorState
     /// Get a specific component context from the state
     /// </summary>
     public async Task<ComponentContext?> GetComponentContext(
-        string pageName,
+        string? pageName,
         string componentId,
         int[]? rowIndexes = null
     )
@@ -142,7 +142,8 @@ public class LayoutEvaluatorState
         {
             return filteredContexts[0];
         }
-        if (filteredContexts.Count(c => c.Component?.PageId == pageName) == 1)
+
+        if (pageName is not null && filteredContexts.Count(c => c.Component?.PageId == pageName) == 1)
         {
             // look first at the current page in case of duplicate ids (for backwards compatibility).
             return filteredContexts.First(c => c.Component?.PageId == pageName);
