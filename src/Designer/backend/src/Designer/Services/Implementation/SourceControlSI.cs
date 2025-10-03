@@ -502,7 +502,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             string developer = editingContext.Developer;
             Identity identity = new(developer, $"{developer}@noreply.altinn.studio");
-            RebaseOptions options = new() { FileConflictStrategy = CheckoutFileConflictStrategy.Merge };
+            RebaseOptions rebaseOptions = new() { FileConflictStrategy = CheckoutFileConflictStrategy.Ours };
             Branch upstream = repo.Branches.FirstOrDefault(b => b.FriendlyName.Equals(DefaultBranch));
 
             if (upstream is null)
@@ -515,13 +515,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 upstream,
                 null,
                 identity,
-                options
+                rebaseOptions
             );
 
-            if (rebaseResult.Status != RebaseStatus.Complete)
+
+            if (rebaseResult.Status == RebaseStatus.Conflicts)
             {
                 repo.Rebase.Abort();
                 throw new InvalidOperationException("Rebase onto latest commit on default branch failed. Rebase aborted.");
+            }
+
+            if (rebaseResult.Status == RebaseStatus.Stop)
+            {
+                repo.Rebase.Abort();
+                throw new InvalidOperationException("Rebase onto latest commit on default branch was stopped by user."); // Should be unreachable code.
             }
         }
 
