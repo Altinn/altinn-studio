@@ -245,7 +245,7 @@ export function InstanceRouter({
   const router = createMemoryRouter(
     [
       {
-        path: 'instance/:instanceOwnerPartyId/:instanceGuid/:taskId/:pageId',
+        path: 'instance/:instanceOwnerPartyId/:instanceGuid/:taskId/:pageKey',
         element: children,
       },
       {

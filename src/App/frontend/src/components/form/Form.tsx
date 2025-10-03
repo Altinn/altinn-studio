@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import classes from 'src/components/form/Form.module.css';
@@ -36,9 +36,9 @@ interface FormState {
 }
 
 export function Form() {
-  const { pageKey: currentPageId } = useParams();
+  const currentPageId = useCurrentView();
 
-  return currentPageId && <FormPage currentPageId={currentPageId} />;
+  return <FormPage currentPageId={currentPageId} />;
 }
 
 export function FormPage({ currentPageId }: { currentPageId: string | undefined }) {
