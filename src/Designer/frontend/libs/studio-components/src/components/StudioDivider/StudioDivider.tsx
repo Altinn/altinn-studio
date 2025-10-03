@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { HTMLAttributes, ReactElement } from 'react';
 import classes from './StudioDivider.module.css';
+import { Divider } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 export type StudioDividerColor = 'default' | 'strong' | 'subtle';
@@ -13,7 +14,7 @@ function StudioDivider(
   { color = 'default', className, ...rest }: StudioDividerProps,
   ref: React.Ref<HTMLHRElement>,
 ): ReactElement {
-  return <hr ref={ref} className={cn(classes.divider, classes[color], className)} {...rest} />;
+  return <Divider ref={ref} className={cn(classes.divider, classes[color], className)} {...rest} />;
 }
 
 const ForwardedStudioDivider = forwardRef(StudioDivider);
