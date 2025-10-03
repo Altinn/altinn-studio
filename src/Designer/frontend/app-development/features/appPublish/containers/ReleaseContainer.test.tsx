@@ -179,4 +179,119 @@ describe('ReleaseContainer', () => {
       screen.getByText(textMock('app_create_release.local_changes_can_build')),
     ).toBeInTheDocument();
   });
+
+  it('renders message that release is still building when latest release matches master but build not completed', async () => {
+    const mockLatestCommit = 'abc123';
+    const mockGetRepoStatus = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ ...repoStatus, contentStatus: [] }));
+    const mockGetBranchStatus = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ commit: { id: mockLatestCommit } }));
+    const mockGetAppReleases = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        results: [
+          {
+            targetCommitish: mockLatestCommit,
+            tagName: 'v1',
+            build: { result: BuildResult.succeeded, status: BuildStatus.inProgress },
+          },
+        ],
+      }),
+    );
+    renderReleaseContainer({
+      getRepoStatus: mockGetRepoStatus,
+      getBranchStatus: mockGetBranchStatus,
+      getAppReleases: mockGetAppReleases,
+    });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('app_create_release.loading')),
+    );
+    expect(
+      screen.getByText(
+        textMock('app_create_release.still_building_release', { version: mockLatestCommit }),
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('shows status message for local changes when releases exist', async () => {
+    const mockGetRepoStatus = jest.fn().mockResolvedValue({
+      ...repoStatus,
+      contentStatus: [{ filePath: 'x', fileStatus: 'M' }],
+    });
+    const mockGetBranchStatus = jest.fn().mockResolvedValue({ commit: { id: 'abc' } });
+    const mockGetAppReleases = jest.fn().mockResolvedValue({
+      results: [
+        {
+          targetCommitish: 'old',
+          tagName: 'v0',
+          build: { result: BuildResult.succeeded, status: BuildStatus.completed },
+        },
+      ],
+    });
+
+    renderReleaseContainer({
+      getRepoStatus: mockGetRepoStatus,
+      getBranchStatus: mockGetBranchStatus,
+      getAppReleases: mockGetAppReleases,
+    });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('app_create_release.loading')),
+    );
+
+    const user = userEvent.setup();
+    const statusButton = screen.getByRole('button', {
+      name: textMock('app_create_release.status_popover'),
+    });
+    await user.click(statusButton);
+    expect(
+      screen.getByText(textMock('app_create_release.local_changes_can_build')),
+    ).toBeInTheDocument();
+  });
+
+  it('shows ok status when there are no local changes or releases', async () => {
+    const mockGetRepoStatus = jest.fn().mockResolvedValue({
+      ...repoStatus,
+      contentStatus: [],
+      aheadBy: 0,
+    });
+    const mockGetBranchStatus = jest.fn().mockResolvedValue({ commit: { id: 'abc' } });
+    const mockGetAppReleases = jest.fn().mockResolvedValue({ results: [] });
+    renderReleaseContainer({
+      getRepoStatus: mockGetRepoStatus,
+      getBranchStatus: mockGetBranchStatus,
+      getAppReleases: mockGetAppReleases,
+    });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('app_create_release.loading')),
+    );
+    const user = userEvent.setup();
+    const statusButton = screen.getByRole('button', {
+      name: textMock('app_create_release.status_popover'),
+    });
+    await user.click(statusButton);
+    expect(screen.getByText(textMock('app_create_release.ok'))).toBeInTheDocument();
+  });
+
+  it('does not render release title section when content status is falsy', async () => {
+    const mockGetRepoStatus = jest.fn().mockResolvedValue({
+      ...repoStatus,
+      contentStatus: undefined,
+    });
+    const mockGetBranchStatus = jest.fn().mockResolvedValue({ commit: { id: 'abc' } });
+    const mockGetAppReleases = jest.fn().mockResolvedValue({ results: [] });
+    renderReleaseContainer({
+      getRepoStatus: mockGetRepoStatus,
+      getBranchStatus: mockGetBranchStatus,
+      getAppReleases: mockGetAppReleases,
+    });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('app_create_release.loading')),
+    );
+    expect(screen.queryByText(textMock('app_release.release_title'))).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('app_release.release_built_on_version')),
+    ).not.toBeInTheDocument();
+  });
 });
