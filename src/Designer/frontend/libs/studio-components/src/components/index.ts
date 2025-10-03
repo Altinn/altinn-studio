@@ -67,4 +67,5 @@ export * from './StudioTextarea';
 export * from './StudioTextfield';
 export * from './StudioTextResourcePicker';
 export * from './StudioToggleGroup';
+export * from './StudioToggleableTextfield';
 export * from './StudioValidationMessage';
