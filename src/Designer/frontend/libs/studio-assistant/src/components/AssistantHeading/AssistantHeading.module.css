@@ -1,0 +1,9 @@
+.assistantHeadingBar {
+  display: flex;
+  align-items: center;
+  padding-inline: var(--ds-size-4);
+  padding-block: var(--ds-size-4);
+  gap: var(--ds-size-4);
+  border-bottom: 1px solid var(--ds-color-neutral-border-subtle);
+  justify-content: space-between;
+}

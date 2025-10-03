@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import type { ReactElement } from 'react';
 import { StudioResizableLayout } from '@studio/components-legacy';
-import type { Message, ModeOption, ChatThread } from '../../types';
-import { SimpleChatInterface } from '../SimpleChatInterface';
-import { ChatHistorySidebar } from '../ChatHistorySidebar';
-import { ChatSidePanel } from '../ChatSidePanel';
+import { ToolColumn } from '../ToolColumn';
 import classes from './AdvancedChatInterface.module.css';
+import { AssistantHeadingBar } from '../AssistantHeading/AssistantHeading';
+import type { ChatThread, ModeOption } from '../../types/ChatThread';
+import type { Message } from '../../types/AssistantConfig';
+import { ThreadColumn } from '../ThreadColumn';
+import { ThreadColumnHidden } from '../ThreadColumnHidden';
+import { ChatColumn } from '../ChatColumn/ChatColumn';
 
 export type AdvancedChatInterfaceProps = {
   chatThreads: ChatThread[];
@@ -19,11 +22,9 @@ export type AdvancedChatInterfaceProps = {
   textareaPlaceholder?: string;
   sidePanelLabels: {
     preview: string;
-    diff: string;
     fileBrowser: string;
   };
   previewContent?: ReactElement;
-  diffContent?: ReactElement;
   fileBrowserContent?: ReactElement;
   leftSidebarCollapsed?: boolean;
   onLeftSidebarToggle?: () => void;
@@ -41,50 +42,67 @@ export function AdvancedChatInterface({
   textareaPlaceholder,
   sidePanelLabels,
   previewContent,
-  diffContent,
   fileBrowserContent,
-  leftSidebarCollapsed = false,
+  leftSidebarCollapsed: controlledCollapsed,
+  onLeftSidebarToggle,
 }: AdvancedChatInterfaceProps): ReactElement {
+  const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const [selectedView, setSelectedView] = useState<'preview' | 'fileExplorer' | 'collapse'>(
+    'preview',
+  );
+
+  const isCollapsed = controlledCollapsed ?? internalCollapsed;
+  const handleToggle = onLeftSidebarToggle ?? (() => setInternalCollapsed(!internalCollapsed));
+
   const currentThread = chatThreads.find((thread) => thread.id === currentThreadId);
   const messages = currentThread?.messages || [];
 
   return (
     <div className={classes.container}>
-      <StudioResizableLayout.Container orientation='horizontal' localStorageContext='ai-chat'>
-        <StudioResizableLayout.Element
-          minimumSize={200}
-          maximumSize={400}
-          collapsed={leftSidebarCollapsed}
-          collapsedSize={0}
-        >
-          <ChatHistorySidebar
-            chatThreads={chatThreads}
-            selectedThreadId={currentThreadId}
-            onSelectThread={onSelectThread}
-          />
-        </StudioResizableLayout.Element>
-
-        <StudioResizableLayout.Element>
-          <SimpleChatInterface
-            messages={messages}
-            onSendMessage={onSendMessage}
-            sendButtonText={sendButtonText}
-            modeOptions={modeOptions}
-            selectedMode={selectedMode}
-            onModeChange={onModeChange}
-            textareaPlaceholder={textareaPlaceholder}
-          />
-        </StudioResizableLayout.Element>
-
-        <StudioResizableLayout.Element minimumSize={250} maximumSize={600}>
-          <ChatSidePanel
-            tabLabels={sidePanelLabels}
-            previewContent={previewContent}
-            diffContent={diffContent}
-            fileBrowserContent={fileBrowserContent}
-          />
-        </StudioResizableLayout.Element>
-      </StudioResizableLayout.Container>
+      <AssistantHeadingBar selectedView={selectedView} onViewChange={setSelectedView} />
+      <div className={classes.resizableWrapper}>
+        <StudioResizableLayout.Container orientation='horizontal' localStorageContext='ai-chat'>
+          {isCollapsed ? (
+            <ThreadColumnHidden onToggle={handleToggle} />
+          ) : (
+            <StudioResizableLayout.Element
+              minimumSize={200}
+              maximumSize={400}
+              collapsed={isCollapsed}
+              collapsedSize={60}
+            >
+              <ThreadColumn
+                chatThreads={chatThreads}
+                selectedThreadId={currentThreadId}
+                onSelectThread={onSelectThread}
+                isCollapsed={isCollapsed}
+                onToggleCollapse={handleToggle}
+              />
+            </StudioResizableLayout.Element>
+          )}
+          <StudioResizableLayout.Element>
+            <ChatColumn
+              messages={messages}
+              onSendMessage={onSendMessage}
+              sendButtonText={sendButtonText}
+              modeOptions={modeOptions}
+              selectedMode={selectedMode}
+              onModeChange={onModeChange}
+              textareaPlaceholder={textareaPlaceholder}
+            />
+          </StudioResizableLayout.Element>
+          {selectedView !== 'collapse' && (
+            <StudioResizableLayout.Element minimumSize={250}>
+              <ToolColumn
+                selectedView={selectedView}
+                tabLabels={sidePanelLabels}
+                previewContent={previewContent}
+                fileBrowserContent={fileBrowserContent}
+              />
+            </StudioResizableLayout.Element>
+          )}
+        </StudioResizableLayout.Container>
+      </div>
     </div>
   );
 }

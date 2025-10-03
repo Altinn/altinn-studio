@@ -2,7 +2,6 @@ import type { ReactElement } from 'react';
 import React, { useState } from 'react';
 import {
   AdvancedChatInterface,
-  SimpleChatInterface,
   getMockChatThreads,
   type Message,
   type ModeOption,
@@ -10,6 +9,7 @@ import {
 } from '@studio/assistant';
 import { useTranslation } from 'react-i18next';
 import classes from './AiAssistant.module.css';
+import { ChatColumn } from '@studio/assistant';
 
 export function AiAssistant(): ReactElement {
   const { t } = useTranslation();
@@ -56,7 +56,7 @@ export function AiAssistant(): ReactElement {
 
   return (
     <div className={classes.container}>
-      <SimpleChatInterface
+      <ChatColumn
         messages={currentThread?.messages || []}
         onSendMessage={onSubmitMessage}
         sendButtonText={t('ai_assistant.button.send')}
