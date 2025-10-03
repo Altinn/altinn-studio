@@ -13,7 +13,7 @@ export enum FeatureFlag {
 }
 
 /*
- * Please add all the features that you want to be toggle on by default here.
+ * Please add all the features that you want to be toggled on by default here.
  * Remember that all the features that are listed here will be available to the users in production,
  * since this is the default active features.
  */
