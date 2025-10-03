@@ -1,9 +1,9 @@
 using System.Security.Claims;
-using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
+using Altinn.App.Tests.Common.Mocks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
 
-namespace Altinn.App.Api.Tests.Helpers;
+namespace Altinn.App.Core.Tests.Helpers;
 
 public class UserHelperTest
 {

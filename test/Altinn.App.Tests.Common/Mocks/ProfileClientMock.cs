@@ -1,10 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Altinn.App.Api.Tests.Data;
 using Altinn.App.Core.Internal.Profile;
+using Altinn.App.Tests.Common.Data;
 using Altinn.Platform.Profile.Models;
 
-namespace Altinn.App.Api.Tests.Mocks;
+namespace Altinn.App.Tests.Common.Mocks;
 
 public class ProfileClientMock : IProfileClient
 {
@@ -15,7 +15,7 @@ public class ProfileClientMock : IProfileClient
 
     public async Task<UserProfile?> GetUserProfile(int userId)
     {
-        var folder = TestData.GetRegisterProfilePath();
+        var folder = CommonTestData.GetRegisterProfilePath();
         var file = Path.Join(folder, $"{userId}.json");
         return await JsonSerializer.DeserializeAsync<UserProfile>(File.OpenRead(file), _jsonSerializerOptions);
     }
