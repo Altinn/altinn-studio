@@ -20,7 +20,7 @@ public static class PathHelper
     }
 
     /// <summary>
-    /// Ensures that the filePath is within the legalPath. Throws exception if the filePath is illegal.
+    /// Ensures that the filePath is within the legalPath. Throws an exception if the filePath is illegal.
     /// </summary>
     /// <param name="legalPath">The legal path</param>
     /// <param name="filePath">The file path to check</param>

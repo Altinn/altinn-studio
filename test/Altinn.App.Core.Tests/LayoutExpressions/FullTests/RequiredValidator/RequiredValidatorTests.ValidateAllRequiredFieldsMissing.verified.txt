@@ -10,7 +10,16 @@
           Code: required,
           Description: VisibleRequired is required in component with id subLayout.subPage.sub-input-visible-required for binding simpleBinding,
           Source: Required,
-          NoIncrementalUpdates: false
+          NoIncrementalUpdates: false,
+          CustomTextKey: backend.validation_errors.required,
+          CustomTextParameters: {
+            bindingName: simpleBinding,
+            componentId: sub-input-visible-required,
+            field: VisibleRequired,
+            layoutId: subLayout,
+            pageId: subPage,
+            pageName: Underside
+          }
         },
         {
           Severity: Error,
@@ -19,7 +28,16 @@
           Code: required,
           Description: Group[1].VisibleRequired is required in component with id subLayout.subPage.sub-input-group1-visible-required for binding simpleBinding,
           Source: Required,
-          NoIncrementalUpdates: false
+          NoIncrementalUpdates: false,
+          CustomTextKey: backend.validation_errors.required,
+          CustomTextParameters: {
+            bindingName: simpleBinding,
+            componentId: sub-input-group1-visible-required,
+            field: Group[1].VisibleRequired,
+            layoutId: subLayout,
+            pageId: subPage,
+            pageName: Underside
+          }
         },
         {
           Severity: Error,
@@ -28,7 +46,16 @@
           Code: required,
           Description: Group[2].VisibleRequired is required in component with id subLayout.subPage.sub-input-group2-visible-required for binding simpleBinding,
           Source: Required,
-          NoIncrementalUpdates: false
+          NoIncrementalUpdates: false,
+          CustomTextKey: backend.validation_errors.required,
+          CustomTextParameters: {
+            bindingName: simpleBinding,
+            componentId: sub-input-group2-visible-required,
+            field: Group[2].VisibleRequired,
+            layoutId: subLayout,
+            pageId: subPage,
+            pageName: Underside
+          }
         },
         {
           Severity: Error,
@@ -37,7 +64,16 @@
           Code: required,
           Description: VisibleRequired is required in component with id mainLayout.page1.input-visible-required for binding simpleBinding,
           Source: Required,
-          NoIncrementalUpdates: false
+          NoIncrementalUpdates: false,
+          CustomTextKey: backend.validation_errors.required,
+          CustomTextParameters: {
+            bindingName: simpleBinding,
+            componentId: input-visible-required,
+            field: VisibleRequired,
+            layoutId: mainLayout,
+            pageId: page1,
+            pageName: page1
+          }
         },
         {
           Severity: Error,
@@ -46,7 +82,16 @@
           Code: required,
           Description: Group[1].VisibleRequired is required in component with id mainLayout.page1.input-group1-visible-required for binding simpleBinding,
           Source: Required,
-          NoIncrementalUpdates: false
+          NoIncrementalUpdates: false,
+          CustomTextKey: backend.validation_errors.required,
+          CustomTextParameters: {
+            bindingName: simpleBinding,
+            componentId: input-group1-visible-required,
+            field: Group[1].VisibleRequired,
+            layoutId: mainLayout,
+            pageId: page1,
+            pageName: page1
+          }
         },
         {
           Severity: Error,
@@ -55,7 +100,16 @@
           Code: required,
           Description: Group[2].VisibleRequired is required in component with id mainLayout.page1.input-group2-visible-required for binding simpleBinding,
           Source: Required,
-          NoIncrementalUpdates: false
+          NoIncrementalUpdates: false,
+          CustomTextKey: backend.validation_errors.required,
+          CustomTextParameters: {
+            bindingName: simpleBinding,
+            componentId: input-group2-visible-required,
+            field: Group[2].VisibleRequired,
+            layoutId: mainLayout,
+            pageId: page1,
+            pageName: page1
+          }
         }
       ]
     },
@@ -79,7 +133,16 @@
       Code: required,
       Description: VisibleRequired is required in component with id subLayout.subPage.sub-input-visible-required for binding simpleBinding,
       Source: Required,
-      NoIncrementalUpdates: false
+      NoIncrementalUpdates: false,
+      CustomTextKey: backend.validation_errors.required,
+      CustomTextParameters: {
+        bindingName: simpleBinding,
+        componentId: sub-input-visible-required,
+        field: VisibleRequired,
+        layoutId: subLayout,
+        pageId: subPage,
+        pageName: Underside
+      }
     },
     {
       Severity: Error,
@@ -88,7 +151,16 @@
       Code: required,
       Description: Group[1].VisibleRequired is required in component with id subLayout.subPage.sub-input-group1-visible-required for binding simpleBinding,
       Source: Required,
-      NoIncrementalUpdates: false
+      NoIncrementalUpdates: false,
+      CustomTextKey: backend.validation_errors.required,
+      CustomTextParameters: {
+        bindingName: simpleBinding,
+        componentId: sub-input-group1-visible-required,
+        field: Group[1].VisibleRequired,
+        layoutId: subLayout,
+        pageId: subPage,
+        pageName: Underside
+      }
     },
     {
       Severity: Error,
@@ -97,7 +169,16 @@
       Code: required,
       Description: Group[2].VisibleRequired is required in component with id subLayout.subPage.sub-input-group2-visible-required for binding simpleBinding,
       Source: Required,
-      NoIncrementalUpdates: false
+      NoIncrementalUpdates: false,
+      CustomTextKey: backend.validation_errors.required,
+      CustomTextParameters: {
+        bindingName: simpleBinding,
+        componentId: sub-input-group2-visible-required,
+        field: Group[2].VisibleRequired,
+        layoutId: subLayout,
+        pageId: subPage,
+        pageName: Underside
+      }
     },
     {
       Severity: Error,
@@ -106,7 +187,16 @@
       Code: required,
       Description: VisibleRequired is required in component with id mainLayout.page1.input-visible-required for binding simpleBinding,
       Source: Required,
-      NoIncrementalUpdates: false
+      NoIncrementalUpdates: false,
+      CustomTextKey: backend.validation_errors.required,
+      CustomTextParameters: {
+        bindingName: simpleBinding,
+        componentId: input-visible-required,
+        field: VisibleRequired,
+        layoutId: mainLayout,
+        pageId: page1,
+        pageName: page1
+      }
     },
     {
       Severity: Error,
@@ -115,7 +205,16 @@
       Code: required,
       Description: Group[1].VisibleRequired is required in component with id mainLayout.page1.input-group1-visible-required for binding simpleBinding,
       Source: Required,
-      NoIncrementalUpdates: false
+      NoIncrementalUpdates: false,
+      CustomTextKey: backend.validation_errors.required,
+      CustomTextParameters: {
+        bindingName: simpleBinding,
+        componentId: input-group1-visible-required,
+        field: Group[1].VisibleRequired,
+        layoutId: mainLayout,
+        pageId: page1,
+        pageName: page1
+      }
     },
     {
       Severity: Error,
@@ -124,7 +223,16 @@
       Code: required,
       Description: Group[2].VisibleRequired is required in component with id mainLayout.page1.input-group2-visible-required for binding simpleBinding,
       Source: Required,
-      NoIncrementalUpdates: false
+      NoIncrementalUpdates: false,
+      CustomTextKey: backend.validation_errors.required,
+      CustomTextParameters: {
+        bindingName: simpleBinding,
+        componentId: input-group2-visible-required,
+        field: Group[2].VisibleRequired,
+        layoutId: mainLayout,
+        pageId: page1,
+        pageName: page1
+      }
     },
     {
       Severity: Error,

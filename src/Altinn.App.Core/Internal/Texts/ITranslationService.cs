@@ -35,7 +35,7 @@ public interface ITranslationService
     Task<string?> TranslateTextKey(
         string key,
         LayoutEvaluatorState state,
-        ComponentContext context,
+        ComponentContext? context,
         Dictionary<string, string>? customTextParameters = null
     );
 

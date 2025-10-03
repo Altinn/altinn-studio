@@ -38,8 +38,6 @@ public sealed class DataAccessorFixture
     public Mock<IDataClient> DataClientMock { get; } = new(MockBehavior.Strict);
     public Mock<IInstanceClient> InstanceClientMock { get; } = new(MockBehavior.Strict);
 
-    public Mock<ITranslationService> TranslationServiceMock { get; } = new(MockBehavior.Strict);
-
     internal Mock<IDataElementAccessChecker> DataElementAccessCheckerMock { get; } = new(MockBehavior.Strict);
     public Mock<IHostEnvironment> HostEnvironmentMock { get; } = new(MockBehavior.Strict);
 
@@ -69,7 +67,7 @@ public sealed class DataAccessorFixture
         ServiceCollection.AddSingleton(Options.Create(AppSettings));
         ServiceCollection.AddSingleton(AppModelMock.Object);
         ServiceCollection.AddSingleton(DataClientMock.Object);
-        ServiceCollection.AddSingleton(TranslationServiceMock.Object);
+        ServiceCollection.AddSingleton<ITranslationService, TranslationService>();
         ServiceCollection.AddSingleton(InstanceClientMock.Object);
         ServiceCollection.AddSingleton(DataElementAccessCheckerMock.Object);
         ServiceCollection.AddSingleton(HostEnvironmentMock.Object);
@@ -80,6 +78,7 @@ public sealed class DataAccessorFixture
         ServiceCollection.AddTransient<IValidationService, ValidationService>();
         ServiceCollection.AddTransient<ILayoutEvaluatorStateInitializer, LayoutEvaluatorStateInitializer>();
         ServiceCollection.AddTransient<AppImplementationFactory>();
+        ServiceCollection.AddSingleton(new AppIdentifier(Org, App));
         ServiceCollection.AddFakeLoggingWithXunit(outputHelper);
         AppResourcesMock
             .Setup(ar => ar.GetLayoutSet())
@@ -96,6 +95,32 @@ public sealed class DataAccessorFixture
                             Tasks = new() { TaskId },
                         },
                     },
+                }
+            );
+        AppResourcesMock
+            .Setup(a => a.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(
+                new TextResource()
+                {
+                    Id = "nb",
+                    Language = "nb",
+                    Resources =
+                    [
+                        new()
+                        {
+                            Id = "backend.validation_errors.required",
+                            Value = "{0} is required in component with id {1}.{2}.{3} for binding {4}",
+                            Variables =
+                            [
+                                new() { Key = "field", DataSource = "customTextParameters" },
+                                new() { Key = "layoutId", DataSource = "customTextParameters" },
+                                new() { Key = "pageId", DataSource = "customTextParameters" },
+                                new() { Key = "componentId", DataSource = "customTextParameters" },
+                                new() { Key = "bindingName", DataSource = "customTextParameters" },
+                            ],
+                        },
+                        new() { Id = "subPage", Value = "Underside" },
+                    ],
                 }
             );
         HostEnvironmentMock.SetupGet(h => h.EnvironmentName).Returns("Development");

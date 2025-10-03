@@ -81,7 +81,7 @@ public static class LayoutTestUtils
         foreach (var layoutFile in Directory.GetFiles(layoutsPath, "*.json"))
         {
             var layoutBytes = await File.ReadAllBytesAsync(layoutFile);
-            string pageName = layoutFile.Replace(layoutsPath + "/", string.Empty).Replace(".json", string.Empty);
+            string pageName = Path.GetFileNameWithoutExtension(layoutFile);
 
             using var document = JsonDocument.Parse(layoutBytes, _options);
 

@@ -178,15 +178,40 @@ public static class LayoutEvaluator
                     )
                     {
                         var field = await state.AddInidicies(binding, context);
+
+                        var customTextParameters = new Dictionary<string, string>()
+                        {
+                            ["field"] = field.Field,
+                            ["layoutId"] = context.Component.LayoutId,
+                            ["pageId"] = context.Component.PageId,
+                            ["componentId"] = context.Component.Id,
+                            ["bindingName"] = bindingName,
+                            ["pageName"] = await state.TranslateText(context.Component.PageId, context),
+                        };
+                        if (context.Component.TextResourceBindings.TryGetValue("title", out var titleBinding))
+                        {
+                            if (titleBinding.IsLiteralString)
+                            {
+                                customTextParameters["componentTitle"] = await state.TranslateText(
+                                    titleBinding.ValueUnion.String,
+                                    context
+                                );
+                            }
+                            else
+                            {
+                                // TODO: consider evaluating the expression and translate the result
+                            }
+                        }
+
                         validationIssues.Add(
                             new ValidationIssue()
                             {
                                 Severity = ValidationIssueSeverity.Error,
                                 DataElementId = field.DataElementIdentifier.ToString(),
                                 Field = field.Field,
-                                Description =
-                                    $"{field.Field} is required in component with id {context.Component.LayoutId}.{context.Component.PageId}.{context.Component.Id} for binding {bindingName}",
                                 Code = "required",
+                                CustomTextKey = "backend.validation_errors.required",
+                                CustomTextParameters = customTextParameters,
                             }
                         );
                     }

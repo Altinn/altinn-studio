@@ -54,7 +54,7 @@ internal class TranslationService : ITranslationService
     public async Task<string?> TranslateTextKey(
         string key,
         LayoutEvaluatorState state,
-        ComponentContext context,
+        ComponentContext? context,
         Dictionary<string, string>? customTextParameters = null
     )
     {
@@ -179,7 +179,29 @@ internal class TranslationService : ITranslationService
             textResource = await _appResources.GetTexts(_org, _app, LanguageConst.Nb);
         }
 
-        return textResource?.Resources.Find(resource => resource.Id == key);
+        return textResource?.Resources.Find(resource => resource.Id == key)
+            ?? GetBackendFallbackResource(key, language);
+    }
+
+    private static TextResourceElement? GetBackendFallbackResource(string key, string language)
+    {
+        // When the list of backend text resources grows, we might want to have these in a separate file or similar.
+        switch (key)
+        {
+            case "backend.validation_errors.required":
+                return new TextResourceElement()
+                {
+                    Id = "backend.validation_errors.required",
+                    Value = language switch
+                    {
+                        LanguageConst.Nb => "Feltet er påkrevd",
+                        LanguageConst.Nn => "Feltet er påkravd",
+                        _ => "Field is required",
+                    },
+                };
+        }
+
+        return null;
     }
 
     /// <summary>
