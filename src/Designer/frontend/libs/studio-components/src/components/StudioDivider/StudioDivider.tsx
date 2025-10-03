@@ -1,8 +1,8 @@
 import React, { forwardRef } from 'react';
-import type { HTMLAttributes, ReactElement } from 'react';
-import { Divider } from '@digdir/designsystemet-react';
+import type { ReactElement } from 'react';
+import { Divider, type DividerProps } from '@digdir/designsystemet-react';
 
-export type StudioDividerProps = HTMLAttributes<HTMLHRElement>;
+export type StudioDividerProps = DividerProps;
 
 function StudioDivider(
   { ...rest }: StudioDividerProps,
