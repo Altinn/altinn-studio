@@ -292,6 +292,30 @@ describe('EditColumnElementComponentSelect', () => {
       cellContent: { query: subformLayoutMock.component4.dataModelBindings.address.field },
     });
   });
+
+  it('should render description text for DataModelBindingsCombobox', async () => {
+    const user = userEvent.setup();
+    renderEditColumnElement({
+      tableColumn: {
+        headerContent: '',
+        cellContent: { query: '' },
+      },
+    });
+    const componentSelect = screen.getByRole('combobox', {
+      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    });
+    await user.click(componentSelect);
+    await user.click(
+      screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component4Id}`) }),
+    );
+    expect(
+      await screen.findByText(
+        textMock(
+          'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_description',
+        ),
+      ),
+    ).toBeInTheDocument();
+  });
 });
 
 const renderEditColumnElement = (
