@@ -228,9 +228,11 @@ namespace Altinn.Studio.Designer.Controllers
             List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
             List<ListviewServiceResource> listviewServiceResources = new List<ListviewServiceResource>();
 
-            foreach (ServiceResource resource in repositoryResourceList)
+            IEnumerable<Task<ListviewServiceResource>> tasks = repositoryResourceList.Select(resource => _giteaApi.MapServiceResourceToListViewResource(org, repository, resource));
+            IEnumerable<ListviewServiceResource> resources = await Task.WhenAll(tasks);
+
+            foreach (ListviewServiceResource listviewResource in resources)
             {
-                ListviewServiceResource listviewResource = await _giteaApi.MapServiceResourceToListViewResource(org, repository, resource);
                 listviewResource.HasPolicy = true;
                 listviewResource.Environments = ["gitea"];
                 listviewServiceResources.Add(listviewResource);
