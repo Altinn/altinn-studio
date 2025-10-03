@@ -228,24 +228,21 @@ namespace Altinn.Studio.Designer.Controllers
             List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
             List<ListviewServiceResource> listviewServiceResources = new List<ListviewServiceResource>();
 
-            using SemaphoreSlim semaphore = new(25); // Limit to 25 concurrent requests
-            List<Task<ListviewServiceResource>> tasks = [];
+            using SemaphoreSlim semaphore = new(25); // Limit to 25 concurrent requests 
 
-            foreach (ServiceResource resource in repositoryResourceList)
+            async Task<ListviewServiceResource> ProcessResourceAsync(ServiceResource resource)
             {
-                tasks.Add(Task.Run(async () =>
+                await semaphore.WaitAsync(cancellationToken);
+                try
                 {
-                    await semaphore.WaitAsync(cancellationToken);
-                    try
-                    {
-                        return await _giteaApi.MapServiceResourceToListViewResource(org, repository, resource, cancellationToken);
-                    }
-                    finally
-                    {
-                        semaphore.Release();
-                    }
-                }, cancellationToken));
+                    return await _giteaApi.MapServiceResourceToListViewResource(org, repository, resource, cancellationToken);
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
             }
+            IEnumerable<Task<ListviewServiceResource>> tasks = repositoryResourceList.Select(resource => ProcessResourceAsync(resource));
             IEnumerable<ListviewServiceResource> resources = await Task.WhenAll(tasks);
 
             foreach (ListviewServiceResource listviewResource in resources)
