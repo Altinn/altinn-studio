@@ -664,6 +664,43 @@ function getFreshNumRows(state: FormDataContext, reference: IDataModelReference 
 const emptyObject = {};
 const emptyArray = [];
 
+/**
+ * Recursively traverses form data to find all actual field paths that match a base field pattern.
+ *
+ * For example, given a base field "names.name" and form data containing:
+ * { names: [{ name: "John" }, { name: "Jane" }] }
+ *
+ * This will collect paths: ["names[0].name", "names[1].name"]
+ */
+function collectMatchingFieldPaths(
+  data: unknown,
+  fieldParts: string[],
+  currentPath: string,
+  partIndex: number,
+  results: string[],
+) {
+  if (partIndex >= fieldParts.length) {
+    results.push(currentPath);
+    return;
+  }
+
+  const part = fieldParts[partIndex];
+  if (typeof data !== 'object' || data === null || data[part] === undefined || data[part] === null) {
+    return;
+  }
+
+  const nextData = data[part];
+  const nextPath = currentPath ? `${currentPath}.${part}` : part;
+
+  if (Array.isArray(nextData)) {
+    for (let i = 0; i < nextData.length; i++) {
+      collectMatchingFieldPaths(nextData[i], fieldParts, `${nextPath}[${i}]`, partIndex + 1, results);
+    }
+  } else {
+    collectMatchingFieldPaths(nextData, fieldParts, nextPath, partIndex + 1, results);
+  }
+}
+
 const currentSelector = (reference: IDataModelReference) => (state: FormDataContext) =>
   dot.pick(reference.field, state.dataModels[reference.dataType]?.currentData);
 const debouncedSelector = (reference: IDataModelReference) => (state: FormDataContext) =>
@@ -774,6 +811,40 @@ export const FD = {
     return useSelector((v) =>
       reference ? dot.pick(reference.field, v.dataModels[reference.dataType]?.debouncedCurrentData) : undefined,
     );
+  },
+
+  /**
+   * This will find all actual field paths that match a base pattern. For example, given "form.names.name",
+   * it might return ["form.names[0].name", "form.names[1].name"] if those paths exist in the form data.
+   * This is useful for finding all instances of a field in repeating groups.
+   */
+  useDebouncedAllPaths(reference: IDataModelReference | undefined): string[] {
+    const lookupTool = DataModels.useLookupBinding();
+    const [, lookupErr] = (reference ? lookupTool?.(reference) : undefined) ?? [undefined, undefined];
+
+    return useShallowSelector((v) => {
+      if (!reference) {
+        return emptyArray;
+      }
+
+      // When lookupTool is available and doesn't report a missing repeating group error, we know there's no
+      // repeating group structure in this path, so we can return the field as-is.
+      const foundInDataModel = lookupTool && (!lookupErr || lookupErr.error !== 'missingProperty');
+      if (foundInDataModel && lookupErr?.error !== 'missingRepeatingGroup') {
+        return [reference?.field];
+      }
+
+      // If lookupTool is not available (e.g., in tests), or if there's a missingRepeatingGroup error,
+      // we need to check the actual data to find all matching paths.
+      const formData = v.dataModels[reference.dataType]?.debouncedCurrentData;
+      if (!formData) {
+        return [];
+      }
+
+      const paths: string[] = [];
+      collectMatchingFieldPaths(formData, reference.field.split('.'), '', 0, paths);
+      return paths.length === 0 ? [reference.field] : paths.sort();
+    });
   },
 
   /**
