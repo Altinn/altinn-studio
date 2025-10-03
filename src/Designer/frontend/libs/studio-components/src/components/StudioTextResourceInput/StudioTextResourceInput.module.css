@@ -1,0 +1,49 @@
+.container {
+  display: grid;
+  gap: var(--ds-size-1);
+  grid-template-areas:
+    'inputbox toggle'
+    'id id';
+  grid-template-columns: 1fr auto;
+}
+
+.inputbox {
+  grid-area: inputbox;
+}
+
+.id {
+  align-items: center;
+  display: flex;
+  gap: var(--ds-size-1);
+  grid-area: id;
+}
+
+.id code {
+  align-items: center;
+  align-self: stretch;
+  display: flex;
+}
+
+.toggle {
+  border-radius: var(--ds-border-radius-default);
+  border-width: 0;
+  grid-area: toggle;
+  outline-offset: calc(-1 * var(--ds-border-width-default));
+  outline: var(--ds-color-border-default) solid var(--ds-border-width-default);
+}
+
+.toggle [role='radiogroup'] {
+  padding: 0;
+  gap: 0;
+}
+
+.toggle [role='radio'] {
+  scale: 0.9;
+}
+
+.searchField > * {
+  margin-top: 0;
+}
+.searchField :global(label) {
+  display: none;
+}

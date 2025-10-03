@@ -1,13 +1,11 @@
 import type { ChangeEvent, FocusEvent, HTMLAttributes, ReactElement } from 'react';
 import React, { forwardRef, useCallback, useMemo, useState } from 'react';
-import type { TextResource } from '../../types/TextResource';
-import { StudioTextResourcePicker } from '../StudioTextResourcePicker';
+import type { TextResource } from '../../../../studio-pure-functions/src/types/TextResource';
 import { StudioCodeFragment } from '../StudioCodeFragment';
 import { ToggleGroup } from '@digdir/designsystemet-react';
 import { PencilIcon, MagnifyingGlassIcon } from '@studio/icons';
 import classes from './StudioTextResourceInput.module.css';
-import type { StudioTextfieldProps } from '../StudioTextfield';
-import { StudioTextfield } from '../StudioTextfield';
+import { StudioTextfield, type StudioTextfieldProps } from '../StudioTextfield';
 import { editTextResourceValue, createNewTextResource } from './utils';
 import { usePropState } from '@studio/hooks';
 import type { TextResourceInputTexts } from './types/TextResourceInputTexts';
@@ -15,12 +13,11 @@ import cn from 'classnames';
 import { Mode } from './types/Mode';
 import { TextResourceUtils } from '@studio/pure-functions';
 import type { RequiredSelection } from '../../types/RequiredSelection';
+import { StudioTextResourcePicker } from '../StudioTextResourcePicker';
 
 export type StudioTextResourceInputProps = TextResourceInputPropsBase &
   HTMLAttributes<HTMLInputElement>;
-/**
- * @deprecated Use StudioTextResourceInput from @studio/components instead.
- */
+
 type TextResourceInputPropsBase = {
   currentId?: string | null;
   currentIdClass?: string;
@@ -57,12 +54,10 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
     const [currentId, setCurrentId] = usePropState<string | null | undefined>(givenCurrentId);
     const [textResources, setTextResources] = usePropState<TextResource[]>(givenTextResources);
     const [mode, setMode] = useState<Mode>(Mode.EditValue);
-
-    const handleChangeCurrentId = (id: string): void => {
+    const handleChangeCurrentId = (id: string | null): void => {
       setCurrentId(id);
       onChangeCurrentId(id);
     };
-
     const setTextResourceInList = (textResource: TextResource): void => {
       const newList = TextResourceUtils.fromArray(textResources).set(textResource).asArray();
       setTextResources(newList);
@@ -93,7 +88,7 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
           onChangeCurrentId={handleChangeCurrentId}
           onChangeTextResource={handleChangeTextResource}
           onCreateTextResource={handleCreateTextResource}
-          onKeyDown={onKeyDown}
+          onKeyDown={onKeyDown as unknown as React.KeyboardEventHandler<HTMLInputElement>}
           onUpdateTextResource={handleUpdateTextResource}
           ref={ref}
           textResources={textResources}
@@ -101,7 +96,7 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
           {...rest}
         />
         <ModeToggle className={toggleClass} inputMode={mode} onToggle={setMode} texts={texts} />
-        <CurrentId className={currentIdClass} currentId={currentId} label={texts.idLabel} />
+        <CurrentId className={currentIdClass} currentId={currentId ?? ''} label={texts.idLabel} />
       </div>
     );
   },
@@ -130,6 +125,11 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
       required,
       textResources,
       texts,
+      currentIdClass,
+      toggleClass,
+      'aria-label': ariaLabel,
+      'aria-labelledby': ariaLabelledBy,
+      defaultValue,
       ...rest
     },
     ref,
@@ -141,11 +141,12 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
         return (
           <ValueField
             className={className}
+            data-size='sm'
             currentId={currentId}
             label={texts.valueLabel}
             onChangeTextResource={onChangeTextResource}
             onCreateTextResource={onCreateTextResource}
-            onKeyDown={onKeyDown}
+            onKeyDown={onKeyDown as React.KeyboardEventHandler<HTMLInputElement>}
             onUpdateTextResource={onUpdateTextResource}
             ref={ref}
             textResources={textResources}
@@ -155,16 +156,14 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
       case Mode.Search:
         return (
           <StudioTextResourcePicker
-            className={className}
+            emptyText={texts.emptyTextResourceList ?? ''}
+            className={cn(className, classes.searchField)}
             label={texts.textResourcePickerLabel}
             noTextResourceOptionLabel={texts.noTextResourceOptionLabel}
-            onKeyDown={onKeyDown}
             onValueChange={onChangeCurrentId}
-            ref={ref}
             required={required}
             textResources={textResources}
-            value={currentId}
-            {...rest}
+            value={currentId ?? undefined}
           />
         );
     }
@@ -193,14 +192,19 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
       onCreateTextResource,
       onUpdateTextResource,
       textResources,
+      label,
+      'aria-label': ariaLabel,
+      'aria-labelledby': ariaLabelledBy,
       ...rest
     },
     ref,
   ): ReactElement => {
     const utils = useMemo(() => TextResourceUtils.fromArray(textResources), [textResources]);
-    const currentTextResource = useMemo(() => utils.get(currentId), [utils, currentId]);
+    const currentTextResource = useMemo(() => utils.get(currentId ?? ''), [utils, currentId]);
 
-    const [valueState, setValueState] = useState<string>(utils.getValueIfExists(currentId) ?? '');
+    const [valueState, setValueState] = useState<string>(
+      utils.getValueIfExists(currentId ?? '') ?? '',
+    );
 
     const createTextResource = useCallback(
       (value: string): TextResource => {
@@ -212,8 +216,11 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
     );
 
     const editCurrentTextResource = useCallback(
-      (value: string): TextResource => editTextResourceValue(currentTextResource, value),
-      [currentTextResource],
+      (value: string): TextResource =>
+        currentTextResource
+          ? editTextResourceValue(currentTextResource, value)
+          : createTextResource(value),
+      [currentTextResource, createTextResource],
     );
 
     const editOrCreateTextResource = useCallback(
@@ -231,11 +238,13 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
     );
 
     const handleBlur = useCallback(
-      (event: FocusEvent<HTMLInputElement>): void => {
+      (event: FocusEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
         const { value } = event.target;
         const newTextResource = editOrCreateTextResource(value);
         updateTextResource(newTextResource);
-        onBlur?.(event);
+        if (onBlur) {
+          onBlur(event as FocusEvent<HTMLInputElement> & FocusEvent<HTMLTextAreaElement>);
+        }
       },
       [onBlur, editOrCreateTextResource, updateTextResource],
     );
@@ -250,11 +259,13 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
     );
 
     const handleChange = useCallback(
-      (event: ChangeEvent<HTMLInputElement>): void => {
+      (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
         const { value } = event.target;
         setValueState(value);
         changeTextResourceIfExists(value);
-        onChange?.(event);
+        if (onChange) {
+          onChange(event as ChangeEvent<HTMLInputElement> & ChangeEvent<HTMLTextAreaElement>);
+        }
       },
       [onChange, changeTextResourceIfExists],
     );
@@ -265,7 +276,8 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
         onChange={handleChange}
         ref={ref}
         value={valueState}
-        hideLabel={true}
+        data-size='md'
+        aria-label={ariaLabel ?? (typeof label === 'string' ? label : String(label))}
         {...rest}
       />
     );
@@ -289,7 +301,7 @@ function ModeToggle({
 }: InputModeToggleProps): ReactElement {
   const className = cn(givenClass, classes.toggle);
   return (
-    <ToggleGroup onChange={onToggle} value={inputMode} size='sm' className={className}>
+    <ToggleGroup onChange={onToggle} value={inputMode} data-size='sm' className={className}>
       <ToggleGroup.Item icon value={Mode.EditValue} title={texts.editValue}>
         <PencilIcon />
       </ToggleGroup.Item>
