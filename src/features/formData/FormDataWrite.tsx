@@ -22,7 +22,11 @@ import { getFormDataQueryKey } from 'src/features/formData/useFormDataQuery';
 import { useLaxInstanceId, useOptimisticallyUpdateCachedInstance } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
-import { type BackendValidationIssueGroups, IgnoredValidators } from 'src/features/validation';
+import {
+  backendValidationIssueGroupListToObject,
+  type BackendValidationIssueGroups,
+  IgnoredValidators,
+} from 'src/features/validation';
 import { useIsUpdatingInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
@@ -174,7 +178,7 @@ function useFormDataSaveMutation() {
     }
   }
 
-  const mutation = useMutation({
+  return useMutation({
     mutationKey: saveFormDataMutationKey,
     scope: { id: saveFormDataMutationKey[0] },
     mutationFn: async (): Promise<FDSaveFinished | undefined> => {
@@ -303,13 +307,9 @@ function useFormDataSaveMutation() {
           }
         }
 
-        const validationIssueGroups: BackendValidationIssueGroups = Object.fromEntries(
-          validationIssues.map(({ source, issues }) => [source, issues]),
-        );
-
         return {
           newDataModels: dataModelChanges,
-          validationIssues: validationIssueGroups,
+          validationIssues: backendValidationIssueGroupListToObject(validationIssues),
           instance,
           savedData: next,
         };
@@ -358,8 +358,6 @@ function useFormDataSaveMutation() {
       checkForRunawaySaving();
     },
   });
-
-  return mutation;
 }
 
 function useIsSavingFormData() {
