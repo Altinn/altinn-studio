@@ -20,9 +20,9 @@ public class OrgContentService : IOrgContentService
     }
 
     /// <inheritdoc />
-    public async Task<bool> OrgContentRepoExists(AltinnOrgContext context)
+    public async Task<bool> OrgContentRepoExists(AltinnOrgEditingContext editingContext)
     {
-        return await _giteaContentLibraryService.OrgContentRepoExists(context.Org);
+        return await _giteaContentLibraryService.OrgContentRepoExists(editingContext.Org);
     }
 
     /// <inheritdoc />
