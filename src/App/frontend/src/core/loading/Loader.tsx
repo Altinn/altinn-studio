@@ -5,7 +5,6 @@ import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoade
 import { PresentationComponent, useHasPresentation } from 'src/components/presentation/Presentation';
 import { LoadingProvider } from 'src/core/loading/LoadingContext';
 import { Lang } from 'src/features/language/Lang';
-import { ProcessTaskType } from 'src/types';
 
 interface LoaderProps {
   reason: string; // The reason is used by developers to identify the reason for the loader
@@ -20,7 +19,6 @@ export const Loader = (props: LoaderProps) => {
       <LoadingProvider reason={props.reason}>
         <PresentationComponent
           header={<Lang id='instantiate.starting' />}
-          type={ProcessTaskType.Unknown}
           showNavbar={false}
           showNavigation={false}
         >
