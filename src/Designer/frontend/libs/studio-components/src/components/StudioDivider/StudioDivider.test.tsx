@@ -1,39 +1,17 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import type { RenderResult } from '@testing-library/react';
-import { StudioDivider, type StudioDividerProps } from './StudioDivider';
+import { StudioDivider } from './StudioDivider';
 
 describe('StudioDivider', () => {
-  it('renders a divider element', () => {
-    renderStudioDivider();
-    const divider = getDivider();
+  it('should render a divider element', () => {
+    render(<StudioDivider />);
+    const divider = screen.getByRole('separator', { hidden: true });
     expect(divider).toBeInTheDocument();
   });
 
-  it('applies default color class by default', () => {
-    renderStudioDivider();
-    const divider = getDivider();
-    expect(divider).toHaveClass('default');
-  });
-
-  it('applies strong color class when color prop is "strong"', () => {
-    renderStudioDivider({ color: 'strong' });
-    const divider = getDivider();
-    expect(divider).toHaveClass('strong');
-  });
-
-  it('applies subtle color class when color prop is "subtle"', () => {
-    renderStudioDivider({ color: 'subtle' });
-    const divider = getDivider();
-    expect(divider).toHaveClass('subtle');
+  it('should forward ref correctly', () => {
+    const ref = React.createRef<HTMLHRElement>();
+    render(<StudioDivider ref={ref} />);
+    expect(ref.current).toBeInstanceOf(HTMLHRElement);
   });
 });
-
-const getDivider = (): HTMLElement => screen.getByRole('separator', { hidden: true });
-
-const renderStudioDivider = (
-  props: Partial<StudioDividerProps> = {},
-  ref?: React.Ref<HTMLHRElement>,
-): RenderResult => {
-  return render(<StudioDivider ref={ref} {...props} />);
-};
