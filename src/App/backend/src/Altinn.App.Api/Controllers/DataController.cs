@@ -657,6 +657,15 @@ public class DataController : ControllerBase
         [FromQuery] string? language = null
     )
     {
+        _logger.LogInformation(
+            "PatchFormData called: org={Org}, app={App}, partyId={PartyId}, instanceGuid={InstanceGuid}, dataGuid={DataGuid}",
+            org,
+            app,
+            instanceOwnerPartyId,
+            instanceGuid,
+            dataGuid
+        );
+
         // Validation valid request is performed in the PatchFormDataMultiple method
         var request = new DataPatchRequestMultiple()
         {
@@ -708,6 +717,15 @@ public class DataController : ControllerBase
         [FromQuery] string? language = null
     )
     {
+        _logger.LogInformation(
+            "PatchFormDataMultiple called: org={Org}, app={App}, partyId={PartyId}, instanceGuid={InstanceGuid}, patchCount={PatchCount}",
+            org,
+            app,
+            instanceOwnerPartyId,
+            instanceGuid,
+            dataPatchRequestMultiple.Patches.Count
+        );
+
         try
         {
             var instanceResult = await GetInstanceDataOrError(
@@ -719,6 +737,12 @@ public class DataController : ControllerBase
             );
             if (!instanceResult.Success)
             {
+                _logger.LogWarning(
+                    "GetInstanceDataOrError failed with status {Status}: {Title} - {Detail}",
+                    instanceResult.Error.Status,
+                    instanceResult.Error.Title,
+                    instanceResult.Error.Detail
+                );
                 return Problem(instanceResult.Error);
             }
             var (instance, dataTypes) = instanceResult.Ok;
@@ -748,6 +772,7 @@ public class DataController : ControllerBase
 
             if (res.Success)
             {
+                _logger.LogInformation("ApplyPatches succeeded for instance {InstanceGuid}", instanceGuid);
                 return Ok(
                     new DataPatchResponseMultiple()
                     {
@@ -758,6 +783,12 @@ public class DataController : ControllerBase
                 );
             }
 
+            _logger.LogWarning(
+                "ApplyPatches failed with status {Status}: {Title} - {Detail}",
+                res.Error.Status,
+                res.Error.Title,
+                res.Error.Detail
+            );
             return Problem(res.Error);
         }
         catch (PlatformHttpException e)

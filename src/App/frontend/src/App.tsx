@@ -14,6 +14,8 @@ import { CustomReceipt, DefaultReceipt } from 'src/features/receipt/ReceiptConta
 import { TaskKeys } from 'src/hooks/useNavigatePage';
 import { PresentationType, ProcessTaskType } from 'src/types';
 
+console.log(window.AltinnAppData);
+
 export const App = () => (
   // debugger;
   <Routes>

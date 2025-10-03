@@ -12,6 +12,8 @@ export const returnBaseUrlToAltinn = (host: string): string | undefined => {
   if (prodStagingMatch) {
     const altinnHost = prodStagingMatch[1];
 
+    console.log(`https://${altinnHost}/`);
+
     return `https://${altinnHost}/`;
   }
 };

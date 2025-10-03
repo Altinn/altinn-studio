@@ -4,8 +4,8 @@ const path = require('node:path');
 const fs = require('node:fs/promises');
 const env = require('dotenv').config();
 
-const CYPRESS_WINDOW_WIDTH = env.parsed?.CYPRESS_WINDOW_WIDTH || 1920;
-const CYPRESS_WINDOW_HEIGHT = env.parsed?.CYPRESS_WINDOW_HEIGHT || 1080;
+const CYPRESS_WINDOW_WIDTH = Number(env.parsed?.CYPRESS_WINDOW_WIDTH) || 1920;
+const CYPRESS_WINDOW_HEIGHT = Number(env.parsed?.CYPRESS_WINDOW_HEIGHT) || 1080;
 
 // noinspection JSUnusedGlobalSymbols
 module.exports = defineConfig({

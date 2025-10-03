@@ -107,6 +107,20 @@ public class HomeController : Controller
         }
         var details = await auth.LoadDetails(validateSelectedParty: false);
 
+        // Generate and set XSRF token cookie for frontend
+        var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
+        if (tokens.RequestToken != null)
+        {
+            HttpContext.Response.Cookies.Append(
+                "XSRF-TOKEN",
+                tokens.RequestToken,
+                new CookieOptions
+                {
+                    HttpOnly = false, // Make this cookie readable by Javascript.
+                }
+            );
+        }
+
         http: //local.altinn.cloud/ttd/component-libraryinstance/512345
 
         var redirectUrl = Request.GetDisplayUrl() + "/instance/" + details.Profile.Party.PartyId;
@@ -252,6 +266,20 @@ public class HomeController : Controller
     {
         if (await ShouldShowAppView())
         {
+            // Generate and set XSRF token cookie for frontend
+            var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
+            if (tokens.RequestToken != null)
+            {
+                HttpContext.Response.Cookies.Append(
+                    "XSRF-TOKEN",
+                    tokens.RequestToken,
+                    new CookieOptions
+                    {
+                        HttpOnly = false, // Make this cookie readable by Javascript.
+                    }
+                );
+            }
+
             // Construct instance ID from route parameters if available
             string instanceId = $"{partyId}/{instanceGuid}";
 
@@ -462,7 +490,8 @@ public class HomeController : Controller
     )
     {
         var cdnUrl =
-            _generalSettings.FrontendBaseUrl?.TrimEnd('/') ?? "https://altinncdn.no/toolkits/altinn-app-frontend/4";
+            _generalSettings.FrontendBaseUrl?.TrimEnd('/') ?? "https://altinncdn.no/toolkits/altinn-app-frontend";
+
         var appVersion = "4"; // Default version, can be made configurable later
 
         // Serialize initial data to JSON
@@ -498,7 +527,11 @@ public class HomeController : Controller
         html.AppendLine($"    window.org = '{org}';");
         html.AppendLine($"    window.app = '{app}';");
         html.AppendLine("  </script>");
+        // html.AppendLine($"  <script src=\"{cdnUrl}/{appVersion}/altinn-app-frontend.js\"></script>");
+
+        Console.WriteLine($"  <script src=\"{cdnUrl}/{appVersion}/altinn-app-frontend.js\"></script>");
         html.AppendLine($"  <script src=\"{cdnUrl}/{appVersion}/altinn-app-frontend.js\"></script>");
+        // html.AppendLine("  <script src=\"http://localhost:8080/altinn-app-frontend.js\"></script>");
 
         if (!string.IsNullOrEmpty(customJs))
         {

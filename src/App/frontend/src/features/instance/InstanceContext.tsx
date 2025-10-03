@@ -20,6 +20,22 @@ import type { IData, IInstance, IInstanceDataSources } from 'src/types/shared';
 const emptyArray: never[] = [];
 const InstanceContext = React.createContext<IInstance | null>(null);
 
+/** Hook to ensure preloaded instance data is added to React Query cache */
+function useInitializeInstanceCache() {
+  const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
+  const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    if (instanceOwnerPartyId && instanceGuid && window.AltinnAppData?.instance) {
+      const queryKey = instanceQueries.instanceData({ instanceOwnerPartyId, instanceGuid }).queryKey;
+      const cachedData = queryClient.getQueryData(queryKey);
+      if (!cachedData) {
+        queryClient.setQueryData(queryKey, window.AltinnAppData.instance);
+      }
+    }
+  }, [instanceOwnerPartyId, instanceGuid, queryClient]);
+}
+
 export const InstanceProvider = ({ children }: PropsWithChildren) => {
   // const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
 
@@ -29,6 +45,8 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   // const instanceGuid = useNavigationParam('instanceGuid');
   const instantiation = useInstantiation();
   const navigation = useNavigation();
+
+  useInitializeInstanceCache();
 
   const { isLoading: isLoadingProcess, error: processError } = useProcessQuery();
 
@@ -114,8 +132,11 @@ export const instanceQueries = {
 };
 
 export function useInstanceDataQuery<R = IInstance>(
-  _: Omit<UseQueryOptions<IInstance, Error, R>, 'queryKey' | 'queryFn'> = {},
+  _options: Omit<UseQueryOptions<IInstance, Error, R>, 'queryKey' | 'queryFn'> = {},
 ) {
+  useInitializeInstanceCache();
+
+  // Return preloaded data immediately, React Query cache will be updated asynchronously
   return { data: window.AltinnAppData.instance };
 }
 

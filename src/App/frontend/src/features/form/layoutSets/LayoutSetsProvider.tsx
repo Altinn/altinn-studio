@@ -33,7 +33,7 @@ export const useLayoutSetsQuery = () => {
 
   return {
     data: layoutSets,
-    isPending: false,
+    isLoading: false,
     error: null,
   };
 };
