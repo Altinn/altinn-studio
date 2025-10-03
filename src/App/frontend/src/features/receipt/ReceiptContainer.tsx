@@ -112,7 +112,8 @@ export function CustomReceipt() {
 
 export const ReceiptContainer = () => {
   const applicationMetadata = useApplicationMetadata();
-  const { lastChanged, org: instanceOrg, instanceOwner, data: dataElements = [] } = useInstanceDataQuery().data;
+  const instance = useInstanceDataQuery().data;
+  const { lastChanged, org: instanceOrg, instanceOwner, data: dataElements = [] } = instance ?? {};
 
   const langTools = useLanguage();
   const receiver = useAppReceiver();

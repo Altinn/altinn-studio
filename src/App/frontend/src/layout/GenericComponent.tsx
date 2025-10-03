@@ -40,7 +40,9 @@ function NonMemoGenericComponent<Type extends CompTypes = CompTypes>({
   overrideDisplay,
 }: IGenericComponentProps<Type>) {
   const nodeId = useIndexedId(baseComponentId);
+  console.log('GenericComponent rendering:', { baseComponentId, nodeId });
   const generatorErrors = NodesInternal.useNodeData(nodeId, undefined, (node) => node.errors);
+  console.log('GenericComponent generatorErrors:', { baseComponentId, generatorErrors });
 
   if (generatorErrors && Object.keys(generatorErrors).length > 0) {
     return (
@@ -71,6 +73,7 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   overrideDisplay,
 }: IGenericComponentProps<Type>) {
   const component = useExternalItem(baseComponentId);
+  console.log('ActualGenericComponent:', { baseComponentId, component });
   const grid = overrideItemProps?.grid ?? component?.grid;
   const renderAsSummary =
     overrideItemProps && 'renderAsSummary' in overrideItemProps && overrideItemProps.renderAsSummary !== undefined
@@ -112,11 +115,14 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
     [grid, baseComponentId, overrideItemProps, overrideDisplay],
   );
 
+  console.log('ActualGenericComponent hiddenState:', { baseComponentId, hiddenState });
   if (hiddenState.hidden) {
+    console.log('Component is hidden, returning null:', baseComponentId);
     return null;
   }
 
   const layoutComponent = getComponentDef(component.type);
+  console.log('ActualGenericComponent layoutComponent:', { baseComponentId, type: component.type });
   const RenderComponent = layoutComponent.render as AnyComponent<Type>['render'];
 
   const componentProps: PropsFromGenericComponent<Type> = {
@@ -144,6 +150,7 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   }
 
   if (overrideDisplay?.directRender || layoutComponent.directRender()) {
+    console.log('ActualGenericComponent directRender:', baseComponentId);
     return (
       <FormComponentContextProvider value={formComponentContext}>
         <RenderComponent
@@ -154,6 +161,7 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
     );
   }
 
+  console.log('ActualGenericComponent rendering with Flex wrapper:', baseComponentId);
   return (
     <FormComponentContextProvider value={formComponentContext}>
       <Flex

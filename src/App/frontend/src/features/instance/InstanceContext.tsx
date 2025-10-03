@@ -2,9 +2,9 @@ import React from 'react';
 import { useNavigation } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
-import { queryOptions, skipToken, useQueryClient } from '@tanstack/react-query';
+import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 import deepEqual from 'fast-deep-equal';
-import type { UseQueryOptions } from '@tanstack/react-query';
+import type { UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
 
 import { Loader } from 'src/core/loading/Loader';
 import { FileScanResults } from 'src/features/attachments/types';
@@ -20,29 +20,11 @@ import type { IData, IInstance, IInstanceDataSources } from 'src/types/shared';
 const emptyArray: never[] = [];
 const InstanceContext = React.createContext<IInstance | null>(null);
 
-/** Hook to ensure preloaded instance data is added to React Query cache */
-function useInitializeInstanceCache() {
-  const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
-  const queryClient = useQueryClient();
-
-  React.useEffect(() => {
-    if (instanceOwnerPartyId && instanceGuid && window.AltinnAppData?.instance) {
-      const queryKey = instanceQueries.instanceData({ instanceOwnerPartyId, instanceGuid }).queryKey;
-      const cachedData = queryClient.getQueryData(queryKey);
-      if (!cachedData) {
-        queryClient.setQueryData(queryKey, window.AltinnAppData.instance);
-      }
-    }
-  }, [instanceOwnerPartyId, instanceGuid, queryClient]);
-}
-
 export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
   const instantiation = useInstantiation();
   const navigation = useNavigation();
-
-  useInitializeInstanceCache();
 
   const { isLoading: isLoadingProcess, error: processError } = useProcessQuery();
 
@@ -128,22 +110,28 @@ export const instanceQueries = {
 };
 
 export function useInstanceDataQuery<R = IInstance>(
-  _options: Omit<UseQueryOptions<IInstance, Error, R>, 'queryKey' | 'queryFn'> = {},
+  queryOptions: Omit<UseQueryOptions<IInstance, Error, R>, 'queryKey' | 'queryFn'> = {},
 ) {
-  useInitializeInstanceCache();
-
-  // Return preloaded data immediately, React Query cache will be updated asynchronously
-  return { data: window.AltinnAppData?.instance };
+  return useQuery<IInstance, Error, R>({
+    ...instanceQueries.instanceData(useInstanceDataQueryArgs()),
+    initialData: window.AltinnAppData.instance,
+    refetchOnWindowFocus: queryOptions.refetchInterval !== false,
+    select: queryOptions.select, // FIXME: somehow TS complains if this is not here
+    ...queryOptions,
+  });
 }
 
 export function useInstanceDataSources(): IInstanceDataSources | null {
   const instanceOwnerParty = useInstanceOwnerParty();
-  const instance = useInstanceDataQuery().data;
-  return buildInstanceDataSources(instance, instanceOwnerParty);
+  return (
+    useInstanceDataQuery({
+      select: (instance) => buildInstanceDataSources(instance, instanceOwnerParty),
+    }).data ?? null
+  );
 }
 
 export const useDataElementsSelectorProps = () => {
-  const dataElements = useInstanceDataQuery().data?.data;
+  const dataElements = useInstanceDataQuery({ select: (instance) => instance.data }).data;
 
   return <U,>(selectDataElements: (data: IData[]) => U) =>
     dataElements ? selectDataElements(dataElements) : undefined;
@@ -151,14 +139,15 @@ export const useDataElementsSelectorProps = () => {
 
 /** Beware that in later versions, this will re-render your component after every save, as
  * the backend sends us updated instance data */
-export const useInstanceDataElements = (dataType: string | undefined) => {
-  const instance = useInstanceDataQuery().data;
-  return instance?.data.filter((dataElement) => dataElement.dataType === dataType) ?? [];
-};
+export const useInstanceDataElements = (dataType: string | undefined) =>
+  useInstanceDataQuery({
+    select: (instance) =>
+      dataType ? instance.data.filter((dataElement) => dataElement.dataType === dataType) : instance.data,
+  }).data ?? emptyArray;
 
 export function useHasPendingScans(): boolean {
-  const dataElements = useInstanceDataQuery().data?.data;
-  if (!dataElements || dataElements.length === 0) {
+  const dataElements = useInstanceDataQuery({ select: (instance) => instance.data }).data ?? [];
+  if (dataElements.length === 0) {
     return false;
   }
 

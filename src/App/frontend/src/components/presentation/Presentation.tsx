@@ -38,9 +38,12 @@ export const PresentationComponent = ({
   showNavbar = true,
   showNavigation = true,
 }: IPresentationProvidedProps) => {
-  const { status: instanceStatus } = useInstanceDataQuery().data;
+  const instance = useInstanceDataQuery().data;
+
+  const instanceStatus = instance?.status;
 
   const { expandedWidth } = useUiConfigContext();
+
   const hasGroupedNavigation = useHasGroupedNavigation();
 
   const realHeader = header || (type === ProcessTaskType.Archived ? <Lang id='receipt.receipt' /> : undefined);

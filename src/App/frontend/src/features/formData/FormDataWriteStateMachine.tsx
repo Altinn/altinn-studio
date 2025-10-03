@@ -388,6 +388,11 @@ function makeActions(
       }),
     setLeafValue: ({ reference, newValue, callback, ...rest }) =>
       set((state) => {
+        if (!state.dataModels[reference.dataType]) {
+          window.logError(`Data type "${reference.dataType}" not initialized in FormData state`);
+          callback?.(FDSetValueReadOnly);
+          return;
+        }
         if (state.dataModels[reference.dataType].readonly) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           callback?.(FDSetValueReadOnly);

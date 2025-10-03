@@ -35,31 +35,19 @@ export function useCurrentDataModelDataElementId() {
   const taskId = useProcessTaskId();
 
   const overriddenDataElementId = useTaskOverrides()?.dataModelElementId;
-  const data = useInstanceDataQuery().data.data;
+
   // Instance data elements will update often (after each save), so we have to use a selector to make
   // sure components don't re-render too often.
+  return useInstanceDataQuery({
+    select: (data) => {
+      if (overriddenDataElementId) {
+        return overriddenDataElementId;
+      }
 
-  if (overriddenDataElementId) {
-    return overriddenDataElementId;
-  }
-
-  return getCurrentTaskDataElementId({
-    application,
-    dataElements: data,
-    taskId,
-    layoutSets,
-  });
+      return getCurrentTaskDataElementId({ application, dataElements: data.data, taskId, layoutSets });
+    },
+  }).data;
 }
-//     return useInstanceDataQuery({
-//       select: (data) => {
-//         if (overriddenDataElementId) {
-//           return overriddenDataElementId;
-//         }
-//
-//         return getCurrentTaskDataElementId({ application, dataElements: data.data, taskId, layoutSets });
-//       },
-//     }).data;
-// }
 
 type DataModelDeps = {
   language: string;

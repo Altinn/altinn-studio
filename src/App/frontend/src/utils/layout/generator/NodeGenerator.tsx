@@ -80,6 +80,7 @@ function AddRemoveNode<T extends CompTypes>({
   const depth = GeneratorInternal.useDepth();
   const rowIndex = GeneratorInternal.useRowIndex();
   const pageKey = GeneratorInternal.usePage() ?? '';
+  console.log('NodeGenerator depth:', { baseComponentId, depth, depthType: typeof depth });
   const idMutators = GeneratorInternal.useIdMutators();
   const layoutMap = useLayoutLookups().allComponents;
   const isValid = GeneratorInternal.useIsValid();
@@ -126,11 +127,14 @@ function AddRemoveNode<T extends CompTypes>({
   const layoutsWas = NodesStore.useStaticSelector((s) => s.layouts!);
 
   useEffect(() => {
-    !isAdded &&
+    if (!isAdded) {
+      const targetState = def.stateFactory(stateFactoryProps as never);
+      console.log('NodeGenerator addNode targetState:', { nodeId: intermediateItem.id, depth: (targetState as any).depth, targetState });
       addNode({
         nodeId: intermediateItem.id,
-        targetState: def.stateFactory(stateFactoryProps as never),
+        targetState,
       });
+    }
   }, [addNode, def, intermediateItem.id, isAdded, layoutsWas, stateFactoryProps]);
 
   useEffect(

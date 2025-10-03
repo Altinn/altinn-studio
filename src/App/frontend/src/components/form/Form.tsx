@@ -193,6 +193,12 @@ const emptyArray = [];
 function useFormState(currentPageId: string | undefined): FormState {
   const lookups = useLayoutLookups();
   const topLevelIds = currentPageId ? (lookups.topLevelComponents[currentPageId] ?? emptyArray) : emptyArray;
+  console.log('useFormState', {
+    currentPageId,
+    topLevelIds,
+    allTopLevel: lookups.topLevelComponents,
+    allComponents: Object.keys(lookups.allComponents),
+  });
   const { formErrors, taskErrors } = useTaskErrors();
   const hasErrors = Boolean(formErrors.length) || Boolean(taskErrors.length);
 
