@@ -4,7 +4,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { Heading } from '@digdir/designsystemet-react';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner } from '@studio/components-legacy';
+import { StudioSpinner } from '@studio/components';
 
 export const Header = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -25,7 +25,7 @@ export const Header = () => {
   }, [isError, t]);
 
   if (isPending) {
-    return <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.header_loading')} />;
+    return <StudioSpinner aria-hidden spinnerTitle={t('overview.header_loading')} />;
   }
 
   return (

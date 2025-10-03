@@ -105,7 +105,7 @@ describe('CreateNewSubformSection ', () => {
     });
     await user.click(saveButton);
 
-    const spinner = await screen.findByText(textMock('general.loading'));
+    const spinner = await screen.findByLabelText(textMock('general.loading'));
     expect(spinner).toBeInTheDocument();
   });
 

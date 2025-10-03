@@ -4,6 +4,7 @@ import { Heading } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
+import { useIsReceiptPage } from 'src/core/routing/useIsReceiptPage';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { usePageGroups, usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
@@ -12,7 +13,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/features/navigation/AppNavigation.module.css';
 import { PageGroup } from 'src/features/navigation/components/PageGroup';
 import { TaskGroup } from 'src/features/navigation/components/TaskGroup';
-import { useIsReceiptPage, useIsSubformPage } from 'src/hooks/navigation';
+import { useIsSubformPage } from 'src/hooks/navigation';
 import type { NavigationReceipt, NavigationTask } from 'src/layout/common.generated';
 
 export function AppNavigation({ onNavigate }: { onNavigate?: () => void }) {

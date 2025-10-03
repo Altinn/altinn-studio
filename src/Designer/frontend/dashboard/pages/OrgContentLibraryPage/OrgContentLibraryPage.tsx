@@ -7,8 +7,8 @@ import type {
   TextResourceWithLanguage,
 } from '@studio/content-library';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
-import { StudioPageError, StudioPageSpinner, StudioSpinner } from '@studio/components-legacy';
-import { StudioAlert, StudioParagraph, StudioCenter } from '@studio/components';
+import { StudioPageError, StudioPageSpinner } from '@studio/components-legacy';
+import { StudioAlert, StudioParagraph, StudioCenter, StudioSpinner } from '@studio/components';
 import { useUpdateOrgCodeListMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListMutation';
 import { useTranslation } from 'react-i18next';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
@@ -56,7 +56,7 @@ function OrgContentLibrary({ orgName }: OrgContentLibraryProps): ReactElement {
   const { data: repoStatus, isLoading } = useRepoStatusQuery(orgName, orgRepoName);
   useListenToMergeConflictInRepo(orgName, orgRepoName);
 
-  if (isLoading) return <StudioSpinner spinnerTitle={t('general.loading')} />;
+  if (isLoading) return <StudioSpinner aria-hidden spinnerTitle={t('general.loading')} />;
 
   if (repoStatus?.hasMergeConflict) {
     return <MergeConflictWarning owner={orgName} repoName={orgRepoName} />;
