@@ -18,8 +18,9 @@ from shared.config import get_config
 # Get configuration
 config = get_config()
 from shared.models import StatusResponse
+from shared.utils.mlflow_utils import init_mlflow
 from frontend_api.apps import AppManager
-from frontend_api.routes import register_app_routes, register_file_routes, register_git_routes, register_preview_routes, register_websocket_routes
+from frontend_api.routes import register_app_routes, register_file_routes, register_git_routes, register_preview_routes, register_websocket_routes, agent_router
 
 # Configure logging
 logging.basicConfig(
@@ -27,6 +28,9 @@ logging.basicConfig(
     format=config.LOG_FORMAT
 )
 logger = logging.getLogger(__name__)
+
+# Initialize MLflow tracking
+init_mlflow()
 
 # State persistence
 APP_STATE_FILE = Path(__file__).parent / "app_state.json"
@@ -56,6 +60,19 @@ register_file_routes(app, app_manager)
 register_git_routes(app, app_manager)
 register_preview_routes(app, config.ALTINN_STUDIO_APPS_PATH, app_manager.resolve_app_directory)
 register_websocket_routes(app)
+
+# Register agent routes
+app.include_router(agent_router)
+
+# Startup event to set the main event loop for event sink
+@app.on_event("startup")
+async def startup_event():
+    """Set up the main event loop for async event handling"""
+    import asyncio
+    from agents.services.jobs import sink
+    loop = asyncio.get_running_loop()
+    sink.set_main_loop(loop)
+    logger.info("Event sink configured with main event loop")
 
 # Basic endpoints
 @app.get("/favicon.ico")

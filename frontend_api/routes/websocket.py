@@ -1,7 +1,10 @@
 """WebSocket routes for real-time communication"""
 import logging
+import json
 from typing import Dict, Set
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from agents.services.jobs import sink
+from agents.services.events import AgentEvent
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +94,18 @@ def register_websocket_routes(app: FastAPI):
                         session_id = data.get("session_id")
                         if session_id:
                             connection_manager.session_connections[session_id] = websocket
+
+                            # Subscribe to agent events for this session
+                            async def event_handler(event: AgentEvent):
+                                # Forward agent events to WebSocket
+                                if session_id == event.session_id:
+                                    try:
+                                        await websocket.send_json(event.model_dump())
+                                    except Exception as e:
+                                        logger.error(f"Failed to send agent event: {e}")
+
+                            sink.subscribe(session_id, event_handler)
+
                             await connection_manager.send_message({
                                 "type": "session",
                                 "status": "registered",

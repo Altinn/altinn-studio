@@ -1,0 +1,6 @@
+{
+  "name": "Altinity Acceptance Criteria",
+  "role": "system",
+  "version": "1.0",
+  "content": "Default acceptance per loop\n1. At most M files changed and at most N lines touched.\n2. All required checks pass.\n3. Summary lists what changed and why plus branch name and commit hash.\n4. No writes occurred outside repo path."
+}

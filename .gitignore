@@ -5,3 +5,5 @@ __pycache__/
 *.pyd
 .Python
 frontend_api/app_state.json
+mlruns
+.claude
