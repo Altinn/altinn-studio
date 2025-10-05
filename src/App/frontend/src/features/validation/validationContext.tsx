@@ -144,6 +144,7 @@ function initialCreateStore() {
 const {
   Provider,
   useSelector,
+  useStaticSelector,
   useMemoSelector,
   useLaxShallowSelector,
   useSelectorAsRef,
@@ -359,8 +360,8 @@ export const Validation = {
     }, [s]);
   },
   useValidating: () => useSelector((state) => state.validating!),
-  useUpdateDataModelValidations: () => useSelector((state) => state.updateDataModelValidations),
-  useUpdateBackendValidations: () => useSelector((state) => state.updateBackendValidations),
+  useUpdateDataModelValidations: () => useStaticSelector((state) => state.updateDataModelValidations),
+  useUpdateBackendValidations: () => useStaticSelector((state) => state.updateBackendValidations),
 
   useFullState: <U,>(selector: (state: ValidationContext & Internals) => U): U =>
     useMemoSelector((state) => selector(state)),
