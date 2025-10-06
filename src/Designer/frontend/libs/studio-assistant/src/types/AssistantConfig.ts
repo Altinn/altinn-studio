@@ -13,5 +13,5 @@ export type ButtonTexts = {
 export type Message = {
   author: MessageAuthor;
   content: string;
-  mode?: string;
+  allowEditing?: boolean;
 };

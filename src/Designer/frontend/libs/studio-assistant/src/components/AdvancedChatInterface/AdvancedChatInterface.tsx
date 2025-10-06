@@ -4,7 +4,7 @@ import { StudioResizableLayout } from '@studio/components-legacy';
 import { ToolColumn } from '../ToolColumn';
 import classes from './AdvancedChatInterface.module.css';
 import { AssistantHeadingBar } from '../AssistantHeading/AssistantHeading';
-import type { ChatThread, ModeOption } from '../../types/ChatThread';
+import type { ChatThread } from '../../types/ChatThread';
 import type { Message } from '../../types/AssistantConfig';
 import { ThreadColumn } from '../ThreadColumn';
 import { ThreadColumnHidden } from '../ThreadColumnHidden';
@@ -16,9 +16,8 @@ export type AdvancedChatInterfaceProps = {
   onSelectThread: (threadId: string) => void;
   onSendMessage: (message: Message) => void;
   sendButtonText: string;
-  modeOptions?: ModeOption[];
-  selectedMode?: string;
-  onModeChange?: (mode: string) => void;
+  allowEditing?: boolean;
+  onModeChange?: (mode: boolean) => void;
   textareaPlaceholder?: string;
   sidePanelLabels: {
     preview: string;
@@ -36,8 +35,7 @@ export function AdvancedChatInterface({
   onSelectThread,
   onSendMessage,
   sendButtonText,
-  modeOptions,
-  selectedMode,
+  allowEditing: selectedMode,
   onModeChange,
   textareaPlaceholder,
   sidePanelLabels,
@@ -85,8 +83,7 @@ export function AdvancedChatInterface({
               messages={messages}
               onSendMessage={onSendMessage}
               sendButtonText={sendButtonText}
-              modeOptions={modeOptions}
-              selectedMode={selectedMode}
+              allowEditing={selectedMode}
               onModeChange={onModeChange}
               textareaPlaceholder={textareaPlaceholder}
             />

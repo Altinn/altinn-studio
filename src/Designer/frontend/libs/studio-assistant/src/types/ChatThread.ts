@@ -6,8 +6,3 @@ export type ChatThread = {
   messages: Message[];
   timestamp: Date;
 };
-
-export type ModeOption = {
-  value: string;
-  label: string;
-};

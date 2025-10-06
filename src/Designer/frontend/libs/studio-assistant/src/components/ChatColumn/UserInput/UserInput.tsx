@@ -1,26 +1,22 @@
 import React, { useState } from 'react';
-import type { ReactElement } from 'react';
-import { StudioButton, StudioTextarea } from '@studio/components';
-import { NativeSelect } from '@digdir/designsystemet-react';
+import type { ReactElement, ChangeEvent } from 'react';
+import { StudioButton, StudioSwitch, StudioTextarea } from '@studio/components';
 import { MessageAuthor } from '../../../types/MessageAuthor';
 import type { Message } from '../../../types/AssistantConfig';
-import type { ModeOption } from '../../../types/ChatThread';
 import classes from './UserInput.module.css';
 import { PaperplaneFillIcon } from '@studio/icons';
 
 export type UserInputProps = {
   onSendMessage: (message: Message) => void;
   sendButtonText: string;
-  modeOptions?: ModeOption[];
-  selectedMode?: string;
-  onModeChange?: (mode: string) => void;
+  selectedMode?: boolean;
+  onModeChange?: (mode: boolean) => void;
   textareaPlaceholder?: string;
 };
 
 export function UserInput({
   onSendMessage,
   sendButtonText,
-  modeOptions,
   selectedMode,
   onModeChange,
   textareaPlaceholder,
@@ -33,7 +29,7 @@ export function UserInput({
     const message: Message = {
       author: MessageAuthor.User,
       content: messageContent,
-      mode: selectedMode,
+      allowEditing: selectedMode,
     };
     onSendMessage(message);
     setMessageContent('');
@@ -55,18 +51,12 @@ export function UserInput({
         placeholder={textareaPlaceholder}
       />
       <div className={classes.actionsRow}>
-        {modeOptions && onModeChange && (
-          <NativeSelect
-            value={selectedMode}
-            onChange={(e) => onModeChange(e.target.value)}
-            size='sm'
-          >
-            {modeOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </NativeSelect>
+        {onModeChange && (
+          <StudioSwitch
+            checked={!!selectedMode}
+            onChange={(e) => onModeChange(e.target.checked)}
+            label='Tillat endringer i appen'
+          />
         )}
         <StudioButton onClick={handleSubmit} disabled={!messageContent.trim()}>
           {sendButtonText} <PaperplaneFillIcon />
