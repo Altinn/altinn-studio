@@ -181,7 +181,9 @@ export function useNavigateToTask() {
           ? TaskKeys.CustomReceipt
           : TaskKeys.ProcessEnd;
       }
-      const url = prependBasePath(`/instance/${instanceOwnerPartyId}/${instanceGuid}/${realTaskId}${queryKeysRef.current}`);
+      const url = prependBasePath(
+        `/instance/${instanceOwnerPartyId}/${instanceGuid}/${realTaskId}${queryKeysRef.current}`,
+      );
       navigate(
         url,
         undefined,
@@ -231,17 +233,8 @@ export function useNavigatePage() {
 
   const isValidPageId = useCallback(
     (_pageId: string) => {
-      console.log('_pageId', _pageId);
-
       // The page ID may be URL encoded already, if we got this from react-router.
       const pageId = decodeURIComponent(_pageId);
-
-      console.log('navParams', navParams);
-
-      console.log('navParams.current.taskId', navParams.current.taskId);
-
-      console.log('getTaskType(navParams.current.taskId)', getTaskType(taskId));
-
       if (getTaskType(taskId) !== ProcessTaskType.Data) {
         return false;
       }
@@ -298,7 +291,9 @@ export function useNavigatePage() {
 
       // Subform
       if (mainPageKey && componentId && dataElementId && !shouldExitSubform) {
-        const url = prependBasePath(`/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}/${componentId}/${dataElementId}/${page}${searchParams}`);
+        const url = prependBasePath(
+          `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}/${componentId}/${dataElementId}/${page}${searchParams}`,
+        );
         return navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
       }
 
@@ -389,7 +384,9 @@ export function useNavigatePage() {
       return;
     }
     const { instanceOwnerPartyId, instanceGuid, taskId, pageKey } = navParams.current;
-    const url = prependBasePath(`/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page ?? pageKey}/${nodeId}/${dataElementId}${validate ? '?validate=true' : ''}`);
+    const url = prependBasePath(
+      `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page ?? pageKey}/${nodeId}/${dataElementId}${validate ? '?validate=true' : ''}`,
+    );
 
     await maybeSaveOnPageChange();
     refetchInitialValidations();

@@ -14,7 +14,7 @@ import 'src/features/logging';
 import 'src/features/styleInjection';
 import 'src/features/toggles';
 
-import { useQueryClient } from '@tanstack/react-query';
+import { QueryClient, useQueryClient } from '@tanstack/react-query';
 
 import { App } from 'src/App';
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
@@ -23,6 +23,7 @@ import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { ProcessingProvider } from 'src/core/contexts/processingContext';
 import { DisplayErrorProvider } from 'src/core/errorHandling/DisplayErrorProvider';
+import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { VersionErrorOrChildren } from 'src/features/applicationMetadata/VersionErrorOrChildren';
 import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
@@ -43,22 +44,30 @@ import 'leaflet/dist/leaflet.css';
 import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
 
-new PerformanceObserver((entryList) => {
-  for (const entry of entryList.getEntries()) {
-    console.log('LCP candidate:', entry.startTime, entry);
-  }
-}).observe({ type: 'largest-contentful-paint', buffered: true });
+/**
+ * This query client should not be used in unit tests, as multiple tests will end up re-using
+ * the same query cache. Provide your own when running code in tests.
+ */
+export const defaultQueryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // or Infinity if you truly never want auto-refetch
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 document.addEventListener('DOMContentLoaded', () => {
   propagateTraceWhenPdf();
 
-  // @ts-ignore
-  // console.log(JSON.stringify(window.AltinnAppData, null, 2));
-
   const container = document.getElementById('root');
   const root = container && createRoot(container);
   root?.render(
-    <AppQueriesProvider {...queries}>
+    <AppQueriesProvider
+      {...queries}
+      queryClient={defaultQueryClient}
+    >
       <ErrorBoundary>
         {/*<AppPrefetcher />*/}
         <LangToolsStoreProvider>
@@ -95,42 +104,43 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function Root() {
-  console.log('Root');
   const currentLanguage = useCurrentLanguage();
 
   return (
     <div lang={currentLanguage}>
       <InstantiationUrlReset />
-      <VersionErrorOrChildren>
-        <GlobalFormDataReadersProvider>
-          <LayoutSetsProvider>
-            {/*<ProfileProvider>*/}
-            <TextResourcesProvider>
-              <OrgsProvider>
-                <ApplicationSettingsProvider>
-                  <PartyProvider>
-                    <KeepAliveProvider>
-                      <DisplayErrorProvider>
-                        <ProcessingProvider>
-                          <App />
-                        </ProcessingProvider>
-                      </DisplayErrorProvider>
-                      <ToastContainer
-                        position='top-center'
-                        theme='colored'
-                        transition={Slide}
-                        draggable={false}
-                      />
-                    </KeepAliveProvider>
-                  </PartyProvider>
-                </ApplicationSettingsProvider>
-              </OrgsProvider>
-            </TextResourcesProvider>
-            {/*</ProfileProvider>*/}
-            <PartyPrefetcher />
-          </LayoutSetsProvider>
-        </GlobalFormDataReadersProvider>
-      </VersionErrorOrChildren>
+      <ApplicationMetadataProvider>
+        <VersionErrorOrChildren>
+          <GlobalFormDataReadersProvider>
+            <LayoutSetsProvider>
+              {/*<ProfileProvider>*/}
+              <TextResourcesProvider>
+                <OrgsProvider>
+                  <ApplicationSettingsProvider>
+                    <PartyProvider>
+                      <KeepAliveProvider>
+                        <DisplayErrorProvider>
+                          <ProcessingProvider>
+                            <App />
+                          </ProcessingProvider>
+                        </DisplayErrorProvider>
+                        <ToastContainer
+                          position='top-center'
+                          theme='colored'
+                          transition={Slide}
+                          draggable={false}
+                        />
+                      </KeepAliveProvider>
+                    </PartyProvider>
+                  </ApplicationSettingsProvider>
+                </OrgsProvider>
+              </TextResourcesProvider>
+              {/*</ProfileProvider>*/}
+              <PartyPrefetcher />
+            </LayoutSetsProvider>
+          </GlobalFormDataReadersProvider>
+        </VersionErrorOrChildren>
+      </ApplicationMetadataProvider>
     </div>
   );
 }

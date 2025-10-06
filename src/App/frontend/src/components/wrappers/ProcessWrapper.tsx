@@ -93,16 +93,12 @@ export function NavigateToStartUrl({ forceCurrentTask = true }: { forceCurrentTa
 
 export function ProcessWrapper({ children }: PropsWithChildren) {
   const { data: process } = useProcessQuery();
-  console.log('process', process);
-
   const currentTaskId = process?.currentTask?.elementId;
   const { taskId } = useParams();
   const isCurrentTask =
     currentTaskId === undefined && taskId === TaskKeys.CustomReceipt ? true : currentTaskId === taskId;
 
   const isValidTaskId = useIsValidTaskId()(taskId);
-
-  // console.log('isValidTaskId', isValidTaskId);
 
   const taskType = useGetTaskTypeById()(taskId);
   const queryClient = useQueryClient();
@@ -118,7 +114,6 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   }
 
   if (process?.ended) {
-    console.log('process ended', process.ended);
     return <NavigateToStartUrl />;
   }
 

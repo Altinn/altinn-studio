@@ -74,10 +74,6 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   useSetExpandedWidth();
 
   if (!currentPageId || !isValidPageId(currentPageId)) {
-    console.log('currentPageId', currentPageId);
-    // @ts-ignore
-    console.log('isValidPageId(currentPageId)', isValidPageId(currentPageId));
-    // console.log('isValidPageId(currentPageId)', `${isValidPageId(currentPageId)}`);
     return <NavigateToStartUrl forceCurrentTask={false} />;
   }
 
@@ -193,12 +189,7 @@ const emptyArray = [];
 function useFormState(currentPageId: string | undefined): FormState {
   const lookups = useLayoutLookups();
   const topLevelIds = currentPageId ? (lookups.topLevelComponents[currentPageId] ?? emptyArray) : emptyArray;
-  console.log('useFormState', {
-    currentPageId,
-    topLevelIds,
-    allTopLevel: lookups.topLevelComponents,
-    allComponents: Object.keys(lookups.allComponents),
-  });
+
   const { formErrors, taskErrors } = useTaskErrors();
   const hasErrors = Boolean(formErrors.length) || Boolean(taskErrors.length);
 

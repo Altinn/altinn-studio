@@ -4,7 +4,7 @@ import type { PropsWithChildren } from 'react';
 
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 import deepEqual from 'fast-deep-equal';
-import type { UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
+import type { UseQueryOptions } from '@tanstack/react-query';
 
 import { Loader } from 'src/core/loading/Loader';
 import { FileScanResults } from 'src/features/attachments/types';
@@ -41,27 +41,20 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   // }
 
   if (!data) {
-    console.log('loading-instance');
     return <Loader reason='loading-instance' />;
   }
   if (isLoadingProcess) {
-    console.log('fetching-process');
     return <Loader reason='fetching-process' />;
   }
 
   if (navigation.state === 'loading') {
-    console.log('navigating');
     return <Loader reason='navigating' />;
   }
-
-  console.log('keep on');
 
   return <InstanceContext.Provider value={data}>{children}</InstanceContext.Provider>;
 };
 
-export const useLaxInstanceId = () => {
-  return window.AltinnAppData?.instance?.id;
-};
+export const useLaxInstanceId = () => window.AltinnAppData?.instance?.id;
 
 export const useStrictInstanceId = () => {
   const instanceId = useLaxInstanceId();
@@ -114,7 +107,6 @@ export function useInstanceDataQuery<R = IInstance>(
 ) {
   return useQuery<IInstance, Error, R>({
     ...instanceQueries.instanceData(useInstanceDataQueryArgs()),
-    initialData: window.AltinnAppData.instance,
     refetchOnWindowFocus: queryOptions.refetchInterval !== false,
     select: queryOptions.select, // FIXME: somehow TS complains if this is not here
     ...queryOptions,

@@ -501,6 +501,45 @@ const renderBase = async ({
     injectFormDataSavingSimulator(queryMocks, mutationMocks, mockFormDataSaving);
   }
 
+  // Preload window.AltinnAppData and query cache with mocked data BEFORE rendering
+  // Text resources: call the mocked query and update window
+  if (queryMocks.fetchTextResources) {
+    try {
+      const textResources = await queryMocks.fetchTextResources('nb');
+      if (textResources && window.AltinnAppData) {
+        window.AltinnAppData.textResources = textResources;
+      }
+    } catch (e) {
+      // If the mock throws or returns invalid data, keep default text resources
+    }
+  }
+
+  // Application metadata: call the globally-mocked query and set in query cache
+  // Note: fetchApplicationMetadata is mocked globally in tests but excluded from AppQueries
+  try {
+    const { fetchApplicationMetadata } = await import('src/queries/queries');
+    const applicationMetadata = await fetchApplicationMetadata();
+    if (applicationMetadata && window.AltinnAppData) {
+      window.AltinnAppData.applicationMetadata = applicationMetadata;
+      // Also preload into query cache so ApplicationMetadataProvider can use it
+      queryClient.setQueryData(['fetchApplicationMetadata'], applicationMetadata);
+    }
+  } catch (e) {
+    // Keep default metadata if query throws
+  }
+
+  // Application settings: call the mocked query and update window
+  if (queryMocks.fetchApplicationSettings) {
+    try {
+      const applicationSettings = await queryMocks.fetchApplicationSettings();
+      if (applicationSettings && window.AltinnAppData) {
+        window.AltinnAppData.frontendSettings = applicationSettings;
+      }
+    } catch (e) {
+      // Keep default settings if query throws
+    }
+  }
+
   if (!router) {
     throw new Error('No router provided');
   }

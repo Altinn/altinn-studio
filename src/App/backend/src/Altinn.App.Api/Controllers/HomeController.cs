@@ -548,7 +548,7 @@ public class HomeController : Controller
     {
         try
         {
-            var customCssPath = Path.Combine(_env.ContentRootPath, "App", "wwwroot", "css", "custom.css");
+            var customCssPath = Path.Combine(_env.ContentRootPath, "wwwroot", "css", "custom.css");
             if (System.IO.File.Exists(customCssPath))
             {
                 return System.IO.File.ReadAllText(customCssPath);
@@ -565,15 +565,25 @@ public class HomeController : Controller
     {
         try
         {
-            var customJsPath = Path.Combine(_env.ContentRootPath, "App", "wwwroot", "js", "custom.js");
+            var customJsPath = Path.Combine(_env.ContentRootPath, "wwwroot", "js", "custom.js");
+            Console.WriteLine($"Looking for custom.js at: {customJsPath}");
+            Console.WriteLine($"ContentRootPath: {_env.ContentRootPath}");
+            Console.WriteLine($"File exists: {System.IO.File.Exists(customJsPath)}");
+
             if (System.IO.File.Exists(customJsPath))
             {
-                return System.IO.File.ReadAllText(customJsPath);
+                var content = System.IO.File.ReadAllText(customJsPath);
+                Console.WriteLine($"Custom JS loaded, length: {content.Length}");
+                return content;
+            }
+            else
+            {
+                Console.WriteLine("Custom JS file not found");
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Log error but don't fail
+            Console.WriteLine($"Error loading custom.js: {ex.Message}");
         }
         return null;
     }

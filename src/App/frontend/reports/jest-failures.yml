@@ -1,0 +1,707 @@
+schema: ai-test-failures@1
+generatedAt: '2025-10-06T11:13:22.212Z'
+summary:
+  totalTests: 10
+  failedTests: 10
+  failedSuites: 1
+  success: false
+failures:
+  - file: src/features/expressions/shared-context.test.tsx
+    test: Expressions shared context tests › groups › Group Layout with no data (noData.json)
+    name: Group Layout with no data (noData.json)
+    ancestors:
+      - Expressions shared context tests
+      - groups
+    status: failed
+    error: 'Error: expect(received).toEqual(expected) // deep equality'
+    location:
+      file: src/features/expressions/shared-context.test.tsx
+      line: 122
+      column: 51
+    rerun: npx jest "src/features/expressions/shared-context.test.tsx" -t "Expressions shared context tests › groups › Group Layout with no data \(noData\.json\)"
+    stack: |-
+      Error: expect(received).toEqual(expected) // deep equality
+
+      - Expected  - 20
+      + Received  +  2
+
+        Array [
+          Object {
+      -     "children": Array [
+      -       Object {
+      -         "component": "comp1",
+      -         "currentLayout": "Page1",
+      -       },
+      -       Object {
+      -         "component": "group1",
+      -         "currentLayout": "Page1",
+      -       },
+      -     ],
+      +     "children": Array [],
+            "component": "Page1",
+            "currentLayout": "Page1",
+      -   },
+      -   Object {
+      -     "children": Array [
+      -       Object {
+      -         "component": "comp5",
+      -         "currentLayout": "Page2",
+          },
+          Object {
+      -         "component": "comp6",
+      -         "currentLayout": "Page2",
+      -       },
+      -     ],
+      +     "children": Array [],
+            "component": "Page2",
+            "currentLayout": "Page2",
+          },
+        ]
+          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-context.test.tsx:122:51
+          at Generator.next (<anonymous>)
+          at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-context.test.tsx:5:58)
+  - file: src/features/expressions/shared-context.test.tsx
+    test: Expressions shared context tests › groups › Group Layout with one row (oneRow.json)
+    name: Group Layout with one row (oneRow.json)
+    ancestors:
+      - Expressions shared context tests
+      - groups
+    status: failed
+    error: 'Error: expect(received).toEqual(expected) // deep equality'
+    location:
+      file: src/features/expressions/shared-context.test.tsx
+      line: 122
+      column: 51
+    rerun: npx jest "src/features/expressions/shared-context.test.tsx" -t "Expressions shared context tests › groups › Group Layout with one row \(oneRow\.json\)"
+    stack: |-
+      Error: expect(received).toEqual(expected) // deep equality
+
+      - Expected  - 36
+      + Received  +  2
+
+        Array [
+          Object {
+      -     "children": Array [
+      -       Object {
+      -         "component": "comp1",
+      -         "currentLayout": "Page1",
+      -       },
+      -       Object {
+      -         "children": Array [
+      -           Object {
+      -             "component": "comp3",
+      -             "currentLayout": "Page1",
+      -             "rowIndices": Array [
+      -               0,
+      -             ],
+      -           },
+      -           Object {
+      -             "component": "comp4",
+      -             "currentLayout": "Page1",
+      -             "rowIndices": Array [
+      -               0,
+      -             ],
+      -           },
+      -         ],
+      -         "component": "group1",
+      -         "currentLayout": "Page1",
+      -       },
+      -     ],
+      +     "children": Array [],
+            "component": "Page1",
+            "currentLayout": "Page1",
+          },
+          Object {
+      -     "children": Array [
+      -       Object {
+      -         "component": "comp5",
+      -         "currentLayout": "Page2",
+      -       },
+      -       Object {
+      -         "component": "comp6",
+      -         "currentLayout": "Page2",
+      -       },
+      -     ],
+      +     "children": Array [],
+            "component": "Page2",
+            "currentLayout": "Page2",
+          },
+        ]
+          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-context.test.tsx:122:51
+          at Generator.next (<anonymous>)
+          at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-context.test.tsx:5:58)
+  - file: src/features/expressions/shared-context.test.tsx
+    test: Expressions shared context tests › groups › Group Layout with two rows (twoRows.json)
+    name: Group Layout with two rows (twoRows.json)
+    ancestors:
+      - Expressions shared context tests
+      - groups
+    status: failed
+    error: 'Error: expect(received).toEqual(expected) // deep equality'
+    location:
+      file: src/features/expressions/shared-context.test.tsx
+      line: 122
+      column: 51
+    rerun: npx jest "src/features/expressions/shared-context.test.tsx" -t "Expressions shared context tests › groups › Group Layout with two rows \(twoRows\.json\)"
+    stack: |-
+      Error: expect(received).toEqual(expected) // deep equality
+
+      - Expected  - 50
+      + Received  +  2
+
+        Array [
+          Object {
+      -     "children": Array [
+      -       Object {
+      -         "component": "comp1",
+      -         "currentLayout": "Page1",
+      -       },
+      -       Object {
+      -         "children": Array [
+      -           Object {
+      -             "component": "comp3",
+      -             "currentLayout": "Page1",
+      -             "rowIndices": Array [
+      -               0,
+      -             ],
+      -           },
+      -           Object {
+      -             "component": "comp4",
+      -             "currentLayout": "Page1",
+      -             "rowIndices": Array [
+      -               0,
+      -             ],
+      -           },
+      -           Object {
+      -             "component": "comp3",
+      -             "currentLayout": "Page1",
+      -             "rowIndices": Array [
+      -               1,
+      -             ],
+      -           },
+      -           Object {
+      -             "component": "comp4",
+      -             "currentLayout": "Page1",
+      -             "rowIndices": Array [
+      -               1,
+      -             ],
+      -           },
+      -         ],
+      -         "component": "group1",
+      -         "currentLayout": "Page1",
+      -       },
+      -     ],
+      +     "children": Array [],
+            "component": "Page1",
+            "currentLayout": "Page1",
+          },
+          Object {
+      -     "children": Array [
+      -       Object {
+      -         "component": "comp5",
+      -         "currentLayout": "Page2",
+      -       },
+      -       Object {
+      -         "component": "comp6",
+      -         "currentLayout": "Page2",
+      -       },
+      -     ],
+      +     "children": Array [],
+            "component": "Page2",
+            "currentLayout": "Page2",
+          },
+        ]
+          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-context.test.tsx:122:51
+          at Generator.next (<anonymous>)
+          at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-context.test.tsx:5:58)
+  - file: src/features/expressions/shared-context.test.tsx
+    test: Expressions shared context tests › nonRepeatingGroups › Non-repeating group (simple.json)
+    name: Non-repeating group (simple.json)
+    ancestors:
+      - Expressions shared context tests
+      - nonRepeatingGroups
+    status: failed
+    error: 'Error: expect(received).toEqual(expected) // deep equality'
+    location:
+      file: src/features/expressions/shared-context.test.tsx
+      line: 122
+      column: 51
+    rerun: npx jest "src/features/expressions/shared-context.test.tsx" -t "Expressions shared context tests › nonRepeatingGroups › Non-repeating group \(simple\.json\)"
+    stack: |-
+      Error: expect(received).toEqual(expected) // deep equality
+
+      - Expected  - 30
+      + Received  +  2
+
+        Array [
+          Object {
+      -     "children": Array [
+      -       Object {
+      -         "component": "comp1",
+      -         "currentLayout": "Page1",
+      -       },
+      -       Object {
+      -         "children": Array [
+      -           Object {
+      -             "component": "comp3",
+      -             "currentLayout": "Page1",
+      -           },
+      -           Object {
+      -             "component": "comp4",
+      -             "currentLayout": "Page1",
+      -           },
+      -         ],
+      -         "component": "group1",
+      -         "currentLayout": "Page1",
+      -       },
+      -     ],
+      +     "children": Array [],
+            "component": "Page1",
+            "currentLayout": "Page1",
+          },
+          Object {
+      -     "children": Array [
+      -       Object {
+      -         "component": "comp5",
+      -         "currentLayout": "Page2",
+      -       },
+      -       Object {
+      -         "component": "comp6",
+      -         "currentLayout": "Page2",
+      -       },
+      -     ],
+      +     "children": Array [],
+            "component": "Page2",
+            "currentLayout": "Page2",
+          },
+        ]
+          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-context.test.tsx:122:51
+          at Generator.next (<anonymous>)
+          at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-context.test.tsx:5:58)
+  - file: src/features/expressions/shared-context.test.tsx
+    test: Expressions shared context tests › recursiveGroups › Recursive group Layout with no data (recursiveNoData.json)
+    name: Recursive group Layout with no data (recursiveNoData.json)
+    ancestors:
+      - Expressions shared context tests
+      - recursiveGroups
+    status: failed
+    error: 'Error: expect(received).toEqual(expected) // deep equality'
+    location:
+      file: src/features/expressions/shared-context.test.tsx
+      line: 122
+      column: 51
+    rerun: npx jest "src/features/expressions/shared-context.test.tsx" -t "Expressions shared context tests › recursiveGroups › Recursive group Layout with no data \(recursiveNoData\.json\)"
+    stack: |-
+      Error: expect(received).toEqual(expected) // deep equality
+
+      - Expected  - 20
+      + Received  +  2
+
+        Array [
+          Object {
+      -     "children": Array [
+      -       Object {
+      -         "component": "comp1",
+      -         "currentLayout": "Page1",
+      -       },
+      -       Object {
+      -         "component": "group0",
+      -         "currentLayout": "Page1",
+      -       },
+      -     ],
+      +     "children": Array [],
+            "component": "Page1",
+            "currentLayout": "Page1",
+      -   },
+      -   Object {
+      -     "children": Array [
+      -       Object {
+      -         "component": "comp5",
+      -         "currentLayout": "Page2",
+          },
+          Object {
+      -         "component": "comp6",
+      -         "currentLayout": "Page2",
+      -       },
+      -     ],
+      +     "children": Array [],
+            "component": "Page2",
+            "currentLayout": "Page2",
+          },
+        ]
+          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-context.test.tsx:122:51
+          at Generator.next (<anonymous>)
+          at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-context.test.tsx:5:58)
+  - file: src/features/expressions/shared-context.test.tsx
+    test: Expressions shared context tests › recursiveGroups › Recursive group Layout with one row (recursiveOneRow.json)
+    name: Recursive group Layout with one row (recursiveOneRow.json)
+    ancestors:
+      - Expressions shared context tests
+      - recursiveGroups
+    status: failed
+    error: 'Error: expect(received).toEqual(expected) // deep equality'
+    location:
+      file: src/features/expressions/shared-context.test.tsx
+      line: 122
+      column: 51
+    rerun: npx jest "src/features/expressions/shared-context.test.tsx" -t "Expressions shared context tests › recursiveGroups › Recursive group Layout with one row \(recursiveOneRow\.json\)"
+    stack: |-
+      Error: expect(received).toEqual(expected) // deep equality
+
+      - Expected  - 47
+      + Received  +  2
+
+        Array [
+          Object {
+      -     "children": Array [
+      -       Object {
+      -         "component": "comp1",
+      -         "currentLayout": "Page1",
+      -       },
+      -       Object {
+      -         "children": Array [
+      -           Object {
+      -             "children": Array [
+      -               Object {
+      -                 "component": "comp3",
+      -                 "currentLayout": "Page1",
+      -                 "rowIndices": Array [
+      -                   0,
+      -                   0,
+      -                 ],
+      -               },
+      -               Object {
+      -                 "component": "comp4",
+      -                 "currentLayout": "Page1",
+      -                 "rowIndices": Array [
+      -                   0,
+      -                   0,
+      -                 ],
+      -               },
+      -             ],
+      -             "component": "group1",
+      -             "currentLayout": "Page1",
+      -             "rowIndices": Array [
+      -               0,
+      -             ],
+      -           },
+      -         ],
+      -         "component": "group0",
+      -         "currentLayout": "Page1",
+      -       },
+      -     ],
+      +     "children": Array [],
+            "component": "Page1",
+            "currentLayout": "Page1",
+          },
+          Object {
+      -     "children": Array [
+      -       Object {
+      -         "component": "comp5",
+      -         "currentLayout": "Page2",
+      -       },
+      -       Object {
+      -         "component": "comp6",
+      -         "currentLayout": "Page2",
+      -       },
+      -     ],
+      +     "children": Array [],
+            "component": "Page2",
+            "currentLayout": "Page2",
+          },
+        ]
+          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-context.test.tsx:122:51
+          at Generator.next (<anonymous>)
+          at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-context.test.tsx:5:58)
+  - file: src/features/expressions/shared-context.test.tsx
+    test: Expressions shared context tests › recursiveGroups › Recursive group Layout with two rows on inner group (recursiveTwoRowsInner.json)
+    name: Recursive group Layout with two rows on inner group (recursiveTwoRowsInner.json)
+    ancestors:
+      - Expressions shared context tests
+      - recursiveGroups
+    status: failed
+    error: 'Error: expect(received).toEqual(expected) // deep equality'
+    location:
+      file: src/features/expressions/shared-context.test.tsx
+      line: 122
+      column: 51
+    rerun: npx jest "src/features/expressions/shared-context.test.tsx" -t "Expressions shared context tests › recursiveGroups › Recursive group Layout with two rows on inner group \(recursiveTwoRowsInner\.json\)"
+    stack: |-
+      Error: expect(received).toEqual(expected) // deep equality
+
+      - Expected  - 63
+      + Received  +  2
+
+        Array [
+          Object {
+      -     "children": Array [
+      -       Object {
+      -         "component": "comp1",
+      -         "currentLayout": "Page1",
+      -       },
+      -       Object {
+      -         "children": Array [
+      -           Object {
+      -             "children": Array [
+      -               Object {
+      -                 "component": "comp3",
+      -                 "currentLayout": "Page1",
+      -                 "rowIndices": Array [
+      -                   0,
+      -                   0,
+      -                 ],
+      -               },
+      -               Object {
+      -                 "component": "comp4",
+      -                 "currentLayout": "Page1",
+      -                 "rowIndices": Array [
+      -                   0,
+      -                   0,
+      -                 ],
+      -               },
+      -               Object {
+      -                 "component": "comp3",
+      -                 "currentLayout": "Page1",
+      -                 "rowIndices": Array [
+      -                   0,
+      -                   1,
+      -                 ],
+      -               },
+      -               Object {
+      -                 "component": "comp4",
+      -                 "currentLayout": "Page1",
+      -                 "rowIndices": Array [
+      -                   0,
+      -                   1,
+      -                 ],
+      -               },
+      -             ],
+      -             "component": "group1",
+      -             "currentLayout": "Page1",
+      -             "rowIndices": Array [
+      -               0,
+      -             ],
+      -           },
+      -         ],
+      -         "component": "group0",
+      -         "currentLayout": "Page1",
+      -       },
+      -     ],
+      +     "children": Array [],
+            "component": "Page1",
+            "currentLayout": "Page1",
+          },
+          Object {
+      -     "children": Array [
+      -       Object {
+      -         "component": "comp5",
+      -         "currentLayout": "Page2",
+      -       },
+      -       Object {
+      -         "component": "comp6",
+      -         "currentLayout": "Page2",
+      -       },
+      -     ],
+      +     "children": Array [],
+            "component": "Page2",
+            "currentLayout": "Page2",
+          },
+        ]
+          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-context.test.tsx:122:51
+          at Generator.next (<anonymous>)
+          at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-context.test.tsx:5:58)
+  - file: src/features/expressions/shared-context.test.tsx
+    test: Expressions shared context tests › recursiveGroups › Recursive group Layout with two rows on outer group (recursiveTwoRowsOuter.json)
+    name: Recursive group Layout with two rows on outer group (recursiveTwoRowsOuter.json)
+    ancestors:
+      - Expressions shared context tests
+      - recursiveGroups
+    status: failed
+    error: 'Error: expect(received).toEqual(expected) // deep equality'
+    location:
+      file: src/features/expressions/shared-context.test.tsx
+      line: 122
+      column: 51
+    rerun: npx jest "src/features/expressions/shared-context.test.tsx" -t "Expressions shared context tests › recursiveGroups › Recursive group Layout with two rows on outer group \(recursiveTwoRowsOuter\.json\)"
+    stack: |-
+      Error: expect(received).toEqual(expected) // deep equality
+
+      - Expected  - 72
+      + Received  +  2
+
+        Array [
+          Object {
+      -     "children": Array [
+      -       Object {
+      -         "component": "comp1",
+      -         "currentLayout": "Page1",
+      -       },
+      -       Object {
+      -         "children": Array [
+      -           Object {
+      -             "children": Array [
+      -               Object {
+      -                 "component": "comp3",
+      -                 "currentLayout": "Page1",
+      -                 "rowIndices": Array [
+      -                   0,
+      -                   0,
+      -                 ],
+      -               },
+      -               Object {
+      -                 "component": "comp4",
+      -                 "currentLayout": "Page1",
+      -                 "rowIndices": Array [
+      -                   0,
+      -                   0,
+      -                 ],
+      -               },
+      -             ],
+      -             "component": "group1",
+      -             "currentLayout": "Page1",
+      -             "rowIndices": Array [
+      -               0,
+      -             ],
+      -           },
+      -           Object {
+      -             "children": Array [
+      -               Object {
+      -                 "component": "comp3",
+      -                 "currentLayout": "Page1",
+      -                 "rowIndices": Array [
+      -                   1,
+      -                   0,
+      -                 ],
+      -               },
+      -               Object {
+      -                 "component": "comp4",
+      -                 "currentLayout": "Page1",
+      -                 "rowIndices": Array [
+      -                   1,
+      -                   0,
+      -                 ],
+      -               },
+      -             ],
+      -             "component": "group1",
+      -             "currentLayout": "Page1",
+      -             "rowIndices": Array [
+      -               1,
+      -             ],
+      -           },
+      -         ],
+      -         "component": "group0",
+      -         "currentLayout": "Page1",
+      -       },
+      -     ],
+      +     "children": Array [],
+            "component": "Page1",
+            "currentLayout": "Page1",
+          },
+      -   Object {
+      -     "children": Array [
+          Object {
+      -         "component": "comp5",
+      -         "currentLayout": "Page2",
+      -       },
+      -       Object {
+      -         "component": "comp6",
+      -         "currentLayout": "Page2",
+      -       },
+      -     ],
+      +     "children": Array [],
+            "component": "Page2",
+            "currentLayout": "Page2",
+          },
+        ]
+          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-context.test.tsx:122:51
+          at Generator.next (<anonymous>)
+          at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-context.test.tsx:5:58)
+  - file: src/features/expressions/shared-context.test.tsx
+    test: Expressions shared context tests › simple › Simple layout with single component (simple.json)
+    name: Simple layout with single component (simple.json)
+    ancestors:
+      - Expressions shared context tests
+      - simple
+    status: failed
+    error: 'Error: expect(received).toEqual(expected) // deep equality'
+    location:
+      file: src/features/expressions/shared-context.test.tsx
+      line: 122
+      column: 51
+    rerun: npx jest "src/features/expressions/shared-context.test.tsx" -t "Expressions shared context tests › simple › Simple layout with single component \(simple\.json\)"
+    stack: |-
+      Error: expect(received).toEqual(expected) // deep equality
+
+      - Expected  - 6
+      + Received  + 1
+
+        Array [
+          Object {
+      -     "children": Array [
+      -       Object {
+      -         "component": "comp1",
+      -         "currentLayout": "Page1",
+      -       },
+      -     ],
+      +     "children": Array [],
+            "component": "Page1",
+            "currentLayout": "Page1",
+          },
+        ]
+          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-context.test.tsx:122:51
+          at Generator.next (<anonymous>)
+          at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-context.test.tsx:5:58)
+  - file: src/features/expressions/shared-context.test.tsx
+    test: Expressions shared context tests › simple › Simple layout with two pages (twoPages.json)
+    name: Simple layout with two pages (twoPages.json)
+    ancestors:
+      - Expressions shared context tests
+      - simple
+    status: failed
+    error: 'Error: expect(received).toEqual(expected) // deep equality'
+    location:
+      file: src/features/expressions/shared-context.test.tsx
+      line: 122
+      column: 51
+    rerun: npx jest "src/features/expressions/shared-context.test.tsx" -t "Expressions shared context tests › simple › Simple layout with two pages \(twoPages\.json\)"
+    stack: |-
+      Error: expect(received).toEqual(expected) // deep equality
+
+      - Expected  - 20
+      + Received  +  2
+
+        Array [
+          Object {
+      -     "children": Array [
+      -       Object {
+      -         "component": "comp1",
+      -         "currentLayout": "Page1",
+      -       },
+      -       Object {
+      -         "component": "comp2",
+      -         "currentLayout": "Page1",
+      -       },
+      -     ],
+      +     "children": Array [],
+            "component": "Page1",
+            "currentLayout": "Page1",
+      -   },
+      -   Object {
+      -     "children": Array [
+      -       Object {
+      -         "component": "comp3",
+      -         "currentLayout": "Page2",
+          },
+          Object {
+      -         "component": "comp4",
+      -         "currentLayout": "Page2",
+      -       },
+      -     ],
+      +     "children": Array [],
+            "component": "Page2",
+            "currentLayout": "Page2",
+          },
+        ]
+          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-context.test.tsx:122:51
+          at Generator.next (<anonymous>)
+          at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-context.test.tsx:5:58)

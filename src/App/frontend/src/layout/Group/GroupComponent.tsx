@@ -47,9 +47,7 @@ export function GroupComponent({
   const depth = NodesInternal.useSelector((state) => state.nodeData?.[indexedId]?.depth);
   const layoutLookups = useLayoutLookups();
 
-  console.log('GroupComponent:', { baseComponentId, indexedId, depth, isHidden, depthType: typeof depth });
   if (isHidden || typeof depth !== 'number') {
-    console.log('GroupComponent returning null:', { baseComponentId, isHidden, depth });
     return null;
   }
 
