@@ -16,6 +16,7 @@ export interface IDeleteWarningPopover {
   popoverId?: string;
   setOpen: (open: boolean) => void;
   placement?: 'bottom' | 'left' | 'right' | 'top';
+  withTrigger?: boolean;
 }
 
 export function DeleteWarningPopover({
@@ -28,15 +29,20 @@ export function DeleteWarningPopover({
   popoverId,
   open,
   setOpen,
+  withTrigger = true,
 }: IDeleteWarningPopover) {
   return (
     <Popover.TriggerContext>
-      <Popover.Trigger
-        asChild
-        onClick={() => setOpen(!open)}
-      >
-        {children}
-      </Popover.Trigger>
+      {withTrigger ? (
+        <Popover.Trigger
+          asChild
+          onClick={() => setOpen(!open)}
+        >
+          {children}
+        </Popover.Trigger>
+      ) : (
+        children
+      )}
       <Popover
         data-testid='delete-warning-popover'
         id={popoverId}

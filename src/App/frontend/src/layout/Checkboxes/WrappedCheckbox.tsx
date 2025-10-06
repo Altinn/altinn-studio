@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useId } from 'react';
 
 import { Checkbox } from '@digdir/designsystemet-react';
 import cn from 'classnames';
@@ -34,6 +34,8 @@ export const WrappedCheckbox = forwardRef<HTMLInputElement, IWrappedCheckboxProp
     (isChecked) => !isChecked,
   );
 
+  const popoverId = useId();
+
   return (
     <ConditionalWrapper
       key={option.value}
@@ -46,6 +48,8 @@ export const WrappedCheckbox = forwardRef<HTMLInputElement, IWrappedCheckboxProp
           onPopoverDeleteClick={confirmChange}
           open={alertOpen}
           setOpen={setAlertOpen}
+          popoverId={popoverId}
+          withTrigger={false}
         >
           {children}
         </DeleteWarningPopover>
@@ -57,7 +61,10 @@ export const WrappedCheckbox = forwardRef<HTMLInputElement, IWrappedCheckboxProp
         value={option.value}
         readOnly={readOnly}
         label={
-          <span className={cn({ 'sr-only': hideLabel }, classes.checkboxLabelContainer)}>
+          <span
+            popoverTarget={popoverId}
+            className={cn({ 'sr-only': hideLabel }, classes.checkboxLabelContainer)}
+          >
             {langAsString(option.label)}
             {option.helpText && (
               <HelpText
