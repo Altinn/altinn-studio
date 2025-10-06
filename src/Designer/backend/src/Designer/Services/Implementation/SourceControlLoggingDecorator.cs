@@ -311,7 +311,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "CheckoutRepoOnCommit", editingContext.Org, editingContext.Repo);
+                LogError(ex, "CheckoutRepoOnBranch", editingContext.Org, editingContext.Repo);
                 throw;
             }
         }
