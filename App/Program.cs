@@ -1,14 +1,18 @@
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Code;
-using Altinn.App.Core.Internal.Process.ServiceTasks;
+using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 
-void RegisterCustomAppServices(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
+void RegisterCustomAppServices(
+    IServiceCollection services,
+    IConfiguration config,
+    IWebHostEnvironment env
+)
 {
     // Register your apps custom service implementations here.
     services.AddTransient<IServiceTask, FailServiceTask>();
@@ -58,7 +62,9 @@ void Configure()
     string applicationId = StartupHelper.GetApplicationId();
     if (!string.IsNullOrEmpty(applicationId))
     {
-        app.UseSwagger(o => o.RouteTemplate = applicationId + "/swagger/{documentName}/swagger.json");
+        app.UseSwagger(o =>
+            o.RouteTemplate = applicationId + "/swagger/{documentName}/swagger.json"
+        );
 
         app.UseSwaggerUI(c =>
         {

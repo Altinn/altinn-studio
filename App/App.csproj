@@ -5,8 +5,14 @@
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="C:/dev/app-lib-dotnet/src/Altinn.App.Api/Altinn.App.Api.csproj" />
-    <ProjectReference Include="C:/dev/app-lib-dotnet/src/Altinn.App.Core/Altinn.App.Core.csproj" />
+    <PackageReference
+      Include="Altinn.App.Api.Experimental"
+      Version="8.8.0-pr.2495.pdf-service-task.4769da7a"
+    />
+    <PackageReference
+      Include="Altinn.App.Core.Experimental"
+      Version="8.8.0-pr.2495.pdf-service-task.4769da7a"
+    />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
   </ItemGroup>
   <ItemGroup>
@@ -24,13 +30,19 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include=".config\dotnet-tools.json" />
+  </ItemGroup>
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591;1998</NoWarn>
   </PropertyGroup>
   <Target Name="CopyXMLFromPackagesForBuild" AfterTargets="Build">
     <ItemGroup>
-      <PackageReferenceFiles Condition="%(PackageReference.CopyToOutputDirectory) != ''" Include="$(NugetPackageRoot)$([MSBuild]::Escape('%(PackageReference.Identity)').ToLower())/%(PackageReference.Version)/%(PackageReference.CopyToOutputDirectory)" />
+      <PackageReferenceFiles
+        Condition="%(PackageReference.CopyToOutputDirectory) != ''"
+        Include="$(NugetPackageRoot)$([MSBuild]::Escape('%(PackageReference.Identity)').ToLower())/%(PackageReference.Version)/%(PackageReference.CopyToOutputDirectory)"
+      />
     </ItemGroup>
     <Copy SourceFiles="@(PackageReferenceFiles)" DestinationFolder="$(OutDir)" />
   </Target>

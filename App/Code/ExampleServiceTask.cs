@@ -15,8 +15,9 @@ public class ExampleServiceTask : IServiceTask
         Instance instance = context.InstanceDataMutator.Instance;
         DataElement dataElement = instance.Data.Find(x => x.DataType == "model");
 
-        var formData = (model) await context.InstanceDataMutator.GetFormData(new DataElementIdentifier(dataElement));
-        
+        var formData = (model)
+            await context.InstanceDataMutator.GetFormData(new DataElementIdentifier(dataElement));
+
         if (formData.property1 != "true")
             return new ServiceTaskFailedResult();
 
