@@ -202,7 +202,7 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
   const acquireLock = FD.useLocking(id);
   const isAuthorized = useIsAuthorized();
   const { handleClientActions } = useHandleClientActions();
-  const { mutate: handleServerAction, error } = useMutation({
+  const { mutateAsync: handleServerAction, error } = useMutation({
     mutationFn: useHandleServerActionMutationFn(acquireLock),
   });
 
@@ -263,7 +263,11 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
         if (isClientAction(action)) {
           await handleClientActions([action]);
         } else if (isServerAction(action)) {
-          handleServerAction({ action, buttonId: id });
+          try {
+            await handleServerAction({ action, buttonId: id });
+          } catch {
+            // Error is handled elsewhere
+          }
         }
       }
     });

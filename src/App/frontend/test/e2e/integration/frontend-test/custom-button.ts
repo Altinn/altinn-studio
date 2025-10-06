@@ -4,9 +4,18 @@ const appFrontend = new AppFrontend();
 
 describe('Custom Button', () => {
   it('Should perform action and update the frontend with the updated datamodel', () => {
+    cy.intercept({ url: '**/instances/**/actions*' }, (req) => {
+      req.reply((res) => {
+        res.setDelay(500);
+      });
+    }).as('actionWithDelay');
+
     cy.goto('changename');
 
     cy.findByRole('button', { name: 'Fyll ut skjema' }).click();
+    cy.findByRole('button', { name: 'Fyll ut skjema' }).should('be.disabled'); // Disabled while loading
+    cy.wait('@actionWithDelay');
+    cy.findByRole('button', { name: 'Fyll ut skjema' }).should('not.be.disabled'); // Enabled when finished
     cy.findByRole('textbox', { name: 'Denne oppdateres av custom button' }).should(
       'have.value',
       'Her kommer det data fra backend',
