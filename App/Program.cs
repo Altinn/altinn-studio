@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 
 void RegisterCustomAppServices(
@@ -19,6 +20,8 @@ void RegisterCustomAppServices(
     // Register your apps custom service implementations here.
     services.AddTransient<IServiceTask, FailServiceTask>();
     services.AddEFormidlingServices2<EFormidlingMetadata,DefaultEFormidlingReceivers>(config);
+    
+    services.ConfigureMaskinportenClient("MaskinportenSettings-TeamApps1");
 }
 
 // ###########################################################################
@@ -30,6 +33,11 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 ConfigureServices(builder.Services, builder.Configuration);
 
 ConfigureWebHostBuilder(builder.WebHost);
+
+if (!builder.Environment.IsDevelopment())
+{
+    builder.AddAzureKeyVaultAsConfigProvider();
+}
 
 WebApplication app = builder.Build();
 
