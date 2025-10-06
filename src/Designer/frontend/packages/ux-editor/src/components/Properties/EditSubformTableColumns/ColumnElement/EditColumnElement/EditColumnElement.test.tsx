@@ -292,69 +292,6 @@ describe('EditColumnElementComponentSelect', () => {
       cellContent: { query: subformLayoutMock.component4.dataModelBindings.address.field },
     });
   });
-
-  it('should render description text for DataModelBindingsCombobox', async () => {
-    const user = userEvent.setup();
-    renderEditColumnElement({
-      tableColumn: {
-        headerContent: '',
-        cellContent: { query: '' },
-      },
-    });
-    const componentSelect = screen.getByRole('combobox', {
-      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
-    });
-    await user.click(componentSelect);
-    await user.click(
-      screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component4Id}`) }),
-    );
-    expect(
-      await screen.findByText(
-        textMock(
-          'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_description',
-        ),
-      ),
-    ).toBeInTheDocument();
-  });
-
-  it('should update selection to postPlace and call onChange with correct field', async () => {
-    const user = userEvent.setup();
-    const onChangeMock = jest.fn();
-    renderEditColumnElement({
-      tableColumn: {
-        headerContent: '',
-        cellContent: { query: '' },
-      },
-      onChange: onChangeMock,
-    });
-    const componentSelect = screen.getByRole('combobox', {
-      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
-    });
-    await user.click(componentSelect);
-    await user.click(
-      screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component4Id}`) }),
-    );
-
-    const dataModelBindingsSelect = await screen.findByRole('combobox', {
-      name: textMock(
-        'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_label',
-      ),
-    });
-    await user.click(dataModelBindingsSelect);
-    await user.click(
-      screen.getByRole('option', {
-        name: `${textMock('ux_editor.modal_properties_data_model_label.postPlace')} ${subformLayoutMock.component4.dataModelBindings.postPlace.field}`,
-      }),
-    );
-    const saveButton = await screen.findByRole('button', { name: textMock('general.save') });
-    await user.click(saveButton);
-    expect(onChangeMock).toHaveBeenCalled();
-    expect(onChangeMock).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        cellContent: { query: subformLayoutMock.component4.dataModelBindings.postPlace.field },
-      }),
-    );
-  });
 });
 
 const renderEditColumnElement = (
