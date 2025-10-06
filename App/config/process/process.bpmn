@@ -28,7 +28,11 @@
     <bpmn:serviceTask id="Task_3" name="PDF">
       <bpmn:extensionElements>
         <altinn:taskExtension>
-          <altinn:taskType>pdf</altinn:taskType>
+            <altinn:taskType>pdf</altinn:taskType>
+            <altinn:pdfConfig>
+                <altinn:filename>pdfFileName</altinn:filename>
+                <altinn:dataTypeId>custom-pdf-data-type</altinn:dataTypeId>
+            </altinn:pdfConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0c458hu</bpmn:incoming>
@@ -37,7 +41,20 @@
     <bpmn:serviceTask id="Task_4" name="eFormidling">
       <bpmn:extensionElements>
         <altinn:taskExtension>
-          <altinn:taskType>eFormidling</altinn:taskType>
+            <altinn:taskType>eFormidling</altinn:taskType>
+            <altinn:eFormidlingConfig>
+                <altinn:enabled>true</altinn:enabled>
+                <altinn:process>urn:no:difi:profile:arkivmelding:administrasjon:ver1.0</altinn:process>
+                <altinn:standard>urn:no:difi:arkivmelding:xsd::arkivmelding</altinn:standard>
+                <altinn:typeVersion>2.0</altinn:typeVersion>
+                <altinn:type>arkivmelding</altinn:type>
+                <altinn:securityLevel>3</altinn:securityLevel>
+                <altinn:dpfShipmentType>digital</altinn:dpfShipmentType>
+                <altinn:dataTypes>
+                    <altinn:dataType>model</altinn:dataType>
+                    <altinn:dataType>custom-pdf-data-type</altinn:dataType>
+                </altinn:dataTypes>
+            </altinn:eFormidlingConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0er70tq</bpmn:incoming>
