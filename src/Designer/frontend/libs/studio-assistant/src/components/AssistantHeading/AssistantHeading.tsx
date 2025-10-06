@@ -1,11 +1,12 @@
 import { StudioHeading } from '@studio/components';
 import classes from './AssistantHeading.module.css';
 import { ToggleGroup } from '@digdir/designsystemet-react';
-import { FolderFillIcon, PlayFillIcon, SidebarRightFillIcon } from '@studio/icons';
+import { CodeIcon, PlayFillIcon } from '@studio/icons';
+import { ViewType } from '../../types/ViewType';
 
 export type AssistantHeadingBarProps = {
-  selectedView: 'preview' | 'fileExplorer' | 'collapse';
-  onViewChange: (view: 'preview' | 'fileExplorer' | 'collapse') => void;
+  selectedView: ViewType;
+  onViewChange: (view: ViewType) => void;
 };
 
 export function AssistantHeadingBar({ selectedView, onViewChange }: AssistantHeadingBarProps) {
@@ -15,20 +16,15 @@ export function AssistantHeadingBar({ selectedView, onViewChange }: AssistantHea
       <ToggleGroup
         size='sm'
         value={selectedView}
-        onChange={(value) => onViewChange(value as 'preview' | 'fileExplorer' | 'collapse')}
-        name='toggle-group-nuts'
+        onChange={(value) => onViewChange(value as ViewType)}
       >
-        <ToggleGroup.Item value='preview'>
+        <ToggleGroup.Item value={ViewType.Preview}>
           <PlayFillIcon />
-          Forhåndsvisning
+          Forhåndsvis
         </ToggleGroup.Item>
-        <ToggleGroup.Item value='fileExplorer'>
-          <FolderFillIcon />
-          Filutforsker
-        </ToggleGroup.Item>
-        <ToggleGroup.Item value='collapse'>
-          <SidebarRightFillIcon />
-          Skjul sidestolpe
+        <ToggleGroup.Item value={ViewType.FileExplorer}>
+          <CodeIcon />
+          Kode
         </ToggleGroup.Item>
       </ToggleGroup>
     </div>

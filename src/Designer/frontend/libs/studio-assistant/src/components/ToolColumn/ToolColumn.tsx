@@ -1,9 +1,10 @@
 import React from 'react';
 import type { ReactElement } from 'react';
 import classes from './ToolColumn.module.css';
+import { ViewType } from '../../types/ViewType';
 
 export type ToolColumnProps = {
-  selectedView: 'preview' | 'fileExplorer';
+  selectedView: ViewType;
   previewContent?: ReactElement;
   fileBrowserContent?: ReactElement;
   tabLabels: {
@@ -19,12 +20,12 @@ export function ToolColumn({
 }: ToolColumnProps): ReactElement {
   return (
     <div className={classes.container}>
-      {selectedView === 'preview' && (
+      {selectedView === ViewType.Preview && (
         <div className={classes.tabContent}>
           {previewContent || <div className={classes.placeholder}>Preview placeholder</div>}
         </div>
       )}
-      {selectedView === 'fileExplorer' && (
+      {selectedView === ViewType.FileExplorer && (
         <div className={classes.tabContent}>
           {fileBrowserContent || (
             <div className={classes.placeholder}>

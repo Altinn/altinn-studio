@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { ReactElement, ChangeEvent } from 'react';
+import type { ReactElement } from 'react';
 import { StudioButton, StudioSwitch, StudioTextarea } from '@studio/components';
 import { MessageAuthor } from '../../../types/MessageAuthor';
 import type { Message } from '../../../types/AssistantConfig';

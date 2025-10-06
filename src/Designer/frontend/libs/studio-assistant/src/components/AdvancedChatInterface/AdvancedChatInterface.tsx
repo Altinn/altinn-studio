@@ -9,6 +9,7 @@ import type { Message } from '../../types/AssistantConfig';
 import { ThreadColumn } from '../ThreadColumn';
 import { ThreadColumnHidden } from '../ThreadColumnHidden';
 import { ChatColumn } from '../ChatColumn/ChatColumn';
+import { ViewType } from '../../types/ViewType';
 
 export type AdvancedChatInterfaceProps = {
   chatThreads: ChatThread[];
@@ -45,9 +46,7 @@ export function AdvancedChatInterface({
   onLeftSidebarToggle,
 }: AdvancedChatInterfaceProps): ReactElement {
   const [internalCollapsed, setInternalCollapsed] = useState(false);
-  const [selectedView, setSelectedView] = useState<'preview' | 'fileExplorer' | 'collapse'>(
-    'preview',
-  );
+  const [selectedView, setSelectedView] = useState<ViewType>(ViewType.Preview);
 
   const isCollapsed = controlledCollapsed ?? internalCollapsed;
   const handleToggle = onLeftSidebarToggle ?? (() => setInternalCollapsed(!internalCollapsed));
@@ -88,16 +87,15 @@ export function AdvancedChatInterface({
               textareaPlaceholder={textareaPlaceholder}
             />
           </StudioResizableLayout.Element>
-          {selectedView !== 'collapse' && (
-            <StudioResizableLayout.Element minimumSize={250}>
-              <ToolColumn
-                selectedView={selectedView}
-                tabLabels={sidePanelLabels}
-                previewContent={previewContent}
-                fileBrowserContent={fileBrowserContent}
-              />
-            </StudioResizableLayout.Element>
-          )}
+
+          <StudioResizableLayout.Element minimumSize={250}>
+            <ToolColumn
+              selectedView={selectedView}
+              tabLabels={sidePanelLabels}
+              previewContent={previewContent}
+              fileBrowserContent={fileBrowserContent}
+            />
+          </StudioResizableLayout.Element>
         </StudioResizableLayout.Container>
       </div>
     </div>
