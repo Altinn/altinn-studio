@@ -7,6 +7,8 @@ deployment:
       mountPath: /mnt/keys
     - name: accesstoken
       mountPath: "/accesstoken"
+    - name: altinn-appsettings-secret
+      mountPath: "/altinn-appsettings-secret"
 
   volumes:
     - name : datakeys
@@ -15,6 +17,9 @@ deployment:
     - name: accesstoken
       secret:
         secretName: accesstoken
+    - name: altinn-appsettings-secret
+      secret:
+        secretName: altinn-appsettings-secret
 
   readiness:
     enabled: true
