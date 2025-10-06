@@ -70,4 +70,5 @@ export * from './StudioTextfield';
 export * from './StudioTextResourcePicker';
 export * from './StudioToggleGroup';
 export * from './StudioToggleableTextfield';
+export * from './StudioToggleableTextfieldSchema';
 export * from './StudioValidationMessage';
