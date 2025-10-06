@@ -36,6 +36,7 @@ export * from './StudioFormGroup';
 export * from './StudioGridSelector';
 export * from './StudioHeading';
 export * from './StudioHelpText';
+export * from './StudioIconCard';
 export * from './StudioIconTextfield';
 export * from './StudioIconViewer';
 export * from './StudioLabel';
