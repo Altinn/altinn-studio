@@ -3,6 +3,8 @@ using Altinn.App.Api.Helpers;
 using Altinn.App.Code;
 using Altinn.App.Core.EFormidling.Extensions;
 using Altinn.App.Core.EFormidling.Implementation;
+using Altinn.App.Core.Infrastructure.Clients.Events;
+using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -20,7 +22,8 @@ void RegisterCustomAppServices(
     // Register your apps custom service implementations here.
     services.AddTransient<IServiceTask, FailServiceTask>();
     services.AddEFormidlingServices2<EFormidlingMetadata,DefaultEFormidlingReceivers>(config);
-    
+    services.AddHttpClient<IEventsSubscription, EventsSubscriptionClient>()
+        .UseMaskinportenAltinnAuthorization("altinn:serviceowner/instances.read", "altinn:events.subscribe");
     services.ConfigureMaskinportenClient("MaskinportenSettings-TeamApps1");
 }
 
