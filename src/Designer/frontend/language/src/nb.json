@@ -4,7 +4,7 @@
   "ai_assistant.mode.ask": "Spør",
   "ai_assistant.panel.fileBrowser": "Filutforsker",
   "ai_assistant.panel.preview": "Forhåndsvisning",
-  "ai_assistant.textarea.placeholder": "Skriv en melding...",
+  "ai_assistant.textarea.placeholder": "Skriv en melding ...",
   "api_errors.AD_03": "Navnet er ugyldig. Det må ha mellom 2 og 28 tegn og kan inneholde tall, understrek, bindestrek, og store/små bokstaver fra det engelske alfabetet.",
   "api_errors.DM_01": "Kunne ikke bygge datamodellen.",
   "api_errors.DM_05": "Kunne ikke lese ugyldig XML.",

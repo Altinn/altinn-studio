@@ -19,7 +19,6 @@ export function AiAssistant(): ReactElement {
 
   const sidePanelLabels = {
     preview: t('ai_assistant.panel.preview'),
-    diff: t('ai_assistant.panel.diff'),
     fileBrowser: t('ai_assistant.panel.fileBrowser'),
   };
 

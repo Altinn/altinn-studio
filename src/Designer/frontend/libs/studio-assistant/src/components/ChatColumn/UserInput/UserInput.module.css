@@ -4,7 +4,7 @@
   flex-shrink: 0;
   padding: var(--ds-size-4);
   gap: var(--ds-size-4);
-  border-top: 1px solid var(--fds-semantic-border-neutral-subtle);
+  border-top: 1px solid var(--ds-color-neutral-border-subtle);
 }
 
 .actionsRow {
@@ -12,4 +12,10 @@
   justify-content: space-between;
   align-items: center;
   gap: var(--ds-size-2);
+}
+
+.actionsRowLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-4);
 }

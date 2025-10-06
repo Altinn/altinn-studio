@@ -4,7 +4,7 @@ import { StudioButton, StudioSwitch, StudioTextarea } from '@studio/components';
 import { MessageAuthor } from '../../../types/MessageAuthor';
 import type { Message } from '../../../types/AssistantConfig';
 import classes from './UserInput.module.css';
-import { PaperplaneFillIcon } from '@studio/icons';
+import { PaperclipIcon, PaperplaneFillIcon } from '@studio/icons';
 
 export type UserInputProps = {
   onSendMessage: (message: Message) => void;
@@ -51,13 +51,19 @@ export function UserInput({
         placeholder={textareaPlaceholder}
       />
       <div className={classes.actionsRow}>
-        {onModeChange && (
-          <StudioSwitch
-            checked={!!selectedMode}
-            onChange={(e) => onModeChange(e.target.checked)}
-            label='Tillat endringer i appen'
-          />
-        )}
+        <div className={classes.actionsRowLeft}>
+          <StudioButton variant='secondary'>
+            <PaperclipIcon />
+            Legg til vedlegg
+          </StudioButton>
+          {onModeChange && (
+            <StudioSwitch
+              checked={!!selectedMode}
+              onChange={(e) => onModeChange(e.target.checked)}
+              label='Tillat at assistenten endrer appen'
+            />
+          )}
+        </div>
         <StudioButton onClick={handleSubmit} disabled={!messageContent.trim()}>
           {sendButtonText} <PaperplaneFillIcon />
         </StudioButton>
