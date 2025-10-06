@@ -52,8 +52,9 @@ function StudioTableLocalPagination(
   const [rowsToRender, setRowsToRender] = useState<Rows>(initialRowsToRender);
 
   useEffect(() => {
-    const newRowsToRender = getRowsToRender(currentPage, pageSize, sortedRows);
-    setRowsToRender(newRowsToRender);
+    const totalPages = Math.ceil(sortedRows.length / pageSize);
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+    else setRowsToRender(getRowsToRender(currentPage, pageSize, sortedRows));
   }, [sortedRows, currentPage, pageSize]);
 
   const totalRows = sortedRows.length;

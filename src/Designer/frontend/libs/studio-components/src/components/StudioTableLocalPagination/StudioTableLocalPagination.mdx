@@ -46,8 +46,8 @@ const columns = [
     heading: 'Last changed',
     sortable: true,
     headerCellClass: classes.lastChangedColumnWidth,
-    bodyCellsClass: 'someOtherCustomClass',
-    valueFormatter: (date) => formatDateDDMMYYYY(date),
+    bodyCellClass: 'someOtherCustomClass',
+    bodyCellFormatter: (date) => formatDateDDMMYYYY(date),
   },
 ];
 ```
