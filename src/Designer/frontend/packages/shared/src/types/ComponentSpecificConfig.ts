@@ -6,7 +6,7 @@ import type { HeadingLevel } from 'app-shared/types/HeadingLevel';
 import type { ActionButtonAction } from 'app-shared/types/ActionButtonAction';
 import type { GridRow } from 'app-shared/types/GridRow';
 import type { HTMLAutoCompleteValue } from 'app-shared/types/HTMLAutoCompleteValue';
-import type { BooleanExpression, StringExpression } from '@studio/components-legacy';
+import type { BooleanExpression, StringExpression } from '@studio/components';
 import type {
   ExplicitDataModelBinding,
   IDataModelBindingsKeyValueExplicit,

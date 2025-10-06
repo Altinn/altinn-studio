@@ -13,7 +13,6 @@ import { isAttachmentUploaded, isDataPostError } from 'src/features/attachments/
 import { sortAttachmentsByName } from 'src/features/attachments/sortAttachments';
 import { attachmentSelector } from 'src/features/attachments/tools';
 import { FileScanResults } from 'src/features/attachments/types';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { dataModelPairsToObject } from 'src/features/formData/types';
 import {
@@ -25,12 +24,7 @@ import {
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { backendValidationIssueGroupListToObject } from 'src/features/validation';
-import {
-  mapBackendIssuesToTaskValidations,
-  mapBackendValidationsToValidatorGroups,
-  mapValidatorGroupsToDataModelValidations,
-} from 'src/features/validation/backendValidation/backendValidationUtils';
-import { Validation } from 'src/features/validation/validationContext';
+import { useUpdateIncrementalValidations } from 'src/features/validation/backendValidation/useUpdateIncrementalValidations';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { doUpdateAttachmentTags } from 'src/queries/queries';
 import { nodesProduce } from 'src/utils/layout/NodesContext';
@@ -48,7 +42,6 @@ import type {
 import type { AttachmentsSelector } from 'src/features/attachments/tools';
 import type { AttachmentStateInfo } from 'src/features/attachments/types';
 import type { FDActionResult } from 'src/features/formData/FormDataWriteStateMachine';
-import type { BackendFieldValidatorGroups, BackendValidationIssue } from 'src/features/validation';
 import type { DSPropsForSimpleSelector } from 'src/hooks/delayedSelectors';
 import type { IDataModelBindingsList, IDataModelBindingsSimple } from 'src/layout/common.generated';
 import type { RejectedFileError } from 'src/layout/FileUpload/RejectedFileError';
@@ -418,12 +411,7 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
             update(action);
             try {
               if (appSupportsSetTagsEndpoint(backendVersion)) {
-                await updateTags({
-                  dataElementId,
-                  setTagsRequest: {
-                    tags,
-                  },
-                });
+                await updateTags({ dataElementId, setTagsRequest: { tags } });
               } else {
                 await Promise.all(tagsToAdd.map((tag) => addTag({ dataElementId: attachment.data.id, tagToAdd: tag })));
                 await Promise.all(
@@ -796,8 +784,7 @@ function useAttachmentsRemoveTagMutation() {
 
 function useAttachmentUpdateTagsMutation() {
   const instanceId = useLaxInstanceId();
-  const defaultDataElementId = DataModels.useDefaultDataElementId();
-  const updateBackendValidations = Validation.useUpdateBackendValidations();
+  const updateIncrementalValidations = useUpdateIncrementalValidations();
 
   return useMutation({
     mutationFn: ({ dataElementId, setTagsRequest }: { dataElementId: string; setTagsRequest: SetTagsRequest }) => {
@@ -811,23 +798,9 @@ function useAttachmentUpdateTagsMutation() {
       window.logError('Failed to add tag to attachment:\n', error);
     },
     onSuccess: (data) => {
-      if (!data.validationIssues) {
-        return;
+      if (data.validationIssues) {
+        updateIncrementalValidations(backendValidationIssueGroupListToObject(data.validationIssues));
       }
-
-      const backendValidations: BackendValidationIssue[] = data.validationIssues.reduce(
-        (prev, curr) => [...prev, ...curr.issues],
-        [],
-      );
-      const initialTaskValidations = mapBackendIssuesToTaskValidations(backendValidations);
-      const initialValidatorGroups: BackendFieldValidatorGroups = mapBackendValidationsToValidatorGroups(
-        backendValidations,
-        defaultDataElementId,
-      );
-
-      const dataModelValidations = mapValidatorGroupsToDataModelValidations(initialValidatorGroups);
-
-      updateBackendValidations(dataModelValidations, { initial: backendValidations }, initialTaskValidations);
     },
   });
 }

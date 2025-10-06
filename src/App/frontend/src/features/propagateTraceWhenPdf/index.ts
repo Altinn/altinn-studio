@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { SearchParams } from 'src/hooks/navigation';
+import { SearchParams } from 'src/core/routing/types';
 import { appPath } from 'src/utils/urls/appUrlHelper';
 
 function getCookies(): { [key: string]: string } {

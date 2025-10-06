@@ -24,7 +24,6 @@ import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffect
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { focusMainContent } from 'src/hooks/useNavigatePage';
-import { ProcessTaskType } from 'src/types';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import { getInstanceUiUrl } from 'src/utils/urls/appUrlHelper';
 import type { ISimpleInstance } from 'src/types';
@@ -44,10 +43,7 @@ function getDateDisplayString(timeStamp: string) {
 
 export const InstanceSelectionWrapper = () => (
   <ActiveInstancesProvider>
-    <PresentationComponent
-      type={ProcessTaskType.Unknown}
-      showNavigation={false}
-    >
+    <PresentationComponent showNavigation={false}>
       <InstanceSelection />
     </PresentationComponent>
   </ActiveInstancesProvider>

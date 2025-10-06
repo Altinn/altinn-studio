@@ -1,0 +1,618 @@
+﻿[
+  {
+    PostCode: 0001,
+    PostalName: OSLO,
+    MunicipalityNumber: 0301,
+    MunicipalityName: OSLO,
+    Category: P
+  },
+  {
+    PostCode: 0010,
+    PostalName: OSLO,
+    MunicipalityNumber: 0301,
+    MunicipalityName: OSLO,
+    Category: B
+  },
+  {
+    PostCode: 0015,
+    PostalName: OSLO,
+    MunicipalityNumber: 0301,
+    MunicipalityName: OSLO,
+    Category: B
+  },
+  {
+    PostCode: 0018,
+    PostalName: OSLO,
+    MunicipalityNumber: 0301,
+    MunicipalityName: OSLO,
+    Category: S
+  },
+  {
+    PostCode: 0021,
+    PostalName: OSLO,
+    MunicipalityNumber: 0301,
+    MunicipalityName: OSLO,
+    Category: P
+  },
+  {
+    PostCode: 0024,
+    PostalName: OSLO,
+    MunicipalityNumber: 0301,
+    MunicipalityName: OSLO,
+    Category: P
+  },
+  {
+    PostCode: 0026,
+    PostalName: OSLO,
+    MunicipalityNumber: 0301,
+    MunicipalityName: OSLO,
+    Category: B
+  },
+  {
+    PostCode: 0028,
+    PostalName: OSLO,
+    MunicipalityNumber: 0301,
+    MunicipalityName: OSLO,
+    Category: P
+  },
+  {
+    PostCode: 0030,
+    PostalName: OSLO,
+    MunicipalityNumber: 0301,
+    MunicipalityName: OSLO,
+    Category: P
+  },
+  {
+    PostCode: 9691,
+    PostalName: HAVØYSUND,
+    MunicipalityNumber: 5618,
+    MunicipalityName: MÅSØY,
+    Category: P
+  },
+  {
+    PostCode: 9692,
+    PostalName: MÅSØY,
+    MunicipalityNumber: 5618,
+    MunicipalityName: MÅSØY,
+    Category: B
+  },
+  {
+    PostCode: 9700,
+    PostalName: LAKSELV,
+    MunicipalityNumber: 5622,
+    MunicipalityName: PORSANGER PORSÁNGU PORSANKI,
+    Category: G
+  },
+  {
+    PostCode: 9709,
+    PostalName: PORSANGMOEN,
+    MunicipalityNumber: 5622,
+    MunicipalityName: PORSANGER PORSÁNGU PORSANKI,
+    Category: G
+  },
+  {
+    PostCode: 9710,
+    PostalName: INDRE BILLEFJORD,
+    MunicipalityNumber: 5622,
+    MunicipalityName: PORSANGER PORSÁNGU PORSANKI,
+    Category: G
+  },
+  {
+    PostCode: 9711,
+    PostalName: LAKSELV,
+    MunicipalityNumber: 5622,
+    MunicipalityName: PORSANGER PORSÁNGU PORSANKI,
+    Category: P
+  },
+  {
+    PostCode: 9712,
+    PostalName: LAKSELV,
+    MunicipalityNumber: 5622,
+    MunicipalityName: PORSANGER PORSÁNGU PORSANKI,
+    Category: P
+  },
+  {
+    PostCode: 9713,
+    PostalName: RUSSENES,
+    MunicipalityNumber: 5622,
+    MunicipalityName: PORSANGER PORSÁNGU PORSANKI,
+    Category: G
+  },
+  {
+    PostCode: 9714,
+    PostalName: SNEFJORD,
+    MunicipalityNumber: 5618,
+    MunicipalityName: MÅSØY,
+    Category: G
+  },
+  {
+    PostCode: 9715,
+    PostalName: KOKELV,
+    MunicipalityNumber: 5603,
+    MunicipalityName: HAMMERFEST,
+    Category: G
+  },
+  {
+    PostCode: 9716,
+    PostalName: BØRSELV,
+    MunicipalityNumber: 5622,
+    MunicipalityName: PORSANGER PORSÁNGU PORSANKI,
+    Category: G
+  },
+  {
+    PostCode: 9717,
+    PostalName: VEIDNES,
+    MunicipalityNumber: 5624,
+    MunicipalityName: LEBESBY,
+    Category: B
+  },
+  {
+    PostCode: 9722,
+    PostalName: SKOGANVARRE,
+    MunicipalityNumber: 5622,
+    MunicipalityName: PORSANGER PORSÁNGU PORSANKI,
+    Category: G
+  },
+  {
+    PostCode: 9730,
+    PostalName: KARASJOK,
+    MunicipalityNumber: 5610,
+    MunicipalityName: KARASJOHKA KARASJOK,
+    Category: G
+  },
+  {
+    PostCode: 9731,
+    PostalName: KARASJOK,
+    MunicipalityNumber: 5610,
+    MunicipalityName: KARASJOHKA KARASJOK,
+    Category: G
+  },
+  {
+    PostCode: 9732,
+    PostalName: KARASJOK,
+    MunicipalityNumber: 5610,
+    MunicipalityName: KARASJOHKA KARASJOK,
+    Category: G
+  },
+  {
+    PostCode: 9733,
+    PostalName: KARASJOK,
+    MunicipalityNumber: 5610,
+    MunicipalityName: KARASJOHKA KARASJOK,
+    Category: G
+  },
+  {
+    PostCode: 9734,
+    PostalName: KARASJOK,
+    MunicipalityNumber: 5610,
+    MunicipalityName: KARASJOHKA KARASJOK,
+    Category: G
+  },
+  {
+    PostCode: 9735,
+    PostalName: KARASJOK,
+    MunicipalityNumber: 5610,
+    MunicipalityName: KARASJOHKA KARASJOK,
+    Category: P
+  },
+  {
+    PostCode: 9736,
+    PostalName: KARASJOK,
+    MunicipalityNumber: 5610,
+    MunicipalityName: KARASJOHKA KARASJOK,
+    Category: G
+  },
+  {
+    PostCode: 9737,
+    PostalName: KARASJOK,
+    MunicipalityNumber: 5610,
+    MunicipalityName: KARASJOHKA KARASJOK,
+    Category: G
+  },
+  {
+    PostCode: 9740,
+    PostalName: LEBESBY,
+    MunicipalityNumber: 5624,
+    MunicipalityName: LEBESBY,
+    Category: G
+  },
+  {
+    PostCode: 9742,
+    PostalName: KUNES,
+    MunicipalityNumber: 5624,
+    MunicipalityName: LEBESBY,
+    Category: B
+  },
+  {
+    PostCode: 9750,
+    PostalName: HONNINGSVÅG,
+    MunicipalityNumber: 5620,
+    MunicipalityName: NORDKAPP,
+    Category: G
+  },
+  {
+    PostCode: 9751,
+    PostalName: HONNINGSVÅG,
+    MunicipalityNumber: 5620,
+    MunicipalityName: NORDKAPP,
+    Category: P
+  },
+  {
+    PostCode: 9760,
+    PostalName: NORDVÅGEN,
+    MunicipalityNumber: 5620,
+    MunicipalityName: NORDKAPP,
+    Category: G
+  },
+  {
+    PostCode: 9762,
+    PostalName: KAMØYVÆR,
+    MunicipalityNumber: 5620,
+    MunicipalityName: NORDKAPP,
+    Category: G
+  },
+  {
+    PostCode: 9763,
+    PostalName: SKARSVÅG,
+    MunicipalityNumber: 5620,
+    MunicipalityName: NORDKAPP,
+    Category: G
+  },
+  {
+    PostCode: 9764,
+    PostalName: NORDKAPP,
+    MunicipalityNumber: 5620,
+    MunicipalityName: NORDKAPP,
+    Category: G
+  },
+  {
+    PostCode: 9765,
+    PostalName: GJESVÆR,
+    MunicipalityNumber: 5620,
+    MunicipalityName: NORDKAPP,
+    Category: G
+  },
+  {
+    PostCode: 9766,
+    PostalName: SARNES,
+    MunicipalityNumber: 5620,
+    MunicipalityName: NORDKAPP,
+    Category: G
+  },
+  {
+    PostCode: 9768,
+    PostalName: REPVÅG,
+    MunicipalityNumber: 5620,
+    MunicipalityName: NORDKAPP,
+    Category: G
+  },
+  {
+    PostCode: 9770,
+    PostalName: MEHAMN,
+    MunicipalityNumber: 5626,
+    MunicipalityName: GAMVIK,
+    Category: B
+  },
+  {
+    PostCode: 9771,
+    PostalName: SKJÅNES,
+    MunicipalityNumber: 5626,
+    MunicipalityName: GAMVIK,
+    Category: G
+  },
+  {
+    PostCode: 9772,
+    PostalName: LANGFJORDNES,
+    MunicipalityNumber: 5626,
+    MunicipalityName: GAMVIK,
+    Category: G
+  },
+  {
+    PostCode: 9773,
+    PostalName: NERVEI,
+    MunicipalityNumber: 5626,
+    MunicipalityName: GAMVIK,
+    Category: B
+  },
+  {
+    PostCode: 9775,
+    PostalName: GAMVIK,
+    MunicipalityNumber: 5626,
+    MunicipalityName: GAMVIK,
+    Category: B
+  },
+  {
+    PostCode: 9782,
+    PostalName: DYFJORD,
+    MunicipalityNumber: 5624,
+    MunicipalityName: LEBESBY,
+    Category: G
+  },
+  {
+    PostCode: 9790,
+    PostalName: KJØLLEFJORD,
+    MunicipalityNumber: 5624,
+    MunicipalityName: LEBESBY,
+    Category: B
+  },
+  {
+    PostCode: 9800,
+    PostalName: VADSØ,
+    MunicipalityNumber: 5607,
+    MunicipalityName: VADSØ,
+    Category: G
+  },
+  {
+    PostCode: 9801,
+    PostalName: VADSØ,
+    MunicipalityNumber: 5607,
+    MunicipalityName: VADSØ,
+    Category: G
+  },
+  {
+    PostCode: 9802,
+    PostalName: VESTRE JAKOBSELV,
+    MunicipalityNumber: 5607,
+    MunicipalityName: VADSØ,
+    Category: G
+  },
+  {
+    PostCode: 9803,
+    PostalName: VADSØ,
+    MunicipalityNumber: 5607,
+    MunicipalityName: VADSØ,
+    Category: G
+  },
+  {
+    PostCode: 9804,
+    PostalName: VADSØ,
+    MunicipalityNumber: 5607,
+    MunicipalityName: VADSØ,
+    Category: G
+  },
+  {
+    PostCode: 9810,
+    PostalName: VESTRE JAKOBSELV,
+    MunicipalityNumber: 5607,
+    MunicipalityName: VADSØ,
+    Category: P
+  },
+  {
+    PostCode: 9811,
+    PostalName: VADSØ,
+    MunicipalityNumber: 5607,
+    MunicipalityName: VADSØ,
+    Category: P
+  },
+  {
+    PostCode: 9815,
+    PostalName: VADSØ,
+    MunicipalityNumber: 5607,
+    MunicipalityName: VADSØ,
+    Category: P
+  },
+  {
+    PostCode: 9820,
+    PostalName: VARANGERBOTN,
+    MunicipalityNumber: 5636,
+    MunicipalityName: UNJARGGA NESSEBY,
+    Category: P
+  },
+  {
+    PostCode: 9826,
+    PostalName: SIRMA,
+    MunicipalityNumber: 5628,
+    MunicipalityName: DEATNU TANA,
+    Category: G
+  },
+  {
+    PostCode: 9840,
+    PostalName: VARANGERBOTN,
+    MunicipalityNumber: 5636,
+    MunicipalityName: UNJARGGA NESSEBY,
+    Category: G
+  },
+  {
+    PostCode: 9841,
+    PostalName: TANA,
+    MunicipalityNumber: 5628,
+    MunicipalityName: DEATNU TANA,
+    Category: G
+  },
+  {
+    PostCode: 9842,
+    PostalName: TANA,
+    MunicipalityNumber: 5628,
+    MunicipalityName: DEATNU TANA,
+    Category: G
+  },
+  {
+    PostCode: 9843,
+    PostalName: TANA,
+    MunicipalityNumber: 5628,
+    MunicipalityName: DEATNU TANA,
+    Category: G
+  },
+  {
+    PostCode: 9844,
+    PostalName: TANA,
+    MunicipalityNumber: 5628,
+    MunicipalityName: DEATNU TANA,
+    Category: G
+  },
+  {
+    PostCode: 9845,
+    PostalName: TANA,
+    MunicipalityNumber: 5628,
+    MunicipalityName: DEATNU TANA,
+    Category: G
+  },
+  {
+    PostCode: 9846,
+    PostalName: TANA,
+    MunicipalityNumber: 5628,
+    MunicipalityName: DEATNU TANA,
+    Category: P
+  },
+  {
+    PostCode: 9900,
+    PostalName: KIRKENES,
+    MunicipalityNumber: 5605,
+    MunicipalityName: SØR-VARANGER,
+    Category: G
+  },
+  {
+    PostCode: 9901,
+    PostalName: KIRKENES,
+    MunicipalityNumber: 5605,
+    MunicipalityName: SØR-VARANGER,
+    Category: G
+  },
+  {
+    PostCode: 9910,
+    PostalName: BJØRNEVATN,
+    MunicipalityNumber: 5605,
+    MunicipalityName: SØR-VARANGER,
+    Category: G
+  },
+  {
+    PostCode: 9911,
+    PostalName: JARFJORD,
+    MunicipalityNumber: 5605,
+    MunicipalityName: SØR-VARANGER,
+    Category: G
+  },
+  {
+    PostCode: 9912,
+    PostalName: HESSENG,
+    MunicipalityNumber: 5605,
+    MunicipalityName: SØR-VARANGER,
+    Category: G
+  },
+  {
+    PostCode: 9914,
+    PostalName: BJØRNEVATN,
+    MunicipalityNumber: 5605,
+    MunicipalityName: SØR-VARANGER,
+    Category: P
+  },
+  {
+    PostCode: 9915,
+    PostalName: KIRKENES,
+    MunicipalityNumber: 5605,
+    MunicipalityName: SØR-VARANGER,
+    Category: P
+  },
+  {
+    PostCode: 9916,
+    PostalName: HESSENG,
+    MunicipalityNumber: 5605,
+    MunicipalityName: SØR-VARANGER,
+    Category: P
+  },
+  {
+    PostCode: 9917,
+    PostalName: KIRKENES,
+    MunicipalityNumber: 5605,
+    MunicipalityName: SØR-VARANGER,
+    Category: P
+  },
+  {
+    PostCode: 9925,
+    PostalName: SVANVIK,
+    MunicipalityNumber: 5605,
+    MunicipalityName: SØR-VARANGER,
+    Category: G
+  },
+  {
+    PostCode: 9926,
+    PostalName: PASVIK,
+    MunicipalityNumber: 5605,
+    MunicipalityName: SØR-VARANGER,
+    Category: G
+  },
+  {
+    PostCode: 9930,
+    PostalName: NEIDEN,
+    MunicipalityNumber: 5605,
+    MunicipalityName: SØR-VARANGER,
+    Category: G
+  },
+  {
+    PostCode: 9935,
+    PostalName: BUGØYNES,
+    MunicipalityNumber: 5605,
+    MunicipalityName: SØR-VARANGER,
+    Category: B
+  },
+  {
+    PostCode: 9950,
+    PostalName: VARDØ,
+    MunicipalityNumber: 5634,
+    MunicipalityName: VARDØ,
+    Category: G
+  },
+  {
+    PostCode: 9951,
+    PostalName: VARDØ,
+    MunicipalityNumber: 5634,
+    MunicipalityName: VARDØ,
+    Category: P
+  },
+  {
+    PostCode: 9952,
+    PostalName: VARDØ,
+    MunicipalityNumber: 5634,
+    MunicipalityName: VARDØ,
+    Category: G
+  },
+  {
+    PostCode: 9955,
+    PostalName: SVARTNES,
+    MunicipalityNumber: 5634,
+    MunicipalityName: VARDØ,
+    Category: G
+  },
+  {
+    PostCode: 9960,
+    PostalName: KIBERG,
+    MunicipalityNumber: 5634,
+    MunicipalityName: VARDØ,
+    Category: G
+  },
+  {
+    PostCode: 9980,
+    PostalName: BERLEVÅG,
+    MunicipalityNumber: 5630,
+    MunicipalityName: BERLEVÅG,
+    Category: G
+  },
+  {
+    PostCode: 9981,
+    PostalName: BERLEVÅG,
+    MunicipalityNumber: 5630,
+    MunicipalityName: BERLEVÅG,
+    Category: P
+  },
+  {
+    PostCode: 9982,
+    PostalName: KONGSFJORD,
+    MunicipalityNumber: 5630,
+    MunicipalityName: BERLEVÅG,
+    Category: G
+  },
+  {
+    PostCode: 9990,
+    PostalName: BÅTSFJORD,
+    MunicipalityNumber: 5632,
+    MunicipalityName: BÅTSFJORD,
+    Category: G
+  },
+  {
+    PostCode: 9991,
+    PostalName: BÅTSFJORD,
+    MunicipalityNumber: 5632,
+    MunicipalityName: BÅTSFJORD,
+    Category: P
+  }
+]
