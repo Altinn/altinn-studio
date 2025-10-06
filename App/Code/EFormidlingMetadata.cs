@@ -13,7 +13,9 @@ namespace Altinn.App.Code;
 
 public class EFormidlingMetadata : IEFormidlingMetadata
 {
-    public async Task<(string MetadataFilename, Stream Metadata)> GenerateEFormidlingMetadata(Instance instance)
+    public async Task<(string MetadataFilename, Stream Metadata)> GenerateEFormidlingMetadata(
+        Instance instance
+    )
     {
         var arkivmelding = new Arkivmelding
         {
