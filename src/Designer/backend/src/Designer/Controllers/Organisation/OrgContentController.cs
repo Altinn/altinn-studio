@@ -49,8 +49,8 @@ public class OrgContentController : ControllerBase
             return NoContent();
         }
 
-        AltinnOrgContext editingContext = CreateAltinnOrgContext(orgName);
-        bool repositoryExists = await _orgContentService.OrgContentRepoExists(editingContext);
+        AltinnOrgEditingContext editingEditingContext = CreateAltinnOrgContext(orgName);
+        bool repositoryExists = await _orgContentService.OrgContentRepoExists(editingEditingContext);
         if (!repositoryExists)
         {
             HttpContext.Response.Headers["Reason"] = $"{orgName}-content repo does not exist";
@@ -71,9 +71,9 @@ public class OrgContentController : ControllerBase
         return await _orgContentService.GetOrgContentReferences(parsedContentType, orgName);
     }
 
-    private AltinnOrgContext CreateAltinnOrgContext(string orgName)
+    private AltinnOrgEditingContext CreateAltinnOrgContext(string orgName)
     {
         string developerName = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        return AltinnOrgContext.FromOrg(orgName, developerName);
+        return AltinnOrgEditingContext.FromOrgDeveloper(orgName, developerName);
     }
 }

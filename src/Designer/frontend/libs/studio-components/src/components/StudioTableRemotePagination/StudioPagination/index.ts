@@ -1,0 +1,1 @@
+export { StudioPagination } from './StudioPagination';

@@ -1,6 +1,7 @@
 import type { ReactNode, RefObject } from 'react';
 
 import { getComponentConfigs } from 'src/layout/components.generated';
+import type { ContextNotProvided } from 'src/core/contexts/context';
 import type { DisplayData } from 'src/features/displayData';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { BaseValidation, ComponentValidation } from 'src/features/validation';
@@ -88,6 +89,7 @@ export interface ValidationFilter {
 }
 
 export type FormDataSelector = (reference: IDataModelReference) => unknown;
+export type FormDataSelectorLax = (reference: IDataModelReference) => unknown | typeof ContextNotProvided;
 export type FormDataRowsSelector = (reference: IDataModelReference) => BaseRow[];
 
 export function implementsDisplayData<Def extends CompDef>(def: Def): def is Def & DisplayData {

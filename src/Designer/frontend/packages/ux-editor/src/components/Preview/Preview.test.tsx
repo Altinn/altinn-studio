@@ -15,7 +15,7 @@ describe('Preview', () => {
   it('Renders an iframe with the ref from AppContext', async () => {
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+      screen.queryByText(textMock('preview.loading_preview_controller')),
     );
     expect(screen.getByTitle(textMock('ux_editor.preview'))).toBe(
       appContextMock.previewIframeRef.current,
@@ -26,7 +26,7 @@ describe('Preview', () => {
     const user = userEvent.setup();
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+      screen.queryByText(textMock('preview.loading_preview_controller')),
     );
 
     const switchButton = screen.getByRole('checkbox', {
@@ -51,7 +51,7 @@ describe('Preview', () => {
   it('Renders the information alert with preview being limited', async () => {
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+      screen.queryByText(textMock('preview.loading_preview_controller')),
     );
 
     const previewLimitationsAlert = screen.getByText(textMock('preview.limitations_info'));
@@ -72,7 +72,7 @@ describe('Preview', () => {
     const user = userEvent.setup();
     const view = render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+      screen.queryByText(textMock('preview.loading_preview_controller')),
     );
 
     const hidePreviewButton = screen.getByRole('button', {
@@ -94,13 +94,13 @@ describe('Preview', () => {
 
   it('shows a spinner when preview instance is loading', () => {
     render();
-    expect(screen.getByTitle(textMock('preview.loading_preview_controller'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('preview.loading_preview_controller'))).toBeInTheDocument();
   });
 
   it('reloads preview when the selected form layout name changes', async () => {
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+      screen.queryByText(textMock('preview.loading_preview_controller')),
     );
     expect(appContextMock.previewIframeRef?.current?.src).toBe(
       'http://localhost' +
@@ -119,7 +119,7 @@ describe('Preview', () => {
 
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+      screen.queryByText(textMock('preview.loading_preview_controller')),
     );
     expect(appContextMock.previewIframeRef.current.src).toBe(
       'http://localhost' +
@@ -138,7 +138,7 @@ describe('Preview', () => {
     appContextMock.selectedFormLayoutSetName = subformLayoutMock.layoutSetName;
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+      screen.queryByText(textMock('preview.loading_preview_controller')),
     );
 
     expect(screen.getByText(/ux_editor.preview.subform_unsupported_warning/i)).toBeInTheDocument();

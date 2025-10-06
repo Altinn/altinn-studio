@@ -4,7 +4,6 @@ import { type TableColumn } from '../types/TableColumn';
 import type { IInternalLayout, IFormLayouts } from '@altinn/ux-editor/types/global';
 import { getAllLayoutComponents } from '@altinn/ux-editor/utils/formLayoutUtils';
 import { type LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { convertDataBindingToInternalFormat } from '@altinn/ux-editor/utils/dataModelUtils';
 
 export const updateComponentWithSubform = (
   component: FormItem<ComponentType.Subform>,
@@ -40,9 +39,7 @@ const componentsWithTitleAndDefaultDataModel = (
 ): FormItem[] => {
   const hasValidDataBinding = (comp: FormItem) =>
     Object.keys(comp.dataModelBindings ?? {}).some((binding) => {
-      const { dataType, field } = convertDataBindingToInternalFormat(
-        comp?.dataModelBindings?.[binding],
-      );
+      const { dataType, field } = comp?.dataModelBindings?.[binding];
       return dataType === defaultDataModel || (dataType === '' && field !== '');
     });
 

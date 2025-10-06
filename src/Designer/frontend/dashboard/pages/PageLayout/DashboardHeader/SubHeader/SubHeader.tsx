@@ -4,7 +4,7 @@ import { useSelectedContext } from '../../../../hooks/useSelectedContext';
 import { useOrgRepoName } from '../../../../hooks/useOrgRepoName';
 import { isOrg } from '../../../../utils/orgUtils';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
-import { StudioSpinner } from '@studio/components-legacy';
+import { StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 export const SubHeader = (): ReactElement | null => {
@@ -23,7 +23,7 @@ export const SubHeader = (): ReactElement | null => {
   const hasMergeConflict: boolean = repoStatus?.hasMergeConflict;
   const hasRepoError: boolean = repoStatusError !== null;
 
-  if (isLoading) return <StudioSpinner spinnerTitle={t('general.loading')} />;
+  if (isLoading) return <StudioSpinner aria-hidden spinnerTitle={t('general.loading')} />;
 
   if (!orgRepoName || hasMergeConflict) return null;
   return (

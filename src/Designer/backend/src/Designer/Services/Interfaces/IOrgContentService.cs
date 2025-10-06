@@ -22,7 +22,7 @@ public interface IOrgContentService
     /// <summary>
     /// Checks if the organisation's content repository exists in the specified context.
     /// </summary>
-    /// <param name="context">The organisation context containing organisation and developer information.</param>
+    /// <param name="editingContext">The organisation context containing organisation and developer information.</param>
     /// <returns>True if the content repository exists; otherwise, false.</returns>
-    public Task<bool> OrgContentRepoExists(AltinnOrgContext context);
+    public Task<bool> OrgContentRepoExists(AltinnOrgEditingContext editingContext);
 }

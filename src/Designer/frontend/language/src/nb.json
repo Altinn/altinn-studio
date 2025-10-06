@@ -1,4 +1,6 @@
 {
+  "ai_assistant.button.send": "Send",
+  "ai_assistant.heading": "KI-assistent",
   "api_errors.AD_03": "Navnet er ugyldig. Det må ha mellom 2 og 28 tegn og kan inneholde tall, understrek, bindestrek, og store/små bokstaver fra det engelske alfabetet.",
   "api_errors.DM_01": "Kunne ikke bygge datamodellen.",
   "api_errors.DM_05": "Kunne ikke lese ugyldig XML.",
@@ -1460,9 +1462,9 @@
   "ux_editor.component_properties.compact": "Bruk kompakt visning",
   "ux_editor.component_properties.componentRef": "ID på komponenten det gjelder (componentRef)",
   "ux_editor.component_properties.config_is_expression_message": "Denne egenskapen er konfigurert som et uttrykk, og kan foreløpig ikke redigeres her.",
-  "ux_editor.component_properties.cropHeight": "Høyde (anbefalt under 300 piksler)",
+  "ux_editor.component_properties.cropHeight": "Høyde (anbefalt under 270 piksler)",
   "ux_editor.component_properties.cropShape": "Bildeform",
-  "ux_editor.component_properties.cropWidth": "Bredde (anbefalt under 300 piksler)",
+  "ux_editor.component_properties.cropWidth": "Bredde (anbefalt under 270 piksler)",
   "ux_editor.component_properties.currency": "Valuta",
   "ux_editor.component_properties.current_task": "Kun gjeldende oppgave",
   "ux_editor.component_properties.dataListId": "Id på dataliste",

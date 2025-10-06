@@ -151,8 +151,8 @@ export function useColumnStylesRepeatingGroups(
 }
 
 export function getColumnStyles(columnSettings: ITableColumnProperties) {
-  const lineClampToggle =
-    columnSettings.textOverflow?.lineWrap || columnSettings.textOverflow?.lineWrap === undefined ? 1 : 0;
+  const lineWrap = columnSettings.textOverflow?.lineWrap || columnSettings.textOverflow?.lineWrap === undefined;
+  const lineClampToggle = lineWrap ? 1 : 0;
 
   let width: string | number | undefined = columnSettings.width ?? 'auto';
   const widthPercentage = Number(width.substring(0, width.length - 1));
@@ -167,6 +167,7 @@ export function getColumnStyles(columnSettings: ITableColumnProperties) {
     '--cell-max-number-of-lines': (columnSettings.textOverflow?.maxHeight ?? 2) * lineClampToggle,
     '--cell-text-alignment': columnSettings.alignText,
     '--cell-width': width,
+    '--cell-word-break': lineWrap ? 'break-word' : 'normal',
   };
 
   return columnStyleVariables as React.CSSProperties;

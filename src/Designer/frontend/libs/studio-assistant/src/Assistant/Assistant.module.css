@@ -1,0 +1,6 @@
+.assistantContainer {
+  display: grid;
+  padding: var(--ds-size-8);
+  gap: var(--ds-size-4);
+  max-width: 25%;
+}

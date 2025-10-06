@@ -12,6 +12,7 @@ import { NavBar } from 'src/components/presentation/NavBar';
 import classes from 'src/components/presentation/Presentation.module.css';
 import { Progress } from 'src/components/presentation/Progress';
 import { createContext } from 'src/core/contexts/context';
+import { useIsReceiptPage } from 'src/core/routing/useIsReceiptPage';
 import { RenderStart } from 'src/core/ui/RenderStart';
 import { Footer } from 'src/features/footer/Footer';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
@@ -21,33 +22,28 @@ import { Lang } from 'src/features/language/Lang';
 import { SideBarNavigation } from 'src/features/navigation/SidebarNavigation';
 import { useHasGroupedNavigation } from 'src/features/navigation/utils';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
-import { ProcessTaskType } from 'src/types';
-import type { PresentationType } from 'src/types';
 
 export interface IPresentationProvidedProps extends PropsWithChildren {
   header?: React.ReactNode;
-  type: ProcessTaskType | PresentationType;
   showNavbar?: boolean;
   showNavigation?: boolean;
 }
 
 export const PresentationComponent = ({
   header,
-  type,
   children,
   showNavbar = true,
-  showNavigation = true,
+  showNavigation: _showNavigation = true,
 }: IPresentationProvidedProps) => {
   const instanceStatus = useInstanceDataQuery({
     select: (instance) => instance.status,
   }).data;
   const { expandedWidth } = useUiConfigContext();
   const hasGroupedNavigation = useHasGroupedNavigation();
-
-  const realHeader = header || (type === ProcessTaskType.Archived ? <Lang id='receipt.receipt' /> : undefined);
-
-  const isProcessStepsArchived = Boolean(type === ProcessTaskType.Archived);
-  const backgroundColor = isProcessStepsArchived ? AltinnPalette.greenLight : AltinnPalette.greyLight;
+  const isReceipt = useIsReceiptPage();
+  const realHeader = isReceipt ? <Lang id='receipt.receipt' /> : header;
+  const backgroundColor = isReceipt ? AltinnPalette.greenLight : AltinnPalette.greyLight;
+  const showNavigation = _showNavigation && !isReceipt;
 
   useLayoutEffect(() => {
     document.body.style.background = backgroundColor;
@@ -74,7 +70,7 @@ export const PresentationComponent = ({
             className={classes.page}
             style={!showNavbar ? { marginTop: 54 } : undefined}
           >
-            {isProcessStepsArchived && instanceStatus?.substatus && (
+            {isReceipt && instanceStatus?.substatus && (
               <AltinnSubstatus
                 label={<Lang id={instanceStatus.substatus.label} />}
                 description={<Lang id={instanceStatus.substatus.description} />}
@@ -85,9 +81,7 @@ export const PresentationComponent = ({
               className={classes.modal}
               tabIndex={-1}
             >
-              <Header header={realHeader}>
-                <ProgressBar type={type} />
-              </Header>
+              <Header header={realHeader}>{!isReceipt && <ProgressBar />}</Header>
               <div className={classes.modalBody}>{children}</div>
             </section>
           </main>
@@ -98,11 +92,9 @@ export const PresentationComponent = ({
   );
 };
 
-function ProgressBar({ type }: { type: ProcessTaskType | PresentationType }) {
+function ProgressBar() {
   const { showProgress } = usePageSettings();
-  const enabled = type !== ProcessTaskType.Archived && showProgress;
-
-  if (!enabled) {
+  if (!showProgress) {
     return null;
   }
 

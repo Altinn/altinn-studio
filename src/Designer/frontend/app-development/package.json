@@ -9,6 +9,7 @@
     "not op_mini all"
   ],
   "dependencies": {
+    "@studio/assistant": "workspace:^",
     "@studio/content-library": "workspace:^",
     "@studio/feedback-form": "workspace:^",
     "@studio/hooks": "workspace:^",

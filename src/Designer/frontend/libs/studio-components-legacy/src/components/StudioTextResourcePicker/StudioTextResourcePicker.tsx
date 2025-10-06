@@ -19,6 +19,9 @@ export type StudioTextResourcePickerProps = Override<
   StudioComboboxProps
 >;
 
+/**
+ * @deprecated use StudioTextResourcePicker from `@Studio/components` instead
+ */
 export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextResourcePickerProps>(
   (
     {

@@ -7,8 +7,8 @@ import { CreateRelease } from '../components/CreateRelease';
 import { Release } from '../components/Release';
 import { UploadIcon, CheckmarkIcon } from '@studio/icons';
 import { gitCommitPath } from 'app-shared/api/paths';
-import { StudioSpinner, StudioPopover, StudioError } from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import { StudioPopover, StudioError } from '@studio/components-legacy';
+import { StudioParagraph, StudioSpinner } from '@studio/components';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -65,10 +65,7 @@ export function ReleaseContainer() {
       return (
         <>
           <div>
-            <StudioSpinner
-              showSpinnerTitle={false}
-              spinnerTitle={t('app_create_release.loading')}
-            />
+            <StudioSpinner aria-hidden spinnerTitle={t('app_create_release.loading')} />
           </div>
           {t('app_create_release.check_status')}
         </>

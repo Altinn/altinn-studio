@@ -3011,6 +3011,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@studio/assistant@workspace:^, @studio/assistant@workspace:src/Designer/frontend/libs/studio-assistant":
+  version: 0.0.0-use.local
+  resolution: "@studio/assistant@workspace:src/Designer/frontend/libs/studio-assistant"
+  dependencies:
+    "@digdir/designsystemet-theme": "npm:^1.0.8"
+    "@studio/components": "workspace:^"
+  languageName: unknown
+  linkType: soft
+
 "@studio/components-legacy@workspace:^, @studio/components-legacy@workspace:src/Designer/frontend/libs/studio-components-legacy":
   version: 0.0.0-use.local
   resolution: "@studio/components-legacy@workspace:src/Designer/frontend/libs/studio-components-legacy"
@@ -4519,6 +4528,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:src/Designer/frontend/app-development"
   dependencies:
+    "@studio/assistant": "workspace:^"
     "@studio/content-library": "workspace:^"
     "@studio/feedback-form": "workspace:^"
     "@studio/hooks": "workspace:^"

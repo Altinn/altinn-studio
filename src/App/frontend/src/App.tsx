@@ -10,9 +10,9 @@ import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { PartySelection } from 'src/features/instantiate/containers/PartySelection';
 import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
 import { PDFWrapper } from 'src/features/pdf/PDFWrapper';
-import { CustomReceipt, DefaultReceipt } from 'src/features/receipt/ReceiptContainer';
+import { FixWrongReceiptType } from 'src/features/receipt/FixWrongReceiptType';
+import { DefaultReceipt } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
-import { PresentationType, ProcessTaskType } from 'src/types';
 
 export const App = () => (
   <Routes>
@@ -34,7 +34,7 @@ export const App = () => (
       <Route
         path=':pageKey'
         element={
-          <PresentationComponent type={PresentationType.Stateless}>
+          <PresentationComponent>
             <Form />
           </PresentationComponent>
         }
@@ -64,52 +64,15 @@ export const App = () => (
       />
 
       <Route
-        path={TaskKeys.CustomReceipt}
-        element={
-          <PresentationComponent
-            type={ProcessTaskType.Archived}
-            showNavigation={false}
-          >
-            <FormProvider>
-              <CustomReceipt />
-            </FormProvider>
-          </PresentationComponent>
-        }
-      >
-        <Route
-          index
-          element={<NavigateToStartUrl forceCurrentTask={false} />}
-        />
-        <Route path=':pageKey'>
-          <Route
-            index
-            element={
-              <PDFWrapper>
-                <Form />
-              </PDFWrapper>
-            }
-          />
-          <Route path=':componentId'>
-            <Route
-              index
-              element={<ComponentRouting />}
-            />
-            <Route
-              path='*'
-              element={<ComponentRouting />}
-            />
-          </Route>
-        </Route>
-      </Route>
-
-      <Route
         path=':taskId'
         element={
-          <ProcessWrapper>
-            <FormProvider>
-              <Outlet />
-            </FormProvider>
-          </ProcessWrapper>
+          <FixWrongReceiptType>
+            <ProcessWrapper>
+              <FormProvider>
+                <Outlet />
+              </FormProvider>
+            </ProcessWrapper>
+          </FixWrongReceiptType>
         }
       >
         <Route
@@ -121,7 +84,7 @@ export const App = () => (
             index
             element={
               <PDFWrapper>
-                <PresentationComponent type={ProcessTaskType.Data}>
+                <PresentationComponent>
                   <Form />
                 </PresentationComponent>
               </PDFWrapper>

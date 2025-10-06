@@ -119,6 +119,5 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="_TestData\DataNorge\" />
-    <Folder Include="_TestData\Repositories\testUser\ttd\model-namespace\" />
   </ItemGroup>
 </Project>

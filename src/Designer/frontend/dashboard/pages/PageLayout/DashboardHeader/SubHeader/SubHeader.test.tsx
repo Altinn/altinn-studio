@@ -27,7 +27,7 @@ describe('SubHeader', () => {
 
   it('initially shows the spinner', () => {
     renderSubHeader();
-    expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
   });
 
   it('renders GiteaHeader when orgRepoName is defined and no merge conflict', async () => {

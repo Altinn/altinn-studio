@@ -20,7 +20,7 @@ export const CreateNewSubformButtons = ({
   const { t } = useTranslation();
 
   const saveIcon = isPendingNewSubformMutation ? (
-    <StudioSpinner aria-hidden spinnerTitle={t('general.loading')} />
+    <StudioSpinner aria-label={t('general.loading')} />
   ) : (
     <CheckmarkIcon />
   );

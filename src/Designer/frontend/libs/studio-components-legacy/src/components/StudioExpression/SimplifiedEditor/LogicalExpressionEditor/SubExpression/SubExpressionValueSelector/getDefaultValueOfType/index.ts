@@ -1,1 +1,0 @@
-export { getDefaultValueOfType } from './getDefaultValueOfType';
