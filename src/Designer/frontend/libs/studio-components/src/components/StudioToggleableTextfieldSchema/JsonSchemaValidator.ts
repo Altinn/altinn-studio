@@ -47,6 +47,11 @@ export class JsonSchemaValidator {
   }
 
   private getPropertyByPath(path: string): Record<string, unknown> {
+    if (!path) {
+      return this.layoutSchema && typeof this.layoutSchema === 'object'
+        ? { ...(this.layoutSchema as Record<string, unknown>) }
+        : {};
+    }
     const result = path
       .split('/')
       .reduce((o, p) => (o && typeof o === 'object' ? o[p] : undefined), this.layoutSchema);

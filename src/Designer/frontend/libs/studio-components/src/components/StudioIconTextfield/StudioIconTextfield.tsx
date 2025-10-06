@@ -31,6 +31,7 @@ export const StudioIconTextfield = forwardRef<HTMLDivElement, StudioIconTextfiel
           aria-labelledby={labelId}
           value={value}
           onChange={onChange as React.ChangeEventHandler<HTMLInputElement>}
+          onBlur={rest.onBlur as React.FocusEventHandler<HTMLInputElement>}
           error={error}
           description={description}
         />

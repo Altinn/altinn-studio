@@ -1,4 +1,4 @@
-import type { JsonSchema } from '../../types/JSONSchema.ts';
+import type { JsonSchema } from '../../types/JSONSchema';
 
 import React from 'react';
 import {
@@ -65,7 +65,8 @@ describe('StudioToggleableTextfieldSchema', () => {
     await user.click(screen.getByRole('button', { name: label }));
     expect(screen.queryByRole('button', { name: label })).not.toBeInTheDocument();
     await user.tab();
-    expect(screen.getByRole('textbox', { name: label })).toBeInTheDocument();
+    await user.click(document.body);
+    expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
   });
 
   it('should not toggle to view mode on blur if input is invalid', async () => {

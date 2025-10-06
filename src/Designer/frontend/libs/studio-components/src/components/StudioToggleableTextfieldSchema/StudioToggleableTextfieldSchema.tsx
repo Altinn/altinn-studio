@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useMemo } from 'react';
 import { JsonSchemaValidator } from './JsonSchemaValidator';
 import { type JsonSchema } from '../../types/JSONSchema';
 import type { Override } from '../../types/Override';
@@ -40,8 +40,12 @@ export const StudioToggleableTextfieldSchema = forwardRef<
     }: StudioToggleableTextfieldSchemaProps,
     ref,
   ): React.ReactElement => {
-    const jsonSchemaValidator = new JsonSchemaValidator(layoutSchema, relatedSchemas);
-    const propertyId = layoutSchema && propertyPath ? `${layoutSchema.$id}#/${propertyPath}` : null;
+    const jsonSchemaValidator = useMemo(
+      () => new JsonSchemaValidator(layoutSchema, relatedSchemas),
+      [layoutSchema, relatedSchemas],
+    );
+    const propertyId =
+      layoutSchema?.$id && propertyPath ? `${layoutSchema.$id}#/${propertyPath}` : null;
 
     const validateAgainstSchema = (
       event: React.ChangeEvent<HTMLInputElement>,
