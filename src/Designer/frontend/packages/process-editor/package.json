@@ -18,6 +18,6 @@
     "typescript": "5.9.2"
   },
   "dependencies": {
-    "bpmn-js": "^13.2.2"
+    "bpmn-js": "^17.0.0"
   }
 }
