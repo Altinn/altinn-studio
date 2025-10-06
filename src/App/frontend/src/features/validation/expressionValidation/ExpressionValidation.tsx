@@ -1,18 +1,24 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { FrontendValidationSource, ValidationMask } from '..';
+import type { FieldValidations, IExpressionValidation } from '..';
 
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { Validation } from 'src/features/validation/validationContext';
-import { getKeyWithoutIndex } from 'src/utils/databindings';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { NestedDataModelLocationProviders } from 'src/utils/layout/DataModelLocation';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
+
+// This collects single-field validation updates to store in a big object containing all expression field validations
+// for a given data type.
+type ValidationCollectorApi = {
+  setFieldValidations: (fieldKey: string, validations: FieldValidations[string]) => void;
+};
 
 export function ExpressionValidation() {
   const writableDataTypes = DataModels.useWritableDataTypes();
@@ -20,7 +26,7 @@ export function ExpressionValidation() {
   return (
     <>
       {writableDataTypes.map((dataType) => (
-        <IndividualExpressionValidation
+        <DataTypeValidation
           key={dataType}
           dataType={dataType}
         />
@@ -29,102 +35,130 @@ export function ExpressionValidation() {
   );
 }
 
-type Binding = Record<string, IDataModelReference>;
-
-function IndividualExpressionValidation({ dataType }: { dataType: string }) {
+function DataTypeValidation({ dataType }: { dataType: string }) {
   const updateDataModelValidations = Validation.useUpdateDataModelValidations();
-  const formData = FD.useDebounced(dataType);
+  const dataElementId = DataModels.useDataElementIdForDataType(dataType);
   const expressionValidationConfig = DataModels.useExpressionValidationConfig(dataType);
-  const dataSources = useExpressionDataSources(expressionValidationConfig);
-  const dataElementId = DataModels.useDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
-  const allBindings = NodesInternal.useMemoSelector((state) => {
-    const out: Binding[] = [];
 
-    for (const nodeData of Object.values(state.nodeData)) {
-      if (nodeData.dataModelBindings) {
-        out.push(nodeData.dataModelBindings as Binding);
-      }
-    }
-
-    return out;
-  });
+  const [allFieldValidations, setAllFieldValidations] = useState<FieldValidations>({});
+  const collector: ValidationCollectorApi = useMemo(
+    () => ({
+      setFieldValidations: (fieldKey, validations) => {
+        setAllFieldValidations((prev) => ({ ...prev, [fieldKey]: validations }));
+      },
+    }),
+    [],
+  );
 
   useEffect(() => {
-    if (expressionValidationConfig && Object.keys(expressionValidationConfig).length > 0 && formData) {
-      const validations = {};
-
-      for (const dmb of allBindings) {
-        for (const reference of Object.values(dmb)) {
-          if (reference.dataType !== dataType) {
-            continue;
-          }
-
-          const field = reference.field;
-
-          /**
-           * Should not run validations on the same field multiple times
-           */
-          if (validations[field]) {
-            continue;
-          }
-
-          const baseField = getKeyWithoutIndex(field);
-          const validationDefs = expressionValidationConfig[baseField];
-          if (!validationDefs) {
-            continue;
-          }
-
-          for (const validationDef of validationDefs) {
-            const valueArguments: ExprValueArgs<{ field: string }> = { data: { field }, defaultKey: 'field' };
-            const modifiedDataSources: ExpressionDataSources = {
-              ...dataSources,
-              defaultDataType: dataType,
-              currentDataModelPath: reference,
-            };
-            const isInvalid = evalExpr(
-              validationDef.condition as ExprValToActualOrExpr<ExprVal.Boolean>,
-              modifiedDataSources,
-              {
-                returnType: ExprVal.Boolean,
-                defaultValue: false,
-                positionalArguments: [field],
-                valueArguments,
-              },
-            );
-            const evaluatedMessage = evalExpr(validationDef.message, modifiedDataSources, {
-              returnType: ExprVal.String,
-              defaultValue: '',
-              positionalArguments: [field],
-              valueArguments,
-            });
-
-            if (isInvalid) {
-              if (!validations[field]) {
-                validations[field] = [];
-              }
-
-              validations[field].push({
-                field,
-                source: FrontendValidationSource.Expression,
-                message: { key: evaluatedMessage },
-                severity: validationDef.severity,
-                category: validationDef.showImmediately ? 0 : ValidationMask.Expression,
-              });
-            }
-          }
-        }
-      }
-      updateDataModelValidations('expression', dataElementId, validations);
+    if (!dataElementId) {
+      return;
     }
-  }, [
-    expressionValidationConfig,
-    formData,
-    dataElementId,
-    updateDataModelValidations,
-    dataSources,
-    dataType,
-    allBindings,
-  ]);
+
+    updateDataModelValidations('expression', dataElementId, allFieldValidations);
+  }, [allFieldValidations, updateDataModelValidations, dataElementId]);
+
+  if (!dataElementId || !expressionValidationConfig) {
+    return null;
+  }
+
+  return (
+    <>
+      {Object.keys(expressionValidationConfig).map((field) => (
+        <BaseFieldExpressionValidation
+          key={field}
+          dataElementId={dataElementId}
+          validationDefs={expressionValidationConfig[field]}
+          reference={{ dataType, field }}
+          collector={collector}
+        />
+      ))}
+    </>
+  );
+}
+
+function BaseFieldExpressionValidation({
+  dataElementId,
+  validationDefs,
+  reference,
+  collector,
+}: {
+  dataElementId: string;
+  validationDefs: IExpressionValidation[];
+  reference: IDataModelReference;
+  collector: ValidationCollectorApi;
+}) {
+  const allPaths = FD.useDebouncedAllPaths(reference);
+
+  return (
+    <>
+      {allPaths.map((field) => (
+        <NestedDataModelLocationProviders
+          key={field}
+          reference={{ dataType: reference.dataType, field }}
+        >
+          <FieldExpressionValidation
+            dataElementId={dataElementId}
+            reference={{ dataType: reference.dataType, field }}
+            validationDefs={validationDefs}
+            collector={collector}
+          />
+        </NestedDataModelLocationProviders>
+      ))}
+    </>
+  );
+}
+
+function FieldExpressionValidation({
+  dataElementId,
+  reference,
+  validationDefs,
+  collector,
+}: {
+  dataElementId: string;
+  reference: IDataModelReference;
+  validationDefs: IExpressionValidation[];
+  collector: ValidationCollectorApi;
+}) {
+  const baseDataSources = useExpressionDataSources(validationDefs);
+  const dataSources: ExpressionDataSources = useMemo(
+    () => ({ ...baseDataSources, defaultDataType: reference.dataType }),
+    [baseDataSources, reference.dataType],
+  );
+
+  useEffect(() => {
+    const field = reference.field;
+    const validations: FieldValidations[string] = [];
+
+    for (const validationDef of validationDefs) {
+      const valueArguments: ExprValueArgs<{ field: string }> = { data: { field }, defaultKey: 'field' };
+      const isInvalid = evalExpr(validationDef.condition as ExprValToActualOrExpr<ExprVal.Boolean>, dataSources, {
+        returnType: ExprVal.Boolean,
+        defaultValue: false,
+        positionalArguments: [field],
+        valueArguments,
+      });
+      const evaluatedMessage = evalExpr(validationDef.message, dataSources, {
+        returnType: ExprVal.String,
+        defaultValue: '',
+        positionalArguments: [field],
+        valueArguments,
+      });
+
+      if (isInvalid) {
+        validations.push({
+          field,
+          dataElementId,
+          source: FrontendValidationSource.Expression,
+          message: { key: evaluatedMessage },
+          severity: validationDef.severity,
+          category: validationDef.showImmediately ? 0 : ValidationMask.Expression,
+        });
+      }
+    }
+
+    collector.setFieldValidations(reference.field, validations);
+  }, [collector, validationDefs, dataElementId, dataSources, reference.field, reference.dataType]);
 
   return null;
 }

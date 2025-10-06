@@ -1,0 +1,24 @@
+name: K8s wrapper - Integrationtests
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'src/Runtime/KubernetesWrapper/**'
+      - '.github/workflows/runtime-kubernetes-wrapper-integrationtests-kind.yaml'
+  workflow_dispatch:
+
+jobs:
+  integrationtests:
+    name: Deploy and run test against a kind cluster
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+    - name: Run integration tests
+      working-directory: src/Runtime/KubernetesWrapper
+      run: |
+        make test

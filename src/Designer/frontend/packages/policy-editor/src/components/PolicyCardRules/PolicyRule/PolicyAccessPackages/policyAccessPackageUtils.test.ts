@@ -38,6 +38,15 @@ const area1: PolicyAccessPackageArea = {
   ],
 };
 
+const eksplisittPackage = {
+  id: 'c0eb20c1-2268-48f5-88c5-f26cb47a6b1f',
+  name: 'Eksplisitt tjenestedelegering',
+  urn: 'urn:altinn:accesspackage:eksplisitt',
+  description:
+    'Denne fullmakten er ikke delegerbar, og er ikke knyttet til noen roller i ENhetsregisteret. Tilgang til tjenester knyttet til denne pakken kan gis av Hovedadministrator gjennom enkeltrettighetsdelegering.',
+  isDelegable: false,
+};
+
 const area2: PolicyAccessPackageArea = {
   id: 'area2',
   name: 'Area 2',
@@ -120,6 +129,16 @@ describe('policyAccessPackageUtils', () => {
     it('filters away non-delegable access packages', () => {
       const result = filterAccessPackagesByIsDelegable([area1]);
       expect(result).toEqual([{ ...area1, packages: [area1.packages[0], area1.packages[1]] }]);
+    });
+
+    it('should not filter urn:altinn:accesspackage:eksplisitt', () => {
+      const result = filterAccessPackagesByIsDelegable([
+        {
+          ...area1,
+          packages: [eksplisittPackage],
+        },
+      ]);
+      expect(result).toEqual([{ ...area1, packages: [eksplisittPackage] }]);
     });
   });
 
