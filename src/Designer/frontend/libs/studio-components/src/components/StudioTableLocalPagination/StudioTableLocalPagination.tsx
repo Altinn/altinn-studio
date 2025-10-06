@@ -39,7 +39,7 @@ function StudioTableLocalPagination(
   ref: React.Ref<HTMLTableElement>,
 ): React.ReactElement {
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(pagination?.pageSizeOptions[0] ?? undefined);
+  const [pageSize, setPageSize] = useState<number>(pagination?.pageSizeOptions[0] ?? 0);
 
   const { sortedRows: internalSortedRows, handleSorting } = useTableSorting(rows, {
     enable: true,
@@ -47,7 +47,7 @@ function StudioTableLocalPagination(
     storageKey: sortStorageKey,
   });
 
-  const sortedRows = externalSortedRows || internalSortedRows;
+  const sortedRows = externalSortedRows ?? internalSortedRows ?? rows;
   const initialRowsToRender = getRowsToRender(currentPage, pageSize, sortedRows);
   const [rowsToRender, setRowsToRender] = useState<Rows>(initialRowsToRender);
 
@@ -57,7 +57,7 @@ function StudioTableLocalPagination(
   }, [sortedRows, currentPage, pageSize]);
 
   const totalRows = sortedRows.length;
-  const totalPages = Math.ceil(totalRows / pageSize);
+  const totalPages = pageSize ? Math.ceil(totalRows / pageSize) : 1;
 
   const studioTableRemotePaginationProps = pagination && {
     ...pagination,
