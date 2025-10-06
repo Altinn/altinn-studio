@@ -43,6 +43,7 @@ export * from './StudioLink';
 export * from './StudioLinkButton';
 export * from './StudioList';
 export * from './StudioNotFoundPage';
+export * from './StudioPaginatedContent';
 export * from './StudioPageError';
 export * from './StudioPageImageBackgroundContainer';
 export * from './StudioPageSpinner';
