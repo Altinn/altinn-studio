@@ -44,6 +44,7 @@
             <altinn:taskType>eFormidling</altinn:taskType>
             <altinn:eFormidlingConfig>
                 <altinn:enabled>true</altinn:enabled>
+                <altinn:receiver>991825827</altinn:receiver>
                 <altinn:process>urn:no:difi:profile:arkivmelding:administrasjon:ver1.0</altinn:process>
                 <altinn:standard>urn:no:difi:arkivmelding:xsd::arkivmelding</altinn:standard>
                 <altinn:typeVersion>2.0</altinn:typeVersion>
