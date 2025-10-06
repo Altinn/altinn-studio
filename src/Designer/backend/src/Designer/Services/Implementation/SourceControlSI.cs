@@ -155,9 +155,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message)
+        public async Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message, string accessToken = "")
         {
-            await CommitAndPushToBranch(org, repository, branchName, localPath, message);
+            await CommitAndPushToBranch(org, repository, branchName, localPath, message, accessToken);
         }
 
         /// <summary>
@@ -437,7 +437,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        private async Task CommitAndPushToBranch(string org, string repository, string branchName, string localPath, string message)
+        private async Task CommitAndPushToBranch(string org, string repository, string branchName, string localPath, string message, string accessToken = "")
         {
             using LibGit2Sharp.Repository repo = new(localPath);
             // Restrict users from empty commit
@@ -461,7 +461,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 notes.Add(commit.Id, "studio-commit", signature, signature, notes.DefaultNamespace);
 
                 PushOptions options = new();
-                options.CredentialsProvider = await GetCredentialsAsync();
+                options.CredentialsProvider = await GetCredentialsAsync(accessToken);
 
                 if (branchName == DefaultBranch)
                 {
@@ -675,9 +675,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new LibGit2Sharp.Signature(username, $"{username}@noreply.altinn.studio", DateTime.Now);
         }
 
-        private async Task<LibGit2Sharp.Handlers.CredentialsHandler> GetCredentialsAsync()
+        private async Task<LibGit2Sharp.Handlers.CredentialsHandler> GetCredentialsAsync(string accessToken = "")
         {
-            string token = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
+            string token = string.IsNullOrEmpty(accessToken)
+                ? await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync()
+                : accessToken;
             return (url, user, cred) => new UsernamePasswordCredentials { Username = token, Password = string.Empty };
         }
 

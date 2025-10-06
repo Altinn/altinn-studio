@@ -15,6 +15,12 @@ describe('Receipt', () => {
 
     cy.get('#firmanavn').type('Foo bar AS');
     cy.get('#orgnr').type('12345678901');
+
+    // Making sure a manual navigation to the previous task still works and gives you a message
+    cy.url().then((url) => cy.visit(url.replace(/\/Task_2\/1$/, '/Task_1')));
+    cy.findByRole('button', { name: 'Gå til riktig prosessteg' }).click();
+    cy.get('#firmanavn').should('have.value', 'Foo bar AS');
+
     cy.get(appFrontend.sendinButton).click();
     cy.wait('@nextProcess').its('response.statusCode').should('eq', 200);
 
@@ -45,5 +51,14 @@ describe('Receipt', () => {
     // TODO: Should this even work? How can we load a deleted instance and confirm that it is, indeed, deleted
     // by observing this text in the receipt page?
     cy.get(appFrontend.receipt.container).should('contain.text', texts.securityReasons);
+
+    // Making sure a manual navigation to the previous task still works and gives you a message
+    cy.url().then((url) => cy.visit(url.replace(/\/ProcessEnd$/, '/Task_4')));
+    cy.get('body').should(
+      'contain.text',
+      'Denne delen av skjemaet er ikke tilgjengelig. Du kan ikke gjøre endringer her nå.',
+    );
+    cy.findByRole('button', { name: 'Gå til riktig prosessteg' }).should('not.exist');
+    cy.get(appFrontend.receipt.container).should('not.exist');
   });
 });

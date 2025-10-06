@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './RemoveChangesPopoverContent.module.css';
-import { StudioTextfield, StudioSpinner } from '@studio/components-legacy';
-import { StudioButton, StudioParagraph, StudioHeading } from '@studio/components';
+import { StudioTextfield } from '@studio/components-legacy';
+import { StudioButton, StudioParagraph, StudioHeading, StudioSpinner } from '@studio/components';
 import { useTranslation, Trans } from 'react-i18next';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
 
@@ -61,7 +61,7 @@ export const RemoveChangesPopoverContent = ({
         onKeyUp={handleOnKeypressEnter}
       />
       {isPendingDeleteLocalChanges && (
-        <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.reset_repo_loading')} />
+        <StudioSpinner aria-hidden spinnerTitle={t('overview.reset_repo_loading')} />
       )}
       {!isPendingDeleteLocalChanges && (
         <div className={classes.buttonContainer}>

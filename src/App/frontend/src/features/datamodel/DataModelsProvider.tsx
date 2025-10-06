@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { useMutationState, useQueryClient } from '@tanstack/react-query';
+import { useMutationState } from '@tanstack/react-query';
 import deepEqual from 'fast-deep-equal';
 import { createStore } from 'zustand';
 import type { JSONSchema7 } from 'json-schema';
@@ -27,11 +27,7 @@ import {
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
-import {
-  instanceQueries,
-  useInstanceDataElements,
-  useInstanceDataQueryArgs,
-} from 'src/features/instance/InstanceContext';
+import { useInstanceDataElements, useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { isAxiosError } from 'src/utils/isAxiosError';
@@ -160,12 +156,11 @@ function DataModelsLoader() {
   const layouts = useLayouts();
   const defaultDataType = useCurrentDataModelName();
   const isStateless = useApplicationMetadata().isStatelessApp;
-  const queryClient = useQueryClient();
-  const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
 
-  const dataElements =
-    queryClient.getQueryData(instanceQueries.instanceData({ instanceOwnerPartyId, instanceGuid }).queryKey)?.data ??
-    emptyArray;
+  const { data: dataElements, isFetching } = useInstanceDataQuery({
+    enabled: !isStateless,
+    select: (data) => data.data.map((element) => [element.dataType, element.locked] as const),
+  });
 
   const layoutSetId = useCurrentLayoutSetId();
 
@@ -176,6 +171,10 @@ function DataModelsLoader() {
 
   // Find all data types referenced in dataModelBindings in the layout
   useEffect(() => {
+    if (isFetching) {
+      return;
+    }
+
     const referencedDataTypes = getAllReferencedDataTypes(layouts, defaultDataType);
     const allValidDataTypes: string[] = [];
     const writableDataTypes: string[] = [];
@@ -195,10 +194,7 @@ function DataModelsLoader() {
         continue;
       }
 
-      // We don't check this if the data model is overridden, because dataElements (from the instance) may not
-      // even be up to date yet when (for example) a subform has just been added.
-      const isOverridden = overriddenDataType === dataType && !!overriddenDataElementId;
-      if (!isStateless && !isOverridden && !dataElements.find((data) => data.dataType === dataType)) {
+      if (!isStateless && !dataElements?.find(([dt]) => dt === dataType)) {
         const error = new MissingDataElementException(dataType);
         window.logErrorOnce(error.message);
         continue;
@@ -206,23 +202,13 @@ function DataModelsLoader() {
 
       allValidDataTypes.push(dataType);
 
-      if (isDataTypeWritable(dataType, isStateless, dataElements)) {
+      if (isDataTypeWritable(dataType, isStateless, dataElements ?? [])) {
         writableDataTypes.push(dataType);
       }
     }
 
     setDataTypes(allValidDataTypes, writableDataTypes, defaultDataType, layoutSetId);
-  }, [
-    applicationMetadata,
-    defaultDataType,
-    isStateless,
-    layouts,
-    setDataTypes,
-    dataElements,
-    layoutSetId,
-    overriddenDataType,
-    overriddenDataElementId,
-  ]);
+  }, [applicationMetadata, defaultDataType, isStateless, layouts, setDataTypes, dataElements, layoutSetId, isFetching]);
 
   // We should load form data and schema for all referenced data models, schema is used for dataModelBinding validation which we want to do even if it is readonly
   // We only need to load expression validation config for data types that are not readonly. Additionally, backend will error if we try to validate a model we are not supposed to

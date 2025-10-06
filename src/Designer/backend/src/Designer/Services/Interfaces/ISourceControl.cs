@@ -48,7 +48,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="branchName">The name of the branch to push changes to</param>
         /// <param name="localPath">Path to local clone of repository</param>
         /// <param name="message">Commit message</param>
-        Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message);
+        /// <param name="accessToken">Access token for authentication. If empty, uses session-based authentication. Should only be used for special cases like bot operations - avoid for regular user operations.</param>
+        Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message, string accessToken = "");
 
         /// <summary>
         /// Pull remote changes

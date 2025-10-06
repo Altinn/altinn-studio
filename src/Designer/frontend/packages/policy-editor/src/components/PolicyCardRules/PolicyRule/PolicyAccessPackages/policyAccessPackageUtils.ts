@@ -48,7 +48,10 @@ export const filterAccessPackagesByIsDelegable = (
   return areas.map((area) => {
     return {
       ...area,
-      packages: area.packages.filter((accessPackage) => accessPackage.isDelegable),
+      packages: area.packages.filter(
+        (accessPackage) =>
+          accessPackage.isDelegable || accessPackage.urn === 'urn:altinn:accesspackage:eksplisitt',
+      ),
     };
   });
 };

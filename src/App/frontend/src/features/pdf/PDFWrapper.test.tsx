@@ -14,7 +14,6 @@ import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { PDFWrapper } from 'src/features/pdf/PDFWrapper';
 import { fetchApplicationMetadata, fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
-import { ProcessTaskType } from 'src/types';
 import type { AppQueries } from 'src/queries/types';
 
 const exampleGuid = '75154373-aed4-41f7-95b4-e5b5115c2edc';
@@ -54,7 +53,7 @@ const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>)
       <InstanceProvider>
         <FormProvider>
           <PDFWrapper>
-            <PresentationComponent type={ProcessTaskType.Data}>
+            <PresentationComponent>
               <Form />
             </PresentationComponent>
           </PDFWrapper>

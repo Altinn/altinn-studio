@@ -51,7 +51,7 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public async Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message)
+        public async Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message, string accessToken = "")
         {
             await Task.CompletedTask;
             string remotePath = TestDataHelper.GetTestDataRemoteRepository(org, repository);

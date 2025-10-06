@@ -80,11 +80,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message)
+        public Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message, string accessToken = "")
         {
             try
             {
-                return _decoratedService.CommitAndPushChanges(org, repository, branchName, localPath, message);
+                return _decoratedService.CommitAndPushChanges(org, repository, branchName, localPath, message, accessToken);
             }
             catch (Exception ex)
             {
