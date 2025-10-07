@@ -271,8 +271,7 @@ function BlockUntilLoaded({ children }: PropsWithChildren) {
 
   for (const dataType of allDataTypes) {
     if (!Object.keys(initialData).includes(dataType)) {
-      return <pre>{JSON.stringify(initialData, null, 2)}</pre>;
-      // return <Loader reason='initial-data' />;
+      return <Loader reason='initial-data' />;
     }
 
     if (!Object.keys(schemas).includes(dataType)) {

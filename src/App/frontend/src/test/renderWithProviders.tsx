@@ -29,7 +29,7 @@ import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
-import { InstanceProvider } from 'src/features/instance/InstanceContext';
+import { InstanceProvider, instanceQueries } from 'src/features/instance/InstanceContext';
 import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
 import { LanguageProvider, SetShouldFetchAppLanguages } from 'src/features/language/LanguageProvider';
 import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
@@ -38,6 +38,7 @@ import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 // import { ProfileProvider } from 'src/features/profile/ProfileProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
+import { fetchInstanceData } from 'src/queries/queries';
 import { PageNavigationRouter } from 'src/test/routerUtils';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
@@ -245,11 +246,11 @@ export function InstanceRouter({
   const router = createMemoryRouter(
     [
       {
-        path: 'instance/:instanceOwnerPartyId/:instanceGuid/:taskId/:pageKey',
+        path: '/ttd/test/instance/:instanceOwnerPartyId/:instanceGuid/:taskId/:pageKey',
         element: children,
       },
       {
-        path: 'instance/:instanceOwnerPartyId/:instanceGuid/:taskId',
+        path: '/ttd/test/instance/:instanceOwnerPartyId/:instanceGuid/:taskId',
         element: children,
       },
       {
@@ -258,9 +259,7 @@ export function InstanceRouter({
       },
     ],
     {
-      basename: '/ttd/test',
       initialEntries: [query ? `${path}?${query}` : path],
-      future: { v7_relativeSplatPath: true },
     },
   );
 
@@ -269,12 +268,7 @@ export function InstanceRouter({
     routerRef.current = router;
   }
 
-  return (
-    <RouterProvider
-      router={router}
-      future={{ v7_startTransition: true }}
-    />
-  );
+  return <RouterProvider router={router} />;
 }
 
 export function StatelessRouter({
@@ -288,7 +282,7 @@ export function StatelessRouter({
   const router = createMemoryRouter(
     [
       {
-        path: ':pageKey',
+        path: '/ttd/test/:pageKey',
         element: children,
       },
       {
@@ -297,9 +291,7 @@ export function StatelessRouter({
       },
     ],
     {
-      basename: '/ttd/test',
       initialEntries: [query ? `${path}?${query}` : path],
-      future: { v7_relativeSplatPath: true },
     },
   );
 
@@ -308,12 +300,7 @@ export function StatelessRouter({
     routerRef.current = router;
   }
 
-  return (
-    <RouterProvider
-      router={router}
-      future={{ v7_startTransition: true }}
-    />
-  );
+  return <RouterProvider router={router} />;
 }
 
 interface ProvidersProps extends PropsWithChildren {
@@ -538,6 +525,28 @@ const renderBase = async ({
     } catch (e) {
       // Keep default settings if query throws
     }
+  }
+
+  // Instance data: preload if mocked (important for FileUpload tests that need attachments immediately)
+  try {
+    if (jest.isMockFunction(fetchInstanceData)) {
+      // Try to fetch instance data, but catch errors in case mock is set up with mockImplementationOnce
+      // and will be consumed later by the actual test
+      try {
+        const instanceData = await fetchInstanceData('dummy-owner', 'dummy-guid');
+        if (instanceData && window.AltinnAppData) {
+          window.AltinnAppData.instance = instanceData;
+        }
+        queryClient.setQueryData(
+          instanceQueries.instanceData({ instanceOwnerPartyId: 'dummy-owner', instanceGuid: 'dummy-guid' }).queryKey,
+          instanceData,
+        );
+      } catch (_) {
+        // Mock might be set up with mockImplementationOnce - that's OK, test will handle it
+      }
+    }
+  } catch (_) {
+    // Instance data not mocked or not available - fine for stateless tests
   }
 
   if (!router) {

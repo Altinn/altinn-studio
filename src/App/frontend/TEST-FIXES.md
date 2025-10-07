@@ -1,11 +1,35 @@
 # Test Failure Fix Tracker
 
 **Generated**: 2025-10-06
-**Last Updated**: 2025-10-06 09:50
-**Total Failed Tests**: 150 / 2,390 (6.3%)
-**Failed Test Suites**: 43
+**Last Updated**: 2025-10-06 15:00
+**Total Failed Tests**: 140 / 2,390 (5.9%)
+**Failed Test Suites**: 42
 
 ## Recent Updates
+
+### ✅ 2025-10-06 15:00 - Fixed Node Hierarchy Race Condition **COMPLETE**
+- **Fixed**: Pages and repeating group rows not being added to node tree before components tried to render
+- **Root causes**:
+  1. **Layout loading race**: `LayoutsContext` loaded layouts asynchronously, but pages weren't pre-populated in Zustand store before generator rendered
+  2. **Form data loading**: `DataModelsProvider` was showing debug output instead of loader when form data wasn't loaded, preventing `waitUntilLoaded` from working properly
+- **Solution**:
+  1. Modified `NodesContext.reset()` to pre-populate all pages from layouts object
+  2. Restored proper `<Loader reason='initial-data'>` in `DataModelsProvider.BlockUntilLoaded` (line 274)
+- **Files modified**:
+  - `src/utils/layout/NodesContext.tsx` - Pre-populate pages in `reset()` function (lines 232-249)
+  - `src/features/datamodel/DataModelsProvider.tsx` - Restored loader for initial data (line 274)
+- **Impact**:
+  - ✅ **ALL 10/10 tests now passing!**
+    - Group Layout with no data ✅
+    - Group Layout with one row ✅
+    - Group Layout with two rows ✅
+    - Non-repeating group ✅
+    - Recursive group Layout with no data ✅
+    - Recursive group Layout with one row ✅
+    - Recursive group Layout with two rows (inner) ✅
+    - Recursive group Layout with two rows (outer) ✅
+    - Simple layout with single component ✅
+    - Simple layout with two pages ✅
 
 ### ✅ 2025-10-06 11:00 - Fixed Text Resource System
 - **Fixed**: Text resources, application metadata, and application settings not resolving in tests
@@ -105,21 +129,27 @@ These issues cascade into multiple test failures and should be fixed first.
 
 ---
 
-### 🔴 3. Node Hierarchy / Layout Tree Generation
-**Impact**: 10 failures
-**Root Cause**: Component trees showing empty `children` arrays when they should contain components
+### ✅ 3. Node Hierarchy / Layout Tree Generation **FIXED**
+**Impact**: 10 failures resolved
+**Root Causes**:
+1. Layout loading race - pages not pre-populated in Zustand before generator renders
+2. Form data loading - debug output instead of proper loader prevented `waitUntilLoaded` from working
 
-- [ ] Investigate `shared-context.test.tsx` failures
-- [ ] Check if layout node generation is broken in tests
-- [ ] Verify `NodesContext` properly builds component hierarchy
-- [ ] Fix tests expecting nested component structures
-- [ ] Run tests:
-  ```bash
-  npx jest "src/features/expressions/shared-context.test.tsx"
-  ```
+- [x] Identified root causes (layout loading + form data loading)
+- [x] Fixed page-level race by pre-populating pages in `NodesContext.reset()`
+- [x] Fixed form data loading by restoring proper loader in `DataModelsProvider`
+- [x] Verified all 10 tests passing
 
-**Files affected**:
-- `src/features/expressions/shared-context.test.tsx` (10 failures)
+**Solution**:
+1. Pre-populate pages from layouts object in `NodesContext.reset()` to avoid race condition
+2. Show `<Loader reason='initial-data'>` while form data loads so tests wait properly
+
+**Files modified**:
+- `src/utils/layout/NodesContext.tsx` - Pre-populate pages (lines 232-249)
+- `src/features/datamodel/DataModelsProvider.tsx` - Restored loader (line 274)
+
+**Tests fixed**:
+- ✅ `src/features/expressions/shared-context.test.tsx` (10/10 passing)
 
 ---
 
@@ -409,17 +439,18 @@ yarn test:watch
 
 ## Progress Tracking
 
-**Priority 1**: ✅✅⬜️⬜️ (2/4 complete - 50%)
+**Priority 1**: ✅✅✅⬜️ (3/4 complete - 75%)
 **Priority 2**: ⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️ (0/13 complete)
 **Priority 3**: ⬜️ (0/1 complete)
 
-**Overall Progress**: 2/18 sections complete (11%)
+**Overall Progress**: 3/18 sections complete (17%)
 
 ### Completed
 1. ✅ Data Preloading Race Condition (2025-10-06 09:00)
-2. ✅ Text Resource / Translation System (2025-10-06 09:50)
+2. ✅ Text Resource / Translation System (2025-10-06 11:00)
+3. ✅ Node Hierarchy / Layout Tree Generation (2025-10-06 15:00)
 
 ### Next Steps
-- Node Hierarchy / Layout Tree Generation (10 failures)
-- React Hooks Ordering Violations (9 failures)
-- Verify remaining text resource tests auto-fixed by infrastructure changes
+- React Hooks Ordering Violations (9 failures - Priority 1)
+- Run full test suite to assess cascade effects from infrastructure fixes
+- Tackle Priority 2 component-specific failures systematically

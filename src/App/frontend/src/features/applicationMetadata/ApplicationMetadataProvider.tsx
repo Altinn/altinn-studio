@@ -34,7 +34,13 @@ export function getApplicationMetadataQueryDef(instanceGuid: string | undefined)
 
 const useApplicationMetadataQuery = () => {
   const instanceGuid = useNavigationParam('instanceGuid');
-  const query = useQuery(getApplicationMetadataQueryDef(instanceGuid));
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    ...getApplicationMetadataQueryDef(instanceGuid),
+    // Use initialData from cache to avoid loading state when data is prefilled
+    initialData: () => queryClient.getQueryData<IncomingApplicationMetadata>(['fetchApplicationMetadata']),
+  });
 
   useEffect(() => {
     query.error && window.logError('Fetching application metadata failed:\n', query.error);
