@@ -36,7 +36,7 @@ export const StudioResizableLayoutHandle = ({
     return (
       <div
         role='separator'
-        tabIndex={0}
+        aria-disabled={true}
         className={`${classes.resizeHandle}
                   ${containerSize < 0.05 ? classes.hideLeftSide : ''}`}
       ></div>

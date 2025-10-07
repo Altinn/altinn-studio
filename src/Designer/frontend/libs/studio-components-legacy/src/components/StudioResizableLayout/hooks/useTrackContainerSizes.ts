@@ -1,5 +1,5 @@
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export const useTrackContainerSizes = (localStorageContextKey: string) => {
   const [containerSizes, setContainerSizes] = useState<number[]>([]);
@@ -9,10 +9,9 @@ export const useTrackContainerSizes = (localStorageContextKey: string) => {
     containerSizes,
   );
 
-  useMemo(() => {
+  useEffect(() => {
     setContainerSizes(value);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [value]);
 
   useEffect(() => {
     setValue(containerSizes);

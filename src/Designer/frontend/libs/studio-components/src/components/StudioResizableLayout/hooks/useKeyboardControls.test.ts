@@ -1,3 +1,4 @@
+import type React from 'react';
 import { renderHook } from '@testing-library/react';
 import { useKeyboardControls } from './useKeyboardControls';
 
