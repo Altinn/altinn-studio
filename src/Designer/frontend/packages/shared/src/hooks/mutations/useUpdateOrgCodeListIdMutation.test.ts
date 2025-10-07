@@ -3,14 +3,14 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import { useUpdateOrgCodeListIdMutation } from './useUpdateOrgCodeListIdMutation';
-import type { CodeList } from 'app-shared/types/CodeList';
+import type { CodeListWithTextResources } from 'app-shared/types/CodeListWithTextResources';
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 
 // Test data:
 const org = 'organisation';
 const codeListId: string = 'codeListId';
 const newCodeListId: string = 'newCodeListId';
-const codeListMock: CodeList = [{ value: 'value', label: 'label' }];
+const codeListMock: CodeListWithTextResources = [{ value: 'value', label: 'label' }];
 
 // Mocks
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
