@@ -9,8 +9,6 @@ import { CustomReceiptConfig } from './CustomReceiptConfig';
 import { type BpmnTaskType } from '../../types/BpmnTaskType';
 import type { Environment } from '../../helpers/StudioEnvironment';
 
-const connectionArrowText: string = 'Connect using Sequence/MessageFlow or Association';
-
 export class ProcessEditorPage extends BasePage {
   public readonly dataModelConfig: DataModelConfig;
   public readonly actionsConfig: ActionsConfig;
@@ -147,7 +145,6 @@ export class ProcessEditorPage extends BasePage {
 
   public async clickOnConnectionArrow(): Promise<void> {
     await this.page.locator('[data-action="connect"]').click();
-    // await this.page.getByTitle(connectionArrowText).click();
   }
 
   public async waitForEndEventHeaderToBeVisible(): Promise<void> {
