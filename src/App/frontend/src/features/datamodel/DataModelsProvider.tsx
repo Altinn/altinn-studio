@@ -182,6 +182,13 @@ function DataModelsLoader() {
 
     // Verify that referenced data types are defined in application metadata, have a classRef, and have a corresponding data element in the instance data
     for (const dataType of referencedDataTypes) {
+      // Only load data types that are actually defined in application metadata
+      const dataTypeMetadata = applicationMetadata.dataTypes.find((dt) => dt.id === dataType);
+      if (!dataTypeMetadata) {
+        window.logErrorOnce(`Data type "${dataType}" is referenced in layout but not found in application metadata`);
+        continue;
+      }
+
       allValidDataTypes.push(dataType);
 
       if (isDataTypeWritable(dataType, isStateless, dataElements)) {

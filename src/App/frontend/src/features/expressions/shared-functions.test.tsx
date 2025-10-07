@@ -294,6 +294,10 @@ describe('Expressions shared function tests', () => {
         window.AltinnAppData.appLanguages = [{ language: profileSettings.language }];
         // Update the profile in window.AltinnAppData since useProfile() reads from there
         window.AltinnAppData.userProfile = profile;
+      } else {
+        // Reset to defaults when no custom profile settings
+        window.AltinnAppData.appLanguages = [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }];
+        window.AltinnAppData.userProfile = profile;
       }
 
       async function fetchFormData(url: string) {
@@ -364,6 +368,10 @@ describe('Expressions shared function tests', () => {
           }
           const data = codeLists[codeListId];
           return { data } as AxiosResponse<IRawOption[], unknown>;
+        },
+        fetchDataModelSchema: async () => {
+          // Return empty schema for all valid data types
+          return { type: 'object', properties: {} };
         },
       };
 
