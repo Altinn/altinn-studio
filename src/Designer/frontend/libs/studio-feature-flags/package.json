@@ -6,7 +6,8 @@
   "scripts": {
     "test": "jest",
     "lint": "eslint \"src/**/*.ts*\"",
-    "lint:fix": "yarn run lint --fix"
+    "lint:fix": "yarn run lint --fix",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@studio/pure-functions": "workspace:^"
