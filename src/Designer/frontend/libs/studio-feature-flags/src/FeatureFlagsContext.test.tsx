@@ -19,7 +19,8 @@ describe('FeatureFlagsContext', () => {
   });
 
   test('Error is thrown when the hook is used outside of the provider', () => {
-    jest.spyOn(console, 'error').mockImplementation();
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
     expect(() => renderHook(useFeatureFlagsContext)).toThrow();
+    consoleErrorSpy.mockRestore();
   });
 });
