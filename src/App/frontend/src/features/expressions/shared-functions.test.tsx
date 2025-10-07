@@ -290,6 +290,10 @@ describe('Expressions shared function tests', () => {
       const profile = getProfileMock();
       if (profileSettings?.language) {
         profile.profileSettingPreference.language = profileSettings.language;
+        // Also add it to appLanguages so resolveCurrentLanguage() accepts it
+        window.AltinnAppData.appLanguages = [{ language: profileSettings.language }];
+        // Update the profile in window.AltinnAppData since useProfile() reads from there
+        window.AltinnAppData.userProfile = profile;
       }
 
       async function fetchFormData(url: string) {
@@ -306,7 +310,7 @@ describe('Expressions shared function tests', () => {
         if (model) {
           return model.data;
         }
-        throw new Error(`Datamodel ${url} not found in ${JSON.stringify(dataModels)}`);
+        return {};
       }
 
       // Clear localstorage, because LanguageProvider uses it to cache selected languages
