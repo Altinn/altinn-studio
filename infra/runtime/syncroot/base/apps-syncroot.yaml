@@ -7,7 +7,7 @@ spec:
   interval: 5m
   provider: azure
   ref:
-    tag: env-placeholder
+    tag: ${ENVIRONMENT}
   timeout: 5m
   url: oci://${SERVICEOWNER_ID}altinnregistry01.azurecr.io/configs/sync-root/staging
 ---
