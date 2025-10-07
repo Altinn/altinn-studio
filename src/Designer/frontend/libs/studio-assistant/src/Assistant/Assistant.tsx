@@ -4,11 +4,7 @@ import type { AssistantConfig as AssistantProps, Message } from '../types/Assist
 import { createUserMessage } from '../utils/utils';
 import classes from './Assistant.module.css';
 
-export function Assistant({
-  heading,
-  texts: buttonTexts,
-  onSubmitMessage,
-}: AssistantProps): React.ReactElement {
+export function Assistant({ texts, onSubmitMessage }: AssistantProps): React.ReactElement {
   const [messageContent, setMessageContent] = useState<string>('');
 
   const handleSubmit = () => {
@@ -18,9 +14,9 @@ export function Assistant({
 
   return (
     <div className={classes.assistantContainer}>
-      <StudioHeading>{heading}</StudioHeading>
+      <StudioHeading>{texts.heading}</StudioHeading>
       <StudioTextarea onChange={(e) => setMessageContent(e.target.value)} />
-      <StudioButton onClick={handleSubmit}>{buttonTexts.send}</StudioButton>
+      <StudioButton onClick={handleSubmit}>{texts.send}</StudioButton>
     </div>
   );
 }

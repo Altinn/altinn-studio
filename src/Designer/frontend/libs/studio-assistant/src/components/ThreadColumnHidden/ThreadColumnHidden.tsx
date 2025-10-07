@@ -6,7 +6,7 @@ export type ThreadColumnHiddenProps = {
   onToggle: () => void;
 };
 
-export function ThreadColumnHidden({ onToggle }: ThreadColumnHiddenProps): React.ReactElement {
+export function ThreadColumnCollapsed({ onToggle }: ThreadColumnHiddenProps): React.ReactElement {
   return (
     <div className={classes.threadColumnHidden}>
       <StudioButton variant='secondary' onClick={onToggle}>

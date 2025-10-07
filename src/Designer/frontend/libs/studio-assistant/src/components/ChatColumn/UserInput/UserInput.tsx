@@ -6,12 +6,18 @@ import type { AssistantTexts, Message } from '../../../types/AssistantConfig';
 import classes from './UserInput.module.css';
 import { PaperclipIcon, PaperplaneFillIcon } from '@studio/icons';
 
+export type UserInputFlags = {
+  attachmentButton: boolean;
+  agentModeSwitch: boolean;
+};
+
 export type UserInputProps = {
   texts: AssistantTexts;
   onSubmitMessage: (message: Message) => void;
+  flags: UserInputFlags;
 };
 
-export function UserInput({ texts, onSubmitMessage }: UserInputProps): ReactElement {
+export function UserInput({ texts, onSubmitMessage, flags }: UserInputProps): ReactElement {
   const [messageContent, setMessageContent] = useState<string>('');
   const [allowEditing, setAllowEditing] = useState<boolean>(false);
 
@@ -46,15 +52,18 @@ export function UserInput({ texts, onSubmitMessage }: UserInputProps): ReactElem
       />
       <div className={classes.actionsRow}>
         <div className={classes.actionsRowLeft}>
-          <StudioButton variant='secondary'>
-            <PaperclipIcon />
-            {texts.addAttachment}
-          </StudioButton>
-          <StudioSwitch
-            checked={allowEditing}
-            onChange={(e) => setAllowEditing(e.target.checked)}
-            label={texts.agentModeLabel}
-          />
+          {flags.attachmentButton && (
+            <StudioButton variant='secondary' title={texts.addAttachment}>
+              <PaperclipIcon />
+            </StudioButton>
+          )}
+          {flags.agentModeSwitch && (
+            <StudioSwitch
+              checked={allowEditing}
+              onChange={(e) => setAllowEditing(e.target.checked)}
+              label={texts.agentModeLabel}
+            />
+          )}
         </div>
         <StudioButton onClick={handleSubmit} disabled={!messageContent.trim()}>
           {texts.send} <PaperplaneFillIcon />

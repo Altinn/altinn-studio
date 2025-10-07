@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import React, { useState } from 'react';
 import {
-  AdvancedChatInterface,
+  InterfaceAdvanced,
   getMockChatThreads,
   type Message,
   type ChatThread,
@@ -9,7 +9,7 @@ import {
 } from '@studio/assistant';
 import { useTranslation } from 'react-i18next';
 import classes from './AiAssistant.module.css';
-import { ChatColumn } from '@studio/assistant';
+import { InterfaceSimple } from '@studio/assistant';
 
 export function AiAssistant(): ReactElement {
   const { t } = useTranslation();
@@ -29,15 +29,15 @@ export function AiAssistant(): ReactElement {
     previousThreads: 'Tidligere tråder',
     aboutAssistant: 'Om assistenten',
     textareaPlaceholder: t('ai_assistant.textarea.placeholder'),
-    addAttachment: 'Legg til vedlegg',
-    agentModeLabel: 'Tillat at assistenten endrer appen',
+    addAttachment: 'Last opp vedlegg',
+    agentModeLabel: 'Tillat endringer i appen',
     send: t('ai_assistant.button.send'),
   };
 
   if (isAdvancedModeEnabled) {
     return (
       <div className={classes.container}>
-        <AdvancedChatInterface
+        <InterfaceAdvanced
           texts={texts}
           chatThreads={chatThreads}
           onSubmitMessage={onSubmitMessage}
@@ -48,11 +48,7 @@ export function AiAssistant(): ReactElement {
 
   return (
     <div className={classes.container}>
-      <ChatColumn
-        texts={texts}
-        messages={chatThreads[0].messages ?? []}
-        onSubmitMessage={onSubmitMessage}
-      />
+      <InterfaceSimple texts={texts} onSubmitMessage={onSubmitMessage} />
     </div>
   );
 }

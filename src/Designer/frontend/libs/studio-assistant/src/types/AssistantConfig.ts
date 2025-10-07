@@ -32,3 +32,10 @@ export type Message = {
   timestamp: Date;
   allowEditing?: boolean;
 };
+
+type AssistantMessage = {
+  author: MessageAuthor.Assistant;
+  content: string;
+  timestamp: Date;
+  filesChanged: string[];
+};

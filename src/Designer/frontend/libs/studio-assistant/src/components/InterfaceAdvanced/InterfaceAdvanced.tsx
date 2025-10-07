@@ -2,21 +2,22 @@ import React, { useState } from 'react';
 import type { ReactElement } from 'react';
 import { StudioResizableLayout } from '@studio/components-legacy';
 import { ToolColumn } from '../ToolColumn';
-import classes from './AdvancedChatInterface.module.css';
+import classes from './InterfaceAdvanced.module.css';
 import { AssistantHeadingBar } from '../AssistantHeading/AssistantHeading';
 import type { AssistantConfig, ChatThread } from '../../types/AssistantConfig';
 import { ThreadColumn } from '../ThreadColumn';
-import { ThreadColumnHidden } from '../ThreadColumnHidden';
+import { ThreadColumnCollapsed } from '../ThreadColumnHidden';
 import { ChatColumn } from '../ChatColumn/ChatColumn';
 import { ViewType } from '../../types/ViewType';
+import type { UserInputFlags } from '../ChatColumn/UserInput/UserInput';
 
-export type AdvancedChatInterfaceProps = AssistantConfig;
+export type InterfaceAdvancedProps = AssistantConfig;
 
-export function AdvancedChatInterface({
+export function InterfaceAdvanced({
   texts,
   chatThreads,
   onSubmitMessage,
-}: AdvancedChatInterfaceProps): ReactElement {
+}: InterfaceAdvancedProps): ReactElement {
   const [isThreadColumnCollapsed, setIsThreadColumnCollapsed] = useState(false);
   const [selectedToolView, setSelectedView] = useState<ViewType>(ViewType.Preview);
   const [currentThread, setCurrentThread] = useState<ChatThread>(chatThreads[0] ?? emptyChatThread);
@@ -26,6 +27,11 @@ export function AdvancedChatInterface({
   const handleChangeThread = (threadId: string) => {
     const thread = chatThreads.find((t) => t.id === threadId);
     setCurrentThread(thread);
+  };
+
+  const advancedModeFlags: UserInputFlags = {
+    attachmentButton: true,
+    agentModeSwitch: true,
   };
 
   return (
@@ -38,20 +44,14 @@ export function AdvancedChatInterface({
       <div className={classes.resizableWrapper}>
         <StudioResizableLayout.Container orientation='horizontal' localStorageContext='ai-chat'>
           {isThreadColumnCollapsed ? (
-            <ThreadColumnHidden onToggle={handleToggle} />
+            <ThreadColumnCollapsed onToggle={handleToggle} />
           ) : (
-            <StudioResizableLayout.Element
-              minimumSize={200}
-              maximumSize={350}
-              collapsed={isThreadColumnCollapsed}
-              collapsedSize={60}
-            >
+            <StudioResizableLayout.Element minimumSize={200} maximumSize={350}>
               <ThreadColumn
                 texts={texts}
                 chatThreads={chatThreads}
                 selectedThreadId={currentThread.id}
                 onSelectThread={handleChangeThread}
-                isCollapsed={isThreadColumnCollapsed}
                 onToggleCollapse={handleToggle}
               />
             </StudioResizableLayout.Element>
@@ -61,6 +61,7 @@ export function AdvancedChatInterface({
               texts={texts}
               messages={currentThread?.messages ?? []}
               onSubmitMessage={onSubmitMessage}
+              flags={advancedModeFlags}
             />
           </StudioResizableLayout.Element>
           <StudioResizableLayout.Element minimumSize={200}>

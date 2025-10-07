@@ -1,8 +1,9 @@
 export { AssistantImpl } from './config/AssistantImpl';
 export type * from './types/AssistantConfig';
-export type * from './types/ChatThread';
 export { ChatColumn } from './components/ChatColumn';
 export type { ChatColumnProps } from './components/ChatColumn';
-export { AdvancedChatInterface } from './components/AdvancedChatInterface';
-export type { AdvancedChatInterfaceProps } from './components/AdvancedChatInterface';
+export { InterfaceAdvanced } from './components/InterfaceAdvanced';
+export type { InterfaceAdvancedProps } from './components/InterfaceAdvanced';
 export { getMockChatThreads } from './utils/mockData';
+export type { InterfaceSimpleProps } from './components/InterfaceSimple/InterfaceSimple';
+export { InterfaceSimple } from './components/InterfaceSimple/InterfaceSimple';

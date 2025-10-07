@@ -1,1 +1,1 @@
-export { ThreadColumnHidden } from './ThreadColumnHidden';
+export { ThreadColumnCollapsed } from './ThreadColumnHidden';
