@@ -4,22 +4,22 @@ import { FeatureFlag } from './FeatureFlag';
 export const FEATURE_FLAGS_KEY = 'featureFlags';
 
 export function retrieveFeatureFlags(): FeatureFlag[] {
-  const flagsFromUrl = featureFlagsFromUrl();
-  const flagsFromLocalStorage = featureFlagsFromLocalStorage();
+  const flagsFromUrl = getFlagsFromUrl();
+  const flagsFromLocalStorage = getFlagsFromLocalStorage();
   const allFlags = [...flagsFromUrl, ...flagsFromLocalStorage];
   return ArrayUtils.removeDuplicates(allFlags);
 }
 
-function featureFlagsFromUrl(): FeatureFlag[] {
+function getFlagsFromUrl(): FeatureFlag[] {
   const urlParams = new URLSearchParams(window.location.search);
   const featureParam = urlParams.get(FEATURE_FLAGS_KEY);
   const features = featureParam ? featureParam.split(',') : [];
   return filterValidFlags(features);
 }
 
-function featureFlagsFromLocalStorage(): FeatureFlag[] {
-  const featureFlagsFromStorage = typedLocalStorage.getItem<string[]>(FEATURE_FLAGS_KEY) || [];
-  return filterValidFlags(featureFlagsFromStorage);
+function getFlagsFromLocalStorage(): FeatureFlag[] {
+  const storageItem = typedLocalStorage.getItem<unknown>(FEATURE_FLAGS_KEY) || [];
+  return ArrayUtils.isArrayOfStrings(storageItem) ? filterValidFlags(storageItem) : [];
 }
 
 const filterValidFlags = (flags: string[]): FeatureFlag[] => flags.filter(isFeatureFlag);

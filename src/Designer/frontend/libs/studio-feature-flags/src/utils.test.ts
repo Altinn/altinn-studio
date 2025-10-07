@@ -32,6 +32,12 @@ describe('studio-feature-flags utils', () => {
     it('Returns an empty array when no flags are set', () => {
       expect(retrieveFeatureFlags()).toEqual([]);
     });
+
+    it('Returns URL flags only when the storage item is not parsable', () => {
+      typedLocalStorage.setItem<number>(FEATURE_FLAGS_KEY, 1);
+      window.history.pushState({}, 'PageUrl', `/?${FEATURE_FLAGS_KEY}=${primaryFeatureToTest}`);
+      expect(retrieveFeatureFlags()).toEqual([primaryFeatureToTest]);
+    });
   });
 });
 
