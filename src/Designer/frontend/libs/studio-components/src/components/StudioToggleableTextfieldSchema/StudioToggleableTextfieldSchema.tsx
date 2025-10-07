@@ -1,20 +1,17 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useMemo } from 'react';
 import { JsonSchemaValidator } from './JsonSchemaValidator';
 import { type JsonSchema } from '../../types/JSONSchema';
+import type { Override } from '../../types/Override';
 import {
   StudioToggleableTextfield,
   type StudioToggleableTextfieldProps,
 } from '../StudioToggleableTextfield';
-import type { Override } from '../../types/Override';
 
 export type SchemaValidationError = {
   errorCode: string;
   details: string;
 };
 
-/**
- * @deprecated Use `StudioToggleableTextfieldSchema` from `studio-components` instead.
- */
 export type StudioToggleableTextfieldSchemaProps = Override<
   {
     layoutSchema: JsonSchema;
@@ -27,7 +24,7 @@ export type StudioToggleableTextfieldSchemaProps = Override<
 >;
 
 export const StudioToggleableTextfieldSchema = forwardRef<
-  HTMLDivElement,
+  HTMLInputElement,
   StudioToggleableTextfieldSchemaProps
 >(
   (
@@ -43,8 +40,12 @@ export const StudioToggleableTextfieldSchema = forwardRef<
     }: StudioToggleableTextfieldSchemaProps,
     ref,
   ): React.ReactElement => {
-    const jsonSchemaValidator = new JsonSchemaValidator(layoutSchema, relatedSchemas);
-    const propertyId = layoutSchema && propertyPath ? `${layoutSchema.$id}#/${propertyPath}` : null;
+    const jsonSchemaValidator = useMemo(
+      () => new JsonSchemaValidator(layoutSchema, relatedSchemas),
+      [layoutSchema, relatedSchemas],
+    );
+    const propertyId =
+      layoutSchema?.$id && propertyPath ? `${layoutSchema.$id}#/${propertyPath}` : null;
 
     const validateAgainstSchema = (
       event: React.ChangeEvent<HTMLInputElement>,
@@ -63,11 +64,12 @@ export const StudioToggleableTextfieldSchema = forwardRef<
       return null;
     };
 
-    const handleOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleOnChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
       const validationError = validateAgainstSchema(event);
-
       onError?.(validationError || null);
-      onChange?.(event);
+      onChange?.(
+        event as React.ChangeEvent<HTMLInputElement> & React.ChangeEvent<HTMLTextAreaElement>,
+      );
     };
 
     return (
