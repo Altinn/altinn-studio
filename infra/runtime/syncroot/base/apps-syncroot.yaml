@@ -24,7 +24,7 @@ spec:
   prune: false
   force: false
   wait: true
-  path: ./
+  path: ./${ENVIRONMENT}
   sourceRef:
     kind: OCIRepository
     name: apps-syncroot-repo
