@@ -535,14 +535,14 @@ steps:
         curl -s https://fluxcd.io/install.sh | sudo -E bash
 
         # Use Flux to push and tag the artifact
-        flux push artifact oci://$ACR_NAME.azurecr.io/configs/$RELEASE_NAME:$APP_ENVIRONMENT-$TAGNAME \
+        flux push artifact oci://$ACR_NAME.azurecr.io/configs/$APP_REPO:$APP_ENVIRONMENT-$TAGNAME \
           --path="./$FLUX_ARTIFACT_DIR" \
           --source="https://$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO/commit/$APP_COMMIT_ID" \
           --revision="$APP_COMMIT_ID" \
           --provider azure
 
         # Tag as environment
-        flux tag artifact oci://$ACR_NAME.azurecr.io/configs/$RELEASE_NAME:$APP_ENVIRONMENT-$TAGNAME  \
+        flux tag artifact oci://$ACR_NAME.azurecr.io/configs/$APP_REPO:$APP_ENVIRONMENT-$TAGNAME  \
           --tag $APP_ENVIRONMENT \
           --provider azure
 
