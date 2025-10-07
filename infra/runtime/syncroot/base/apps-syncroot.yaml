@@ -9,7 +9,7 @@ spec:
   ref:
     tag: env-placeholder
   timeout: 5m
-  url: oci://${SERVICEOWNER_ID}altinnregistry01/configs/sync-root/staging
+  url: oci://${SERVICEOWNER_ID}altinnregistry01.azurecr.io/configs/sync-root/staging
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
