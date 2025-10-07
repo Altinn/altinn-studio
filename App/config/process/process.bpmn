@@ -23,16 +23,13 @@
       <bpmn:incoming>Flow_0lyp28m</bpmn:incoming>
       <bpmn:incoming>Flow_0uveanp</bpmn:incoming>
       <bpmn:incoming>Flow_1jznfzr</bpmn:incoming>
+      <bpmn:incoming>Flow_039bpvi</bpmn:incoming>
       <bpmn:outgoing>Flow_0c458hu</bpmn:outgoing>
     </bpmn:task>
     <bpmn:serviceTask id="Task_3" name="PDF">
       <bpmn:extensionElements>
         <altinn:taskExtension>
-            <altinn:taskType>pdf</altinn:taskType>
-            <altinn:pdfConfig>
-                <altinn:filename>pdfFileName</altinn:filename>
-                <altinn:dataTypeId>custom-pdf-data-type</altinn:dataTypeId>
-            </altinn:pdfConfig>
+          <altinn:taskType>pdf</altinn:taskType>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0c458hu</bpmn:incoming>
@@ -41,24 +38,10 @@
     <bpmn:serviceTask id="Task_4" name="eFormidling">
       <bpmn:extensionElements>
         <altinn:taskExtension>
-            <altinn:taskType>eFormidling</altinn:taskType>
-            <altinn:eFormidlingConfig>
-                <altinn:enabled>true</altinn:enabled>
-                <altinn:receiver>991825827</altinn:receiver>
-                <altinn:process>urn:no:difi:profile:arkivmelding:administrasjon:ver1.0</altinn:process>
-                <altinn:standard>urn:no:difi:arkivmelding:xsd::arkivmelding</altinn:standard>
-                <altinn:typeVersion>2.0</altinn:typeVersion>
-                <altinn:type>arkivmelding</altinn:type>
-                <altinn:securityLevel>3</altinn:securityLevel>
-                <altinn:dpfShipmentType>digital</altinn:dpfShipmentType>
-                <altinn:dataTypes>
-                    <altinn:dataType>model</altinn:dataType>
-                    <altinn:dataType>custom-pdf-data-type</altinn:dataType>
-                </altinn:dataTypes>
-            </altinn:eFormidlingConfig>
+          <altinn:taskType>eFormidling</altinn:taskType>
         </altinn:taskExtension>
       </bpmn:extensionElements>
-      <bpmn:incoming>Flow_0er70tq</bpmn:incoming>
+      <bpmn:incoming>Flow_1ypajov</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_2asasd1</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:serviceTask id="Task_5" name="Fail">
@@ -117,8 +100,29 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["gatewayAction"],"reject"]
             </bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_0er70tq" sourceRef="Gateway_07jde91" targetRef="Task_4">
+    <bpmn:sequenceFlow id="Flow_0er70tq" sourceRef="Gateway_07jde91" targetRef="Activity_0tgsac0">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:serviceTask id="Activity_0tgsac0" name="PDF">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>pdf</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0er70tq</bpmn:incoming>
+      <bpmn:outgoing>Flow_19ikt1z</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_19ikt1z" sourceRef="Activity_0tgsac0" targetRef="Gateway_19sxbsr" />
+    <bpmn:exclusiveGateway id="Gateway_19sxbsr">
+      <bpmn:incoming>Flow_19ikt1z</bpmn:incoming>
+      <bpmn:outgoing>Flow_1ypajov</bpmn:outgoing>
+      <bpmn:outgoing>Flow_039bpvi</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_1ypajov" sourceRef="Gateway_19sxbsr" targetRef="Task_4">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_039bpvi" sourceRef="Gateway_19sxbsr" targetRef="Task_2">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
@@ -153,6 +157,12 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_0x86z9e_di" bpmnElement="Gateway_0x86z9e" isMarkerVisible="true">
         <dc:Bounds x="2065" y="96" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0c2l0o9" bpmnElement="Activity_0tgsac0">
+        <dc:Bounds x="1090" y="81" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0pv239g" bpmnElement="Gateway_19sxbsr" isMarkerVisible="true">
+        <dc:Bounds x="1295" y="96" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1n56yn5_di" bpmnElement="SequenceFlow_1n56yn5">
         <di:waypoint x="192" y="121" />
@@ -206,7 +216,21 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0er70tq_di" bpmnElement="Flow_0er70tq">
         <di:waypoint x="965" y="121" />
+        <di:waypoint x="1090" y="121" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_19ikt1z_di" bpmnElement="Flow_19ikt1z">
+        <di:waypoint x="1190" y="121" />
+        <di:waypoint x="1295" y="121" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ypajov_di" bpmnElement="Flow_1ypajov">
+        <di:waypoint x="1345" y="121" />
         <di:waypoint x="1480" y="121" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_039bpvi_di" bpmnElement="Flow_039bpvi">
+        <di:waypoint x="1320" y="146" />
+        <di:waypoint x="1320" y="270" />
+        <di:waypoint x="570" y="270" />
+        <di:waypoint x="570" y="161" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
