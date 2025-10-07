@@ -45,7 +45,7 @@ function CreateNewCodeListDialog(
     >
       <StudioDialog.Block>
         <StudioHeading level={2}>
-          {t('app_content_library.code_lists.create_new_code_list_modal_title')}
+          {t('app_content_library.code_lists_with_text_resources.create_new_code_list_modal_title')}
         </StudioHeading>
       </StudioDialog.Block>
       <StudioDialog.Block>
@@ -136,7 +136,7 @@ function CreateNewCodeList({
   return (
     <div className={classes.createNewCodeList}>
       <StudioTextfield
-        label={t('app_content_library.code_lists.create_new_code_list_name')}
+        label={t('app_content_library.code_lists_with_text_resources.create_new_code_list_name')}
         className={classes.codeListTitle}
         onChange={(event) => handleCodeListTitleChange(event.target.value)}
         error={codeListTitleError}

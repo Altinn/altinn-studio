@@ -17,7 +17,7 @@ describe('CodeListsActionsBar', () => {
   it('renders the search field with label', () => {
     renderCodeListsActionsBar();
     const searchFieldLabelText = screen.getByRole('searchbox', {
-      name: textMock('app_content_library.code_lists.search_label'),
+      name: textMock('app_content_library.code_lists_with_text_resources.search_label'),
     });
     expect(searchFieldLabelText).toBeInTheDocument();
   });

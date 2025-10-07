@@ -19,11 +19,11 @@ describe('AddCodeListDropdown', () => {
     const user = userEvent.setup();
     renderAddCodeListDropdown();
     const addNewCodeListButton = screen.getByRole('button', {
-      name: textMock('app_content_library.code_lists.add_new_code_list'),
+      name: textMock('app_content_library.code_lists_with_text_resources.add_new_code_list'),
     });
     await user.click(addNewCodeListButton);
     const createNewCodeListModalTitle = screen.getByText(
-      textMock('app_content_library.code_lists.create_new_code_list'),
+      textMock('app_content_library.code_lists_with_text_resources.create_new_code_list'),
     );
     expect(createNewCodeListModalTitle).toBeInTheDocument();
   });
@@ -32,7 +32,7 @@ describe('AddCodeListDropdown', () => {
     const user = userEvent.setup();
     renderAddCodeListDropdown();
     const fileUploaderButton = screen.getByLabelText(
-      textMock('app_content_library.code_lists.upload_code_list'),
+      textMock('app_content_library.code_lists_with_text_resources.upload_code_list'),
     );
     const file = new File(['test'], 'fileNameMock.json', { type: 'application/json' });
     await user.upload(fileUploaderButton, file);
@@ -92,11 +92,11 @@ describe('AddCodeListDropdown', () => {
     const user = userEvent.setup();
     renderAddCodeListDropdown({ externalResources });
     const importCodeListButton = screen.getByRole('button', {
-      name: textMock('app_content_library.code_lists.import_from_org_library'),
+      name: textMock('app_content_library.code_lists_with_text_resources.import_from_org_library'),
     });
     await user.click(importCodeListButton);
     const importCodeListDialogTitle = screen.getByRole('heading', {
-      name: textMock('app_content_library.code_lists.import_modal_heading'),
+      name: textMock('app_content_library.code_lists_with_text_resources.import_modal_heading'),
     });
     expect(importCodeListDialogTitle).toBeInTheDocument();
   });
@@ -104,7 +104,7 @@ describe('AddCodeListDropdown', () => {
   it('does not display the import button when there are no external resources', () => {
     renderAddCodeListDropdown();
     const importButton = screen.queryByRole('button', {
-      name: textMock('app_content_library.code_lists.import_from_org_library'),
+      name: textMock('app_content_library.code_lists_with_text_resources.import_from_org_library'),
     });
     expect(importButton).not.toBeInTheDocument();
   });
@@ -112,7 +112,7 @@ describe('AddCodeListDropdown', () => {
 
 const uploadFileWithFileName = async (user: UserEvent, fileNameWithExtension: string) => {
   const fileUploaderButton = screen.getByLabelText(
-    textMock('app_content_library.code_lists.upload_code_list'),
+    textMock('app_content_library.code_lists_with_text_resources.upload_code_list'),
   );
   const file = new File(['test'], fileNameWithExtension, { type: 'application/json' });
   await user.upload(fileUploaderButton, file);

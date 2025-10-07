@@ -1,8 +1,11 @@
 import React from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen, within } from '@testing-library/react';
-import type { CodeListData, CodeListPageProps } from './CodeListPage';
-import { CodeListPage } from './CodeListPage';
+import type {
+  CodeListData,
+  CodeListsWithTextResourcesPageProps,
+} from './CodeListsWithTextResourcesPage';
+import { CodeListsWithTextResourcesPage } from './CodeListsWithTextResourcesPage';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -21,7 +24,7 @@ const onDeleteCodeList = jest.fn();
 const onUpdateCodeListId = jest.fn();
 const onUpdateCodeList = jest.fn();
 const onUploadCodeList = jest.fn();
-const defaultCodeListPageProps: CodeListPageProps = {
+const defaultCodeListPageProps: CodeListsWithTextResourcesPageProps = {
   codeListDataList,
   onDeleteCodeList,
   onUpdateCodeListId,
@@ -32,33 +35,33 @@ const defaultCodeListPageProps: CodeListPageProps = {
   textResources,
 };
 
-describe('CodeListPage', () => {
+describe('CodeListsWithTextResourcesPage', () => {
   afterEach(jest.clearAllMocks);
 
   it('renders the codeList page heading', () => {
-    renderCodeListPage();
+    renderCodeListsWithTextResourcesPage();
     const codeListHeading = screen.getByRole('heading', {
-      name: textMock('app_content_library.code_lists.page_name'),
+      name: textMock('app_content_library.code_lists_with_text_resources.page_name'),
     });
     expect(codeListHeading).toBeInTheDocument();
   });
 
   it('renders a code list counter message', () => {
-    renderCodeListPage();
+    renderCodeListsWithTextResourcesPage();
     const codeListCounterMessage = screen.getByText(
-      textMock('app_content_library.code_lists.code_lists_count_info_plural'),
+      textMock('app_content_library.code_lists_with_text_resources.code_lists_count_info_plural'),
     );
     expect(codeListCounterMessage).toBeInTheDocument();
   });
 
   it('renders code list actions', () => {
-    renderCodeListPage();
+    renderCodeListsWithTextResourcesPage();
     const codeListSearchField = screen.getByRole('searchbox');
     const codeListCreatButton = screen.getByRole('button', {
-      name: textMock('app_content_library.code_lists.create_new_code_list'),
+      name: textMock('app_content_library.code_lists_with_text_resources.create_new_code_list'),
     });
     const codeListUploadButton = screen.getByRole('button', {
-      name: textMock('app_content_library.code_lists.upload_code_list'),
+      name: textMock('app_content_library.code_lists_with_text_resources.upload_code_list'),
     });
     expect(codeListSearchField).toBeInTheDocument();
     expect(codeListCreatButton).toBeInTheDocument();
@@ -66,13 +69,13 @@ describe('CodeListPage', () => {
   });
 
   it('renders the code list as a clickable element', () => {
-    renderCodeListPage();
+    renderCodeListsWithTextResourcesPage();
     const codeListHeading = getCodeListHeading(codeList1Data.title);
     expect(codeListHeading).toBeInTheDocument();
   });
 
   it('renders the code list details element', () => {
-    renderCodeListPage();
+    renderCodeListsWithTextResourcesPage();
     const codeListDetails = getCodeListDetails(codeList1Data.title);
     expect(codeListDetails).toBeInTheDocument();
   });
@@ -80,7 +83,7 @@ describe('CodeListPage', () => {
   it('renders all code lists when search param matches all lists', async () => {
     const user = userEvent.setup();
     const codeListsSearchParam = 'code';
-    renderCodeListPage();
+    renderCodeListsWithTextResourcesPage();
     const searchInput = screen.getByRole('searchbox');
     await user.type(searchInput, codeListsSearchParam);
     ArrayUtils.mapByKey(codeListDataList, 'title').forEach((codeListTitle) => {
@@ -91,7 +94,7 @@ describe('CodeListPage', () => {
   it('renders the matching code lists when search param limits result', async () => {
     const user = userEvent.setup();
     const codeListsSearchParam = '2';
-    renderCodeListPage();
+    renderCodeListsWithTextResourcesPage();
     const searchInput = screen.getByRole('searchbox');
     await user.type(searchInput, codeListsSearchParam);
     expect(getCodeListHeading(codeList2Data.title)).toBeInTheDocument();
@@ -100,7 +103,7 @@ describe('CodeListPage', () => {
 
   it('opens the new code list details when the user has uploaded a code list', async () => {
     const user = userEvent.setup();
-    const { rerender } = renderCodeListPage();
+    const { rerender } = renderCodeListsWithTextResourcesPage();
     const newCodeListData: CodeListData = {
       title: 'newCodeList',
       data: [{ value: 'value', label: 'label' }],
@@ -111,7 +114,12 @@ describe('CodeListPage', () => {
     ];
 
     await uploadCodeList(user, newCodeListData.title);
-    rerender(<CodeListPage {...defaultCodeListPageProps} codeListDataList={newCodeListDataList} />);
+    rerender(
+      <CodeListsWithTextResourcesPage
+        {...defaultCodeListPageProps}
+        codeListDataList={newCodeListDataList}
+      />,
+    );
 
     const openItem = screen.getByRole('button', { name: newCodeListData.title, expanded: true });
     expect(openItem).toBeInTheDocument();
@@ -119,12 +127,14 @@ describe('CodeListPage', () => {
 
   it('calls onUpdateCodeListId when Id is changed', async () => {
     const user = userEvent.setup();
-    renderCodeListPage();
+    renderCodeListsWithTextResourcesPage();
     const additionalChars = 'abc';
     const idToChange = codeList1Data.title;
 
     const details = getCodeListDetails(idToChange);
-    const idButtonLabel = textMock('app_content_library.code_lists.code_list_edit_id_label');
+    const idButtonLabel = textMock(
+      'app_content_library.code_lists_with_text_resources.code_list_edit_id_label',
+    );
     const codeListIdButton = within(details).getByRole('button', { name: idButtonLabel });
     await user.click(codeListIdButton);
     await user.keyboard(additionalChars);
@@ -138,7 +148,7 @@ describe('CodeListPage', () => {
   it('calls onUpdateCodeList with new code list when code list is changed', async () => {
     const user = userEvent.setup();
     const newValueText = 'newValueText';
-    renderCodeListPage();
+    renderCodeListsWithTextResourcesPage();
     const details = getCodeListDetails(codeList1Data.title);
     const codeListFirstItemValue = within(details).getByRole('textbox', {
       name: textMock('code_list_editor.value_item', { number: 1 }),
@@ -156,7 +166,7 @@ describe('CodeListPage', () => {
 
   it('calls onUploadCodeList with the new code list when the user uploads a code list', async () => {
     const user = userEvent.setup();
-    renderCodeListPage();
+    renderCodeListsWithTextResourcesPage();
     await uploadCodeList(user, 'test');
     expect(onUploadCodeList).toHaveBeenCalledTimes(1);
     expect(onUploadCodeList).toHaveBeenCalledWith(expect.any(Object));
@@ -164,7 +174,7 @@ describe('CodeListPage', () => {
 
   it('Renders with text resources in the input fields when given', async () => {
     const user = userEvent.setup();
-    renderCodeListPage({ textResources, codeListDataList: codeListDataList });
+    renderCodeListsWithTextResourcesPage({ textResources, codeListDataList: codeListDataList });
     const labelField = await openAndGetFirstLabelField(user, codeList1Data.title);
     expect(labelField).toHaveValue(label1ResourceNb.value);
   });
@@ -174,7 +184,11 @@ describe('CodeListPage', () => {
     const onUpdateTextResource = jest.fn();
     const newLabel = 'Ny ledetekst';
 
-    renderCodeListPage({ textResources, codeListDataList: codeListDataList, onUpdateTextResource });
+    renderCodeListsWithTextResourcesPage({
+      textResources,
+      codeListDataList: codeListDataList,
+      onUpdateTextResource,
+    });
     const labelField = await openAndGetFirstLabelField(user, codeList1Data.title);
     await user.type(labelField, newLabel);
     await user.tab();
@@ -193,7 +207,11 @@ describe('CodeListPage', () => {
     const onCreateTextResource = jest.fn();
     const newDescription = 'Ny beskrivelse';
 
-    renderCodeListPage({ textResources, codeListDataList: codeListDataList, onCreateTextResource });
+    renderCodeListsWithTextResourcesPage({
+      textResources,
+      codeListDataList: codeListDataList,
+      onCreateTextResource,
+    });
     const emptyDescriptionField = await openAndGetFirstDescriptionField(user, codeList2Data.title);
     await user.type(emptyDescriptionField, newDescription);
     await user.tab();
@@ -210,7 +228,7 @@ describe('CodeListPage', () => {
   it('Renders with text resources in the input fields of the create dialog when given', async () => {
     const user = userEvent.setup();
 
-    renderCodeListPage({ textResources });
+    renderCodeListsWithTextResourcesPage({ textResources });
     const dialog = await openCreateDialog(user);
     await addCodeListItem(user, dialog);
     await openSearchModeForFirstLabel(user, dialog);
@@ -224,7 +242,7 @@ describe('CodeListPage', () => {
     const onUpdateTextResource = jest.fn();
     const newLabel = 'Ny ledetekst';
 
-    renderCodeListPage({ textResources, onUpdateTextResource });
+    renderCodeListsWithTextResourcesPage({ textResources, onUpdateTextResource });
     const dialog = await openCreateDialog(user);
     await addCodeListItem(user, dialog);
     await openSearchModeForFirstLabel(user, dialog);
@@ -248,7 +266,7 @@ describe('CodeListPage', () => {
     const onCreateTextResource = jest.fn();
     const newLabel = 'Ny ledetekst';
 
-    renderCodeListPage({ textResources, onCreateTextResource });
+    renderCodeListsWithTextResourcesPage({ textResources, onCreateTextResource });
     const dialog = await openCreateDialog(user);
     await addCodeListItem(user, dialog);
     await user.type(getFirstLabelField(dialog), newLabel);
@@ -264,21 +282,25 @@ describe('CodeListPage', () => {
   });
 
   it('renders an info box when no code lists are passed', () => {
-    renderCodeListPage({ codeListDataList: [] });
-    const alert = screen.getByText(textMock('app_content_library.code_lists.info_box.title'));
+    renderCodeListsWithTextResourcesPage({ codeListDataList: [] });
+    const alert = screen.getByText(
+      textMock('app_content_library.code_lists_with_text_resources.info_box.title'),
+    );
     expect(alert).toBeInTheDocument();
   });
 
   it('does not render an info box when code lists are passed', () => {
-    renderCodeListPage();
-    const alert = screen.queryByText(textMock('app_content_library.code_lists.info_box.title'));
+    renderCodeListsWithTextResourcesPage();
+    const alert = screen.queryByText(
+      textMock('app_content_library.code_lists_with_text_resources.info_box.title'),
+    );
     expect(alert).not.toBeInTheDocument();
   });
 });
 
 const uploadCodeList = async (user: UserEvent, fileName: string): Promise<void> => {
   const fileUploaderButton = screen.getByLabelText(
-    textMock('app_content_library.code_lists.upload_code_list'),
+    textMock('app_content_library.code_lists_with_text_resources.upload_code_list'),
   );
   const file = new File(['test'], `${fileName}.json`, { type: 'application/json' });
   await user.upload(fileUploaderButton, file);
@@ -324,11 +346,15 @@ const getCodeListHeading = (codeListTitle: string): HTMLElement =>
 const queryCodeListHeading = (codeListTitle: string): HTMLElement =>
   screen.queryByRole('button', { name: codeListTitle });
 
-const renderCodeListPage = (props: Partial<CodeListPageProps> = {}): RenderResult =>
-  render(<CodeListPage {...defaultCodeListPageProps} {...props} />);
+const renderCodeListsWithTextResourcesPage = (
+  props: Partial<CodeListsWithTextResourcesPageProps> = {},
+): RenderResult =>
+  render(<CodeListsWithTextResourcesPage {...defaultCodeListPageProps} {...props} />);
 
 const openCreateDialog = async (user: UserEvent): Promise<HTMLElement> => {
-  const createButtonLabel = textMock('app_content_library.code_lists.create_new_code_list');
+  const createButtonLabel = textMock(
+    'app_content_library.code_lists_with_text_resources.create_new_code_list',
+  );
   await user.click(screen.getByRole('button', { name: createButtonLabel }));
   return screen.getByRole('dialog');
 };

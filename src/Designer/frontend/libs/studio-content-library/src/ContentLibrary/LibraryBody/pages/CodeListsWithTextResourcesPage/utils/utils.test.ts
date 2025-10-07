@@ -7,7 +7,7 @@ import {
   getUsageTaskTypeTextKey,
   getTextResourcesForLanguage,
 } from './';
-import type { CodeListData } from '../CodeListPage';
+import type { CodeListData } from '../CodeListsWithTextResourcesPage';
 import {
   label1ResourceNb,
   textResources,
@@ -113,12 +113,16 @@ describe('utils', () => {
   describe('getUsageTaskTypeTextKey', () => {
     it('returns correct text key for Data task type', () => {
       const result = getUsageTaskTypeTextKey(CodeListUsageTaskType.Data);
-      expect(result).toBe('app_content_library.code_lists.code_list_usage_table_task_type_data');
+      expect(result).toBe(
+        'app_content_library.code_lists_with_text_resources.code_list_usage_table_task_type_data',
+      );
     });
 
     it('returns correct text key for Signing task type', () => {
       const result = getUsageTaskTypeTextKey(CodeListUsageTaskType.Signing);
-      expect(result).toBe('app_content_library.code_lists.code_list_usage_table_task_type_signing');
+      expect(result).toBe(
+        'app_content_library.code_lists_with_text_resources.code_list_usage_table_task_type_signing',
+      );
     });
 
     it('falls back to input string when given parameter does not match a valid task type', () => {
