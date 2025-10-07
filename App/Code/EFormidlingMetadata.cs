@@ -57,7 +57,7 @@ public class EFormidlingMetadata : IEFormidlingMetadata
                                 Variantformat = "Produksjonsformat",
                                 OpprettetDato = DateTime.UtcNow,
                                 OpprettetAv = "LandLord",
-                                ReferanseDokumentfil = "skjema.xml",
+                                ReferanseDokumentfil = "model.xml",
                             },
                         },
                         Tittel = "Nye lysrør",
