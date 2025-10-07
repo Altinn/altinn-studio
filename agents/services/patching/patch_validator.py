@@ -66,13 +66,12 @@ class PatchValidator:
                 }
             }
             
-            # Call layout validator
+            # Call schema validator
             raw_result = await self.mcp_client.call_tool(
-                'layout_validator_tool',
+                'schema_validator_tool',
                 {
-                    'layout_json': json.dumps(wrapped_component),
-                    'existing_layout_path': str(Path(self.repository_path) / change.get('file')),
-                    'repo_path': self.repository_path
+                    'json_obj': json.dumps(wrapped_component),
+                    'schema_path': "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json"
                 }
             )
             
@@ -191,3 +190,96 @@ class PatchValidator:
             log.debug(f"Resource validation skipped: {e}")
         
         return errors, warnings
+
+
+def validate_non_empty_patch(patch: dict) -> None:
+    """
+    Validate that patch contains actual changes and isn't empty.
+    
+    Args:
+        patch: Patch dictionary from MCP
+        
+    Raises:
+        Exception: If patch is empty or contains no meaningful changes
+    """
+    if not patch:
+        raise Exception("NO_CHANGES_APPLIED: Patch is null or empty")
+    
+    changes = patch.get("changes", [])
+    if not changes:
+        raise Exception("NO_CHANGES_APPLIED: Patch contains no changes")
+    
+    # Count meaningful changes (not just metadata)
+    meaningful_changes = 0
+    for change in changes:
+        # Check if change has actual content
+        if (change.get("value") is not None or 
+            change.get("text") is not None or
+            change.get("item") is not None):
+            meaningful_changes += 1
+    
+    if meaningful_changes == 0:
+        raise Exception("NO_CHANGES_APPLIED: Patch contains no meaningful changes")
+    
+    log.info(f"Patch validation passed: {meaningful_changes} meaningful changes found")
+
+
+def validate_applied_diff_count(changed_files: list, repo_path: str) -> None:
+    """
+    Validate that applied changes resulted in actual file modifications.
+    
+    Args:
+        changed_files: List of files that were supposedly changed
+        repo_path: Repository path for git operations
+        
+    Raises:
+        Exception: If no actual changes were applied
+    """
+    if not changed_files:
+        raise Exception("NO_CHANGES_APPLIED: No files were modified")
+    
+    # Check git diff to see if there are actual changes
+    import subprocess
+    try:
+        result = subprocess.run(
+            ["git", "diff", "--name-only"],
+            cwd=repo_path,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        
+        actual_changed_files = [f.strip() for f in result.stdout.split('\n') if f.strip()]
+        
+        if not actual_changed_files:
+            raise Exception("NO_CHANGES_APPLIED: No file modifications detected by git")
+        
+        # Count lines changed
+        diff_result = subprocess.run(
+            ["git", "diff", "--numstat"],
+            cwd=repo_path,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        
+        total_lines_changed = 0
+        for line in diff_result.stdout.split('\n'):
+            if line.strip():
+                parts = line.split('\t')
+                if len(parts) >= 2:
+                    try:
+                        added = int(parts[0]) if parts[0] != '-' else 0
+                        deleted = int(parts[1]) if parts[1] != '-' else 0
+                        total_lines_changed += added + deleted
+                    except ValueError:
+                        pass  # Skip binary files or other formats
+        
+        if total_lines_changed == 0:
+            raise Exception("NO_CHANGES_APPLIED: No line changes detected in git diff")
+        
+        log.info(f"Applied diff validation passed: {len(actual_changed_files)} files, {total_lines_changed} lines changed")
+        
+    except subprocess.CalledProcessError as e:
+        log.warning(f"Git diff check failed: {e}")
+        # Don't fail the validation if git isn't available

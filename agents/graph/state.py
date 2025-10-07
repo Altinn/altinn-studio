@@ -5,9 +5,17 @@ class AgentState(BaseModel):
     session_id: str
     user_goal: str
     repo_path: str
-    step_plan: List[str] = []
+    general_plan: Optional[Dict[str, Any]] = None  # Goal-centric high level plan (LLM only)
+    tool_plan: Optional[List[Dict[str, Any]]] = None  # Ordered list of tools to execute
+    tool_results: Optional[List[Dict[str, Any]]] = None  # Outputs from executed tools
+    implementation_plan: Optional[Dict[str, Any]] = None  # Detailed plan from planning tool
+    repo_facts: Optional[Dict[str, Any]] = None  # Repository facts from scanning
+    planning_guidance: Optional[str] = None  # Legacy field (will be replaced by implementation_plan)
+    patch_data: Optional[Dict[str, Any]] = None  # Generated patch data
+    step_plan: List[str] = []  # Legacy field, kept for compatibility
+    plan_step: Optional[Any] = None  # Validated structured plan (avoid forward ref)
     changed_files: List[str] = []
     verify_notes: List[str] = []
     tests_passed: Optional[bool] = None
-    next_action: Literal["plan", "act", "verify", "review", "stop"] = "plan"
+    next_action: Literal["plan", "scan", "act", "verify", "review", "stop"] = "plan"
     limits: Dict[str, Any] = {"max_files": 50, "max_lines": 2000}  # Altinn apps need multiple files (layout, resources, models)

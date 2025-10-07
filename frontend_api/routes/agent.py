@@ -3,8 +3,8 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from agents.graph.state import AgentState
 from agents.graph.runner import run_in_background
-from agents.services.jobs import sink
-from agents.services.intent_parser import parse_intent_async, suggest_goal_correction
+from agents.services.events import sink
+from agents.services.llm import parse_intent_async, ParsedIntent, IntentParsingError, suggest_goal_correction
 from frontend_api.apps.manager import AppManager
 from shared.config import get_config
 from shared.utils.logging_utils import get_logger

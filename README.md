@@ -14,77 +14,102 @@ An intelligent AI agent system that makes sophisticated code changes to Altinn S
 ## Quick Start
 
 1. **Install dependencies:**
+
 ```bash
 pip install -r requirements.txt
 ```
 
 2. **Configure environment:**
+
 ```bash
 cp .env.example .env
 # Edit .env with your API keys and paths
 ```
 
 3. **Start the Altinity MCP Server** (required background service):
+
 ```bash
 # In a separate terminal, follow instructions at:
 # https://github.com/Simenwai/altinity-mcp
 ```
 
 4. **Start Altinity:**
+
 ```bash
 python -m uvicorn frontend_api.main:app --host 0.0.0.0 --port 8071 --reload
 ```
 
 ## How It Works
 
-Altinity uses a **5-node LangGraph workflow** where specialized AI agents collaborate:
+Altinity uses a **modular 5-stage LangGraph workflow** where specialized AI agents collaborate through focused workflow pipelines:
 
-1. **Intake** - Analyzes your goal and repository structure
-2. **Planner** - Creates detailed implementation plan  
-3. **Actor** - Generates precise code changes using MCP tools
-4. **Verifier** - Validates changes for safety and correctness
-5. **Reviewer** - Makes final commit/revert decision
+1. **Intake** (`agents/workflows/intake/`) - Parses user goals and validates safety/intent
+2. **Planner** (`agents/graph/nodes/planner_node.py`) - Creates detailed implementation plans with tool selection
+3. **Actor** (`agents/workflows/actor/`) - Generates precise code changes using MCP tools and applies them
+4. **Verifier** (`agents/workflows/verifier/`) - Validates changes through MCP verification tools and contract checking
+5. **Reviewer** (`agents/workflows/reviewer/`) - Runs final tests and commits changes to session-based git branches
+
+Each stage delegates to focused workflow modules under `agents/workflows/` for maintainable, testable code. Shared utilities are centralized in `agents/workflows/shared/utils.py`.
+
+**Git Workflow:** Each session creates a dedicated feature branch (e.g., `altinity_session_abc12345`) where all changes for that session are committed. This ensures clean separation between different user requests while maintaining atomic commits.
 
 All operations are **atomic** - either all changes succeed or everything is rolled back.
 
 ## API Reference
 
 ### Start Agent Workflow
+
 ```bash
 POST /api/agent/start
 ```
 
 **Request:**
+
 ```json
 {
   "session_id": "unique-session-id",
-  "repo_path": "/absolute/path/to/altinn/app", 
   "goal": "Add a numeric field 'totalWeight' to layout main bound to model.calculation.weight"
 }
 ```
 
 **Response (Success):**
+
 ```json
 {
-  "message": "Agent workflow started successfully",
+  "accepted": true,
   "session_id": "unique-session-id",
+  "message": "Agent workflow started",
+  "app_name": "MyAltinnApp",
   "parsed_intent": {
     "action": "add",
     "component": "field",
+    "target": "totalWeight",
     "confidence": 0.85,
-    "safe": true
+    "details": "numeric input field with validation"
   }
 }
 ```
 
-**Response (Rejected):**
+**Response (Rejected - Unsafe):**
+
 ```json
 {
   "detail": {
-    "message": "Goal rejected: Too ambiguous",
+    "message": "Goal rejected: Contains potentially dangerous keyword: delete",
+    "suggestions": ["Add a text field 'customerName' to layout main", "Modify the existing 'amount' field validation"]
+  }
+}
+```
+
+**Response (Rejected - Unclear):**
+
+```json
+{
+  "detail": {
+    "message": "Goal is too unclear or ambiguous",
     "suggestions": [
-      "Add a text field 'customerName' to layout main",
-      "Add a numeric field 'totalAmount' bound to model.amount"
+      "Add a numeric field 'totalAmount' bound to model.amount",
+      "Add validation to the existing amount field"
     ]
   }
 }
@@ -92,17 +117,17 @@ POST /api/agent/start
 
 ### Other Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/apps/list` | List available Altinn apps |
-| `POST` | `/apps/select` | Select an app for operations |
-| `GET` | `/api/files` | List files in current app |
-| `GET` | `/api/files/content` | Get file content |
-| `GET` | `/api/git/status` | Get git status |
-| `POST` | `/api/git/commit` | Create commit |
-| `GET` | `/apps/{app}/preview` | Preview Altinn app in browser |
-| `GET` | `/health` | Health check |
-| `WS` | `/ws` | WebSocket for real-time events |
+| Method | Endpoint              | Description                    |
+| ------ | --------------------- | ------------------------------ |
+| `GET`  | `/apps/list`          | List available Altinn apps     |
+| `POST` | `/apps/select`        | Select an app for operations   |
+| `GET`  | `/api/files`          | List files in current app      |
+| `GET`  | `/api/files/content`  | Get file content               |
+| `GET`  | `/api/git/status`     | Get git status                 |
+| `POST` | `/api/git/commit`     | Create commit                  |
+| `GET`  | `/apps/{app}/preview` | Preview Altinn app in browser  |
+| `GET`  | `/health`             | Health check                   |
+| `WS`   | `/ws`                 | WebSocket for real-time events |
 
 ## Frontend Integration
 
@@ -114,56 +139,60 @@ const ws = new WebSocket('ws://localhost:8071/ws');
 
 // Register for events from your workflow session
 ws.onopen = () => {
-  ws.send(JSON.stringify({
-    type: 'session',
-    session_id: 'your-session-id'
-  }));
+  ws.send(
+    JSON.stringify({
+      type: 'session',
+      session_id: 'your-session-id',
+    })
+  );
 };
 
 // Handle workflow events
 ws.onmessage = (event) => {
   const agentEvent = JSON.parse(event.data);
-  
+
   switch (agentEvent.type) {
     case 'plan_proposed':
-      // Show the agent's plan to user
-      displayPlan(agentEvent.data.step);
+      // Show the agent's implementation plan
+      displayPlan(agentEvent.data.plan);
       break;
-      
+
     case 'patch_preview':
       // Show what files will be changed
       showChanges({
         files: agentEvent.data.files,
-        diff: agentEvent.data.diff
+        changes: agentEvent.data.changes,
       });
       break;
-      
+
     case 'verified':
       // Show verification results
       showVerification({
         passed: agentEvent.data.passed,
-        notes: agentEvent.data.notes
+        issues: agentEvent.data.issues,
       });
       break;
-      
-    case 'committed':
+
+    case 'commit_done':
       // Changes were successfully committed
       showSuccess({
-        hash: agentEvent.data.hash,
-        message: agentEvent.data.commit_message
+        branch: agentEvent.data.branch,
+        commit: agentEvent.data.commit,
+        reasoning: agentEvent.data.reasoning,
       });
       break;
-      
+
     case 'reverted':
       // Changes were rolled back
       showRollback(agentEvent.data.reason);
       break;
-      
+
     case 'status':
       // Final workflow status
       handleComplete({
         success: agentEvent.data.success,
-        status: agentEvent.data.status
+        status: agentEvent.data.status,
+        message: agentEvent.data.message,
       });
       break;
   }
@@ -195,22 +224,26 @@ MLFLOW_TRACKING_URI=http://localhost:5000
 
 ## Safety Features
 
-- **Intent Validation** - Dangerous keywords are blocked before processing
-- **Multi-layer Verification** - Syntax, business rules, and integration checks
-- **Automatic Rollback** - Failed changes are automatically reverted
-- **Atomic Operations** - All-or-nothing approach to changes
-- **Git Integration** - All changes are tracked and reversible
+- **Intent Validation** - Dangerous keywords are blocked before processing with contextual suggestions
+- **Multi-layer Verification** - Syntax, business rules, contract validation, and MCP-based verification tools
+- **Branch Safety** - Prevents accidental commits to master/main branches with session-based feature branches
+- **Automatic Rollback** - Failed changes are automatically reverted with detailed error reporting
+- **Atomic Operations** - All-or-nothing approach to changes with comprehensive validation
+- **Git Integration** - All changes tracked with session-based branches and reversible commits
+- **MCP Verification** - Real-time validation using Altinn Studio-specific tools
 
 ## Dependencies
 
 The system requires the **[Altinity MCP Server](https://github.com/Simenwai/altinity-mcp)** to be running as a background service. This provides Altinn Studio-specific tools and knowledge that the AI agents use to generate proper code changes.
 
 **Core Dependencies:**
+
 - FastAPI - Web framework
 - LangGraph - Agent workflow orchestration
 - LangChain - LLM integration
 - MLflow - Observability and tracking
 - GitPython - Git operations
+- MCP Client - Altinn Studio tool integration
 
 ## Project Structure
 
@@ -220,11 +253,26 @@ altinity-agents/
 │   ├── routes/            # API endpoints
 │   └── main.py           # Application entry point
 ├── agents/               # AI agent system
-│   ├── graph/            # LangGraph workflow
-│   ├── services/         # Core services (LLM, MCP, Git)
-│   └── system_prompts/   # Agent instructions
+│   ├── graph/            # LangGraph workflow nodes
+│   │   ├── nodes/        # Individual workflow nodes
+│   │   └── runner.py     # Workflow orchestration
+│   ├── services/         # Modular service architecture
+│   │   ├── mcp/          # MCP client & verification tools
+│   │   ├── git/          # Git operations & safety
+│   │   ├── repo/         # Repository scanning & anchor resolution
+│   │   ├── patching/     # Patch validation & normalization
+│   │   ├── validation/   # Contract & runtime validation
+│   │   ├── llm/          # LLM client & intent parsing
+│   │   ├── events/       # Event handling & job management
+│   │   └── telemetry/    # MLflow & observability
+│   └── workflows/        # Pipeline-based workflow stages
+│       ├── intake/       # Goal parsing & safety validation
+│       ├── actor/        # Code generation pipeline
+│       ├── verifier/     # Multi-layer validation pipeline
+│       ├── reviewer/     # Final testing & commit pipeline
+│       └── shared/       # Cross-workflow utilities
 └── shared/              # Common utilities
     ├── config/          # Configuration management
     ├── models/          # Data models
-    └── utils/           # Logging, MLflow, utilities
+    └── utils/           # Logging, utilities
 ```

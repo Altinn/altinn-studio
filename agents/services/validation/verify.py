@@ -94,3 +94,8 @@ def check_resources(resource_file: Path) -> bool:
 
     except (json.JSONDecodeError, IOError):
         return False
+
+
+def run_checks(repo_path: str, changed_files: List[str]) -> dict:
+    """Alias for run_all to maintain compatibility"""
+    return run_all(repo_path, changed_files)

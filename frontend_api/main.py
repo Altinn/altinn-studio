@@ -69,7 +69,7 @@ app.include_router(agent_router)
 async def startup_event():
     """Set up the main event loop for async event handling"""
     import asyncio
-    from agents.services.jobs import sink
+    from agents.services.events import sink
     loop = asyncio.get_running_loop()
     sink.set_main_loop(loop)
     logger.info("Event sink configured with main event loop")

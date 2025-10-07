@@ -64,6 +64,7 @@ def normalize_patch_structure(patch_data: dict) -> dict:
             patch_data['changes'] = normalized_changes
             log.info(f"Normalized nested patch structure to flat format: {len(normalized_files)} files, {len(normalized_changes)} changes")
         
+        #TODO: This is weird, what is a GPT-5 format? Figure out what this is
         # Format 2: GPT-5 format with full file content
         elif 'content' in first_file or 'file' in first_file:
             file_content_map = {}
@@ -117,7 +118,7 @@ def normalize_patch_structure(patch_data: dict) -> dict:
                 change['resource_value'] = content.get('value')
                 log.info(f"Normalized add_resource: content dict -> fields")
             
-            # Format 3: {"details": {"id": "x", "value": "y"}} (GPT-5 format)
+            # Format 3: {"details": {"id": "x", "value": "y"}} (GPT-5 format) # TODO: vibe coding🤘🏻
             elif 'details' in change and isinstance(change['details'], dict):
                 details = change.pop('details')
                 change['resource_id'] = details.get('id')

@@ -283,12 +283,15 @@ def apply(patch: dict, repo_path: str = None):
             traceback.print_exc()
             raise
 
-def commit(message: str, repo_path: str = None) -> str:
+def commit(message: str, repo_path: str = None, branch_name: str = None) -> str:
     """Create branch if missing and commit, return hash"""
     try:
-        # Create feature branch with timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-        branch_name = f"altinity_feature_{timestamp}"
+        # Use provided branch name or create feature branch with timestamp
+        if branch_name:
+            target_branch = branch_name
+        else:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+            target_branch = f"altinity_feature_{timestamp}"
 
         # Work in the target repository directory
         cwd = repo_path if repo_path else None
@@ -301,12 +304,16 @@ def commit(message: str, repo_path: str = None) -> str:
                 cwd=cwd
             ).strip()
 
-            if current_branch != branch_name:
-                # Create and switch to feature branch
-                subprocess.run(["git", "checkout", "-b", branch_name], check=True, cwd=cwd)
+            if current_branch != target_branch:
+                # Create and switch to feature branch if it doesn't exist
+                try:
+                    subprocess.run(["git", "checkout", target_branch], check=True, cwd=cwd)
+                except subprocess.CalledProcessError:
+                    # Branch doesn't exist, create it
+                    subprocess.run(["git", "checkout", "-b", target_branch], check=True, cwd=cwd)
         except subprocess.CalledProcessError:
             # Create branch
-            subprocess.run(["git", "checkout", "-b", branch_name], check=True, cwd=cwd)
+            subprocess.run(["git", "checkout", "-b", target_branch], check=True, cwd=cwd)
 
         # Stage all changes
         subprocess.run(["git", "add", "."], check=True, cwd=cwd)
@@ -531,3 +538,80 @@ def find_and_replace_in_resources(repo_path: str, old_value: str, new_value: str
 
     except Exception as e:
         return {"error": f"Resource replacement failed: {e}"}
+
+
+def cleanup_feature_branch(repo_path: str, feature_branch: str, base: str = "main", allow_branch_cleanup: bool = True) -> Dict[str, Any]:
+    """
+    Clean up feature branch on failure or zero-diff scenarios.
+    
+    Args:
+        repo_path: Repository root path
+        feature_branch: Name of feature branch to clean up
+        base: Base branch to switch back to (default: "main")
+        allow_branch_cleanup: Safety flag to enable cleanup
+        
+    Returns:
+        Dictionary with cleanup status
+    """
+    if not allow_branch_cleanup:
+        return {
+            "cleaned_up": False,
+            "reason": "branch_cleanup_disabled",
+            "message": f"Branch cleanup disabled, {feature_branch} left intact"
+        }
+    
+    try:
+        # Get current branch
+        current_result = subprocess.run(
+            ["git", "branch", "--show-current"],
+            cwd=repo_path,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        current_branch = current_result.stdout.strip()
+        
+        # Don't clean up if we're not on the feature branch
+        if current_branch != feature_branch:
+            return {
+                "cleaned_up": False,
+                "reason": "not_on_feature_branch",
+                "message": f"Currently on {current_branch}, not {feature_branch}"
+            }
+        
+        # Switch to base branch
+        subprocess.run(
+            ["git", "checkout", base],
+            cwd=repo_path,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        
+        # Delete the feature branch
+        subprocess.run(
+            ["git", "branch", "-D", feature_branch],
+            cwd=repo_path,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        
+        return {
+            "cleaned_up": True,
+            "feature_branch": feature_branch,
+            "base_branch": base,
+            "message": f"Feature branch {feature_branch} deleted, switched to {base}"
+        }
+        
+    except subprocess.CalledProcessError as e:
+        return {
+            "cleaned_up": False,
+            "error": f"Git cleanup failed: {e}",
+            "stderr": e.stderr if hasattr(e, 'stderr') else str(e)
+        }
+    except Exception as e:
+        return {
+            "cleaned_up": False,
+            "error": f"Cleanup failed: {e}"
+        }

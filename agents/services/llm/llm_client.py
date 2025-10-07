@@ -184,7 +184,7 @@ def get_llm_client(role: str = "default") -> LLMClient:
 
 async def parse_intent_with_llm(goal: str) -> Dict[str, Any]:
     """Parse user intent using LLM"""
-
+# TODO: Move this to system_prompts
     system_prompt = """You are an intent parser for Altinn app development goals.
 Parse the user's goal into structured intent information.
 
@@ -235,7 +235,7 @@ Examples:
 
 def suggest_goals_with_llm(unclear_goal: str) -> list[str]:
     """Generate goal suggestions using LLM"""
-
+# TODO: Move this to system_prompts
     system_prompt = """Generate 2-3 clear, safe goal examples for Altinn app development based on the unclear goal.
 
 Focus on common Altinn operations:

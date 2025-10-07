@@ -1,19 +1,22 @@
 """LangGraph runner for agent workflow"""
 from langgraph.graph import StateGraph, END
 from .state import AgentState
-from .llm_nodes import intake_llm, planner_llm, actor_llm, verifier_llm, reviewer_llm
-from agents.services.events import AgentEvent
-from agents.services.jobs import EventSink, sink
+from .nodes.intake_node import handle as intake_node
+from .nodes.planner_node import handle as planner_node
+from .nodes.actor_node import handle as actor_node
+from .nodes.verifier_node import handle as verifier_node
+from .nodes.reviewer_node import handle as reviewer_node
+from agents.services.events import AgentEvent, EventSink, sink
 import asyncio
 
 def build_graph():
     """Build the LangGraph workflow with LLM-powered nodes"""
     g = StateGraph(AgentState)
-    g.add_node("intake", intake_llm)
-    g.add_node("planner", planner_llm)
-    g.add_node("actor", actor_llm)
-    g.add_node("verifier", verifier_llm)
-    g.add_node("reviewer", reviewer_llm)
+    g.add_node("intake", intake_node)
+    g.add_node("planner", planner_node)
+    g.add_node("actor", actor_node)
+    g.add_node("verifier", verifier_node)
+    g.add_node("reviewer", reviewer_node)
     g.set_entry_point("intake")
     g.add_edge("intake", "planner")
     g.add_edge("planner", "actor")

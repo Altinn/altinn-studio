@@ -1,0 +1,241 @@
+"""Actor node implementation leveraging MCP pipeline output."""
+
+from __future__ import annotations
+
+from typing import Optional
+
+from agents.graph.state import AgentState
+from agents.services.git import git_ops
+from agents.services.events import AgentEvent
+from agents.services.events import sink
+from agents.workflows.actor.pipeline import run_actor_pipeline
+from shared.utils.logging_utils import get_logger
+
+log = get_logger(__name__)
+
+
+async def handle(state: AgentState) -> AgentState:
+    """Execute the complete actor workflow pipeline and apply the resulting patch."""
+
+    log.info("🎭 Actor node executing")
+    try:
+        # Check if we already have patch data from planner
+        if state.patch_data:
+            log.info(f"🎯 Actor using planner's patch data with {len(state.patch_data.get('changes', []))} changes")
+            patch_data = state.patch_data
+        else:
+            log.info("🔄 Actor generating new patch (fallback mode)")
+            # Fallback: generate patch if not provided (legacy behavior)
+            from agents.services.mcp import get_mcp_client
+
+            client = get_mcp_client()
+
+            # Run the actor pipeline to get patch data
+            result = await run_actor_pipeline(
+                mcp_client=client,
+                repository_path=state.repo_path,
+                user_goal=state.user_goal,
+                repo_facts=state.repo_facts or {},
+                planner_step=state.implementation_plan or state.step_plan[0] if state.step_plan else None,
+            )
+            patch_data = result["patch"]
+
+        # Normalize patch data format (convert 'op' to 'operation' for git_ops compatibility)
+        normalized_patch_data = {
+            "files": patch_data.get("files", []),
+            "changes": []
+        }
+        
+        def normalize_component_id(component_id: str) -> str:
+            """Normalize component ID to valid Altinn pattern."""
+            if not component_id:
+                return component_id
+            
+            # Convert to lowercase and replace invalid characters
+            normalized = component_id.lower()
+            normalized = ''.join(c if c.isalnum() or c == '-' else '-' for c in normalized)
+            
+            # Ensure it starts with alphanumeric
+            if normalized and not normalized[0].isalnum():
+                normalized = 'field' + normalized
+            
+            # Ensure it follows a valid pattern - let's use 'field-{name}' format
+            if '-' not in normalized:
+                # If no hyphens, add 'field-' prefix
+                normalized = f"field-{normalized}"
+            
+            # Remove multiple consecutive hyphens
+            while '--' in normalized:
+                normalized = normalized.replace('--', '-')
+            
+            # Remove trailing hyphens
+            normalized = normalized.rstrip('-')
+            
+            return normalized
+        
+        for change in patch_data.get("changes", []):
+            normalized_change = change.copy()
+            if "op" in normalized_change and "operation" not in normalized_change:
+                normalized_change["operation"] = normalized_change.pop("op")
+            # Also normalize 'value' to 'item' for JSON array operations
+            if normalized_change.get("operation") == "insert_json_array_item" and "value" in normalized_change and "item" not in normalized_change:
+                item = normalized_change.pop("value")
+                
+                file_path = normalized_change.get("file", "")
+                
+                # Check if this is a layout file (contains form components)
+                is_layout_file = "layout" in file_path and file_path.endswith(".json")
+                
+                # Check if this is a resource file
+                is_resource_file = "resource" in file_path and file_path.endswith(".json")
+                
+                # Normalize component properties for layout files
+                if is_layout_file and isinstance(item, dict):
+                    # Fix component ID to match Altinn pattern
+                    if "id" in item:
+                        original_id = item["id"]
+                        item["id"] = normalize_component_id(original_id)
+                    
+                    # Update text resource binding to match new ID
+                    if "textResourceBindings" in item and "title" in item["textResourceBindings"]:
+                        item["textResourceBindings"]["title"] = f"{item['id']}.title"
+                    
+                    # BE CONSERVATIVE: Only remove properties we know are invalid
+                    # Don't add properties since schema loading is broken
+                    # Let the validation phase catch any remaining issues
+                        
+                # Also normalize text resource insertions
+                elif is_resource_file and isinstance(item, dict) and "id" in item:
+                    # Update text resource ID to match component
+                    original_resource_id = item["id"]
+                    if ".title" in original_resource_id:
+                        # Extract base ID and normalize it
+                        base_id = original_resource_id.replace(".title", "")
+                        normalized_base = normalize_component_id(base_id)
+                        item["id"] = f"{normalized_base}.title"
+                        
+                normalized_change["item"] = item
+            normalized_patch_data["changes"].append(normalized_change)
+
+        # Apply safety checks and preview
+        git_ops.enforce_caps(normalized_patch_data, state.limits)
+        preview = git_ops.preview(normalized_patch_data)
+
+        sink.send(
+            AgentEvent(
+                type="patch_preview",
+                session_id=state.session_id,
+                data={
+                    "files": preview["files"],
+                    "diff": preview["diff_preview"],
+                    "file_count": preview["file_count"],
+                },
+            )
+        )
+
+        # Validate patch operations before applying
+        from agents.workflows.actor.pipeline import validate_patch_operations
+        validation_errors = validate_patch_operations(patch_data, state.repo_facts or {}, state.repo_path)
+        if validation_errors:
+            log.warning(f"🚨 Patch validation found {len(validation_errors)} issues:")
+            for error in validation_errors:
+                log.warning(f"  - {error}")
+        else:
+            log.info("✅ Patch validation passed")
+
+        log.info(f"🔧 Applying patch with {len(normalized_patch_data.get('changes', []))} changes to {len(normalized_patch_data.get('files', []))} files")
+        git_ops.apply(normalized_patch_data, state.repo_path)
+        
+        # Check for Source of Truth files that need sync
+        modified_sot_files = []
+        for change in normalized_patch_data.get("changes", []):
+            file_path = change.get("file", "")
+            if file_path.endswith(".schema.json"):
+                modified_sot_files.append(file_path)
+        
+        # Sync artifacts if Source of Truth files were modified
+        if modified_sot_files:
+            log.info(f"🔄 Source of Truth files modified: {modified_sot_files}")
+            try:
+                from agents.services.mcp import get_mcp_client
+                from agents.services.patching.actor_sync import _sync_single_file
+                
+                mcp_client = get_mcp_client()
+                
+                log.info("🔄 Starting artifact sync...")
+                all_sync_results = []
+                
+                for sot_file in modified_sot_files:
+                    try:
+                        sync_result = await _sync_single_file(
+                            sot_file=sot_file,
+                            repo_path=state.repo_path,
+                            mcp_client=mcp_client,
+                            check_only=False
+                        )
+                        all_sync_results.append(sync_result)
+                        log.info(f"✅ Synced {sot_file}: {sync_result.get('status', 'unknown')}")
+                        
+                    except Exception as e:
+                        log.error(f"❌ Failed to sync {sot_file}: {e}")
+                        all_sync_results.append({
+                            "file": sot_file,
+                            "status": "error", 
+                            "error": str(e)
+                        })
+                
+                log.info(f"✅ Artifact sync completed for {len(modified_sot_files)} files")
+                
+            except Exception as e:
+                log.error(f"❌ Artifact sync failed: {e}")
+                # Don't fail the entire workflow for sync issues
+        
+        # Check what actually changed
+        import subprocess
+        try:
+            git_result = subprocess.run(["git", "status", "--porcelain"], cwd=state.repo_path, capture_output=True, text=True)
+            changed_files = [line for line in git_result.stdout.strip().split('\n') if line.strip()]
+            log.info(f"📊 Git status after patch: {len(changed_files)} files changed")
+            if changed_files:
+                for change in changed_files[:5]:  # Show first 5
+                    log.info(f"  {change}")
+            else:
+                log.warning("⚠️  No files changed according to git status")
+        except Exception as e:
+            log.error(f"Failed to check git status: {e}")
+        
+        state.changed_files = preview["files"]
+        state.next_action = "verify"
+
+        # Store additional pipeline results for potential debugging (only if we ran the pipeline)
+        if not state.patch_data:
+            log.info("💾 Storing pipeline results for debugging")
+            state.general_plan = result.get("general_plan")
+            state.tool_plan = result.get("tool_plan")
+            state.tool_results = result.get("tool_results")
+            state.implementation_plan = result.get("implementation_plan")
+        else:
+            log.info("📋 Skipping pipeline result storage (using planner's patch)")
+
+    except git_ops.CapsExceededError as exc:
+        sink.send(
+            AgentEvent(
+                type="blocked",
+                session_id=state.session_id,
+            )
+        )
+        state.next_action = "stop"
+
+    except Exception as exc:
+        log.error(f"Actor node failed: {exc}", exc_info=True)
+        state.next_action = "stop"
+        sink.send(
+            AgentEvent(
+                type="error",
+                session_id=state.session_id,
+                data={"message": f"Actor failed: {exc}"},
+            )
+        )
+        state.next_action = "stop"
+
+    return state

@@ -3,7 +3,7 @@ import logging
 import json
 from typing import Dict, Set
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from agents.services.jobs import sink
+from agents.services.events import sink
 from agents.services.events import AgentEvent
 
 logger = logging.getLogger(__name__)

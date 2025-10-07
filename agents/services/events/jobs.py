@@ -1,5 +1,5 @@
 from typing import Dict, Callable, List, Union, Awaitable
-from agents.services.events import AgentEvent
+from .events import AgentEvent
 import asyncio
 import threading
 import concurrent.futures
