@@ -1,0 +1,31 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: apps-syncroot-repo
+  namespace: default
+spec:
+  interval: 5m
+  provider: azure
+  ref:
+    tag: env-placeholder
+  timeout: 5m
+  url: ${SERVICEOWNER_ID}altinnregistry01/configs/sync-root/staging
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: syncroot-apps-kustomization
+  namespace: default
+spec:
+  targetNamespace: default
+  interval: 5m
+  retryInterval: 5m
+  timeout: 1m
+  prune: false
+  force: false
+  wait: true
+  path: ./
+  sourceRef:
+    kind: OCIRepository
+    name: apps-syncroot-repo
+    namespace: default
