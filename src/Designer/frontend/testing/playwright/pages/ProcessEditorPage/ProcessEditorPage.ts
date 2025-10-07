@@ -146,7 +146,8 @@ export class ProcessEditorPage extends BasePage {
   }
 
   public async clickOnConnectionArrow(): Promise<void> {
-    await this.page.getByTitle(connectionArrowText).click();
+    await this.page.locator('[data-action="connect"]').click();
+    // await this.page.getByTitle(connectionArrowText).click();
   }
 
   public async waitForEndEventHeaderToBeVisible(): Promise<void> {
