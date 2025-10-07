@@ -71,14 +71,18 @@ export const StudioTreeViewItem = ({
       case 'ArrowLeft': // Close node if open, focus on parent otherwise
         open ? setOpen(false) : setFocusedId(findParentId(rootId, nodeId) ?? undefined);
         break;
-      case 'ArrowDown': // Focus on next visible node
+      case 'ArrowDown': {
+        // Focus on next visible node
         const nextVisibleNode = findNextVisibleNodeId(rootId, nodeId);
         if (nextVisibleNode) setFocusedId(nextVisibleNode);
         break;
-      case 'ArrowUp': // Focus on previous visible node
+      }
+      case 'ArrowUp': {
+        // Focus on previous visible node
         const previousVisibleNode = findPreviousVisibleNodeId(rootId, nodeId);
         if (previousVisibleNode) setFocusedId(previousVisibleNode);
         break;
+      }
       case 'Home': // Focus on first node
         setFocusedId(findFirstNodeId(rootId) ?? undefined);
         break;

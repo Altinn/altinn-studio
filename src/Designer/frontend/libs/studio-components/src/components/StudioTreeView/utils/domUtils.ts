@@ -17,7 +17,7 @@ export const findGroup = (rootId: string, id: string): HTMLElement | null =>
   document.getElementById(makeDomGroupId(rootId, id));
 
 const findItemLevel = (rootId: string, nodeId?: string): number =>
-  nodeId ? parseInt(findTreeItem(rootId, nodeId)?.getAttribute('aria-level') ?? '1') : 0;
+  nodeId ? parseInt(findTreeItem(rootId, nodeId)?.getAttribute('aria-level') ?? '1', 10) : 0;
 
 export const isDirectChildOfNode = (
   childId: string,
