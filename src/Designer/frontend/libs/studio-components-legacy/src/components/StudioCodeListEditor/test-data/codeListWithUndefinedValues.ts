@@ -1,5 +1,5 @@
 import type { CodeListItem } from '../types/CodeListItem';
-import type { CodeList } from '../types/CodeList';
+import type { CodeListWithTextResources } from '../types/CodeListWithTextResources';
 
 const item1: CodeListItem = {
   description: 'Undefined value 1',
@@ -22,4 +22,4 @@ const item3: CodeListItem = {
   value: undefined,
 };
 
-export const codeListWithUndefinedValues: CodeList = [item1, item2, item3];
+export const codeListWithUndefinedValues: CodeListWithTextResources = [item1, item2, item3];

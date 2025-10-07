@@ -22,6 +22,7 @@ const packagesToTransform = [
   '@bpmn-io',
   'diagram-js',
   'htm',
+  'uuid',
 ].join('|');
 
 /** @type {import('jest').Config} */

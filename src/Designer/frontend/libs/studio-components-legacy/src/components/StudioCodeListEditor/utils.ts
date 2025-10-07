@@ -1,5 +1,5 @@
 import type { CodeListItem } from './types/CodeListItem';
-import type { CodeList } from './types/CodeList';
+import type { CodeListWithTextResources } from './types/CodeListWithTextResources';
 import { ArrayUtils } from '@studio/pure-functions';
 import { CodeListItemType } from './types/CodeListItemType';
 import { CodeListItemTextProperty } from './types/CodeListItemTextProperty';
@@ -19,7 +19,10 @@ export const emptyBooleanItem: CodeListItem = {
   label: '',
 };
 
-export function addNewCodeListItem(codeList: CodeList, codeType: CodeListItemType): CodeList {
+export function addNewCodeListItem(
+  codeList: CodeListWithTextResources,
+  codeType: CodeListItemType,
+): CodeListWithTextResources {
   const newEmptyItem = createEmptyItem(codeType);
   return addCodeListItem(codeList, newEmptyItem);
 }
@@ -35,7 +38,7 @@ function createEmptyItem(codeType: CodeListItemType): CodeListItem {
   }
 }
 
-export function getTypeOfLastValue(codeList: CodeList): CodeListItemType {
+export function getTypeOfLastValue(codeList: CodeListWithTextResources): CodeListItemType {
   if (isCodeListEmpty(codeList)) {
     throw new Error('Cannot get type of last value from empty code list');
   }
@@ -51,31 +54,40 @@ export function getTypeOfLastValue(codeList: CodeList): CodeListItemType {
   }
 }
 
-function addCodeListItem(codeList: CodeList, item: CodeListItem): CodeList {
+function addCodeListItem(
+  codeList: CodeListWithTextResources,
+  item: CodeListItem,
+): CodeListWithTextResources {
   return [...codeList, item];
 }
 
-export function removeCodeListItem(codeList: CodeList, index: number): CodeList {
+export function removeCodeListItem(
+  codeList: CodeListWithTextResources,
+  index: number,
+): CodeListWithTextResources {
   return ArrayUtils.removeItemByIndex<CodeListItem>(codeList, index);
 }
 
 export function changeCodeListItem(
-  codeList: CodeList,
+  codeList: CodeListWithTextResources,
   index: number,
   newItem: CodeListItem,
-): CodeList {
+): CodeListWithTextResources {
   return ArrayUtils.replaceByIndex<CodeListItem>(codeList, index, newItem);
 }
 
-export function isCodeListEmpty(codeList: CodeList): boolean {
+export function isCodeListEmpty(codeList: CodeListWithTextResources): boolean {
   return codeList.length === 0;
 }
 
-export function evaluateDefaultType(codeList: CodeList): CodeListItemType {
+export function evaluateDefaultType(codeList: CodeListWithTextResources): CodeListItemType {
   return isCodeListEmpty(codeList) ? CodeListItemType.String : getTypeOfLastValue(codeList);
 }
 
-export function isCodeLimitReached(codeList: CodeList, codeType: CodeListItemType): boolean {
+export function isCodeLimitReached(
+  codeList: CodeListWithTextResources,
+  codeType: CodeListItemType,
+): boolean {
   const booleanCodeLimit = 2;
   return codeType === CodeListItemType.Boolean && codeList.length >= booleanCodeLimit;
 }
@@ -86,9 +98,12 @@ type UpdateCodeListArgs = {
   property: CodeListItemTextProperty;
 };
 
-export function updateCodeList(codeList: CodeList, updateArgs: UpdateCodeListArgs): CodeList {
+export function updateCodeList(
+  codeList: CodeListWithTextResources,
+  updateArgs: UpdateCodeListArgs,
+): CodeListWithTextResources {
   const { property, codeItemIndex, newValue } = updateArgs;
-  const newCodeList: CodeList = [...codeList];
+  const newCodeList: CodeListWithTextResources = [...codeList];
   const oldItem: CodeListItem = newCodeList[codeItemIndex];
 
   switch (property) {
