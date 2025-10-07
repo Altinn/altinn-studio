@@ -1,0 +1,17 @@
+import { Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
+import * as StudioIconCardStories from './StudioIconCard.stories';
+
+<Meta of={StudioIconCardStories} />
+
+<Heading level={1} size='small'>
+  StudioIconCard
+</Heading>
+<Paragraph>
+  StudioIconCard displays content inside a card with a prominent icon and optional context menu.
+</Paragraph>
+
+<Heading level={2} size='small'>
+  Preview
+</Heading>
+<Canvas of={StudioIconCardStories.Preview} />
