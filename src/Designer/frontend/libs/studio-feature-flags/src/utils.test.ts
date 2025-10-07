@@ -7,6 +7,13 @@ describe('studio-feature-flags utils', () => {
   const secondaryFeatureToTest = FeatureFlag.AddComponentModal;
   const tertiaryFeatureToTest = FeatureFlag.ComponentConfigBeta;
 
+  const cleanup = (): void => {
+    typedLocalStorage.removeItem(FEATURE_FLAGS_KEY);
+    window.history.pushState({}, 'PageUrl', '/');
+  };
+  beforeAll(cleanup);
+  afterEach(cleanup);
+
   describe('retrieveFeatureFlags', () => {
     it('Returns a list of all feature flags both from the local storage and from the URL', () => {
       typedLocalStorage.setItem<FeatureFlag[]>(FEATURE_FLAGS_KEY, [
@@ -23,8 +30,6 @@ describe('studio-feature-flags utils', () => {
     });
 
     it('Returns an empty array when no flags are set', () => {
-      typedLocalStorage.removeItem(FEATURE_FLAGS_KEY);
-      window.history.pushState({}, 'PageUrl', '/');
       expect(retrieveFeatureFlags()).toEqual([]);
     });
   });

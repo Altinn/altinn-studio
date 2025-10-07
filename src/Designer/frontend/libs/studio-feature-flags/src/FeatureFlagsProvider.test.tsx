@@ -9,8 +9,8 @@ const testFlag = FeatureFlag.AddComponentModal;
 
 describe('FeatureFlagsProvider', () => {
   const cleanup = (): void => typedLocalStorage.removeItem(FEATURE_FLAGS_KEY);
-  beforeEach(cleanup);
-  afterAll(cleanup);
+  beforeAll(cleanup);
+  afterEach(cleanup);
 
   it('Reads flags from local storage', () => {
     typedLocalStorage.setItem<FeatureFlag[]>(FEATURE_FLAGS_KEY, [testFlag]);
