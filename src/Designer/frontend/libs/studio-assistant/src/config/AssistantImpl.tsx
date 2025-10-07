@@ -1,15 +1,15 @@
 import React from 'react';
 import { Assistant } from '../Assistant/Assistant';
-import type { AssistantConfig, ButtonTexts } from '../types/AssistantConfig';
+import type { AssistantConfig, AssistantTexts, ChatThread } from '../types/AssistantConfig';
 
 export class AssistantImpl {
-  private readonly heading: string;
-  private readonly buttonTexts: ButtonTexts;
+  private readonly texts: AssistantTexts;
+  private readonly chatThreads: ChatThread[];
   private readonly onSubmitMessage: AssistantConfig['onSubmitMessage'];
 
   constructor(config: AssistantConfig) {
-    this.buttonTexts = config.buttonTexts;
-    this.heading = config.heading;
+    this.texts = config.texts;
+    this.chatThreads = config.chatThreads;
     this.onSubmitMessage = config.onSubmitMessage;
     this.getAssistant = this.getAssistant.bind(this);
   }
@@ -17,8 +17,8 @@ export class AssistantImpl {
   public getAssistant(): React.ReactElement {
     return (
       <Assistant
-        heading={this.heading}
-        buttonTexts={this.buttonTexts}
+        texts={this.texts}
+        chatThreads={this.chatThreads}
         onSubmitMessage={this.onSubmitMessage}
       />
     );

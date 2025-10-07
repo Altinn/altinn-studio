@@ -2,26 +2,18 @@ import React, { useState } from 'react';
 import type { ReactElement } from 'react';
 import { StudioButton, StudioSwitch, StudioTextarea } from '@studio/components';
 import { MessageAuthor } from '../../../types/MessageAuthor';
-import type { Message } from '../../../types/AssistantConfig';
+import type { AssistantTexts, Message } from '../../../types/AssistantConfig';
 import classes from './UserInput.module.css';
 import { PaperclipIcon, PaperplaneFillIcon } from '@studio/icons';
 
 export type UserInputProps = {
-  onSendMessage: (message: Message) => void;
-  sendButtonText: string;
-  selectedMode?: boolean;
-  onModeChange?: (mode: boolean) => void;
-  textareaPlaceholder?: string;
+  texts: AssistantTexts;
+  onSubmitMessage: (message: Message) => void;
 };
 
-export function UserInput({
-  onSendMessage,
-  sendButtonText,
-  selectedMode,
-  onModeChange,
-  textareaPlaceholder,
-}: UserInputProps): ReactElement {
+export function UserInput({ texts, onSubmitMessage }: UserInputProps): ReactElement {
   const [messageContent, setMessageContent] = useState<string>('');
+  const [allowEditing, setAllowEditing] = useState<boolean>(false);
 
   const handleSubmit = () => {
     if (!messageContent.trim()) return;
@@ -29,9 +21,11 @@ export function UserInput({
     const message: Message = {
       author: MessageAuthor.User,
       content: messageContent,
-      allowEditing: selectedMode,
+      allowEditing: allowEditing,
+      timestamp: new Date(),
     };
-    onSendMessage(message);
+
+    onSubmitMessage(message);
     setMessageContent('');
   };
 
@@ -48,24 +42,22 @@ export function UserInput({
         value={messageContent}
         onChange={(e) => setMessageContent(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder={textareaPlaceholder}
+        placeholder={texts.textareaPlaceholder}
       />
       <div className={classes.actionsRow}>
         <div className={classes.actionsRowLeft}>
           <StudioButton variant='secondary'>
             <PaperclipIcon />
-            Legg til vedlegg
+            {texts.addAttachment}
           </StudioButton>
-          {onModeChange && (
-            <StudioSwitch
-              checked={!!selectedMode}
-              onChange={(e) => onModeChange(e.target.checked)}
-              label='Tillat at assistenten endrer appen'
-            />
-          )}
+          <StudioSwitch
+            checked={allowEditing}
+            onChange={(e) => setAllowEditing(e.target.checked)}
+            label={texts.agentModeLabel}
+          />
         </div>
         <StudioButton onClick={handleSubmit} disabled={!messageContent.trim()}>
-          {sendButtonText} <PaperplaneFillIcon />
+          {texts.send} <PaperplaneFillIcon />
         </StudioButton>
       </div>
     </div>

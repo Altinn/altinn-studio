@@ -3,16 +3,22 @@ import classes from './AssistantHeading.module.css';
 import { ToggleGroup } from '@digdir/designsystemet-react';
 import { CodeIcon, PlayFillIcon } from '@studio/icons';
 import { ViewType } from '../../types/ViewType';
+import type { AssistantTexts } from '../../types/AssistantConfig';
 
 export type AssistantHeadingBarProps = {
+  texts: AssistantTexts;
   selectedView: ViewType;
   onViewChange: (view: ViewType) => void;
 };
 
-export function AssistantHeadingBar({ selectedView, onViewChange }: AssistantHeadingBarProps) {
+export function AssistantHeadingBar({
+  texts,
+  selectedView,
+  onViewChange,
+}: AssistantHeadingBarProps) {
   return (
     <div className={classes.assistantHeadingBar}>
-      <StudioHeading>KI-assistent</StudioHeading>
+      <StudioHeading>{texts.heading}</StudioHeading>
       <ToggleGroup
         size='sm'
         value={selectedView}
@@ -20,11 +26,11 @@ export function AssistantHeadingBar({ selectedView, onViewChange }: AssistantHea
       >
         <ToggleGroup.Item value={ViewType.Preview}>
           <PlayFillIcon />
-          Forhåndsvis
+          {texts.preview}
         </ToggleGroup.Item>
         <ToggleGroup.Item value={ViewType.FileExplorer}>
           <CodeIcon />
-          Kode
+          {texts.fileBrowser}
         </ToggleGroup.Item>
       </ToggleGroup>
     </div>

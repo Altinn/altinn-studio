@@ -5,6 +5,7 @@ import {
   getMockChatThreads,
   type Message,
   type ChatThread,
+  type AssistantTexts,
 } from '@studio/assistant';
 import { useTranslation } from 'react-i18next';
 import classes from './AiAssistant.module.css';
@@ -13,34 +14,33 @@ import { ChatColumn } from '@studio/assistant';
 export function AiAssistant(): ReactElement {
   const { t } = useTranslation();
   const [chatThreads] = useState<ChatThread[]>(getMockChatThreads());
-  const [currentThreadId, setCurrentThreadId] = useState<string>(chatThreads[0]?.id);
-  const [allowEditing, setAllowEditing] = useState<boolean>(false);
-  const [useAdvancedMode] = useState<boolean>(true);
-
-  const sidePanelLabels = {
-    preview: t('ai_assistant.panel.preview'),
-    fileBrowser: t('ai_assistant.panel.fileBrowser'),
-  };
+  const [isAdvancedModeEnabled] = useState<boolean>(true);
 
   const onSubmitMessage = (message: Message): void => {
     alert(`Du har trykket på send-knappen.\nMelding fra tekstfelt: ${message.content}`);
   };
 
-  const currentThread = chatThreads.find((thread) => thread.id === currentThreadId);
+  const texts: AssistantTexts = {
+    heading: t('ai_assistant.heading'),
+    preview: t('ai_assistant.panel.preview'),
+    fileBrowser: t('ai_assistant.panel.fileBrowser'),
+    hideThreads: 'Skjul tråder',
+    newThread: 'Ny tråd',
+    previousThreads: 'Tidligere tråder',
+    aboutAssistant: 'Om assistenten',
+    textareaPlaceholder: t('ai_assistant.textarea.placeholder'),
+    addAttachment: 'Legg til vedlegg',
+    agentModeLabel: 'Tillat at assistenten endrer appen',
+    send: t('ai_assistant.button.send'),
+  };
 
-  if (useAdvancedMode) {
+  if (isAdvancedModeEnabled) {
     return (
       <div className={classes.container}>
         <AdvancedChatInterface
+          texts={texts}
           chatThreads={chatThreads}
-          currentThreadId={currentThreadId}
-          onSelectThread={setCurrentThreadId}
-          onSendMessage={onSubmitMessage}
-          sendButtonText={t('ai_assistant.button.send')}
-          allowEditing={allowEditing}
-          onModeChange={setAllowEditing}
-          textareaPlaceholder={t('ai_assistant.textarea.placeholder')}
-          sidePanelLabels={sidePanelLabels}
+          onSubmitMessage={onSubmitMessage}
         />
       </div>
     );
@@ -49,12 +49,9 @@ export function AiAssistant(): ReactElement {
   return (
     <div className={classes.container}>
       <ChatColumn
-        messages={currentThread?.messages || []}
-        onSendMessage={onSubmitMessage}
-        sendButtonText={t('ai_assistant.button.send')}
-        allowEditing={allowEditing}
-        onModeChange={setAllowEditing}
-        textareaPlaceholder={t('ai_assistant.textarea.placeholder')}
+        texts={texts}
+        messages={chatThreads[0].messages ?? []}
+        onSubmitMessage={onSubmitMessage}
       />
     </div>
   );

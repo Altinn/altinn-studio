@@ -6,7 +6,7 @@ import classes from './Assistant.module.css';
 
 export function Assistant({
   heading,
-  buttonTexts,
+  texts: buttonTexts,
   onSubmitMessage,
 }: AssistantProps): React.ReactElement {
   const [messageContent, setMessageContent] = useState<string>('');

@@ -7,10 +7,6 @@ export type ToolColumnProps = {
   selectedView: ViewType;
   previewContent?: ReactElement;
   fileBrowserContent?: ReactElement;
-  tabLabels: {
-    preview: string;
-    fileBrowser: string;
-  };
 };
 
 export function ToolColumn({

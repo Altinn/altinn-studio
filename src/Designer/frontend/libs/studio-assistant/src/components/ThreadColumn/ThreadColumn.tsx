@@ -1,12 +1,13 @@
 import React from 'react';
 import type { ReactElement } from 'react';
 import { StudioContentMenu, StudioButton, StudioHeading } from '@studio/components';
-import type { ChatThread } from '../../types/ChatThread';
 import classes from './ThreadColumn.module.css';
 import { InformationIcon, PlusIcon, SidebarLeftIcon } from '@studio/icons';
 import { ThreadColumnHidden } from '../ThreadColumnHidden/ThreadColumnHidden';
+import type { AssistantTexts, ChatThread } from '../../types/AssistantConfig';
 
 export type ChatHistorySidebarProps = {
+  texts: AssistantTexts;
   chatThreads: ChatThread[];
   selectedThreadId?: string;
   onSelectThread: (threadId: string) => void;
@@ -15,6 +16,7 @@ export type ChatHistorySidebarProps = {
 };
 
 export function ThreadColumn({
+  texts,
   chatThreads,
   selectedThreadId,
   onSelectThread,
@@ -30,15 +32,15 @@ export function ThreadColumn({
       <div className={classes.threadButtons}>
         <StudioButton variant='secondary' onClick={onToggleCollapse}>
           <SidebarLeftIcon />
-          Skjul tråder
+          {texts.hideThreads}
         </StudioButton>
         <StudioButton>
           <PlusIcon />
-          Ny tråd
+          {texts.newThread}
         </StudioButton>
       </div>
       <StudioHeading level={3} className={classes.threadHeading}>
-        Tidligere tråder
+        {texts.previousThreads}
       </StudioHeading>
       <StudioContentMenu selectedTabId={selectedThreadId} onChangeTab={onSelectThread}>
         {chatThreads.map((thread) => (
@@ -53,7 +55,7 @@ export function ThreadColumn({
       <div className={classes.aboutSection}>
         <StudioButton variant='tertiary'>
           <InformationIcon />
-          Om assistenten
+          {texts.aboutAssistant}
         </StudioButton>
       </div>
     </div>
