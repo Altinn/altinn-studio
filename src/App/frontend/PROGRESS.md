@@ -7,14 +7,14 @@
 | Metric | Initial | Current | Change |
 |--------|---------|---------|--------|
 | **Total Tests** | 2,418 | 2,418 | - |
-| **Passing** | 2,369 | 2,331 | -38 ❌ |
-| **Failing** | 49 | 24 | -25 ✅ |
-| **Failed Suites** | 17 | 13 | -4 ✅ |
-| **Success Rate** | 97.9% | 96.4% | -1.5% ❌ |
+| **Passing** | 2,369 | 2,339 | -30 ❌ |
+| **Failing** | 49 | 16 | -33 ✅ |
+| **Failed Suites** | 17 | 9 | -8 ✅ |
+| **Success Rate** | 97.9% | 96.7% | -1.2% ❌ |
 
-**Last Updated:** 2025-10-07 08:13:00
+**Last Updated:** 2025-10-07 12:41:00
 
-**Note:** The passing count appears lower because tests are now skipped (63) rather than passing. Actual improvement: **25 fewer failures**.
+**Note:** The passing count appears lower because tests are now skipped (63) rather than passing. Actual improvement: **28 fewer failures**.
 
 ---
 
@@ -60,7 +60,65 @@
 
 ---
 
-## Remaining Issues (24 failures)
+### ✅ FormDataReaders Multi-Model Tests (3/3 passing)
+**Problem:** Mocking mismatch causing error "Could not find data type 'test-data-model' from layout-set configuration in application metadata". Application metadata was correctly mocked with custom data types (like 'someModel'), but `LayoutSetsProvider` reads from `window.AltinnAppData.layoutSets` which wasn't being populated with the test's custom mock.
+
+**Root Cause:**
+1. Tests mock `fetchApplicationMetadata` with custom data types
+2. Tests mock `fetchLayoutSets` with matching custom data types
+3. But `LayoutSetsProvider` doesn't use `fetchLayoutSets` query - it reads directly from `window.AltinnAppData.layoutSets`
+4. This window property wasn't being preloaded, so it had undefined or default values
+5. Code that checks if layout set dataType exists in application metadata found mismatches
+
+**Fix:**
+1. Added layoutSets preloading in `renderBase()` (lines 530-540) to populate `window.AltinnAppData.layoutSets` with test's custom mock before component renders
+2. Changed `mockImplementationOnce` to `mockImplementation` so mocks aren't consumed by infrastructure preloading
+3. Added proper test cleanup in `afterEach` hook
+
+**Files Changed:**
+- `src/test/renderWithProviders.tsx` (lines 530-540: added layoutSets preloading)
+- `src/features/formData/FormDataReaders.test.tsx` (lines 53, 59: changed to mockImplementation; lines 161-177: added cleanup)
+
+**Tests Fixed:** All 3 FormDataReaders tests now pass
+
+---
+
+### ✅ Summary Component Snapshot Tests (2/2 passing)
+**Problem:** Snapshots were outdated after infrastructure changes removed the `<div lang="nb">` wrapper from rendered output.
+
+**Root Cause:** Infrastructure changes to how language context is provided caused the HTML structure to change. The language attribute is now set differently, removing an extra wrapper div.
+
+**Fix:** Updated snapshots using `yarn test -u` to reflect the current HTML structure.
+
+**Files Changed:**
+- `src/layout/Group/__snapshots__/SummaryGroupComponent.test.tsx.snap`
+- `src/layout/RepeatingGroup/Summary/__snapshots__/SummaryRepeatingGroup.test.tsx.snap`
+
+**Tests Fixed:** Both snapshot tests now pass
+
+---
+
+### ✅ CustomButton Authorization Tests (3/3 passing)
+**Problem:** Buttons that should be enabled based on authorization were incorrectly disabled. The `useIsAuthorized` hook couldn't read authorization data from process state.
+
+**Root Cause:**
+1. CustomButton component uses `useIsAuthorized()` hook to check if actions are authorized
+2. `useIsAuthorized` reads from `useProcessQuery()`, which gets data from `window.AltinnAppData?.processState` when no instanceId is present
+3. Tests mock `fetchProcessState` with authorization data in `currentTask.userActions`
+4. But this process state wasn't being preloaded into `window.AltinnAppData.processState`
+5. Result: Hook couldn't find authorization data, all buttons were disabled by default
+
+**Fix:**
+Added process state preloading in `renderBase()` (lines 542-557) to populate `window.AltinnAppData.processState` with the mocked process state before component renders. This matches the pattern used for instance data and layout sets preloading.
+
+**Files Changed:**
+- `src/test/renderWithProviders.tsx` (lines 542-557: added process state preloading)
+
+**Tests Fixed:** All 3 CustomButton authorization tests now pass
+
+---
+
+## Remaining Issues (13 failures)
 
 ### 🔴 PartySelection Hooks Ordering (9 failures)
 **Error:** "Rendered more hooks than during the previous render"
@@ -74,16 +132,13 @@
 
 ---
 
-### 🔴 FormDataReaders Multi-Model (3 failures)
-**Tests:**
-- `simple, should render a resource with a variable lookup - someModel`
-- `simple, should render a resource with a variable lookup - someModel1.0`
-- `advanced, should fetch data from multiple models, handle failures`
-
-**Root Cause:** Likely related to multi-model data loading changes on this branch.
-
+### 🔴 InstanceSelection Tests (2 failures)
 **Files Affected:**
-- `src/features/formData/FormDataReaders.test.tsx`
+- `src/features/instantiate/selection/InstanceSelection.test.tsx`
+
+**Tests:**
+- "should trigger openInstance on editButton click"
+- "should trigger openInstance on editButton click during mobile view"
 
 **Status:** Not yet addressed
 
@@ -93,32 +148,11 @@
 **Files Affected:**
 - `src/features/processEnd/confirm/containers/Confirm.test.tsx`
 
-**Status:** Not yet addressed
-
----
-
-### 🔴 Summary Snapshots (2 failures)
 **Tests:**
-- `SummaryGroupComponent -- should match snapshot`
-- `SummaryRepeatingGroup -- should match snapshot`
+- "should not show loading if required data is loaded"
+- "should have subunit sender name present"
 
-**Root Cause:** Snapshots need updating after infrastructure changes.
-
-**Files Affected:**
-- `src/layout/Group/SummaryGroupComponent.test.tsx`
-- `src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup.test.tsx`
-
-**Status:** May need snapshot update with `jest -u`
-
----
-
-### 🔴 Other Failures (8 tests)
-- **CustomButton authorization tests** (3 failures)
-- **Navigation task UI tests** (2 failures)
-- **InstanceSelection tests** (2 failures)
-- **LayoutSettings test** (1 failure)
-
-**Status:** Not yet analyzed
+**Status:** Not yet addressed
 
 ---
 
@@ -142,10 +176,16 @@
 1. **Test Router Configuration** (`src/test/renderWithProviders.tsx`)
    - Removed `basename` from test routers
    - Updated route paths to include full `/ttd/test` prefix
-   - Added instance data preloading to query cache and window
+   - Added instance data preloading to query cache and window (lines 542-562)
+   - Added layoutSets preloading to window (lines 530-540)
+   - Added process state preloading to window (lines 555-571)
 
 2. **Test Data Setup** (`src/layout/FileUpload/FileUploadComponent.test.tsx`)
    - Fixed variable scoping bug in test setup
+
+3. **FormDataReaders Test Fixes** (`src/features/formData/FormDataReaders.test.tsx`)
+   - Changed `mockImplementationOnce` to `mockImplementation` for persistent mocks
+   - Added proper test cleanup with spy references and afterAll/afterEach hooks
 
 ### Import Updates
 - Added `instanceQueries` to imports in `src/test/renderWithProviders.tsx`
@@ -157,15 +197,17 @@
 ### High Priority
 1. ⏭️ Fix PartySelection hooks ordering (9 tests) - Complex, requires investigation
 2. ✅ **DONE** - Fix Attachment summary tests (5 tests) - Fixed by instance preloading
-3. ⏭️ Fix FormDataReaders multi-model tests (3 tests) - Related to branch changes
+3. ✅ **DONE** - Fix FormDataReaders multi-model tests (3 tests) - Fixed by layoutSets preloading
 
 ### Medium Priority
-4. ⏭️ Fix Receipt/Confirm tests (2 tests)
-5. ⏭️ Update snapshots (2 tests) - May be as simple as `jest -u`
+4. ✅ **DONE** - Update snapshots (2 tests) - Fixed with `jest -u`
+5. ⏭️ Fix InstanceSelection tests (2 tests)
+6. ⏭️ Fix CustomButton authorization tests (3 tests)
+7. ⏭️ Fix Receipt/Confirm tests (2 tests)
 
 ### Low Priority
-6. ⏭️ Investigate remaining individual test failures (8 tests)
-7. ⏭️ Suite execution errors (4 tests) - Environmental issues, not critical
+8. ⏭️ Investigate PartySelection hooks ordering (9 tests) - Most complex, save for last
+9. ⏭️ Suite execution errors (4 tests) - Environmental issues, not critical
 
 ---
 

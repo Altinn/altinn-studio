@@ -527,6 +527,35 @@ const renderBase = async ({
     }
   }
 
+  // Layout sets: call the mocked query and update window (LayoutSetsProvider reads from window.AltinnAppData.layoutSets)
+  if (queryMocks.fetchLayoutSets) {
+    try {
+      const layoutSets = await queryMocks.fetchLayoutSets();
+      if (layoutSets && window.AltinnAppData) {
+        window.AltinnAppData.layoutSets = layoutSets;
+      }
+    } catch (e) {
+      // Keep default layout sets if query throws
+    }
+  }
+
+  // Process state: preload if mocked (useProcessQuery reads from window.AltinnAppData.processState when no instanceId)
+  try {
+    const { fetchProcessState } = await import('src/queries/queries');
+    if (jest.isMockFunction(fetchProcessState)) {
+      try {
+        const processState = await fetchProcessState('dummy-owner/dummy-guid');
+        if (processState && window.AltinnAppData) {
+          window.AltinnAppData.processState = processState;
+        }
+      } catch (e) {
+        // Mock might throw or return undefined - that's OK
+      }
+    }
+  } catch (_) {
+    // fetchProcessState not mocked - fine for stateless tests
+  }
+
   // Instance data: preload if mocked (important for FileUpload tests that need attachments immediately)
   try {
     if (jest.isMockFunction(fetchInstanceData)) {

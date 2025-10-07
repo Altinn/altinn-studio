@@ -1,777 +1,358 @@
 schema: ai-test-failures@1
-generatedAt: '2025-10-07T10:58:22.032Z'
+generatedAt: '2025-10-07T13:33:06.674Z'
 summary:
-  totalTests: 2418
-  failedTests: 24
-  failedSuites: 13
+  totalTests: 626
+  failedTests: 22
+  failedSuites: 1
   success: false
 failures:
-  - file: src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup.test.tsx
-    test: SummaryRepeatingGroup › SummaryRepeatingGroup -- should match snapshot
-    name: SummaryRepeatingGroup -- should match snapshot
-    ancestors:
-      - SummaryRepeatingGroup
-    status: failed
-    error: 'Error: expect(received).toMatchSnapshot()'
-    location:
-      file: src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup.test.tsx
-      line: 19
-      column: 26
-    rerun: npx jest "src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup.test.tsx" -t "SummaryRepeatingGroup › SummaryRepeatingGroup -- should match snapshot"
-    stack: |-
-      Error: expect(received).toMatchSnapshot()
-
-      Snapshot name: `SummaryRepeatingGroup SummaryRepeatingGroup -- should match snapshot 1`
-
-      - Snapshot  - 4
-      + Received  + 0
-
-      @@ -1,9 +1,6 @@
-        <DocumentFragment>
-      -   <div
-      -     lang="nb"
-      -   >
-           
-          <div
-            data-testid="summary-group-component"
-            style="width: 100%;"
-          >
-      @@ -74,11 +71,10 @@
-                  <span
-                    class="data"
-                  >
-                    2
-                  </span>
-      -           </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </DocumentFragment>
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup.test.tsx:19:26
-          at Generator.next (<anonymous>)
-          at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup.test.tsx:5:58)
-  - file: src/layout/Group/SummaryGroupComponent.test.tsx
-    test: SummaryGroupComponent › SummaryGroupComponent -- should match snapshot
-    name: SummaryGroupComponent -- should match snapshot
-    ancestors:
-      - SummaryGroupComponent
-    status: failed
-    error: 'Error: expect(received).toMatchSnapshot()'
-    location:
-      file: src/layout/Group/SummaryGroupComponent.test.tsx
-      line: 18
-      column: 26
-    rerun: npx jest "src/layout/Group/SummaryGroupComponent.test.tsx" -t "SummaryGroupComponent › SummaryGroupComponent -- should match snapshot"
-    stack: |-
-      Error: expect(received).toMatchSnapshot()
-
-      Snapshot name: `SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
-
-      - Snapshot  - 4
-      + Received  + 0
-
-      @@ -1,10 +1,7 @@
-        <DocumentFragment>
-          <div
-      -     lang="nb"
-      -   >
-      -     <div
-            data-testid="summary-group-component"
-            style="width: 100%;"
-          >
-            <div
-              class="container"
-      @@ -72,11 +69,10 @@
-                  <span
-                    class="data"
-                  >
-                    2
-                  </span>
-      -           </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </DocumentFragment>
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/layout/Group/SummaryGroupComponent.test.tsx:18:26
-          at Generator.next (<anonymous>)
-          at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/layout/Group/SummaryGroupComponent.test.tsx:5:58)
-  - file: src/features/instantiate/containers/PartySelection.test.tsx
-    test: PartySelection › should have working pagination
-    name: should have working pagination
-    ancestors:
-      - PartySelection
-    status: failed
-    error: 'Error: Rendered more hooks than during the previous render.'
-    location:
-      file: node_modules/react-dom/cjs/react-dom-client.development.js
-      line: 5715
-      column: 17
-    rerun: npx jest "src/features/instantiate/containers/PartySelection.test.tsx" -t "PartySelection › should have working pagination"
-    stack: |-
-      Error: Rendered more hooks than during the previous render.
-          at updateWorkInProgressHook (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:5715:17)
-          at updateCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:6592:18)
-          at Object.useCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:23149:16)
-          at Object.process.env.NODE_ENV.exports.useCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react/cjs/react.development.js:1161:34)
-          at useStore (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/zustand/react.js:10:11)
-          at useLaxSelector (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/core/contexts/zustandContext.tsx:135:20)
-          at Object.useLaxDefaultDataType (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/datamodel/DataModelsProvider.tsx:376:32)
-          at useLanguageWithForcedPath (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/language/useLanguage.ts:97:38)
-          at useLanguage (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/language/useLanguage.ts:92:10)
-          at PartySelection (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/instantiate/containers/PartySelection.tsx:95:39)
-          at Object.react_stack_bottom_frame (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:23863:20)
-          at renderWithHooks (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:5529:22)
-          at updateFunctionComponent (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:8897:19)
-          at beginWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:10522:18)
-          at runWithFiberInDEV (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:1522:13)
-          at performUnitOfWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:15140:22)
-          at workLoopSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14956:41)
-          at renderRootSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14936:11)
-          at performWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14462:44)
-          at performSyncWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16231:7)
-          at flushSyncWorkAcrossRoots_impl (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16079:21)
-          at processRootScheduleInMicrotask (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16116:7)
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16250:13
-          at invokeTheCallbackFunction (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/living/generated/Function.js:19:26)
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:613:9
-          at node:internal/process/task_queues:140:7
-          at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
-          at AsyncResource.runMicrotask (node:internal/process/task_queues:137:8)
-  - file: src/features/instantiate/containers/PartySelection.test.tsx
-    test: PartySelection › pagination should respect search filtering reducing the total count
-    name: pagination should respect search filtering reducing the total count
-    ancestors:
-      - PartySelection
-    status: failed
-    error: 'Error: Rendered more hooks than during the previous render.'
-    location:
-      file: node_modules/react-dom/cjs/react-dom-client.development.js
-      line: 5715
-      column: 17
-    rerun: npx jest "src/features/instantiate/containers/PartySelection.test.tsx" -t "PartySelection › pagination should respect search filtering reducing the total count"
-    stack: |-
-      Error: Rendered more hooks than during the previous render.
-          at updateWorkInProgressHook (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:5715:17)
-          at updateCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:6592:18)
-          at Object.useCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:23149:16)
-          at Object.process.env.NODE_ENV.exports.useCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react/cjs/react.development.js:1161:34)
-          at useStore (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/zustand/react.js:10:11)
-          at useLaxSelector (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/core/contexts/zustandContext.tsx:135:20)
-          at Object.useLaxDefaultDataType (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/datamodel/DataModelsProvider.tsx:376:32)
-          at useLanguageWithForcedPath (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/language/useLanguage.ts:97:38)
-          at useLanguage (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/language/useLanguage.ts:92:10)
-          at PartySelection (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/instantiate/containers/PartySelection.tsx:95:39)
-          at Object.react_stack_bottom_frame (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:23863:20)
-          at renderWithHooks (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:5529:22)
-          at updateFunctionComponent (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:8897:19)
-          at beginWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:10522:18)
-          at runWithFiberInDEV (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:1522:13)
-          at performUnitOfWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:15140:22)
-          at workLoopSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14956:41)
-          at renderRootSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14936:11)
-          at performWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14462:44)
-          at performSyncWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16231:7)
-          at flushSyncWorkAcrossRoots_impl (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16079:21)
-          at processRootScheduleInMicrotask (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16116:7)
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16250:13
-          at invokeTheCallbackFunction (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/living/generated/Function.js:19:26)
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:613:9
-          at node:internal/process/task_queues:140:7
-          at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
-          at AsyncResource.runMicrotask (node:internal/process/task_queues:137:8)
-  - file: src/features/instantiate/containers/PartySelection.test.tsx
-    test: PartySelection › sub-unit filter should work
-    name: sub-unit filter should work
-    ancestors:
-      - PartySelection
-    status: failed
-    error: 'Error: Rendered more hooks than during the previous render.'
-    location:
-      file: node_modules/react-dom/cjs/react-dom-client.development.js
-      line: 5715
-      column: 17
-    rerun: npx jest "src/features/instantiate/containers/PartySelection.test.tsx" -t "PartySelection › sub-unit filter should work"
-    stack: |-
-      Error: Rendered more hooks than during the previous render.
-          at updateWorkInProgressHook (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:5715:17)
-          at updateCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:6592:18)
-          at Object.useCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:23149:16)
-          at Object.process.env.NODE_ENV.exports.useCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react/cjs/react.development.js:1161:34)
-          at useStore (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/zustand/react.js:10:11)
-          at useLaxSelector (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/core/contexts/zustandContext.tsx:135:20)
-          at Object.useLaxDefaultDataType (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/datamodel/DataModelsProvider.tsx:376:32)
-          at useLanguageWithForcedPath (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/language/useLanguage.ts:97:38)
-          at useLanguage (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/language/useLanguage.ts:92:10)
-          at PartySelection (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/instantiate/containers/PartySelection.tsx:95:39)
-          at Object.react_stack_bottom_frame (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:23863:20)
-          at renderWithHooks (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:5529:22)
-          at updateFunctionComponent (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:8897:19)
-          at beginWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:10522:18)
-          at runWithFiberInDEV (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:1522:13)
-          at performUnitOfWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:15140:22)
-          at workLoopSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14956:41)
-          at renderRootSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14936:11)
-          at performWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14462:44)
-          at performSyncWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16231:7)
-          at flushSyncWorkAcrossRoots_impl (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16079:21)
-          at processRootScheduleInMicrotask (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16116:7)
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16250:13
-          at invokeTheCallbackFunction (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/living/generated/Function.js:19:26)
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:613:9
-          at node:internal/process/task_queues:140:7
-          at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
-          at AsyncResource.runMicrotask (node:internal/process/task_queues:137:8)
-  - file: src/features/instantiate/containers/PartySelection.test.tsx
-    test: PartySelection › deleted filter should work
-    name: deleted filter should work
-    ancestors:
-      - PartySelection
-    status: failed
-    error: 'Error: Rendered more hooks than during the previous render.'
-    location:
-      file: node_modules/react-dom/cjs/react-dom-client.development.js
-      line: 5715
-      column: 17
-    rerun: npx jest "src/features/instantiate/containers/PartySelection.test.tsx" -t "PartySelection › deleted filter should work"
-    stack: |-
-      Error: Rendered more hooks than during the previous render.
-          at updateWorkInProgressHook (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:5715:17)
-          at updateCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:6592:18)
-          at Object.useCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:23149:16)
-          at Object.process.env.NODE_ENV.exports.useCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react/cjs/react.development.js:1161:34)
-          at useStore (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/zustand/react.js:10:11)
-          at useLaxSelector (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/core/contexts/zustandContext.tsx:135:20)
-          at Object.useLaxDefaultDataType (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/datamodel/DataModelsProvider.tsx:376:32)
-          at useLanguageWithForcedPath (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/language/useLanguage.ts:97:38)
-          at useLanguage (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/language/useLanguage.ts:92:10)
-          at PartySelection (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/instantiate/containers/PartySelection.tsx:95:39)
-          at Object.react_stack_bottom_frame (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:23863:20)
-          at renderWithHooks (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:5529:22)
-          at updateFunctionComponent (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:8897:19)
-          at beginWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:10522:18)
-          at runWithFiberInDEV (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:1522:13)
-          at performUnitOfWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:15140:22)
-          at workLoopSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14956:41)
-          at renderRootSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14936:11)
-          at performWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14462:44)
-          at performSyncWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16231:7)
-          at flushSyncWorkAcrossRoots_impl (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16079:21)
-          at processRootScheduleInMicrotask (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16116:7)
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16250:13
-          at invokeTheCallbackFunction (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/living/generated/Function.js:19:26)
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:613:9
-          at node:internal/process/task_queues:140:7
-          at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
-          at AsyncResource.runMicrotask (node:internal/process/task_queues:137:8)
-  - file: src/features/instantiate/containers/PartySelection.test.tsx
-    test: PartySelection › deleted filter should be disabled by default when only deleted parties are available
-    name: deleted filter should be disabled by default when only deleted parties are available
-    ancestors:
-      - PartySelection
-    status: failed
-    error: 'Error: Rendered more hooks than during the previous render.'
-    location:
-      file: node_modules/react-dom/cjs/react-dom-client.development.js
-      line: 5715
-      column: 17
-    rerun: npx jest "src/features/instantiate/containers/PartySelection.test.tsx" -t "PartySelection › deleted filter should be disabled by default when only deleted parties are available"
-    stack: |-
-      Error: Rendered more hooks than during the previous render.
-          at updateWorkInProgressHook (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:5715:17)
-          at updateCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:6592:18)
-          at Object.useCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:23149:16)
-          at Object.process.env.NODE_ENV.exports.useCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react/cjs/react.development.js:1161:34)
-          at useStore (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/zustand/react.js:10:11)
-          at useLaxSelector (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/core/contexts/zustandContext.tsx:135:20)
-          at Object.useLaxDefaultDataType (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/datamodel/DataModelsProvider.tsx:376:32)
-          at useLanguageWithForcedPath (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/language/useLanguage.ts:97:38)
-          at useLanguage (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/language/useLanguage.ts:92:10)
-          at PartySelection (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/instantiate/containers/PartySelection.tsx:95:39)
-          at Object.react_stack_bottom_frame (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:23863:20)
-          at renderWithHooks (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:5529:22)
-          at updateFunctionComponent (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:8897:19)
-          at beginWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:10522:18)
-          at runWithFiberInDEV (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:1522:13)
-          at performUnitOfWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:15140:22)
-          at workLoopSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14956:41)
-          at renderRootSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14936:11)
-          at performWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14462:44)
-          at performSyncWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16231:7)
-          at flushSyncWorkAcrossRoots_impl (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16079:21)
-          at processRootScheduleInMicrotask (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16116:7)
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16250:13
-          at invokeTheCallbackFunction (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/living/generated/Function.js:19:26)
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:613:9
-          at node:internal/process/task_queues:140:7
-          at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
-          at AsyncResource.runMicrotask (node:internal/process/task_queues:137:8)
-  - file: src/features/instantiate/containers/PartySelection.test.tsx
-    test: PartySelection › selecting parties › should be possible to click on (Kari Nordmann personnr. 01017512346)
-    name: should be possible to click on (Kari Nordmann personnr. 01017512346)
-    ancestors:
-      - PartySelection
-      - selecting parties
-    status: failed
-    error: 'Error: Rendered more hooks than during the previous render.'
-    location:
-      file: node_modules/react-dom/cjs/react-dom-client.development.js
-      line: 5715
-      column: 17
-    rerun: npx jest "src/features/instantiate/containers/PartySelection.test.tsx" -t "PartySelection › selecting parties › should be possible to click on \(Kari Nordmann personnr\. 01017512346\)"
-    stack: |-
-      Error: Rendered more hooks than during the previous render.
-          at updateWorkInProgressHook (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:5715:17)
-          at updateCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:6592:18)
-          at Object.useCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:23149:16)
-          at Object.process.env.NODE_ENV.exports.useCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react/cjs/react.development.js:1161:34)
-          at useStore (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/zustand/react.js:10:11)
-          at useLaxSelector (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/core/contexts/zustandContext.tsx:135:20)
-          at Object.useLaxDefaultDataType (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/datamodel/DataModelsProvider.tsx:376:32)
-          at useLanguageWithForcedPath (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/language/useLanguage.ts:97:38)
-          at useLanguage (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/language/useLanguage.ts:92:10)
-          at PartySelection (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/instantiate/containers/PartySelection.tsx:95:39)
-          at Object.react_stack_bottom_frame (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:23863:20)
-          at renderWithHooks (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:5529:22)
-          at updateFunctionComponent (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:8897:19)
-          at beginWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:10522:18)
-          at runWithFiberInDEV (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:1522:13)
-          at performUnitOfWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:15140:22)
-          at workLoopSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14956:41)
-          at renderRootSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14936:11)
-          at performWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14462:44)
-          at performSyncWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16231:7)
-          at flushSyncWorkAcrossRoots_impl (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16079:21)
-          at processRootScheduleInMicrotask (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16116:7)
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16250:13
-          at invokeTheCallbackFunction (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/living/generated/Function.js:19:26)
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:613:9
-          at node:internal/process/task_queues:140:7
-          at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
-          at AsyncResource.runMicrotask (node:internal/process/task_queues:137:8)
-  - file: src/features/instantiate/containers/PartySelection.test.tsx
-    test: PartySelection › selecting parties › should be possible to click on (Brønnøysundregistrene org.nr. 974760673)
-    name: should be possible to click on (Brønnøysundregistrene org.nr. 974760673)
-    ancestors:
-      - PartySelection
-      - selecting parties
-    status: failed
-    error: 'Error: Rendered more hooks than during the previous render.'
-    location:
-      file: node_modules/react-dom/cjs/react-dom-client.development.js
-      line: 5715
-      column: 17
-    rerun: npx jest "src/features/instantiate/containers/PartySelection.test.tsx" -t "PartySelection › selecting parties › should be possible to click on \(Brønnøysundregistrene org\.nr\. 974760673\)"
-    stack: |-
-      Error: Rendered more hooks than during the previous render.
-          at updateWorkInProgressHook (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:5715:17)
-          at updateCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:6592:18)
-          at Object.useCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:23149:16)
-          at Object.process.env.NODE_ENV.exports.useCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react/cjs/react.development.js:1161:34)
-          at useStore (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/zustand/react.js:10:11)
-          at useLaxSelector (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/core/contexts/zustandContext.tsx:135:20)
-          at Object.useLaxDefaultDataType (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/datamodel/DataModelsProvider.tsx:376:32)
-          at useLanguageWithForcedPath (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/language/useLanguage.ts:97:38)
-          at useLanguage (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/language/useLanguage.ts:92:10)
-          at PartySelection (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/instantiate/containers/PartySelection.tsx:95:39)
-          at Object.react_stack_bottom_frame (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:23863:20)
-          at renderWithHooks (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:5529:22)
-          at updateFunctionComponent (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:8897:19)
-          at beginWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:10522:18)
-          at runWithFiberInDEV (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:1522:13)
-          at performUnitOfWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:15140:22)
-          at workLoopSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14956:41)
-          at renderRootSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14936:11)
-          at performWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14462:44)
-          at performSyncWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16231:7)
-          at flushSyncWorkAcrossRoots_impl (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16079:21)
-          at processRootScheduleInMicrotask (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16116:7)
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16250:13
-          at invokeTheCallbackFunction (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/living/generated/Function.js:19:26)
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:613:9
-          at node:internal/process/task_queues:140:7
-          at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
-          at AsyncResource.runMicrotask (node:internal/process/task_queues:137:8)
-  - file: src/features/instantiate/containers/PartySelection.test.tsx
-    test: PartySelection › selecting parties › should be possible to click on (Root Org org.nr. 123456789)
-    name: should be possible to click on (Root Org org.nr. 123456789)
-    ancestors:
-      - PartySelection
-      - selecting parties
-    status: failed
-    error: 'Error: Rendered more hooks than during the previous render.'
-    location:
-      file: node_modules/react-dom/cjs/react-dom-client.development.js
-      line: 5715
-      column: 17
-    rerun: npx jest "src/features/instantiate/containers/PartySelection.test.tsx" -t "PartySelection › selecting parties › should be possible to click on \(Root Org org\.nr\. 123456789\)"
-    stack: |-
-      Error: Rendered more hooks than during the previous render.
-          at updateWorkInProgressHook (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:5715:17)
-          at updateCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:6592:18)
-          at Object.useCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:23149:16)
-          at Object.process.env.NODE_ENV.exports.useCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react/cjs/react.development.js:1161:34)
-          at useStore (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/zustand/react.js:10:11)
-          at useLaxSelector (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/core/contexts/zustandContext.tsx:135:20)
-          at Object.useLaxDefaultDataType (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/datamodel/DataModelsProvider.tsx:376:32)
-          at useLanguageWithForcedPath (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/language/useLanguage.ts:97:38)
-          at useLanguage (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/language/useLanguage.ts:92:10)
-          at PartySelection (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/instantiate/containers/PartySelection.tsx:95:39)
-          at Object.react_stack_bottom_frame (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:23863:20)
-          at renderWithHooks (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:5529:22)
-          at updateFunctionComponent (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:8897:19)
-          at beginWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:10522:18)
-          at runWithFiberInDEV (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:1522:13)
-          at performUnitOfWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:15140:22)
-          at workLoopSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14956:41)
-          at renderRootSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14936:11)
-          at performWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14462:44)
-          at performSyncWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16231:7)
-          at flushSyncWorkAcrossRoots_impl (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16079:21)
-          at processRootScheduleInMicrotask (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16116:7)
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16250:13
-          at invokeTheCallbackFunction (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/living/generated/Function.js:19:26)
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:613:9
-          at node:internal/process/task_queues:140:7
-          at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
-          at AsyncResource.runMicrotask (node:internal/process/task_queues:137:8)
-  - file: src/features/instantiate/containers/PartySelection.test.tsx
-    test: PartySelection › selecting parties › should be possible to click on (Subunit Org org.nr. 223456789)
-    name: should be possible to click on (Subunit Org org.nr. 223456789)
-    ancestors:
-      - PartySelection
-      - selecting parties
-    status: failed
-    error: 'Error: Rendered more hooks than during the previous render.'
-    location:
-      file: node_modules/react-dom/cjs/react-dom-client.development.js
-      line: 5715
-      column: 17
-    rerun: npx jest "src/features/instantiate/containers/PartySelection.test.tsx" -t "PartySelection › selecting parties › should be possible to click on \(Subunit Org org\.nr\. 223456789\)"
-    stack: |-
-      Error: Rendered more hooks than during the previous render.
-          at updateWorkInProgressHook (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:5715:17)
-          at updateCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:6592:18)
-          at Object.useCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:23149:16)
-          at Object.process.env.NODE_ENV.exports.useCallback (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react/cjs/react.development.js:1161:34)
-          at useStore (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/zustand/react.js:10:11)
-          at useLaxSelector (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/core/contexts/zustandContext.tsx:135:20)
-          at Object.useLaxDefaultDataType (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/datamodel/DataModelsProvider.tsx:376:32)
-          at useLanguageWithForcedPath (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/language/useLanguage.ts:97:38)
-          at useLanguage (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/language/useLanguage.ts:92:10)
-          at PartySelection (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/instantiate/containers/PartySelection.tsx:95:39)
-          at Object.react_stack_bottom_frame (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:23863:20)
-          at renderWithHooks (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:5529:22)
-          at updateFunctionComponent (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:8897:19)
-          at beginWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:10522:18)
-          at runWithFiberInDEV (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:1522:13)
-          at performUnitOfWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:15140:22)
-          at workLoopSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14956:41)
-          at renderRootSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14936:11)
-          at performWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14462:44)
-          at performSyncWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16231:7)
-          at flushSyncWorkAcrossRoots_impl (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16079:21)
-          at processRootScheduleInMicrotask (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16116:7)
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16250:13
-          at invokeTheCallbackFunction (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/living/generated/Function.js:19:26)
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:613:9
-          at node:internal/process/task_queues:140:7
-          at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
-          at AsyncResource.runMicrotask (node:internal/process/task_queues:137:8)
-  - file: src/layout/CustomButton/CustomButtonComponent.test.tsx
-    test: CustomButtonComponent › should be enabled if the action provided is authorized
-    name: should be enabled if the action provided is authorized
-    ancestors:
-      - CustomButtonComponent
-    status: failed
-    error: 'Error: expect(element).not.toBeDisabled()'
-    location:
-      file: src/layout/CustomButton/CustomButtonComponent.test.tsx
-      line: 40
-      column: 44
-    rerun: npx jest "src/layout/CustomButton/CustomButtonComponent.test.tsx" -t "CustomButtonComponent › should be enabled if the action provided is authorized"
-    stack: |-
-      Error: expect(element).not.toBeDisabled()
-
-      Received element is disabled:
-        <button class="ds-button" data-color="accent" data-size="md" data-variant="secondary" disabled="" id="custom-button-my-test-component-id" type="button" />
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/layout/CustomButton/CustomButtonComponent.test.tsx:40:44
-          at Generator.next (<anonymous>)
-          at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/layout/CustomButton/CustomButtonComponent.test.tsx:5:58)
-  - file: src/layout/CustomButton/CustomButtonComponent.test.tsx
-    test: CustomButtonComponent › should not be disabled if one of the actions provided is not authorized but is not used in the custom button
-    name: should not be disabled if one of the actions provided is not authorized but is not used in the custom button
-    ancestors:
-      - CustomButtonComponent
-    status: failed
-    error: 'Error: expect(element).not.toBeDisabled()'
-    location:
-      file: src/layout/CustomButton/CustomButtonComponent.test.tsx
-      line: 94
-      column: 44
-    rerun: npx jest "src/layout/CustomButton/CustomButtonComponent.test.tsx" -t "CustomButtonComponent › should not be disabled if one of the actions provided is not authorized but is not used in the custom button"
-    stack: |-
-      Error: expect(element).not.toBeDisabled()
-
-      Received element is disabled:
-        <button class="ds-button" data-color="accent" data-size="md" data-variant="secondary" disabled="" id="custom-button-my-test-component-id" type="button" />
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/layout/CustomButton/CustomButtonComponent.test.tsx:94:44
-          at Generator.next (<anonymous>)
-          at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/layout/CustomButton/CustomButtonComponent.test.tsx:5:58)
-  - file: src/layout/CustomButton/CustomButtonComponent.test.tsx
-    test: CustomButtonComponent › should not be disabled if one of the client side actions does not exist in authorizations
-    name: should not be disabled if one of the client side actions does not exist in authorizations
-    ancestors:
-      - CustomButtonComponent
-    status: failed
-    error: 'Error: expect(element).not.toBeDisabled()'
-    location:
-      file: src/layout/CustomButton/CustomButtonComponent.test.tsx
-      line: 118
-      column: 44
-    rerun: npx jest "src/layout/CustomButton/CustomButtonComponent.test.tsx" -t "CustomButtonComponent › should not be disabled if one of the client side actions does not exist in authorizations"
-    stack: |-
-      Error: expect(element).not.toBeDisabled()
-
-      Received element is disabled:
-        <button class="ds-button" data-color="accent" data-size="md" data-variant="secondary" disabled="" id="custom-button-my-test-component-id" type="button" />
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/layout/CustomButton/CustomButtonComponent.test.tsx:118:44
-          at Generator.next (<anonymous>)
-          at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/layout/CustomButton/CustomButtonComponent.test.tsx:5:58)
-  - file: src/features/form/layoutSettings/LayoutSettingsContext.test.tsx
-    test: LayoutSettingsContext › usePageSettings().taskNavigation › returns value from layout-sets
-    name: returns value from layout-sets
-    ancestors:
-      - LayoutSettingsContext
-      - usePageSettings().taskNavigation
-    status: failed
-    error: 'TestingLibraryElementError: Unable to find an element by: [data-testid="task-group-id"]'
-    location:
-      file: node_modules/@testing-library/dom/dist/config.js
-      line: 37
-      column: 19
-    rerun: npx jest "src/features/form/layoutSettings/LayoutSettingsContext.test.tsx" -t "LayoutSettingsContext › usePageSettings\(\)\.taskNavigation › returns value from layout-sets"
-    stack: "TestingLibraryElementError: Unable to find an element by: [data-testid=\"task-group-id\"]\n\nIgnored nodes: comments, script, style\n\e[36m<body\e[39m\n  \e[33mdata-unsaved-changes\e[39m=\e[32m\"false\"\e[39m\n  \e[33mstyle\e[39m=\e[32m\"background: rgb(239, 239, 239);\"\e[39m\n\e[36m>\e[39m\n  \e[36m<div />\e[39m\n\e[36m</body>\e[39m\n    at Object.getElementError (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/@testing-library/dom/dist/config.js:37:19)\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/@testing-library/dom/dist/query-helpers.js:76:38\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/@testing-library/dom/dist/query-helpers.js:109:15\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/form/layoutSettings/LayoutSettingsContext.test.tsx:188:21\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/form/layoutSettings/LayoutSettingsContext.test.tsx:5:58)"
-  - file: src/features/instantiate/selection/InstanceSelection.test.tsx
-    test: InstanceSelection › should trigger openInstance on editButton click
-    name: should trigger openInstance on editButton click
-    ancestors:
-      - InstanceSelection
-    status: failed
-    error: 'Error: expect(received).toBe(expected) // Object.is equality'
-    location:
-      file: src/features/instantiate/selection/InstanceSelection.test.tsx
-      line: 89
-      column: 56
-    rerun: npx jest "src/features/instantiate/selection/InstanceSelection.test.tsx" -t "InstanceSelection › should trigger openInstance on editButton click"
-    stack: |-
-      Error: expect(received).toBe(expected) // Object.is equality
-
-      Expected: "/ttd/test/instance/some-id"
-      Received: "/instance/some-id"
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/instantiate/selection/InstanceSelection.test.tsx:89:56
-          at Generator.next (<anonymous>)
-          at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/instantiate/selection/InstanceSelection.test.tsx:5:58)
-  - file: src/features/instantiate/selection/InstanceSelection.test.tsx
-    test: InstanceSelection › should trigger openInstance on editButton click during mobile view
-    name: should trigger openInstance on editButton click during mobile view
-    ancestors:
-      - InstanceSelection
-    status: failed
-    error: 'Error: expect(received).toBe(expected) // Object.is equality'
-    location:
-      file: src/features/instantiate/selection/InstanceSelection.test.tsx
-      line: 107
-      column: 56
-    rerun: npx jest "src/features/instantiate/selection/InstanceSelection.test.tsx" -t "InstanceSelection › should trigger openInstance on editButton click during mobile view"
-    stack: |-
-      Error: expect(received).toBe(expected) // Object.is equality
-
-      Expected: "/ttd/test/instance/some-other-id"
-      Received: "/instance/some-other-id"
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/instantiate/selection/InstanceSelection.test.tsx:107:56
-          at Generator.next (<anonymous>)
-          at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/instantiate/selection/InstanceSelection.test.tsx:5:58)
-  - file: src/features/navigation/AppNavigation.test.tsx
-    test: AppNavigation › should show tasknavigation
-    name: should show tasknavigation
-    ancestors:
-      - AppNavigation
-    status: failed
-    error: 'TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/Utfylling/`'
-    location:
-      file: node_modules/@testing-library/dom/dist/config.js
-      line: 37
-      column: 19
-    rerun: npx jest "src/features/navigation/AppNavigation.test.tsx" -t "AppNavigation › should show tasknavigation"
-    stack: "TestingLibraryElementError: Unable to find an accessible element with the role \"button\" and name `/Utfylling/`\n\nThere are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole\n\nIgnored nodes: comments, script, style\n\e[36m<body\e[39m\n  \e[33mdata-unsaved-changes\e[39m=\e[32m\"false\"\e[39m\n  \e[33mstyle\e[39m=\e[32m\"background: rgb(239, 239, 239);\"\e[39m\n\e[36m>\e[39m\n  \e[36m<div />\e[39m\n\e[36m</body>\e[39m\n    at Object.getElementError (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/@testing-library/dom/dist/config.js:37:19)\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/@testing-library/dom/dist/query-helpers.js:76:38\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/@testing-library/dom/dist/query-helpers.js:52:17\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/@testing-library/dom/dist/query-helpers.js:95:19\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/navigation/AppNavigation.test.tsx:397:19\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/navigation/AppNavigation.test.tsx:38:58)"
-  - file: src/features/navigation/AppNavigation.test.tsx
-    test: AppNavigation › should show navigation groups for current task
-    name: should show navigation groups for current task
-    ancestors:
-      - AppNavigation
-    status: failed
-    error: 'Error: expect(received).toBeInTheDocument()'
-    location:
-      file: node_modules/expect/build/index.js
-      line: 2240
-      column: 22
-    rerun: npx jest "src/features/navigation/AppNavigation.test.tsx" -t "AppNavigation › should show navigation groups for current task"
-    stack: |-
-      Error: expect(received).toBeInTheDocument()
-
-      received value must be an HTMLElement or an SVGElement.
-      Received has value: null
-          at __EXTERNAL_MATCHER_TRAP__ (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/expect/build/index.js:2240:22)
-          at Object.throwingMatcher [as toBeInTheDocument] (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/expect/build/index.js:2241:6)
-          at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/navigation/AppNavigation.test.tsx:416:66
-          at Generator.next (<anonymous>)
-          at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/navigation/AppNavigation.test.tsx:38:58)
-  - file: src/features/processEnd/confirm/containers/Confirm.test.tsx
-    test: Confirm › should not show loading if required data is loaded
-    name: should not show loading if required data is loaded
-    ancestors:
-      - Confirm
-    status: failed
-    error: 'Error: Expected to not be loading, but was loading because of ''confirm-missing-parties''.'
-    location:
-      file: src/test/renderWithProviders.tsx
-      line: 612
-      column: 16
-    rerun: npx jest "src/features/processEnd/confirm/containers/Confirm.test.tsx" -t "Confirm › should not show loading if required data is loaded"
-    stack: |-
-      Error: Expected to not be loading, but was loading because of 'confirm-missing-parties'.
-      Run time: 15.24s
-
-      Queries called:
-      - fetchLogo({"client":{},"queryKey":["logoSvg"],"signal":{}})
-      - fetchApplicationSettings()
-      - fetchOrgs({"client":{},"queryKey":["fetchOrganizations"],"signal":{}})
-      - fetchDataModelSchema("test-data-model")
-      - fetchCustomValidationConfig("test-data-model")
-      - fetchFormData("https://local.altinn.cloud/ttd/test/instances/12345/91cefc5e-c47b-40ff-a8a4-05971205f783/data/4f2610c9-911a-46a3-bc2d-5191602193f4?includeRowId=true&language=nb", {})
-      - fetchDynamics("some-data-task")
-      - fetchRuleHandler("some-data-task")
-      - fetchTextResources("nb")
-      - fetchLayoutSettings("some-data-task")
-      - fetchLayouts("some-data-task")
-      - fetchBackendValidations("12345/91cefc5e-c47b-40ff-a8a4-05971205f783", "nb", true)
-
-      Consider if you need to increase WAITFOR_TIMEOUT if your machine is slow.
-          at onTimeout (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/test/renderWithProviders.tsx:612:16)
-          at handleTimeout (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/@testing-library/dom/dist/wait-for.js:156:14)
-          at Timeout.task (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:579:19)
-          at listOnTimeout (node:internal/timers:573:17)
-          at processTimers (node:internal/timers:514:7)
-  - file: src/features/processEnd/confirm/containers/Confirm.test.tsx
-    test: Confirm › should have subunit sender name present
-    name: should have subunit sender name present
-    ancestors:
-      - Confirm
-    status: failed
-    error: 'Error: Expected to not be loading, but was loading because of ''confirm-missing-parties''.'
-    location:
-      file: src/test/renderWithProviders.tsx
-      line: 612
-      column: 16
-    rerun: npx jest "src/features/processEnd/confirm/containers/Confirm.test.tsx" -t "Confirm › should have subunit sender name present"
-    stack: |-
-      Error: Expected to not be loading, but was loading because of 'confirm-missing-parties'.
-      Run time: 15.04s
-
-      Queries called:
-      - fetchLogo({"client":{},"queryKey":["logoSvg"],"signal":{}})
-      - fetchApplicationSettings()
-      - fetchOrgs({"client":{},"queryKey":["fetchOrganizations"],"signal":{}})
-      - fetchDataModelSchema("test-data-model")
-      - fetchCustomValidationConfig("test-data-model")
-      - fetchFormData("https://local.altinn.cloud/ttd/test/instances/2/91cefc5e-c47b-40ff-a8a4-05971205f783/data/4f2610c9-911a-46a3-bc2d-5191602193f4?includeRowId=true&language=nb", {})
-      - fetchDynamics("some-data-task")
-      - fetchRuleHandler("some-data-task")
-      - fetchTextResources("nb")
-      - fetchLayoutSettings("some-data-task")
-      - fetchLayouts("some-data-task")
-      - fetchBackendValidations("2/91cefc5e-c47b-40ff-a8a4-05971205f783", "nb", true)
-
-      Consider if you need to increase WAITFOR_TIMEOUT if your machine is slow.
-          at onTimeout (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/test/renderWithProviders.tsx:612:16)
-          at handleTimeout (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/@testing-library/dom/dist/wait-for.js:156:14)
-          at Timeout.task (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:579:19)
-          at listOnTimeout (node:internal/timers:573:17)
-          at processTimers (node:internal/timers:514:7)
-  - file: src/features/formData/FormDataReaders.test.tsx
-    test: FormDataReaders › simple, should render a resource with a variable lookup - someModel
-    name: simple, should render a resource with a variable lookup - someModel
-    ancestors:
-      - FormDataReaders
-    status: failed
-    error: 'Error: Unable to find an element by: [data-testid="test"]'
-    location:
-      file: src/features/form/layout/LayoutsContext.tsx
-      line: 88
-      column: 59
-    rerun: npx jest "src/features/formData/FormDataReaders.test.tsx" -t "FormDataReaders › simple, should render a resource with a variable lookup - someModel"
-    stack: "Error: Unable to find an element by: [data-testid=\"test\"]\n\nIgnored nodes: comments, script, style\n\e[36m<body\e[39m\n  \e[33mstyle\e[39m=\e[32m\"background: rgb(239, 239, 239);\"\e[39m\n\e[36m>\e[39m\n  \e[36m<div>\e[39m\n    \e[36m<h2>\e[39m\n      \e[0mUnexpected Application Error!\e[0m\n    \e[36m</h2>\e[39m\n    \e[36m<h3\e[39m\n      \e[33mstyle\e[39m=\e[32m\"font-style: italic;\"\e[39m\n    \e[36m>\e[39m\n      \e[0mCannot read properties of undefined (reading 'layouts')\e[0m\n    \e[36m</h3>\e[39m\n    \e[36m<pre\e[39m\n      \e[33mstyle\e[39m=\e[32m\"padding: 0.5rem; background-color: rgba(200, 200, 200, 0.5);\"\e[39m\n    \e[36m>\e[39m\n      \e[0mTypeError: Cannot read properties of undefined (reading 'layouts')\n    at useLayouts (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/form/layout/LayoutsContext.tsx:88:59)\n    at DataModelsLoader (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/datamodel/DataModelsProvider.tsx:158:29)\n    at Object.react_stack_bottom_frame (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:23863:20)\n    at renderWithHooks (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:5529:22)\n    at updateFunctionComponent (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:8897:19)\n    at beginWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:10522:18)\n    at runWithFiberInDEV (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:1522:13)\n    at performUnitOfWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:15140:22)\n    at workLoopSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14956:41)\n    at renderRootSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14936:11)\n    at performWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14462:44)\n    at performSyncWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16231:7)\n    at flushSyncWorkAcrossRoots_impl (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16079:21)\n    at processRootScheduleInMicrotask (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16116:7)\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16250:13\n    at invokeTheCallbackFunction (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/living/generated/Function.js:19:26)\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:613:9\n    at node:internal/process/task_queues:140:7\n    at AsyncResource.runInAsyncScope (node:async_hooks:206:9)\n    at AsyncResource.runMicrotask (node:internal/process/task_queues:137:8)\n    at runNextTicks (node:internal/process/task_queues:60:5)\n    at listOnTimeout (node:internal/timers:540:9)\n    at processTimers (node:internal/timers:514:7)\e[0m\n    \e[36m</pre>\e[39m\n    \e[36m<p>\e[39m\n      \e[0m💿 Hey developer 👋\e[0m\n    \e[36m</p>\e[39m\n    \e[36m<p>\e[39m\n      \e[0mYou can provide a way better UX than this when your app throws errors by providing your own \e[0m\n      \e[36m<code\e[39m\n        \e[33mstyle\e[39m=\e[32m\"padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);\"\e[39m\n      \e[36m>\e[39m\n        \e[0mErrorBoundary\e[0m\n      \e[36m</code>\e[39m\n      \e[0m or\e[0m\n      \e[0m \e[0m\n      \e[36m<code\e[39m\n        \e[33mstyle\e[39m=\e[32m\"padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);\"\e[39m\n      \e[36m>\e[39m\n        \e[0merrorElement\e[0m\n      \e[36m</code>\e[39m\n      \e[0m prop on your route.\e[0m\n    \e[36m</p>\e[39m\n  \e[36m</div>\e[39m\n\e[36m</body>\e[39m\n    at waitForWrapper (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/@testing-library/dom/dist/wait-for.js:163:27)\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/formData/FormDataReaders.test.tsx:186:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/formData/FormDataReaders.test.tsx:5:58)"
-  - file: src/features/formData/FormDataReaders.test.tsx
-    test: FormDataReaders › simple, should render a resource with a variable lookup - someModel1.0
-    name: simple, should render a resource with a variable lookup - someModel1.0
-    ancestors:
-      - FormDataReaders
-    status: failed
-    error: 'Error: Unable to find an element by: [data-testid="test"]'
-    location:
-      file: src/features/form/layout/LayoutsContext.tsx
-      line: 88
-      column: 59
-    rerun: npx jest "src/features/formData/FormDataReaders.test.tsx" -t "FormDataReaders › simple, should render a resource with a variable lookup - someModel1\.0"
-    stack: "Error: Unable to find an element by: [data-testid=\"test\"]\n\nIgnored nodes: comments, script, style\n\e[36m<body\e[39m\n  \e[33mstyle\e[39m=\e[32m\"background: rgb(239, 239, 239);\"\e[39m\n\e[36m>\e[39m\n  \e[36m<div>\e[39m\n    \e[36m<h2>\e[39m\n      \e[0mUnexpected Application Error!\e[0m\n    \e[36m</h2>\e[39m\n    \e[36m<h3\e[39m\n      \e[33mstyle\e[39m=\e[32m\"font-style: italic;\"\e[39m\n    \e[36m>\e[39m\n      \e[0mCannot read properties of undefined (reading 'layouts')\e[0m\n    \e[36m</h3>\e[39m\n    \e[36m<pre\e[39m\n      \e[33mstyle\e[39m=\e[32m\"padding: 0.5rem; background-color: rgba(200, 200, 200, 0.5);\"\e[39m\n    \e[36m>\e[39m\n      \e[0mTypeError: Cannot read properties of undefined (reading 'layouts')\n    at useLayouts (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/form/layout/LayoutsContext.tsx:88:59)\n    at DataModelsLoader (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/datamodel/DataModelsProvider.tsx:158:29)\n    at Object.react_stack_bottom_frame (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:23863:20)\n    at renderWithHooks (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:5529:22)\n    at updateFunctionComponent (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:8897:19)\n    at beginWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:10522:18)\n    at runWithFiberInDEV (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:1522:13)\n    at performUnitOfWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:15140:22)\n    at workLoopSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14956:41)\n    at renderRootSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14936:11)\n    at performWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14462:44)\n    at performSyncWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16231:7)\n    at flushSyncWorkAcrossRoots_impl (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16079:21)\n    at processRootScheduleInMicrotask (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16116:7)\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16250:13\n    at invokeTheCallbackFunction (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/living/generated/Function.js:19:26)\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:613:9\n    at node:internal/process/task_queues:140:7\n    at AsyncResource.runInAsyncScope (node:async_hooks:206:9)\n    at AsyncResource.runMicrotask (node:internal/process/task_queues:137:8)\e[0m\n    \e[36m</pre>\e[39m\n    \e[36m<p>\e[39m\n      \e[0m💿 Hey developer 👋\e[0m\n    \e[36m</p>\e[39m\n    \e[36m<p>\e[39m\n      \e[0mYou can provide a way better UX than this when your app throws errors by providing your own \e[0m\n      \e[36m<code\e[39m\n        \e[33mstyle\e[39m=\e[32m\"padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);\"\e[39m\n      \e[36m>\e[39m\n        \e[0mErrorBoundary\e[0m\n      \e[36m</code>\e[39m\n      \e[0m or\e[0m\n      \e[0m \e[0m\n      \e[36m<code\e[39m\n        \e[33mstyle\e[39m=\e[32m\"padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);\"\e[39m\n      \e[36m>\e[39m\n        \e[0merrorElement\e[0m\n      \e[36m</code>\e[39m\n      \e[0m prop on your route.\e[0m\n    \e[36m</p>\e[39m\n  \e[36m</div>\e[39m\n\e[36m</body>\e[39m\n    at waitForWrapper (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/@testing-library/dom/dist/wait-for.js:163:27)\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/formData/FormDataReaders.test.tsx:186:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/formData/FormDataReaders.test.tsx:5:58)"
-  - file: src/features/formData/FormDataReaders.test.tsx
-    test: FormDataReaders › advanced, should fetch data from multiple models, handle failures
-    name: advanced, should fetch data from multiple models, handle failures
-    ancestors:
-      - FormDataReaders
-    status: failed
-    error: 'TestingLibraryElementError: Unable to find an element by: [data-testid="test1"]'
-    location:
-      file: src/features/form/layout/LayoutsContext.tsx
-      line: 88
-      column: 59
-    rerun: npx jest "src/features/formData/FormDataReaders.test.tsx" -t "FormDataReaders › advanced, should fetch data from multiple models, handle failures"
-    stack: "TestingLibraryElementError: Unable to find an element by: [data-testid=\"test1\"]\n\nIgnored nodes: comments, script, style\n\e[36m<body\e[39m\n  \e[33mstyle\e[39m=\e[32m\"background: rgb(239, 239, 239);\"\e[39m\n\e[36m>\e[39m\n  \e[36m<div>\e[39m\n    \e[36m<h2>\e[39m\n      \e[0mUnexpected Application Error!\e[0m\n    \e[36m</h2>\e[39m\n    \e[36m<h3\e[39m\n      \e[33mstyle\e[39m=\e[32m\"font-style: italic;\"\e[39m\n    \e[36m>\e[39m\n      \e[0mCannot read properties of undefined (reading 'layouts')\e[0m\n    \e[36m</h3>\e[39m\n    \e[36m<pre\e[39m\n      \e[33mstyle\e[39m=\e[32m\"padding: 0.5rem; background-color: rgba(200, 200, 200, 0.5);\"\e[39m\n    \e[36m>\e[39m\n      \e[0mTypeError: Cannot read properties of undefined (reading 'layouts')\n    at useLayouts (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/form/layout/LayoutsContext.tsx:88:59)\n    at DataModelsLoader (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/datamodel/DataModelsProvider.tsx:158:29)\n    at Object.react_stack_bottom_frame (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:23863:20)\n    at renderWithHooks (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:5529:22)\n    at updateFunctionComponent (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:8897:19)\n    at beginWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:10522:18)\n    at runWithFiberInDEV (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:1522:13)\n    at performUnitOfWork (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:15140:22)\n    at workLoopSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14956:41)\n    at renderRootSync (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14936:11)\n    at performWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:14462:44)\n    at performSyncWorkOnRoot (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16231:7)\n    at flushSyncWorkAcrossRoots_impl (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16079:21)\n    at processRootScheduleInMicrotask (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16116:7)\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16250:13\n    at invokeTheCallbackFunction (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/living/generated/Function.js:19:26)\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:613:9\n    at node:internal/process/task_queues:140:7\n    at AsyncResource.runInAsyncScope (node:async_hooks:206:9)\n    at AsyncResource.runMicrotask (node:internal/process/task_queues:137:8)\e[0m\n    \e[36m</pre>\e[39m\n    \e[36m<p>\e[39m\n      \e[0m💿 Hey developer 👋\e[0m\n    \e[36m</p>\e[39m\n    \e[36m<p>\e[39m\n      \e[0mYou can provide a way better UX than this when your app throws errors by providing your own \e[0m\n      \e[36m<code\e[39m\n        \e[33mstyle\e[39m=\e[32m\"padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);\"\e[39m\n      \e[36m>\e[39m\n        \e[0mErrorBoundary\e[0m\n      \e[36m</code>\e[39m\n      \e[0m or\e[0m\n      \e[0m \e[0m\n      \e[36m<code\e[39m\n        \e[33mstyle\e[39m=\e[32m\"padding: 2px 4px; background-color: rgba(200, 200, 200, 0.5);\"\e[39m\n      \e[36m>\e[39m\n        \e[0merrorElement\e[0m\n      \e[36m</code>\e[39m\n      \e[0m prop on your route.\e[0m\n    \e[36m</p>\e[39m\n  \e[36m</div>\e[39m\n\e[36m</body>\e[39m\n    at Object.getElementError (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/@testing-library/dom/dist/config.js:37:19)\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/@testing-library/dom/dist/query-helpers.js:76:38\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/@testing-library/dom/dist/query-helpers.js:52:17\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/@testing-library/dom/dist/query-helpers.js:95:19\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/formData/FormDataReaders.test.tsx:293:19\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/formData/FormDataReaders.test.tsx:5:58)"
   - file: src/features/expressions/shared-functions.test.tsx
-    test: (suite execution error)
-    name: (suite execution error)
-    ancestors: []
+    test: 'Expressions shared function tests › Function: dataModelMultiple › Lookup non-existing model returns null (component-lookup-non-existing-model.json)'
+    name: Lookup non-existing model returns null (component-lookup-non-existing-model.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: dataModelMultiple'
     status: failed
-    error: Your test suite must contain at least one test.
-    location: null
-    rerun: npx jest "src/features/expressions/shared-functions.test.tsx"
-    stack: Your test suite must contain at least one test.
-  - file: src/utils/schemaUtils.test.ts
-    test: (suite execution error)
-    name: (suite execution error)
-    ancestors: []
+    error: 'Error: Expected to not be loading, but was loading because of ''initial-data''.'
+    location:
+      file: src/test/renderWithProviders.tsx
+      line: 641
+      column: 16
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: dataModelMultiple › Lookup non-existing model returns null \(component-lookup-non-existing-model\.json\)"'
+    stack: |-
+      Error: Expected to not be loading, but was loading because of 'initial-data'.
+      Run time: 15.00s
+
+      Queries called:
+      - fetchLogo({"client":{},"queryKey":["logoSvg"],"signal":{}})
+      - fetchApplicationSettings()
+      - fetchLayoutSets()
+      - fetchOrgs({"client":{},"queryKey":["fetchOrganizations"],"signal":{}})
+      - fetchDataModelSchema("default")
+      - fetchDataModelSchema("non-existing")
+      - fetchFormData("https://local.altinn.cloud/ttd/test/instances/12345/91cefc5e-c47b-40ff-a8a4-05971205f783/data/00dd7417-5b4e-402a-bb73-007537071f1d?includeRowId=true&language=nb", {})
+      - fetchTextResources("nb")
+      - fetchLayouts("layout-set")
+
+      Consider if you need to increase WAITFOR_TIMEOUT if your machine is slow.
+          at onTimeout (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/test/renderWithProviders.tsx:641:16)
+          at handleTimeout (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/@testing-library/dom/dist/wait-for.js:156:14)
+          at Timeout.task (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:579:19)
+          at listOnTimeout (node:internal/timers:573:17)
+          at processTimers (node:internal/timers:514:7)
+  - file: src/features/expressions/shared-functions.test.tsx
+    test: 'Expressions shared function tests › Function: dataModelMultiple › dataModel non-existing datamodel reference (dataModel-non-existing-model.json)'
+    name: dataModel non-existing datamodel reference (dataModel-non-existing-model.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: dataModelMultiple'
     status: failed
-    error: 'ENOENT: no such file or directory, scandir ''C:/Code/altinn/all-apps'''
-    location: null
-    rerun: npx jest "src/utils/schemaUtils.test.ts"
-    stack: 'ENOENT: no such file or directory, scandir ''C:/Code/altinn/all-apps'''
-  - file: src/utils/layout/all.test.tsx
-    test: (suite execution error)
-    name: (suite execution error)
-    ancestors: []
+    error: 'Error: Expected to not be loading, but was loading because of ''initial-data''.'
+    location:
+      file: src/test/renderWithProviders.tsx
+      line: 641
+      column: 16
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: dataModelMultiple › dataModel non-existing datamodel reference \(dataModel-non-existing-model\.json\)"'
+    stack: |-
+      Error: Expected to not be loading, but was loading because of 'initial-data'.
+      Run time: 15.01s
+
+      Queries called:
+      - fetchLogo({"client":{},"queryKey":["logoSvg"],"signal":{}})
+      - fetchApplicationSettings()
+      - fetchLayoutSets()
+      - fetchOrgs({"client":{},"queryKey":["fetchOrganizations"],"signal":{}})
+      - fetchDataModelSchema("default")
+      - fetchDataModelSchema("non-default")
+      - fetchDataModelSchema("non-existing")
+      - fetchFormData("https://local.altinn.cloud/ttd/test/instances/12345/91cefc5e-c47b-40ff-a8a4-05971205f783/data/00dd7417-5b4e-402a-bb73-007537071f1d?includeRowId=true&language=nb", {})
+      - fetchFormData("https://local.altinn.cloud/ttd/test/instances/12345/91cefc5e-c47b-40ff-a8a4-05971205f783/data/10dd7417-5b4e-402a-bb73-007537071f13?includeRowId=true&language=nb", {})
+      - fetchTextResources("nb")
+      - fetchLayouts("layout-set")
+
+      Consider if you need to increase WAITFOR_TIMEOUT if your machine is slow.
+          at onTimeout (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/test/renderWithProviders.tsx:641:16)
+          at handleTimeout (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/@testing-library/dom/dist/wait-for.js:156:14)
+          at Timeout.task (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/node_modules/jsdom/lib/jsdom/browser/Window.js:579:19)
+          at listOnTimeout (node:internal/timers:573:17)
+          at processTimers (node:internal/timers:514:7)
+  - file: src/features/expressions/shared-functions.test.tsx
+    test: 'Expressions shared function tests › Function: formatDate › Should format date when only given a year (formats-date-english.json)'
+    name: Should format date when only given a year (formats-date-english.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: formatDate'
     status: failed
-    error: 'ENOENT: no such file or directory, scandir ''C:/Code/altinn/all-apps'''
-    location: null
-    rerun: npx jest "src/utils/layout/all.test.tsx"
-    stack: 'ENOENT: no such file or directory, scandir ''C:/Code/altinn/all-apps'''
-  - file: src/utils/layout/schema.test.ts
-    test: (suite execution error)
-    name: (suite execution error)
-    ancestors: []
+    error: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m"
+    location:
+      file: src/features/expressions/shared-functions.test.tsx
+      line: 415
+      column: 20
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: formatDate › Should format date when only given a year \(formats-date-english\.json\)"'
+    stack: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m\n\nExpected: \e[32m\"\e[7m1/1/\e[27m23\"\e[39m\nReceived: \e[31m\"\e[7m01.01.20\e[27m23\"\e[39m\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:415:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:5:58)"
+  - file: src/features/expressions/shared-functions.test.tsx
+    test: 'Expressions shared function tests › Function: formatDate › Should format date in english (formats-date-english2.json)'
+    name: Should format date in english (formats-date-english2.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: formatDate'
     status: failed
-    error: 'ENOENT: no such file or directory, scandir ''C:/Code/altinn/all-apps'''
-    location: null
-    rerun: npx jest "src/utils/layout/schema.test.ts"
-    stack: 'ENOENT: no such file or directory, scandir ''C:/Code/altinn/all-apps'''
+    error: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m"
+    location:
+      file: src/features/expressions/shared-functions.test.tsx
+      line: 415
+      column: 20
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: formatDate › Should format date in english \(formats-date-english2\.json\)"'
+    stack: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m\n\nExpected: \e[32m\"\e[7m10/26/\e[27m23\"\e[39m\nReceived: \e[31m\"\e[7m26.10.20\e[27m23\"\e[39m\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:415:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:5:58)"
+  - file: src/features/expressions/shared-functions.test.tsx
+    test: 'Expressions shared function tests › Function: formatDate › Should format date with format ''a'' as ''AM/PM'' in english (valid-lowercase-a-en.json)'
+    name: Should format date with format 'a' as 'AM/PM' in english (valid-lowercase-a-en.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: formatDate'
+    status: failed
+    error: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m"
+    location:
+      file: src/features/expressions/shared-functions.test.tsx
+      line: 415
+      column: 20
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: formatDate › Should format date with format ''a'' as ''AM/PM'' in english \(valid-lowercase-a-en\.json\)"'
+    stack: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m\n\nExpected: \e[32m\"AM\"\e[39m\nReceived: \e[31m\"a.m.\"\e[39m\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:415:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:5:58)"
+  - file: src/features/expressions/shared-functions.test.tsx
+    test: 'Expressions shared function tests › Function: formatDate › Should format date with format ''E'' as ''Sat'' (valid-uppercase-e-en.json)'
+    name: Should format date with format 'E' as 'Sat' (valid-uppercase-e-en.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: formatDate'
+    status: failed
+    error: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m"
+    location:
+      file: src/features/expressions/shared-functions.test.tsx
+      line: 415
+      column: 20
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: formatDate › Should format date with format ''E'' as ''Sat'' \(valid-uppercase-e-en\.json\)"'
+    stack: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m\n\nExpected: \e[32m\"Sat\"\e[39m\nReceived: \e[31m\"lør\"\e[39m\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:415:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:5:58)"
+  - file: src/features/expressions/shared-functions.test.tsx
+    test: 'Expressions shared function tests › Function: formatDate › Should format date with format ''E'' as ''lau'' (valid-uppercase-e-nn.json)'
+    name: Should format date with format 'E' as 'lau' (valid-uppercase-e-nn.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: formatDate'
+    status: failed
+    error: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m"
+    location:
+      file: src/features/expressions/shared-functions.test.tsx
+      line: 415
+      column: 20
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: formatDate › Should format date with format ''E'' as ''lau'' \(valid-uppercase-e-nn\.json\)"'
+    stack: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m\n\nExpected: \e[32m\"l\e[7mau\e[27m\"\e[39m\nReceived: \e[31m\"l\e[7mør\e[27m\"\e[39m\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:415:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:5:58)"
+  - file: src/features/expressions/shared-functions.test.tsx
+    test: 'Expressions shared function tests › Function: formatDate › Should format date with format ''EE'' as ''Sat'' (valid-uppercase-ee-en.json)'
+    name: Should format date with format 'EE' as 'Sat' (valid-uppercase-ee-en.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: formatDate'
+    status: failed
+    error: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m"
+    location:
+      file: src/features/expressions/shared-functions.test.tsx
+      line: 415
+      column: 20
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: formatDate › Should format date with format ''EE'' as ''Sat'' \(valid-uppercase-ee-en\.json\)"'
+    stack: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m\n\nExpected: \e[32m\"Sat\"\e[39m\nReceived: \e[31m\"lør\"\e[39m\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:415:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:5:58)"
+  - file: src/features/expressions/shared-functions.test.tsx
+    test: 'Expressions shared function tests › Function: formatDate › Should format date with format ''EE'' as ''lau'' (valid-uppercase-ee-nn.json)'
+    name: Should format date with format 'EE' as 'lau' (valid-uppercase-ee-nn.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: formatDate'
+    status: failed
+    error: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m"
+    location:
+      file: src/features/expressions/shared-functions.test.tsx
+      line: 415
+      column: 20
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: formatDate › Should format date with format ''EE'' as ''lau'' \(valid-uppercase-ee-nn\.json\)"'
+    stack: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m\n\nExpected: \e[32m\"l\e[7mau\e[27m\"\e[39m\nReceived: \e[31m\"l\e[7mør\e[27m\"\e[39m\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:415:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:5:58)"
+  - file: src/features/expressions/shared-functions.test.tsx
+    test: 'Expressions shared function tests › Function: formatDate › Should format date with format ''EEE'' as ''Sat'' (valid-uppercase-eee-en.json)'
+    name: Should format date with format 'EEE' as 'Sat' (valid-uppercase-eee-en.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: formatDate'
+    status: failed
+    error: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m"
+    location:
+      file: src/features/expressions/shared-functions.test.tsx
+      line: 415
+      column: 20
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: formatDate › Should format date with format ''EEE'' as ''Sat'' \(valid-uppercase-eee-en\.json\)"'
+    stack: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m\n\nExpected: \e[32m\"Sat\"\e[39m\nReceived: \e[31m\"lør\"\e[39m\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:415:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:5:58)"
+  - file: src/features/expressions/shared-functions.test.tsx
+    test: 'Expressions shared function tests › Function: formatDate › Should format date with format ''EEE'' as ''lau'' (valid-uppercase-eee-nn.json)'
+    name: Should format date with format 'EEE' as 'lau' (valid-uppercase-eee-nn.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: formatDate'
+    status: failed
+    error: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m"
+    location:
+      file: src/features/expressions/shared-functions.test.tsx
+      line: 415
+      column: 20
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: formatDate › Should format date with format ''EEE'' as ''lau'' \(valid-uppercase-eee-nn\.json\)"'
+    stack: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m\n\nExpected: \e[32m\"l\e[7mau\e[27m\"\e[39m\nReceived: \e[31m\"l\e[7mør\e[27m\"\e[39m\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:415:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:5:58)"
+  - file: src/features/expressions/shared-functions.test.tsx
+    test: 'Expressions shared function tests › Function: formatDate › Should format date with format ''EEEE'' as ''Saturday'' (valid-uppercase-eeee-en.json)'
+    name: Should format date with format 'EEEE' as 'Saturday' (valid-uppercase-eeee-en.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: formatDate'
+    status: failed
+    error: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m"
+    location:
+      file: src/features/expressions/shared-functions.test.tsx
+      line: 415
+      column: 20
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: formatDate › Should format date with format ''EEEE'' as ''Saturday'' \(valid-uppercase-eeee-en\.json\)"'
+    stack: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m\n\nExpected: \e[32m\"\e[7mSatu\e[27mrda\e[7my\e[27m\"\e[39m\nReceived: \e[31m\"\e[7mlø\e[27mrda\e[7mg\e[27m\"\e[39m\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:415:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:5:58)"
+  - file: src/features/expressions/shared-functions.test.tsx
+    test: 'Expressions shared function tests › Function: formatDate › Should format date with format ''EEEE'' as ''laurdag'' (valid-uppercase-eeee-nn.json)'
+    name: Should format date with format 'EEEE' as 'laurdag' (valid-uppercase-eeee-nn.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: formatDate'
+    status: failed
+    error: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m"
+    location:
+      file: src/features/expressions/shared-functions.test.tsx
+      line: 415
+      column: 20
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: formatDate › Should format date with format ''EEEE'' as ''laurdag'' \(valid-uppercase-eeee-nn\.json\)"'
+    stack: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m\n\nExpected: \e[32m\"l\e[7mau\e[27mrdag\"\e[39m\nReceived: \e[31m\"l\e[7mø\e[27mrdag\"\e[39m\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:415:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:5:58)"
+  - file: src/features/expressions/shared-functions.test.tsx
+    test: 'Expressions shared function tests › Function: formatDate › Should format date with format ''EEEEE'' as ''S'' (valid-uppercase-eeeee-en.json)'
+    name: Should format date with format 'EEEEE' as 'S' (valid-uppercase-eeeee-en.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: formatDate'
+    status: failed
+    error: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m"
+    location:
+      file: src/features/expressions/shared-functions.test.tsx
+      line: 415
+      column: 20
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: formatDate › Should format date with format ''EEEEE'' as ''S'' \(valid-uppercase-eeeee-en\.json\)"'
+    stack: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m\n\nExpected: \e[32m\"S\"\e[39m\nReceived: \e[31m\"L\"\e[39m\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:415:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:5:58)"
+  - file: src/features/expressions/shared-functions.test.tsx
+    test: 'Expressions shared function tests › Function: formatDate › Should format date with format ''G'' as ''AD'' (valid-uppercase-g-en.json)'
+    name: Should format date with format 'G' as 'AD' (valid-uppercase-g-en.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: formatDate'
+    status: failed
+    error: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m"
+    location:
+      file: src/features/expressions/shared-functions.test.tsx
+      line: 415
+      column: 20
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: formatDate › Should format date with format ''G'' as ''AD'' \(valid-uppercase-g-en\.json\)"'
+    stack: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m\n\nExpected: \e[32m\"AD\"\e[39m\nReceived: \e[31m\"e.Kr.\"\e[39m\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:415:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:5:58)"
+  - file: src/features/expressions/shared-functions.test.tsx
+    test: 'Expressions shared function tests › Function: formatDate › Should format date with format ''GG'' as ''AD'' (valid-uppercase-gg-en.json)'
+    name: Should format date with format 'GG' as 'AD' (valid-uppercase-gg-en.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: formatDate'
+    status: failed
+    error: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m"
+    location:
+      file: src/features/expressions/shared-functions.test.tsx
+      line: 415
+      column: 20
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: formatDate › Should format date with format ''GG'' as ''AD'' \(valid-uppercase-gg-en\.json\)"'
+    stack: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m\n\nExpected: \e[32m\"AD\"\e[39m\nReceived: \e[31m\"e.Kr.\"\e[39m\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:415:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:5:58)"
+  - file: src/features/expressions/shared-functions.test.tsx
+    test: 'Expressions shared function tests › Function: formatDate › Should format date with format ''GGG'' as ''AD'' (valid-uppercase-ggg-en.json)'
+    name: Should format date with format 'GGG' as 'AD' (valid-uppercase-ggg-en.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: formatDate'
+    status: failed
+    error: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m"
+    location:
+      file: src/features/expressions/shared-functions.test.tsx
+      line: 415
+      column: 20
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: formatDate › Should format date with format ''GGG'' as ''AD'' \(valid-uppercase-ggg-en\.json\)"'
+    stack: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m\n\nExpected: \e[32m\"AD\"\e[39m\nReceived: \e[31m\"e.Kr.\"\e[39m\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:415:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:5:58)"
+  - file: src/features/expressions/shared-functions.test.tsx
+    test: 'Expressions shared function tests › Function: formatDate › Should format date with format ''GGGG'' as ''Anno Domini'' (valid-uppercase-gggg-en.json)'
+    name: Should format date with format 'GGGG' as 'Anno Domini' (valid-uppercase-gggg-en.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: formatDate'
+    status: failed
+    error: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m"
+    location:
+      file: src/features/expressions/shared-functions.test.tsx
+      line: 415
+      column: 20
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: formatDate › Should format date with format ''GGGG'' as ''Anno Domini'' \(valid-uppercase-gggg-en\.json\)"'
+    stack: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m\n\nExpected: \e[32m\"Anno Domini\"\e[39m\nReceived: \e[31m\"etter Kristus\"\e[39m\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:415:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:5:58)"
+  - file: src/features/expressions/shared-functions.test.tsx
+    test: 'Expressions shared function tests › Function: formatDate › Should format date with format ''GGGGG'' as ''A'' (valid-uppercase-ggggg-en.json)'
+    name: Should format date with format 'GGGGG' as 'A' (valid-uppercase-ggggg-en.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: formatDate'
+    status: failed
+    error: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m"
+    location:
+      file: src/features/expressions/shared-functions.test.tsx
+      line: 415
+      column: 20
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: formatDate › Should format date with format ''GGGGG'' as ''A'' \(valid-uppercase-ggggg-en\.json\)"'
+    stack: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m\n\nExpected: \e[32m\"A\"\e[39m\nReceived: \e[31m\"e.Kr.\"\e[39m\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:415:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:5:58)"
+  - file: src/features/expressions/shared-functions.test.tsx
+    test: 'Expressions shared function tests › Function: formatDate › Should format date with format ''MMM'' as ''Mar'' (valid-uppercase-mmm-en.json)'
+    name: Should format date with format 'MMM' as 'Mar' (valid-uppercase-mmm-en.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: formatDate'
+    status: failed
+    error: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m"
+    location:
+      file: src/features/expressions/shared-functions.test.tsx
+      line: 415
+      column: 20
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: formatDate › Should format date with format ''MMM'' as ''Mar'' \(valid-uppercase-mmm-en\.json\)"'
+    stack: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m\n\nExpected: \e[32m\"\e[7mM\e[27mar\"\e[39m\nReceived: \e[31m\"\e[7mm\e[27mar\"\e[39m\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:415:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:5:58)"
+  - file: src/features/expressions/shared-functions.test.tsx
+    test: 'Expressions shared function tests › Function: formatDate › Should format date with format ''MMMM'' as ''March'' (valid-uppercase-mmmm-en.json)'
+    name: Should format date with format 'MMMM' as 'March' (valid-uppercase-mmmm-en.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: formatDate'
+    status: failed
+    error: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m"
+    location:
+      file: src/features/expressions/shared-functions.test.tsx
+      line: 415
+      column: 20
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: formatDate › Should format date with format ''MMMM'' as ''March'' \(valid-uppercase-mmmm-en\.json\)"'
+    stack: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m\n\nExpected: \e[32m\"\e[7mM\e[27mar\e[7mch\e[27m\"\e[39m\nReceived: \e[31m\"\e[7mm\e[27mar\e[7ms\e[27m\"\e[39m\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:415:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:5:58)"
+  - file: src/features/expressions/shared-functions.test.tsx
+    test: 'Expressions shared function tests › Function: language › Should return profileSetting language if set (should-return-profile-settings-preference.json)'
+    name: Should return profileSetting language if set (should-return-profile-settings-preference.json)
+    ancestors:
+      - Expressions shared function tests
+      - 'Function: language'
+    status: failed
+    error: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m"
+    location:
+      file: src/features/expressions/shared-functions.test.tsx
+      line: 415
+      column: 20
+    rerun: 'npx jest "src/features/expressions/shared-functions.test.tsx" -t "Expressions shared function tests › Function: language › Should return profileSetting language if set \(should-return-profile-settings-preference\.json\)"'
+    stack: "Error: \e[2mexpect(\e[22m\e[31mreceived\e[39m\e[2m).\e[22mtoEqual\e[2m(\e[22m\e[32mexpected\e[39m\e[2m) // deep equality\e[22m\n\nExpected: \e[32m\"\e[7me\e[27mn\"\e[39m\nReceived: \e[31m\"n\e[7mb\e[27m\"\e[39m\n    at /Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:415:20\n    at Generator.next (<anonymous>)\n    at fulfilled (/Users/adam.haeger/Projects/digdir/altinn-studio/src/App/frontend/src/features/expressions/shared-functions.test.tsx:5:58)"
