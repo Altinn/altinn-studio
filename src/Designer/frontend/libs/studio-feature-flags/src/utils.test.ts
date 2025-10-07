@@ -30,7 +30,7 @@ describe('studio-feature-flags utils', () => {
   });
 });
 
-function expectArrayInAnyOrder<T>(result, expectedItems): void {
+function expectArrayInAnyOrder<T>(result: T[], expectedItems: T[]): void {
   expect(result).toEqual(expect.arrayContaining(expectedItems));
   expect(result).toHaveLength(expectedItems.length);
 }

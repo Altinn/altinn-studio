@@ -15,8 +15,6 @@ describe('FeatureFlagsProvider', () => {
   it('Reads flags from local storage', () => {
     typedLocalStorage.setItem<FeatureFlag[]>(FEATURE_FLAGS_KEY, [testFlag]);
     const { result } = renderHook(useFeatureFlagsContext, { wrapper: FeatureFlagsProvider });
-
     expect(result.current.flags).toEqual([testFlag]);
-    localStorage.removeItem(FEATURE_FLAGS_KEY);
   });
 });
