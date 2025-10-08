@@ -56,6 +56,67 @@ class MCPClient:
         except Exception as e:
             log.warning(f"Could not list MCP tools: {e}")
     
+    async def check_server_status(self, expected_version: str = None) -> dict:
+        """
+        Check MCP server status and version.
+        
+        Args:
+            expected_version: Expected version string (e.g., "1.0.0"). If None, just checks connectivity.
+            
+        Returns:
+            dict with 'running', 'version', 'version_match' keys
+            
+        Raises:
+            Exception: If server is not running or version doesn't match
+        """
+        try:
+            # Try to call server_info tool
+            result = await self.call_tool("server_info", {})
+            
+            if isinstance(result, dict) and "error" in result:
+                raise Exception(f"MCP server not responding: {result['error']}")
+            
+            # Extract server info from result
+            if isinstance(result, list) and len(result) > 0:
+                if hasattr(result[0], 'text'):
+                    # Parse JSON response
+                    import json
+                    try:
+                        server_info = json.loads(result[0].text)
+                    except json.JSONDecodeError:
+                        raise Exception("Invalid server_info response format")
+                else:
+                    server_info = result[0]
+            else:
+                server_info = result
+            
+            # Extract version
+            version = server_info.get("version")
+            if not version:
+                raise Exception("Server did not return version information")
+            
+            # Check version format (should be x.x.x)
+            import re
+            if not re.match(r'^\d+\.\d+\.\d+$', version):
+                raise Exception(f"Invalid version format: {version} (expected x.x.x)")
+            
+            # Check version match if expected version provided
+            version_match = True
+            if expected_version:
+                version_match = version == expected_version
+            
+            log.info(f"MCP server status: running, version: {version}")
+            
+            return {
+                "running": True,
+                "version": version,
+                "version_match": version_match
+            }
+            
+        except Exception as e:
+            log.error(f"MCP server check failed: {e}")
+            raise Exception(f"MCP server check failed: {str(e)}")
+    
     async def call_tool(self, tool_name: str, arguments: dict):
         """Call an MCP tool and return the result."""
         try:
@@ -249,15 +310,64 @@ class MCPClient:
             raise Exception(f"Patch generation failed: {str(e)}")
 
 
-# Singleton instance
+# MCP client singleton
 _mcp_client_instance: MCPClient | None = None
 
-# TODO: Move url to config
-def get_mcp_client(server_url: str = "http://localhost:8069/sse") -> MCPClient:
+def get_mcp_client(server_url: str = None) -> MCPClient:
     """Get or create the singleton MCP client instance."""
+    from shared.config import get_config
+    
     global _mcp_client_instance
+    
+    if server_url is None:
+        config = get_config()
+        server_url = config.MCP_SERVER_URL
     
     if _mcp_client_instance is None:
         _mcp_client_instance = MCPClient(server_url)
     
     return _mcp_client_instance
+
+
+async def check_mcp_server_startup(server_url: str = None, expected_version: str = None):
+    """
+    Check MCP server status and version at startup.
+    
+    Args:
+        server_url: MCP server URL. If None, uses config default.
+        expected_version: Expected version string. If None, uses config default.
+        
+    Exits the application with code 1 if MCP server check fails.
+    """
+    import os
+    from shared.config import get_config
+    
+    config = get_config()
+    if server_url is None:
+        server_url = config.MCP_SERVER_URL
+    if expected_version is None:
+        expected_version = config.MCP_SERVER_EXPECTED_VERSION
+    
+    print(f"🔍 Checking MCP server at startup: {server_url}")
+    
+    try:
+        # Create client and check status
+        client = MCPClient(server_url)
+        status = await client.check_server_status(expected_version)
+        
+        if status["running"] and status["version_match"]:
+            print(f"✅ MCP server check passed - Version: {status['version']}")
+            return status
+        else:
+            error_msg = f"MCP server version mismatch. Expected: {expected_version}, Got: {status.get('version', 'unknown')}"
+            print(f"❌ {error_msg}")
+            print("\n🚫 Altinity startup failed: MCP server version mismatch")
+            print("💡 Start the MCP server with the correct version first")
+            os._exit(1)
+            
+    except Exception as e:
+        error_msg = f"Cannot connect to MCP server: {str(e)}"
+        print(f"❌ {error_msg}")
+        print("\n🚫 Altinity startup failed: MCP server not running")
+        print("💡 Start the MCP server first before starting Altinity")
+        os._exit(1)

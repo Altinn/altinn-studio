@@ -39,7 +39,8 @@ class BaseConfig:
     ]
 
     # External integrations
-    MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "http://localhost:8069")
+    MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "http://localhost:8069/sse")
+    MCP_SERVER_EXPECTED_VERSION = os.getenv("MCP_SERVER_EXPECTED_VERSION")  # Optional: if set, checks for exact version match
 
     # LLM configuration - Azure OpenAI preferred
     AZURE_API_KEY = os.getenv("AZURE_API_KEY")
@@ -75,6 +76,7 @@ class BaseConfig:
     MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", str(PROJECT_ROOT / "mlruns"))
     MLFLOW_EXPERIMENT_NAME = os.getenv("MLFLOW_EXPERIMENT_NAME", "Altinity_Agentic_Workflow")
     MLFLOW_ENABLED = os.getenv("MLFLOW_ENABLED", "true").lower() == "true"
+    MLFLOW_UI_PORT = int(os.getenv("MLFLOW_UI_PORT", "5000"))
 
 
 def get_config() -> BaseConfig:
