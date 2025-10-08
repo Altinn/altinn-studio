@@ -12,9 +12,6 @@ type StudioResizableLayoutComponent = {
   Context: typeof StudioResizableLayoutContext;
 };
 
-/**
- * @deprecated use `StudioResizableLayout` from `@studio/components` instead.
- */
 export const StudioResizableLayout: StudioResizableLayoutComponent = {
   Container: StudioResizableLayoutContainer,
   Element: StudioResizableLayoutElement,
