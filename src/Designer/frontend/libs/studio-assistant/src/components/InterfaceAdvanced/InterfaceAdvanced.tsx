@@ -3,16 +3,20 @@ import type { ReactElement } from 'react';
 import { StudioResizableLayout } from '@studio/components-legacy';
 import { ToolColumn } from '../ToolColumn';
 import classes from './InterfaceAdvanced.module.css';
-import { AssistantHeadingBar } from '../AssistantHeading/AssistantHeading';
+import { HeadingBar } from '../HeadingBar/HeadingBar';
 import type { AssistantConfig, ChatThread } from '../../types/AssistantConfig';
-import { ThreadColumn } from '../ThreadColumn';
+import { ThreadColumn } from '../ThreadColumn/ThreadColumn';
 import { ThreadColumnCollapsed } from '../ThreadColumnHidden';
 import { ChatColumn } from '../ChatColumn/ChatColumn';
 import { ViewType } from '../../types/ViewType';
 import type { UserInputFlags } from '../ChatColumn/UserInput/UserInput';
+import { createEmptyChatThread } from '../../utils/utils';
 
-export type InterfaceAdvancedProps = AssistantConfig;
+type InterfaceAdvancedProps = Omit<AssistantConfig, 'enableSimpleMode'>;
 
+/**
+ * Full page version of the chat interface with thread history, preview and code viewer.
+ */
 export function InterfaceAdvanced({
   texts,
   chatThreads,
@@ -20,7 +24,9 @@ export function InterfaceAdvanced({
 }: InterfaceAdvancedProps): ReactElement {
   const [isThreadColumnCollapsed, setIsThreadColumnCollapsed] = useState(false);
   const [selectedToolView, setSelectedView] = useState<ViewType>(ViewType.Preview);
-  const [currentThread, setCurrentThread] = useState<ChatThread>(chatThreads[0] ?? emptyChatThread);
+  const [currentThread, setCurrentThread] = useState<ChatThread>(
+    chatThreads[0] ?? createEmptyChatThread(),
+  );
 
   const handleToggle = () => setIsThreadColumnCollapsed(!isThreadColumnCollapsed);
 
@@ -36,11 +42,7 @@ export function InterfaceAdvanced({
 
   return (
     <div className={classes.container}>
-      <AssistantHeadingBar
-        texts={texts}
-        selectedView={selectedToolView}
-        onViewChange={setSelectedView}
-      />
+      <HeadingBar texts={texts} selectedView={selectedToolView} onViewChange={setSelectedView} />
       <div className={classes.resizableWrapper}>
         <StudioResizableLayout.Container orientation='horizontal' localStorageContext='ai-chat'>
           {isThreadColumnCollapsed ? (
@@ -72,9 +74,3 @@ export function InterfaceAdvanced({
     </div>
   );
 }
-
-const emptyChatThread: ChatThread = {
-  id: 'New chat',
-  title: 'New chat',
-  messages: [],
-};

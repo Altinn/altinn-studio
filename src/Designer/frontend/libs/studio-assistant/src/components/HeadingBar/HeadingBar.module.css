@@ -1,4 +1,4 @@
-.assistantHeadingBar {
+.headingBar {
   display: flex;
   align-items: center;
   padding-inline: var(--ds-size-4);

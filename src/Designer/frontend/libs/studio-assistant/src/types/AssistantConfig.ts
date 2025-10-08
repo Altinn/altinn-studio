@@ -2,6 +2,7 @@ import type { MessageAuthor } from './MessageAuthor';
 
 export type AssistantConfig = {
   texts: AssistantTexts;
+  enableSimpleMode: boolean;
   chatThreads: ChatThread[];
   onSubmitMessage: (message: Message) => void;
 };

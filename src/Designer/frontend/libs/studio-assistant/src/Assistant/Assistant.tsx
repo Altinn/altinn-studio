@@ -1,22 +1,17 @@
-import React, { useState } from 'react';
-import { StudioButton, StudioHeading, StudioTextarea } from '@studio/components';
-import type { AssistantConfig as AssistantProps, Message } from '../types/AssistantConfig';
-import { createUserMessage } from '../utils/utils';
-import classes from './Assistant.module.css';
+import React from 'react';
+import { AssistantConfig } from '../types/AssistantConfig';
+import { InterfaceSimple } from '../components/InterfaceSimple/InterfaceSimple';
+import { InterfaceAdvanced } from '../components/InterfaceAdvanced/InterfaceAdvanced';
 
-export function Assistant({ texts, onSubmitMessage }: AssistantProps): React.ReactElement {
-  const [messageContent, setMessageContent] = useState<string>('');
-
-  const handleSubmit = () => {
-    const message: Message = createUserMessage(messageContent);
-    onSubmitMessage(message);
-  };
-
-  return (
-    <div className={classes.assistantContainer}>
-      <StudioHeading>{texts.heading}</StudioHeading>
-      <StudioTextarea onChange={(e) => setMessageContent(e.target.value)} />
-      <StudioButton onClick={handleSubmit}>{texts.send}</StudioButton>
-    </div>
+export function Assistant({
+  texts,
+  enableSimpleMode,
+  chatThreads,
+  onSubmitMessage,
+}: AssistantConfig): React.ReactElement {
+  return enableSimpleMode ? (
+    <InterfaceSimple texts={texts} onSubmitMessage={onSubmitMessage} />
+  ) : (
+    <InterfaceAdvanced texts={texts} chatThreads={chatThreads} onSubmitMessage={onSubmitMessage} />
   );
 }

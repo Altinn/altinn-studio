@@ -1,38 +1,39 @@
 import React from 'react';
 import { Assistant } from './Assistant';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import type { AssistantConfig } from '../types/AssistantConfig';
 
 // Test data
-const heading = 'test-heading';
-const sendButtonLabel = 'test-send';
-const buttonTexts = {
-  send: sendButtonLabel,
+const texts: AssistantConfig['texts'] = {
+  heading: 'heading',
+  preview: 'preview',
+  fileBrowser: 'fileBrowser',
+  hideThreads: 'hideThreads',
+  newThread: 'newThread',
+  previousThreads: 'previousThreads',
+  aboutAssistant: 'aboutAssistant',
+  textareaPlaceholder: 'textareaPlaceholder',
+  addAttachment: 'addAttachment',
+  agentModeLabel: 'agentModeLabel',
+  send: 'send',
 };
 const onSubmitMessage = jest.fn();
 
 describe('Assistant', () => {
   it('renders the component', () => {
     renderAssistant();
-    const assistantHeader = screen.getByRole('heading', { name: heading });
-    const sendButton = screen.getByRole('button', { name: sendButtonLabel });
+    const assistantHeader = screen.getByRole('heading', { name: texts.heading });
+    const sendButton = screen.getByRole('button', { name: texts.send });
     expect(assistantHeader).toBeInTheDocument();
     expect(sendButton).toBeInTheDocument();
   });
-
-  it('calls onSubmitMessage when clicking the send button', async () => {
-    const user = userEvent.setup();
-    renderAssistant();
-    const sendButton = screen.getByRole('button', { name: sendButtonLabel });
-    await user.click(sendButton);
-    expect(onSubmitMessage).toHaveBeenCalledTimes(1);
-  });
 });
 
-const defaultProps = {
-  heading: heading,
-  buttonTexts: buttonTexts,
+const defaultProps: AssistantConfig = {
   onSubmitMessage,
+  texts,
+  enableSimpleMode: false,
+  chatThreads: [],
 };
 
 const renderAssistant = (): void => {

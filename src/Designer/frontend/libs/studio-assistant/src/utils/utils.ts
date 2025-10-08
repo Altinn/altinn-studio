@@ -1,9 +1,18 @@
-import type { Message } from '../types/AssistantConfig';
+import type { ChatThread, Message } from '../types/AssistantConfig';
 import { MessageAuthor } from '../types/MessageAuthor';
 
-export function createUserMessage(content: string): Message {
+export function createGreetingMessage(): Message {
   return {
-    author: MessageAuthor.User,
-    content: content,
+    author: MessageAuthor.Assistant,
+    content: 'Hva kan jeg hjelpe med?',
+    timestamp: new Date(),
+  };
+}
+
+export function createEmptyChatThread(): ChatThread {
+  return {
+    id: 'a1b2c3d4',
+    title: 'New chat',
+    messages: [],
   };
 }

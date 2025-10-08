@@ -1,22 +1,19 @@
-import type { AssistantConfig, AssistantTexts, Message } from '../../types/AssistantConfig';
-import { ChatColumn } from '../ChatColumn';
-import { MessageAuthor } from '../../types/MessageAuthor';
+import type { AssistantConfig, Message } from '../../types/AssistantConfig';
+import { ChatColumn } from '../ChatColumn/ChatColumn';
 import classes from './InterfaceSimple.module.css';
 import type { ReactElement } from 'react';
-import { AssistantHeadingBar } from '../AssistantHeading/AssistantHeading';
+import { HeadingBar } from '../HeadingBar/HeadingBar';
 import type { UserInputFlags } from '../ChatColumn/UserInput/UserInput';
+import { createGreetingMessage } from '../../utils/utils';
 
-export type InterfaceSimpleProps = {
-  texts: AssistantTexts;
-  onSubmitMessage: AssistantConfig['onSubmitMessage'];
-};
+export type InterfaceSimpleProps = Omit<AssistantConfig, 'enableSimpleMode' | 'chatThreads'>;
 
+/**
+ * A one-column version of the chat interface without thread history, preview and code viewer.
+ * Typical usage is as a pop-up assistant in the lower right of the browser window.
+ */
 export function InterfaceSimple({ texts, onSubmitMessage }: InterfaceSimpleProps): ReactElement {
-  const greetingMessage: Message = {
-    author: MessageAuthor.Assistant,
-    content: 'Hva kan jeg hjelpe med?',
-    timestamp: new Date(),
-  };
+  const greetingMessage: Message = createGreetingMessage();
 
   const simpleModeFlags: UserInputFlags = {
     attachmentButton: false,
@@ -25,7 +22,7 @@ export function InterfaceSimple({ texts, onSubmitMessage }: InterfaceSimpleProps
 
   return (
     <div className={classes.interfaceSimple}>
-      <AssistantHeadingBar texts={texts} />
+      <HeadingBar texts={texts} />
       <ChatColumn
         texts={texts}
         messages={[greetingMessage]}

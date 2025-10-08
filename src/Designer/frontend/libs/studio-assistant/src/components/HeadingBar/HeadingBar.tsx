@@ -1,5 +1,6 @@
+import React from 'react';
 import { StudioHeading } from '@studio/components';
-import classes from './AssistantHeading.module.css';
+import classes from './headingBar.module.css';
 import { ToggleGroup } from '@digdir/designsystemet-react';
 import { CodeIcon, PlayFillIcon } from '@studio/icons';
 import { ViewType } from '../../types/ViewType';
@@ -11,15 +12,11 @@ export type AssistantHeadingBarProps = {
   onViewChange?: (view: ViewType) => void;
 };
 
-export function AssistantHeadingBar({
-  texts,
-  selectedView,
-  onViewChange,
-}: AssistantHeadingBarProps) {
+export function HeadingBar({ texts, selectedView, onViewChange }: AssistantHeadingBarProps) {
   const shouldShowToggleGroup = selectedView && onViewChange;
 
   return (
-    <div className={classes.assistantHeadingBar}>
+    <div className={classes.headnigBar}>
       <StudioHeading>{texts.heading}</StudioHeading>
       {shouldShowToggleGroup && (
         <ToggleGroup
