@@ -2,6 +2,7 @@ import React from 'react';
 
 import { EXPERIMENTAL_Suggestion as Suggestion, Label as DSLabel } from '@digdir/designsystemet-react';
 import cn from 'classnames';
+import type { SuggestionItem } from '@digdir/designsystemet-react';
 
 import { Label } from 'src/app-components/Label/Label';
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
@@ -20,6 +21,7 @@ import utilClasses from 'src/styles/utils.module.css';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { optionFilter } from 'src/utils/options';
+import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'Dropdown'>) {
@@ -55,15 +57,10 @@ export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFro
     changeMessageGenerator,
   );
 
-  // return a new array of objects with value and label properties without changing the selectedValues array
-  function formatSelectedValues(
-    selectedValues: string[],
-    options: { value: string; label: string }[],
-  ): { value: string; label: string }[] {
-    return selectedValues.map((value) => {
-      const option = options.find((o) => o.value === value);
-      return option ? { value: option.value, label: langAsString(option.label) } : { value, label: value };
-    });
+  function formatSelectedValue(selectedValues: string[], options: IOptionInternal[]): SuggestionItem | undefined {
+    const selected = selectedValues.at(0);
+    const option = selected !== undefined && options.find((o) => o.value === selected);
+    return option ? { value: option.value, label: langAsString(option.label) } : undefined;
   }
 
   if (isFetching) {
@@ -105,10 +102,11 @@ export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFro
           </DSLabel>
         )}
         <Suggestion
+          multiple={false}
           filter={(args) => optionFilter(args, selectedLabels)}
           data-size='sm'
-          selected={formatSelectedValues(selectedValues, options)}
-          onSelectedChange={(options) => handleChange(options.map((o) => o.value))}
+          selected={formatSelectedValue(selectedValues, options)}
+          onSelectedChange={(option) => handleChange(option ? [option.value] : [])}
           onBlur={() => debounce}
           name={overrideDisplay?.renderedInTable ? langAsString(textResourceBindings?.title) : undefined}
           className={cn(comboboxClasses.container, classes.showCaretsWithoutClear, { [classes.readOnly]: readOnly })}
@@ -136,6 +134,7 @@ export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFro
                 key={option.value}
                 value={option.value}
                 label={langAsString(option.label)}
+                onClick={() => handleChange([option.value])}
               >
                 <span className={classes.optionContent}>
                   <Lang id={option.label} />
