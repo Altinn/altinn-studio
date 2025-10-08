@@ -1,0 +1,862 @@
+"""Tool for synchronizing datamodel artifacts from Source of Truth."""
+
+import json
+import hashlib
+import subprocess
+import tempfile
+from pathlib import Path
+from typing import Dict, List, Any, Optional, Literal
+import xml.etree.ElementTree as ET
+from dataclasses import dataclass
+
+from mcp.types import ToolAnnotations
+from server.tools import register_tool
+
+@dataclass
+class GeneratedFile:
+    """Represents a generated file output"""
+    path: str
+    bytes: int
+    sha256: str
+
+@dataclass
+class SyncResponse:
+    """Response from datamodel sync operation"""
+    status: Literal["ok", "changed", "noop", "error"]
+    generated: List[GeneratedFile]
+    diff: Dict[str, Any]
+    warnings: List[str]
+    errors: List[str]
+
+class DatamodelSyncTool:
+    """Synchronizes datamodel artifacts based on Source of Truth"""
+    
+    def __init__(self):
+        # Pinned generator versions for deterministic output
+        self.generators = {
+            "xsd_from_json": {"name": "altinn-studio-xsd-gen", "version": "1.0.0"},
+            "cs_from_json": {"name": "altinn-studio-cs-gen", "version": "1.0.0"},
+            "cs_from_xsd": {"name": "altinn-studio-xsd-cs-gen", "version": "1.0.0"},
+            "json_from_xsd": {"name": "altinn-studio-json-gen", "version": "1.0.0"}
+        }
+    
+    def sync_from_json_schema(self, 
+                            repo_path: str,
+                            schema_path: str,
+                            outputs: List[str],
+                            overwrite: bool = True,
+                            check_only: bool = False,
+                            generator: Optional[Dict] = None,
+                            options: Optional[Dict] = None) -> SyncResponse:
+        """
+        Sync generated artifacts from JSON Schema source of truth.
+        
+        Args:
+            repo_path: Repository root path
+            schema_path: Path to JSON schema file (relative to repo)
+            outputs: List of formats to generate ["xsd", "cs", "json"]
+            overwrite: Whether to overwrite existing files
+            check_only: Only check if sync is needed, don't generate
+            generator: Generator config override
+            options: Generation options (namespace, nullable, etc.)
+        """
+        # Call internal sync method
+        return self._sync_artifacts(
+            repo_path=repo_path,
+            source_path=schema_path,
+            source_type="json_schema",
+            outputs=outputs,
+            overwrite=overwrite,
+            check_only=check_only,
+            generator=generator,
+            options=options
+        )
+    
+    def sync_from_xsd(self,
+                     repo_path: str,
+                     schema_path: str,
+                     outputs: List[str],
+                     overwrite: bool = True,
+                     check_only: bool = False,
+                     generator: Optional[Dict] = None,
+                     options: Optional[Dict] = None) -> SyncResponse:
+        """
+        Sync generated artifacts from XSD source of truth.
+        
+        Args:
+            repo_path: Repository root path
+            schema_path: Path to XSD file (relative to repo)
+            outputs: List of formats to generate ["json", "cs"]
+            overwrite: Whether to overwrite existing files
+            check_only: Only check if sync is needed, don't generate
+            generator: Generator config override
+            options: Generation options
+        """
+        return self._sync_artifacts(
+            repo_path=repo_path,
+            source_path=schema_path,
+            source_type="xsd",
+            outputs=outputs,
+            overwrite=overwrite,
+            check_only=check_only,
+            generator=generator,
+            options=options
+        )
+    
+    def _sync_artifacts(self,
+                       repo_path: str,
+                       source_path: str,
+                       source_type: str,
+                       outputs: List[str],
+                       overwrite: bool,
+                       check_only: bool,
+                       generator: Optional[Dict],
+                       options: Optional[Dict]) -> SyncResponse:
+        """Internal sync implementation"""
+        
+        repo = Path(repo_path)
+        source_file = repo / source_path
+        
+        response = SyncResponse(
+            status="ok",
+            generated=[],
+            diff={},
+            warnings=[],
+            errors=[]
+        )
+        
+        # Validate inputs
+        if not repo.exists():
+            response.status = "error"
+            response.errors.append(f"Repository path does not exist: {repo_path}")
+            return response
+        
+        if not source_file.exists():
+            response.status = "error"
+            response.errors.append(f"Source file does not exist: {source_path}")
+            return response
+        
+        # Determine output files based on source type and requested outputs
+        output_files = self._determine_output_files(source_path, source_type, outputs)
+        
+        if not output_files:
+            response.status = "noop"
+            response.warnings.append("No output files to generate")
+            return response
+        
+        # Load source content
+        try:
+            if source_type == "json_schema":
+                with open(source_file, 'r') as f:
+                    source_content = json.load(f)
+            else:  # xsd
+                source_content = source_file.read_text(encoding='utf-8')
+        except Exception as e:
+            response.status = "error"
+            response.errors.append(f"Failed to read source file: {e}")
+            return response
+        
+        # Generate each output
+        changes_detected = False
+        for output_path, output_format in output_files.items():
+            target_file = repo / output_path
+            
+            try:
+                # Generate content
+                generated_content = self._generate_content(
+                    source_content, source_type, output_format, options or {}
+                )
+                
+                # Check if content changed
+                content_changed = True
+                if target_file.exists():
+                    existing_content = target_file.read_text(encoding='utf-8')
+                    content_changed = generated_content != existing_content
+                
+                if check_only:
+                    if content_changed:
+                        response.status = "changed" if response.status != "error" else "error"
+                        response.warnings.append(f"Content out of sync: {output_path}")
+                    continue
+                
+                if content_changed:
+                    changes_detected = True
+                    
+                    if overwrite or not target_file.exists():
+                        # Create directory if needed
+                        target_file.parent.mkdir(parents=True, exist_ok=True)
+                        
+                        # Write generated content
+                        target_file.write_text(generated_content, encoding='utf-8')
+                        
+                        # Calculate file info
+                        file_info = GeneratedFile(
+                            path=output_path,
+                            bytes=len(generated_content.encode('utf-8')),
+                            sha256=hashlib.sha256(generated_content.encode('utf-8')).hexdigest()
+                        )
+                        response.generated.append(file_info)
+                    else:
+                        response.warnings.append(f"Skipped overwrite: {output_path}")
+                
+            except Exception as e:
+                response.status = "error"
+                response.errors.append(f"Failed to generate {output_path}: {e}")
+        
+        # Set final status
+        if check_only:
+            if response.status == "changed":
+                response.status = "error"  # Artifacts out of sync
+        elif changes_detected:
+            response.status = "changed"
+        elif response.status == "ok":
+            response.status = "noop"
+        
+        return response
+    
+    def _determine_output_files(self, source_path: str, source_type: str, outputs: List[str]) -> Dict[str, str]:
+        """Determine output file paths based on source and requested outputs"""
+        base_name = Path(source_path).stem
+        models_dir = "App/models"
+        
+        output_files = {}
+        
+        if source_type == "json_schema":
+            # From JSON Schema, we can generate XSD and C#
+            if "xsd" in outputs:
+                output_files[f"{models_dir}/{base_name}.xsd"] = "xsd"
+            if "cs" in outputs:
+                output_files[f"{models_dir}/{base_name}.cs"] = "cs"
+        
+        elif source_type == "xsd":
+            # From XSD, we can generate JSON Schema and C#
+            if "json" in outputs:
+                output_files[f"{models_dir}/{base_name}.schema.json"] = "json_schema"
+            if "cs" in outputs:
+                output_files[f"{models_dir}/{base_name}.cs"] = "cs"
+        
+        return output_files
+    
+    def _generate_content(self, source_content: Any, source_type: str, output_format: str, options: Dict) -> str:
+        """Generate content in target format from source"""
+        
+        # Default options
+        default_options = {
+            "namespace": "Altinn.App.Models",
+            "nullable": True,
+            "order_elements": True,
+            "generate_constructors": True
+        }
+        merged_options = {**default_options, **options}
+        
+        if source_type == "json_schema" and output_format == "xsd":
+            return self._json_to_xsd(source_content, merged_options)
+        
+        elif source_type == "json_schema" and output_format == "cs":
+            return self._json_to_cs(source_content, merged_options)
+        
+        elif source_type == "xsd" and output_format == "json_schema":
+            return self._xsd_to_json(source_content, merged_options)
+        
+        elif source_type == "xsd" and output_format == "cs":
+            return self._xsd_to_cs(source_content, merged_options)
+        
+        else:
+            raise ValueError(f"Unsupported conversion: {source_type} -> {output_format}")
+    
+    def _json_to_xsd(self, json_schema: Dict, options: Dict) -> str:
+        """Convert JSON Schema to XSD using Altinn Studio's exact conversion logic"""
+        
+        # Normalize the schema (simplified version of JsonSchemaNormalizer)
+        normalized_schema = self._normalize_json_schema(json_schema)
+        
+        # Analyze schema to determine structure (simplified JsonSchemaAnalyzer)
+        schema_metadata = self._analyze_json_schema(normalized_schema)
+        
+        # Generate XSD based on metadata (simplified GeneralJsonSchemaConverter)
+        xsd_content = self._generate_xsd_from_metadata(normalized_schema, schema_metadata)
+        
+        return xsd_content
+    
+    def _normalize_json_schema(self, schema: Dict) -> Dict:
+        """Normalize JSON schema (simplified version of JsonSchemaNormalizer)"""
+        # For now, return schema as-is. Full normalization would involve:
+        # - Resolving $ref references
+        # - Expanding definitions/$defs
+        # - Simplifying complex structures
+        return schema
+    
+    def _analyze_json_schema(self, schema: Dict) -> Dict:
+        """Analyze JSON schema structure (simplified JsonSchemaAnalyzer)"""
+        metadata = {
+            "message_name": schema.get("title", "Model"),
+            "root_element_name": "Model",  # Altinn Studio convention
+            "properties_metadata": {}
+        }
+        
+        properties = schema.get("properties", {})
+        required = schema.get("required", [])
+        
+        for prop_name, prop_def in properties.items():
+            prop_metadata = {
+                "name": prop_name,
+                "type": self._determine_property_type(prop_def),
+                "required": prop_name in required,
+                "is_complex": self._is_complex_property(prop_def)
+            }
+            
+            if prop_metadata["is_complex"]:
+                # For complex properties, we need to generate complex types
+                prop_metadata["complex_type_name"] = prop_name.capitalize()
+                prop_metadata["complex_properties"] = self._analyze_complex_properties(prop_def)
+            
+            metadata["properties_metadata"][prop_name] = prop_metadata
+        
+        return metadata
+    
+    def _determine_property_type(self, prop_def: Dict) -> str:
+        """Determine the XSD-compatible type for a property"""
+        prop_type = prop_def.get("type")
+        
+        if prop_type == "string":
+            if "format" in prop_def:
+                format_type = prop_def["format"]
+                if format_type == "date":
+                    return "xs:date"
+                elif format_type == "date-time":
+                    return "xs:dateTime"
+                elif format_type == "uri":
+                    return "xs:anyURI"
+            return "xs:string"
+        elif prop_type == "integer":
+            return "xs:int"
+        elif prop_type == "number":
+            return "xs:decimal"
+        elif prop_type == "boolean":
+            return "xs:boolean"
+        elif prop_type == "object":
+            # Objects get complex types
+            return "complex"
+        elif prop_type == "array":
+            # Arrays are simplified to strings for now
+            return "xs:string"
+        else:
+            return "xs:string"
+    
+    def _is_complex_property(self, prop_def: Dict) -> bool:
+        """Check if a property defines a complex type (object with properties)"""
+        return prop_def.get("type") == "object" and "properties" in prop_def
+    
+    def _analyze_complex_properties(self, prop_def: Dict) -> List[Dict]:
+        """Analyze properties of a complex type"""
+        complex_props = []
+        properties = prop_def.get("properties", {})
+        required = prop_def.get("required", [])
+        
+        for prop_name, prop_def_inner in properties.items():
+            complex_props.append({
+                "name": prop_name,
+                "type": self._determine_property_type(prop_def_inner),
+                "required": prop_name in required
+            })
+        
+        return complex_props
+    
+    def _generate_xsd_from_metadata(self, schema: Dict, metadata: Dict) -> str:
+        """Generate XSD from analyzed metadata (simplified GeneralJsonSchemaConverter)"""
+        lines = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<xsd:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
+            '  xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xs="http://www.w3.org/2001/XMLSchema"',
+            '  attributeFormDefault="unqualified" elementFormDefault="qualified"',
+            '  xmlns:xsd="http://www.w3.org/2001/XMLSchema">',
+            '  <xs:annotation>',
+            '    <xs:documentation>',
+            '      <xsd:attribute name="rootNode" fixed="" />',  # Empty as per Altinn Studio
+            '    </xs:documentation>',
+            '  </xs:annotation>',
+            f'  <xs:element name="{metadata["root_element_name"]}">',
+            '    <xs:complexType>',
+            '      <xs:sequence>'
+        ]
+        
+        # Add root element properties
+        for prop_name, prop_metadata in metadata["properties_metadata"].items():
+            if prop_metadata["is_complex"]:
+                # Reference to complex type
+                type_ref = prop_metadata["complex_type_name"]
+            else:
+                # Simple type
+                type_ref = prop_metadata["type"]
+            
+            min_occurs = "0" if not prop_metadata["required"] else "1"
+            lines.append(f'        <xs:element minOccurs="{min_occurs}" name="{prop_name}" type="{type_ref}" />')
+        
+        lines.extend([
+            '      </xs:sequence>',
+            '    </xs:complexType>',
+            '  </xs:element>'
+        ])
+        
+        # Add complex type definitions
+        for prop_name, prop_metadata in metadata["properties_metadata"].items():
+            if prop_metadata["is_complex"]:
+                complex_type_name = prop_metadata["complex_type_name"]
+                lines.extend([
+                    f'  <xs:complexType name="{complex_type_name}">',
+                    '    <xs:sequence>'
+                ])
+                
+                for complex_prop in prop_metadata["complex_properties"]:
+                    min_occurs = "0" if not complex_prop["required"] else "1"
+                    lines.append(f'      <xs:element minOccurs="{min_occurs}" name="{complex_prop["name"]}" type="{complex_prop["type"]}" />')
+                
+                lines.extend([
+                    '    </xs:sequence>',
+                    '  </xs:complexType>'
+                ])
+        
+        lines.append('</xsd:schema>')
+        
+        return '\n'.join(lines)
+    
+    def _generate_cs_from_metadata(self, metadata: Dict) -> str:
+        """Generate C# classes from analyzed metadata (simplified ModelMetadataToCsharpConverter)"""
+        lines = [
+            'using System;',
+            'using System.Collections.Generic;',
+            'using System.ComponentModel.DataAnnotations;',
+            'using System.Linq;',
+            'using System.Text.Json.Serialization;',
+            'using System.Xml.Serialization;',
+            'using Microsoft.AspNetCore.Mvc.ModelBinding;',
+            'using Newtonsoft.Json;',
+            '',
+            'namespace Altinn.App.Models',
+            '{'
+        ]
+        
+        # Generate the root Model class
+        root_class_name = metadata["root_element_name"]
+        lines.extend([
+            f'    [XmlRoot(ElementName = "{root_class_name}")]', 
+            f'    public class {root_class_name}',
+            '    {'
+        ])
+        
+        # Add properties to root class
+        order = 1
+        for prop_name, prop_metadata in metadata["properties_metadata"].items():
+            cs_type = self._get_cs_type_from_metadata(prop_metadata)
+            is_required = prop_metadata["required"]
+            
+            lines.extend([
+                f'        [XmlElement("{prop_name}", Order = {order})]',
+                f'        [JsonProperty("{prop_name}")]', 
+                f'        [JsonPropertyName("{prop_name}")]'
+            ])
+            
+            if is_required:
+                lines.append('        [Required]')
+            
+            lines.append(f'        public {cs_type} {prop_name} {{ get; set; }}')
+            lines.append('')
+            order += 1
+        
+        lines.extend([
+            '    }',
+            ''
+        ])
+        
+        # Generate complex type classes
+        for prop_name, prop_metadata in metadata["properties_metadata"].items():
+            if prop_metadata["is_complex"]:
+                complex_class_name = prop_metadata["complex_type_name"]
+                lines.extend([
+                    f'    [XmlRoot(ElementName = "{complex_class_name}")]', 
+                    f'    public class {complex_class_name}',
+                    '    {'
+                ])
+                
+                # Add properties to complex class
+                complex_order = 1
+                for complex_prop in prop_metadata["complex_properties"]:
+                    prop_type = complex_prop["type"]
+                    if prop_type.startswith("xs:"):
+                        cs_type = self._xsd_type_to_cs_type(prop_type)
+                    else:
+                        cs_type = prop_type  # Already a complex type reference
+                    
+                    is_required = complex_prop["required"]
+                    
+                    lines.extend([
+                        f'        [XmlElement("{complex_prop["name"]}", Order = {complex_order})]',
+                        f'        [JsonProperty("{complex_prop["name"]}")]', 
+                        f'        [JsonPropertyName("{complex_prop["name"]}")]'                    ])
+                    
+                    if is_required:
+                        lines.append('        [Required]')
+                    
+                    lines.append(f'        public {cs_type} {complex_prop["name"]} {{ get; set; }}')
+                    lines.append('')
+                    complex_order += 1
+                
+                lines.extend([
+                    '    }',
+                    ''
+                ])
+        
+        lines.extend([
+            '}'
+        ])
+        
+        return '\n'.join(lines)
+    
+    def _get_cs_type_from_metadata(self, prop_metadata: Dict) -> str:
+        """Get C# type from property metadata"""
+        if prop_metadata["is_complex"]:
+            return prop_metadata["complex_type_name"]
+        else:
+            xsd_type = prop_metadata["type"]
+            return self._xsd_type_to_cs_type(xsd_type)
+    
+    def _xsd_type_to_cs_type(self, xsd_type: str) -> str:
+        """Convert XSD type to C# type"""
+        type_map = {
+            'xs:string': 'string',
+            'xs:int': 'int',
+            'xs:decimal': 'decimal',
+            'xs:boolean': 'bool',
+            'xs:date': 'DateTime',
+            'xs:dateTime': 'DateTime',
+            'xs:anyURI': 'string'
+        }
+        return type_map.get(xsd_type, 'string')
+    
+    def _get_cs_type_for_property(self, prop_def: Dict, prop_name: str, type_registry: Dict) -> str:
+        """Determine the C# type for a JSON schema property with type registry support"""
+        prop_type = prop_def.get("type", "string")
+        
+        # Handle complex object types
+        if prop_type == "object":
+            if "properties" in prop_def:
+                # This is a nested complex type
+                return prop_name.capitalize()
+            else:
+                # Empty object, treat as object
+                return "object"
+        
+        # Handle arrays
+        if prop_type == "array":
+            # For now, simplify arrays to List<string>
+            return "List<string>"
+        
+        # Handle primitive types
+        type_map = {
+            'string': 'string',
+            'integer': 'int',
+            'number': 'decimal',
+            'boolean': 'bool'
+        }
+        return type_map.get(prop_type, 'string')
+    
+    def _xsd_to_json(self, xsd_content: str, options: Dict) -> str:
+        """Convert XSD to JSON Schema"""
+        # Parse XSD
+        try:
+            root = ET.fromstring(xsd_content)
+        except ET.ParseError as e:
+            raise ValueError(f"Invalid XSD: {e}")
+        
+        # Extract namespace
+        namespace = root.get("targetNamespace", "")
+        
+        # Find complex types and elements
+        schema = {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+        
+        # Simple conversion - find first complex type
+        for complex_type in root.findall(".//{http://www.w3.org/2001/XMLSchema}complexType"):
+            sequence = complex_type.find(".//{http://www.w3.org/2001/XMLSchema}sequence")
+            if sequence is not None:
+                for element in sequence.findall(".//{http://www.w3.org/2001/XMLSchema}element"):
+                    name = element.get("name")
+                    xsd_type = element.get("type", "xs:string")
+                    
+                    if name:
+                        schema["properties"][name] = {
+                            "type": self._xsd_type_to_json_type(xsd_type)
+                        }
+                        
+                        if element.get("nillable") != "true":
+                            schema["required"].append(name)
+        
+        return json.dumps(schema, indent=2)
+    
+    def _xsd_to_cs(self, xsd_content: str, options: Dict) -> str:
+        """Convert XSD to C# classes"""
+        # Similar to _xsd_to_json but generate C# code
+        namespace = options.get("namespace", "Altinn.App.Models")
+        
+        # Parse XSD and extract types
+        try:
+            root = ET.fromstring(xsd_content)
+        except ET.ParseError as e:
+            raise ValueError(f"Invalid XSD: {e}")
+        
+        cs_content = f'''using System;
+using System.ComponentModel.DataAnnotations;
+using System.Xml.Serialization;
+
+namespace {namespace}
+{{
+    [XmlRoot(Namespace = "{root.get('targetNamespace', '')}")]
+    public class Model
+    {{
+'''
+        
+        # Find elements in complex types
+        for complex_type in root.findall(".//{http://www.w3.org/2001/XMLSchema}complexType"):
+            sequence = complex_type.find(".//{http://www.w3.org/2001/XMLSchema}sequence")
+            if sequence is not None:
+                for element in sequence.findall(".//{http://www.w3.org/2001/XMLSchema}element"):
+                    name = element.get("name")
+                    xsd_type = element.get("type", "xs:string")
+                    
+                    if name:
+                        cs_type = self._xsd_type_to_cs_type(xsd_type)
+                        cs_content += f'        [XmlElement("{name}")]\n'
+                        cs_content += f'        public {cs_type} {name.capitalize()} {{ get; set; }}\n\n'
+        
+        cs_content += '    }\n}'
+        
+        return cs_content
+    
+    def _json_type_to_xsd_type(self, json_type: str) -> str:
+        """Convert JSON Schema type to XSD type"""
+        type_map = {
+            "string": "xs:string",
+            "integer": "xs:int",
+            "number": "xs:decimal",
+            "boolean": "xs:boolean",
+            "array": "xs:string",  # Simplified
+            "object": "xs:string"  # Simplified
+        }
+        return type_map.get(json_type, "xs:string")
+    
+    def _json_type_to_cs_type(self, json_type: str) -> str:
+        """Convert JSON Schema type to C# type"""
+        type_map = {
+            "string": "string",
+            "integer": "int",
+            "number": "decimal",
+            "boolean": "bool",
+            "array": "List<string>",  # Simplified
+            "object": "object"  # Simplified
+        }
+        return type_map.get(json_type, "string")
+    
+    def _xsd_type_to_json_type(self, xsd_type: str) -> str:
+        """Convert XSD type to JSON Schema type"""
+        # Remove namespace prefix
+        clean_type = xsd_type.split(":")[-1] if ":" in xsd_type else xsd_type
+        
+        type_map = {
+            "string": "string",
+            "int": "integer",
+            "integer": "integer", 
+            "decimal": "number",
+            "double": "number",
+            "float": "number",
+            "boolean": "boolean",
+            "date": "string",
+            "dateTime": "string"
+        }
+        return type_map.get(clean_type, "string")
+    
+    def _xsd_type_to_cs_type(self, xsd_type: str) -> str:
+        """Convert XSD type to C# type"""
+        # Remove namespace prefix
+        clean_type = xsd_type.split(":")[-1] if ":" in xsd_type else xsd_type
+        
+        type_map = {
+            "string": "string",
+            "int": "int",
+            "integer": "int",
+            "decimal": "decimal",
+            "double": "double", 
+            "float": "float",
+            "boolean": "bool",
+            "date": "DateTime",
+            "dateTime": "DateTime"
+        }
+        return type_map.get(clean_type, "string")
+
+# Global tool instance
+_sync_tool = DatamodelSyncTool()
+
+@register_tool(
+    name="datamodel_sync",
+    description="""
+Generates XSD and C# files from a JSON schema file.
+
+This tool takes a path to a .schema.json file and automatically generates:
+- XSD (XML Schema Definition) file
+- C# class file
+
+The generated files are returned in the response for the MCP client to use.
+
+Parameters:
+- schema_file_path: Path to the .schema.json file to process
+
+Returns:
+- status: "ok" | "error"
+- generated: List of generated files with path, content, bytes, sha256
+- warnings: Any warnings during generation
+- errors: Any errors encountered
+
+Example usage:
+{
+  "schema_file_path": "/path/to/model.schema.json"
+}
+
+Response format:
+{
+  "status": "ok",
+  "generated": [
+    {
+      "path": "model.xsd",
+      "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>...",
+      "bytes": 1234,
+      "sha256": "abc123..."
+    },
+    {
+      "path": "model.cs", 
+      "content": "using System;\nnamespace MyApp.Models { ... }",
+      "bytes": 5678,
+      "sha256": "def456..."
+    }
+  ],
+  "warnings": [],
+  "errors": []
+}
+""",
+    title="Datamodel Sync Tool",
+    annotations=ToolAnnotations(
+        title="Datamodel Sync Tool",
+        readOnlyHint=True,
+        idempotentHint=True
+    )
+)
+def datamodel_sync(schema_file_path: str) -> Dict[str, Any]:
+    """Generate XSD and C# files from a JSON schema file.
+    
+    Args:
+        schema_file_path: Path to the .schema.json file to process
+        
+    Returns:
+        Dictionary with status, generated files, warnings, and errors
+    """
+    # Validate required parameter
+    if not schema_file_path:
+        return {
+            "status": "error",
+            "generated": [],
+            "warnings": [],
+            "errors": ["Missing required parameter: schema_file_path"]
+        }
+    
+    # Validate file exists and is readable
+    schema_path = Path(schema_file_path)
+    if not schema_path.exists():
+        return {
+            "status": "error",
+            "generated": [],
+            "warnings": [],
+            "errors": [f"Schema file does not exist: {schema_file_path}"]
+        }
+    
+    try:
+        # Load the JSON schema
+        with open(schema_path, 'r', encoding='utf-8') as f:
+            schema_content = json.load(f)
+        
+        # Generate base filename (remove .schema.json extension)
+        base_name = schema_path.stem
+        if base_name.endswith('.schema'):
+            base_name = base_name[:-7]  # Remove .schema part
+        
+        generated_files = []
+        warnings = []
+        errors = []
+        
+        # Generate XSD
+        try:
+            xsd_content = _sync_tool._json_to_xsd(schema_content, {
+                "namespace": "Altinn.App.Models",
+                "nullable": True
+            })
+            
+            generated_files.append({
+                "path": f"{base_name}.xsd",
+                "content": xsd_content,
+                "bytes": len(xsd_content.encode('utf-8')),
+                "sha256": hashlib.sha256(xsd_content.encode('utf-8')).hexdigest()
+            })
+        except Exception as e:
+            errors.append(f"Failed to generate XSD: {str(e)}")
+        
+        # Generate C#
+        try:
+            cs_content = _sync_tool._json_to_cs(schema_content, {
+                "namespace": "Altinn.App.Models",
+                "nullable": True,
+                "generate_constructors": True
+            })
+            
+            generated_files.append({
+                "path": f"{base_name}.cs",
+                "content": cs_content,
+                "bytes": len(cs_content.encode('utf-8')),
+                "sha256": hashlib.sha256(cs_content.encode('utf-8')).hexdigest()
+            })
+        except Exception as e:
+            errors.append(f"Failed to generate C#: {str(e)}")
+        
+        # Return response
+        if errors:
+            return {
+                "status": "error",
+                "generated": generated_files,  # Return any successfully generated files
+                "warnings": warnings,
+                "errors": errors
+            }
+        else:
+            return {
+                "status": "ok",
+                "generated": generated_files,
+                "warnings": warnings,
+                "errors": errors
+            }
+            
+    except json.JSONDecodeError as e:
+        return {
+            "status": "error",
+            "generated": [],
+            "warnings": [],
+            "errors": [f"Invalid JSON in schema file: {str(e)}"]
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "generated": [],
+            "warnings": [],
+            "errors": [f"Failed to process schema: {str(e)}"]
+        }
+
+# Global tool instance
+_sync_tool = DatamodelSyncTool()

@@ -7,7 +7,8 @@ authors = [
     { name = "Daniel Skymoen", email = "danielskymoen02@gmail.com"},
     { name = "Edward Storlien", email = "edward.storlien@gmail.com"},
     { name = "Johanne Norland", email = "johannedn00@gmail.com"},
-    { name = "Simen Waitz", email = "simen.myhre.waitz@accenture.com"}
+    { name = "Simen Waitz", email = "simen.myhre.waitz@accenture.com"},
+    { name = "Nikolai M. Lunde", email = "nikolai.maaso.lunde@digdir.no"}
 ]
 requires-python = ">=3.12"
 dependencies = [
@@ -37,11 +38,19 @@ dependencies = [
     "langchain==0.3.26",
     "langchain-core==0.3.68",
     "langchain-openai==0.3.27",
+    "numpy>=1.25.0",
+    "langgraph",
+    "langwatch",
+    "jsonschema",
+    "langchain-community",
 ]
 
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["server*", "codegen*"]
 
 [project.scripts]
 altinity-mcp = "server.main:main"
