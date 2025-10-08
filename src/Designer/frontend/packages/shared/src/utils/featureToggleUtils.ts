@@ -10,6 +10,7 @@ export enum FeatureFlag {
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
   AppMetadata = 'appMetadata',
   ImageUpload = 'imageUpload',
+  HideGiteaFieldsInResourceList = 'hideGiteaFieldsInResourceList',
 }
 
 /*
