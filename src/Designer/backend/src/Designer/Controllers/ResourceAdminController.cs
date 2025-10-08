@@ -231,7 +231,11 @@ namespace Altinn.Studio.Designer.Controllers
             IEnumerable<ListviewServiceResource> resources;
             if (skipGiteaFields)
             {
-                resources = listviewServiceResources;
+                resources = repositoryResourceList.Select(resource => new ListviewServiceResource
+                {
+                    Identifier = resource.Identifier,
+                    Title = resource.Title,
+                });
             }
             else
             {
@@ -252,7 +256,6 @@ namespace Altinn.Studio.Designer.Controllers
                 IEnumerable<Task<ListviewServiceResource>> tasks = repositoryResourceList.Select(resource => ProcessResourceAsync(resource));
                 resources = await Task.WhenAll(tasks);
             }
-            
 
             foreach (ListviewServiceResource listviewResource in resources)
             {
