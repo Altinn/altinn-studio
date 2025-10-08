@@ -502,12 +502,30 @@ describe('UI Components', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).type('Per');
     cy.get(appFrontend.changeOfName.newFirstName).blur();
-    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').dblclick();
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
     cy.findByRole('button', { name: /Avbryt/ }).click();
     cy.get(appFrontend.changeOfName.reasons).should('be.visible');
     cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
     cy.findByRole('button', { name: /Bekreft/ }).click();
     cy.get(appFrontend.changeOfName.reasons).should('not.exist');
+  });
+
+  it('retains focus when checking focused checkbox that has alert on uncheck', () => {
+    cy.interceptLayout('changename', (component) => {
+      if (component.id === 'confirmChangeName' && component.type === 'Checkboxes') {
+        component.alertOnChange = true;
+      }
+    });
+
+    cy.goto('changename');
+    cy.get(appFrontend.changeOfName.newFirstName).type('Per');
+    cy.get(appFrontend.changeOfName.newFirstName).blur();
+
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').focus();
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').click();
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').should('be.checked');
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').should('have.focus');
   });
 
   it('should display alert unchecking checkbox in checkbox group', () => {
