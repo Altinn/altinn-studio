@@ -222,28 +222,37 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("designer/api/{org}/resources/resourcelist")]
-        public async Task<ActionResult<List<ListviewServiceResource>>> GetRepositoryResourceList(string org, [FromQuery] bool includeEnvResources = false, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<List<ListviewServiceResource>>> GetRepositoryResourceList(string org, [FromQuery] bool includeEnvResources = false, [FromQuery] bool skipGiteaFields = false, CancellationToken cancellationToken = default)
         {
             string repository = GetRepositoryName(org);
             List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
             List<ListviewServiceResource> listviewServiceResources = new List<ListviewServiceResource>();
 
-            using SemaphoreSlim semaphore = new(25); // Limit to 25 concurrent requests 
-
-            async Task<ListviewServiceResource> ProcessResourceAsync(ServiceResource resource)
+            IEnumerable<ListviewServiceResource> resources;
+            if (skipGiteaFields)
             {
-                await semaphore.WaitAsync(cancellationToken);
-                try
-                {
-                    return await _giteaApi.MapServiceResourceToListViewResource(org, repository, resource, cancellationToken);
-                }
-                finally
-                {
-                    semaphore.Release();
-                }
+                resources = listviewServiceResources;
             }
-            IEnumerable<Task<ListviewServiceResource>> tasks = repositoryResourceList.Select(resource => ProcessResourceAsync(resource));
-            IEnumerable<ListviewServiceResource> resources = await Task.WhenAll(tasks);
+            else
+            {
+                using SemaphoreSlim semaphore = new(25); // Limit to 25 concurrent requests 
+
+                async Task<ListviewServiceResource> ProcessResourceAsync(ServiceResource resource)
+                {
+                    await semaphore.WaitAsync(cancellationToken);
+                    try
+                    {
+                        return await _giteaApi.MapServiceResourceToListViewResource(org, repository, resource, cancellationToken);
+                    }
+                    finally
+                    {
+                        semaphore.Release();
+                    }
+                }
+                IEnumerable<Task<ListviewServiceResource>> tasks = repositoryResourceList.Select(resource => ProcessResourceAsync(resource));
+                resources = await Task.WhenAll(tasks);
+            }
+            
 
             foreach (ListviewServiceResource listviewResource in resources)
             {
