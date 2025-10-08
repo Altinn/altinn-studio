@@ -104,4 +104,6 @@ public interface IOrgCodeListService
     /// <param name="codeListId">Name of the code list</param>
     /// <param name="newCodeListId">The new name of the code list</param>
     public void UpdateCodeListId(string org, string developer, string codeListId, string newCodeListId);
+
+    Task PublishCodeList(string org, string developer, PublishCodeListRequest request, CancellationToken cancellationToken = default);
 }

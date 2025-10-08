@@ -45,12 +45,9 @@ public sealed record CodeList(List<Code> Codes, CodeListSource? Source, List<str
     {
         var hash = new HashCode();
 
-        if (Codes is not null)
+        foreach (Code code in Codes)
         {
-            foreach (Code code in Codes)
-            {
-                hash.Add(code);
-            }
+            hash.Add(code);
         }
 
         hash.Add(Source);

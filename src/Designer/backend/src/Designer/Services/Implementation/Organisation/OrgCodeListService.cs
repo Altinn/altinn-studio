@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Exceptions.CodeList;
 using Altinn.Studio.Designer.Exceptions.Options;
@@ -27,6 +28,7 @@ public class OrgCodeListService : IOrgCodeListService
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IGitea _gitea;
     private readonly ISourceControl _sourceControl;
+    private readonly ISharedContentClient _sharedContentClient;
 
     private const string DefaultCommitMessage = "Update code lists.";
     private const string Repo = "content";
@@ -46,11 +48,13 @@ public class OrgCodeListService : IOrgCodeListService
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
     /// <param name="gitea">IGitea</param>
     /// <param name="sourceControl">the source control</param>
-    public OrgCodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IGitea gitea, ISourceControl sourceControl)
+    /// <param name="sharedContentClient">the shared content client</param>
+    public OrgCodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IGitea gitea, ISourceControl sourceControl, ISharedContentClient sharedContentClient)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _gitea = gitea;
         _sourceControl = sourceControl;
+        _sharedContentClient = sharedContentClient;
     }
 
     /// <inheritdoc />
@@ -142,6 +146,7 @@ public class OrgCodeListService : IOrgCodeListService
         ValidateCodeListTitles(request.CodeListWrappers);
         ValidateCommitMessage(request.CommitMessage);
         string repositoryName = GetStaticContentRepo(org);
+
         await _sourceControl.CloneIfNotExists(org, repositoryName);
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repositoryName, developer);
 
@@ -286,6 +291,16 @@ public class OrgCodeListService : IOrgCodeListService
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
         altinnOrgGitRepository.UpdateCodeListId(codeListId, newCodeListId);
+    }
+
+    public async Task PublishCodeList(string org, string developer, PublishCodeListRequest request, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string codeListId = request.Title;
+        CodeList codeList = request.CodeList;
+
+        await _sharedContentClient.PublishCodeList(org, codeListId, codeList, cancellationToken);
     }
 
     private async Task<List<Option>> GetCodeList(string org, string developer, string codeListId, CancellationToken cancellationToken = default)

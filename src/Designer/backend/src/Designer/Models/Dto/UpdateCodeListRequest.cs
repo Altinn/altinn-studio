@@ -37,13 +37,11 @@ public sealed record UpdateCodeListRequest(List<CodeListWrapper> CodeListWrapper
         hash.Add(BaseCommitSha);
         hash.Add(CommitMessage);
 
-        if (CodeListWrappers is not null)
+        foreach (CodeListWrapper wrapper in CodeListWrappers)
         {
-            foreach (CodeListWrapper wrapper in CodeListWrappers)
-            {
-                hash.Add(wrapper);
-            }
+            hash.Add(wrapper);
         }
+
         return hash.ToHashCode();
     }
 }
