@@ -3,7 +3,7 @@ import { typedLocalStorage, typedSessionStorage } from '@studio/pure-functions';
 const featureFlagKey = 'featureFlags';
 const persistFeatureKey = 'persistFeatureFlag';
 
-/*
+/**
  * @deprecated Use FeatureFlag from @studio/feature-flags instead.
  */
 export enum FeatureFlag {
