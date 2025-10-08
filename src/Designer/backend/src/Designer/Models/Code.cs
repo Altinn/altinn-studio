@@ -6,26 +6,13 @@ using Altinn.Studio.Designer.Helpers.Extensions;
 
 namespace Altinn.Studio.Designer.Models;
 
-public sealed record Code
+public sealed record Code(
+    string Value,
+    Dictionary<string, string> Label,
+    Dictionary<string, string>? Description,
+    Dictionary<string, string>? HelpText,
+    List<string>? Tags)
 {
-    public Code(string value,
-        Dictionary<string, string> label,
-        Dictionary<string, string>? description,
-        Dictionary<string, string>? helpText,
-        List<string>? tags)
-    {
-        Value = value;
-        Label = label;
-        Description = description;
-        HelpText = helpText;
-        Tags = tags;
-    }
-    public string Value { get; init; }
-    public Dictionary<string, string> Label { get; init; }
-    public Dictionary<string, string>? Description { get; init; }
-    public Dictionary<string, string>? HelpText { get; init; }
-    public List<string>? Tags { get; init; }
-
     public bool Equals(Code? other)
     {
         if (other is null)
@@ -75,13 +62,10 @@ public sealed record Code
 
         hash.Add(Value);
 
-        if (Label is not null)
+        foreach (KeyValuePair<string, string> kvp in Label.OrderBy(k => k.Key, StringComparer.Ordinal))
         {
-            foreach (KeyValuePair<string, string> kvp in Label.OrderBy(k => k.Key, StringComparer.Ordinal))
-            {
-                hash.Add(kvp.Key, StringComparer.Ordinal);
-                hash.Add(kvp.Value, StringComparer.Ordinal);
-            }
+            hash.Add(kvp.Key, StringComparer.Ordinal);
+            hash.Add(kvp.Value, StringComparer.Ordinal);
         }
 
         if (Description is not null)
