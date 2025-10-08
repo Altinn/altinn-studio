@@ -1023,11 +1023,11 @@ namespace Designer.Tests.Services
             List<Code> listOfCodes =
             [
                 new(
-                    value: "value1",
-                    label: label,
-                    description: description,
-                    helpText: helpText,
-                    tags: ["test-data"]
+                    Value: "value1",
+                    Label: label,
+                    Description: description,
+                    HelpText: helpText,
+                    Tags: ["test-data"]
                 )
             ];
             CodeListSource source = new(Name: "test-data-files");

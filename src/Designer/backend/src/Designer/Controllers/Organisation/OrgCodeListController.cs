@@ -99,13 +99,55 @@ public class OrgCodeListController : ControllerBase
         try
         {
             await _orgCodeListService.UpdateCodeListsNew(org, developer, requestBody, cancellationToken);
+            return Ok();
         }
         catch (Exception ex) when (ex is IllegalFileNameException or IllegalCommitMessageException)
         {
             return BadRequest(ex.Message);
         }
 
-        return Ok();
+    }
+
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Route("new/publish")]
+    public async Task<ActionResult> PublishCodeList(string org, [FromBody] PublishCodeListRequest requestBody, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+        try
+        {
+            await _orgCodeListService.PublishCodeList(org, developer, requestBody, cancellationToken);
+            return Ok();
+        }
+        catch (Exception ex) when (ex is IllegalFileNameException or IllegalCommitMessageException)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Route("new/published")]
+    public async Task<List<string>> GetPublishedCodeListIds(string org, CancellationToken cancellationToken = default)
+    {
+        /*
+         * Should this be done in the frontend directly? Maybe, maybe not. Frontend might not need to know about the "published" data types if it's done here.
+         */
+    }
+
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Route("new/published/versions/{codeListId}")]
+    public async Task<List<string>> GetPublishedCodeListVersions(string org, [FromRoute] string codeListId, CancellationToken cancellationToken = default)
+    {
+        /*
+         * Should this be done in the frontend directly? Maybe, maybe not. Frontend might not need to know about the "published" data types if it's done here.
+         */
     }
 
     /// <summary>
