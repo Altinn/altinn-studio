@@ -9,10 +9,19 @@ import { StudioDragAndDropTree } from '@studio/components-legacy';
 import { FormItemContextProvider } from '../FormItemContext';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { internalLayoutWithMultiPageGroup } from '../../testing/layoutWithMultiPageGroupMocks';
+import { FeatureFlag } from '@studio/feature-flags';
+import type { IInternalLayout } from '../../types/global';
 
 const defaultProps: FormLayoutProps = {
   layout: layoutMock,
   isInvalid: false,
+};
+const emptyLayout: IInternalLayout = {
+  components: {},
+  containers: {},
+  order: {},
+  customDataProperties: {},
+  customRootProperties: {},
 };
 
 describe('FormLayout', () => {
@@ -55,13 +64,27 @@ describe('FormLayout', () => {
     const uniqueIds = screen.queryByText(/idContainer3/i);
     expect(uniqueIds).not.toBeInTheDocument();
   });
+
+  it('Does not display the add item button by default when the layout is empty', () => {
+    render({ layout: emptyLayout }, [FeatureFlag.AddComponentModal]);
+    expect(getAddComponentButton()).toBeInTheDocument();
+  });
+
+  it('Displays the add item button when the layout is empty and the add component modal flag is enabled', () => {
+    render({ layout: emptyLayout }, [FeatureFlag.AddComponentModal]);
+    expect(getAddComponentButton()).toBeInTheDocument();
+  });
 });
 
-const render = (props?: Partial<FormLayoutProps>) =>
+const render = (props?: Partial<FormLayoutProps>, featureFlags?: FeatureFlag[]) =>
   renderWithProviders(
     <StudioDragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
       <FormItemContextProvider>
         <FormLayout {...defaultProps} {...props} />
       </FormItemContextProvider>
     </StudioDragAndDropTree.Provider>,
+    { featureFlags },
   );
+
+const getAddComponentButton = (): HTMLButtonElement =>
+  screen.getByRole('button', { name: textMock('ux_editor.add_item.add_component') });
