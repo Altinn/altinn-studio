@@ -4,7 +4,7 @@ import classes from './headingBar.module.css';
 import { ToggleGroup } from '@digdir/designsystemet-react';
 import { CodeIcon, PlayFillIcon } from '@studio/icons';
 import { ViewType } from '../../types/ViewType';
-import type { AssistantTexts } from '../../types/AssistantConfig';
+import type { AssistantTexts } from '../../types/AssistantTexts';
 
 export type AssistantHeadingBarProps = {
   texts: AssistantTexts;
@@ -16,7 +16,7 @@ export function HeadingBar({ texts, selectedView, onViewChange }: AssistantHeadi
   const shouldShowToggleGroup = selectedView && onViewChange;
 
   return (
-    <div className={classes.headnigBar}>
+    <div className={classes.headingBar}>
       <StudioHeading>{texts.heading}</StudioHeading>
       {shouldShowToggleGroup && (
         <ToggleGroup

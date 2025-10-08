@@ -2,7 +2,7 @@ import React from 'react';
 import type { ReactElement } from 'react';
 import { StudioCard, StudioParagraph } from '@studio/components';
 import { MessageAuthor } from '../../../types/MessageAuthor';
-import { Message } from '../../../types/AssistantConfig';
+import { Message } from '../../../types/ChatThread';
 import classes from './Messages.module.css';
 
 type MessagesProps = {

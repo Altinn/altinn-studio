@@ -1,4 +1,4 @@
-import type { ChatThread, Message } from '../types/AssistantConfig';
+import type { ChatThread, Message } from '../types/ChatThread';
 import { MessageAuthor } from '../types/MessageAuthor';
 
 export function createGreetingMessage(): Message {

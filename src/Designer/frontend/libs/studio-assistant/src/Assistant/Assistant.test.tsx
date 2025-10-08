@@ -1,10 +1,10 @@
 import React from 'react';
 import { Assistant } from './Assistant';
 import { render, screen } from '@testing-library/react';
-import type { AssistantConfig } from '../types/AssistantConfig';
+import type { AssistantProps } from '../Assistant/Assistant';
 
 // Test data
-const texts: AssistantConfig['texts'] = {
+const texts: AssistantProps['texts'] = {
   heading: 'heading',
   preview: 'preview',
   fileBrowser: 'fileBrowser',
@@ -29,7 +29,7 @@ describe('Assistant', () => {
   });
 });
 
-const defaultProps: AssistantConfig = {
+const defaultProps: AssistantProps = {
   onSubmitMessage,
   texts,
   enableSimpleMode: false,

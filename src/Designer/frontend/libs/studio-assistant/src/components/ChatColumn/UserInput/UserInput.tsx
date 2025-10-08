@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import type { ReactElement } from 'react';
 import { StudioButton, StudioSwitch, StudioTextarea } from '@studio/components';
 import { MessageAuthor } from '../../../types/MessageAuthor';
-import type { AssistantTexts, Message } from '../../../types/AssistantConfig';
+import type { Message } from '../../../types/ChatThread';
 import classes from './UserInput.module.css';
 import { PaperclipIcon, PaperplaneFillIcon } from '@studio/icons';
+import type { AssistantTexts } from 'libs/studio-assistant/src/types/AssistantTexts';
 
 export type UserInputFlags = {
   attachmentButton: boolean;

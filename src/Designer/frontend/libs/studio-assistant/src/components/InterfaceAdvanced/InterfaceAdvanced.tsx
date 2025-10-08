@@ -4,15 +4,16 @@ import { StudioResizableLayout } from '@studio/components-legacy';
 import { ToolColumn } from '../ToolColumn';
 import classes from './InterfaceAdvanced.module.css';
 import { HeadingBar } from '../HeadingBar/HeadingBar';
-import type { AssistantConfig, ChatThread } from '../../types/AssistantConfig';
+import type { ChatThread } from '../../types/ChatThread';
 import { ThreadColumn } from '../ThreadColumn/ThreadColumn';
 import { ThreadColumnCollapsed } from '../ThreadColumnHidden';
 import { ChatColumn } from '../ChatColumn/ChatColumn';
 import { ViewType } from '../../types/ViewType';
 import type { UserInputFlags } from '../ChatColumn/UserInput/UserInput';
 import { createEmptyChatThread } from '../../utils/utils';
+import type { AssistantProps } from '../../Assistant/Assistant';
 
-type InterfaceAdvancedProps = Omit<AssistantConfig, 'enableSimpleMode'>;
+type InterfaceAdvancedProps = Omit<AssistantProps, 'enableSimpleMode'>;
 
 /**
  * Full page version of the chat interface with thread history, preview and code viewer.

@@ -1,12 +1,13 @@
-import type { AssistantConfig, Message } from '../../types/AssistantConfig';
+import type { Message } from '../../types/ChatThread';
 import { ChatColumn } from '../ChatColumn/ChatColumn';
 import classes from './InterfaceSimple.module.css';
 import type { ReactElement } from 'react';
 import { HeadingBar } from '../HeadingBar/HeadingBar';
 import type { UserInputFlags } from '../ChatColumn/UserInput/UserInput';
 import { createGreetingMessage } from '../../utils/utils';
+import type { AssistantProps } from '../../Assistant/Assistant';
 
-export type InterfaceSimpleProps = Omit<AssistantConfig, 'enableSimpleMode' | 'chatThreads'>;
+export type InterfaceSimpleProps = Omit<AssistantProps, 'enableSimpleMode' | 'chatThreads'>;
 
 /**
  * A one-column version of the chat interface without thread history, preview and code viewer.

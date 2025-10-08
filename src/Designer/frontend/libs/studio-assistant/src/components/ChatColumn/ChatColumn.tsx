@@ -1,10 +1,11 @@
 import React from 'react';
 import type { ReactElement } from 'react';
-import type { AssistantTexts, Message } from '../../types/AssistantConfig';
+import type { Message } from '../../types/ChatThread';
 import { Messages } from './Messages/Messages';
 import type { UserInputFlags } from './UserInput/UserInput';
 import { UserInput } from './UserInput/UserInput';
 import classes from './ChatColumn.module.css';
+import type { AssistantTexts } from '../../types/AssistantTexts';
 
 export type ChatColumnProps = {
   texts: AssistantTexts;

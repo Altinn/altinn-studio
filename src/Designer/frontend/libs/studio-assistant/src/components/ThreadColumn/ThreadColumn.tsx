@@ -3,7 +3,8 @@ import type { ReactElement } from 'react';
 import { StudioContentMenu, StudioButton, StudioHeading } from '@studio/components';
 import classes from './ThreadColumn.module.css';
 import { InformationIcon, PlusIcon, SidebarLeftIcon } from '@studio/icons';
-import type { AssistantTexts, ChatThread } from '../../types/AssistantConfig';
+import type { ChatThread } from '../../types/ChatThread';
+import type { AssistantTexts } from '../../types/AssistantTexts';
 
 export type ChatHistorySidebarProps = {
   texts: AssistantTexts;
