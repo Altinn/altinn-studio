@@ -36,7 +36,7 @@ function Flag({ flagName }: FeatureFlagProps): ReactElement {
 
   const handleToggle: ChangeEventHandler<HTMLInputElement> = useCallback(
     (e) => toggle(e.target.checked),
-    [flagName, toggle],
+    [toggle],
   );
 
   return (
