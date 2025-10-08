@@ -10,7 +10,7 @@ export const useTrackContainerSizes = (localStorageContextKey: string) => {
   );
 
   useMemo(() => {
-    setContainerSizes(value ?? []);
+    setContainerSizes(value);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
