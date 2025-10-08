@@ -2,7 +2,7 @@
 
 - Status: Replaces 007-studio-library-persistence
 - Deciders: Team Altinn Studio
-- Date: 07.10.2025
+- Date: 08.10.2025
 
 ## Result
 
@@ -17,7 +17,7 @@ When choosing to use the "latest", it should not be required to redeploy an appl
 Users must get an overview over published resources in Studio Library.
 
 Diff from 007:
-remove B9, add A5 and A6
+remove B7 and B9, add A5 and A6
 
 ## Decision drivers
 
@@ -30,8 +30,7 @@ A list of decision drivers. These are points which can differ in importance. If 
 - B4: The endpoint for retrieving the resources should be open.
 - B5: Nice to have: When using the "latest version", it should be faster to wait for the application to retrieve a new publish of the resource than redeploying the application.
 - B6: Need to have: The SLA for the persistent storage should not be worse than for the application.
-- B7: A service owner pays for the storage of the resources they require.
-- B8: Users must get an overview over published resources in Studio Library - on the service owner organisations level.
+- B7: Users must get an overview over published resources in Studio Library - on the service owner organisations level.
 
 ## Alternatives considered
 
@@ -55,9 +54,7 @@ List the pros and cons with the alternatives. This should be in regard to the de
   - Cache invalidation on distributed caching systems
 - Bad, because it does not fulfill the nice to have B5
   - In Norway, Altinn CDN is refreshed every hour
-- Bad, because it does not support B7
-  - It is a complex issue knowing who uses a resource from Altinn CDN
-- Neutral, because it supports B8 through filtering on "org-shortname"
+- Neutral, because it supports B7 through filtering on "org-shortname"
   - However, this would result in getting all versions of all codelists for each request
 
 ### A2 - A studio designer hosted API with ANY backing storage
@@ -66,36 +63,32 @@ List the pros and cons with the alternatives. This should be in regard to the de
 
 ### A3 - A storage account in Azure with public availability over HTTP
 
-- Good, because it supports B1, B3, B4, B5, B6 and B8
-- Neutral, because B2 leads to complexity in the implementation
-  - For immutability, we would need to duplicate data per organization. If service owner X publishes a code list and service owner Y wants to use it we need duplication in order to avoid X breaking production for Y
-- Bad, because it does not support B7
-  - It is a complex issue knowing who uses and should pay for using a resource from a shared storage account. Can be overlooked due to size of costs.
+- Good, because it supports B1, B3, B4, B5, B6
+- Neutral, because B2 and B7 leads to complexity in the implementation
+  - B2: For immutability, we would need to duplicate data per organization. If service owner X publishes a code list and service owner Y wants to use it we need duplication in order to avoid X breaking production for Y
+  - B7: We will need to manage the creation and updates of index files.
 
 ### A4 - Cluster hosted file persistence with Nginx
 
-- Good, because it supports B2, B3, B4, B5, B6, B7, B8
+- Good, because it supports B2, B3, B4, B5, B6
   - B3: updating the latest version would be the same complexity as any other file storage
   - B5: Publishing to the cluster should be faster than building and deploying the application to the same cluster
-  - B7: Service owners will get this as a part of their cluster bill
 - Bad, Nginx on its own does not support post/write operations
-- Bad, does not efficiently support B8 - Nginx with autoindexing allows "get all file names from a path", but to see the content requires individual requests
+- Neutral, requires management of the creation and updates of index files.
 - Neutral, redeploy on CVE fixes
 
 ### A5 - Cluster hosted file persistence with Custom API
 
-- Good, because it supports B1, B2, B3, B4, B5, B6, B7, B8
+- Good, because it supports B1, B2, B3, B4, B5, B6, B7
   - B3: updating the latest version would be the same complexity as any other file storage
   - B5: Publishing to the cluster should be faster than building and deploying the application to the same cluster
-  - B7: Service owners will get this as a part of their cluster bill
 - Bad, maintainability, development time
 - Neutral, redeploy on CVE fixes and bug fixes
 
 ### A6 - Container with SQL database and a Custom API
 
-- Good, because it supports B1, B2, B3, B4, B5, B6, B7, B8
+- Good, because it supports B1, B2, B3, B4, B5, B6, B7
   - B3: updating the latest version would be the same complexity as any other file storage
   - B5: Publishing to the cluster should be faster than building and deploying the application to the same cluster
-  - B7: Service owners will get this as a part of their cluster bill
 - Bad, maintainability, development time
 - Neutral, redeploy on CVE fixes and bug fixes
