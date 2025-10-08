@@ -268,7 +268,7 @@
         Category="urn:altinn:minimum-authenticationlevel"
       >
         <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#integer"
-          >2</xacml:AttributeValue
+          >0</xacml:AttributeValue
         >
       </xacml:AttributeAssignmentExpression>
     </xacml:ObligationExpression>
