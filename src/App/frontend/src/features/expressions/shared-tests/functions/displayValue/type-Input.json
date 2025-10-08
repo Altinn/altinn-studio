@@ -1,0 +1,33 @@
+{
+  "name": "Display value of regular Input component",
+  "expression": [
+    "displayValue",
+    "penger"
+  ],
+  "context": {
+    "component": "penger",
+    "currentLayout": "Page"
+  },
+  "expects": "1200",
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "penger",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Skjema.Penger"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Skjema": {
+      "Penger": "1200"
+    }
+  }
+}

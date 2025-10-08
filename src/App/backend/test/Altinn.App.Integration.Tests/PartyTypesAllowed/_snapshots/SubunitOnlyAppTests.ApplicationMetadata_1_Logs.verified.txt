@@ -1,0 +1,3 @@
+﻿[basic/subunit-only] [INIT INFO] Fixture configuration updated
+[basic/subunit-only] [INFO] ### Request: ApplicationMetadata.GetAction - User: None/none, AuthLevel: 0, AuthMethod: none
+[basic/subunit-only] [INFO] ### Response: ApplicationMetadata.GetAction - OkObjectResult, StatusCode: 200

@@ -1,0 +1,64 @@
+﻿{
+  Activities: [
+    {
+      Name: Process.End,
+      IdFormat: W3C,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.HandleEvents,
+      IdFormat: W3C,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.Next,
+      IdFormat: W3C,
+      Status: Ok,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        }
+      ],
+      Events: [
+        {
+          Name: change,
+          Timestamp: DateTimeOffset_1,
+          Tags: [
+            {
+              events: [
+                Type=process_EndTask DataId=,
+                Type=process_EndEvent DataId=,
+                Type=Submited DataId=
+              ]
+            },
+            {},
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      HasParent: false
+    },
+    {
+      Name: Process.StoreEvents,
+      IdFormat: W3C,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        }
+      ],
+      HasParent: true
+    }
+  ]
+}

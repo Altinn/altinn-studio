@@ -1,8 +1,10 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Exceptions.CodeList;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -59,6 +61,24 @@ public class OrgCodeListController : ControllerBase
     }
 
     /// <summary>
+    /// Fetches the contents of all the code lists belonging to the organisation.
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation.</param>
+    /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>List of <see cref="CodeListWrapper" /> which includes all code lists belonging to the organisation.</returns>
+    [HttpGet]
+    [Route("new")]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<CodeListWrapper>>> GetCodeListsNew(string org, [FromQuery] string? reference = null, CancellationToken cancellationToken = default)
+    {
+        List<CodeListWrapper> codeLists = await _orgCodeListService.GetCodeListsNew(org, reference, cancellationToken);
+
+        return Ok(codeLists);
+    }
+
+    /// <summary>
     /// Creates or overwrites a code list.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation.</param>
@@ -78,6 +98,37 @@ public class OrgCodeListController : ControllerBase
         List<OptionListData> codeLists = await _orgCodeListService.CreateCodeList(org, developer, codeListId, codeList, cancellationToken);
 
         return Ok(codeLists);
+    }
+
+    /// <summary>
+    /// Creates or overwrites the code lists.
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation.</param>
+    /// <param name="requestBody">The body of the request <see cref="UpdateCodeListRequest"/></param>
+    /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if not supplied.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    [HttpPut]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Route("new")]
+    public async Task<ActionResult> UpdateCodeListsNew(string org, [FromBody] UpdateCodeListRequest requestBody, [FromQuery] string? reference = null, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        List<CodeListWrapper> codeListWrappers = requestBody.CodeListWrappers;
+        string? commitMessage = requestBody.CommitMessage;
+
+        try
+        {
+            await _orgCodeListService.UpdateCodeListsNew(org, developer, codeListWrappers, commitMessage, reference, cancellationToken);
+        }
+        catch (Exception ex) when (ex is IllegalFileNameException or IllegalCommitMessageException)
+        {
+            return BadRequest(ex.Message);
+        }
+
+        return Ok();
     }
 
     /// <summary>

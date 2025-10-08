@@ -1,0 +1,218 @@
+.groupContainer {
+  margin-left: calc(var(--modal-padding-x) * -1);
+  margin-right: calc(var(--modal-padding-x) * -1);
+  width: calc(100% + 2 * var(--modal-padding-x));
+
+  margin-bottom: 15px;
+}
+
+.groupContainer > table > tbody > tr > td:first-child,
+.groupContainer > table > thead > tr > th:first-child {
+  padding-left: var(--modal-padding-x);
+}
+
+.groupContainer > table > tbody > tr > td:last-child,
+.groupContainer > table > thead > tr > th:last-child {
+  padding-right: var(--modal-padding-x);
+}
+
+.nestedGroupContainer {
+  margin: 0 0 15px 0;
+  width: 100%;
+}
+
+.repeatingGroupTable {
+  width: 100%;
+}
+
+.editContainerOnTopOfStickyHeader {
+  z-index: 2;
+  position: relative;
+}
+
+.editRowOnTopOfStickyHeader {
+  z-index: 3;
+  position: relative;
+}
+
+/* ====
+TODO(1779): Remove these styles after going through all the different Table styles in
+Altinn, and making sure they are consistent. */
+.repeatingGroupTable > thead > tr > th {
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #dde3e5;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+.repeatingGroupTable > tbody > tr > td {
+  border-bottom-color: #dde3e5;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+/* ==== */
+
+.repeatingGroupTable > tbody > tr:hover td {
+  background-color: unset;
+}
+
+.nestedTable {
+  background-color: var(--ds-color-neutral-background-default);
+}
+
+.nestedTable > thead > tr > th {
+  /*background-color: var(--ds-color-neutral-background-tinted);*/
+  background-color: #f5f5f5;
+}
+
+.nestedTable thead:not(:first-of-type) th {
+  /*border-top: 2px solid var(--ds-color-neutral-border-subtle);*/
+  border-top: 1px solid #dde3e5; /* Remove this and uncomment the line above when adjusting the new table component*/
+}
+
+.nestedTable thead:not(:first-of-type) th:first-of-type {
+  border-top-left-radius: 0 !important;
+}
+.nestedTable thead:not(:first-of-type) th:last-of-type {
+  border-top-right-radius: 0 !important;
+}
+
+.nestedNonSticky > thead > tr > th {
+  /*needed !important to override sticky-header css from design system for nested repeating-groups*/
+  position: static !important;
+}
+
+.tableEmpty {
+  margin: 0;
+}
+
+.editContainerRow {
+  border-top: 1px solid var(--repeating-group-edit-divider-color);
+  border-bottom: 2px dotted var(--repeating-group-edit-border-color);
+}
+
+.editContainerRow > td > div {
+  margin: 0;
+}
+
+.editingRow > td {
+  background-color: var(--repeating-group-edit-surface-color);
+  border-bottom: 0;
+}
+
+table > tbody > tr.editingRow:hover {
+  background-color: var(--repeating-group-edit-surface-color);
+}
+
+.editingBorder {
+  width: calc(100% - 2px);
+  margin: 0 auto;
+}
+
+.editingBorder .editContainerRow,
+.editingBorder .editingRow {
+  border-right: 2px dotted var(--repeating-group-edit-border-color);
+  border-left: 2px dotted var(--repeating-group-edit-border-color);
+}
+
+.contentFormatting {
+  --cell-text-alignment: left;
+  --cell-word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: var(--cell-word-break);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  text-align: var(--cell-text-alignment);
+}
+
+.spaceAfterContent {
+  padding-right: 5px;
+}
+
+.tableCellFormatting {
+  --cell-width: auto;
+  width: var(--cell-width);
+}
+
+/* The width here should be: calc(var(--cell-width) + var(--modal-padding-x) - var(--table-input-margin));
+   Adding 8.15% is a workaround for calc not working with both percentages and pixels inside a cell element.
+*/
+.tableCellFormatting:first-child {
+  width: calc(var(--cell-width) + 8.15%);
+}
+
+.tableCellFormatting:last-child {
+  width: calc(var(--cell-width) + 8.15%);
+}
+
+.popoverCurrentCell {
+  z-index: 1;
+  position: relative;
+}
+
+.buttonCell {
+  min-width: unset;
+  max-width: unset;
+  width: 1px;
+}
+
+.buttonCell > div {
+  margin: 0;
+}
+
+.buttonInCellWrapper {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  width: 100%;
+}
+
+.tableRowError > td {
+  background-color: var(--repeating-group-error-color) !important;
+}
+
+.tableButton {
+  width: max-content;
+}
+
+.editContainer {
+  background-color: var(--repeating-group-edit-surface-color);
+  width: 100%;
+  display: inline-block;
+  padding: var(--modal-padding-y) var(--modal-padding-x);
+  box-sizing: border-box;
+}
+
+.nestedEditContainer {
+  background-color: var(--repeating-group-edit-surface-color);
+  width: 100%;
+  display: inline-block;
+  padding: 12px 24px;
+  box-sizing: border-box;
+}
+
+.hideTable {
+  border-top: 2px dotted var(--repeating-group-edit-border-color);
+  border-bottom: 2px dotted var(--repeating-group-edit-border-color);
+  margin-bottom: -2px;
+}
+
+.nestedHideTable {
+  border-right: 2px dotted var(--repeating-group-edit-border-color);
+  border-left: 2px dotted var(--repeating-group-edit-border-color);
+}
+
+.mobileTableCell {
+  padding-top: var(--table-input-margin);
+  padding-bottom: var(--table-input-margin);
+}
+
+.tableCell {
+  box-sizing: border-box;
+}
+
+.fullWidthCaption {
+  padding-left: var(--modal-padding-x);
+  padding-right: var(--modal-padding-x);
+}

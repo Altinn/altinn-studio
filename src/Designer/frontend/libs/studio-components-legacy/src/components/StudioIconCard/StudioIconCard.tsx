@@ -23,6 +23,9 @@ export type StudioIconCardProps = {
   className?: string;
 };
 
+/**
+ * @deprecated Use <StudioIconCard /> from @studio/components instead.
+ */
 export const StudioIconCard = ({
   icon,
   iconColor = 'grey',

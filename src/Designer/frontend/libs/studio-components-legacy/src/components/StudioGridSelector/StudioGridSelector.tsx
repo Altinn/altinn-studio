@@ -16,8 +16,7 @@ type StudioGridSelectorProps = {
 };
 
 /**
- * @component
- *    A component designed for choosing a value within the range of 1 to 12
+ * @deprecated Use `StudioGridSelector` from `@studio/components` instead.
  */
 export const StudioGridSelector = ({
   disabled = false,

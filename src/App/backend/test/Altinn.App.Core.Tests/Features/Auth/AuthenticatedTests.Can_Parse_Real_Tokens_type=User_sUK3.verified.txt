@@ -1,0 +1,97 @@
+﻿{
+  Description: ID-porten testclient exchanged (demo-client.test.idporten.no),
+  AuthType: Altinn.App.Core.Features.Auth.Authenticated+User,
+  Auth: {
+    UserId: 1433953,
+    UserPartyId: 50593193,
+    SelectedPartyId: 50593193,
+    AuthenticationLevel: 3,
+    AuthenticationMethod: NotDefined,
+    InAltinnPortal: false,
+    IsSelfIdentified: false,
+    TokenIssuer: IDporten,
+    TokenIsExchanged: true,
+    Scopes: altinn:instances.read openid profile,
+    ClientId: democlient_idporten_test,
+    Token: eyJhbGciOiJSUzI1NiIsImtpZCI6IkQ4RDg2N0M3RDUyMTM2MEY0RjM1Q0Q1MTU4MEM0OUEwNTE2NUQ0RTEiLCJ4NXQiOiIyTmhueDlVaE5nOVBOYzFSV0F4Sm9GRmwxT0UiLCJ0eXAiOiJKV1QifQ.eyJuYW1laWQiOiIxNDMzOTUzIiwidXJuOmFsdGlubjp1c2VyaWQiOiIxNDMzOTUzIiwidXJuOmFsdGlubjp1c2VybmFtZSI6IiIsInVybjphbHRpbm46cGFydHlpZCI6NTA1OTMxOTMsInVybjphbHRpbm46YXV0aGVudGljYXRlbWV0aG9kIjoiTm90RGVmaW5lZCIsInVybjphbHRpbm46YXV0aGxldmVsIjozLCJhY3IiOiJpZHBvcnRlbi1sb2Etc3Vic3RhbnRpYWwiLCJzY29wZSI6ImFsdGlubjppbnN0YW5jZXMucmVhZCBvcGVuaWQgcHJvZmlsZSIsImNsaWVudF9hbXIiOiJjbGllbnRfc2VjcmV0X2Jhc2ljIiwicGlkIjoiMTk5MTQ4OTcyODEiLCJleHAiOjE3Mzc4MTU3NDYsImlhdCI6MTczNzgxNTE1NywiY2xpZW50X2lkIjoiZGVtb2NsaWVudF9pZHBvcnRlbl90ZXN0IiwiY29uc3VtZXIiOnsiYXV0aG9yaXR5IjoiaXNvNjUyMy1hY3RvcmlkLXVwaXMiLCJJRCI6IjAxOTI6OTkxODI1ODI3In0sImlzcyI6Imh0dHBzOi8vcGxhdGZvcm0udHQwMi5hbHRpbm4ubm8vYXV0aGVudGljYXRpb24vYXBpL3YxL29wZW5pZC8iLCJqdGkiOiI3MTMzYmMwNy1iZWE0LTRkNDAtOWRjNC1jMWFmZGZjMmU2NTEiLCJuYmYiOjE3Mzc4MTUxNTd9.W71Z1FiSYUBJ8G1De-aGYOiUbpD_FCB9gTceLSItZN33y98IzAvNRKJEfXUxVge-GPInjm1DmJ6MVs6ZcVRunigiLa5gNR_W5kkV6kBkaTbZ4SJQsMdT3AaHoBziJEL2ey_ONyDT4ffScx-lRoF_qKQXbkpqLm-Qkj1VKjEBVSTsaqKxJMQrhmKZ4zK6rwhFOPZv5HnGSt56CWh2jrkk8IFzIJZbvO738qHscZ--1UhwHcZ_hpjsdLGaxENiC25kAiqV8gTAyihOAg9ii7jwxLiQYRe_ahqBv5IqT_ZNKKa3q9t7Yh57hQjPWOqtTFTgaBCCYQohYqv-FQtOenbd5g
+  },
+  Jwt: {
+    acr: idporten-loa-substantial,
+    client_amr: client_secret_basic,
+    client_id: democlient_idporten_test,
+    consumer: {
+      ValueKind: Object
+    },
+    exp: 1737815746,
+    iat: 1737815157,
+    iss: https://platform.tt02.altinn.no/authentication/api/v1/openid/,
+    jti: 7133bc07-bea4-4d40-9dc4-c1afdfc2e651,
+    nameid: 1433953,
+    nbf: 1737815157,
+    pid: 19914897281,
+    scope: altinn:instances.read openid profile,
+    urn:altinn:authenticatemethod: NotDefined,
+    urn:altinn:authlevel: 3,
+    urn:altinn:partyid: 50593193,
+    urn:altinn:userid: 1433953,
+    urn:altinn:username: 
+  },
+  Details: {
+    UserParty: {
+      PartyId: 50593193,
+      PartyTypeName: Person,
+      SSN: 12345678901,
+      Name: Test Testesen,
+      IsDeleted: false,
+      OnlyHierarchyElementWithNoAccess: false,
+      ChildParties: []
+    },
+    SelectedParty: {
+      PartyId: 50593193,
+      PartyTypeName: Person,
+      SSN: 12345678901,
+      Name: Test Testesen,
+      IsDeleted: false,
+      OnlyHierarchyElementWithNoAccess: false,
+      ChildParties: []
+    },
+    Profile: {
+      UserId: 1433953,
+      IsReserved: false,
+      PartyId: 50593193,
+      Party: {
+        PartyId: 50593193,
+        PartyTypeName: Person,
+        SSN: 12345678901,
+        Name: Test Testesen,
+        IsDeleted: false,
+        OnlyHierarchyElementWithNoAccess: false,
+        ChildParties: []
+      }
+    },
+    RepresentsSelf: true,
+    Parties: [
+      {
+        PartyId: 50593193,
+        PartyTypeName: Person,
+        SSN: 12345678901,
+        Name: Test Testesen,
+        IsDeleted: false,
+        OnlyHierarchyElementWithNoAccess: false,
+        ChildParties: []
+      }
+    ],
+    PartiesAllowedToInstantiate: [
+      {
+        PartyId: 50593193,
+        PartyTypeName: Person,
+        SSN: 12345678901,
+        Name: Test Testesen,
+        IsDeleted: false,
+        OnlyHierarchyElementWithNoAccess: false,
+        ChildParties: []
+      }
+    ],
+    CanRepresent: true
+  }
+}

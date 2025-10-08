@@ -3,7 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
@@ -24,7 +26,7 @@ public class GiteaContentLibraryServiceTests
     private const string Developer = "testUser";
     private const string OrgName = "ttd";
     private const string RepoName = "org-content";
-    private const string CodeListFolderPath = "CodeLists/";
+    private const string CodeListFolderPath = "CodeListsWithTextResources/";
     private const string TextResourceFolderPath = "Texts/";
 
     private static readonly JsonSerializerOptions s_jsonOptions = new()
@@ -72,7 +74,7 @@ public class GiteaContentLibraryServiceTests
         List<FileSystemObject> listOfFiles = codeListFileNames.Select(fileName => new FileSystemObject { Name = fileName }).ToList();
 
         _giteaApiWrapperMock
-            .Setup(service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), CodeListFolderPath, string.Empty))
+            .Setup(service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), CodeListFolderPath, string.Empty, It.IsAny<CancellationToken>()))
             .ReturnsAsync(listOfFiles);
 
         // Act
@@ -81,7 +83,7 @@ public class GiteaContentLibraryServiceTests
         // Assert
         Assert.Equal(7, result.Count);
         _giteaApiWrapperMock.Verify(
-            service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), CodeListFolderPath, string.Empty), Times.Once);
+            service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), CodeListFolderPath, string.Empty, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -89,7 +91,7 @@ public class GiteaContentLibraryServiceTests
     {
         // Arrange
         _giteaApiWrapperMock
-            .Setup(service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), CodeListFolderPath, string.Empty))
+            .Setup(service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), CodeListFolderPath, string.Empty, It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
         // Act
@@ -98,7 +100,7 @@ public class GiteaContentLibraryServiceTests
         // Assert
         Assert.Empty(result);
         _giteaApiWrapperMock.Verify(
-            service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), CodeListFolderPath, string.Empty), Times.Once);
+            service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), CodeListFolderPath, string.Empty, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -106,7 +108,7 @@ public class GiteaContentLibraryServiceTests
     {
         // Arrange
         const string CodeListId = "codeListString";
-        string filePath = CodeListFilePath(CodeListId);
+        string filePath = CodeListUtils.FilePathWithTextResources(CodeListId);
         FileSystemObject codeListFileObject = new()
         {
             Name = CodeListId,
@@ -132,7 +134,7 @@ public class GiteaContentLibraryServiceTests
     {
         // Arrange
         const string CodeListId = "someId";
-        string filePath = CodeListFilePath(CodeListId);
+        string filePath = CodeListUtils.FilePathWithTextResources(CodeListId);
         FileSystemObject fileObject = new() { Name = CodeListId };
         _giteaApiWrapperMock
             .Setup(service => service.GetFileAsync(OrgName, GetContentRepoName(), filePath, string.Empty))
@@ -163,7 +165,7 @@ public class GiteaContentLibraryServiceTests
         nbResourceFile.Content = TestDataHelper.GetFileAsBase64StringFromRepo(OrgName, RepoName, Developer, nbResourceFile.Name);
 
         _giteaApiWrapperMock
-            .Setup(service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), TextResourceFolderPath, string.Empty))
+            .Setup(service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), TextResourceFolderPath, string.Empty, It.IsAny<CancellationToken>()))
             .ReturnsAsync(listOfFiles);
         _giteaApiWrapperMock
             .Setup(service => service.GetFileAsync(OrgName, GetContentRepoName(), It.IsAny<string>(), string.Empty))
@@ -175,7 +177,7 @@ public class GiteaContentLibraryServiceTests
         // Assert
         Assert.Equal(3, result.Count);
         _giteaApiWrapperMock.Verify(
-            service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), TextResourceFolderPath, string.Empty), Times.Once);
+            service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), TextResourceFolderPath, string.Empty, It.IsAny<CancellationToken>()), Times.Once);
         _giteaApiWrapperMock.Verify(
             service => service.GetFileAsync(OrgName, GetContentRepoName(), TextResourceFilePath(EnLanguageCode), string.Empty), Times.Once);
         _giteaApiWrapperMock.Verify(
@@ -187,7 +189,7 @@ public class GiteaContentLibraryServiceTests
     {
         // Arrange
         _giteaApiWrapperMock
-            .Setup(service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), TextResourceFolderPath, string.Empty))
+            .Setup(service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), TextResourceFolderPath, string.Empty, It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
         // Act
@@ -196,7 +198,7 @@ public class GiteaContentLibraryServiceTests
         // Assert
         Assert.Empty(result);
         _giteaApiWrapperMock.Verify(
-            service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), TextResourceFolderPath, string.Empty), Times.Once);
+            service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), TextResourceFolderPath, string.Empty, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -245,7 +247,7 @@ public class GiteaContentLibraryServiceTests
         List<FileSystemObject> listOfFiles = textResourceFileNames.Select(fileName => new FileSystemObject { Name = fileName }).ToList();
 
         _giteaApiWrapperMock
-            .Setup(service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), TextResourceFolderPath, string.Empty))
+            .Setup(service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), TextResourceFolderPath, string.Empty, It.IsAny<CancellationToken>()))
             .ReturnsAsync(listOfFiles);
 
         // Act
@@ -256,7 +258,7 @@ public class GiteaContentLibraryServiceTests
         Assert.Equal(expectedLanguages, result);
 
         _giteaApiWrapperMock.Verify(
-            service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), TextResourceFolderPath, string.Empty), Times.Once);
+            service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), TextResourceFolderPath, string.Empty, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -264,7 +266,7 @@ public class GiteaContentLibraryServiceTests
     {
         // Arrange
         _giteaApiWrapperMock
-            .Setup(service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), TextResourceFolderPath, string.Empty))
+            .Setup(service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), TextResourceFolderPath, string.Empty, It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
         // Act
@@ -273,7 +275,7 @@ public class GiteaContentLibraryServiceTests
         // Assert
         Assert.Empty(result);
         _giteaApiWrapperMock.Verify(
-            service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), TextResourceFolderPath, string.Empty), Times.Once);
+            service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), TextResourceFolderPath, string.Empty, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -282,7 +284,7 @@ public class GiteaContentLibraryServiceTests
         // Arrange
         const string CodeListId = "someId";
         const string FileSha = "someShaString";
-        string filePath = CodeListFilePath(CodeListId);
+        string filePath = CodeListUtils.FilePathWithTextResources(CodeListId);
         FileSystemObject fileObject = new() { Sha = FileSha };
         _giteaApiWrapperMock
             .Setup(service => service.GetFileAsync(OrgName, GetContentRepoName(), filePath, string.Empty))
@@ -301,7 +303,7 @@ public class GiteaContentLibraryServiceTests
     public async Task GetShaForCodeListFile_ShouldReturnEmpty_WhenShaIsNull()
     {
         const string CodeListId = "someId";
-        string filePath = CodeListFilePath(CodeListId);
+        string filePath = CodeListUtils.FilePathWithTextResources(CodeListId);
         FileSystemObject fileObject = new() { Sha = null };
 
         _giteaApiWrapperMock
@@ -316,11 +318,6 @@ public class GiteaContentLibraryServiceTests
     private static string TextResourceFilePath(string languageCode)
     {
         return Path.Join(TextResourceFolderPath, $"resource.{languageCode}.json");
-    }
-
-    private static string CodeListFilePath(string optionListId)
-    {
-        return Path.Join(CodeListFolderPath, $"{optionListId}.json");
     }
 
     private static string GetContentRepoName()

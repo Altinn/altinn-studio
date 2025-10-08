@@ -2,8 +2,13 @@ import React, { useState, type ReactElement } from 'react';
 import classes from './EditColumnElement.module.css';
 import type { TableColumn } from '../../types/TableColumn';
 import { useTranslation } from 'react-i18next';
-import { StudioCard, StudioCombobox, StudioDivider } from '@studio/components-legacy';
-import { StudioParagraph, StudioActionCloseButton, StudioDeleteButton } from '@studio/components';
+import { StudioCombobox, StudioDivider } from '@studio/components-legacy';
+import {
+  StudioActionCloseButton,
+  StudioCard,
+  StudioHeading,
+  StudioDeleteButton,
+} from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import type { FormItem } from '../../../../../types/FormItem';
@@ -12,10 +17,9 @@ import {
   getComponentsForSubformTable,
   getDefaultDataModel,
 } from '../../utils/editSubformTableColumnsUtils';
-import { convertDataBindingToInternalFormat } from '../../../../../utils/dataModelUtils';
 import { DataModelBindingsCombobox } from './DataModelBindingsCombobox';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import type { IDataModelBindingsKeyValue } from '../../../../../types/global';
+import type { IDataModelBindingsKeyValueExplicit } from '../../../../../types/global';
 
 export type EditColumnElementProps = {
   tableColumn: TableColumn;
@@ -49,9 +53,7 @@ export const EditColumnElement = ({
 
     const bindingKey = Object.keys(selectedComponent.dataModelBindings)[0];
 
-    const binding = convertDataBindingToInternalFormat(
-      selectedComponent?.dataModelBindings?.[bindingKey],
-    );
+    const binding = selectedComponent?.dataModelBindings?.[bindingKey];
 
     onChange({
       ...tableColumn,
@@ -61,10 +63,10 @@ export const EditColumnElement = ({
   };
 
   const handleBindingChange = (
-    dataModelBindings: IDataModelBindingsKeyValue,
+    dataModelBindings: IDataModelBindingsKeyValueExplicit,
     dataModelBindingKey: string,
   ) => {
-    const { field } = convertDataBindingToInternalFormat(dataModelBindings[dataModelBindingKey]);
+    const { field } = dataModelBindings[dataModelBindingKey];
     const updatedTableColumn = {
       ...tableColumn,
       cellContent: { query: field },
@@ -84,42 +86,36 @@ export const EditColumnElement = ({
   return (
     <StudioCard className={classes.wrapper}>
       <EditColumnElementHeader columnNumber={columnNumber} />
-      <StudioCard.Content className={classes.content}>
-        <EditColumnElementComponentSelect
-          components={availableComponents}
-          onSelectComponent={selectComponent}
+      <EditColumnElementComponentSelect
+        components={availableComponents}
+        onSelectComponent={selectComponent}
+      />
+      {hasMultipleDataModelBindings && (
+        <DataModelBindingsCombobox
+          componentType={component?.type}
+          dataModelBindings={component?.dataModelBindings}
+          onDataModelBindingChange={(dataModelBindingKey: string) =>
+            handleBindingChange(component?.dataModelBindings, dataModelBindingKey)
+          }
+          initialDataModelBindingKey={dataModelBindingKeys[0]}
         />
-        {hasMultipleDataModelBindings && (
-          <DataModelBindingsCombobox
-            componentType={component?.type}
-            dataModelBindings={component?.dataModelBindings}
-            onDataModelBindingChange={(dataModelBindingKey: string) =>
-              handleBindingChange(component?.dataModelBindings, dataModelBindingKey)
-            }
-            initialDataModelBindingKey={dataModelBindingKeys[0]}
-          />
-        )}
-        {isTableColumnDefined && (
-          <EditColumnElementContent
-            subformLayout={subformLayout}
-            tableColumn={tableColumn}
-            onChange={onChange}
-          />
-        )}
-        <div className={classes.buttons}>
-          <StudioActionCloseButton
-            data-size='2xs'
-            onClick={onClose}
-            title={t('general.save')}
-            disabled={isSaveButtonDisabled}
-          />
-          <StudioDeleteButton
-            data-size='2xs'
-            title={t('general.delete')}
-            onDelete={onDeleteColumn}
-          />
-        </div>
-      </StudioCard.Content>
+      )}
+      {isTableColumnDefined && (
+        <EditColumnElementContent
+          subformLayout={subformLayout}
+          tableColumn={tableColumn}
+          onChange={onChange}
+        />
+      )}
+      <div className={classes.buttons}>
+        <StudioActionCloseButton
+          data-size='2xs'
+          onClick={onClose}
+          title={t('general.save')}
+          disabled={isSaveButtonDisabled}
+        />
+        <StudioDeleteButton data-size='2xs' title={t('general.delete')} onDelete={onDeleteColumn} />
+      </div>
     </StudioCard>
   );
 };
@@ -131,11 +127,9 @@ const EditColumnElementHeader = ({ columnNumber }: EditColumnElementHeaderProps)
   const { t } = useTranslation();
   return (
     <>
-      <StudioCard.Header className={classes.header}>
-        <StudioParagraph data-size='md'>
-          {t('ux_editor.properties_panel.subform_table_columns.column_header', { columnNumber })}
-        </StudioParagraph>
-      </StudioCard.Header>
+      <StudioHeading data-size='2xs' className={classes.header}>
+        {t('ux_editor.properties_panel.subform_table_columns.column_header', { columnNumber })}
+      </StudioHeading>
       <StudioDivider className={classes.divider} color='subtle' />
     </>
   );

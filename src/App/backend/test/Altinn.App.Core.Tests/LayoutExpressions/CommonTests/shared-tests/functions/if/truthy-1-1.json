@@ -1,0 +1,5 @@
+{
+  "name": "Should treat a stringy 1 as a boolean true",
+  "expression": ["if", "1", 123.456],
+  "expects": 123.456
+}

@@ -1,12 +1,6 @@
 import React, { useState } from 'react';
-import {
-  StudioCard,
-  StudioTextfield,
-  StudioTabs,
-  StudioNativeSelect,
-  StudioSpinner,
-} from '@studio/components-legacy';
-import { StudioButton, StudioParagraph } from '@studio/components';
+import { StudioTextfield, StudioTabs, StudioNativeSelect } from '@studio/components-legacy';
+import { StudioButton, StudioParagraph, StudioCard, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './CreateSubformMode.module.css';
 import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
@@ -93,7 +87,7 @@ export const CreateSubformMode = ({
   };
 
   const saveButtonIcon = isPendingNewSubformMutation ? (
-    <StudioSpinner size='sm' spinnerTitle={t('general.loading')} />
+    <StudioSpinner aria-label={t('general.loading')} />
   ) : (
     <CheckmarkIcon />
   );

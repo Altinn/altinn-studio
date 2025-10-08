@@ -17,6 +17,10 @@ export type StudioRecommendedNextActionProps = {
   children: React.ReactNode;
 };
 
+/**
+ *
+ * @deprecated Use StudioRecommendedNextAction from `@studio/components` instead.
+ */
 export const StudioRecommendedNextAction = ({
   onSave,
   saveButtonText,
@@ -31,6 +35,7 @@ export const StudioRecommendedNextAction = ({
   const formName = useId();
   return (
     <form name={formName} onSubmit={onSave} data-testid='recommendedNextActionCard'>
+      {/** This StudioCard is not replaced becuase the ESLint rule prevents importing from @studio/components in the legacy package. and the entire StudioRecommendedNextAction will be removed as it is a part from legacy */}
       <StudioCard>
         <StudioCard.Header>
           <Heading size='xs'>{title}</Heading>

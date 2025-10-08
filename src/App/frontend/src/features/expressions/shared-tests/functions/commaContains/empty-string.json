@@ -1,0 +1,5 @@
+{
+  "name": "Should not contain an empty string",
+  "expression": ["commaContains", "40, 50, 60", ""],
+  "expects": false
+}

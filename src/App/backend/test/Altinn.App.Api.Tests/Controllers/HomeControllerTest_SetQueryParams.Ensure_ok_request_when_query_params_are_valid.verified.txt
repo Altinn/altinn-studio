@@ -1,0 +1,17 @@
+﻿<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Set Query Params</title>
+</head>
+<body>
+      const prefillData = [{"dataModelName":"my-data-type","appId":"tdd/contributer-restriction","prefillFields":{"some.Field":"whatever"}}].map(entry => ({
+                ...entry,
+                created: new Date().toISOString()
+            }));
+        sessionStorage.setItem('queryParams', JSON.stringify(prefillData));
+        window.location.href = `${window.location.origin}/tdd/contributer-restriction`;
+    </script>
+</body>
+</html>
