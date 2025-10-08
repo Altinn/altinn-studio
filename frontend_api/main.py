@@ -58,6 +58,7 @@ app.add_middleware(
 register_app_routes(app, app_manager, config.ALTINN_STUDIO_APPS_PATH)
 register_file_routes(app, app_manager)
 register_git_routes(app, app_manager)
+register_preview_routes(app, config.ALTINN_STUDIO_APPS_PATH, app_manager.resolve_app_directory)
 register_websocket_routes(app)
 
 # Register agent routes
