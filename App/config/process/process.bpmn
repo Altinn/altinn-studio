@@ -30,6 +30,10 @@
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:taskType>pdf</altinn:taskType>
+            <altinn:pdfConfig>
+                <altinn:filename>pdfFileName</altinn:filename>
+                <altinn:dataTypeId>custom-pdf-data-type</altinn:dataTypeId>
+            </altinn:pdfConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0c458hu</bpmn:incoming>
@@ -39,6 +43,20 @@
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:taskType>eFormidling</altinn:taskType>
+            <altinn:eFormidlingConfig>
+                <altinn:disabled env="local">true</altinn:disabled>
+                <altinn:receiver>991825827</altinn:receiver>
+                <altinn:process>urn:no:difi:profile:arkivmelding:administrasjon:ver1.0</altinn:process>
+                <altinn:standard>urn:no:difi:arkivmelding:xsd::arkivmelding</altinn:standard>
+                <altinn:typeVersion>2.0</altinn:typeVersion>
+                <altinn:type>arkivmelding</altinn:type>
+                <altinn:securityLevel>3</altinn:securityLevel>
+                <altinn:dpfShipmentType>digital</altinn:dpfShipmentType>
+                <altinn:dataTypes>
+                    <altinn:dataType>model</altinn:dataType>
+                    <altinn:dataType>custom-pdf-data-type</altinn:dataType>
+                </altinn:dataTypes>
+            </altinn:eFormidlingConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1ypajov</bpmn:incoming>
@@ -107,6 +125,12 @@
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:taskType>pdf</altinn:taskType>
+            <altinn:pdfConfig>
+                <altinn:autoPdfTaskIds>
+                    <altinn:taskId>Task_1</altinn:taskId>
+                    <altinn:taskId>Task_2</altinn:taskId>
+                </altinn:autoPdfTaskIds>
+            </altinn:pdfConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0er70tq</bpmn:incoming>
