@@ -9,7 +9,7 @@ import type { ContentLibraryConfig } from '../types/ContentLibraryConfig';
 describe('ContentResourceLibraryImpl', () => {
   it('renders ContentResourceLibraryImpl with given pages', () => {
     const pages: PagesConfig = {
-      codeList: mockPagesConfig.codeList,
+      codeListsWithTextResources: mockPagesConfig.codeListsWithTextResources,
       images: mockPagesConfig.images,
     };
     renderContentResourceLibraryImpl({ pages, heading: 'Lorem ipsum' });
@@ -17,7 +17,7 @@ describe('ContentResourceLibraryImpl', () => {
       name: textMock('app_content_library.landing_page.title'),
     });
     const codeListMenuElement = screen.getByText(
-      textMock('app_content_library.code_lists.page_name'),
+      textMock('app_content_library.code_lists_with_text_resources.page_name'),
     );
     const imagesMenuElement = screen.getByText(textMock('app_content_library.images.page_name'));
     expect(libraryTitle).toBeInTheDocument();
@@ -31,7 +31,7 @@ describe('ContentResourceLibraryImpl', () => {
       name: textMock('app_content_library.landing_page.title'),
     });
     const codeListMenuElement = screen.queryByText(
-      textMock('app_content_library.code_lists.page_name'),
+      textMock('app_content_library.code_lists_with_text_resources.page_name'),
     );
     const imagesMenuElement = screen.queryByText(textMock('app_content_library.images.page_name'));
     expect(libraryTitle).toBeInTheDocument();

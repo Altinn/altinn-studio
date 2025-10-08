@@ -3,4 +3,4 @@ export type {
   CodeListData,
   CodeListIdSource,
   CodeListReference,
-} from './CodeListPage';
+} from './CodeListsWithTextResourcesPage';

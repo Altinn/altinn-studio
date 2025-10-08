@@ -36,7 +36,7 @@ describe('useNavigation Hook', () => {
   });
 
   it('should navigate to a new page', () => {
-    const newPage: PageName = 'codeList';
+    const newPage: PageName = 'codeListsWithTextResources';
 
     const { result } = renderHook(() => useNavigation());
 
