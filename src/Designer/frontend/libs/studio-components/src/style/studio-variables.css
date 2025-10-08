@@ -3,6 +3,6 @@
   --studio-property-vertical-gap: var(--ds-size-3);
   --studio-property-button-vertical-spacing: calc(var(--studio-property-vertical-gap) / 2);
   --studio-property-fieldset-spacing: var(--ds-size-3);
-  --studio-treeitem-vertical-line-width: 2px;
+  --studio-treeitem-vertical-line-width: var(--ds-border-width-default);
   --studio-treeitem-vertical-line-colour-root: #000;
 }
