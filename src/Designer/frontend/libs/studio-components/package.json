@@ -14,7 +14,9 @@
     "@digdir/designsystemet-react": "1.1.10",
     "@digdir/designsystemet-theme": "1.1.10",
     "@studio/icons": "workspace:^",
-    "@studio/pure-functions": "workspace:^"
+    "@studio/pure-functions": "workspace:^",
+    "react-dnd": "16.0.1",
+    "react-dnd-html5-backend": "16.0.1"
   },
   "peerDependencies": {
     "react": "18.2.0 || 19.0.0 || 19.1",
