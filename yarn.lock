@@ -3090,6 +3090,25 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@studio/feature-flags@workspace:src/Designer/frontend/libs/studio-feature-flags":
+  version: 0.0.0-use.local
+  resolution: "@studio/feature-flags@workspace:src/Designer/frontend/libs/studio-feature-flags"
+  dependencies:
+    "@studio/pure-functions": "workspace:^"
+    "@testing-library/jest-dom": "npm:6.6.4"
+    "@testing-library/react": "npm:16.3.0"
+    "@types/jest": "npm:29.5.14"
+    eslint: "npm:8.57.1"
+    jest: "npm:29.7.0"
+    jest-environment-jsdom: "npm:29.7.0"
+    ts-jest: "npm:^29.1.1"
+    typescript: "npm:5.9.2"
+  peerDependencies:
+    react: ^18.2.0 || ^19.0.0
+    react-dom: ^18.2.0 || ^19.0.0
+  languageName: unknown
+  linkType: soft
+
 "@studio/feedback-form@workspace:^, @studio/feedback-form@workspace:src/Designer/frontend/libs/studio-feedback-form":
   version: 0.0.0-use.local
   resolution: "@studio/feedback-form@workspace:src/Designer/frontend/libs/studio-feedback-form"
