@@ -19,14 +19,6 @@
   color: #666;
 }
 
-.diffExample {
-  font-family: monospace;
-  background-color: #f5f5f5;
-  padding: 1rem;
-  border-radius: 4px;
-  white-space: pre;
-}
-
 .fileList {
   list-style: none;
   padding: 0;

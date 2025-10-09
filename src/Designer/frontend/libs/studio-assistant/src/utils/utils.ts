@@ -1,7 +1,7 @@
-import type { ChatThread, Message } from '../types/ChatThread';
+import type { AssistantMessage, ChatThread } from '../types/ChatThread';
 import { MessageAuthor } from '../types/MessageAuthor';
 
-export function createGreetingMessage(): Message {
+export function createGreetingMessage(): AssistantMessage {
   return {
     author: MessageAuthor.Assistant,
     content: 'Hva kan jeg hjelpe med?',

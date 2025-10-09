@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ChatThread, Message } from '../types/ChatThread';
+import type { ChatThread, UserMessage } from '../types/ChatThread';
 import { CompactInterface } from '../components/CompactInterface/CompactInterface';
 import { CompleteInterface } from '../components/CompleteInterface/CompleteInterface';
 import type { AssistantTexts } from '../types/AssistantTexts';
@@ -7,7 +7,7 @@ import type { AssistantTexts } from '../types/AssistantTexts';
 export type AssistantProps = {
   texts: AssistantTexts;
   chatThreads: ChatThread[];
-  onSubmitMessage: (message: Message) => void;
+  onSubmitMessage: (message: UserMessage) => void;
   enableCompactInterface?: boolean;
 };
 

@@ -11,8 +11,11 @@ import { useTranslation } from 'react-i18next';
 
 export function AiAssistant(): ReactElement {
   const { t } = useTranslation();
+
+  // TODO: Fetch data from backend
   const [chatThreads] = useState<ChatThread[]>(mockChatThreads);
 
+  // TODO: Connect to backend
   const onSubmitMessage = (message: Message): void => {
     alert(`Du har trykket på send-knappen.\nMelding fra tekstfelt: ${message.content}`);
   };

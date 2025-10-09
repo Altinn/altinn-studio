@@ -4,18 +4,22 @@ export type ChatThread = {
   id: string;
   title: string;
   messages: Message[];
+  createdAt?: Date;
+  updatedAt?: Date;
 };
 
-export type Message = {
-  author: MessageAuthor;
+export type UserMessage = {
+  author: MessageAuthor.User;
   content: string;
   timestamp: Date;
   allowEditing?: boolean;
 };
 
-type AssistantMessage = {
+export type AssistantMessage = {
   author: MessageAuthor.Assistant;
   content: string;
   timestamp: Date;
-  filesChanged: string[];
+  filesChanged?: string[];
 };
+
+export type Message = UserMessage | AssistantMessage;

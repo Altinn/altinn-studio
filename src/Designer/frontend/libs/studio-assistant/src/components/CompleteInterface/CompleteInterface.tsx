@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import type { ReactElement } from 'react';
 import { StudioResizableLayout } from '@studio/components-legacy';
-import { ToolColumn } from '../ToolColumn';
+import { ToolColumn } from '../ToolColumn/ToolColumn';
 import classes from './CompleteInterface.module.css';
 import { HeadingBar } from '../HeadingBar/HeadingBar';
 import type { ChatThread } from '../../types/ChatThread';
 import { ThreadColumn } from '../ThreadColumn/ThreadColumn';
-import { ThreadColumnCollapsed } from '../ThreadColumnHidden';
+import { ThreadColumnCollapsed } from '../ThreadColumnHidden/ThreadColumnHidden';
 import { ChatColumn } from '../ChatColumn/ChatColumn';
 import { ViewType } from '../../types/ViewType';
 import type { UserInputFlags } from '../ChatColumn/UserInput/UserInput';

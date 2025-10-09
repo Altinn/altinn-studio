@@ -9,6 +9,7 @@ export type ToolColumnProps = {
   fileBrowserContent?: ReactElement;
 };
 
+// TODO: Implement Preview and FileExplorer views
 export function ToolColumn({
   selectedView,
   previewContent,

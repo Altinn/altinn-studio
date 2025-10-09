@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { ReactElement } from 'react';
 import { StudioButton, StudioSwitch, StudioTextarea } from '@studio/components';
 import { MessageAuthor } from '../../../types/MessageAuthor';
-import type { Message } from '../../../types/ChatThread';
+import type { UserMessage } from '../../../types/ChatThread';
 import classes from './UserInput.module.css';
 import { PaperclipIcon, PaperplaneFillIcon } from '@studio/icons';
 import type { AssistantTexts } from 'libs/studio-assistant/src/types/AssistantTexts';
@@ -14,7 +14,7 @@ export type UserInputFlags = {
 
 export type UserInputProps = {
   texts: AssistantTexts;
-  onSubmitMessage: (message: Message) => void;
+  onSubmitMessage: (message: UserMessage) => void;
   flags: UserInputFlags;
 };
 
@@ -25,11 +25,11 @@ export function UserInput({ texts, onSubmitMessage, flags }: UserInputProps): Re
   const handleSubmit = () => {
     if (!messageContent.trim()) return;
 
-    const message: Message = {
+    const message: UserMessage = {
       author: MessageAuthor.User,
       content: messageContent,
-      allowEditing: allowEditing,
       timestamp: new Date(),
+      allowEditing: allowEditing,
     };
 
     onSubmitMessage(message);
@@ -53,6 +53,7 @@ export function UserInput({ texts, onSubmitMessage, flags }: UserInputProps): Re
       />
       <div className={classes.actionsRow}>
         <div className={classes.actionsRowLeft}>
+          {/* TODO: Attachment button should open upload dialog */}
           {flags.attachmentButton && (
             <StudioButton variant='secondary' title={texts.addAttachment}>
               <PaperclipIcon />

@@ -28,6 +28,7 @@ export function ThreadColumn({
           <SidebarLeftIcon />
           {texts.hideThreads}
         </StudioButton>
+        {/* TODO: "New thread" button should create a new thread */}
         <StudioButton>
           <PlusIcon />
           {texts.newThread}
@@ -46,6 +47,7 @@ export function ThreadColumn({
           />
         ))}
       </StudioContentMenu>
+      {/* TODO: "About assistant" button should open a modal */}
       <div className={classes.aboutSection}>
         <StudioButton variant='tertiary'>
           <InformationIcon />
