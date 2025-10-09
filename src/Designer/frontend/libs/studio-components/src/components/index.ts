@@ -68,6 +68,7 @@ export * from './StudioTabs';
 export * from './StudioTag';
 export * from './StudioTextarea';
 export * from './StudioTextfield';
+export * from './StudioTextResourceInput';
 export * from './StudioTextResourcePicker';
 export * from './StudioTreeView';
 export * from './StudioToggleGroup';
