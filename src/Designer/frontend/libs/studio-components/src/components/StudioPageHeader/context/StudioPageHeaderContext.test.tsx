@@ -18,8 +18,8 @@ describe('StudioPageHeaderContext', () => {
 
   it('should provide a useStudioPageHeaderContext hook', () => {
     const TestComponent = (): React.ReactElement => {
-      const {} = useStudioPageHeaderContext();
-      return <div data-testid='context'></div>;
+      const { variant } = useStudioPageHeaderContext();
+      return <div data-testid='context'>{variant}</div>;
     };
 
     render(
@@ -28,7 +28,7 @@ describe('StudioPageHeaderContext', () => {
       </StudioPageHeaderContextProvider>,
     );
 
-    expect(screen.getByTestId('context')).toHaveTextContent('');
+    expect(screen.getByTestId('context')).toHaveTextContent('regular');
   });
 
   it('should throw an error when useStudioPageHeaderContext is used outside of a StudioPageHeaderContextProvider', () => {
