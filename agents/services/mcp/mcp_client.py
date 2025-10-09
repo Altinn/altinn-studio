@@ -87,7 +87,19 @@ class MCPClient:
                         raise Exception("Invalid server_info response format")
                 else:
                     server_info = result[0]
+            # Handle CallToolResult object (Windows-specific behavior)
+            elif hasattr(result, 'content'):
+                # CallToolResult object - extract content
+                import json
+                try:
+                    server_info = json.loads(result.content)
+                except json.JSONDecodeError:
+                    raise Exception("Invalid CallToolResult content format")
+            # Handle direct dict response
+            elif isinstance(result, dict):
+                server_info = result
             else:
+                # Fallback - assume result is already the server info
                 server_info = result
             
             # Extract version
