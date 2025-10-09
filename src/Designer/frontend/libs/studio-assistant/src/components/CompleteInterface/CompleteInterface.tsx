@@ -29,14 +29,14 @@ export function CompleteInterface({
     chatThreads[0] ?? createEmptyChatThread(),
   );
 
-  const handleToggle = () => setIsThreadColumnCollapsed(!isThreadColumnCollapsed);
+  const handleToggleCollapse = () => setIsThreadColumnCollapsed(!isThreadColumnCollapsed);
 
   const handleChangeThread = (threadId: string) => {
     const thread = chatThreads.find((t) => t.id === threadId);
     setCurrentThread(thread);
   };
 
-  const advancedModeFlags: UserInputFlags = {
+  const completeModeFlags: UserInputFlags = {
     attachmentButton: true,
     agentModeSwitch: true,
   };
@@ -47,7 +47,7 @@ export function CompleteInterface({
       <div className={classes.resizableWrapper}>
         <StudioResizableLayout.Container orientation='horizontal' localStorageContext='ai-chat'>
           {isThreadColumnCollapsed ? (
-            <ThreadColumnCollapsed onToggle={handleToggle} />
+            <ThreadColumnCollapsed onToggle={handleToggleCollapse} />
           ) : (
             <StudioResizableLayout.Element minimumSize={200} maximumSize={350}>
               <ThreadColumn
@@ -55,7 +55,7 @@ export function CompleteInterface({
                 chatThreads={chatThreads}
                 selectedThreadId={currentThread.id}
                 onSelectThread={handleChangeThread}
-                onToggleCollapse={handleToggle}
+                onToggleCollapse={handleToggleCollapse}
               />
             </StudioResizableLayout.Element>
           )}
@@ -64,7 +64,7 @@ export function CompleteInterface({
               texts={texts}
               messages={currentThread?.messages ?? []}
               onSubmitMessage={onSubmitMessage}
-              flags={advancedModeFlags}
+              flags={completeModeFlags}
             />
           </StudioResizableLayout.Element>
           <StudioResizableLayout.Element minimumSize={200}>

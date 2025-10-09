@@ -6,13 +6,13 @@ import { CodeIcon, PlayFillIcon } from '@studio/icons';
 import { ViewType } from '../../types/ViewType';
 import type { AssistantTexts } from '../../types/AssistantTexts';
 
-export type AssistantHeadingBarProps = {
+export type HeadingBarProps = {
   texts: AssistantTexts;
   selectedView?: ViewType;
   onViewChange?: (view: ViewType) => void;
 };
 
-export function HeadingBar({ texts, selectedView, onViewChange }: AssistantHeadingBarProps) {
+export function HeadingBar({ texts, selectedView, onViewChange }: HeadingBarProps) {
   const shouldShowToggleGroup = selectedView && onViewChange;
 
   return (

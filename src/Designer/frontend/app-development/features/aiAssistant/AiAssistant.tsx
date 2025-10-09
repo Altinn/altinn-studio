@@ -1,18 +1,17 @@
 import type { ReactElement } from 'react';
 import React, { useState } from 'react';
 import {
-  getMockChatThreads,
   type Message,
   type ChatThread,
   type AssistantTexts,
   Assistant,
+  mockChatThreads,
 } from '@studio/assistant';
 import { useTranslation } from 'react-i18next';
 
 export function AiAssistant(): ReactElement {
   const { t } = useTranslation();
-  const [chatThreads] = useState<ChatThread[]>(getMockChatThreads());
-  const [enableCompactInterface] = useState<boolean>(false);
+  const [chatThreads] = useState<ChatThread[]>(mockChatThreads);
 
   const onSubmitMessage = (message: Message): void => {
     alert(`Du har trykket på send-knappen.\nMelding fra tekstfelt: ${message.content}`);
@@ -35,7 +34,7 @@ export function AiAssistant(): ReactElement {
   return (
     <Assistant
       texts={texts}
-      enableCompactInterface={enableCompactInterface}
+      enableCompactInterface={false}
       chatThreads={chatThreads}
       onSubmitMessage={onSubmitMessage}
     />
