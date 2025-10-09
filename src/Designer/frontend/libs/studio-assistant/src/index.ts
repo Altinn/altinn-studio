@@ -7,3 +7,4 @@ export type { InterfaceAdvancedProps } from './components/InterfaceAdvanced';
 export { getMockChatThreads } from './utils/mockData';
 export type { InterfaceSimpleProps } from './components/InterfaceSimple/InterfaceSimple';
 export { InterfaceSimple } from './components/InterfaceSimple/InterfaceSimple';
+export { MessageAuthor } from './types/MessageAuthor';

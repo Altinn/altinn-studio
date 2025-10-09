@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { ReactElement } from 'react';
 import { StudioButton, StudioSwitch, StudioTextarea } from '@studio/components';
 import { MessageAuthor } from '../../../types/MessageAuthor';
-import type { AssistantTexts, Message } from '../../../types/AssistantConfig';
+import type { AssistantTexts, UserMessage } from '../../../types/AssistantConfig';
 import classes from './UserInput.module.css';
 import { PaperclipIcon, PaperplaneFillIcon } from '@studio/icons';
 
@@ -13,7 +13,7 @@ export type UserInputFlags = {
 
 export type UserInputProps = {
   texts: AssistantTexts;
-  onSubmitMessage: (message: Message) => void;
+  onSubmitMessage: (message: UserMessage) => void;
   flags: UserInputFlags;
 };
 
@@ -24,7 +24,7 @@ export function UserInput({ texts, onSubmitMessage, flags }: UserInputProps): Re
   const handleSubmit = () => {
     if (!messageContent.trim()) return;
 
-    const message: Message = {
+    const message: UserMessage = {
       author: MessageAuthor.User,
       content: messageContent,
       allowEditing: allowEditing,
@@ -59,7 +59,8 @@ export function UserInput({ texts, onSubmitMessage, flags }: UserInputProps): Re
           )}
           {flags.agentModeSwitch && (
             <StudioSwitch
-              checked={allowEditing}
+              checked={true}
+              disabled={true}
               onChange={(e) => setAllowEditing(e.target.checked)}
               label={texts.agentModeLabel}
             />

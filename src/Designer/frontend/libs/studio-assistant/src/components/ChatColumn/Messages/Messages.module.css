@@ -9,13 +9,204 @@
   overflow-x: hidden;
 }
 
-.userMessage {
-  background-color: var(--ds-color-accent-background-tinted);
+.messageRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-size-4);
+}
+
+.userRow {
+  justify-content: flex-end;
+}
+
+.assistantRow {
+  justify-content: flex-start;
+}
+
+.avatar {
+  flex-shrink: 0;
+  width: var(--ds-size-12);
+  height: var(--ds-size-12);
+  color: var(--ds-color-text-subtle);
+}
+
+.avatarUser {
+  color: var(--ds-color-accent);
+}
+
+.avatarAssistant {
+  color: var(--ds-color-neutral);
+}
+
+.assistantAvatarWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ds-size-12);
+  height: var(--ds-size-12);
+  padding: var(--ds-size-1);
+  background-color: var(--ds-color-surface-default);
+  border-radius: 50%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.assistantAvatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.messageWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--ds-size-2);
   max-width: 100ch;
-  align-self: flex-end;
+}
+
+.userMessage {
+  max-width: 100ch;
+  background-color: var(--ds-color-accent-background-tinted);
+  border: none;
+  box-shadow: var(--ds-shadow-small);
 }
 
 .assistantMessage {
-  padding: var(--ds-size-2);
   max-width: 100ch;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+}
+
+.assistantBody,
+.messageBody {
+  margin: 0;
+  color: var(--ds-color-text-primary);
+  line-height: 1.6;
+}
+
+.filesSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+  margin-top: var(--ds-size-4);
+}
+
+.filesSectionTitle {
+  font-size: var(--ds-font-size-small);
+  font-weight: var(--ds-font-weight-medium);
+  color: var(--ds-color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.fileCards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-size-2);
+}
+
+.fileCard {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+  padding: var(--ds-size-2) var(--ds-size-3);
+  background-color: var(--ds-color-surface-subtle);
+  border: 1px solid var(--ds-color-border-subtle);
+  border-radius: var(--ds-border-radius-medium);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+  color: inherit;
+}
+
+.fileCard:hover,
+.fileCard:focus {
+  background-color: var(--ds-color-accent-background-tinted);
+  border-color: var(--ds-color-accent-subtle);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.fileCardDirectory {
+  font-size: var(--ds-font-size-small);
+  color: var(--ds-color-text-subtle);
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.messageMeta {
+  font-size: var(--ds-font-size-small);
+  font-weight: var(--ds-font-weight-medium);
+  color: var(--ds-color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.messageContent {
+  color: inherit;
+}
+
+.assistantMessage h1 {
+  font-size: var(--ds-font-size-heading-large);
+  font-weight: var(--ds-font-weight-heading);
+  margin: var(--ds-size-4) 0 var(--ds-size-2) 0;
+  color: var(--ds-color-text-primary);
+}
+
+.assistantMessage h2 {
+  font-size: var(--ds-font-size-heading-medium);
+  font-weight: var(--ds-font-weight-heading);
+  margin: var(--ds-size-3) 0 var(--ds-size-2) 0;
+  color: var(--ds-color-text-primary);
+}
+
+.assistantMessage h3 {
+  font-size: var(--ds-font-size-heading-small);
+  font-weight: var(--ds-font-weight-heading);
+  margin: var(--ds-size-3) 0 var(--ds-size-2) 0;
+  color: var(--ds-color-text-primary);
+}
+
+.assistantMessage strong {
+  font-weight: var(--ds-font-weight-bold);
+}
+
+.assistantMessage em {
+  font-style: italic;
+}
+
+.assistantMessage code {
+  background-color: var(--ds-color-surface-subtle);
+  padding: 0.125rem 0.25rem;
+  border-radius: var(--ds-border-radius-small);
+  font-family: var(--ds-font-family-mono);
+  font-size: 0.875em;
+}
+
+.assistantMessage ul {
+  margin: var(--ds-size-2) 0 var(--ds-size-3);
+  padding-left: var(--ds-size-4);
+}
+
+.assistantMessage li {
+  margin: var(--ds-size-1) 0;
+}
+
+.assistantMessage p {
+  margin: var(--ds-size-2) 0;
+}
+
+.assistantMessage p:first-child {
+  margin-top: 0;
+}
+
+.assistantMessage p:last-child {
+  margin-bottom: 0;
 }

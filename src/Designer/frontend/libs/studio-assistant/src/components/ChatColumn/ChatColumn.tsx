@@ -5,6 +5,7 @@ import { Messages } from './Messages/Messages';
 import type { UserInputFlags } from './UserInput/UserInput';
 import { UserInput } from './UserInput/UserInput';
 import classes from './ChatColumn.module.css';
+import { useUserQuery } from 'app-shared/hooks/queries';
 
 export type ChatColumnProps = {
   texts: AssistantTexts;
@@ -19,9 +20,11 @@ export function ChatColumn({
   onSubmitMessage,
   flags,
 }: ChatColumnProps): ReactElement {
+  const { data: currentUser } = useUserQuery();
+
   return (
     <div className={classes.chatColumn}>
-      <Messages messages={messages} />
+      <Messages messages={messages} currentUser={currentUser} assistantAvatarUrl={undefined} />
       <UserInput texts={texts} onSubmitMessage={onSubmitMessage} flags={flags} />
     </div>
   );
