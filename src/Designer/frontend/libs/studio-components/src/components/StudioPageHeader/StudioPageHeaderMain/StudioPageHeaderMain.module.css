@@ -1,0 +1,23 @@
+.main {
+  --studio-page-header-height: 80px;
+  --studio-page-header-padding: 0 var(--ds-size-2);
+
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+
+  height: var(--studio-page-header-height);
+  padding: var(--studio-page-header-padding);
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr auto;
+  }
+}
+
+.regular {
+  background-color: #393b51;
+}
+
+.preview {
+  background-color: #118849;
+}
