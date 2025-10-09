@@ -18,14 +18,14 @@ export const StudioDragAndDropTreeRoot = ({
   onSelect,
   selectedId,
 }: StudioDragAndDropTreeRootProps): React.JSX.Element => {
-  const [hoveredNodeParent, setHoveredNodeParent] = useState<string | null>(null);
+  const [hoveredNodeParent, setHoveredNodeParent] = useState<string | undefined>(undefined);
 
   return (
     <StudioDragAndDropTreeRootContext.Provider value={{ hoveredNodeParent, setHoveredNodeParent }}>
       <StudioDragAndDrop.List>
         <StudioTreeView.Root
           onSelect={onSelect}
-          onMouseOut={() => setHoveredNodeParent(null)}
+          onMouseOut={() => setHoveredNodeParent(undefined)}
           selectedId={selectedId}
         >
           {children || <StudioEmptyList>{emptyMessage}</StudioEmptyList>}

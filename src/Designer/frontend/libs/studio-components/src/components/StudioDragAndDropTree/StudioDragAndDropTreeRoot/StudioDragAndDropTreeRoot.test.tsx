@@ -35,14 +35,14 @@ describe('StudioDragAndDropTreeRoot', () => {
     });
     const item = screen.getByTestId(childrenTestId);
 
-    expect(result.current.hoveredNodeParent).toBeNull(); // Should be null by default
+    expect(result.current?.hoveredNodeParent).toBeUndefined(); // Should be undefined by default
 
     const hoveredNodeParent = 'hoveredNodeParent';
     await user.hover(item);
-    await waitFor(() => result.current.setHoveredNodeParent(hoveredNodeParent)); // Simulate setHoveredNodeParent call from somewhere inside the children
-    expect(result.current.hoveredNodeParent).toBe(hoveredNodeParent);
+    await waitFor(() => result.current?.setHoveredNodeParent?.(hoveredNodeParent)); // Simulate setHoveredNodeParent call from somewhere inside the children
+    expect(result.current?.hoveredNodeParent).toBe(hoveredNodeParent);
 
     await user.unhover(item); // Simulate mouse leave
-    expect(result.current.hoveredNodeParent).toBeNull();
+    expect(result.current?.hoveredNodeParent).toBeUndefined();
   });
 });

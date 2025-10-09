@@ -9,4 +9,4 @@ export interface StudioDragAndDropRootContextProps<T> {
 }
 
 export const StudioDragAndDropRootContext =
-  createContext<StudioDragAndDropRootContextProps<unknown>>(null);
+  createContext<StudioDragAndDropRootContextProps<unknown> | null>(null);

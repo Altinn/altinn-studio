@@ -3,7 +3,7 @@ import { StudioParagraph } from '../../StudioParagraph';
 import classes from './StudioEmptyList.module.css';
 
 export interface StudioEmptyListProps {
-  children: string;
+  children?: string;
 }
 
 export const StudioEmptyList = ({ children }: StudioEmptyListProps): React.ReactElement => (

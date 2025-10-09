@@ -161,7 +161,7 @@ describe('dndUtils', () => {
         id: 'id5',
         position: {
           index: dropItemIndex + 1,
-          parentId: dropItem.position.parentId,
+          parentId: dropItem.position?.parentId,
         },
       };
       expect(getDragCursorPosition(monitor, dragItemFromRightBelow, dropItem, dropRef)).toEqual(
@@ -179,7 +179,7 @@ describe('dndUtils', () => {
         id: 'id5',
         position: {
           index: dropItemIndex - 1,
-          parentId: dropItem.position.parentId,
+          parentId: dropItem.position?.parentId,
         },
       };
       expect(getDragCursorPosition(monitor, dragItemFromRightAbove, dropItem, dropRef)).toEqual(
@@ -209,7 +209,7 @@ describe('dndUtils', () => {
     });
 
     it('Returns Idle if monitor is null', () => {
-      expect(getDragCursorPosition(null, newDragItem, dropItem, dropRef)).toEqual(
+      expect(getDragCursorPosition(undefined, newDragItem, dropItem, dropRef)).toEqual(
         DragCursorPosition.Idle,
       );
     });
@@ -235,32 +235,32 @@ describe('dndUtils', () => {
 
     it('Returns index of drop item if dragCursorPosition is UpperHalf and the dragged item is new', () => {
       const res = calculateNewPosition(newDragItem, dropItem, DragCursorPosition.UpperHalf);
-      expect(res.index).toEqual(dropItemIndex);
+      expect(res?.index).toEqual(dropItemIndex);
     });
 
     it('Returns index of drop item + 1 if dragCursorPosition is LowerHalf and the dragged item is new', () => {
       const res = calculateNewPosition(newDragItem, dropItem, DragCursorPosition.LowerHalf);
-      expect(res.index).toEqual(dropItemIndex + 1);
+      expect(res?.index).toEqual(dropItemIndex + 1);
     });
 
     it('Returns index of drop item if dragCursorPosition is UpperHalf and the dragged item comes from below', () => {
       const res = calculateNewPosition(dragItemFromBelow, dropItem, DragCursorPosition.UpperHalf);
-      expect(res.index).toEqual(dropItemIndex);
+      expect(res?.index).toEqual(dropItemIndex);
     });
 
     it('Returns index of drop item + 1 if dragCursorPosition is LowerHalf and the dragged item comes from below', () => {
       const res = calculateNewPosition(dragItemFromBelow, dropItem, DragCursorPosition.LowerHalf);
-      expect(res.index).toEqual(dropItemIndex + 1);
+      expect(res?.index).toEqual(dropItemIndex + 1);
     });
 
     it('Returns index of drop item - 1 if dragCursorPosition is UpperHalf and the dragged item comes from above', () => {
       const res = calculateNewPosition(dragItemFromAbove, dropItem, DragCursorPosition.UpperHalf);
-      expect(res.index).toEqual(dropItemIndex - 1);
+      expect(res?.index).toEqual(dropItemIndex - 1);
     });
 
     it('Returns index of drop item if dragCursorPosition is LowerHalf and the dragged item comes from above', () => {
       const res = calculateNewPosition(dragItemFromAbove, dropItem, DragCursorPosition.LowerHalf);
-      expect(res.index).toEqual(dropItemIndex);
+      expect(res?.index).toEqual(dropItemIndex);
     });
 
     it('Returns index of drop item if dragCursorPosition is UpperHalf and the dragged item comes from another parent', () => {
@@ -269,7 +269,7 @@ describe('dndUtils', () => {
         dropItem,
         DragCursorPosition.UpperHalf,
       );
-      expect(res.index).toEqual(dropItemIndex);
+      expect(res?.index).toEqual(dropItemIndex);
     });
 
     it('Returns index of drop item + 1 if dragCursorPosition is LowerHalf and the dragged item comes from another parent', () => {
@@ -278,27 +278,27 @@ describe('dndUtils', () => {
         dropItem,
         DragCursorPosition.LowerHalf,
       );
-      expect(res.index).toEqual(dropItemIndex + 1);
+      expect(res?.index).toEqual(dropItemIndex + 1);
     });
 
     it.each([DragCursorPosition.UpperHalf, DragCursorPosition.LowerHalf])(
       'Returns parent ID of drop item when dragCursorPosition is %s',
       (dragCursorPosition) => {
         const result1 = calculateNewPosition(newDragItem, dropItem, dragCursorPosition);
-        expect(result1.parentId).toEqual(parent1Id);
+        expect(result1?.parentId).toEqual(parent1Id);
 
         const result2 = calculateNewPosition(dragItemFromBelow, dropItem, dragCursorPosition);
-        expect(result2.parentId).toEqual(parent1Id);
+        expect(result2?.parentId).toEqual(parent1Id);
 
         const result3 = calculateNewPosition(dragItemFromAbove, dropItem, dragCursorPosition);
-        expect(result3.parentId).toEqual(parent1Id);
+        expect(result3?.parentId).toEqual(parent1Id);
 
         const result4 = calculateNewPosition(
           dragItemFromAnotherParent,
           dropItem,
           dragCursorPosition,
         );
-        expect(result4.parentId).toEqual(parent1Id);
+        expect(result4?.parentId).toEqual(parent1Id);
       },
     );
   });

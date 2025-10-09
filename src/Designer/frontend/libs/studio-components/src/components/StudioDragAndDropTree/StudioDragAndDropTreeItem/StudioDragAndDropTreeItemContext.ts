@@ -1,10 +1,8 @@
 import { createContext } from 'react';
 
 export type StudioDragAndDropTreeItemContextProps = {
-  nodeId: string;
+  nodeId?: string;
 };
 
 export const StudioDragAndDropTreeItemContext =
-  createContext<StudioDragAndDropTreeItemContextProps>({
-    nodeId: null,
-  });
+  createContext<StudioDragAndDropTreeItemContextProps>({});
