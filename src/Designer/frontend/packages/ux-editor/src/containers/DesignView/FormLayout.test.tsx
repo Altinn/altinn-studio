@@ -66,13 +66,13 @@ describe('FormLayout', () => {
   });
 
   it('Does not display the add item button by default when the layout is empty', () => {
-    render({ layout: emptyLayout }, [FeatureFlag.AddComponentModal]);
-    expect(getAddComponentButton()).toBeInTheDocument();
+    render({ layout: emptyLayout });
+    expect(screen.queryByRole('button', { name: addComponentButtonName })).not.toBeInTheDocument();
   });
 
   it('Displays the add item button when the layout is empty and the add component modal flag is enabled', () => {
     render({ layout: emptyLayout }, [FeatureFlag.AddComponentModal]);
-    expect(getAddComponentButton()).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: addComponentButtonName })).toBeInTheDocument();
   });
 });
 
@@ -86,5 +86,4 @@ const render = (props?: Partial<FormLayoutProps>, featureFlags?: FeatureFlag[]) 
     { featureFlags },
   );
 
-const getAddComponentButton = (): HTMLButtonElement =>
-  screen.getByRole('button', { name: textMock('ux_editor.add_item.add_component') });
+const addComponentButtonName = textMock('ux_editor.add_item.add_component');
