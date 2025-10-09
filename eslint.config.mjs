@@ -6,6 +6,7 @@ import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths';
 import preferredImportPath from 'eslint-plugin-preferred-import-path';
 import reactPlugin from 'eslint-plugin-react';
 import reactCompiler from 'eslint-plugin-react-compiler';
+import reactHooks from 'eslint-plugin-react-hooks';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import sonarjs from 'eslint-plugin-sonarjs';
 import testingLibrary from 'eslint-plugin-testing-library';
@@ -37,10 +38,10 @@ export default tseslint.config(
       'plugin:import/typescript',
       'plugin:jsx-a11y/recommended',
       'plugin:react/recommended',
-      'plugin:react-hooks/recommended',
       'plugin:prettier/recommended',
     ),
   ),
+  reactHooks.configs['flat/recommended'],
   {
     ignores: [
       '**/node_modules',
