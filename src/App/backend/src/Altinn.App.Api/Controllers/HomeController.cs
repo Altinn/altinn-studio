@@ -3,22 +3,14 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Web;
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap;
-using Altinn.App.Core.Features.Bootstrap.Models;
-using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -99,15 +91,29 @@ public class HomeController : Controller
     [Route("{org}/{app}/")]
     public async Task<IActionResult> Index([FromRoute] string org, [FromRoute] string app)
     {
+        // 1. Is this app stateless?
+        //  a. Is the user anon? yes -> Render app in statless mode
+
+        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+
+        if (IsStatelessApp(application) && await AllowAnonymous())
+        {
+            var statelessAppData = await _initialDataService.GetInitialData(org, app);
+            var statelessApphtml = GenerateHtml(org, app, statelessAppData);
+            // return Content(statelessApphtml, "text/html; charset=utf-8");
+            return Content("<html><h1><this is anon/h1></html>", "text/html; charset=utf-8");
+        }
+
         var currentAuth = _authenticationContext.Current;
 
-        if (currentAuth is not Authenticated.User auth)
+        // Debugger.Break();
+        Authenticated.User? auth = currentAuth as Authenticated.User;
+        // Boolean isStatelessApp = IsStatelessApp(application);
+        if (auth == null)
         {
-            throw new UnauthorizedAccessException("This is frontend endpoint only");
+            throw new UnauthorizedAccessException("You need to be logged in to see this app.");
         }
-        var details = await auth.LoadDetails(validateSelectedParty: false);
 
-        // Generate and set XSRF token cookie for frontend
         var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
         if (tokens.RequestToken != null)
         {
@@ -121,67 +127,81 @@ public class HomeController : Controller
             );
         }
 
-        http: //local.altinn.cloud/ttd/component-libraryinstance/512345
+        // now we need to check if the current party is valid
 
-        var redirectUrl = Request.GetDisplayUrl() + "/instance/" + details.Profile.Party.PartyId;
-
-        Console.WriteLine("redirectUrl");
-
-        Console.WriteLine(redirectUrl);
-
-        Console.WriteLine("redirectUrl");
-
-        return Redirect(redirectUrl);
-    }
-
-    /// <summary>
-    /// Returns the index view with references to the React app.
-    /// </summary>
-    /// <param name="org">The application owner short name.</param>
-    /// <param name="app">The name of the app</param>
-    /// <param name="partyId">The party identifier.</param>
-    /// <param name="instanceGuid">The instance GUID.</param>
-    /// <param name="taskId">The task identifier.</param>
-    /// <param name="pageId">The page identifier.</param>
-    /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
-    [HttpGet]
-    [Route("{org}/{app}/instance/{partyId}")]
-    public async Task<IActionResult> Index([FromRoute] string org, [FromRoute] string app, [FromRoute] int partyId)
-    {
-        var currentAuth = _authenticationContext.Current;
-
-        if (currentAuth is not Authenticated.User auth)
-        {
-            throw new UnauthorizedAccessException("This is frontend endpoint only");
-        }
         var details = await auth.LoadDetails(validateSelectedParty: false);
-
-        Dictionary<string, StringValues> queryParams = new()
+        var redirectUrl = "";
+        if (!details.CanRepresentParty(details.Profile.PartyId))
         {
-            { "appId", $"{org}/{app}" },
-            { "instanceOwner.partyId", details.UserParty.PartyId.ToString(CultureInfo.InvariantCulture) },
-            { "status.isArchived", "false" },
-            { "status.isSoftDeleted", "false" },
-        };
-
-        List<Instance> activeInstances = await _instanceClient.GetInstances(queryParams);
-
-        Instance? mostRecentInstance = activeInstances.OrderByDescending(i => i.LastChanged).FirstOrDefault();
-
-        if (mostRecentInstance != null)
-        {
-            var extractedInstanceGuid = mostRecentInstance.Id.Split('/').Last();
-
-            var url = Request.GetDisplayUrl() + "/" + extractedInstanceGuid;
-            return Redirect(url);
+            if (details.PartiesAllowedToInstantiate.Count == 0)
+            {
+                throw new UnauthorizedAccessException("You have no parties that can use this app");
+            }
+            redirectUrl = Request.GetDisplayUrl() + "/party-selection/";
+            return Redirect(redirectUrl);
         }
-        var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
 
-        var initialData = await _initialDataService.GetInitialData(org, app, null, partyId, language);
+        if (details.PartiesAllowedToInstantiate.Count > 1)
+        {
+            if (application.PromptForParty == "always")
+            {
+                redirectUrl = Request.GetDisplayUrl() + "/party-selection/";
+                return Redirect(redirectUrl);
+            }
 
-        // Generate HTML with embedded data
-        var html = GenerateHtml(org, app, initialData);
-        return Content(html, "text/html; charset=utf-8");
+            if (application.PromptForParty != "never" && !details.Profile.ProfileSettingPreference.DoNotPromptForParty)
+            {
+                redirectUrl = Request.GetDisplayUrl() + "/party-selection/";
+                return Redirect(redirectUrl);
+            }
+        }
+
+        if (IsStatelessApp(application))
+        {
+            redirectUrl = Request.GetDisplayUrl(); // + "/instance/" + details.Profile.Party.PartyId;
+        }
+
+        var instances = await GetInstancesForParty(org, app, details.UserParty.PartyId);
+
+        Instance? mostRecentInstance = instances.OrderByDescending(i => i.LastChanged).FirstOrDefault();
+
+        if (mostRecentInstance == null)
+        {
+            return Content(
+                "<html><h1>will will now create an instance and forward you</h1></html>",
+                "text/html; charset=utf-8"
+            );
+        }
+
+        if (instances.Count > 1 && application.OnEntry?.Show == "instance-selection")
+        {
+            redirectUrl = Request.GetDisplayUrl() + "/instance-selection/";
+            return Redirect(redirectUrl);
+        }
+
+        var currentTask = mostRecentInstance.Process.CurrentTask;
+
+        var layoutSet = _appResources.GetLayoutSetForTask(currentTask.ElementId);
+        string? firstPageId = null;
+
+        if (layoutSet != null)
+        {
+            var layoutSettings = _appResources.GetLayoutSettingsForSet(layoutSet.Id);
+            if (layoutSettings?.Pages?.Order != null && layoutSettings.Pages.Order.Count > 0)
+            {
+                firstPageId = layoutSettings.Pages.Order[0];
+            }
+        }
+
+        redirectUrl =
+            Request.GetDisplayUrl()
+            + "instance/"
+            + mostRecentInstance.Id
+            + "/"
+            + currentTask.ElementId
+            + "/"
+            + firstPageId;
+        return Redirect(redirectUrl);
     }
 
     /// <summary>
@@ -264,7 +284,7 @@ public class HomeController : Controller
         [FromQuery] bool dontChooseReportee = false
     )
     {
-        if (await ShouldShowAppView())
+        if (await UserCanSeeStatelessApp())
         {
             // Generate and set XSRF token cookie for frontend
             var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
@@ -413,7 +433,55 @@ public class HomeController : Controller
         }
     }
 
-    private async Task<bool> ShouldShowAppView()
+    private async Task<bool> IsUserPartyValid(Authenticated.User auth)
+    {
+        try
+        {
+            await auth.LoadDetails(validateSelectedParty: true);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private async Task<List<Instance>> GetInstancesForParty(string org, string app, int partyId)
+    {
+        Dictionary<string, StringValues> queryParams = new()
+        {
+            { "appId", $"{org}/{app}" },
+            { "instanceOwner.partyId", partyId.ToString(CultureInfo.InvariantCulture) },
+            { "status.isArchived", "false" },
+            { "status.isSoftDeleted", "false" },
+        };
+
+        List<Instance> activeInstances = await _instanceClient.GetInstances(queryParams);
+        return activeInstances;
+
+        // Instance? mostRecentInstance = activeInstances.OrderByDescending(i => i.LastChanged).FirstOrDefault();
+        //
+        // return mostRecentInstance?.Id.Split('/').Last();
+    }
+
+    private async Task<bool> AllowAnonymous()
+    {
+        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        if (!IsStatelessApp(application))
+        {
+            return false;
+        }
+        DataType? dataType = GetStatelessDataType(application);
+
+        if (dataType != null && dataType.AppLogic.AllowAnonymousOnStateless)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private async Task<bool> UserCanSeeStatelessApp()
     {
         if (User?.Identity?.IsAuthenticated == true)
         {
