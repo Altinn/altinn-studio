@@ -5690,7 +5690,7 @@ __metadata:
     react-dropzone: "npm:14.3.8"
     react-leaflet: "npm:5.0.0"
     react-number-format: "npm:5.4.4"
-    react-refresh: "npm:0.17.0"
+    react-refresh: "npm:0.18.0"
     react-router-dom: "npm:6.30.1"
     react-toastify: "npm:11.0.5"
     resize-observer-polyfill: "npm:1.5.1"
@@ -15320,10 +15320,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-refresh@npm:0.17.0":
-  version: 0.17.0
-  resolution: "react-refresh@npm:0.17.0"
-  checksum: 10c0/002cba940384c9930008c0bce26cac97a9d5682bc623112c2268ba0c155127d9c178a9a5cc2212d560088d60dfd503edd808669a25f9b377f316a32361d0b23c
+"react-refresh@npm:0.18.0":
+  version: 0.18.0
+  resolution: "react-refresh@npm:0.18.0"
+  checksum: 10c0/34a262f7fd803433a534f50deb27a148112a81adcae440c7d1cbae7ef14d21ea8f2b3d783e858cb7698968183b77755a38b4d4b5b1d79b4f4689c2f6d358fff2
   languageName: node
   linkType: hard
 
