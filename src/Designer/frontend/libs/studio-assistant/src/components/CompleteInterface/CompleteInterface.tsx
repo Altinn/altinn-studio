@@ -9,7 +9,6 @@ import { ThreadColumn } from '../ThreadColumn/ThreadColumn';
 import { ThreadColumnCollapsed } from '../ThreadColumnHidden/ThreadColumnHidden';
 import { ChatColumn } from '../ChatColumn/ChatColumn';
 import { ViewType } from '../../types/ViewType';
-import type { UserInputFlags } from '../ChatColumn/UserInput/UserInput';
 import { createEmptyChatThread } from '../../utils/utils';
 import type { AssistantProps } from '../../Assistant/Assistant';
 
@@ -36,20 +35,20 @@ export function CompleteInterface({
     setCurrentThread(thread);
   };
 
-  const completeModeFlags: UserInputFlags = {
-    attachmentButton: true,
-    agentModeSwitch: true,
-  };
-
   return (
     <div className={classes.container}>
       <HeadingBar texts={texts} selectedView={selectedToolView} onViewChange={setSelectedView} />
       <div className={classes.resizableWrapper}>
         <StudioResizableLayout.Container orientation='horizontal' localStorageContext='ai-chat'>
-          {isThreadColumnCollapsed ? (
-            <ThreadColumnCollapsed onToggle={handleToggleCollapse} />
-          ) : (
-            <StudioResizableLayout.Element minimumSize={200} maximumSize={350}>
+          <StudioResizableLayout.Element
+            minimumSize={200}
+            maximumSize={350}
+            collapsed={isThreadColumnCollapsed}
+            collapsedSize={80}
+          >
+            {isThreadColumnCollapsed ? (
+              <ThreadColumnCollapsed onToggle={handleToggleCollapse} />
+            ) : (
               <ThreadColumn
                 texts={texts}
                 chatThreads={chatThreads}
@@ -57,14 +56,14 @@ export function CompleteInterface({
                 onSelectThread={handleChangeThread}
                 onToggleCollapse={handleToggleCollapse}
               />
-            </StudioResizableLayout.Element>
-          )}
+            )}
+          </StudioResizableLayout.Element>
           <StudioResizableLayout.Element minimumSize={400}>
             <ChatColumn
               texts={texts}
               messages={currentThread?.messages ?? []}
               onSubmitMessage={onSubmitMessage}
-              flags={completeModeFlags}
+              enableCompactInterface={false}
             />
           </StudioResizableLayout.Element>
           <StudioResizableLayout.Element minimumSize={200}>

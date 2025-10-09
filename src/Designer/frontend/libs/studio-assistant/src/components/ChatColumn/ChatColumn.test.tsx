@@ -39,37 +39,24 @@ describe('ChatColumn', () => {
     expect(sendButton).toBeInTheDocument();
   });
 
-  it('should render attachment button when flag is enabled', () => {
-    renderChatColumn({ flags: { attachmentButton: true, agentModeSwitch: false } });
-
+  it('should render attachment button and agent mode switch when "enableCompactInterface" is false', () => {
+    renderChatColumn({ enableCompactInterface: false });
     const attachmentButton = screen.getByTitle(mockTexts.addAttachment);
-    expect(attachmentButton).toBeInTheDocument();
-  });
-
-  it('should not render attachment button when flag is disabled', () => {
-    renderChatColumn({ flags: { attachmentButton: false, agentModeSwitch: false } });
-
-    const attachmentButton = screen.queryByTitle(mockTexts.addAttachment);
-    expect(attachmentButton).not.toBeInTheDocument();
-  });
-
-  it('should render agent mode switch when flag is enabled', () => {
-    renderChatColumn({ flags: { attachmentButton: false, agentModeSwitch: true } });
-
     const agentModeSwitch = screen.getByLabelText(mockTexts.agentModeSwitch);
+    expect(attachmentButton).toBeInTheDocument();
     expect(agentModeSwitch).toBeInTheDocument();
   });
 
-  it('should not render agent mode switch when flag is disabled', () => {
-    renderChatColumn({ flags: { attachmentButton: false, agentModeSwitch: false } });
-
+  it('should not render attachment button and agent mode switch when "enableCompactInterface" is true', () => {
+    renderChatColumn({ enableCompactInterface: true });
+    const attachmentButton = screen.queryByTitle(mockTexts.addAttachment);
     const agentModeSwitch = screen.queryByLabelText(mockTexts.agentModeSwitch);
+    expect(attachmentButton).not.toBeInTheDocument();
     expect(agentModeSwitch).not.toBeInTheDocument();
   });
 
   it('should render empty messages list', () => {
     renderChatColumn({ messages: [] });
-
     expect(screen.queryByText(userMessageContent)).not.toBeInTheDocument();
     expect(screen.getByPlaceholderText(mockTexts.textareaPlaceholder)).toBeInTheDocument();
   });
@@ -79,10 +66,7 @@ const defaultProps: ChatColumnProps = {
   texts: mockTexts,
   messages: [],
   onSubmitMessage,
-  flags: {
-    attachmentButton: false,
-    agentModeSwitch: false,
-  },
+  enableCompactInterface: false,
 };
 
 const renderChatColumn = (props?: Partial<ChatColumnProps>): void => {

@@ -4,7 +4,6 @@ import { ChatColumn } from '../ChatColumn/ChatColumn';
 import classes from './CompactInterface.module.css';
 import type { ReactElement } from 'react';
 import { HeadingBar } from '../HeadingBar/HeadingBar';
-import type { UserInputFlags } from '../ChatColumn/UserInput/UserInput';
 import { createGreetingMessage } from '../../utils/utils';
 import type { AssistantProps } from '../../Assistant/Assistant';
 
@@ -17,11 +16,6 @@ export type CompactInterfaceProps = Omit<AssistantProps, 'enableCompactInterface
 export function CompactInterface({ texts, onSubmitMessage }: CompactInterfaceProps): ReactElement {
   const greetingMessage: Message = createGreetingMessage();
 
-  const compactModeFlags: UserInputFlags = {
-    attachmentButton: false,
-    agentModeSwitch: false,
-  };
-
   return (
     <div className={classes.compactInterface}>
       <HeadingBar texts={texts} />
@@ -29,7 +23,7 @@ export function CompactInterface({ texts, onSubmitMessage }: CompactInterfacePro
         texts={texts}
         messages={[greetingMessage]}
         onSubmitMessage={onSubmitMessage}
-        flags={compactModeFlags}
+        enableCompactInterface={true}
       />
     </div>
   );

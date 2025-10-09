@@ -22,7 +22,7 @@ export function ThreadColumn({
   onToggleCollapse,
 }: ChatHistorySidebarProps): ReactElement {
   return (
-    <div className={classes.historyColumn}>
+    <div className={classes.threadColumn}>
       <div className={classes.threadButtons}>
         <StudioButton variant='secondary' onClick={onToggleCollapse}>
           <SidebarLeftIcon />

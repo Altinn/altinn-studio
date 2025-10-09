@@ -5,26 +5,22 @@ import { MessageAuthor } from '../../../types/MessageAuthor';
 import type { UserMessage } from '../../../types/ChatThread';
 import classes from './UserInput.module.css';
 import { PaperclipIcon, PaperplaneFillIcon } from '@studio/icons';
-import type { AssistantTexts } from 'libs/studio-assistant/src/types/AssistantTexts';
+import type { AssistantProps } from 'libs/studio-assistant/src/Assistant/Assistant';
 
-export type UserInputFlags = {
-  attachmentButton: boolean;
-  agentModeSwitch: boolean;
-};
+export type UserInputProps = Omit<AssistantProps, 'chatThreads'>;
 
-export type UserInputProps = {
-  texts: AssistantTexts;
-  onSubmitMessage: (message: UserMessage) => void;
-  flags: UserInputFlags;
-};
-
-export function UserInput({ texts, onSubmitMessage, flags }: UserInputProps): ReactElement {
+export function UserInput({
+  texts,
+  onSubmitMessage,
+  enableCompactInterface,
+}: UserInputProps): ReactElement {
   const [messageContent, setMessageContent] = useState<string>('');
   const [allowEditing, setAllowEditing] = useState<boolean>(false);
 
   const handleSubmit = () => {
     if (!messageContent.trim()) return;
 
+    // TODO: create utility function
     const message: UserMessage = {
       author: MessageAuthor.User,
       content: messageContent,
@@ -54,12 +50,12 @@ export function UserInput({ texts, onSubmitMessage, flags }: UserInputProps): Re
       <div className={classes.actionsRow}>
         <div className={classes.actionsRowLeft}>
           {/* TODO: Attachment button should open upload dialog */}
-          {flags.attachmentButton && (
+          {!enableCompactInterface && (
             <StudioButton variant='secondary' title={texts.addAttachment}>
               <PaperclipIcon />
             </StudioButton>
           )}
-          {flags.agentModeSwitch && (
+          {!enableCompactInterface && (
             <StudioSwitch
               checked={allowEditing}
               onChange={(e) => setAllowEditing(e.target.checked)}

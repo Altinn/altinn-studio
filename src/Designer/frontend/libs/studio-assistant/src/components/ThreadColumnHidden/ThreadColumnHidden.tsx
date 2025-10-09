@@ -9,12 +9,14 @@ export type ThreadColumnHiddenProps = {
 export function ThreadColumnCollapsed({ onToggle }: ThreadColumnHiddenProps): React.ReactElement {
   return (
     <div className={classes.threadColumnHidden}>
-      <StudioButton variant='secondary' onClick={onToggle}>
-        <SidebarLeftIcon />
-      </StudioButton>
-      <StudioButton>
-        <PlusIcon />
-      </StudioButton>
+      <div className={classes.buttons}>
+        <StudioButton variant='secondary' onClick={onToggle}>
+          <SidebarLeftIcon />
+        </StudioButton>
+        <StudioButton>
+          <PlusIcon />
+        </StudioButton>
+      </div>
     </div>
   );
 }
