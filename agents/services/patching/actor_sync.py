@@ -143,14 +143,41 @@ async def _sync_single_file(
             result = await mcp_client.call_tool("datamodel_sync", sync_request)
             span.set_outputs({"result": result})
             
-            # Extract result from MCP response
-            if isinstance(result, list) and len(result) > 0:
+            # Handle CallToolResult objects with structured_content
+            if hasattr(result, 'structured_content') and result.structured_content:
+                # CallToolResult object with pre-parsed structured content
+                sync_response = result.structured_content
+            elif hasattr(result, 'content'):
+                # CallToolResult object (newer MCP versions)
+                content = result.content
+                if isinstance(content, str):
+                    # JSON string - parse it
+                    import json
+                    sync_response = json.loads(content)
+                elif isinstance(content, list) and len(content) > 0:
+                    # List of response objects
+                    first_item = content[0]
+                    if hasattr(first_item, 'text'):
+                        # Parse JSON from text attribute
+                        import json
+                        sync_response = json.loads(first_item.text)
+                    else:
+                        sync_response = first_item
+                else:
+                    sync_response = content
+            elif isinstance(result, list) and len(result) > 0:
+                # Legacy list format (older MCP versions)
                 sync_response = result[0].text if hasattr(result[0], 'text') else result[0]
                 if isinstance(sync_response, str):
                     import json
                     sync_response = json.loads(sync_response)
             else:
+                # Direct dict response (fallback)
                 sync_response = result
+                
+            # Handle nested result structure (like server_info)
+            if isinstance(sync_response, dict) and 'result' in sync_response and isinstance(sync_response['result'], dict):
+                sync_response = sync_response['result']
                 
             # Artifact generation happens as part of the same commit as schema changes
             

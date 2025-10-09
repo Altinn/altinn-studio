@@ -294,14 +294,6 @@ async def execute_reviewer_workflow(
         # Revert changes
         git_ops.revert(repo_path)
 
-        sink.send(AgentEvent(
-            type="reverted",
-            session_id=session_id,
-            data={
-                "reason": f"Precondition failures: {', '.join(precondition_failures)}",
-                "repo_path": repo_path
-            }
-        ))
 
         return {
             "decision": "revert",
@@ -331,45 +323,23 @@ async def execute_reviewer_workflow(
                 subprocess.run(["git", "add", file_path], cwd=repo_path, check=True)
 
             # Commit changes
-            branch_name = f"altinity_session_{session_id[:8]}"
+            # Extract a unique identifier from session_id (skip "session_" prefix if present)
+            if session_id.startswith("session_"):
+                unique_id = session_id[8:16]  # Take 8 chars after "session_"
+            else:
+                unique_id = session_id[:8]
+            branch_name = f"altinity_session_{unique_id}"
             commit_hash = git_ops.commit(commit_message, repo_path, branch_name=branch_name)
 
-            sink.send(AgentEvent(
-                type="commit_done",
-                session_id=session_id,
-                data={
-                    "branch": branch_name,
-                    "commit": commit_hash,
-                    "reasoning": f"{reasoning} (local only - never pushed)",
-                    "repo_path": repo_path,
-                    "files_committed": len(changed_files)
-                }
-            ))
 
         except subprocess.CalledProcessError as e:
             log.error(f"Git staging failed: {e}")
             # Fall back to revert
             git_ops.revert(repo_path)
-            sink.send(AgentEvent(
-                type="reverted",
-                session_id=session_id,
-                data={
-                    "reason": f"Git staging failed: {e}",
-                    "repo_path": repo_path
-                }
-            ))
             decision = "revert"
     else:
         # Revert changes
         git_ops.revert(repo_path)
-        sink.send(AgentEvent(
-            type="reverted",
-            session_id=session_id,
-            data={
-                "reason": f"Decision: {decision}. {reasoning}",
-                "repo_path": repo_path
-            }
-        ))
 
     return {
         "decision": decision,
