@@ -9,7 +9,7 @@
     "cypress": "14.5.4",
     "cypress-axe": "1.6.0",
     "cypress-plugin-tab": "1.0.5",
-    "eslint": "8.57.1"
+    "eslint": "9.37.0"
   },
   "main": "index.js",
   "scripts": {
