@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { ReactElement } from 'react';
 import { StudioResizableLayout } from '@studio/components-legacy';
 import { ToolColumn } from '../ToolColumn';
-import classes from './InterfaceAdvanced.module.css';
+import classes from './CompleteInterface.module.css';
 import { HeadingBar } from '../HeadingBar/HeadingBar';
 import type { ChatThread } from '../../types/ChatThread';
 import { ThreadColumn } from '../ThreadColumn/ThreadColumn';
@@ -13,16 +13,16 @@ import type { UserInputFlags } from '../ChatColumn/UserInput/UserInput';
 import { createEmptyChatThread } from '../../utils/utils';
 import type { AssistantProps } from '../../Assistant/Assistant';
 
-type InterfaceAdvancedProps = Omit<AssistantProps, 'enableSimpleMode'>;
+type CompleteInterfaceProps = Omit<AssistantProps, 'enableCompactInterface'>;
 
 /**
  * Full page version of the chat interface with thread history, preview and code viewer.
  */
-export function InterfaceAdvanced({
+export function CompleteInterface({
   texts,
   chatThreads,
   onSubmitMessage,
-}: InterfaceAdvancedProps): ReactElement {
+}: CompleteInterfaceProps): ReactElement {
   const [isThreadColumnCollapsed, setIsThreadColumnCollapsed] = useState(false);
   const [selectedToolView, setSelectedView] = useState<ViewType>(ViewType.Preview);
   const [currentThread, setCurrentThread] = useState<ChatThread>(

@@ -1,25 +1,25 @@
 import React from 'react';
 import type { ChatThread, Message } from '../types/ChatThread';
-import { InterfaceSimple } from '../components/InterfaceSimple/InterfaceSimple';
-import { InterfaceAdvanced } from '../components/InterfaceAdvanced/InterfaceAdvanced';
+import { CompactInterface } from '../components/CompactInterface/CompactInterface';
+import { CompleteInterface } from '../components/CompleteInterface/CompleteInterface';
 import type { AssistantTexts } from '../types/AssistantTexts';
 
 export type AssistantProps = {
   texts: AssistantTexts;
-  enableSimpleMode: boolean;
+  enableCompactInterface: boolean;
   chatThreads: ChatThread[];
   onSubmitMessage: (message: Message) => void;
 };
 
 export function Assistant({
   texts,
-  enableSimpleMode,
+  enableCompactInterface,
   chatThreads,
   onSubmitMessage,
 }: AssistantProps): React.ReactElement {
-  return enableSimpleMode ? (
-    <InterfaceSimple texts={texts} onSubmitMessage={onSubmitMessage} />
+  return enableCompactInterface ? (
+    <CompactInterface texts={texts} onSubmitMessage={onSubmitMessage} />
   ) : (
-    <InterfaceAdvanced texts={texts} chatThreads={chatThreads} onSubmitMessage={onSubmitMessage} />
+    <CompleteInterface texts={texts} chatThreads={chatThreads} onSubmitMessage={onSubmitMessage} />
   );
 }

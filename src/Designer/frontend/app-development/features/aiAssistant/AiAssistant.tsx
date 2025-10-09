@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 export function AiAssistant(): ReactElement {
   const { t } = useTranslation();
   const [chatThreads] = useState<ChatThread[]>(getMockChatThreads());
-  const [enableSimpleMode] = useState<boolean>(false);
+  const [enableCompactInterface] = useState<boolean>(false);
 
   const onSubmitMessage = (message: Message): void => {
     alert(`Du har trykket på send-knappen.\nMelding fra tekstfelt: ${message.content}`);
@@ -24,7 +24,7 @@ export function AiAssistant(): ReactElement {
     fileBrowser: t('ai_assistant.panel.fileBrowser'),
     hideThreads: 'Skjul tråder',
     newThread: 'Ny tråd',
-    previousThreads: 'Tidligere tråder',
+    previousThreads: 'Tråder',
     aboutAssistant: 'Om assistenten',
     textareaPlaceholder: t('ai_assistant.textarea.placeholder'),
     addAttachment: 'Last opp vedlegg',
@@ -35,7 +35,7 @@ export function AiAssistant(): ReactElement {
   return (
     <Assistant
       texts={texts}
-      enableSimpleMode={enableSimpleMode}
+      enableCompactInterface={enableCompactInterface}
       chatThreads={chatThreads}
       onSubmitMessage={onSubmitMessage}
     />

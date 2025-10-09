@@ -32,7 +32,7 @@ describe('Assistant', () => {
 const defaultProps: AssistantProps = {
   onSubmitMessage,
   texts,
-  enableSimpleMode: false,
+  enableCompactInterface: false,
   chatThreads: [],
 };
 
