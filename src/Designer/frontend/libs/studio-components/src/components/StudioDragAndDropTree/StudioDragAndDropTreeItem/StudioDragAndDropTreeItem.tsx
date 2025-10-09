@@ -28,14 +28,15 @@ export const StudioDragAndDropTreeItem = ({
   labelWrapper,
   nodeId,
   title,
-}: StudioDragAndDropTreeItemProps): React.ReactElement => {
+}: StudioDragAndDropTreeItemProps): React.JSX.Element | undefined => {
   const { hoveredNodeParent, setHoveredNodeParent } = useContext(StudioDragAndDropTreeRootContext);
   const { nodeId: parentId } = useContext(StudioDragAndDropTreeItemContext);
 
   const isExpandable = expandable || Boolean(children);
   const renderLabel = labelWrapper ?? ((node): React.ReactNode => node);
-  const handleDragOver = (): ReturnType<typeof setHoveredNodeParent> =>
-    setHoveredNodeParent(parentId);
+  const handleDragOver = setHoveredNodeParent
+    ? (): ReturnType<typeof setHoveredNodeParent> | undefined => setHoveredNodeParent?.(parentId)
+    : undefined;
   const hasHoveredItemClass = hoveredNodeParent === nodeId ? classes.hasHoveredItem : null;
   const labelButtonWrapperClass = cn(classes.labelButtonWrapper, hasHoveredItemClass);
 

@@ -18,7 +18,7 @@ export const findParentId = (baseId: string, id: string): string => {
   const listClassName = domListClass(baseId);
   const itemDomId = domItemId(baseId, id);
   const domItem = document.getElementById(itemDomId);
-  const parent = domItem.closest(`.${listClassName}`);
+  const parent = domItem?.closest(`.${listClassName}`)!;
   return extractIdFromDomListId(baseId, parent.id);
 };
 

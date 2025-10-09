@@ -19,13 +19,13 @@ import { ObjectUtils } from '@studio/pure-functions';
  *  - Idle: If nothing relevant is being dragged
  */
 export const getDragCursorPosition = <T>(
-  monitor: DropTargetMonitor,
-  dragItem: DndItem<T>,
-  dropItem: ExistingDndItem,
-  dropRef: RefObject<HTMLDivElement>,
+  monitor?: DropTargetMonitor,
+  dragItem?: DndItem<T>,
+  dropItem?: ExistingDndItem,
+  dropRef?: RefObject<HTMLDivElement>,
   disabledDrop?: boolean,
 ): DragCursorPosition => {
-  if (!monitor) return DragCursorPosition.Idle;
+  if (!monitor || !dragItem || !dropItem || !dropRef) return DragCursorPosition.Idle;
 
   if (dragItem.isNew === false && ObjectUtils.areObjectsEqual(dragItem.position, dropItem.position))
     return DragCursorPosition.Self;
@@ -34,7 +34,7 @@ export const getDragCursorPosition = <T>(
   if (disabledDrop || !clientOffset || !monitor.isOver({ shallow: true }))
     return DragCursorPosition.Outside;
 
-  const boundingClientRect = dropRef.current?.getBoundingClientRect();
+  const boundingClientRect = dropRef.current?.getBoundingClientRect()!;
 
   const hoverClientY = clientOffset.y - boundingClientRect.top; // Find distance from top of element
   if (hoverClientY < boundingClientRect.height / 2) {
