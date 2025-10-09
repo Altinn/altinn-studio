@@ -22,16 +22,16 @@ export function AiAssistant(): ReactElement {
 
   const texts: AssistantTexts = {
     heading: t('ai_assistant.heading'),
-    preview: t('ai_assistant.panel.preview'),
-    fileBrowser: t('ai_assistant.panel.fileBrowser'),
-    hideThreads: 'Skjul tråder',
-    newThread: 'Ny tråd',
-    previousThreads: 'Tråder',
-    aboutAssistant: 'Om assistenten',
-    textareaPlaceholder: t('ai_assistant.textarea.placeholder'),
-    addAttachment: 'Last opp vedlegg',
-    agentModeLabel: 'Tillat endringer i appen',
-    send: t('ai_assistant.button.send'),
+    preview: t('ai_assistant.preview'),
+    fileBrowser: t('ai_assistant.fileBrowser'),
+    hideThreads: t('ai_assistant.hide_threads'),
+    newThread: t('ai_assistant.new_thread'),
+    previousThreads: t('ai_assistant.threads'),
+    aboutAssistant: t('ai_assistant.about_assistant'),
+    textareaPlaceholder: t('ai_assistant.textarea_placeholder'),
+    addAttachment: t('ai_assistant.add_attachment'),
+    agentModeSwitch: t('ai_assistant.agent_mode_switch'),
+    send: t('ai_assistant.send'),
   };
 
   return (

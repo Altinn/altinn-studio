@@ -10,6 +10,6 @@ export const mockTexts: AssistantTexts = {
   aboutAssistant: 'aboutAssistant',
   textareaPlaceholder: 'textareaPlaceholder',
   addAttachment: 'addAttachment',
-  agentModeLabel: 'agentModeLabel',
+  agentModeSwitch: 'agentModeSwitch',
   send: 'send',
 };

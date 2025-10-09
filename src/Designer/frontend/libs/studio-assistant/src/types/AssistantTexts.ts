@@ -8,6 +8,6 @@ export type AssistantTexts = {
   aboutAssistant: string;
   textareaPlaceholder: string;
   addAttachment: string;
-  agentModeLabel: string;
+  agentModeSwitch: string;
   send: string;
 };

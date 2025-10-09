@@ -63,7 +63,7 @@ export function UserInput({ texts, onSubmitMessage, flags }: UserInputProps): Re
             <StudioSwitch
               checked={allowEditing}
               onChange={(e) => setAllowEditing(e.target.checked)}
-              label={texts.agentModeLabel}
+              label={texts.agentModeSwitch}
             />
           )}
         </div>

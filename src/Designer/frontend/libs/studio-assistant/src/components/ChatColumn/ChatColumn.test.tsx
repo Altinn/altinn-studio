@@ -56,14 +56,14 @@ describe('ChatColumn', () => {
   it('should render agent mode switch when flag is enabled', () => {
     renderChatColumn({ flags: { attachmentButton: false, agentModeSwitch: true } });
 
-    const agentModeSwitch = screen.getByLabelText(mockTexts.agentModeLabel);
+    const agentModeSwitch = screen.getByLabelText(mockTexts.agentModeSwitch);
     expect(agentModeSwitch).toBeInTheDocument();
   });
 
   it('should not render agent mode switch when flag is disabled', () => {
     renderChatColumn({ flags: { attachmentButton: false, agentModeSwitch: false } });
 
-    const agentModeSwitch = screen.queryByLabelText(mockTexts.agentModeLabel);
+    const agentModeSwitch = screen.queryByLabelText(mockTexts.agentModeSwitch);
     expect(agentModeSwitch).not.toBeInTheDocument();
   });
 
