@@ -22,7 +22,6 @@ export * from './StudioDragAndDropTree';
 export * from './StudioDropdownMenu';
 export * from './StudioError';
 export * from './StudioErrorMessage';
-export * from './StudioExpression';
 export * from './StudioFieldset';
 export * from './StudioFileUploader';
 export * from './StudioGridSelector';

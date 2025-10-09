@@ -11,7 +11,7 @@ describe('saving multiple data models', () => {
     // same time.
     cy.intercept('PATCH', '**/data*').as('saveFormData');
     cy.startAppInstance(appFrontend.apps.multipleDatamodelsTest);
-    cy.setCookie('FEATURE_saveOnBlur', 'false');
+    cy.setFeatureToggle('saveOnBlur', false);
   });
 
   it('Calls save on individual data models', () => {

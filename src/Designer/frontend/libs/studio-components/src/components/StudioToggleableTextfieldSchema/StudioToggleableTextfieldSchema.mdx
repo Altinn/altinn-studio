@@ -1,0 +1,15 @@
+import { Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
+import * as StudioToggleableTextfieldSchemaStories from './StudioToggleableTextfieldSchema.stories';
+
+<Meta of={StudioToggleableTextfieldSchemaStories} />
+
+<Heading level={1} size='small'>
+  StudioToggleableTextfieldSchema
+</Heading>
+<Paragraph>
+  StudioToggleableTextfieldSchema is a component that can toggled between view and edit mode.
+  Support validation against a schema.
+</Paragraph>
+
+<Canvas of={StudioToggleableTextfieldSchemaStories.Preview} />

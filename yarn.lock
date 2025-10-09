@@ -106,7 +106,7 @@ __metadata:
     redux: "npm:5.0.1"
     redux-mock-store: "npm:1.5.5"
     typescript: "npm:5.9.2"
-    uuid: "npm:10.0.0"
+    uuid: "npm:13.0.0"
   languageName: unknown
   linkType: soft
 
@@ -120,7 +120,7 @@ __metadata:
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     typescript: "npm:5.9.2"
-    uuid: "npm:10.0.0"
+    uuid: "npm:13.0.0"
   languageName: unknown
   linkType: soft
 
@@ -3011,6 +3011,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@studio/assistant@workspace:^, @studio/assistant@workspace:src/Designer/frontend/libs/studio-assistant":
+  version: 0.0.0-use.local
+  resolution: "@studio/assistant@workspace:src/Designer/frontend/libs/studio-assistant"
+  dependencies:
+    "@digdir/designsystemet-theme": "npm:^1.0.8"
+    "@studio/components": "workspace:^"
+  languageName: unknown
+  linkType: soft
+
 "@studio/components-legacy@workspace:^, @studio/components-legacy@workspace:src/Designer/frontend/libs/studio-components-legacy":
   version: 0.0.0-use.local
   resolution: "@studio/components-legacy@workspace:src/Designer/frontend/libs/studio-components-legacy"
@@ -3037,7 +3046,7 @@ __metadata:
     storybook: "npm:^9.0.10"
     ts-jest: "npm:^29.1.1"
     typescript: "npm:5.9.2"
-    uuid: "npm:10.0.0"
+    uuid: "npm:13.0.0"
   languageName: unknown
   linkType: soft
 
@@ -3123,7 +3132,7 @@ __metadata:
     react-dom: "npm:^18.2.0"
     ts-jest: "npm:^29.1.1"
     typescript: "npm:5.9.2"
-    uuid: "npm:10.0.0"
+    uuid: "npm:13.0.0"
   peerDependencies:
     react-router-dom: ">=6.0.0"
   languageName: unknown
@@ -4538,6 +4547,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:src/Designer/frontend/app-development"
   dependencies:
+    "@studio/assistant": "workspace:^"
     "@studio/content-library": "workspace:^"
     "@studio/feedback-form": "workspace:^"
     "@studio/hooks": "workspace:^"
@@ -12435,14 +12445,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-error-boundary@npm:4.1.2":
-  version: 4.1.2
-  resolution: "react-error-boundary@npm:4.1.2"
+"react-error-boundary@npm:6.0.0":
+  version: 6.0.0
+  resolution: "react-error-boundary@npm:6.0.0"
   dependencies:
     "@babel/runtime": "npm:^7.12.5"
   peerDependencies:
     react: ">=16.13.1"
-  checksum: 10/a8b59e5ef891bb6c48874d12c72bbd1a9292a56751adeee5666e228bd3a4913084329a9c21f7baafa0df68dc6d25e18883edb25946ce5763981885cbb93786eb
+  checksum: 10/3de587be3e72bd3e32b3bd7769d09354b27ed94be580f33a80a85ddc8c1d1ed1cad90199bc24b22a7911ef1ebacc0163c664b2c395f7c37ffd493f59e6e5c9f9
   languageName: node
   linkType: hard
 
@@ -13987,7 +13997,7 @@ __metadata:
     prettier: "npm:3.6.2"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
-    react-error-boundary: "npm:4.1.2"
+    react-error-boundary: "npm:6.0.0"
     react-i18next: "npm:15.6.1"
     react-router-dom: "npm:6.30.1"
     react-toastify: "npm:10.0.6"
@@ -14833,12 +14843,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:10.0.0":
-  version: 10.0.0
-  resolution: "uuid@npm:10.0.0"
+"uuid@npm:13.0.0":
+  version: 13.0.0
+  resolution: "uuid@npm:13.0.0"
   bin:
-    uuid: dist/bin/uuid
-  checksum: 10/35aa60614811a201ff90f8ca5e9ecb7076a75c3821e17f0f5ff72d44e36c2d35fcbc2ceee9c4ac7317f4cc41895da30e74f3885e30313bee48fda6338f250538
+    uuid: dist-node/bin/uuid
+  checksum: 10/2742b24d1e00257e60612572e4d28679423469998cafbaf1fe9f1482e3edf9c40754b31bfdb3d08d71b29239f227a304588f75210b3b48f2609f0673f1feccef
   languageName: node
   linkType: hard
 

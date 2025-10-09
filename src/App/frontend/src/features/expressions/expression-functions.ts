@@ -1,13 +1,14 @@
 import dot from 'dot-object';
 import escapeStringRegexp from 'escape-string-regexp';
 
+import { ContextNotProvided } from 'src/core/contexts/context';
+import { SearchParams } from 'src/core/routing/types';
 import { exprCastValue } from 'src/features/expressions';
 import { ExprRuntimeError, NodeRelationNotFound } from 'src/features/expressions/errors';
 import { ExprVal } from 'src/features/expressions/types';
 import { addError } from 'src/features/expressions/validation';
 import { makeIndexedId } from 'src/features/form/layout/utils/makeIndexedId';
 import { CodeListPending } from 'src/features/options/CodeListsProvider';
-import { SearchParams } from 'src/hooks/navigation';
 import { buildAuthContext } from 'src/utils/authContext';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { formatDateLocale } from 'src/utils/dateUtils';
@@ -859,6 +860,9 @@ function pickSimpleValue(
   }
 
   const value = params.dataSources.formDataSelector(path);
+  if (value === ContextNotProvided) {
+    return null;
+  }
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
     return value;
   }

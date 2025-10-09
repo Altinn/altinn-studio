@@ -213,7 +213,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource)
+        public async Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource, CancellationToken cancellationToken)
         {
             ListviewServiceResource listviewResource = new ListviewServiceResource
             {
@@ -223,7 +223,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             string resourceFolder = serviceResource.Identifier;
 
-            HttpResponseMessage fileResponse = await _httpClient.GetAsync($"repos/{org}/{repo}/commits?path={resourceFolder}&stat=false&verification=false&files=false");
+            HttpResponseMessage fileResponse = await _httpClient.GetAsync($"repos/{org}/{repo}/commits?path={resourceFolder}&stat=false&verification=false&files=false", cancellationToken);
 
             if (fileResponse.StatusCode == HttpStatusCode.OK)
             {
@@ -231,7 +231,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 try
                 {
-                    commitResponse = await fileResponse.Content.ReadAsAsync<List<GiteaCommit>>();
+                    commitResponse = await fileResponse.Content.ReadAsAsync<List<GiteaCommit>>(cancellationToken);
                 }
                 catch (JsonException)
                 {
