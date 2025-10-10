@@ -416,7 +416,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     }
 
     [Fact]
-    public async Task InstationAllowedByOrg_Returns_Ok_For_User_When_Copying_SimplifiedEndpoint()
+    public async Task InstantiationAllowedByOrg_Returns_Ok_For_User_When_Copying_SimplifiedEndpoint()
     {
         var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
         using var pdfReturnStream = new MemoryStream();

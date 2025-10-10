@@ -448,10 +448,12 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             new MemoryAsStream(bytes),
             authenticationMethod: GetAuthenticationMethod(change.DataType)
         );
+        // Update caches
         _binaryCache.Set(dataElement, bytes);
+        change.DataElement = dataElement; // Set the data element so that it can be referenced later in the save process
         if (change is FormDataChange formDataChange)
         {
-            _formDataCache.Set(dataElement, FormDataWrapperFactory.Create(formDataChange.CurrentFormData));
+            _formDataCache.Set(dataElement, formDataChange.CurrentFormDataWrapper);
         }
         createdDataElements.TryAdd(change, dataElement);
     }
@@ -526,24 +528,15 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         // Add Created data elements to instance
         Instance.Data.AddRange(createdDataElements.Values);
 
-        // update data elements on new elements
-        foreach (var change in changes.AllChanges)
+        // Update DataValues and presentation texts
+        // These cannot run in parallel with creating the data elements, because they need the data element id
+
+        foreach (var (dataElementIdentifier, formData) in _formDataCache.GetCachedEntries())
         {
-            change.DataElement ??= createdDataElements.TryGetValue(change, out var value)
-                ? value
-                : throw new InvalidOperationException(
-                    "DataElementChange without DataElement must be a new data element"
-                );
-            if (change is FormDataChange formDataChange)
+            if (dataElementIdentifier.DataTypeId is not null)
             {
-                //Update DataValues and presentation texts
-                // These can not run in parallel with creating the data elements, because they need the data element id
-                await UpdateDataValuesOnInstance(Instance, formDataChange.DataType.Id, formDataChange.CurrentFormData);
-                await UpdatePresentationTextsOnInstance(
-                    Instance,
-                    formDataChange.DataType.Id,
-                    formDataChange.CurrentFormData
-                );
+                var dataType = GetDataTypeByString(dataElementIdentifier.DataTypeId);
+                await UpdatePresentationTextsAndDataValues(dataType, formData);
             }
         }
     }
@@ -644,41 +637,65 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
     }
 
-    private async Task UpdatePresentationTextsOnInstance(Instance instance, string dataType, object serviceModel)
+    private async Task UpdatePresentationTextsAndDataValues(DataType dataType, IFormDataWrapper dataWrapper)
     {
-        var updatedValues = DataHelper.GetUpdatedDataValues(
+        var updatedTexts = DataHelper.GetUpdatedDataValues(
             _appMetadata.PresentationFields,
-            instance.PresentationTexts,
-            dataType,
-            serviceModel
+            Instance.PresentationTexts,
+            dataType.Id,
+            dataWrapper.BackingData<object>()
         );
 
-        if (updatedValues.Count > 0)
+        if (updatedTexts.Count > 0)
         {
             await _instanceClient.UpdatePresentationTexts(
-                int.Parse(instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
-                Guid.Parse(instance.Id.Split("/")[1]),
-                new PresentationTexts { Texts = updatedValues }
+                int.Parse(Instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
+                Guid.Parse(Instance.Id.Split("/")[1]),
+                new PresentationTexts { Texts = updatedTexts }
             );
-        }
-    }
 
-    private async Task UpdateDataValuesOnInstance(Instance instance, string dataType, object serviceModel)
-    {
+            // Maintain local copy of presentation texts
+            Instance.PresentationTexts ??= [];
+            foreach (var (key, value) in updatedTexts)
+            {
+                if (value is null)
+                {
+                    Instance.PresentationTexts.Remove(key); // Remove key if value is null
+                }
+                else
+                {
+                    Instance.PresentationTexts[key] = value; // Update local copy of presentation texts
+                }
+            }
+        }
         var updatedValues = DataHelper.GetUpdatedDataValues(
             _appMetadata.DataFields,
-            instance.DataValues,
-            dataType,
-            serviceModel
+            Instance.DataValues,
+            dataType.Id,
+            dataWrapper.BackingData<object>()
         );
 
         if (updatedValues.Count > 0)
         {
             await _instanceClient.UpdateDataValues(
-                int.Parse(instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
-                Guid.Parse(instance.Id.Split("/")[1]),
+                int.Parse(Instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
+                Guid.Parse(Instance.Id.Split("/")[1]),
                 new DataValues { Values = updatedValues }
             );
+
+            // Maintain local copy of data values
+            Instance.DataValues ??= [];
+            foreach (var (key, value) in updatedValues)
+            {
+                if (value is null)
+                {
+                    Instance.DataValues.Remove(key); // Remove key if value is null
+                }
+                else
+                {
+                    Instance.DataValues[key] = value; // Update local copy of data values
+                }
+            }
         }
     }
 }
