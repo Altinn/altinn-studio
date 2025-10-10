@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../base
+  - ../apps/test-app
+  - ../apps/test-app-2
+
+patches:
+  - target:
+      kind: OCIRepository
+    patch: |-
+      - op: replace
+        path: /spec/ref/tag
+        value: prod

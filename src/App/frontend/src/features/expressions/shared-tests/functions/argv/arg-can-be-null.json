@@ -1,0 +1,6 @@
+{
+  "name": "Positional argument can also be null",
+  "expression": ["argv", 1],
+  "expects": null,
+  "positionalArguments": ["foo", null, 5]
+}

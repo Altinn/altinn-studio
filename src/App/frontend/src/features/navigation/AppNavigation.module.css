@@ -1,0 +1,23 @@
+.navigation-heading {
+  font-weight: normal;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.group-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.group-list > li:not(:last-child) {
+  margin-bottom: 28px;
+}
+
+.closeButton {
+  margin-left: auto;
+  width: min-content;
+}

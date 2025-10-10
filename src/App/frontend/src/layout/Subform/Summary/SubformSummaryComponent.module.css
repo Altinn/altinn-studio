@@ -1,0 +1,21 @@
+.container {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.emptyField {
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.6875;
+}
+
+.row:not(:first-child) {
+  margin-top: 0.5rem;
+}
+
+/* Mobile layout */
+@media screen and (max-width: 768px) {
+  .tag {
+    text-align: left;
+  }
+}

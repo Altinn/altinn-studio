@@ -26,10 +26,6 @@
   border-top: 1px solid var(--fds-semantic-border-neutral-subtle);
 }
 
-.accordionItem button:first-child {
-  border: none;
-}
-
 .accordionHeaderRow {
   display: flex;
 }

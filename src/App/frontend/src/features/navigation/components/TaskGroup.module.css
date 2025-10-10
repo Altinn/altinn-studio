@@ -1,0 +1,56 @@
+.task-button {
+  font-family: var(--font-family);
+  font-size: 16px;
+  background-color: transparent;
+  border: none;
+  cursor: not-allowed;
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 8px;
+  align-items: start;
+  text-align: left;
+
+  border-radius: var(--ds-border-radius-md);
+  overflow-wrap: anywhere;
+  padding: 2px 6px 2px 2px;
+  margin: -2px -6px -2px -2px;
+}
+
+.task-name {
+  min-height: 28px;
+  display: inline-block;
+  align-content: center;
+  line-height: 1.2;
+}
+
+.task-name-active {
+  text-decoration-line: underline;
+  text-decoration-skip-ink: none;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+.task-symbol {
+  width: 28px;
+  height: 28px;
+  box-sizing: border-box;
+  font-size: 20px;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--ds-border-radius-md);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.task-symbol-locked {
+  color: var(--ds-color-neutral-text-default);
+  border-color: var(--ds-color-neutral-border-default);
+  background-color: var(--ds-color-neutral-surface-tinted);
+}
+
+.task-symbol-active {
+  color: var(--ds-color-accent-text-default);
+  border-color: var(--ds-color-accent-border-default);
+  background-color: var(--ds-color-neutral-surface-tinted);
+}

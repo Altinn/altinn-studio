@@ -1,0 +1,5 @@
+{
+  "name": "Should return the length of a string even when it's empty",
+  "expression": ["stringLength", ""],
+  "expects": 0
+}

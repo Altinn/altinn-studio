@@ -2,7 +2,7 @@ import React from 'react';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { getConfigTitleHelpTextKey, getConfigTitleKey } from '../../../utils/configPanelUtils';
 import { useTranslation } from 'react-i18next';
-import { StudioSectionHeader } from '@studio/components-legacy';
+import { StudioSectionHeader } from '@studio/components';
 import { ConfigIcon } from '../ConfigContent/ConfigIcon';
 
 type ConfigContentContainerProps = {

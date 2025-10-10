@@ -8,4 +8,5 @@ export enum RoutePaths {
   ProcessEditor = 'process-editor',
   ContentLibrary = 'content-library',
   AppSettings = 'app-settings',
+  AiAssistant = 'ai-assistant',
 }

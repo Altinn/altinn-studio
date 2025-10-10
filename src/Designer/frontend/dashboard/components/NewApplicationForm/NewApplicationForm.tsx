@@ -1,6 +1,6 @@
 import React, { type FormEvent, type ChangeEvent, useState } from 'react';
 import classes from './NewApplicationForm.module.css';
-import { StudioButton, StudioSpinner } from '@studio/components-legacy';
+import { StudioButton, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { ServiceOwnerSelector } from '../ServiceOwnerSelector';
 import { RepoNameInput } from '../RepoNameInput';
@@ -124,7 +124,7 @@ export const NewApplicationForm = ({
       />
       <div className={classes.actionContainer}>
         {isLoading ? (
-          <StudioSpinner showSpinnerTitle spinnerTitle={t('dashboard.creating_your_service')} />
+          <StudioSpinner aria-hidden spinnerTitle={t('dashboard.creating_your_service')} />
         ) : (
           <>
             <StudioButton type='submit' variant='primary' disabled={hasCreateRepoAccessError}>

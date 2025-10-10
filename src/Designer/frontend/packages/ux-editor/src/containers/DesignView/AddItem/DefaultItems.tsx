@@ -1,8 +1,7 @@
 import React from 'react';
 import type { IToolbarElement } from '../../../types/global';
 import classes from './DefaultItems.module.css';
-import { StudioButton } from '@studio/components-legacy';
-import { StudioHeading } from '@studio/components';
+import { StudioButton, StudioHeading } from '@studio/components';
 import { XMarkIcon } from '@studio/icons';
 import type { AddedItem } from './types';
 import { ComponentButton } from './ComponentButton';

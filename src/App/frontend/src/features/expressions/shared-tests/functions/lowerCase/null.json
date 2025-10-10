@@ -1,0 +1,5 @@
+{
+  "name": "Should return a null when the input is a null",
+  "expression": ["lowerCase", null],
+  "expects": null
+}

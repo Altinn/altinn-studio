@@ -3,15 +3,18 @@ import type { RenderResult } from '@testing-library/react';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { StudioCodeListEditorProps } from './StudioCodeListEditor';
 import { StudioCodeListEditor } from './StudioCodeListEditor';
-import type { CodeList } from './types/CodeList';
+import type { CodeListWithTextResources } from './types/CodeListWithTextResources';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import { texts } from './test-data/texts';
 import { codeListWithStrings } from './test-data/codeListWithStrings';
 import { CodeListItemTextProperty } from './types/CodeListItemTextProperty';
 import {
+  description3Resource,
   description4Resource,
+  helpText3Resource,
   helpText4Resource,
+  label3Resource,
   label4Resource,
   textResources,
 } from './test-data/textResources';
@@ -38,7 +41,7 @@ const defaultProps: StudioCodeListEditorProps = {
   textResources,
 };
 const duplicatedValue = 'duplicate';
-const codeListWithDuplicatedValues: CodeList = [
+const codeListWithDuplicatedValues: CodeListWithTextResources = [
   {
     label: 'Test 1',
     value: duplicatedValue,
@@ -581,7 +584,7 @@ describe('StudioCodeListEditor', () => {
 
     it('Saves changed item value as boolean when initial value was a boolean', async () => {
       const user = userEvent.setup();
-      const codeListWithSingleBooleanValue: CodeList = [codeListWithBooleans[0]];
+      const codeListWithSingleBooleanValue: CodeListWithTextResources = [codeListWithBooleans[0]];
       renderCodeListEditor({ codeList: codeListWithSingleBooleanValue });
 
       const valueInput = screen.getByRole('checkbox', { name: texts.itemValue(1) });
@@ -589,6 +592,25 @@ describe('StudioCodeListEditor', () => {
 
       expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
       expect(onUpdateCodeList).toHaveBeenCalledWith([{ ...codeListWithBooleans[0], value: false }]);
+    });
+  });
+
+  it('Renders the text resources correctly after an item is deleted', async () => {
+    const user = userEvent.setup();
+    const positionToDeleteFrom = 2;
+    const expectedTextsAfterDelete = new Map<CodeListItemTextProperty, string>([
+      [CodeListItemTextProperty.Label, label3Resource.value],
+      [CodeListItemTextProperty.Description, description3Resource.value],
+      [CodeListItemTextProperty.HelpText, helpText3Resource.value],
+    ]);
+
+    renderCodeListEditor();
+    const deleteButtonName = texts.deleteItem(positionToDeleteFrom);
+    await user.click(screen.getByRole('button', { name: deleteButtonName }));
+
+    expectedTextsAfterDelete.forEach((value, property) => {
+      const propertyCoords: TextPropertyCoords = [positionToDeleteFrom, property];
+      expect(getTextResourceValueInput(propertyCoords)).toHaveValue(value);
     });
   });
 });

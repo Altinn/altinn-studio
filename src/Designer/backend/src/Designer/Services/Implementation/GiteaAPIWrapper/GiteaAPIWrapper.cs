@@ -4,13 +4,16 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -30,6 +33,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IMemoryCache _cache;
         private readonly ILogger _logger;
         private readonly HttpClient _httpClient;
+        private const string CodeListFolderName = "CodeLists";
+
+        private static readonly JsonSerializerOptions s_jsonOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+            PropertyNameCaseInsensitive = true,
+            AllowTrailingCommas = true,
+        };
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GiteaAPIWrapper"/> class
@@ -79,12 +90,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string jsonString = await response.Content.ReadAsStringAsync();
-                var deserializeOptions = new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-                };
-
-                teams = JsonSerializer.Deserialize<List<Team>>(jsonString, deserializeOptions) ?? new List<Team>();
+                teams = JsonSerializer.Deserialize<List<Team>>(jsonString, s_jsonOptions) ?? [];
             }
             else
             {
@@ -207,7 +213,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource)
+        public async Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource, CancellationToken cancellationToken)
         {
             ListviewServiceResource listviewResource = new ListviewServiceResource
             {
@@ -217,7 +223,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             string resourceFolder = serviceResource.Identifier;
 
-            HttpResponseMessage fileResponse = await _httpClient.GetAsync($"repos/{org}/{repo}/commits?path={resourceFolder}&stat=false&verification=false&files=false");
+            HttpResponseMessage fileResponse = await _httpClient.GetAsync($"repos/{org}/{repo}/commits?path={resourceFolder}&stat=false&verification=false&files=false", cancellationToken);
 
             if (fileResponse.StatusCode == HttpStatusCode.OK)
             {
@@ -225,7 +231,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 try
                 {
-                    commitResponse = await fileResponse.Content.ReadAsAsync<List<GiteaCommit>>();
+                    commitResponse = await fileResponse.Content.ReadAsAsync<List<GiteaCommit>>(cancellationToken);
                 }
                 catch (JsonException)
                 {
@@ -453,22 +459,109 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public async Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string shortCommitId)
         {
-            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/contents/{filePath}?ref={shortCommitId}");
-            return await response.Content.ReadAsAsync<FileSystemObject>();
+            string path = $"repos/{org}/{app}/contents/{filePath}";
+            string url = AddRefIfExists(path, shortCommitId);
+            using HttpResponseMessage response = await _httpClient.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadAsAsync<FileSystemObject>();
+            }
+
+            return null;
+        }
+
+        public async Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken)
+        {
+            string path = $"repos/{org}/{app}/contents/{filePath}";
+            string url = AddRefIfExists(path, reference);
+            using HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadAsAsync<FileSystemObject>(cancellationToken);
+            }
+
+            return null;
         }
 
         /// <inheritdoc/>
-        public async Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string shortCommitId)
+        public async Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string reference = null, CancellationToken cancellationToken = default)
         {
-            using HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/contents/{directoryPath}?ref={shortCommitId}");
+            string path = $"repos/{org}/{app}/contents/{directoryPath}";
+            string url = AddRefIfExists(path, reference);
+
+            using HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadAsAsync<List<FileSystemObject>>();
+                return await response.Content.ReadAsAsync<List<FileSystemObject>>(cancellationToken);
+            }
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                string suffix = string.IsNullOrWhiteSpace(reference) ? string.Empty : $" at reference {reference}";
+                throw new DirectoryNotFoundException($"Directory {directoryPath} not found in repository {org}/{app}{suffix}");
             }
 
             return [];
         }
 
+        /// <inheritdoc/>
+        public async Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(string org, string repository, string reference = null, CancellationToken cancellationToken = default)
+        {
+            List<FileSystemObject> directoryFiles;
+            try
+            {
+                directoryFiles = await GetDirectoryAsync(org, repository, CodeListFolderName, reference, cancellationToken);
+            }
+            catch (DirectoryNotFoundException)
+            {
+                return [];
+            }
+
+            SemaphoreSlim semaphore = new(25); // Limit to 25 concurrent requests
+            List<Task<FileSystemObject>> tasks = [];
+
+            foreach (FileSystemObject directoryFile in directoryFiles.Where(f => string.Equals(f.Type, "file", StringComparison.OrdinalIgnoreCase)))
+            {
+                string filePath = $"{CodeListFolderName}/{directoryFile.Name}";
+                tasks.Add(Task.Run(async () =>
+                {
+                    await semaphore.WaitAsync(cancellationToken);
+                    try
+                    {
+                        return await GetFileAsync(org, repository, filePath, reference, cancellationToken);
+                    }
+                    finally
+                    {
+                        semaphore.Release();
+                    }
+                }, cancellationToken));
+            }
+
+            FileSystemObject[] files = await Task.WhenAll(tasks);
+            return [.. files.Where(file => file is not null)];
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> ModifyMultipleFiles(string org, string repository, GiteaMultipleFilesDto files, CancellationToken cancellationToken = default)
+        {
+            string content = JsonSerializer.Serialize(files, s_jsonOptions);
+            using HttpResponseMessage response = await _httpClient.PostAsync($"repos/{org}/{repository}/contents", new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json), cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                string body = await response.Content.ReadAsStringAsync(cancellationToken);
+                GiteaBadRequestDto failureResponse = JsonSerializer.Deserialize<GiteaBadRequestDto>(body);
+                string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+                _logger.LogError("User {developer} - ModifyMultipleFiles failed with status code {statusCode} for {org}/{repository}. Url: {url}, Message: {message}",
+                    developer,
+                    response.StatusCode,
+                    org,
+                    repository,
+                    failureResponse?.Url,
+                    failureResponse?.Message ?? body
+                );
+            }
+            return response.IsSuccessStatusCode;
+        }
 
         /// <inheritdoc/>
         public async Task<bool> CreatePullRequest(string org, string repository, CreatePullRequestOption createPullRequestOption)
@@ -572,6 +665,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return organisation;
+        }
+
+        private static string AddRefIfExists(string path, string reference)
+        {
+            if (string.IsNullOrWhiteSpace(reference))
+            {
+                return path;
+            }
+            return $"{path}?ref={Uri.EscapeDataString(reference)}";
         }
     }
 }
