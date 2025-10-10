@@ -91,9 +91,8 @@
         "allowUserDelete": false,
         "allowInSubform": false
       },
-      "maxCount": 1,
       "minCount": 1,
-      "enablePdfCreation": true,
+      "enablePdfCreation": false,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],
