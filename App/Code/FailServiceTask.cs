@@ -3,7 +3,6 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.App.Core.Models;
 using Altinn.App.Models.Model2;
-using Altinn.App.Models.Model3;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Code;
@@ -24,18 +23,13 @@ public class FailServiceTask : IServiceTask
         Instance instance = context.InstanceDataMutator.Instance;
 
         DataElement dataElement2 = instance.Data.Find(x => x.DataType == "Model2");
-        DataElement dataElement3 = instance.Data.Find(x => x.DataType == "Model3");
 
         var formDataModel2 = (Model2)
             await context.InstanceDataMutator.GetFormData(new DataElementIdentifier(dataElement2));
 
-        var formDataModel3 = (Model3)
-            await context.InstanceDataMutator.GetFormData(new DataElementIdentifier(dataElement3));
-
         if (
             formDataModel2.fail.HasValue
             && formDataModel2.fail.Value
-            && (!formDataModel3.fail.HasValue || formDataModel3.fail.Value)
         )
         {
             return ServiceTaskResult.Failed();

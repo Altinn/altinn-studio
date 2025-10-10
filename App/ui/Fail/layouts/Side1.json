@@ -11,35 +11,6 @@
         }
       },
       {
-        "dataModelBindings": {
-          "simpleBinding": {
-            "field": "fail",
-            "dataType": "Model3"
-          },
-          "metadata": {
-            "field": "fail",
-            "dataType": "Model3"
-          }
-        },
-        "id": "RadioButtons-aoZwvK",
-        "type": "RadioButtons",
-        "required": true,
-        "options": [
-          {
-            "value": true,
-            "label": "id_B7xyV6j6PmmR"
-          },
-          {
-            "value": false,
-            "label": "id_6SGllQXPgInV"
-          }
-        ],
-        "textResourceBindings": {
-          "title": "Side1.RadioButtons-aoZwvK.title"
-        },
-        "preselectedOptionIndex": 0
-      },
-      {
         "id": "Button-BddG51",
         "type": "Button",
         "textResourceBindings": {

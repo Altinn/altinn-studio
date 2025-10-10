@@ -24,7 +24,7 @@
     },
     {
       "id": "Fail",
-      "dataType": "Model3",
+      "dataType": "model",
       "tasks": [
         "Task_5"
       ]

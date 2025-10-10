@@ -29,10 +29,6 @@
           "simpleBinding": {
             "field": "fail",
             "dataType": "Model2"
-          },
-          "metadata": {
-            "field": "fail",
-            "dataType": "Model2"
           }
         },
         "id": "RadioButtons-aoZwvK",

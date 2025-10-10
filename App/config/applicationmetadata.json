@@ -78,29 +78,6 @@
       "enabledFileValidators": []
     },
     {
-      "id": "Model3",
-      "allowedContentTypes": [
-        "application/xml"
-      ],
-      "appLogic": {
-        "autoCreate": true,
-        "classRef": "Altinn.App.Models.Model3.Model3",
-        "allowAnonymousOnStateless": false,
-        "autoDeleteOnProcessEnd": false,
-        "allowUserCreate": false,
-        "allowUserDelete": false,
-        "allowInSubform": false
-      },
-      "taskId": "Task_5",
-      "maxCount": 1,
-      "minCount": 1,
-      "enablePdfCreation": false,
-      "enableFileScan": false,
-      "validationErrorOnPendingFileScan": false,
-      "enabledFileAnalysers": [],
-      "enabledFileValidators": []
-    },
-    {
       "id": "SubformModel",
       "allowedContentTypes": [
         "application/xml"
