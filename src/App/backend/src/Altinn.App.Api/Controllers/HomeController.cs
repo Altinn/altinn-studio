@@ -158,7 +158,16 @@ public class HomeController : Controller
 
         if (IsStatelessApp(application))
         {
-            redirectUrl = Request.GetDisplayUrl(); // + "/instance/" + details.Profile.Party.PartyId;
+            var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
+            var statelessAppData = await _initialDataService.GetInitialData(
+                org,
+                app,
+                null,
+                details.UserParty.PartyId,
+                language
+            );
+            var statelessAppHtml = GenerateHtml(org, app, statelessAppData);
+            return Content(statelessAppHtml, "text/html; charset=utf-8");
         }
 
         var instances = await GetInstancesForParty(org, app, details.UserParty.PartyId);
@@ -173,9 +182,9 @@ public class HomeController : Controller
             );
         }
 
-        if (instances.Count > 1 && application.OnEntry?.Show == "instance-selection")
+        if (instances.Count > 1 && application.OnEntry?.Show == "select-instance")
         {
-            redirectUrl = Request.GetDisplayUrl() + "/instance-selection/";
+            redirectUrl = Request.GetDisplayUrl() + "instance-selection";
             return Redirect(redirectUrl);
         }
 
@@ -202,6 +211,42 @@ public class HomeController : Controller
             + "/"
             + firstPageId;
         return Redirect(redirectUrl);
+    }
+
+    /// <summary>
+    /// Shows instance selection page with list of user's instances.
+    /// </summary>
+    [HttpGet]
+    [Route("{org}/{app}/instance-selection")]
+    public async Task<IActionResult> InstanceSelection([FromRoute] string org, [FromRoute] string app)
+    {
+        var currentAuth = _authenticationContext.Current;
+        Authenticated.User? auth = currentAuth as Authenticated.User;
+
+        if (auth == null)
+        {
+            throw new UnauthorizedAccessException("You need to be logged in to see this page.");
+        }
+
+        var details = await auth.LoadDetails(validateSelectedParty: false);
+        var application = await _appMetadata.GetApplicationMetadata();
+
+        string layoutSetsString = _appResources.GetLayoutSets();
+        LayoutSets? layoutSets = null;
+        if (!string.IsNullOrEmpty(layoutSetsString))
+        {
+            layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions);
+        }
+
+        var data = new
+        {
+            applicationMetadata = application,
+            userProfile = details.Profile,
+            layoutSets,
+        };
+        var dataJson = JsonSerializer.Serialize(data, _jsonSerializerOptions);
+        var html = GenerateHtmlWithInstances(org, app, dataJson);
+        return Content(html, "text/html; charset=utf-8");
     }
 
     /// <summary>
@@ -272,7 +317,7 @@ public class HomeController : Controller
     /// <param name="taskId">The task identifier.</param>
     /// <param name="pageId">The page identifier.</param>
     /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
-    [HttpGet]
+    // [HttpGet]
     [Route("{org}/{app}/instance/{partyId}/{instanceGuid}/{taskId}/{pageId}")]
     public async Task<IActionResult> Index(
         [FromRoute] string org,
@@ -654,6 +699,56 @@ public class HomeController : Controller
             Console.WriteLine($"Error loading custom.js: {ex.Message}");
         }
         return null;
+    }
+
+    private string GenerateHtmlWithInstances(string org, string app, string dataJson)
+    {
+        var cdnUrl =
+            _generalSettings.FrontendBaseUrl?.TrimEnd('/') ?? "https://altinncdn.no/toolkits/altinn-app-frontend";
+
+        var appVersion = "4";
+
+        var customCss = GetCustomCss(org, app);
+        var customJs = GetCustomJs(org, app);
+
+        var html = new StringBuilder();
+        html.AppendLine("<!DOCTYPE html>");
+        html.AppendLine("<html lang=\"no\">");
+        html.AppendLine("<head>");
+        html.AppendLine("  <meta charset=\"utf-8\">");
+        html.AppendLine("  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">");
+        html.AppendLine("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\">");
+        html.AppendLine($"  <title>{org} - {app}</title>");
+        html.AppendLine("  <link rel=\"icon\" href=\"https://altinncdn.no/favicon.ico\">");
+        html.AppendLine(
+            $"  <link rel=\"stylesheet\" type=\"text/css\" href=\"{cdnUrl}/{appVersion}/altinn-app-frontend.css\">"
+        );
+
+        if (!string.IsNullOrEmpty(customCss))
+        {
+            html.AppendLine($"  <style>{customCss}</style>");
+        }
+
+        html.AppendLine("</head>");
+        html.AppendLine("<body>");
+        html.AppendLine("  <div id=\"root\"></div>");
+        html.AppendLine("  <script>");
+        html.AppendLine($"    window.AltinnAppData = {dataJson};");
+        html.AppendLine($"    window.org = '{org}';");
+        html.AppendLine($"    window.app = '{app}';");
+        html.AppendLine("  </script>");
+
+        html.AppendLine($"  <script src=\"{cdnUrl}/{appVersion}/altinn-app-frontend.js\"></script>");
+
+        if (!string.IsNullOrEmpty(customJs))
+        {
+            html.AppendLine($"  <script>{customJs}</script>");
+        }
+
+        html.AppendLine("</body>");
+        html.AppendLine("</html>");
+
+        return html.ToString();
     }
 }
 

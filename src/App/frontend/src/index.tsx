@@ -29,6 +29,7 @@ import { ApplicationSettingsProvider } from 'src/features/applicationSettings/Ap
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
+import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
 import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
@@ -77,7 +78,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 router={createBrowserRouter(
                   [
                     {
-                      path: '/ttd/component-library/*',
+                      path: '/:org/:app/instance-selection',
+                      element: <InstanceSelectionWrapper />,
+                    },
+                    {
+                      path: '/:org/:app/*',
                       element: (
                         <NavigationEffectProvider>
                           <ErrorBoundary>

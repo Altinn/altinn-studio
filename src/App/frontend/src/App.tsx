@@ -8,7 +8,6 @@ import { Entrypoint } from 'src/features/entrypoint/Entrypoint';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { PartySelection } from 'src/features/instantiate/containers/PartySelection';
-import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
 import { PDFWrapper } from 'src/features/pdf/PDFWrapper';
 import { CustomReceipt, DefaultReceipt } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
@@ -18,10 +17,11 @@ import { PresentationType, ProcessTaskType } from 'src/types';
 
 export const App = () => (
   <Routes>
-    <Route
-      path='/instance-selection'
-      element={<InstanceSelectionWrapper />}
-    />
+    {/*<Route*/}
+    {/*  path='/instance-selection'*/}
+    {/*  // element={<InstanceSelection />}*/}
+    {/*  element={<h1>Instance selection</h1>}*/}
+    {/*/>*/}
     <Route path='/party-selection'>
       <Route
         index
