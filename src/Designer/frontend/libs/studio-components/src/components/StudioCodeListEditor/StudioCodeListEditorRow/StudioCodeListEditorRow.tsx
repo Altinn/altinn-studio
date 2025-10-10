@@ -130,6 +130,7 @@ function CodeCell({ error, label, onChangeValue, ...rest }: CodeCellProps): Reac
 
   return (
     <StudioInputTable.Cell.Textfield
+      autoFocus
       className={classes.textfieldCell}
       label={label}
       onChange={handleChange}

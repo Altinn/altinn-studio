@@ -129,6 +129,18 @@ describe('StudioCodeListEditor', () => {
     ]);
   });
 
+  it('Focuses on the new code field when an item is added', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor();
+    const addButton = screen.getByRole('button', { name: texts.add });
+    await user.click(addButton);
+    const updatedCodeList = onUpdateCodeList.mock.calls[0][0] as CodeList;
+    const updatedNumberOfItems = updatedCodeList.length;
+    const lastCodeInputName = texts.itemValue(updatedNumberOfItems);
+    const lastCodeInput = screen.getByRole('textbox', { name: lastCodeInputName });
+    expect(lastCodeInput).toHaveFocus();
+  });
+
   it('Updates itself when the user changes something', async () => {
     const user = userEvent.setup();
     renderCodeListEditor();
