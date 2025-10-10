@@ -226,6 +226,11 @@ describe('StudioCodeListEditor', () => {
     await user.type(labelInput, newValue);
     expect(screen.getByRole('table')).toBeInTheDocument();
   });
+
+  it('Renders the empty text when the code list is empty', () => {
+    renderCodeListEditor({ codeList: [] });
+    expect(screen.getByText(texts.emptyCodeList)).toBeInTheDocument();
+  });
 });
 
 function renderCodeListEditor(props: Partial<StudioCodeListEditorProps> = {}): RenderResult {
