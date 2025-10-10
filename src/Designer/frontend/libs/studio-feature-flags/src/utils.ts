@@ -26,3 +26,16 @@ const filterValidFlags = (flags: string[]): FeatureFlag[] => flags.filter(isFeat
 
 const isFeatureFlag = (str: string): str is FeatureFlag =>
   Object.values(FeatureFlag).includes(str as FeatureFlag);
+
+export const addFeatureFlagToLocalStorage = (featureFlag: FeatureFlag): void => {
+  const updatedFlags = [...getFlagsFromLocalStorage(), featureFlag];
+  updateFlagsInStorage(updatedFlags);
+};
+
+export const removeFeatureFlagFromLocalStorage = (featureFlag: FeatureFlag): void => {
+  const updatedFlags = ArrayUtils.removeItemByValue(getFlagsFromLocalStorage(), featureFlag);
+  updateFlagsInStorage(updatedFlags);
+};
+
+const updateFlagsInStorage = (flags: FeatureFlag[]): void =>
+  typedLocalStorage.setItem<FeatureFlag[]>(FEATURE_FLAGS_KEY, flags);
