@@ -102,16 +102,18 @@ const isExplicitDataModelBinding = (
 ): binding is ExplicitDataModelBinding | undefined =>
   typeof binding === 'object' && 'dataType' in binding && 'field' in binding;
 
-export const convertDataBindingToInternalFormat = (
+export function convertDataBindingToInternalFormat(
+  layoutDefaultDataTypeOrBinding: string,
   binding?: IDataModelBindings,
-): ExplicitDataModelBinding => {
+): ExplicitDataModelBinding {
+  const layoutDefaultDataType = layoutDefaultDataTypeOrBinding as string | undefined;
   if (isExplicitDataModelBinding(binding)) return binding;
 
   return {
-    field: binding || '',
-    dataType: '',
+    field: binding ?? '',
+    dataType: layoutDefaultDataType,
   };
-};
+}
 
 export const validateSelectedDataModel = (
   selectedDataModel: string,

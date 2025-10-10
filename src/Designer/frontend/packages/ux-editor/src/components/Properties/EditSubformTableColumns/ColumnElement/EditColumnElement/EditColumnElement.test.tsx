@@ -25,6 +25,7 @@ const defaultProps: EditColumnElementProps = {
 const textKeyMock = 'textkeymock1';
 const textValueMock = 'textkeymock1';
 const { field: addressDataField } = convertDataBindingToInternalFormat(
+  '',
   subformLayoutMock.component4.dataModelBindings['address'],
 );
 
