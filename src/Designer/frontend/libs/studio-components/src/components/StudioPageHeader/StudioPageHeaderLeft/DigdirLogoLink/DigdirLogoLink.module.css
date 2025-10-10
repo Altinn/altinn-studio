@@ -1,0 +1,15 @@
+.wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-1);
+  overflow: hidden;
+  padding: var(--ds-size-2);
+  flex: 1;
+}
+
+.titleText {
+  color: var(--ds-color-background-default);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

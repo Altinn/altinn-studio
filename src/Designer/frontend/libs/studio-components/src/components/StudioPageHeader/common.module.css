@@ -1,0 +1,40 @@
+.linkOrButton {
+  --studio-button-regular-dark: #393b51;
+  --studio-button-regular-medium: #3e4f62;
+  --studio-button-regular-light: #657281;
+
+  --studio-button-preview-dark: #0c6536;
+  --studio-button-preview-medium: #118849;
+  --studio-button-preview-light: #67b38a;
+
+  color: var(--ds-color-background-default);
+}
+
+.linkOrButton.regular.dark {
+  background-color: var(--studio-button-regular-dark);
+}
+.linkOrButton.regular.dark:hover {
+  background-color: var(--studio-button-regular-medium);
+}
+
+.linkOrButton.regular.light {
+  background-color: var(--studio-button-regular-medium);
+}
+
+.linkOrButton.regular.light:hover {
+  background-color: var(--studio-button-regular-light);
+}
+
+.linkOrButton.preview.dark {
+  background-color: var(--studio-button-preview-dark);
+}
+.linkOrButton.preview.dark:hover {
+  background-color: var(--studio-button-preview-medium);
+}
+
+.linkOrButton.preview.light {
+  background-color: var(--studio-button-preview-medium);
+}
+.linkOrButton.preview.light:hover {
+  background-color: var(--studio-button-preview-light);
+}
