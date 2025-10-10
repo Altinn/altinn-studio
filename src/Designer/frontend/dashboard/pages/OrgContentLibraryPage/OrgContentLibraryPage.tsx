@@ -142,7 +142,7 @@ function OrgContentLibraryWithContextAndData({
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
     heading: t('org_content_library.library_heading'),
     pages: {
-      codeList: {
+      codeListsWithTextResources: {
         props: {
           codeListDataList,
           onCreateCodeList: handleCreate,

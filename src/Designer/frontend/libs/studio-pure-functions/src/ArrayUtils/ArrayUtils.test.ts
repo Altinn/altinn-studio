@@ -416,4 +416,19 @@ describe('ArrayUtils', () => {
       expect(ArrayUtils.arraysEqualUnordered(['a'], ['a'])).toBe(true);
     });
   });
+
+  describe('isArrayOfStrings', () => {
+    it('Returns true when the argument is an array of strings only', () => {
+      expect(ArrayUtils.isArrayOfStrings(['a', 'b', 'c'])).toBe(true);
+      expect(ArrayUtils.isArrayOfStrings([])).toBe(true);
+    });
+
+    it('Returns false when the argument is an array, but not only strings', () => {
+      expect(ArrayUtils.isArrayOfStrings(['a', 2, 'c'])).toBe(false);
+    });
+
+    it('Returns false when the argument is not an array', () => {
+      expect(ArrayUtils.isArrayOfStrings('abc')).toBe(false);
+    });
+  });
 });

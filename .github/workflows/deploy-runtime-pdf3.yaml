@@ -1,0 +1,52 @@
+name: Runtime - deploy pdf3
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - infra/runtime/pdf3/**
+      - .github/workflows/deploy-runtime-pdf3.yaml
+  workflow_dispatch:
+
+jobs:
+  push-pdf3-artifact:
+    name: Push pdf3 as OCI artifact
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      id-token: write # Require write permission to Fetch an OIDC token.
+    defaults:
+      run:
+        working-directory: ./infra/runtime
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        with:
+          fetch-depth: 0 # Shallow clone
+
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name altinncr
+
+      - name: flux install
+        uses: fluxcd/flux2/action@6bf37f6a560fd84982d67f853162e4b3c2235edb # v2.6.4
+
+      - name: push artifact
+        run: |
+          cd pdf3/
+          flux push artifact oci://altinncr.azurecr.io/studio-apps/runtime-pdf3-repo:$(git rev-parse --short HEAD) \
+            --provider=generic \
+            --reproducible \
+            --path="." \
+            --source="$(git config --get remote.origin.url)" \
+            --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
+
+      - name: tag artifact at_ring1 (ttd/at22)
+        run: |
+          flux tag artifact oci://altinncr.azurecr.io/studio-apps/runtime-pdf3-repo:$(git rev-parse --short HEAD) --tag at_ring1

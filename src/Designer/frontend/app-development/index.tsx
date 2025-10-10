@@ -10,6 +10,7 @@ import { LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
 import type { QueryClientConfig } from '@tanstack/react-query';
 import { PageRoutes } from './router/PageRoutes';
 import { AppDevelopmentContextProvider } from './contexts/AppDevelopmentContext';
+import { FeatureFlagsProvider } from '@studio/feature-flags';
 
 const loggerConfig: LoggerConfig = {
   enableUnhandledPromiseRejectionTracking: true,
@@ -30,12 +31,14 @@ const queryClientConfig: QueryClientConfig = {
 
 root.render(
   <LoggerContextProvider config={loggerConfig}>
-    <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
-      <PreviewConnectionContextProvider>
-        <AppDevelopmentContextProvider>
-          <PageRoutes />
-        </AppDevelopmentContextProvider>
-      </PreviewConnectionContextProvider>
-    </ServicesContextProvider>
+    <FeatureFlagsProvider>
+      <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
+        <PreviewConnectionContextProvider>
+          <AppDevelopmentContextProvider>
+            <PageRoutes />
+          </AppDevelopmentContextProvider>
+        </PreviewConnectionContextProvider>
+      </ServicesContextProvider>
+    </FeatureFlagsProvider>
   </LoggerContextProvider>,
 );

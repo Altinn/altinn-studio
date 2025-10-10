@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { Rows } from '../../../studio-components/src/components';
+import type { Rows } from '../components';
 import { typedLocalStorage } from '@studio/pure-functions';
 import { TableSortStorageKey } from '../../../studio-components/src/types/TableSortStorageKey';
 
