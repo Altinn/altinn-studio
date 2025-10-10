@@ -263,15 +263,12 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         nextResponse.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
         sendAsyncCalled.Should().BeTrue();
 
-        var telemetry = this.Services.GetRequiredService<TelemetrySink>();
-
         // Verify that the instance is not locked after pdf failed
         var unLockedInstanceString = await File.ReadAllTextAsync(dataElementPath);
         var unLockedInstance = JsonSerializer.Deserialize<DataElement>(unLockedInstanceString, JsonSerializerOptions)!;
         unLockedInstance.Locked.Should().BeFalse();
 
-        await telemetry.WaitForServerTelemetry();
-        await Verify(telemetry.GetSnapshot());
+        await Verify(await GetTelemetrySnapshot(numberOfActivities: 1, numberOfMetrics: 1));
     }
 
     [Fact]
@@ -325,15 +322,12 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                 && p.GetProperty("description").GetString() == "test-description"
             );
 
-        var telemetry = this.Services.GetRequiredService<TelemetrySink>();
-
         // Verify that the instance is not updated
         var instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
         instance.Process.CurrentTask.Should().NotBeNull();
         instance.Process.CurrentTask!.ElementId.Should().Be("Task_1");
 
-        await telemetry.WaitForServerTelemetry();
-        await Verify(telemetry.GetSnapshot());
+        await Verify(await GetTelemetrySnapshot(numberOfActivities: 1, numberOfMetrics: 1));
     }
 
     [Fact]

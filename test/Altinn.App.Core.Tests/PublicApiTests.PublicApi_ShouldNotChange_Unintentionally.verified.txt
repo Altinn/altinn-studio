@@ -2243,7 +2243,7 @@ namespace Altinn.App.Core.Helpers.Serialization
         public string? Error { get; }
         public System.Threading.Tasks.Task<object?> DeserializeAsync(System.IO.Stream stream, string? contentType) { }
     }
-    public class ModelSerializationService
+    public sealed class ModelSerializationService
     {
         public ModelSerializationService(Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
         public object DeserializeFromStorage(System.ReadOnlySpan<byte> data, Altinn.Platform.Storage.Interface.Models.DataType dataType) { }

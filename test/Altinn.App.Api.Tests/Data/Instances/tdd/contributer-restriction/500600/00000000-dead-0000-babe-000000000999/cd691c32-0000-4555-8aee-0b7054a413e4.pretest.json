@@ -1,0 +1,22 @@
+{
+  "id": "cd691c32-0000-4555-8aee-0b7054a413e4",
+  "instanceGuid": "00000000-DEAD-0000-BABE-000000000999",
+  "dataType": "default",
+  "filename": null,
+  "contentType": "application/xml",
+  "blobStoragePath": null,
+  "selfLinks": null,
+  "size": 0,
+  "contentHash": null,
+  "locked": false,
+  "refs": null,
+  "isRead": true,
+  "tags": [],
+  "deleteStatus": null,
+  "fileScanResult": "NotApplicable",
+  "references": null,
+  "created": null,
+  "createdBy": null,
+  "lastChanged": "2024-01-10T22:04:31.511965Z",
+  "lastChangedBy": null
+}

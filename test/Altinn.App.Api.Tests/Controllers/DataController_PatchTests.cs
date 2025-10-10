@@ -359,14 +359,12 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         );
 
         var (_, _, parsedResponse) = await CallPatchApi<ProblemDetails>(patch, null, HttpStatusCode.Conflict);
-        var telemetry = this.Services.GetRequiredService<TelemetrySink>();
 
         parsedResponse.Detail.Should().Be("Path `/melding/name` is not equal to the indicated value.");
 
         _dataProcessorMock.VerifyNoOtherCalls();
 
-        await telemetry.WaitForServerTelemetry();
-        await Verify(telemetry.GetSnapshot());
+        await Verify(await GetTelemetrySnapshot(numberOfActivities: 1, numberOfMetrics: 1));
     }
 
     [Fact]
