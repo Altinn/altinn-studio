@@ -23,11 +23,8 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Altinn.Studio.Designer.Clients.Implementations;
 
-public class AzureSharedContentClient(HttpClient httpClient, ILogger logger, IOptions<KeyVaultSettings> kvSettings, IOptions<SharedContentClientSettings> sharedContentClientSettings) : ISharedContentClient
+public class AzureSharedContentClient(HttpClient httpClient, ILogger<AzureSharedContentClient> logger, IOptions<KeyVaultSettings> kvSettings, IOptions<SharedContentClientSettings> sharedContentClientSettings) : ISharedContentClient
 {
-    private readonly HttpClient _httpClient = httpClient;
-    private readonly ILogger _logger = logger;
-
     private int _currentVersion = int.Parse(InitialVersion);
     private readonly Dictionary<string, string> _fileNamesAndContent = [];
     private readonly string? _sharedContentBaseUri = Environment.GetEnvironmentVariable("ALTINN_STUDIO_SHARED_CONTENT_BASE_URL");
@@ -49,7 +46,7 @@ public class AzureSharedContentClient(HttpClient httpClient, ILogger logger, IOp
 
         // Sanity check
         string rootIndexUri = Path.Join(_sharedContentBaseUri, IndexFileName);
-        HttpResponseMessage rootIndexResponse = await _httpClient.GetAsync(rootIndexUri, cancellationToken);
+        HttpResponseMessage rootIndexResponse = await httpClient.GetAsync(rootIndexUri, cancellationToken);
         ThrowIfUnhealthyEndpoint(rootIndexResponse);
 
         using TempFileCreatorHelper tempFileHelper = new();
@@ -113,7 +110,7 @@ public class AzureSharedContentClient(HttpClient httpClient, ILogger logger, IOp
     private async Task HandleVersionIndex(string orgName, string codeListId, string versionDirectory, CancellationToken cancellationToken)
     {
         string versionIndexUri = Path.Join(_sharedContentBaseUri, orgName, CodeListDirectoryName, codeListId, IndexFileName);
-        HttpResponseMessage versionIndexResponse = await _httpClient.GetAsync(versionIndexUri, cancellationToken);
+        HttpResponseMessage versionIndexResponse = await httpClient.GetAsync(versionIndexUri, cancellationToken);
         string combinedPath = Path.Join(versionDirectory, IndexFileName);
 
         if (versionIndexResponse.StatusCode == HttpStatusCode.OK)
@@ -145,7 +142,7 @@ public class AzureSharedContentClient(HttpClient httpClient, ILogger logger, IOp
     private async Task HandleResourceIndex(string orgName, string codeListId, string codeListDirectory, CancellationToken cancellationToken)
     {
         string codeListIdIndexUri = Path.Join(_sharedContentBaseUri, orgName, CodeListDirectoryName, IndexFileName);
-        HttpResponseMessage codeListIdIndexResponse = await _httpClient.GetAsync(codeListIdIndexUri, cancellationToken);
+        HttpResponseMessage codeListIdIndexResponse = await httpClient.GetAsync(codeListIdIndexUri, cancellationToken);
 
         string combinedPath = Path.Join(codeListDirectory, IndexFileName);
         if (codeListIdIndexResponse.StatusCode == HttpStatusCode.NotFound)
@@ -169,7 +166,7 @@ public class AzureSharedContentClient(HttpClient httpClient, ILogger logger, IOp
     private async Task HandleResourceTypeIndex(string orgName, string organisationDirectory, CancellationToken cancellationToken)
     {
         string resourceTypeIndexUri = Path.Join(_sharedContentBaseUri, orgName, IndexFileName);
-        HttpResponseMessage resourceTypeIndexResponse = await _httpClient.GetAsync(resourceTypeIndexUri, cancellationToken);
+        HttpResponseMessage resourceTypeIndexResponse = await httpClient.GetAsync(resourceTypeIndexUri, cancellationToken);
 
         string combinedPath = Path.Join(organisationDirectory, IndexFileName);
         if (resourceTypeIndexResponse.StatusCode == HttpStatusCode.NotFound)
@@ -214,7 +211,7 @@ public class AzureSharedContentClient(HttpClient httpClient, ILogger logger, IOp
     {
         if (rootIndexResponse.StatusCode == HttpStatusCode.NotFound)
         {
-            _logger.LogError($"Shared content storage container not found, class: {nameof(AzureSharedContentClient)}");
+            logger.LogError($"Shared content storage container not found, class: {nameof(AzureSharedContentClient)}");
             throw new InvalidOperationException("Request failed.");
         }
     }
