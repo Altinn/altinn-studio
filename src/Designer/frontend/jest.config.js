@@ -22,6 +22,8 @@ const packagesToTransform = [
   '@bpmn-io',
   'diagram-js',
   'htm',
+  'uuid',
+  'react-error-boundary',
 ].join('|');
 
 /** @type {import('jest').Config} */

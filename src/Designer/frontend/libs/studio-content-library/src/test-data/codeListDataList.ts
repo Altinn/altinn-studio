@@ -1,4 +1,4 @@
-import type { CodeList } from '../types/CodeList';
+import type { CodeListWithTextResources } from '../types/CodeListWithTextResources';
 import type { CodeListData } from '../types/CodeListData';
 import {
   description1ResourceNb,
@@ -13,7 +13,7 @@ import {
   label4ResourceNb,
 } from './textResources';
 
-const codeList1: CodeList = [
+const codeList1: CodeListWithTextResources = [
   {
     value: 'item1',
     label: label1ResourceNb.id,
@@ -39,7 +39,7 @@ export const codeList1Data: CodeListData = {
   data: codeList1,
 };
 
-const codeList2: CodeList = [
+const codeList2: CodeListWithTextResources = [
   {
     value: 'item1',
     label: label1ResourceNb.id,

@@ -1,12 +1,9 @@
-import { useEffect } from 'react';
-
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
-import { useNavigationParam } from 'src/hooks/navigation';
-import { TaskKeys, useNavigateToTask } from 'src/hooks/useNavigatePage';
+import { TaskKeys } from 'src/hooks/useNavigatePage';
 import { fetchProcessState } from 'src/queries/queries';
 import { isProcessTaskType, ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
@@ -25,34 +22,7 @@ export const processQueries = {
 
 export function useProcessQuery() {
   const instanceId = useLaxInstanceId();
-  const taskId = useNavigationParam('taskId');
-  const layoutSets = useLayoutSets();
-  const navigateToTask = useNavigateToTask();
-
-  const query = useQuery(processQueries.processState(instanceId));
-
-  const { data, error } = query;
-  const ended = !!data?.ended;
-
-  // TODO: move this to a layout file on task id change instead
-  useEffect(() => {
-    if (ended) {
-      // Catch cases where there is a custom receipt, but we've navigated
-      // to the wrong one (i.e. mocking in all-process-steps.ts)
-      const hasCustomReceipt = behavesLikeDataTask(TaskKeys.CustomReceipt, layoutSets);
-      if (taskId === TaskKeys.ProcessEnd && hasCustomReceipt) {
-        navigateToTask(TaskKeys.CustomReceipt);
-      } else if (taskId === TaskKeys.CustomReceipt && !hasCustomReceipt) {
-        navigateToTask(TaskKeys.ProcessEnd);
-      }
-    }
-  }, [ended, layoutSets, navigateToTask, taskId]);
-
-  useEffect(() => {
-    error && window.logError('Fetching process state failed:\n', error);
-  }, [error]);
-
-  return query;
+  return useQuery(processQueries.processState(instanceId));
 }
 
 export const useIsAuthorized = () => {

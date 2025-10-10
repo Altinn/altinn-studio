@@ -1,0 +1,12 @@
+import { Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
+import * as StudioTreeViewStories from './StudioTreeView.stories';
+
+<Meta of={StudioTreeViewStories} />
+
+<Heading level={1} size='small'>
+  StudioTreeView
+</Heading>
+<Paragraph>StudioTreeView is used to display a tree structure of items.</Paragraph>
+
+<Canvas of={StudioTreeViewStories.Preview} />

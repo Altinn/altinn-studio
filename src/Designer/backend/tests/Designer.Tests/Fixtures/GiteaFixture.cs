@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Net.Sockets;
 using System.Text;
@@ -41,7 +42,8 @@ namespace Designer.Tests.Fixtures
             })
             {
                 BaseAddress = new Uri(TestUrlsProvider.Instance.GiteaUrl + "/api/v1/"),
-                DefaultRequestHeaders = { Authorization = new BasicAuthenticationHeaderValue(GiteaConstants.AdminUser, GiteaConstants.AdminPassword) }
+                DefaultRequestHeaders = { Authorization =new System.Net.Http.Headers.AuthenticationHeaderValue("Basic",
+                    Convert.ToBase64String(Encoding.ASCII.GetBytes($"{GiteaConstants.AdminUser}:{GiteaConstants.AdminPassword}"))) }
             });
         }
 
