@@ -123,5 +123,32 @@ describe('StudioCodelistEditor utils', () => {
         ]);
       },
     );
+
+    it('Adds the property if it does not exist', () => {
+      const codeListItemWithoutDescription: CodeListItem = {
+        value: 'test',
+        label: {
+          en: 'Label',
+          nb: 'Ledetekst',
+        },
+      };
+      const initialCodeList: CodeList = [codeListItemWithoutDescription];
+      const newDescription = 'New description';
+      const updateArgs: UpdateCodeTextArgs = {
+        property: CodeListItemTextProperty.Description,
+        codeItemIndex: 0,
+        language: 'nb',
+        newValue: newDescription,
+      };
+      const result = updateCodeText(initialCodeList, updateArgs);
+      expect(result).toEqual([
+        {
+          ...codeListItemWithoutDescription,
+          description: {
+            nb: newDescription,
+          },
+        },
+      ]);
+    });
   });
 });
