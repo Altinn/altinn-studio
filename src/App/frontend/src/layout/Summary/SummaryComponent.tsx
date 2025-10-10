@@ -189,7 +189,10 @@ const SummaryComponentInner = React.forwardRef(function (
             onChangeClick={onChangeClick}
             changeText={langAsString('form_filler.summary_item_change')}
             targetBaseComponentId={targetBaseComponentId}
-            overrides={{ largeGroup, display, pageBreak, grid, excludedChildren }}
+            // Intentionally not passing the pageBreak override here, as that will cause the property to
+            // be inherited forever in repeating groups, causing every component inside to be on a separate page.
+            // Passing `grid` here would make every Summary render use the grid settings for the topmost component
+            overrides={{ largeGroup, display, excludedChildren }}
             RenderSummary={RenderSummary}
           />
         ) : (

@@ -60,14 +60,14 @@ describe('PreviewControlHeader', () => {
 
   it('should render the spinner initially loading the component', () => {
     renderPreviewControlHeader();
-    expect(screen.getByTitle(textMock('preview.loading_preview_controller'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('preview.loading_preview_controller'))).toBeInTheDocument();
   });
 
   it('should render the toggle buttons with the correct initial state', async () => {
     renderPreviewControlHeader();
 
     await waitForElementToBeRemoved(
-      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+      screen.queryByText(textMock('preview.loading_preview_controller')),
     );
 
     expect(
@@ -83,7 +83,7 @@ describe('PreviewControlHeader', () => {
     renderPreviewControlHeader();
 
     await waitForElementToBeRemoved(
-      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+      screen.queryByText(textMock('preview.loading_preview_controller')),
     );
 
     const mobileButton = screen.getByRole('radio', { name: textMock('preview.view_size_mobile') });
