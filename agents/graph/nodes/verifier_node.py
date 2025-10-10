@@ -41,19 +41,7 @@ async def handle(state: AgentState) -> AgentState:
         state.verify_notes = [str(error) for error in result.errors] if result.errors else ["All validations passed"]
         state.next_action = "review"
 
-        sink.send(
-            AgentEvent(
-                type="verify_result",
-                session_id=state.session_id,
-                data={
-                    "passed": state.tests_passed,
-                    "notes": state.verify_notes,
-                    "errors": len(result.errors),
-                    "warnings": len(result.warnings),
-                },
-            )
-        )
-
+        
     except Exception as exc:
         sink.send(
             AgentEvent(

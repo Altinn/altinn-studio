@@ -77,10 +77,34 @@ class MCPClient:
                 raise Exception(f"MCP server not responding: {result['error']}")
             
             # Extract server info from result
-            if isinstance(result, list) and len(result) > 0:
+            if hasattr(result, 'content'):
+                # CallToolResult object (newer MCP versions)
+                content = result.content
+                if isinstance(content, str):
+                    # JSON string - parse it
+                    try:
+                        server_info = json.loads(content)
+                    except json.JSONDecodeError:
+                        raise Exception(f"Invalid JSON in CallToolResult content: {content}")
+                elif isinstance(content, list) and len(content) > 0:
+                    # List of response objects
+                    first_item = content[0]
+                    if hasattr(first_item, 'text'):
+                        # Parse JSON from text attribute
+                        try:
+                            server_info = json.loads(first_item.text)
+                        except json.JSONDecodeError:
+                            raise Exception(f"Invalid JSON in CallToolResult list item: {first_item.text}")
+                    else:
+                        # Plain object
+                        server_info = first_item
+                else:
+                    # Content is already a dict or other object
+                    server_info = content
+            elif isinstance(result, list) and len(result) > 0:
+                # Legacy list format (older MCP versions)
                 if hasattr(result[0], 'text'):
                     # Parse JSON response
-                    import json
                     try:
                         server_info = json.loads(result[0].text)
                     except json.JSONDecodeError:
@@ -99,13 +123,32 @@ class MCPClient:
             elif isinstance(result, dict):
                 server_info = result
             else:
-                # Fallback - assume result is already the server info
+                # Direct dict response (fallback)
                 server_info = result
-            
-            # Extract version
-            version = server_info.get("version")
-            if not version:
-                raise Exception("Server did not return version information")
+                        
+            # Extract version (required for this MCP server)
+            if isinstance(server_info, dict):
+                # Check if version is directly available
+                version = server_info.get("version")
+                if not version:
+                    # Check if it's nested under 'result' key
+                    result_data = server_info.get("result")
+                    if isinstance(result_data, dict):
+                        version = result_data.get("version")
+                        # Update server_info to point to the result data for consistency
+                        server_info = result_data
+                        
+                if not version:
+                    # Try other possible keys
+                    version = server_info.get("server_version") or server_info.get("mcp_version")
+                    if not version:
+                        log.error(f"server_info dict keys: {list(server_info.keys())}")
+                        if "result" in server_info and isinstance(server_info["result"], dict):
+                            log.error(f"result dict keys: {list(server_info['result'].keys())}")
+                        raise Exception(f"Server did not return version information. Available keys: {list(server_info.keys())}")
+            else:
+                log.error(f"server_info is not a dict, it's: {type(server_info)} - {server_info}")
+                raise Exception(f"Server returned unexpected format: {type(server_info)}")
             
             # Check version format (should be x.x.x)
             import re
@@ -135,6 +178,11 @@ class MCPClient:
             client = await self._get_client()
             async with client:
                 result = await client.call_tool(tool_name, arguments)
+                
+                # Handle CallToolResult objects with structured content
+                if hasattr(result, 'structured_content') and result.structured_content:
+                    return result.structured_content
+                
                 return result
         except Exception as e:
             log.error(f"Failed to call MCP tool {tool_name}: {e}")

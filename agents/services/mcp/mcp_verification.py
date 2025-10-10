@@ -147,8 +147,11 @@ class MCPVerifier:
                 layout_result = await mcp_client.call_tool("schema_validator_tool", tool_input)
                 
                 # Format the output for multiple views
-                # Handle TextContent objects by extracting their text
-                if hasattr(layout_result, 'text'):
+                # Handle CallToolResult objects with structured_content
+                if hasattr(layout_result, 'structured_content') and layout_result.structured_content:
+                    result_text = json.dumps(layout_result.structured_content)
+                    result_json = layout_result.structured_content
+                elif hasattr(layout_result, 'text'):
                     result_text = layout_result.text
                     try:
                         result_json = json.loads(result_text)
@@ -174,8 +177,10 @@ class MCPVerifier:
                 })
                 result.tool_results.append({"tool": "schema_validator_tool", "result": layout_result})
                 
-                # Handle various MCP response formats (list, dict, TextContent)
-                if isinstance(layout_result, list):
+                # Handle various MCP response formats (list, dict, TextContent, CallToolResult)
+                if hasattr(layout_result, 'structured_content') and layout_result.structured_content:
+                    layout_data = layout_result.structured_content
+                elif isinstance(layout_result, list):
                     # If it's a list, get first item
                     layout_data = layout_result[0] if layout_result else {}
                     # If first item is TextContent, get its text and parse
@@ -235,8 +240,11 @@ class MCPVerifier:
                 resource_result = await mcp_client.call_tool("resource_validator_tool", tool_input)
                 
                 # Format the output for multiple views
-                # Handle TextContent objects by extracting their text
-                if hasattr(resource_result, 'text'):
+                # Handle CallToolResult objects with structured_content
+                if hasattr(resource_result, 'structured_content') and resource_result.structured_content:
+                    result_text = json.dumps(resource_result.structured_content)
+                    result_json = resource_result.structured_content
+                elif hasattr(resource_result, 'text'):
                     result_text = resource_result.text
                     try:
                         result_json = json.loads(result_text)
@@ -262,8 +270,10 @@ class MCPVerifier:
                 })
                 result.tool_results.append({"tool": "resource_validator_tool", "result": resource_result})
                 
-                # Handle various MCP response formats (list, dict, TextContent)
-                if isinstance(resource_result, list):
+                # Handle various MCP response formats (list, dict, TextContent, CallToolResult)
+                if hasattr(resource_result, 'structured_content') and resource_result.structured_content:
+                    resource_data = resource_result.structured_content
+                elif isinstance(resource_result, list):
                     resource_data = resource_result[0] if resource_result else {}
                     if hasattr(resource_data, 'text'):
                         resource_data = json.loads(resource_data.text)
@@ -300,13 +310,20 @@ class MCPVerifier:
                 
                 span.set_inputs(tool_input)
                 policy_result = await mcp_client.call_tool("policy_validation_tool", tool_input)
-                span.set_outputs({"result": policy_result})
-                result.tool_results.append({"tool": "policy_validation_tool", "result": policy_result})
                 
-                if policy_result.get("valid", True):
+                # Handle CallToolResult objects with structured_content
+                if hasattr(policy_result, 'structured_content') and policy_result.structured_content:
+                    policy_data = policy_result.structured_content
+                else:
+                    policy_data = policy_result
+                
+                span.set_outputs({"result": policy_data})
+                result.tool_results.append({"tool": "policy_validation_tool", "result": policy_data})
+                
+                if policy_data.get("valid", True):
                     result.add_success("policy_validation")
                 else:
-                    for error in policy_result.get("errors", []):
+                    for error in policy_data.get("errors", []):
                         result.add_error("policy_validation", error)
                         
             except Exception as e:

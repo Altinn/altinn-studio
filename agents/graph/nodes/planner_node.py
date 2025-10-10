@@ -56,17 +56,6 @@ async def handle(state: AgentState) -> AgentState:
             
             state.next_action = "act"
 
-            sink.send(
-                AgentEvent(
-                    type="plan_proposed",
-                    session_id=state.session_id,
-                    data={
-                        "summary": patch_data.get("summary", "No summary available"),
-                        "files": patch_data.get("files", []),
-                    },
-                )
-            )
-
     except Exception as exc:
         log.error(f"Planner node failed: {exc}", exc_info=True)
         state.next_action = "stop"

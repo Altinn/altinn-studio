@@ -121,17 +121,6 @@ async def handle(state: AgentState) -> AgentState:
         git_ops.enforce_caps(normalized_patch_data, state.limits)
         preview = git_ops.preview(normalized_patch_data)
 
-        sink.send(
-            AgentEvent(
-                type="patch_preview",
-                session_id=state.session_id,
-                data={
-                    "files": preview["files"],
-                    "diff": preview["diff_preview"],
-                    "file_count": preview["file_count"],
-                },
-            )
-        )
 
         # Validate patch operations before applying
         from agents.workflows.actor.pipeline import validate_patch_operations
@@ -154,6 +143,7 @@ async def handle(state: AgentState) -> AgentState:
                 modified_sot_files.append(file_path)
         
         # Sync artifacts if Source of Truth files were modified
+        generated_files = []
         if modified_sot_files:
             log.info(f"🔄 Source of Truth files modified: {modified_sot_files}")
             try:
@@ -176,6 +166,18 @@ async def handle(state: AgentState) -> AgentState:
                         all_sync_results.append(sync_result)
                         log.info(f"✅ Synced {sot_file}: {sync_result.get('status', 'unknown')}")
                         
+                        # Collect generated files
+                        for generated in sync_result.get("generated", []):
+                            file_path = generated.get("path", "")
+                            if file_path:
+                                # The file_path is just the filename (e.g., "model.cs")
+                                # We need to construct the full relative path
+                                from pathlib import Path
+                                schema_dir = Path(sot_file).parent
+                                full_relative_path = str(schema_dir / file_path)
+                                generated_files.append(full_relative_path)
+                                log.info(f"📄 Generated file: {full_relative_path}")
+                        
                     except Exception as e:
                         log.error(f"❌ Failed to sync {sot_file}: {e}")
                         all_sync_results.append({
@@ -184,7 +186,7 @@ async def handle(state: AgentState) -> AgentState:
                             "error": str(e)
                         })
                 
-                log.info(f"✅ Artifact sync completed for {len(modified_sot_files)} files")
+                log.info(f"✅ Artifact sync completed for {len(modified_sot_files)} files, generated {len(generated_files)} files")
                 
             except Exception as e:
                 log.error(f"❌ Artifact sync failed: {e}")
@@ -204,7 +206,7 @@ async def handle(state: AgentState) -> AgentState:
         except Exception as e:
             log.error(f"Failed to check git status: {e}")
         
-        state.changed_files = preview["files"]
+        state.changed_files = preview["files"] + generated_files
         state.next_action = "verify"
 
         # Store additional pipeline results for potential debugging (only if we ran the pipeline)
@@ -218,12 +220,6 @@ async def handle(state: AgentState) -> AgentState:
             log.info("📋 Skipping pipeline result storage (using planner's patch)")
 
     except git_ops.CapsExceededError as exc:
-        sink.send(
-            AgentEvent(
-                type="blocked",
-                session_id=state.session_id,
-            )
-        )
         state.next_action = "stop"
 
     except Exception as exc:

@@ -350,6 +350,134 @@ async def create_implementation_plan(
             raise Exception(f"planning_tool failed: {error_message}")
 
         planning_text = extract_tool_text(planning_result)
+        
+        # Check if planning_text is markdown documentation instead of JSON
+        if planning_text.strip().startswith("#") or not planning_text.strip().startswith("{"):
+            planning_text = await generate_implementation_plan_from_docs(
+                planning_text, user_goal, repo_facts, tool_results, general_plan
+            )
+        
+        span.set_outputs(
+            {
+                "raw_result": planning_text[:5000],
+                "formats": {"text": planning_text, "markdown": "```\n" + planning_text + "\n```"},
+            }
+        )
+
+    return parse_json_response(planning_text, "implementation plan")
+
+
+async def generate_implementation_plan_from_docs(
+    documentation: str,
+    user_goal: str,
+    repo_facts: Dict[str, Any],
+    tool_results: List[Dict[str, Any]],
+    general_plan: Dict[str, Any],
+) -> str:
+    """Generate a structured implementation plan from MCP documentation using LLM."""
+    
+    client = LLMClient(role="actor")
+    
+    # Get summary of available tools
+    tool_summary = "\n".join([
+        f"- {result.get('tool', 'unknown')}: {result.get('result', '')[:100]}..."
+        for result in tool_results[:5]  # Limit to first 5 tools
+    ]) if tool_results else "No tools used yet"
+    
+    prompt = f"""
+Based on the following Altinn documentation and context, create a detailed JSON implementation plan for: {user_goal}
+
+DOCUMENTATION:
+{documentation[:3000]}
+
+GENERAL PLAN:
+{json.dumps(general_plan, indent=2)}
+
+TOOL RESULTS SUMMARY:
+{tool_summary}
+
+REPOSITORY FACTS:
+- Layouts: {len(repo_facts.get('layouts', []))} files
+- Models: {len(repo_facts.get('models', []))} files  
+- Resources: {len(repo_facts.get('resources', []))} files
+
+Create a JSON implementation plan with these fields:
+{{
+  "goal_analysis": "Brief analysis of what needs to be implemented",
+  "components_needed": ["List of Altinn components to add/modify"],
+  "data_model_changes": ["List of data model field additions"],
+  "layout_changes": ["List of layout modifications needed"],
+  "resource_changes": ["List of text resource additions"],
+  "implementation_steps": [
+    {{
+      "step": "Brief description",
+      "component": "What component this affects",
+      "action": "What to do",
+      "details": "Specific implementation details"
+    }}
+  ],
+  "validation_requirements": ["List of things to validate"],
+  "risks": ["Potential issues or edge cases"]
+}}
+
+Focus on the specific user goal and be concrete about file paths, component IDs, and data bindings. Use the documentation to understand Altinn best practices.
+"""
+
+    try:
+        response = await client.call_async(
+            system_prompt="You are an expert Altinn developer creating implementation plans. Be specific, practical, and follow Altinn conventions.",
+            user_prompt=prompt
+        )
+        return response.strip()
+    except Exception as e:
+        log.error(f"Failed to generate implementation plan from docs: {e}")
+        # Don't provide a generic fallback - if planning fails, let the user know
+        raise Exception(f"Failed to generate implementation plan from MCP documentation: {e}. The planning tool returned unusable documentation.")
+
+
+async def create_implementation_plan(
+    mcp_client,
+    user_goal: str,
+    repo_facts: Dict[str, Any],
+    tool_results: List[Dict[str, Any]],
+    general_plan: Dict[str, Any],
+    planner_step: Optional[str] = None,
+) -> Dict[str, Any]:
+    payload = {
+        "user_goal": user_goal,
+        "general_plan": general_plan,
+        "tool_results": tool_results,
+        "repository_facts": repo_facts,
+        "planner_step": planner_step,
+    }
+
+    with mlflow.start_span(name="implementation_planning_tool", span_type="TOOL") as span:
+        span.set_inputs(
+            {
+                "payload_keys": list(payload.keys()),
+                "files_known": len(repo_facts.get("files", [])) if isinstance(repo_facts, dict) else 0,
+            }
+        )
+
+        planning_result = await mcp_client.call_tool("planning_tool", payload)
+        if isinstance(planning_result, dict) and "error" in planning_result:
+            error_message = planning_result["error"]
+            span.set_status("ERROR")
+            span.set_outputs({"success": False, "error": error_message})
+            raise Exception(f"planning_tool failed: {error_message}")
+
+        planning_text = extract_tool_text(planning_result)
+        log.info(f"Planning tool result type: {type(planning_result)}")
+        log.info(f"Planning text length: {len(planning_text)}")
+        log.info(f"Planning text preview: {planning_text[:200]}")
+        
+        # Check if planning_text is markdown documentation instead of JSON
+        if planning_text.strip().startswith("#") or not planning_text.strip().startswith("{"):
+            log.info("Planning tool returned documentation, generating implementation plan from documentation")
+            planning_text = await generate_implementation_plan_from_docs(
+                planning_text, user_goal, repo_facts, tool_results, general_plan
+            )
+        
         span.set_outputs(
             {
                 "raw_result": planning_text[:5000],
@@ -598,16 +726,66 @@ def validate_patch_operations(patch: Dict[str, Any], repo_facts: Dict[str, Any],
 
 
 def extract_tool_text(result: Any) -> str:
+    """Extract text content from MCP tool response."""
+    # Handle CallToolResult objects (newer MCP versions)
+    if hasattr(result, 'structured_content') and result.structured_content:
+        # Some CallToolResult objects have pre-parsed structured content
+        return str(result.structured_content)
+    elif hasattr(result, 'content'):
+        content = result.content
+        if isinstance(content, str):
+            return content
+        elif isinstance(content, list) and content:
+            first_item = content[0]
+            if hasattr(first_item, 'text'):
+                text_content = first_item.text
+                # Check if this is a JSON wrapper with content field
+                try:
+                    parsed = json.loads(text_content)
+                    if isinstance(parsed, dict) and "content" in parsed:
+                        return parsed["content"]
+                except json.JSONDecodeError:
+                    pass  # Not JSON, use as-is
+                return text_content
+            return str(first_item)
+        return str(content)
+
+    # Handle list responses (legacy format)
     if isinstance(result, list) and result:
         first = result[0]
         if hasattr(first, "text"):
-            return first.text
+            text_content = first.text
+            # Check if this is a JSON wrapper with content field
+            try:
+                parsed = json.loads(text_content)
+                if isinstance(parsed, dict) and "content" in parsed:
+                    return parsed["content"]
+            except json.JSONDecodeError:
+                pass  # Not JSON, use as-is
+            return text_content
         return str(first)
+    
     return str(result)
 
 
 def parse_json_response(response: str, context: str) -> Dict[str, Any]:
     clean = response.strip()
+    
+    # Check if response is a JSON wrapper with content field (from MCP tools)
+    try:
+        wrapper = json.loads(clean)
+        if isinstance(wrapper, dict) and "content" in wrapper:
+            # Extract content and parse it as the actual response
+            content = wrapper["content"]
+            if isinstance(content, str):
+                clean = content
+            else:
+                # Content is already parsed
+                return wrapper
+    except json.JSONDecodeError:
+        # Not a JSON wrapper, continue with normal parsing
+        pass
+    
     if "```json" in clean:
         start = clean.find("```json") + 7
         end = clean.find("```", start)
