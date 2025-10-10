@@ -20,6 +20,12 @@ export const useContentTabs = (): TabDictionary => {
       icon: <BookIcon />,
       renderTab: (props) => <Link to={`?${pageRouterQueryParamKey}=landingPage`} {...props} />,
     },
+    codeLists: {
+      tabName: t('app_content_library.code_lists.page_name'),
+      tabId: 'codeLists',
+      icon: <CodeListsIcon />,
+      renderTab: (props) => <Link to={`?${pageRouterQueryParamKey}=codeLists`} {...props} />,
+    },
     codeListsWithTextResources: {
       tabName: t('app_content_library.code_lists_with_text_resources.page_name'),
       tabId: 'codeListsWithTextResources',

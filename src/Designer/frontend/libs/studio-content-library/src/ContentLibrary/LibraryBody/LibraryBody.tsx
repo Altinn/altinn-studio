@@ -21,7 +21,7 @@ export function LibraryBody<T extends PageName>({
   return (
     <div className={classes.libraryContent}>
       <PagesRouter pageNames={getAllPageNamesFromPagesConfig(pages)} />
-      <Page<T> Component={Component} componentProps={componentProps} currentPage={currentPage} />
+      <Page<T> Component={Component} componentProps={componentProps} />
     </div>
   );
 }
@@ -29,10 +29,9 @@ export function LibraryBody<T extends PageName>({
 type PageProps<T extends PageName> = {
   Component: PageComponent<PagePropsMap<T>>;
   componentProps: PagePropsMap<T>;
-  currentPage: T;
 };
 
-function Page<T extends PageName>({ Component, componentProps, currentPage }: PageProps<T>) {
+function Page<T extends PageName>({ Component, componentProps }: PageProps<T>) {
   return (
     <div className={classes.component}>
       <Component {...componentProps} />

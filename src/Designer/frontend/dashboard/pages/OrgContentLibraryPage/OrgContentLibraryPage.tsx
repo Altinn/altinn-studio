@@ -4,6 +4,7 @@ import { ResourceContentLibraryImpl } from '@studio/content-library';
 import type {
   CodeListData,
   CodeListWithMetadata,
+  PagesConfig,
   TextResourceWithLanguage,
 } from '@studio/content-library';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
@@ -35,6 +36,7 @@ import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useUpdateOrgTextResourcesMutation } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
 import { useUpdateOrgCodeListIdMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListIdMutation';
 import { FeedbackForm } from './FeedbackForm';
+import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -112,6 +114,7 @@ function OrgContentLibraryWithContextAndData({
   const { mutate: updateCodeListId } = useUpdateOrgCodeListIdMutation(orgName);
   const { mutate: updateTextResources } = useUpdateOrgTextResourcesMutation(orgName);
   const { t } = useTranslation();
+  const displayNewCodeListPage = useFeatureFlag(FeatureFlag.NewCodeListApi);
 
   const handleUpload = useUploadCodeList(orgName);
 
@@ -155,6 +158,7 @@ function OrgContentLibraryWithContextAndData({
           textResources,
         },
       },
+      ...pagesFromFeatureFlags(displayNewCodeListPage),
     },
   });
 
@@ -164,6 +168,14 @@ function OrgContentLibraryWithContextAndData({
       <FeedbackForm />
     </div>
   );
+}
+
+function pagesFromFeatureFlags(displayNewCodeListPage: boolean): Partial<PagesConfig> {
+  if (displayNewCodeListPage) {
+    return { codeLists: { props: {} } };
+  } else {
+    return {};
+  }
 }
 
 function ContextWithoutLibraryAccess(): ReactElement {
