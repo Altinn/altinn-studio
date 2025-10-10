@@ -3071,6 +3071,8 @@ __metadata:
     eslint-plugin-storybook: "npm:^9.0.10"
     jest: "npm:^29.7.0"
     jest-environment-jsdom: "npm:^29.7.0"
+    react-dnd: "npm:16.0.1"
+    react-dnd-html5-backend: "npm:16.0.1"
     storybook: "npm:^9.0.10"
     ts-jest: "npm:^29.1.1"
     typescript: "npm:5.9.2"
