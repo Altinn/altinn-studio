@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -25,9 +26,9 @@ public class AzureSharedContentClient(HttpClient httpClient, ILogger logger) : I
 
     private int _currentVersion = int.Parse(InitialVersion);
 
-    private Dictionary<string, string> _fileNamesAndContent = [];
+    private readonly Dictionary<string, string> _fileNamesAndContent = [];
 
-    private const string SharedContentBaseUri = "https://<account>.blob.core.windows.net"; // should be a secret!
+    private readonly string? _sharedContentBaseUri = Environment.GetEnvironmentVariable("ALTINN_STUDIO_SHARED_CONTENT_BASE_URL");
 
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
@@ -38,50 +39,56 @@ public class AzureSharedContentClient(HttpClient httpClient, ILogger logger) : I
 
     public async Task PublishCodeList(string orgName, string codeListId, CodeList codeList, CancellationToken cancellationToken = default)
     {
+        if (_sharedContentBaseUri is null)
+        {
+            throw new ConfigurationErrorsException("Base url for the content library must be set before publishing.");
+        }
+
         BlobContainerClient containerClient = GetContainerClient();
 
         // Sanity check
-        string rootIndexUri = Path.Join(SharedContentBaseUri, IndexFileName);
+        string rootIndexUri = Path.Join(_sharedContentBaseUri, IndexFileName);
         HttpResponseMessage rootIndexResponse = await _httpClient.GetAsync(rootIndexUri, cancellationToken);
         ThrowIfUnhealthyEndpoint(rootIndexResponse);
 
         using TempFileCreatorHelper tempFileHelper = new();
 
-        await HandleOrganizationIndex(orgName, rootIndexResponse, tempFileHelper, cancellationToken);
+        await HandleOrganizationIndex(orgName, rootIndexResponse, cancellationToken);
         string organisationDirectory = orgName;
 
-        await HandleResourceTypeIndex(orgName, tempFileHelper, organisationDirectory, cancellationToken);
+        await HandleResourceTypeIndex(orgName, organisationDirectory, cancellationToken);
 
         string codeListDirectory = Path.Join(organisationDirectory, CodeListDirectoryName);
-        await HandleResourceIndex(orgName, codeListId, tempFileHelper, codeListDirectory, cancellationToken);
+        await HandleResourceIndex(orgName, codeListId, codeListDirectory, cancellationToken);
 
         string versionDirectory = Path.Join(codeListDirectory, codeListId);
-        await HandleVersionIndex(orgName, codeListId, tempFileHelper, versionDirectory, cancellationToken);
+        await HandleVersionIndex(orgName, codeListId, versionDirectory, cancellationToken);
 
-        await CreateCodeListFile(codeList, tempFileHelper, versionDirectory);
+        CreateCodeListFile(codeList, versionDirectory);
 
-        List<string> allFiles = tempFileHelper.GetAllFilePaths();
+        SemaphoreSlim semaphore = new(10); // We allocate 10 simultaneous tasks as max, even though current total is lower
+        List<Task> tasks = [];
 
-
-
-        foreach (var file in allFiles)
+        foreach (KeyValuePair<string, string> fileNameAndContent in _fileNamesAndContent)
         {
-            var blobClient = containerClient.GetBlobClient(file);
-            // blobClient.UploadAsync()
+            BlobClient blobClient = containerClient.GetBlobClient(fileNameAndContent.Key);
+            var content = BinaryData.FromString(fileNameAndContent.Value);
+            tasks.Add(Task.Run(async () =>
+            {
+                await semaphore.WaitAsync(cancellationToken);
+                try
+                {
+                    await blobClient.UploadAsync(content, cancellationToken);
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+
+            }, cancellationToken));
         }
 
-        // var blobClient = containerClient.GetBlobClient();
-
-        // await service.
-
-        // Upload temp files to storage container
-        /*
-         * Iterate through all files in LocalTemporaryDirectoryName recursively and create a request to azure for each file.
-         */
-
-        /*
-         * Use SAS token to get write access, should be stored in the key vault in production.
-         */
+        Task.WaitAll(tasks, cancellationToken);
     }
 
     private static BlobContainerClient GetContainerClient()
@@ -93,18 +100,20 @@ public class AzureSharedContentClient(HttpClient httpClient, ILogger logger) : I
         return containerClient;
     }
 
-    private async Task CreateCodeListFile(CodeList codeList, TempFileCreatorHelper tempFileHelper, string versionDirectory)
+    private void CreateCodeListFile(CodeList codeList, string versionDirectory)
     {
         string codeListFileName = $"{_currentVersion}.json";
         var codeListContents = new SharedCodeList(codeList.Codes, codeList.TagNames);
         string contentsString = JsonSerializer.Serialize(codeListContents, s_jsonOptions);
-        await tempFileHelper.CreateFileOnPath(versionDirectory, codeListFileName, contentsString);
+        string combinedPath = Path.Join(versionDirectory, codeListFileName);
+        _fileNamesAndContent[combinedPath] = contentsString;
     }
 
-    private async Task HandleVersionIndex(string orgName, string codeListId, TempFileCreatorHelper tempFileHelper, string versionDirectory, CancellationToken cancellationToken)
+    private async Task HandleVersionIndex(string orgName, string codeListId, string versionDirectory, CancellationToken cancellationToken)
     {
-        string versionIndexUri = Path.Join(SharedContentBaseUri, orgName, CodeListDirectoryName, codeListId, IndexFileName);
+        string versionIndexUri = Path.Join(_sharedContentBaseUri, orgName, CodeListDirectoryName, codeListId, IndexFileName);
         HttpResponseMessage versionIndexResponse = await _httpClient.GetAsync(versionIndexUri, cancellationToken);
+        string combinedPath = Path.Join(versionDirectory, IndexFileName);
 
         if (versionIndexResponse.StatusCode == HttpStatusCode.OK)
         {
@@ -116,30 +125,32 @@ public class AzureSharedContentClient(HttpClient httpClient, ILogger logger) : I
             {
                 versions.Add(_currentVersion);
                 string contents = JsonSerializer.Serialize(versions);
-                await tempFileHelper.CreateFileOnPath(versionDirectory, IndexFileName, contents);
+                _fileNamesAndContent[combinedPath] = contents;
             }
             else
             {
                 string contents = JsonSerializer.Serialize<List<string>>([_currentVersion.ToString()]);
-                await tempFileHelper.CreateFileOnPath(versionDirectory, IndexFileName, contents);
+                _fileNamesAndContent[combinedPath] = contents;
             }
         }
 
         if (versionIndexResponse.StatusCode == HttpStatusCode.NotFound)
         {
             string contents = JsonSerializer.Serialize<List<string>>([InitialVersion]);
-            await tempFileHelper.CreateFileOnPath(versionDirectory, IndexFileName, contents);
+            _fileNamesAndContent[combinedPath] = contents;
         }
     }
 
-    private async Task HandleResourceIndex(string orgName, string codeListId, TempFileCreatorHelper tempFileHelper, string codeListDirectory, CancellationToken cancellationToken)
+    private async Task HandleResourceIndex(string orgName, string codeListId, string codeListDirectory, CancellationToken cancellationToken)
     {
-        string codeListIdIndexUri = Path.Join(SharedContentBaseUri, orgName, CodeListDirectoryName, IndexFileName);
+        string codeListIdIndexUri = Path.Join(_sharedContentBaseUri, orgName, CodeListDirectoryName, IndexFileName);
         HttpResponseMessage codeListIdIndexResponse = await _httpClient.GetAsync(codeListIdIndexUri, cancellationToken);
+
+        string combinedPath = Path.Join(codeListDirectory, IndexFileName);
         if (codeListIdIndexResponse.StatusCode == HttpStatusCode.NotFound)
         {
             string contents = JsonSerializer.Serialize<List<string>>([codeListId]);
-            await tempFileHelper.CreateFileOnPath(codeListDirectory, IndexFileName, contents);
+            _fileNamesAndContent[combinedPath] = contents;
         }
         else
         {
@@ -149,19 +160,21 @@ public class AzureSharedContentClient(HttpClient httpClient, ILogger logger) : I
             {
                 codeListIds.Add(codeListId);
                 string contents = JsonSerializer.Serialize(codeListIds);
-                await tempFileHelper.CreateFileOnPath(codeListDirectory, IndexFileName, contents);
+                _fileNamesAndContent[combinedPath] = contents;
             }
         }
     }
 
-    private async Task HandleResourceTypeIndex(string orgName, TempFileCreatorHelper tempFileHelper, string organisationDirectory, CancellationToken cancellationToken)
+    private async Task HandleResourceTypeIndex(string orgName, string organisationDirectory, CancellationToken cancellationToken)
     {
-        string resourceTypeIndexUri = Path.Join(SharedContentBaseUri, orgName, IndexFileName);
+        string resourceTypeIndexUri = Path.Join(_sharedContentBaseUri, orgName, IndexFileName);
         HttpResponseMessage resourceTypeIndexResponse = await _httpClient.GetAsync(resourceTypeIndexUri, cancellationToken);
+
+        string combinedPath = Path.Join(organisationDirectory, IndexFileName);
         if (resourceTypeIndexResponse.StatusCode == HttpStatusCode.NotFound)
         {
             string contents = JsonSerializer.Serialize<List<string>>([CodeListDirectoryName]);
-            await tempFileHelper.CreateFileOnPath(organisationDirectory, IndexFileName, contents);
+            _fileNamesAndContent[combinedPath] = contents;
         }
         else
         {
@@ -171,17 +184,18 @@ public class AzureSharedContentClient(HttpClient httpClient, ILogger logger) : I
             {
                 resourceTypes.Add(CodeListDirectoryName);
                 string contents = JsonSerializer.Serialize(resourceTypes);
-                await tempFileHelper.CreateFileOnPath(organisationDirectory, IndexFileName, contents);
+                _fileNamesAndContent[combinedPath] = contents;
             }
         }
     }
 
-    private static async Task HandleOrganizationIndex(string orgName, HttpResponseMessage rootIndexResponse, TempFileCreatorHelper tempFileHelper, CancellationToken cancellationToken)
+    private async Task HandleOrganizationIndex(string orgName, HttpResponseMessage rootIndexResponse, CancellationToken cancellationToken)
     {
         string rootIndexContent = await rootIndexResponse.Content.ReadAsStringAsync(cancellationToken);
         if (string.IsNullOrEmpty(rootIndexContent))
         {
-            await UpdateOrganizationIndexFile(tempFileHelper, [orgName]);
+            string contents = JsonSerializer.Serialize<List<string>>([orgName], s_jsonOptions);
+            _fileNamesAndContent[IndexFileName] = contents;
         }
         else
         {
@@ -189,7 +203,8 @@ public class AzureSharedContentClient(HttpClient httpClient, ILogger logger) : I
             if (organizations?.Contains(orgName) is false)
             {
                 organizations.Add(orgName);
-                await UpdateOrganizationIndexFile(tempFileHelper, organizations);
+                string contents = JsonSerializer.Serialize(organizations, s_jsonOptions);
+                _fileNamesAndContent[IndexFileName] = contents;
             }
         }
     }
@@ -201,12 +216,6 @@ public class AzureSharedContentClient(HttpClient httpClient, ILogger logger) : I
             _logger.LogError($"Shared content storage container not found, class: {nameof(AzureSharedContentClient)}");
             throw new InvalidOperationException("Request failed.");
         }
-    }
-
-    private static async Task UpdateOrganizationIndexFile(TempFileCreatorHelper tempFileHelper, List<string> organizations)
-    {
-        string fileContents = JsonSerializer.Serialize(organizations, s_jsonOptions);
-        await tempFileHelper.CreateFileOnPath("", IndexFileName, fileContents);
     }
 
     private void GetCurrentVersion(List<int>? versions)
