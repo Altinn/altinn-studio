@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Altinn.Common.AccessToken.Configuration;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Azure.Identity;
 using Azure.Storage.Blobs;
@@ -48,8 +47,6 @@ public class AzureSharedContentClient(HttpClient httpClient, ILogger<AzureShared
         string rootIndexUri = Path.Join(_sharedContentBaseUri, IndexFileName);
         HttpResponseMessage rootIndexResponse = await httpClient.GetAsync(rootIndexUri, cancellationToken);
         ThrowIfUnhealthyEndpoint(rootIndexResponse);
-
-        using TempFileCreatorHelper tempFileHelper = new();
 
         await HandleOrganizationIndex(orgName, rootIndexResponse, cancellationToken);
         string organisationDirectory = orgName;
