@@ -10,4 +10,5 @@ export type AssistantTexts = {
   addAttachment: string;
   agentModeSwitch: string;
   send: string;
+  assistantFirstMessage: string;
 };

@@ -1,11 +1,17 @@
 import type { ChatThread } from '../types/ChatThread';
 import { MessageAuthor } from '../types/MessageAuthor';
+import { mockTexts } from './mockTexts';
 
 export const mockChatThreads: ChatThread[] = [
   {
     id: '1',
     title: 'Koble komponenter til datamodell',
     messages: [
+      {
+        author: MessageAuthor.Assistant,
+        content: mockTexts.assistantFirstMessage,
+        timestamp: new Date('2025-10-01T09:59:00'),
+      },
       {
         author: MessageAuthor.User,
         content:
@@ -37,6 +43,11 @@ export const mockChatThreads: ChatThread[] = [
     title: 'Sette opp dynamiske kodelister',
     messages: [
       {
+        author: MessageAuthor.Assistant,
+        content: mockTexts.assistantFirstMessage,
+        timestamp: new Date('2025-09-30T14:29:00'),
+      },
+      {
         author: MessageAuthor.User,
         content:
           'Jeg trenger en nedtrekksmeny som viser kommuner basert på hvilket fylke brukeren har valgt. Hvordan kan jeg lage en slik dynamisk kodeliste i Altinn Studio?',
@@ -54,6 +65,11 @@ export const mockChatThreads: ChatThread[] = [
     id: '3',
     title: 'Legge til valideringsregler',
     messages: [
+      {
+        author: MessageAuthor.Assistant,
+        content: mockTexts.assistantFirstMessage,
+        timestamp: new Date('2025-09-29T09:14:00'),
+      },
       {
         author: MessageAuthor.User,
         content:
@@ -73,6 +89,11 @@ export const mockChatThreads: ChatThread[] = [
     title: 'Bruk av repeterende grupper',
     messages: [
       {
+        author: MessageAuthor.Assistant,
+        content: mockTexts.assistantFirstMessage,
+        timestamp: new Date('2025-09-28T11:19:00'),
+      },
+      {
         author: MessageAuthor.User,
         content:
           'Jeg trenger at brukere skal kunne legge til flere barn i skjemaet. Hvordan setter jeg opp en repeterende gruppe for dette?',
@@ -91,6 +112,11 @@ export const mockChatThreads: ChatThread[] = [
     title: 'Konfigurere prosessflyt',
     messages: [
       {
+        author: MessageAuthor.Assistant,
+        content: mockTexts.assistantFirstMessage,
+        timestamp: new Date('2025-09-27T16:44:00'),
+      },
+      {
         author: MessageAuthor.User,
         content:
           'Appen min skal ha en prosess hvor brukeren først fyller ut et skjema (data-steg), så skal det gå til en bekreftelse-side, og til slutt en kvittering. Hvordan konfigurerer jeg dette i Altinn Studio?',
@@ -108,6 +134,11 @@ export const mockChatThreads: ChatThread[] = [
     id: '6',
     title: 'Legge til dynamiske uttrykk',
     messages: [
+      {
+        author: MessageAuthor.Assistant,
+        content: mockTexts.assistantFirstMessage,
+        timestamp: new Date('2025-09-26T13:09:00'),
+      },
       {
         author: MessageAuthor.User,
         content:

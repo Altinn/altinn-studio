@@ -1,3 +1,4 @@
+import React from 'react';
 import { StudioButton } from '@studio/components';
 import { SidebarLeftIcon, PlusIcon } from '@studio/icons';
 import classes from './ThreadColumnHidden.module.css';

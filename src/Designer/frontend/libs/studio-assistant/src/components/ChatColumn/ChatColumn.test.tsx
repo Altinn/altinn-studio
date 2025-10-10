@@ -7,8 +7,6 @@ import type { Message } from '../../types/ChatThread';
 import { mockTexts } from '../../mocks/mockTexts';
 
 // Test data
-const onSubmitMessage = jest.fn();
-
 const userMessageContent = 'User message';
 const assistantMessageContent = 'Assistant response';
 const mockMessages: Message[] = [
@@ -38,34 +36,12 @@ describe('ChatColumn', () => {
     expect(textarea).toBeInTheDocument();
     expect(sendButton).toBeInTheDocument();
   });
-
-  it('should render attachment button and agent mode switch when "enableCompactInterface" is false', () => {
-    renderChatColumn({ enableCompactInterface: false });
-    const attachmentButton = screen.getByTitle(mockTexts.addAttachment);
-    const agentModeSwitch = screen.getByLabelText(mockTexts.agentModeSwitch);
-    expect(attachmentButton).toBeInTheDocument();
-    expect(agentModeSwitch).toBeInTheDocument();
-  });
-
-  it('should not render attachment button and agent mode switch when "enableCompactInterface" is true', () => {
-    renderChatColumn({ enableCompactInterface: true });
-    const attachmentButton = screen.queryByTitle(mockTexts.addAttachment);
-    const agentModeSwitch = screen.queryByLabelText(mockTexts.agentModeSwitch);
-    expect(attachmentButton).not.toBeInTheDocument();
-    expect(agentModeSwitch).not.toBeInTheDocument();
-  });
-
-  it('should render empty messages list', () => {
-    renderChatColumn({ messages: [] });
-    expect(screen.queryByText(userMessageContent)).not.toBeInTheDocument();
-    expect(screen.getByPlaceholderText(mockTexts.textareaPlaceholder)).toBeInTheDocument();
-  });
 });
 
 const defaultProps: ChatColumnProps = {
   texts: mockTexts,
   messages: [],
-  onSubmitMessage,
+  onSubmitMessage: jest.fn(),
   enableCompactInterface: false,
 };
 

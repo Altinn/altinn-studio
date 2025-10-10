@@ -32,6 +32,7 @@ export function AiAssistant(): ReactElement {
     addAttachment: t('ai_assistant.add_attachment'),
     agentModeSwitch: t('ai_assistant.agent_mode_switch'),
     send: t('ai_assistant.send'),
+    assistantFirstMessage: t('ai_assistant.assistant_first_message'),
   };
 
   return (

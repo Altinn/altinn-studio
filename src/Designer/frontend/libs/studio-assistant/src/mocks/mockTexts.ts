@@ -12,4 +12,5 @@ export const mockTexts: AssistantTexts = {
   addAttachment: 'addAttachment',
   agentModeSwitch: 'agentModeSwitch',
   send: 'send',
+  assistantFirstMessage: 'Hva kan jeg hjelpe med?',
 };

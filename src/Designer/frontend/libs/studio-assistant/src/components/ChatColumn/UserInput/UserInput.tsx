@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import type { ReactElement } from 'react';
 import { StudioButton, StudioSwitch, StudioTextarea } from '@studio/components';
-import { MessageAuthor } from '../../../types/MessageAuthor';
 import type { UserMessage } from '../../../types/ChatThread';
 import classes from './UserInput.module.css';
 import { PaperclipIcon, PaperplaneFillIcon } from '@studio/icons';
-import type { AssistantProps } from 'libs/studio-assistant/src/Assistant/Assistant';
+import type { AssistantProps } from '../../../Assistant/Assistant';
+import { createUserMessage } from '../../../utils/utils';
 
 export type UserInputProps = Omit<AssistantProps, 'chatThreads'>;
 
@@ -15,18 +15,12 @@ export function UserInput({
   enableCompactInterface,
 }: UserInputProps): ReactElement {
   const [messageContent, setMessageContent] = useState<string>('');
-  const [allowEditing, setAllowEditing] = useState<boolean>(false);
+  const [allowEditing, setAllowEditing] = useState<boolean>(true);
 
   const handleSubmit = () => {
     if (!messageContent.trim()) return;
 
-    // TODO: create utility function
-    const message: UserMessage = {
-      author: MessageAuthor.User,
-      content: messageContent,
-      timestamp: new Date(),
-      allowEditing: allowEditing,
-    };
+    const message: UserMessage = createUserMessage(messageContent, allowEditing);
 
     onSubmitMessage(message);
     setMessageContent('');
