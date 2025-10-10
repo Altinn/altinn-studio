@@ -5,8 +5,8 @@
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-      <PackageReference Include="Altinn.App.Api.Experimental" Version="8.8.0-pr.2539.pdf-service-task.e6cc72c3" />
-      <PackageReference Include="Altinn.App.Core.Experimental" Version="8.8.0-pr.2539.pdf-service-task.e6cc72c3" />
+      <PackageReference Include="Altinn.App.Api.Experimental" Version="8.8.0-pr.2584.subform-service-task.d7f89a04" />
+      <PackageReference Include="Altinn.App.Core.Experimental" Version="8.8.0-pr.2584.subform-service-task.d7f89a04" />
       <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
   </ItemGroup>
   <ItemGroup>

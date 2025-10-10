@@ -3,13 +3,21 @@
   "data": {
     "layout": [
       {
-        "id": "SummarySubform",
-        "type": "Summary2",
-        "target": {
-          "type": "layoutSet",
-          "taskId": "TestSubform"
-        }
-      }      
+        "id": "Subform-z8we7d",
+        "type": "Subform",
+        "layoutSet": "TestSubform",
+        "textResourceBindings": {
+          "title": "Side1.Subform-z8we7d.title"
+        },
+        "tableColumns": [
+          {
+            "headerContent": "Side1.Input-bYOAVi.title",
+            "cellContent": {
+              "query": "property1"
+            }
+          }
+        ]
+      }    
     ]
   }
 }
