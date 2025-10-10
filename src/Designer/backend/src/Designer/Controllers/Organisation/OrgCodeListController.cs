@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -122,7 +123,7 @@ public class OrgCodeListController : ControllerBase
             await _orgCodeListService.PublishCodeList(org, developer, requestBody, cancellationToken);
             return Ok();
         }
-        catch (Exception ex) when (ex is IllegalFileNameException or IllegalCommitMessageException)
+        catch (ConfigurationErrorsException ex)
         {
             return BadRequest(ex.Message);
         }
@@ -137,6 +138,7 @@ public class OrgCodeListController : ControllerBase
         /*
          * Should this be done in the frontend directly? Maybe, maybe not. Frontend might not need to know about the "published" data types if it's done here.
          */
+        return await Task.FromResult<List<string>>(["hei"]);
     }
 
     [HttpGet]
@@ -148,6 +150,7 @@ public class OrgCodeListController : ControllerBase
         /*
          * Should this be done in the frontend directly? Maybe, maybe not. Frontend might not need to know about the "published" data types if it's done here.
          */
+         return await Task.FromResult<List<string>>(["hei"]);
     }
 
     /// <summary>

@@ -619,7 +619,8 @@ public class OrgCodeListServiceTests : IDisposable
     private OrgCodeListService GetOrgCodeListService()
     {
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        return new OrgCodeListService(altinnGitRepositoryFactory, _giteaMock.Object, _sourceControlMock.Object);
+        Mock<ISharedContentClient> contentClientMock = new();
+        return new OrgCodeListService(altinnGitRepositoryFactory, _giteaMock.Object, _sourceControlMock.Object, contentClientMock.Object);
     }
 
     public void Dispose()
