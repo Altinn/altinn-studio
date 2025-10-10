@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Exceptions.CodeList;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Helpers;
@@ -618,7 +619,8 @@ public class OrgCodeListServiceTests : IDisposable
     private OrgCodeListService GetOrgCodeListService()
     {
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        return new OrgCodeListService(altinnGitRepositoryFactory, _giteaMock.Object, _sourceControlMock.Object);
+        Mock<ISharedContentClient> contentClientMock = new();
+        return new OrgCodeListService(altinnGitRepositoryFactory, _giteaMock.Object, _sourceControlMock.Object, contentClientMock.Object);
     }
 
     public void Dispose()
