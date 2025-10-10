@@ -116,11 +116,10 @@ public class OrgCodeListController : ControllerBase
     public async Task<ActionResult> PublishCodeList(string org, [FromBody] PublishCodeListRequest requestBody, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
         try
         {
-            await _orgCodeListService.PublishCodeList(org, developer, requestBody, cancellationToken);
+            await _orgCodeListService.PublishCodeListThisExistsOnlyForTesting(org, cancellationToken);
             return Ok();
         }
         catch (ConfigurationErrorsException ex)
