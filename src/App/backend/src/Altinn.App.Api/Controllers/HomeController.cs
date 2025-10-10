@@ -91,24 +91,17 @@ public class HomeController : Controller
     [Route("{org}/{app}/")]
     public async Task<IActionResult> Index([FromRoute] string org, [FromRoute] string app)
     {
-        // 1. Is this app stateless?
-        //  a. Is the user anon? yes -> Render app in statless mode
-
         ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
 
         if (IsStatelessApp(application) && await AllowAnonymous())
         {
             var statelessAppData = await _initialDataService.GetInitialData(org, app);
             var statelessApphtml = GenerateHtml(org, app, statelessAppData);
-            // return Content(statelessApphtml, "text/html; charset=utf-8");
-            return Content("<html><h1><this is anon/h1></html>", "text/html; charset=utf-8");
+            return Content(statelessApphtml);
         }
 
         var currentAuth = _authenticationContext.Current;
-
-        // Debugger.Break();
         Authenticated.User? auth = currentAuth as Authenticated.User;
-        // Boolean isStatelessApp = IsStatelessApp(application);
         if (auth == null)
         {
             throw new UnauthorizedAccessException("You need to be logged in to see this app.");
@@ -176,10 +169,12 @@ public class HomeController : Controller
 
         if (mostRecentInstance == null)
         {
-            return Content(
-                "<html><h1>will will now create an instance and forward you</h1></html>",
-                "text/html; charset=utf-8"
-            );
+            // Get layoutSets for instance creation
+            string layoutSetsString = _appResources.GetLayoutSets();
+            string layoutSetsJson = string.IsNullOrEmpty(layoutSetsString) ? "null" : layoutSetsString;
+
+            var html = GenerateInstanceCreationHtml(org, app, details.UserParty.PartyId, layoutSetsJson);
+            return Content(html, "text/html; charset=utf-8");
         }
 
         if (instances.Count > 1 && application.OnEntry?.Show == "select-instance")
@@ -261,7 +256,6 @@ public class HomeController : Controller
     /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
     [HttpGet]
     [Route("{org}/{app}/instance/{partyId}/{instanceGuid}")]
-    // [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
     public async Task<IActionResult> Index(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -299,8 +293,6 @@ public class HomeController : Controller
         }
         else
         {
-            // Fallback to task-only URL if no page is found
-            // redirectUrl = $"/{org}/{app}/instance/{partyId}/{instanceGuid}/{currentTaskId}";
             return NotFound("no initial page id");
         }
 
@@ -699,6 +691,107 @@ public class HomeController : Controller
             Console.WriteLine($"Error loading custom.js: {ex.Message}");
         }
         return null;
+    }
+
+    private string GenerateInstanceCreationHtml(string org, string app, int partyId, string layoutSetsJson)
+    {
+        string nonce = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(16));
+
+        var htmlContent = $$"""
+            <!DOCTYPE html>
+            <html lang='no'>
+            <head>
+                <meta charset='UTF-8'>
+                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                <title>Creating instance - {{org}}/{{app}}</title>
+                <style>
+                    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; }
+                    .container { display: flex; justify-content: center; align-items: center; height: 100vh; }
+                    .content { text-align: center; max-width: 600px; padding: 20px; }
+                    .error { color: #d32f2f; }
+                </style>
+            </head>
+            <body>
+                <div id='root'>
+                    <div class='container'>
+                        <div class='content'>
+                            <h1>Creating instance...</h1>
+                            <p>Please wait while we set up your form.</p>
+                        </div>
+                    </div>
+                </div>
+                <script nonce='{{nonce}}'>
+                    window.AltinnLayoutSets = {{layoutSetsJson}};
+                    window.org = '{{org}}';
+                    window.app = '{{app}}';
+
+                    (async function() {
+                      try {
+                        const xsrfToken = document.cookie
+                          .split('; ')
+                          .find(row => row.startsWith('XSRF-TOKEN='))
+                          ?.split('=')[1];
+
+                        if (!xsrfToken) {
+                          throw new Error('XSRF token not found');
+                        }
+
+                        const response = await fetch('/{{org}}/{{app}}/instances?instanceOwnerPartyId={{partyId}}', {
+                          method: 'POST',
+                          headers: {
+                            'X-XSRF-TOKEN': xsrfToken,
+                            'Content-Type': 'application/json'
+                          }
+                        });
+
+                        if (!response.ok) {
+                          const errorText = await response.text();
+                          throw new Error(`Failed to create instance: ${response.status} - ${errorText}`);
+                        }
+
+                        const instance = await response.json();
+                        const [partyId, instanceGuid] = instance.id.split('/');
+                        const taskId = instance.process.currentTask.elementId;
+
+                        let firstPageId = null;
+                        if (window.AltinnLayoutSets && window.AltinnLayoutSets.sets) {
+                          const layoutSet = window.AltinnLayoutSets.sets.find(set =>
+                            set.tasks && set.tasks.includes(taskId)
+                          );
+                          if (layoutSet && layoutSet.id) {
+                            const settingsResponse = await fetch('/{{org}}/{{app}}/api/layoutsettings/' + layoutSet.id);
+                            if (settingsResponse.ok) {
+                              const settings = await settingsResponse.json();
+                              if (settings.pages && settings.pages.order && settings.pages.order.length > 0) {
+                                firstPageId = settings.pages.order[0];
+                              }
+                            }
+                          }
+                        }
+
+                        const redirectUrl = '/{{org}}/{{app}}/instance/' + partyId + '/' + instanceGuid + '/' + taskId + '/' + (firstPageId || '');
+                        window.location.href = redirectUrl;
+                      } catch (error) {
+                        console.error('Error creating instance:', error);
+                        document.getElementById('root').innerHTML = `
+                          <div class="container">
+                            <div class="content">
+                              <h1>Failed to create instance</h1>
+                              <p class="error">${error.message}</p>
+                              <p>Please try again or contact support if the problem persists.</p>
+                            </div>
+                          </div>
+                        `;
+                      }
+                    })();
+                </script>
+            </body>
+            </html>
+            """;
+
+        Response.Headers["Content-Security-Policy"] = $"default-src 'self'; script-src 'nonce-{nonce}';";
+
+        return htmlContent;
     }
 
     private string GenerateHtmlWithInstances(string org, string app, string dataJson)
