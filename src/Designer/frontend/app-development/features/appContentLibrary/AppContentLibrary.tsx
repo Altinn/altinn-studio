@@ -132,7 +132,7 @@ function AppContentLibraryWithData({
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
     heading: t('app_content_library.library_heading'),
     pages: {
-      codeList: {
+      codeListsWithTextResources: {
         props: {
           codeListDataList,
           onCreateCodeList: handleCreate,

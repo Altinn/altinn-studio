@@ -14,8 +14,7 @@ import {
   XMarkOctagonFillIcon,
   ExternalLinkIcon,
 } from '@studio/icons';
-import { StudioLink } from '@studio/components';
-import { StudioSpinner } from '@studio/components-legacy';
+import { StudioLink, StudioSpinner } from '@studio/components';
 import { getAzureDevopsBuildResultUrl } from 'app-development/utils/urlHelper';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { grafanaPodLogsUrl } from 'app-shared/ext-urls';
@@ -39,7 +38,7 @@ const getIcon = (buildResult: BuildResult) => {
       return <CheckmarkCircleFillIcon className={classnames} />;
     case BuildResult.none:
     default:
-      return <StudioSpinner size='small' spinnerTitle='' showSpinnerTitle={false} />;
+      return <StudioSpinner aria-hidden spinnerTitle='' />;
   }
 };
 

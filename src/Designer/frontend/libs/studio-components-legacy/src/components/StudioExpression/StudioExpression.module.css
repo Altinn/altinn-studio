@@ -1,7 +1,0 @@
-.validExpression {
-  background-color: var(--fds-semantic-background-default);
-}
-
-.validExpression .tabContent {
-  padding: var(--studio-legacy-expression-spacing);
-}

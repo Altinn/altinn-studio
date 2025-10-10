@@ -4,7 +4,7 @@ import type { ReducerAction, ReducerState } from './StudioCodeListEditorReducer'
 import { reducer, ReducerActionType } from './StudioCodeListEditorReducer';
 import { CodeListItemTextProperty } from './types/CodeListItemTextProperty';
 import type { TextResource } from '../../types/TextResource';
-import type { CodeList } from './types/CodeList';
+import type { CodeListWithTextResources } from './types/CodeListWithTextResources';
 
 // Test data:
 const defaultState = {
@@ -19,7 +19,7 @@ const dispatch = (action: ReducerAction, state?: Partial<ReducerState>): Reducer
 describe('StudioCodeListEditorReducer', () => {
   describe('SetCodeList', () => {
     it('Updates the list of code list items', () => {
-      const testCodeList: CodeList = [{ value: 'test1', label: 'test2' }];
+      const testCodeList: CodeListWithTextResources = [{ value: 'test1', label: 'test2' }];
 
       const result: ReducerState = dispatch({
         type: ReducerActionType.SetCodeList,

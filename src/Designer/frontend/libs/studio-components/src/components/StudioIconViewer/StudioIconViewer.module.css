@@ -1,0 +1,29 @@
+.rootContainer {
+  height: 100vh;
+  max-width: 1200px;
+  width: 100%;
+}
+
+.searchField {
+  margin-bottom: var(--ds-size-8);
+}
+
+.iconListContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--ds-size-4);
+  width: 100%;
+}
+
+.iconCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--ds-size-3);
+  background: var(--ds-color-surface-tinted);
+}
+
+.icon {
+  font-size: var(--ds-size-10);
+}

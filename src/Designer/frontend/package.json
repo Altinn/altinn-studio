@@ -16,10 +16,10 @@
     "identity-obj-proxy": "3.0.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-error-boundary": "4.1.2",
+    "react-error-boundary": "6.0.0",
     "react-i18next": "15.6.1",
     "react-router-dom": "6.30.1",
-    "react-toastify": "10.0.6"
+    "react-toastify": "11.0.5"
   },
   "devDependencies": {
     "@rollup/plugin-alias": "^5.1.1",
@@ -37,7 +37,6 @@
     "@typescript-eslint/parser": "7.18.0",
     "@vitejs/plugin-react": "^4.3.4",
     "@vitejs/plugin-react-swc": "^3.7.2",
-    "cross-env": "7.0.3",
     "css-loader": "7.1.2",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-jsx-a11y": "6.10.2",
