@@ -303,6 +303,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        /// <inheritdoc/>
         public void CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName)
         {
             try
@@ -316,6 +317,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        /// <inheritdoc/>
         public void CommitToLocalRepo(AltinnRepoEditingContext editingContext, string message)
         {
             try
@@ -329,6 +331,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        /// <inheritdoc/>
         public void RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext)
         {
             try
@@ -342,6 +345,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        /// <inheritdoc/>
         public void DeleteLocalBranchIfExists(AltinnRepoEditingContext editingContext, string branchName)
         {
             try
@@ -350,11 +354,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "DeleteLocalBranch", editingContext.Org, editingContext.Repo);
+                LogError(ex, "DeleteLocalBranchIfExists", editingContext.Org, editingContext.Repo);
                 throw;
             }
         }
 
+        /// <inheritdoc/>
         public void CreateLocalBranch(AltinnRepoEditingContext editingContext, string branchName, string commitSha = null)
         {
             try
@@ -368,6 +373,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        /// <inheritdoc/>
         public void MergeBranchIntoHead(AltinnRepoEditingContext editingContext, string featureBranch)
         {
             try
