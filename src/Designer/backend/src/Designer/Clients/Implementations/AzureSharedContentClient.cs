@@ -27,7 +27,7 @@ public class AzureSharedContentClient(HttpClient httpClient, ILogger<AzureShared
 {
     private int _currentVersion = int.Parse(InitialVersion);
     private readonly Dictionary<string, string> _fileNamesAndContent = [];
-    private readonly string? _sharedContentBaseUri = Environment.GetEnvironmentVariable("ALTINN_STUDIO_SHARED_CONTENT_BASE_URL");
+    private readonly string _sharedContentBaseUri = Path.Join(sharedContentClientSettings.Value.StorageAccountUrl, sharedContentClientSettings.Value.StorageContainerName);
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
