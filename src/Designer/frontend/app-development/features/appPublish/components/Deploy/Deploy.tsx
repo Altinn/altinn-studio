@@ -64,16 +64,18 @@ export const Deploy = ({
       {
         onError: (): void => {
           toast.error(() => (
-            <Trans
-              i18nKey={'app_deployment.technical_error_1'}
-              components={{
-                a: (
-                  <Link href='/info/contact' inverted={true}>
-                    {' '}
-                  </Link>
-                ),
-              }}
-            />
+            <div>
+              <Trans
+                i18nKey={'app_deployment.technical_error_1'}
+                components={{
+                  a: (
+                    <Link href='/info/contact' inverted={true}>
+                      {' '}
+                    </Link>
+                  ),
+                }}
+              />
+            </div>
           ));
         },
       },
