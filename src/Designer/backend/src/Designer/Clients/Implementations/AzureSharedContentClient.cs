@@ -10,26 +10,27 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Common.AccessToken.Configuration;
 using Altinn.Studio.Designer.Clients.Interfaces;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Altinn.Studio.Designer.Clients.Implementations;
 
-public class AzureSharedContentClient(HttpClient httpClient, ILogger logger) : ISharedContentClient
+public class AzureSharedContentClient(HttpClient httpClient, ILogger logger, IOptions<KeyVaultSettings> kvSettings, IOptions<SharedContentClientSettings> sharedContentClientSettings) : ISharedContentClient
 {
     private readonly HttpClient _httpClient = httpClient;
     private readonly ILogger _logger = logger;
 
     private int _currentVersion = int.Parse(InitialVersion);
-
     private readonly Dictionary<string, string> _fileNamesAndContent = [];
-
     private readonly string? _sharedContentBaseUri = Environment.GetEnvironmentVariable("ALTINN_STUDIO_SHARED_CONTENT_BASE_URL");
-
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
@@ -91,12 +92,12 @@ public class AzureSharedContentClient(HttpClient httpClient, ILogger logger) : I
         Task.WaitAll(tasks, cancellationToken);
     }
 
-    private static BlobContainerClient GetContainerClient()
+    private BlobContainerClient GetContainerClient()
     {
-        string? containerName = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONTAINER_NAME");
-        string? accountUrl = Environment.GetEnvironmentVariable("AZURE_STORAGE_ACCOUNT_URL");
-        string? sasToken = Environment.GetEnvironmentVariable("AZURE_SAS_TOKEN");
-        BlobContainerClient containerClient = new BlobServiceClient(new Uri($"{accountUrl}?{sasToken}")).GetBlobContainerClient(containerName);
+        string containerName = sharedContentClientSettings.Value.StorageContainerName;
+        string accountUrl = sharedContentClientSettings.Value.StorageAccountUrl;
+        ClientSecretCredential credentials = new(kvSettings.Value.TenantId, kvSettings.Value.ClientId, kvSettings.Value.ClientSecret);
+        BlobContainerClient containerClient = new BlobServiceClient(new Uri($"{accountUrl}"), credentials).GetBlobContainerClient(containerName);
         return containerClient;
     }
 
