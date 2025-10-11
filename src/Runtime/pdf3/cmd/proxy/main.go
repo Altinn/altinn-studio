@@ -301,7 +301,8 @@ func NewConnectivityChecker(client pb.PdfWorkerClient) *workerConnectivity {
 
 	go func() {
 		for {
-			ctx, _ := context.WithDeadline(context.Background(), time.Now().Add(3*time.Second))
+			ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(3*time.Second))
+			defer cancel()
 			response, err := client.Health(ctx, nil)
 			gotValidResponse := err == nil && response != nil
 

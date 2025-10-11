@@ -4,3 +4,5 @@ docs/
 test/
 infra/
 .yarn/
+.last-build-hash
+.last-deploy-hash
