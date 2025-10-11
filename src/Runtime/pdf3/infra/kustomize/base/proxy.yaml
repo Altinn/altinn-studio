@@ -1,0 +1,232 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdf3-proxy-pdb
+spec:
+  # Makes sure that during e.g. nodepool upgrades, when nodes are drained
+  # we apply a constraint that at most 1 AZ (hopefully, depending on skew)
+  # is disrupted at a time
+  # Examples:
+  #  3 replicas * 30% = 0.9 = 1 unavailable
+  #  4 replicas * 30% = 1.2 = 2 unavailable
+  #  5 replicas * 30% = 1.5 = 2 unavailable
+  #  6 replicas * 30% = 1.8 = 2 unavailable
+  #  7 replicas * 30% = 2.1 = 3 unavailable
+  #  8 replicas * 30% = 2.4 = 3 unavailable
+  #  9 replicas * 30% = 2.7 = 3 unavailable
+  # 10 replicas * 30% = 3.0 = 3 unavailable
+  # 11 replicas * 30% = 3.3 = 4 unavailable
+  # 12 replicas * 30% = 3.6 = 4 unavailable
+  maxUnavailable: '30%'
+  selector:
+    matchLabels:
+      app: pdf3-proxy
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: pdf3-proxy-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: pdf3-proxy
+  minReplicas: 3
+  maxReplicas: 12
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pdf3-proxy
+  annotations:
+    # Let's linkerd do topology (AZ) aware routing
+    # Since Azure bills for cross-AZ traffic,
+    # this is an optimization that might be worthwhile
+    # The idea is that application pods (which also have linkerd sidecars)
+    # will route PDF requests to pods residing in the same AZ.
+    # The linkerd sidecar uses the below annotation to make routing decisions.
+    # See doc: https://linkerd.io/2-edge/tasks/enabling-topology-aware-routing/
+    service.kubernetes.io/topology-aware-hints: auto
+spec:
+  # ClusterIP is the default and recommended type for internal services
+  # Explicit declaration improves clarity and prevents accidental exposure
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 5030
+    protocol: TCP
+    name: http
+  selector:
+    app: pdf3-proxy
+---
+apiVersion: linkerd.io/v1alpha2
+kind: ServiceProfile
+# Service profile gives us linkerd metrics which includes the path/route as a metric
+# Useful for analysis of metrics without probes polluting the data with noise
+metadata:
+  name: pdf3-proxy.svc.cluster.local
+spec:
+  routes:
+  - name: POST /pdf
+    condition:
+      method: POST
+      pathRegex: /pdf
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pdf3-proxy-sa
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pdf3-proxy
+  annotations:
+    altinn.studio/image: runtime-pdf3-proxy:latest
+    altinn.studio/image-tag: latest
+spec:
+  minReadySeconds: 3
+  revisionHistoryLimit: 5
+  progressDeadlineSeconds: 60
+  # 1 replica per availability zone by default (hopefully)
+  # See podAntiAffinity and topologySpreadConstraints below
+  replicas: 3
+  strategy:
+    # Rolling upgrade of pods
+    type: RollingUpdate
+    rollingUpdate:
+      # Conservative rollout.
+      # Setting maxUnavailable to 0 means we will never scale lower than desired replicas
+      # during rollouts, but we might have to scale up the nodepool due to surge
+      # Surge examples:
+      #  3 replicas * 20% = 0.6 = 1 surge
+      #  4 replicas * 20% = 0.8 = 1 surge
+      #  5 replicas * 20% = 1.0 = 1 surge
+      #  6 replicas * 20% = 1.2 = 2 surge
+      #  7 replicas * 20% = 1.4 = 2 surge
+      #  8 replicas * 20% = 1.6 = 2 surge
+      #  9 replicas * 20% = 1.8 = 2 surge
+      # 10 replicas * 20% = 2.0 = 2 surge
+      # 11 replicas * 20% = 2.2 = 3 surge
+      # 12 replicas * 20% = 2.4 = 3 surge
+      maxUnavailable: 0
+      maxSurge: '20%'
+  selector:
+    matchLabels:
+      app: pdf3-proxy
+  template:
+    metadata:
+      labels:
+        app: pdf3-proxy
+        component: pdf3
+      annotations:
+        # linkerd provides automatic mTLS and some nice features
+        # such as topology aware routing
+        linkerd.io/inject: enabled
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          # Spread pods across different hosts/nodes during scheduling
+          # This prevents multiple replicas from running on the same node
+          # improving fault tolerance if a node fails
+          - weight: 100
+            podAffinityTerm:
+              topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app: pdf3-proxy
+      topologySpreadConstraints:
+        # Ensure that pods are evenly spread across availability zones
+        # a skew of 1 _can_ result in 1 AZ being unused when AZs = 3 and replicas = 3
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          # ScheduleAnyway ensures progress even if distribution is imperfect
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: pdf3-proxy
+      serviceAccountName: pdf3-proxy-sa
+      automountServiceAccountToken: false
+      # The proxy calls PDF workers which may take some time.
+      # The client (the apps) timeout after roughly 30 seconds
+      # so setting this to 60s should give plenty of time to close down/drain active requests
+      # before finally terminating.
+      # Changing this should also lead to changes in the `runtime.Host` configuration of the process
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        # Run as 'nobody'
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        runAsNonRoot: true
+        # Seccomp (secure computing mode) restricts syscalls the container can make
+        # RuntimeDefault uses the container runtime's default profile, blocking risky syscalls
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: pdf3-proxy
+          image: ""
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            privileged: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: http
+              containerPort: 5030
+              protocol: TCP
+          env:
+          - name: WORKER_GRPC_ADDR
+            value: pdf3-worker:5032
+          # Startup probe allows up to 90 seconds (30 * 3s) for the container to start
+          # This prevents the liveness probe from killing slow-starting containers
+          # Once startup succeeds, liveness/readiness probes take over
+          startupProbe:
+            httpGet:
+              path: /health/startup
+              port: 5030
+            failureThreshold: 30
+            periodSeconds: 2
+            timeoutSeconds: 1
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 5030
+            periodSeconds: 3
+            # Allow 3 consecutive failures before marking pod unready (removes from service)
+            failureThreshold: 3
+            timeoutSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 5030
+            initialDelaySeconds: 10
+            periodSeconds: 3
+            # Higher threshold (5) for liveness to avoid unnecessary restarts during transient issues
+            # Takes 15 seconds of consecutive failures before pod is restarted
+            failureThreshold: 5
+            timeoutSeconds: 2
+          resources:
+            # Requests affect sheduling/scaling decisions.
+            # For a 1 CPU core + 1 GB RAM VM, current configuration
+            # would fit 3 replicas on one 1 node
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            # Limits prevent a single pod from consuming excessive resources
+            # 2x multiplier provides burst capacity while ensuring fair resource sharing
+            # Memory limit prevents OOMKilled scenarios affecting other pods
+            limits:
+              cpu: 500m
+              memory: 512Mi

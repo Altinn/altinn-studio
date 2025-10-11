@@ -1,0 +1,73 @@
+edition = "2023";
+
+option features.field_presence = EXPLICIT;
+option go_package = "altinn.studio/pdf3/internal/proto";
+
+import "google/protobuf/empty.proto";
+
+package proto;
+
+// Interface exported by the server.
+service PdfWorker {
+  // Generate PDF from URL with specified options
+  rpc Generate(PdfRequest) returns (PdfResponse) {}
+  rpc Health(google.protobuf.Empty) returns (HealthResponse) {}
+}
+
+message PdfRequest {
+  string url = 1;
+  PdfOptions options = 2;
+  bool set_java_script_enabled = 3;
+  WaitFor wait_for = 4;
+  repeated Cookie cookies = 5;
+}
+
+message WaitFor {
+  oneof wait_type {
+    string selector = 1;
+    int32 timeout_ms = 2;
+    WaitForOptions options = 3;
+  }
+}
+
+message WaitForOptions {
+  string selector = 1;
+  bool visible = 2;
+  bool hidden = 3;
+  int32 timeout = 4;
+}
+
+message PdfOptions {
+  string header_template = 1;
+  string footer_template = 2;
+  bool display_header_footer = 3;
+  bool print_background = 4;
+  string format = 5;
+  PdfMargin margin = 6;
+}
+
+message PdfMargin {
+  string top = 1;
+  string right = 2;
+  string bottom = 3;
+  string left = 4;
+}
+
+message Cookie {
+  string name = 1;
+  string value = 2;
+  string domain = 3;
+  string same_site = 4;
+}
+
+message PdfResponse {
+  bool success = 1;
+  string error = 2;
+  bytes data = 3;
+  string worker_id = 4;
+  int32 error_code = 5; // HTTP status code for the error (e.g., 429 for queue full)
+}
+
+message HealthResponse {
+  string Message = 1;
+}

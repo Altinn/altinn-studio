@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+        }
+        .content {
+            margin: 20px 0;
+        }
+        #readyForPrint {
+            color: green;
+            font-weight: bold;
+            padding: 10px;
+            border: 2px solid green;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test PDF Generation</h1>
+    <div class="content">
+        <p>This is a test page for PDF generation integration tests.</p>
+        <p>The page will dynamically append a "readyForPrint" element after 100ms.</p>
+    </div>
+
+    <script>
+        // Append readyForPrint element after 100ms
+        setTimeout(() => {
+            const readyDiv = document.createElement('div');
+            readyDiv.id = 'readyForPrint';
+            readyDiv.textContent = 'Ready for PDF generation!';
+            document.body.appendChild(readyDiv);
+        }, 100);
+    </script>
+</body>
+</html>
