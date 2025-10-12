@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -105,28 +106,54 @@ func getDefaultPdfRequest(t *testing.T) *types.PdfRequest {
 
 func TestPDFGeneration_Simple(t *testing.T) {
 	req := getDefaultPdfRequest(t)
+	req.URL = testServerURL + "/app/?render=light"
 
-	pdfData, err := requestNewPDF(t, req)
+	resp, err := requestNewPDF(t, req)
 	if err != nil {
 		t.Fatalf("Failed to generate PDF: %v", err)
 	}
 
-	if !harness.IsPDF(pdfData) {
+	if !harness.IsPDF(resp.Data) {
 		t.Error("Response is not a valid PDF")
 	}
 
-	if len(pdfData) == 0 {
+	if len(resp.Data) == 0 {
 		t.Error("PDF data is empty")
 	}
 
-	t.Logf("Generated PDF size: %d bytes", len(pdfData))
+	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
+}
+
+func TestPDFGeneration_Networking(t *testing.T) {
+
+	url := jumpboxURL + "/health/startup"
+
+	// Create HTTP client with 10s timeout for PDF generation
+	client := &http.Client{
+		Timeout: 3 * time.Second,
+	}
+
+	httpReq, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		t.Fatalf("Failed to create HTTP request: %v", err)
+	}
+	// Should not be able to reach worker directly
+	httpReq.Host = "pdf3-worker.pdf3.svc.cluster.local"
+
+	resp, err := client.Do(httpReq)
+	if err == nil {
+		t.Fatalf("Unexpectedly reached pdf3-worker from jumpbox: %d", resp.StatusCode)
+	}
+
+	t.Logf("Got error as expected: %v", err)
 }
 
 func TestPDFGeneration_CompareOldAndNew(t *testing.T) {
 	req := getDefaultPdfRequest(t)
+	req.URL = testServerURL + "/app/?render=light"
 
-	newPdfData, newErr := requestNewPDF(t, req)
-	oldPdfData, oldErr := requestOldPDF(t, req)
+	newResp, newErr := requestNewPDF(t, req)
+	oldResp, oldErr := requestOldPDF(t, req)
 	if newErr != nil {
 		t.Errorf("New PDF generator failure: %v", newErr)
 	}
@@ -134,14 +161,14 @@ func TestPDFGeneration_CompareOldAndNew(t *testing.T) {
 		t.Errorf("Old PDF generator failure: %v", oldErr)
 	}
 
-	newPdf := makePdfDeterministic(t, newPdfData)
-	oldPdf := makePdfDeterministic(t, oldPdfData)
+	newPdf := makePdfDeterministic(t, newResp.Data)
+	oldPdf := makePdfDeterministic(t, oldResp.Data)
 	harness.Snapshot(t, oldPdf, "old", "pdf")
 	harness.Snapshot(t, newPdf, "new", "pdf")
 	harness.Snapshot(t, oldPdf, "old", "txt")
 	harness.Snapshot(t, newPdf, "new", "txt")
 
-	t.Logf("Generated PDF sizes: %d and %d bytes", len(newPdfData), len(oldPdfData))
+	t.Logf("Generated PDF sizes: %d and %d bytes", len(newResp.Data), len(oldResp.Data))
 }
 
 func makePdfDeterministic(t *testing.T, pdf []byte) []byte {
@@ -183,18 +210,24 @@ func makePdfDeterministic(t *testing.T, pdf []byte) []byte {
 	return result
 }
 
+type PdfResponse struct {
+	Data          []byte
+	ConsoleErrors int
+	LogErrors     int
+}
+
 // requestNewPDF sends a PDF generation request to the new PDF generator solution
-func requestNewPDF(t *testing.T, req *types.PdfRequest) ([]byte, error) {
+func requestNewPDF(t *testing.T, req *types.PdfRequest) (*PdfResponse, error) {
 	return requestPDFWithHost(t, req, "pdf3-proxy.pdf3.svc.cluster.local")
 }
 
-// requestNewPDF sends a PDF generation request to the old PDF generator solution
-func requestOldPDF(t *testing.T, req *types.PdfRequest) ([]byte, error) {
+// requestOldPDF sends a PDF generation request to the old PDF generator solution
+func requestOldPDF(t *testing.T, req *types.PdfRequest) (*PdfResponse, error) {
 	return requestPDFWithHost(t, req, "pdf-generator.pdf.svc.cluster.local")
 }
 
 // requestPDF sends a PDF generation request to the proxy
-func requestPDFWithHost(t *testing.T, req *types.PdfRequest, overrideHost string) ([]byte, error) {
+func requestPDFWithHost(t *testing.T, req *types.PdfRequest, overrideHost string) (*PdfResponse, error) {
 	reqBody, err := json.Marshal(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
@@ -239,14 +272,32 @@ func requestPDFWithHost(t *testing.T, req *types.PdfRequest, overrideHost string
 		t.Error("PDF data is empty")
 	}
 
-	return data, nil
+	// Parse error count headers if present
+	consoleErrors := 0
+	logErrors := 0
+	if consoleErrorsStr := resp.Header.Get("X-Console-Errors"); consoleErrorsStr != "" {
+		if parsed, err := strconv.Atoi(consoleErrorsStr); err == nil {
+			consoleErrors = parsed
+		}
+	}
+	if logErrorsStr := resp.Header.Get("X-Log-Errors"); logErrorsStr != "" {
+		if parsed, err := strconv.Atoi(logErrorsStr); err == nil {
+			logErrors = parsed
+		}
+	}
+
+	return &PdfResponse{
+		Data:          data,
+		ConsoleErrors: consoleErrors,
+		LogErrors:     logErrors,
+	}, nil
 }
 
 func TestPDFGeneration_RetryOnQueueFull(t *testing.T) {
 	// This test verifies that the proxy retries when the worker queue is full
 	// We send multiple concurrent requests to fill the queue
 
-	const concurrentRequests = 6
+	const concurrentRequests = 50
 
 	results := make(chan error, concurrentRequests)
 
@@ -254,15 +305,15 @@ func TestPDFGeneration_RetryOnQueueFull(t *testing.T) {
 	for i := 0; i < concurrentRequests; i++ {
 		go func(index int) {
 			req := getDefaultPdfRequest(t)
-			req.URL = fmt.Sprintf("%s?i=%d", req.URL, i)
+			req.URL = fmt.Sprintf("%s?render=light&i=%d", req.URL, i)
 
-			pdfData, err := requestNewPDF(t, req)
+			resp, err := requestNewPDF(t, req)
 			if err != nil {
 				results <- fmt.Errorf("request %d failed: %w", index, err)
 				return
 			}
 
-			if !harness.IsPDF(pdfData) {
+			if !harness.IsPDF(resp.Data) {
 				results <- fmt.Errorf("request %d: response is not a valid PDF", index)
 				return
 			}
@@ -273,15 +324,23 @@ func TestPDFGeneration_RetryOnQueueFull(t *testing.T) {
 
 	// Collect results
 	var failures []error
+	errorsDueTo429 := 0
 	for i := 0; i < concurrentRequests; i++ {
 		if err := <-results; err != nil {
 			// Check if it's a 429 error - we expect some might fail with 429 after retries
 			if !strings.Contains(err.Error(), "429") {
 				failures = append(failures, err)
 			} else {
-				t.Logf("Request failed with 429 (expected under load): %v", err)
+				errorsDueTo429++
+				// t.Logf("Request failed with 429 (expected under load): %v", err)
 			}
 		}
+	}
+
+	if errorsDueTo429 == 0 {
+		t.Error("No failures with 429 occurred")
+	} else {
+		t.Logf("%d requests failed with 429", errorsDueTo429)
 	}
 
 	// Report unexpected failures
@@ -297,4 +356,58 @@ func TestPDFGeneration_RetryOnQueueFull(t *testing.T) {
 	}
 
 	t.Logf("Completed %d concurrent requests with %d unexpected failures", concurrentRequests, len(failures))
+}
+
+func TestPDFGeneration_WithConsoleErrors(t *testing.T) {
+	req := getDefaultPdfRequest(t)
+	// Page will log 1 console error
+	req.URL = testServerURL + "/app/?render=light&logerrors=1"
+
+	resp, err := requestNewPDF(t, req)
+	if err != nil {
+		t.Fatalf("Failed to generate PDF with console errors: %v", err)
+	}
+
+	if !harness.IsPDF(resp.Data) {
+		t.Error("Response is not a valid PDF")
+	}
+
+	if len(resp.Data) == 0 {
+		t.Error("PDF data is empty")
+	}
+
+	// Assert on error count headers (DEBUG_MODE should be enabled in local tests)
+	if resp.ConsoleErrors != 1 {
+		t.Errorf("Expected 1 log error, got %d", resp.ConsoleErrors)
+	}
+
+	t.Logf("Generated PDF size: %d bytes (with %d console errors, %d log errors)",
+		len(resp.Data), resp.ConsoleErrors, resp.LogErrors)
+}
+
+func TestPDFGeneration_WithThrownErrors(t *testing.T) {
+	req := getDefaultPdfRequest(t)
+	// Page will throw 2 errors (1 caught, last uncaught, which should result in error)
+	req.URL = testServerURL + "/app/?render=light&throwerrors=2"
+
+	resp, err := requestNewPDF(t, req)
+	if err != nil {
+		t.Fatalf("Failed to generate PDF with thrown errors: %v", err)
+	}
+
+	if !harness.IsPDF(resp.Data) {
+		t.Error("Response is not a valid PDF")
+	}
+
+	if len(resp.Data) == 0 {
+		t.Error("PDF data is empty")
+	}
+
+	// Thrown errors appear as console errors
+	if resp.ConsoleErrors != 1 {
+		t.Errorf("Expected 2 console errors, got %d", resp.ConsoleErrors)
+	}
+
+	t.Logf("Generated PDF size: %d bytes (with %d console errors, %d log errors)",
+		len(resp.Data), resp.ConsoleErrors, resp.LogErrors)
 }

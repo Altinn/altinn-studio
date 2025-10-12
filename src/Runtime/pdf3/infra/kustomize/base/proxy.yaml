@@ -130,6 +130,7 @@ spec:
         # linkerd provides automatic mTLS and some nice features
         # such as topology aware routing
         linkerd.io/inject: enabled
+        config.linkerd.io/skip-outbound-ports: "5031"
     spec:
       affinity:
         podAntiAffinity:
@@ -187,8 +188,8 @@ spec:
               containerPort: 5030
               protocol: TCP
           env:
-          - name: WORKER_GRPC_ADDR
-            value: pdf3-worker:5032
+          - name: WORKER_HTTP_ADDR
+            value: http://pdf3-worker:5031
           # Startup probe allows up to 90 seconds (30 * 3s) for the container to start
           # This prevents the liveness probe from killing slow-starting containers
           # Once startup succeeds, liveness/readiness probes take over

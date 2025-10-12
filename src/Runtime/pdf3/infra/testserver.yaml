@@ -59,69 +59,102 @@ data:
         </div>
 
         <script>
-            // Simulate CPU-intensive work and IO operations
-            async function simulateLoading() {
-                const startTime = performance.now();
+            // Parse query parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const renderMode = urlParams.get('render') || 'heavy'; // 'light' or 'heavy'
+            const logErrors = parseInt(urlParams.get('logerrors') || '0', 10);
+            const throwErrors = parseInt(urlParams.get('throwerrors') || '0', 10);
+            const neverReady = urlParams.has('neverready');
 
-                // Simulate CPU work: Heavy calculations
-                function cpuWork() {
-                    let result = 0;
-                    for (let i = 0; i < 5000000; i++) {
-                        result += Math.sqrt(i) * Math.sin(i) * Math.cos(i);
-
-                        if (i % 1000 === 0) {
-                          const div = document.createElement('div');
-                          div.textContent = `Item ${i}`;
-                          div.id = `item-${i}`;
-                          div.style = 'visibility: hidden;'
-                          document.body.appendChild(div);
-                        }
-                    }
-                    for (let i = 0; i < 5000000; i++) {
-                        result += Math.sqrt(i) * Math.sin(i) * Math.cos(i);
-
-                        if (i % 1000 === 0) {
-                          const el = document.getElementById(`item-${i}`);
-                          el.remove();
-                        }
-                    }
-                    return result;
+            // Start simulation when page fully loads
+            window.onload = function() {
+                // Log errors if requested
+                for (let i = 0; i < logErrors; i++) {
+                    console.error(`Test error ${i + 1} of ${logErrors}: Simulated error for testing`);
                 }
 
-                // Simulate IO: Fetch operations
-                async function ioWork() {
-                    const promises = [];
-                    for (let i = 0; i < 5; i++) {
-                        promises.push(
-                            fetch(`api/data${i}`).catch(() => null)
-                        );
+                // Simulate CPU-intensive work and IO operations
+                async function simulateLoading() {
+                    const startTime = performance.now();
+
+                    // Simulate CPU work: Heavy or light calculations
+                    function cpuWork() {
+                        const iterations = renderMode === 'light' ? 500000 : 5000000;
+                        const domUpdateInterval = renderMode === 'light' ? 10000 : 1000;
+
+                        let result = 0;
+                        for (let i = 0; i < iterations; i++) {
+                            result += Math.sqrt(i) * Math.sin(i) * Math.cos(i);
+
+                            if (i % domUpdateInterval === 0) {
+                              const div = document.createElement('div');
+                              div.textContent = `Item ${i}`;
+                              div.id = `item-${i}`;
+                              div.style = 'visibility: hidden;'
+                              document.body.appendChild(div);
+                            }
+                        }
+                        for (let i = 0; i < iterations; i++) {
+                            result += Math.sqrt(i) * Math.sin(i) * Math.cos(i);
+
+                            if (i % domUpdateInterval === 0) {
+                              const el = document.getElementById(`item-${i}`);
+                              if (el) el.remove();
+                            }
+                        }
+                        return result;
                     }
-                    await Promise.all(promises);
+
+                    // Simulate IO: Fetch operations
+                    async function ioWork() {
+                        const fetchCount = renderMode === 'light' ? 2 : 5;
+                        const promises = [];
+                        for (let i = 0; i < fetchCount; i++) {
+                            promises.push(
+                                fetch(`api/data${i}`).catch(() => null)
+                            );
+                        }
+                        await Promise.all(promises);
+                    }
+
+                    // Execute work in sequence
+                    cpuWork();
+                    ioWork().then(() => ioWork());
+                    cpuWork();
+
+                    // Calculate remaining time to reach target
+                    const elapsed = performance.now() - startTime;
+                    const targetTime = renderMode === 'light' ? 500 : 2000;
+                    const remainingTime = Math.max(0, targetTime - elapsed);
+
+                    // Wait for remaining time, then show ready state (unless neverready is set)
+                    setTimeout(() => {
+                        if (!neverReady) {
+                            const readyDiv = document.createElement('div');
+                            readyDiv.id = 'readyForPrint';
+                            readyDiv.textContent = 'Ready for PDF generation!';
+                            document.body.appendChild(readyDiv);
+                        }
+
+                        console.log(`Total loading time: ${performance.now() - startTime}ms`);
+                        console.log(`Render mode: ${renderMode}, Never ready: ${neverReady}`);
+                    }, remainingTime);
                 }
 
-                // Execute work in sequence
-                cpuWork();
-                ioWork().then(() => ioWork());
-                cpuWork();
+                simulateLoading();
 
-                // Calculate remaining time to reach ~2 seconds
-                const elapsed = performance.now() - startTime;
-                const targetTime = 2000;
-                const remainingTime = Math.max(0, targetTime - elapsed);
-
-                // Wait for remaining time, then show ready state
-                setTimeout(() => {
-                    const readyDiv = document.createElement('div');
-                    readyDiv.id = 'readyForPrint';
-                    readyDiv.textContent = 'Ready for PDF generation!';
-                    document.body.appendChild(readyDiv);
-
-                    console.log(`Total loading time: ${performance.now() - startTime}ms`);
-                }, remainingTime);
-            }
-
-            // Start simulation when page loads
-            simulateLoading();
+                // Throw errors if requested (wrapped in try-catch to continue execution)
+                for (let i = 0; i < throwErrors; i++) {
+                    if (i === throwErrors - 1) {
+                        throw new Error(`Test thrown error ${i + 1} of ${throwErrors}: Simulated exception for testing`);
+                    }
+                    try {
+                        throw new Error(`Test thrown error ${i + 1} of ${throwErrors}: Simulated exception for testing`);
+                    } catch (e) {
+                        console.error('Caught thrown error:', e);
+                    }
+                }
+            };
         </script>
     </body>
     </html>

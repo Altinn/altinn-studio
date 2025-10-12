@@ -24,7 +24,7 @@ COPY --from=builder /app/main .
 # Create output directory and pre-download Chrome
 RUN mkdir -p ./output
 
-EXPOSE 5031 5032
+EXPOSE 5031
 
 USER nobody
 

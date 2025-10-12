@@ -110,8 +110,10 @@ type Cookie struct {
 }
 
 type PdfResult struct {
-	Data    []byte
-	Browser BrowserVersion
+	Data          []byte
+	Browser       BrowserVersion
+	ConsoleErrors int // Count of console.error() calls during generation
+	LogErrors     int // Count of Log.entryAdded errors during generation
 }
 
 type BrowserVersion struct {

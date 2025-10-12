@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
@@ -11,14 +12,14 @@ import (
 
 	"altinn.studio/pdf3/internal/generator"
 	ilog "altinn.studio/pdf3/internal/log"
-	pb "altinn.studio/pdf3/internal/proto"
 	"altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/types"
-	"google.golang.org/grpc"
-	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-var workerId string
+var (
+	workerId  string
+	debugMode bool
+)
 
 func main() {
 	ilog.Setup()
@@ -36,6 +37,10 @@ func main() {
 	}
 
 	workerId = hostname
+	debugMode = os.Getenv("DEBUG_MODE") == "true"
+	if debugMode {
+		log.Println("Running in DEBUG_MODE")
+	}
 
 	gen, err := generator.New()
 	if err != nil {
@@ -44,44 +49,21 @@ func main() {
 	defer func() {
 		// Closing PDF generator during shutdown
 		if err := gen.Close(); err != nil {
-			log.Printf("Failed to close PDF generator: %v", err)
+			log.Printf("Failed to close PDF generator: %v\n", err)
 		}
 	}()
 
-	// Start gRPC server
-	grpcServer := grpc.NewServer()
-	grpcReady := make(chan struct{})
-	go func() {
-		lis, err := net.Listen("tcp", ":5032")
-		if err != nil {
-			log.Fatalf("Failed to listen on :5032: %v", err)
-		}
-
-		pb.RegisterPdfWorkerServer(grpcServer, &pdfWorkerServer{gen: gen})
-
-		fmt.Println("gRPC server listening on :5032")
-		close(grpcReady)
-
-		if err := grpcServer.Serve(lis); err != nil && err != grpc.ErrServerStopped {
-			log.Fatalf("gRPC server crashed: %v", err)
-		}
-	}()
-
-	// Wait for gRPC server to be ready
-	<-grpcReady
-	fmt.Println("gRPC server started successfully")
-
-	// Start HTTP server for probes
+	// Start HTTP server for both PDF generation and probes
 	http.HandleFunc("/health/startup", func(w http.ResponseWriter, r *http.Request) {
 		if host.IsShuttingDown() {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			if _, err := w.Write([]byte("Shutting down")); err != nil {
-				log.Printf("Failed to write health check response: %v", err)
+				log.Printf("Failed to write health check response: %v\n", err)
 			}
 		} else {
 			w.WriteHeader(http.StatusOK)
 			if _, err := w.Write([]byte("OK")); err != nil {
-				log.Printf("Failed to write health check response: %v", err)
+				log.Printf("Failed to write health check response: %v\n", err)
 			}
 		}
 	})
@@ -89,21 +71,23 @@ func main() {
 		if host.IsShuttingDown() {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			if _, err := w.Write([]byte("Shutting down")); err != nil {
-				log.Printf("Failed to write health check response: %v", err)
+				log.Printf("Failed to write health check response: %v\n", err)
 			}
 		} else {
 			w.WriteHeader(http.StatusOK)
 			if _, err := w.Write([]byte("OK")); err != nil {
-				log.Printf("Failed to write health check response: %v", err)
+				log.Printf("Failed to write health check response: %v\n", err)
 			}
 		}
 	})
 	http.HandleFunc("/health/live", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		if _, err := w.Write([]byte("OK")); err != nil {
-			log.Printf("Failed to write health check response: %v", err)
+			log.Printf("Failed to write health check response: %v\n", err)
 		}
 	})
+
+	http.HandleFunc("/generate", generatePdfHandler(gen))
 
 	httpServer := &http.Server{
 		Addr: ":5031",
@@ -122,152 +106,77 @@ func main() {
 	host.WaitForShutdownSignal()
 	host.WaitForReadinessDrain()
 
-	grpcStopped := make(chan struct{})
-	httpStopped := make(chan error)
-	go func() {
-		log.Println("Shutting down gRPC server..")
-		// GracefulStop blocks while trying to gracefully shut down
-		// It doesn't support a timeout or context input unfortunately
-		grpcServer.GracefulStop()
-		log.Println("Gracefully shut down gRPC server")
-		close(grpcStopped)
-	}()
-	go func() {
-		log.Println("Shutting down HTTP server..")
-		err := httpServer.Shutdown(host.ServerContext())
-		if err == nil {
-			log.Println("Gracefully shut down HTTP server")
-		}
-		httpStopped <- err
-	}()
-	// As the HTTP stack has better support for context/timeout inputs to its' graceful shutdown
-	// we wait for the http server first
-	httpServerError := <-httpStopped
-	if httpServerError != nil {
+	log.Println("Shutting down HTTP server..")
+	err = httpServer.Shutdown(host.ServerContext())
+	if err != nil {
 		log.Println("Failed to wait for ongoing requests to finish, waiting for forced cancellation.")
 		host.WaitForHardShutdown()
-	}
-	// Wait for either
-	// * grpcServer to gracefully shut down
-	// * shutdownPeriod to expire (ServerContext expires after shutdownPeriod)
-	select {
-	case <-grpcStopped:
-		break
-	case <-host.ServerContext().Done():
-		// Forcefully close if timeout expired
-		grpcServer.Stop()
-		break
+	} else {
+		log.Println("Gracefully shut down HTTP server")
 	}
 
 	log.Println("Server shut down gracefully")
 }
 
-type pdfWorkerServer struct {
-	pb.UnimplementedPdfWorkerServer
-	gen types.PdfGenerator
-}
+func generatePdfHandler(gen types.PdfGenerator) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Worker-Id", workerId)
 
-func (s *pdfWorkerServer) Health(context.Context, *emptypb.Empty) (*pb.HealthResponse, error) {
-	message := "OK"
-	return &pb.HealthResponse{
-		Message: &message,
-	}, nil
-}
-
-func (s *pdfWorkerServer) Generate(ctx context.Context, req *pb.PdfRequest) (*pb.PdfResponse, error) {
-	// Convert protobuf request to internal types
-	internalReq := protoToInternalRequest(req)
-
-	result, pdfErr := s.gen.Generate(ctx, internalReq)
-	success := false
-	if pdfErr != nil {
-		errStr := pdfErr.Error()
-		errorCode := int32(http.StatusInternalServerError)
-
-		// Map specific errors to HTTP status codes
-		if pdfErr.Is(types.ErrQueueFull) {
-			errorCode = int32(http.StatusTooManyRequests)
-		}
-
-		return &pb.PdfResponse{
-			Success:   &success,
-			Error:     &errStr,
-			ErrorCode: &errorCode,
-			WorkerId:  &workerId,
-		}, nil
-	}
-
-	success = true
-	return &pb.PdfResponse{
-		Success:  &success,
-		Data:     result.Data,
-		WorkerId: &workerId,
-	}, nil
-}
-
-func protoToInternalRequest(req *pb.PdfRequest) types.PdfRequest {
-	internal := types.PdfRequest{
-		URL:                  req.GetUrl(),
-		SetJavaScriptEnabled: req.GetSetJavaScriptEnabled(),
-	}
-
-	// Convert options
-	if opts := req.GetOptions(); opts != nil {
-		internal.Options = types.PdfOptions{
-			HeaderTemplate:      opts.GetHeaderTemplate(),
-			FooterTemplate:      opts.GetFooterTemplate(),
-			DisplayHeaderFooter: opts.GetDisplayHeaderFooter(),
-			PrintBackground:     opts.GetPrintBackground(),
-			Format:              opts.GetFormat(),
-		}
-		if margin := opts.GetMargin(); margin != nil {
-			internal.Options.Margin = types.PdfMargin{
-				Top:    margin.GetTop(),
-				Right:  margin.GetRight(),
-				Bottom: margin.GetBottom(),
-				Left:   margin.GetLeft(),
+		if r.Method != http.MethodPost {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			if _, err := w.Write([]byte("Only POST method is allowed")); err != nil {
+				log.Printf("Failed to write error response: %v\n", err)
 			}
+			return
 		}
-	}
 
-	// Convert waitFor
-	if waitFor := req.GetWaitFor(); waitFor != nil {
-		switch wt := waitFor.GetWaitType().(type) {
-		case *pb.WaitFor_Selector:
-			internal.WaitFor = types.NewWaitForString(wt.Selector)
-		case *pb.WaitFor_TimeoutMs:
-			internal.WaitFor = types.NewWaitForTimeout(wt.TimeoutMs)
-		case *pb.WaitFor_Options:
-			if opts := wt.Options; opts != nil {
-				waitForOpts := types.WaitForOptions{
-					Selector: opts.GetSelector(),
-				}
-				if opts.Visible != nil {
-					visible := opts.GetVisible()
-					waitForOpts.Visible = &visible
-				}
-				if opts.Hidden != nil {
-					hidden := opts.GetHidden()
-					waitForOpts.Hidden = &hidden
-				}
-				if opts.Timeout != nil {
-					timeout := opts.GetTimeout()
-					waitForOpts.Timeout = &timeout
-				}
-				internal.WaitFor = types.NewWaitForOptions(waitForOpts)
+		if r.Header.Get("Content-Type") != "application/json" {
+			w.WriteHeader(http.StatusUnsupportedMediaType)
+			if _, err := w.Write([]byte("Content-Type must be application/json")); err != nil {
+				log.Printf("Failed to write error response: %v\n", err)
 			}
+			return
+		}
+
+		var req types.PdfRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			if _, err := w.Write([]byte(fmt.Sprintf("Invalid JSON payload: %v", err))); err != nil {
+				log.Printf("Failed to write error response: %v\n", err)
+			}
+			return
+		}
+
+		result, pdfErr := gen.Generate(r.Context(), req)
+
+		if pdfErr != nil {
+			errStr := pdfErr.Error()
+			errorCode := http.StatusInternalServerError
+
+			// Map specific errors to HTTP status codes
+			if pdfErr.Is(types.ErrQueueFull) {
+				errorCode = http.StatusTooManyRequests
+			}
+
+			w.WriteHeader(errorCode)
+			if _, err := w.Write([]byte(errStr)); err != nil {
+				log.Printf("Failed to write error response: %v\n", err)
+			}
+			return
+		}
+
+		// Success - return PDF bytes
+		w.Header().Set("Content-Type", "application/pdf")
+
+		// Add debug headers if in DEBUG_MODE
+		if debugMode {
+			w.Header().Set("X-Console-Errors", fmt.Sprintf("%d", result.ConsoleErrors))
+			w.Header().Set("X-Log-Errors", fmt.Sprintf("%d", result.LogErrors))
+		}
+
+		w.WriteHeader(http.StatusOK)
+		if _, err := w.Write(result.Data); err != nil {
+			log.Printf("Failed to write PDF response: %v\n", err)
 		}
 	}
-
-	// Convert cookies
-	for _, c := range req.GetCookies() {
-		internal.Cookies = append(internal.Cookies, types.Cookie{
-			Name:     c.GetName(),
-			Value:    c.GetValue(),
-			Domain:   c.GetDomain(),
-			SameSite: c.GetSameSite(),
-		})
-	}
-
-	return internal
 }

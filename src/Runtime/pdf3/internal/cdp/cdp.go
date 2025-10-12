@@ -31,6 +31,13 @@ type CDPResponse struct {
 	Error  interface{} `json:"error,omitempty"`
 }
 
+type CDPTarget struct {
+	ID                   string `json:"id"`
+	Type                 string `json:"type"`
+	WebSocketDebuggerURL string `json:"webSocketDebuggerUrl"`
+	URL                  string `json:"url"`
+}
+
 // getStringFromMap safely extracts a string value from a map
 func GetStringFromMap(m map[string]interface{}, key string) string {
 	if v, ok := m[key].(string); ok {
@@ -68,7 +75,7 @@ func ConnectToPageTarget(id int, debugBaseURL string) (string, *websocket.Conn, 
 	defer func() {
 		// Closing HTTP response body - failure indicates connection pool leak
 		if err := resp.Body.Close(); err != nil {
-			log.Printf("Worker %d: Failed to close HTTP response body: %v", id, err)
+			log.Printf("Worker %d: Failed to close HTTP response body: %v\n", id, err)
 		}
 	}()
 
@@ -76,13 +83,7 @@ func ConnectToPageTarget(id int, debugBaseURL string) (string, *websocket.Conn, 
 		return "", nil, fmt.Errorf("failed to list targets: status %d", resp.StatusCode)
 	}
 
-	var targets []struct {
-		ID                   string `json:"id"`
-		Type                 string `json:"type"`
-		WebSocketDebuggerURL string `json:"webSocketDebuggerUrl"`
-		URL                  string `json:"url"`
-	}
-
+	var targets []CDPTarget
 	if err := json.NewDecoder(resp.Body).Decode(&targets); err != nil {
 		return "", nil, fmt.Errorf("failed to decode targets response: %w", err)
 	}
@@ -94,13 +95,7 @@ func ConnectToPageTarget(id int, debugBaseURL string) (string, *websocket.Conn, 
 	}
 
 	// Find the page target (should be about:blank)
-	var target *struct {
-		ID                   string `json:"id"`
-		Type                 string `json:"type"`
-		WebSocketDebuggerURL string `json:"webSocketDebuggerUrl"`
-		URL                  string `json:"url"`
-	}
-
+	var target *CDPTarget
 	for i, t := range targets {
 		if t.Type == "page" {
 			target = &targets[i]
