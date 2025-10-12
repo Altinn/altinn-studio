@@ -42,7 +42,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to worker: %v", err)
 	}
-	defer conn.Close()
+	defer func() {
+		// Closing gRPC connection during shutdown - failure is not actionable
+		_ = conn.Close()
+	}()
 	client := pb.NewPdfWorkerClient(conn)
 	connectivity := NewConnectivityChecker(client)
 
@@ -50,30 +53,44 @@ func main() {
 	http.HandleFunc("/health/startup", func(w http.ResponseWriter, r *http.Request) {
 		if host.IsShuttingDown() {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			w.Write([]byte("Shutting down"))
+			if _, err := w.Write([]byte("Shutting down")); err != nil {
+				log.Printf("Failed to write health check response: %v", err)
+			}
 		} else if connectivity.GetState() != WorkerConnectivityStateHealthy {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			w.Write([]byte("No connectivity"))
+			if _, err := w.Write([]byte("No connectivity")); err != nil {
+				log.Printf("Failed to write health check response: %v", err)
+			}
 		} else {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("OK"))
+			if _, err := w.Write([]byte("OK")); err != nil {
+				log.Printf("Failed to write health check response: %v", err)
+			}
 		}
 	})
 	http.HandleFunc("/health/ready", func(w http.ResponseWriter, r *http.Request) {
 		if host.IsShuttingDown() {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			w.Write([]byte("Shutting down"))
+			if _, err := w.Write([]byte("Shutting down")); err != nil {
+				log.Printf("Failed to write health check response: %v", err)
+			}
 		} else if connectivity.GetState() != WorkerConnectivityStateHealthy {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			w.Write([]byte("No connectivity"))
+			if _, err := w.Write([]byte("No connectivity")); err != nil {
+				log.Printf("Failed to write health check response: %v", err)
+			}
 		} else {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("OK"))
+			if _, err := w.Write([]byte("OK")); err != nil {
+				log.Printf("Failed to write health check response: %v", err)
+			}
 		}
 	})
 	http.HandleFunc("/health/live", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
+		if _, err := w.Write([]byte("OK")); err != nil {
+			log.Printf("Failed to write health check response: %v", err)
+		}
 	})
 
 	http.HandleFunc("/pdf", generatePdf(client))
@@ -173,7 +190,9 @@ func generatePdf(client pb.PdfWorkerClient) func(http.ResponseWriter, *http.Requ
 				// Success - return PDF data
 				w.Header().Set("Content-Type", "application/pdf")
 				w.WriteHeader(http.StatusOK)
-				w.Write(protoResp.GetData())
+				if _, err := w.Write(protoResp.GetData()); err != nil {
+					log.Printf("[%s] Failed to write PDF response data: %v", req.URL, err)
+				}
 				duration := time.Since(start)
 				log.Printf("[%s, %d/%d, %05dms] successfully generated PDF\n", req.URL, attempt, maxRetries, duration.Milliseconds())
 				return

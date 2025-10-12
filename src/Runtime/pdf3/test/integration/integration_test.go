@@ -52,9 +52,13 @@ func waitForServices() error {
 		req.Host = "pdf3-proxy.pdf3.svc.cluster.local"
 
 		resp, err := client.Do(req)
-		if err == nil && resp.StatusCode == http.StatusOK {
-			resp.Body.Close()
-			break
+		if err == nil {
+			// Close response body when err is nil - we're in a retry loop, so ignoring error is acceptable
+			if resp.StatusCode == http.StatusOK {
+				_ = resp.Body.Close()
+				break
+			}
+			_ = resp.Body.Close()
 		}
 		if i == maxRetries-1 {
 			return fmt.Errorf("proxy not ready after %d attempts", maxRetries)
@@ -146,7 +150,7 @@ func makePdfDeterministic(t *testing.T, pdf []byte) []byte {
 	// /CreationDate (D:20251010054937+00'00')
 	// /ModDate (D:20251010054937+00'00')>>
 	//
-	var date []byte = []byte("D:20251010054937+00'00'")
+	date := []byte("D:20251010054937+00'00'")
 
 	result := bytes.Clone(pdf)
 
@@ -214,7 +218,10 @@ func requestPDFWithHost(t *testing.T, req *types.PdfRequest, overrideHost string
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		// Closing response body after reading PDF data
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)

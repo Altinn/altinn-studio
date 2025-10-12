@@ -91,8 +91,11 @@ func New() (*Custom, error) {
 		}
 		defer func() {
 			if cmd != nil && cmd.Process != nil {
-				cmd.Process.Kill()
-				cmd.Wait()
+				if err := cmd.Process.Kill(); err != nil {
+					log.Printf("WARNING: Failed to kill temporary browser process (PID %d): %v - process may be lingering", cmd.Process.Pid, err)
+				}
+				// Wait() error is expected (killed processes return error), so we can ignore it
+				_ = cmd.Wait()
 			}
 		}()
 
@@ -103,7 +106,8 @@ func New() (*Custom, error) {
 		}
 		defer func() {
 			if conn != nil {
-				conn.Close()
+				// Closing WebSocket during init - connection will be recreated anyway
+				_ = conn.Close()
 			}
 		}()
 
@@ -327,7 +331,9 @@ func newBrowserSession(id int) (*browserSession, error) {
 	var conn *websocket.Conn
 	w.targetID, conn, err = cdp.ConnectToPageTarget(id, w.debugBaseURL)
 	if err != nil {
-		w.cmd.Process.Kill()
+		if killErr := w.cmd.Process.Kill(); killErr != nil {
+			log.Printf("ERROR: Worker %d failed to connect AND failed to kill browser process (PID %d): %v - process is lingering!", id, w.cmd.Process.Pid, killErr)
+		}
 		return nil, fmt.Errorf("failed to connect to page target: %w", err)
 	}
 	w.wsConn = conn
@@ -795,12 +801,17 @@ func (w *browserSession) cleanupBrowser(req *workerRequest) {
 
 func (w *browserSession) close() {
 	if w.wsConn != nil {
-		w.wsConn.Close()
+		if err := w.wsConn.Close(); err != nil {
+			log.Printf("Worker %d: Failed to close WebSocket: %v", w.id, err)
+		}
 	}
 
 	if w.cmd != nil && w.cmd.Process != nil {
-		w.cmd.Process.Kill()
-		w.cmd.Wait()
+		if err := w.cmd.Process.Kill(); err != nil {
+			log.Printf("ERROR: Worker %d failed to kill browser process (PID %d): %v - PROCESS MAY BE LINGERING!", w.id, w.cmd.Process.Pid, err)
+		}
+		// Wait() error is expected (killed processes return error), so we can ignore it
+		_ = w.cmd.Wait()
 	}
 }
 

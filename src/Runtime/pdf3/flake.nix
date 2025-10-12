@@ -60,13 +60,13 @@
 
             shellHook = ''
               # Deactivate mise if it's active to avoid conflicts with nix
-              if command -v mise &> /dev/null && [ -n "$MISE_SHELL" ]; then
-                echo "Deactivating mise for the current shell..."
-                mise deactivate
-              fi
+              # if command -v mise &> /dev/null && [ -n "$MISE_SHELL" ]; then
+              #   echo "Deactivating mise for the current shell..."
+              #   mise deactivate
+              # fi
 
               # Remove mise paths from PATH, as we can get conflicts with installs from nix
-              export PATH=$(echo "$PATH" | tr ':' '\n' | grep -v '.local/share/mise' | tr '\n' ':' | sed 's/:$//')
+              # export PATH=$(echo "$PATH" | tr ':' '\n' | grep -v '.local/share/mise' | tr '\n' ':' | sed 's/:$//')
 
               go version
             '';

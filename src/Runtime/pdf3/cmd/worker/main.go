@@ -41,7 +41,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create PDF generator: %v", err)
 	}
-	defer gen.Close()
+	defer func() {
+		// Closing PDF generator during shutdown
+		if err := gen.Close(); err != nil {
+			log.Printf("Failed to close PDF generator: %v", err)
+		}
+	}()
 
 	// Start gRPC server
 	grpcServer := grpc.NewServer()
@@ -70,24 +75,34 @@ func main() {
 	http.HandleFunc("/health/startup", func(w http.ResponseWriter, r *http.Request) {
 		if host.IsShuttingDown() {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			w.Write([]byte("Shutting down"))
+			if _, err := w.Write([]byte("Shutting down")); err != nil {
+				log.Printf("Failed to write health check response: %v", err)
+			}
 		} else {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("OK"))
+			if _, err := w.Write([]byte("OK")); err != nil {
+				log.Printf("Failed to write health check response: %v", err)
+			}
 		}
 	})
 	http.HandleFunc("/health/ready", func(w http.ResponseWriter, r *http.Request) {
 		if host.IsShuttingDown() {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			w.Write([]byte("Shutting down"))
+			if _, err := w.Write([]byte("Shutting down")); err != nil {
+				log.Printf("Failed to write health check response: %v", err)
+			}
 		} else {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("OK"))
+			if _, err := w.Write([]byte("OK")); err != nil {
+				log.Printf("Failed to write health check response: %v", err)
+			}
 		}
 	})
 	http.HandleFunc("/health/live", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
+		if _, err := w.Write([]byte("OK")); err != nil {
+			log.Printf("Failed to write health check response: %v", err)
+		}
 	})
 
 	httpServer := &http.Server{

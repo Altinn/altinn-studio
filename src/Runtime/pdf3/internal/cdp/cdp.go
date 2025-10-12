@@ -49,8 +49,15 @@ func ConnectToPageTarget(id int, debugBaseURL string) (string, *websocket.Conn, 
 	now := time.Now()
 	for {
 		resp, err = http.Get(listURL)
-		if (err == nil && resp.StatusCode == http.StatusOK) || time.Since(now) > 10*time.Second {
+		if err == nil && resp.StatusCode == http.StatusOK {
 			break
+		}
+		if time.Since(now) > 10*time.Second {
+			break
+		}
+		// Close response body for failed attempts before retrying to prevent resource leak
+		if err == nil {
+			_ = resp.Body.Close()
 		}
 		time.Sleep(1 * time.Millisecond)
 	}
@@ -58,7 +65,12 @@ func ConnectToPageTarget(id int, debugBaseURL string) (string, *websocket.Conn, 
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to list targets: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		// Closing HTTP response body - failure indicates connection pool leak
+		if err := resp.Body.Close(); err != nil {
+			log.Printf("Worker %d: Failed to close HTTP response body: %v", id, err)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return "", nil, fmt.Errorf("failed to list targets: status %d", resp.StatusCode)
