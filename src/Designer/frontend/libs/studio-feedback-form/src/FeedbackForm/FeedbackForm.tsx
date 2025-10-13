@@ -63,16 +63,21 @@ export function FeedbackForm({
   const renderQuestion = (question: QuestionConfig) => {
     const questionBaseProps: QuestionsProps = {
       id: question.id,
-      key: question.id,
       label: question.questionText,
       onChange: handleAnswerChange,
       value: answers[question.id] || getDefaultAnswerValueForQuestion(question),
     };
     switch (question.type) {
       case 'yesNo':
-        return <YesNoQuestion buttonLabels={question.buttonLabels} {...questionBaseProps} />;
+        return (
+          <YesNoQuestion
+            key={question.id}
+            buttonLabels={question.buttonLabels}
+            {...questionBaseProps}
+          />
+        );
       case 'text':
-        return <TextQuestion {...questionBaseProps} />;
+        return <TextQuestion key={question.id} {...questionBaseProps} />;
       default:
         return null;
     }
