@@ -191,7 +191,8 @@ public class HomeController : Controller
             }
         }
 
-        string redirectUrl = $"{Request.GetDisplayUrl()}instance/{mostRecentInstance.Id}/{currentTask.ElementId}/{firstPageId}";
+        string redirectUrl =
+            $"{Request.GetDisplayUrl()}instance/{mostRecentInstance.Id}/{currentTask.ElementId}/{firstPageId}";
         return Redirect(redirectUrl);
     }
 
