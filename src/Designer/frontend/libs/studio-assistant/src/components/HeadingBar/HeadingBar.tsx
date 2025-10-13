@@ -1,6 +1,6 @@
 import React from 'react';
 import { StudioHeading, StudioToggleGroup } from '@studio/components';
-import classes from './headingBar.module.css';
+import classes from './HeadingBar.module.css';
 import { CodeIcon, PlayFillIcon } from '@studio/icons';
 import { ToolColumnMode } from '../../types/ToolColumnMode';
 import type { AssistantTexts } from '../../types/AssistantTexts';
