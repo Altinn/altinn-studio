@@ -10,7 +10,6 @@
     <PackageVersion Include="Altinn.Platform.Storage.Interface" Version="3.34.0" />
     <PackageVersion Include="Altinn.Authorization.ABAC" Version="0.0.8" />
     <PackageVersion Include="Altinn.ApiClients.Maskinporten" Version="9.2.1" />
-    <PackageVersion Include="Azure.Storage.Blobs" Version="12.25.1" />
   </ItemGroup>
   <ItemGroup Label="Shared nuget packages">
     <PackageVersion Include="JsonSchema.Net" Version="5.5.1" />
@@ -51,6 +50,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="[4.14.0]" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="[4.14.0]" />
     <PackageVersion Include="Azure.Security.KeyVault.Secrets" Version="[4.8.0]" />
+    <PackageVersion Include="Azure.Storage.Blobs" Version="[12.25.1]" />
     <PackageVersion Include="Scriban" Version="6.4.0" />
     <PackageVersion Include="System.Formats.Asn1" Version="9.0.9" />
     <PackageVersion Include="System.Net.Http" Version="[4.3.4]" />
