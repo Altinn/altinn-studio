@@ -1,7 +1,7 @@
 import type { MessageAuthor } from './MessageAuthor';
 
 export type ChatThread = {
-  id?: string;
+  id: string;
   title: string;
   messages: Message[];
   createdAt?: Date;
@@ -12,7 +12,7 @@ export type UserMessage = {
   author: MessageAuthor.User;
   content: string;
   timestamp: Date;
-  allowEditing?: boolean;
+  allowAppChanges?: boolean;
 };
 
 export type AssistantMessage = {

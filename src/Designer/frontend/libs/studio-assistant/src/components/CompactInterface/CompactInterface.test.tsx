@@ -36,18 +36,18 @@ describe('CompactInterface', () => {
     expect(greetingMessage).toBeInTheDocument();
   });
 
-  it('should not render attachment button in compact interface', () => {
+  it('should not render attachment button', () => {
     renderCompactInterface();
     const attachmentButton = screen.queryByRole('button', { name: mockTexts.addAttachment });
 
     expect(attachmentButton).not.toBeInTheDocument();
   });
 
-  it('should not render agent mode switch in compact interface', () => {
+  it('should not render "allow app changes" switch', () => {
     renderCompactInterface();
-    const agentModeSwitch = screen.queryByLabelText(mockTexts.agentModeSwitch);
+    const allowAppChangesSwitch = screen.queryByRole('checkbox', { name: mockTexts.allowAppChangesSwitch });
 
-    expect(agentModeSwitch).not.toBeInTheDocument();
+    expect(allowAppChangesSwitch).not.toBeInTheDocument();
   });
 });
 

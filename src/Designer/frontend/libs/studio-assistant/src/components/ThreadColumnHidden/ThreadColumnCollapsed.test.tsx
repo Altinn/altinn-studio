@@ -1,11 +1,11 @@
 import React from 'react';
-import { ThreadColumnCollapsed } from './ThreadColumnHidden';
+import { ThreadColumnCollapsed } from './ThreadColumnCollapsed';
 import { render, screen } from '@testing-library/react';
-import type { ThreadColumnHiddenProps } from './ThreadColumnHidden';
+import type { ThreadColumnHiddenProps } from './ThreadColumnCollapsed';
 import userEvent from '@testing-library/user-event';
 
 // Test data
-const onToggle = jest.fn();
+const onToggleCollapse = jest.fn();
 
 describe('ThreadColumnCollapsed', () => {
   it('should render the toggle button', () => {
@@ -22,19 +22,19 @@ describe('ThreadColumnCollapsed', () => {
     expect(buttons).toHaveLength(2);
   });
 
-  it('should call onToggle when toggle button is clicked', async () => {
+  it('should call onToggleCollapse when toggle button is clicked', async () => {
     const user = userEvent.setup();
     renderThreadColumnCollapsed();
     const toggleButton = screen.getAllByRole('button')[0];
 
     await user.click(toggleButton);
 
-    expect(onToggle).toHaveBeenCalledTimes(1);
+    expect(onToggleCollapse).toHaveBeenCalledTimes(1);
   });
 });
 
 const defaultProps: ThreadColumnHiddenProps = {
-  onToggle,
+  onToggleCollapse: onToggleCollapse,
 };
 
 const renderThreadColumnCollapsed = (props?: Partial<ThreadColumnHiddenProps>): void => {

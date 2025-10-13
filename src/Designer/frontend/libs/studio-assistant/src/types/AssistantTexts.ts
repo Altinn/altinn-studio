@@ -8,7 +8,7 @@ export type AssistantTexts = {
   aboutAssistant: string;
   textareaPlaceholder: string;
   addAttachment: string;
-  agentModeSwitch: string;
+  allowAppChangesSwitch: string;
   send: string;
   assistantFirstMessage: string;
 };

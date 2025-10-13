@@ -1,7 +1,15 @@
 import type { AssistantMessage, ChatThread, UserMessage } from '../types/ChatThread';
 import { MessageAuthor } from '../types/MessageAuthor';
 
-export function createAssistantGreetingMessage(content: string): AssistantMessage {
+export function createNewChatThread(title: string): ChatThread {
+  return {
+    id: "newThread",
+    title,
+    messages: [],
+  };
+}
+
+export function createAssistantMessage(content: string): AssistantMessage {
   return {
     author: MessageAuthor.Assistant,
     content,
@@ -9,18 +17,11 @@ export function createAssistantGreetingMessage(content: string): AssistantMessag
   };
 }
 
-export function createNewChatThread(title: string): ChatThread {
-  return {
-    title,
-    messages: [],
-  };
-}
-
-export function createUserMessage(content: string, allowEditing: boolean): UserMessage {
+export function createUserMessage(content: string, allowAppChanges: boolean): UserMessage {
   return {
     author: MessageAuthor.User,
     content,
     timestamp: new Date(),
-    allowEditing,
+    allowAppChanges,
   };
 }

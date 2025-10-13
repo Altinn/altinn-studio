@@ -1,19 +1,8 @@
-import { createAssistantGreetingMessage, createNewChatThread, createUserMessage } from './utils';
+import { createAssistantMessage, createNewChatThread, createUserMessage } from './utils';
 import { MessageAuthor } from '../types/MessageAuthor';
 
 describe('utils', () => {
-  describe('createAssistantGreetingMessage', () => {
-    it('should create an assistant message with the provided content', () => {
-      const content = 'Hello, how can I help you?';
-      const message = createAssistantGreetingMessage(content);
-
-      expect(message.author).toBe(MessageAuthor.Assistant);
-      expect(message.content).toBe(content);
-      expect(message.timestamp).toBeInstanceOf(Date);
-    });
-  });
-
-  describe('createNewChatThread', () => {
+    describe('createNewChatThread', () => {
     it('should create a chat thread with the provided title', () => {
       const title = 'Test Chat Thread';
       const thread = createNewChatThread(title);
@@ -30,6 +19,17 @@ describe('utils', () => {
     });
   });
 
+  describe('createAssistantMessage', () => {
+    it('should create an assistant message with the provided content', () => {
+      const content = 'Hello, how can I help you?';
+      const message = createAssistantMessage(content);
+
+      expect(message.author).toBe(MessageAuthor.Assistant);
+      expect(message.content).toBe(content);
+      expect(message.timestamp).toBeInstanceOf(Date);
+    });
+  });
+
   describe('createUserMessage', () => {
     it('should create a user message with the provided content and allowEditing flag', () => {
       const content = 'This is a user message';
@@ -38,7 +38,7 @@ describe('utils', () => {
 
       expect(message.author).toBe(MessageAuthor.User);
       expect(message.content).toBe(content);
-      expect(message.allowEditing).toBe(allowEditing);
+      expect(message.allowAppChanges).toBe(allowEditing);
       expect(message.timestamp).toBeInstanceOf(Date);
     });
   });

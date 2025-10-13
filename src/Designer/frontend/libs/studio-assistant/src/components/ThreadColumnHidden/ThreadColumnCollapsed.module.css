@@ -1,4 +1,4 @@
-.threadColumnHidden {
+.threadColumnCollapsed {
   display: flex;
   flex-direction: column;
   background-color: var(--ds-color-neutral-background-default);

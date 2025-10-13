@@ -15,12 +15,12 @@ export function UserInput({
   enableCompactInterface,
 }: UserInputProps): ReactElement {
   const [messageContent, setMessageContent] = useState<string>('');
-  const [allowEditing, setAllowEditing] = useState<boolean>(true);
+  const [allowAppChanges, setAllowAppChanges] = useState<boolean>(true);
 
   const handleSubmit = () => {
     if (!messageContent.trim()) return;
 
-    const message: UserMessage = createUserMessage(messageContent, allowEditing);
+    const message: UserMessage = createUserMessage(messageContent, allowAppChanges);
 
     onSubmitMessage(message);
     setMessageContent('');
@@ -51,9 +51,9 @@ export function UserInput({
           )}
           {!enableCompactInterface && (
             <StudioSwitch
-              checked={allowEditing}
-              onChange={(e) => setAllowEditing(e.target.checked)}
-              label={texts.agentModeSwitch}
+              checked={allowAppChanges}
+              onChange={(e) => setAllowAppChanges(e.target.checked)}
+              label={texts.allowAppChangesSwitch}
             />
           )}
         </div>

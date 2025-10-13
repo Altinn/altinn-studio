@@ -10,7 +10,7 @@ export const mockTexts: AssistantTexts = {
   aboutAssistant: 'aboutAssistant',
   textareaPlaceholder: 'textareaPlaceholder',
   addAttachment: 'addAttachment',
-  agentModeSwitch: 'agentModeSwitch',
+  allowAppChangesSwitch: 'allowAppChangesSwitch',
   send: 'send',
   assistantFirstMessage: 'Hva kan jeg hjelpe med?',
 };

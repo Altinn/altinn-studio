@@ -3,10 +3,10 @@ import { HeadingBar } from './HeadingBar';
 import { render, screen } from '@testing-library/react';
 import type { HeadingBarProps } from './HeadingBar';
 import { mockTexts } from '../../mocks/mockTexts';
-import { ViewType } from '../../types/ViewType';
+import { ToolColumnMode } from '../../types/ToolColumnMode';
 
 // Test data
-const onViewChange = jest.fn();
+const onModeChange = jest.fn();
 
 describe('HeadingBar', () => {
   it('should render the heading', () => {
@@ -16,7 +16,7 @@ describe('HeadingBar', () => {
     expect(heading).toBeInTheDocument();
   });
 
-  it('should not render toggle group when selectedView is not provided', () => {
+  it('should not render toggle group when selectedToolColumnMode is not provided', () => {
     renderHeadingBar();
     const previewToggle = screen.queryByRole('radio', { name: mockTexts.preview });
     const fileBrowserToggle = screen.queryByRole('radio', { name: mockTexts.fileBrowser });
@@ -25,8 +25,8 @@ describe('HeadingBar', () => {
     expect(fileBrowserToggle).not.toBeInTheDocument();
   });
 
-  it('should not render toggle group when onViewChange is not provided', () => {
-    renderHeadingBar({ selectedView: ViewType.Preview });
+  it('should not render toggle group when onModeChange is not provided', () => {
+    renderHeadingBar({ selectedToolColumnMode: ToolColumnMode.Preview });
     const previewToggle = screen.queryByRole('radio', { name: mockTexts.preview });
     const fileBrowserToggle = screen.queryByRole('radio', { name: mockTexts.fileBrowser });
 
@@ -34,8 +34,8 @@ describe('HeadingBar', () => {
     expect(fileBrowserToggle).not.toBeInTheDocument();
   });
 
-  it('should render toggle group when both selectedView and onViewChange are provided', () => {
-    renderHeadingBar({ selectedView: ViewType.Preview, onViewChange });
+  it('should render toggle group when both selectedToolColumnMode and onModeChange are provided', () => {
+    renderHeadingBar({ selectedToolColumnMode: ToolColumnMode.Preview, onModeChange });
     const previewToggle = screen.getByRole('radio', { name: mockTexts.preview });
     const fileBrowserToggle = screen.getByRole('radio', { name: mockTexts.fileBrowser });
 

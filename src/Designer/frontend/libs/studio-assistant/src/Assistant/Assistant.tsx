@@ -6,20 +6,20 @@ import type { AssistantTexts } from '../types/AssistantTexts';
 
 export type AssistantProps = {
   texts: AssistantTexts;
-  chatThreads: ChatThread[];
   onSubmitMessage: (message: UserMessage) => void;
+  chatThreads?: ChatThread[];
   enableCompactInterface?: boolean;
 };
 
 export function Assistant({
   texts,
-  chatThreads,
   onSubmitMessage,
+  chatThreads,
   enableCompactInterface = false,
 }: AssistantProps): React.ReactElement {
   return enableCompactInterface ? (
     <CompactInterface texts={texts} onSubmitMessage={onSubmitMessage} />
   ) : (
-    <CompleteInterface texts={texts} chatThreads={chatThreads} onSubmitMessage={onSubmitMessage} />
+    <CompleteInterface texts={texts} onSubmitMessage={onSubmitMessage} chatThreads={chatThreads} />
   );
 }

@@ -1,7 +1,6 @@
 .inputContainer {
   display: flex;
   flex-direction: column;
-  flex-shrink: 0;
   padding: var(--ds-size-4);
   gap: var(--ds-size-4);
   border-top: 1px solid var(--ds-color-neutral-border-subtle);
@@ -11,7 +10,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: var(--ds-size-2);
+  gap: var(--ds-size-4);
 }
 
 .actionsRowLeft {

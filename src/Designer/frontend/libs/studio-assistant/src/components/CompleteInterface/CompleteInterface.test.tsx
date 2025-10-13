@@ -8,10 +8,12 @@ import { MessageAuthor } from '../../types/MessageAuthor';
 // Test data
 const onSubmitMessage = jest.fn();
 
+const threadTitle1 = 'Thread 1';
+const threadTitle2 = 'Thread 2';
 const mockChatThreads: ChatThread[] = [
   {
     id: '1',
-    title: 'Thread 1',
+    title: threadTitle1,
     messages: [
       {
         author: MessageAuthor.User,
@@ -22,7 +24,7 @@ const mockChatThreads: ChatThread[] = [
   },
   {
     id: '2',
-    title: 'Thread 2',
+    title: threadTitle2,
     messages: [],
   },
 ];
@@ -79,17 +81,17 @@ describe('CompleteInterface', () => {
     expect(attachmentButton).toBeInTheDocument();
   });
 
-  it('should render agent mode switch in complete interface', () => {
+  it('should render "allow app changes" switch in complete interface', () => {
     renderCompleteInterface();
-    const agentModeSwitch = screen.getByLabelText(mockTexts.agentModeSwitch);
+    const allowAppChangesSwitch = screen.getByLabelText(mockTexts.allowAppChangesSwitch);
 
-    expect(agentModeSwitch).toBeInTheDocument();
+    expect(allowAppChangesSwitch).toBeInTheDocument();
   });
 
   it('should render chat threads', () => {
     renderCompleteInterface({ chatThreads: mockChatThreads });
-    const thread1 = screen.getByRole('tab', { name: 'Thread 1' });
-    const thread2 = screen.getByRole('tab', { name: 'Thread 2' });
+    const thread1 = screen.getByRole('tab', { name: threadTitle1 });
+    const thread2 = screen.getByRole('tab', { name: threadTitle2 });
 
     expect(thread1).toBeInTheDocument();
     expect(thread2).toBeInTheDocument();

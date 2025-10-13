@@ -4,7 +4,7 @@ import { ChatColumn } from '../ChatColumn/ChatColumn';
 import classes from './CompactInterface.module.css';
 import type { ReactElement } from 'react';
 import { HeadingBar } from '../HeadingBar/HeadingBar';
-import { createAssistantGreetingMessage } from '../../utils/utils';
+import { createAssistantMessage } from '../../utils/utils';
 import type { AssistantProps } from '../../Assistant/Assistant';
 
 export type CompactInterfaceProps = Omit<AssistantProps, 'enableCompactInterface' | 'chatThreads'>;
@@ -14,7 +14,7 @@ export type CompactInterfaceProps = Omit<AssistantProps, 'enableCompactInterface
  * Typical usage is as a pop-up assistant in the lower right of the browser window.
  */
 export function CompactInterface({ texts, onSubmitMessage }: CompactInterfaceProps): ReactElement {
-  const greetingMessage: Message = createAssistantGreetingMessage(texts.assistantFirstMessage);
+  const greetingMessage: Message = createAssistantMessage(texts.assistantFirstMessage);
 
   return (
     <div className={classes.compactInterface}>

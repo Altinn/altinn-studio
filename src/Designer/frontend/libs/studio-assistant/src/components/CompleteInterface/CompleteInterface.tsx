@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import type { ReactElement } from 'react';
-import { StudioResizableLayout } from '@studio/components-legacy';
+import { StudioResizableLayout } from '@studio/components';
 import { ToolColumn } from '../ToolColumn/ToolColumn';
 import classes from './CompleteInterface.module.css';
 import { HeadingBar } from '../HeadingBar/HeadingBar';
 import type { ChatThread } from '../../types/ChatThread';
 import { ThreadColumn } from '../ThreadColumn/ThreadColumn';
-import { ThreadColumnCollapsed } from '../ThreadColumnHidden/ThreadColumnHidden';
+import { ThreadColumnCollapsed } from '../ThreadColumnHidden/ThreadColumnCollapsed';
 import { ChatColumn } from '../ChatColumn/ChatColumn';
-import { ViewType } from '../../types/ViewType';
+import { ToolColumnMode } from '../../types/ToolColumnMode';
 import { createNewChatThread } from '../../utils/utils';
 import type { AssistantProps } from '../../Assistant/Assistant';
 
@@ -23,7 +23,7 @@ export function CompleteInterface({
   onSubmitMessage,
 }: CompleteInterfaceProps): ReactElement {
   const [isThreadColumnCollapsed, setIsThreadColumnCollapsed] = useState(false);
-  const [selectedToolView, setSelectedView] = useState<ViewType>(ViewType.Preview);
+  const [toolColumnMode, setToolColumnMode] = useState<ToolColumnMode>(ToolColumnMode.Preview);
   const [currentThread, setCurrentThread] = useState<ChatThread>(
     chatThreads[0] ?? createNewChatThread(texts.newThread),
   );
@@ -37,8 +37,7 @@ export function CompleteInterface({
 
   return (
     <div className={classes.container}>
-      <HeadingBar texts={texts} selectedView={selectedToolView} onViewChange={setSelectedView} />
-      <div className={classes.resizableWrapper}>
+      <HeadingBar texts={texts} selectedToolColumnMode={toolColumnMode} onModeChange={setToolColumnMode} />
         <StudioResizableLayout.Container orientation='horizontal' localStorageContext='ai-chat'>
           <StudioResizableLayout.Element
             minimumSize={200}
@@ -47,7 +46,7 @@ export function CompleteInterface({
             collapsedSize={80}
           >
             {isThreadColumnCollapsed ? (
-              <ThreadColumnCollapsed onToggle={handleToggleCollapse} />
+              <ThreadColumnCollapsed onToggleCollapse={handleToggleCollapse} />
             ) : (
               <ThreadColumn
                 texts={texts}
@@ -67,10 +66,9 @@ export function CompleteInterface({
             />
           </StudioResizableLayout.Element>
           <StudioResizableLayout.Element minimumSize={200}>
-            <ToolColumn selectedView={selectedToolView} />
+            <ToolColumn mode={toolColumnMode} />
           </StudioResizableLayout.Element>
         </StudioResizableLayout.Container>
-      </div>
     </div>
   );
 }

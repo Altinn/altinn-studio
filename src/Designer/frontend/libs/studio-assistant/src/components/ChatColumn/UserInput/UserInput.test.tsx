@@ -41,18 +41,18 @@ describe('UserInput', () => {
     expect(attachmentButton).not.toBeInTheDocument();
   });
 
-  it('should render agent mode switch when enableCompactInterface is false', () => {
+  it('should render "allow app changes" switch when enableCompactInterface is false', () => {
     renderUserInput({ enableCompactInterface: false });
-    const agentModeSwitch = screen.getByLabelText(mockTexts.agentModeSwitch);
+    const allowAppChangesSwitch = screen.getByLabelText(mockTexts.allowAppChangesSwitch);
 
-    expect(agentModeSwitch).toBeInTheDocument();
+    expect(allowAppChangesSwitch).toBeInTheDocument();
   });
 
-  it('should not render agent mode switch when enableCompactInterface is true', () => {
+  it('should not "allow app changes" switch when enableCompactInterface is true', () => {
     renderUserInput({ enableCompactInterface: true });
-    const agentModeSwitch = screen.queryByLabelText(mockTexts.agentModeSwitch);
+    const allowAppChangesSwitch = screen.queryByLabelText(mockTexts.allowAppChangesSwitch);
 
-    expect(agentModeSwitch).not.toBeInTheDocument();
+    expect(allowAppChangesSwitch).not.toBeInTheDocument();
   });
 
   it('should disable send button when textarea is empty', () => {

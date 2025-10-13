@@ -43,7 +43,7 @@ export function ThreadColumn({
             key={thread.id}
             tabId={thread.id}
             tabName={thread.title}
-            icon={''}
+            icon={''} /* TODO: Remove Icon as required prop */
           />
         ))}
       </StudioContentMenu>

@@ -30,7 +30,7 @@ export function AiAssistant(): ReactElement {
     aboutAssistant: t('ai_assistant.about_assistant'),
     textareaPlaceholder: t('ai_assistant.textarea_placeholder'),
     addAttachment: t('ai_assistant.add_attachment'),
-    agentModeSwitch: t('ai_assistant.agent_mode_switch'),
+    allowAppChangesSwitch: t('ai_assistant.allow_app_changes'),
     send: t('ai_assistant.send'),
     assistantFirstMessage: t('ai_assistant.assistant_first_message'),
   };

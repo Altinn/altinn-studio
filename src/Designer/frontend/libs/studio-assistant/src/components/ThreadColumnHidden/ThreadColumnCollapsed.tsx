@@ -1,17 +1,17 @@
 import React from 'react';
 import { StudioButton } from '@studio/components';
 import { SidebarLeftIcon, PlusIcon } from '@studio/icons';
-import classes from './ThreadColumnHidden.module.css';
+import classes from './ThreadColumnCollapsed.module.css';
 
 export type ThreadColumnHiddenProps = {
-  onToggle: () => void;
+  onToggleCollapse: () => void;
 };
 
-export function ThreadColumnCollapsed({ onToggle }: ThreadColumnHiddenProps): React.ReactElement {
+export function ThreadColumnCollapsed({ onToggleCollapse }: ThreadColumnHiddenProps): React.ReactElement {
   return (
-    <div className={classes.threadColumnHidden}>
+    <div className={classes.threadColumnCollapsed}>
       <div className={classes.buttons}>
-        <StudioButton variant='secondary' onClick={onToggle}>
+        <StudioButton variant='secondary' onClick={onToggleCollapse}>
           <SidebarLeftIcon />
         </StudioButton>
         <StudioButton>
