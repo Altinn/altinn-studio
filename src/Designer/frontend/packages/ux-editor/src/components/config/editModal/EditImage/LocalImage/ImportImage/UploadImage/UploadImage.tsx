@@ -1,6 +1,5 @@
 import React from 'react';
-import { StudioSpinner } from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph, StudioSpinner } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAddImageMutation } from 'app-shared/hooks/mutations/useAddImageMutation';
 import { useGetAllImageFileNamesQuery } from 'app-shared/hooks/queries/useGetAllImageFileNamesQuery';
@@ -54,7 +53,7 @@ export const UploadImage = ({ onImageChange }: UploadImageProps) => {
     );
 
   return pendingUpload ? (
-    <StudioSpinner spinnerTitle={t('general.loading')} />
+    <StudioSpinner aria-hidden spinnerTitle={t('general.loading')} />
   ) : (
     <div>
       <FileUploaderWithValidation

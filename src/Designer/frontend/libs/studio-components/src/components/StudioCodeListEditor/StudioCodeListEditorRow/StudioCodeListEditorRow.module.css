@@ -1,0 +1,6 @@
+.textfieldCell:has(input:invalid) {
+  background-color: var(--ds-color-danger-background-tinted);
+  --ds-color-neutral-border-default: var(
+    --ds-color-danger-border-default
+  ); /* Todo: Remove this when https://github.com/digdir/designsystemet/issues/2701 is fixed. */
+}
