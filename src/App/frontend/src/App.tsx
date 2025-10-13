@@ -7,7 +7,6 @@ import { ComponentRouting, ProcessWrapper } from 'src/components/wrappers/Proces
 import { Entrypoint } from 'src/features/entrypoint/Entrypoint';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
-import { PartySelection } from 'src/features/instantiate/containers/PartySelection';
 import { PDFWrapper } from 'src/features/pdf/PDFWrapper';
 import { CustomReceipt, DefaultReceipt } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
@@ -22,16 +21,16 @@ export const App = () => (
     {/*  // element={<InstanceSelection />}*/}
     {/*  element={<h1>Instance selection</h1>}*/}
     {/*/>*/}
-    <Route path='/party-selection'>
-      <Route
-        index
-        element={<PartySelection />}
-      />
-      <Route
-        path='*'
-        element={<PartySelection />}
-      />
-    </Route>
+    {/*<Route path='/party-selection'>*/}
+    {/*  <Route*/}
+    {/*    index*/}
+    {/*    element={<PartySelection />}*/}
+    {/*  />*/}
+    {/*  <Route*/}
+    {/*    path='*'*/}
+    {/*    element={<PartySelection />}*/}
+    {/*  />*/}
+    {/*</Route>*/}
     <Route element={<Entrypoint />}>
       <Route
         path=':pageKey'

@@ -14,12 +14,19 @@ import { useAppMutations, useAppQueries } from 'src/core/contexts/AppQueriesProv
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import {
+  ApplicationMetadataProvider,
+  useApplicationMetadata,
+} from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
+import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import classes from 'src/features/instantiate/containers/PartySelection.module.css';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
+import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { flattenParties } from 'src/features/party/partyUtils';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
@@ -30,6 +37,20 @@ import { capitalizeName } from 'src/utils/stringHelper';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IParty } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
+
+export const PartyelectionWrapper = () => (
+  <NavigationEffectProvider>
+    <OrgsProvider>
+      <LayoutSetsProvider>
+        <ApplicationMetadataProvider>
+          <DataModelsProvider>
+            <PartySelection />
+          </DataModelsProvider>
+        </ApplicationMetadataProvider>
+      </LayoutSetsProvider>
+    </OrgsProvider>
+  </NavigationEffectProvider>
+);
 
 export const PartySelection = () => {
   changeBodyBackground(AltinnPalette.white);
@@ -65,6 +86,22 @@ export const PartySelection = () => {
   const selectedParty = useSelectedParty();
   const [userHasSelectedParty, setUserHasSelectedParty] = useReactState(false);
 
+  const appMetadata = useApplicationMetadata();
+
+  const { langAsString } = useLanguage();
+
+  const partiesAllowedToInstantiate = flattenParties(partiesData ?? []);
+
+  const defaultShowDeleted = partiesAllowedToInstantiate.every((party) => party.isDeleted);
+
+  const [filterString, setFilterString] = React.useState('');
+  const [numberOfPartiesShown, setNumberOfPartiesShown] = React.useState(4);
+  const [showSubUnits, setShowSubUnits] = React.useState(true);
+  const [showDeleted, setShowDeleted] = React.useState(defaultShowDeleted);
+  const navigate = useNavigate();
+
+  const appName = useAppName();
+  const appOwner = useAppOwner();
   useEffect(() => {
     if (partiesError) {
       window.logError('Fetching parties failed:\n', partiesError);
@@ -80,28 +117,14 @@ export const PartySelection = () => {
     return <DisplayError error={error} />;
   }
 
-  const partiesAllowedToInstantiate = flattenParties(partiesData ?? []);
-
   if (!partiesAllowedToInstantiate.length) {
     return <NoValidPartiesError />;
   }
-  const appMetadata = useApplicationMetadata();
 
   // Like on altinn.no, we tick the "show deleted" checkbox by default when the
   // user only has deleted parties to choose from.
-  const defaultShowDeleted = partiesAllowedToInstantiate.every((party) => party.isDeleted);
 
   const appPromptForPartyOverride = appMetadata.promptForParty;
-  const { langAsString } = useLanguage();
-
-  const [filterString, setFilterString] = React.useState('');
-  const [numberOfPartiesShown, setNumberOfPartiesShown] = React.useState(4);
-  const [showSubUnits, setShowSubUnits] = React.useState(true);
-  const [showDeleted, setShowDeleted] = React.useState(defaultShowDeleted);
-  const navigate = useNavigate();
-
-  const appName = useAppName();
-  const appOwner = useAppOwner();
 
   const onSelectParty = async (party: IParty) => {
     try {
@@ -109,7 +132,8 @@ export const PartySelection = () => {
       const result = await mutateAsync(party);
       if (result === 'Party successfully updated') {
         setUserHasSelectedParty(true);
-        navigate('/');
+        // eslint-disable-next-line react-compiler/react-compiler
+        window.location.href = `/${window.org}/${window.app}/instance/${party.partyId}`;
       }
     } catch (_err) {
       // Error is handled by mutation's onError

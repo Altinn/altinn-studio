@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
@@ -89,7 +88,11 @@ public class HomeController : Controller
     /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
     [HttpGet]
     [Route("{org}/{app}/")]
-    public async Task<IActionResult> Index([FromRoute] string org, [FromRoute] string app)
+    public async Task<IActionResult> Index(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromQuery] bool skipPartySelection = false
+    )
     {
         ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
 
@@ -130,21 +133,21 @@ public class HomeController : Controller
             {
                 throw new UnauthorizedAccessException("You have no parties that can use this app");
             }
-            redirectUrl = Request.GetDisplayUrl() + "/party-selection/";
+            redirectUrl = Request.GetDisplayUrl() + "party-selection/";
             return Redirect(redirectUrl);
         }
 
-        if (details.PartiesAllowedToInstantiate.Count > 1)
+        if (details.PartiesAllowedToInstantiate.Count > 1 && !skipPartySelection)
         {
             if (application.PromptForParty == "always")
             {
-                redirectUrl = Request.GetDisplayUrl() + "/party-selection/";
+                redirectUrl = Request.GetDisplayUrl() + "party-selection/";
                 return Redirect(redirectUrl);
             }
 
             if (application.PromptForParty != "never" && !details.Profile.ProfileSettingPreference.DoNotPromptForParty)
             {
-                redirectUrl = Request.GetDisplayUrl() + "/party-selection/";
+                redirectUrl = Request.GetDisplayUrl() + "party-selection/";
                 return Redirect(redirectUrl);
             }
         }
@@ -209,6 +212,43 @@ public class HomeController : Controller
     }
 
     /// <summary>
+    /// Shows party selection page with list of parties user can represent.
+    /// </summary>
+    [HttpGet]
+    [Route("{org}/{app}/party-selection")]
+    public async Task<IActionResult> PartySelection([FromRoute] string org, [FromRoute] string app)
+    {
+        var currentAuth = _authenticationContext.Current;
+        Authenticated.User? auth = currentAuth as Authenticated.User;
+
+        if (auth == null)
+        {
+            throw new UnauthorizedAccessException("You need to be logged in to see this page.");
+        }
+
+        var details = await auth.LoadDetails(validateSelectedParty: false);
+        var application = await _appMetadata.GetApplicationMetadata();
+
+        string layoutSetsString = _appResources.GetLayoutSets();
+        LayoutSets? layoutSets = null;
+        if (!string.IsNullOrEmpty(layoutSetsString))
+        {
+            layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions);
+        }
+
+        var data = new
+        {
+            applicationMetadata = application,
+            userProfile = details.Profile,
+            partiesAllowedToInstantiate = details.PartiesAllowedToInstantiate,
+            layoutSets,
+        };
+        var dataJson = JsonSerializer.Serialize(data, _jsonSerializerOptions);
+        var html = GenerateHtmlWithInstances(org, app, dataJson);
+        return Content(html, "text/html; charset=utf-8");
+    }
+
+    /// <summary>
     /// Shows instance selection page with list of user's instances.
     /// </summary>
     [HttpGet]
@@ -242,6 +282,61 @@ public class HomeController : Controller
         var dataJson = JsonSerializer.Serialize(data, _jsonSerializerOptions);
         var html = GenerateHtmlWithInstances(org, app, dataJson);
         return Content(html, "text/html; charset=utf-8");
+    }
+
+    /// <summary>
+    /// Redirects from party-only URL to most recent instance for that party.
+    /// </summary>
+    /// <param name="org">The application owner short name.</param>
+    /// <param name="app">The name of the app</param>
+    /// <param name="partyId">The party identifier.</param>
+    [HttpGet]
+    [Route("{org}/{app}/instance/{partyId}")]
+    public async Task<IActionResult> InstanceByParty(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int partyId
+    )
+    {
+        var instances = await GetInstancesForParty(org, app, partyId);
+        Instance? mostRecentInstance = instances.OrderByDescending(i => i.LastChanged).FirstOrDefault();
+
+        if (mostRecentInstance == null)
+        {
+            // No instances found - create new instance
+            string layoutSetsString = _appResources.GetLayoutSets();
+            string layoutSetsJson = string.IsNullOrEmpty(layoutSetsString) ? "null" : layoutSetsString;
+
+            var html = GenerateInstanceCreationHtml(org, app, partyId, layoutSetsJson);
+            return Content(html, "text/html; charset=utf-8");
+        }
+
+        var currentTask = mostRecentInstance.Process.CurrentTask;
+        if (currentTask?.ElementId == null)
+        {
+            return BadRequest("Instance has no active task");
+        }
+
+        var layoutSet = _appResources.GetLayoutSetForTask(currentTask.ElementId);
+        string? firstPageId = null;
+
+        if (layoutSet != null)
+        {
+            var layoutSettings = _appResources.GetLayoutSettingsForSet(layoutSet.Id);
+            if (layoutSettings?.Pages?.Order != null && layoutSettings.Pages.Order.Count > 0)
+            {
+                firstPageId = layoutSettings.Pages.Order[0];
+            }
+        }
+
+        if (string.IsNullOrEmpty(firstPageId))
+        {
+            return NotFound("No initial page id found");
+        }
+
+        var instanceGuid = mostRecentInstance.Id.Split('/').Last();
+        string redirectUrl = $"/{org}/{app}/instance/{partyId}/{instanceGuid}/{currentTask.ElementId}/{firstPageId}";
+        return Redirect(redirectUrl);
     }
 
     /// <summary>
@@ -309,7 +404,7 @@ public class HomeController : Controller
     /// <param name="taskId">The task identifier.</param>
     /// <param name="pageId">The page identifier.</param>
     /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
-    // [HttpGet]
+    [HttpGet]
     [Route("{org}/{app}/instance/{partyId}/{instanceGuid}/{taskId}/{pageId}")]
     public async Task<IActionResult> Index(
         [FromRoute] string org,

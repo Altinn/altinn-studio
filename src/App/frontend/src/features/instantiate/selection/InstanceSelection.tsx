@@ -273,12 +273,10 @@ export function InstanceSelection() {
               size='md'
               onClick={() =>
                 performProcess(async () => {
-                  debugger;
                   if (selectedParty) {
                     await instantiation.instantiate(selectedParty.partyId, {
                       force: true,
                       onSuccess: (data) => {
-                        console.log('navigating to:', `/${window.org}/${window.app}/instance/${data.id}`);
                         window.location.href = `/${window.org}/${window.app}/instance/${data.id}`;
                       },
                     });
