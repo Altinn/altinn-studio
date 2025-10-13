@@ -18,6 +18,57 @@
   padding-inline: var(--ds-size-4);
 }
 
+.threadMenuTab {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.threadTabButton {
+  flex: 1;
+  padding: var(--ds-size-2) var(--ds-size-3);
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--ds-border-radius-sm);
+}
+
+.threadTabButton:hover {
+  background-color: var(--ds-color-neutral-background-hover);
+}
+
+.threadTabButton.selected {
+  background-color: var(--ds-color-neutral-background-selected);
+  color: var(--ds-color-text-primary);
+}
+
+.threadMenuTab .deleteButton {
+  position: absolute;
+  right: var(--ds-size-2);
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--ds-size-6);
+  height: var(--ds-size-6);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  background: transparent;
+  border: none;
+  color: inherit;
+}
+
+.threadMenuTab .deleteButton:hover {
+  opacity: 1;
+  background-color: var(--ds-color-danger-background-hover);
+}
+
+.threadMenuTab:hover .deleteButton {
+  opacity: 1;
+}
+
 .aboutSection {
   align-self: center;
   padding: var(--ds-size-4);

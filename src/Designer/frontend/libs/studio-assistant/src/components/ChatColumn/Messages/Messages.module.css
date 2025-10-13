@@ -86,6 +86,35 @@
   line-height: 1.6;
 }
 
+.assistantBody {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+}
+
+.assistantContent {
+  flex: 1 1 auto;
+}
+
+.inlineSpinner {
+  flex-shrink: 0;
+  color: var(--ds-color-text-subtle);
+}
+
+.loadingText {
+  animation: assistantPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes assistantPulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 .filesSection {
   display: flex;
   flex-direction: column;

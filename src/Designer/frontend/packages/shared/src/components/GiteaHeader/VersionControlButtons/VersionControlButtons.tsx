@@ -2,6 +2,7 @@ import React from 'react';
 import classes from './VersionControlButtons.module.css';
 import { useRepoMetadataQuery, useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { FetchChangesPopover } from './components/FetchChangesPopover';
+import { BranchSelector } from './components/BranchSelector';
 import { ShareChangesPopover } from './components/ShareChangesPopover';
 import { VersionControlButtonsContextProvider } from './context';
 import { useGiteaHeaderContext } from '../context/GiteaHeaderContext';
@@ -24,6 +25,7 @@ export const VersionControlButtons = ({
       onPullSuccess={onPullSuccess}
     >
       <div className={classes.headerStyling}>
+        <BranchSelector />
         <FetchChangesPopover />
         <ShareChangesPopover />
       </div>

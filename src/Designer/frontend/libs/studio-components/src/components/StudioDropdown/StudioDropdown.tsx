@@ -13,6 +13,7 @@ export type StudioDropdownProps = {
   iconPlacement?: IconPlacement;
   triggerButtonText?: string;
   triggerButtonVariant?: StudioButtonProps['variant'];
+  triggerButtonClassName?: string;
 } & Omit<WithoutAsChild<DropdownProps>, 'anchorEl' | 'open' | 'onClose'>;
 
 export function StudioDropdown({
@@ -20,6 +21,7 @@ export function StudioDropdown({
   iconPlacement = 'left',
   triggerButtonText,
   triggerButtonVariant,
+  triggerButtonClassName,
   children,
   ...rest
 }: StudioDropdownProps): ReactElement {
@@ -36,6 +38,7 @@ export function StudioDropdown({
         onClick={handleClick}
         icon={!triggerButtonText}
         aria-expanded={open}
+        className={triggerButtonClassName}
       >
         <TextWithIcon icon={icon} iconPlacement={iconPlacement}>
           {triggerButtonText}

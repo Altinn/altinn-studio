@@ -25,7 +25,7 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public async Task<string> CloneRemoteRepository(string org, string repository)
+        public async Task<string> CloneRemoteRepository(string org, string repository, string branchName = "")
         {
             await Task.CompletedTask;
             string remotePath = TestDataHelper.GetTestDataRemoteRepository(org, repository);

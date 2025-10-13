@@ -1,0 +1,12 @@
+.selectedBranch {
+  font-weight: bold;
+}
+
+.branchSelector:hover {
+  background-color: #657281;
+}
+
+.branchSelector {
+  color: white;
+  font-weight: normal;
+}

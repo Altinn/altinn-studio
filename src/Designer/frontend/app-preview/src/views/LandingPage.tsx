@@ -50,6 +50,19 @@ export const LandingPage = () => {
     if (user && taskId) createInstance({ partyId: user?.id, taskId: taskId });
   }, [createInstance, user, taskId]);
 
+  // Listen for repository reset events from the AI assistant
+  useEffect(() => {
+    const handleRepoReset = (event: CustomEvent) => {
+      window.location.reload();
+    };
+
+    window.addEventListener('altinity-repo-reset', handleRepoReset as EventListener);
+
+    return () => {
+      window.removeEventListener('altinity-repo-reset', handleRepoReset as EventListener);
+    };
+  }, []);
+
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
 

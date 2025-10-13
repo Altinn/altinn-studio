@@ -38,15 +38,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<string> CloneRemoteRepository(string org, string repository)
+        public Task<string> CloneRemoteRepository(string org, string repository, string branchName = "")
         {
             try
             {
-                return _decoratedService.CloneRemoteRepository(org, repository);
+                return _decoratedService.CloneRemoteRepository(org, repository, branchName);
             }
             catch (Exception ex)
             {
-                LogError(ex, "CloneRemoteRepository", org, repository);
+                LogError(ex, "CloneRemoteRepository", org, repository, string.Empty, branchName);
                 throw;
             }
         }
@@ -299,6 +299,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
             catch (Exception ex)
             {
                 LogError(ex, "VerifyCloneExists", org, repository);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public Task<string> GetCurrentBranchName(string org, string repository)
+        {
+            try
+            {
+                return _decoratedService.GetCurrentBranchName(org, repository);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "GetCurrentBranchName", org, repository);
                 throw;
             }
         }

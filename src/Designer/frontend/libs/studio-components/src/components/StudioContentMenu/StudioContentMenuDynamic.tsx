@@ -1,4 +1,4 @@
-import React, { Children, forwardRef, useState } from 'react';
+import React, { Children, forwardRef, useEffect, useState } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import type { StudioContentMenuBaseProps } from './StudioContentMenuBase';
 import { StudioContentMenuBase } from './StudioContentMenuBase';
@@ -9,6 +9,12 @@ function StudioContentMenuDynamicForwarded<TabId extends string>(
 ): ReactElement {
   const firstTabId: TabId = getFirstTabId<TabId>(children);
   const [selectedTab, setSelectedTab] = useState<TabId>(selectedTabId ?? firstTabId);
+
+  useEffect(() => {
+    if (selectedTabId && selectedTabId !== selectedTab) {
+      setSelectedTab(selectedTabId);
+    }
+  }, [selectedTabId, selectedTab]);
 
   const handleChangeTab = (tabId: TabId): void => {
     onChangeTab(tabId);

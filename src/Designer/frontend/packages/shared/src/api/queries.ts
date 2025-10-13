@@ -30,6 +30,8 @@ import {
   repoMetaPath,
   repoPullPath,
   repoSearchPath,
+  repositoryBranchesPath,
+  repositoryCurrentBranchPath,
   repoStatusPath,
   resourceActionsPath,
   resourceListPath,
@@ -76,7 +78,7 @@ import {
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
-import type { BranchStatus } from 'app-shared/types/BranchStatus';
+import type { BranchStatus, Branch } from 'app-shared/types/BranchStatus';
 import type { DataModelMetadataJson, DataModelMetadataXsd } from 'app-shared/types/DataModelMetadata';
 import type { Environment } from 'app-shared/types/Environment';
 import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
@@ -152,6 +154,8 @@ export const getRepoMetadata = (owner: string, app: string) => get<Repository>(r
 export const getRepoPull = (owner: string, app: string) => get<RepoStatus>(repoPullPath(owner, app));
 export const getRepoStatus = (owner: string, app: string) => get<RepoStatus>(repoStatusPath(owner, app));
 export const getRepoDiff = (owner: string, app: string) => get<RepoDiffResponse>(repoDiffPath(owner, app));
+export const getRepoBranches = (owner: string, app: string) => get<Branch[]>(repositoryBranchesPath(owner, app));
+export const getRepoCurrentBranch = (owner: string, app: string) => get<string>(repositoryCurrentBranchPath(owner, app));
 export const getRuleConfig = (owner: string, app: string, layoutSetName: string) => get<RuleConfig>(ruleConfigPath(owner, app, layoutSetName));
 export const getRuleModel = (owner: string, app: string, layoutSetName: string) => get<string>(ruleHandlerPath(owner, app, layoutSetName));
 export const getStarredRepos = () => get<Repository[]>(userStarredListPath());

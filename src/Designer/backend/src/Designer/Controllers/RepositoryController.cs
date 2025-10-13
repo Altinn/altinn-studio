@@ -239,6 +239,34 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Returns the currently checked out branch in the developer's local clone.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of the repository.</param>
+        /// <returns>The branch name if available; otherwise a 204 response.</returns>
+        [HttpGet]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/current-branch")]
+        public async Task<ActionResult<string>> GetCurrentBranch(string org, string repository)
+        {
+            try
+            {
+                await _sourceControl.VerifyCloneExists(org, repository);
+                string branchName = await _sourceControl.GetCurrentBranchName(org, repository);
+
+                if (string.IsNullOrEmpty(branchName))
+                {
+                    return NoContent();
+                }
+
+                return Ok(branchName);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        /// <summary>
         /// Pull remote changes for a given repo
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -265,13 +293,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">the name of the local repository to reset</param>
+        /// <param name="branch">Optional branch name to clone after resetting the repository.</param>
         /// <returns>True if the reset was successful, otherwise false.</returns>
         [HttpGet]
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/reset")]
-        public async Task<ActionResult> ResetLocalRepository(string org, string repository)
+        public async Task<ActionResult> ResetLocalRepository(string org, string repository, [FromQuery] string branch = null)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer, branch);
 
             try
             {

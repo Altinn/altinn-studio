@@ -383,7 +383,7 @@ namespace Designer.Tests.Services
             throw new NotImplementedException();
         }
 
-        public Task<string> CloneRemoteRepository(string org, string repository)
+        public Task<string> CloneRemoteRepository(string org, string repository, string branchName = "")
         {
             throw new NotImplementedException();
         }

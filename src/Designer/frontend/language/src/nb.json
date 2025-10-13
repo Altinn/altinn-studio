@@ -2222,6 +2222,7 @@
   "validation_errors.upload_file_name_occupied": "Opplastning feilet. Du prøvde å laste opp en fil som finnes fra før.",
   "validation_errors.upload_file_name_required": "Opplastning feilet. Filnavnet kan ikke være tomt.",
   "validation_errors.value_as_url": "Ugyldig lenke.",
+  "version_control.branch_selector.heading": "Velg gren",
   "version_dialog.backend": "Backend",
   "version_dialog.current_version": "Gjeldende versjon",
   "version_dialog.frontend": "Frontend",

@@ -1,6 +1,12 @@
 import React from 'react';
 import type { ReactElement } from 'react';
-import { StudioCard, StudioParagraph, StudioAvatar, StudioTag } from '@studio/components';
+import {
+  StudioCard,
+  StudioParagraph,
+  StudioAvatar,
+  StudioTag,
+  StudioSpinner,
+} from '@studio/components';
 import type { User } from 'app-shared/types/Repository';
 import { MessageAuthor } from '../../../types/MessageAuthor';
 import { Message } from '../../../types/AssistantConfig';
@@ -158,10 +164,15 @@ function Message({ message, currentUser, assistantAvatarUrl }: MessageProps) {
       {renderAvatar('assistant')}
       <div className={classes.assistantMessage}>
         <div className={classes.messageMeta}>Altinny</div>
-        <div
-          className={classes.assistantBody}
-          dangerouslySetInnerHTML={{ __html: formatContent(message.content) }}
-        />
+        <div className={classes.assistantBody}>
+          {message.isLoading && (
+            <StudioSpinner data-size='sm' className={classes.inlineSpinner} aria-hidden={true} />
+          )}
+          <div
+            className={`${classes.assistantContent} ${message.isLoading ? classes.loadingText : ''}`}
+            dangerouslySetInnerHTML={{ __html: formatContent(message.content) }}
+          />
+        </div>
         {renderFilesChanged()}
       </div>
     </div>

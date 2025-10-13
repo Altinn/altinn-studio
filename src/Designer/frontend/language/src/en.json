@@ -1034,5 +1034,6 @@
   "validation_errors.numbers_only": "Only numbers are allowed",
   "validation_errors.pattern": "Wrong format or value",
   "validation_errors.required": "Field is required",
-  "validation_errors.value_as_url": "Invalid url"
+  "validation_errors.value_as_url": "Invalid url",
+  "version_control.branch_selector.heading": "Select branch"
 }

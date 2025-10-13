@@ -40,6 +40,7 @@ export type AssistantMessage = {
   content: string;
   timestamp: Date;
   filesChanged: string[];
+  isLoading?: boolean;
 };
 
 // Union type for messages that can be either user or assistant

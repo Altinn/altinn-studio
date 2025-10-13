@@ -15,8 +15,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">Name of the repository</param>
+        /// <param name="branchName">Optional name of the branch to check out after cloning.</param>
         /// <returns>The result of the cloning</returns>
-        Task<string> CloneRemoteRepository(string org, string repository);
+        Task<string> CloneRemoteRepository(string org, string repository, string branchName = "");
 
         /// <summary>
         /// Clone repository to specified destination
@@ -159,5 +160,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="repository">The name of repository</param>
         /// <returns></returns>
         public Task DeleteRepository(string org, string repository);
+
+        /// <summary>
+        /// Returns the name of the currently checked out branch in the local clone.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+        /// <param name="repository">The name of the repository.</param>
+        /// <returns>The friendly branch name, or <c>null</c> if detached.</returns>
+        Task<string> GetCurrentBranchName(string org, string repository);
     }
 }

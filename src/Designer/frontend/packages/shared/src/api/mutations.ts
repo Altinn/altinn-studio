@@ -12,6 +12,7 @@ import {
   repoCommitPushPath,
   repoPushPath,
   repoResetPath,
+  setRepoBranchPath,
   ruleConfigPath,
   textResourceIdsPath,
   textResourcesPath,
@@ -128,6 +129,7 @@ export const generateModels = (org: string, app: string, modelPath: string, payl
 export const logout = () => post(userLogoutPath());
 export const pushRepoChanges = (org: string, app: string) => post(repoPushPath(org, app));
 export const resetRepoChanges = (org: string, app: string) => get(repoResetPath(org, app)); //Technically a mutation, but currently only implemented as a GET
+export const setRepoBranch = (owner: string, app: string, branch: string) => get(setRepoBranchPath(owner, app, branch));
 export const saveDataModel = (org: string, app: string, modelPath: string, payload: JsonSchema) => put<void, JsonSchema>(dataModelPath(org, app, modelPath, true), payload);
 export const saveFormLayout = (org: string, app: string, layoutName: string, layoutSetName: string, payload: FormLayoutRequest) => post<void, FormLayoutRequest>(formLayoutPath(org, app, layoutName, layoutSetName), payload);
 export const saveFormLayoutV3 = (org: string, app: string, layoutName: string, layoutSetName: string, payload: FormLayoutRequest) => post<void, FormLayoutRequest>(formLayoutPath(org, app, layoutName, layoutSetName), payload);

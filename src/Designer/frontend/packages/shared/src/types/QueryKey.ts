@@ -42,6 +42,8 @@ export enum QueryKey {
   RepoPullData = 'RepoPullData',
   RepoStatus = 'RepoStatus',
   RepoDiff = 'RepoDiff',
+  RepoBranches = 'RepoBranches',
+  RepoCurrentBranch = 'RepoCurrentBranch',
   RuleConfig = 'RuleConfig',
   RuleHandler = 'RuleHandler',
   SearchRepos = 'SearchRepos',

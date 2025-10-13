@@ -2,23 +2,54 @@ import React from 'react';
 import type { ReactElement } from 'react';
 import { StudioContentMenu, StudioButton, StudioHeading } from '@studio/components';
 import classes from './ThreadColumn.module.css';
-import { InformationIcon, PlusIcon, SidebarLeftIcon } from '@studio/icons';
 import type { AssistantTexts, ChatThread } from '../../types/AssistantConfig';
+import { InformationIcon, PlusIcon, SidebarLeftIcon } from '@studio/icons';
+type ThreadMenuTabProps = {
+  thread: ChatThread;
+  onDelete?: () => void;
+};
+
+const ThreadMenuTab = ({ thread, onDelete }: ThreadMenuTabProps): ReactElement => {
+  return (
+    <div className={classes.threadMenuTab}>
+      <StudioContentMenu.ButtonTab tabId={thread.id} tabName={thread.title} icon='' />
+      {onDelete && (
+        <StudioButton
+          variant='tertiary'
+          className={classes.deleteButton}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          title='Delete thread'
+        >
+          ×
+        </StudioButton>
+      )}
+    </div>
+  );
+};
 
 export type ChatHistorySidebarProps = {
   texts: AssistantTexts;
   chatThreads: ChatThread[];
   selectedThreadId?: string;
+  currentSessionId?: string;
   onSelectThread: (threadId: string) => void;
+  onDeleteThread?: (threadId: string) => void;
   onToggleCollapse?: () => void;
+  onCreateThread?: () => void;
 };
 
 export function ThreadColumn({
   texts,
   chatThreads,
   selectedThreadId,
+  currentSessionId,
   onSelectThread,
+  onDeleteThread,
   onToggleCollapse,
+  onCreateThread,
 }: ChatHistorySidebarProps): ReactElement {
   return (
     <div className={classes.historyColumn}>
@@ -27,7 +58,7 @@ export function ThreadColumn({
           <SidebarLeftIcon />
           {texts.hideThreads}
         </StudioButton>
-        <StudioButton>
+        <StudioButton onClick={onCreateThread}>
           <PlusIcon />
           {texts.newThread}
         </StudioButton>
@@ -37,11 +68,10 @@ export function ThreadColumn({
       </StudioHeading>
       <StudioContentMenu selectedTabId={selectedThreadId} onChangeTab={onSelectThread}>
         {chatThreads.map((thread) => (
-          <StudioContentMenu.ButtonTab
+          <ThreadMenuTab
             key={thread.id}
-            tabId={thread.id}
-            tabName={thread.title}
-            icon={''}
+            thread={thread}
+            onDelete={onDeleteThread ? () => onDeleteThread(thread.id) : undefined}
           />
         ))}
       </StudioContentMenu>

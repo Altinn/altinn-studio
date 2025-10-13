@@ -11,8 +11,16 @@ export function AiAssistant(): ReactElement {
   const [isAdvancedModeEnabled] = useState<boolean>(true);
 
   // Use the Altinity assistant hook
-  const { connectionStatus, workflowStatus, chatThreads, currentSessionId, onSubmitMessage } =
-    useAltinityAssistant();
+  const {
+    connectionStatus,
+    workflowStatus,
+    chatThreads,
+    currentSessionId,
+    onSubmitMessage,
+    selectThread,
+    createNewThread,
+    deleteThread,
+  } = useAltinityAssistant();
 
   const texts: AssistantTexts = {
     heading: t('ai_assistant.heading'),
@@ -40,6 +48,9 @@ export function AiAssistant(): ReactElement {
           chatThreads={chatThreads}
           activeThreadId={currentSessionId}
           onSubmitMessage={onSubmitMessage}
+          onSelectThread={selectThread}
+          onCreateThread={createNewThread}
+          onDeleteThread={deleteThread}
           connectionStatus={connectionStatus}
         />
       </div>

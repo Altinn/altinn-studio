@@ -6,3 +6,127 @@
   min-height: 0;
   overflow: hidden;
 }
+
+.messagesWrapper {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--ds-size-6);
+}
+
+.hasMessages {
+  display: block;
+  padding: var(--ds-size-4) var(--ds-size-6);
+}
+
+.emptyState {
+  text-align: center;
+  max-width: 28rem; /* a touch narrower for focus */
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-3);
+  padding: var(--ds-size-6);
+  border-radius: var(--ds-border-radius-large);
+
+  /* softer panel with subtle top glow */
+  background:
+    radial-gradient(
+      120% 60% at 50% 0%,
+      color-mix(in srgb, var(--ds-color-accent-background-tinted) 26%, transparent) 0%,
+      transparent 60%
+    ),
+    color-mix(in srgb, var(--ds-color-surface) 92%, transparent);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--ds-color-border-subtle) 40%, transparent),
+    0 10px 28px color-mix(in srgb, var(--ds-color-accent) 14%, transparent);
+  color: var(--ds-color-text); /* base color; headings/body override below */
+}
+
+.emptyState h3 {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.emptyState p {
+  margin: 0;
+  color: color-mix(in srgb, var(--ds-color-text) 88%, transparent);
+}
+
+.emptyStateIcon {
+  align-self: center;
+  width: 4.75rem; /* bigger icon */
+  height: 4.75rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: var(--ds-color-accent-strong);
+
+  /* layered ring + inner tint */
+  background: radial-gradient(
+    70% 70% at 50% 40%,
+    color-mix(in srgb, var(--ds-color-accent-background-tinted) 52%, transparent) 0%,
+    transparent 70%
+  );
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--ds-color-accent) 30%, transparent),
+    0 12px 30px color-mix(in srgb, var(--ds-color-accent) 20%, transparent);
+  animation: float 5s ease-in-out infinite;
+}
+
+/* animated dots inside the icon */
+.bubble {
+  display: flex;
+  gap: 0.22rem;
+}
+.dot {
+  width: 0.46rem;
+  height: 0.46rem;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.35;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+.dot:nth-child(2) {
+  animation-delay: 0.18s;
+}
+.dot:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+/* motion safety */
+@media (prefers-reduced-motion: reduce) {
+  .emptyStateIcon {
+    animation: none;
+  }
+  .dot {
+    animation: none;
+  }
+}
+
+/* keyframes */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+@keyframes pulse {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateY(-2px);
+    opacity: 1;
+  }
+}

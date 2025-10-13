@@ -51,12 +51,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
+        /// <param name="branchName">Optional name of the branch to check out after cloning.</param>
         /// <returns>The result of the cloning</returns>
-        public async Task<string> CloneRemoteRepository(string org, string repository)
+        public async Task<string> CloneRemoteRepository(string org, string repository, string branchName = "")
         {
             string remoteRepo = FindRemoteRepoLocation(org, repository);
             CloneOptions cloneOptions = new();
             cloneOptions.FetchOptions.CredentialsProvider = await GetCredentialsAsync();
+            if (!string.IsNullOrEmpty(branchName))
+            {
+                cloneOptions.BranchName = branchName;
+            }
             string localPath = FindLocalRepoLocation(org, repository);
             string cloneResult = LibGit2Sharp.Repository.Clone(remoteRepo, localPath, cloneOptions);
 
@@ -374,6 +379,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return commits;
+        }
+
+        /// <inheritdoc/>
+        public Task<string> GetCurrentBranchName(string org, string repository)
+        {
+            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using var repo = new LibGit2Sharp.Repository(localServiceRepoFolder);
+            Branch head = repo.Head;
+
+            if (repo.Info.IsHeadDetached || head == null)
+            {
+                return Task.FromResult<string>(null);
+            }
+
+            return Task.FromResult(head.FriendlyName);
         }
 
         /// <summary>

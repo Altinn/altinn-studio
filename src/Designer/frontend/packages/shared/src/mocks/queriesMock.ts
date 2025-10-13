@@ -3,7 +3,7 @@ import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
-import type { BranchStatus } from 'app-shared/types/BranchStatus';
+import type { BranchStatus, Branch } from 'app-shared/types/BranchStatus';
 import type {
   DataModelMetadataJson,
   DataModelMetadataXsd,
@@ -134,6 +134,8 @@ export const queriesMock: ServicesContextProps = {
   getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
   getRepoPull: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
   getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
+  getRepoBranches: jest.fn().mockImplementation(() => Promise.resolve<Branch[]>([])),
+  getRepoCurrentBranch: jest.fn().mockImplementation(() => Promise.resolve<string>('main')),
   getRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
   getRuleModel: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getStarredRepos: jest.fn().mockImplementation(() => Promise.resolve<Repository[]>([])),
@@ -256,6 +258,7 @@ export const queriesMock: ServicesContextProps = {
   logout: jest.fn().mockImplementation(() => Promise.resolve()),
   pushRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   resetRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
+  setRepoBranch: jest.fn().mockImplementation(() => Promise.resolve()),
   saveDataModel: jest.fn().mockImplementation(() => Promise.resolve()),
   saveFormLayout: jest.fn().mockImplementation(() => Promise.resolve()),
   saveFormLayoutV3: jest.fn().mockImplementation(() => Promise.resolve()),

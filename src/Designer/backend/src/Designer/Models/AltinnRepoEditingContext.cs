@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text.RegularExpressions;
 using Altinn.Studio.Designer.Helpers;
 
@@ -15,10 +15,18 @@ namespace Altinn.Studio.Designer.Models
         /// </summary>
         public string Developer { get; }
 
-        private AltinnRepoEditingContext(string org, string repo, string developer) : base(org, repo)
+        /// <summary>
+        /// Optional branch to check out when working on this repository.
+        /// </summary>
+        public string Branch { get; }
+
+        private AltinnRepoEditingContext(string org, string repo, string developer, string branch = null) : base(org, repo)
         {
             ValidateDeveloper(developer);
+            branch = NormalizeBranch(branch);
+            ValidateBranch(branch);
             Developer = developer;
+            Branch = branch;
         }
 
         private static void ValidateDeveloper(string developer)
@@ -30,9 +38,36 @@ namespace Altinn.Studio.Designer.Models
             }
         }
 
-        public static AltinnRepoEditingContext FromOrgRepoDeveloper(string org, string repo, string developer)
+        private static void ValidateBranch(string branch)
         {
-            return new AltinnRepoEditingContext(org, repo, developer);
+            if (branch == null)
+            {
+                return;
+            }
+
+            foreach (char c in branch)
+            {
+                if (char.IsWhiteSpace(c))
+                {
+                    throw new ArgumentException("Provided branch name is not valid");
+                }
+            }
+        }
+
+        private static string NormalizeBranch(string branch)
+        {
+            if (string.IsNullOrWhiteSpace(branch))
+            {
+                return null;
+            }
+
+            string trimmed = branch.Trim();
+            return trimmed.Length == 0 ? null : trimmed;
+        }
+
+        public static AltinnRepoEditingContext FromOrgRepoDeveloper(string org, string repo, string developer, string branch = null)
+        {
+            return new AltinnRepoEditingContext(org, repo, developer, branch);
         }
     }
 }

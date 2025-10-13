@@ -7,17 +7,14 @@ import { previewPage } from 'app-shared/api/paths';
 import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { StudioCenter, StudioSpinner } from '@studio/components';
+import { usePreviewLayoutMetadata } from '../../hooks/usePreviewLayoutMetadata';
 
 // Actual app preview component for the assistant
 const AppPreview = () => {
   const { org, app } = useStudioEnvironmentParams();
-  const { data: user } = useUserQuery();
+  const { data: user, isPending: userPending } = useUserQuery();
 
-  // For now, use default layout values - this can be enhanced to get current layout
-  const selectedFormLayoutSetName = '1';
-  const selectedFormLayoutName = '1';
-  const taskId = 'Task_1';
-
+  const [iframeKey, setIframeKey] = React.useState(0);
   const {
     mutate: createInstance,
     data: instance,
@@ -25,15 +22,58 @@ const AppPreview = () => {
     isError: createInstanceError,
   } = useCreatePreviewInstanceMutation(org, app);
 
-  React.useEffect(() => {
-    if (user && taskId) createInstance({ partyId: user?.id, taskId: taskId });
-  }, [createInstance, user, taskId]);
+  const {
+    metadata: layoutMetadata,
+    isPending: layoutMetadataPending,
+    error: layoutMetadataError,
+  } = usePreviewLayoutMetadata(org, app);
 
-  if (createInstancePending || !instance) {
+  React.useEffect(() => {
+    const { taskId } = layoutMetadata;
+    if (!user || !taskId || layoutMetadataPending || createInstancePending || instance) {
+      return;
+    }
+
+    createInstance({ partyId: user.id, taskId });
+  }, [
+    createInstance,
+    createInstancePending,
+    instance,
+    layoutMetadata,
+    layoutMetadataPending,
+    user,
+  ]);
+
+  // Listen for repository reset events to reload the preview
+  React.useEffect(() => {
+    const handleRepoReset = () => {
+      setIframeKey((prev) => prev + 1);
+    };
+
+    window.addEventListener('altinity-repo-reset', handleRepoReset as EventListener);
+
+    return () => {
+      window.removeEventListener('altinity-repo-reset', handleRepoReset as EventListener);
+    };
+  }, []);
+
+  const { layoutSetName, layoutName, taskId } = layoutMetadata;
+  const previewError =
+    layoutMetadataError || (createInstanceError ? 'Error loading preview' : undefined);
+  const isLoading =
+    userPending ||
+    layoutMetadataPending ||
+    !layoutSetName ||
+    !layoutName ||
+    !taskId ||
+    createInstancePending ||
+    !instance;
+
+  if (isLoading) {
     return (
       <StudioCenter>
-        {createInstanceError ? (
-          <div style={{ color: '#f44336' }}>Error loading preview</div>
+        {previewError ? (
+          <div style={{ color: '#f44336' }}>{previewError}</div>
         ) : (
           <StudioSpinner spinnerTitle='Loading preview...' aria-hidden='true' />
         )}
@@ -41,18 +81,16 @@ const AppPreview = () => {
     );
   }
 
-  const previewURL = previewPage(
-    org,
-    app,
-    selectedFormLayoutSetName,
-    taskId,
-    selectedFormLayoutName,
-    instance?.id,
-  );
+  const previewURL = previewPage(org, app, layoutSetName, taskId, layoutName, instance.id);
 
   return (
     <div className={classes.previewContainer}>
-      <iframe className={classes.previewIframe} title='App Preview' src={previewURL} />
+      <iframe
+        key={iframeKey}
+        className={classes.previewIframe}
+        title='App Preview'
+        src={previewURL}
+      />
     </div>
   );
 };
