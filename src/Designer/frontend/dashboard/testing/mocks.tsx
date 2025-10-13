@@ -20,6 +20,7 @@ type WrapperArgs = {
   featureFlags: FeatureFlag[];
 } & Pick<MemoryRouterProps, 'initialEntries'>;
 
+/* istanbul ignore next */
 const wrapper =
   ({
     queries = {},
