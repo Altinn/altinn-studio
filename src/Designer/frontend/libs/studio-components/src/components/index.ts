@@ -49,6 +49,7 @@ export * from './StudioList';
 export * from './StudioNotFoundPage';
 export * from './StudioPaginatedContent';
 export * from './StudioPageError';
+export * from './StudioPageHeader';
 export * from './StudioPageImageBackgroundContainer';
 export * from './StudioPageSpinner';
 export * from './StudioParagraph';
