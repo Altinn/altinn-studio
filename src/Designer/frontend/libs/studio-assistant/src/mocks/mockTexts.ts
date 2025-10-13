@@ -5,6 +5,7 @@ export const mockTexts: AssistantTexts = {
   preview: 'preview',
   fileBrowser: 'fileBrowser',
   hideThreads: 'hideThreads',
+  showThreads: 'showThreads',
   newThread: 'newThread',
   previousThreads: 'previousThreads',
   aboutAssistant: 'aboutAssistant',

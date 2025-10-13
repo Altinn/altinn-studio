@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import React, { useState } from 'react';
 import {
-  type Message,
+  type UserMessage,
   type ChatThread,
   type AssistantTexts,
   Assistant,
@@ -16,7 +16,7 @@ export function AiAssistant(): ReactElement {
   const [chatThreads] = useState<ChatThread[]>(mockChatThreads);
 
   // TODO: Connect to backend
-  const onSubmitMessage = (message: Message): void => {
+  const onSubmitMessage = (message: UserMessage): void => {
     alert(`Du har trykket på send-knappen.\nMelding fra tekstfelt: ${message.content}`);
   };
 
@@ -25,6 +25,7 @@ export function AiAssistant(): ReactElement {
     preview: t('ai_assistant.preview'),
     fileBrowser: t('ai_assistant.fileBrowser'),
     hideThreads: t('ai_assistant.hide_threads'),
+    showThreads: t('ai_assistant.show_threads'),
     newThread: t('ai_assistant.new_thread'),
     previousThreads: t('ai_assistant.threads'),
     aboutAssistant: t('ai_assistant.about_assistant'),

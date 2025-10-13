@@ -9,6 +9,10 @@ export function createNewChatThread(title: string): ChatThread {
   };
 }
 
+export function findThreadById(chatThreads: ChatThread[], threadId: string): ChatThread | undefined {
+  return chatThreads.find((t) => t.id === threadId);
+}
+
 export function createAssistantMessage(content: string): AssistantMessage {
   return {
     author: MessageAuthor.Assistant,

@@ -10,7 +10,7 @@
   flex-direction: column;
   align-items: flex-start;
   height: 100%;
-  color: #666;
+  color: var(--ds-color-neutral-text-subtle);
   padding: var(--ds-size-4);
 }
 

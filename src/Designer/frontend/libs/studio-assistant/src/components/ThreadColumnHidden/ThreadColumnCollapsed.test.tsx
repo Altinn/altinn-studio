@@ -3,6 +3,7 @@ import { ThreadColumnCollapsed } from './ThreadColumnCollapsed';
 import { render, screen } from '@testing-library/react';
 import type { ThreadColumnHiddenProps } from './ThreadColumnCollapsed';
 import userEvent from '@testing-library/user-event';
+import { mockTexts } from '../../mocks/mockTexts';
 
 // Test data
 const onToggleCollapse = jest.fn();
@@ -34,6 +35,7 @@ describe('ThreadColumnCollapsed', () => {
 });
 
 const defaultProps: ThreadColumnHiddenProps = {
+  texts: mockTexts,
   onToggleCollapse: onToggleCollapse,
 };
 

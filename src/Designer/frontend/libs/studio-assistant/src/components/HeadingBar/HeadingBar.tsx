@@ -8,7 +8,7 @@ import type { AssistantTexts } from '../../types/AssistantTexts';
 export type HeadingBarProps = {
   texts: AssistantTexts;
   selectedToolColumnMode?: ToolColumnMode;
-  onModeChange?: (mdoe: ToolColumnMode) => void;
+  onModeChange?: (mode: ToolColumnMode) => void;
 };
 
 export function HeadingBar({ texts, selectedToolColumnMode, onModeChange }: HeadingBarProps) {

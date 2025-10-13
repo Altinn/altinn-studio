@@ -9,6 +9,7 @@
   "ai_assistant.new_thread": "Ny tråd",
   "ai_assistant.preview": "Forhåndsvis",
   "ai_assistant.send": "Send",
+  "ai_assistant.show_threads": "Vis tråder",
   "ai_assistant.textarea_placeholder": "Skriv en melding ...",
   "ai_assistant.threads": "Tråder",
   "api_errors.AD_03": "Navnet er ugyldig. Det må ha mellom 2 og 28 tegn og kan inneholde tall, understrek, bindestrek, og store/små bokstaver fra det engelske alfabetet.",

@@ -9,7 +9,7 @@ import { ThreadColumn } from '../ThreadColumn/ThreadColumn';
 import { ThreadColumnCollapsed } from '../ThreadColumnHidden/ThreadColumnCollapsed';
 import { ChatColumn } from '../ChatColumn/ChatColumn';
 import { ToolColumnMode } from '../../types/ToolColumnMode';
-import { createNewChatThread } from '../../utils/utils';
+import { createNewChatThread, findThreadById } from '../../utils/utils';
 import type { AssistantProps } from '../../Assistant/Assistant';
 
 type CompleteInterfaceProps = Omit<AssistantProps, 'enableCompactInterface'>;
@@ -19,7 +19,7 @@ type CompleteInterfaceProps = Omit<AssistantProps, 'enableCompactInterface'>;
  */
 export function CompleteInterface({
   texts,
-  chatThreads,
+  chatThreads = [],
   onSubmitMessage,
 }: CompleteInterfaceProps): ReactElement {
   const [isThreadColumnCollapsed, setIsThreadColumnCollapsed] = useState(false);
@@ -31,8 +31,8 @@ export function CompleteInterface({
   const handleToggleCollapse = () => setIsThreadColumnCollapsed(!isThreadColumnCollapsed);
 
   const handleChangeThread = (threadId: string) => {
-    const thread = chatThreads.find((t) => t.id === threadId);
-    setCurrentThread(thread);
+    const thread = findThreadById(chatThreads, threadId);
+    thread && setCurrentThread(thread);
   };
 
   return (
@@ -50,7 +50,7 @@ export function CompleteInterface({
           collapsedSize={80}
         >
           {isThreadColumnCollapsed ? (
-            <ThreadColumnCollapsed onToggleCollapse={handleToggleCollapse} />
+            <ThreadColumnCollapsed texts={texts} onToggleCollapse={handleToggleCollapse} />
           ) : (
             <ThreadColumn
               texts={texts}

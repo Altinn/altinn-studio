@@ -1,5 +1,5 @@
 import React from 'react';
-import { Messages } from './Messages';
+import { Messages, type MessagesProps } from './Messages';
 import { render, screen } from '@testing-library/react';
 import type { Message } from '../../../types/ChatThread';
 import { MessageAuthor } from '../../../types/MessageAuthor';
@@ -30,10 +30,6 @@ describe('Messages', () => {
     expect(assistantMessage).toBeInTheDocument();
   });
 });
-
-type MessagesProps = {
-  messages: Message[];
-};
 
 const renderMessages = (props: MessagesProps): void => {
   render(<Messages {...props} />);

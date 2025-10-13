@@ -3,6 +3,7 @@ export type AssistantTexts = {
   preview: string;
   fileBrowser: string;
   hideThreads: string;
+  showThreads: string;
   newThread: string;
   previousThreads: string;
   aboutAssistant: string;
