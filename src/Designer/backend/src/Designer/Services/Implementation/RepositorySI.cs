@@ -429,7 +429,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     string fullPath = Path.Combine(repopath, resourceFile.Path);
                     using var stream = File.OpenRead(fullPath);
-                    return await System.Text.Json.JsonSerializer.DeserializeAsync<ServiceResource>(stream, _serializerOptions);
+                    return await System.Text.Json.JsonSerializer.DeserializeAsync<ServiceResource>(stream, _serializerOptions, cancellationToken);
                 }
                 finally
                 {
