@@ -11,7 +11,7 @@ export type CompactInterfaceProps = Omit<AssistantProps, 'enableCompactInterface
 
 /**
  * A one-column version of the chat interface without thread history, preview and code viewer.
- * Typical usage is as a pop-up assistant in the lower right of the browser window.
+ * Typical usage is as a pop-up assistant in the lower right corner of the browser window.
  */
 export function CompactInterface({ texts, onSubmitMessage }: CompactInterfaceProps): ReactElement {
   const greetingMessage: Message = createAssistantMessage(texts.assistantFirstMessage);
