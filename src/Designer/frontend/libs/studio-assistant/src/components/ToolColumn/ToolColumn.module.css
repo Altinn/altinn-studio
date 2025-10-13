@@ -8,7 +8,6 @@
 .tabContent {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem;
 }
 
 .placeholder {
@@ -17,6 +16,7 @@
   align-items: flex-start;
   height: 100%;
   color: #666;
+  padding: var(--ds-size-4);
 }
 
 .fileList {
@@ -28,5 +28,5 @@
 }
 
 .fileList li {
-  padding: 0.25rem 0;
+  padding: var(--ds-size-1) 0;
 }

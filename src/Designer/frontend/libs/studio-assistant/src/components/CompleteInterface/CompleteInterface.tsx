@@ -9,7 +9,7 @@ import { ThreadColumn } from '../ThreadColumn/ThreadColumn';
 import { ThreadColumnCollapsed } from '../ThreadColumnHidden/ThreadColumnHidden';
 import { ChatColumn } from '../ChatColumn/ChatColumn';
 import { ViewType } from '../../types/ViewType';
-import { createEmptyChatThread } from '../../utils/utils';
+import { createNewChatThread } from '../../utils/utils';
 import type { AssistantProps } from '../../Assistant/Assistant';
 
 type CompleteInterfaceProps = Omit<AssistantProps, 'enableCompactInterface'>;
@@ -25,7 +25,7 @@ export function CompleteInterface({
   const [isThreadColumnCollapsed, setIsThreadColumnCollapsed] = useState(false);
   const [selectedToolView, setSelectedView] = useState<ViewType>(ViewType.Preview);
   const [currentThread, setCurrentThread] = useState<ChatThread>(
-    chatThreads[0] ?? createEmptyChatThread(),
+    chatThreads[0] ?? createNewChatThread(texts.newThread),
   );
 
   const handleToggleCollapse = () => setIsThreadColumnCollapsed(!isThreadColumnCollapsed);
