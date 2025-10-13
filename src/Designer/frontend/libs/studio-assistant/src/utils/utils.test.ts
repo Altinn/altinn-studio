@@ -2,7 +2,7 @@ import { createAssistantMessage, createNewChatThread, createUserMessage } from '
 import { MessageAuthor } from '../types/MessageAuthor';
 
 describe('utils', () => {
-    describe('createNewChatThread', () => {
+  describe('createNewChatThread', () => {
     it('should create a chat thread with the provided title', () => {
       const title = 'Test Chat Thread';
       const thread = createNewChatThread(title);

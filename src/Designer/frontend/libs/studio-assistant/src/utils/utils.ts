@@ -3,7 +3,7 @@ import { MessageAuthor } from '../types/MessageAuthor';
 
 export function createNewChatThread(title: string): ChatThread {
   return {
-    id: "newThread",
+    id: 'newThread',
     title,
     messages: [],
   };

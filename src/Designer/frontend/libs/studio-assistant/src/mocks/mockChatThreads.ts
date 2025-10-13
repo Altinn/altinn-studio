@@ -60,5 +60,5 @@ export const mockChatThreads: ChatThread[] = [
         timestamp: new Date('2025-09-30T14:31:00'),
       },
     ],
-  }
+  },
 ];

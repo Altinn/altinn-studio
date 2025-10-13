@@ -39,7 +39,7 @@ describe('ToolColumn', () => {
 
   it('should not render file browser placeholder when selectedView is Preview', () => {
     renderToolColumn({ mode: ToolColumnMode.Preview });
-    const srcFolder = screen.queryByText("src");
+    const srcFolder = screen.queryByText('src');
 
     expect(srcFolder).not.toBeInTheDocument();
   });

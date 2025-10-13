@@ -45,7 +45,9 @@ describe('CompactInterface', () => {
 
   it('should not render "allow app changes" switch', () => {
     renderCompactInterface();
-    const allowAppChangesSwitch = screen.queryByRole('checkbox', { name: mockTexts.allowAppChangesSwitch });
+    const allowAppChangesSwitch = screen.queryByRole('checkbox', {
+      name: mockTexts.allowAppChangesSwitch,
+    });
 
     expect(allowAppChangesSwitch).not.toBeInTheDocument();
   });

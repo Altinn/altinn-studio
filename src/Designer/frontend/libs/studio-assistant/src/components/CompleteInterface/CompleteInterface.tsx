@@ -37,38 +37,42 @@ export function CompleteInterface({
 
   return (
     <div className={classes.container}>
-      <HeadingBar texts={texts} selectedToolColumnMode={toolColumnMode} onModeChange={setToolColumnMode} />
-        <StudioResizableLayout.Container orientation='horizontal' localStorageContext='ai-chat'>
-          <StudioResizableLayout.Element
-            minimumSize={200}
-            maximumSize={350}
-            collapsed={isThreadColumnCollapsed}
-            collapsedSize={80}
-          >
-            {isThreadColumnCollapsed ? (
-              <ThreadColumnCollapsed onToggleCollapse={handleToggleCollapse} />
-            ) : (
-              <ThreadColumn
-                texts={texts}
-                chatThreads={chatThreads}
-                selectedThreadId={currentThread.id}
-                onSelectThread={handleChangeThread}
-                onToggleCollapse={handleToggleCollapse}
-              />
-            )}
-          </StudioResizableLayout.Element>
-          <StudioResizableLayout.Element minimumSize={400}>
-            <ChatColumn
+      <HeadingBar
+        texts={texts}
+        selectedToolColumnMode={toolColumnMode}
+        onModeChange={setToolColumnMode}
+      />
+      <StudioResizableLayout.Container orientation='horizontal' localStorageContext='ai-chat'>
+        <StudioResizableLayout.Element
+          minimumSize={200}
+          maximumSize={350}
+          collapsed={isThreadColumnCollapsed}
+          collapsedSize={80}
+        >
+          {isThreadColumnCollapsed ? (
+            <ThreadColumnCollapsed onToggleCollapse={handleToggleCollapse} />
+          ) : (
+            <ThreadColumn
               texts={texts}
-              messages={currentThread?.messages ?? []}
-              onSubmitMessage={onSubmitMessage}
-              enableCompactInterface={false}
+              chatThreads={chatThreads}
+              selectedThreadId={currentThread.id}
+              onSelectThread={handleChangeThread}
+              onToggleCollapse={handleToggleCollapse}
             />
-          </StudioResizableLayout.Element>
-          <StudioResizableLayout.Element minimumSize={200}>
-            <ToolColumn mode={toolColumnMode} />
-          </StudioResizableLayout.Element>
-        </StudioResizableLayout.Container>
+          )}
+        </StudioResizableLayout.Element>
+        <StudioResizableLayout.Element minimumSize={400}>
+          <ChatColumn
+            texts={texts}
+            messages={currentThread?.messages ?? []}
+            onSubmitMessage={onSubmitMessage}
+            enableCompactInterface={false}
+          />
+        </StudioResizableLayout.Element>
+        <StudioResizableLayout.Element minimumSize={200}>
+          <ToolColumn mode={toolColumnMode} />
+        </StudioResizableLayout.Element>
+      </StudioResizableLayout.Container>
     </div>
   );
 }

@@ -18,8 +18,7 @@ export function ToolColumn({
   return (
     <div className={classes.container}>
       {mode === ToolColumnMode.Preview &&
-        (previewContent || <div className={classes.placeholder}>Preview placeholder</div>)
-      }
+        (previewContent || <div className={classes.placeholder}>Preview placeholder</div>)}
       {mode === ToolColumnMode.FileExplorer &&
         (fileBrowserContent || (
           <div className={classes.placeholder}>
@@ -31,8 +30,7 @@ export function ToolColumn({
               <li>&nbsp;&nbsp;📄 Header.tsx</li>
             </ul>
           </div>
-        ))
-      }
+        ))}
     </div>
   );
 }
