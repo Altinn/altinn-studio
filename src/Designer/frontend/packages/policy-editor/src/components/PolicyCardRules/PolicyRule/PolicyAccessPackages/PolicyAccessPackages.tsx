@@ -66,7 +66,7 @@ export const PolicyAccessPackages = (): ReactElement => {
     savePolicy(updatedRules);
     setPolicyError({
       ...policyError,
-      subjectsError: policyRule.subject.length === 0 && newSelectedAccessPackageUrns.length === 0,
+      subjectsError: newSelectedAccessPackageUrns.length === 0 && policyRule.subject.length === 0,
     });
   };
 

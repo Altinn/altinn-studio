@@ -39,7 +39,7 @@ export const PolicySubjects = (): React.ReactElement => {
     savePolicy(updatedRules);
     setPolicyError({
       ...policyError,
-      subjectsError: updatedSubjects.length === 0 && policyRule.accessPackages.length === 0,
+      subjectsError: policyRule.accessPackages.length === 0 && updatedSubjects.length === 0,
     });
   };
 
