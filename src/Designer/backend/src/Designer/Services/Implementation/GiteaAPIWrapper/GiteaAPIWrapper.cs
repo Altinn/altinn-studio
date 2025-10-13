@@ -574,14 +574,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 url.Append($"&sha={HttpUtility.UrlEncode(branchName)}");
             }
-            using HttpResponseMessage r = await _httpClient.GetAsync(url.ToString(), cancellationToken);
-            if (r.IsSuccessStatusCode)
+            using HttpResponseMessage response = await _httpClient.GetAsync(url.ToString(), cancellationToken);
+            if (response.IsSuccessStatusCode)
             {
-                List<GiteaCommit> commits = await r.Content.ReadAsAsync<List<GiteaCommit>>(cancellationToken);
+                List<GiteaCommit> commits = await response.Content.ReadAsAsync<List<GiteaCommit>>(cancellationToken);
                 return commits?.FirstOrDefault()?.Sha;
             }
 
-            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetLatestCommitOnBranch response failed with statuscode " + r.StatusCode + " for " + org + " / " + repository + " branch: " + branchName);
+            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetLatestCommitOnBranch response failed with statuscode " + response.StatusCode + " for " + org + " / " + repository + " branch: " + branchName);
             return null;
         }
 
