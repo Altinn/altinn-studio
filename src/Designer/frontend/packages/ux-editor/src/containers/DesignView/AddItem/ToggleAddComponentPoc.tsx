@@ -1,13 +1,9 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import type { ChangeEventHandler } from 'react';
 import { FeedbackForm } from './FeedbackForm';
 import { StudioSwitch } from '@studio/components-legacy';
 import { StudioHelpText, StudioParagraph } from '@studio/components';
-import {
-  addFeatureFlagToLocalStorage,
-  FeatureFlag,
-  removeFeatureFlagFromLocalStorage,
-  shouldDisplayFeature,
-} from 'app-shared/utils/featureToggleUtils';
+import { FeatureFlag, useFeatureToggle } from '@studio/feature-flags';
 import classes from './ToggleAddComponentPoc.module.css';
 
 /**
@@ -19,22 +15,17 @@ import classes from './ToggleAddComponentPoc.module.css';
  * @returns The ToggleAddComponentPoc component
  */
 export function ToggleAddComponentPoc(): React.ReactElement {
-  const toggleComponentModalPocAndReload = () => {
-    if (shouldDisplayFeature(FeatureFlag.AddComponentModal)) {
-      removeFeatureFlagFromLocalStorage(FeatureFlag.AddComponentModal);
-    } else {
-      addFeatureFlagToLocalStorage(FeatureFlag.AddComponentModal);
-    }
-    window.location.reload();
-  };
+  const { isEnabled, toggle } = useFeatureToggle(FeatureFlag.AddComponentModal);
+
+  const handleToggle: ChangeEventHandler<HTMLInputElement> = useCallback(
+    (e) => toggle(e.target.checked),
+    [toggle],
+  );
+
   return (
     <>
       <div className={classes.switchWrapper}>
-        <StudioSwitch
-          checked={shouldDisplayFeature(FeatureFlag.AddComponentModal)}
-          onChange={toggleComponentModalPocAndReload}
-          size='sm'
-        >
+        <StudioSwitch checked={isEnabled} onChange={handleToggle} size='sm'>
           Prøv nytt design
         </StudioSwitch>
         <StudioHelpText
@@ -51,7 +42,7 @@ export function ToggleAddComponentPoc(): React.ReactElement {
           </StudioParagraph>
         </StudioHelpText>
       </div>
-      {shouldDisplayFeature(FeatureFlag.AddComponentModal) && <FeedbackForm />}
+      {isEnabled && <FeedbackForm />}
     </>
   );
 }

@@ -8,6 +8,9 @@ type StudioTreeViewComponent = {
   Item: typeof StudioTreeViewItem;
 };
 
+/**
+ * @deprecated Use `StudioTreeView` from `studio-components` instead.
+ */
 export const StudioTreeView: StudioTreeViewComponent = {
   Root: StudioTreeViewRoot,
   Item: StudioTreeViewItem,
