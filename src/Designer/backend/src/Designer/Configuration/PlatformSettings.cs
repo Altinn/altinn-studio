@@ -95,5 +95,10 @@ namespace Altinn.Studio.Designer.Configuration
         /// Url used to load access packages
         /// </summary>
         public string AccessPackagesUrl { get; set; }
+
+        /// <summary>
+        /// Url pattern to access app cluster
+        /// </summary>
+        public string AppClusterUrl { get; set; }
     }
 }

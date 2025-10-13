@@ -28,8 +28,7 @@ services:
     environment:
       - DEVELOP_APP_DEVELOPMENT=${DEVELOP_APP_DEVELOPMENT:-0}
       - DEVELOP_RESOURCE_ADMIN=${DEVELOP_RESOURCE_ADMIN:-0}
-      - DEVELOP_ADMIN_FRONTEND=${DEVELOP_ADMIN_FRONTEND:-0}
-      - DEVELOP_ADMIN_BACKEND=${DEVELOP_ADMIN_BACKEND:-0}
+      - DEVELOP_ADMIN=${DEVELOP_ADMIN:-0}
       - DEVELOP_BACKEND=${DEVELOP_BACKEND:-0}
       - DEVELOP_DASHBOARD=${DEVELOP_DASHBOARD:-0}
       - DEVELOP_PREVIEW=${DEVELOP_PREVIEW:-0}
@@ -107,26 +106,6 @@ services:
       - 'studio.localhost:host-gateway'
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:6000/health" ]
-      interval: 5s
-      timeout: 10s
-      retries: 5
-
-  studio_admin:
-    container_name: studio-admin
-    image: admin:${COMMIT:-latest}
-    restart: always
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - Urls=http://+:6001
-    ports:
-      - '6001:6001'
-    build:
-      context: ../../src/StudioAdmin/
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
-      - 'studio.localhost:host-gateway'
-    healthcheck:
-      test: [ "CMD", "curl", "--fail", "http://localhost:6001/health" ]
       interval: 5s
       timeout: 10s
       retries: 5

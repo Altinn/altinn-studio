@@ -58,10 +58,6 @@ data:
           replacement = "/designer"
         }
 
-        match "^/admin/api.*" {
-          replacement = "/admin/api"
-        }
-
         match "^/admin.*" {
           replacement = "/admin"
         }

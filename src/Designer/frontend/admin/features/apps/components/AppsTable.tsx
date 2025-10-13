@@ -1,6 +1,6 @@
 import { useRunningAppsQuery } from 'admin/hooks/queries/useRunningAppsQuery';
 import classes from './AppsTable.module.css';
-import type { RunningApplication } from 'admin/types/RunningApplication';
+import type { PublishedApplication } from 'admin/types/RunningApplication';
 import { StudioSpinner, StudioTable, StudioSearch } from '@studio/components';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -27,7 +27,7 @@ export const AppsTable = ({ org }: AppsTableProps) => {
 };
 
 type AppsTableWithDataProps = {
-  runningApps: Record<string, RunningApplication[]>;
+  runningApps: Record<string, PublishedApplication[]>;
 };
 
 function getEnvironmentName(env: string, t: TFunction) {
