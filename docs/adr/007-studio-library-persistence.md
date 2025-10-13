@@ -1,6 +1,6 @@
 # Studio library persistence
 
-- Status: Accepted
+- Status: Exceeded by 008-studio-library-persistence-2
 - Deciders: Team Altinn Studio
 - Date: 04.09.2025
 
