@@ -29,7 +29,7 @@ const profileMenuGroups: StudioProfileMenuGroup[] = [
   },
 ];
 
-const PreviewComponent = (args): React.ReactElement => (
+const PreviewComponent = (args: { variant?: 'regular' | 'preview' }): React.ReactElement => (
   <div data-color-scheme='dark'>
     <StudioPageHeader {...args}>
       <StudioPageHeader.Main>

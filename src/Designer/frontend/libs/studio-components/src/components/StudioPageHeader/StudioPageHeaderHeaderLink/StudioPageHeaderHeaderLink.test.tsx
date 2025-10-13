@@ -13,8 +13,6 @@ const renderLink = (props: HTMLAttributes<HTMLAnchorElement>): React.ReactElemen
   </a>
 );
 const defaultProps: StudioPageHeaderHeaderLinkProps = {
-  color: 'dark',
-  variant: 'regular',
   renderLink,
 };
 
