@@ -128,30 +128,6 @@ public class OrgCodeListController : ControllerBase
         }
     }
 
-    [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [Route("new/published")]
-    public async Task<List<string>> GetPublishedCodeListIds(string org, CancellationToken cancellationToken = default)
-    {
-        /*
-         * Should this be done in the frontend directly? Maybe, maybe not. Frontend might not need to know about the "published" data types if it's done here.
-         */
-        return await Task.FromResult<List<string>>(["hei"]);
-    }
-
-    [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [Route("new/published/versions/{codeListId}")]
-    public async Task<List<string>> GetPublishedCodeListVersions(string org, [FromRoute] string codeListId, CancellationToken cancellationToken = default)
-    {
-        /*
-         * Should this be done in the frontend directly? Maybe, maybe not. Frontend might not need to know about the "published" data types if it's done here.
-         */
-         return await Task.FromResult<List<string>>(["hei"]);
-    }
-
     /// <summary>
     /// Creates or overwrites a code list.
     /// </summary>
