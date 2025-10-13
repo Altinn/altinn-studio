@@ -55,11 +55,10 @@ public class AzureSharedContentClient(
         ThrowIfUnhealthyEndpoint(rootIndexResponse);
 
         await HandleOrganizationIndex(orgName, rootIndexResponse, cancellationToken);
-        string organisationDirectory = orgName;
 
-        await HandleResourceTypeIndex(orgName, organisationDirectory, cancellationToken);
+        await HandleResourceTypeIndex(orgName, cancellationToken);
 
-        string codeListDirectory = Path.Join(organisationDirectory, CodeListDirectoryName);
+        string codeListDirectory = Path.Join(orgName, CodeListDirectoryName);
         await HandleResourceIndex(orgName, codeListId, codeListDirectory, cancellationToken);
 
         string versionDirectory = Path.Join(codeListDirectory, codeListId);
@@ -67,6 +66,12 @@ public class AzureSharedContentClient(
 
         CreateCodeListFile(codeList, versionDirectory);
 
+        List<Task> tasks = PrepareBlobTasks(containerClient, cancellationToken);
+        Task.WaitAll(tasks, cancellationToken);
+    }
+
+    private List<Task> PrepareBlobTasks(BlobContainerClient containerClient, CancellationToken cancellationToken = default)
+    {
         SemaphoreSlim semaphore = new(10); // We allocate 10 simultaneous tasks as max, even though current total is lower
         List<Task> tasks = [];
 
@@ -89,7 +94,7 @@ public class AzureSharedContentClient(
             }, cancellationToken));
         }
 
-        Task.WaitAll(tasks, cancellationToken);
+        return tasks;
     }
 
     private async Task HandleOrganizationIndex(string orgName, HttpResponseMessage rootIndexResponse, CancellationToken cancellationToken)
@@ -112,12 +117,12 @@ public class AzureSharedContentClient(
         }
     }
 
-    private async Task HandleResourceTypeIndex(string orgName, string organisationDirectory, CancellationToken cancellationToken)
+    private async Task HandleResourceTypeIndex(string orgName, CancellationToken cancellationToken)
     {
         string resourceTypeIndexUri = Path.Join(_sharedContentBaseUri, orgName, IndexFileName);
         HttpResponseMessage resourceTypeIndexResponse = await httpClient.GetAsync(resourceTypeIndexUri, cancellationToken);
 
-        string combinedPath = Path.Join(organisationDirectory, IndexFileName);
+        string combinedPath = Path.Join(orgName, IndexFileName);
         if (resourceTypeIndexResponse.StatusCode == HttpStatusCode.NotFound)
         {
             string contents = JsonSerializer.Serialize<List<string>>([CodeListDirectoryName]);
