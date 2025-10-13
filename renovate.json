@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["local>Altinn/renovate-config"],
+  "extends": ["local>Altinn/renovate-config", ":prHourlyLimit4"],
   "separateMinorPatch": true,
   "separateMultipleMajor": true,
   "packageRules": [
@@ -51,10 +51,7 @@
     },
     {
       "matchFileNames": ["src/App/**"],
-      "matchPackageNames": [
-        "/^Microsoft\\.CodeAnalysis/",
-        "/^Microsoft\\.Build/"
-      ],
+      "matchPackageNames": ["/^Microsoft\\.CodeAnalysis/", "/^Microsoft\\.Build/"],
       "enabled": false
     },
     {

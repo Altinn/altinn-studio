@@ -225,7 +225,7 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult<List<ListviewServiceResource>>> GetRepositoryResourceList(string org, [FromQuery] bool includeEnvResources = false, [FromQuery] bool skipGiteaFields = false, CancellationToken cancellationToken = default)
         {
             string repository = GetRepositoryName(org);
-            List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
+            List<ServiceResource> repositoryResourceList = await _repository.GetServiceResources(org, repository, "", cancellationToken);
             List<ListviewServiceResource> listviewServiceResources = new List<ListviewServiceResource>();
 
             IEnumerable<ListviewServiceResource> resources;
@@ -310,17 +310,17 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("designer/api/{org}/resources/{repository}/{id}")]
-        public ActionResult<ServiceResource> GetResourceById(string org, string repository, string id)
+        public async Task<ActionResult<ServiceResource>> GetResourceById(string org, string repository, string id, CancellationToken cancellationToken)
         {
-            ServiceResource resource = _repository.GetServiceResourceById(org, repository, id);
+            ServiceResource resource = await _repository.GetServiceResourceById(org, repository, id, cancellationToken);
             return resource != null ? resource : StatusCode(404);
         }
 
         [HttpGet]
         [Route("designer/api/{org}/resources/publishstatus/{repository}/{id}")]
-        public async Task<ActionResult<ServiceResourceStatus>> GetPublishStatusById(string org, string repository, string id)
+        public async Task<ActionResult<ServiceResourceStatus>> GetPublishStatusById(string org, string repository, string id, CancellationToken cancellationToken)
         {
-            ServiceResource resource = _repository.GetServiceResourceById(org, repository, id);
+            ServiceResource resource = await _repository.GetServiceResourceById(org, repository, id, cancellationToken);
             if (resource == null)
             {
                 return StatusCode(404);
@@ -342,9 +342,9 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [Route("designer/api/{org}/resources/validate/{repository}/{id}")]
-        public ActionResult GetValidateResource(string org, string repository, string id)
+        public async Task<ActionResult> GetValidateResource(string org, string repository, string id)
         {
-            ServiceResource resourceToValidate = _repository.GetServiceResourceById(org, repository, id);
+            ServiceResource resourceToValidate = await _repository.GetServiceResourceById(org, repository, id);
             if (resourceToValidate != null)
             {
                 ValidationProblemDetails validationProblemDetails = ValidateResource(resourceToValidate);
