@@ -1,7 +1,7 @@
 .regularSub {
-  background-color: #3e4f62;
+  background-color: var(--studio-designer-header-background-secondary);
 }
 
 .previewSub {
-  background-color: #0c6536;
+  background-color: var(--studio-preview-header-background-secondary);
 }

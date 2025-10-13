@@ -8,7 +8,6 @@ import userEvent from '@testing-library/user-event';
 
 const buttonText: string = 'Button';
 const defaultProps: StudioPageHeaderHeaderButtonProps = {
-  color: 'dark',
   variant: 'regular',
 };
 
@@ -23,7 +22,7 @@ describe('StudioPageHeaderHeaderButton', () => {
 
   it('should forward ref to the button element', () => {
     const ref = React.createRef<HTMLButtonElement>();
-    renderStudioPageHeaderHeaderButton({ color: 'dark' }, ref);
+    renderStudioPageHeaderHeaderButton({}, ref);
 
     expect(ref.current).toBeInstanceOf(HTMLButtonElement);
   });

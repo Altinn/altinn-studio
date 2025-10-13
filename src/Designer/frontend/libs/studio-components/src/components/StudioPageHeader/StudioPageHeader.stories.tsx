@@ -35,10 +35,7 @@ const PreviewComponent = (args): React.ReactElement => (
       <StudioPageHeader.Main>
         <StudioPageHeader.Left title='Left' showTitle={false} />
         <StudioPageHeader.Center>
-          <StudioPageHeader.HeaderButton
-            color={args.variant === 'regular' ? 'light' : 'dark'}
-            variant={args.variant}
-          >
+          <StudioPageHeader.HeaderButton color={args.variant === 'regular' ? 'light' : 'dark'}>
             Button
           </StudioPageHeader.HeaderButton>
         </StudioPageHeader.Center>
@@ -55,10 +52,7 @@ const PreviewComponent = (args): React.ReactElement => (
       <StudioPageHeader.Sub>
         <div style={{ padding: '10px' }}>
           <StudioParagraph data-size='sm' style={{ color: 'white' }}>
-            <StudioPageHeader.HeaderButton
-              color={args.variant === 'regular' ? 'dark' : 'light'}
-              variant={args.variant}
-            >
+            <StudioPageHeader.HeaderButton color={args.variant === 'regular' ? 'dark' : 'light'}>
               Subheader Button
             </StudioPageHeader.HeaderButton>
           </StudioParagraph>

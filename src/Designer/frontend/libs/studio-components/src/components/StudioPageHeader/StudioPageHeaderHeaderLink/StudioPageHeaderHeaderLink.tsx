@@ -1,5 +1,4 @@
 import type { HTMLAttributes, ReactElement } from 'react';
-import commonClasses from '../common.module.css';
 import { type StudioPageHeaderColor } from '../types/StudioPageHeaderColor';
 import cn from 'classnames';
 import { type StudioPageHeaderVariant } from '../types/StudioPageHeaderVariant';
@@ -14,20 +13,11 @@ export type StudioPageHeaderHeaderLinkProps = {
 } & HTMLAttributes<HTMLAnchorElement>;
 
 function StudioPageHeaderHeaderLink({
-  color,
-  variant,
   className: givenClass,
   renderLink,
   isBeta,
 }: StudioPageHeaderHeaderLinkProps): ReactElement {
-  const className = cn(
-    commonClasses.linkOrButton,
-    commonClasses[variant],
-    commonClasses[color],
-    isBeta && studioBetaTagClasses.isBeta,
-    givenClass,
-    linkClasses.link,
-  );
+  const className = cn(isBeta && studioBetaTagClasses.isBeta, givenClass, linkClasses.link);
   const props: HTMLAttributes<HTMLAnchorElement> = {
     className,
   };

@@ -33,13 +33,6 @@ describe('StudioPageHeaderHeaderLink', () => {
     renderStudioPageHeaderHeaderLink({ isBeta: true });
     expect(screen.getByRole('link', { name: linkText })).toHaveClass('isBeta');
   });
-
-  it('Passes the colour and variant classes to the link', () => {
-    renderStudioPageHeaderHeaderLink();
-    const link = screen.getByRole('link');
-    expect(link).toHaveClass(defaultProps.color);
-    expect(link).toHaveClass(defaultProps.variant);
-  });
 });
 
 function renderStudioPageHeaderHeaderLink(

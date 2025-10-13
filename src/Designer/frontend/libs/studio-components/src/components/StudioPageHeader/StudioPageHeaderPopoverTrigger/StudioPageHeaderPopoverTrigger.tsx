@@ -2,8 +2,6 @@ import React, { forwardRef } from 'react';
 import type { Ref } from 'react';
 import type { StudioPopoverTriggerProps } from '../../StudioPopover';
 import { StudioPopover } from '../../StudioPopover';
-import cn from 'classnames';
-import classes from '../common.module.css';
 import type { StudioPageHeaderColor } from '../types/StudioPageHeaderColor';
 import type { StudioPageHeaderVariant } from '../types/StudioPageHeaderVariant';
 
@@ -21,7 +19,7 @@ function StudioPageHeaderPopoverTrigger(
   }: StudioPageHeaderPopoverTriggerProps,
   ref: Ref<HTMLButtonElement>,
 ): React.ReactElement {
-  const className = cn(classes.linkOrButton, classes[variant], classes[color], givenClass);
+  const className = givenClass;
   return <StudioPopover.Trigger className={className} {...rest} ref={ref} />;
 }
 

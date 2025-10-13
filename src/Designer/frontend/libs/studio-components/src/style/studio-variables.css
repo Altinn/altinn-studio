@@ -3,4 +3,9 @@
   --studio-property-vertical-gap: var(--ds-size-3);
   --studio-property-button-vertical-spacing: calc(var(--studio-property-vertical-gap) / 2);
   --studio-property-fieldset-spacing: var(--ds-size-3);
+  --studio-designer-header-background-default: #393b51;
+  --studio-preview-header-background-default: #118849;
+
+  --studio-designer-header-background-secondary: #3e4f62;
+  --studio-preview-header-background-secondary: #0c6536;
 }

@@ -15,9 +15,9 @@
 }
 
 .regular {
-  background-color: #393b51;
+  background-color: var(--studio-designer-header-background-default);
 }
 
 .preview {
-  background-color: #118849;
+  background-color: var(--studio-preview-header-background-default);
 }
