@@ -1,5 +1,5 @@
 import React, { useEffect, useState as useReactState } from 'react';
-import { useMatch, useNavigate } from 'react-router-dom';
+import { useMatch } from 'react-router-dom';
 
 import { Checkbox, Heading, Paragraph } from '@digdir/designsystemet-react';
 import { PlusIcon } from '@navikt/aksel-icons';
@@ -28,7 +28,6 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
-import { flattenParties } from 'src/features/party/partyUtils';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { changeBodyBackground } from 'src/utils/bodyStyling';
 import { getPageTitle } from 'src/utils/getPageTitle';
@@ -90,15 +89,17 @@ export const PartySelection = () => {
 
   const { langAsString } = useLanguage();
 
-  const partiesAllowedToInstantiate = flattenParties(partiesData ?? []);
-
-  const defaultShowDeleted = partiesAllowedToInstantiate.every((party) => party.isDeleted);
-
   const [filterString, setFilterString] = React.useState('');
   const [numberOfPartiesShown, setNumberOfPartiesShown] = React.useState(4);
   const [showSubUnits, setShowSubUnits] = React.useState(true);
-  const [showDeleted, setShowDeleted] = React.useState(defaultShowDeleted);
-  const navigate = useNavigate();
+  const [showDeleted, setShowDeleted] = React.useState(false);
+
+  // Update showDeleted when data loads if all parties are deleted
+  React.useEffect(() => {
+    if (partiesData && partiesData.length > 0 && partiesData.every((party) => party.isDeleted)) {
+      setShowDeleted(true);
+    }
+  }, [partiesData]);
 
   const appName = useAppName();
   const appOwner = useAppOwner();
@@ -116,6 +117,8 @@ export const PartySelection = () => {
   if (error) {
     return <DisplayError error={error} />;
   }
+
+  const partiesAllowedToInstantiate = partiesData ?? [];
 
   if (!partiesAllowedToInstantiate.length) {
     return <NoValidPartiesError />;

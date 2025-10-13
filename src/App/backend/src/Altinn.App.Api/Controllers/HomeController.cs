@@ -51,6 +51,8 @@ public class HomeController : Controller
     /// <param name="appMetadata">The application metadata service</param>
     /// <param name="initialDataService">The initial data service</param>
     /// <param name="generalSettings">The general settings</param>
+    /// <param name="authenticationContext">The authentication context service</param>
+    /// <param name="instanceClient">The instance client service</param>
     public HomeController(
         IAntiforgery antiforgery,
         IOptions<PlatformSettings> platformSettings,
@@ -77,15 +79,11 @@ public class HomeController : Controller
     }
 
     /// <summary>
-    /// Returns the index view with references to the React app.
+    /// Main entry point for the application. Handles authentication, party selection, and routing to appropriate views.
     /// </summary>
     /// <param name="org">The application owner short name.</param>
     /// <param name="app">The name of the app</param>
-    /// <param name="partyId">The party identifier.</param>
-    /// <param name="instanceGuid">The instance GUID.</param>
-    /// <param name="taskId">The task identifier.</param>
-    /// <param name="pageId">The page identifier.</param>
-    /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
+    /// <param name="skipPartySelection">If true, skips party selection prompt even when PromptForParty is 'always'.</param>
     [HttpGet]
     [Route("{org}/{app}/")]
     public async Task<IActionResult> Index(
@@ -123,32 +121,27 @@ public class HomeController : Controller
             );
         }
 
-        // now we need to check if the current party is valid
-
         var details = await auth.LoadDetails(validateSelectedParty: false);
-        var redirectUrl = "";
+
         if (!details.CanRepresentParty(details.Profile.PartyId))
         {
             if (details.PartiesAllowedToInstantiate.Count == 0)
             {
                 throw new UnauthorizedAccessException("You have no parties that can use this app");
             }
-            redirectUrl = Request.GetDisplayUrl() + "party-selection/";
-            return Redirect(redirectUrl);
+            return Redirect(Request.GetDisplayUrl() + "party-selection/");
         }
 
         if (details.PartiesAllowedToInstantiate.Count > 1 && !skipPartySelection)
         {
             if (application.PromptForParty == "always")
             {
-                redirectUrl = Request.GetDisplayUrl() + "party-selection/";
-                return Redirect(redirectUrl);
+                return Redirect(Request.GetDisplayUrl() + "party-selection/");
             }
 
             if (application.PromptForParty != "never" && !details.Profile.ProfileSettingPreference.DoNotPromptForParty)
             {
-                redirectUrl = Request.GetDisplayUrl() + "party-selection/";
-                return Redirect(redirectUrl);
+                return Redirect(Request.GetDisplayUrl() + "party-selection/");
             }
         }
 
@@ -182,12 +175,10 @@ public class HomeController : Controller
 
         if (instances.Count > 1 && application.OnEntry?.Show == "select-instance")
         {
-            redirectUrl = Request.GetDisplayUrl() + "instance-selection";
-            return Redirect(redirectUrl);
+            return Redirect(Request.GetDisplayUrl() + "instance-selection");
         }
 
         var currentTask = mostRecentInstance.Process.CurrentTask;
-
         var layoutSet = _appResources.GetLayoutSetForTask(currentTask.ElementId);
         string? firstPageId = null;
 
@@ -200,14 +191,7 @@ public class HomeController : Controller
             }
         }
 
-        redirectUrl =
-            Request.GetDisplayUrl()
-            + "instance/"
-            + mostRecentInstance.Id
-            + "/"
-            + currentTask.ElementId
-            + "/"
-            + firstPageId;
+        string redirectUrl = $"{Request.GetDisplayUrl()}instance/{mostRecentInstance.Id}/{currentTask.ElementId}/{firstPageId}";
         return Redirect(redirectUrl);
     }
 
@@ -340,18 +324,15 @@ public class HomeController : Controller
     }
 
     /// <summary>
-    /// Returns the index view with references to the React app.
+    /// Resolves the current task and redirects to the full instance URL with task and page information.
     /// </summary>
     /// <param name="org">The application owner short name.</param>
     /// <param name="app">The name of the app</param>
     /// <param name="partyId">The party identifier.</param>
     /// <param name="instanceGuid">The instance GUID.</param>
-    /// <param name="taskId">The task identifier.</param>
-    /// <param name="pageId">The page identifier.</param>
-    /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
     [HttpGet]
     [Route("{org}/{app}/instance/{partyId}/{instanceGuid}")]
-    public async Task<IActionResult> Index(
+    public async Task<IActionResult> InstanceById(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromRoute] int partyId,
@@ -395,7 +376,7 @@ public class HomeController : Controller
     }
 
     /// <summary>
-    /// Returns the index view with references to the React app.
+    /// Renders the main application view for a specific instance, task, and page.
     /// </summary>
     /// <param name="org">The application owner short name.</param>
     /// <param name="app">The name of the app</param>
@@ -403,17 +384,15 @@ public class HomeController : Controller
     /// <param name="instanceGuid">The instance GUID.</param>
     /// <param name="taskId">The task identifier.</param>
     /// <param name="pageId">The page identifier.</param>
-    /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
     [HttpGet]
     [Route("{org}/{app}/instance/{partyId}/{instanceGuid}/{taskId}/{pageId}")]
-    public async Task<IActionResult> Index(
+    public async Task<IActionResult> InstanceView(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromRoute] int partyId,
         [FromRoute] Guid instanceGuid,
         [FromRoute] string taskId,
-        [FromRoute] string pageId,
-        [FromQuery] bool dontChooseReportee = false
+        [FromRoute] string pageId
     )
     {
         if (await UserCanSeeStatelessApp())
@@ -435,18 +414,8 @@ public class HomeController : Controller
             // Construct instance ID from route parameters if available
             string instanceId = $"{partyId}/{instanceGuid}";
 
-            // Get language from Accept-Language header or query parameter
             var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
-
-            // Aggregate all initial data
             var initialData = await _initialDataService.GetInitialData(org, app, instanceId, partyId, language);
-
-            // Add routing information to initial data
-            // initialData.AppSettings ??= new Altinn.App.Core.Features.Bootstrap.Models.FrontendAppSettings();
-            // initialData.AppSettings.CurrentTaskId = taskId;
-            // initialData.AppSettings.CurrentPageId = pageId;
-
-            // Generate HTML with embedded data
             var html = GenerateHtml(org, app, initialData);
             return Content(html, "text/html; charset=utf-8");
         }
@@ -454,11 +423,11 @@ public class HomeController : Controller
     }
 
     /// <summary>
-    ///
+    /// Record for query parameter initialization data used in stateless app prefill.
     /// </summary>
-    /// <param name="DataModelName"></param>
-    /// <param name="AppId"></param>
-    /// <param name="PrefillFields"></param>
+    /// <param name="DataModelName">The data model identifier.</param>
+    /// <param name="AppId">The application identifier.</param>
+    /// <param name="PrefillFields">Dictionary of fields to prefill.</param>
     public record QueryParamInit(
         [property: JsonPropertyName("dataModelName")] string DataModelName,
         [property: JsonPropertyName("appId")] string AppId,
@@ -565,19 +534,6 @@ public class HomeController : Controller
         }
     }
 
-    private async Task<bool> IsUserPartyValid(Authenticated.User auth)
-    {
-        try
-        {
-            await auth.LoadDetails(validateSelectedParty: true);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
     private async Task<List<Instance>> GetInstancesForParty(string org, string app, int partyId)
     {
         Dictionary<string, StringValues> queryParams = new()
@@ -588,12 +544,7 @@ public class HomeController : Controller
             { "status.isSoftDeleted", "false" },
         };
 
-        List<Instance> activeInstances = await _instanceClient.GetInstances(queryParams);
-        return activeInstances;
-
-        // Instance? mostRecentInstance = activeInstances.OrderByDescending(i => i.LastChanged).FirstOrDefault();
-        //
-        // return mostRecentInstance?.Id.Split('/').Last();
+        return await _instanceClient.GetInstances(queryParams);
     }
 
     private async Task<bool> AllowAnonymous()
@@ -697,7 +648,6 @@ public class HomeController : Controller
         // Serialize initial data to JSON
         var initialDataJson = JsonSerializer.Serialize(initialData, _jsonSerializerOptions);
 
-        // Get custom CSS and JS if available
         var customCss = GetCustomCss(org, app);
         var customJs = GetCustomJs(org, app);
 
@@ -727,11 +677,7 @@ public class HomeController : Controller
         html.AppendLine($"    window.org = '{org}';");
         html.AppendLine($"    window.app = '{app}';");
         html.AppendLine("  </script>");
-        // html.AppendLine($"  <script src=\"{cdnUrl}/{appVersion}/altinn-app-frontend.js\"></script>");
-
-        Console.WriteLine($"  <script src=\"{cdnUrl}/{appVersion}/altinn-app-frontend.js\"></script>");
         html.AppendLine($"  <script src=\"{cdnUrl}/{appVersion}/altinn-app-frontend.js\"></script>");
-        // html.AppendLine("  <script src=\"http://localhost:8080/altinn-app-frontend.js\"></script>");
 
         if (!string.IsNullOrEmpty(customJs))
         {
@@ -766,24 +712,14 @@ public class HomeController : Controller
         try
         {
             var customJsPath = Path.Combine(_env.ContentRootPath, "wwwroot", "js", "custom.js");
-            Console.WriteLine($"Looking for custom.js at: {customJsPath}");
-            Console.WriteLine($"ContentRootPath: {_env.ContentRootPath}");
-            Console.WriteLine($"File exists: {System.IO.File.Exists(customJsPath)}");
-
             if (System.IO.File.Exists(customJsPath))
             {
-                var content = System.IO.File.ReadAllText(customJsPath);
-                Console.WriteLine($"Custom JS loaded, length: {content.Length}");
-                return content;
-            }
-            else
-            {
-                Console.WriteLine("Custom JS file not found");
+                return System.IO.File.ReadAllText(customJsPath);
             }
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"Error loading custom.js: {ex.Message}");
+            // Log error but don't fail
         }
         return null;
     }
@@ -939,37 +875,3 @@ public class HomeController : Controller
         return html.ToString();
     }
 }
-
-
-// See comments in the configuration of Antiforgery in MvcConfiguration.cs.
-// var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
-// if (tokens.RequestToken != null)
-// {
-//     HttpContext.Response.Cookies.Append(
-//         "XSRF-TOKEN",
-//         tokens.RequestToken,
-//         new CookieOptions
-//         {
-//             HttpOnly = false, // Make this cookie readable by Javascript.
-//         }
-//     );
-// }
-// else
-// {
-//     string scheme = _env.IsDevelopment() ? "http" : "https";
-//     string goToUrl = HttpUtility.UrlEncode($"{scheme}://{Request.Host}/{org}/{app}");
-//
-//     string redirectUrl = $"{_platformSettings.ApiAuthenticationEndpoint}authentication?goto={goToUrl}";
-//
-//     if (!string.IsNullOrEmpty(_appSettings.AppOidcProvider))
-//     {
-//         redirectUrl += "&iss=" + _appSettings.AppOidcProvider;
-//     }
-//
-//     if (dontChooseReportee)
-//     {
-//         redirectUrl += "&DontChooseReportee=true";
-//     }
-//
-//     return Redirect(redirectUrl);
-// }

@@ -14,10 +14,10 @@ export const useSelectedParty = (): IParty | undefined => window.AltinnAppData?.
 export const usePartiesAllowedToInstantiate = (): IParty[] | undefined => undefined;
 
 /**
- * Returns undefined - not used anymore
+ * Returns true if a party is currently selected
  * @deprecated
  */
-export const useSelectedPartyIsValid = (): boolean | undefined => undefined;
+export const useSelectedPartyIsValid = (): boolean => Boolean(useSelectedParty());
 
 /**
  * Returns a no-op function - party setting is handled on party-selection page
