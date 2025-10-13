@@ -23,9 +23,18 @@ async def handle(state: AgentState) -> AgentState:
     """
     log.info("🔍 Verifier node executing")
 
+    # Check if workflow should stop
+    if state.next_action == "stop":
+        log.info("⏹️ Workflow stopping at verifier - passing through")
+        return state
+
     try:
         if not state.changed_files:
-            raise ValueError("No files were changed")
+            log.info("⏭️ Skipping verification - no files were changed")
+            state.tests_passed = True  # No changes means no failures
+            state.verify_notes = ["No verification needed - no changes were made"]
+            state.next_action = "stop"  # Stop the workflow since no changes were made
+            return state
 
         # Use MCP verification instead of the old verify.run_checks
         from agents.services.mcp.mcp_verification import MCPVerifier

@@ -5,10 +5,11 @@ from agents.graph.state import AgentState
 from agents.graph.runner import run_in_background
 from agents.services.events import sink
 from agents.services.llm import parse_intent_async, ParsedIntent, IntentParsingError, suggest_goal_correction
-from frontend_api.apps.manager import AppManager
+from agents.services.git.repo_manager import get_repo_manager
 from shared.config import get_config
 from shared.utils.logging_utils import get_logger
 from pathlib import Path
+from typing import Optional
 
 router = APIRouter()
 log = get_logger(__name__)
@@ -20,34 +21,31 @@ APP_STATE_FILE = Path(__file__).parent.parent / "app_state.json"
 class StartReq(BaseModel):
     session_id: str
     goal: str
+    repo_url: str  # Git repository URL to clone
+    branch: Optional[str] = None  # Optional branch to checkout (for continuing work)
 
 @router.post("/api/agent/start")
 async def start_agent(req: StartReq):
     """Start an agent workflow for a single atomic change"""
     try:
-        # Get current app from app_state.json
-        manager = AppManager(config.ALTINN_STUDIO_APPS_PATH, APP_STATE_FILE)
-        current_app = manager.get_current_app()
+        # Clone the repository for this session
+        repo_manager = get_repo_manager()
+        repo_path = repo_manager.clone_repo_for_session(req.repo_url, req.session_id, req.branch)
 
-        if not current_app:
-            raise HTTPException(
-                status_code=400,
-                detail="No app currently selected. Please select an app first."
-            )
+        branch_info = f" on branch {req.branch}" if req.branch else ""
+        log.info(f"Cloned repository {req.repo_url} to {repo_path} for session {req.session_id}{branch_info}")
 
-        repo_path = current_app['path']
-
-        # Validate repo path exists
+        # Validate repo path exists and is an Altinn app
         repo = Path(repo_path)
         if not repo.exists():
-            raise HTTPException(status_code=400, detail=f"Repository path does not exist: {repo_path}")
+            raise HTTPException(status_code=400, detail=f"Failed to clone repository: {repo_path}")
 
         if not repo.is_dir():
             raise HTTPException(status_code=400, detail=f"Repository path is not a directory: {repo_path}")
 
         # Check if it looks like an Altinn app
         if not (repo / "App").exists():
-            log.warning(f"Repository {repo_path} does not appear to be an Altinn app")
+            log.warning(f"Repository {repo_path} does not appear to be an Altinn app (missing App/ directory)")
 
         # Parse intent with safety validation
         parsed_intent = await parse_intent_async(req.goal)
@@ -77,7 +75,7 @@ async def start_agent(req: StartReq):
         state = AgentState(
             session_id=req.session_id,
             user_goal=req.goal,
-            repo_path=repo_path
+            repo_path=str(repo_path)  # Use cloned repo path
         )
 
         # Start workflow in background
@@ -89,7 +87,9 @@ async def start_agent(req: StartReq):
             "accepted": True,
             "session_id": req.session_id,
             "message": "Agent workflow started",
-            "app_name": current_app['name'],
+            "repo_url": req.repo_url,
+            "branch": req.branch,
+            "repo_path": str(repo_path),
             "parsed_intent": {
                 "action": parsed_intent.action,
                 "component": parsed_intent.component,

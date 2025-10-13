@@ -9,6 +9,18 @@ from .nodes.reviewer_node import handle as reviewer_node
 from agents.services.events import AgentEvent, EventSink, sink
 import asyncio
 
+def should_continue_to_verifier(state: AgentState) -> str:
+    """Decide whether to continue to verifier or stop"""
+    if state.next_action == "stop":
+        return "stop"
+    return "verifier"
+
+def should_continue_to_reviewer(state: AgentState) -> str:
+    """Decide whether to continue to reviewer or stop"""
+    if state.next_action == "stop":
+        return "stop"
+    return "reviewer"
+
 def build_graph():
     """Build the LangGraph workflow with LLM-powered nodes"""
     g = StateGraph(AgentState)
@@ -20,9 +32,12 @@ def build_graph():
     g.set_entry_point("intake")
     g.add_edge("intake", "planner")
     g.add_edge("planner", "actor")
-    g.add_edge("actor", "verifier")
-    g.add_edge("verifier", "reviewer")
+    
+    # Conditional edges based on next_action
+    g.add_conditional_edges("actor", should_continue_to_verifier, {"verifier": "verifier", "stop": END})
+    g.add_conditional_edges("verifier", should_continue_to_reviewer, {"reviewer": "reviewer", "stop": END})
     g.add_edge("reviewer", END)
+    
     return g.compile()
 
 graph = build_graph()
@@ -52,8 +67,10 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
             print(f"MLflow root span input error: {e}")
 
         try:
+            # Rebuild graph to ensure latest changes are used
+            current_graph = build_graph()
             # Run the graph workflow asynchronously - all nested operations will be under this trace
-            final_state = await graph.ainvoke(state)
+            final_state = await current_graph.ainvoke(state)
             
             try:
                 root_span.set_outputs({
@@ -86,18 +103,6 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
 
         return final_state
 
-
-def run_in_background(state: AgentState, event_sink: EventSink = None):
-    """Start workflow in background task"""
-    if event_sink is None:
-        event_sink = sink
-
-    async def _run():
-        await run_once(state, event_sink)
-
-    # Create background task
-    task = asyncio.create_task(_run())
-    return task
 
 def run_in_background(state: AgentState, event_sink: EventSink = None):
     """Start workflow in background task"""

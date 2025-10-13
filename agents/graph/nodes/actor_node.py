@@ -207,6 +207,25 @@ async def handle(state: AgentState) -> AgentState:
             log.error(f"Failed to check git status: {e}")
         
         state.changed_files = preview["files"] + generated_files
+
+        # Always check git status after applying changes to see what actually changed
+        try:
+            import subprocess
+            result = subprocess.run(["git", "status", "--porcelain"], cwd=state.repo_path, capture_output=True, text=True)
+            actual_changed_files = [line.split()[-1] for line in result.stdout.strip().split('\n') if line.strip()]
+            
+            if not actual_changed_files:
+                log.warning("⚠️ Git status shows no actual changes after patch application")
+                # Don't proceed to verification/review if no changes
+                state.next_action = "stop"
+                log.info("Stopping workflow - no changes to verify")
+                return state
+            else:
+                log.info(f"✅ Git status confirms {len(actual_changed_files)} files changed")
+                state.changed_files = actual_changed_files  # Update with actual changed files
+        except Exception as e:
+            log.error(f"Could not check git status: {e}")
+
         state.next_action = "verify"
 
         # Store additional pipeline results for potential debugging (only if we ran the pipeline)

@@ -29,7 +29,9 @@ class BaseConfig:
     # Altinn Studio integration
     ALTINN_STUDIO_APPS_PATH = os.getenv("ALTINN_STUDIO_APPS_PATH", str(Path.home() / "Apps"))
     GITEA_API_TOKEN = os.getenv("GITEA_API_TOKEN")
+    GITEA_LOCAL_TOKEN = os.getenv("GITEA_LOCAL_TOKEN")  # Token for local gitea operations
     GITEA_URL = os.getenv("GITEA_URL", "https://altinn.studio/repos/api/v1")
+    GITEA_BASE_URL = os.getenv("GITEA_BASE_URL", "http://localhost:3000")  # Local gitea instance for agent pushes
 
     # CORS settings for frontend connections
     CORS_ORIGINS = [
