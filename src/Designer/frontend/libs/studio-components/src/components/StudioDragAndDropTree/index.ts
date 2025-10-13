@@ -10,9 +10,6 @@ type StudioDragAndDropTreeComponent = {
   NewItem: typeof StudioDragAndDrop.NewItem;
 };
 
-/**
- * @deprecated Use the @studio-components package instead
- */
 export const StudioDragAndDropTree: StudioDragAndDropTreeComponent = {
   Item: StudioDragAndDropTreeItem,
   Root: StudioDragAndDropTreeRoot,
@@ -20,7 +17,4 @@ export const StudioDragAndDropTree: StudioDragAndDropTreeComponent = {
   NewItem: StudioDragAndDrop.NewItem,
 };
 
-/**
- * @deprecated Use the @studio-components package instead
- */
 export { type StudioDragAndDropTreeProviderProps } from './StudioDragAndDropTreeProvider';

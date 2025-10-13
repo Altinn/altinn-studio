@@ -14,9 +14,6 @@ type StudioDragAndDropComponent = {
   NewItem: typeof StudioDragAndDropNewItem;
 };
 
-/**
- * @deprecated Use the @studio-components package instead
- */
 export const StudioDragAndDrop: StudioDragAndDropComponent = {
   Provider: StudioDragAndDropProvider,
   List: StudioDragAndDropList,
@@ -24,9 +21,6 @@ export const StudioDragAndDrop: StudioDragAndDropComponent = {
   NewItem: StudioDragAndDropNewItem,
 };
 
-/**
- * @deprecated Use the @studio-components package instead
- */
 export type {
   StudioDragAndDropProviderProps,
   StudioDragAndDropListProps,
