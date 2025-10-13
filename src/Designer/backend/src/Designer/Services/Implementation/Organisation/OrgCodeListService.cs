@@ -275,6 +275,7 @@ public class OrgCodeListService : IOrgCodeListService
         }
     }
 
+    /// <inheritdoc />
     public List<string> GetCodeListIds(string org, string developer, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -285,6 +286,7 @@ public class OrgCodeListService : IOrgCodeListService
         return codeListIds;
     }
 
+    /// <inheritdoc />
     public void UpdateCodeListId(string org, string developer, string codeListId, string newCodeListId)
     {
         string repo = GetStaticContentRepo(org);
@@ -293,6 +295,7 @@ public class OrgCodeListService : IOrgCodeListService
         altinnOrgGitRepository.UpdateCodeListId(codeListId, newCodeListId);
     }
 
+    /// <inheritdoc />
     public async Task PublishCodeList(string org, PublishCodeListRequest request, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -360,10 +363,10 @@ public class OrgCodeListService : IOrgCodeListService
     /// <summary>
     /// Converts a <see cref="CodeList"/> to a <see cref="CodeListWrapper"/>
     /// </summary>
-    /// <param name="codeList"></param>
-    /// <param name="title"></param>
-    /// <param name="hasError"></param>
-    /// <returns><see cref="CodeListWrapper"/> </returns>
+    /// <param name="codeList">The code list</param>
+    /// <param name="title">The title of the code list</param>
+    /// <param name="hasError">Has error</param>
+    /// <returns><see cref="CodeListWrapper"/></returns>
     private static CodeListWrapper WrapCodeList(CodeList? codeList, string title, bool hasError)
     {
         return new CodeListWrapper(
