@@ -1,6 +1,7 @@
 import React from 'react';
 import { CompleteInterface } from './CompleteInterface';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { mockTexts } from '../../mocks/mockTexts';
 import type { ChatThread } from '../../types/ChatThread';
 import { MessageAuthor } from '../../types/MessageAuthor';
@@ -37,7 +38,7 @@ describe('CompleteInterface', () => {
     expect(heading).toBeInTheDocument();
   });
 
-  it('should render the view toggle group', () => {
+  it('should render the tool mode toggle group', () => {
     renderCompleteInterface();
     const previewToggle = screen.getByRole('radio', { name: mockTexts.preview });
     const fileBrowserToggle = screen.getByRole('radio', { name: mockTexts.fileBrowser });
@@ -60,34 +61,6 @@ describe('CompleteInterface', () => {
     expect(newThreadButton).toBeInTheDocument();
   });
 
-  it('should render the chat input', () => {
-    renderCompleteInterface();
-    const textarea = screen.getByPlaceholderText(mockTexts.textareaPlaceholder);
-
-    expect(textarea).toBeInTheDocument();
-  });
-
-  it('should render the send button', () => {
-    renderCompleteInterface();
-    const sendButton = screen.getByRole('button', { name: mockTexts.send });
-
-    expect(sendButton).toBeInTheDocument();
-  });
-
-  it('should render attachment button in complete interface', () => {
-    renderCompleteInterface();
-    const attachmentButton = screen.getByRole('button', { name: mockTexts.addAttachment });
-
-    expect(attachmentButton).toBeInTheDocument();
-  });
-
-  it('should render "allow app changes" switch in complete interface', () => {
-    renderCompleteInterface();
-    const allowAppChangesSwitch = screen.getByLabelText(mockTexts.allowAppChangesSwitch);
-
-    expect(allowAppChangesSwitch).toBeInTheDocument();
-  });
-
   it('should render chat threads', () => {
     renderCompleteInterface({ chatThreads: mockChatThreads });
     const thread1 = screen.getByRole('tab', { name: threadTitle1 });
@@ -102,6 +75,46 @@ describe('CompleteInterface', () => {
     const userMessage = screen.getByText('User message');
 
     expect(userMessage).toBeInTheDocument();
+  });
+
+  it('should switch current thread when a different thread is selected', async () => {
+    const user = userEvent.setup();
+    renderCompleteInterface({ chatThreads: mockChatThreads });
+
+    expect(screen.getByText('User message')).toBeInTheDocument();
+
+    const thread2Tab = screen.getByRole('tab', { name: threadTitle2 });
+    await user.click(thread2Tab);
+
+    expect(screen.queryByText('User message')).not.toBeInTheDocument();
+  });
+
+  it('should render the chat input', () => {
+    renderCompleteInterface();
+    const textarea = screen.getByPlaceholderText(mockTexts.textareaPlaceholder);
+
+    expect(textarea).toBeInTheDocument();
+  });
+
+  it('should render attachment button', () => {
+    renderCompleteInterface();
+    const attachmentButton = screen.getByRole('button', { name: mockTexts.addAttachment });
+
+    expect(attachmentButton).toBeInTheDocument();
+  });
+
+  it('should render "allow app changes" switch', () => {
+    renderCompleteInterface();
+    const allowAppChangesSwitch = screen.getByLabelText(mockTexts.allowAppChangesSwitch);
+
+    expect(allowAppChangesSwitch).toBeInTheDocument();
+  });
+
+  it('should render the send button', () => {
+    renderCompleteInterface();
+    const sendButton = screen.getByRole('button', { name: mockTexts.send });
+
+    expect(sendButton).toBeInTheDocument();
   });
 
   it('should render tool column with preview placeholder', () => {

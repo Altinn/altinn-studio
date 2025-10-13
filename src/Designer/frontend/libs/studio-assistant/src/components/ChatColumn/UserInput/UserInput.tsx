@@ -18,10 +18,7 @@ export function UserInput({
   const [allowAppChanges, setAllowAppChanges] = useState<boolean>(true);
 
   const handleSubmit = () => {
-    if (!messageContent.trim()) return;
-
     const message: UserMessage = createUserMessage(messageContent, allowAppChanges);
-
     onSubmitMessage(message);
     setMessageContent('');
   };

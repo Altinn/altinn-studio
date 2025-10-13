@@ -48,7 +48,7 @@ describe('UserInput', () => {
     expect(allowAppChangesSwitch).toBeInTheDocument();
   });
 
-  it('should not "allow app changes" switch when enableCompactInterface is true', () => {
+  it('should not render "allow app changes" switch when enableCompactInterface is true', () => {
     renderUserInput({ enableCompactInterface: true });
     const allowAppChangesSwitch = screen.queryByLabelText(mockTexts.allowAppChangesSwitch);
 
@@ -90,6 +90,32 @@ describe('UserInput', () => {
     );
   });
 
+  it('should submit allowAppChanges value according to switch state', async () => {
+    const user = userEvent.setup();
+    renderUserInput();
+    const textarea = screen.getByPlaceholderText(mockTexts.textareaPlaceholder);
+    const sendButton = screen.getByRole('button', { name: mockTexts.send });
+    const allowAppChangesSwitch = screen.getByRole('switch', {
+      name: mockTexts.allowAppChangesSwitch,
+    });
+
+    await user.type(textarea, 'Test message');
+    await user.click(sendButton);
+
+    expect(onSubmitMessage).toHaveBeenLastCalledWith(
+      expect.objectContaining({ allowAppChanges: true }),
+    );
+
+    await user.click(allowAppChangesSwitch);
+    await user.type(textarea, 'Another message');
+    await user.click(sendButton);
+
+    expect(onSubmitMessage).toHaveBeenLastCalledWith(
+      expect.objectContaining({ allowAppChanges: false }),
+    );
+    expect(onSubmitMessage).toHaveBeenCalledTimes(2);
+  });
+
   it('should clear textarea after submitting message', async () => {
     const user = userEvent.setup();
     renderUserInput();
@@ -122,16 +148,15 @@ describe('UserInput', () => {
     expect(onSubmitMessage).not.toHaveBeenCalled();
   });
 
-  it('should not submit empty or whitespace-only messages', async () => {
+  it('should disable the send button when entering empty or white-space only message', async () => {
     const user = userEvent.setup();
     renderUserInput();
     const textarea = screen.getByPlaceholderText(mockTexts.textareaPlaceholder);
-    const sendButton = screen.getByRole('button', { name: mockTexts.send });
 
     await user.type(textarea, '   ');
-    await user.click(sendButton);
 
-    expect(onSubmitMessage).not.toHaveBeenCalled();
+    const sendButton = screen.getByRole('button', { name: mockTexts.send });
+    expect(sendButton).toBeDisabled();
   });
 });
 

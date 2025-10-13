@@ -19,10 +19,11 @@ Since this package is part of a monorepo, you can include it in your project usi
 This package aims to keep the number of dependencies to a minimum, mainly to prevent circular dependencies in Studio, but also to make the package easier to port to other uses.
 
 When making changes to this package, do not include other dependencies than:
-* React
-* studio-components
-* studio-hooks
-* studio-icons
-* studio-pure-functions
+
+- React
+- studio-components
+- studio-hooks
+- studio-icons
+- studio-pure-functions
 
 Note that there is no translation capability set up for this module, so all texts must be passed through the `texts` prop.

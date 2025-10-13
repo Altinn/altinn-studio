@@ -1,6 +1,7 @@
 import React from 'react';
 import { HeadingBar } from './HeadingBar';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import type { HeadingBarProps } from './HeadingBar';
 import { mockTexts } from '../../mocks/mockTexts';
 import { ToolColumnMode } from '../../types/ToolColumnMode';
@@ -9,6 +10,10 @@ import { ToolColumnMode } from '../../types/ToolColumnMode';
 const onModeChange = jest.fn();
 
 describe('HeadingBar', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render the heading', () => {
     renderHeadingBar();
     const heading = screen.getByRole('heading', { name: mockTexts.heading });
@@ -41,6 +46,26 @@ describe('HeadingBar', () => {
 
     expect(previewToggle).toBeInTheDocument();
     expect(fileBrowserToggle).toBeInTheDocument();
+  });
+
+  it('should call onModeChange with correct mode when file browser toggle is clicked', async () => {
+    const user = userEvent.setup();
+    renderHeadingBar({ selectedToolColumnMode: ToolColumnMode.Preview, onModeChange });
+
+    const fileBrowserToggle = screen.getByRole('radio', { name: mockTexts.fileBrowser });
+    await user.click(fileBrowserToggle);
+
+    expect(onModeChange).toHaveBeenCalledWith(ToolColumnMode.FileExplorer);
+  });
+
+  it('should call onModeChange with correct mode when preview toggle is clicked', async () => {
+    const user = userEvent.setup();
+    renderHeadingBar({ selectedToolColumnMode: ToolColumnMode.FileExplorer, onModeChange });
+
+    const previewToggle = screen.getByRole('radio', { name: mockTexts.preview });
+    await user.click(previewToggle);
+
+    expect(onModeChange).toHaveBeenCalledWith(ToolColumnMode.Preview);
   });
 });
 
