@@ -19,7 +19,7 @@ import { Accordion } from '@digdir/designsystemet-react';
 export const PolicyAccessPackages = (): ReactElement => {
   const { t } = useTranslation();
   const { policyRules, accessPackages, setPolicyRules, savePolicy } = usePolicyEditorContext();
-  const { policyRule } = usePolicyRuleContext();
+  const { policyRule, policyError, setPolicyError } = usePolicyRuleContext();
 
   const [searchValue, setSearchValue] = useState<string>('');
   const [chosenAccessPackages, setChosenAccessPackages] = useState<string[]>(
@@ -64,6 +64,10 @@ export const PolicyAccessPackages = (): ReactElement => {
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
+    setPolicyError({
+      ...policyError,
+      subjectsError: policyRule.subject.length === 0 && newSelectedAccessPackageUrns.length === 0,
+    });
   };
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>): void => {
