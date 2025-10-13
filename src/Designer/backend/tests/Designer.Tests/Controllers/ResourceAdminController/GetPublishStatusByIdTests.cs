@@ -23,9 +23,8 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             string uri = $"{VersionPrefix}/ttd/resources/publishstatus/ttd-resources/ttd_testresource";
 
             RepositoryMock
-                .Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(
-                    new ServiceResource
+                .Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<System.Threading.CancellationToken>()))
+                .Returns(Task.FromResult(new ServiceResource
                     {
                         Identifier = "testresource",
                         Title = new Dictionary<string, string>(),
@@ -42,7 +41,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
                         HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
                         Keywords = GetTestKeywords(),
                         ResourceType = ResourceType.Default,
-                    });
+                    }));
 
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
