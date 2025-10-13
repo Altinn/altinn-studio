@@ -1,6 +1,6 @@
 import { type ComponentProps, type ReactElement } from 'react';
 import { CodeListsWithTextResourcesPage } from '../../ContentLibrary/LibraryBody/pages/CodeListsWithTextResourcesPage';
-import type { PageName } from '../../types/PageName';
+import { PageName } from '../../types/PageName';
 import { LandingPage } from '../../ContentLibrary/LibraryBody/pages/LandingPage';
 import type { PagesConfig } from '../../types/PagesProps';
 import { ImagesPage } from '../../ContentLibrary/LibraryBody/pages/ImagesPage';
@@ -30,19 +30,25 @@ export class RouterRouteMapperImpl implements RouterRouteMapper {
   }
 
   private getConfiguredRoutes(pages: PagesConfig): PageMap {
-    const pageMap = new Map<string, PageComponent>();
+    const pageMap = new Map<PageName, PageComponent>();
 
-    pageMap.set('landingPage', LandingPage);
+    pageMap.set(PageName.LandingPage, LandingPage);
 
-    Object.keys(pages).forEach((page: PageName) => {
-      if (page === 'codeListsWithTextResources') {
-        pageMap.set('codeListsWithTextResources', CodeListsWithTextResourcesPage);
-      }
-      if (page === 'images') {
-        pageMap.set('images', ImagesPage);
+    const configuredPages: PageName[] = Object.keys(pages) as PageName[];
+    Object.values(PageName).forEach((pageName) => {
+      if (configuredPages.includes(pageName)) {
+        pageMap.set(pageName, pageNameToComponentMap[pageName]);
       }
     });
 
     return pageMap;
   }
 }
+
+const pageNameToComponentMap: {
+  [Key in PageName]: (props: PagesConfig[Key]['props']) => ReactElement;
+} = {
+  [PageName.LandingPage]: LandingPage,
+  [PageName.CodeListsWithTextResources]: CodeListsWithTextResourcesPage,
+  [PageName.Images]: ImagesPage,
+};

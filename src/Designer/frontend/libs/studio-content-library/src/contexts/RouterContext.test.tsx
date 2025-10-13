@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { RouterContextProvider, useRouterContext } from './RouterContext';
 import { useNavigation } from '../hooks/useNavigation';
 import userEvent from '@testing-library/user-event';
+import { PageName } from '../types/PageName';
 
 jest.mock('../hooks/useNavigation');
 
@@ -12,7 +13,7 @@ const MockComponent = () => {
   return (
     <div>
       <span>{currentPage}</span>
-      <button onClick={() => navigate('landingPage')}>Go Home</button>
+      <button onClick={() => navigate(PageName.LandingPage)}>Go Home</button>
     </div>
   );
 };
