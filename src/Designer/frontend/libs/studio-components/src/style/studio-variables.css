@@ -8,4 +8,6 @@
 
   --studio-designer-header-background-secondary: #3e4f62;
   --studio-preview-header-background-secondary: #0c6536;
+  --studio-treeitem-vertical-line-width: var(--ds-border-width-default);
+  --studio-treeitem-vertical-line-colour-root: #000;
 }
