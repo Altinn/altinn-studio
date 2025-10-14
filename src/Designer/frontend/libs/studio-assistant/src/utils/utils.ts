@@ -1,10 +1,9 @@
 import type { AssistantMessage, ChatThread, UserMessage } from '../types/ChatThread';
 import { MessageAuthor } from '../types/MessageAuthor';
-import { randomUUID } from 'crypto';
 
 export function createNewChatThread(title: string): ChatThread {
   return {
-    id: randomUUID(),
+    id: crypto.randomUUID(),
     title,
     messages: [],
   };

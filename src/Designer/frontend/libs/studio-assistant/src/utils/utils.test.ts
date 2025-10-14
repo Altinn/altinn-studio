@@ -7,9 +7,15 @@ describe('utils', () => {
       const title = 'Test Chat Thread';
       const thread = createNewChatThread(title);
 
-      expect(thread.id).toBeTruthy;
+      expect(thread.id).toBeTruthy();
       expect(thread.title).toBe(title);
       expect(thread.messages).toEqual([]);
+    });
+
+    it('should generate unique ids for every thread', () => {
+      const thread1 = createNewChatThread('Test Chat Thread');
+      const thread2 = createNewChatThread('Test Chat Thread');
+      expect(thread1.id).not.toEqual(thread2.id);
     });
   });
 
