@@ -26,7 +26,7 @@ func main() {
 
 	host := runtime.NewHost(
 		5*time.Second,
-		20*time.Second,
+		50*time.Second,
 		3*time.Second,
 	)
 	defer host.Stop()
