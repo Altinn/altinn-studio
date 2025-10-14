@@ -251,7 +251,7 @@ describe('ResourceDashBoardPage', () => {
       screen.queryByLabelText(textMock('resourceadm.dashboard_spinner')),
     );
 
-    const importButton = screen.getByText(
+    const importButton = screen.getByTitle(
       textMock('dashboard.resource_table_row_import', {
         resourceName: mockResourceListItem5Title,
       }),
@@ -283,7 +283,7 @@ describe('ResourceDashBoardPage', () => {
       screen.queryByLabelText(textMock('resourceadm.dashboard_spinner')),
     );
 
-    const importButton = screen.getByText(
+    const importButton = screen.getByTitle(
       textMock('dashboard.resource_table_row_import', {
         resourceName: mockResourceListItem5Title,
       }),
@@ -301,6 +301,36 @@ describe('ResourceDashBoardPage', () => {
     expect(mockedNavigate).toHaveBeenCalled();
   });
 
+  it('should delete resource', async () => {
+    const user = userEvent.setup();
+
+    const getResourceList = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<ResourceListItem[]>([mockResourceListItem1]));
+    renderResourceDashboardPage({ getResourceList });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByLabelText(textMock('resourceadm.dashboard_spinner')),
+    );
+
+    const deleteButton = screen.getByTitle(
+      textMock('dashboard.resource_table_row_delete', {
+        resourceName: mockResourceListItem1.title.nb,
+      }),
+    );
+    await user.click(deleteButton);
+
+    const confirmDeleteButton = screen.getByRole('button', {
+      name: textMock('resourceadm.dashboard_delete_resource_confirm'),
+    });
+    await user.click(confirmDeleteButton);
+
+    const successToast = screen.getByText(
+      textMock('resourceadm.dashboard_delete_resource_success'),
+    );
+    expect(successToast).toBeInTheDocument();
+  });
+
   it('should navigate to imported resource from only available test environment', async () => {
     const user = userEvent.setup();
     const getResourceList = jest
@@ -312,7 +342,7 @@ describe('ResourceDashBoardPage', () => {
       screen.queryByLabelText(textMock('resourceadm.dashboard_spinner')),
     );
 
-    const importButton = screen.getByText(
+    const importButton = screen.getByTitle(
       textMock('dashboard.resource_table_row_import', {
         resourceName: mockResourceListItem5Title,
       }),

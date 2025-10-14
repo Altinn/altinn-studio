@@ -19,7 +19,7 @@ import { useImportResourceFromAltinn3Mutation } from '../../hooks/mutations/useI
 import type { EnvId } from '../../utils/resourceUtils';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { useDeleteResourceMutation } from '../../hooks/mutations/useDeleteResourceMutation';
-import { DeleteResourceModal } from 'resourceadm/components/DeleteResourceModal/DeleteResourceModal';
+import { DeleteResourceModal } from 'resourceadm/components/DeleteResourceModal';
 
 /**
  * @component
@@ -98,12 +98,17 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
   };
 
   const handleDeleteResource = (resourceId: string) => {
-    deleteResourceModalRef.current?.close();
+    closeDeleteModal();
     deleteResource(resourceId, {
       onSuccess: () => {
         toast.success(t('resourceadm.dashboard_delete_resource_success'));
       },
     });
+  };
+
+  const closeDeleteModal = () => {
+    deleteResourceModalRef.current?.close();
+    setDeleteId('');
   };
 
   /**
@@ -195,7 +200,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
       />
       <DeleteResourceModal
         ref={deleteResourceModalRef}
-        onCloseModal={() => deleteResourceModalRef.current?.close()}
+        onCloseModal={closeDeleteModal}
         onClickDeleteResource={() => handleDeleteResource(deleteId)}
       />
     </div>

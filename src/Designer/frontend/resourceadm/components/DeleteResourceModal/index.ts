@@ -1,0 +1,1 @@
+export { DeleteResourceModal } from './DeleteResourceModal';
