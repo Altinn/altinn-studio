@@ -167,13 +167,12 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 		// let's pick the one that is "the most" ready.
 		// If none of them are ready, we pick one that is currently cleaning up.
 		// The cleanup procedure is fairly low latency.
+
 		if stateA == uint32(SessionStateReady) {
+			assert.Assert(len(g.browserA.queue) == 0)
 			g.browserA.queue <- req
 		} else if stateB == uint32(SessionStateReady) {
-			g.browserB.queue <- req
-		} else if stateA == uint32(SessionStateCleaningUp) {
-			g.browserA.queue <- req
-		} else if stateB == uint32(SessionStateCleaningUp) {
+			assert.Assert(len(g.browserB.queue) == 0)
 			g.browserB.queue <- req
 		} else {
 			log.Printf("Request queue full, rejecting request for URL: %s\n", request.URL)

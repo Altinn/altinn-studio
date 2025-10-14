@@ -44,11 +44,6 @@
               gotools # goimports, godoc, etc.
               golangci-lint # https://github.com/golangci/golangci-lint
 
-              # protobuf/gRPC
-              protobuf
-              protoc-gen-go
-              protoc-gen-go-grpc
-
               # k8s
               kubectl
               kubernetes-helm

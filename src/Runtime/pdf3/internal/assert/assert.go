@@ -1,7 +1,7 @@
 package assert
 
 import (
-	"fmt"
+	"log"
 	"runtime"
 )
 
@@ -19,21 +19,18 @@ func AssertWithMessage(condition bool, message string) {
 
 //go:noinline
 func panicking(message string) {
-	_, filePath, lineNumber, ok := runtime.Caller(1)
+	_, filePath, lineNumber, ok := runtime.Caller(2)
 	if ok {
 		if message != "" {
-			p := fmt.Sprintf("Assertion failed at %s:%d: %s", filePath, lineNumber, message)
-			panic(p)
+			log.Fatalf("Assertion failed at %s:%d: %s", filePath, lineNumber, message)
 		} else {
-			p := fmt.Sprintf("Assertion failed at %s:%d", filePath, lineNumber)
-			panic(p)
+			log.Fatalf("Assertion failed at %s:%d", filePath, lineNumber)
 		}
 	} else {
 		if message != "" {
-			p := fmt.Sprintf("Assertion failed at unkonwn location: %s", message)
-			panic(p)
+			log.Fatalf("Assertion failed at unkonwn location: %s", message)
 		} else {
-			panic("Assertion failed at unkonwn location")
+			log.Fatalln("Assertion failed at unknown loation")
 		}
 	}
 }

@@ -231,7 +231,10 @@ func callWorker(
 	httpReq.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.Do(httpReq)
-	workerId := resp.Header.Get("X-Worker-Id")
+	workerId := ""
+	if resp != nil {
+		workerId = resp.Header.Get("X-Worker-Id")
+	}
 	if err != nil {
 		writeProblemDetails(w, http.StatusInternalServerError, ProblemDetails{
 			Type:   "https://tools.ietf.org/html/rfc7231#section-6.6.1",

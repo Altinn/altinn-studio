@@ -10,11 +10,6 @@ help: ## Show this help message
 nix-update: ## Update nix flake dependencies
 	nix flake update
 
-gen: ## Generate protobuf code from proto files
-	protoc --go_out=. --go_opt=paths=source_relative \
-		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
-		internal/proto/contract.proto
-
 # Detect available container runtime
 ifneq ($(shell command -v podman 2>/dev/null),)
 CONTAINER_CMD := podman
@@ -109,7 +104,10 @@ run: build ## Deploy to cluster and restart services (cached)
 		kubectl kustomize infra/kustomize/local | kubectl apply -f - -n pdf3; \
 		kubectl rollout restart -n pdf3 deployment/pdf3-proxy; \
 		kubectl rollout restart -n pdf3 deployment/pdf3-worker; \
+		kubectl rollout status -n pdf3 deployment/pdf3-proxy --timeout=30s; \
+		kubectl rollout status -n pdf3 deployment/pdf3-worker --timeout=30s; \
 		echo "$$infra_hash" > .last-deploy-hash; \
+		sleep 5; \
 	fi
 
 test: run ## Run Go tests
