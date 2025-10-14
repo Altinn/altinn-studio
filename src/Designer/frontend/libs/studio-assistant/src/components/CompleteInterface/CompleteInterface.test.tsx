@@ -1,4 +1,5 @@
 import React from 'react';
+import type { CompleteInterfaceProps } from './CompleteInterface';
 import { CompleteInterface } from './CompleteInterface';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -77,7 +78,7 @@ describe('CompleteInterface', () => {
     expect(userMessage).toBeInTheDocument();
   });
 
-  it('should switch current thread when a different thread is selected', async () => {
+  it('should switch thread when a different thread is selected', async () => {
     const user = userEvent.setup();
     renderCompleteInterface({ chatThreads: mockChatThreads });
 
@@ -127,10 +128,9 @@ describe('CompleteInterface', () => {
 
 const defaultProps = {
   texts: mockTexts,
-  chatThreads: [],
   onSubmitMessage,
 };
 
-const renderCompleteInterface = (props?: Partial<typeof defaultProps>): void => {
+const renderCompleteInterface = (props?: Partial<CompleteInterfaceProps>): void => {
   render(<CompleteInterface {...defaultProps} {...props} />);
 };

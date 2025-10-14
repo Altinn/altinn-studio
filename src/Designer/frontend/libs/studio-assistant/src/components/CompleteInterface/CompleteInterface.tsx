@@ -12,7 +12,7 @@ import { ToolColumnMode } from '../../types/ToolColumnMode';
 import { createNewChatThread, findThreadById } from '../../utils/utils';
 import type { AssistantProps } from '../../Assistant/Assistant';
 
-type CompleteInterfaceProps = Omit<AssistantProps, 'enableCompactInterface'>;
+export type CompleteInterfaceProps = Omit<AssistantProps, 'enableCompactInterface'>;
 
 /**
  * Full page version of the chat interface with thread history, preview and code viewer.
