@@ -8,6 +8,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { RouterContext } from '../contexts/RouterContext';
 import { PageName } from '../types/PageName';
 import { renderWithProviders } from '../../test-utils/renderWithProviders';
+import { getPage } from '../pages';
 
 const navigateMock = jest.fn();
 
@@ -29,13 +30,15 @@ describe('ContentLibrary', () => {
     expect(landingPageTitle).toBeInTheDocument();
   });
 
-  it('renders the ContentLibrary with codeList content when acting as currentPage', () => {
-    renderContentLibrary(PageName.CodeListsWithTextResources);
-    const codeListTitle = screen.getByRole('heading', {
-      name: textMock('app_content_library.code_lists_with_text_resources.page_name'),
-    });
-    expect(codeListTitle).toBeInTheDocument();
-  });
+  it.each([PageName.CodeListsWithTextResources, PageName.Images])(
+    'Renders the %s when that page is selected',
+    (pageName) => {
+      const page = getPage(pageName);
+      renderContentLibrary(pageName);
+      const pageTitle = screen.getByRole('heading', { name: textMock(page.titleKey) });
+      expect(pageTitle).toBeInTheDocument();
+    },
+  );
 
   it('navigates to images content when clicking on images navigation', async () => {
     const user = userEvent.setup();
