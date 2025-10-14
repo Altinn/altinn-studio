@@ -12,7 +12,7 @@ type PageProps =
 
 export type PageComponent<P = PageProps> = (props: P) => ReactElement;
 
-type PageMap = Map<string, PageComponent>;
+type PageMap = Map<PageName, PageComponent>;
 
 interface RouterRouteMapper {
   configuredRoutes: PageMap;

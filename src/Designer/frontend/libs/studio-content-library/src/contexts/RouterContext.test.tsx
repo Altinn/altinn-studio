@@ -53,7 +53,7 @@ describe('RouterContext', () => {
     const linkButton = screen.getByRole('button', { name: 'Go Home' });
     await user.click(linkButton);
 
-    expect(navigateMock).toHaveBeenCalledWith('landingPage');
+    expect(navigateMock).toHaveBeenCalledWith(PageName.LandingPage);
   });
 
   it('should throw an error when useRouterContext is used outside of a RouterContextProvider', () => {

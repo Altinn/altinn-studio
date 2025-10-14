@@ -18,21 +18,28 @@ export const useContentTabs = (): TabDictionary => {
       tabName: t('app_content_library.landing_page.page_name'),
       tabId: PageName.LandingPage,
       icon: <BookIcon />,
-      renderTab: (props) => <Link to={`?${pageRouterQueryParamKey}=landingPage`} {...props} />,
+      renderTab: (props) => (
+        <Link to={`?${pageRouterQueryParamKey}=${PageName.LandingPage}`} {...props} />
+      ),
     },
     codeListsWithTextResources: {
       tabName: t('app_content_library.code_lists_with_text_resources.page_name'),
       tabId: PageName.CodeListsWithTextResources,
       icon: <CodeListsIcon />,
       renderTab: (props) => (
-        <Link to={`?${pageRouterQueryParamKey}=codeListsWithTextResources`} {...props} />
+        <Link
+          to={`?${pageRouterQueryParamKey}=${PageName.CodeListsWithTextResources}`}
+          {...props}
+        />
       ),
     },
     images: {
       tabName: t('app_content_library.images.page_name'),
       tabId: PageName.Images,
       icon: <ImageIcon />,
-      renderTab: (props) => <Link to={`?${pageRouterQueryParamKey}=images`} {...props} />,
+      renderTab: (props) => (
+        <Link to={`?${pageRouterQueryParamKey}=${PageName.Images}`} {...props} />
+      ),
     },
   };
 };

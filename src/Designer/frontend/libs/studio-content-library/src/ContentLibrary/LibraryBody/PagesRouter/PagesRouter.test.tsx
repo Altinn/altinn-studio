@@ -30,7 +30,7 @@ describe('PagesRouter', () => {
     });
     await user.click(imagesNavTitle);
     expect(navigateMock).toHaveBeenCalledTimes(1);
-    expect(navigateMock).toHaveBeenCalledWith('images');
+    expect(navigateMock).toHaveBeenCalledWith(PageName.Images);
   });
 });
 

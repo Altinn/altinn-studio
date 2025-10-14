@@ -43,7 +43,7 @@ describe('ContentLibrary', () => {
     const imagesPageNavigation = screen.getByText(textMock('app_content_library.images.page_name'));
     await user.click(imagesPageNavigation);
     expect(navigateMock).toHaveBeenCalledTimes(1);
-    expect(navigateMock).toHaveBeenCalledWith('images');
+    expect(navigateMock).toHaveBeenCalledWith(PageName.Images);
   });
 
   it('renders 404 not found page when pageName without supported implementation is passed', () => {
