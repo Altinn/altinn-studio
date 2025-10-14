@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './ResourceTable.module.css';
-import { PencilIcon, FileImportIcon } from '@studio/icons';
+import { PencilIcon, FileImportIcon, TrashIcon } from '@studio/icons';
 import { StudioButton, StudioSpinner, StudioTag } from '@studio/components';
 import { StudioTableLocalPagination } from '@studio/components-legacy';
 import type { Columns } from '@studio/components-legacy';
@@ -39,6 +39,12 @@ export type ResourceTableProps = {
    */
   onClickImportResource?: (id: string, availableEnvs: string[]) => void;
   /**
+   * Function to be executed when clicking the delete resource button
+   * @param id the id of the resource
+   * @returns void
+   */
+  onClickDeleteResource?: (id: string) => void;
+  /**
    * Id of the resource being imported. Only one resource can be imported at the same time
    */
   importResourceId?: string;
@@ -57,49 +63,58 @@ export const ResourceTable = ({
   list,
   onClickEditResource,
   onClickImportResource,
+  onClickDeleteResource,
   importResourceId,
 }: ResourceTableProps): React.JSX.Element => {
   const { t, i18n } = useTranslation();
 
   const renderLinkCell = (listItem: ResourceListItem): React.ReactElement => {
-    const existsInGitea = listItem.environments.some((env: string) => env === 'gitea');
-    if (existsInGitea) {
-      return (
-        <StudioButton
-          variant='tertiary'
-          icon={
-            <PencilIcon
-              title={t('dashboard.resource_table_row_edit', {
-                resourceName: getListItemTitle(listItem),
-              })}
-              className={classes.editLink}
-            />
-          }
-          onClick={() => onClickEditResource(listItem.identifier)}
-          data-size='md'
-        />
-      );
-    } else if (!!onClickImportResource && importResourceId === listItem.identifier) {
-      return <StudioSpinner aria-label={t('dashboard.resource_table_row_importing')} />;
-    } else if (!!onClickImportResource) {
-      return (
-        <StudioButton
-          variant='tertiary'
-          icon={
-            <FileImportIcon
-              title={t('dashboard.resource_table_row_import', {
-                resourceName: getListItemTitle(listItem),
-              })}
-              className={classes.editLink}
-            />
-          }
-          onClick={() => onClickImportResource(listItem.identifier, listItem.environments)}
-          data-size='md'
-        />
-      );
-    } else {
-      return null;
-    }
+    const existsInGitea = listItem.environments.includes('gitea');
+    const isBeingImported = importResourceId === listItem.identifier;
+    const canBeImported = !!onClickImportResource && !listItem.environments.includes('gitea');
+    const canBeDeleted = !!onClickDeleteResource && listItem.environments.includes('gitea');
+
+    return (
+      <>
+        {canBeDeleted && (
+          <StudioButton
+            variant='tertiary'
+            icon={<TrashIcon className={classes.editLink} />}
+            title={t('dashboard.resource_table_row_delete', {
+              resourceName: getListItemTitle(listItem),
+            })}
+            onClick={() => onClickDeleteResource(listItem.identifier)}
+            data-size='md'
+          />
+        )}
+
+        {existsInGitea && (
+          <StudioButton
+            variant='tertiary'
+            icon={<PencilIcon className={classes.editLink} />}
+            title={t('dashboard.resource_table_row_edit', {
+              resourceName: getListItemTitle(listItem),
+            })}
+            onClick={() => onClickEditResource(listItem.identifier)}
+            data-size='md'
+          />
+        )}
+        {isBeingImported && (
+          <StudioSpinner aria-label={t('dashboard.resource_table_row_importing')} />
+        )}
+        {canBeImported && (
+          <StudioButton
+            variant='tertiary'
+            icon={<FileImportIcon className={classes.editLink} />}
+            title={t('dashboard.resource_table_row_import', {
+              resourceName: getListItemTitle(listItem),
+            })}
+            onClick={() => onClickImportResource(listItem.identifier, listItem.environments)}
+            data-size='md'
+          />
+        )}
+      </>
+    );
   };
 
   const getListItemTitle = (listItem): string => {

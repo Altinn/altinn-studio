@@ -403,6 +403,7 @@
   "dashboard.resource_table_header_name": "Navn",
   "dashboard.resource_table_header_resourceid": "Ressurs-id",
   "dashboard.resource_table_no_resources_result": "Ingen ressurser funnet",
+  "dashboard.resource_table_row_delete": "Slett ressurs {{resourceName}} fra Altinn Studio",
   "dashboard.resource_table_row_edit": "Rediger ressurs {{resourceName}}",
   "dashboard.resource_table_row_import": "Importer ressurs {{resourceName}} til Altinn Studio",
   "dashboard.resource_table_row_importing": "Importerer ressurs til Altinn Studio",

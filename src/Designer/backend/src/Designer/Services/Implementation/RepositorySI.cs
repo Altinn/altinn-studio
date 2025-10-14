@@ -499,6 +499,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        public StatusCodeResult DeleteServiceResource(string org, string repository, string resourceIdentifier)
+        {
+            string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string resourceFolderPath = Path.Combine(repopath, resourceIdentifier.AsFileName());
+            Directory.Delete(resourceFolderPath, true);
+            return new StatusCodeResult(204);
+        }
+
         public bool CheckIfResourceFileAlreadyExists(string identifier, string org, string repository)
         {
             List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository);

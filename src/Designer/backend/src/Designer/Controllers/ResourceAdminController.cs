@@ -308,6 +308,19 @@ namespace Altinn.Studio.Designer.Controllers
             return listviewServiceResources;
         }
 
+        [HttpDelete]
+        [Route("designer/api/{org}/resources/{repository}/{id}")]
+        public async Task<ActionResult> DeleteResource(string org, string repository, string id)
+        {
+            ServiceResource resource = await _repository.GetServiceResourceById(org, repository, id);
+            if (resource == null)
+            {
+                return new StatusCodeResult(404);
+            }
+
+            return _repository.DeleteServiceResource(org, repository, id);
+        }
+
         [HttpGet]
         [Route("designer/api/{org}/resources/{repository}/{id}")]
         public async Task<ActionResult<ServiceResource>> GetResourceById(string org, string repository, string id, CancellationToken cancellationToken)

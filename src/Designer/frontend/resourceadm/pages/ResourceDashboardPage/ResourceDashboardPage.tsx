@@ -18,6 +18,8 @@ import { ImportAltinn3ResourceModal } from '../../components/ImportAltinn3Resour
 import { useImportResourceFromAltinn3Mutation } from '../../hooks/mutations/useImportResourceFromAltinn3Mutation';
 import type { EnvId } from '../../utils/resourceUtils';
 import type { Resource } from 'app-shared/types/ResourceAdm';
+import { useDeleteResourceMutation } from '../../hooks/mutations/useDeleteResourceMutation';
+import { DeleteResourceModal } from 'resourceadm/components/DeleteResourceModal/DeleteResourceModal';
 
 /**
  * @component
@@ -29,11 +31,15 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
   const createResourceModalRef = useRef<HTMLDialogElement>(null);
   const importAltinn2ServiceModalRef = useRef<HTMLDialogElement>(null);
   const importAltinn3ResourceModalRef = useRef<HTMLDialogElement>(null);
+  const deleteResourceModalRef = useRef<HTMLDialogElement>(null);
+
   const { org, app } = useUrlParams();
   const { data: organizations } = useOrganizationsQuery();
 
   const { mutate: importResource, isPending: isImportingResource } =
     useImportResourceFromAltinn3Mutation(org);
+
+  const { mutate: deleteResource } = useDeleteResourceMutation(org, app);
 
   const { t } = useTranslation();
 
@@ -44,6 +50,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
     resourceId: string;
     availableEnvs: EnvId[];
   } | null>(null);
+  const [deleteId, setDeleteId] = useState<string>('');
 
   const {
     data: resourceListData,
@@ -85,6 +92,20 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
     }
   };
 
+  const onClickDeleteResource = (resourceId: string): void => {
+    setDeleteId(resourceId);
+    deleteResourceModalRef.current?.showModal();
+  };
+
+  const handleDeleteResource = (resourceId: string) => {
+    deleteResourceModalRef.current?.close();
+    deleteResource(resourceId, {
+      onSuccess: () => {
+        toast.success(t('resourceadm.dashboard_delete_resource_success'));
+      },
+    });
+  };
+
   /**
    * Display different content based on the loading state
    */
@@ -108,6 +129,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
             list={filteredResourceList}
             onClickEditResource={handleNavigateToResource}
             onClickImportResource={onClickImportResource}
+            onClickDeleteResource={onClickDeleteResource}
             importResourceId={isImportingResource ? importData?.resourceId : ''}
           />
         </>
@@ -170,6 +192,11 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
         availableEnvs={importData?.availableEnvs ?? []}
         onClose={() => importAltinn3ResourceModalRef.current?.close()}
         onImport={(selectedEnv) => handleImportResource(importData.resourceId, selectedEnv)}
+      />
+      <DeleteResourceModal
+        ref={deleteResourceModalRef}
+        onCloseModal={() => deleteResourceModalRef.current?.close()}
+        onClickDeleteResource={() => handleDeleteResource(deleteId)}
       />
     </div>
   );

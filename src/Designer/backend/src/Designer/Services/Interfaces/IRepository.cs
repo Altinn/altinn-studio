@@ -121,6 +121,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         StatusCodeResult AddServiceResource(string org, ServiceResource newResource);
 
         /// <summary>
+        /// Deletes a ServiceResource from repository
+        /// </summary>
+        /// <param name="org">The organisation which owns the repository</param>
+        /// <param name="repository">The repository where the resource resides</param>
+        /// <param name="resourceIdentifier">The id of the resource that should be deleted</param>
+        /// <returns>Status code result of resource delete request: 204 if success, or 400 on error</returns>
+        StatusCodeResult DeleteServiceResource(string org, string repository, string resourceIdentifier);
+
+        /// <summary>
         /// Publishes a specific resource to the ResourceRegistry
         /// </summary>
         /// <param name="org">The organisation that owns the repository</param>
