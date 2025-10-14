@@ -30,7 +30,7 @@ From this POV, we can say that the data plane has strict requirements in terms o
 while evaluating the needs of the control plane needs a little more nuance:
 
 * Capabilities related to development of apps does not have the same operational requirements
-* Monitoring and observability capabilties are critical
+* Monitoring and observability capabilities are critical
 
 ### Current inventory
 
@@ -60,6 +60,7 @@ while evaluating the needs of the control plane needs a little more nuance:
 * General organizational improvements in k8s
 * Linkerd/service mesh between services
 * Ingress controller as opposed to nginx config
+* Telemetry and instrumentation through OTel and OTel collector or similar
 + any other recommendations by platform team
 
 ## Decision drivers
@@ -86,4 +87,4 @@ but that would be organizationally inefficient considering the existing capabili
 
 ### A2
 
-- Bad, because we we would have to spend more time on infra and less time on our roadmap, while in all probability delivering worse quality
+- Bad, because we would have to spend more time on infra and less time on our roadmap, while in all probability delivering worse quality
