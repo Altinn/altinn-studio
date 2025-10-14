@@ -9,6 +9,10 @@ import { mockTexts } from '../../mocks/mockTexts';
 const onToggleCollapse = jest.fn();
 
 describe('ThreadColumnCollapsed', () => {
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
   it('should render the toggle button', () => {
     renderThreadColumnCollapsed();
     const toggleButton = screen.getAllByRole('button')[0];

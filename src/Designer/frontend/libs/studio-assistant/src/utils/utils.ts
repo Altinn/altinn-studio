@@ -1,15 +1,19 @@
 import type { AssistantMessage, ChatThread, UserMessage } from '../types/ChatThread';
 import { MessageAuthor } from '../types/MessageAuthor';
+import { randomUUID } from 'crypto';
 
 export function createNewChatThread(title: string): ChatThread {
   return {
-    id: 'newThread',
+    id: randomUUID(),
     title,
     messages: [],
   };
 }
 
-export function findThreadById(chatThreads: ChatThread[], threadId: string): ChatThread | undefined {
+export function findThreadById(
+  chatThreads: ChatThread[],
+  threadId: string,
+): ChatThread | undefined {
   return chatThreads.find((t) => t.id === threadId);
 }
 

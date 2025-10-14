@@ -3,19 +3,13 @@ import { MessageAuthor } from '../types/MessageAuthor';
 
 describe('utils', () => {
   describe('createNewChatThread', () => {
-    it('should create a chat thread with the provided title', () => {
+    it('should create a chat thread with required properties', () => {
       const title = 'Test Chat Thread';
       const thread = createNewChatThread(title);
 
+      expect(thread.id).toBeTruthy;
       expect(thread.title).toBe(title);
       expect(thread.messages).toEqual([]);
-    });
-
-    it('should initialize with an empty messages array', () => {
-      const thread = createNewChatThread('Empty Thread');
-      const isArray = Array.isArray(thread.messages);
-      expect(isArray).toBe(true);
-      expect(thread.messages).toHaveLength(0);
     });
   });
 
