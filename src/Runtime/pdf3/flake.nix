@@ -62,15 +62,10 @@
             ];
 
             shellHook = ''
-              # Deactivate mise if it's active to avoid conflicts with nix
-              # if command -v mise &> /dev/null && [ -n "$MISE_SHELL" ]; then
-              #   echo "Deactivating mise for the current shell..."
-              #   mise deactivate
-              # fi
+              # Ensure Nix paths come before mise paths
+              export PATH=$(echo "$PATH" | tr ':' '\n' | grep '^/nix/store' | tr '\n' ':')$(echo "$PATH" | tr ':' '\n' | grep -v '^/nix/store' | tr '\n' ':' | sed 's/:$//')
 
-              # Remove mise paths from PATH, as we can get conflicts with installs from nix
-              # export PATH=$(echo "$PATH" | tr ':' '\n' | grep -v '.local/share/mise' | tr '\n' ':' | sed 's/:$//')
-
+              which go
               go version
             '';
           };
