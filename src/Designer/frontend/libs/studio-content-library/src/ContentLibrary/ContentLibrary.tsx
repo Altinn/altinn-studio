@@ -25,7 +25,7 @@ function ContentLibraryForPage<T extends PageName>({
   currentPage,
 }: ContentLibraryForPageProps<T>): React.ReactElement {
   const page = getPage<T>(currentPage);
-  if (!page) return <StudioHeading>404 Page Not Found</StudioHeading>; // Show the NotFound page from app-dev instead
+  if (!page || !page.isConfigured(config)) return <StudioHeading>404 Page Not Found</StudioHeading>; // Show the NotFound page from app-dev instead
 
   return (
     <div className={classes.libraryBackground}>

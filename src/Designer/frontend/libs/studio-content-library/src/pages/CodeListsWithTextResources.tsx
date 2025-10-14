@@ -6,8 +6,8 @@ import { CodeListsWithTextResourcesPage } from '../ContentLibrary/LibraryBody/pa
 import { CodeListsIcon } from '@studio/icons';
 
 export class CodeListsWithTextResources extends Page<PageName.CodeListsWithTextResources> {
-  name: PageName.CodeListsWithTextResources = PageName.CodeListsWithTextResources;
-  titleKey = 'app_content_library.code_lists_with_text_resources.page_name';
+  readonly name: PageName.CodeListsWithTextResources = PageName.CodeListsWithTextResources;
+  readonly titleKey = 'app_content_library.code_lists_with_text_resources.page_name';
 
   renderPageComponent(
     props: PagePropsMap<PageName.CodeListsWithTextResources>,

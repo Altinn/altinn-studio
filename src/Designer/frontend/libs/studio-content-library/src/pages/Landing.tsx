@@ -6,8 +6,8 @@ import { LandingPage } from '../ContentLibrary/LibraryBody/pages/LandingPage';
 import { BookIcon } from '@studio/icons';
 
 export class Landing extends Page<PageName.LandingPage> {
-  name: PageName.LandingPage = PageName.LandingPage;
-  titleKey = 'app_content_library.landing_page.page_name';
+  readonly name: PageName.LandingPage = PageName.LandingPage;
+  readonly titleKey = 'app_content_library.landing_page.page_name';
 
   isConfigured(): boolean {
     return true;
