@@ -6,8 +6,8 @@ import { ImagesPage } from '../ContentLibrary/LibraryBody/pages/ImagesPage';
 import { ImageIcon } from '@studio/icons';
 
 export class Images extends Page<PageName.Images> {
-  name: PageName.Images = PageName.Images;
-  titleKey = 'app_content_library.images.page_name';
+  readonly name: PageName.Images = PageName.Images;
+  readonly titleKey = 'app_content_library.images.page_name';
 
   renderPageComponent(props: PagePropsMap<PageName.Images>): React.ReactElement {
     return <ImagesPage {...props} />;

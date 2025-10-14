@@ -9,6 +9,7 @@ import { RouterContext } from '../contexts/RouterContext';
 import { PageName } from '../types/PageName';
 import { renderWithProviders } from '../../test-utils/renderWithProviders';
 import { getPage } from '../pages';
+import type { PagesConfig } from '../types/PagesProps';
 
 const navigateMock = jest.fn();
 
@@ -50,16 +51,20 @@ describe('ContentLibrary', () => {
   });
 
   it('renders 404 not found page when pageName without supported implementation is passed', () => {
-    renderContentLibrary('PageNameWithoutImpl' as PageName);
+    const pages: PagesConfig = { ...mockPagesConfig, [PageName.Images]: undefined };
+    renderContentLibrary(PageName.Images, { pages });
     const notFoundPageTitle = screen.getByRole('heading', { name: '404 Page Not Found' });
     expect(notFoundPageTitle).toBeInTheDocument();
   });
 });
 
-const renderContentLibrary = (currentPage: PageName = undefined): void => {
+const renderContentLibrary = (
+  currentPage: PageName = undefined,
+  props?: Partial<ContentLibraryProps>,
+): void => {
   renderWithProviders(
     <RouterContext.Provider value={{ currentPage, navigate: navigateMock }}>
-      <ContentLibrary {...defaultProps} />
+      <ContentLibrary {...defaultProps} {...props} />
     </RouterContext.Provider>,
   );
 };
