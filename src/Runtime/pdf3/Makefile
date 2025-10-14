@@ -113,7 +113,8 @@ run: build ## Deploy to cluster and restart services (cached)
 	fi
 
 test: run ## Run Go tests
-	go test -v ./...
+	# count=1 to circumvent go cache
+	go test -count=1 -v ./...
 
 logs: ## Stream logs from pdf3 components
 	stern -l component=pdf3 -n pdf3 -E linkerd-init -E linkerd-proxy --tail -1
