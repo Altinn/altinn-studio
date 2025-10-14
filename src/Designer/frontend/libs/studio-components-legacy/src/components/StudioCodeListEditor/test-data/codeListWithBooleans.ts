@@ -1,5 +1,5 @@
 import type { CodeListItem } from '../types/CodeListItem';
-import type { CodeList } from '../types/CodeList';
+import type { CodeListWithTextResources } from '../types/CodeListWithTextResources';
 import { codeListWithStrings } from './codeListWithStrings';
 
 const item1: CodeListItem = {
@@ -12,4 +12,4 @@ const item2: CodeListItem = {
   value: false,
 };
 
-export const codeListWithBooleans: CodeList = [item1, item2];
+export const codeListWithBooleans: CodeListWithTextResources = [item1, item2];
