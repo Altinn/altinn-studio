@@ -10,7 +10,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Common.AccessToken.Configuration;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
@@ -25,11 +24,10 @@ namespace Altinn.Studio.Designer.Clients.Implementations;
 public class AzureSharedContentClient(
     HttpClient httpClient,
     ILogger<AzureSharedContentClient> logger,
-    IOptions<KeyVaultSettings> kvSettings,
     IOptions<SharedContentClientSettings> sharedContentClientSettings
 ) : ISharedContentClient
 {
-    private int _currentVersion = int.Parse(InitialVersion);
+    private string _currentVersion = InitialVersion;
     private readonly Dictionary<string, string> _fileNamesAndContent = [];
     private readonly string _sharedContentBaseUri = Path.Join(
         sharedContentClientSettings.Value.StorageAccountUrl, sharedContentClientSettings.Value.StorageContainerName);
@@ -84,7 +82,7 @@ public class AzureSharedContentClient(
                 await semaphore.WaitAsync(cancellationToken);
                 try
                 {
-                    await blobClient.UploadAsync(content, cancellationToken);
+                    await blobClient.UploadAsync(content, overwrite: true, cancellationToken);
                 }
                 finally
                 {
@@ -174,8 +172,9 @@ public class AzureSharedContentClient(
         if (versionIndexResponse.StatusCode == HttpStatusCode.OK)
         {
             string versionIndexContent = await versionIndexResponse.Content.ReadAsStringAsync(cancellationToken);
-            List<int>? versions = JsonSerializer.Deserialize<List<int>>(versionIndexContent);
-            GetCurrentVersion(versions);
+            List<string>? versions = JsonSerializer.Deserialize<List<string>>(versionIndexContent);
+
+            SetCurrentVersion(versions);
 
             if (versions is not null)
             {
@@ -185,7 +184,7 @@ public class AzureSharedContentClient(
             }
             else
             {
-                string contents = JsonSerializer.Serialize<List<string>>([_currentVersion.ToString()]);
+                string contents = JsonSerializer.Serialize<List<string>>([InitialVersion]);
                 _fileNamesAndContent[combinedPath] = contents;
             }
         }
@@ -215,22 +214,23 @@ public class AzureSharedContentClient(
         }
     }
 
-    private void GetCurrentVersion(List<int>? versions)
+    private void SetCurrentVersion(List<string>? versionsAsString)
     {
+        List<int>? versions = versionsAsString?.Select(int.Parse).ToList();
         int? latestVersion = versions?.Max();
         if (latestVersion is not null)
         {
-            _currentVersion = (int)latestVersion + 1;
+            int version = (int)latestVersion;
+            _currentVersion = (version + 1).ToString();
         }
     }
 
     private BlobContainerClient GetContainerClient()
     {
-        string containerName = sharedContentClientSettings.Value.StorageContainerName;
-        string accountUrl = sharedContentClientSettings.Value.StorageAccountUrl;
-        ClientSecretCredential credentials = new(kvSettings.Value.TenantId, kvSettings.Value.ClientId, kvSettings.Value.ClientSecret);
-        BlobContainerClient containerClient = new BlobServiceClient(new Uri($"{accountUrl}"), credentials).GetBlobContainerClient(containerName);
-        return containerClient;
+        string storageContainerName = sharedContentClientSettings.Value.StorageContainerName;
+        string storageAccountUrl = sharedContentClientSettings.Value.StorageAccountUrl;
+        BlobServiceClient blobServiceClient = new(new Uri(storageAccountUrl), new DefaultAzureCredential());
+        return blobServiceClient.GetBlobContainerClient(storageContainerName);
     }
 
     private const string InitialVersion = "1";
