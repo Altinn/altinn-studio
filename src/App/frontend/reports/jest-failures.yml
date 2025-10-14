@@ -1,8 +1,0 @@
-schema: ai-test-failures@1
-generatedAt: '2025-10-13T12:52:12.651Z'
-summary:
-  totalTests: 3068
-  failedTests: 0
-  failedSuites: 0
-  success: false
-failures: []
