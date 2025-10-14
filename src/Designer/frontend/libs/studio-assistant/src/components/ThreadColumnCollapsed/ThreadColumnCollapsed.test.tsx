@@ -15,22 +15,22 @@ describe('ThreadColumnCollapsed', () => {
 
   it('should render the toggle button', () => {
     renderThreadColumnCollapsed();
-    const toggleButton = screen.getAllByRole('button')[0];
+    const toggleButton = screen.getByRole('button', { name: mockTexts.showThreads });
 
     expect(toggleButton).toBeInTheDocument();
   });
 
   it('should render the new thread button', () => {
     renderThreadColumnCollapsed();
-    const buttons = screen.getAllByRole('button');
+    const newThreadButton = screen.getByRole('button', { name: mockTexts.newThread });
 
-    expect(buttons).toHaveLength(2);
+    expect(newThreadButton).toBeInTheDocument();
   });
 
   it('should call onToggleCollapse when toggle button is clicked', async () => {
     const user = userEvent.setup();
     renderThreadColumnCollapsed();
-    const toggleButton = screen.getAllByRole('button')[0];
+    const toggleButton = screen.getByRole('button', { name: mockTexts.showThreads });
 
     await user.click(toggleButton);
 
@@ -40,7 +40,7 @@ describe('ThreadColumnCollapsed', () => {
 
 const defaultProps: ThreadColumnHiddenProps = {
   texts: mockTexts,
-  onToggleCollapse: onToggleCollapse,
+  onToggleCollapse,
 };
 
 const renderThreadColumnCollapsed = (props?: Partial<ThreadColumnHiddenProps>): void => {

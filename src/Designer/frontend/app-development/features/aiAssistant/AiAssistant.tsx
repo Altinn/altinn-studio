@@ -23,7 +23,7 @@ export function AiAssistant(): ReactElement {
   const texts: AssistantTexts = {
     heading: t('ai_assistant.heading'),
     preview: t('ai_assistant.preview'),
-    fileBrowser: t('ai_assistant.fileBrowser'),
+    fileBrowser: t('ai_assistant.file_browser'),
     hideThreads: t('ai_assistant.hide_threads'),
     showThreads: t('ai_assistant.show_threads'),
     newThread: t('ai_assistant.new_thread'),

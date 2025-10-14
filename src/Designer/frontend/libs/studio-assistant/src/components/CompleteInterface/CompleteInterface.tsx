@@ -6,7 +6,7 @@ import classes from './CompleteInterface.module.css';
 import { HeadingBar } from '../HeadingBar/HeadingBar';
 import type { ChatThread } from '../../types/ChatThread';
 import { ThreadColumn } from '../ThreadColumn/ThreadColumn';
-import { ThreadColumnCollapsed } from '../ThreadColumnHidden/ThreadColumnCollapsed';
+import { ThreadColumnCollapsed } from '../ThreadColumnCollapsed/ThreadColumnCollapsed';
 import { ChatColumn } from '../ChatColumn/ChatColumn';
 import { ToolColumnMode } from '../../types/ToolColumnMode';
 import { createNewChatThread, findThreadById } from '../../utils/utils';

@@ -10,7 +10,7 @@ import { app, org } from './testids';
 import type { WithTranslationProps } from 'react-i18next';
 import { configure } from '@testing-library/dom';
 import { TextEncoder, TextDecoder } from 'util';
-import { randomUUID } from 'crypto';
+import { webcrypto } from 'crypto';
 
 failOnConsole({
   shouldFailOnWarn: true,
@@ -56,8 +56,11 @@ Object.defineProperty(document, 'getAnimations', {
   writable: true,
 });
 
-// Use Node's crypto.randomUUID since Jest does not have access to browser's Web Crypto API
-Object.defineProperty(window, 'crypto', { value: { randomUUID } });
+// Use Node's implementation of Web Crypto API, since Jest does not have access to browser's Web Crypto API
+Object.defineProperty(window, 'crypto', {
+  value: webcrypto,
+  writable: true,
+});
 
 // Workaround for the known issue. For more info, see this: https://github.com/jsdom/jsdom/issues/3294#issuecomment-1268330372
 HTMLDialogElement.prototype.showModal = jest.fn(function mock(this: HTMLDialogElement) {
