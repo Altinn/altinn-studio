@@ -56,6 +56,9 @@
               linkerd_edge
               stern
               step-cli
+
+              # other
+              k6
             ];
 
             shellHook = ''
