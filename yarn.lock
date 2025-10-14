@@ -106,7 +106,7 @@ __metadata:
     redux: "npm:5.0.1"
     redux-mock-store: "npm:1.5.5"
     typescript: "npm:5.9.2"
-    uuid: "npm:10.0.0"
+    uuid: "npm:13.0.0"
   languageName: unknown
   linkType: soft
 
@@ -120,7 +120,7 @@ __metadata:
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     typescript: "npm:5.9.2"
-    uuid: "npm:10.0.0"
+    uuid: "npm:13.0.0"
   languageName: unknown
   linkType: soft
 
@@ -2344,10 +2344,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@navikt/aksel-icons@npm:^6.0.0":
-  version: 6.17.0
-  resolution: "@navikt/aksel-icons@npm:6.17.0"
-  checksum: 10/5a70f0705f71413f2ee397dd184c4b9bc3fc67d1206558885313727120aed52de592fe73f8e6333b76c81800bed60cc9a54af979aa8159d1de12d2e60c44cd2b
+"@navikt/aksel-icons@npm:^7.0.0":
+  version: 7.32.1
+  resolution: "@navikt/aksel-icons@npm:7.32.1"
+  checksum: 10/b612636dab56535d2105c711f0266d12b4554e02e91a439a58755226db7b1a3ed32aef145665e5540da1fa7c0344e1d692e2000073cb3bc69a3bc4923592347e
   languageName: node
   linkType: hard
 
@@ -3011,6 +3011,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@studio/assistant@workspace:^, @studio/assistant@workspace:src/Designer/frontend/libs/studio-assistant":
+  version: 0.0.0-use.local
+  resolution: "@studio/assistant@workspace:src/Designer/frontend/libs/studio-assistant"
+  dependencies:
+    "@digdir/designsystemet-theme": "npm:^1.0.8"
+    "@studio/components": "workspace:^"
+  languageName: unknown
+  linkType: soft
+
 "@studio/components-legacy@workspace:^, @studio/components-legacy@workspace:src/Designer/frontend/libs/studio-components-legacy":
   version: 0.0.0-use.local
   resolution: "@studio/components-legacy@workspace:src/Designer/frontend/libs/studio-components-legacy"
@@ -3037,7 +3046,7 @@ __metadata:
     storybook: "npm:^9.0.10"
     ts-jest: "npm:^29.1.1"
     typescript: "npm:5.9.2"
-    uuid: "npm:10.0.0"
+    uuid: "npm:13.0.0"
   languageName: unknown
   linkType: soft
 
@@ -3062,6 +3071,8 @@ __metadata:
     eslint-plugin-storybook: "npm:^9.0.10"
     jest: "npm:^29.7.0"
     jest-environment-jsdom: "npm:^29.7.0"
+    react-dnd: "npm:16.0.1"
+    react-dnd-html5-backend: "npm:16.0.1"
     storybook: "npm:^9.0.10"
     ts-jest: "npm:^29.1.1"
     typescript: "npm:5.9.2"
@@ -3078,6 +3089,25 @@ __metadata:
     "@digdir/designsystemet-theme": "npm:^1.0.8"
     "@studio/components": "workspace:^"
     "@studio/components-legacy": "workspace:^"
+  languageName: unknown
+  linkType: soft
+
+"@studio/feature-flags@workspace:src/Designer/frontend/libs/studio-feature-flags":
+  version: 0.0.0-use.local
+  resolution: "@studio/feature-flags@workspace:src/Designer/frontend/libs/studio-feature-flags"
+  dependencies:
+    "@studio/pure-functions": "workspace:^"
+    "@testing-library/jest-dom": "npm:6.6.4"
+    "@testing-library/react": "npm:16.3.0"
+    "@types/jest": "npm:29.5.14"
+    eslint: "npm:8.57.1"
+    jest: "npm:29.7.0"
+    jest-environment-jsdom: "npm:29.7.0"
+    ts-jest: "npm:^29.1.1"
+    typescript: "npm:5.9.2"
+  peerDependencies:
+    react: ^18.2.0 || ^19.0.0
+    react-dom: ^18.2.0 || ^19.0.0
   languageName: unknown
   linkType: soft
 
@@ -3104,7 +3134,7 @@ __metadata:
     react-dom: "npm:^18.2.0"
     ts-jest: "npm:^29.1.1"
     typescript: "npm:5.9.2"
-    uuid: "npm:10.0.0"
+    uuid: "npm:13.0.0"
   peerDependencies:
     react-router-dom: ">=6.0.0"
   languageName: unknown
@@ -3114,7 +3144,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@studio/icons@workspace:src/Designer/frontend/libs/studio-icons"
   dependencies:
-    "@navikt/aksel-icons": "npm:^6.0.0"
+    "@navikt/aksel-icons": "npm:^7.0.0"
     "@testing-library/jest-dom": "npm:6.6.4"
     "@testing-library/react": "npm:16.3.0"
     "@types/jest": "npm:^29.5.5"
@@ -4519,6 +4549,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:src/Designer/frontend/app-development"
   dependencies:
+    "@studio/assistant": "workspace:^"
     "@studio/content-library": "workspace:^"
     "@studio/feedback-form": "workspace:^"
     "@studio/hooks": "workspace:^"
@@ -5587,7 +5618,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"clsx@npm:^2.1.0, clsx@npm:^2.1.1":
+"clsx@npm:^2.1.1":
   version: 2.1.1
   resolution: "clsx@npm:2.1.1"
   checksum: 10/cdfb57fa6c7649bbff98d9028c2f0de2f91c86f551179541cf784b1cfdc1562dcb951955f46d54d930a3879931a980e32a46b598acaea274728dbe068deca919
@@ -5822,19 +5853,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cross-env@npm:7.0.3":
-  version: 7.0.3
-  resolution: "cross-env@npm:7.0.3"
-  dependencies:
-    cross-spawn: "npm:^7.0.1"
-  bin:
-    cross-env: src/bin/cross-env.js
-    cross-env-shell: src/bin/cross-env-shell.js
-  checksum: 10/e99911f0d31c20e990fd92d6fd001f4b01668a303221227cc5cb42ed155f086351b1b3bd2699b200e527ab13011b032801f8ce638e6f09f854bdf744095e604c
-  languageName: node
-  linkType: hard
-
-"cross-spawn@npm:^7.0.0, cross-spawn@npm:^7.0.1, cross-spawn@npm:^7.0.2, cross-spawn@npm:^7.0.3":
+"cross-spawn@npm:^7.0.0, cross-spawn@npm:^7.0.2, cross-spawn@npm:^7.0.3":
   version: 7.0.3
   resolution: "cross-spawn@npm:7.0.3"
   dependencies:
@@ -12416,14 +12435,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-error-boundary@npm:4.1.2":
-  version: 4.1.2
-  resolution: "react-error-boundary@npm:4.1.2"
+"react-error-boundary@npm:6.0.0":
+  version: 6.0.0
+  resolution: "react-error-boundary@npm:6.0.0"
   dependencies:
     "@babel/runtime": "npm:^7.12.5"
   peerDependencies:
     react: ">=16.13.1"
-  checksum: 10/a8b59e5ef891bb6c48874d12c72bbd1a9292a56751adeee5666e228bd3a4913084329a9c21f7baafa0df68dc6d25e18883edb25946ce5763981885cbb93786eb
+  checksum: 10/3de587be3e72bd3e32b3bd7769d09354b27ed94be580f33a80a85ddc8c1d1ed1cad90199bc24b22a7911ef1ebacc0163c664b2c395f7c37ffd493f59e6e5c9f9
   languageName: node
   linkType: hard
 
@@ -12554,15 +12573,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-toastify@npm:10.0.6":
-  version: 10.0.6
-  resolution: "react-toastify@npm:10.0.6"
+"react-toastify@npm:11.0.5":
+  version: 11.0.5
+  resolution: "react-toastify@npm:11.0.5"
   dependencies:
-    clsx: "npm:^2.1.0"
+    clsx: "npm:^2.1.1"
   peerDependencies:
-    react: ">=18"
-    react-dom: ">=18"
-  checksum: 10/60ec092f6b6ab4c6dd0a42e6207ce0d72af1f41a010ae8aa1b3de080697a3cdaa4d2249eb9092f9331bc17f155b1b45c681bd4a29dc698e20a6ac6fe79f967e6
+    react: ^18 || ^19
+    react-dom: ^18 || ^19
+  checksum: 10/c27197c2bce4251ad3a35d5686cf0284d9da8b533c0a76ba468ce0772e8a0b38373436d47e5d623382ea1ca1cef0c22b83a585792e68df61bbb888a385c1cf9c
   languageName: node
   linkType: hard
 
@@ -12905,7 +12924,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "resourceadm@workspace:src/Designer/frontend/resourceadm"
   dependencies:
-    cross-env: "npm:7.0.3"
     dompurify: "npm:^3.2.6"
     html-react-parser: "npm:^5.2.5"
     jest: "npm:29.7.0"
@@ -13948,7 +13966,6 @@ __metadata:
     "@vitejs/plugin-react-swc": "npm:^3.7.2"
     ajv: "npm:8.17.1"
     ajv-formats: "npm:3.0.1"
-    cross-env: "npm:7.0.3"
     css-loader: "npm:7.1.2"
     eslint-plugin-import: "npm:2.32.0"
     eslint-plugin-jsx-a11y: "npm:6.10.2"
@@ -13968,10 +13985,10 @@ __metadata:
     prettier: "npm:3.6.2"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
-    react-error-boundary: "npm:4.1.2"
+    react-error-boundary: "npm:6.0.0"
     react-i18next: "npm:15.6.1"
     react-router-dom: "npm:6.30.1"
-    react-toastify: "npm:10.0.6"
+    react-toastify: "npm:11.0.5"
     source-map-loader: "npm:5.0.0"
     swc-loader: "npm:0.2.6"
     typescript: "npm:5.9.2"
@@ -14814,12 +14831,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:10.0.0":
-  version: 10.0.0
-  resolution: "uuid@npm:10.0.0"
+"uuid@npm:13.0.0":
+  version: 13.0.0
+  resolution: "uuid@npm:13.0.0"
   bin:
-    uuid: dist/bin/uuid
-  checksum: 10/35aa60614811a201ff90f8ca5e9ecb7076a75c3821e17f0f5ff72d44e36c2d35fcbc2ceee9c4ac7317f4cc41895da30e74f3885e30313bee48fda6338f250538
+    uuid: dist-node/bin/uuid
+  checksum: 10/2742b24d1e00257e60612572e4d28679423469998cafbaf1fe9f1482e3edf9c40754b31bfdb3d08d71b29239f227a304588f75210b3b48f2609f0673f1feccef
   languageName: node
   linkType: hard
 

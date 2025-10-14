@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.Designer.Configuration;
@@ -90,7 +91,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Lists the ServiceResource files in a repository
         /// </summary>
-        List<ServiceResource> GetServiceResources(string org, string repository, string path = "");
+        Task<List<ServiceResource>> GetServiceResources(string org, string repository, string path = "", CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets a specific ServiceResource based on the identifier
@@ -98,8 +99,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">The organisation that owns the repository where the resource resides</param>
         /// <param name="repository">The repository where the resource resides</param>
         /// <param name="identifier">The identifier of the resource</param>
+        /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Returns the ServiceResource object with the corresponding identifier</returns>
-        ServiceResource GetServiceResourceById(string org, string repository, string identifier);
+        Task<ServiceResource> GetServiceResourceById(string org, string repository, string identifier, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Update existing ServiceResource in repository

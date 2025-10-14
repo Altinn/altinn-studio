@@ -85,7 +85,7 @@ import type { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
 import type { Option } from 'app-shared/types/Option';
 import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 import type { DataType } from '../types/DataType';
-import type { CodeList } from 'app-shared/types/CodeList';
+import type { CodeListWithTextResources } from 'app-shared/types/CodeListWithTextResources';
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import type { PageModel } from '../types/api/dto/PageModel';
 import type { PagesModel } from '../types/api/dto/PagesModel';
@@ -195,8 +195,8 @@ export const updateProcessDataTypes = (org: string, app: string, dataTypesChange
 export const updateSelectedMaskinportenScopes = (org: string, app: string, appScopesUpsertRequest: MaskinportenScopes) => put(selectedMaskinportenScopesPath(org, app), appScopesUpsertRequest);
 
 // Organisation library code lists:
-export const createOrgCodeList = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListsResponse> => post(orgCodeListPath(org, codeListId), payload);
-export const updateOrgCodeList = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListsResponse> => put(orgCodeListPath(org, codeListId), payload);
+export const createOrgCodeList = async (org: string, codeListId: string, payload: CodeListWithTextResources): Promise<CodeListsResponse> => post(orgCodeListPath(org, codeListId), payload);
+export const updateOrgCodeList = async (org: string, codeListId: string, payload: CodeListWithTextResources): Promise<CodeListsResponse> => put(orgCodeListPath(org, codeListId), payload);
 export const updateOrgCodeListId = async (org: string, codeListId: string, payload: string): Promise<void> => put<void, string>(orgCodeListUpdateIdPath(org, codeListId), payload, { headers: { 'Content-Type': 'application/json' } });
 export const deleteOrgCodeList = async (org: string, codeListId: string): Promise<CodeListsResponse> => del(orgCodeListPath(org, codeListId));
 export const uploadOrgCodeList = async (org: string, payload: FormData): Promise<CodeListsResponse> => post(orgCodeListUploadPath(org), payload);

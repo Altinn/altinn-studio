@@ -189,7 +189,7 @@ namespace Altinn.Studio.Designer.Controllers
             int ruleIndex = 0;
             foreach (PolicyRule rule in policy.Rules)
             {
-                if (rule.Subject == null || rule.Subject.Count == 0)
+                if ((rule.Subject == null || rule.Subject.Count == 0) && (rule.AccessPackages == null || rule.AccessPackages.Count == 0))
                 {
                     ModelState.AddModelError($"policy.rules[{ruleIndex}]", "policyerror.missingsubject");
                 }
