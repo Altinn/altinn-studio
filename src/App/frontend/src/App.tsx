@@ -8,42 +8,21 @@ import { Entrypoint } from 'src/features/entrypoint/Entrypoint';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { PDFWrapper } from 'src/features/pdf/PDFWrapper';
-import { CustomReceipt, DefaultReceipt } from 'src/features/receipt/ReceiptContainer';
+import { FixWrongReceiptType } from 'src/features/receipt/FixWrongReceiptType';
+import { DefaultReceipt } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
-import { PresentationType, ProcessTaskType } from 'src/types';
-
-// console.log(window.AltinnAppData);
 
 export const App = () => (
   <Routes>
-    {/*<Route*/}
-    {/*  path='/instance-selection'*/}
-    {/*  // element={<InstanceSelection />}*/}
-    {/*  element={<h1>Instance selection</h1>}*/}
-    {/*/>*/}
-    {/*<Route path='/party-selection'>*/}
-    {/*  <Route*/}
-    {/*    index*/}
-    {/*    element={<PartySelection />}*/}
-    {/*  />*/}
-    {/*  <Route*/}
-    {/*    path='*'*/}
-    {/*    element={<PartySelection />}*/}
-    {/*  />*/}
-    {/*</Route>*/}
     <Route element={<Entrypoint />}>
       <Route
         path=':pageKey'
         element={
-          <PresentationComponent type={PresentationType.Stateless}>
+          <PresentationComponent>
             <Form />
           </PresentationComponent>
         }
       />
-      {/*<Route*/}
-      {/*  index*/}
-      {/*  element={<NavigateToStartUrl forceCurrentTask={false} />}*/}
-      {/*/>*/}
     </Route>
 
     <Route
@@ -54,75 +33,29 @@ export const App = () => (
         </InstanceProvider>
       }
     >
-      {/*<Route*/}
-      {/*  index*/}
-      {/*  element={<NavigateToStartUrl />}*/}
-      {/*/>*/}
-
       <Route
         path={TaskKeys.ProcessEnd}
         element={<DefaultReceipt />}
       />
 
       <Route
-        path={TaskKeys.CustomReceipt}
-        element={
-          <PresentationComponent
-            type={ProcessTaskType.Archived}
-            showNavigation={false}
-          >
-            <FormProvider>
-              <CustomReceipt />
-            </FormProvider>
-          </PresentationComponent>
-        }
-      >
-        {/*<Route*/}
-        {/*  index*/}
-        {/*  element={<NavigateToStartUrl forceCurrentTask={false} />}*/}
-        {/*/>*/}
-        <Route path=':pageKey'>
-          <Route
-            index
-            element={
-              <PDFWrapper>
-                <Form />
-              </PDFWrapper>
-            }
-          />
-          <Route path=':componentId'>
-            <Route
-              index
-              element={<ComponentRouting />}
-            />
-            <Route
-              path='*'
-              element={<ComponentRouting />}
-            />
-          </Route>
-        </Route>
-      </Route>
-
-      <Route
         path=':taskId'
         element={
-          <ProcessWrapper>
-            <FormProvider>
-              <Outlet />
-            </FormProvider>
-          </ProcessWrapper>
+          <FixWrongReceiptType>
+            <ProcessWrapper>
+              <FormProvider>
+                <Outlet />
+              </FormProvider>
+            </ProcessWrapper>
+          </FixWrongReceiptType>
         }
       >
-        {/*<Route*/}
-        {/*  index*/}
-        {/*  element={<NavigateToStartUrl forceCurrentTask={false} />}*/}
-        {/*/>*/}
         <Route path=':pageKey'>
           <Route
             index
             element={
               <PDFWrapper>
-                <PresentationComponent type={ProcessTaskType.Data}>
+                <PresentationComponent>
                   <Form />
                 </PresentationComponent>
               </PDFWrapper>
@@ -140,11 +73,6 @@ export const App = () => (
           </Route>
         </Route>
       </Route>
-
-      {/*<Route*/}
-      {/*  path='*'*/}
-      {/*  element={<NavigateToStartUrl />}*/}
-      {/*/>*/}
     </Route>
 
     {/**

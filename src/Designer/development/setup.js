@@ -24,16 +24,16 @@ const createUser = (username, password, admin) =>
     ].join(' '),
   );
 
-const createTestDepOrg = (env) =>
+const createOrganization = (user, pass, orgShortName, orgFullName, orgDescription) =>
   giteaApi({
     path: '/api/v1/orgs',
     method: 'POST',
-    user: env.GITEA_ADMIN_USER,
-    pass: env.GITEA_ADMIN_PASS,
+    user: user,
+    pass: pass,
     body: {
-      username: env.GITEA_ORG_USER,
-      full_name: 'Testdepartementet',
-      description: 'Internt organisasjon for test av løsning',
+      username: orgShortName,
+      full_name: orgFullName,
+      description: orgDescription,
     },
   });
 const createTestDepTeams = async (env) => {
@@ -207,13 +207,27 @@ const setupEnvironment = async (env) => {
 
   createUser(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, true);
   createUser(env.GITEA_CYPRESS_USER, env.GITEA_CYPRESS_PASS, false);
-  await createTestDepOrg(env);
+  await createOrganization(
+    env.GITEA_ADMIN_USER,
+    env.GITEA_ADMIN_PASS,
+    env.GITEA_ORG_USER,
+    'Testdepartementet',
+    'Internt organisasjon for test av løsning',
+  );
+  await createOrganization(
+    env.GITEA_ADMIN_USER,
+    env.GITEA_ADMIN_PASS,
+    'als',
+    'Altinn Studio',
+    'Altinn Studio organization',
+  );
   await createTestDepTeams(env);
   await addUserToSomeTestDepTeams(env);
   await createContentRepo(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, env.GITEA_ORG_USER);
 
   const envWithRunnerToken = await setupRunnersToken(env);
-  const newEnv = await createOidcClientIfNotExists(envWithRunnerToken);
+  const envWithOidcClient = await createOidcClientIfNotExists(envWithRunnerToken);
+  const newEnv = await createPersonalAccessToken(envWithOidcClient);
 
   await createCypressEnvFile(env);
 
@@ -229,6 +243,22 @@ const setupRunnersToken = async (env) => {
   });
 
   env.GITEA_RUNNER_REGISTRATION_TOKEN = runnersToken.token;
+  return env;
+};
+
+const createPersonalAccessToken = async (env) => {
+  const token = await giteaApi({
+    path: `/api/v1/users/${env.GITEA_ADMIN_USER}/tokens`,
+    method: 'POST',
+    user: env.GITEA_ADMIN_USER,
+    pass: env.GITEA_ADMIN_PASS,
+    body: {
+      name: 'GitOps Bot Token',
+      scopes: ['write:repository', 'write:organization', 'write:user'],
+    },
+  });
+
+  env.GITOPS_BOT_PERSONAL_ACCESS_TOKEN = token.sha1;
   return env;
 };
 

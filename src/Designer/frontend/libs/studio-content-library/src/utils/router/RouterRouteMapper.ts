@@ -1,5 +1,5 @@
 import { type ComponentProps, type ReactElement } from 'react';
-import { CodeListPage } from '../../ContentLibrary/LibraryBody/pages/CodeListPage';
+import { CodeListsWithTextResourcesPage } from '../../ContentLibrary/LibraryBody/pages/CodeListsWithTextResourcesPage';
 import type { PageName } from '../../types/PageName';
 import { LandingPage } from '../../ContentLibrary/LibraryBody/pages/LandingPage';
 import type { PagesConfig } from '../../types/PagesProps';
@@ -7,7 +7,7 @@ import { ImagesPage } from '../../ContentLibrary/LibraryBody/pages/ImagesPage';
 
 type PageProps =
   | ComponentProps<typeof LandingPage>
-  | ComponentProps<typeof CodeListPage>
+  | ComponentProps<typeof CodeListsWithTextResourcesPage>
   | ComponentProps<typeof ImagesPage>;
 
 export type PageComponent<P = PageProps> = (props: P) => ReactElement;
@@ -35,8 +35,8 @@ export class RouterRouteMapperImpl implements RouterRouteMapper {
     pageMap.set('landingPage', LandingPage);
 
     Object.keys(pages).forEach((page: PageName) => {
-      if (page === 'codeList') {
-        pageMap.set('codeList', CodeListPage);
+      if (page === 'codeListsWithTextResources') {
+        pageMap.set('codeListsWithTextResources', CodeListsWithTextResourcesPage);
       }
       if (page === 'images') {
         pageMap.set('images', ImagesPage);

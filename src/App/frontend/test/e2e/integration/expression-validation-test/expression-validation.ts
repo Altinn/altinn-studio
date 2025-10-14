@@ -1,5 +1,8 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
+import type { Expression } from 'src/features/expressions/types';
+import type { IExpressionValidationConfig } from 'src/features/validation';
+
 const appFrontend = new AppFrontend();
 
 describe('Expression validation', () => {
@@ -248,5 +251,58 @@ describe('Expression validation', () => {
 
     cy.findByRole('button', { name: /send inn/i }).click();
     cy.get(appFrontend.receipt.container).should('be.visible');
+  });
+
+  it('should handle component lookups and hidden state in repeating groups', () => {
+    // App-backend currently does not support component lookups in expression validation, but app-frontend does. For
+    // that reason, the validation file on the backend uses plain dataModel lookups instead, but here we can run
+    // expressions that rely on the hidden result for the dato-til/dato-fra components.
+    cy.intercept('GET', '**/api/validationconfig/skjema', (req) => {
+      req.on('response', (res) => {
+        const body: IExpressionValidationConfig = JSON.parse(res.body);
+        body.validations['root.arbeidserfaring.fra'] = [
+          {
+            message: 'validation-from',
+            condition: [
+              'compare',
+              ['component', 'dato-fra'],
+              'isAfter',
+              ['component', 'dato-til'],
+            ] as unknown as Expression,
+          },
+        ];
+        body.validations['root.arbeidserfaring.til'] = [
+          {
+            message: 'validation-to',
+            condition: [
+              'compare',
+              ['component', 'dato-til'],
+              'isBefore',
+              ['component', 'dato-fra'],
+            ] as unknown as Expression,
+          },
+        ];
+        res.send(body);
+      });
+    });
+    cy.gotoNavPage('CV');
+
+    cy.findByRole('button', { name: /legg til ny arbeidserfaring/i }).click();
+    cy.findByRole('textbox', { name: /arbeidsgiver/i }).type('Test Company AS');
+    cy.findByRole('textbox', { name: /stilling/i }).type('Developer');
+
+    cy.findByRole('textbox', { name: /fra/i }).type('01.12.2023');
+    cy.findByRole('textbox', { name: /^til/i }).type('01.06.2023'); // Intentionally invalid
+    cy.findByRole('button', { name: /lagre og lukk/i }).click();
+
+    cy.get(appFrontend.errorReport).should('contain.text', 'Startdatoen må være før sluttdato');
+    cy.get(appFrontend.errorReport).should('contain.text', 'Sluttdato må være etter startdato');
+
+    cy.findByRole('checkbox', { name: /jeg er fortsatt ansatt her/i }).dsCheck();
+    cy.findByRole('button', { name: /lagre og lukk/i }).click();
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
+
+    cy.get(appFrontend.errorReport).should('not.contain.text', 'Startdatoen må være før sluttdato');
+    cy.get(appFrontend.errorReport).should('not.contain.text', 'Sluttdato må være etter startdato');
   });
 });

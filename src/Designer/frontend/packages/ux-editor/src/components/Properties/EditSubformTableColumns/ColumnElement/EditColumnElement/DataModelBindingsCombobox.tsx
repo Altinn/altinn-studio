@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { StudioCombobox } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
-import type { IDataModelBindingsKeyValue } from '../../../../../types/global';
-import { convertDataBindingToInternalFormat } from '../../../../../utils/dataModelUtils';
+import type { IDataModelBindingsKeyValueExplicit } from '../../../../../types/global';
 
 type DataModelBindingsComboboxProps = {
   componentType: string;
-  dataModelBindings?: IDataModelBindingsKeyValue;
+  dataModelBindings: IDataModelBindingsKeyValueExplicit;
   onDataModelBindingChange: (dataModelBindingKey: string) => void;
   initialDataModelBindingKey: string;
 };
@@ -40,10 +39,10 @@ export const DataModelBindingsCombobox = ({
       onValueChange={(values) => onValueChange(values[0])}
     >
       {Object.keys(dataModelBindings).map((key) => {
-        const { field } = convertDataBindingToInternalFormat(dataModelBindings?.[key]);
+        const binding = dataModelBindings?.[key];
         return (
-          field && (
-            <StudioCombobox.Option key={key} value={key} description={field}>
+          binding && (
+            <StudioCombobox.Option key={key} value={key} description={binding.field}>
               {key === 'simpleBinding'
                 ? t(`ux_editor.component_title.${componentType}`)
                 : t(`ux_editor.modal_properties_data_model_label.${key}`)}

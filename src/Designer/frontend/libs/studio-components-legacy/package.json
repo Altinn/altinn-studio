@@ -17,7 +17,7 @@
     "react-dnd": "16.0.1",
     "react-dnd-html5-backend": "16.0.1",
     "react-dom": "^18.2.0",
-    "uuid": "10.0.0"
+    "uuid": "13.0.0"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^4.0.0",

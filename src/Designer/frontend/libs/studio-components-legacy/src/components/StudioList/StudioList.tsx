@@ -10,6 +10,9 @@ import type { WithoutAsChild } from '../../types/WithoutAsChild';
 
 type StudioListComponent = typeof List;
 
+/**
+ * @deprecated Use `StudioList` from `@studio/components` instead.
+ */
 export const StudioList: StudioListComponent = {
   ...List,
   Root: StudioListRoot,

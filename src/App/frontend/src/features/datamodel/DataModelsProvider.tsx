@@ -20,6 +20,9 @@ import {
   getAllReferencedDataTypes,
   getValidPrefillDataFromQueryParams,
   isDataTypeWritable,
+  MissingClassRefException,
+  MissingDataElementException,
+  MissingDataTypeException,
 } from 'src/features/datamodel/utils';
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSet';
@@ -153,10 +156,8 @@ function DataModelsLoader() {
   const applicationMetadata = useApplicationMetadata();
   const setDataTypes = useSelector((state) => state.setDataTypes);
   const allDataTypes = useSelector((state) => state.allDataTypes);
-
   const writableDataTypes = useSelector((state) => state.writableDataTypes);
   const layouts = useLayouts();
-
   const defaultDataType = useCurrentDataModelName();
   const isStateless = useApplicationMetadata().isStatelessApp;
   const queryClient = useQueryClient();
@@ -182,35 +183,37 @@ function DataModelsLoader() {
 
     // Verify that referenced data types are defined in application metadata, have a classRef, and have a corresponding data element in the instance data
     for (const dataType of referencedDataTypes) {
-      // Only load data types that are actually defined in application metadata
-      const dataTypeMetadata = applicationMetadata.dataTypes.find((dt) => dt.id === dataType);
-      if (!dataTypeMetadata) {
-        window.logErrorOnce(`Data type "${dataType}" is referenced in layout but not found in application metadata`);
+      const typeDef = applicationMetadata.dataTypes.find((dt) => dt.id === dataType);
+
+      if (!typeDef) {
+        const error = new MissingDataTypeException(dataType);
+        window.logErrorOnce(error.message);
+        continue;
+      }
+      if (!typeDef?.appLogic?.classRef) {
+        const error = new MissingClassRefException(dataType);
+        window.logErrorOnce(error.message);
+        continue;
+      }
+
+      if (!isStateless && !dataElements?.find((dt) => dt.dataType === dataType)) {
+        const error = new MissingDataElementException(dataType);
+        window.logErrorOnce(error.message);
         continue;
       }
 
       allValidDataTypes.push(dataType);
 
-      if (isDataTypeWritable(dataType, isStateless, dataElements)) {
+      if (isDataTypeWritable(dataType, isStateless, dataElements ?? [])) {
         writableDataTypes.push(dataType);
       }
     }
+
     setDataTypes(allValidDataTypes, writableDataTypes, defaultDataType, layoutSetId);
-  }, [
-    applicationMetadata,
-    defaultDataType,
-    isStateless,
-    layouts,
-    setDataTypes,
-    dataElements,
-    layoutSetId,
-    overriddenDataType,
-    overriddenDataElementId,
-  ]);
+  }, [applicationMetadata, defaultDataType, isStateless, layouts, setDataTypes, dataElements, layoutSetId]);
 
   // We should load form data and schema for all referenced data models, schema is used for dataModelBinding validation which we want to do even if it is readonly
   // We only need to load expression validation config for data types that are not readonly. Additionally, backend will error if we try to validate a model we are not supposed to
-
   return (
     <>
       {allDataTypes?.map((dataType) => (
@@ -395,7 +398,6 @@ export const DataModels = {
     // Using a static selector to avoid re-rendering. While the state can update later, we don't need
     // to re-run data model validations, etc.
     const { schemaLookup, allDataTypes } = useStaticSelector((state) => state);
-
     return useMemo(() => {
       if (allDataTypes?.every((dt) => schemaLookup[dt])) {
         return (reference: IDataModelReference) => schemaLookup[reference.dataType].getSchemaForPath(reference.field);

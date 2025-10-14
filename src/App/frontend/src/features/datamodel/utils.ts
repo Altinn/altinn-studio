@@ -109,8 +109,8 @@ export function isDataTypeWritable(dataType: string | undefined, isStateless: bo
   if (isStateless) {
     return true;
   }
-  const dataElement = dataElements.find((data) => data.dataType === dataType);
-  return !!dataElement && dataElement.locked === false;
+  const dataElement = dataElements.find((dt) => dt.dataType === dataType);
+  return !!dataElement && !dataElement[1];
 }
 
 export interface QueryParamPrefill {

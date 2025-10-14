@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import type { NavigateOptions } from 'react-router-dom';
 
+import { SearchParams } from 'src/core/routing/types';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
@@ -11,12 +12,7 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import { useRefetchInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
-import {
-  SearchParams,
-  useAllNavigationParams,
-  useAllNavigationParamsAsRef,
-  useNavigationParam,
-} from 'src/hooks/navigation';
+import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
 import { ProcessTaskType } from 'src/types';

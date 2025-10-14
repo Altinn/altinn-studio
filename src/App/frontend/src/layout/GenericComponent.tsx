@@ -1,14 +1,15 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { useLocation, useNavigation, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import type { SetURLSearchParams } from 'react-router-dom';
 
 import classNames from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
+import { SearchParams } from 'src/core/routing/types';
+import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { ExprVal } from 'src/features/expressions/types';
 import { Lang } from 'src/features/language/Lang';
-import { SearchParams } from 'src/hooks/navigation';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import classes from 'src/layout/GenericComponent.module.css';
 import { getComponentDef } from 'src/layout/index';
@@ -214,14 +215,11 @@ function useHandleFocusComponent(nodeId: string, containerDivRef: React.RefObjec
   const [searchParams, setSearchParams] = useSearchParams();
   const indexedId = searchParams.get(SearchParams.FocusComponentId);
   const errorBinding = searchParams.get(SearchParams.FocusErrorBinding);
-  const isNavigating = useNavigation().state !== 'idle';
 
-  const location = useLocation();
   const abortController = useRef(new AbortController());
-
   const hashWas = window.location.hash;
-  const locationIsUpdated = hashWas.endsWith(location.search);
-  const shouldFocus = indexedId && indexedId == nodeId && !isNavigating && locationIsUpdated;
+  const isNavigating = useIsNavigating();
+  const shouldFocus = indexedId && indexedId == nodeId && !isNavigating;
 
   useEffect(() => {
     const div = containerDivRef.current;

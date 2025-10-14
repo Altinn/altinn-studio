@@ -1,6 +1,7 @@
 import { matchPath, useLocation } from 'react-router-dom';
 
 import { useAsRef } from 'src/hooks/useAsRef';
+import type { SearchParams } from 'src/core/routing/types';
 
 interface PathParams {
   instanceOwnerPartyId?: string;
@@ -10,15 +11,6 @@ interface PathParams {
   componentId?: string;
   dataElementId?: string;
   mainPageKey?: string;
-}
-
-export enum SearchParams {
-  FocusComponentId = 'focusComponentId',
-  FocusErrorBinding = 'focusErrorBinding',
-  ExitSubform = 'exitSubform',
-  Validate = 'validate',
-  Pdf = 'pdf',
-  BackToPage = 'backToPage',
 }
 
 const matchers: string[] = [
@@ -88,12 +80,4 @@ export const useIsSubformPage = () => {
   const mainPageKey = paramFrom(matches, 'mainPageKey');
   const subformPageKey = paramFrom(matches, 'pageKey');
   return !!(mainPageKey && subformPageKey);
-};
-
-export const useIsReceiptPage = () => {
-  const location = useLocation();
-  const pathWithoutBase = stripBasePath(location.pathname);
-  const matches = matchers.map((matcher) => matchPath(matcher, pathWithoutBase));
-  const taskId = paramFrom(matches, 'taskId');
-  return taskId === 'ProcessEnd' || taskId === 'CustomReceipt';
 };

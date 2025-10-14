@@ -25,7 +25,6 @@ import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffe
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
-import { ProcessTaskType } from 'src/types';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import { getInstanceUiUrl } from 'src/utils/urls/appUrlHelper';
 import type { ISimpleInstance } from 'src/types';
@@ -49,7 +48,7 @@ export const InstanceSelectionWrapper = () => (
       <LayoutSetsProvider>
         <ApplicationMetadataProvider>
           <DataModelsProvider>
-            <PresentationComponent type={ProcessTaskType.Unknown}>
+            <PresentationComponent>
               <InstanceSelection />
             </PresentationComponent>
           </DataModelsProvider>
@@ -65,7 +64,6 @@ export function InstanceSelection() {
   const _instances = data ?? [];
 
   const applicationMetadata = useApplicationMetadata();
-
   const instanceSelectionOptions = applicationMetadata?.onEntry.instanceSelection;
   const selectedIndex = instanceSelectionOptions?.defaultSelectedOption;
   const { langAsString } = useLanguage();

@@ -44,6 +44,7 @@ describe('formComponentUtils', () => {
         '--cell-max-number-of-lines': 3,
         '--cell-text-alignment': 'center',
         '--cell-width': '100px',
+        '--cell-word-break': 'break-word',
       });
     });
 
@@ -55,6 +56,7 @@ describe('formComponentUtils', () => {
       };
       const columnStyles = getColumnStyles(columnSettings);
       expect(columnStyles['--cell-max-number-of-lines']).toEqual(0);
+      expect(columnStyles['--cell-word-break']).toEqual('normal');
     });
   });
 });
