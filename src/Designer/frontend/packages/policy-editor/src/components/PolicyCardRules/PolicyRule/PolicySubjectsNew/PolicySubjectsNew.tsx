@@ -43,7 +43,10 @@ export const PolicySubjectsNew = () => {
 
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
-    setPolicyError({ ...policyError, subjectsError: updatedSubjects.length === 0 });
+    setPolicyError({
+      ...policyError,
+      subjectsError: policyRule.accessPackages.length === 0 && updatedSubjects.length === 0,
+    });
   };
 
   const handleRemoveAccessPackage = (selectedAccessPackageUrn: string): void => {
