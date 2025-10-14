@@ -82,6 +82,7 @@ but that would be organizationally inefficient considering the existing capabili
 ### A1
 
 - Good, adheres to all decision drivers
+- Bad, some upfront cost in terms of time spent planning and executing migration
 
 ### A2
 
