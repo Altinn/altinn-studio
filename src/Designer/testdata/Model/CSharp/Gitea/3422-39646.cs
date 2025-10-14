@@ -73,6 +73,7 @@ namespace Altinn.App.Models
   public class ArsregnskapType25942
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -84,6 +85,7 @@ namespace Altinn.App.Models
   public class ArsregnskapValutakode34984
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -95,6 +97,7 @@ namespace Altinn.App.Models
   public class ArsregnskapValor28974
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -255,6 +258,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -349,6 +353,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -441,6 +446,7 @@ namespace Altinn.App.Models
   public class NoteTilskuddAndre33421
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -534,6 +540,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -628,6 +635,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -722,6 +730,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -816,6 +825,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -910,6 +920,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -1004,6 +1015,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -1098,6 +1110,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -1192,6 +1205,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -1286,6 +1300,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -1429,6 +1444,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -1523,6 +1539,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -1617,6 +1634,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -1711,6 +1729,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -1805,6 +1824,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -1899,6 +1919,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -1993,6 +2014,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -2087,6 +2109,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -2181,6 +2204,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -2329,6 +2353,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -2423,6 +2448,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -2517,6 +2543,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -2611,6 +2638,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -2705,6 +2733,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -2799,6 +2828,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -2893,6 +2923,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -2987,6 +3018,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -3079,6 +3111,7 @@ namespace Altinn.App.Models
   public class NoteResultatkomponenterAndreIFRS35536
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -3173,6 +3206,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -3296,6 +3330,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -3390,6 +3425,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -3484,6 +3520,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -3578,6 +3615,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -3672,6 +3710,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -3812,6 +3851,7 @@ namespace Altinn.App.Models
   public class NotePatenterRettigheter18560
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -3906,6 +3946,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -4000,6 +4041,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -4094,6 +4136,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -4207,6 +4250,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -4301,6 +4345,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -4395,6 +4440,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -4503,6 +4549,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -4597,6 +4644,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -4725,6 +4773,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -4819,6 +4868,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -4913,6 +4963,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -5007,6 +5058,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -5101,6 +5153,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -5195,6 +5248,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -5327,6 +5381,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -5421,6 +5476,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -5534,6 +5590,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -5628,6 +5685,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -5722,6 +5780,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -5840,6 +5899,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -5934,6 +5994,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -6028,6 +6089,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -6122,6 +6184,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -6240,6 +6303,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -6334,6 +6398,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -6428,6 +6493,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -6522,6 +6588,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -6659,6 +6726,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -6753,6 +6821,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -6847,6 +6916,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -6927,6 +6997,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -7021,6 +7092,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -7129,6 +7201,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -7223,6 +7296,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -7346,6 +7420,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -7440,6 +7515,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -7534,6 +7610,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -7628,6 +7705,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -7722,6 +7800,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -7859,6 +7938,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -7953,6 +8033,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -8047,6 +8128,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -8141,6 +8223,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -8259,6 +8342,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -8353,6 +8437,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -8447,6 +8532,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -8541,6 +8627,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -8679,6 +8766,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -8773,6 +8861,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -8867,6 +8956,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -8961,6 +9051,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -9055,6 +9146,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -9149,6 +9241,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -9243,6 +9336,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -9337,6 +9431,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -9445,6 +9540,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]
@@ -9539,6 +9635,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("orid")]

@@ -46,21 +46,25 @@ namespace Altinn.App.Models
     [XmlElement("applikasjonNavn", Order = 2)]
     [JsonProperty("applikasjonNavn")]
     [JsonPropertyName("applikasjonNavn")]
+    [Required]
     public string applikasjonNavn { get; set; }
 
     [XmlElement("applikasjonType", Order = 3)]
     [JsonProperty("applikasjonType")]
     [JsonPropertyName("applikasjonType")]
+    [Required]
     public string applikasjonType { get; set; }
 
     [XmlElement("begrunnelse", Order = 4)]
     [JsonProperty("begrunnelse")]
     [JsonPropertyName("begrunnelse")]
+    [Required]
     public string begrunnelse { get; set; }
 
     [XmlElement("beskrivelse", Order = 5)]
     [JsonProperty("beskrivelse")]
     [JsonPropertyName("beskrivelse")]
+    [Required]
     public string beskrivelse { get; set; }
 
     [XmlElement("miljoe", Order = 6, IsNullable = true)]
@@ -114,16 +118,19 @@ namespace Altinn.App.Models
     [XmlElement("kontaktpersonEpost", Order = 1)]
     [JsonProperty("kontaktpersonEpost")]
     [JsonPropertyName("kontaktpersonEpost")]
+    [Required]
     public string kontaktpersonEpost { get; set; }
 
     [XmlElement("kontaktpersonNavn", Order = 2)]
     [JsonProperty("kontaktpersonNavn")]
     [JsonPropertyName("kontaktpersonNavn")]
+    [Required]
     public string kontaktpersonNavn { get; set; }
 
     [XmlElement("kontaktpersonTelefon", Order = 3)]
     [JsonProperty("kontaktpersonTelefon")]
     [JsonPropertyName("kontaktpersonTelefon")]
+    [Required]
     public string kontaktpersonTelefon { get; set; }
 
     [Range(Double.MinValue,Double.MaxValue)]
@@ -136,6 +143,7 @@ namespace Altinn.App.Models
     [XmlElement("produsentNavn", Order = 5)]
     [JsonProperty("produsentNavn")]
     [JsonPropertyName("produsentNavn")]
+    [Required]
     public string produsentNavn { get; set; }
 
   }

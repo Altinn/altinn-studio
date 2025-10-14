@@ -41,17 +41,20 @@ namespace Altinn.App.Models
     [XmlElement("navn", Order = 1)]
     [JsonProperty("navn")]
     [JsonPropertyName("navn")]
+    [Required]
     public string navn { get; set; }
 
     [RegularExpression(@"[0-9]{9}")]
     [XmlElement("organisasjonsnummer", Order = 2)]
     [JsonProperty("organisasjonsnummer")]
     [JsonPropertyName("organisasjonsnummer")]
+    [Required]
     public string organisasjonsnummer { get; set; }
 
     [XmlElement("navnPaaGodkjenner", Order = 3)]
     [JsonProperty("navnPaaGodkjenner")]
     [JsonPropertyName("navnPaaGodkjenner")]
+    [Required]
     public string navnPaaGodkjenner { get; set; }
 
   }
