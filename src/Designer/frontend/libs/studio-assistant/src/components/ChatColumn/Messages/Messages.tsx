@@ -23,7 +23,7 @@ type MessageItemProps = {
   message: Message;
 };
 
-function MessageItem({ message }: MessageItemProps) {
+function MessageItem({ message }: MessageItemProps): ReactElement {
   const isUser = message.author === MessageAuthor.User;
 
   return isUser ? (

@@ -28,9 +28,9 @@ export function CompleteInterface({
     chatThreads[0] ?? createNewChatThread(texts.newThread),
   );
 
-  const handleToggleCollapse = () => setIsThreadColumnCollapsed(!isThreadColumnCollapsed);
+  const handleToggleCollapse = (): void => setIsThreadColumnCollapsed(!isThreadColumnCollapsed);
 
-  const handleChangeThread = (threadId: string) => {
+  const handleChangeThread = (threadId: string): void => {
     const thread = findThreadById(chatThreads, threadId);
     thread && setCurrentThread(thread);
   };
