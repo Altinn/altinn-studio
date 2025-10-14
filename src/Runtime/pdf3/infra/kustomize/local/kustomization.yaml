@@ -3,7 +3,7 @@ kind: Kustomization
 resources:
   - ../base
 patches:
-  # Add DEBUG_MODE environment variable for local/test environment
+  # Add TEST_INTERNALS_MODE environment variable for local/test environment
   - target:
       kind: Deployment
       name: pdf3-worker
@@ -11,7 +11,7 @@ patches:
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
-          name: DEBUG_MODE
+          name: TEST_INTERNALS_MODE
           value: "true"
   - target:
       kind: Deployment
@@ -20,5 +20,5 @@ patches:
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
-          name: DEBUG_MODE
+          name: TEST_INTERNALS_MODE
           value: "true"

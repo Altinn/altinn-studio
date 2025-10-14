@@ -1,4 +1,4 @@
-.PHONY: help nix-update gen cluster format lint build-local build run test logs loadtest
+.PHONY: help nix-update gen cluster format lint build-local build run test test-loop logs loadtest
 .DEFAULT_GOAL := help
 
 help: ## Show this help message
@@ -111,8 +111,37 @@ run: build ## Deploy to cluster and restart services (cached)
 	fi
 
 test: run ## Run Go tests
+	# Create logs directory
+	@mkdir -p test/logs
 	# count=1 to circumvent go cache
-	go test -count=1 -v ./...
+	@set +e; \
+	START_TIME=$$(date +%s); \
+	go test -count=1 -timeout 5m -v ./...; \
+	TEST_EXIT=$$?; \
+	END_TIME=$$(date +%s); \
+	DURATION=$$((END_TIME - START_TIME + 10)); \
+	echo "Capturing logs from last $${DURATION}s to test/logs/..."; \
+	stern -l app=pdf3-proxy -n pdf3 -E linkerd-init -E linkerd-proxy --since $${DURATION}s --no-follow > test/logs/proxy.log 2>&1 || true; \
+	stern -l app=pdf3-worker -n pdf3 -E linkerd-init -E linkerd-proxy --since $${DURATION}s --no-follow > test/logs/worker.log 2>&1 || true; \
+	exit $$TEST_EXIT
+
+test-loop: run ## Run tests n times (use 'make test-loop n=10' to run 10 times)
+ifndef n
+	$(error n parameter is required. Usage: make test-loop n=10)
+endif
+	@echo "Running tests $(n) times..."
+	@i=1; while [ $$i -le $(n) ]; do \
+		echo ""; \
+		echo "============================================================"; \
+		echo "Test iteration $$i of $(n)"; \
+		echo "============================================================"; \
+		CI=true $(MAKE) test || { echo ""; echo "FAILED on iteration $$i of $(n)"; exit 1; }; \
+		i=$$((i + 1)); \
+	done
+	@echo ""
+	@echo "============================================================"
+	@echo "SUCCESS: All $(n) test iterations passed"
+	@echo "============================================================"
 
 logs: ## Stream logs from pdf3 components
 	stern -l component=pdf3 -n pdf3 -E linkerd-init -E linkerd-proxy --tail -1

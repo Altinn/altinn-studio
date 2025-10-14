@@ -20,15 +20,8 @@ import (
 	"altinn.studio/pdf3/internal/types"
 )
 
-var debugMode bool
-
 func main() {
 	ilog.Setup()
-
-	debugMode = os.Getenv("DEBUG_MODE") == "true"
-	if debugMode {
-		log.Println("Running in DEBUG_MODE")
-	}
 
 	host := runtime.NewHost(
 		5*time.Second,
@@ -145,6 +138,15 @@ func generatePdf(client *http.Client, workerAddr string) func(http.ResponseWrite
 			})
 			return
 		}
+		if types.HasTestInternalsModeHeader(r.Header) && !runtime.IsTestInternalsMode {
+			writeProblemDetails(w, http.StatusBadRequest, ProblemDetails{
+				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+				Title:  "Bad Request",
+				Status: http.StatusUnsupportedMediaType,
+				Detail: "Illegal test internals mode header",
+			})
+			return
+		}
 
 		var req types.PdfRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -184,15 +186,16 @@ func generatePdf(client *http.Client, workerAddr string) func(http.ResponseWrite
 
 		attempt := 1
 		for {
-			assert.Assert(attempt <= maxRetries)
+			assert.AssertWithMessage(attempt <= maxRetries, "Overflowed retry attempts")
 
 			ret := callWorker(
 				ctx,
 				client,
 				workerEndpoint,
+				r,
 				w,
 				start,
-				req,
+				&req,
 				attempt,
 				maxRetries,
 				reqBody,
@@ -210,9 +213,10 @@ func callWorker(
 	ctx context.Context,
 	client *http.Client,
 	workerEndpoint string,
+	r *http.Request,
 	w http.ResponseWriter,
 	start time.Time,
-	req types.PdfRequest,
+	req *types.PdfRequest,
 	attempt int,
 	maxRetries int,
 	reqBody []byte,
@@ -224,11 +228,14 @@ func callWorker(
 			Type:   "https://tools.ietf.org/html/rfc7231#section-6.6.1",
 			Title:  "Internal Server Error",
 			Status: http.StatusInternalServerError,
-			Detail: fmt.Sprintf("Failed to create request: %v", err),
+			Detail: fmt.Sprintf("Failed to create worker request: %v", err),
 		})
 		return true
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
+	if runtime.IsTestInternalsMode {
+		types.CopyTestInput(httpReq.Header, r.Header)
+	}
 
 	resp, err := client.Do(httpReq)
 	workerId := ""
@@ -236,6 +243,21 @@ func callWorker(
 		workerId = resp.Header.Get("X-Worker-Id")
 	}
 	if err != nil {
+		if attempt < maxRetries {
+			// This is an error condition that may hit if the worker
+			// crashes or similar. Worthwhile to retry here
+			duration := time.Since(start)
+			log.Printf(
+				"[%s, %d/%d, %05dms] worker request failed, will retry: %v\n",
+				req.URL,
+				attempt,
+				maxRetries,
+				duration.Milliseconds(),
+				err,
+			)
+			time.Sleep(100 * time.Millisecond)
+			return false
+		}
 		writeProblemDetails(w, http.StatusInternalServerError, ProblemDetails{
 			Type:   "https://tools.ietf.org/html/rfc7231#section-6.6.1",
 			Title:  "Internal Server Error",
@@ -260,15 +282,8 @@ func callWorker(
 	if resp.StatusCode == http.StatusOK {
 		// Success - return PDF data
 		w.Header().Set("Content-Type", "application/pdf")
-
-		// Forward debug headers if in DEBUG_MODE
-		if debugMode {
-			if consoleErrors := resp.Header.Get("X-Console-Errors"); consoleErrors != "" {
-				w.Header().Set("X-Console-Errors", consoleErrors)
-			}
-			if logErrors := resp.Header.Get("X-Log-Errors"); logErrors != "" {
-				w.Header().Set("X-Log-Errors", logErrors)
-			}
+		if runtime.IsTestInternalsMode {
+			types.CopyTestOutput(w.Header(), resp.Header)
 		}
 
 		w.WriteHeader(http.StatusOK)
@@ -325,6 +340,9 @@ func callWorker(
 		problemTitle = "Bad Request"
 	}
 
+	if runtime.IsTestInternalsMode {
+		types.CopyTestOutput(w.Header(), resp.Header)
+	}
 	writeProblemDetails(w, statusCode, ProblemDetails{
 		Type:   problemType,
 		Title:  problemTitle,

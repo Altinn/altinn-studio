@@ -7,11 +7,12 @@ import (
 	"log"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
+	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/browser"
 	"altinn.studio/pdf3/internal/cdp"
+	"altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/types"
 )
 
@@ -24,8 +25,6 @@ type Custom struct {
 	// as soon we start cleanup on session A
 	browserA *browserSession
 	browserB *browserSession
-
-	mu sync.Mutex
 }
 
 // getBrowserVersion starts a temporary browser and retrieves its version information
@@ -119,7 +118,6 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 	}
 
 	var returnErr *types.PDFError = nil
-	g.mu.Lock()
 	// If either of the workers are currently generating a PDF, we can't process the request
 	if g.browserA.isGenerating() || g.browserB.isGenerating() {
 		log.Printf("Request queue full, rejecting request for URL: %s\n", request.URL)
@@ -138,7 +136,6 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 			returnErr = types.NewPDFError(types.ErrQueueFull, "", nil)
 		}
 	}
-	g.mu.Unlock()
 	if returnErr != nil {
 		return nil, returnErr
 	}
@@ -149,10 +146,8 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 			return nil, response.Error
 		}
 		return &types.PdfResult{
-			Data:          response.Data,
-			Browser:       g.browserVersion,
-			ConsoleErrors: response.ConsoleErrors,
-			LogErrors:     response.LogErrors,
+			Data:    response.Data,
+			Browser: g.browserVersion,
 		}, nil
 	case <-ctx.Done():
 		return nil, types.NewPDFError(types.ErrClientDropped, "", ctx.Err())
@@ -174,21 +169,48 @@ func (g *Custom) Close() error {
 }
 
 type workerRequest struct {
-	request       types.PdfRequest
-	responder     chan workerResponse
-	ctx           context.Context
-	cleanedUp     bool
-	consoleErrors int
-	logErrors     int
+	request   types.PdfRequest
+	responder chan workerResponse
+	ctx       context.Context
+	cleanedUp bool
 }
 
-func (r *workerRequest) tryRespondOk(data []byte) {
+func (r *workerRequest) tryGetTestModeInput() *types.PdfInternalsTestInput {
+	if !runtime.IsTestInternalsMode {
+		return nil
+	}
+
+	obj := r.ctx.Value(types.TestInputHeaderName)
+	if obj == nil {
+		return nil
+	}
+
+	value, ok := obj.(*types.PdfInternalsTestInput)
+	assert.AssertWithMessage(ok, "Invalid type for test internals mode input on context")
+	return value
+}
+
+func (r *workerRequest) tryAddTestOutput(f func(*types.PdfInternalsTestOutput)) {
+	if !runtime.IsTestInternalsMode {
+		return
+	}
+	obj := r.ctx.Value(types.TestOutputHeaderName)
+	assert.AssertWithMessage(obj != nil, "Test output should never be null for test internals mode")
+
+	value, ok := obj.(*types.PdfInternalsTestOutput)
+	assert.AssertWithMessage(ok, "Invalid type for test internals mode output on context")
+	f(value)
+}
+
+func (r *workerRequest) tryRespondOk(data []byte, w *browserSession) {
 	if r.responder != nil {
+		r.tryAddTestOutput(func(output *types.PdfInternalsTestOutput) {
+			output.BrowserErrors = int(w.browserErrors.Load())
+			output.ConsoleErrorLogs = int(w.consoleErrors.Load())
+		})
 		response := workerResponse{
-			Data:          data,
-			Error:         nil,
-			ConsoleErrors: r.consoleErrors,
-			LogErrors:     r.logErrors,
+			Data:  data,
+			Error: nil,
 		}
 		select {
 		case r.responder <- response:
@@ -201,8 +223,12 @@ func (r *workerRequest) tryRespondOk(data []byte) {
 	}
 }
 
-func (r *workerRequest) tryRespondError(err *types.PDFError) {
+func (r *workerRequest) tryRespondError(err *types.PDFError, w *browserSession) {
 	if r.responder != nil {
+		r.tryAddTestOutput(func(output *types.PdfInternalsTestOutput) {
+			output.BrowserErrors = int(w.browserErrors.Load())
+			output.ConsoleErrorLogs = int(w.consoleErrors.Load())
+		})
 		response := workerResponse{
 			Data:  nil,
 			Error: err,
@@ -223,10 +249,8 @@ func (r *workerRequest) hasResponded() bool {
 }
 
 type workerResponse struct {
-	Data          []byte
-	Error         *types.PDFError
-	ConsoleErrors int
-	LogErrors     int
+	Data  []byte
+	Error *types.PDFError
 }
 
 var unitToPixels = map[string]float64{

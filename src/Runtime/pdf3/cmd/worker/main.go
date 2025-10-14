@@ -10,6 +10,7 @@ import (
 	"os"
 	"time"
 
+	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/generator"
 	ilog "altinn.studio/pdf3/internal/log"
 	"altinn.studio/pdf3/internal/runtime"
@@ -17,8 +18,7 @@ import (
 )
 
 var (
-	workerId  string
-	debugMode bool
+	workerId string
 )
 
 func main() {
@@ -37,10 +37,6 @@ func main() {
 	}
 
 	workerId = hostname
-	debugMode = os.Getenv("DEBUG_MODE") == "true"
-	if debugMode {
-		log.Println("Running in DEBUG_MODE")
-	}
 
 	gen, err := generator.New()
 	if err != nil {
@@ -137,6 +133,13 @@ func generatePdfHandler(gen types.PdfGenerator) http.HandlerFunc {
 			}
 			return
 		}
+		if types.HasTestInternalsModeHeader(r.Header) && !runtime.IsTestInternalsMode {
+			w.WriteHeader(http.StatusBadRequest)
+			if _, err := w.Write([]byte("Illeagel internals test mode header")); err != nil {
+				log.Printf("Failed to write error response: %v\n", err)
+			}
+			return
+		}
 
 		var req types.PdfRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -147,7 +150,20 @@ func generatePdfHandler(gen types.PdfGenerator) http.HandlerFunc {
 			return
 		}
 
-		result, pdfErr := gen.Generate(r.Context(), req)
+		requestContext := r.Context()
+		var testOutput *types.PdfInternalsTestOutput
+		if runtime.IsTestInternalsMode {
+			testInput := &types.PdfInternalsTestInput{}
+			testInput.Deserialize(r.Header)
+			testOutput = &types.PdfInternalsTestOutput{}
+			requestContext = context.WithValue(requestContext, types.TestInputHeaderName, testInput)
+			requestContext = context.WithValue(requestContext, types.TestOutputHeaderName, testOutput)
+		}
+		result, pdfErr := gen.Generate(requestContext, req)
+		if runtime.IsTestInternalsMode {
+			assert.AssertWithMessage(testOutput != nil, "Output should be initialized above")
+			testOutput.Serialize(w.Header())
+		}
 
 		if pdfErr != nil {
 			errStr := pdfErr.Error()
@@ -167,12 +183,6 @@ func generatePdfHandler(gen types.PdfGenerator) http.HandlerFunc {
 
 		// Success - return PDF bytes
 		w.Header().Set("Content-Type", "application/pdf")
-
-		// Add debug headers if in DEBUG_MODE
-		if debugMode {
-			w.Header().Set("X-Console-Errors", fmt.Sprintf("%d", result.ConsoleErrors))
-			w.Header().Set("X-Log-Errors", fmt.Sprintf("%d", result.LogErrors))
-		}
 
 		w.WriteHeader(http.StatusOK)
 		if _, err := w.Write(result.Data); err != nil {

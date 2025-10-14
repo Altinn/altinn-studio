@@ -2,9 +2,15 @@ package types
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"time"
+
+	"altinn.studio/pdf3/internal/assert"
+	"altinn.studio/pdf3/internal/runtime"
 )
 
 type PdfRequest struct {
@@ -110,10 +116,8 @@ type Cookie struct {
 }
 
 type PdfResult struct {
-	Data          []byte
-	Browser       BrowserVersion
-	ConsoleErrors int // Count of console.error() calls during generation
-	LogErrors     int // Count of Log.entryAdded errors during generation
+	Data    []byte
+	Browser BrowserVersion
 }
 
 type BrowserVersion struct {
@@ -164,4 +168,93 @@ type PdfGenerator interface {
 	Generate(ctx context.Context, request PdfRequest) (*PdfResult, *PDFError)
 	Close() error
 	IsReady() bool
+}
+
+type PdfInternalsTestInput struct {
+	CleanupDelaySeconds time.Duration `json:"cleanupDelaySeconds"`
+}
+
+const TestInputHeaderName string = "X-Internals-Test-Input"
+const TestOutputHeaderName string = "X-Internals-Test-Output"
+
+func HasTestInternalsModeHeader(headers http.Header) bool {
+	return headers.Get(TestInputHeaderName) != "" ||
+		headers.Get(TestOutputHeaderName) != ""
+}
+
+func (i *PdfInternalsTestInput) Serialize(headers http.Header) {
+	assert.Assert(i != nil)
+	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only use test input during internals test mode")
+	json, err := json.Marshal(i)
+	assert.AssertWithMessage(err == nil, "Should be able to serialize input")
+	value := base64.StdEncoding.EncodeToString(json)
+	headers.Add(TestInputHeaderName, value)
+}
+
+func (i *PdfInternalsTestInput) String() string {
+	json, err := json.MarshalIndent(i, "", "  ")
+	assert.AssertWithMessage(err == nil, "Should be able to JSON serialize")
+	return string(json)
+}
+
+func (i *PdfInternalsTestInput) Deserialize(headers http.Header) {
+	assert.Assert(i != nil)
+	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only use test input during internals test mode")
+	header := headers.Get(TestInputHeaderName)
+	if header != "" {
+		value, err := base64.StdEncoding.DecodeString(string(header))
+		assert.AssertWithMessage(err == nil, "Should be able to decode input")
+		err = json.Unmarshal(value, i)
+		assert.AssertWithMessage(err == nil, "Should be able to deserialize input")
+	}
+}
+
+func CopyTestInput(dst http.Header, src http.Header) {
+	header := src.Get(TestInputHeaderName)
+	if header != "" {
+		dst.Set(TestInputHeaderName, header)
+	}
+}
+
+type PdfInternalsTestOutput struct {
+	ConsoleErrorLogs int `json:"consoleErrorLogs"`
+	BrowserErrors    int `json:"browserErrors"`
+}
+
+func (o *PdfInternalsTestOutput) Serialize(headers http.Header) {
+	assert.Assert(o != nil)
+	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only use test output during internals test mode")
+	json, err := json.Marshal(o)
+	assert.AssertWithMessage(err == nil, "Should be able to serialize output")
+	value := base64.StdEncoding.EncodeToString(json)
+	headers.Add(TestOutputHeaderName, value)
+}
+
+func (o *PdfInternalsTestOutput) HadErrors() bool {
+	return o.ConsoleErrorLogs != 0 ||
+		o.BrowserErrors != 0
+}
+
+func (o *PdfInternalsTestOutput) String() string {
+	json, err := json.MarshalIndent(o, "", "  ")
+	assert.AssertWithMessage(err == nil, "Should be able to JSON serialize")
+	return string(json)
+}
+
+func (o *PdfInternalsTestOutput) Deserialize(headers http.Header) {
+	assert.Assert(o != nil)
+	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only use test output during internals test mode")
+	header := headers.Get(TestOutputHeaderName)
+	assert.AssertWithMessage(header != "", "Internals test mode output header not present")
+	value, err := base64.StdEncoding.DecodeString(string(header))
+	assert.AssertWithMessage(err == nil, "Should be able to decode output")
+	err = json.Unmarshal(value, o)
+	assert.AssertWithMessage(err == nil, "Should be able to deserialize output")
+}
+
+func CopyTestOutput(dst http.Header, src http.Header) {
+	header := src.Get(TestOutputHeaderName)
+	if header != "" {
+		dst.Set(TestOutputHeaderName, header)
+	}
 }

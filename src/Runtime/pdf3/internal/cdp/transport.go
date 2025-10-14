@@ -55,7 +55,7 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 	}
 	defer func() {
 		// Closing HTTP response body - failure indicates connection pool leak
-		if err := resp.Body.Close(); err != nil {
+		if err = resp.Body.Close(); err != nil {
 			log.Printf("Worker %d: Failed to close HTTP response body: %v\n", id, err)
 		}
 	}()
@@ -65,9 +65,12 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 	}
 
 	var targets []CDPTarget
-	if err := json.NewDecoder(resp.Body).Decode(&targets); err != nil {
+	if err = json.NewDecoder(resp.Body).Decode(&targets); err != nil {
 		return nil, "", fmt.Errorf("failed to decode targets response: %w", err)
 	}
+
+	// Chrome should always return at least one target (the page we created)
+	assert.AssertWithMessage(len(targets) > 0, "Chrome returned zero targets - browser in invalid state")
 
 	// Debug: print available targets
 	log.Printf("Worker %d: Found %d targets\n", id, len(targets))
@@ -83,11 +86,7 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 			break
 		}
 	}
-
-	if target == nil {
-		return nil, "", fmt.Errorf("no page target found - browser may not have started correctly")
-	}
-
+	assert.AssertWithMessage(target != nil, "no page target found")
 	targetID := target.ID
 
 	// Connect to the page's WebSocket
@@ -95,6 +94,8 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 	if wsURL == "" {
 		return nil, "", fmt.Errorf("no webSocketDebuggerUrl in response")
 	}
+	// Chrome page targets must have a WebSocket URL - this is a protocol invariant
+	assert.AssertWithMessage(wsURL != "", "Page target missing WebSocketDebuggerURL - protocol violation")
 
 	// Add debugging to understand what URL we're trying to connect to
 	log.Printf("Worker %d: Attempting to connect to WebSocket URL: %s\n", id, wsURL)
@@ -104,11 +105,31 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 	dialer := websocket.Dialer{
 		HandshakeTimeout: 2 * time.Second,
 	}
+	connCtx, cancel := context.WithCancel(ctx)
+	defer func() {
+		if err != nil {
+			cancel()
+		}
+	}()
 
 	now = time.Now()
 	for {
 		wsConn, _, err = dialer.Dial(wsURL, nil)
-		if err == nil || time.Since(now) > 5*time.Second {
+		if err == nil {
+			wsConn.SetCloseHandler(func(code int, text string) error {
+				message := fmt.Sprintf(
+					"Websocket connection closed while process is running. Code: %d, text: %s",
+					code,
+					text,
+				)
+				assert.AssertWithMessage(
+					ctx.Err() != nil,
+					message,
+				)
+				return nil
+			})
+			break
+		} else if time.Since(now) > 5*time.Second {
 			break
 		}
 
@@ -118,9 +139,10 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to dial WebSocket: %w", err)
 	}
+	// Successful dial must return a valid connection
+	assert.AssertWithMessage(wsConn != nil, "WebSocket dial succeeded but returned nil connection")
 
 	// Create connection wrapper
-	connCtx, cancel := context.WithCancel(ctx)
 	conn := &connection{
 		id:            id,
 		wsConn:        wsConn,
@@ -179,6 +201,10 @@ type connection struct {
 
 // SendCommand sends a CDP command and waits for the response
 func (c *connection) SendCommand(ctx context.Context, method string, params interface{}) (*CDPResponse, error) {
+	// Connection must be valid when sending commands
+	assert.AssertWithMessage(c.wsConn != nil, "Attempted to send command on nil WebSocket connection")
+	assert.AssertWithMessage(c.pendingCmds != nil, "Attempted to send command with nil pendingCmds map")
+
 	cmdID := c.nextCommandID
 	c.nextCommandID++
 
@@ -219,21 +245,27 @@ func (c *connection) SendCommand(ctx context.Context, method string, params inte
 
 // Close closes the connection and cleans up resources
 func (c *connection) Close() error {
+	// Connection should always be valid when Close is called
+	assert.AssertWithMessage(c.wsConn != nil, "Attempted to close connection with nil WebSocket")
+	assert.AssertWithMessage(c.pendingCmds != nil, "Attempted to close connection with nil pendingCmds map")
+
+	// Connection should only be closed after HTTP server has drained all requests.
+	// If there are pending commands, it means we're closing while requests are in-flight,
+	// which indicates a bug in graceful shutdown coordination.
+	pendingCount := c.pendingCmds.Len()
+	assert.AssertWithMessage(pendingCount == 0, fmt.Sprintf("Connection closed with %d pending commands - graceful shutdown not properly coordinated", pendingCount))
+
 	c.cancel()
 
-	// Drain pending commands
-	c.pendingCmds.Drain(func(ch chan CDPResponse) {
-		close(ch)
-	})
-
-	if c.wsConn != nil {
-		return c.wsConn.Close()
-	}
-	return nil
+	return c.wsConn.Close()
 }
 
 // handleMessages reads messages from the WebSocket and routes them
 func (c *connection) handleMessages() {
+	// Connection must be fully initialized before handling messages
+	assert.AssertWithMessage(c.wsConn != nil, "Message handler started with nil WebSocket connection")
+	assert.AssertWithMessage(c.pendingCmds != nil, "Message handler started with nil pendingCmds map")
+
 	// Create a channel for read results
 	type readResult struct {
 		payload []byte
@@ -269,23 +301,27 @@ func (c *connection) handleMessages() {
 				return
 			}
 
-			log.Printf("Worker %d: got CDP message: %s\n", c.id, string(result.payload))
+			// log.Printf("Worker %d: got CDP message: %s\n", c.id, string(result.payload))
 
 			var msg CDPMessage
 			if err := json.Unmarshal(result.payload, &msg); err != nil {
-				log.Printf("Worker %d: JSON unmarshal error: %v\n", c.id, err)
+				// Chrome should never send invalid JSON - this indicates protocol corruption
+				assert.AssertWithMessage(false, fmt.Sprintf("Chrome sent malformed JSON: %v (payload: %s)", err, string(result.payload)))
 				continue
 			}
 
 			if msg.ID != nil {
 				// This is a response to a command
 				responseCh, ok := c.pendingCmds.GetAndDelete(*msg.ID)
-				if ok && responseCh != nil {
-					responseCh <- CDPResponse{
-						ID:     msg.ID,
-						Result: msg.Result,
-						Error:  msg.Error,
-					}
+				// Chrome sent a response for a command we never sent or already handled
+				// This indicates either protocol corruption or a bug in our command tracking
+				assert.AssertWithMessage(ok, fmt.Sprintf("Received response for unknown command ID %d", *msg.ID))
+				assert.AssertWithMessage(responseCh != nil, fmt.Sprintf("Response channel for command ID %d is nil", *msg.ID))
+
+				responseCh <- CDPResponse{
+					ID:     msg.ID,
+					Result: msg.Result,
+					Error:  msg.Error,
 				}
 			} else if msg.Method != "" {
 				// This is an event - call the event handler

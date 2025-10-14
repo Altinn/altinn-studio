@@ -3,11 +3,15 @@ package runtime
 import (
 	"context"
 	"log"
+	"os"
 	"os/signal"
 	"sync/atomic"
 	"syscall"
+	"testing"
 	"time"
 )
+
+var IsTestInternalsMode bool = os.Getenv("TEST_INTERNALS_MODE") == "true" || testing.Testing()
 
 type Host struct {
 	signalCtx                  context.Context

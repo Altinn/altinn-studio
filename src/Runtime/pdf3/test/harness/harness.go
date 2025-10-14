@@ -11,6 +11,8 @@ import (
 	"testing"
 )
 
+var IsCI bool = os.Getenv("CI") != ""
+
 // IsPDF checks if the given bytes represent a valid PDF file
 func IsPDF(data []byte) bool {
 	// PDF files start with %PDF-
@@ -49,6 +51,17 @@ func Snapshot(t *testing.T, data []byte, name string, ext string) {
 		ext = "txt"
 	}
 	fileName := path.Join(wd, "_snapshots", testName) + "." + ext
+
+	if IsCI {
+		existingData, err := os.ReadFile(fileName)
+		if err != nil {
+			t.Errorf("Error reading existing snapshot at: %s: %v", fileName, err)
+			return
+		} else if !bytes.Equal(existingData, data) {
+			t.Errorf("Snapshots not equal for: %s", fileName)
+			return
+		}
+	}
 
 	err = os.WriteFile(fileName, data, 0644)
 	if err != nil {

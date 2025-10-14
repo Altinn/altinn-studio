@@ -66,10 +66,13 @@ Note: `-count=1` circumvents Go's test cache, ensuring fresh test runs.
 
 - **`internal/generator`**: Core PDF generation logic using CDP
   - Manages 2 browser sessions (double-buffered for low latency)
-  - Direct Chrome process management via `exec.Command`
-  - WebSocket-based CDP communication
   - Session states: Ready → Generating → CleaningUp → Ready
   - Queue capacity: 1 request per session (2 total, returns 429 when full)
+  - Tracks console errors and browser errors during PDF generation
+
+- **`internal/browser`**: Chrome browser process management
+  - Starts/stops headless Chrome instances using `/headless-shell/headless-shell` binary
+  - Configures browser arguments (headless mode, security flags, etc.)
 
 - **`internal/runtime`**: Graceful shutdown coordinator
   - Handles SIGTERM/SIGINT with configurable drain periods
@@ -80,13 +83,18 @@ Note: `-count=1` circumvents Go's test cache, ensuring fresh test runs.
 - **`internal/cdp`**: Chrome DevTools Protocol client utilities
   - WebSocket connection management
   - CDP command/response handling
+  - Connects to browser debug port for communication
 
 - **`internal/types`**: Shared types including `PdfRequest`, `PdfResult`, `PDFError`
   - `PdfRequest.WaitFor` can be string (CSS selector), timeout (ms), or options object
+  - Test internals mode support for tracking browser errors and console logs
+  - Error types: `ErrQueueFull`, `ErrTimeout`, `ErrClientDropped`, `ErrSetCookieFail`, `ErrElementNotReady`, `ErrGenerationFail`, `ErrUnhandledBrowserError`
 
 - **`internal/concurrent`**: Thread-safe data structures (e.g., `Map`)
 
 - **`internal/assert`**: Runtime assertions for invariant checking. Asserts should be used to catch programmer errors (e.g. invalid assumptions about program state)
+
+- **`internal/log`**: Logging setup and configuration
 
 ### Request Flow
 
@@ -108,12 +116,21 @@ Note: `-count=1` circumvents Go's test cache, ensuring fresh test runs.
 
 - **Integration tests**: `test/integration/integration_test.go`
   - Requires running cluster (`make run` first, or use `make test`)
-  - Uses a "jumpbox" proxy to route requests (simulates ingress)
-  - Tests include: simple generation, queue retry logic, error tracking, comparison with old generator
+  - Uses a "jumpbox" proxy at `localhost:8020` to route requests (simulates ingress)
+  - Tests include: simple generation, queue retry logic, error tracking, comparison with old generator, network isolation
   - Snapshot testing available via `test/harness` package
 
 - **Test server**: Deployed as `testserver.default.svc.cluster.local`
-  - Serves test pages with configurable behavior (query params: `render`, `logerrors`, `throwerrors`)
+  - Serves test pages with configurable behavior via query params:
+    - `render=light` - renders a light version of the test page
+    - `logerrors=N` - logs N console errors during rendering
+    - `throwerrors=N` - throws N JavaScript errors during rendering
+
+- **Test internals mode**: Special testing mode for tracking errors
+  - Enabled via environment variable `TEST_INTERNALS_MODE`
+  - Uses headers `X-Internals-Test-Input` and `X-Internals-Test-Output` for passing test data
+  - Tracks console error logs and browser errors during PDF generation
+  - Allows for general failure injection so that failure conditions can be tested (and their outputs)
 
 ### Deployment
 
@@ -130,3 +147,6 @@ Use `make test` which handles build/deploy automatically, or run manually:
 make run  # Deploy changes
 make test
 ```
+
+The tests output logs from the PDF3 containers into `test/logs/proxy.log` and `test/logs/worker.log`.
+These can be inspected upon test failures.

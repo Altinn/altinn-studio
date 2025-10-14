@@ -19,6 +19,7 @@ type SessionState uint32
 
 const (
 	SessionStateReady SessionState = iota
+	SessionStateQueued
 	SessionStateGenerating
 	SessionStateCleaningUp
 )
@@ -28,15 +29,16 @@ type browserSession struct {
 	browser  *browser.Process
 	conn     cdp.Connection
 	targetID string
-	queue    chan workerRequest
-	state    atomic.Uint32
+
+	queue chan workerRequest
+	state atomic.Uint32
 
 	// Current request
 	currentUrl string
 
 	// Error tracking for current request
 	consoleErrors atomic.Int32
-	logErrors     atomic.Int32
+	browserErrors atomic.Int32
 
 	// Shutdown coordination
 	ctx    context.Context
@@ -94,14 +96,17 @@ func newBrowserSession(id int) (*browserSession, error) {
 
 // isGenerating returns true if the session is currently generating a PDF
 func (w *browserSession) isGenerating() bool {
-	return w.state.Load() == uint32(SessionStateGenerating)
+	state := w.state.Load()
+	return state == uint32(SessionStateGenerating) || state == uint32(SessionStateQueued)
 }
 
 // tryEnqueue attempts to enqueue a request if the session is ready
 // Returns true if the request was enqueued, false otherwise
 func (w *browserSession) tryEnqueue(req workerRequest) bool {
-	if w.state.Load() == uint32(SessionStateReady) {
-		assert.Assert(len(w.queue) == 0)
+	if w.state.CompareAndSwap(uint32(SessionStateReady), uint32(SessionStateQueued)) ||
+		w.state.CompareAndSwap(uint32(SessionStateCleaningUp), uint32(SessionStateQueued)) {
+
+		assert.AssertWithMessage(len(w.queue) == 0, "CAS failed, queue is not empty")
 		w.queue <- req
 		return true
 	}
@@ -121,7 +126,7 @@ func (w *browserSession) handleEvent(method string, params interface{}) {
 		if p, ok := params.(map[string]interface{}); ok {
 			if entry, ok := p["entry"].(map[string]interface{}); ok {
 				if level, ok := entry["level"].(string); ok && level == "error" {
-					w.logErrors.Add(1)
+					w.browserErrors.Add(1)
 					log.Printf("[%d, %s] log error: %v\n", w.id, w.currentUrl, entry)
 				}
 			}
@@ -144,8 +149,12 @@ func (w *browserSession) handleRequests() {
 				assert.AssertWithMessage(w.ctx.Err() != nil, "Queue channel closed, but process is not shutting down")
 				return
 			}
-			assert.AssertWithMessage(w.state.Load() == uint32(SessionStateReady), "Unexpected state at start of request processing")
-			w.state.Store(uint32(SessionStateGenerating))
+			previousState := w.state.Swap(uint32(SessionStateGenerating))
+			assert.AssertWithMessage(
+				previousState == uint32(SessionStateReady) || previousState == uint32(SessionStateQueued),
+				"Unexpected state at start of request processing",
+			)
+
 			w.currentUrl = req.request.URL
 			w.handleRequest(&req)
 			w.currentUrl = ""
@@ -153,8 +162,12 @@ func (w *browserSession) handleRequests() {
 			if !req.hasResponded() {
 				log.Fatalf("[%d, %s] did not respond to request\n", w.id, w.currentUrl)
 			}
-			assert.AssertWithMessage(w.state.Load() == uint32(SessionStateCleaningUp), "Can't go to ready unless we have just cleaned up")
-			w.state.Store(uint32(SessionStateReady))
+			currentState := w.state.Load()
+			assert.AssertWithMessage(
+				currentState == uint32(SessionStateCleaningUp) || currentState == uint32(SessionStateQueued),
+				"Can't go to ready unless we have just cleaned up (or enqueued next)",
+			)
+			_ = w.state.CompareAndSwap(uint32(SessionStateCleaningUp), uint32(SessionStateReady))
 		}
 	}
 }
@@ -165,12 +178,12 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 
 	// Reset error counters for this request
 	w.consoleErrors.Store(0)
-	w.logErrors.Store(0)
+	w.browserErrors.Store(0)
 
 	defer func() {
 		if r := recover(); r != nil {
 			log.Printf("[%d, %s] recovered from panic: %v\n", w.id, w.currentUrl, r)
-			req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, req.request.URL, fmt.Errorf("%v", r)))
+			req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, req.request.URL, fmt.Errorf("%v", r)), w)
 		}
 
 		duration := time.Since(start)
@@ -178,14 +191,22 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 	}()
 
 	if req.ctx.Err() != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
+		req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()), w)
+		// When we return here, we never get to the cleanup state in the defer block of `generatePdf` below.
+		// Since we haven't actually used any of the user data the cleanup phase is completely safe to ignore.
+		// So let's manually swap into it cleanup state so that outer loop can swap out of this
+		previousState := w.state.Swap(uint32(SessionStateCleaningUp))
+		assert.AssertWithMessage(
+			previousState == uint32(SessionStateGenerating),
+			"Internal state should always go from Generating -> CleaningUp during early exit",
+		)
 		return
 	}
 
 	err := w.generatePdf(req)
 
 	if err != nil {
-		req.tryRespondError(mapCustomError(err))
+		req.tryRespondError(mapCustomError(err), w)
 	}
 }
 
@@ -196,7 +217,11 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 	defer func() {
 		// When we get here we can already accept a request into the queue
 		// Cleanup should run fairly fast (low ms range)
-		w.state.Store(uint32(SessionStateCleaningUp))
+		previousState := w.state.Swap(uint32(SessionStateCleaningUp))
+		assert.AssertWithMessage(
+			previousState == uint32(SessionStateGenerating),
+			"Internal state should always go from Generating -> CleaningUp when starting cleanup",
+		)
 
 		// Navigate back to default
 		start := time.Now()
@@ -205,6 +230,11 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		})
 		if err != nil {
 			log.Printf("[%d, %s] failed to navigate out of url: %v\n", w.id, w.currentUrl, err)
+		}
+
+		if testInput := req.tryGetTestModeInput(); testInput != nil && testInput.CleanupDelaySeconds > 0 {
+			log.Printf("[%d, %s] waiting for %d seconds\n", w.id, w.currentUrl, testInput.CleanupDelaySeconds)
+			time.Sleep(testInput.CleanupDelaySeconds * time.Second)
 		}
 
 		// Cleanup browser storage
@@ -252,7 +282,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			"sameSite": sameSite,
 		})
 		if err != nil {
-			req.tryRespondError(types.NewPDFError(types.ErrSetCookieFail, "", err))
+			req.tryRespondError(types.NewPDFError(types.ErrSetCookieFail, "", err), w)
 			return nil
 		}
 	}
@@ -262,7 +292,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		return nil
 	}
 	if req.ctx.Err() != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
+		req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()), w)
 		return nil
 	}
 
@@ -270,7 +300,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		"url": request.URL,
 	})
 	if err != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
+		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err), w)
 		return nil
 	}
 
@@ -280,7 +310,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			return nil
 		}
 		if req.ctx.Err() != nil {
-			req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
+			req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()), w)
 			return nil
 		}
 
@@ -354,7 +384,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			})
 			if err != nil {
 				log.Printf("[%d, %s] failed to wait for element %q: %v\n", w.id, w.currentUrl, waitSelector, err)
-				req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", waitSelector), err))
+				req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", waitSelector), err), w)
 				return nil
 			}
 
@@ -364,7 +394,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 					if value, ok := resultObj["value"].(bool); ok {
 						if !value {
 							log.Printf("[%d, %s] failed to wait for element %q: timeout\n", w.id, w.currentUrl, waitSelector)
-							req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", waitSelector), fmt.Errorf("timeout")))
+							req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", waitSelector), fmt.Errorf("timeout")), w)
 							return nil
 						}
 					} else {
@@ -379,7 +409,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		return nil
 	}
 	if req.ctx.Err() != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
+		req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()), w)
 		return nil
 	}
 
@@ -442,35 +472,31 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 
 	resp, err := w.sendCommand("Page.printToPDF", pdfParams)
 	if err != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
+		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err), w)
 		return nil
 	}
 
 	// Extract PDF data
 	result, ok := resp.Result.(map[string]interface{})
 	if !ok {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", fmt.Errorf("invalid PDF response format")))
+		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", fmt.Errorf("invalid PDF response format")), w)
 		return nil
 	}
 
 	dataStr, ok := result["data"].(string)
 	if !ok {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", fmt.Errorf("no PDF data in response")))
+		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", fmt.Errorf("no PDF data in response")), w)
 		return nil
 	}
 
 	pdfBytes, err := base64.StdEncoding.DecodeString(dataStr)
 	if err != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
+		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err), w)
 		return nil
 	}
 
-	// Capture error counts before responding
-	req.consoleErrors = int(w.consoleErrors.Load())
-	req.logErrors = int(w.logErrors.Load())
-
 	// Respond with PDF data
-	req.tryRespondOk(pdfBytes)
+	req.tryRespondOk(pdfBytes, w)
 	return nil
 }
 

@@ -8,8 +8,9 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -105,6 +106,8 @@ func getDefaultPdfRequest(t *testing.T) *types.PdfRequest {
 }
 
 func TestPDFGeneration_Simple(t *testing.T) {
+	t.Parallel()
+
 	req := getDefaultPdfRequest(t)
 	req.URL = testServerURL + "/app/?render=light"
 
@@ -117,15 +120,12 @@ func TestPDFGeneration_Simple(t *testing.T) {
 		t.Error("Response is not a valid PDF")
 	}
 
-	if len(resp.Data) == 0 {
-		t.Error("PDF data is empty")
-	}
-
+	harness.Snapshot(t, []byte(resp.Output.String()), "testoutput", "json")
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
 }
 
 func TestPDFGeneration_Networking(t *testing.T) {
-
+	t.Parallel()
 	url := jumpboxURL + "/health/startup"
 
 	// Create HTTP client with 10s timeout for PDF generation
@@ -145,10 +145,12 @@ func TestPDFGeneration_Networking(t *testing.T) {
 		t.Fatalf("Unexpectedly reached pdf3-worker from jumpbox: %d", resp.StatusCode)
 	}
 
-	t.Logf("Got error as expected: %v", err)
+	harness.Snapshot(t, []byte(err.Error()), "error", "txt")
 }
 
 func TestPDFGeneration_CompareOldAndNew(t *testing.T) {
+	t.Parallel()
+
 	req := getDefaultPdfRequest(t)
 	req.URL = testServerURL + "/app/?render=light"
 
@@ -211,23 +213,27 @@ func makePdfDeterministic(t *testing.T, pdf []byte) []byte {
 }
 
 type PdfResponse struct {
-	Data          []byte
-	ConsoleErrors int
-	LogErrors     int
+	Data   []byte
+	Output *types.PdfInternalsTestOutput
 }
 
 // requestNewPDF sends a PDF generation request to the new PDF generator solution
 func requestNewPDF(t *testing.T, req *types.PdfRequest) (*PdfResponse, error) {
-	return requestPDFWithHost(t, req, "pdf3-proxy.pdf3.svc.cluster.local")
+	return requestPDFWithHost(t, req, "pdf3-proxy.pdf3.svc.cluster.local", nil)
+}
+
+// requestNewPDF sends a PDF generation request to the new PDF generator solution
+func requestNewPDFWithTestInput(t *testing.T, req *types.PdfRequest, testInput *types.PdfInternalsTestInput) (*PdfResponse, error) {
+	return requestPDFWithHost(t, req, "pdf3-proxy.pdf3.svc.cluster.local", testInput)
 }
 
 // requestOldPDF sends a PDF generation request to the old PDF generator solution
 func requestOldPDF(t *testing.T, req *types.PdfRequest) (*PdfResponse, error) {
-	return requestPDFWithHost(t, req, "pdf-generator.pdf.svc.cluster.local")
+	return requestPDFWithHost(t, req, "pdf-generator.pdf.svc.cluster.local", nil)
 }
 
 // requestPDF sends a PDF generation request to the proxy
-func requestPDFWithHost(t *testing.T, req *types.PdfRequest, overrideHost string) (*PdfResponse, error) {
+func requestPDFWithHost(t *testing.T, req *types.PdfRequest, overrideHost string, testInput *types.PdfInternalsTestInput) (*PdfResponse, error) {
 	reqBody, err := json.Marshal(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
@@ -246,6 +252,9 @@ func requestPDFWithHost(t *testing.T, req *types.PdfRequest, overrideHost string
 	}
 	httpReq.Host = overrideHost
 	httpReq.Header.Set("Content-Type", "application/json")
+	if testInput != nil {
+		testInput.Serialize(httpReq.Header)
+	}
 
 	resp, err := client.Do(httpReq)
 	if err != nil {
@@ -268,28 +277,17 @@ func requestPDFWithHost(t *testing.T, req *types.PdfRequest, overrideHost string
 	if !harness.IsPDF(data) {
 		t.Error("Response is not a valid PDF")
 	}
-	if len(data) == 0 {
-		t.Error("PDF data is empty")
-	}
 
 	// Parse error count headers if present
-	consoleErrors := 0
-	logErrors := 0
-	if consoleErrorsStr := resp.Header.Get("X-Console-Errors"); consoleErrorsStr != "" {
-		if parsed, err := strconv.Atoi(consoleErrorsStr); err == nil {
-			consoleErrors = parsed
-		}
-	}
-	if logErrorsStr := resp.Header.Get("X-Log-Errors"); logErrorsStr != "" {
-		if parsed, err := strconv.Atoi(logErrorsStr); err == nil {
-			logErrors = parsed
-		}
+	testOutput := &types.PdfInternalsTestOutput{}
+	if strings.Contains(httpReq.Host, "pdf3") {
+		// Only have this for our generator
+		testOutput.Deserialize(resp.Header)
 	}
 
 	return &PdfResponse{
-		Data:          data,
-		ConsoleErrors: consoleErrors,
-		LogErrors:     logErrors,
+		Data:   data,
+		Output: testOutput,
 	}, nil
 }
 
@@ -302,10 +300,10 @@ func TestPDFGeneration_RetryOnQueueFull(t *testing.T) {
 	results := make(chan error, concurrentRequests)
 
 	// Send concurrent requests
-	for i := 0; i < concurrentRequests; i++ {
+	for index := 0; index < concurrentRequests; index++ {
 		go func(index int) {
 			req := getDefaultPdfRequest(t)
-			req.URL = fmt.Sprintf("%s?render=light&i=%d", req.URL, i)
+			req.URL = fmt.Sprintf("%s?render=light&i=%d", req.URL, index)
 
 			resp, err := requestNewPDF(t, req)
 			if err != nil {
@@ -318,8 +316,12 @@ func TestPDFGeneration_RetryOnQueueFull(t *testing.T) {
 				return
 			}
 
+			if resp.Output.HadErrors() {
+				results <- fmt.Errorf("request %d: has errors: %s", index, resp.Output.String())
+			}
+
 			results <- nil
-		}(i)
+		}(index)
 	}
 
 	// Collect results
@@ -372,17 +374,10 @@ func TestPDFGeneration_WithConsoleErrors(t *testing.T) {
 		t.Error("Response is not a valid PDF")
 	}
 
-	if len(resp.Data) == 0 {
-		t.Error("PDF data is empty")
-	}
+	harness.Snapshot(t, []byte(resp.Output.String()), "testoutput", "json")
 
-	// Assert on error count headers (DEBUG_MODE should be enabled in local tests)
-	if resp.ConsoleErrors != 1 {
-		t.Errorf("Expected 1 log error, got %d", resp.ConsoleErrors)
-	}
-
-	t.Logf("Generated PDF size: %d bytes (with %d console errors, %d log errors)",
-		len(resp.Data), resp.ConsoleErrors, resp.LogErrors)
+	t.Logf("Generated PDF size: %d bytes (with %d console error logs, %d browser errors)",
+		len(resp.Data), resp.Output.ConsoleErrorLogs, resp.Output.BrowserErrors)
 }
 
 func TestPDFGeneration_WithThrownErrors(t *testing.T) {
@@ -399,15 +394,77 @@ func TestPDFGeneration_WithThrownErrors(t *testing.T) {
 		t.Error("Response is not a valid PDF")
 	}
 
-	if len(resp.Data) == 0 {
-		t.Error("PDF data is empty")
+	harness.Snapshot(t, []byte(resp.Output.String()), "testoutput", "json")
+
+	t.Logf("Generated PDF size: %d bytes (with %d console error logs, %d browser errors)",
+		len(resp.Data), resp.Output.ConsoleErrorLogs, resp.Output.BrowserErrors)
+}
+
+func TestPDFGeneration_WithCleanupDelay(t *testing.T) {
+
+	const totalRequests int = 30
+	const threads int = 16
+
+	var wg sync.WaitGroup
+	queue := make(chan int, 30)
+
+	errors429 := atomic.Uint64{}
+	requestsMade := atomic.Uint64{}
+	failureQueue := make(chan error, 30)
+	failures := make([]error, 0)
+
+	for j := 0; j < threads; j++ {
+		wg.Add(1)
+		go func(j int) {
+			defer wg.Done()
+
+			for i := range queue {
+				req := getDefaultPdfRequest(t)
+				req.URL = fmt.Sprintf("%s/app/?render=light&j=%d&i=%d", testServerURL, j, i)
+				testInput := &types.PdfInternalsTestInput{
+					CleanupDelaySeconds: 3,
+				}
+				resp, err := requestNewPDFWithTestInput(t, req, testInput)
+				requestsMade.Add(1)
+				if err != nil {
+					if !strings.Contains(err.Error(), "429") {
+						failureQueue <- fmt.Errorf("[%d, %d] request failed: %v", j, i, err)
+					} else {
+						errors429.Add(1)
+					}
+					return
+				}
+
+				if !harness.IsPDF(resp.Data) {
+					failureQueue <- fmt.Errorf("[%d, %d] response is not PDF", j, i)
+				}
+
+				if resp.Output.HadErrors() {
+					failureQueue <- fmt.Errorf("[%d, %d] response had errors reported in browsers", j, i)
+				}
+			}
+		}(j)
 	}
 
-	// Thrown errors appear as console errors
-	if resp.ConsoleErrors != 1 {
-		t.Errorf("Expected 2 console errors, got %d", resp.ConsoleErrors)
-	}
+	go func() {
+		for err := range failureQueue {
+			failures = append(failures, err)
+		}
+	}()
 
-	t.Logf("Generated PDF size: %d bytes (with %d console errors, %d log errors)",
-		len(resp.Data), resp.ConsoleErrors, resp.LogErrors)
+	t.Log("Started threads")
+
+	for i := range totalRequests {
+		queue <- i
+	}
+	close(queue)
+	t.Log("Started dispatched messages")
+
+	wg.Wait()
+	close(failureQueue)
+
+	if requestsMade.Load() != uint64(totalRequests) {
+		t.Fatalf("Only completed %d requests", requestsMade.Load())
+	}
+	t.Logf("Requests complete, found %d failures (%d 429's)", len(failures), errors429.Load())
 }

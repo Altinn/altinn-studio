@@ -37,3 +37,9 @@ func (cm *Map[K, V]) Drain(consume func(V)) {
 		consume(v)
 	}
 }
+
+func (cm *Map[K, V]) Len() int {
+	cm.mu.Lock()
+	defer cm.mu.Unlock()
+	return len(cm.m)
+}
