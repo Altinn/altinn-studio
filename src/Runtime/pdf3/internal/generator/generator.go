@@ -2,24 +2,17 @@ package generator
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
-	"os/exec"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
-	"altinn.studio/pdf3/internal/assert"
+	"altinn.studio/pdf3/internal/browser"
 	"altinn.studio/pdf3/internal/cdp"
-	"altinn.studio/pdf3/internal/concurrent"
 	"altinn.studio/pdf3/internal/types"
-	"github.com/gorilla/websocket"
 )
 
 type Custom struct {
@@ -35,38 +28,36 @@ type Custom struct {
 	mu sync.Mutex
 }
 
-type SessionState uint32
+// getBrowserVersion starts a temporary browser and retrieves its version information
+func getBrowserVersion() (types.BrowserVersion, error) {
+	// Start temporary browser instance
+	browserProc, err := browser.Start(-1)
+	if err != nil {
+		return types.BrowserVersion{}, fmt.Errorf("failed to create temporary browser for version info: %w", err)
+	}
+	defer func() {
+		if err := browserProc.Close(); err != nil {
+			log.Printf("WARNING: Failed to close temporary browser: %v - process may be lingering\n", err)
+		}
+	}()
 
-const (
-	SessionStateReady SessionState = iota
-	SessionStateGenerating
-	SessionStateCleaningUp
-)
+	// Connect to get version only (no event handler needed)
+	conn, _, err := cdp.Connect(context.Background(), -1, browserProc.DebugBaseURL, nil)
+	if err != nil {
+		return types.BrowserVersion{}, fmt.Errorf("failed to connect to temporary browser: %w", err)
+	}
+	defer func() {
+		// Closing connection during init - will be recreated anyway
+		_ = conn.Close()
+	}()
 
-type browserSession struct {
-	id           int
-	cmd          *exec.Cmd
-	wsConn       *websocket.Conn
-	debugPort    string
-	debugBaseURL string
-	targetID     string
-	queue        chan workerRequest
-	state        atomic.Uint32
+	// Get browser version using CDP command
+	version, err := cdp.GetBrowserVersion(conn)
+	if err != nil {
+		return types.BrowserVersion{}, fmt.Errorf("failed to get browser version: %w", err)
+	}
 
-	// Current request
-	currentUrl string
-
-	// Error tracking for current request
-	consoleErrors atomic.Int32
-	logErrors     atomic.Int32
-
-	// Command ID management
-	nextCommandID int64
-	pendingCmds   *concurrent.Map[int64, chan cdp.CDPResponse]
-
-	// Shutdown coordination
-	ctx    context.Context
-	cancel context.CancelFunc
+	return *version, nil
 }
 
 func New() (*Custom, error) {
@@ -77,40 +68,13 @@ func New() (*Custom, error) {
 	go func() {
 		log.Printf("Initializing Custom CDP\n")
 
-		// Get browser version using a temporary browser instance
-		cmd, _, debugBaseURL, err := createBrowserProcess(-1)
-		if err != nil {
-			log.Fatalf("Failed to create temporary browser for version info: %v", err)
-		}
-		defer func() {
-			if cmd != nil && cmd.Process != nil {
-				if err := cmd.Process.Kill(); err != nil {
-					log.Printf("WARNING: Failed to kill temporary browser process (PID %d): %v - process may be lingering\n", cmd.Process.Pid, err)
-				}
-				// Wait() error is expected (killed processes return error), so we can ignore it
-				_ = cmd.Wait()
-			}
-		}()
-
-		// Connect to get version only
-		_, conn, err := cdp.ConnectToPageTarget(-1, debugBaseURL)
-		if err != nil {
-			log.Fatalf("Failed to connect to temporary browser: %v", err)
-		}
-		defer func() {
-			if conn != nil {
-				// Closing WebSocket during init - connection will be recreated anyway
-				_ = conn.Close()
-			}
-		}()
-
-		// Get browser version using direct CDP command
-		version, err := getBrowserVersionFromConnection(conn)
+		// Get and set browser version
+		version, err := getBrowserVersion()
 		if err != nil {
 			log.Fatalf("Failed to get browser version: %v", err)
 		}
 
-		generator.browserVersion = *version
+		generator.browserVersion = version
 		log.Printf(
 			"Chrome version: %s (revision: %s, protocol: %s)\n",
 			version.Product,
@@ -156,24 +120,19 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 
 	var returnErr *types.PDFError = nil
 	g.mu.Lock()
-	stateA := g.browserA.state.Load()
-	stateB := g.browserB.state.Load()
 	// If either of the workers are currently generating a PDF, we can't process the request
-	if stateA == uint32(SessionStateGenerating) || stateB == uint32(SessionStateGenerating) {
+	if g.browserA.isGenerating() || g.browserB.isGenerating() {
 		log.Printf("Request queue full, rejecting request for URL: %s\n", request.URL)
 		returnErr = types.NewPDFError(types.ErrQueueFull, "", nil)
 	} else {
 		// If none of the sessions are generating,
-		// let's pick the one that is "the most" ready.
-		// If none of them are ready, we pick one that is currently cleaning up.
-		// The cleanup procedure is fairly low latency.
+		// let's pick the one that is ready to accept a request.
+		// tryEnqueue will check if the session is ready and enqueue if so.
 
-		if stateA == uint32(SessionStateReady) {
-			assert.Assert(len(g.browserA.queue) == 0)
-			g.browserA.queue <- req
-		} else if stateB == uint32(SessionStateReady) {
-			assert.Assert(len(g.browserB.queue) == 0)
-			g.browserB.queue <- req
+		if g.browserA.tryEnqueue(req) {
+			// Successfully enqueued to browserA
+		} else if g.browserB.tryEnqueue(req) {
+			// Successfully enqueued to browserB
 		} else {
 			log.Printf("Request queue full, rejecting request for URL: %s\n", request.URL)
 			returnErr = types.NewPDFError(types.ErrQueueFull, "", nil)
@@ -270,660 +229,6 @@ type workerResponse struct {
 	LogErrors     int
 }
 
-// createBrowserProcess starts a new Chrome/Chromium process with the specified arguments
-func createBrowserProcess(id int) (*exec.Cmd, string, string, error) {
-	args := createBrowserArgs()
-
-	// Override user data directory for this worker and set specific port
-	debugPort := 5050 + id
-	if id == -1 {
-		debugPort = 5049 // Special case for init worker
-	}
-
-	for i, arg := range args {
-		if strings.HasPrefix(arg, "--user-data-dir=") {
-			if id >= 0 {
-				args[i] = fmt.Sprintf("--user-data-dir=/tmp/browser-%d", id)
-			} else {
-				args[i] = "--user-data-dir=/tmp/browser-init"
-			}
-		}
-		if strings.HasPrefix(arg, "--remote-debugging-port=") {
-			args[i] = fmt.Sprintf("--remote-debugging-port=%d", debugPort)
-		}
-	}
-
-	// Add about:blank argument to create default page target
-	args = append(args, "about:blank")
-
-	// Only log args for the init worker (id == -1)
-	if id == -1 {
-		logArgs(args)
-	}
-
-	cmd := exec.Command("/headless-shell/headless-shell", args...)
-	debugPortStr := fmt.Sprintf("%d", debugPort)
-	debugBaseURL := fmt.Sprintf("http://127.0.0.1:%d", debugPort)
-
-	// Start the browser process
-	if err := cmd.Start(); err != nil {
-		return nil, "", "", fmt.Errorf("failed to start browser process: %w", err)
-	}
-
-	return cmd, debugPortStr, debugBaseURL, nil
-}
-
-func newBrowserSession(id int) (*browserSession, error) {
-	ctx, cancel := context.WithCancel(context.Background())
-	w := &browserSession{
-		id:            id,
-		nextCommandID: 1,
-		pendingCmds:   concurrent.NewMap[int64, chan cdp.CDPResponse](),
-		queue:         make(chan workerRequest, 1),
-		state:         atomic.Uint32{},
-		ctx:           ctx,
-		cancel:        cancel,
-	}
-	w.state.Store(uint32(SessionStateReady))
-
-	// Create browser process
-	var err error
-	w.cmd, w.debugPort, w.debugBaseURL, err = createBrowserProcess(id)
-	if err != nil {
-		return nil, err
-	}
-
-	// Connect to the existing page target (about:blank)
-	var conn *websocket.Conn
-	w.targetID, conn, err = cdp.ConnectToPageTarget(id, w.debugBaseURL)
-	if err != nil {
-		if killErr := w.cmd.Process.Kill(); killErr != nil {
-			log.Printf("ERROR: Worker %d failed to connect AND failed to kill browser process (PID %d): %v - process is lingering!\n", id, w.cmd.Process.Pid, killErr)
-		}
-		return nil, fmt.Errorf("failed to connect to page target: %w", err)
-	}
-	w.wsConn = conn
-
-	go w.handleWebSocketMessages()
-
-	// Enable required domains
-	_, err = w.sendCommand("Page.enable", nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to call Page.enable: %w", err)
-	}
-
-	_, err = w.sendCommand("Runtime.enable", nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to enable Runtime.enable: %w", err)
-	}
-
-	_, err = w.sendCommand("Log.enable", nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to enable Log.enable: %w", err)
-	}
-
-	go w.run()
-
-	log.Printf("Browser worker %d initialized successfully\n", id)
-	return w, nil
-}
-
-func (w *browserSession) handleWebSocketMessages() {
-	// Create a channel for read results
-	type readResult struct {
-		payload []byte
-		err     error
-	}
-	readCh := make(chan readResult, 1)
-
-	// Start a goroutine to read from WebSocket
-	go func() {
-		for {
-			_, payload, err := w.wsConn.ReadMessage()
-			select {
-			case <-w.ctx.Done():
-				log.Printf("Worker %d: wsconn reader shutting down (context cancelled)\n", w.id)
-				return
-			case readCh <- readResult{payload: payload, err: err}:
-				if err != nil {
-					log.Printf("Worker %d: websocket read error: %v\n", w.id, err)
-					return
-				}
-			}
-		}
-	}()
-
-	for {
-		select {
-		case <-w.ctx.Done():
-			log.Printf("Worker %d: WebSocket message handler shutting down (context cancelled)\n", w.id)
-			return
-		case result := <-readCh:
-			if result.err != nil {
-				log.Printf("Worker %d: WebSocket read error: %v\n", w.id, result.err)
-				return
-			}
-
-			log.Printf("Worker %d: got CDP message: %s\n", w.id, string(result.payload))
-
-			var msg cdp.CDPMessage
-			if err := json.Unmarshal(result.payload, &msg); err != nil {
-				log.Printf("Worker %d: JSON unmarshal error: %v\n", w.id, err)
-				continue
-			}
-
-			if msg.ID != nil {
-				// This is a response to a command
-				responseCh, ok := w.pendingCmds.GetAndDelete(*msg.ID)
-				assert.AssertWithMessage(ok, "IDs are set by us")
-				assert.AssertWithMessage(responseCh != nil, "Response channels should always be nonnil")
-				responseCh <- cdp.CDPResponse{
-					ID:     msg.ID,
-					Result: msg.Result,
-					Error:  msg.Error,
-				}
-			} else if msg.Method != "" {
-				// This is an event
-				w.handleEvent(msg)
-			}
-		}
-	}
-}
-
-func (w *browserSession) handleEvent(msg cdp.CDPMessage) {
-	switch msg.Method {
-	case "Runtime.consoleAPICalled":
-		if params, ok := msg.Params.(map[string]interface{}); ok {
-			if apiType, ok := params["type"].(string); ok && apiType == "error" {
-				w.consoleErrors.Add(1)
-				errorJson, err := json.MarshalIndent(params, "", "  ")
-				if err != nil {
-					log.Printf("[%d, %s] console error: %v\n", w.id, w.currentUrl, params)
-				} else {
-					log.Printf("[%d, %s] console error: %s\n", w.id, w.currentUrl, string(errorJson))
-				}
-			}
-		}
-	case "Log.entryAdded":
-		if params, ok := msg.Params.(map[string]interface{}); ok {
-			if entry, ok := params["entry"].(map[string]interface{}); ok {
-				if level, ok := entry["level"].(string); ok && level == "error" {
-					w.logErrors.Add(1)
-					errorJson, err := json.MarshalIndent(entry, "", "  ")
-					if err != nil {
-						log.Printf("[%d, %s] log error: %v\n", w.id, w.currentUrl, entry)
-					} else {
-						log.Printf("[%d, %s] log error: %s\n", w.id, w.currentUrl, string(errorJson))
-					}
-				}
-			}
-		}
-	}
-}
-
-func (w *browserSession) sendCommand(method string, params interface{}) (*cdp.CDPResponse, error) {
-	cmdID := w.nextCommandID
-	w.nextCommandID++
-
-	cmd := cdp.CDPCommand{
-		ID:     cmdID,
-		Method: method,
-		Params: params,
-	}
-
-	responseCh := make(chan cdp.CDPResponse, 1)
-	w.pendingCmds.Set(cmdID, responseCh)
-
-	// Send command
-	err := w.wsConn.WriteJSON(cmd)
-	if err != nil {
-		w.pendingCmds.GetAndDelete(cmdID)
-		return nil, fmt.Errorf("failed to send command: %w", err)
-	}
-
-	// Wait for response
-	select {
-	case response := <-responseCh:
-		if response.Error != nil {
-			return nil, fmt.Errorf("CDP error: %v", response.Error)
-		}
-		return &response, nil
-	case <-time.After(30 * time.Second):
-		w.pendingCmds.GetAndDelete(cmdID)
-		return nil, fmt.Errorf("timeout waiting for response to command %s", method)
-	}
-}
-
-func (w *browserSession) run() {
-	for {
-		select {
-		case <-w.ctx.Done():
-			log.Printf("Worker %d: run loop shutting down (context cancellation)\n", w.id)
-			return
-		case req, ok := <-w.queue:
-			if !ok {
-				log.Printf("Worker %d: run loop shutting down (queue closure)\n", w.id)
-				return
-			}
-			w.state.Store(uint32(SessionStateGenerating))
-			w.currentUrl = req.request.URL
-			w.handleRequest(&req)
-			w.currentUrl = ""
-
-			if !req.hasResponded() {
-				log.Fatalf("[%d, %s] did not respond to request\n", w.id, w.currentUrl)
-			}
-			w.state.Store(uint32(SessionStateReady))
-		}
-	}
-}
-
-func (w *browserSession) handleRequest(req *workerRequest) {
-	log.Printf("[%d, %s] processing PDF request\n", w.id, w.currentUrl)
-	start := time.Now()
-
-	// Reset error counters for this request
-	w.consoleErrors.Store(0)
-	w.logErrors.Store(0)
-
-	defer func() {
-		if r := recover(); r != nil {
-			log.Printf("[%d, %s] recovered from panic: %v\n", w.id, w.currentUrl, r)
-			req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, req.request.URL, fmt.Errorf("%v", r)))
-		}
-
-		duration := time.Since(start)
-		log.Printf("[%d, %s] completed PDF request in %.2f seconds\n", w.id, w.currentUrl, duration.Seconds())
-	}()
-
-	if req.ctx.Err() != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
-		return
-	}
-
-	err := w.generatePdf(req)
-
-	if err != nil {
-		req.tryRespondError(mapCustomError(err))
-	}
-}
-
-func (w *browserSession) generatePdf(req *workerRequest) error {
-	request := req.request
-
-	// Ensure cleanup always runs
-	defer func() {
-		// When we get here we can already accept a request into the queue
-		// Cleanup should run fairly fast (low ms range)
-		w.state.Store(uint32(SessionStateCleaningUp))
-
-		// Navigate back to default
-		start := time.Now()
-		_, err := w.sendCommand("Page.navigate", map[string]interface{}{
-			"url": "about:blank",
-		})
-		if err != nil {
-			log.Printf("[%d, %s] failed to navigate out of url: %v\n", w.id, w.currentUrl, err)
-		}
-
-		// Cleanup browser storage
-		w.cleanupBrowser(req)
-
-		// Retry cleanup if it failed
-		if !req.cleanedUp {
-			log.Printf("[%d, %s] failed to cleanup storage, retrying...\n", w.id, w.currentUrl)
-			for range 3 {
-				w.cleanupBrowser(req)
-				if req.cleanedUp {
-					break
-				}
-			}
-
-			if !req.cleanedUp {
-				log.Fatalf("[%d, %s] failed to cleanup storage, we're in an unsafe state and can't proceed", w.id, w.currentUrl)
-			}
-		}
-		duration := time.Since(start)
-		log.Printf("[%d, %s] cleanup completed in %.2f seconds\n", w.id, w.currentUrl, duration.Seconds())
-	}()
-
-	// Set cookies
-	for _, cookie := range request.Cookies {
-		if req.ctx.Err() != nil {
-			return types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err())
-		}
-
-		sameSite := "Lax"
-		switch cookie.SameSite {
-		case "Strict":
-			sameSite = "Strict"
-		case "None":
-			sameSite = "None"
-		}
-
-		_, err := w.sendCommand("Network.setCookie", map[string]interface{}{
-			"name":     cookie.Name,
-			"value":    cookie.Value,
-			"domain":   cookie.Domain,
-			"path":     "/",
-			"secure":   false,
-			"httpOnly": false,
-			"sameSite": sameSite,
-		})
-		if err != nil {
-			req.tryRespondError(types.NewPDFError(types.ErrSetCookieFail, "", err))
-			return nil
-		}
-	}
-
-	// Navigate to URL
-	if req.hasResponded() {
-		return nil
-	}
-	if req.ctx.Err() != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
-		return nil
-	}
-
-	_, err := w.sendCommand("Page.navigate", map[string]interface{}{
-		"url": request.URL,
-	})
-	if err != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
-		return nil
-	}
-
-	// Wait for element if specified
-	if request.WaitFor != nil {
-		if req.hasResponded() {
-			return nil
-		}
-		if req.ctx.Err() != nil {
-			req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
-			return nil
-		}
-
-		var waitSelector string
-		var timeoutMs int32 = 25000 // default timeout
-
-		if selector, ok := request.WaitFor.AsString(); ok {
-			waitSelector = selector
-		} else if timeout, ok := request.WaitFor.AsTimeout(); ok {
-			time.Sleep(time.Duration(timeout) * time.Millisecond)
-		} else if opts, ok := request.WaitFor.AsOptions(); ok {
-			// Full options with selector, visible, hidden, timeout
-			waitSelector = opts.Selector
-			if opts.Timeout != nil {
-				timeoutMs = *opts.Timeout
-			}
-			// TODO: Implement visible/hidden support if needed
-		}
-
-		// If we have a selector to wait for, use MutationObserver
-		if waitSelector != "" {
-			// Wait for element using MutationObserver via a single Runtime.evaluate with awaitPromise
-			// Match gorod's behavior: if selector is an id ("#id"), use an optimized observer; otherwise use a generic selector observer.
-			var expression string
-			if waitSelector[0] == '#' {
-				id := waitSelector[1:]
-				expression = fmt.Sprintf(`(function(){
-				  const id = %q; const timeoutMs = %d;
-				  return new Promise((resolve) => {
-				    const e = document.getElementById(id);
-				    if (e) return requestAnimationFrame(() => resolve(true));
-				    let obs;
-				    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} requestAnimationFrame(() => resolve(v)); };
-				    obs = new MutationObserver(recs => {
-				      for (const m of recs) {
-				        if (m.type === 'attributes' && m.attributeName === 'id' && m.target.id === id) { return done(true); }
-				        if (m.type === 'childList') for (const n of m.addedNodes) {
-				          if (n.nodeType === 1) {
-				            if (n.id === id) return done(true);
-				            const hit = n.querySelector && n.querySelector('#' + CSS.escape(id));
-				            if (hit) return done(true);
-				          }
-				        }
-				      }
-				    });
-				    obs.observe(document, {subtree:true, childList:true, attributes:true, attributeFilter:['id']});
-				    setTimeout(() => done(false), timeoutMs);
-				  });
-				})()`, id, timeoutMs)
-			} else {
-				selector := waitSelector
-				expression = fmt.Sprintf(`(function(){
-				  const selector = %q; const timeoutMs = %d;
-				  return new Promise((resolve) => {
-				    if (document.querySelector(selector)) return requestAnimationFrame(() => resolve(true));
-				    let obs;
-				    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} requestAnimationFrame(() => resolve(v)); };
-				    obs = new MutationObserver(() => {
-				      if (document.querySelector(selector)) done(true);
-				    });
-				    obs.observe(document, {subtree:true, childList:true, attributes:true});
-				    setTimeout(() => done(false), timeoutMs);
-				  });
-				})()`, selector, timeoutMs)
-			}
-
-			resp, err := w.sendCommand("Runtime.evaluate", map[string]interface{}{
-				"expression":    expression,
-				"awaitPromise":  true,
-				"returnByValue": true,
-			})
-			if err != nil {
-				log.Printf("[%d, %s] failed to wait for element %q: %v\n", w.id, w.currentUrl, waitSelector, err)
-				req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", waitSelector), err))
-				return nil
-			}
-
-			// Expect a boolean result indicating whether the element was found within timeout
-			if result, ok := resp.Result.(map[string]interface{}); ok {
-				if resultObj, ok := result["result"].(map[string]interface{}); ok {
-					if value, ok := resultObj["value"].(bool); ok {
-						if !value {
-							log.Printf("[%d, %s] failed to wait for element %q: timeout\n", w.id, w.currentUrl, waitSelector)
-							req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", waitSelector), fmt.Errorf("timeout")))
-							return nil
-						}
-					} else {
-						log.Printf("[%d, %s] unexpected evaluation result type waiting for %q\n", w.id, w.currentUrl, waitSelector)
-					}
-				}
-			}
-		}
-	}
-
-	if req.hasResponded() {
-		return nil
-	}
-	if req.ctx.Err() != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
-		return nil
-	}
-
-	// Generate PDF with Puppeteer-compatible defaults
-	pdfParams := map[string]interface{}{
-		"scale":                   1.0,
-		"displayHeaderFooter":     false,
-		"headerTemplate":          "",
-		"footerTemplate":          "",
-		"printBackground":         false,
-		"landscape":               false,
-		"pageRanges":              "",
-		"preferCSSPageSize":       false,
-		"omitBackground":          false,
-		"generateTaggedPDF":       false,
-		"generateDocumentOutline": false,
-		"paperWidth":              8.5,
-		"paperHeight":             11.0,
-	}
-
-	// Handle paper format (compatible with Puppeteer)
-	if request.Options.Format != "" {
-		// Try lowercase first, then try as-is
-		formatKey := strings.ToLower(request.Options.Format)
-		if dimensions, ok := paperFormats[formatKey]; ok {
-			pdfParams["paperWidth"] = dimensions.width
-			pdfParams["paperHeight"] = dimensions.height
-		} else {
-			log.Printf("[%d, %s] unknown paper format %q, using default\n", w.id, w.currentUrl, request.Options.Format)
-		}
-	}
-
-	if request.Options.PrintBackground {
-		pdfParams["printBackground"] = true
-	}
-
-	if request.Options.DisplayHeaderFooter {
-		pdfParams["displayHeaderFooter"] = true
-		if request.Options.HeaderTemplate != "" {
-			pdfParams["headerTemplate"] = request.Options.HeaderTemplate
-		}
-		if request.Options.FooterTemplate != "" {
-			pdfParams["footerTemplate"] = request.Options.FooterTemplate
-		}
-	}
-
-	// Set margins if specified
-	if request.Options.Margin.Top != "" {
-		pdfParams["marginTop"] = convertMargin(request.Options.Margin.Top)
-	}
-	if request.Options.Margin.Right != "" {
-		pdfParams["marginRight"] = convertMargin(request.Options.Margin.Right)
-	}
-	if request.Options.Margin.Bottom != "" {
-		pdfParams["marginBottom"] = convertMargin(request.Options.Margin.Bottom)
-	}
-	if request.Options.Margin.Left != "" {
-		pdfParams["marginLeft"] = convertMargin(request.Options.Margin.Left)
-	}
-
-	resp, err := w.sendCommand("Page.printToPDF", pdfParams)
-	if err != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
-		return nil
-	}
-
-	// Extract PDF data
-	result, ok := resp.Result.(map[string]interface{})
-	if !ok {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", fmt.Errorf("invalid PDF response format")))
-		return nil
-	}
-
-	dataStr, ok := result["data"].(string)
-	if !ok {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", fmt.Errorf("no PDF data in response")))
-		return nil
-	}
-
-	pdfBytes, err := base64.StdEncoding.DecodeString(dataStr)
-	if err != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
-		return nil
-	}
-
-	// Capture error counts before responding
-	req.consoleErrors = int(w.consoleErrors.Load())
-	req.logErrors = int(w.logErrors.Load())
-
-	// Respond with PDF data
-	req.tryRespondOk(pdfBytes)
-	return nil
-}
-
-func (w *browserSession) cleanupBrowser(req *workerRequest) {
-	if req.cleanedUp {
-		return
-	}
-
-	// Clear storage data for the origin using CDP command
-	_, err := w.sendCommand("Storage.clearDataForOrigin", map[string]interface{}{
-		"origin":       req.request.URL,
-		"storageTypes": "all",
-	})
-
-	req.cleanedUp = err == nil
-}
-
-func (w *browserSession) close() {
-	log.Printf("Worker %d closing...\n", w.id)
-
-	if w.cancel != nil {
-		w.cancel()
-	}
-	if w.queue != nil {
-		close(w.queue)
-	}
-
-	if w.wsConn != nil {
-		if err := w.wsConn.Close(); err != nil {
-			log.Printf("Worker %d: Failed to close WebSocket: %v\n", w.id, err)
-		}
-	}
-
-	if w.cmd != nil && w.cmd.Process != nil {
-		if err := w.cmd.Process.Kill(); err != nil {
-			log.Printf("ERROR: Worker %d failed to kill browser process (PID %d): %v\n", w.id, w.cmd.Process.Pid, err)
-		}
-		// Wait() error is expected (killed processes return error), so we can ignore it
-		_ = w.cmd.Wait()
-	}
-
-	log.Printf("Worker %d closed\n", w.id)
-}
-
-// createBrowserArgs returns the Chrome/Chromium arguments for headless PDF generation
-func createBrowserArgs() []string {
-	return []string{
-		"--disable-background-networking",
-		"--disable-background-timer-throttling",
-		"--disable-backgrounding-occluded-windows",
-		"--disable-breakpad",
-		"--disable-client-side-phishing-detection",
-		"--disable-default-apps",
-		"--disable-dev-shm-usage",
-		"--disable-extensions",
-		"--disable-features=site-per-process,Translate,BlinkGenPropertyTrees",
-		"--disable-font-subpixel-positioning",
-		"--disable-hang-monitor",
-		"--disable-ipc-flooding-protection",
-		"--disable-popup-blocking",
-		"--disable-prompt-on-repost",
-		"--disable-renderer-backgrounding",
-		"--disable-sync",
-		"--enable-automation",
-		"--enable-features=NetworkService,NetworkServiceInProcess",
-		"--font-render-hinting=none",
-		"--force-color-profile=srgb",
-		"--headless",
-		"--hide-scrollbars",
-		"--metrics-recording-only",
-		"--mute-audio",
-		"--no-default-browser-check",
-		"--no-first-run",
-		"--no-sandbox",
-		"--password-store=basic",
-		"--remote-debugging-port=0",
-		"--safebrowsing-disable-auto-update",
-		"--use-mock-keychain",
-		"--user-data-dir=/tmp/browser-init",
-	}
-}
-
-// logArgs logs browser arguments in a sorted, JSON format
-func logArgs(args []string) {
-	sortedArgs := make([]string, len(args))
-	copy(sortedArgs, args)
-	sort.Strings(sortedArgs)
-	argsAsJson, err := json.MarshalIndent(sortedArgs, "", "  ")
-	if err != nil {
-		log.Fatalf("Failed to marshal browser args to JSON: %v", err)
-	}
-	log.Printf("Browser args: %v\n", string(argsAsJson))
-}
-
 var unitToPixels = map[string]float64{
 	"px": 1,
 	"in": 96,
@@ -954,8 +259,6 @@ func convertMargin(margin string) float64 {
 	if margin == "" {
 		return 0.0
 	}
-
-	// Unit to pixels conversion (matching Puppeteer)
 
 	var pixels float64
 	var unit string
@@ -1004,47 +307,4 @@ func mapCustomError(err error) *types.PDFError {
 
 	// Wrap other errors
 	return types.NewPDFError(types.ErrUnhandledBrowserError, "", err)
-}
-
-// getBrowserVersionFromConnection gets browser version using a direct WebSocket connection
-func getBrowserVersionFromConnection(conn *websocket.Conn) (*types.BrowserVersion, error) {
-	cmd := cdp.CDPCommand{
-		ID:     1,
-		Method: "Browser.getVersion",
-		Params: nil,
-	}
-
-	// Send command
-	err := conn.WriteJSON(cmd)
-	if err != nil {
-		return nil, fmt.Errorf("failed to send Browser.getVersion command: %w", err)
-	}
-
-	// Wait for response
-	_, msgBytes, err := conn.ReadMessage()
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %w", err)
-	}
-
-	var msg cdp.CDPMessage
-	if err := json.Unmarshal(msgBytes, &msg); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
-	}
-
-	if msg.Error != nil {
-		return nil, fmt.Errorf("CDP error: %v", msg.Error)
-	}
-
-	result, ok := msg.Result.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid response format")
-	}
-
-	return &types.BrowserVersion{
-		Product:         cdp.GetStringFromMap(result, "product"),
-		ProtocolVersion: cdp.GetStringFromMap(result, "protocolVersion"),
-		Revision:        cdp.GetStringFromMap(result, "revision"),
-		UserAgent:       cdp.GetStringFromMap(result, "userAgent"),
-		JSVersion:       cdp.GetStringFromMap(result, "jsVersion"),
-	}, nil
 }
