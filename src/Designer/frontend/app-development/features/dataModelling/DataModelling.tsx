@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioPageSpinner, StudioError } from '@studio/components-legacy';
-import { StudioCenter } from '@studio/components';
+import { StudioPageSpinner } from '@studio/components-legacy';
+import { StudioCenter, StudioError } from '@studio/components';
 import { ErrorMessage, Paragraph } from '@digdir/designsystemet-react';
 import { SchemaEditorWithToolbar } from './SchemaEditorWithToolbar';
 import { useDataModelsJsonQuery, useDataModelsXsdQuery } from 'app-shared/hooks/queries';

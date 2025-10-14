@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSchemaQuery } from '../../../hooks/queries';
 import { useSchemaMutation } from '../../../hooks/mutations';
-import { StudioError, StudioPageSpinner } from '@studio/components-legacy';
-import { StudioCenter } from '@studio/components';
+import { StudioPageSpinner } from '@studio/components-legacy';
+import { StudioCenter, StudioError } from '@studio/components';
 import { ErrorMessage, Paragraph } from '@digdir/designsystemet-react';
 import { SchemaEditorApp } from '@altinn/schema-editor/SchemaEditorApp';
 import { useTranslation } from 'react-i18next';
