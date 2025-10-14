@@ -12,7 +12,7 @@ export abstract class Page<Name extends PageName> {
   abstract readonly titleKey: string;
 
   isConfigured(config: ContentLibraryConfig): boolean {
-    return this.name in config.pages;
+    return !!config.pages[this.name];
   }
 
   renderPage(config: ContentLibraryConfig): React.ReactElement {
@@ -22,7 +22,7 @@ export abstract class Page<Name extends PageName> {
 
   extractProps(config: ContentLibraryConfig): PagePropsMap<Name> {
     /* istanbul ignore else */
-    if (this.name in config.pages) return config.pages[this.name].props;
+    if (config.pages[this.name]) return config.pages[this.name].props;
     else throw new Error(`No configuration found for ${this.name}.`);
   }
 
