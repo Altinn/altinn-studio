@@ -29,7 +29,7 @@ spec:
   prune: false
   force: false
   wait: true
-  path: ./${ENVIRONMENT}
+  path: ./
   sourceRef:
     kind: OCIRepository
     name: studio-gateway-repo
