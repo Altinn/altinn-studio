@@ -1,4 +1,4 @@
-.PHONY: help nix-update gen cluster format lint build-local build run test test-loop logs loadtest
+.PHONY: help nix-update gen cluster registry format lint build-local build run test test-loop logs loadtest
 .DEFAULT_GOAL := help
 
 help: ## Show this help message
@@ -69,6 +69,9 @@ else
 	fi
 endif
 
+registry: ## Starts a local registry
+	./registry.sh
+
 format: ## Run code formatters
 	golangci-lint fmt
 
@@ -87,10 +90,12 @@ build: cluster ## Build and load Docker images (cached)
 		echo "No source changes detected, skipping image rebuild"; \
 	else \
 		echo "Source changes detected, rebuilding images..."; \
-		$(CONTAINER_CMD) build -t runtime-pdf3-proxy:latest -f Dockerfile.proxy .; \
-		$(CONTAINER_CMD) build -t runtime-pdf3-worker:latest -f Dockerfile.worker .; \
-		kind load docker-image runtime-pdf3-proxy:latest --name pdf3-cluster; \
-		kind load docker-image runtime-pdf3-worker:latest --name pdf3-cluster; \
+		$(CONTAINER_CMD) build -t localhost:5001/runtime-pdf3-proxy:latest -f Dockerfile.proxy .; \
+		$(CONTAINER_CMD) build -t localhost:5001/runtime-pdf3-worker:latest -f Dockerfile.worker .; \
+		# kind load docker-image localhost:5001/runtime-pdf3-proxy:latest --name pdf3-cluster; \
+		# kind load docker-image localhost:5001/runtime-pdf3-worker:latest --name pdf3-cluster; \
+		$(CONTAINER_CMD) push --tls-verify=false localhost:5001/runtime-pdf3-proxy:latest; \
+		$(CONTAINER_CMD) push --tls-verify=false localhost:5001/runtime-pdf3-worker:latest; \
 		echo "$$combined_hash" > .last-build-hash; \
 	fi
 

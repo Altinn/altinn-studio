@@ -22,3 +22,18 @@ patches:
         value:
           name: TEST_INTERNALS_MODE
           value: "true"
+  # Update images
+  - target:
+      kind: Deployment
+      name: pdf3-worker
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/image
+        value: "localhost:5001/runtime-pdf3-worker:latest"
+  - target:
+      kind: Deployment
+      name: pdf3-proxy
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/image
+        value: "localhost:5001/runtime-pdf3-proxy:latest"
