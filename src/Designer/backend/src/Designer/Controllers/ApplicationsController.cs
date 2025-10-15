@@ -4,16 +4,19 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Admin.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("designer/api/admin/[controller]")]
 public class ApplicationsController : ControllerBase
 {
@@ -33,6 +36,7 @@ public class ApplicationsController : ControllerBase
     }
 
     [HttpGet("{org}")]
+    [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
     public async Task<ActionResult<Dictionary<string, List<KubernetesDeployment>>>> GetApps(
         string org,
         CancellationToken ct
@@ -62,6 +66,7 @@ public class ApplicationsController : ControllerBase
     }
 
     [HttpGet("{org}/{env}/{app}/process-tasks")]
+    [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
     public async Task<ActionResult<IEnumerable<ProcessTask>>> GetProcessTasks(
         string org,
         string env,
