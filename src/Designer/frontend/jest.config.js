@@ -27,6 +27,10 @@ const packagesToTransform = [
   'vfile-message',
 ].join('|');
 
+const resolveNodeModulePath = (subPath) => {
+  return path.join(__dirname, "../../../node_modules/", subPath);
+}
+
 /** @type {import('jest').Config} */
 const config = {
   transform: {
@@ -44,8 +48,8 @@ const config = {
     // prettier-ignore
     '\\.(jpg|jpeg|png|gif|eot|otf|svg|webp|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': path.join(__dirname, 'testing/mocks/fileMock.js'),
     '\\.(css|less)$': 'identity-obj-proxy',
-    '^@bpmn-io/diagram-js-ui$': path.join(__dirname, '../../../node_modules/@bpmn-io/diagram-js-ui/lib/index.js'),
-    '^path-intersection$': path.join(__dirname, '../../../node_modules/path-intersection/intersect.js'),
+    '^@bpmn-io/diagram-js-ui$': resolveNodeModulePath('@bpmn-io/diagram-js-ui/lib/index.js'),
+    '^path-intersection$': resolveNodeModulePath('path-intersection/intersect.js'),
     '^preact(/(.*)|$)': 'preact$1',
     '^@altinn/policy-editor/(.*)': path.join(__dirname, 'packages/policy-editor/src/$1'),
     '^@altinn/process-editor/(.*)': path.join(__dirname, 'packages/process-editor/src/$1'),
