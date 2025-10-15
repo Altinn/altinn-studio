@@ -30,10 +30,7 @@
     <bpmn:serviceTask id="Task_3" name="PDF">
       <bpmn:extensionElements>
         <altinn:taskExtension>
-            <altinn:taskType>pdf</altinn:taskType>
-            <altinn:pdfConfig>
-                <altinn:filename>pdfFileName</altinn:filename>
-            </altinn:pdfConfig>
+          <altinn:taskType>pdf</altinn:taskType>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0c458hu</bpmn:incoming>
@@ -42,21 +39,7 @@
     <bpmn:serviceTask id="Task_4" name="eFormidling">
       <bpmn:extensionElements>
         <altinn:taskExtension>
-            <altinn:taskType>eFormidling</altinn:taskType>
-            <altinn:eFormidlingConfig>
-                <altinn:disabled env="local">true</altinn:disabled>
-                <altinn:receiver>991825827</altinn:receiver>
-                <altinn:process>urn:no:difi:profile:arkivmelding:administrasjon:ver1.0</altinn:process>
-                <altinn:standard>urn:no:difi:arkivmelding:xsd::arkivmelding</altinn:standard>
-                <altinn:typeVersion>2.0</altinn:typeVersion>
-                <altinn:type>arkivmelding</altinn:type>
-                <altinn:securityLevel>3</altinn:securityLevel>
-                <altinn:dpfShipmentType>digital</altinn:dpfShipmentType>
-                <altinn:dataTypes>
-                    <altinn:dataType>model</altinn:dataType>
-                    <altinn:dataType>ref-data-as-pdf</altinn:dataType>
-                </altinn:dataTypes>
-            </altinn:eFormidlingConfig>
+          <altinn:taskType>eFormidling</altinn:taskType>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0mjhgp9</bpmn:incoming>
@@ -124,13 +107,7 @@
     <bpmn:serviceTask id="Activity_0tgsac0" name="PDF">
       <bpmn:extensionElements>
         <altinn:taskExtension>
-            <altinn:taskType>pdf</altinn:taskType>
-            <altinn:pdfConfig>
-                <altinn:autoPdfTaskIds>
-                    <altinn:taskId>Task_1</altinn:taskId>
-                    <altinn:taskId>Task_2</altinn:taskId>
-                </altinn:autoPdfTaskIds>
-            </altinn:pdfConfig>
+          <altinn:taskType>pdf</altinn:taskType>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0er70tq</bpmn:incoming>
@@ -142,30 +119,14 @@
       <bpmn:outgoing>Flow_1ypajov</bpmn:outgoing>
       <bpmn:outgoing>Flow_039bpvi</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_1ypajov" sourceRef="Gateway_19sxbsr" targetRef="SubformPdf">
+    <bpmn:sequenceFlow id="Flow_1ypajov" sourceRef="Gateway_19sxbsr" targetRef="Gateway_0nbbily">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_039bpvi" sourceRef="Gateway_19sxbsr" targetRef="Task_2">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-      <bpmn:serviceTask id="SubformPdf" name="Subform PDF">
-      <bpmn:extensionElements>
-        <altinn:taskExtension>
-            <altinn:taskType>subform-pdf</altinn:taskType>
-            <altinn:subformPdfConfig>
-                <altinn:subformComponentId>Subform-z8we7d</altinn:subformComponentId>
-                <altinn:subformDatatTypeId>SubformModel</altinn:subformDatatTypeId>
-                <altinn:filename>subformPdfFileName</altinn:filename>
-                <altinn:dataTypeId>ref-data-as-pdf</altinn:dataTypeId>
-            </altinn:subformPdfConfig>
-        </altinn:taskExtension>
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_1ypajov</bpmn:incoming>
-      <bpmn:outgoing>Flow_0qgb61t</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:sequenceFlow id="Flow_0qgb61t" sourceRef="SubformPdf" targetRef="Gateway_0nbbily" />
     <bpmn:exclusiveGateway id="Gateway_0nbbily">
-      <bpmn:incoming>Flow_0qgb61t</bpmn:incoming>
+      <bpmn:incoming>Flow_1ypajov</bpmn:incoming>
       <bpmn:outgoing>Flow_0mjhgp9</bpmn:outgoing>
       <bpmn:outgoing>Flow_1ekqnd6</bpmn:outgoing>
     </bpmn:exclusiveGateway>
@@ -190,36 +151,33 @@
       <bpmndi:BPMNShape id="Task_3_di" bpmnElement="Task_3">
         <dc:Bounds x="720" y="81" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
-        <dc:Bounds x="2322" y="103" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_07jde91_di" bpmnElement="Gateway_07jde91" isMarkerVisible="true">
-        <dc:Bounds x="915" y="96" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BPMNShape_0c2l0o9" bpmnElement="Activity_0tgsac0">
-        <dc:Bounds x="1090" y="81" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_0x86z9e_di" bpmnElement="Gateway_0x86z9e" isMarkerVisible="true">
-        <dc:Bounds x="2235" y="96" width="50" height="50" />
+      <bpmndi:BPMNShape id="Task_4_di" bpmnElement="Task_4">
+        <dc:Bounds x="1810" y="81" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_0yyd3hy" bpmnElement="Task_5">
         <dc:Bounds x="2080" y="81" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
+        <dc:Bounds x="2322" y="103" width="36" height="36" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_0xx0u3h_di" bpmnElement="Gateway_0xx0u3h" isMarkerVisible="true">
         <dc:Bounds x="1965" y="96" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_4_di" bpmnElement="Task_4">
-        <dc:Bounds x="1810" y="81" width="100" height="80" />
+      <bpmndi:BPMNShape id="Gateway_07jde91_di" bpmnElement="Gateway_07jde91" isMarkerVisible="true">
+        <dc:Bounds x="915" y="96" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0x86z9e_di" bpmnElement="Gateway_0x86z9e" isMarkerVisible="true">
+        <dc:Bounds x="2235" y="96" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0c2l0o9" bpmnElement="Activity_0tgsac0">
+        <dc:Bounds x="1090" y="81" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_0pv239g" bpmnElement="Gateway_19sxbsr" isMarkerVisible="true">
         <dc:Bounds x="1255" y="96" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_1pt9zso" bpmnElement="Gateway_0nbbily" isMarkerVisible="true">
         <dc:Bounds x="1555" y="96" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BPMNShape_0qeyonn" bpmnElement="SubformPdf">
-        <dc:Bounds x="1410" y="81" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1n56yn5_di" bpmnElement="SequenceFlow_1n56yn5">
         <di:waypoint x="192" y="121" />
@@ -281,17 +239,13 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1ypajov_di" bpmnElement="Flow_1ypajov">
         <di:waypoint x="1305" y="121" />
-        <di:waypoint x="1410" y="121" />
+        <di:waypoint x="1555" y="121" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_039bpvi_di" bpmnElement="Flow_039bpvi">
         <di:waypoint x="1280" y="146" />
         <di:waypoint x="1280" y="270" />
         <di:waypoint x="570" y="270" />
         <di:waypoint x="570" y="161" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0qgb61t_di" bpmnElement="Flow_0qgb61t">
-        <di:waypoint x="1510" y="121" />
-        <di:waypoint x="1555" y="121" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0mjhgp9_di" bpmnElement="Flow_0mjhgp9">
         <di:waypoint x="1605" y="121" />
