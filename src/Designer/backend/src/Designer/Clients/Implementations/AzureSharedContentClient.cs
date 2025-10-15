@@ -30,6 +30,7 @@ public class AzureSharedContentClient(
     private const string InitialVersion = "1";
     private const string CodeList = "code_lists";
     private const string IndexFileName = "_index.json";
+    private const string LatestFileName = "latest.json";
 
     private string _currentVersion = InitialVersion;
     private readonly Dictionary<string, string> _fileNamesAndContent = [];
@@ -38,8 +39,10 @@ public class AzureSharedContentClient(
 
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
+        WriteIndented = true,
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         AllowTrailingCommas = true
     };
 
@@ -175,7 +178,9 @@ public class AzureSharedContentClient(
         var codeListContents = new SharedCodeList(codeList.Codes, codeList.TagNames);
         string contentsString = JsonSerializer.Serialize(codeListContents, s_jsonOptions);
         string codeListFilePath = Path.Join(codeListFolderPath, codeListFileName);
+        string lastestCodeListFilePath = Path.Join(codeListFolderPath, LatestFileName);
         _fileNamesAndContent[codeListFilePath] = contentsString;
+        _fileNamesAndContent[lastestCodeListFilePath] = contentsString;
     }
 
     private List<Task> PrepareBlobTasks(BlobContainerClient containerClient, CancellationToken cancellationToken = default)
