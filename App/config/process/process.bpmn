@@ -1,285 +1,294 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Altinn_SingleDataTask_Process_Definition" targetNamespace="http://bpmn.io/schema/bpmn">
-  <bpmn:process id="SingleDataTask" isExecutable="false">
-    <bpmn:startEvent id="StartEvent_1">
-      <bpmn:outgoing>SequenceFlow_1n56yn5</bpmn:outgoing>
-    </bpmn:startEvent>
-    <bpmn:task id="Task_1" name="Utfylling">
-      <bpmn:extensionElements>
-        <altinn:taskExtension>
-          <altinn:taskType>data</altinn:taskType>
-        </altinn:taskExtension>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_1n56yn5</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1oot28q</bpmn:outgoing>
-    </bpmn:task>
-    <bpmn:task id="Task_2" name="Utfylling 2">
-      <bpmn:extensionElements>
-        <altinn:taskExtension>
-          <altinn:taskType>data</altinn:taskType>
-        </altinn:taskExtension>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_1oot28q</bpmn:incoming>
-      <bpmn:incoming>Flow_0lyp28m</bpmn:incoming>
-      <bpmn:incoming>Flow_0uveanp</bpmn:incoming>
-      <bpmn:incoming>Flow_1jznfzr</bpmn:incoming>
-      <bpmn:incoming>Flow_039bpvi</bpmn:incoming>
-      <bpmn:incoming>Flow_1ekqnd6</bpmn:incoming>
-      <bpmn:outgoing>Flow_0c458hu</bpmn:outgoing>
-    </bpmn:task>
-    <bpmn:serviceTask id="Task_3" name="PDF">
-      <bpmn:extensionElements>
-        <altinn:taskExtension>
-            <altinn:taskType>pdf</altinn:taskType>
-            <altinn:pdfConfig>
-                <altinn:filename>pdfFileName</altinn:filename>
-            </altinn:pdfConfig>
-        </altinn:taskExtension>
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_0c458hu</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_5assd2s</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_4" name="eFormidling">
-      <bpmn:extensionElements>
-        <altinn:taskExtension>
-            <altinn:taskType>eFormidling</altinn:taskType>
-            <altinn:eFormidlingConfig>
-                <altinn:disabled env="local">true</altinn:disabled>
-                <altinn:receiver>991825827</altinn:receiver>
-                <altinn:process>urn:no:difi:profile:arkivmelding:administrasjon:ver1.0</altinn:process>
-                <altinn:standard>urn:no:difi:arkivmelding:xsd::arkivmelding</altinn:standard>
-                <altinn:typeVersion>2.0</altinn:typeVersion>
-                <altinn:type>arkivmelding</altinn:type>
-                <altinn:securityLevel>3</altinn:securityLevel>
-                <altinn:dpfShipmentType>digital</altinn:dpfShipmentType>
-                <altinn:dataTypes>
-                    <altinn:dataType>model</altinn:dataType>
-                    <altinn:dataType>ref-data-as-pdf</altinn:dataType>
-                </altinn:dataTypes>
-            </altinn:eFormidlingConfig>
-        </altinn:taskExtension>
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_0mjhgp9</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_2asasd1</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_5" name="Fail">
-      <bpmn:extensionElements>
-        <altinn:taskExtension>
-          <altinn:taskType>fail</altinn:taskType>
-          <altinn:actions>
-            <altinn:action>reject</altinn:action>
-          </altinn:actions>
-        </altinn:taskExtension>
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_1yq6g64</bpmn:incoming>
-      <bpmn:outgoing>Flow_1xowpt0</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:endEvent id="EndEvent_1">
-      <bpmn:incoming>Flow_040rnj7</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:sequenceFlow id="SequenceFlow_1n56yn5" sourceRef="StartEvent_1" targetRef="Task_1" />
-    <bpmn:sequenceFlow id="SequenceFlow_1oot28q" sourceRef="Task_1" targetRef="Task_2" />
-    <bpmn:sequenceFlow id="Flow_0c458hu" sourceRef="Task_2" targetRef="Task_3" />
-    <bpmn:sequenceFlow id="SequenceFlow_5assd2s" sourceRef="Task_3" targetRef="Gateway_07jde91" />
-    <bpmn:sequenceFlow id="SequenceFlow_2asasd1" sourceRef="Task_4" targetRef="Gateway_0xx0u3h" />
-    <bpmn:exclusiveGateway id="Gateway_0xx0u3h">
-      <bpmn:incoming>SequenceFlow_2asasd1</bpmn:incoming>
-      <bpmn:outgoing>Flow_1yq6g64</bpmn:outgoing>
-      <bpmn:outgoing>Flow_0lyp28m</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_1yq6g64" sourceRef="Gateway_0xx0u3h" targetRef="Task_5">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process"
+                  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Altinn_SingleDataTask_Process_Definition" targetNamespace="http://bpmn.io/schema/bpmn">
+    <bpmn:process id="SingleDataTask" isExecutable="false">
+        <bpmn:startEvent id="StartEvent_1">
+            <bpmn:outgoing>SequenceFlow_1n56yn5</bpmn:outgoing>
+        </bpmn:startEvent>
+        <bpmn:task id="Task_1" name="Utfylling">
+            <bpmn:extensionElements>
+                <altinn:taskExtension>
+                    <altinn:taskType>data</altinn:taskType>
+                </altinn:taskExtension>
+            </bpmn:extensionElements>
+            <bpmn:incoming>SequenceFlow_1n56yn5</bpmn:incoming>
+            <bpmn:outgoing>SequenceFlow_1oot28q</bpmn:outgoing>
+        </bpmn:task>
+        <bpmn:task id="Task_2" name="Utfylling 2">
+            <bpmn:extensionElements>
+                <altinn:taskExtension>
+                    <altinn:taskType>data</altinn:taskType>
+                </altinn:taskExtension>
+            </bpmn:extensionElements>
+            <bpmn:incoming>SequenceFlow_1oot28q</bpmn:incoming>
+            <bpmn:incoming>Flow_0lyp28m</bpmn:incoming>
+            <bpmn:incoming>Flow_0uveanp</bpmn:incoming>
+            <bpmn:incoming>Flow_1jznfzr</bpmn:incoming>
+            <bpmn:incoming>Flow_039bpvi</bpmn:incoming>
+            <bpmn:incoming>Flow_1ekqnd6</bpmn:incoming>
+            <bpmn:outgoing>Flow_0c458hu</bpmn:outgoing>
+        </bpmn:task>
+        <bpmn:serviceTask id="Task_3" name="PDF">
+            <bpmn:extensionElements>
+                <altinn:taskExtension>
+                    <altinn:taskType>pdf</altinn:taskType>
+                    <altinn:pdfConfig>
+                        <altinn:filename>pdfFileName</altinn:filename>
+                    </altinn:pdfConfig>
+                </altinn:taskExtension>
+            </bpmn:extensionElements>
+            <bpmn:incoming>Flow_0c458hu</bpmn:incoming>
+            <bpmn:outgoing>SequenceFlow_5assd2s</bpmn:outgoing>
+        </bpmn:serviceTask>
+        <bpmn:serviceTask id="Activity_0tgsac0" name="PDF">
+            <bpmn:extensionElements>
+                <altinn:taskExtension>
+                    <altinn:taskType>pdf</altinn:taskType>
+                    <altinn:pdfConfig>
+                        <altinn:autoPdfTaskIds>
+                            <altinn:taskId>Task_1</altinn:taskId>
+                            <altinn:taskId>Task_2</altinn:taskId>
+                        </altinn:autoPdfTaskIds>
+                    </altinn:pdfConfig>
+                </altinn:taskExtension>
+            </bpmn:extensionElements>
+            <bpmn:incoming>Flow_0er70tq</bpmn:incoming>
+            <bpmn:outgoing>Flow_19ikt1z</bpmn:outgoing>
+        </bpmn:serviceTask>
+        <bpmn:serviceTask id="Task_4" name="eFormidling">
+            <bpmn:extensionElements>
+                <altinn:taskExtension>
+                    <altinn:taskType>eFormidling</altinn:taskType>
+                    <altinn:eFormidlingConfig>
+                        <altinn:disabled env="local">true</altinn:disabled>
+                        <altinn:receiver>991825827</altinn:receiver>
+                        <altinn:process>urn:no:difi:profile:arkivmelding:administrasjon:ver1.0</altinn:process>
+                        <altinn:standard>urn:no:difi:arkivmelding:xsd::arkivmelding</altinn:standard>
+                        <altinn:typeVersion>2.0</altinn:typeVersion>
+                        <altinn:type>arkivmelding</altinn:type>
+                        <altinn:securityLevel>3</altinn:securityLevel>
+                        <altinn:dpfShipmentType>digital</altinn:dpfShipmentType>
+                        <altinn:dataTypes>
+                            <altinn:dataType>model</altinn:dataType>
+                            <altinn:dataType>ref-data-as-pdf</altinn:dataType>
+                        </altinn:dataTypes>
+                    </altinn:eFormidlingConfig>
+                </altinn:taskExtension>
+            </bpmn:extensionElements>
+            <bpmn:incoming>Flow_0mjhgp9</bpmn:incoming>
+            <bpmn:outgoing>SequenceFlow_2asasd1</bpmn:outgoing>
+        </bpmn:serviceTask>
+        <bpmn:serviceTask id="Task_5" name="Fail">
+            <bpmn:extensionElements>
+                <altinn:taskExtension>
+                    <altinn:taskType>fail</altinn:taskType>
+                    <altinn:actions>
+                        <altinn:action>reject</altinn:action>
+                    </altinn:actions>
+                </altinn:taskExtension>
+            </bpmn:extensionElements>
+            <bpmn:incoming>Flow_1yq6g64</bpmn:incoming>
+            <bpmn:outgoing>Flow_1xowpt0</bpmn:outgoing>
+        </bpmn:serviceTask>
+        <bpmn:endEvent id="EndEvent_1">
+            <bpmn:incoming>Flow_040rnj7</bpmn:incoming>
+        </bpmn:endEvent>
+        <bpmn:sequenceFlow id="SequenceFlow_1n56yn5" sourceRef="StartEvent_1" targetRef="Task_1"/>
+        <bpmn:sequenceFlow id="SequenceFlow_1oot28q" sourceRef="Task_1" targetRef="Task_2"/>
+        <bpmn:sequenceFlow id="Flow_0c458hu" sourceRef="Task_2" targetRef="Task_3"/>
+        <bpmn:sequenceFlow id="SequenceFlow_5assd2s" sourceRef="Task_3" targetRef="Gateway_07jde91"/>
+        <bpmn:sequenceFlow id="SequenceFlow_2asasd1" sourceRef="Task_4" targetRef="Gateway_0xx0u3h"/>
+        <bpmn:exclusiveGateway id="Gateway_0xx0u3h">
+            <bpmn:incoming>SequenceFlow_2asasd1</bpmn:incoming>
+            <bpmn:outgoing>Flow_1yq6g64</bpmn:outgoing>
+            <bpmn:outgoing>Flow_0lyp28m</bpmn:outgoing>
+        </bpmn:exclusiveGateway>
+        <bpmn:sequenceFlow id="Flow_1yq6g64" sourceRef="Gateway_0xx0u3h" targetRef="Task_5">
+            <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]
             </bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_0lyp28m" sourceRef="Gateway_0xx0u3h" targetRef="Task_2">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["gatewayAction"],"reject"]
+        </bpmn:sequenceFlow>
+        <bpmn:sequenceFlow id="Flow_0lyp28m" sourceRef="Gateway_0xx0u3h" targetRef="Task_2">
+            <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["gatewayAction"],"reject"]
             </bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:exclusiveGateway id="Gateway_07jde91">
-      <bpmn:incoming>SequenceFlow_5assd2s</bpmn:incoming>
-      <bpmn:outgoing>Flow_0uveanp</bpmn:outgoing>
-      <bpmn:outgoing>Flow_0er70tq</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_0uveanp" sourceRef="Gateway_07jde91" targetRef="Task_2">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["gatewayAction"],"reject"]
+        </bpmn:sequenceFlow>
+        <bpmn:exclusiveGateway id="Gateway_07jde91">
+            <bpmn:incoming>SequenceFlow_5assd2s</bpmn:incoming>
+            <bpmn:outgoing>Flow_0uveanp</bpmn:outgoing>
+            <bpmn:outgoing>Flow_0er70tq</bpmn:outgoing>
+        </bpmn:exclusiveGateway>
+        <bpmn:sequenceFlow id="Flow_0uveanp" sourceRef="Gateway_07jde91" targetRef="Task_2">
+            <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["gatewayAction"],"reject"]
             </bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_1xowpt0" sourceRef="Task_5" targetRef="Gateway_0x86z9e" />
-    <bpmn:exclusiveGateway id="Gateway_0x86z9e">
-      <bpmn:incoming>Flow_1xowpt0</bpmn:incoming>
-      <bpmn:outgoing>Flow_040rnj7</bpmn:outgoing>
-      <bpmn:outgoing>Flow_1jznfzr</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_040rnj7" sourceRef="Gateway_0x86z9e" targetRef="EndEvent_1">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]
+        </bpmn:sequenceFlow>
+        <bpmn:sequenceFlow id="Flow_1xowpt0" sourceRef="Task_5" targetRef="Gateway_0x86z9e"/>
+        <bpmn:exclusiveGateway id="Gateway_0x86z9e">
+            <bpmn:incoming>Flow_1xowpt0</bpmn:incoming>
+            <bpmn:outgoing>Flow_040rnj7</bpmn:outgoing>
+            <bpmn:outgoing>Flow_1jznfzr</bpmn:outgoing>
+        </bpmn:exclusiveGateway>
+        <bpmn:sequenceFlow id="Flow_040rnj7" sourceRef="Gateway_0x86z9e" targetRef="EndEvent_1">
+            <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]
             </bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_1jznfzr" sourceRef="Gateway_0x86z9e" targetRef="Task_2">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["gatewayAction"],"reject"]
+        </bpmn:sequenceFlow>
+        <bpmn:sequenceFlow id="Flow_1jznfzr" sourceRef="Gateway_0x86z9e" targetRef="Task_2">
+            <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["gatewayAction"],"reject"]
             </bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_0er70tq" sourceRef="Gateway_07jde91" targetRef="Activity_0tgsac0">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:serviceTask id="Activity_0tgsac0" name="PDF">
-      <bpmn:extensionElements>
-        <altinn:taskExtension>
-            <altinn:taskType>pdf</altinn:taskType>
-            <altinn:pdfConfig>
-                <altinn:autoPdfTaskIds>
-                    <altinn:taskId>Task_1</altinn:taskId>
-                    <altinn:taskId>Task_2</altinn:taskId>
-                </altinn:autoPdfTaskIds>
-            </altinn:pdfConfig>
-        </altinn:taskExtension>
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_0er70tq</bpmn:incoming>
-      <bpmn:outgoing>Flow_19ikt1z</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:sequenceFlow id="Flow_19ikt1z" sourceRef="Activity_0tgsac0" targetRef="Gateway_19sxbsr" />
-    <bpmn:exclusiveGateway id="Gateway_19sxbsr">
-      <bpmn:incoming>Flow_19ikt1z</bpmn:incoming>
-      <bpmn:outgoing>Flow_1ypajov</bpmn:outgoing>
-      <bpmn:outgoing>Flow_039bpvi</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_1ypajov" sourceRef="Gateway_19sxbsr" targetRef="Gateway_0nbbily">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_039bpvi" sourceRef="Gateway_19sxbsr" targetRef="Task_2">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:exclusiveGateway id="Gateway_0nbbily">
-      <bpmn:incoming>Flow_1ypajov</bpmn:incoming>
-      <bpmn:outgoing>Flow_0mjhgp9</bpmn:outgoing>
-      <bpmn:outgoing>Flow_1ekqnd6</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_0mjhgp9" sourceRef="Gateway_0nbbily" targetRef="Task_4">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_1ekqnd6" sourceRef="Gateway_0nbbily" targetRef="Task_2">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-  </bpmn:process>
-  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="SingleDataTask">
-      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
-        <dc:Bounds x="156" y="103" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_1_di" bpmnElement="Task_1">
-        <dc:Bounds x="300" y="81" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_2_di" bpmnElement="Task_2">
-        <dc:Bounds x="500" y="81" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_3_di" bpmnElement="Task_3">
-        <dc:Bounds x="720" y="81" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_4_di" bpmnElement="Task_4">
-        <dc:Bounds x="1810" y="81" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BPMNShape_0yyd3hy" bpmnElement="Task_5">
-        <dc:Bounds x="2080" y="81" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
-        <dc:Bounds x="2322" y="103" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_0xx0u3h_di" bpmnElement="Gateway_0xx0u3h" isMarkerVisible="true">
-        <dc:Bounds x="1965" y="96" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_07jde91_di" bpmnElement="Gateway_07jde91" isMarkerVisible="true">
-        <dc:Bounds x="915" y="96" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_0x86z9e_di" bpmnElement="Gateway_0x86z9e" isMarkerVisible="true">
-        <dc:Bounds x="2235" y="96" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BPMNShape_0c2l0o9" bpmnElement="Activity_0tgsac0">
-        <dc:Bounds x="1090" y="81" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BPMNShape_0pv239g" bpmnElement="Gateway_19sxbsr" isMarkerVisible="true">
-        <dc:Bounds x="1255" y="96" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BPMNShape_1pt9zso" bpmnElement="Gateway_0nbbily" isMarkerVisible="true">
-        <dc:Bounds x="1555" y="96" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_1n56yn5_di" bpmnElement="SequenceFlow_1n56yn5">
-        <di:waypoint x="192" y="121" />
-        <di:waypoint x="300" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1oot28q_di" bpmnElement="SequenceFlow_1oot28q">
-        <di:waypoint x="400" y="121" />
-        <di:waypoint x="500" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0c458hu_di" bpmnElement="Flow_0c458hu">
-        <di:waypoint x="600" y="121" />
-        <di:waypoint x="720" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_5assd2s_di" bpmnElement="SequenceFlow_5assd2s">
-        <di:waypoint x="820" y="121" />
-        <di:waypoint x="915" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_2asasd1_di" bpmnElement="SequenceFlow_2asasd1">
-        <di:waypoint x="1910" y="121" />
-        <di:waypoint x="1965" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1yq6g64_di" bpmnElement="Flow_1yq6g64">
-        <di:waypoint x="2015" y="121" />
-        <di:waypoint x="2080" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0lyp28m_di" bpmnElement="Flow_0lyp28m">
-        <di:waypoint x="1990" y="146" />
-        <di:waypoint x="1990" y="290" />
-        <di:waypoint x="550" y="290" />
-        <di:waypoint x="550" y="161" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0uveanp_di" bpmnElement="Flow_0uveanp">
-        <di:waypoint x="940" y="146" />
-        <di:waypoint x="940" y="230" />
-        <di:waypoint x="590" y="230" />
-        <di:waypoint x="590" y="161" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1xowpt0_di" bpmnElement="Flow_1xowpt0">
-        <di:waypoint x="2180" y="121" />
-        <di:waypoint x="2235" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_040rnj7_di" bpmnElement="Flow_040rnj7">
-        <di:waypoint x="2285" y="121" />
-        <di:waypoint x="2322" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1jznfzr_di" bpmnElement="Flow_1jznfzr">
-        <di:waypoint x="2260" y="146" />
-        <di:waypoint x="2260" y="340" />
-        <di:waypoint x="520" y="340" />
-        <di:waypoint x="520" y="161" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0er70tq_di" bpmnElement="Flow_0er70tq">
-        <di:waypoint x="965" y="121" />
-        <di:waypoint x="1090" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_19ikt1z_di" bpmnElement="Flow_19ikt1z">
-        <di:waypoint x="1190" y="121" />
-        <di:waypoint x="1255" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1ypajov_di" bpmnElement="Flow_1ypajov">
-        <di:waypoint x="1305" y="121" />
-        <di:waypoint x="1555" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_039bpvi_di" bpmnElement="Flow_039bpvi">
-        <di:waypoint x="1280" y="146" />
-        <di:waypoint x="1280" y="270" />
-        <di:waypoint x="570" y="270" />
-        <di:waypoint x="570" y="161" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0mjhgp9_di" bpmnElement="Flow_0mjhgp9">
-        <di:waypoint x="1605" y="121" />
-        <di:waypoint x="1810" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1ekqnd6_di" bpmnElement="Flow_1ekqnd6">
-        <di:waypoint x="1580" y="146" />
-        <di:waypoint x="1580" y="280" />
-        <di:waypoint x="560" y="280" />
-        <di:waypoint x="560" y="161" />
-      </bpmndi:BPMNEdge>
-    </bpmndi:BPMNPlane>
-  </bpmndi:BPMNDiagram>
+        </bpmn:sequenceFlow>
+        <bpmn:sequenceFlow id="Flow_0er70tq" sourceRef="Gateway_07jde91" targetRef="Activity_0tgsac0">
+            <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]
+            </bpmn:conditionExpression>
+        </bpmn:sequenceFlow>
+        <bpmn:sequenceFlow id="Flow_19ikt1z" sourceRef="Activity_0tgsac0" targetRef="Gateway_19sxbsr"/>
+        <bpmn:exclusiveGateway id="Gateway_19sxbsr">
+            <bpmn:incoming>Flow_19ikt1z</bpmn:incoming>
+            <bpmn:outgoing>Flow_1ypajov</bpmn:outgoing>
+            <bpmn:outgoing>Flow_039bpvi</bpmn:outgoing>
+        </bpmn:exclusiveGateway>
+        <bpmn:sequenceFlow id="Flow_1ypajov" sourceRef="Gateway_19sxbsr" targetRef="Gateway_0nbbily">
+            <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]
+            </bpmn:conditionExpression>
+        </bpmn:sequenceFlow>
+        <bpmn:sequenceFlow id="Flow_039bpvi" sourceRef="Gateway_19sxbsr" targetRef="Task_2">
+            <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["gatewayAction"],"reject"]
+            </bpmn:conditionExpression>
+        </bpmn:sequenceFlow>
+        <bpmn:exclusiveGateway id="Gateway_0nbbily">
+            <bpmn:incoming>Flow_1ypajov</bpmn:incoming>
+            <bpmn:outgoing>Flow_0mjhgp9</bpmn:outgoing>
+            <bpmn:outgoing>Flow_1ekqnd6</bpmn:outgoing>
+        </bpmn:exclusiveGateway>
+        <bpmn:sequenceFlow id="Flow_0mjhgp9" sourceRef="Gateway_0nbbily" targetRef="Task_4">
+            <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]
+            </bpmn:conditionExpression>
+        </bpmn:sequenceFlow>
+        <bpmn:sequenceFlow id="Flow_1ekqnd6" sourceRef="Gateway_0nbbily" targetRef="Task_2">
+            <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["gatewayAction"],"reject"]
+            </bpmn:conditionExpression>
+        </bpmn:sequenceFlow>
+    </bpmn:process>
+    <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+        <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="SingleDataTask">
+            <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+                <dc:Bounds x="156" y="103" width="36" height="36"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Task_1_di" bpmnElement="Task_1">
+                <dc:Bounds x="300" y="81" width="100" height="80"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Task_2_di" bpmnElement="Task_2">
+                <dc:Bounds x="500" y="81" width="100" height="80"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Task_3_di" bpmnElement="Task_3">
+                <dc:Bounds x="720" y="81" width="100" height="80"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Task_4_di" bpmnElement="Task_4">
+                <dc:Bounds x="1810" y="81" width="100" height="80"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="BPMNShape_0yyd3hy" bpmnElement="Task_5">
+                <dc:Bounds x="2080" y="81" width="100" height="80"/>
+                <bpmndi:BPMNLabel/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
+                <dc:Bounds x="2322" y="103" width="36" height="36"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Gateway_0xx0u3h_di" bpmnElement="Gateway_0xx0u3h" isMarkerVisible="true">
+                <dc:Bounds x="1965" y="96" width="50" height="50"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Gateway_07jde91_di" bpmnElement="Gateway_07jde91" isMarkerVisible="true">
+                <dc:Bounds x="915" y="96" width="50" height="50"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Gateway_0x86z9e_di" bpmnElement="Gateway_0x86z9e" isMarkerVisible="true">
+                <dc:Bounds x="2235" y="96" width="50" height="50"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="BPMNShape_0c2l0o9" bpmnElement="Activity_0tgsac0">
+                <dc:Bounds x="1090" y="81" width="100" height="80"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="BPMNShape_0pv239g" bpmnElement="Gateway_19sxbsr" isMarkerVisible="true">
+                <dc:Bounds x="1255" y="96" width="50" height="50"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="BPMNShape_1pt9zso" bpmnElement="Gateway_0nbbily" isMarkerVisible="true">
+                <dc:Bounds x="1555" y="96" width="50" height="50"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNEdge id="SequenceFlow_1n56yn5_di" bpmnElement="SequenceFlow_1n56yn5">
+                <di:waypoint x="192" y="121"/>
+                <di:waypoint x="300" y="121"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="SequenceFlow_1oot28q_di" bpmnElement="SequenceFlow_1oot28q">
+                <di:waypoint x="400" y="121"/>
+                <di:waypoint x="500" y="121"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_0c458hu_di" bpmnElement="Flow_0c458hu">
+                <di:waypoint x="600" y="121"/>
+                <di:waypoint x="720" y="121"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="SequenceFlow_5assd2s_di" bpmnElement="SequenceFlow_5assd2s">
+                <di:waypoint x="820" y="121"/>
+                <di:waypoint x="915" y="121"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="SequenceFlow_2asasd1_di" bpmnElement="SequenceFlow_2asasd1">
+                <di:waypoint x="1910" y="121"/>
+                <di:waypoint x="1965" y="121"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_1yq6g64_di" bpmnElement="Flow_1yq6g64">
+                <di:waypoint x="2015" y="121"/>
+                <di:waypoint x="2080" y="121"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_0lyp28m_di" bpmnElement="Flow_0lyp28m">
+                <di:waypoint x="1990" y="146"/>
+                <di:waypoint x="1990" y="290"/>
+                <di:waypoint x="550" y="290"/>
+                <di:waypoint x="550" y="161"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_0uveanp_di" bpmnElement="Flow_0uveanp">
+                <di:waypoint x="940" y="146"/>
+                <di:waypoint x="940" y="230"/>
+                <di:waypoint x="590" y="230"/>
+                <di:waypoint x="590" y="161"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_1xowpt0_di" bpmnElement="Flow_1xowpt0">
+                <di:waypoint x="2180" y="121"/>
+                <di:waypoint x="2235" y="121"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_040rnj7_di" bpmnElement="Flow_040rnj7">
+                <di:waypoint x="2285" y="121"/>
+                <di:waypoint x="2322" y="121"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_1jznfzr_di" bpmnElement="Flow_1jznfzr">
+                <di:waypoint x="2260" y="146"/>
+                <di:waypoint x="2260" y="340"/>
+                <di:waypoint x="520" y="340"/>
+                <di:waypoint x="520" y="161"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_0er70tq_di" bpmnElement="Flow_0er70tq">
+                <di:waypoint x="965" y="121"/>
+                <di:waypoint x="1090" y="121"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_19ikt1z_di" bpmnElement="Flow_19ikt1z">
+                <di:waypoint x="1190" y="121"/>
+                <di:waypoint x="1255" y="121"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_1ypajov_di" bpmnElement="Flow_1ypajov">
+                <di:waypoint x="1305" y="121"/>
+                <di:waypoint x="1555" y="121"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_039bpvi_di" bpmnElement="Flow_039bpvi">
+                <di:waypoint x="1280" y="146"/>
+                <di:waypoint x="1280" y="270"/>
+                <di:waypoint x="570" y="270"/>
+                <di:waypoint x="570" y="161"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_0mjhgp9_di" bpmnElement="Flow_0mjhgp9">
+                <di:waypoint x="1605" y="121"/>
+                <di:waypoint x="1810" y="121"/>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_1ekqnd6_di" bpmnElement="Flow_1ekqnd6">
+                <di:waypoint x="1580" y="146"/>
+                <di:waypoint x="1580" y="280"/>
+                <di:waypoint x="560" y="280"/>
+                <di:waypoint x="560" y="161"/>
+            </bpmndi:BPMNEdge>
+        </bpmndi:BPMNPlane>
+    </bpmndi:BPMNDiagram>
 </bpmn:definitions>
