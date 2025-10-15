@@ -15,7 +15,7 @@ class AppResourcesService : IAppResourcesService
     private readonly HttpClient _httpClient;
     private readonly IEnvironmentsService _environmentsService;
 
-    private readonly XNamespace BPMN = "http://www.omg.org/spec/BPMN/20100524/MODEL";
+    private readonly XNamespace _BPMN = "http://www.omg.org/spec/BPMN/20100524/MODEL";
 
     public AppResourcesService(HttpClient httpClient, IEnvironmentsService environmentsService)
     {
@@ -41,7 +41,7 @@ class AppResourcesService : IAppResourcesService
         var processXml = XDocument.Parse(responseString);
 
         return processXml
-            .Descendants(BPMN + "task")
+            .Descendants(_BPMN + "task")
             .Select(e => new ProcessTask()
             {
                 Id =

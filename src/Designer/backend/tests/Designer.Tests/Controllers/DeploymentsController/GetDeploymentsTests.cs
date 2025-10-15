@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models;
@@ -48,7 +49,7 @@ public class GetDeployments : DbDesignerEndpointsTestsBase<GetDeployments>, ICla
         await DesignerDbFixture.PrepareEntitiesInDatabase(completedDeployments);
 
         _kubernetesDeploymentsMock
-            .Setup(rs => rs.GetAsync(org, app))
+            .Setup(rs => rs.GetAsync(org, app, new CancellationToken()))
             .ReturnsAsync(kubernetesDeployments);
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);

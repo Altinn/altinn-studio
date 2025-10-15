@@ -241,7 +241,11 @@ public class TextsServiceTest : IDisposable
             DeploymentLocation = @"../../../../../../testdata/AppTemplates/AspNet/deployment",
             AppLocation = @"../../../../../../testdata/AppTemplates/AspNet/App"
         };
-        EnvironmentsService environmentsService = new(new HttpClient(), generalSettings, new Mock<IMemoryCache>().Object, new Mock<ILogger<EnvironmentsService>>().Object);
+        PlatformSettings platformSettings = new()
+        {
+            AppClusterUrl = "https://{org}.{appPrefix}.{hostName}",
+        };
+        EnvironmentsService environmentsService = new(new HttpClient(), generalSettings, platformSettings, new Mock<IMemoryCache>().Object, new Mock<ILogger<EnvironmentsService>>().Object);
         AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new(new HttpClient(), environmentsService, new PlatformSettings(), new Mock<ILogger<AltinnStorageAppMetadataClient>>().Object);
         IGitea giteaMock = new IGiteaMock();
         ApplicationMetadataService applicationMetadataService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, new Mock<IHttpContextAccessor>().Object, giteaMock);
