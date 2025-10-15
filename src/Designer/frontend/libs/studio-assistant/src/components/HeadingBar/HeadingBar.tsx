@@ -1,4 +1,5 @@
 import React from 'react';
+import type { ReactElement } from 'react';
 import { StudioHeading, StudioToggleGroup } from '@studio/components';
 import classes from './HeadingBar.module.css';
 import { CodeIcon, PlayFillIcon } from '@studio/icons';
@@ -11,7 +12,11 @@ export type HeadingBarProps = {
   onModeChange?: (mode: ToolColumnMode) => void;
 };
 
-export function HeadingBar({ texts, selectedToolColumnMode, onModeChange }: HeadingBarProps) {
+export function HeadingBar({
+  texts,
+  selectedToolColumnMode,
+  onModeChange,
+}: HeadingBarProps): ReactElement {
   const shouldShowToggleGroup = selectedToolColumnMode && onModeChange;
 
   return (

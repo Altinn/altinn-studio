@@ -17,13 +17,13 @@ export function UserInput({
   const [messageContent, setMessageContent] = useState<string>('');
   const [allowAppChanges, setAllowAppChanges] = useState<boolean>(true);
 
-  const handleSubmit = () => {
+  const handleSubmit = (): void => {
     const message: UserMessage = createUserMessage(messageContent, allowAppChanges);
     onSubmitMessage(message);
     setMessageContent('');
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
