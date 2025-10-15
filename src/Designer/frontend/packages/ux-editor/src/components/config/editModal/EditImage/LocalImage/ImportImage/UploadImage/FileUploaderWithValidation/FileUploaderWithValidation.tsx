@@ -1,5 +1,5 @@
 import React, { type RefObject, useRef } from 'react';
-import { StudioFileUploader } from '@studio/components-legacy';
+import { StudioFileUploader } from '@studio/components';
 import type { StudioFileUploaderProps } from '@studio/components-legacy';
 
 export type FileValidation = {
