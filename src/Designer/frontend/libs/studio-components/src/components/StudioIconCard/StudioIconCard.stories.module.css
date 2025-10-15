@@ -1,0 +1,19 @@
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-1);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+}
+
+.title {
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.desc {
+  margin-bottom: var(--ds-size-3);
+}

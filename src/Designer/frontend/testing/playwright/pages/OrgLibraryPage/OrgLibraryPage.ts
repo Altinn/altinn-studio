@@ -34,7 +34,9 @@ export class OrgLibraryPage extends BasePage {
 
   public async clickOnNavigateToCodeListPage(): Promise<void> {
     await this.page
-      .getByRole('tab', { name: this.textMock('app_content_library.code_lists.page_name') })
+      .getByRole('tab', {
+        name: this.textMock('app_content_library.code_lists_with_text_resources.page_name'),
+      })
       .click();
   }
 }

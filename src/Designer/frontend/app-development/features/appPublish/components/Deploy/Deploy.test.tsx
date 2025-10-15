@@ -75,7 +75,7 @@ describe('DeploymentActions', () => {
   it('renders a spinner while loading data', () => {
     render();
 
-    expect(screen.getByTitle(textMock('app_deployment.permission_checking'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_deployment.permission_checking'))).toBeInTheDocument();
   });
 
   it('renders an error message if an error occurs while loading data', async () => {
@@ -88,7 +88,7 @@ describe('DeploymentActions', () => {
       },
     );
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.permission_checking')),
+      screen.queryByText(textMock('app_deployment.permission_checking')),
     );
 
     expect(screen.getByText(textMock('app_deployment.permission_error'))).toBeInTheDocument();
@@ -97,7 +97,7 @@ describe('DeploymentActions', () => {
   it('should render missing rights message if deployPermission is false and environment is production', async () => {
     render({ envName: 'production', isProduction: true });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.permission_checking')),
+      screen.queryByText(textMock('app_deployment.permission_checking')),
     );
     expect(
       screen.getByText(
@@ -113,7 +113,7 @@ describe('DeploymentActions', () => {
     const envName = 'at22';
     render({ envName, isProduction: false });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.permission_checking')),
+      screen.queryByText(textMock('app_deployment.permission_checking')),
     );
     expect(
       screen.getByText(
@@ -128,10 +128,10 @@ describe('DeploymentActions', () => {
   it('should render deploy dropdown if deployPermission is true', async () => {
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.permission_checking')),
+      screen.queryByText(textMock('app_deployment.permission_checking')),
     );
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.releases_loading')),
+      screen.queryByText(textMock('app_deployment.releases_loading')),
     );
 
     expect(screen.getByLabelText(textMock('app_deployment.choose_version'))).toBeInTheDocument();
@@ -145,10 +145,10 @@ describe('DeploymentActions', () => {
     };
     render({}, queries);
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.permission_checking')),
+      screen.queryByText(textMock('app_deployment.permission_checking')),
     );
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.releases_loading')),
+      screen.queryByText(textMock('app_deployment.releases_loading')),
     );
 
     const select = screen.getByLabelText(textMock('app_deployment.choose_version'));

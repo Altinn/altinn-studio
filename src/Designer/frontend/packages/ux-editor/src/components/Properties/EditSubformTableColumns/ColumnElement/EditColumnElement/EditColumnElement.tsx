@@ -2,12 +2,13 @@ import React, { useState, type ReactElement } from 'react';
 import classes from './EditColumnElement.module.css';
 import type { TableColumn } from '../../types/TableColumn';
 import { useTranslation } from 'react-i18next';
-import { StudioCombobox, StudioDivider } from '@studio/components-legacy';
+import { StudioCombobox } from '@studio/components-legacy';
 import {
   StudioActionCloseButton,
   StudioCard,
   StudioHeading,
   StudioDeleteButton,
+  StudioDivider,
 } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
@@ -17,10 +18,9 @@ import {
   getComponentsForSubformTable,
   getDefaultDataModel,
 } from '../../utils/editSubformTableColumnsUtils';
-import { convertDataBindingToInternalFormat } from '../../../../../utils/dataModelUtils';
 import { DataModelBindingsCombobox } from './DataModelBindingsCombobox';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import type { IDataModelBindingsKeyValue } from '../../../../../types/global';
+import type { IDataModelBindingsKeyValueExplicit } from '../../../../../types/global';
 
 export type EditColumnElementProps = {
   tableColumn: TableColumn;
@@ -54,9 +54,7 @@ export const EditColumnElement = ({
 
     const bindingKey = Object.keys(selectedComponent.dataModelBindings)[0];
 
-    const binding = convertDataBindingToInternalFormat(
-      selectedComponent?.dataModelBindings?.[bindingKey],
-    );
+    const binding = selectedComponent?.dataModelBindings?.[bindingKey];
 
     onChange({
       ...tableColumn,
@@ -66,10 +64,10 @@ export const EditColumnElement = ({
   };
 
   const handleBindingChange = (
-    dataModelBindings: IDataModelBindingsKeyValue,
+    dataModelBindings: IDataModelBindingsKeyValueExplicit,
     dataModelBindingKey: string,
   ) => {
-    const { field } = convertDataBindingToInternalFormat(dataModelBindings[dataModelBindingKey]);
+    const { field } = dataModelBindings[dataModelBindingKey];
     const updatedTableColumn = {
       ...tableColumn,
       cellContent: { query: field },

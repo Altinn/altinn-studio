@@ -45,6 +45,7 @@ const MockedParentComponent = (props: MockedParentComponentProps) => {
       {...props}
       handleComponentChange={(formItem) => {
         const { field } = convertDataBindingToInternalFormat(
+          '',
           props.component.dataModelBindings[props.bindingKey],
         );
         setNewInternalBindingFormat((prev) => ({

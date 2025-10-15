@@ -13,10 +13,12 @@ using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Implementation.GitOps;
 using Altinn.Studio.Designer.Services.Implementation.Organisation;
 using Altinn.Studio.Designer.Services.Implementation.Preview;
 using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Interfaces.GitOps;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using Altinn.Studio.Designer.Services.Interfaces.Preview;
 using Altinn.Studio.Designer.TypedHttpClients.ImageClient;
@@ -95,6 +97,8 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.RegisterSettingsSingleton<KafkaSettings>(configuration);
             services.AddTransient<IKafkaProducer, KafkaProducer>();
             services.AddTransient<IGiteaContentLibraryService, GiteaContentLibraryService>();
+            services.AddTransient<IGitOpsConfigurationManager, GitRepoGitOpsConfigurationManager>();
+            services.AddTransient<IGitOpsManifestsRenderer, ScribanGitOpsManifestsRenderer>();
 
             return services;
         }
