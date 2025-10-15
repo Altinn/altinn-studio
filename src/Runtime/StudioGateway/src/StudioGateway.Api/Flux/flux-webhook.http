@@ -1,0 +1,82 @@
+@baseUrl = http://localhost:5062
+
+### Health Check - Live
+GET {{baseUrl}}/health/live
+
+### Health Check - Ready
+GET {{baseUrl}}/health/ready
+
+### Flux Webhook - Kustomization ReconciliationSucceeded
+POST {{baseUrl}}/flux/webhook
+Content-Type: application/json
+
+{
+  "involvedObject": {
+    "kind": "Kustomization",
+    "namespace": "flux-system",
+    "name": "dummy-service",
+    "uid": "22254537-ebaf-452b-9abf-fe86c4630b0a",
+    "apiVersion": "kustomize.toolkit.fluxcd.io/v1",
+    "resourceVersion": "800"
+  },
+  "severity": "info",
+  "timestamp": "2025-10-15T08:26:40Z",
+  "message": "Reconciliation finished in 24.395791ms, next run in 5m0s",
+  "reason": "ReconciliationSucceeded",
+  "metadata": {
+    "commit_status": "update",
+    "originRevision": "main/bea3eed51cd4e6888c56f5e793685563fbc56214",
+    "revision": "dev@sha256:1c84c410d931ff420d914ced82ec83a3e97f0b3c0cb64a2a694d1f121bcc3708"
+  },
+  "reportingController": "kustomize-controller",
+  "reportingInstance": "kustomize-controller-696779bb78-fjknx"
+}
+
+### Flux Webhook - Kustomization Progressing
+POST {{baseUrl}}/flux/webhook
+Content-Type: application/json
+
+{
+  "involvedObject": {
+    "kind": "Kustomization",
+    "namespace": "flux-system",
+    "name": "dummy-service",
+    "uid": "22254537-ebaf-452b-9abf-fe86c4630b0a",
+    "apiVersion": "kustomize.toolkit.fluxcd.io/v1",
+    "resourceVersion": "800"
+  },
+  "severity": "info",
+  "timestamp": "2025-10-15T08:26:40Z",
+  "message": "Service/apps/dummy-service created\nDeployment/apps/dummy-service created",
+  "reason": "Progressing",
+  "metadata": {
+    "originRevision": "main/bea3eed51cd4e6888c56f5e793685563fbc56214",
+    "revision": "dev@sha256:1c84c410d931ff420d914ced82ec83a3e97f0b3c0cb64a2a694d1f121bcc3708"
+  },
+  "reportingController": "kustomize-controller",
+  "reportingInstance": "kustomize-controller-696779bb78-fjknx"
+}
+
+### Flux Webhook - Kustomization Error Example
+POST {{baseUrl}}/flux/webhook
+Content-Type: application/json
+
+{
+  "involvedObject": {
+    "kind": "Kustomization",
+    "namespace": "flux-system",
+    "name": "test-service",
+    "uid": "test-uid-12345",
+    "apiVersion": "kustomize.toolkit.fluxcd.io/v1",
+    "resourceVersion": "100"
+  },
+  "severity": "error",
+  "timestamp": "2025-10-15T10:00:00Z",
+  "message": "Reconciliation failed: unable to apply manifest",
+  "reason": "ReconciliationFailed",
+  "metadata": {
+    "revision": "main@sha256:abc123"
+  },
+  "reportingController": "kustomize-controller",
+  "reportingInstance": "kustomize-controller-696779bb78-test"
+}
