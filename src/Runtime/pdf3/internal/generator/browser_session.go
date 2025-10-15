@@ -259,27 +259,36 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 	}()
 
 	// Set cookies
-	for _, cookie := range request.Cookies {
+	if len(request.Cookies) > 0 {
 		if req.ctx.Err() != nil {
 			return types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err())
 		}
 
-		sameSite := "Lax"
-		switch cookie.SameSite {
-		case "Strict":
-			sameSite = "Strict"
-		case "None":
-			sameSite = "None"
+		// Build cookies array for Network.setCookies
+		cookies := make([]map[string]interface{}, 0, len(request.Cookies))
+		for _, cookie := range request.Cookies {
+			sameSite := "Lax"
+			switch cookie.SameSite {
+			case "Strict":
+				sameSite = "Strict"
+			case "None":
+				sameSite = "None"
+			}
+
+			cookies = append(cookies, map[string]interface{}{
+				"name":     cookie.Name,
+				"value":    cookie.Value,
+				"domain":   cookie.Domain,
+				"path":     "/",
+				"secure":   false,
+				"httpOnly": false,
+				"sameSite": sameSite,
+			})
 		}
 
-		_, err := w.sendCommand("Network.setCookie", map[string]interface{}{
-			"name":     cookie.Name,
-			"value":    cookie.Value,
-			"domain":   cookie.Domain,
-			"path":     "/",
-			"secure":   false,
-			"httpOnly": false,
-			"sameSite": sameSite,
+		// Set all cookies in a single batch call
+		_, err := w.sendCommand("Network.setCookies", map[string]interface{}{
+			"cookies": cookies,
 		})
 		if err != nil {
 			req.tryRespondError(types.NewPDFError(types.ErrSetCookieFail, "", err), w)

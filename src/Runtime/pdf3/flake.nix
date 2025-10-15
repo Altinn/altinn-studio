@@ -54,6 +54,7 @@
 
               # other
               k6
+              which
             ];
 
             shellHook = ''

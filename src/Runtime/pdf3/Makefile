@@ -101,9 +101,15 @@ run: build ## Deploy to cluster and restart services (cached)
 		echo "No manifest or build changes detected, skipping deploy"; \
 	else \
 		echo "Changes detected, deploying..."; \
+		proxy_running=$$(kubectl get deployment pdf3-proxy -n pdf3 -o jsonpath='{.status.availableReplicas}' 2>/dev/null || echo "0"); \
+		worker_running=$$(kubectl get deployment pdf3-worker -n pdf3 -o jsonpath='{.status.availableReplicas}' 2>/dev/null || echo "0"); \
 		kubectl kustomize infra/kustomize/local | kubectl apply -f - -n pdf3; \
-		kubectl rollout restart -n pdf3 deployment/pdf3-proxy; \
-		kubectl rollout restart -n pdf3 deployment/pdf3-worker; \
+		if [ "$$proxy_running" != "0" ]; then \
+			kubectl rollout restart -n pdf3 deployment/pdf3-proxy; \
+		fi; \
+		if [ "$$worker_running" != "0" ]; then \
+			kubectl rollout restart -n pdf3 deployment/pdf3-worker; \
+		fi; \
 		kubectl rollout status -n pdf3 deployment/pdf3-proxy --timeout=30s; \
 		kubectl rollout status -n pdf3 deployment/pdf3-worker --timeout=30s; \
 		echo "$$infra_hash" > .last-deploy-hash; \
