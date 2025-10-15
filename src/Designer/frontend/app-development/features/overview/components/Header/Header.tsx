@@ -5,6 +5,8 @@ import { Heading } from '@digdir/designsystemet-react';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { StudioSpinner } from '@studio/components';
+import { StarButton } from './StarButton';
+import classes from './Header.module.css';
 
 export const Header = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -29,8 +31,11 @@ export const Header = () => {
   }
 
   return (
-    <Heading level={1} size='xlarge'>
-      {appConfigData?.serviceName || app}
-    </Heading>
+    <div className={classes.headerContainer}>
+      <Heading level={1} size='xlarge'>
+        {appConfigData?.serviceName || app}
+      </Heading>
+      <StarButton org={org} app={app} appName={appConfigData?.serviceName} />
+    </div>
   );
 };

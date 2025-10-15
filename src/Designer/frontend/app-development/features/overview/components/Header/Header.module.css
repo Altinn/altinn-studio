@@ -1,0 +1,5 @@
+.headerContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-3);
+}
