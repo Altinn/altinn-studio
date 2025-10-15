@@ -49,14 +49,14 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                         policy.Requirements.Add(new GiteaResourceAccessListPermissionRequirement());
                     });
 
-                options.AddPolicy(AltinnPolicy.MustBelongToOrganization, 
+                options.AddPolicy(AltinnPolicy.MustBelongToOrganization,
                     policy =>
                     {
                         policy.RequireAuthenticatedUser();
                         policy.Requirements.Add(new BelongsToOrganizationRequirement());
                     });
 
-                options.AddPolicy(AltinnPolicy.MustHaveOrganizationPermission, 
+                options.AddPolicy(AltinnPolicy.MustHaveOrganizationPermission,
                     policy =>
                     {
                         policy.RequireAuthenticatedUser();
