@@ -4,30 +4,22 @@
     {
       "id": "form",
       "dataType": "model",
-      "tasks": [
-        "Task_1"
-      ]
+      "tasks": ["Task_1"]
     },
     {
       "id": "Utfylling_2",
       "dataType": "Model2",
-      "tasks": [
-        "Task_2"
-      ]
+      "tasks": ["Task_2"]
     },
     {
       "id": "Pdf",
       "dataType": "model",
-      "tasks": [
-        "Task_3"
-      ]
+      "tasks": ["Task_3"]
     },
     {
       "id": "Fail",
       "dataType": "model",
-      "tasks": [
-        "Task_5"
-      ]
+      "tasks": ["Task_6"]
     },
     {
       "id": "TestSubform",
