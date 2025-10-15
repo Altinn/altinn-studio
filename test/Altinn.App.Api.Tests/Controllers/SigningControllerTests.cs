@@ -44,7 +44,7 @@ public class SigningControllerTests
     {
         SignatureConfiguration = new AltinnSignatureConfiguration
         {
-            DataTypesToSign = ["dataTypeToSign"],
+            DataTypesToSign = ["dataTypeToSign1", "dataTypeToSign2"],
             SignatureDataType = "signatureDataType",
             SigneeProviderId = "signeeProviderId",
             SigneeStatesDataTypeId = "signeeStatesDataTypeId",
@@ -659,6 +659,8 @@ public class SigningControllerTests
 
         controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
+        var now = DateTime.UtcNow;
+
         // Create test instance with data elements
         var instance = new Instance
         {
@@ -672,10 +674,11 @@ public class SigningControllerTests
                 new DataElement
                 {
                     Id = "dataElement1",
-                    DataType = "dataTypeToSign", // This matches the DataTypesToSign in _altinnTaskExtension
+                    DataType = "dataTypeToSign1", // This matches the DataTypesToSign in _altinnTaskExtension
                     ContentType = "application/json",
                     Size = 100,
                     Filename = "file1.json",
+                    Created = now,
                 },
                 new DataElement
                 {
@@ -684,14 +687,25 @@ public class SigningControllerTests
                     ContentType = "application/json",
                     Size = 200,
                     Filename = "file2.json",
+                    Created = now,
                 },
                 new DataElement
                 {
                     Id = "dataElement3",
-                    DataType = "dataTypeToSign", // This matches the DataTypesToSign in _altinnTaskExtension
+                    DataType = "dataTypeToSign2", // This matches the DataTypesToSign in _altinnTaskExtension
                     ContentType = "application/xml",
                     Size = 300,
                     Filename = "file3.xml",
+                    Created = now,
+                },
+                new DataElement
+                {
+                    Id = "dataElement4",
+                    DataType = "dataTypeToSign1", // This matches the DataTypesToSign in _altinnTaskExtension
+                    ContentType = "application/xml",
+                    Size = 400,
+                    Filename = "file4.xml",
+                    Created = now.AddMinutes(-1),
                 },
             ],
         };
@@ -711,10 +725,16 @@ public class SigningControllerTests
         Assert.NotNull(signingDataElementsResponse);
 
         // Should only include data elements with DataType that matches DataTypesToSign
-        Assert.Equal(2, signingDataElementsResponse.DataElements.Count);
+        Assert.Equal(3, signingDataElementsResponse.DataElements.Count);
         Assert.Contains(signingDataElementsResponse.DataElements, de => de.Id == "dataElement1");
         Assert.Contains(signingDataElementsResponse.DataElements, de => de.Id == "dataElement3");
         Assert.DoesNotContain(signingDataElementsResponse.DataElements, de => de.Id == "dataElement2");
+        Assert.Contains(signingDataElementsResponse.DataElements, de => de.Id == "dataElement4");
+
+        // The elements should be ordered according to the order in DataTypesToSign, then by Created
+        Assert.Equal("dataElement4", signingDataElementsResponse.DataElements[0].Id);
+        Assert.Equal("dataElement1", signingDataElementsResponse.DataElements[1].Id);
+        Assert.Equal("dataElement3", signingDataElementsResponse.DataElements[2].Id);
 
         // Verify all data elements have self links set
         foreach (var dataElement in signingDataElementsResponse.DataElements)
