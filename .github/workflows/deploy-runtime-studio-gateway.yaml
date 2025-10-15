@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feat/studio-gateway
     paths:
       - src/Runtime/StudioGateway/**
       - .github/workflows/deploy-runtime-studio-gateway.yaml
