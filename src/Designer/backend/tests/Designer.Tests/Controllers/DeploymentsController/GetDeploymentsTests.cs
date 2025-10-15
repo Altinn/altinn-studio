@@ -49,7 +49,7 @@ public class GetDeployments : DbDesignerEndpointsTestsBase<GetDeployments>, ICla
         await DesignerDbFixture.PrepareEntitiesInDatabase(completedDeployments);
 
         _kubernetesDeploymentsMock
-            .Setup(rs => rs.GetAsync(org, app, new CancellationToken()))
+            .Setup(rs => rs.GetAsync(org, app, It.IsAny<CancellationToken>()))
             .ReturnsAsync(kubernetesDeployments);
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
