@@ -3,10 +3,7 @@ import { StudioButton } from '@studio/components';
 import { StarFillIcon, StarIcon } from '@studio/icons';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { useStarredReposQuery } from 'dashboard/hooks/queries';
-import {
-  useSetStarredRepoMutation,
-  useUnsetStarredRepoMutation,
-} from 'dashboard/hooks/mutations';
+import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from 'dashboard/hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import classes from './StarButton.module.css';
 

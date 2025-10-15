@@ -66,10 +66,7 @@ describe('StarButton', () => {
     );
 
     const button = await screen.findByRole('button');
-    expect(button).toHaveAttribute(
-      'title',
-      textMock('dashboard.unstar', { appName: mockAppName }),
-    );
+    expect(button).toHaveAttribute('title', textMock('dashboard.unstar', { appName: mockAppName }));
   });
 
   it('calls setStarredRepo mutation when clicking unstarred repo', async () => {
