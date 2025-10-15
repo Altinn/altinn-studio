@@ -1,6 +1,5 @@
 import React, { type ReactNode, type ReactElement, useId, useState } from 'react';
-import { StudioLabelAsParagraph } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 import { ChevronUpIcon, ChevronDownIcon } from '@studio/icons';
 import classes from './PolicyAccordion.module.css';
 
@@ -42,7 +41,7 @@ export const PolicyAccordion = ({
           <div className={classes.accordionButton}>
             {icon}
             <div className={classes.accordionTitle}>
-              <StudioLabelAsParagraph size='sm'>{title}</StudioLabelAsParagraph>
+              <StudioLabelAsParagraph data-size='sm'>{title}</StudioLabelAsParagraph>
               <div className={classes.accordionSubTitle}>{subTitle}</div>
             </div>
           </div>

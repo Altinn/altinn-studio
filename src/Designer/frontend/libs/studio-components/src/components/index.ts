@@ -43,6 +43,7 @@ export * from './StudioIconCard';
 export * from './StudioIconTextfield';
 export * from './StudioIconViewer';
 export * from './StudioLabel';
+export * from './StudioLabelAsParagraph';
 export * from './StudioLink';
 export * from './StudioLinkButton';
 export * from './StudioList';
