@@ -3,6 +3,10 @@
   "data": {
     "layout": [
       {
+        "id": "InstanceInformation-79ZTcw",
+        "type": "InstanceInformation"
+      },
+      {
         "id": "SummaryTask1",
         "type": "Summary2",
         "target": {
