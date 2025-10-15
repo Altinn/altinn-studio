@@ -73,7 +73,7 @@ const AppsTableWithData = ({ runningApps }: AppsTableWithDataProps) => {
                 .map((app) => (
                   <StudioTable.Row key={app.app}>
                     <StudioTable.Cell>
-                      <Link to={`${env}/${app.app}/instances`}>{app.app}</Link>
+                      <Link to={`${env}/${app.app}`}>{app.app}</Link>
                     </StudioTable.Cell>
                     <StudioTable.Cell>{app.version}</StudioTable.Cell>
                   </StudioTable.Row>
