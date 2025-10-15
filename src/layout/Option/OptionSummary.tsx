@@ -30,7 +30,7 @@ export const OptionSummary = ({ targetBaseComponentId }: Summary2Props) => {
         displayData={displayData}
         errors={errors}
         targetBaseComponentId={targetBaseComponentId}
-        hideEditButton
+        hideEditButton={true}
         isCompact={compact}
         emptyFieldText={emptyFieldText}
       />
