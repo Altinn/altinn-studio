@@ -30,7 +30,7 @@ import {
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
 import { Preview } from '../components/Preview';
-import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import { useFeatureFlag, FeatureFlag } from '@studio/feature-flags';
 import { ItemType } from '../components/Properties/ItemType';
 
 export const FormDesigner = (): JSX.Element => {
@@ -80,6 +80,7 @@ export const FormDesigner = (): JSX.Element => {
   const [hidePreview, setHidePreview] = useState<boolean>(false);
 
   const t = useText();
+  const isAddComponentModalEnabled = useFeatureFlag(FeatureFlag.AddComponentModal);
 
   const formLayoutIsReady =
     selectedFormLayoutSetName && formLayouts && formLayoutSettings && isRuleConfigFetched;
@@ -155,7 +156,7 @@ export const FormDesigner = (): JSX.Element => {
                * The following check is done for a live user test behind feature flag. It can be removed if this is not something
                * that is going to be used in the future.
                */}
-              {!shouldDisplayFeature(FeatureFlag.AddComponentModal) && (
+              {!isAddComponentModalEnabled && (
                 <StudioResizableLayout.Element
                   collapsed={elementsCollapsed}
                   collapsedSize={50}
@@ -170,7 +171,7 @@ export const FormDesigner = (): JSX.Element => {
                 </StudioResizableLayout.Element>
               )}
               <StudioResizableLayout.Element
-                minimumSize={shouldDisplayFeature(FeatureFlag.AddComponentModal) ? 600 : 250} // This check is done for a live user test behind feature flag. Revert to 250 if removing.
+                minimumSize={isAddComponentModalEnabled ? 600 : 250} // This check is done for a live user test behind feature flag. Revert to 250 if removing.
               >
                 <DesignView />
               </StudioResizableLayout.Element>

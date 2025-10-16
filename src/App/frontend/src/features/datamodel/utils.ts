@@ -1,7 +1,6 @@
 import { isDataModelReference } from 'src/utils/databindings';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { ILayouts } from 'src/layout/layout';
-import type { IData } from 'src/types/shared';
 
 export class MissingDataTypeException extends Error {
   public readonly dataType: string;
@@ -102,15 +101,19 @@ function addDataTypesFromExpressionsRecursive(obj: unknown, dataTypes: Set<strin
  * Assumes the first dataElement of the correct type is the one to use,
  * we also assume this when creating the url for loading and saving data models @see useDataModelUrl, getFirstDataElementId
  */
-export function isDataTypeWritable(dataType: string | undefined, isStateless: boolean, dataElements: IData[]) {
+export function isDataTypeWritable(
+  dataType: string | undefined,
+  isStateless: boolean,
+  dataElements: (readonly [string, boolean])[],
+) {
   if (!dataType) {
     return false;
   }
   if (isStateless) {
     return true;
   }
-  const dataElement = dataElements.find((data) => data.dataType === dataType);
-  return !!dataElement && dataElement.locked === false;
+  const dataElement = dataElements.find(([dt]) => dt === dataType);
+  return !!dataElement && !dataElement[1];
 }
 
 export interface QueryParamPrefill {

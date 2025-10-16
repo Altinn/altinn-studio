@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
-import { StudioErrorMessage, StudioSpinner } from '@studio/components-legacy';
-import { StudioAlert, StudioButton } from '@studio/components';
+import { StudioErrorMessage } from '@studio/components-legacy';
+import { StudioAlert, StudioButton, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
@@ -40,7 +40,7 @@ export function EditTab(props: EditTabProps): React.ReactElement {
 
   switch (mergedQueryStatues) {
     case 'pending':
-      return <StudioSpinner spinnerTitle={t('general.loading')} />;
+      return <StudioSpinner aria-hidden spinnerTitle={t('general.loading')} />;
     case 'error':
       return (
         <StudioErrorMessage>

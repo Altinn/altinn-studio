@@ -21,7 +21,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             string uri = $"{VersionPrefix}/ttd/resources/validate/ttd-resources/ttdresource";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-            RepositoryMock.Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourceForValidationTest(true));
+            RepositoryMock.Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<System.Threading.CancellationToken>())).Returns(Task.FromResult(GetServiceResourceForValidationTest(true)));
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -38,7 +38,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             string uri = $"{VersionPrefix}/ttd/resources/validate/ttd-resources/ttdresource";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-            RepositoryMock.Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourceForValidationTest(false));
+            RepositoryMock.Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<System.Threading.CancellationToken>())).Returns(Task.FromResult(GetServiceResourceForValidationTest(false)));
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);

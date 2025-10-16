@@ -1,5 +1,4 @@
 import React from 'react';
-import type { PropsWithChildren } from 'react';
 
 import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
@@ -27,9 +26,8 @@ import {
   renderWithoutInstanceAndLayout,
   StatelessRouter,
 } from 'src/test/renderWithProviders';
-import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
+import { NestedDataModelLocationProviders } from 'src/utils/layout/DataModelLocation';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
-import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import type { ExprPositionalArgs, ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { IRawOption } from 'src/layout/common.generated';
@@ -56,16 +54,10 @@ function InnerExpressionRunner({ expression, positionalArguments, valueArguments
 }
 
 function ExpressionRunner(props: Props) {
+  const layoutLookups = useLayoutLookups();
   if (props.context === undefined || props.context.rowIndices === undefined || props.context.rowIndices.length === 0) {
     return <InnerExpressionRunner {...props} />;
   }
-
-  // Skipping this hook to make sure we can eval expressions without a layout as well. Some tests need to run
-  // without layout, and in those cases this hook will crash when we're missing the context. Breaking the rule of hooks
-  // eslint rule makes this conditional, and that's fine here.
-  // eslint-disable-next-line react-compiler/react-compiler
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const layoutLookups = useLayoutLookups();
 
   const parentIds: string[] = [];
   let currentParent = layoutLookups.componentToParent[props.context.component];
@@ -84,44 +76,38 @@ function ExpressionRunner(props: Props) {
     );
   }
 
-  let result = <InnerExpressionRunner {...props} />;
-  for (const [i, parentId] of parentIds.entries()) {
-    const reverseIndex = props.context.rowIndices.length - i - 1;
-    const rowIndex = props.context.rowIndices[reverseIndex];
+  const fieldSegments: string[] = [];
+  for (let level = 0; level < parentIds.length; level++) {
+    const parentId = parentIds[parentIds.length - 1 - level]; // Get outermost parent first
+    const rowIndex = props.context.rowIndices[level];
+    const component = layoutLookups.getComponent(parentId);
+    const bindings = component.dataModelBindings as IDataModelBindings<RepeatingComponents>;
+    const groupBinding = getRepeatingBinding(component.type as RepeatingComponents, bindings);
+    if (!groupBinding) {
+      throw new Error(`No group binding found for ${parentId}`);
+    }
 
-    result = (
-      <DataModelLocationFor
-        id={parentId}
-        rowIndex={rowIndex}
-      >
-        {result}
-      </DataModelLocationFor>
-    );
-  }
+    const currentPath = fieldSegments.join('.');
+    let segmentName = groupBinding.field;
+    if (currentPath) {
+      const currentFieldPath = currentPath.replace(/\[\d+]/g, ''); // Remove all [index] parts
+      if (segmentName.startsWith(`${currentFieldPath}.`)) {
+        segmentName = segmentName.substring(currentFieldPath.length + 1);
+      }
+    }
 
-  return result;
-}
-
-function DataModelLocationFor<T extends RepeatingComponents>({
-  id,
-  rowIndex,
-  children,
-}: PropsWithChildren<{ id: string; rowIndex: number }>) {
-  const component = useExternalItem(id) as { type: T };
-  const bindings = useDataModelBindingsFor(id) as IDataModelBindings<T>;
-  const groupBinding = getRepeatingBinding(component.type, bindings);
-
-  if (!groupBinding) {
-    throw new Error(`No group binding found for ${id}`);
+    fieldSegments.push(`${segmentName}[${rowIndex}]`);
   }
 
   return (
-    <DataModelLocationProvider
-      groupBinding={groupBinding}
-      rowIndex={rowIndex}
+    <NestedDataModelLocationProviders
+      reference={{
+        dataType: 'default',
+        field: fieldSegments.join('.'),
+      }}
     >
-      {children}
-    </DataModelLocationProvider>
+      <InnerExpressionRunner {...props} />
+    </NestedDataModelLocationProviders>
   );
 }
 

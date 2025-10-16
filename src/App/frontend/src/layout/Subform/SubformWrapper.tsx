@@ -10,7 +10,6 @@ import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContex
 import { PDFWrapper } from 'src/features/pdf/PDFWrapper';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
-import { ProcessTaskType } from 'src/types';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 
 export function SubformWrapper({ baseComponentId, children }: PropsWithChildren<{ baseComponentId: string }>) {
@@ -24,7 +23,7 @@ export function SubformWrapper({ baseComponentId, children }: PropsWithChildren<
 export function SubformForm() {
   return (
     <PDFWrapper>
-      <PresentationComponent type={ProcessTaskType.Data}>
+      <PresentationComponent>
         <Form />
       </PresentationComponent>
     </PDFWrapper>

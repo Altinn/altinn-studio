@@ -16,6 +16,11 @@ import { appContextMock } from './appContextMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { PreviewContext, type PreviewContextProps } from 'app-development/contexts/PreviewContext';
 import type { AppRouteParams } from 'app-shared/types/AppRouteParams';
+import {
+  FeatureFlagsContextProvider,
+  FeatureFlagMutationContextProvider,
+} from '@studio/feature-flags';
+import type { FeatureFlag, FeatureFlagMutationContextValue } from '@studio/feature-flags';
 
 export const formLayoutSettingsMock: ILayoutSettings = {
   pages: {
@@ -38,12 +43,19 @@ const defaultPreviewContextProps: PreviewContextProps = {
   previewHasLoaded: jest.fn(),
 };
 
+const defaultFeatureFlagMutations: FeatureFlagMutationContextValue = {
+  addFlag: jest.fn(),
+  removeFlag: jest.fn(),
+};
+
 type WrapperArgs = {
   queries: Partial<ServicesContextProps>;
   queryClient: QueryClient;
   appContextProps: Partial<AppContextProps>;
   previewContextProps?: Partial<PreviewContextProps>;
   appRouteParams?: AppRouteParams;
+  featureFlags?: FeatureFlag[];
+  featureFlagMutations?: FeatureFlagMutationContextValue;
 };
 
 function wrapper({
@@ -52,6 +64,8 @@ function wrapper({
   appContextProps = {},
   previewContextProps = {},
   appRouteParams = defaultAppRouteParams,
+  featureFlags = [],
+  featureFlagMutations = defaultFeatureFlagMutations,
 }: WrapperArgs): (component: ReactNode) => ReactElement {
   const renderComponent = (component: ReactNode): ReactElement => (
     <AppRouter params={appRouteParams}>
@@ -61,7 +75,11 @@ function wrapper({
             <PreviewContext.Provider
               value={{ ...defaultPreviewContextProps, ...previewContextProps }}
             >
-              {component}
+              <FeatureFlagMutationContextProvider value={featureFlagMutations}>
+                <FeatureFlagsContextProvider value={{ flags: featureFlags }}>
+                  {component}
+                </FeatureFlagsContextProvider>
+              </FeatureFlagMutationContextProvider>
             </PreviewContext.Provider>
           </AppContext.Provider>
         </PreviewConnectionContextProvider>
@@ -95,6 +113,8 @@ export interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   appContextProps?: Partial<AppContextProps>;
   previewContextProps?: Partial<PreviewContextProps>;
   appRouteParams?: AppRouteParams;
+  featureFlags?: FeatureFlag[];
+  featureFlagMutations?: FeatureFlagMutationContextValue;
 }
 
 export const renderHookWithProviders = (
@@ -105,6 +125,8 @@ export const renderHookWithProviders = (
     appContextProps = {},
     previewContextProps = {},
     appRouteParams = defaultAppRouteParams,
+    featureFlags = [],
+    featureFlagMutations = defaultFeatureFlagMutations,
   }: ExtendedRenderOptions = {},
 ) => {
   return renderHook(hook, {
@@ -115,6 +137,8 @@ export const renderHookWithProviders = (
         appContextProps,
         previewContextProps,
         appRouteParams,
+        featureFlags,
+        featureFlagMutations,
       })(children),
   });
 };
@@ -127,6 +151,8 @@ export const renderWithProviders = (
     appContextProps = {},
     previewContextProps = {},
     appRouteParams = defaultAppRouteParams,
+    featureFlags = [],
+    featureFlagMutations = defaultFeatureFlagMutations,
     ...renderOptions
   }: Partial<ExtendedRenderOptions> = {},
 ) => {
@@ -139,6 +165,8 @@ export const renderWithProviders = (
           appContextProps,
           previewContextProps,
           appRouteParams,
+          featureFlags,
+          featureFlagMutations,
         })(children),
       ...renderOptions,
     }),

@@ -1,0 +1,83 @@
+import { Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
+import * as StudioTableLocalPaginationStories from './StudioTableLocalPagination.stories';
+import { StudioTableLocalPagination } from './StudioTableLocalPagination';
+
+<Meta of={StudioTableLocalPaginationStories} />
+
+<Heading level={1} size='small'>
+  StudioTableLocalPagination
+</Heading>
+<Paragraph>
+  The StudioTableLocalPagination component handles pagination internally, eliminating the need for
+  manual control. It seamlessly manages pagination logic for you.
+</Paragraph>
+
+<Canvas of={StudioTableLocalPaginationStories.Preview} />
+
+<Heading level={2} size='xsmall'>
+  Column format
+</Heading>
+<ul>
+  <li>The columns prop has two required properties: `accessor` and `heading`.</li>
+  <li>
+    These properties are optional: `sortable`, `headerCellClass`, `bodyCellClass` and
+    `bodyCellFormatter`.
+  </li>
+</ul>
+
+```tsx
+const columns = [
+  {
+    accessor: 'icon',
+    heading: '',
+  },
+  {
+    accessor: 'name',
+    heading: 'Name',
+    sortable: true,
+  },
+  {
+    accessor: 'creator',
+    heading: 'Created by',
+  },
+  {
+    accessor: 'lastChanged',
+    heading: 'Last changed',
+    sortable: true,
+    headerCellClass: classes.lastChangedColumnWidth,
+    bodyCellClass: 'someOtherCustomClass',
+    bodyCellFormatter: (date) => formatDateDDMMYYYY(date),
+  },
+];
+```
+
+<Heading level={2} size='xsmall'>
+  Row format
+</Heading>
+<ul>
+  <li>Rows must have an `id` that is unique.</li>
+  <li>
+    The accessors in the columns array is used to display the row properties. Therefore, each
+    property name has to exactly match the accessor.
+  </li>
+</ul>
+
+```tsx
+const rows = [
+  {
+    id: 1,
+    icon: <IconButton icon={<StarFillIcon />} />,
+    name: 'Coordinated register notification',
+    creator: 'Brønnøysund Register Centre',
+    lastChanged: '2023-04-12',
+  },
+  {
+    id: 2,
+    icon: <IconButton icon={<StarFillIcon />} />,
+    name: 'Application for authorisation and license as a healthcare personnel',
+    creator: 'The Norwegian Directorate of Health',
+    lastChanged: '2023-04-05',
+  },
+];
+```

@@ -1,0 +1,8 @@
+.dropDownMenuGroup:not(:last-child) {
+  border-bottom: 1px solid var(--ds-color-border-subtle);
+  padding-bottom: var(--ds-size-2);
+}
+
+.dropDownMenuGroup:not(:first-child) {
+  padding-top: var(--ds-size-2);
+}

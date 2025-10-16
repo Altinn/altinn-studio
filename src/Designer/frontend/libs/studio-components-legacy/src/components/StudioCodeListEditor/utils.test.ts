@@ -1,4 +1,4 @@
-import type { CodeList } from './types/CodeList';
+import type { CodeListWithTextResources } from './types/CodeListWithTextResources';
 import {
   addNewCodeListItem,
   changeCodeListItem,
@@ -20,7 +20,7 @@ import { codeListWithBooleans } from './test-data/codeListWithBooleans';
 import { CodeListItemTextProperty } from './types/CodeListItemTextProperty';
 
 // Test data:
-const testCodeList: CodeList = [
+const testCodeList: CodeListWithTextResources = [
   {
     label: 'Test 1',
     value: 'test1',
@@ -32,7 +32,7 @@ const testCodeList: CodeList = [
     description: 'Test 2 description',
   },
 ];
-const createTestCodeList = (): CodeList => ObjectUtils.deepCopy(testCodeList);
+const createTestCodeList = (): CodeListWithTextResources => ObjectUtils.deepCopy(testCodeList);
 
 describe('StudioCodelistEditor utils', () => {
   describe('addNewCodeListItem', () => {
@@ -60,7 +60,7 @@ describe('StudioCodelistEditor utils', () => {
 
   describe('getTypeOfLastValue', () => {
     it('should throw an error when the code list is empty', () => {
-      const emptyCodeList: CodeList = [];
+      const emptyCodeList: CodeListWithTextResources = [];
       expect(() => getTypeOfLastValue(emptyCodeList)).toThrow();
     });
   });

@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import type { LinkProps } from 'react-router-dom';
 
-import { SearchParams } from 'src/hooks/navigation';
+import { SearchParams } from 'src/core/routing/types';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import { splitDashedKey } from 'src/utils/splitDashedKey';

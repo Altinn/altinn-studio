@@ -250,4 +250,8 @@ export class ArrayUtils {
 
     return sortedA.every((value, index) => value === sortedB[index]);
   }
+
+  public static isArrayOfStrings(arg: unknown): arg is string[] {
+    return Array.isArray(arg) && arg.every((item) => typeof item === 'string');
+  }
 }

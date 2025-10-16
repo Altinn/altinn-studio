@@ -1,8 +1,8 @@
 import { areThereCodeListErrors, findCodeListErrors, isCodeListValid } from './validation';
-import type { CodeList } from '../types/CodeList';
+import type { CodeListWithTextResources } from '../types/CodeListWithTextResources';
 import type { ValueErrorMap } from '../types/ValueErrorMap';
 
-const validCodeList: CodeList = [
+const validCodeList: CodeListWithTextResources = [
   {
     value: 'value1',
     label: 'Label 1',
@@ -12,7 +12,7 @@ const validCodeList: CodeList = [
     label: 'Label 2',
   },
 ];
-const codeListWithDuplicateValues: CodeList = [
+const codeListWithDuplicateValues: CodeListWithTextResources = [
   {
     value: 'value1',
     label: 'Label 1',
@@ -22,7 +22,7 @@ const codeListWithDuplicateValues: CodeList = [
     label: 'Label 2',
   },
 ];
-const codeListWithMultipleTypes: CodeList = [
+const codeListWithMultipleTypes: CodeListWithTextResources = [
   {
     value: 'value1',
     label: 'Label 1',
@@ -32,7 +32,7 @@ const codeListWithMultipleTypes: CodeList = [
     label: 'Label 2',
   },
 ];
-const codeListWithNullValue: CodeList = [
+const codeListWithNullValue: CodeListWithTextResources = [
   {
     value: null,
     label: 'Label 1',

@@ -1,4 +1,4 @@
-export type { CodeList } from './types/CodeList';
+export type { CodeListWithTextResources } from './types/CodeListWithTextResources';
 export type { CodeListEditorTexts } from './types/CodeListEditorTexts';
 export type { CodeListItem } from './types/CodeListItem';
 export type { CodeListItemTextProperty } from './types/CodeListItemTextProperty';

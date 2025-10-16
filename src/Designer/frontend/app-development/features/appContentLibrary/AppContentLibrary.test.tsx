@@ -73,20 +73,22 @@ describe('AppContentLibrary', () => {
 
   it('Renders with the given code lists', () => {
     renderAppContentLibraryWithData();
-    const codeListDataList = retrievePagesConfig().codeList.props.codeListDataList;
+    const codeListDataList =
+      retrievePagesConfig().codeListsWithTextResources.props.codeListDataList;
     const expectedData: CodeListData[] = optionListDataList;
     expect(codeListDataList).toEqual(expectedData);
   });
 
   it('Renders with the given text resources', () => {
     renderAppContentLibraryWithData();
-    const textResourcesData = retrievePagesConfig().codeList.props.textResources;
+    const textResourcesData = retrievePagesConfig().codeListsWithTextResources.props.textResources;
     expect(textResourcesData).toEqual(textResources);
   });
 
   it('Renders with the given code list titles', () => {
     renderAppContentLibraryWithData();
-    const codeListTitlesData = retrievePagesConfig().codeList.props.externalResources;
+    const codeListTitlesData =
+      retrievePagesConfig().codeListsWithTextResources.props.externalResources;
     expect(codeListTitlesData).toEqual(codeListTitles);
   });
 
@@ -95,7 +97,7 @@ describe('AppContentLibrary', () => {
     const file = new File([''], 'list.json');
     renderAppContentLibraryWithData({ queries: { uploadOptionList } });
 
-    retrievePagesConfig().codeList.props.onUploadCodeList(file);
+    retrievePagesConfig().codeListsWithTextResources.props.onUploadCodeList(file);
     await waitFor(expect(uploadOptionList).toHaveBeenCalled);
 
     expect(uploadOptionList).toHaveBeenCalledTimes(1);
@@ -108,7 +110,7 @@ describe('AppContentLibrary', () => {
     renderAppContentLibraryWithData();
     const file = new File([''], 'list.json');
 
-    retrievePagesConfig().codeList.props.onUploadCodeList(file);
+    retrievePagesConfig().codeListsWithTextResources.props.onUploadCodeList(file);
     await waitFor(expect(queriesMock.uploadOptionList).toHaveBeenCalled);
 
     const successMessage = textMock('ux_editor.modal_properties_code_list_upload_success');
@@ -120,7 +122,7 @@ describe('AppContentLibrary', () => {
     const file = new File([''], 'list.json');
     renderAppContentLibraryWithData({ queries: { uploadOptionList } });
 
-    retrievePagesConfig().codeList.props.onUploadCodeList(file);
+    retrievePagesConfig().codeListsWithTextResources.props.onUploadCodeList(file);
     await waitFor(expect(uploadOptionList).toHaveBeenCalled);
 
     const errorMessage = textMock('ux_editor.modal_properties_code_list_upload_generic_error');
@@ -132,7 +134,7 @@ describe('AppContentLibrary', () => {
     const codeListWithMetadata: CodeListWithMetadata = { title, codeList };
     renderAppContentLibraryWithData();
 
-    retrievePagesConfig().codeList.props.onUpdateCodeList(codeListWithMetadata);
+    retrievePagesConfig().codeListsWithTextResources.props.onUpdateCodeList(codeListWithMetadata);
     await waitFor(expect(queriesMock.updateOptionList).toHaveBeenCalled);
 
     expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1);
@@ -144,7 +146,7 @@ describe('AppContentLibrary', () => {
     const newName = 'newName';
     renderAppContentLibraryWithData();
 
-    retrievePagesConfig().codeList.props.onUpdateCodeListId(currentName, newName);
+    retrievePagesConfig().codeListsWithTextResources.props.onUpdateCodeListId(currentName, newName);
     await waitFor(expect(queriesMock.updateOptionListId).toHaveBeenCalled);
 
     expect(queriesMock.updateOptionListId).toHaveBeenCalledTimes(1);
@@ -156,7 +158,7 @@ describe('AppContentLibrary', () => {
     const newCodeList: CodeListWithMetadata = { title, codeList };
     renderAppContentLibraryWithData();
 
-    retrievePagesConfig().codeList.props.onCreateCodeList(newCodeList);
+    retrievePagesConfig().codeListsWithTextResources.props.onCreateCodeList(newCodeList);
     await waitFor(expect(queriesMock.updateOptionList).toHaveBeenCalled);
 
     expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1);
@@ -166,7 +168,7 @@ describe('AppContentLibrary', () => {
   it('calls deleteOptionList with correct data when onDeleteCodeList is triggered', async () => {
     renderAppContentLibraryWithData();
 
-    retrievePagesConfig().codeList.props.onDeleteCodeList(optionList1Data.title);
+    retrievePagesConfig().codeListsWithTextResources.props.onDeleteCodeList(optionList1Data.title);
     await waitFor(expect(queriesMock.deleteOptionList).toHaveBeenCalled);
 
     expect(queriesMock.deleteOptionList).toHaveBeenCalledTimes(1);
@@ -179,7 +181,9 @@ describe('AppContentLibrary', () => {
     const textResourceWithLanguage: TextResourceWithLanguage = { language, textResource };
     renderAppContentLibraryWithData();
 
-    retrievePagesConfig().codeList.props.onUpdateTextResource(textResourceWithLanguage);
+    retrievePagesConfig().codeListsWithTextResources.props.onUpdateTextResource(
+      textResourceWithLanguage,
+    );
     await waitFor(expect(queriesMock.upsertTextResources).toHaveBeenCalled);
 
     expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(1);
@@ -198,7 +202,7 @@ describe('AppContentLibrary', () => {
     const codeListId = 'codeListId';
     renderAppContentLibraryWithData();
 
-    retrievePagesConfig().codeList.props.onImportCodeListFromOrg(codeListId);
+    retrievePagesConfig().codeListsWithTextResources.props.onImportCodeListFromOrg(codeListId);
     await waitFor(expect(queriesMock.importCodeListFromOrgToApp).toHaveBeenCalled);
 
     expect(queriesMock.importCodeListFromOrgToApp).toHaveBeenCalledTimes(1);

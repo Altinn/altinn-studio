@@ -6,12 +6,12 @@ import { createQueryClientMock } from '../../mocks/queryClientMock';
 import { QueryKey } from '../../types/QueryKey';
 import type { CodeListsResponse } from '../../types/api/CodeListsResponse';
 import type { CodeListData } from '../../types/CodeListData';
-import type { CodeList } from '../../types/CodeList';
+import type { CodeListWithTextResources } from '../../types/CodeListWithTextResources';
 
 // Test data:
 const title = 'testId';
 
-const codeList: CodeList = [
+const codeList: CodeListWithTextResources = [
   {
     value: 'test-value',
     label: 'test-label',

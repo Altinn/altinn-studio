@@ -53,7 +53,7 @@ export function useValidateSimpleBindingWithOptionalGroup<T extends 'Checkboxes'
       errors.push(`Field ${simpleBinding} in group must be one of types ${allowedLeafTypes.join(', ')}`);
     }
   } else {
-    const [newErrors] = validateDataModelBindingsSimple(baseComponentId, bindings, lookupBinding, layoutLookups);
+    const newErrors = validateDataModelBindingsSimple(baseComponentId, bindings, lookupBinding, layoutLookups);
     errors.push(...(newErrors || []));
   }
 

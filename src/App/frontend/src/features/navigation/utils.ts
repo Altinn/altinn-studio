@@ -10,10 +10,10 @@ import {
 } from '@navikt/aksel-icons';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
+import { useIsReceiptPage } from 'src/core/routing/useIsReceiptPage';
 import { usePageGroups, usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useGetAltinnTaskType } from 'src/features/instance/useProcessQuery';
 import { ValidationMask } from 'src/features/validation';
-import { useIsReceiptPage } from 'src/hooks/navigation';
 import { useVisitedPages } from 'src/hooks/useNavigatePage';
 import { useHiddenPages } from 'src/utils/layout/hidden';
 import { NodesInternal } from 'src/utils/layout/NodesContext';

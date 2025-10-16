@@ -59,7 +59,7 @@ describe('DeployPopover', () => {
   it('should show a spinner if deployment is pending', () => {
     renderDeployPopover({ componentProps: { isPending: true } });
 
-    expect(screen.getByTitle(textMock('app_deployment.deploy_loading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_deployment.deploy_loading'))).toBeInTheDocument();
   });
 
   it('should display the deploy confirmation message with app version when the popover is open', async () => {

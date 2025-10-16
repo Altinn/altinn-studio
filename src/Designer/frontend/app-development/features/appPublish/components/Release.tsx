@@ -4,7 +4,7 @@ import { DateUtils } from '@studio/pure-functions';
 import { getReleaseBuildPipelineLink } from '../../../utils/urlHelper';
 import { gitCommitPath } from 'app-shared/api/paths';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner } from '@studio/components-legacy';
+import { StudioSpinner } from '@studio/components';
 import type { Build } from 'app-shared/types/Build';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import type { AppRelease } from 'app-shared/types/AppRelease';
@@ -31,7 +31,7 @@ export function Release(props: IReleaseComponent) {
       return (
         <StudioSpinner
           spinnerTitle={t('app_create_release.loading')}
-          showSpinnerTitle={false}
+          aria-hidden
           className={classes.spinnerRoot}
         />
       );

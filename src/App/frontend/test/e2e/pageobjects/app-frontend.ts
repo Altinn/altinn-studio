@@ -350,6 +350,7 @@ export class AppFrontend {
     kjønn: '#kjonn',
     bosted: '#bosted',
     groupTag: 'input[id^=attachment-tag]',
+    cvUploader: '#vedlegg-cv',
     uploaders: '[id^=Vedlegg-]',
   };
 

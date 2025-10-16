@@ -1,10 +1,5 @@
-import {
-  StudioErrorMessage,
-  StudioFieldset,
-  StudioSpinner,
-  StudioSwitch,
-  StudioTextfield,
-} from '@studio/components-legacy';
+import { StudioErrorMessage, StudioSwitch, StudioTextfield } from '@studio/components-legacy';
+import { StudioSpinner, StudioFieldset } from '@studio/components';
 import { useDataTypeQuery } from 'app-shared/hooks/queries/useDataTypeQuery';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -35,7 +30,7 @@ export const ItemMetadataTab = () => {
   };
 
   if (isPending) {
-    return <StudioSpinner spinnerTitle={t('general.loading')}></StudioSpinner>;
+    return <StudioSpinner aria-hidden spinnerTitle={t('general.loading')}></StudioSpinner>;
   }
 
   if (!dataType) {

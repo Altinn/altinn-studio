@@ -10,7 +10,7 @@ import {
   label2Resource,
   label3Resource,
 } from './textResources';
-import type { CodeList } from '../types/CodeList';
+import type { CodeListWithTextResources } from '../types/CodeListWithTextResources';
 
 const item1: CodeListItem = {
   description: description1Resource.id,
@@ -33,4 +33,4 @@ const item3: CodeListItem = {
   value: 'test3',
 };
 
-export const codeListWithStrings: CodeList = [item1, item2, item3];
+export const codeListWithStrings: CodeListWithTextResources = [item1, item2, item3];

@@ -79,16 +79,18 @@ const handleError = (
 const renderDefaultToast = () => {
   toast.error(
     () => (
-      <Trans
-        i18nKey={'general.error_message'}
-        components={{
-          a: (
-            <Link href='/info/contact' inverted={true}>
-              {' '}
-            </Link>
-          ),
-        }}
-      />
+      <div>
+        <Trans
+          i18nKey={'general.error_message'}
+          components={{
+            a: (
+              <Link href='/info/contact' inverted={true}>
+                {' '}
+              </Link>
+            ),
+          }}
+        />
+      </div>
     ),
     { toastId: 'default' },
   );

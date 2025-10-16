@@ -1,0 +1,41 @@
+.componentContainer {
+  margin-bottom: var(--ds-size-10);
+}
+
+.table {
+  width: 100%;
+}
+
+.emptyTableFallbackContainer {
+  padding: var(--ds-size-4);
+  text-align: center;
+}
+
+.paginationContainer {
+  margin-top: var(--ds-size-4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.selectContainer {
+  display: flex;
+  gap: var(--ds-size-3);
+  align-items: center;
+}
+
+.select {
+  margin-block: auto;
+}
+
+.selectLabel {
+  margin-block: auto;
+  font-weight: normal !important;
+  white-space: nowrap;
+}
+
+.rowCounter {
+  margin-block: auto;
+  margin-left: var(--ds-size-3);
+  white-space: nowrap;
+}

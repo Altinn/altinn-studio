@@ -4,10 +4,10 @@ import { useSearchParams } from 'react-router-dom';
 import { Tabs as DesignsystemetTabs } from '@digdir/designsystemet-react';
 
 import { Flex } from 'src/app-components/Flex/Flex';
+import { SearchParams } from 'src/core/routing/types';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { SearchParams } from 'src/hooks/navigation';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Tabs/Tabs.module.css';

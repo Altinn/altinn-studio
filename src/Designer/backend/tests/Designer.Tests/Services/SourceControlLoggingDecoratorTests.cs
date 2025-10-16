@@ -398,7 +398,7 @@ namespace Designer.Tests.Services
             throw new NotImplementedException();
         }
 
-        public Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message)
+        public Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message, string accessToken = "")
         {
             throw new NotImplementedException();
         }

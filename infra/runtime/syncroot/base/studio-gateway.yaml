@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: runtime-gateway
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: studio-gateway-repo
+  namespace: runtime-gateway
+spec:
+  interval: 5m
+  provider: azure
+  ref:
+    tag: ${UPGRADE_CHANNEL}
+  timeout: 5m
+  url: oci://altinncr.azurecr.io/studio-apps/runtime-gateway-repo
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: studio-gateway
+  namespace: runtime-gateway
+spec:
+  targetNamespace: runtime-gateway
+  interval: 5m
+  retryInterval: 5m
+  timeout: 1m
+  prune: false
+  force: false
+  wait: true
+  path: ./
+  sourceRef:
+    kind: OCIRepository
+    name: studio-gateway-repo
+    namespace: runtime-gateway

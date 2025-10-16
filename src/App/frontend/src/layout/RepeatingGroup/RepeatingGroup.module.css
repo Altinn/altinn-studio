@@ -117,9 +117,10 @@ table > tbody > tr.editingRow:hover {
 
 .contentFormatting {
   --cell-text-alignment: left;
+  --cell-word-break: break-word;
   overflow: hidden;
   text-overflow: ellipsis;
-  word-break: break-word;
+  word-break: var(--cell-word-break);
   display: -webkit-box;
   -webkit-box-orient: vertical;
   text-align: var(--cell-text-alignment);
