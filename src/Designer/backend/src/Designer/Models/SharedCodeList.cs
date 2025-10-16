@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Altinn.Studio.Designer.Models;
 
-public sealed record SharedCodeList(List<Code> Codes, List<string>? TagNames)
+public sealed record SharedCodeList(List<Code> Codes, string Version, CodeListSource? Source, List<string>? TagNames)
 {
     public bool Equals(SharedCodeList? other)
     {
@@ -19,14 +19,32 @@ public sealed record SharedCodeList(List<Code> Codes, List<string>? TagNames)
             return false;
         }
 
-        if ((other.TagNames is null && TagNames is not null) ||
-            (TagNames is null && other.TagNames is not null))
+        if (Equals(other.Version, Version) is false)
         {
             return false;
         }
 
-        if (other.TagNames is not null && TagNames is not null
-            && other.TagNames.SequenceEqual(TagNames) is false)
+        if ((other.Source is null && Source is not null) ||
+            (other.Source is not null && Source is null))
+        {
+            return false;
+        }
+
+        if (other.Source is not null && Source is not null &&
+            Equals(other.Source, Source) is false)
+        {
+            return false;
+        }
+
+
+        if ((other.TagNames is null && TagNames is not null) ||
+            (other.TagNames is not null && TagNames is null))
+        {
+            return false;
+        }
+
+        if (other.TagNames is not null && TagNames is not null &&
+            other.TagNames.SequenceEqual(TagNames) is false)
         {
             return false;
         }
@@ -41,6 +59,9 @@ public sealed record SharedCodeList(List<Code> Codes, List<string>? TagNames)
         {
             hash.Add(code);
         }
+
+        hash.Add(Version);
+        hash.Add(Source);
 
         if (TagNames is not null)
         {
