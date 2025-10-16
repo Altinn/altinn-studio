@@ -1,0 +1,44 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "dataModelBindings": {
+          "group": "emails"
+        },
+        "id": "emails",
+        "type": "RepeatingGroup",
+        "maxCount": 99999,
+        "textResourceBindings": {
+          "title": "emails.RepeatingGroup-oY9mdw.title"
+        },
+        "minCount": 2,
+        "edit": {
+          "editButton": false,
+          "mode": "onlyTable",
+          "saveButton": false
+        },
+        "hidden": false,
+        "children": ["email"]
+      },
+      {
+        "id": "NavigationButtons-s225gq",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "emails.email"
+        },
+        "id": "email",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "emails.email.title"
+        },
+        "required": true
+      }
+    ]
+  }
+}
+
