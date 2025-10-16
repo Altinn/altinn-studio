@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.SharedContent;
 using Azure.Identity;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
@@ -79,12 +80,14 @@ public class AzureSharedContentClient(
         string rootIndexContent = await rootIndexResponse.Content.ReadAsStringAsync(cancellationToken);
         if (string.IsNullOrEmpty(rootIndexContent))
         {
-            string contents = JsonSerializer.Serialize<List<string>>([orgName], s_jsonOptions);
+            OrganizationsIndex organizationsIndex = new(Organizations: [orgName]);
+            string contents = JsonSerializer.Serialize(organizationsIndex, s_jsonOptions);
             _fileNamesAndContent[IndexFileName] = contents;
         }
         else
         {
-            List<string>? organizations = JsonSerializer.Deserialize<List<string>>(rootIndexContent);
+            OrganizationsIndex? index = JsonSerializer.Deserialize<OrganizationsIndex>(rootIndexContent);
+            List<string>? organizations = index?.Organizations;
             if (organizations?.Contains(orgName) is false)
             {
                 organizations.Add(orgName);
