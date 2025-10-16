@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './LibraryBody.module.css';
 import { PagesRouter } from './PagesRouter';
 import type { PagePropsMap, PagesConfig } from '../../types/PagesProps';
-import type { PageName } from '../../types/PageName';
+import { PageName } from '../../types/PageName';
 import type { PageComponent } from '../../utils/router/RouterRouteMapper';
 
 type LibraryBodyProps<T extends PageName> = {
@@ -44,11 +44,11 @@ const getComponentProps = <T extends PageName>(
   pages: PagesConfig,
   currentPage: T,
 ): PagePropsMap<T> => {
-  if (currentPage === 'landingPage') return {} as PagePropsMap<T>;
+  if (currentPage === PageName.LandingPage) return {} as PagePropsMap<T>;
   return pages[currentPage].props;
 };
 
 const getAllPageNamesFromPagesConfig = (pages: PagesConfig): PageName[] => {
   const customPages = Object.keys(pages) as PageName[];
-  return ['landingPage', ...customPages];
+  return [PageName.LandingPage, ...customPages];
 };
