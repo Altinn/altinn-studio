@@ -34,7 +34,7 @@ public class AzureSharedContentClient(
 
     private string _currentVersion = InitialVersion;
     private readonly Dictionary<string, string> _fileNamesAndContent = [];
-    private readonly string _sharedContentBaseUri = Path.Join(
+    private readonly string _sharedContentBaseUri = JoinWithForwardSlashBetween(
         sharedContentClientSettings.Value.StorageAccountUrl, sharedContentClientSettings.Value.StorageContainerName);
 
     private static readonly JsonSerializerOptions s_jsonOptions = new()
