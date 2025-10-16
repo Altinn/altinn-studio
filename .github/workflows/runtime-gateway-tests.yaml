@@ -1,4 +1,4 @@
-name: Rutime Gateway - Build and test
+name: Runtime Gateway - Build and test
 
 on:
   pull_request:
