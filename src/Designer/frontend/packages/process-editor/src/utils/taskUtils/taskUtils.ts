@@ -3,7 +3,7 @@ import type { Element } from 'bpmn-moddle';
 
 export class TaskUtils {
   public static isSigningTask(taskType: BpmnTaskType): boolean {
-return taskType === 'signing' ;
+    return taskType === 'signing';
   }
 
   public static isUserControlledSigning(bpmnDetails: Element): boolean {
