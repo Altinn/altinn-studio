@@ -170,7 +170,7 @@ public class AzureSharedContentClient(
 
             if (versions is not null)
             {
-                string versionWithPrefix = JoinPathWithForwardSlash(versionIndexPrefix, _currentVersion);
+                string versionWithPrefix = JoinPathWithForwardSlash(versionIndexPrefix, JsonFileName(_currentVersion));
                 versions.Add(versionWithPrefix);
                 VersionsIndex index = new(Versions: versions, Latest: versionWithPrefix);
                 string contents = JsonSerializer.Serialize(index, s_jsonOptions);
@@ -260,14 +260,17 @@ public class AzureSharedContentClient(
         {
             return;
         }
-        List<string> versionsAsString = [];
-        foreach (string versionWithPath in input)
+        IEnumerable<string?> versionsAsString = input.Select(Path.GetFileNameWithoutExtension);
+        List<int> versions = [];
+
+        foreach (string? versionAsString in versionsAsString)
         {
-            string versionAsString = versionWithPath.Split(Path.PathSeparator).Last();
-            versionsAsString.Add(versionAsString);
+            if (versionAsString is not null)
+            {
+                versions.Add(int.Parse(versionAsString));
+            }
         }
 
-        List<int> versions = versionsAsString.Select(int.Parse).ToList();
         int version = versions.Max();
         _currentVersion = (version + 1).ToString();
 
