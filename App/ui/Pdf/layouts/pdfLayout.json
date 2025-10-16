@@ -11,7 +11,7 @@
         "type": "Summary2",
         "target": {
           "type": "layoutSet",
-          "taskId": "Task_1"
+          "taskId": "Task_Utfylling1"
         },
         "overrides": [
           {
@@ -25,7 +25,7 @@
         "type": "Summary2",
         "target": {
           "type": "layoutSet",
-          "taskId": "Task_2"
+          "taskId": "Task_Utfylling2"
         }
       }
     ]

@@ -45,7 +45,7 @@
         "allowUserDelete": false,
         "allowInSubform": false
       },
-      "taskId": "Task_1",
+      "taskId": "Task_Utfylling1",
       "maxCount": 1,
       "minCount": 1,
       "enablePdfCreation": false,
@@ -68,7 +68,7 @@
         "allowUserDelete": false,
         "allowInSubform": false
       },
-      "taskId": "Task_2",
+      "taskId": "Task_Utfylling2",
       "maxCount": 1,
       "minCount": 1,
       "enablePdfCreation": false,
