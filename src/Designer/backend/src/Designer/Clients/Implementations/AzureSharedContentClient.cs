@@ -30,7 +30,7 @@ public class AzureSharedContentClient(
     private const string InitialVersion = "1";
     private const string CodeList = "code_lists";
     private const string IndexFileName = "_index.json";
-    private const string LatestCodeListFileName = "latest.json";
+    private const string LatestCodeListFileName = "_latest.json";
 
     private string _currentVersion = InitialVersion;
     private readonly Dictionary<string, string> _fileNamesAndContent = [];
