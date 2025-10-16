@@ -54,14 +54,14 @@ public class AzureSharedContentClient(
             throw new ConfigurationErrorsException("Base url for the content library must be set before publishing.");
         }
 
-        string resourceTypeIndexPath = Path.Join(orgName, IndexFileName);
-        string resourceIndexPath = Path.Join(orgName, CodeList, IndexFileName);
-        string versionIndexPath = Path.Join(orgName, CodeList, codeListId, IndexFileName);
+        string resourceTypeIndexPrefix = orgName;
+        string resourceIndexPrefix = Path.Join(orgName, CodeList);
+        string versionIndexPrefix = Path.Join(orgName, CodeList, codeListId);
 
         await HandleOrganizationIndex(orgName, cancellationToken);
-        await HandleResourceTypeIndex(resourceTypeIndexPath, CodeList, cancellationToken);
-        await HandleResourceIndex(resourceIndexPath, codeListId, cancellationToken);
-        await HandleVersionIndex(versionIndexPath, cancellationToken);
+        await HandleResourceTypeIndex(resourceTypeIndexPrefix, CodeList, cancellationToken);
+        await HandleResourceIndex(resourceIndexPrefix, codeListId, cancellationToken);
+        await HandleVersionIndex(versionIndexPrefix, cancellationToken);
 
         string codeListFolderPath = Path.Join(orgName, CodeList, codeListId);
         CreateCodeListFiles(codeList, codeListFolderPath);
@@ -97,8 +97,9 @@ public class AzureSharedContentClient(
         }
     }
 
-    private async Task HandleResourceTypeIndex(string resourceTypeIndexPath, string resourceType, CancellationToken cancellationToken)
+    private async Task HandleResourceTypeIndex(string resourceTypeIndexPrefix, string resourceType, CancellationToken cancellationToken)
     {
+        string resourceTypeIndexPath = Path.Join(resourceTypeIndexPrefix, IndexFileName);
         string resourceTypeIndexUri = Path.Join(_sharedContentBaseUri, resourceTypeIndexPath);
         HttpResponseMessage resourceTypeIndexResponse = await httpClient.GetAsync(resourceTypeIndexUri, cancellationToken);
 
@@ -120,8 +121,9 @@ public class AzureSharedContentClient(
         }
     }
 
-    private async Task HandleResourceIndex(string resourceIndexPath, string resourceId, CancellationToken cancellationToken)
+    private async Task HandleResourceIndex(string resourceIndexPrefix, string resourceId, CancellationToken cancellationToken)
     {
+        string resourceIndexPath = Path.Join(resourceIndexPrefix, IndexFileName);
         string codeListIdIndexUri = Path.Join(_sharedContentBaseUri, resourceIndexPath);
         HttpResponseMessage codeListIdIndexResponse = await httpClient.GetAsync(codeListIdIndexUri, cancellationToken);
 
@@ -143,8 +145,9 @@ public class AzureSharedContentClient(
         }
     }
 
-    private async Task HandleVersionIndex(string versionIndexPath, CancellationToken cancellationToken)
+    private async Task HandleVersionIndex(string versionIndexPrefix, CancellationToken cancellationToken)
     {
+        string versionIndexPath = Path.Join(versionIndexPrefix, IndexFileName);
         string versionIndexUri = Path.Join(_sharedContentBaseUri, versionIndexPath);
         HttpResponseMessage versionIndexResponse = await httpClient.GetAsync(versionIndexUri, cancellationToken);
 
