@@ -1,0 +1,70 @@
+name: pdf3 - Build
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'src/Runtime/pdf3/**'
+      - '.github/workflows/runtime-pdf3-build.yml'
+  # push:
+  #   branches:
+  #     - 'feat/new-pdf'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: src/Runtime/pdf3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcb5dd907a8 # v5
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+
+      - uses: DeterminateSystems/nix-installer-action@786fff0690178f1234e4e1fe9b536e94f5433196 # v20
+      - uses: DeterminateSystems/magic-nix-cache-action@565684385bcd71bad329742eefe8d12f2e765b39 # v13
+        with:
+          use-flakehub: 'disabled'
+          use-gha-cache: 'enabled'
+
+      - name: Set up development environment
+        run: |
+          nix develop --command bash -c "which go && go version && which kind && which kubectl && which helm && which stern && which golangci-lint"
+
+      - name: Run format check
+        run: nix develop --command make format
+
+      - name: Run linters
+        run: nix develop --command make lint
+
+      - name: Create cluster
+        run: nix develop --command make cluster
+
+      - name: Start registry
+        run: nix develop --command make registry
+
+      - name: Build images
+        run: nix develop --command make build
+
+      - name: Deploy to cluster
+        run: nix develop --command make run
+
+      - name: Run tests
+        run: nix develop --command make test
+
+      - name: Upload test logs
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: runtime-pdf3-test-logs
+          path: src/Runtime/pdf3/test/logs/
+          retention-days: 3
+
+      - name: Cleanup cluster
+        if: always()
+        run: nix develop --command make cluster stop=1

@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -16,6 +17,11 @@ import (
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
 )
+
+// htmlIDSelectorPattern matches pure ID selectors like #myId, #my-id, #my_id
+// but rejects complex selectors like #id.class, #id[attr], #id > child, etc.
+// Allows any HTML5 ID characters except CSS selector metacharacters.
+var htmlIDSelectorPattern = regexp.MustCompile(`^#[^\s.:\[\]>+~,()]+$`)
 
 type browserSession struct {
 	id       int
@@ -322,7 +328,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			// Wait for element using MutationObserver via a single Runtime.evaluate with awaitPromise
 			// Match gorod's behavior: if selector is an id ("#id"), use an optimized observer; otherwise use a generic selector observer.
 			var expression string
-			if waitSelector[0] == '#' {
+			if htmlIDSelectorPattern.MatchString(waitSelector) {
 				id := waitSelector[1:]
 				expression = fmt.Sprintf(`(function(){
 				  const id = %q; const timeoutMs = %d;
