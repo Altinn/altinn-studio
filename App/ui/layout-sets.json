@@ -26,7 +26,7 @@
       "id": "Fail",
       "dataType": "model",
       "tasks": [
-        "Task_eFormidling"
+        "Task_Fail"
       ]
     },
     {

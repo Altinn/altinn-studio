@@ -2,14 +2,14 @@
   "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
   "data": {
     "layout": [
-        {
-            "size": "L",
-            "id": "Header-IIkZPf",
-            "type": "Header",
-            "textResourceBindings": {
-            "title": "Uff da! Det gikk ikke helt som planlagt."
-            }
-        },
+      {
+        "size": "L",
+        "id": "Header-IIkZPf",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Uff da! Her tryna PDF service-tasken, det var sikkert ikke med vilje!"
+        }
+      },
       {
         "id": "Button-BddG51",
         "type": "Button",
