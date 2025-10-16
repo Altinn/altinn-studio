@@ -36,7 +36,7 @@ namespace Designer.Tests.Services
 
         [Theory]
         [InlineData("ttd", "issue-6094")]
-        public async Task GetAsync_OK(string org, string app)
+        public async Task GetDeploymentAsync_OK(string org, string app)
         {
             // Arrange
             var environments = GetEnvironments("environments.json");
@@ -59,6 +59,36 @@ namespace Designer.Tests.Services
 
             // Assert
             Assert.Equal(4, kubernetesDeploymentList.Count);
+        }
+
+        [Theory]
+        [InlineData("ttd")]
+        public async Task GetDeploymentsAsync_OK(string org)
+        {
+            // Arrange
+            var environments = GetEnvironments("environments.json");
+            _environementsService.Setup(e => e.GetOrganizationEnvironments(org)).ReturnsAsync(environments);
+            var kubernetesDeployments = GetKubernetesDeployments("completedDeployments.json");
+            foreach (EnvironmentModel environment in environments)
+            {
+                _kubernetesWrapperClient.Setup(req => req.GetDeploymentsAsync(org, It.Is<EnvironmentModel>(env => env.Name == environment.Name), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(kubernetesDeployments.Where(deployment => deployment.EnvName == environment.Name));
+            }
+
+            KubernetesDeploymentsService kubernetesDeploymentsService = new(
+                _environementsService.Object,
+                _kubernetesWrapperClient.Object,
+                _deploymentLogger.Object);
+
+            // Act
+            Dictionary<string, List<KubernetesDeployment>> kubernetesDeploymentDict =
+                await kubernetesDeploymentsService.GetAsync(org, new CancellationToken());
+
+            // Assert
+            Assert.Single(kubernetesDeploymentDict["tt02"]);
+            Assert.Single(kubernetesDeploymentDict["at22"]);
+            Assert.Empty(kubernetesDeploymentDict["at21"]);
+            Assert.Empty(kubernetesDeploymentDict["production"]);
         }
 
         private static List<EnvironmentModel> GetEnvironments(string filename)
