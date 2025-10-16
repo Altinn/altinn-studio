@@ -1,0 +1,119 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": [
+      "not",
+      ["commaContains", ["dataModel", "ChooseExtraPages"], "shifting-options"]
+    ],
+    "layout": [
+      {
+        "id": "shiftingOptionsNavBar",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "balloons",
+        "type": "RepeatingGroup",
+        "textResourceBindings": {
+          "title": "Luftballonger",
+          "description": "Hvis du trykker på knappen for å legge til rader vil hver rad ha unike options. Når du sletter den øverste raden skal det ikke påvirke radene under, og ende opp med å slette noen option-verdier."
+        },
+        "dataModelBindings": {
+          "group": "ShiftingOptions.Balloons"
+        },
+        "children": [
+          "balloonNum",
+          "balloonColor",
+          "balloonColorSummary"
+        ],
+        "tableHeaders": ["balloonNum", "balloonColor"],
+        "edit": {
+          "addButton": false
+        },
+        "maxCount": 99999
+      },
+      {
+        "id": "balloonNum",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Type"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "ShiftingOptions.Balloons.Num"
+        }
+      },
+      {
+        "id": "balloonColor",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Farge"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "ShiftingOptions.Balloons.Color"
+        },
+        "optionsId": "balloonColors",
+        "mapping": {
+          "ShiftingOptions.Balloons[{0}].Num": "balloonNum"
+        }
+      },
+      {
+        "id": "balloonColorSummary",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Farge (verdi)"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "ShiftingOptions.Balloons.Color"
+        },
+        "options": [],
+        "renderAsSummary": true
+      },
+      {
+        "id": "button-group-shifting-options",
+        "type": "ButtonGroup",
+        "children": [
+          "shiftingOptionsAdd",
+          "shiftingOptionsRemoveAll",
+          "shiftingOptionsNavigate"
+        ]
+      },
+      {
+        "id": "shiftingOptionsAdd",
+        "type": "CustomButton",
+        "textResourceBindings": {
+          "title": "Legg til 10 rader"
+        },
+        "actions": [
+          {
+            "id": "shiftingOptionsAdd",
+            "type": "ServerAction"
+          }
+        ],
+        "buttonStyle": "secondary"
+      },
+      {
+        "id": "shiftingOptionsRemoveAll",
+        "type": "CustomButton",
+        "textResourceBindings": {
+          "title": "Fjern alle radene"
+        },
+        "actions": [
+          {
+            "id": "shiftingOptionsRemoveAll",
+            "type": "ServerAction"
+          }
+        ],
+        "buttonStyle": "secondary"
+      },
+      {
+        "id": "shiftingOptionsNavigate",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "back": "Tilbake",
+          "next": "Neste"
+        },
+        "showBackButton": true
+      }
+    ]
+  }
+}
+
