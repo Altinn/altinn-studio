@@ -11,6 +11,8 @@ import type { FormComponent, FormFileUploaderComponent } from '../../types/FormC
 import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
 import { updateDataTypeIdsToSign } from 'app-shared/utils/bpmnUtils';
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
+import { isItemChildOfContainer } from '@altinn/ux-editor/utils/formLayoutUtils';
+import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 
 export interface UpdateFormComponentMutationArgs {
   updatedComponent: FormComponent;
@@ -28,6 +30,7 @@ export const useUpdateFormComponentMutation = (
   const addAppAttachmentMetadataMutation = useAddAppAttachmentMetadataMutation(org, app);
   const deleteAppAttachmentMetadataMutation = useDeleteAppAttachmentMetadataMutation(org, app);
   const updateAppAttachmentMetadata = useUpdateAppAttachmentMetadataMutation(org, app);
+  const { data: appMetadata } = useAppMetadataQuery(org, app);
   const taskId = useSelectedTaskId(layoutSetName);
   const updateBpmn = useUpdateBpmn(org, app);
   return useMutation({
@@ -69,6 +72,19 @@ export const useUpdateFormComponentMutation = (
             updatedComponent.type === ComponentType.FileUploadWithTag
           ) {
             // Todo: Consider handling this in the backend
+            const fileUploadDataType = appMetadata?.dataTypes?.find(
+              (dataType) => dataType.id === updatedComponent.id,
+            );
+            if (
+              isItemChildOfContainer(
+                updatedLayout,
+                updatedComponent.id,
+                ComponentType.RepeatingGroup,
+              ) &&
+              fileUploadDataType?.maxCount >= updatedComponent.maxNumberOfAttachments
+            ) {
+              return;
+            }
             const {
               maxNumberOfAttachments,
               minNumberOfAttachments,
