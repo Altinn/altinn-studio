@@ -1,6 +1,6 @@
 import { TaskUtils } from './taskUtils';
 import type { BpmnTaskType } from '../../types/BpmnTaskType';
-import { BpmnDetails } from '@altinn/process-editor/types/BpmnDetails';
+import type { BpmnDetails } from '@altinn/process-editor/types/BpmnDetails';
 
 type TestCase = {
   input: BpmnTaskType;
