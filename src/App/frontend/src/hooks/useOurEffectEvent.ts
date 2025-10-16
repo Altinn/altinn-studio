@@ -6,7 +6,7 @@ import { useCallback, useInsertionEffect, useRef } from 'react';
  * @see https://react.dev/learn/separating-events-from-effects#declaring-an-effect-event
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function useEffectEvent<T extends (...args: any[]) => any>(event: T) {
+export function useOurEffectEvent<T extends (...args: any[]) => any>(event: T) {
   const ref = useRef(event);
   useInsertionEffect(() => {
     ref.current = event;
