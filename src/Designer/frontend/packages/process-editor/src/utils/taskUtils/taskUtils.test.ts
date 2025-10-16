@@ -29,15 +29,15 @@ describe('taskUtils', () => {
 
   it.each([
     {
-      input: buildBpmnDetails('user-controlled-signatures'),
+      input: buildBpmnDetailsElement('user-controlled-signatures'),
       output: true,
     },
     {
-      input: buildBpmnDetails(''),
+      input: buildBpmnDetailsElement(''),
       output: false,
     },
     {
-      input: buildBpmnDetails('unknown'),
+      input: buildBpmnDetailsElement('unknown'),
       output: false,
     },
   ])('should return true for user-controlled-signing %o', ({ input, output }) => {
@@ -45,7 +45,7 @@ describe('taskUtils', () => {
   });
 });
 
-function buildBpmnDetails(signatureDataType: string): Element {
+function buildBpmnDetailsElement(signatureDataType: string): Element {
   return {
     di: {
       bpmnElement: {
