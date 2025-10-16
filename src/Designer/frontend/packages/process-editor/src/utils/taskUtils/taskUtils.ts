@@ -1,5 +1,5 @@
 import type { BpmnTaskType } from '../../types/BpmnTaskType';
-import type { BpmnDetails } from '../../types/BpmnDetails';
+import type { Element } from 'bpmn-moddle';
 
 export class TaskUtils {
   public static isSigningTask(taskType: BpmnTaskType): boolean {
@@ -7,10 +7,10 @@ export class TaskUtils {
     return signingTasks.includes(taskType);
   }
 
-  public static isUserControlledSigning(bpmnDetails: BpmnDetails): boolean {
+  public static isUserControlledSigning(bpmnDetails: Element): boolean {
     const dataType = 'user-controlled-signatures';
-    return bpmnDetails.element.di.bpmnElement.extensionElements.values[0].signatureConfig.signatureDataType.includes(
-      dataType,
-    );
+    const signatureConfig =
+      bpmnDetails.di?.bpmnElement?.extensionElements?.values?.[0]?.signatureConfig;
+    return signatureConfig?.signatureDataType?.includes(dataType) ?? false;
   }
 }
