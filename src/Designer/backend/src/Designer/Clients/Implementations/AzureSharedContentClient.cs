@@ -54,7 +54,6 @@ public class AzureSharedContentClient(
             throw new ConfigurationErrorsException("Base url for the content library must be set before publishing.");
         }
 
-        BlobContainerClient containerClient = GetContainerClient();
         string resourceTypeIndexPath = Path.Join(orgName, IndexFileName);
         string resourceIndexPath = Path.Join(orgName, CodeList, IndexFileName);
         string versionIndexPath = Path.Join(orgName, CodeList, codeListId, IndexFileName);
@@ -67,6 +66,7 @@ public class AzureSharedContentClient(
         string codeListFolderPath = Path.Join(orgName, CodeList, codeListId);
         CreateCodeListFiles(codeList, codeListFolderPath);
 
+        BlobContainerClient containerClient = GetContainerClient();
         List<Task> tasks = PrepareBlobTasks(containerClient, cancellationToken);
         Task.WaitAll(tasks, cancellationToken);
     }
