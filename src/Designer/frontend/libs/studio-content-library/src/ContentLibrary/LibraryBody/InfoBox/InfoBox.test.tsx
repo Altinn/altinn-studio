@@ -2,10 +2,10 @@ import React from 'react';
 import { InfoBox } from './InfoBox';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { PageName } from '../../../types/PageName';
+import { PageName } from '../../../types/PageName';
 import { infoBoxConfigs } from './infoBoxConfigs';
 
-const pageNameMock: PageName = 'codeListsWithTextResources';
+const pageNameMock: PageName = PageName.CodeListsWithTextResources;
 
 describe('InfoBox', () => {
   it('renders the infobox illustration, title and description', () => {
@@ -23,7 +23,7 @@ describe('InfoBox', () => {
   });
 
   it('renders nothing if receiving a pageName that has no member in infoBoxConfigs', () => {
-    renderInfoBox('landingPage');
+    renderInfoBox(PageName.LandingPage);
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
     expect(screen.queryByRole('heading')).not.toBeInTheDocument();
   });
