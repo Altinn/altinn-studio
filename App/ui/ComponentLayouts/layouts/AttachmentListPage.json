@@ -1,0 +1,77 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "AttachmentList-NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "size": "h2",
+        "id": "AttachmentList-Header",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "AttachmentListPage"
+        }
+      },
+      {
+        "id": "AttachmentList-HeaderComponent",
+        "type": "Header",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Header.Component"
+        }
+      },
+      {
+        "id": "AttachmentList-Component-all",
+        "type": "AttachmentList",
+        "textResourceBindings": {
+          "title": "Alle vedlegg (ingen filter)"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "AttachmentList-Component-all-nolinks",
+        "type": "AttachmentList",
+        "textResourceBindings": {
+          "title": "Uten lenker"
+        },
+        "links": false,
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "AttachmentList-Component-tags",
+        "type": "AttachmentList",
+        "textResourceBindings": {
+          "title": "Vedlegg med tags"
+        },
+        "dataTypeIds": ["FileUploadWithTag-UvbEiL"],
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "AttachmentList-Component-tags-nolinks",
+        "type": "AttachmentList",
+        "textResourceBindings": {
+          "title": "Uten lenker"
+        },
+        "dataTypeIds": ["FileUploadWithTag-UvbEiL"],
+        "links": false,
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "AttachmentList-NavigationButtons",
+        "type": "NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {}
+      }
+    ]
+  }
+}
