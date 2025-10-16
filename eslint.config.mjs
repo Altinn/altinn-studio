@@ -41,7 +41,6 @@ export default tseslint.config(
       'plugin:prettier/recommended',
     ),
   ),
-  reactHooks.configs['flat/recommended'],
   {
     ignores: [
       '**/node_modules',
@@ -55,7 +54,6 @@ export default tseslint.config(
       'snapshots.js',
     ],
   },
-
   {
     plugins: {
       sonarjs: fixupPluginRules(sonarjs),
@@ -64,6 +62,7 @@ export default tseslint.config(
       'simple-import-sort': simpleImportSort,
       'unused-imports': unusedImports,
       react: fixupPluginRules(reactPlugin),
+      'react-hooks': reactHooks,
       'react-compiler': reactCompiler,
       local: {
         rules: {
@@ -129,6 +128,7 @@ export default tseslint.config(
 
       'unused-imports/no-unused-imports': ['error'],
 
+      'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': ['error', { additionalHooks: '^(useMemoDeepEqual)$' }],
       'react/jsx-filename-extension': ['error', { extensions: ['.jsx', '.tsx'] }],
       'react/jsx-curly-brace-presence': ['error', { props: 'never', children: 'never' }],
