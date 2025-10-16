@@ -10,7 +10,9 @@ import (
 	"time"
 
 	"altinn.studio/pdf3/internal/assert"
+	"altinn.studio/pdf3/internal/concurrent"
 	"altinn.studio/pdf3/internal/runtime"
+	"github.com/google/uuid"
 )
 
 type PdfRequest struct {
@@ -171,7 +173,22 @@ type PdfGenerator interface {
 }
 
 type PdfInternalsTestInput struct {
+	ID                  string        `json:"id"` // UUID to correlate with output
 	CleanupDelaySeconds time.Duration `json:"cleanupDelaySeconds"`
+}
+
+// NewPdfInternalsTestInput creates a new test input with a generated UUID
+func NewPdfInternalsTestInput(cleanupDelaySeconds time.Duration) *PdfInternalsTestInput {
+	return &PdfInternalsTestInput{
+		ID:                  uuid.New().String(),
+		CleanupDelaySeconds: cleanupDelaySeconds,
+	}
+}
+
+func NewDefaultPdfInternalsTestInput() *PdfInternalsTestInput {
+	return &PdfInternalsTestInput{
+		ID: uuid.New().String(),
+	}
 }
 
 const TestInputHeaderName string = "X-Internals-Test-Input"
@@ -206,6 +223,7 @@ func (i *PdfInternalsTestInput) Deserialize(headers http.Header) {
 		assert.AssertWithMessage(err == nil, "Should be able to decode input")
 		err = json.Unmarshal(value, i)
 		assert.AssertWithMessage(err == nil, "Should be able to deserialize input")
+		assert.AssertWithMessage(i.ID != "", "Test input ID is required")
 	}
 }
 
@@ -216,9 +234,48 @@ func CopyTestInput(dst http.Header, src http.Header) {
 	}
 }
 
+type BrowserState struct {
+	State            string   `json:"state"`            // Session state when snapshot was taken (e.g., "Generating", "CleaningUp")
+	Cookies          []string `json:"cookies"`          // List of cookie names present in browser
+	ConsoleErrorLogs int      `json:"consoleErrorLogs"` // Count of console errors at this point
+	BrowserErrors    int      `json:"browserErrors"`    // Count of browser errors at this point
+}
+
 type PdfInternalsTestOutput struct {
-	ConsoleErrorLogs int `json:"consoleErrorLogs"`
-	BrowserErrors    int `json:"browserErrors"`
+	ID            string         `json:"id"`            // UUID from input to correlate
+	BrowserStates []BrowserState `json:"browserStates"` // Snapshots at different state transitions
+	complete      chan struct{}  `json:"-"`             // Closed when all snapshots are collected
+}
+
+// NewPdfInternalsTestOutput creates a new test output with the ID from the input
+func NewPdfInternalsTestOutput(input *PdfInternalsTestInput) *PdfInternalsTestOutput {
+	assert.Assert(input != nil)
+	assert.AssertWithMessage(input.ID != "", "Test input ID is required")
+	return &PdfInternalsTestOutput{
+		ID:            input.ID,
+		BrowserStates: make([]BrowserState, 0),
+		complete:      make(chan struct{}),
+	}
+}
+
+// MarkComplete signals that all browser state snapshots have been collected
+func (o *PdfInternalsTestOutput) MarkComplete() {
+	if o.complete != nil {
+		close(o.complete)
+	}
+}
+
+// WaitForComplete waits for all snapshots to be collected, with a timeout
+func (o *PdfInternalsTestOutput) WaitForComplete(timeout time.Duration) bool {
+	if o.complete == nil {
+		return true // Already complete or no channel
+	}
+	select {
+	case <-o.complete:
+		return true
+	case <-time.After(timeout):
+		return false
+	}
 }
 
 func (o *PdfInternalsTestOutput) Serialize(headers http.Header) {
@@ -231,12 +288,24 @@ func (o *PdfInternalsTestOutput) Serialize(headers http.Header) {
 }
 
 func (o *PdfInternalsTestOutput) HadErrors() bool {
-	return o.ConsoleErrorLogs != 0 ||
-		o.BrowserErrors != 0
+	for _, state := range o.BrowserStates {
+		if state.ConsoleErrorLogs != 0 || state.BrowserErrors != 0 {
+			return true
+		}
+	}
+	return false
 }
 
 func (o *PdfInternalsTestOutput) String() string {
 	json, err := json.MarshalIndent(o, "", "  ")
+	assert.AssertWithMessage(err == nil, "Should be able to JSON serialize")
+	return string(json)
+}
+
+func (o *PdfInternalsTestOutput) SnapshotString() string {
+	copy := *o
+	copy.ID = "<UUID>"
+	json, err := json.MarshalIndent(copy, "", "  ")
 	assert.AssertWithMessage(err == nil, "Should be able to JSON serialize")
 	return string(json)
 }
@@ -252,9 +321,33 @@ func (o *PdfInternalsTestOutput) Deserialize(headers http.Header) {
 	assert.AssertWithMessage(err == nil, "Should be able to deserialize output")
 }
 
-func CopyTestOutput(dst http.Header, src http.Header) {
-	header := src.Get(TestOutputHeaderName)
-	if header != "" {
-		dst.Set(TestOutputHeaderName, header)
+// Global test output store for test internals mode
+var testOutputStore = concurrent.NewMap[string, *PdfInternalsTestOutput]()
+
+// StoreTestOutput stores a test output by ID (only in test internals mode)
+func StoreTestOutput(output *PdfInternalsTestOutput) {
+	assert.Assert(runtime.IsTestInternalsMode)
+	assert.Assert(output != nil)
+	assert.AssertWithMessage(output.ID != "", "Test output ID is required")
+	testOutputStore.Set(output.ID, output)
+}
+
+// GetTestOutput retrieves a test output by ID (only in test internals mode)
+func GetTestOutput(id string) (*PdfInternalsTestOutput, bool) {
+	if !runtime.IsTestInternalsMode {
+		return nil, false
 	}
+	assert.AssertWithMessage(id != "", "Test output ID is required")
+	return testOutputStore.Get(id)
+}
+
+// UpdateTestOutput atomically updates a test output by ID (only in test internals mode)
+func UpdateTestOutput(id string, fn func(*PdfInternalsTestOutput)) bool {
+	if !runtime.IsTestInternalsMode {
+		return false
+	}
+	assert.AssertWithMessage(id != "", "Test output ID is required")
+	return testOutputStore.Update(id, func(ptr **PdfInternalsTestOutput) {
+		fn(*ptr)
+	})
 }

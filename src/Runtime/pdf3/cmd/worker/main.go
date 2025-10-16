@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"altinn.studio/pdf3/internal/assert"
@@ -85,6 +86,11 @@ func main() {
 
 	http.HandleFunc("/generate", generatePdfHandler(gen))
 
+	// Only register test output endpoint in test internals mode
+	if runtime.IsTestInternalsMode {
+		http.HandleFunc("/testoutput/", getTestOutputHandler())
+	}
+
 	httpServer := &http.Server{
 		Addr: ":5031",
 		BaseContext: func(_ net.Listener) context.Context {
@@ -152,18 +158,17 @@ func generatePdfHandler(gen types.PdfGenerator) http.HandlerFunc {
 
 		requestContext := r.Context()
 		var testOutput *types.PdfInternalsTestOutput
-		if runtime.IsTestInternalsMode {
+		if runtime.IsTestInternalsMode && types.HasTestInternalsModeHeader(r.Header) {
 			testInput := &types.PdfInternalsTestInput{}
 			testInput.Deserialize(r.Header)
-			testOutput = &types.PdfInternalsTestOutput{}
+			testOutput = types.NewPdfInternalsTestOutput(testInput)
 			requestContext = context.WithValue(requestContext, types.TestInputHeaderName, testInput)
 			requestContext = context.WithValue(requestContext, types.TestOutputHeaderName, testOutput)
+
+			// Store initial test output in the store
+			types.StoreTestOutput(testOutput)
 		}
 		result, pdfErr := gen.Generate(requestContext, req)
-		if runtime.IsTestInternalsMode {
-			assert.AssertWithMessage(testOutput != nil, "Output should be initialized above")
-			testOutput.Serialize(w.Header())
-		}
 
 		if pdfErr != nil {
 			errStr := pdfErr.Error()
@@ -187,6 +192,67 @@ func generatePdfHandler(gen types.PdfGenerator) http.HandlerFunc {
 		w.WriteHeader(http.StatusOK)
 		if _, err := w.Write(result.Data); err != nil {
 			log.Printf("Failed to write PDF response: %v\n", err)
+		}
+	}
+}
+
+func getTestOutputHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		assert.AssertWithMessage(runtime.IsTestInternalsMode, "Test output handler should only be registered in test internals mode")
+
+		if r.Method != http.MethodGet {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			if _, err := w.Write([]byte("Only GET method is allowed")); err != nil {
+				log.Printf("Failed to write error response: %v\n", err)
+			}
+			return
+		}
+
+		// Extract ID from URL path: /testoutput/{id}
+		path := strings.TrimPrefix(r.URL.Path, "/testoutput/")
+		if path == "" || path == r.URL.Path {
+			w.WriteHeader(http.StatusBadRequest)
+			if _, err := w.Write([]byte("Missing test output ID")); err != nil {
+				log.Printf("Failed to write error response: %v\n", err)
+			}
+			return
+		}
+
+		// Get test output from store
+		output, found := types.GetTestOutput(path)
+		if !found {
+			w.WriteHeader(http.StatusNotFound)
+			if _, err := w.Write([]byte("Test output not found")); err != nil {
+				log.Printf("Failed to write error response: %v\n", err)
+			}
+			return
+		}
+
+		// Wait for all snapshots to be collected (with 5 second timeout)
+		if !output.WaitForComplete(5 * time.Second) {
+			w.WriteHeader(http.StatusRequestTimeout)
+			if _, err := w.Write([]byte("Timeout waiting for test output to complete")); err != nil {
+				log.Printf("Failed to write error response: %v\n", err)
+			}
+			return
+		}
+
+		// Return test output as JSON
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+
+		jsonData, err := json.Marshal(output)
+		if err != nil {
+			log.Printf("Failed to marshal test output: %v\n", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			if _, err := w.Write([]byte("Failed to serialize test output")); err != nil {
+				log.Printf("Failed to write error response: %v\n", err)
+			}
+			return
+		}
+
+		if _, err := w.Write(jsonData); err != nil {
+			log.Printf("Failed to write test output response: %v\n", err)
 		}
 	}
 }

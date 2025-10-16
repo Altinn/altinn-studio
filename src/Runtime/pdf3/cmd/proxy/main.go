@@ -88,6 +88,11 @@ func main() {
 
 	http.HandleFunc("/pdf", generatePdf(httpClient, workerHTTPAddr))
 
+	// Only register test output endpoint in test internals mode
+	if runtime.IsTestInternalsMode {
+		http.HandleFunc("/testoutput/", forwardTestOutputRequest(httpClient, workerHTTPAddr))
+	}
+
 	server := &http.Server{
 		Addr: ":5030",
 		BaseContext: func(_ net.Listener) context.Context {
@@ -282,9 +287,6 @@ func callWorker(
 	if resp.StatusCode == http.StatusOK {
 		// Success - return PDF data
 		w.Header().Set("Content-Type", "application/pdf")
-		if runtime.IsTestInternalsMode {
-			types.CopyTestOutput(w.Header(), resp.Header)
-		}
 
 		w.WriteHeader(http.StatusOK)
 		if _, err := io.Copy(w, resp.Body); err != nil {
@@ -340,9 +342,6 @@ func callWorker(
 		problemTitle = "Bad Request"
 	}
 
-	if runtime.IsTestInternalsMode {
-		types.CopyTestOutput(w.Header(), resp.Header)
-	}
 	writeProblemDetails(w, statusCode, ProblemDetails{
 		Type:   problemType,
 		Title:  problemTitle,
@@ -452,5 +451,45 @@ func writeProblemDetails(w http.ResponseWriter, statusCode int, problem ProblemD
 	w.WriteHeader(statusCode)
 	if err := json.NewEncoder(w).Encode(problem); err != nil {
 		log.Printf("Warning: failed to encode error response: %v\n", err)
+	}
+}
+
+func forwardTestOutputRequest(client *http.Client, workerAddr string) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		assert.AssertWithMessage(runtime.IsTestInternalsMode, "Test output endpoint should only be registered in test internals mode")
+
+		// Forward the request to the worker
+		workerEndpoint := workerAddr + r.URL.Path
+		httpReq, err := http.NewRequestWithContext(r.Context(), r.Method, workerEndpoint, nil)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			if _, err := w.Write([]byte("Failed to create worker request")); err != nil {
+				log.Printf("Failed to write error response: %v\n", err)
+			}
+			return
+		}
+
+		resp, err := client.Do(httpReq)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			if _, err := w.Write([]byte("Failed to communicate with worker")); err != nil {
+				log.Printf("Failed to write error response: %v\n", err)
+			}
+			return
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		// Copy response headers and status
+		for key, values := range resp.Header {
+			for _, value := range values {
+				w.Header().Add(key, value)
+			}
+		}
+		w.WriteHeader(resp.StatusCode)
+
+		// Copy response body
+		if _, err := io.Copy(w, resp.Body); err != nil {
+			log.Printf("Failed to write test output response: %v\n", err)
+		}
 	}
 }

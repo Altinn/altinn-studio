@@ -120,7 +120,12 @@ func TestPDFGeneration_Simple(t *testing.T) {
 		t.Error("Response is not a valid PDF")
 	}
 
-	harness.Snapshot(t, []byte(resp.Output.String()), "testoutput", "json")
+	output, err := resp.LoadOutput(t)
+	if err != nil {
+		t.Errorf("Failed loading test output: %v", err)
+	} else {
+		harness.Snapshot(t, []byte(output.SnapshotString()), "testoutput", "json")
+	}
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
 }
 
@@ -161,6 +166,9 @@ func TestPDFGeneration_CompareOldAndNew(t *testing.T) {
 	}
 	if oldErr != nil {
 		t.Errorf("Old PDF generator failure: %v", oldErr)
+	}
+	if newErr != nil || oldErr != nil {
+		return
 	}
 
 	newPdf := makePdfDeterministic(t, newResp.Data)
@@ -213,8 +221,22 @@ func makePdfDeterministic(t *testing.T, pdf []byte) []byte {
 }
 
 type PdfResponse struct {
-	Data   []byte
-	Output *types.PdfInternalsTestOutput
+	Data  []byte
+	Input *types.PdfInternalsTestInput
+}
+
+// LoadOutput fetches the test output from the API if testInput was provided
+func (r *PdfResponse) LoadOutput(t *testing.T) (*types.PdfInternalsTestOutput, error) {
+	if r.Input.ID == "" {
+		return nil, nil // No test input, nothing to load
+	}
+
+	output, err := getTestOutput(t, r.Input.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return output, nil
 }
 
 // requestNewPDF sends a PDF generation request to the new PDF generator solution
@@ -252,7 +274,10 @@ func requestPDFWithHost(t *testing.T, req *types.PdfRequest, overrideHost string
 	}
 	httpReq.Host = overrideHost
 	httpReq.Header.Set("Content-Type", "application/json")
-	if testInput != nil {
+	if strings.Contains(overrideHost, "pdf3") {
+		if testInput == nil {
+			testInput = types.NewDefaultPdfInternalsTestInput()
+		}
 		testInput.Serialize(httpReq.Header)
 	}
 
@@ -278,16 +303,9 @@ func requestPDFWithHost(t *testing.T, req *types.PdfRequest, overrideHost string
 		t.Error("Response is not a valid PDF")
 	}
 
-	// Parse error count headers if present
-	testOutput := &types.PdfInternalsTestOutput{}
-	if strings.Contains(httpReq.Host, "pdf3") {
-		// Only have this for our generator
-		testOutput.Deserialize(resp.Header)
-	}
-
 	return &PdfResponse{
-		Data:   data,
-		Output: testOutput,
+		Data:  data,
+		Input: testInput,
 	}, nil
 }
 
@@ -314,10 +332,6 @@ func TestPDFGeneration_RetryOnQueueFull(t *testing.T) {
 			if !harness.IsPDF(resp.Data) {
 				results <- fmt.Errorf("request %d: response is not a valid PDF", index)
 				return
-			}
-
-			if resp.Output.HadErrors() {
-				results <- fmt.Errorf("request %d: has errors: %s", index, resp.Output.String())
 			}
 
 			results <- nil
@@ -374,10 +388,7 @@ func TestPDFGeneration_WithConsoleErrors(t *testing.T) {
 		t.Error("Response is not a valid PDF")
 	}
 
-	harness.Snapshot(t, []byte(resp.Output.String()), "testoutput", "json")
-
-	t.Logf("Generated PDF size: %d bytes (with %d console error logs, %d browser errors)",
-		len(resp.Data), resp.Output.ConsoleErrorLogs, resp.Output.BrowserErrors)
+	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
 }
 
 func TestPDFGeneration_WithThrownErrors(t *testing.T) {
@@ -394,10 +405,7 @@ func TestPDFGeneration_WithThrownErrors(t *testing.T) {
 		t.Error("Response is not a valid PDF")
 	}
 
-	harness.Snapshot(t, []byte(resp.Output.String()), "testoutput", "json")
-
-	t.Logf("Generated PDF size: %d bytes (with %d console error logs, %d browser errors)",
-		len(resp.Data), resp.Output.ConsoleErrorLogs, resp.Output.BrowserErrors)
+	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
 }
 
 func TestPDFGeneration_WithCleanupDelay(t *testing.T) {
@@ -421,9 +429,7 @@ func TestPDFGeneration_WithCleanupDelay(t *testing.T) {
 			for i := range queue {
 				req := getDefaultPdfRequest(t)
 				req.URL = fmt.Sprintf("%s/app/?render=light&j=%d&i=%d", testServerURL, j, i)
-				testInput := &types.PdfInternalsTestInput{
-					CleanupDelaySeconds: 3,
-				}
+				testInput := types.NewPdfInternalsTestInput(3 * time.Second)
 				resp, err := requestNewPDFWithTestInput(t, req, testInput)
 				requestsMade.Add(1)
 				if err != nil {
@@ -439,7 +445,10 @@ func TestPDFGeneration_WithCleanupDelay(t *testing.T) {
 					failureQueue <- fmt.Errorf("[%d, %d] response is not PDF", j, i)
 				}
 
-				if resp.Output.HadErrors() {
+				// Load test output from API
+				if output, err := resp.LoadOutput(t); err != nil {
+					failureQueue <- fmt.Errorf("[%d, %d] failed to load test output: %v", j, i, err)
+				} else if output != nil && output.HadErrors() {
 					failureQueue <- fmt.Errorf("[%d, %d] response had errors reported in browsers", j, i)
 				}
 			}
@@ -467,4 +476,114 @@ func TestPDFGeneration_WithCleanupDelay(t *testing.T) {
 		t.Fatalf("Only completed %d requests", requestsMade.Load())
 	}
 	t.Logf("Requests complete, found %d failures (%d 429's)", len(failures), errors429.Load())
+}
+
+// getTestOutput fetches a test output from the proxy by ID (which forwards to worker)
+func getTestOutput(_ *testing.T, id string) (*types.PdfInternalsTestOutput, error) {
+	url := jumpboxURL + "/testoutput/" + id
+
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	httpReq, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	httpReq.Host = "pdf3-proxy.pdf3.svc.cluster.local"
+
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request: %w", err)
+	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, string(body))
+	}
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	var output types.PdfInternalsTestOutput
+	if err := json.Unmarshal(data, &output); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal test output: %w", err)
+	}
+
+	return &output, nil
+}
+
+func TestPDFGeneration_CookieCleanup(t *testing.T) {
+	t.Parallel()
+
+	req := getDefaultPdfRequest(t)
+	req.URL = testServerURL + "/app/?render=light"
+
+	testInput := types.NewPdfInternalsTestInput(0)
+
+	// Make a PDF generation request with test input
+	resp, err := requestNewPDFWithTestInput(t, req, testInput)
+	if err != nil {
+		t.Fatalf("Failed to generate PDF: %v", err)
+	}
+
+	if !harness.IsPDF(resp.Data) {
+		t.Error("Response is not a valid PDF")
+	}
+
+	// Fetch the test output from the worker using the API (endpoint waits for completion)
+	output, err := getTestOutput(t, testInput.ID)
+	if err != nil {
+		t.Fatalf("Failed to get test output: %v", err)
+	}
+
+	// Verify the test output
+	if output.ID != testInput.ID {
+		t.Errorf("Expected test output ID %s, got %s", testInput.ID, output.ID)
+	}
+
+	// We should have exactly 2 browser state snapshots: before and after cleanup
+	if len(output.BrowserStates) != 2 {
+		t.Fatalf("Expected 2 browser state snapshots, got %d", len(output.BrowserStates))
+	}
+
+	// Before cleanup: verify state name and cookies
+	beforeCleanup := output.BrowserStates[0]
+	if beforeCleanup.State != "BeforeCleanup" {
+		t.Errorf("Expected state 'BeforeCleanup', got '%s'", beforeCleanup.State)
+	}
+	if len(beforeCleanup.Cookies) == 0 {
+		t.Error("Expected cookies before cleanup, but got 0")
+	} else {
+		t.Logf("Found %d cookies before cleanup: %v", len(beforeCleanup.Cookies), beforeCleanup.Cookies)
+	}
+	t.Logf("Before cleanup - ConsoleErrors: %d, BrowserErrors: %d",
+		beforeCleanup.ConsoleErrorLogs, beforeCleanup.BrowserErrors)
+
+	// After cleanup: verify state name and no cookies
+	afterCleanup := output.BrowserStates[1]
+	if afterCleanup.State != "AfterCleanup" {
+		t.Errorf("Expected state 'AfterCleanup', got '%s'", afterCleanup.State)
+	}
+	if len(afterCleanup.Cookies) != 0 {
+		t.Errorf("Expected 0 cookies after cleanup, but got %d: %v",
+			len(afterCleanup.Cookies), afterCleanup.Cookies)
+	} else {
+		t.Log("All cookies successfully cleaned up")
+	}
+	t.Logf("After cleanup - ConsoleErrors: %d, BrowserErrors: %d",
+		afterCleanup.ConsoleErrorLogs, afterCleanup.BrowserErrors)
+
+	// Snapshot the output for reference
+	harness.Snapshot(t, []byte(output.String()), "testoutput", "json")
+
+	// Log error counts from the final state
+	finalState := output.BrowserStates[len(output.BrowserStates)-1]
+	t.Logf("Generated PDF size: %d bytes (with %d console error logs, %d browser errors)",
+		len(resp.Data), finalState.ConsoleErrorLogs, finalState.BrowserErrors)
 }

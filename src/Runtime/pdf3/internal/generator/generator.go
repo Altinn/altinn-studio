@@ -190,24 +190,8 @@ func (r *workerRequest) tryGetTestModeInput() *types.PdfInternalsTestInput {
 	return value
 }
 
-func (r *workerRequest) tryAddTestOutput(f func(*types.PdfInternalsTestOutput)) {
-	if !runtime.IsTestInternalsMode {
-		return
-	}
-	obj := r.ctx.Value(types.TestOutputHeaderName)
-	assert.AssertWithMessage(obj != nil, "Test output should never be null for test internals mode")
-
-	value, ok := obj.(*types.PdfInternalsTestOutput)
-	assert.AssertWithMessage(ok, "Invalid type for test internals mode output on context")
-	f(value)
-}
-
-func (r *workerRequest) tryRespondOk(data []byte, w *browserSession) {
+func (r *workerRequest) tryRespondOk(data []byte) {
 	if r.responder != nil {
-		r.tryAddTestOutput(func(output *types.PdfInternalsTestOutput) {
-			output.BrowserErrors = int(w.browserErrors.Load())
-			output.ConsoleErrorLogs = int(w.consoleErrors.Load())
-		})
 		response := workerResponse{
 			Data:  data,
 			Error: nil,
@@ -223,12 +207,8 @@ func (r *workerRequest) tryRespondOk(data []byte, w *browserSession) {
 	}
 }
 
-func (r *workerRequest) tryRespondError(err *types.PDFError, w *browserSession) {
+func (r *workerRequest) tryRespondError(err *types.PDFError) {
 	if r.responder != nil {
-		r.tryAddTestOutput(func(output *types.PdfInternalsTestOutput) {
-			output.BrowserErrors = int(w.browserErrors.Load())
-			output.ConsoleErrorLogs = int(w.consoleErrors.Load())
-		})
 		response := workerResponse{
 			Data:  nil,
 			Error: err,

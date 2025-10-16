@@ -1,4 +1,19 @@
 {
-  "consoleErrorLogs": 0,
-  "browserErrors": 0
+  "id": "\u003cUUID\u003e",
+  "browserStates": [
+    {
+      "state": "CleaningUp",
+      "cookies": [
+        "AltinnStudioRuntime"
+      ],
+      "consoleErrorLogs": 0,
+      "browserErrors": 0
+    },
+    {
+      "state": "CleaningUp",
+      "cookies": [],
+      "consoleErrorLogs": 0,
+      "browserErrors": 0
+    }
+  ]
 }
