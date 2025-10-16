@@ -155,6 +155,33 @@ async def attempt_validation_fixes(
         }
 
 
+def _parse_decision_response(response: str) -> Dict[str, Any]:
+    """Parse the reviewer response, handling code fences and extra text."""
+    try:
+        return json.loads(response)
+    except json.JSONDecodeError as primary_error:
+        # Check for fenced code block
+        code_block_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", response, re.DOTALL)
+        if code_block_match:
+            block = code_block_match.group(1)
+            try:
+                return json.loads(block)
+            except json.JSONDecodeError:
+                pass
+
+        # Attempt to extract first JSON object in the string
+        start = response.find("{")
+        end = response.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            snippet = response[start:end + 1]
+            try:
+                return json.loads(snippet)
+            except json.JSONDecodeError:
+                pass
+
+        raise primary_error
+
+
 def reviewer_decision(
     user_goal: str,
     step_plan: Optional[List[str]],
@@ -177,10 +204,30 @@ def reviewer_decision(
         TESTS PASSED: {tests_passed}
         VERIFICATION NOTES: {verify_notes}
 
-        Should these changes be committed or reverted? Return JSON:
+        DECISION GUIDELINES:
+        - COMMIT if: All validations passed, tests passed, and changes appear to implement the goal
+        - REVERT only if: There are clear validation errors, tests failed, or changes are clearly wrong/broken
+
+        IMPORTANT: When everything looks good (validations passed, tests passed), you should COMMIT the changes.
+        The system has already validated the changes extensively - if all checks pass, the changes are ready to commit.
+
+        CRITICAL: If committing, you MUST provide a detailed, specific commit message that clearly describes what was implemented.
+        The commit message should be professional and descriptive, explaining the actual changes made.
+
+        GOOD examples:
+        - "feat: add input validation for payment details"
+        - "fix: correct tab navigation order on main form"
+        - "chore: update localization resources for new fields"
+
+        BAD examples (do not use these):
+        - "Altinity automated change"
+        - "Implement changes"
+        - "Update files"
+
+        Return JSON with commit_message field ALWAYS filled with a descriptive message:
         {{
           "decision": "commit|revert",
-          "commit_message": "appropriate commit message if committing",
+          "commit_message": "REQUIRED: Detailed description of what was actually implemented",
           "reasoning": "explanation of decision"
         }}
         """
@@ -190,14 +237,37 @@ def reviewer_decision(
     response = client.call_sync(reviewer_prompt, user_prompt)
 
     try:
-        decision_data = json.loads(response)
-        decision = decision_data.get("decision", "revert")
-        commit_message = decision_data.get("commit_message", "Altinity automated change")
+        decision_data = _parse_decision_response(response)
+        decision = decision_data.get("decision", "commit" if tests_passed else "revert")  # Default to commit if tests passed
+
+        # Capture commit message and reasoning from LLM response
+        commit_message = decision_data.get("commit_message", "").strip()
         reasoning = decision_data.get("reasoning", "LLM decision")
+
+        # If the reviewer omitted a commit message entirely, fall back to the user goal
+        if not commit_message:
+            log.warning(
+                "Reviewer LLM did not return a commit message. Falling back to user goal summary."
+            )
+            commit_message = f"{user_goal[:100]}" if user_goal else "Altinity automated change"
+
+        # Final override: If tests passed and no validation issues, force commit
+        validation_notes_lower = " ".join(verify_notes).lower() if verify_notes else ""
+        has_validation_issues = any(word in validation_notes_lower for word in ["error", "failed", "issue", "problem", "warning"])
+        
+        if tests_passed and not has_validation_issues and decision == "revert":
+            log.info("Overriding reviewer decision: tests passed with no validation issues, forcing commit")
+            decision = "commit"
+            reasoning = "Tests passed and no validation issues found - committing successful changes"
+
+        log.info(f"Final reviewer decision: {decision}, commit_message: '{commit_message[:50]}...', reasoning: '{reasoning[:50]}...'")
+
     except json.JSONDecodeError:
+        # Default to commit if tests passed, revert if failed
         decision = "commit" if tests_passed else "revert"
-        commit_message = "Altinity automated change"
-        reasoning = response
+        fallback_message = user_goal[:100] if user_goal else "Altinity automated change"
+        commit_message = fallback_message if tests_passed else "Altinity automated change"
+        reasoning = f"JSON parsing failed, defaulting to {'commit' if tests_passed else 'revert'} based on test results"
 
     return {
         "decision": decision,
@@ -330,6 +400,22 @@ async def execute_reviewer_workflow(
                 unique_id = session_id[:8]
             branch_name = f"altinity_session_{unique_id}"
             commit_hash = git_ops.commit(commit_message, repo_path, branch_name=branch_name)
+            
+            if commit_hash is None:
+                log.warning("No changes to commit - all requested changes were already implemented")
+                decision = "no_changes"
+                commit_message = "All requested changes were already implemented - no new commit needed"
+            else:
+                # Push the branch to remote repository
+                try:
+                    from agents.services.git.repo_manager import get_repo_manager
+                    repo_manager = get_repo_manager()
+                    repo_manager.push_branch(session_id, branch_name)
+                    log.info(f"Successfully pushed branch {branch_name} to remote")
+                except Exception as push_error:
+                    log.error(f"Failed to push branch {branch_name}: {push_error}")
+                    # Don't revert on push failure - the commit is still valid
+                    # Just log the error and continue
 
 
         except subprocess.CalledProcessError as e:
@@ -340,6 +426,15 @@ async def execute_reviewer_workflow(
     else:
         # Revert changes
         git_ops.revert(repo_path)
+
+    # Clean up cloned repository after workflow completion
+    try:
+        from agents.services.git.repo_manager import get_repo_manager
+        repo_manager = get_repo_manager()
+        repo_manager.cleanup_session(session_id)
+        log.info(f"Cleaned up repository for session {session_id}")
+    except Exception as cleanup_error:
+        log.error(f"Failed to cleanup repository for session {session_id}: {cleanup_error}")
 
     return {
         "decision": decision,

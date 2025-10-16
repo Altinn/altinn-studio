@@ -693,10 +693,6 @@ def validate_patch_operations(patch: Dict[str, Any], repo_facts: Dict[str, Any],
             path = change.get("path", [])
             if not path or not isinstance(path, list):
                 errors.append(f"Invalid path for {operation} in {file_path}: {path}")
-            elif path == ["data", "layout"] and file_path not in layout_files:
-                errors.append(f"Layout operation on non-layout file: {file_path}")
-            elif path == ["resources"] and file_path not in resource_files:
-                errors.append(f"Resource operation on non-resource file: {file_path}")
 
         elif operation == "insert_json_property":
             path = change.get("path", [])

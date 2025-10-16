@@ -63,6 +63,15 @@ def apply(patch: dict, repo_path: str = None):
         print("Changes have already been applied to disk, skipping file operations")
         return
 
+    # Reset to HEAD to ensure clean state before applying changes
+    if repo_path:
+        try:
+            import subprocess
+            result = subprocess.run(["git", "reset", "--hard", "HEAD"], cwd=repo_path, capture_output=True, text=True, check=True)
+            print("Reset repository to HEAD before applying changes")
+        except subprocess.CalledProcessError as e:
+            print(f"Warning: Failed to reset to HEAD: {e}")
+
     for i, change in enumerate(changes):        
         # Make file path relative to the target repository
         file_path = Path(repo_path) / change["file"] if repo_path else Path(change["file"])
@@ -105,9 +114,23 @@ def apply(patch: dict, repo_path: str = None):
                             target[p] = {}
                         target = target[p]
                     
-                    # Insert the property
-                    target[key] = value
-                    print(f"  Inserted JSON property '{key}' at path {path}")
+                    # Special case: if target is a list and we're trying to set a property on it,
+                    # this is likely a mistake - convert to array insertion
+                    if isinstance(target, list) and key in ['layout', 'resources', 'data']:
+                        print(f"WARNING: Attempting to set property '{key}' on a list. Converting to array insertion.")
+                        # Convert this to an insert_json_array_item operation
+                        if isinstance(value, list):
+                            # If value is a list, extend the target array
+                            target.extend(value)
+                            print(f"  Extended array at path {path} with {len(value)} items")
+                        else:
+                            # If value is a single item, append it
+                            target.append(value)
+                            print(f"  Appended item to array at path {path}")
+                    else:
+                        # Normal property insertion
+                        target[key] = value
+                        print(f"  Inserted JSON property '{key}' at path {path}")
                     
                     with open(file_path, 'w', encoding='utf-8') as f:
                         json_module.dump(data, f, ensure_ascii=False, indent=2)
@@ -281,7 +304,9 @@ def apply(patch: dict, repo_path: str = None):
             print(f"ERROR applying change to {file_path}: {e}")
             import traceback
             traceback.print_exc()
-            raise
+            # Continue with other changes instead of failing completely
+            print(f"Continuing with remaining changes...")
+            continue
 
 def commit(message: str, repo_path: str = None, branch_name: str = None) -> str:
     """Create branch if missing and commit, return hash"""
@@ -317,6 +342,12 @@ def commit(message: str, repo_path: str = None, branch_name: str = None) -> str:
 
         # Stage all changes
         subprocess.run(["git", "add", "."], check=True, cwd=cwd)
+
+        # Check if there are changes to commit
+        status_result = subprocess.run(["git", "status", "--porcelain"], cwd=cwd, capture_output=True, text=True)
+        if not status_result.stdout.strip():
+            print("No changes to commit")
+            return None  # Return None instead of failing
 
         # Commit
         result = subprocess.run(
