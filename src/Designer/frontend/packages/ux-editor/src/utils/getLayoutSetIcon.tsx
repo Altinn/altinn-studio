@@ -6,10 +6,13 @@ import {
   QuestionmarkIcon,
   ReceiptIcon,
   SignTaskIcon,
+  UserControlledSigningIcon,
 } from '@studio/icons';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import type { BpmnTaskType } from 'app-shared/types/BpmnTaskType';
 import type { StudioIconCardIconColors } from '@studio/components-legacy';
+
+type BpmnTaskTypeIcon = BpmnTaskType & { userControlledSigning: string };
 
 type IconMetaData = {
   icon: ReactElement;
@@ -26,10 +29,11 @@ export const getLayoutSetIcon = (layoutSetModel: LayoutSetModel): IconMetaData =
   );
 };
 
-const iconByTaskTypeMap: Partial<Record<BpmnTaskType, IconMetaData>> = {
+const iconByTaskTypeMap: Partial<Record<BpmnTaskTypeIcon, IconMetaData>> = {
   data: { icon: <DataTaskIcon />, iconColor: 'blue' },
   signing: { icon: <SignTaskIcon />, iconColor: 'red' },
   payment: { icon: <CardIcon />, iconColor: 'yellow' },
+  userControlledSigning: { icon: <UserControlledSigningIcon />, iconColor: 'green' },
 };
 
 const iconByTaskIdMap: Record<string, IconMetaData> = {
