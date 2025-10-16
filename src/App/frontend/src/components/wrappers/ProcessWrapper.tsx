@@ -82,12 +82,6 @@ export function NavigateToStartUrl({ forceCurrentTask = true }: { forceCurrentTa
 
   const currentLocation = location.pathname + location.search;
 
-  useEffect(() => {
-    if (currentLocation !== startUrl && !isRunningProcessNext && !isNavigating) {
-      navigate(startUrl, { replace: true });
-    }
-  }, [currentLocation, isRunningProcessNext, navigate, startUrl, isNavigating]);
-
   if (isRunningProcessNext) {
     return <Loader reason='navigate-to-start-process-next' />;
   }
@@ -96,9 +90,16 @@ export function NavigateToStartUrl({ forceCurrentTask = true }: { forceCurrentTa
 }
 
 export function ProcessWrapper({ children }: PropsWithChildren) {
+  const { data: process } = useProcessQuery();
+  const currentTaskId = process?.currentTask?.elementId;
+
   const taskId = useNavigationParam('taskId');
+  const isCurrentTask =
+    currentTaskId === undefined && taskId === TaskKeys.CustomReceipt ? true : currentTaskId === taskId;
+
   const isWrongTask = useIsWrongTask(taskId);
   const isValidTaskId = useIsValidTaskId()(taskId);
+
   const taskType = useGetTaskTypeById()(taskId);
   const isRunningProcessNext = useIsRunningProcessNext();
 

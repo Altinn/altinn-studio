@@ -112,7 +112,6 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
     }),
     [grid, baseComponentId, overrideItemProps, overrideDisplay],
   );
-
   if (hiddenState.hidden) {
     return null;
   }
@@ -154,7 +153,6 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
       </FormComponentContextProvider>
     );
   }
-
   return (
     <FormComponentContextProvider value={formComponentContext}>
       <Flex

@@ -1,5 +1,4 @@
 import dotenv from 'dotenv';
-import escapeRegex from 'escape-string-regexp';
 
 import { cyUserLogin, tenorUserLogin } from 'test/e2e/support/auth';
 import type { AppResponseRef } from 'test/e2e/support/auth';
@@ -68,7 +67,6 @@ Cypress.Commands.add('startAppInstance', (appName, options) => {
   }
 
   const targetUrlRaw = getTargetUrl(appName) + urlSuffix;
-  const targetUrl = new RegExp(`^${escapeRegex(targetUrlRaw)}/?$`);
 
   // This mechanism lets you override what happens in the @app response, for example in a login handler.
   cy.wrap<AppResponseRef>({ current: undefined }).as('appResponse');
@@ -79,25 +77,30 @@ Cypress.Commands.add('startAppInstance', (appName, options) => {
   // use outdated CSS.
   // https://docs.percy.io/docs/debugging-sdks#asset-discovery
   cy.get<AppResponseRef>('@appResponse').then((ref) => {
-    cy.intercept({ url: targetUrl }, (req) => {
-      const cookies = req.headers['cookie'] || '';
-      req.on('response', (res) => {
-        if (typeof res.body === 'string' || res.statusCode === 200) {
-          if (ref.current) {
-            ref.current(res);
-            return;
-          }
+    cy.intercept('**/*', (req) => {
+      // Only intercept HTML responses, not API calls or assets
+      if (!req.url.includes('/api/') && !req.url.includes('/altinn-app-frontend.')) {
+        const cookies = req.headers['cookie'] || '';
 
-          if (evaluateBefore && !cookies.includes('cy-evaluated-js=true')) {
-            res.body = generateHtmlToEval(evaluateBefore);
-            return;
-          }
+        req.on('response', (res) => {
+          const isHtml = res.headers['content-type']?.includes('text/html');
+          if (isHtml && typeof res.body === 'string') {
+            if (ref.current) {
+              ref.current(res);
+              return;
+            }
 
-          const source = /https?:\/\/.*?\/altinn-app-frontend\./g;
-          const target = `http://${targetHost}/altinn-app-frontend.`;
-          res.body = res.body.replace(source, target);
-        }
-      });
+            if (evaluateBefore && !cookies.includes('cy-evaluated-js=true')) {
+              res.body = generateHtmlToEval(evaluateBefore);
+              return;
+            }
+
+            const source = /https?:\/\/.*?\/altinn-app-frontend\./g;
+            const target = `http://${targetHost}/altinn-app-frontend.`;
+            res.body = res.body.replace(source, target);
+          }
+        });
+      }
     }).as('app');
   });
 

@@ -167,7 +167,7 @@ function localLogin({ authenticationLevel, ...rest }: LocalLoginParams) {
       cy.get('select#AuthenticationLevel').should('have.value', $option.val() as string);
     });
 
-  cy.intercept({ method: 'POST', url: '/Home/LogInTestUser', times: 1 }, (req) => {
+  cy.intercept({ method: 'POST', url: '/Home/LogInTestUser', times: 5 }, (req) => {
     req.on('response', (res) => {
       expect(res.statusCode).to.eq(302);
       res.send(200, '');

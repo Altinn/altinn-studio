@@ -62,9 +62,11 @@ namespace Altinn.App.Core.Configuration
         public bool DisableLocaltestValidation { get; set; }
         public string ExternalAppBaseUrl { get; set; }
         public string FixedValidationPrefix { get; set; }
+        public string? FrontendBaseUrl { get; set; }
         public string GetAltinnPartyCookieName { get; }
         public string HostName { get; set; }
         public string InfoValidationPrefix { get; set; }
+        public System.Collections.Generic.List<string>? LanguageCodes { get; set; }
         public string SoftValidationPrefix { get; set; }
         public string SuccessValidationPrefix { get; set; }
         public string FormattedExternalAppBaseUrl(Altinn.App.Core.Models.AppIdentifier app) { }
@@ -83,6 +85,7 @@ namespace Altinn.App.Core.Configuration
         public string ApiAuthenticationEndpoint { get; set; }
         public string ApiAuthorizationEndpoint { get; set; }
         public string ApiCorrespondenceEndpoint { get; set; }
+        public string ApiEndpoint { get; set; }
         public string ApiEventsEndpoint { get; set; }
         public string ApiNotificationEndpoint { get; set; }
         public string ApiPdf2Endpoint { get; set; }
@@ -421,6 +424,78 @@ namespace Altinn.App.Core.Features.Auth
         AltinnStudio = 3,
         IDporten = 4,
         Maskinporten = 5,
+    }
+}
+namespace Altinn.App.Core.Features.Bootstrap
+{
+    public interface IInitialDataService
+    {
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.Bootstrap.Models.InitialDataResponse> GetInitialData(string org, string app, string? instanceId = null, int? partyId = default, string? language = null, System.Threading.CancellationToken cancellationToken = default);
+    }
+}
+namespace Altinn.App.Core.Features.Bootstrap.Models
+{
+    public sealed class FrontendAppSettings
+    {
+        public FrontendAppSettings() { }
+        [System.Text.Json.Serialization.JsonPropertyName("apiUrl")]
+        public string? ApiUrl { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("cdnUrl")]
+        public string? CdnUrl { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("currentPageId")]
+        public string? CurrentPageId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("currentTaskId")]
+        public string? CurrentTaskId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("isStateless")]
+        public bool IsStateless { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("oidcProvider")]
+        public string? OidcProvider { get; set; }
+    }
+    public sealed class FrontendPlatformSettings
+    {
+        public FrontendPlatformSettings() { }
+        [System.Text.Json.Serialization.JsonPropertyName("apiEndpoint")]
+        public string? ApiEndpoint { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("authenticationEndpoint")]
+        public string? AuthenticationEndpoint { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("authorizationApiEndpoint")]
+        public string? AuthorizationApiEndpoint { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("profileApiEndpoint")]
+        public string? ProfileApiEndpoint { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("storageApiEndpoint")]
+        public string? StorageApiEndpoint { get; set; }
+    }
+    public sealed class InitialDataResponse
+    {
+        public InitialDataResponse() { }
+        [System.Text.Json.Serialization.JsonPropertyName("appSettings")]
+        public Altinn.App.Core.Features.Bootstrap.Models.FrontendAppSettings? AppSettings { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("applicationMetadata")]
+        public Altinn.App.Core.Models.ApplicationMetadata? ApplicationMetadata { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("availableLanguages")]
+        public System.Collections.Generic.List<string>? AvailableLanguages { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("canInstantiate")]
+        public bool? CanInstantiate { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("featureFlags")]
+        public System.Collections.Generic.Dictionary<string, bool>? FeatureFlags { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("instance")]
+        public Altinn.Platform.Storage.Interface.Models.Instance? Instance { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("language")]
+        public string? Language { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("layout")]
+        public object? Layout { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("layoutSets")]
+        public Altinn.App.Core.Models.LayoutSets? LayoutSets { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("layoutSettings")]
+        public object? LayoutSettings { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("party")]
+        public Altinn.Platform.Register.Models.Party? Party { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("platformSettings")]
+        public Altinn.App.Core.Features.Bootstrap.Models.FrontendPlatformSettings? PlatformSettings { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("textResources")]
+        public System.Collections.Generic.Dictionary<string, string>? TextResources { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("userProfile")]
+        public Altinn.Platform.Profile.Models.UserProfile? UserProfile { get; set; }
     }
 }
 namespace Altinn.App.Core.Features.Correspondence.Builder
