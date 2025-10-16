@@ -30,7 +30,7 @@ public class AzureSharedContentClient(
     private const string InitialVersion = "1";
     private const string CodeList = "code_lists";
     private const string IndexFileName = "_index.json";
-    private const string LatestFileName = "latest.json";
+    private const string LatestCodeListFileName = "latest.json";
 
     private string _currentVersion = InitialVersion;
     private readonly Dictionary<string, string> _fileNamesAndContent = [];
@@ -64,7 +64,7 @@ public class AzureSharedContentClient(
         await HandleVersionIndex(versionIndexPath, cancellationToken);
 
         string codeListFolderPath = Path.Join(orgName, CodeList, codeListId);
-        CreateCodeListFile(codeList, codeListFolderPath);
+        CreateCodeListFiles(codeList, codeListFolderPath);
 
         List<Task> tasks = PrepareBlobTasks(containerClient, cancellationToken);
         Task.WaitAll(tasks, cancellationToken);
@@ -172,14 +172,21 @@ public class AzureSharedContentClient(
         }
     }
 
-    private void CreateCodeListFile(CodeList codeList, string codeListFolderPath)
+    private void CreateCodeListFiles(CodeList codeList, string codeListFolderPath)
     {
-        string codeListFileName = $"{_currentVersion}.json";
-        var codeListContents = new SharedCodeList(codeList.Codes, codeList.TagNames);
+        var codeListContents = new SharedCodeList(
+            Codes: codeList.Codes,
+            Version: _currentVersion,
+            Source: codeList.Source,
+            TagNames: codeList.TagNames
+        );
         string contentsString = JsonSerializer.Serialize(codeListContents, s_jsonOptions);
+
+        string codeListFileName = $"{_currentVersion}.json";
         string codeListFilePath = Path.Join(codeListFolderPath, codeListFileName);
-        string lastestCodeListFilePath = Path.Join(codeListFolderPath, LatestFileName);
         _fileNamesAndContent[codeListFilePath] = contentsString;
+
+        string lastestCodeListFilePath = Path.Join(codeListFolderPath, LatestCodeListFileName);
         _fileNamesAndContent[lastestCodeListFilePath] = contentsString;
     }
 
