@@ -154,7 +154,7 @@ func (r *workerRequest) tryGetTestModeInput() *testing.PdfInternalsTestInput {
 		return nil
 	}
 
-	obj := r.ctx.Value(testing.TestInputHeaderName)
+	obj := r.ctx.Value(testing.TestInputContextKey())
 	if obj == nil {
 		return nil
 	}

@@ -12,6 +12,11 @@ import (
 	"github.com/google/uuid"
 )
 
+// contextKey is a custom type for context keys to avoid collisions
+type contextKey string
+
+const testInputContextKey contextKey = "test-input"
+
 type PdfInternalsTestInput struct {
 	ID                  string `json:"id"` // UUID to correlate with output
 	CleanupDelaySeconds int    `json:"cleanupDelaySeconds"`
@@ -42,6 +47,11 @@ func NewDefaultTestInput() *PdfInternalsTestInput {
 }
 
 const TestInputHeaderName string = "X-Internals-Test-Input"
+
+// TestInputContextKey returns the context key for storing test input
+func TestInputContextKey() contextKey {
+	return testInputContextKey
+}
 
 func HasTestHeader(headers http.Header) bool {
 	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")

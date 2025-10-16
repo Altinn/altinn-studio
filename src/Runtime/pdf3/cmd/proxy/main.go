@@ -416,7 +416,7 @@ func NewConnectivityChecker(client *http.Client, workerAddr string) *workerConne
 
 			gotValidResponse := err == nil && resp != nil && resp.StatusCode == http.StatusOK
 			if resp != nil {
-				resp.Body.Close()
+				_ = resp.Body.Close()
 			}
 
 			var sleepDuration time.Duration
@@ -502,7 +502,7 @@ func forwardTestOutputRequest(client *http.Client) func(http.ResponseWriter, *ht
 		resp, err := client.Do(httpReq)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			if _, err := w.Write([]byte(fmt.Sprintf("Failed to communicate with worker: %v", err))); err != nil {
+			if _, err := fmt.Fprintf(w, "Failed to communicate with worker: %v", err); err != nil {
 				log.Printf("Failed to write error response: %v\n", err)
 			}
 			return

@@ -23,7 +23,6 @@ type testCase struct {
 }
 
 type requestResult struct {
-	resp   *harness.PdfResponse
 	errors []error
 }
 
@@ -65,7 +64,7 @@ func runSmokeTest(t *testing.T, testCase *testCase) {
 
 			var resp *harness.PdfResponse
 			var err error
-			var testInput *ptesting.PdfInternalsTestInput = testCase.input
+			testInput := testCase.input
 			if testCase.input != nil {
 				testInput = ptesting.NewTestInputFrom(testCase.input)
 				resp, err = harness.RequestNewPDFWithTestInput(t, req, testInput)

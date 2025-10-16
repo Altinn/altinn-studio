@@ -157,7 +157,7 @@ func generatePdfHandler(gen types.PdfGenerator) http.HandlerFunc {
 		var req types.PdfRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			if _, err := w.Write([]byte(fmt.Sprintf("Invalid JSON payload: %v", err))); err != nil {
+			if _, err := fmt.Fprintf(w, "Invalid JSON payload: %v", err); err != nil {
 				log.Printf("Failed to write error response: %v\n", err)
 			}
 			return
@@ -168,7 +168,7 @@ func generatePdfHandler(gen types.PdfGenerator) http.HandlerFunc {
 			testInput := &testing.PdfInternalsTestInput{}
 			testInput.Deserialize(r.Header)
 			testOutput := testing.NewTestOutput(testInput)
-			requestContext = context.WithValue(requestContext, testing.TestInputHeaderName, testInput)
+			requestContext = context.WithValue(requestContext, testing.TestInputContextKey(), testInput)
 			testing.StoreTestOutput(testOutput)
 		}
 		result, pdfErr := gen.Generate(requestContext, req)
