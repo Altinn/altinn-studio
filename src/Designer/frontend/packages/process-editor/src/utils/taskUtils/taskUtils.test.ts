@@ -1,6 +1,6 @@
 import { TaskUtils } from './taskUtils';
 import type { BpmnTaskType } from '../../types/BpmnTaskType';
-import type { BpmnDetails } from '@altinn/process-editor/types/BpmnDetails';
+import type { Element } from 'bpmn-moddle';
 
 type TestCase = {
   input: BpmnTaskType;
@@ -45,22 +45,20 @@ describe('taskUtils', () => {
   });
 });
 
-function buildBpmnDetails(signatureDataType: string): BpmnDetails {
+function buildBpmnDetails(signatureDataType: string): Element {
   return {
-    element: {
-      di: {
-        bpmnElement: {
-          extensionElements: {
-            values: [
-              {
-                signatureConfig: {
-                  signatureDataType,
-                },
+    di: {
+      bpmnElement: {
+        extensionElements: {
+          values: [
+            {
+              signatureConfig: {
+                signatureDataType,
               },
-            ],
-          },
+            },
+          ],
         },
       },
     },
-  } as BpmnDetails;
+  } as Element;
 }

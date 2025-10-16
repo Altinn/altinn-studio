@@ -29,7 +29,7 @@ export const ConfigContent = (): React.ReactElement => {
   const layoutSet = layoutSets?.sets.find((set) => set.tasks?.includes(bpmnDetails.id));
   const existingDataTypeForTask = layoutSet?.dataType;
   const isSigningTask = bpmnDetails.taskType === 'signing';
-  const isUserControlledSigningTask = TaskUtils.isUserControlledSigning(bpmnDetails);
+  const isUserControlledSigningTask = TaskUtils.isUserControlledSigning(bpmnDetails.element);
   const shouldDisplayEditDataTypesToSign = isSigningTask || isUserControlledSigningTask;
 
   const taskHasConnectedLayoutSet = layoutSets?.sets?.some(
