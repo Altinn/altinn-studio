@@ -13,18 +13,14 @@ import (
 	"altinn.studio/pdf3/internal/browser"
 	"altinn.studio/pdf3/internal/cdp"
 	"altinn.studio/pdf3/internal/runtime"
+	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
 )
 
 type Custom struct {
 	browserVersion types.BrowserVersion
 
-	// Browser instances
-	// We keep two sessions but only execute 1 PDF generation request at a time
-	// The reason we have 2 browsers open is because we can process a new request on session B
-	// as soon we start cleanup on session A
-	browserA *browserSession
-	browserB *browserSession
+	session *browserSession
 }
 
 // getBrowserVersion starts a temporary browser and retrieves its version information
@@ -92,20 +88,18 @@ func New() (*Custom, error) {
 			sessions <- session
 		}
 
-		sessions := make(chan *browserSession, 2)
+		sessions := make(chan *browserSession, 1)
 
 		go init(1, sessions)
-		go init(2, sessions)
 
-		generator.browserA = <-sessions
-		generator.browserB = <-sessions
+		generator.session = <-sessions
 	}()
 
 	return generator, nil
 }
 
 func (g *Custom) IsReady() bool {
-	return g.browserA != nil && g.browserB != nil
+	return g.session != nil
 }
 
 func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types.PdfResult, *types.PDFError) {
@@ -117,27 +111,11 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 		cleanedUp: false,
 	}
 
-	var returnErr *types.PDFError = nil
-	// If either of the workers are currently generating a PDF, we can't process the request
-	if g.browserA.isGenerating() || g.browserB.isGenerating() {
-		log.Printf("Request queue full, rejecting request for URL: %s\n", request.URL)
-		returnErr = types.NewPDFError(types.ErrQueueFull, "", nil)
+	if g.session.tryEnqueue(req) {
+		// Successfully enqueued to browserA
 	} else {
-		// If none of the sessions are generating,
-		// let's pick the one that is ready to accept a request.
-		// tryEnqueue will check if the session is ready and enqueue if so.
-
-		if g.browserA.tryEnqueue(req) {
-			// Successfully enqueued to browserA
-		} else if g.browserB.tryEnqueue(req) {
-			// Successfully enqueued to browserB
-		} else {
-			log.Printf("Request queue full, rejecting request for URL: %s\n", request.URL)
-			returnErr = types.NewPDFError(types.ErrQueueFull, "", nil)
-		}
-	}
-	if returnErr != nil {
-		return nil, returnErr
+		log.Printf("Request queue full, rejecting request for URL: %s\n", request.URL)
+		return nil, types.NewPDFError(types.ErrQueueFull, "", nil)
 	}
 
 	select {
@@ -158,12 +136,8 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 }
 
 func (g *Custom) Close() error {
-	// Cancel contexts to signal shutdown to both goroutines
-	if g.browserA != nil {
-		g.browserA.close()
-	}
-	if g.browserB != nil {
-		g.browserB.close()
+	if g.session != nil {
+		g.session.close()
 	}
 	return nil
 }
@@ -175,17 +149,17 @@ type workerRequest struct {
 	cleanedUp bool
 }
 
-func (r *workerRequest) tryGetTestModeInput() *types.PdfInternalsTestInput {
+func (r *workerRequest) tryGetTestModeInput() *testing.PdfInternalsTestInput {
 	if !runtime.IsTestInternalsMode {
 		return nil
 	}
 
-	obj := r.ctx.Value(types.TestInputHeaderName)
+	obj := r.ctx.Value(testing.TestInputHeaderName)
 	if obj == nil {
 		return nil
 	}
 
-	value, ok := obj.(*types.PdfInternalsTestInput)
+	value, ok := obj.(*testing.PdfInternalsTestInput)
 	assert.AssertWithMessage(ok, "Invalid type for test internals mode input on context")
 	return value
 }

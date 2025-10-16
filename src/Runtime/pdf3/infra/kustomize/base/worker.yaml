@@ -224,6 +224,10 @@ spec:
           env:
           - name: TZ
             value: Europe/Oslo
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
           resources:
             # Requests affect sheduling/scaling decisions.
             # For a 1 CPU core + 1 GB RAM VM, current configuration

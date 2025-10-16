@@ -15,11 +15,13 @@ import (
 	"altinn.studio/pdf3/internal/generator"
 	ilog "altinn.studio/pdf3/internal/log"
 	"altinn.studio/pdf3/internal/runtime"
+	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
 )
 
 var (
 	workerId string
+	workerIP string
 )
 
 func main() {
@@ -38,6 +40,10 @@ func main() {
 	}
 
 	workerId = hostname
+
+	// Get pod IP from environment variable (set by Kubernetes downward API)
+	workerIP = os.Getenv("POD_IP")
+	assert.AssertWithMessage(workerIP != "", "Worker IP should always be configured")
 
 	gen, err := generator.New()
 	if err != nil {
@@ -123,6 +129,7 @@ func main() {
 func generatePdfHandler(gen types.PdfGenerator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Worker-Id", workerId)
+		w.Header().Set("X-Worker-IP", workerIP)
 
 		if r.Method != http.MethodPost {
 			w.WriteHeader(http.StatusMethodNotAllowed)
@@ -139,7 +146,7 @@ func generatePdfHandler(gen types.PdfGenerator) http.HandlerFunc {
 			}
 			return
 		}
-		if types.HasTestInternalsModeHeader(r.Header) && !runtime.IsTestInternalsMode {
+		if testing.HasTestHeader(r.Header) && !runtime.IsTestInternalsMode {
 			w.WriteHeader(http.StatusBadRequest)
 			if _, err := w.Write([]byte("Illeagel internals test mode header")); err != nil {
 				log.Printf("Failed to write error response: %v\n", err)
@@ -157,16 +164,12 @@ func generatePdfHandler(gen types.PdfGenerator) http.HandlerFunc {
 		}
 
 		requestContext := r.Context()
-		var testOutput *types.PdfInternalsTestOutput
-		if runtime.IsTestInternalsMode && types.HasTestInternalsModeHeader(r.Header) {
-			testInput := &types.PdfInternalsTestInput{}
+		if runtime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
+			testInput := &testing.PdfInternalsTestInput{}
 			testInput.Deserialize(r.Header)
-			testOutput = types.NewPdfInternalsTestOutput(testInput)
-			requestContext = context.WithValue(requestContext, types.TestInputHeaderName, testInput)
-			requestContext = context.WithValue(requestContext, types.TestOutputHeaderName, testOutput)
-
-			// Store initial test output in the store
-			types.StoreTestOutput(testOutput)
+			testOutput := testing.NewTestOutput(testInput)
+			requestContext = context.WithValue(requestContext, testing.TestInputHeaderName, testInput)
+			testing.StoreTestOutput(testOutput)
 		}
 		result, pdfErr := gen.Generate(requestContext, req)
 
@@ -219,7 +222,7 @@ func getTestOutputHandler() http.HandlerFunc {
 		}
 
 		// Get test output from store
-		output, found := types.GetTestOutput(path)
+		output, found := testing.GetTestOutput(path)
 		if !found {
 			w.WriteHeader(http.StatusNotFound)
 			if _, err := w.Write([]byte("Test output not found")); err != nil {
@@ -229,7 +232,7 @@ func getTestOutputHandler() http.HandlerFunc {
 		}
 
 		// Wait for all snapshots to be collected (with 5 second timeout)
-		if !output.WaitForComplete(5 * time.Second) {
+		if !output.WaitForComplete(30 * time.Second) {
 			w.WriteHeader(http.StatusRequestTimeout)
 			if _, err := w.Write([]byte("Timeout waiting for test output to complete")); err != nil {
 				log.Printf("Failed to write error response: %v\n", err)

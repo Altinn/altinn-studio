@@ -13,8 +13,10 @@ nix-update: ## Update nix flake dependencies
 # Detect available container runtime
 ifneq ($(shell command -v podman 2>/dev/null),)
 CONTAINER_CMD := podman
+CONTAINER_IMG_PUSH_CMD := podman push --tls-verify=false
 else ifneq ($(shell command -v docker 2>/dev/null),)
 CONTAINER_CMD := docker
+CONTAINER_IMG_PUSH_CMD := docker push
 else
 $(error Neither podman nor docker found. Please install one of them.)
 endif
@@ -94,12 +96,12 @@ build: cluster ## Build and load Docker images (cached)
 		$(CONTAINER_CMD) build -t localhost:5001/runtime-pdf3-worker:latest -f Dockerfile.worker .; \
 		# kind load docker-image localhost:5001/runtime-pdf3-proxy:latest --name pdf3-cluster; \
 		# kind load docker-image localhost:5001/runtime-pdf3-worker:latest --name pdf3-cluster; \
-		$(CONTAINER_CMD) push --tls-verify=false localhost:5001/runtime-pdf3-proxy:latest; \
-		$(CONTAINER_CMD) push --tls-verify=false localhost:5001/runtime-pdf3-worker:latest; \
+		$(CONTAINER_IMG_PUSH_CMD) localhost:5001/runtime-pdf3-proxy:latest; \
+		$(CONTAINER_IMG_PUSH_CMD) localhost:5001/runtime-pdf3-worker:latest; \
 		echo "$$combined_hash" > .last-build-hash; \
 	fi
 
-run: build ## Deploy to cluster and restart services (cached)
+run: registry build ## Deploy to cluster and restart services (cached)
 	@echo "Checking for changes in manifests..."
 	@infra_hash=$$(find infra -type f 2>/dev/null | sort | xargs cat 2>/dev/null | $(SHA256_CMD) | cut -d' ' -f1); \
 	if [ -f .last-deploy-hash ] && [ "$$(cat .last-deploy-hash)" = "$$infra_hash" ] && ! [ .last-build-hash -nt .last-deploy-hash 2>/dev/null ]; then \
@@ -121,20 +123,31 @@ run: build ## Deploy to cluster and restart services (cached)
 		sleep 5; \
 	fi
 
-test: run ## Run Go tests
+test: run ## Run all tests (smoke tests run exclusively, then simple tests)
 	# Create logs directory
 	@mkdir -p test/logs
 	# count=1 to circumvent go cache
 	@set +e; \
 	START_TIME=$$(date +%s); \
-	go test -count=1 -timeout 5m -v ./...; \
-	TEST_EXIT=$$?; \
+	echo "Running smoke tests..."; \
+	go test -count=1 -timeout 5m -v ./test/integration/smoke/...; \
+	SMOKE_EXIT=$$?; \
+	echo "Running simple tests..."; \
+	go test -count=1 -timeout 5m -v ./test/integration/simple/...; \
+	SIMPLE_EXIT=$$?; \
 	END_TIME=$$(date +%s); \
 	DURATION=$$((END_TIME - START_TIME + 10)); \
 	echo "Capturing logs from last $${DURATION}s to test/logs/..."; \
 	stern -l app=pdf3-proxy -n pdf3 -E linkerd-init -E linkerd-proxy --since $${DURATION}s --no-follow > test/logs/proxy.log 2>&1 || true; \
 	stern -l app=pdf3-worker -n pdf3 -E linkerd-init -E linkerd-proxy --since $${DURATION}s --no-follow > test/logs/worker.log 2>&1 || true; \
-	exit $$TEST_EXIT
+	if [ $$SMOKE_EXIT -ne 0 ]; then exit $$SMOKE_EXIT; fi; \
+	exit $$SIMPLE_EXIT
+
+test-smoke: run ## Run smoke tests only
+	@go test -count=1 -timeout 5m -v ./test/integration/smoke/...
+
+test-simple: run ## Run simple tests only
+	@go test -count=1 -timeout 5m -v ./test/integration/simple/...
 
 test-loop: run ## Run tests n times (use 'make test-loop n=10' to run 10 times)
 ifndef n

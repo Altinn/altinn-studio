@@ -1,8 +1,14 @@
 {
-  "id": "\u003cUUID\u003e",
+  "id": "UUID",
   "browserStates": [
     {
-      "state": "CleaningUp",
+      "state": "Before",
+      "cookies": [],
+      "consoleErrorLogs": 0,
+      "browserErrors": 0
+    },
+    {
+      "state": "BeforeCleanup",
       "cookies": [
         "AltinnStudioRuntime"
       ],
@@ -10,7 +16,7 @@
       "browserErrors": 0
     },
     {
-      "state": "CleaningUp",
+      "state": "After",
       "cookies": [],
       "consoleErrorLogs": 0,
       "browserErrors": 0

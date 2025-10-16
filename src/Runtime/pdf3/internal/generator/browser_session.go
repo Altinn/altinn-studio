@@ -12,32 +12,10 @@ import (
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/browser"
 	"altinn.studio/pdf3/internal/cdp"
+	"altinn.studio/pdf3/internal/runtime"
+	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
 )
-
-type SessionState uint32
-
-const (
-	SessionStateReady SessionState = iota
-	SessionStateQueued
-	SessionStateGenerating
-	SessionStateCleaningUp
-)
-
-func (s SessionState) String() string {
-	switch s {
-	case SessionStateReady:
-		return "Ready"
-	case SessionStateQueued:
-		return "Queued"
-	case SessionStateGenerating:
-		return "Generating"
-	case SessionStateCleaningUp:
-		return "CleaningUp"
-	default:
-		return "Unknown"
-	}
-}
 
 type browserSession struct {
 	id       int
@@ -64,12 +42,11 @@ func newBrowserSession(id int) (*browserSession, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	w := &browserSession{
 		id:     id,
-		queue:  make(chan workerRequest, 1),
+		queue:  make(chan workerRequest),
 		state:  atomic.Uint32{},
 		ctx:    ctx,
 		cancel: cancel,
 	}
-	w.state.Store(uint32(SessionStateReady))
 
 	// Start browser process
 	var err error
@@ -109,23 +86,16 @@ func newBrowserSession(id int) (*browserSession, error) {
 	return w, nil
 }
 
-// isGenerating returns true if the session is currently generating a PDF
-func (w *browserSession) isGenerating() bool {
-	state := w.state.Load()
-	return state == uint32(SessionStateGenerating) || state == uint32(SessionStateQueued)
-}
-
 // tryEnqueue attempts to enqueue a request if the session is ready
 // Returns true if the request was enqueued, false otherwise
 func (w *browserSession) tryEnqueue(req workerRequest) bool {
-	if w.state.CompareAndSwap(uint32(SessionStateReady), uint32(SessionStateQueued)) ||
-		w.state.CompareAndSwap(uint32(SessionStateCleaningUp), uint32(SessionStateQueued)) {
-
-		assert.AssertWithMessage(len(w.queue) == 0, "CAS failed, queue is not empty")
-		w.queue <- req
+	select {
+	// Queue is unbuffered, so if it isn't waiting here yet just return false
+	case w.queue <- req:
 		return true
+	default:
+		return false
 	}
-	return false
 }
 
 func (w *browserSession) handleEvent(method string, params interface{}) {
@@ -154,6 +124,10 @@ func (w *browserSession) sendCommand(method string, params interface{}) (*cdp.CD
 }
 
 func (w *browserSession) handleRequests() {
+	defer func() {
+		assert.AssertWithMessage(w.ctx.Err() != nil, "Exited worker loop, but process isn't shutting down")
+	}()
+
 	for {
 		select {
 		case <-w.ctx.Done():
@@ -164,11 +138,11 @@ func (w *browserSession) handleRequests() {
 				assert.AssertWithMessage(w.ctx.Err() != nil, "Queue channel closed, but process is not shutting down")
 				return
 			}
-			previousState := w.state.Swap(uint32(SessionStateGenerating))
-			assert.AssertWithMessage(
-				previousState == uint32(SessionStateReady) || previousState == uint32(SessionStateQueued),
-				"Unexpected state at start of request processing",
-			)
+
+			// Reset error counters for this request
+			w.consoleErrors.Store(0)
+			w.browserErrors.Store(0)
+			w.tryUpdateTestModeOutput(&req, "Before", false)
 
 			w.currentUrl = req.request.URL
 			w.handleRequest(&req)
@@ -177,12 +151,8 @@ func (w *browserSession) handleRequests() {
 			if !req.hasResponded() {
 				log.Fatalf("[%d, %s] did not respond to request\n", w.id, w.currentUrl)
 			}
-			currentState := w.state.Load()
-			assert.AssertWithMessage(
-				currentState == uint32(SessionStateCleaningUp) || currentState == uint32(SessionStateQueued),
-				"Can't go to ready unless we have just cleaned up (or enqueued next)",
-			)
-			_ = w.state.CompareAndSwap(uint32(SessionStateCleaningUp), uint32(SessionStateReady))
+
+			w.tryUpdateTestModeOutput(&req, "After", true)
 		}
 	}
 }
@@ -190,10 +160,6 @@ func (w *browserSession) handleRequests() {
 func (w *browserSession) handleRequest(req *workerRequest) {
 	log.Printf("[%d, %s] processing PDF request\n", w.id, w.currentUrl)
 	start := time.Now()
-
-	// Reset error counters for this request
-	w.consoleErrors.Store(0)
-	w.browserErrors.Store(0)
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -210,11 +176,9 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 		// When we return here, we never get to the cleanup state in the defer block of `generatePdf` below.
 		// Since we haven't actually used any of the user data the cleanup phase is completely safe to ignore.
 		// So let's manually swap into it cleanup state so that outer loop can swap out of this
-		previousState := w.state.Swap(uint32(SessionStateCleaningUp))
-		assert.AssertWithMessage(
-			previousState == uint32(SessionStateGenerating),
-			"Internal state should always go from Generating -> CleaningUp during early exit",
-		)
+
+		// Capture browser state after cleanup (for test internals mode)
+		w.tryUpdateTestModeOutput(req, "ClientDropped", false)
 		return
 	}
 
@@ -232,11 +196,9 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 	defer func() {
 		// When we get here we can already accept a request into the queue
 		// Cleanup should run fairly fast (low ms range)
-		previousState := w.state.Swap(uint32(SessionStateCleaningUp))
-		assert.AssertWithMessage(
-			previousState == uint32(SessionStateGenerating),
-			"Internal state should always go from Generating -> CleaningUp when starting cleanup",
-		)
+
+		// Capture browser state before cleanup (for test internals mode)
+		w.tryUpdateTestModeOutput(req, "BeforeCleanup", false)
 
 		// Navigate back to default
 		start := time.Now()
@@ -249,11 +211,8 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 
 		if testInput := req.tryGetTestModeInput(); testInput != nil && testInput.CleanupDelaySeconds > 0 {
 			log.Printf("[%d, %s] waiting for %d seconds\n", w.id, w.currentUrl, testInput.CleanupDelaySeconds)
-			time.Sleep(testInput.CleanupDelaySeconds * time.Second)
+			time.Sleep(time.Duration(testInput.CleanupDelaySeconds) * time.Second)
 		}
-
-		// Capture browser state before cleanup (for test internals mode)
-		w.tryUpdateTestModeOutput(req, false)
 
 		// Cleanup browser storage
 		w.cleanupBrowser(req)
@@ -272,9 +231,6 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 				log.Fatalf("[%d, %s] failed to cleanup storage, we're in an unsafe state and can't proceed", w.id, w.currentUrl)
 			}
 		}
-
-		// Capture browser state after cleanup (for test internals mode)
-		w.tryUpdateTestModeOutput(req, true)
 
 		duration := time.Since(start)
 		log.Printf("[%d, %s] cleanup completed in %.2f seconds\n", w.id, w.currentUrl, duration.Seconds())
@@ -532,6 +488,8 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 }
 
 func (w *browserSession) getCookies() ([]map[string]interface{}, error) {
+	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
+
 	resp, err := w.sendCommand("Network.getCookies", map[string]interface{}{})
 	if err != nil {
 		return nil, err
@@ -557,12 +515,13 @@ func (w *browserSession) getCookies() ([]map[string]interface{}, error) {
 	return cookieList, nil
 }
 
-func (w *browserSession) getBrowserState() types.BrowserState {
-	currentState := SessionState(w.state.Load())
+func (w *browserSession) getBrowserState(state string) testing.BrowserState {
+	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
+
 	cookies, err := w.getCookies()
 	if err != nil {
-		return types.BrowserState{
-			State:            currentState.String(),
+		return testing.BrowserState{
+			State:            state,
 			Cookies:          []string{},
 			ConsoleErrorLogs: int(w.consoleErrors.Load()),
 			BrowserErrors:    int(w.browserErrors.Load()),
@@ -576,8 +535,8 @@ func (w *browserSession) getBrowserState() types.BrowserState {
 		}
 	}
 
-	return types.BrowserState{
-		State:            currentState.String(),
+	return testing.BrowserState{
+		State:            state,
 		Cookies:          cookieNames,
 		ConsoleErrorLogs: int(w.consoleErrors.Load()),
 		BrowserErrors:    int(w.browserErrors.Load()),
@@ -586,14 +545,15 @@ func (w *browserSession) getBrowserState() types.BrowserState {
 
 // tryUpdateTestModeOutput captures a browser state snapshot and updates the test output if in test mode.
 // If markComplete is true, it also marks the output as complete (should be true for the final snapshot).
-func (w *browserSession) tryUpdateTestModeOutput(req *workerRequest, markComplete bool) {
+func (w *browserSession) tryUpdateTestModeOutput(req *workerRequest, state string, markComplete bool) {
 	testInput := req.tryGetTestModeInput()
 	if testInput == nil {
 		return
 	}
 
-	browserState := w.getBrowserState()
-	types.UpdateTestOutput(testInput.ID, func(output *types.PdfInternalsTestOutput) {
+	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	browserState := w.getBrowserState(state)
+	testing.UpdateTestOutput(testInput.ID, func(output *testing.PdfInternalsTestOutput) {
 		output.BrowserStates = append(output.BrowserStates, browserState)
 		if markComplete {
 			output.MarkComplete()

@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 	"sync/atomic"
 	"time"
 	"unicode/utf8"
@@ -17,6 +18,7 @@ import (
 	"altinn.studio/pdf3/internal/assert"
 	ilog "altinn.studio/pdf3/internal/log"
 	"altinn.studio/pdf3/internal/runtime"
+	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
 )
 
@@ -90,7 +92,7 @@ func main() {
 
 	// Only register test output endpoint in test internals mode
 	if runtime.IsTestInternalsMode {
-		http.HandleFunc("/testoutput/", forwardTestOutputRequest(httpClient, workerHTTPAddr))
+		http.HandleFunc("/testoutput/", forwardTestOutputRequest(httpClient))
 	}
 
 	server := &http.Server{
@@ -143,7 +145,7 @@ func generatePdf(client *http.Client, workerAddr string) func(http.ResponseWrite
 			})
 			return
 		}
-		if types.HasTestInternalsModeHeader(r.Header) && !runtime.IsTestInternalsMode {
+		if testing.HasTestHeader(r.Header) && !runtime.IsTestInternalsMode {
 			writeProblemDetails(w, http.StatusBadRequest, ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
 				Title:  "Bad Request",
@@ -238,17 +240,19 @@ func callWorker(
 		return true
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
-	if runtime.IsTestInternalsMode {
-		types.CopyTestInput(httpReq.Header, r.Header)
+	if runtime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
+		testing.CopyTestInput(httpReq.Header, r.Header)
 	}
 
 	resp, err := client.Do(httpReq)
 	workerId := ""
+	workerIP := ""
 	if resp != nil {
 		workerId = resp.Header.Get("X-Worker-Id")
+		workerIP = resp.Header.Get("X-Worker-IP")
 	}
 	if err != nil {
-		if attempt < maxRetries {
+		if attempt < maxRetries && r.Context().Err() == nil {
 			// This is an error condition that may hit if the worker
 			// crashes or similar. Worthwhile to retry here
 			duration := time.Since(start)
@@ -285,6 +289,15 @@ func callWorker(
 
 	// Check if generation was successful
 	if resp.StatusCode == http.StatusOK {
+		// In test internals mode, pass back the worker IP to the client
+		// so they can route test output requests to the correct worker pod
+		if runtime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
+			assert.AssertWithMessage(workerIP != "", "Worker IP should always be set in test internals mode")
+			w.Header().Set("X-Worker-IP", workerIP)
+			w.Header().Set("X-Worker-Id", workerId)
+			log.Printf("[TEST] Returning worker info: IP %s, ID %s\n", workerIP, workerId)
+		}
+
 		// Success - return PDF data
 		w.Header().Set("Content-Type", "application/pdf")
 
@@ -340,6 +353,14 @@ func callWorker(
 	} else if statusCode >= 400 && statusCode < 500 {
 		problemType = "https://tools.ietf.org/html/rfc7231#section-6.5.1"
 		problemTitle = "Bad Request"
+	}
+
+	// In test internals mode, pass back the worker IP even on errors
+	// so tests can still fetch test output from the correct worker
+	if runtime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
+		assert.Assert(workerIP != "")
+		w.Header().Set("X-Worker-IP", workerIP)
+		w.Header().Set("X-Worker-Id", workerId)
 	}
 
 	writeProblemDetails(w, statusCode, ProblemDetails{
@@ -454,12 +475,21 @@ func writeProblemDetails(w http.ResponseWriter, statusCode int, problem ProblemD
 	}
 }
 
-func forwardTestOutputRequest(client *http.Client, workerAddr string) func(http.ResponseWriter, *http.Request) {
+func forwardTestOutputRequest(client *http.Client) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		assert.AssertWithMessage(runtime.IsTestInternalsMode, "Test output endpoint should only be registered in test internals mode")
 
-		// Forward the request to the worker
-		workerEndpoint := workerAddr + r.URL.Path
+		// Extract test ID from URL path: /testoutput/{id}
+		testID := strings.TrimPrefix(r.URL.Path, "/testoutput/")
+
+		// Client should provide the worker IP via header to ensure we hit the right pod
+		targetWorkerIP := r.Header.Get("X-Target-Worker-IP")
+		assert.AssertWithMessage(targetWorkerIP != "", "X-Target-Worker-IP header is required in test internals mode")
+
+		// Route directly to the specified worker pod IP
+		workerEndpoint := fmt.Sprintf("http://%s:5031%s", targetWorkerIP, r.URL.Path)
+		log.Printf("[TEST] Routing test output request for %s to worker IP %s\n", testID, targetWorkerIP)
+
 		httpReq, err := http.NewRequestWithContext(r.Context(), r.Method, workerEndpoint, nil)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -472,7 +502,7 @@ func forwardTestOutputRequest(client *http.Client, workerAddr string) func(http.
 		resp, err := client.Do(httpReq)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			if _, err := w.Write([]byte("Failed to communicate with worker")); err != nil {
+			if _, err := w.Write([]byte(fmt.Sprintf("Failed to communicate with worker: %v", err))); err != nil {
 				log.Printf("Failed to write error response: %v\n", err)
 			}
 			return
