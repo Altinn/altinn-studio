@@ -243,7 +243,7 @@ public class TextsServiceTest : IDisposable
         };
         PlatformSettings platformSettings = new()
         {
-            AppClusterUrl = "https://{org}.{appPrefix}.{hostName}",
+            AppClusterUrlPattern = "https://{org}.{appPrefix}.{hostName}",
         };
         EnvironmentsService environmentsService = new(new HttpClient(), generalSettings, platformSettings, new Mock<IMemoryCache>().Object, new Mock<ILogger<EnvironmentsService>>().Object);
         AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new(new HttpClient(), environmentsService, new PlatformSettings(), new Mock<ILogger<AltinnStorageAppMetadataClient>>().Object);

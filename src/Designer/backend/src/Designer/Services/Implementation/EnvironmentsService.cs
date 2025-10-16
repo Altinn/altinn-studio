@@ -81,13 +81,7 @@ public class EnvironmentsService : IEnvironmentsService
             throw new KeyNotFoundException($"Environment '{envName}' not found.");
         }
 
-        return new Uri(
-            _platformSettings
-                .AppClusterUrl.Replace("{org}", org)
-                .Replace("{appPrefix}", environment.AppPrefix)
-                .Replace("{hostName}", environment.Hostname)
-                .Replace("{env}", environment.Name)
-        );
+        return new Uri(_platformSettings.GetAppClusterUrl(org, environment));
     }
 
     public async Task<string> GetHostNameByEnvName(string envName)

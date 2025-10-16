@@ -1,4 +1,5 @@
 using Altinn.Studio.Designer.Configuration.Marker;
+using Altinn.Studio.Designer.Services.Models;
 
 namespace Altinn.Studio.Designer.Configuration
 {
@@ -99,6 +100,18 @@ namespace Altinn.Studio.Designer.Configuration
         /// <summary>
         /// Url pattern to access app cluster
         /// </summary>
-        public string AppClusterUrl { get; set; }
+        public string AppClusterUrlPattern { get; set; }
+
+        /// <summary>
+        /// Get url to access app cluster for org and env
+        /// </summary>
+        public string GetAppClusterUrl(string org, EnvironmentModel env)
+        {
+            return AppClusterUrlPattern
+                .Replace("{org}", org)
+                .Replace("{appPrefix}", env.AppPrefix)
+                .Replace("{hostName}", env.Hostname)
+                .Replace("{env}", env.Name);
+        }
     }
 }

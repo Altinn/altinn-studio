@@ -32,7 +32,7 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
     )
     {
         var deploymentsUrl = QueryHelpers.AddQueryString(
-            GetDeploymentsUrl(org, env),
+            _platformSettings.GetAppClusterUrl(org, env) + PATH_TO_DEPLOYMENTS,
             new Dictionary<string, string> { ["labelSelector"] = $"release={org}-{app}" }
         );
 
@@ -55,7 +55,7 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
         CancellationToken ct
     )
     {
-        var deploymentsUrl = GetDeploymentsUrl(org, env);
+        var deploymentsUrl = _platformSettings.GetAppClusterUrl(org, env) + PATH_TO_DEPLOYMENTS;
 
         try
         {
@@ -74,14 +74,5 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
         {
             throw new KubernetesWrapperResponseException("Kubernetes wrapper not reachable", e);
         }
-    }
-
-    private string GetDeploymentsUrl(string org, EnvironmentModel env)
-    {
-        return _platformSettings
-                .AppClusterUrl.Replace("{org}", org)
-                .Replace("{appPrefix}", env.AppPrefix)
-                .Replace("{hostName}", env.Hostname)
-                .Replace("{env}", env.Name) + PATH_TO_DEPLOYMENTS;
     }
 }

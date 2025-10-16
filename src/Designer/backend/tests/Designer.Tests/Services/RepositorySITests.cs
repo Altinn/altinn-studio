@@ -387,7 +387,7 @@ namespace Designer.Tests.Services
 
             PlatformSettings platformSettings = new()
             {
-                AppClusterUrl = "https://{org}.{appPrefix}.{hostName}",
+                AppClusterUrlPattern = "https://{org}.{appPrefix}.{hostName}",
             };
 
             EnvironmentsService environmentsService = new(new HttpClient(), generalSettings, platformSettings, new Mock<IMemoryCache>().Object, new Mock<ILogger<EnvironmentsService>>().Object);
