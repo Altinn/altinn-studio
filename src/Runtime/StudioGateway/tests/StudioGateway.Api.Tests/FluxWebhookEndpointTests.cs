@@ -14,7 +14,12 @@ public class FluxWebhookEndpointTests : IClassFixture<WebApplicationFactory<Prog
     }
 
     [Theory]
-    [InlineData("TestData/flux-kustomization-reconciliation-succeeded.json")]
+    [InlineData("TestData/flux-helmrelease-install-succeeded.json")]
+    [InlineData("TestData/flux-helmrelease-upgrade-failed.json")]
+    [InlineData("TestData/flux-helmrelease-rollback-succeeded.json")]
+    [InlineData("TestData/flux-helmrelease-upgrade-succeeded.json")]
+    [InlineData("TestData/flux-helmrelease-install-failed.json")]
+    [InlineData("TestData/flux-helmrelease-uninstall-succeeded.json")]
     public async Task FluxWebhook_WithValidFluxEvent_ReturnsOk(string testDataFile)
     {
         var jsonContent = await File.ReadAllTextAsync(testDataFile, TestContext.Current.CancellationToken);
