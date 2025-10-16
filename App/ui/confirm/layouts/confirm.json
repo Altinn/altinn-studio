@@ -1,0 +1,44 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "confirmTitle",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "confirm.title"
+        },
+        "size": "L"
+      },
+      {
+        "id": "confirmBody",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "customConfirm.body"
+        }
+      },
+      {
+        "id": "buttonGroup",
+        "type": "ButtonGroup",
+        "children": ["back", "sendInButton"]
+      },
+      {
+        "id": "back",
+        "type": "ActionButton",
+        "action": "reject",
+        "buttonStyle": "secondary",
+        "textResourceBindings": {
+          "title": "Gå tilbake"
+        }
+      },
+      {
+        "id": "sendInButton",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "confirm.button_text"
+        }
+      }
+    ]
+  }
+}
+
