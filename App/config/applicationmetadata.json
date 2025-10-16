@@ -1,0 +1,52 @@
+{
+  "id": "ttd/anonymous-stateless-app",
+  "org": "ttd",
+  "title": {
+    "nb": "anonymous-stateless-app"
+  },
+  "dataTypes": [
+    {
+      "id": "ref-data-as-pdf",
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
+      "maxCount": 0,
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false
+    },
+    {
+      "id": "default",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.Skjema",
+        "allowAnonymousOnStateless": true,
+        "autoDeleteOnProcessEnd": false
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": false,
+    "subUnit": false
+  },
+  "autoDeleteOnProcessEnd": false,
+  "onEntry": {
+    "show": "stateless"
+  },
+  "created": "2022-05-05T08:09:01.1099508Z",
+  "createdBy": "nkylstad",
+  "lastChanged": "2022-05-05T08:09:01.1099531Z",
+  "lastChangedBy": "nkylstad"
+}
