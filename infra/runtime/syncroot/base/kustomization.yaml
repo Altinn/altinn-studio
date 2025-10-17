@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - pdf3.yaml
   - studio-gateway.yaml
+  - flux-notifications.yaml
