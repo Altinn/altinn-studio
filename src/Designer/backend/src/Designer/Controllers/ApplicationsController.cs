@@ -62,6 +62,11 @@ public class ApplicationsController : ControllerBase
         {
             return StatusCode(499);
         }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "Invalid deployment data for org {Org}.", org);
+            return StatusCode(502);
+        }
     }
 
     [HttpGet("{org}/{env}/{app}/process-tasks")]
@@ -88,6 +93,17 @@ public class ApplicationsController : ControllerBase
         catch (OperationCanceledException)
         {
             return StatusCode(499);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(
+                ex,
+                "Invalid process task data for app {Org}/{Env}/{App}.",
+                org,
+                env,
+                app
+            );
+            return StatusCode(502);
         }
     }
 }
