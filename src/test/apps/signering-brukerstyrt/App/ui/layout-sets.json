@@ -1,0 +1,27 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout-sets.schema.v1.json",
+  "sets": [
+    {
+      "id": "form",
+      "dataType": "Skjemadata",
+      "tasks": [
+        "Task_1"
+      ]
+    },
+    {
+      "id": "signing-founders",
+      "dataType": "Skjemadata",
+      "tasks": [
+        "SigningTask_Founders"
+      ]
+    },
+    {
+      "id": "signing-auditor",
+      "dataType": "Skjemadata",
+      "tasks": [
+        "SigningTask_Auditor"
+      ]
+    }
+  ],
+  "uiSettings": {}
+}

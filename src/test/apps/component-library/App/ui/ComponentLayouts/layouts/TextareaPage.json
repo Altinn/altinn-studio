@@ -1,0 +1,73 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "TextareaPage-NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "size": "h2",
+        "id": "TextareaPage-Header",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "TextareaPage"
+        }
+      },
+      {
+        "size": "h3",
+        "id": "TextareaPage-Header-Component",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Component"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "longAnswerInput"
+        },
+        "id": "TextareaPage-Textarea",
+        "type": "TextArea",
+        "textResourceBindings": {
+          "title": "TextareaPage.Textarea.title"
+        }
+      },
+      {
+        "size": "h3",
+        "id": "TextareaPage-Header-Summary",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Summary"
+        }
+      },
+      {
+        "componentRef": "TextareaPage-Textarea",
+        "id": "TextareaPage-Summary",
+        "type": "Summary"
+      },
+      {
+        "size": "h3",
+        "id": "TextareaPage-Header-Summary2",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Summary2"
+        }
+      },
+      {
+        "id": "TextareaPage-Summary2",
+        "type": "Summary2",
+        "hidden": false,
+        "target": {
+          "type": "component",
+          "id": "TextareaPage-Textarea"
+        }
+      },
+      {
+        "id": "TextareaPage-NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      }
+    ]
+  }
+}
