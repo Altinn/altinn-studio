@@ -1,0 +1,383 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/text-resources/text-resources.schema.v1.json",
+  "language": "en",
+  "resources": [
+    { "id": "appName", "value": "frontend-test ENGLISH" },
+    {
+      "id": "37130.SkattemeldingEndringEtterFristPostdatadef37130.Label",
+      "value": "Post i RF-1030 Skattemelding for formues- og inntektsskatt som skal  endres"
+    },
+    {
+      "id": "37131.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131.Label",
+      "value": "1\\. **Endre fra**"
+    },
+    {
+      "id": "37132.SkattemeldingEndringEtterFristNyttBelopdatadef37132.Label",
+      "value": "2\\. Endre verdi {0} til ",
+      "variables": [
+        {
+          "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value",
+          "dataSource": "dataModel.nested-group"
+        }
+      ]
+    },
+    {
+      "id": "37133.SkattemeldingEndringEtterFristKommentardatadef37133.Label",
+      "value": "Kommentarer"
+    },
+    {
+      "id": "68.OppgavegiverNavndatadef68.Label",
+      "value": "Oppgave giver navn"
+    },
+    {
+      "id": "BegrunnelseAnnet",
+      "value": "Forklar hvorfor du ønsker å ta navnet, og eventuelt hvilken tilknytning du har til navnet:"
+    },
+    { "id": "BegrunnelseGard1", "value": "Gårdsbruk du vil ta navnet fra" },
+    { "id": "BegrunnelseGard2", "value": "Kommune gårdsbruket ligger i" },
+    { "id": "BegrunnelseGard3", "value": "Gårdsnummer" },
+    { "id": "BegrunnelseGard4", "value": "Bruksnummer" },
+    {
+      "id": "BegrunnelseGard5",
+      "value": "Forklar din tilknytning til gårdsbruket"
+    },
+    {
+      "id": "BegrunnelseNyttNavn",
+      "value": "Du ønsker å ta et navn som du tror er nytt i Norge. Forklar hvorfor du ønsker dette navnet:"
+    },
+    { "id": "BegrunnelseSamboer1", "value": "Etternavn på samboer" },
+    { "id": "BegrunnelseSamboer2", "value": "Fødselsnummer på samboer" },
+    {
+      "id": "BegrunnelseSlektskap",
+      "value": "Forklar hvem du tar navnet fra, og hvilken side slektskapet ligger"
+    },
+    {
+      "id": "BegrunnelseSteforeldre",
+      "value": "Etternavn på ste- eller fosterforeldre du ønsker å ta navnet til"
+    },
+    {
+      "id": "BegrunnelseValgNavn",
+      "value": "Vennligst oppgi begrunnelse for endring av navn"
+    },
+    { "id": "BekreftNavnTittel", "value": "Bekreftelse av navn" },
+    { "id": "DineEndringer", "value": "Dine endringer" },
+    { "id": "EndreNavnFra", "value": "Du har valgt å endre:" },
+    { "id": "EndreNavnTil", "value": "Til:" },
+    { "id": "Epost", "value": "E-post" },
+    { "id": "Fodselsnummer", "value": "Fødselsnummer" },
+    {
+      "id": "HintEtternavn",
+      "value": "Bindestrek må benyttes dersom du ønsker to etternavn."
+    },
+    {
+      "id": "HintMellomnavn",
+      "value": "Mellomnavn må være et navn som kan benyttes som etternavn. Du har nå skrevet {0}",
+      "variables": [
+        {
+          "key": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value",
+          "dataSource": "dataModel.ServiceModel-test"
+        }
+      ]
+    },
+    { "id": "Kontaktinformasjon", "value": "Kontaktinformasjon" },
+    { "id": "NavarendeNavn", "value": "Nåværende navn" },
+    { "id": "PersonNyttEtternavn", "value": "New surname" },
+    { "id": "PersonNyttFornavn", "value": "New first name" },
+    {
+      "id": "PersonNyttFornavn.helptext",
+      "value": "Tenk deg godt om, det tar 10 år før du kan endre navn igjen"
+    },
+    { "id": "PersonNyttMellomnavn", "value": "Nytt mellomnavn" },
+    { "id": "ServiceName", "value": "frontend-test ENGLISH" },
+    {
+      "id": "confirm.body",
+      "value": "Vennligst vent, endrer navn til {1}. <br/> <br/> Du har startet instance: <span class='no-visual-testing'>{2}</span> for app: {3}. <br/> <br/>Trykk [her]({4}) for å starte på nytt.",
+      "variables": [
+        {
+          "key": "Innledning-grp-9309.Kontaktinformasjon-grp-9311.MelderFultnavn.value",
+          "dataSource": "dataModel.ServiceModel-test"
+        },
+        {
+          "key": "Innledning-grp-9309.NavneendringenGjelderFor-grp-9310.SubjektFornavnFolkeregistrert-datadef-34730.value",
+          "dataSource": "dataModel.ServiceModel-test"
+        },
+        {
+          "key": "instanceId",
+          "dataSource": "instanceContext"
+        },
+        {
+          "key": "appId",
+          "dataSource": "instanceContext"
+        },
+        {
+          "key": "appUrl",
+          "dataSource": "applicationSettings"
+        }
+      ]
+    },
+    { "id": "datofeltet", "value": "Når vil du at navnendringen skal skje?" },
+    { "id": "dato-short", "value": "dato for navneendring" },
+    {
+      "id": "error.testValue",
+      "value": "test er ikke en gyldig <a href='https://www.altinn.no/' target='_blank'>verdi</a>"
+    },
+    {
+      "id": "kontaktinfoBeskrivelse",
+      "value": "Denne kontaktinformasjonen brukes til å kontakte deg hvis det er noen spørsmål rundt informasjonen du har sendt inn."
+    },
+    { "id": "messageAttachments", "value": "Vedlegg" },
+    {
+      "id": "messageBody",
+      "value": "Bruk denne appen for å teste app-frontend. Hver gang du trykker 'Send inn' kommer du til neste steg i prosessen. Disse stegene er laget i appen til nå: <br/><br/> 1. Denne meldingen \uD83D\uDC4B <br/> 2. Endring av navn <br/> 3. Repeterende gruppe <br/> 4. Likert <br /> 5. List <br /> 6. Bekreftelse/confirmation <br /> 7. Kvittering"
+    },
+    { "id": "messageTitle", "value": "## Appen for test av app frontend" },
+    {
+      "id": "messageTitleHelp",
+      "value": "Bruk denne appen for test av <b>app frontend</b> <br/> Her kan du: <ul><li>Endre navn</li><li>Legge til vedlegg</li><li>Endre dato</li><li>Legge til kontaktinformasjon</li><li>Og mer</li></ul>Trykk [her]({0}) for å starte på nytt.",
+      "variables": [
+        {
+          "key": "appUrl",
+          "dataSource": "applicationSettings"
+        }
+      ]
+    },
+    { "id": "summaryTitle", "value": "## Oppsummering" },
+    {
+      "id": "vedlegg",
+      "value": "Last opp eventuell dokumentasjon for ditt nye navn"
+    },
+    {
+      "id": "startAgain",
+      "value": "Du har startet instance: <span class='no-visual-testing'>{0}</span> for app: {1}.<br/> <br/> Trykk <a href='{2}' class='same-window'>her</a> for å starte på nytt.<br /><br />Noen lenker:<br /><a href='/'>Intern lenke i nytt vindu</a><br /><a href='/' class='same-window'>Intern lenke i samme vindu</a><br /><a href='https://nrk.no/'>Ekstern lenke i nytt vindu</a><br /><a href='https://nrk.no' class='same-window'>Ekstern lenke i samme vindu</a><br />",
+      "variables": [
+        {
+          "key": "instanceId",
+          "dataSource": "instanceContext"
+        },
+        {
+          "key": "appId",
+          "dataSource": "instanceContext"
+        },
+        {
+          "key": "appUrl",
+          "dataSource": "applicationSettings"
+        }
+      ]
+    },
+    {
+      "id": "optionsFromRepeatingGroup",
+      "value": "Endre fra: {0}, Endre til: {1}",
+      "variables": [
+        {
+          "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value",
+          "dataSource": "dataModel.nested-group"
+        },
+        {
+          "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value",
+          "dataSource": "dataModel.nested-group"
+        }
+      ]
+    },
+    {
+      "id": "number-to-be-greaterThanEq",
+      "value": "Hvilket tall må \"Endre fra\" være større enn for å skjule rader?"
+    },
+    { "id": "question-1", "value": "Gjør du leksene dine?" },
+    { "id": "question-2", "value": "Fungerer kalkulatoren din?" },
+    { "id": "question-3", "value": "Er pulten din ryddig?" },
+    { "id": "question-4", "value": "Hører skolen på elevenes forslag?" },
+    {
+      "id": "question-5",
+      "value": "Er dere elever med på å lage regler for hvordan dere skal ha det i klassen/gruppa?"
+    },
+    {
+      "id": "question-6",
+      "value": "De voksne på skolen synes det er viktig at vi elever er greie med hverandre."
+    },
+    {
+      "id": "likert-row-title",
+      "value": "{0}",
+      "variables": [
+        {
+          "key": "Questions[{0}].Id",
+          "dataSource": "dataModel.default"
+        }
+      ]
+    },
+    { "id": "id_7098", "value": "Dette er en test" },
+    { "id": "repeating2", "value": "repeating (large numbers)" },
+    {
+      "id": "nested.isParentPrefill",
+      "value": "Parent is prefill: {0}",
+      "variables": [
+        {
+          "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].isPrefill",
+          "dataSource": "dataModel.default"
+        }
+      ]
+    },
+    { "id": "reasons.related", "value": "Kinship" },
+    {
+      "id": "reasons.adoptive",
+      "value": "Adoptive parent's surname or middle name"
+    },
+    {
+      "id": "reasons.stepParents",
+      "value": "Step- or foster parent's surname or middle name"
+    },
+    { "id": "reasons.spouse", "value": "Spouse's surname or middle name" },
+    {
+      "id": "reasons.cohabitant",
+      "value": "Cohabitant's surname or middle name"
+    },
+    { "id": "reasons.pastName", "value": "Previous surname or middle name" },
+    { "id": "reasons.farm", "value": "Farmstead" },
+    { "id": "reasons.newName", "value": "I believe the name is new in Norway" },
+    { "id": "reasons.other", "value": "Other reason" },
+    { "id": "colors.purple", "value": "Purple" },
+    { "id": "colors.blue", "value": "Blue" },
+    { "id": "colors.green", "value": "Green" },
+    { "id": "colors.red", "value": "Red" },
+    { "id": "colors.yellow", "value": "Yellow" },
+    { "id": "colors.orange", "value": "Orange" },
+    { "id": "colors.cyan", "value": "Cyan" },
+    { "id": "colors.magenta", "value": "Magenta" },
+    { "id": "colors.teal", "value": "Teal" },
+    { "id": "colors.pink", "value": "Pink" },
+    { "id": "foods.grape", "value": "Grape" },
+    { "id": "foods.blueberry", "value": "Blueberry" },
+    { "id": "foods.spinach", "value": "Spinach" },
+    { "id": "foods.tomato", "value": "Tomato" },
+    { "id": "foods.banana", "value": "Banana" },
+    { "id": "foods.carrot", "value": "Carrot" },
+    { "id": "foods.corn", "value": "Corn" },
+    { "id": "foods.strawberry", "value": "Strawberry" },
+    { "id": "foods.cauliflower", "value": "Cauliflower" },
+    { "id": "foods.watermelon", "value": "Watermelon" },
+    {
+      "id": "customConfirm.body",
+      "value": "Dette er en egendefinert bekreftelsesside. For å se den innebyggede, må dette fjernes fra layout-sets.json, men det gjøres bl.a. automatisk i Cypress-testene. PS: Her kan du også gå tilbake! Prøv den råkule knappen til venstre.<br><br>Og forresten, på forrige side valgte du {0}.",
+      "variables": [
+        {
+          "key": "SelectedItem",
+          "dataSource": "dataModel.datalist"
+        }
+      ]
+    },
+    { "id": "repeating3", "value": "Pets" },
+    {
+      "id": "Pets.GeneratePanel.Title",
+      "value": "Sad! There's no animals here"
+    },
+    {
+      "id": "Pets.GeneratePanel.Description",
+      "value": "We can check the pet register or the farm animal register for you."
+    },
+    { "id": "Pets.GenerateButton", "value": "Fetch my pets (5 + 1)" },
+    {
+      "id": "Pets.GenerateWholeFarmButton",
+      "value": "Fetch my farm animals (250!)"
+    },
+    { "id": "Pets.ForceShowButton", "value": "Add manually" },
+    { "id": "Pets.ResetButton", "value": "Clear my pets" },
+    {
+      "id": "Pets.Validation.DuplicatePet",
+      "value": "You cannot have two or more animals with the same name and species."
+    },
+    { "id": "Pets.Title", "value": "My pets" },
+    { "id": "Pets.AddButton", "value": "Add pet" },
+    { "id": "Pets.Species", "value": "Species" },
+    { "id": "Pets.Name", "value": "Name" },
+    { "id": "Pets.Age", "value": "Age" },
+    { "id": "Pets.HiddenTitle", "value": "Hide pets" },
+    {
+      "id": "Pets.HiddenDescription",
+      "value": "Choose pets to hide from the table above"
+    },
+    { "id": "Pets.SortOrder", "value": "Sort my pets" },
+    { "id": "Pets.SortOrderButton", "value": "Sort now" },
+    {
+      "id": "PetName",
+      "value": "{0} named {1} (age {2})",
+      "variables": [
+        {
+          "key": "Pets.SpeciesLabel",
+          "dataSource": "dataModel.nested-group",
+          "defaultValue": "???"
+        },
+        {
+          "key": "Pets.Name",
+          "dataSource": "dataModel.nested-group",
+          "defaultValue": "???"
+        },
+        {
+          "key": "Pets.Age",
+          "dataSource": "dataModel.nested-group",
+          "defaultValue": "?"
+        }
+      ]
+    },
+    { "id": "Species.Dog", "value": "Dog" },
+    { "id": "Species.Cat", "value": "Cat" },
+    { "id": "Species.Fish", "value": "Fish" },
+    { "id": "Species.Bird", "value": "Bird" },
+    { "id": "Species.Rabbit", "value": "Rabbit" },
+    { "id": "Species.Hamster", "value": "Hamster" },
+    { "id": "Species.Sheep", "value": "Sheep" },
+    { "id": "Species.Cow", "value": "Cow" },
+    { "id": "Species.Snake", "value": "Snake" },
+    { "id": "Species.Spider", "value": "Spider" },
+    { "id": "Species.TyrannosaurusRex", "value": "Tyrannosaurus Rex" },
+    { "id": "Species.Other", "value": "Other" },
+
+    { "id":  "Species.Dog.Desc", "value":  "Furry and loyal to humans" },
+    { "id":  "Species.Cat.Desc", "value":  "Often seen in funny videos online" },
+    { "id":  "Species.Bird.Desc", "value":  "Can fly" },
+    { "id":  "Species.Rabbit.Desc", "value":  "Cute and fluffy" },
+    { "id":  "Species.Hamster.Desc", "value":  "Small and cute" },
+    { "id":  "Species.Sheep.Desc", "value":  "Woolly and cute" },
+    { "id":  "Species.Cow.Desc", "value":  "Big and strong" },
+    { "id":  "Species.Snake.Desc", "value":  "Slithers" },
+    { "id":  "Species.Spider.Desc", "value":  "Eight legs" },
+    { "id":  "Species.TyrannosaurusRex.Desc", "value":  "Extinct" },
+    { "id":  "Species.Other.Desc", "value":  "Something else" },
+
+    { "id":  "Species.Dog.Help", "value":  "Dogs are our best friends, says many. Others like cats better." },
+    { "id":  "Species.Cat.Help", "value":  "Cats are independent and like to be alone." },
+    { "id":  "Species.Fish.Help", "value":  "Fish are great pets for people who don't have a lot of time." },
+    { "id":  "Species.Bird.Help", "value":  "Birds can fly." },
+    { "id":  "Species.Rabbit.Help", "value":  "Rabbits are cute and fluffy." },
+    { "id":  "Species.Sheep.Help", "value":  "Sheep are woolly and cute." },
+    { "id":  "Species.Cow.Help", "value":  "Cows are big and strong." },
+    { "id":  "Species.Snake.Help", "value":  "Snakes slither." },
+    { "id":  "Species.Spider.Help", "value":  "Spiders have eight legs." },
+    { "id":  "Species.TyrannosaurusRex.Help", "value":  "Tyrannosaurus Rex is extinct." },
+    { "id":  "Species.Other.Help", "value":  "Something else." },
+
+    { "id": "PetsSortOrder.AscSpecies", "value": "Species (A-Z)" },
+    { "id": "PetsSortOrder.DescSpecies", "value": "Species (Z-A)" },
+    { "id": "PetsSortOrder.AscName", "value": "Name (A-Z)" },
+    { "id": "PetsSortOrder.DescName", "value": "Name (Z-A)" },
+    { "id": "PetsSortOrder.AscAge", "value": "Age (1-9)" },
+    { "id": "PetsSortOrder.DescAge", "value": "Age (9-1)" },
+    { "id": "ChooseFood", "value": "Pick your favourite meal" },
+    { "id": "ChooseColors", "value": "Pick some colors" },
+    {
+      "id": "fileupload-doctype",
+      "value": "Upload all attachments with source {0} here:"
+    },
+    {
+      "id": "substatus.label",
+      "value": "Approved"
+    },
+    {
+      "id": "substatus.description",
+      "value": "The application has been approved and sent to the National Registry for processing. You will receive a confirmation when the application has been processed."
+    },
+    {
+      "id": "err_instantiation",
+      "value": "The party you selected is not allowed to instantiate this form. This is a custom error message only for this app. <a href='/ttd/frontend-test/#/party-selection' class='same-window'>Please select another party</a>."
+    }
+  ]
+}
+
