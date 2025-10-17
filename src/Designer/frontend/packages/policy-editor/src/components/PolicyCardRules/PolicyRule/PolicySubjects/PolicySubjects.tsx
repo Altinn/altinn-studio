@@ -37,7 +37,10 @@ export const PolicySubjects = (): React.ReactElement => {
 
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
-    setPolicyError({ ...policyError, subjectsError: updatedSubjects.length === 0 });
+    setPolicyError({
+      ...policyError,
+      subjectsError: policyRule.accessPackages.length === 0 && updatedSubjects.length === 0,
+    });
   };
 
   const handleClickSubjectInList = (clickedOption: string) => {

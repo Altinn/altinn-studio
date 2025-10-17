@@ -4,7 +4,9 @@
     "strictNullChecks": true
   },
   "include": [
+    "libs/studio-assistant",
     "libs/studio-components",
+    "libs/studio-feature-flags",
     "libs/studio-hooks",
     "libs/studio-icons",
     "libs/studio-pure-functions"
