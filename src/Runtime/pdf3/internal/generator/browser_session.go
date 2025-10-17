@@ -307,93 +307,27 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			return nil
 		}
 
-		var waitSelector string
-		var timeoutMs int32 = 25000 // default timeout
-
 		if selector, ok := request.WaitFor.AsString(); ok {
-			waitSelector = selector
+			// Simple string selector - wait for element existence only
+			err := w.waitForElement(req, selector, 25000, false, false)
+			if err != nil {
+				return nil
+			}
 		} else if timeout, ok := request.WaitFor.AsTimeout(); ok {
+			// Simple timeout delay
 			time.Sleep(time.Duration(timeout) * time.Millisecond)
 		} else if opts, ok := request.WaitFor.AsOptions(); ok {
 			// Full options with selector, visible, hidden, timeout
-			waitSelector = opts.Selector
+			timeoutMs := int32(25000) // default timeout
 			if opts.Timeout != nil {
 				timeoutMs = *opts.Timeout
 			}
-			// TODO: Implement visible/hidden support if needed
-		}
+			checkVisible := opts.Visible != nil && *opts.Visible
+			checkHidden := opts.Hidden != nil && *opts.Hidden
 
-		// If we have a selector to wait for, use MutationObserver
-		if waitSelector != "" {
-			// Wait for element using MutationObserver via a single Runtime.evaluate with awaitPromise
-			// Match gorod's behavior: if selector is an id ("#id"), use an optimized observer; otherwise use a generic selector observer.
-			var expression string
-			if htmlIDSelectorPattern.MatchString(waitSelector) {
-				id := waitSelector[1:]
-				expression = fmt.Sprintf(`(function(){
-				  const id = %q; const timeoutMs = %d;
-				  return new Promise((resolve) => {
-				    const e = document.getElementById(id);
-				    if (e) return requestAnimationFrame(() => resolve(true));
-				    let obs;
-				    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} requestAnimationFrame(() => resolve(v)); };
-				    obs = new MutationObserver(recs => {
-				      for (const m of recs) {
-				        if (m.type === 'attributes' && m.attributeName === 'id' && m.target.id === id) { return done(true); }
-				        if (m.type === 'childList') for (const n of m.addedNodes) {
-				          if (n.nodeType === 1) {
-				            if (n.id === id) return done(true);
-				            const hit = n.querySelector && n.querySelector('#' + CSS.escape(id));
-				            if (hit) return done(true);
-				          }
-				        }
-				      }
-				    });
-				    obs.observe(document, {subtree:true, childList:true, attributes:true, attributeFilter:['id']});
-				    setTimeout(() => done(false), timeoutMs);
-				  });
-				})()`, id, timeoutMs)
-			} else {
-				selector := waitSelector
-				expression = fmt.Sprintf(`(function(){
-				  const selector = %q; const timeoutMs = %d;
-				  return new Promise((resolve) => {
-				    if (document.querySelector(selector)) return requestAnimationFrame(() => resolve(true));
-				    let obs;
-				    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} requestAnimationFrame(() => resolve(v)); };
-				    obs = new MutationObserver(() => {
-				      if (document.querySelector(selector)) done(true);
-				    });
-				    obs.observe(document, {subtree:true, childList:true, attributes:true});
-				    setTimeout(() => done(false), timeoutMs);
-				  });
-				})()`, selector, timeoutMs)
-			}
-
-			resp, err := w.sendCommand("Runtime.evaluate", map[string]interface{}{
-				"expression":    expression,
-				"awaitPromise":  true,
-				"returnByValue": true,
-			})
+			err := w.waitForElement(req, opts.Selector, timeoutMs, checkVisible, checkHidden)
 			if err != nil {
-				log.Printf("[%d, %s] failed to wait for element %q: %v\n", w.id, w.currentUrl, waitSelector, err)
-				req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", waitSelector), err))
 				return nil
-			}
-
-			// Expect a boolean result indicating whether the element was found within timeout
-			if result, ok := resp.Result.(map[string]interface{}); ok {
-				if resultObj, ok := result["result"].(map[string]interface{}); ok {
-					if value, ok := resultObj["value"].(bool); ok {
-						if !value {
-							log.Printf("[%d, %s] failed to wait for element %q: timeout\n", w.id, w.currentUrl, waitSelector)
-							req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", waitSelector), fmt.Errorf("timeout")))
-							return nil
-						}
-					} else {
-						log.Printf("[%d, %s] unexpected evaluation result type waiting for %q\n", w.id, w.currentUrl, waitSelector)
-					}
-				}
 			}
 		}
 	}
@@ -491,6 +425,197 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 	// Respond with PDF data
 	req.tryRespondOk(pdfBytes)
 	return nil
+}
+
+// waitForElement waits for an element to match the given criteria using MutationObserver.
+// For simple existence checks, uses MutationObserver only.
+// For visibility checks, adds polling to catch CSS rule changes.
+func (w *browserSession) waitForElement(req *workerRequest, selector string, timeoutMs int32, checkVisible, checkHidden bool) error {
+	if selector == "" {
+		return nil
+	}
+
+	var expression string
+	needsVisibilityCheck := checkVisible || checkHidden
+
+	if needsVisibilityCheck {
+		// Complex case: visibility checking with polling fallback
+		expression = w.buildVisibilityWaitExpression(selector, timeoutMs, checkVisible, checkHidden)
+	} else {
+		// Simple case: existence check only (original behavior, no polling)
+		expression = w.buildSimpleWaitExpression(selector, timeoutMs)
+	}
+
+	resp, err := w.sendCommand("Runtime.evaluate", map[string]interface{}{
+		"expression":    expression,
+		"awaitPromise":  true,
+		"returnByValue": true,
+	})
+	if err != nil {
+		log.Printf("[%d, %s] failed to wait for element %q: %v\n", w.id, w.currentUrl, selector, err)
+		req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", selector), err))
+		return err
+	}
+
+	// Expect a boolean result indicating whether the element was found within timeout
+	if result, ok := resp.Result.(map[string]interface{}); ok {
+		if resultObj, ok := result["result"].(map[string]interface{}); ok {
+			if value, ok := resultObj["value"].(bool); ok {
+				if !value {
+					log.Printf("[%d, %s] failed to wait for element %q: timeout\n", w.id, w.currentUrl, selector)
+					err := fmt.Errorf("timeout")
+					req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", selector), err))
+					return err
+				}
+			} else {
+				log.Printf("[%d, %s] unexpected evaluation result type waiting for %q\n", w.id, w.currentUrl, selector)
+			}
+		}
+	}
+
+	return nil
+}
+
+// buildSimpleWaitExpression generates JavaScript for simple element existence checking.
+// Uses MutationObserver only, no polling (original behavior).
+func (w *browserSession) buildSimpleWaitExpression(selector string, timeoutMs int32) string {
+	if htmlIDSelectorPattern.MatchString(selector) {
+		// ID-optimized path
+		id := selector[1:]
+		return fmt.Sprintf(`(function(){
+		  const id = %q; const timeoutMs = %d;
+		  return new Promise((resolve) => {
+		    const e = document.getElementById(id);
+		    if (e) return requestAnimationFrame(() => resolve(true));
+		    let obs;
+		    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} requestAnimationFrame(() => resolve(v)); };
+		    obs = new MutationObserver(recs => {
+		      for (const m of recs) {
+		        if (m.type === 'attributes' && m.attributeName === 'id' && m.target.id === id) { return done(true); }
+		        if (m.type === 'childList') for (const n of m.addedNodes) {
+		          if (n.nodeType === 1) {
+		            if (n.id === id) return done(true);
+		            const hit = n.querySelector && n.querySelector('#' + CSS.escape(id));
+		            if (hit) return done(true);
+		          }
+		        }
+		      }
+		    });
+		    obs.observe(document, {subtree:true, childList:true, attributes:true, attributeFilter:['id']});
+		    setTimeout(() => done(false), timeoutMs);
+		  });
+		})()`, id, timeoutMs)
+	}
+
+	// General selector path
+	return fmt.Sprintf(`(function(){
+	  const selector = %q; const timeoutMs = %d;
+	  return new Promise((resolve) => {
+	    if (document.querySelector(selector)) return requestAnimationFrame(() => resolve(true));
+	    let obs;
+	    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} requestAnimationFrame(() => resolve(v)); };
+	    obs = new MutationObserver(() => {
+	      if (document.querySelector(selector)) done(true);
+	    });
+	    obs.observe(document, {subtree:true, childList:true, attributes:true});
+	    setTimeout(() => done(false), timeoutMs);
+	  });
+	})()`, selector, timeoutMs)
+}
+
+// buildVisibilityWaitExpression generates JavaScript for visibility checking with polling fallback.
+// Uses MutationObserver for attribute changes + polling for CSS rule changes.
+func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutMs int32, checkVisible, checkHidden bool) string {
+	// Visibility helper function
+	visibilityHelper := `
+	  // Check if element is visible using computed styles
+	  const isVisible = (el) => {
+	    if (!el) return false;
+	    const style = window.getComputedStyle(el);
+	    if (style.display === 'none') return false;
+	    if (style.visibility === 'hidden') return false;
+	    if (style.opacity === '0') return false;
+	    // offsetParent is null for elements with display:none or not in document
+	    // BODY is always null even when visible, so we exclude it
+	    if (el.offsetParent === null && el.tagName !== 'BODY') return false;
+	    return true;
+	  };`
+
+	var checkElementDef string
+	if checkVisible {
+		checkElementDef = `const checkElement = (el) => el && isVisible(el);`
+	} else if checkHidden {
+		checkElementDef = `const checkElement = (el) => el && !isVisible(el);`
+	}
+
+	if htmlIDSelectorPattern.MatchString(selector) {
+		// ID-optimized path with visibility checking
+		id := selector[1:]
+		return fmt.Sprintf(`(function(){
+		  const id = %q; const timeoutMs = %d;
+		  %s
+		  %s
+		  return new Promise((resolve) => {
+		    const e = document.getElementById(id);
+		    if (checkElement(e)) return requestAnimationFrame(() => resolve(true));
+		    let obs, pollInterval;
+		    const done = (v) => {
+		      try { obs && obs.disconnect(); } catch(e){}
+		      if (pollInterval) clearInterval(pollInterval);
+		      requestAnimationFrame(() => resolve(v));
+		    };
+		    const check = () => {
+		      const el = document.getElementById(id);
+		      if (checkElement(el)) done(true);
+		    };
+		    obs = new MutationObserver(recs => {
+		      for (const m of recs) {
+		        if (m.type === 'attributes' && m.attributeName === 'id' && m.target.id === id) { check(); return; }
+		        if (m.type === 'childList') for (const n of m.addedNodes) {
+		          if (n.nodeType === 1) {
+		            if (n.id === id) { check(); return; }
+		            const hit = n.querySelector && n.querySelector('#' + CSS.escape(id));
+		            if (hit) { check(); return; }
+		          }
+		        }
+		      }
+		      check();
+		    });
+		    obs.observe(document, {subtree:true, childList:true, attributes:true, attributeFilter:['id', 'style', 'class']});
+		    // Fallback polling for visibility changes via CSS rules (media queries, animations, etc.)
+		    pollInterval = setInterval(check, 100);
+		    setTimeout(() => done(false), timeoutMs);
+		  });
+		})()`, id, timeoutMs, visibilityHelper, checkElementDef)
+	}
+
+	// General selector path with visibility checking
+	return fmt.Sprintf(`(function(){
+	  const selector = %q; const timeoutMs = %d;
+	  %s
+	  %s
+	  return new Promise((resolve) => {
+	    const e = document.querySelector(selector);
+	    if (checkElement(e)) return requestAnimationFrame(() => resolve(true));
+	    let obs, pollInterval;
+	    const done = (v) => {
+	      try { obs && obs.disconnect(); } catch(e){}
+	      if (pollInterval) clearInterval(pollInterval);
+	      requestAnimationFrame(() => resolve(v));
+	    };
+	    const check = () => {
+	      const el = document.querySelector(selector);
+	      if (checkElement(el)) done(true);
+	    };
+	    obs = new MutationObserver(() => {
+	      check();
+	    });
+	    obs.observe(document, {subtree:true, childList:true, attributes:true, attributeFilter:['style', 'class']});
+	    // Fallback polling for visibility changes via CSS rules (media queries, animations, etc.)
+	    pollInterval = setInterval(check, 100);
+	    setTimeout(() => done(false), timeoutMs);
+	  });
+	})()`, selector, timeoutMs, visibilityHelper, checkElementDef)
 }
 
 func (w *browserSession) getCookies() ([]map[string]interface{}, error) {

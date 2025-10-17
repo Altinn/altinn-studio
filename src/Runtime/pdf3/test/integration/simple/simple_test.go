@@ -1,22 +1,13 @@
 package simple
 
 import (
-	"bytes"
 	"net/http"
-	"os"
 	"testing"
 	"time"
 
 	ptesting "altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/test/harness"
 )
-
-func TestMain(m *testing.M) {
-	harness.Init()
-
-	code := m.Run()
-	os.Exit(code)
-}
 
 func Test_Simple(t *testing.T) {
 	req := harness.GetDefaultPdfRequest(t)
@@ -79,8 +70,8 @@ func Test_CompareOldAndNew(t *testing.T) {
 		return
 	}
 
-	newPdf := makePdfDeterministic(t, newResp.Data)
-	oldPdf := makePdfDeterministic(t, oldResp.Data)
+	newPdf := harness.MakePdfDeterministic(t, newResp.Data)
+	oldPdf := harness.MakePdfDeterministic(t, oldResp.Data)
 	harness.Snapshot(t, oldPdf, "old", "pdf")
 	harness.Snapshot(t, newPdf, "new", "pdf")
 	harness.Snapshot(t, oldPdf, "old", "txt")
@@ -166,43 +157,4 @@ func Test_WithCleanupDelay(t *testing.T) {
 	}
 
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
-}
-
-func makePdfDeterministic(t *testing.T, pdf []byte) []byte {
-	// These are the non-deterministic parts of a PDF:
-	//
-	// /CreationDate (D:20251010054937+00'00')
-	// /ModDate (D:20251010054937+00'00')>>
-	//
-	date := []byte("D:20251010054937+00'00'")
-
-	result := bytes.Clone(pdf)
-
-	makeDateDeterministic := func(t *testing.T, dest []byte, src []byte, prefix []byte, date []byte) {
-		index := bytes.Index(src, prefix)
-		if index != -1 {
-			sliced := src[index:]
-			startParens := index + bytes.Index(sliced, []byte{'('})
-			if startParens == -1 {
-				t.Errorf("Couldn't parse creation date value")
-				return
-			}
-			endParens := index + bytes.Index(sliced, []byte{')'})
-			if endParens == -1 {
-				t.Errorf("Couldn't parse creation date value")
-				return
-			}
-			if endParens-(startParens+1) != len(date) {
-				t.Errorf("Couldn't fit deterministic date in /CreationDate field")
-				return
-			}
-
-			copy(dest[startParens:], date)
-		}
-	}
-
-	makeDateDeterministic(t, result, pdf, []byte("/CreationDate"), date)
-	makeDateDeterministic(t, result, pdf, []byte("/ModDate"), date)
-
-	return result
 }

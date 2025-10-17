@@ -49,6 +49,9 @@ data:
                 border: 2px solid green;
                 margin-top: 20px;
             }
+            .hidden {
+                display: none;
+            }
         </style>
     </head>
     <body>
@@ -65,6 +68,10 @@ data:
             const logErrors = parseInt(urlParams.get('logerrors') || '0', 10);
             const throwErrors = parseInt(urlParams.get('throwerrors') || '0', 10);
             const neverReady = urlParams.has('neverready');
+            const initiallyHidden = urlParams.has('initiallyhidden');
+            const becomesVisible = parseInt(urlParams.get('becomesvisible') || '0', 10);
+            const becomesHidden = parseInt(urlParams.get('becomeshidden') || '0', 10);
+            const useClass = urlParams.has('useclass'); // Use class-based visibility instead of style attribute
 
             // Start simulation when page fully loads
             window.onload = function() {
@@ -133,7 +140,42 @@ data:
                             const readyDiv = document.createElement('div');
                             readyDiv.id = 'readyForPrint';
                             readyDiv.textContent = 'Ready for PDF generation!';
+
+                            if (initiallyHidden) {
+                                if (useClass) {
+                                    readyDiv.classList.add('hidden');
+                                } else {
+                                    readyDiv.style.display = 'none';
+                                }
+                            }
+
                             document.body.appendChild(readyDiv);
+
+                            // Handle becomesVisible: make element visible after delay
+                            if (becomesVisible > 0 && initiallyHidden) {
+                                setTimeout(() => {
+                                    if (useClass) {
+                                        readyDiv.classList.remove('hidden');
+                                        console.log(`Element became visible after ${becomesVisible}ms (removed 'hidden' class)`);
+                                    } else {
+                                        readyDiv.style.display = '';
+                                        console.log(`Element became visible after ${becomesVisible}ms (cleared style.display)`);
+                                    }
+                                }, becomesVisible);
+                            }
+
+                            // Handle becomesHidden: make element hidden after delay
+                            if (becomesHidden > 0) {
+                                setTimeout(() => {
+                                    if (useClass) {
+                                        readyDiv.classList.add('hidden');
+                                        console.log(`Element became hidden after ${becomesHidden}ms (added 'hidden' class)`);
+                                    } else {
+                                        readyDiv.style.display = 'none';
+                                        console.log(`Element became hidden after ${becomesHidden}ms (set style.display=none)`);
+                                    }
+                                }, becomesHidden);
+                            }
                         }
 
                         console.log(`Total loading time: ${performance.now() - startTime}ms`);
