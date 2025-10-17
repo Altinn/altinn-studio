@@ -268,7 +268,7 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.Header,
     itemType: LayoutItemType.Component,
     defaultProperties: {
-      size: 'L',
+      size: 'h3',
     },
     propertyPath: 'definitions/headerComponent',
     icon: TitleIcon,
@@ -497,7 +497,6 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       target: {
         type: 'layoutSet',
-        id: '',
         taskId: '',
       },
     },
