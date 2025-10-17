@@ -1,0 +1,19 @@
+# Docker Compose override file for running all test apps simultaneously
+# This configuration builds and runs all test apps from ../../test/apps/
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.testapps.yml up --build
+
+services:
+  altinn_platform_pdf:
+    profiles:
+      - disabled # Old PDF generator, not used anymore in newer apps
+  localtest_loadbalancer:
+    profiles:
+      - disabled # Not needed, we're proxying everything in localtest
+
+  altinn_localtest:
+    ports:
+      - "80:5101"
+    environment:
+      - LocalPlatformSettings__LocalAppMode=auto

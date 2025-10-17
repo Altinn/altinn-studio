@@ -1,7 +1,11 @@
 using System.Globalization;
 using System.Net;
+using System.Net.Http.Json;
 using System.Threading.Channels;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Internal.App;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -27,6 +31,8 @@ internal sealed class LocaltestValidation : BackgroundService
     private readonly IHostApplicationLifetime _lifetime;
     private readonly TimeProvider _timeProvider;
     private readonly Channel<VersionResult> _resultChannel;
+    private readonly IServer _server;
+    private readonly IAppMetadata _appMetadata;
 
     internal IAsyncEnumerable<VersionResult> Results => _resultChannel.Reader.ReadAllAsync();
 
@@ -36,6 +42,8 @@ internal sealed class LocaltestValidation : BackgroundService
         IOptionsMonitor<GeneralSettings> generalSettings,
         RuntimeEnvironment runtimeEnvironment,
         IHostApplicationLifetime lifetime,
+        IServer server,
+        IAppMetadata appMetadata,
         TimeProvider? timeProvider = null
     )
     {
@@ -44,6 +52,8 @@ internal sealed class LocaltestValidation : BackgroundService
         _generalSettings = generalSettings;
         _runtimeEnvironment = runtimeEnvironment;
         _lifetime = lifetime;
+        _server = server;
+        _appMetadata = appMetadata;
         _timeProvider = timeProvider ?? TimeProvider.System;
         _resultChannel = Channel.CreateBounded<VersionResult>(
             new BoundedChannelOptions(10) { FullMode = BoundedChannelFullMode.DropWrite }
@@ -74,6 +84,12 @@ internal sealed class LocaltestValidation : BackgroundService
                         case VersionResult.Ok { Version: var version }:
                         {
                             _logger.LogInformation("Localtest version: {Version}", version);
+                            if (version >= 3)
+                            {
+                                // Version 3+ supports app registration
+                                await RegisterWithLocaltest(baseUrl, stoppingToken);
+                                return;
+                            }
                             if (version >= 2)
                                 return;
                             _logger.LogError(
@@ -200,6 +216,58 @@ internal sealed class LocaltestValidation : BackgroundService
         catch (Exception ex)
         {
             return new VersionResult.UnknownError(ex);
+        }
+    }
+
+    private async Task RegisterWithLocaltest(string baseUrl, CancellationToken stoppingToken)
+    {
+        try
+        {
+            // Wait for server to be fully started and have addresses bound
+            await Task.Delay(1000, stoppingToken);
+
+            var addressesFeature = _server.Features.Get<IServerAddressesFeature>();
+            if (addressesFeature?.Addresses == null || addressesFeature.Addresses.Count == 0)
+            {
+                _logger.LogWarning("Could not get server addresses for app registration");
+                return;
+            }
+
+            var address = addressesFeature.Addresses.First();
+            var uri = new Uri(address);
+            var port = uri.Port;
+
+            // Get app ID from ApplicationMetadata
+            var applicationMetadata = await _appMetadata.GetApplicationMetadata();
+            var appId = applicationMetadata.Id; // Should be in format "org/app"
+
+            var registrationRequest = new { appId = appId, port = port };
+
+            using var client = _httpClientFactory.CreateClient();
+            var url = $"{baseUrl}/Home/Localtest/Register";
+
+            var response = await client.PostAsJsonAsync(url, registrationRequest, stoppingToken);
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation(
+                    "Successfully registered app {AppId} on port {Port} with localtest",
+                    appId,
+                    port
+                );
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync(stoppingToken);
+                _logger.LogWarning(
+                    "Failed to register app with localtest. Status: {StatusCode}, Error: {Error}",
+                    response.StatusCode,
+                    errorContent
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error while registering app with localtest");
         }
     }
 }
