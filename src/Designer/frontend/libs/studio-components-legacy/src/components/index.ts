@@ -35,7 +35,6 @@ export * from './StudioList';
 export * from './StudioModal';
 export * from './StudioRadio';
 export * from './StudioNativeSelect';
-export * from './StudioPageError';
 export * from './StudioPageHeader';
 export * from './StudioPageImageBackgroundContainer';
 export * from './StudioPageSpinner';
