@@ -1,0 +1,16 @@
+import { Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
+import * as StudioPageHeaderStories from './StudioPageHeader.stories';
+
+<Meta of={StudioPageHeaderStories} />
+
+<Heading level={1} size='small'>
+  StudioPageHeader
+</Heading>
+<Paragraph>
+  StudioPageHeader is used to display the header banner at the top of a page. If you want to add
+  buttons in the header, use the `<StudioPageHeaderButton />` component. This component is created
+  to match the colours of the page header.
+</Paragraph>
+
+<Canvas of={StudioPageHeaderStories.Preview} />

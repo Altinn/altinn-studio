@@ -5,12 +5,12 @@ import { useUploadOrgCodeListMutation } from './useUploadOrgCodeListMutation';
 import { createQueryClientMock } from '../../mocks/queryClientMock';
 import { QueryKey } from '../../types/QueryKey';
 import type { CodeListsResponse } from '../../types/api/CodeListsResponse';
-import type { CodeList } from '../../types/CodeList';
+import type { CodeListWithTextResources } from '../../types/CodeListWithTextResources';
 import { FileUtils } from '@studio/pure-functions';
 
 // Test data:
 const fileName = 'fileName';
-const fileData: CodeList = [
+const fileData: CodeListWithTextResources = [
   {
     value: 'test-value',
     label: 'test-label',

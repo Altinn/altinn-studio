@@ -4,9 +4,10 @@
   --toastify-color-warning: var(--fds-semantic-surface-warning-default);
   --toastify-color-error: var(--fds-semantic-surface-danger-default);
   --toastify-toast-width: 400px;
+  --toastify-toast-padding: var(--fds-spacing-5) var(--fds-spacing-5) var(--fds-spacing-6)
+    var(--fds-spacing-5);
 }
 
 .Toastify__toast {
   line-height: 1.5rem;
-  padding: var(--fds-spacing-3) var(--fds-spacing-3) var(--fds-spacing-4) var(--fds-spacing-3);
 }

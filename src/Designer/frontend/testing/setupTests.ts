@@ -10,6 +10,7 @@ import { app, org } from './testids';
 import type { WithTranslationProps } from 'react-i18next';
 import { configure } from '@testing-library/dom';
 import { TextEncoder, TextDecoder } from 'util';
+import { webcrypto } from 'crypto';
 
 failOnConsole({
   shouldFailOnWarn: true,
@@ -52,6 +53,12 @@ window.ResizeObserver = ResizeObserver;
 // document.getAnimations must be mocked because it is used by the design system, but it is not supported by React Testing Library.
 Object.defineProperty(document, 'getAnimations', {
   value: () => [],
+  writable: true,
+});
+
+// Use Node's implementation of Web Crypto API, since Jest does not have access to browser's Web Crypto API
+Object.defineProperty(window, 'crypto', {
+  value: webcrypto,
   writable: true,
 });
 

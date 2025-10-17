@@ -1,4 +1,4 @@
-import type { CodeList } from 'app-shared/types/CodeList';
+import type { CodeListWithTextResources } from 'app-shared/types/CodeListWithTextResources';
 import type { CodeListData } from 'app-shared/types/CodeListData';
 import {
   label1ResourceNb,
@@ -7,7 +7,7 @@ import {
   label4ResourceNb,
 } from './textResources';
 
-const codeList1: CodeList = [
+const codeList1: CodeListWithTextResources = [
   {
     value: 'item1',
     label: label1ResourceNb.id,
@@ -23,7 +23,7 @@ export const codeList1Data: CodeListData = {
   data: codeList1,
 };
 
-const codeList2: CodeList = [
+const codeList2: CodeListWithTextResources = [
   {
     value: 'itemA',
     label: label3ResourceNb.id,

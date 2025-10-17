@@ -4,6 +4,7 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { setLastChangedAndSortResourceListByDate } from '../../utils/mapperUtils';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 /**
  * Query to get the list of resources. It maps the date to correct display format
@@ -22,7 +23,8 @@ export const useGetResourceListQuery = (
 
   return useQuery<ResourceListItem[]>({
     queryKey: [QueryKey.ResourceList, org],
-    queryFn: () => getResourceList(org),
+    queryFn: () =>
+      getResourceList(org, shouldDisplayFeature(FeatureFlag.HideGiteaFieldsInResourceList)),
     select: (resourceListItems: ResourceListItem[]) =>
       resourceListItems && setLastChangedAndSortResourceListByDate(resourceListItems),
     enabled: !disabled,

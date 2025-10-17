@@ -9,6 +9,9 @@ type NavigationButtonTexts = {
   next: string;
 };
 
+/**
+ * @deprecated use `StudioPaginatedContent` from `@studio/components` instead.
+ */
 export type StudioPaginatedContentProps = {
   totalPages: number;
   currentPageNumber: number;

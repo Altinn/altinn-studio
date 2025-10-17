@@ -1,0 +1,20 @@
+{
+  "involvedObject": {
+    "kind": "HelmRelease",
+    "namespace": "flux-system",
+    "name": "dummy-helmrelease",
+    "uid": "7584995d-e301-42fb-a9c1-199c9b9f69bd",
+    "apiVersion": "helm.toolkit.fluxcd.io/v2",
+    "resourceVersion": "2018"
+  },
+  "severity": "error",
+  "timestamp": "2025-10-15T20:25:47Z",
+  "message": "Helm upgrade failed for release flux-system/dummy-helmrelease with chart dummy-helmrelease@0.2.0: context deadline exceeded\n\nLast Helm logs:\n\n2025-10-15T20:20:47.711697385Z: Patch Deployment \"dummy-helmrelease\" in namespace apps\n2025-10-15T20:20:47.714563301Z: waiting for release dummy-helmrelease resources (created: 0 updated: 2  deleted: 0)\n2025-10-15T20:20:47.714576926Z: beginning wait for 2 resources with timeout of 5m0s\n2025-10-15T20:20:47.717013885Z: ReplicaSet is not ready: apps/dummy-helmrelease-56bf59f949. observedGeneration (0) does not match spec generation (1).\n2025-10-15T20:20:49.725789219Z: Deployment is not ready: apps/dummy-helmrelease. 0 out of 1 expected pods are ready\n2025-10-15T20:25:45.724051384Z: Deployment is not ready: apps/dummy-helmrelease. 0 out of 1 expected pods are ready (147 duplicate lines omitted)\n2025-10-15T20:25:47.713122301Z: Error received when checking status of resource dummy-helmrelease. Error: 'client rate limiter Wait returned an error: context deadline exceeded', Resource details: 'Resource: \"/v1, Resource=services\", GroupVersionKind: \"/v1, Kind=Service\"\nName: \"dummy-helmrelease\", Namespace: \"apps\"'\n2025-10-15T20:25:47.713167551Z: Retryable error? true\n2025-10-15T20:25:47.713182468Z: Retrying as current number of retries 0 less than max number of retries 30\n2025-10-15T20:25:47.713205301Z: wait for resources failed after 5m0s: context deadline exceeded\n2025-10-15T20:25:47.721818801Z: warning: Upgrade \"dummy-helmrelease\" failed: context deadline exceeded",
+  "reason": "UpgradeFailed",
+  "metadata": {
+    "app-version": "1.0",
+    "revision": "0.2.0"
+  },
+  "reportingController": "helm-controller",
+  "reportingInstance": "helm-controller-5788788f55-c8nx8"
+}

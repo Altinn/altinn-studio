@@ -1,5 +1,5 @@
 import { useNavigation } from './useNavigation';
-import type { PageName } from '../types/PageName';
+import { PageName } from '../types/PageName';
 import { act, renderHook } from '@testing-library/react';
 import { type QueryParamsRouter } from '../utils/router/QueryParamsRouter';
 
@@ -9,7 +9,7 @@ interface RouterInstanceMock extends QueryParamsRouter {
 }
 
 const mockRouterInstance: RouterInstanceMock = {
-  currentRoute: 'landingPage',
+  currentRoute: PageName.LandingPage,
   navigate: jest.fn(),
 };
 
@@ -20,7 +20,7 @@ jest.mock('../utils/router/QueryParamsRouter', () => ({
 }));
 
 describe('useNavigation Hook', () => {
-  const mockCurrentPage: PageName = 'landingPage';
+  const mockCurrentPage: PageName = PageName.LandingPage;
 
   beforeEach(() => {
     mockRouterInstance.currentRoute = mockCurrentPage;
@@ -36,7 +36,7 @@ describe('useNavigation Hook', () => {
   });
 
   it('should navigate to a new page', () => {
-    const newPage: PageName = 'codeList';
+    const newPage: PageName = PageName.CodeListsWithTextResources;
 
     const { result } = renderHook(() => useNavigation());
 

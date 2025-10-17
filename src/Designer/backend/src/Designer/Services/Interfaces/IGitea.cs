@@ -125,8 +125,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">The org</param>
         /// <param name="repo">The repository</param>
         /// <param name="serviceResource">The ServiceResource that is to be converted into a ListviewServiceResource</param>
+        /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Returns the ListviewServiceResource based on the information from input and additional fields</returns>
-        Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource);
+        Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource, CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets a list of files in a folder from a folder path. Note that the file content is not returned, only metadata.

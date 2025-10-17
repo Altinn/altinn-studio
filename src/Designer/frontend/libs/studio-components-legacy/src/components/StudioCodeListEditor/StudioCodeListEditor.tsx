@@ -1,4 +1,4 @@
-import type { CodeList } from './types/CodeList';
+import type { CodeListWithTextResources } from './types/CodeListWithTextResources';
 import React, { useMemo, useRef, useCallback, useReducer, useEffect } from 'react';
 import type { Dispatch, ReactElement, SetStateAction } from 'react';
 import { StudioInputTable } from '../StudioInputTable';
@@ -42,10 +42,10 @@ export type CreateTextResourceInternalArgs = {
 };
 
 export type StudioCodeListEditorProps = {
-  codeList: CodeList;
+  codeList: CodeListWithTextResources;
   onCreateTextResource: (textResource: TextResource) => void;
   onInvalid?: () => void;
-  onUpdateCodeList: (codeList: CodeList) => void;
+  onUpdateCodeList: (codeList: CodeListWithTextResources) => void;
   onUpdateTextResource: (textResource: TextResource) => void;
   textResources: TextResource[];
   texts: CodeListEditorTexts;
@@ -90,7 +90,7 @@ function StatefulCodeListEditor({
   }, [givenTextResources]);
 
   const handleChange = useCallback(
-    (newCodeList: CodeList) => {
+    (newCodeList: CodeListWithTextResources) => {
       dispatch({
         type: ReducerActionType.SetCodeList,
         codeList: newCodeList,
@@ -103,7 +103,7 @@ function StatefulCodeListEditor({
   );
 
   const handleUpdateCodeList = useCallback(
-    (codeList: CodeList) => {
+    (codeList: CodeListWithTextResources) => {
       if (isCodeListValid(codeList)) {
         onUpdateCodeList?.(codeList);
       }
@@ -113,7 +113,7 @@ function StatefulCodeListEditor({
 
   const handleCreateTextResource = useCallback(
     ({ textResource, codeItemIndex, property }: CreateTextResourceInternalArgs) => {
-      const codeList: CodeList = updateCodeList(state.codeList, {
+      const codeList: CodeListWithTextResources = updateCodeList(state.codeList, {
         newValue: textResource.id,
         codeItemIndex,
         property,
@@ -143,7 +143,7 @@ type ControlledCodeListEditorProps = Omit<
 > & {
   dispatch: Dispatch<ReducerAction>;
   onCreateTextResource: (args: CreateTextResourceInternalArgs) => void;
-  onChange: (codeList: CodeList) => void;
+  onChange: (codeList: CodeListWithTextResources) => void;
 };
 
 function ControlledCodeListEditor({
@@ -188,7 +188,7 @@ function ControlledCodeListEditor({
 }
 
 function useCodeTypeState(
-  codeList: CodeList,
+  codeList: CodeListWithTextResources,
 ): [CodeListItemType, Dispatch<SetStateAction<CodeListItemType>>] {
   const initialType = useMemo(() => evaluateDefaultType(codeList), [codeList]);
   return usePropState<CodeListItemType>(initialType);

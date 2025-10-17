@@ -1,0 +1,20 @@
+{
+  "involvedObject": {
+    "kind": "HelmRelease",
+    "namespace": "flux-system",
+    "name": "dummy-helmrelease",
+    "uid": "7584995d-e301-42fb-a9c1-199c9b9f69bd",
+    "apiVersion": "helm.toolkit.fluxcd.io/v2",
+    "resourceVersion": "843"
+  },
+  "severity": "info",
+  "timestamp": "2025-10-15T20:13:06Z",
+  "message": "Helm install succeeded for release flux-system/dummy-helmrelease.v1 with chart dummy-helmrelease@0.1.0",
+  "reason": "InstallSucceeded",
+  "metadata": {
+    "app-version": "1.0",
+    "revision": "0.1.0"
+  },
+  "reportingController": "helm-controller",
+  "reportingInstance": "helm-controller-5788788f55-c8nx8"
+}

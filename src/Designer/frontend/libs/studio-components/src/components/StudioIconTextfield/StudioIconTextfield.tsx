@@ -13,14 +13,24 @@ export type StudioIconTextfieldProps = Override<
 
 export const StudioIconTextfield = forwardRef<HTMLDivElement, StudioIconTextfieldProps>(
   (
-    { icon, id, label, className: givenClassName, readOnly, ...rest }: StudioIconTextfieldProps,
+    {
+      icon,
+      id,
+      label,
+      className: givenClassName,
+      readOnly,
+      value,
+      onChange,
+      onBlur,
+      error,
+      description,
+    }: StudioIconTextfieldProps,
     ref,
   ): React.ReactElement => {
     const generatedId = useId();
     const inputId = id ?? generatedId;
     const labelId = `${inputId}-label`;
     const className = cn(givenClassName, classes.container);
-    const { value, onChange, error, description } = rest;
 
     return (
       <div className={className} ref={ref}>
@@ -31,6 +41,7 @@ export const StudioIconTextfield = forwardRef<HTMLDivElement, StudioIconTextfiel
           aria-labelledby={labelId}
           value={value}
           onChange={onChange as React.ChangeEventHandler<HTMLInputElement>}
+          onBlur={onBlur as React.FocusEventHandler<HTMLInputElement>}
           error={error}
           description={description}
         />

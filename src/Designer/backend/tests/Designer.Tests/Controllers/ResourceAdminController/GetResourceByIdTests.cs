@@ -24,25 +24,24 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             string uri = $"{VersionPrefix}/ttd/resources/ttd-resources/ttd_testresource";
 
             RepositoryMock
-                .Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(
-                    new ServiceResource
-                    {
-                        Identifier = "testresource",
-                        Title = new Dictionary<string, string>(),
-                        Description = new Dictionary<string, string>(),
-                        RightDescription = new Dictionary<string, string>(),
-                        Homepage = "test.no",
-                        Status = string.Empty,
-                        IsPartOf = string.Empty,
-                        ThematicArea = string.Empty,
-                        ResourceReferences = GetTestResourceReferences(),
-                        Delegable = true,
-                        Visible = true,
-                        HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
-                        Keywords = GetTestKeywords(),
-                        ResourceType = ResourceType.Default,
-                    });
+                .Setup(r => r.GetServiceResourceById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<System.Threading.CancellationToken>()))
+                .Returns(Task.FromResult(new ServiceResource
+                {
+                    Identifier = "testresource",
+                    Title = new Dictionary<string, string>(),
+                    Description = new Dictionary<string, string>(),
+                    RightDescription = new Dictionary<string, string>(),
+                    Homepage = "test.no",
+                    Status = string.Empty,
+                    IsPartOf = string.Empty,
+                    ThematicArea = string.Empty,
+                    ResourceReferences = GetTestResourceReferences(),
+                    Delegable = true,
+                    Visible = true,
+                    HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
+                    Keywords = GetTestKeywords(),
+                    ResourceType = ResourceType.Default,
+                }));
 
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 

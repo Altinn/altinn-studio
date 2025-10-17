@@ -1,0 +1,20 @@
+{
+  "involvedObject": {
+    "kind": "HelmRelease",
+    "namespace": "flux-system",
+    "name": "dummy-helmrelease",
+    "uid": "7584995d-e301-42fb-a9c1-199c9b9f69bd",
+    "apiVersion": "helm.toolkit.fluxcd.io/v2",
+    "resourceVersion": "3615"
+  },
+  "severity": "info",
+  "timestamp": "2025-10-15T20:31:12Z",
+  "message": "Helm upgrade succeeded for release flux-system/dummy-helmrelease.v6 with chart dummy-helmrelease@0.3.0",
+  "reason": "UpgradeSucceeded",
+  "metadata": {
+    "app-version": "1.0",
+    "revision": "0.3.0"
+  },
+  "reportingController": "helm-controller",
+  "reportingInstance": "helm-controller-5788788f55-c8nx8"
+}

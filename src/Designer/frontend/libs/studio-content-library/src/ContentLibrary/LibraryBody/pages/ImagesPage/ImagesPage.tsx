@@ -1,10 +1,11 @@
-import React from 'react';
 import type { ReactElement } from 'react';
+import React from 'react';
 import classes from './ImagesPage.module.css';
 import { Alert } from '@digdir/designsystemet-react';
 import { StudioHeading } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { InfoBox } from '../../InfoBox';
+import { PageName } from '../../../../types/PageName';
 
 export type Image = {
   title: string;
@@ -29,7 +30,7 @@ export function ImagesPage({ images, onUpdateImage }: ImagesPageProps): ReactEle
       {noExistingImages ? (
         <div className={classes.noImagesWrapper}>
           <Alert size='small'>{t('app_content_library.images.coming_soon')}</Alert>
-          <InfoBox pageName='images' />
+          <InfoBox pageName={PageName.Images} />
         </div>
       ) : (
         images.map((image) => (

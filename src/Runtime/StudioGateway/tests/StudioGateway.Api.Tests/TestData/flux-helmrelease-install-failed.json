@@ -1,0 +1,20 @@
+{
+  "involvedObject": {
+    "kind": "HelmRelease",
+    "namespace": "flux-system",
+    "name": "dummy-helmrelease",
+    "uid": "c953ff9f-2810-4b5b-a537-e89263814b73",
+    "apiVersion": "helm.toolkit.fluxcd.io/v2",
+    "resourceVersion": "881"
+  },
+  "severity": "error",
+  "timestamp": "2025-10-15T20:40:41Z",
+  "message": "Helm install failed for release flux-system/dummy-helmrelease with chart dummy-helmrelease@0.1.0: context deadline exceeded\n\nLast Helm logs:\n\n2025-10-15T20:35:41.342901131Z: creating 2 resource(s)\n2025-10-15T20:35:41.347070798Z: beginning wait for 2 resources with timeout of 5m0s\n2025-10-15T20:35:41.354758423Z: Deployment is not ready: apps/dummy-helmrelease. observedGeneration (0) does not match spec generation (1).\n2025-10-15T20:35:43.352936549Z: Deployment is not ready: apps/dummy-helmrelease. 0 out of 1 expected pods are ready\n2025-10-15T20:40:39.361814047Z: Deployment is not ready: apps/dummy-helmrelease. 0 out of 1 expected pods are ready (147 duplicate lines omitted)\n2025-10-15T20:40:41.348520173Z: wait for resources failed after 5m0s: context deadline exceeded",
+  "reason": "InstallFailed",
+  "metadata": {
+    "app-version": "1.0",
+    "revision": "0.1.0"
+  },
+  "reportingController": "helm-controller",
+  "reportingInstance": "helm-controller-5788788f55-qv9n4"
+}

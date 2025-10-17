@@ -12,6 +12,9 @@ export type SchemaValidationError = {
   details: string;
 };
 
+/**
+ * @deprecated Use `StudioToggleableTextfieldSchema` from `studio-components` instead.
+ */
 export type StudioToggleableTextfieldSchemaProps = Override<
   {
     layoutSchema: JsonSchema;
