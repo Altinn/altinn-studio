@@ -1,25 +1,26 @@
-import { StudioHeading, StudioParagraph } from '@studio/components';
-import classes from './AssistantHeading.module.css';
-import { ToggleGroup } from '@digdir/designsystemet-react';
-import { StudioBadge } from '@studio/components';
+import React from 'react';
+import type { ReactElement } from 'react';
+import { StudioHeading, StudioToggleGroup, StudioBadge, StudioParagraph } from '@studio/components';
+import classes from './HeadingBar.module.css';
 import { CodeIcon, PlayFillIcon } from '@studio/icons';
-import { ViewType } from '../../types/ViewType';
-import type { AssistantTexts, ConnectionStatus } from '../../types/AssistantConfig';
+import { ToolColumnMode } from '../../types/ToolColumnMode';
+import type { AssistantTexts } from '../../types/AssistantTexts';
+import type { ConnectionStatus } from '../../types/ConnectionStatus';
 
-export type AssistantHeadingBarProps = {
+export type HeadingBarProps = {
   texts: AssistantTexts;
-  selectedView?: ViewType;
-  onViewChange?: (view: ViewType) => void;
+  selectedToolColumnMode?: ToolColumnMode;
+  onModeChange?: (mode: ToolColumnMode) => void;
   connectionStatus?: ConnectionStatus;
 };
 
-export function AssistantHeadingBar({
+export function HeadingBar({
   texts,
-  selectedView,
-  onViewChange,
+  selectedToolColumnMode,
+  onModeChange,
   connectionStatus,
-}: AssistantHeadingBarProps) {
-  const shouldShowToggleGroup = selectedView && onViewChange;
+}: HeadingBarProps): ReactElement {
+  const shouldShowToggleGroup = selectedToolColumnMode && onModeChange;
 
   const getConnectionStatusDisplay = () => {
     switch (connectionStatus) {
@@ -37,7 +38,7 @@ export function AssistantHeadingBar({
   const statusDisplay = connectionStatus ? getConnectionStatusDisplay() : null;
 
   return (
-    <div className={classes.assistantHeadingBar}>
+    <div className={classes.headingBar}>
       <div style={{ display: 'flex', justifyContent: 'center', gap: 24 }}>
         <div>
           <StudioHeading>{texts.heading}</StudioHeading>
@@ -50,20 +51,19 @@ export function AssistantHeadingBar({
         )}
       </div>
       {shouldShowToggleGroup && (
-        <ToggleGroup
-          size='sm'
-          value={selectedView}
-          onChange={(value) => onViewChange(value as ViewType)}
+        <StudioToggleGroup
+          value={selectedToolColumnMode}
+          onChange={(value) => onModeChange(value as ToolColumnMode)}
         >
-          <ToggleGroup.Item value={ViewType.Preview}>
+          <StudioToggleGroup.Item value={ToolColumnMode.Preview}>
             <PlayFillIcon />
             {texts.preview}
-          </ToggleGroup.Item>
-          <ToggleGroup.Item value={ViewType.FileExplorer}>
+          </StudioToggleGroup.Item>
+          <StudioToggleGroup.Item value={ToolColumnMode.FileExplorer}>
             <CodeIcon />
             {texts.fileBrowser}
-          </ToggleGroup.Item>
-        </ToggleGroup>
+          </StudioToggleGroup.Item>
+        </StudioToggleGroup>
       )}
     </div>
   );

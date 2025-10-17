@@ -1,6 +1,5 @@
 import React from 'react';
 import type { ReactElement } from 'react';
-import { ViewType } from '../../types/ViewType';
 import classes from './ToolColumn.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { previewPage } from 'app-shared/api/paths';
@@ -8,9 +7,10 @@ import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/use
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { StudioCenter, StudioSpinner } from '@studio/components';
 import { usePreviewLayoutMetadata } from '../../hooks/usePreviewLayoutMetadata';
+import { ToolColumnMode } from '../../types/ToolColumnMode';
 
 // Actual app preview component for the assistant
-const AppPreview = () => {
+const AppPreview = (): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: user, isPending: userPending } = useUserQuery();
 
@@ -46,13 +46,13 @@ const AppPreview = () => {
 
   // Listen for repository reset events to reload the preview
   React.useEffect(() => {
-    const handleRepoReset = () => {
+    const handleRepoReset = (): void => {
       setIframeKey((prev) => prev + 1);
     };
 
     window.addEventListener('altinity-repo-reset', handleRepoReset as EventListener);
 
-    return () => {
+    return (): void => {
       window.removeEventListener('altinity-repo-reset', handleRepoReset as EventListener);
     };
   }, []);
@@ -96,38 +96,32 @@ const AppPreview = () => {
 };
 
 export type ToolColumnProps = {
-  selectedView: ViewType;
+  mode: ToolColumnMode;
   previewContent?: ReactElement;
   fileBrowserContent?: ReactElement;
 };
 
+// TODO: Implement Preview and FileExplorer views
 export function ToolColumn({
-  selectedView,
+  mode,
   previewContent,
   fileBrowserContent,
 }: ToolColumnProps): ReactElement {
   return (
     <div className={classes.container}>
-      {selectedView === ViewType.Preview && (
-        <div className={classes.tabContent}>
-          <AppPreview />
-        </div>
-      )}
-      {selectedView === ViewType.FileExplorer && (
-        <div className={classes.tabContent}>
-          {fileBrowserContent || (
-            <div className={classes.placeholder}>
-              <ul className={classes.fileList}>
-                <li>📁 src/</li>
-                <li>&nbsp;&nbsp;📄 App.tsx</li>
-                <li>&nbsp;&nbsp;📄 index.ts</li>
-                <li>📁 components/</li>
-                <li>&nbsp;&nbsp;📄 Header.tsx</li>
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
+      {mode === ToolColumnMode.Preview && (previewContent || <AppPreview />)}
+      {mode === ToolColumnMode.FileExplorer &&
+        (fileBrowserContent || (
+          <div className={classes.placeholder}>
+            <ul className={classes.fileList}>
+              <li>📁 src/</li>
+              <li>&nbsp;&nbsp;📄 App.tsx</li>
+              <li>&nbsp;&nbsp;📄 index.ts</li>
+              <li>📁 components/</li>
+              <li>&nbsp;&nbsp;📄 Header.tsx</li>
+            </ul>
+          </div>
+        ))}
     </div>
   );
 }

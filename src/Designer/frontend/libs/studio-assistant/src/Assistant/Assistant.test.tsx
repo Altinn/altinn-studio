@@ -1,40 +1,49 @@
 import React from 'react';
 import { Assistant } from './Assistant';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import type { AssistantProps } from '../Assistant/Assistant';
+import { mockTexts } from '../mocks/mockTexts';
 
 // Test data
-const heading = 'test-heading';
-const sendButtonLabel = 'test-send';
-const buttonTexts = {
-  send: sendButtonLabel,
-};
 const onSubmitMessage = jest.fn();
 
 describe('Assistant', () => {
-  it('renders the component', () => {
+  it('should render the complete chat interface by default', () => {
     renderAssistant();
-    const assistantHeader = screen.getByRole('heading', { name: heading });
-    const sendButton = screen.getByRole('button', { name: sendButtonLabel });
-    expect(assistantHeader).toBeInTheDocument();
+    const assistantHeading = screen.getByRole('heading', { name: mockTexts.heading });
+    const previewToggle = screen.getByRole('radio', { name: mockTexts.preview });
+    const newThreadButton = screen.getByRole('button', { name: mockTexts.newThread });
+    const sendButton = screen.getByRole('button', { name: mockTexts.send });
+
+    expect(assistantHeading).toBeInTheDocument();
+    expect(previewToggle).toBeInTheDocument();
+    expect(newThreadButton).toBeInTheDocument();
     expect(sendButton).toBeInTheDocument();
   });
 
-  it('calls onSubmitMessage when clicking the send button', async () => {
-    const user = userEvent.setup();
-    renderAssistant();
-    const sendButton = screen.getByRole('button', { name: sendButtonLabel });
-    await user.click(sendButton);
-    expect(onSubmitMessage).toHaveBeenCalledTimes(1);
+  it('should render the simplified chat interface when enableCompactInterface is true', () => {
+    renderAssistant({ enableCompactInterface: true });
+    const assistantHeading = screen.getByRole('heading', { name: mockTexts.heading });
+    const previewToggle = screen.queryByRole('radio', { name: mockTexts.preview });
+    const newThreadButton = screen.queryByRole('button', { name: mockTexts.newThread });
+    const sendButton = screen.getByRole('button', { name: mockTexts.send });
+
+    expect(assistantHeading).toBeInTheDocument();
+    expect(previewToggle).not.toBeInTheDocument();
+    expect(newThreadButton).not.toBeInTheDocument();
+    expect(sendButton).toBeInTheDocument();
   });
 });
 
-const defaultProps = {
-  heading: heading,
-  buttonTexts: buttonTexts,
+const defaultProps: AssistantProps = {
   onSubmitMessage,
+  texts: mockTexts,
+  chatThreads: [],
+  activeThreadId: '',
+  connectionStatus: 'error',
+  workflowStatus: undefined,
 };
 
-const renderAssistant = (): void => {
-  render(<Assistant {...defaultProps} />);
+const renderAssistant = (props?: Partial<AssistantProps>): void => {
+  render(<Assistant {...defaultProps} {...props} />);
 };

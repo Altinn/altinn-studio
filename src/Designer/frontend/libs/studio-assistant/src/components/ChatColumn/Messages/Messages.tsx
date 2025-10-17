@@ -9,11 +9,11 @@ import {
 } from '@studio/components';
 import type { User } from 'app-shared/types/Repository';
 import { MessageAuthor } from '../../../types/MessageAuthor';
-import { Message } from '../../../types/AssistantConfig';
 import classes from './Messages.module.css';
 import assistantLogo from '../../../../../../app-development/features/aiAssistant/altinity-logo.png';
+import type { Message } from 'libs/studio-assistant/src/types/ChatThread';
 
-type MessagesProps = {
+export type MessagesProps = {
   messages: Message[];
   currentUser?: User;
   assistantAvatarUrl?: string;
@@ -27,7 +27,7 @@ export function Messages({
   return (
     <div className={classes.messagesContainer}>
       {messages.map((message, index) => (
-        <Message
+        <MessageItem
           key={index}
           message={message}
           currentUser={currentUser}
@@ -38,16 +38,16 @@ export function Messages({
   );
 }
 
-type MessageProps = {
+type MessageItemProps = {
   message: Message;
   currentUser?: User;
   assistantAvatarUrl?: string;
 };
 
-function Message({ message, currentUser, assistantAvatarUrl }: MessageProps) {
+function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemProps): ReactElement {
   const isUser = message.author === MessageAuthor.User;
 
-  const renderAvatar = (type: 'user' | 'assistant') => {
+  const renderAvatar = (type: 'user' | 'assistant'): ReactElement => {
     const label = type === 'user' ? (currentUser?.full_name ?? 'Deg') : 'Altinny';
 
     if (type === 'assistant') {
@@ -91,7 +91,7 @@ function Message({ message, currentUser, assistantAvatarUrl }: MessageProps) {
   }
 
   // Basic text formatting for assistant messages
-  const formatContent = (content: string) => {
+  const formatContent = (content: string): string => {
     // First, convert markdown to HTML
     let html = content.trim();
 
@@ -126,7 +126,7 @@ function Message({ message, currentUser, assistantAvatarUrl }: MessageProps) {
     return html;
   };
 
-  const renderFilesChanged = () => {
+  const renderFilesChanged = (): ReactElement => {
     if (message.author !== MessageAuthor.Assistant) return null;
 
     const assistantMessage = message;

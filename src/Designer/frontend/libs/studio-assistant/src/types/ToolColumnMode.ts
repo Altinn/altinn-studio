@@ -1,4 +1,4 @@
-export enum ViewType {
+export enum ToolColumnMode {
   Preview = 'preview',
   FileExplorer = 'fileExplorer',
 }

@@ -1,41 +1,33 @@
 import React, { useState } from 'react';
 import type { ReactElement } from 'react';
 import { StudioButton, StudioSwitch, StudioTextarea } from '@studio/components';
-import { MessageAuthor } from '../../../types/MessageAuthor';
-import type { AssistantTexts, UserMessage } from '../../../types/AssistantConfig';
-import classes from './UserInput.module.css';
 import { PaperclipIcon, PaperplaneFillIcon } from '@studio/icons';
-
-export type UserInputFlags = {
-  attachmentButton: boolean;
-  agentModeSwitch: boolean;
-};
+import type { UserMessage } from '../../../types/ChatThread';
+import classes from './UserInput.module.css';
+import { createUserMessage } from '../../../utils/utils';
+import type { AssistantTexts } from 'libs/studio-assistant/src/types/AssistantTexts';
 
 export type UserInputProps = {
   texts: AssistantTexts;
   onSubmitMessage: (message: UserMessage) => void;
-  flags: UserInputFlags;
+  enableCompactInterface: boolean;
 };
 
-export function UserInput({ texts, onSubmitMessage, flags }: UserInputProps): ReactElement {
+export function UserInput({
+  texts,
+  onSubmitMessage,
+  enableCompactInterface,
+}: UserInputProps): ReactElement {
   const [messageContent, setMessageContent] = useState<string>('');
-  const [allowEditing, setAllowEditing] = useState<boolean>(false);
+  const [allowAppChanges, setAllowAppChanges] = useState<boolean>(false);
 
-  const handleSubmit = () => {
-    if (!messageContent.trim()) return;
-
-    const message: UserMessage = {
-      author: MessageAuthor.User,
-      content: messageContent,
-      allowEditing: allowEditing,
-      timestamp: new Date(),
-    };
-
+  const handleSubmit = (): void => {
+    const message: UserMessage = createUserMessage(messageContent, allowAppChanges);
     onSubmitMessage(message);
     setMessageContent('');
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
@@ -48,21 +40,22 @@ export function UserInput({ texts, onSubmitMessage, flags }: UserInputProps): Re
         value={messageContent}
         onChange={(e) => setMessageContent(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder={texts.textareaPlaceholder}
+        placeholder={texts.textarea.placeholder}
       />
       <div className={classes.actionsRow}>
         <div className={classes.actionsRowLeft}>
-          {flags.attachmentButton && (
+          {/* TODO: Attachment button should open upload dialog */}
+          {!enableCompactInterface && (
             <StudioButton variant='secondary' title={texts.addAttachment}>
               <PaperclipIcon />
             </StudioButton>
           )}
-          {flags.agentModeSwitch && (
+          {!enableCompactInterface && (
             <StudioSwitch
-              checked={true}
+              checked={allowAppChanges}
               disabled={true}
-              onChange={(e) => setAllowEditing(e.target.checked)}
-              label={texts.agentModeLabel}
+              onChange={(e) => setAllowAppChanges(e.target.checked)}
+              label={texts.allowAppChangesSwitch}
             />
           )}
         </div>

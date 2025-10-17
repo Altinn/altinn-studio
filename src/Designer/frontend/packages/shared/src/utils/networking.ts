@@ -55,7 +55,7 @@ axios.interceptors.request.use((config) => {
         config.headers = {};
       }
       // @ts-ignore - Temporary solution for Gitea authentication
-      config.headers.Authorization = `token ff89188e549dbe523fca2191d38f8b6274860711`;
+      config.headers.Authorization = `token fb6bf022c946599f94279a9d335539bcf82b2b75`;
     }
   }
   return config;

@@ -1,16 +1,13 @@
 import type { ReactElement } from 'react';
-import React, { useState } from 'react';
-import { InterfaceAdvanced, type AssistantTexts } from '@studio/assistant';
+import React from 'react';
+import type { AssistantTexts } from '@studio/assistant';
+import { Assistant } from '@studio/assistant';
 import { useTranslation } from 'react-i18next';
-import classes from './AiAssistant.module.css';
-import { InterfaceSimple } from '@studio/assistant';
 import { useAltinityAssistant } from './hooks';
 
 export function AiAssistant(): ReactElement {
   const { t } = useTranslation();
-  const [isAdvancedModeEnabled] = useState<boolean>(true);
 
-  // Use the Altinity assistant hook
   const {
     connectionStatus,
     workflowStatus,
@@ -24,42 +21,37 @@ export function AiAssistant(): ReactElement {
 
   const texts: AssistantTexts = {
     heading: t('ai_assistant.heading'),
-    preview: t('ai_assistant.panel.preview'),
-    fileBrowser: t('ai_assistant.panel.fileBrowser'),
-    hideThreads: 'Skjul tråder',
-    newThread: 'Ny tråd',
-    previousThreads: 'Tidligere tråder',
-    aboutAssistant: 'Om assistenten',
-    textareaPlaceholder: workflowStatus.isActive
-      ? `Vent litt...`
-      : connectionStatus === 'connected'
-        ? 'Beskriv hva du ønsker å endre i Altinn appen...'
-        : 'Venter på Altinity forbindelse...',
-    addAttachment: 'Last opp vedlegg',
-    agentModeLabel: 'Tillat endringer i appen',
-    send: workflowStatus.isActive ? 'Avbryt' : t('ai_assistant.button.send'),
+    preview: t('ai_assistant.preview'),
+    fileBrowser: t('ai_assistant.file_browser'),
+    hideThreads: t('ai_assistant.hide_threads'),
+    showThreads: t('ai_assistant.show_threads'),
+    newThread: t('ai_assistant.new_thread'),
+    previousThreads: t('ai_assistant.threads'),
+    aboutAssistant: t('ai_assistant.about_assistant'),
+    textarea: {
+      placeholder: t('ai_assistant.textarea_placeholder'),
+      wait: 'Vent litt ...',
+      waitingForConnection: 'Venter på forbindelse med Altinity ...',
+    },
+    addAttachment: t('ai_assistant.add_attachment'),
+    allowAppChangesSwitch: t('ai_assistant.allow_app_changes'),
+    send: t('ai_assistant.send'),
+    cancel: 'Avbryt',
+    assistantFirstMessage: t('ai_assistant.assistant_first_message'),
   };
 
-  if (isAdvancedModeEnabled) {
-    return (
-      <div className={classes.container}>
-        <InterfaceAdvanced
-          texts={texts}
-          chatThreads={chatThreads}
-          activeThreadId={currentSessionId}
-          onSubmitMessage={onSubmitMessage}
-          onSelectThread={selectThread}
-          onCreateThread={createNewThread}
-          onDeleteThread={deleteThread}
-          connectionStatus={connectionStatus}
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className={classes.container}>
-      <InterfaceSimple texts={texts} onSubmitMessage={onSubmitMessage} />
-    </div>
+    <Assistant
+      texts={texts}
+      enableCompactInterface={false}
+      chatThreads={chatThreads}
+      activeThreadId={currentSessionId}
+      onSubmitMessage={onSubmitMessage}
+      onSelectThread={selectThread}
+      onCreateThread={createNewThread}
+      onDeleteThread={deleteThread}
+      connectionStatus={connectionStatus}
+      workflowStatus={workflowStatus}
+    />
   );
 }
