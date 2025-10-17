@@ -19,7 +19,7 @@ namespace Designer.Tests.Services
     {
         private readonly Mock<IEnvironmentsService> _environementsService;
         private readonly Mock<IKubernetesWrapperClient> _kubernetesWrapperClient;
-        private readonly Mock<ILogger<DeploymentService>> _deploymentLogger;
+        private readonly Mock<ILogger<KubernetesDeploymentsService>> _deploymentLogger;
 
         public KubernetesDeploymentsServiceTest()
         {
@@ -31,7 +31,7 @@ namespace Designer.Tests.Services
             _kubernetesWrapperClient.Setup(req => req.GetDeploymentAsync("ttd", It.IsAny<string>(), It.IsAny<EnvironmentModel>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new KubernetesDeployment());
 
-            _deploymentLogger = new Mock<ILogger<DeploymentService>>();
+            _deploymentLogger = new Mock<ILogger<KubernetesDeploymentsService>>();
         }
 
         [Theory]
