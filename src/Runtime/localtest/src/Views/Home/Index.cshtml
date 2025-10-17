@@ -78,11 +78,11 @@
         <div class="form-group">
           @if(ViewContext.HttpContext.RequestServices.GetService<Microsoft.Extensions.Options.IOptions<LocalTest.Configuration.LocalPlatformSettings>>()?.Value.LocalAppMode == "auto")
           {
-            <label for="exampleInputEmail1">Select registered app to test</label>
+            <label for="AppPathSelection">Select registered app to test</label>
           }
           else
           {
-            <label for="exampleInputEmail1">Select app to test found in @Model.AppPath</label>
+            <label for="AppPathSelection">Select app to test found in @Model.AppPath</label>
           }
           @Html.DropDownListFor(model => model.AppPathSelection, Model.TestApps, new { Class = "form-control" })
         </div>
