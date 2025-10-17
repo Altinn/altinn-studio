@@ -533,11 +533,14 @@ func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutM
 	    if (!el) return false;
 	    const style = window.getComputedStyle(el);
 	    if (style.display === 'none') return false;
-	    if (style.visibility === 'hidden') return false;
+	    if (style.visibility === 'hidden' || style.visibility === 'collapse') return false;
 	    if (style.opacity === '0') return false;
 	    // offsetParent is null for elements with display:none or not in document
 	    // BODY is always null even when visible, so we exclude it
 	    if (el.offsetParent === null && el.tagName !== 'BODY') return false;
+	    // Check if element has empty bounding box (like Puppeteer does)
+	    const rect = el.getBoundingClientRect();
+	    if (rect.width === 0 || rect.height === 0) return false;
 	    return true;
 	  };`
 
