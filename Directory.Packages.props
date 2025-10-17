@@ -35,8 +35,8 @@
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="8.10.0" />
     <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.3.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-    <PackageVersion Include="Microsoft.OpenApi" Version="1.6.27" />
-    <PackageVersion Include="Microsoft.OpenApi.Readers" Version="1.6.27" />
+    <PackageVersion Include="Microsoft.OpenApi" Version="1.6.28" />
+    <PackageVersion Include="Microsoft.OpenApi.Readers" Version="1.6.28" />
     <PackageVersion Include="MinVer" Version="6.0.0" />
     <PackageVersion Include="Moq" Version="4.20.72" />
     <PackageVersion Include="NetEscapades.EnumGenerators" Version="1.0.0-beta14" />
