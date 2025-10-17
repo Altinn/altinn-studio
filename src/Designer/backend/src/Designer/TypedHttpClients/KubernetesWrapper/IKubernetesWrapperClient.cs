@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Models;
 
@@ -5,5 +7,16 @@ namespace Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 
 public interface IKubernetesWrapperClient
 {
-    Task<KubernetesDeployment> GetDeploymentAsync(string org, string app, EnvironmentModel env);
+    Task<KubernetesDeployment> GetDeploymentAsync(
+        string org,
+        string app,
+        EnvironmentModel env,
+        CancellationToken ct
+    );
+
+    Task<IEnumerable<KubernetesDeployment>> GetDeploymentsAsync(
+        string org,
+        EnvironmentModel env,
+        CancellationToken ct
+    );
 }

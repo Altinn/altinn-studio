@@ -6,6 +6,7 @@ RUN dotnet publish StudioAdmin.csproj -c Release -o /release
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine@sha256:56cbdd25b168276871f8f4916efebde4d10e69250bb6b3e8a4f6f95db8d65ac2 AS final
 WORKDIR /app
+RUN apk add --no-cache curl
 COPY --from=build /release .
 
 ENTRYPOINT ["dotnet", "Altinn.Studio.Admin.dll"]

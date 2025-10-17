@@ -45,7 +45,7 @@ namespace Altinn.Studio.Designer.Controllers
     [AutoValidateAntiforgeryToken]
     // Uses regex to not match on designer since the call from frontend to get the iframe for app-frontend,
     // `designer/html/preview.html`, will match on Image-endpoint which is a fetch-all route
-    [Route("{org:regex(^(?!designer|editor|dashboard|preview|resourceadm|info))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}")]
+    [Route("{org:regex(^(?!designer|editor|dashboard|preview|admin|resourceadm|info))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}")]
     public class PreviewController(IHttpContextAccessor httpContextAccessor,
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
         ISchemaModelService schemaModelService,

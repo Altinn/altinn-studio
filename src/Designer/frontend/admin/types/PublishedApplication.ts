@@ -1,4 +1,4 @@
-export type RunningApplication = {
+export type PublishedApplication = {
   org: string;
   env: string;
   app: string;

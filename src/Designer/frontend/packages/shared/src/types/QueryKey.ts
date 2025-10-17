@@ -64,7 +64,7 @@ export enum QueryKey {
   AppProcessTasks = 'AppProcessTasks',
   ProcessHistory = 'ProcessHistory',
   InstanceEvents = 'InstanceEvents',
-  RunningApps = 'RunningApps',
+  PublishedApps = 'PublishedApps',
 
   // Resourceadm
   ResourceList = 'ResourceList',

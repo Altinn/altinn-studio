@@ -1,4 +1,4 @@
-const adminApiBasePath = `/admin/api/v1`;
+const adminApiBasePath = `/designer/api/admin`;
 
 export const runningAppsPath = (org: string) => `${adminApiBasePath}/applications/${org}`; // Get
 export const instancesListPath = (
@@ -17,7 +17,7 @@ export const instancesListPath = (
   return `${adminApiBasePath}/instances/${org}/${env}/${app}${queryString}`; // Get
 };
 export const appProcessTasksPath = (org: string, env: string, app: string) =>
-  `${adminApiBasePath}/app-resources/${org}/${env}/${app}/process-tasks`; // Get
+  `${adminApiBasePath}/applications/${org}/${env}/${app}/process-tasks`; // Get
 export const instancePath = (org: string, env: string, app: string, instanceId: string) =>
   `${adminApiBasePath}/instances/${org}/${env}/${app}/${instanceId}`; // Get
 export const instanceProcessHistoryPath = (

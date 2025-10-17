@@ -385,7 +385,12 @@ namespace Designer.Tests.Services
                 AppLocation = @"../../../../../../../App/template/src/App"
             };
 
-            EnvironmentsService environmentsService = new(new HttpClient(), generalSettings, new Mock<IMemoryCache>().Object, new Mock<ILogger<EnvironmentsService>>().Object);
+            PlatformSettings platformSettings = new()
+            {
+                AppClusterUrlPattern = "https://{org}.{appPrefix}.{hostName}",
+            };
+
+            EnvironmentsService environmentsService = new(new HttpClient(), generalSettings, platformSettings, new Mock<IMemoryCache>().Object, new Mock<ILogger<EnvironmentsService>>().Object);
 
             AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new(new HttpClient(), environmentsService, new PlatformSettings(), new Mock<ILogger<AltinnStorageAppMetadataClient>>().Object);
 
