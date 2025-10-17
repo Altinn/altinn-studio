@@ -2,7 +2,7 @@ import type { ReactElement } from 'react';
 import React from 'react';
 import classes from './ResourceItem.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioLink } from '@studio/components-legacy';
+import { StudioLink } from '@studio/components';
 import { type Resource } from 'dashboard/types/Resource';
 
 export type ResourceItemProps = {
