@@ -1,7 +1,8 @@
 import React, { type ReactElement } from 'react';
 import { GetInTouchWith } from 'app-shared/getInTouch';
 import { EmailContactProvider } from 'app-shared/getInTouch/providers';
-import { StudioList, StudioLink } from '@studio/components-legacy';
+import { StudioLink } from '@studio/components-legacy';
+import { StudioList } from '@studio/components';
 import { Trans } from 'react-i18next';
 import { PhoneContactProvider } from 'app-shared/getInTouch/providers/PhoneContactProvider';
 
