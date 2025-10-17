@@ -27,7 +27,7 @@ Additionally, some of these services need to interact heavily with Kubernetes AP
 
 The standard tech stack in Digdir is:
 - .NET and C# on the backend (.NET 8+)
-- TypeScript/JavaScript with React on the frontend
+- TypeScript with React on the frontend
 
 Most backend developers have .NET competence.
 We have extensive libraries and intend to have domain models in C#.
