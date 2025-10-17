@@ -64,7 +64,7 @@ describe('Summary2ComponentTargetSelector', () => {
 
     await user.selectOptions(targetTaskIdSelect(), layoutSet2NameMock);
     expect(defaultProps.handleComponentChange).toHaveBeenCalledWith(
-      expect.objectContaining({ target: { taskId: 'Task_2', type: 'component', id: '' } }),
+      expect.objectContaining({ target: { taskId: 'Task_2', type: 'component' } }),
     );
   });
 
@@ -81,7 +81,7 @@ describe('Summary2ComponentTargetSelector', () => {
 
     await user.selectOptions(targetTypeSelect(), 'layoutSet');
     expect(defaultProps.handleComponentChange).toHaveBeenCalledWith(
-      expect.objectContaining({ target: { type: 'layoutSet', id: '' } }),
+      expect.objectContaining({ target: { type: 'layoutSet' } }),
     );
   });
 
