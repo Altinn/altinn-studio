@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 
@@ -19,9 +20,19 @@ public class PublishedApplication
 
     public static PublishedApplication FromKubernetesDeployment(KubernetesDeployment deployment)
     {
-        var splitIndex = deployment.Release.IndexOf("-");
-        var org = deployment.Release.Substring(0, splitIndex);
-        var app = deployment.Release.Substring(splitIndex + 1);
+        var release =
+            deployment.Release
+            ?? throw new InvalidOperationException("Missing release for deployment.");
+        int splitIndex = release.IndexOf('-', StringComparison.Ordinal);
+        if (splitIndex <= 0 || splitIndex >= release.Length - 1)
+        {
+            throw new InvalidOperationException(
+                $"Invalid release format: '{release}'. Expected 'org-app'."
+            );
+        }
+
+        var org = release.Substring(0, splitIndex);
+        var app = release.Substring(splitIndex + 1);
 
         return new PublishedApplication()
         {

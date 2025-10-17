@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
@@ -40,8 +41,14 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
         {
             using HttpResponseMessage response = await _client.GetAsync(deploymentsUrl, ct);
             response.EnsureSuccessStatusCode();
-            var deployments = await response.Content.ReadAsAsync<List<KubernetesDeployment>>();
+            var deployments = await response.Content.ReadFromJsonAsync<
+                List<KubernetesDeployment>
+            >();
             return deployments.FirstOrDefault();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception e)
         {
@@ -61,14 +68,21 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
         {
             using HttpResponseMessage response = await _client.GetAsync(deploymentsUrl, ct);
             response.EnsureSuccessStatusCode();
-            var deployments = await response.Content.ReadAsAsync<List<KubernetesDeployment>>();
+            var deployments = await response.Content.ReadFromJsonAsync<
+                List<KubernetesDeployment>
+            >();
 
             return deployments.Where(deployment =>
-                !deployment.Release.Equals(
+                !string.Equals(
+                    deployment.Release,
                     "kuberneteswrapper",
-                    StringComparison.InvariantCultureIgnoreCase
+                    StringComparison.OrdinalIgnoreCase
                 )
             );
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception e)
         {

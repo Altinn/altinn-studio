@@ -1,3 +1,5 @@
+#nullable enable
+
 using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Services.Models;
@@ -8,5 +10,5 @@ public class ProcessTask
     public required string Id { get; set; }
 
     [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public string? Name { get; set; }
 }

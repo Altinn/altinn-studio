@@ -104,7 +104,7 @@ public class EnvironmentsService : IEnvironmentsService
             async entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = _cacheDuration;
-                var response = await _httpClient.GetAsync(_generalSettings.EnvironmentsUrl);
+                using var response = await _httpClient.GetAsync(_generalSettings.EnvironmentsUrl);
                 response.EnsureSuccessStatusCode();
                 var environmentsModel =
                     await response.Content.ReadFromJsonAsync<EnvironmentsModel>();
@@ -127,7 +127,7 @@ public class EnvironmentsService : IEnvironmentsService
             async entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = _cacheDuration;
-                var response = await _httpClient.GetAsync(_generalSettings.OrganizationsUrl);
+                using var response = await _httpClient.GetAsync(_generalSettings.OrganizationsUrl);
                 response.EnsureSuccessStatusCode();
                 var orgsModel = await response.Content.ReadFromJsonAsync<AltinnOrgsModel>();
 

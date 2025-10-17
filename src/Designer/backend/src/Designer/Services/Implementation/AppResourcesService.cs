@@ -31,7 +31,7 @@ class AppResourcesService : IAppResourcesService
     )
     {
         var appClusterUri = await _environmentsService.GetAppClusterUri(org, env);
-        var response = await _httpClient.GetAsync(
+        using var response = await _httpClient.GetAsync(
             $"{appClusterUri}/{org}/{app}/api/v1/meta/process",
             ct
         );

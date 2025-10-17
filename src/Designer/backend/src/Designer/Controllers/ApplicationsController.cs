@@ -37,7 +37,7 @@ public class ApplicationsController : ControllerBase
 
     [HttpGet("{org}")]
     [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
-    public async Task<ActionResult<Dictionary<string, List<KubernetesDeployment>>>> GetApps(
+    public async Task<ActionResult<Dictionary<string, List<PublishedApplication>>>> GetApps(
         string org,
         CancellationToken ct
     )
@@ -47,7 +47,7 @@ public class ApplicationsController : ControllerBase
             var deployments = await _kubernetesDeploymentsService.GetAsync(org, ct);
             var applications = deployments.ToDictionary(
                 kv => kv.Key,
-                kv => kv.Value.Select(PublishedApplication.FromKubernetesDeployment)
+                kv => kv.Value.Select(PublishedApplication.FromKubernetesDeployment).ToList()
             );
             return Ok(applications);
         }

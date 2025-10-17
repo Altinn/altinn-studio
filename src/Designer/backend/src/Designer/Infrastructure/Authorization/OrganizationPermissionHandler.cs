@@ -31,7 +31,12 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             OrganizationPermissionRequirement requirement
         )
         {
-            string org = _httpContext?.GetRouteValue("org")?.ToString();
+            if (_httpContext == null)
+            {
+                return;
+            }
+
+            string org = _httpContext.GetRouteValue("org")?.ToString();
             if (string.IsNullOrWhiteSpace(org))
             {
                 _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
