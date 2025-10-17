@@ -62,8 +62,8 @@ Since we have only used C# and .NET, we have this ADR to put our reasoning and d
 ### A1: Use Go for cloud-native runtime services, .NET for control plane services
 
 - Good, because it significantly reduces resource consumption (D1)
-  - Baseline memory usage: 2Mi (Go) vs 12Mi (.NET NativeAOT) - 6x improvement
-  - Image size: 8MB (Go) vs 150MB (.NET NativeAOT) - 18x improvement
+  - Baseline memory usage: 2Mi (Go) vs 11Mi (.NET NativeAOT) - 5.5x improvement
+  - Image size: 8MB (Go) vs 44MB (.NET NativeAOT) - 5.5x improvement
   - With 100+ deployments, this translates to cost savings and faster deployments
 - Good, because Kubernetes and cloud-native client libraries are superior in Go (D2)
   - Kubernetes itself is written in Go, making the Go client the reference implementation
@@ -93,8 +93,8 @@ Since we have only used C# and .NET, we have this ADR to put our reasoning and d
 - Good, because most developers already have .NET competence
 - Good, because .NET NativeAOT does improve resource usage compared to standard .NET
 - Bad, because resource consumption is still significantly higher than Go (D1)
-  - Baseline memory usage 6x higher than Go
-  - Image size 18x larger than Go
+  - Baseline memory usage 5.5x higher than Go
+  - Image size 5.5x larger than Go
 - Bad, because Kubernetes and cloud-native client libraries are less mature, less maintained and have more bugs (D2)
   - Ecosystem for cloud-native tools is less developed, most cloud-native infra is built in Go
   - More difficult to integrate with cloud-native infrastructure
