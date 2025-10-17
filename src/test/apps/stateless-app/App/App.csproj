@@ -5,10 +5,11 @@
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api.Experimental" Version="8.6.0-pr.698.265-url-param-instantiation.75058797" />
-    <PackageReference Include="Altinn.App.Core.Experimental" Version="8.6.0-pr.698.265-url-param-instantiation.75058797" />
+    <ProjectReference Include="../../../../App/backend/src/Altinn.App.Api/Altinn.App.Api.csproj">
+      <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="../../../../App/backend/src/Altinn.App.Core/Altinn.App.Core.csproj" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\css\" />
