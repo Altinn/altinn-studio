@@ -1,6 +1,6 @@
 import { useRunningAppsQuery } from 'admin/hooks/queries/useRunningAppsQuery';
 import classes from './AppsTable.module.css';
-import type { PublishedApplication } from 'admin/types/RunningApplication';
+import type { PublishedApplication } from 'admin/types/PublishedApplication';
 import { StudioSpinner, StudioTable, StudioSearch, StudioError } from '@studio/components';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
