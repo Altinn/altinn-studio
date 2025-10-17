@@ -4,8 +4,7 @@ import classes from './ExpandablePolicyElement.module.css';
 import { ChevronDownIcon, ChevronUpIcon } from '@studio/icons';
 import { PolicyEditorDropdownMenu } from './PolicyEditorDropdownMenu';
 import { useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph } from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph, StudioLabelAsParagraph } from '@studio/components';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 
 export type ExpandablePolicyElementProps = {
@@ -74,7 +73,7 @@ export const ExpandablePolicyElement = ({
           onBlur={() => setIsButtonFocused(false)}
         >
           <div className={classes.headerWrapper}>
-            <StudioLabelAsParagraph size='sm'>{title}</StudioLabelAsParagraph>
+            <StudioLabelAsParagraph data-size='sm'>{title}</StudioLabelAsParagraph>
             {description && (
               <StudioParagraph data-size='xs' className={classes.headerDescription}>
                 {description}

@@ -3,8 +3,7 @@ import classes from './InformationPanelComponent.module.css';
 import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import { getComponentHelperTextByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph } from '@studio/components-legacy';
-import { StudioPopover, StudioParagraph } from '@studio/components';
+import { StudioPopover, StudioParagraph, StudioLabelAsParagraph } from '@studio/components';
 import { InformationIcon } from '@studio/icons';
 
 export type InformationPanelProvidedProps = {
@@ -23,7 +22,7 @@ export const InformationPanelComponent = ({
         <InformationIcon />
       </StudioPopover.Trigger>
       <StudioPopover placement='right'>
-        <StudioLabelAsParagraph className={classes.informationPanelHeader} size='small'>
+        <StudioLabelAsParagraph className={classes.informationPanelHeader}>
           {componentTitle}
         </StudioLabelAsParagraph>
         <StudioParagraph spacing>

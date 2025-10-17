@@ -1,6 +1,5 @@
 import React from 'react';
-import { StudioLabelAsParagraph } from '@studio/components-legacy';
-import { StudioSectionHeader } from '@studio/components';
+import { StudioSectionHeader, StudioLabelAsParagraph } from '@studio/components';
 import { Accordion, Link, Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './ConfigEndEvent.module.css';
@@ -29,7 +28,7 @@ export const ConfigEndEvent = () => {
           <Accordion.Content className={classes.accordionContent}>
             <div className={classes.container}>
               <div className={classes.customReceiptText}>
-                <StudioLabelAsParagraph size='small' spacing>
+                <StudioLabelAsParagraph data-size='sm'>
                   {t('process_editor.configuration_panel_custom_receipt_default_receipt_heading')}
                 </StudioLabelAsParagraph>
                 <Paragraph size='small' className={classes.paragraph}>
@@ -48,7 +47,7 @@ export const ConfigEndEvent = () => {
               </div>
               <div>
                 <div className={classes.customReceiptText}>
-                  <StudioLabelAsParagraph size='small' spacing>
+                  <StudioLabelAsParagraph data-size='sm'>
                     {t('process_editor.configuration_panel_custom_receipt_heading')}
                   </StudioLabelAsParagraph>
                   <Paragraph size='small'>

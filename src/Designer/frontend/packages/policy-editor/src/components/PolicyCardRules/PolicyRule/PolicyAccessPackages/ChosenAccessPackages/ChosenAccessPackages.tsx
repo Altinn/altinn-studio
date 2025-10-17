@@ -1,6 +1,6 @@
 import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph } from '@studio/components-legacy';
+import { StudioLabelAsParagraph } from '@studio/components';
 import { PolicyAccessPackageAccordion } from '../PolicyAccessPackageAccordion';
 import { flatMapAreaPackageList } from '../policyAccessPackageUtils';
 import type {
@@ -39,7 +39,7 @@ export const ChosenAccessPackages = ({
   if (chosenAccessPackages.length > 0) {
     return (
       <>
-        <StudioLabelAsParagraph size='xs' spacing>
+        <StudioLabelAsParagraph data-size='xs'>
           {t('policy_editor.access_package_chosen_packages')}
         </StudioLabelAsParagraph>
         {chosenAccessPackages.map((accessPackageUrn: string) => {
