@@ -218,6 +218,7 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
+    [Obsolete("Use GetLayoutsForSet or GetLayoutModelForTask instead")]
     public string GetLayouts()
     {
         using var activity = _telemetry?.StartGetLayoutsActivity();

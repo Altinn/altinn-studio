@@ -2279,6 +2279,7 @@ namespace Altinn.App.Core.Implementation
         public Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId) { }
         public string? GetLayoutSettingsString() { }
         public string? GetLayoutSettingsStringForSet(string layoutSetId) { }
+        [System.Obsolete("Use GetLayoutsForSet or GetLayoutModelForTask instead")]
         public string GetLayouts() { }
         public string GetLayoutsForSet(string layoutSetId) { }
         public string GetModelJsonSchema(string modelId) { }
@@ -2845,6 +2846,7 @@ namespace Altinn.App.Core.Internal.App
         Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId);
         string? GetLayoutSettingsString();
         string? GetLayoutSettingsStringForSet(string layoutSetId);
+        [System.Obsolete("Use GetLayoutsForSet or GetLayoutModelForTask instead")]
         string GetLayouts();
         string GetLayoutsForSet(string layoutSetId);
         string GetModelJsonSchema(string modelId);

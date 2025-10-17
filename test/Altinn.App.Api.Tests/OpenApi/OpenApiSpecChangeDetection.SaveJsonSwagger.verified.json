@@ -5090,11 +5090,13 @@
         "tags": [
           "Resource"
         ],
-        "summary": "Get the form layout\n<param name=\"org\">Unique identifier of the organisation responsible for the app.</param><param name=\"app\">Application identifier which is unique within an organisation.</param><returns>A collection of FormLayout objects in JSON format.</returns>",
+        "summary": "Get the form layout",
+        "description": "This endpoint assumes a single layout set and does not work for apps on version 8.0 and above.",
         "parameters": [
           {
             "name": "org",
             "in": "path",
+            "description": "Unique identifier of the organisation responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -5103,6 +5105,7 @@
           {
             "name": "app",
             "in": "path",
+            "description": "Application identifier which is unique within an organisation.",
             "required": true,
             "schema": {
               "type": "string"
@@ -5110,17 +5113,18 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK",
+          "404": {
+            "description": "Not Found",
             "content": {
-              "application/json": {
+              "text/plain": {
                 "schema": {
                   "type": "string"
                 }
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/{org}/{app}/api/layouts/{id}": {
