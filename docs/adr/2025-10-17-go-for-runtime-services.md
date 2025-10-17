@@ -133,8 +133,8 @@ Comparison of baseline resource usage in local kind Kubernetes cluster using .NE
 ```
 SERVICE              | IMAGE SIZE   | MEMORY USAGE    | CPU
 ----------------------------------------------------------------------
-.NET Native AOT      | 150MB        | 12Mi            | 1m
-Go                   | 8.04MB       | 2Mi             | 1m
+.NET Native AOT      | 44.2MB       | 11Mi            | 3m
+Go                   | 8.04MB       | 2Mi             | 2m
 ======================================================================
 ```
 
@@ -163,7 +163,7 @@ COPY . ./
 RUN dotnet restore
 RUN dotnet publish -r linux-x64 -c Release -o out LightApi.csproj
 
-FROM mcr.microsoft.com/dotnet/runtime-deps:10.0
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled
 WORKDIR /App
 COPY --from=build /App/out .
 ENV ASPNETCORE_URLS="http://*:8070"
