@@ -49,7 +49,7 @@ func waitForServices() error {
 		if err != nil {
 			return err
 		}
-		req.Host = "pdf3-proxy.pdf3.svc.cluster.local"
+		req.Host = "pdf3-proxy.runtime-pdf3.svc.cluster.local"
 
 		resp, err := client.Do(req)
 		if err == nil {
@@ -137,7 +137,7 @@ func getTestOutput(_ *testing.T, id string, workerIP string) (*ptesting.PdfInter
 	if err != nil {
 		return nil, err
 	}
-	httpReq.Host = "pdf3-proxy.pdf3.svc.cluster.local"
+	httpReq.Host = "pdf3-proxy.runtime-pdf3.svc.cluster.local"
 	httpReq.Header.Set("X-Target-Worker-IP", workerIP)
 
 	resp, err := client.Do(httpReq)
@@ -168,12 +168,12 @@ func getTestOutput(_ *testing.T, id string, workerIP string) (*ptesting.PdfInter
 
 // requestNewPDF sends a PDF generation request to the new PDF generator solution
 func RequestNewPDF(t *testing.T, req *types.PdfRequest) (*PdfResponse, error) {
-	return RequestPDFWithHost(t, req, "pdf3-proxy.pdf3.svc.cluster.local", nil)
+	return RequestPDFWithHost(t, req, "pdf3-proxy.runtime-pdf3.svc.cluster.local", nil)
 }
 
 // requestNewPDF sends a PDF generation request to the new PDF generator solution
 func RequestNewPDFWithTestInput(t *testing.T, req *types.PdfRequest, testInput *ptesting.PdfInternalsTestInput) (*PdfResponse, error) {
-	return RequestPDFWithHost(t, req, "pdf3-proxy.pdf3.svc.cluster.local", testInput)
+	return RequestPDFWithHost(t, req, "pdf3-proxy.runtime-pdf3.svc.cluster.local", testInput)
 }
 
 // requestOldPDF sends a PDF generation request to the old PDF generator solution

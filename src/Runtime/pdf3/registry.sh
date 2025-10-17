@@ -30,7 +30,7 @@ fi
 # We want a consistent name that works from both ends, so we tell containerd to
 # alias localhost:${reg_port} to the registry container when pulling images
 REGISTRY_DIR="/etc/containerd/certs.d/localhost:${reg_port}"
-for node in $(kind get nodes -n pdf3-cluster); do
+for node in $(kind get nodes --name pdf3-cluster); do
   $CONTAINER_CMD exec "${node}" mkdir -p "${REGISTRY_DIR}"
   cat <<EOF | $CONTAINER_CMD exec -i "${node}" cp /dev/stdin "${REGISTRY_DIR}/hosts.toml"
 [host."http://${reg_name}:5000"]

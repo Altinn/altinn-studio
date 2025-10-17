@@ -166,6 +166,17 @@ func generatePdf(client *http.Client, workerAddr string) func(http.ResponseWrite
 			return
 		}
 
+		// Validate request
+		if err := req.Validate(); err != nil {
+			writeProblemDetails(w, http.StatusBadRequest, ProblemDetails{
+				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+				Title:  "Bad Request",
+				Status: http.StatusBadRequest,
+				Detail: fmt.Sprintf("Validation error: %v", err),
+			})
+			return
+		}
+
 		// Start generating the PDF with some (rather dumb) retry logic
 		// Retry logic:
 		//   Max 50 retry attempts on 429 (queue full) errors,
@@ -470,7 +481,9 @@ type ProblemDetails struct {
 func writeProblemDetails(w http.ResponseWriter, statusCode int, problem ProblemDetails) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	if err := json.NewEncoder(w).Encode(problem); err != nil {
+	encoder := json.NewEncoder(w)
+	encoder.SetEscapeHTML(false) // Don't escape <, >, & for cleaner error messages
+	if err := encoder.Encode(problem); err != nil {
 		log.Printf("Warning: failed to encode error response: %v\n", err)
 	}
 }

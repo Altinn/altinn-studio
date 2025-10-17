@@ -103,6 +103,9 @@ func (g *Custom) IsReady() bool {
 }
 
 func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types.PdfResult, *types.PDFError) {
+	// Assert that the request has been validated by the proxy
+	assert.Assert(request.Validate() == nil)
+
 	responder := make(chan workerResponse, 1)
 	req := workerRequest{
 		request:   request,

@@ -44,7 +44,7 @@ func Test_Networking(t *testing.T) {
 		t.Fatalf("Failed to create HTTP request: %v", err)
 	}
 	// Should not be able to reach worker directly
-	httpReq.Host = "pdf3-worker.pdf3.svc.cluster.local"
+	httpReq.Host = "pdf3-worker.runtime-pdf3.svc.cluster.local"
 
 	resp, err := client.Do(httpReq)
 	if err == nil {

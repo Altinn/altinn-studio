@@ -66,7 +66,7 @@ else
 		helm install -n pdf --create-namespace pdf-generator altinn-studio/pdf-generator \
 			--set image.repository="browserless/chrome" \
 			--set image.tag="1-puppeteer-21.4.1"; \
-		kubectl create namespace pdf3; \
+		kubectl create namespace runtime-pdf3; \
 		kubectl apply -f infra/testserver.yaml; \
 	fi
 endif
@@ -108,17 +108,17 @@ run: registry build ## Deploy to cluster and restart services (cached)
 		echo "No manifest or build changes detected, skipping deploy"; \
 	else \
 		echo "Changes detected, deploying..."; \
-		proxy_running=$$(kubectl get deployment pdf3-proxy -n pdf3 -o jsonpath='{.status.availableReplicas}' 2>/dev/null || echo "0"); \
-		worker_running=$$(kubectl get deployment pdf3-worker -n pdf3 -o jsonpath='{.status.availableReplicas}' 2>/dev/null || echo "0"); \
-		kubectl kustomize infra/kustomize/local | kubectl apply -f - -n pdf3; \
+		proxy_running=$$(kubectl get deployment pdf3-proxy -n runtime-pdf3 -o jsonpath='{.status.availableReplicas}' 2>/dev/null || echo "0"); \
+		worker_running=$$(kubectl get deployment pdf3-worker -n runtime-pdf3 -o jsonpath='{.status.availableReplicas}' 2>/dev/null || echo "0"); \
+		kubectl kustomize infra/kustomize/local | kubectl apply -f - -n runtime-pdf3; \
 		if [ "$$proxy_running" != "0" ]; then \
-			kubectl rollout restart -n pdf3 deployment/pdf3-proxy; \
+			kubectl rollout restart -n runtime-pdf3 deployment/pdf3-proxy; \
 		fi; \
 		if [ "$$worker_running" != "0" ]; then \
-			kubectl rollout restart -n pdf3 deployment/pdf3-worker; \
+			kubectl rollout restart -n runtime-pdf3 deployment/pdf3-worker; \
 		fi; \
-		kubectl rollout status -n pdf3 deployment/pdf3-proxy --timeout=30s; \
-		kubectl rollout status -n pdf3 deployment/pdf3-worker --timeout=30s; \
+		kubectl rollout status -n runtime-pdf3 deployment/pdf3-proxy --timeout=30s; \
+		kubectl rollout status -n runtime-pdf3 deployment/pdf3-worker --timeout=30s; \
 		echo "$$infra_hash" > .last-deploy-hash; \
 		sleep 5; \
 	fi
@@ -138,8 +138,8 @@ test: run ## Run all tests (smoke tests run exclusively, then simple tests)
 	END_TIME=$$(date +%s); \
 	DURATION=$$((END_TIME - START_TIME + 10)); \
 	echo "Capturing logs from last $${DURATION}s to test/logs/..."; \
-	stern -l app=pdf3-proxy -n pdf3 -E linkerd-init -E linkerd-proxy --since $${DURATION}s --no-follow > test/logs/proxy.log 2>&1 || true; \
-	stern -l app=pdf3-worker -n pdf3 -E linkerd-init -E linkerd-proxy --since $${DURATION}s --no-follow > test/logs/worker.log 2>&1 || true; \
+	stern -l app=pdf3-proxy -n runtime-pdf3 -E linkerd-init -E linkerd-proxy --since $${DURATION}s --no-follow > test/logs/proxy.log 2>&1 || true; \
+	stern -l app=pdf3-worker -n runtime-pdf3 -E linkerd-init -E linkerd-proxy --since $${DURATION}s --no-follow > test/logs/worker.log 2>&1 || true; \
 	if [ $$SMOKE_EXIT -ne 0 ]; then exit $$SMOKE_EXIT; fi; \
 	exit $$SIMPLE_EXIT
 
@@ -168,7 +168,7 @@ endif
 	@echo "============================================================"
 
 logs: ## Stream logs from pdf3 components
-	stern -l component=pdf3 -n pdf3 -E linkerd-init -E linkerd-proxy --tail -1
+	stern -l component=pdf3 -n runtime-pdf3 -E linkerd-init -E linkerd-proxy --tail -1
 
 loadtest: ## Run k6 load tests
 	$(CONTAINER_CMD) run --rm -i --net=host grafana/k6:1.3.0 run - <test/load/test.ts

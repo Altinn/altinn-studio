@@ -163,3 +163,75 @@ type PdfGenerator interface {
 	Close() error
 	IsReady() bool
 }
+
+// ValidFormats lists all valid PDF format values (must match paperFormats in generator.go)
+var ValidFormats = []string{
+	"Letter", "Legal", "Tabloid", "Ledger",
+	"A0", "A1", "A2", "A3", "A4", "A5", "A6",
+}
+
+// Validate validates the PdfRequest according to browserless schema rules
+func (r *PdfRequest) Validate() error {
+	// Validate URL (required)
+	if r.URL == "" {
+		return errors.New("url is required")
+	}
+
+	// Validate URL format - must be parseable
+	// We'll use a simple check that it's a non-empty string
+	// More strict URL validation could be added if needed
+	if len(r.URL) == 0 {
+		return errors.New("url must not be empty")
+	}
+
+	// Validate Options.Format (if specified, must be valid)
+	if r.Options.Format != "" {
+		valid := false
+		for _, format := range ValidFormats {
+			if r.Options.Format == format {
+				valid = true
+				break
+			}
+		}
+		if !valid {
+			return fmt.Errorf("invalid format: %s (must be one of: %v)", r.Options.Format, ValidFormats)
+		}
+	}
+
+	// Validate WaitFor
+	if r.WaitFor != nil {
+		if str, ok := r.WaitFor.AsString(); ok {
+			if str == "" {
+				return errors.New("waitFor string must not be empty")
+			}
+		} else if timeout, ok := r.WaitFor.AsTimeout(); ok {
+			if timeout < 0 {
+				return errors.New("waitFor timeout must be >= 0")
+			}
+		} else if opts, ok := r.WaitFor.AsOptions(); ok {
+			if opts.Selector == "" {
+				return errors.New("waitFor selector must not be empty")
+			}
+			if opts.Timeout != nil && *opts.Timeout < 0 {
+				return errors.New("waitFor timeout must be >= 0")
+			}
+		}
+	}
+
+	// Validate Cookies
+	for i, cookie := range r.Cookies {
+		if cookie.Name == "" {
+			return fmt.Errorf("cookie[%d]: name is required", i)
+		}
+		if cookie.Value == "" {
+			return fmt.Errorf("cookie[%d]: value is required", i)
+		}
+		if cookie.SameSite != "" {
+			if cookie.SameSite != "Strict" && cookie.SameSite != "Lax" {
+				return fmt.Errorf("cookie[%d]: sameSite must be 'Strict' or 'Lax', got '%s'", i, cookie.SameSite)
+			}
+		}
+	}
+
+	return nil
+}

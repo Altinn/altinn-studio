@@ -84,7 +84,7 @@ export default function () {
   const host =
     service === 'old'
       ? 'pdf-generator.pdf.svc.cluster.local'
-      : 'pdf3-proxy.pdf3.svc.cluster.local';
+      : 'pdf3-proxy.runtime-pdf3.svc.cluster.local';
   const tags = { service: service };
 
   const params = {
