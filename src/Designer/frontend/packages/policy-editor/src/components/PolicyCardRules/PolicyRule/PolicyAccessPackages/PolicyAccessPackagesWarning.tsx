@@ -1,7 +1,7 @@
 import React, { type ReactElement } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph, StudioLink, StudioList } from '@studio/components-legacy';
-import { StudioAlert, StudioParagraph } from '@studio/components';
+import { StudioLabelAsParagraph, StudioList } from '@studio/components-legacy';
+import { StudioAlert, StudioParagraph, StudioLink } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export const PolicyAccessPackagesWarning = (): ReactElement => {
