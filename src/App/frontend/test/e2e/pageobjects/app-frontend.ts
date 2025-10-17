@@ -55,6 +55,7 @@ export class AppFrontend {
   public toast = '[role="alert"][class^="Toast"]';
   public expandedWidth = '[data-expanded="true"]';
   public notExpandedWidth = '[data-expanded="false"]';
+  public languageSelector = 'button[aria-label="Språkvalg"]';
 
   public helpText = {
     button: 'button[class^="ds-helptext"]',
