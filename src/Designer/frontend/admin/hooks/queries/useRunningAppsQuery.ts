@@ -9,7 +9,7 @@ export const useRunningAppsQuery = (
   org: string,
 ): UseQueryResult<Record<string, PublishedApplication[]>> => {
   return useQuery<Record<string, PublishedApplication[]>>({
-    queryKey: [QueryKey.RunningApps, org],
+    queryKey: [QueryKey.PublishedApps, org],
     queryFn: async ({ signal }) =>
       (await axios.get<Record<string, PublishedApplication[]>>(runningAppsPath(org), { signal }))
         .data,
