@@ -36,9 +36,13 @@
       "allowedVersions": "<=4.0"
     },
     {
-      "matchDatasources": ["docker"],
-      "matchPackagePatterns": ["^mcr\\.microsoft\\.com/dotnet"],
-      "pinDigests": false
+      "matchDatasources": [
+        "docker"
+      ],
+      "pinDigests": false,
+      "matchPackageNames": [
+        "/^mcr\\.microsoft\\.com/dotnet/"
+      ]
     }
   ]
 }
