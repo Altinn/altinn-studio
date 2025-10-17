@@ -95,6 +95,7 @@ namespace Altinn.App.Models
   {
     [MaxLength(4)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
@@ -107,6 +108,7 @@ namespace Altinn.App.Models
   {
     [MaxLength(175)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
@@ -119,6 +121,7 @@ namespace Altinn.App.Models
   {
     [MaxLength(35)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
@@ -150,6 +153,7 @@ namespace Altinn.App.Models
     [MinLength(9)]
     [MaxLength(9)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
@@ -162,6 +166,7 @@ namespace Altinn.App.Models
   {
     [MaxLength(255)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
@@ -275,6 +280,7 @@ namespace Altinn.App.Models
   public class Arkivkode
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
@@ -318,6 +324,7 @@ namespace Altinn.App.Models
   public class Epost_S01
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
@@ -330,6 +337,7 @@ namespace Altinn.App.Models
   {
     [MaxLength(255)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
@@ -342,6 +350,7 @@ namespace Altinn.App.Models
   {
     [MaxLength(20)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
@@ -354,6 +363,7 @@ namespace Altinn.App.Models
   {
     [MaxLength(4)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
@@ -397,6 +407,7 @@ namespace Altinn.App.Models
   public class Epost_S02
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
@@ -409,6 +420,7 @@ namespace Altinn.App.Models
   {
     [MaxLength(255)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
@@ -421,6 +433,7 @@ namespace Altinn.App.Models
   {
     [MaxLength(20)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
@@ -433,6 +446,7 @@ namespace Altinn.App.Models
   {
     [MaxLength(4)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
@@ -463,6 +477,7 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^[0-9]{4}$")]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
@@ -474,6 +489,7 @@ namespace Altinn.App.Models
   public class Periodetype
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
@@ -497,6 +513,7 @@ namespace Altinn.App.Models
   {
     [MaxLength(50)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
@@ -510,6 +527,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(60)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
@@ -522,6 +540,7 @@ namespace Altinn.App.Models
   {
     [MaxLength(120)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
@@ -533,6 +552,7 @@ namespace Altinn.App.Models
   public class Avdeling
   {
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
@@ -546,6 +566,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(255)]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
@@ -558,6 +579,7 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^[0-9]{4}$")]
     [XmlText()]
+    [Required]
     public string value { get; set; }
 
     [XmlAttribute("guid")]
