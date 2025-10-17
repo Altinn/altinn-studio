@@ -14,7 +14,7 @@ interface RouterRoute {
 export const routerRoutes: RouterRoute[] = [
   {
     path: RoutePaths.Root,
-    page: () => <Navigate to={'apps'} />,
+    page: () => <Navigate to={RoutePaths.Apps} />,
   },
   {
     path: RoutePaths.Apps,

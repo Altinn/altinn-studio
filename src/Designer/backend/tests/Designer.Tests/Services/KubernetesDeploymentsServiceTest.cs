@@ -55,7 +55,7 @@ namespace Designer.Tests.Services
 
             // Act
             List<KubernetesDeployment> kubernetesDeploymentList =
-                await kubernetesDeploymentsService.GetAsync(org, app, new CancellationToken());
+                await kubernetesDeploymentsService.GetAsync(org, app, CancellationToken.None);
 
             // Assert
             Assert.Equal(4, kubernetesDeploymentList.Count);
@@ -82,7 +82,7 @@ namespace Designer.Tests.Services
 
             // Act
             Dictionary<string, List<KubernetesDeployment>> kubernetesDeploymentDict =
-                await kubernetesDeploymentsService.GetAsync(org, new CancellationToken());
+                await kubernetesDeploymentsService.GetAsync(org, CancellationToken.None);
 
             // Assert
             Assert.Single(kubernetesDeploymentDict["tt02"]);

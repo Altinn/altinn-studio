@@ -16,7 +16,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     {
         private readonly IEnvironmentsService _environmentsService;
         private readonly IKubernetesWrapperClient _kubernetesWrapperClient;
-        private readonly ILogger<DeploymentService> _logger;
+        private readonly ILogger<KubernetesDeploymentsService> _logger;
 
         /// <summary>
         /// Constructor
@@ -24,7 +24,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public KubernetesDeploymentsService(
             IEnvironmentsService environmentsService,
             IKubernetesWrapperClient kubernetesWrapperClient,
-            ILogger<DeploymentService> logger
+            ILogger<KubernetesDeploymentsService> logger
         )
         {
             _environmentsService = environmentsService;
@@ -39,8 +39,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             CancellationToken ct
         )
         {
-            List<KubernetesDeployment> kubernetesDeploymentList = [];
-
             IEnumerable<EnvironmentModel> environments =
                 await _environmentsService.GetOrganizationEnvironments(org);
 
@@ -80,8 +78,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             CancellationToken ct
         )
         {
-            List<KubernetesDeployment> kubernetesDeploymentList = [];
-
             IEnumerable<EnvironmentModel> environments =
                 await _environmentsService.GetOrganizationEnvironments(org);
 
