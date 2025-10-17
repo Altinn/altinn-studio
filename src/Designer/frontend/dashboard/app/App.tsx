@@ -1,6 +1,7 @@
 import React from 'react';
 import classes from './App.module.css';
-import { StudioPageSpinner, StudioPageError } from '@studio/components-legacy';
+import { StudioPageSpinner } from '@studio/components-legacy';
+import { StudioPageError } from '@studio/components';
 import { CreateService } from '../pages/CreateService';
 import { Dashboard } from '../pages/Dashboard';
 import { Route, Routes } from 'react-router-dom';
