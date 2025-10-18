@@ -1,0 +1,139 @@
+﻿{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": false,
+    "layout": [
+      {
+        "id": "Header-form",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Form.Header-form.title"
+        },
+        "size": "L"
+      },
+      {
+        "id": "Input-name",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Form.Input-name.title",
+          "description": "Form.Input-name.description"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "form.name"
+        },
+        "required": true,
+        "readOnly": true,
+        "autocomplete": "organization",
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
+      },
+      {
+        "id": "Input-orgNumber",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Form.Input-orgNumber.title",
+          "description": "Form.Input-orgNumber.description"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "form.orgNumber"
+        },
+        "required": true,
+        "readOnly": true,
+        "autocomplete": "off",
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
+      },
+      {
+        "id": "Input-year",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Form.Input-year.title",
+          "description": "Form.Input-year.description"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "form.year"
+        },
+        "required": true,
+        "readOnly": false,
+        "autocomplete": "off",
+        "formatting": {
+          "align": "right",
+          "number": {
+            "format": "####",
+            "mask": "_",
+            "allowEmptyFormatting": true
+          }
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
+      },
+      {
+        "id": "Input-income",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Form.Input-income.title",
+          "description": "Form.Input-income.description"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "form.income"
+        },
+        "required": true,
+        "readOnly": false,
+        "autocomplete": "off",
+        "formatting": {
+          "align": "right",
+          "number": {
+            "allowNegative": false,
+            "decimalScale": 0,
+            "suffix": " 000 NOK",
+            "thousandSeparator": " "
+          }
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
+      },
+      {
+        "id": "sources",
+        "type": "RepeatingGroup",
+        "dataModelBindings": {
+          "group": {
+            "field": "form.sources",
+            "dataType": "data"
+          }
+        },
+        "textResourceBindings": {
+          "title": "Form.sources.title"
+        },
+        "maxCount": 99999,
+        "children": ["sourceType"]
+      },
+      {
+        "id": "sourceType",
+        "type": "Dropdown",
+        "dataModelBindings": {
+          "simpleBinding": "form.sources.type"
+        },
+        "optionsId": "revenue-sources",
+        "textResourceBindings": {
+          "title": "Form.sourceType.title"
+        },
+        "hidden": false
+      },
+      {
+        "id": "Button-submit",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Form.Button-submit.title"
+        }
+      }
+    ]
+  }
+}

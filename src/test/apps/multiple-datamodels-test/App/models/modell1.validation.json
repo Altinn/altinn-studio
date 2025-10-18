@@ -1,0 +1,22 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/validation/validation.schema.v1.json",
+  "validations": {
+    "tekstfelt": [
+      {
+        "message": "Feil er feil",
+        "condition": ["equals", ["dataModel", ["argv", 0]], "feil"]
+      }
+    ],
+    "bransje": [
+      {
+        "message": "Du kan ikke velge både IKT og Verkstedindustri",
+        "condition": [
+          "and",
+          ["commaContains", ["dataModel", ["argv", 0]], "491"],
+          ["commaContains", ["dataModel", ["argv", 0]], "445"]
+        ]
+      }
+    ]
+  },
+  "definitions": {}
+}

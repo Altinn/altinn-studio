@@ -1,0 +1,169 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "navbar1",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "contactInformation",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "contactInformation"
+        },
+        "size": "h2"
+      },
+      {
+        "id": "applicationInfo",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "applicationAccordionText"
+        }
+      },
+      {
+        "id": "publicAccordion",
+        "type": "Accordion",
+        "textResourceBindings": {
+          "title": "publicAccordion"
+        },
+        "children": [
+          "publicAccordionText"
+        ]
+      },
+      {
+        "id": "publicAccordionText",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "publicAccordionText"
+        }
+      },
+      {
+        "id": "correspondenceAccordion",
+        "type": "Accordion",
+        "textResourceBindings": {
+          "title": "correspondenceAccordion"
+        },
+        "children": [
+          "correspondenceAccordionText"
+        ]
+      },
+      {
+        "id": "correspondenceAccordionText",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "correspondenceAccordionText"
+        }
+      },
+      {
+        "id": "fullName",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "fullName"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "ContactInformation.FullName"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 6
+        },
+        "required": false
+      },
+      {
+        "id": "phoneNumber",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "phoneNumber"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "ContactInformation.PhoneNumber"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 6
+        },
+        "required": false
+      },
+      {
+        "id": "email",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "email"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "ContactInformation.Email"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 12,
+          "innerGrid": {
+            "xs": 12,
+            "md": 6
+          }
+        }
+      },
+      {
+        "id": "reference",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "personReference",
+          "description": "personReferenceInfo",
+          "help": "personReferenceHelp"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "ContactInformation.Reference"
+        },
+        "maxLength": 20,
+        "grid": {
+          "xs": 12,
+          "md": 6
+        },
+        "required": false
+      },
+      {
+        "id": "delegateRole",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "delegateRole"
+        },
+        "optionsId": "delegatePerson",
+        "dataModelBindings": {
+          "simpleBinding": "AgentPerson"
+        },
+        "required": true,
+        "layout": "column"
+      },
+      {
+        "id": "hidePaymentDetails",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Hide Payment Details component during filling out order-lines"
+        },
+        "options": [
+          {
+            "value": true,
+            "label": "Hide Payment Details component during filling out order-lines"
+          }
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "HideFirstPaymentDetails"
+        }
+      },
+      {
+        "id": "navButtons1",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "next"
+        },
+        "showBackButton": true,
+        "validateOnNext": {
+          "page": "current",
+          "show": [
+            "All"
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -6,7 +6,7 @@ import { Heading } from '@digdir/designsystemet-react';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
 import { DummyPresentation } from 'src/components/presentation/Presentation';
-import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { BlockPrint, ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
@@ -36,7 +36,7 @@ export const PDFView2 = () => {
   const pdfLayoutName = usePdfLayoutName();
 
   if (pdfFormatIsLoading) {
-    return null;
+    return <BlockPrint />;
   }
 
   if (pdfLayoutName) {
