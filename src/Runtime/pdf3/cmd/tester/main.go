@@ -319,7 +319,7 @@ func collectLogs(runtime *kind.KindContainerRuntime, logsDir string, sinceSecond
 	if err := kubernetesClient.CollectLogs(kubernetes.LogOptions{
 		Namespace:     "runtime-pdf3",
 		LabelSelector: "app=pdf3-proxy",
-		ContainerName: "proxy",
+		ContainerName: "pdf3-proxy",
 		OutputPath:    proxyLogPath,
 		SinceSeconds:  sinceSeconds,
 		Prefix:        true,
@@ -333,7 +333,7 @@ func collectLogs(runtime *kind.KindContainerRuntime, logsDir string, sinceSecond
 	if err := kubernetesClient.CollectLogs(kubernetes.LogOptions{
 		Namespace:     "runtime-pdf3",
 		LabelSelector: "app=pdf3-worker",
-		ContainerName: "worker",
+		ContainerName: "pdf3-worker",
 		OutputPath:    workerLogPath,
 		SinceSeconds:  sinceSeconds,
 		Prefix:        true,
