@@ -165,7 +165,11 @@ func runTest() {
 	keepRunning := testFlags.Bool("keep-running", false, "Keep cluster running after tests complete")
 	testFlags.BoolVar(keepRunning, "kr", false, "Keep cluster running after tests complete (shorthand)")
 	iterations := testFlags.Int("n", 1, "Number of times to run tests (for flakiness testing)")
-	testFlags.Parse(os.Args[2:])
+	err := testFlags.Parse(os.Args[2:])
+	if err != nil {
+		fmt.Printf("Error parsing flags: %v", err)
+		os.Exit(1)
+	}
 
 	// Default: run both if no flags specified
 	runBoth := !*runSmoke && !*runSimple
@@ -346,7 +350,11 @@ func runLoadtest() {
 	loadtestFlags := flag.NewFlagSet("loadtest", flag.ExitOnError)
 	keepRunning := loadtestFlags.Bool("keep-running", false, "Keep cluster running after loadtest completes")
 	loadtestFlags.BoolVar(keepRunning, "kr", false, "Keep cluster running after loadtest completes (shorthand)")
-	loadtestFlags.Parse(os.Args[2:])
+	err := loadtestFlags.Parse(os.Args[2:])
+	if err != nil {
+		fmt.Printf("Error parsing flags: %v", err)
+		os.Exit(1)
+	}
 
 	fmt.Println("=== PDF3 Load Test ===")
 
@@ -426,7 +434,7 @@ func runLoadtest() {
 		fmt.Fprintf(os.Stderr, "Failed to read test script: %v\n", err)
 		os.Exit(1)
 	}
-	defer testScript.Close()
+	defer func() { _ = testScript.Close() }()
 
 	// Run k6 container with test script piped to stdin
 	err = client.RunInteractive(
