@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pdf
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: pdf-generator
+  namespace: pdf
+spec:
+  releaseName: pdf-generator
+  targetNamespace: pdf
+  interval: 5m
+  install:
+    createNamespace: false
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  chart:
+    spec:
+      chart: pdf-generator
+      version: '1.9.0'
+      sourceRef:
+        kind: HelmRepository
+        name: altinn-charts
+        namespace: default
+  values:
+    environment: ${ENVIRONMENT}
