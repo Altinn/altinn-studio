@@ -54,7 +54,37 @@ func Test_Networking(t *testing.T) {
 	harness.Snapshot(t, []byte(err.Error()), "error", "txt")
 }
 
+func waitForOldPdfGenerator(t *testing.T) {
+	client := &http.Client{Timeout: 2 * time.Second}
+	deadline := time.Now().Add(20 * time.Second)
+
+	for {
+		if time.Now().After(deadline) {
+			t.Fatal("timed out waiting for old PDF generator to get ready")
+		}
+
+		req, err := http.NewRequest("GET", harness.JumpboxURL+"/metrics", nil)
+		if err != nil {
+			t.Fatalf("Failed to create health check request: %v", err)
+		}
+		req.Host = "pdf-generator.pdf.svc.cluster.local"
+
+		resp, err := client.Do(req)
+		if err == nil && resp.StatusCode == http.StatusOK {
+			_ = resp.Body.Close()
+			break
+		}
+		if err == nil {
+			_ = resp.Body.Close()
+		}
+
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
 func Test_CompareOldAndNew(t *testing.T) {
+	waitForOldPdfGenerator(t)
+
 	req := harness.GetDefaultPdfRequest(t)
 	req.URL = harness.TestServerURL + "/app/?render=light"
 

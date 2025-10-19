@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"os/exec"
 	"testing"
 
 	"altinn.studio/pdf3/test/harness"
+	"altinn.studio/runtime-fixture/pkg/container"
 )
 
 // imageInfo represents the structure returned by docker/podman image inspect
@@ -15,27 +15,15 @@ type imageInfo struct {
 	Size int64 `json:"Size"`
 }
 
-// getContainerRuntime detects whether docker or podman is available
-func getContainerRuntime() (string, error) {
-	if _, err := exec.LookPath("podman"); err == nil {
-		return "podman", nil
-	}
-	if _, err := exec.LookPath("docker"); err == nil {
-		return "docker", nil
-	}
-	return "", fmt.Errorf("neither docker nor podman found in PATH")
-}
-
 // getImageSize queries the container runtime for image size in bytes
-func getImageSize(t *testing.T, runtime, image string) (int64, error) {
-	cmd := exec.Command(runtime, "image", "inspect", image)
-	output, err := cmd.CombinedOutput()
+func getImageSize(t *testing.T, cli container.ContainerClient, image string) (int64, error) {
+	output, err := cli.ImageInspect(image, "")
 	if err != nil {
-		return 0, fmt.Errorf("failed to inspect image %s: %w\nOutput: %s", image, err, string(output))
+		return 0, err
 	}
 
 	var info []imageInfo
-	if err := json.Unmarshal(output, &info); err != nil {
+	if err := json.Unmarshal([]byte(output), &info); err != nil {
 		return 0, fmt.Errorf("failed to parse image inspect output: %w", err)
 	}
 
@@ -53,20 +41,16 @@ func roundToNearestMiB(bytes int64) int64 {
 }
 
 func Test_ImageSizes(t *testing.T) {
-	runtime, err := getContainerRuntime()
-	if err != nil {
-		t.Fatalf("Failed to detect container runtime: %v", err)
-	}
-
 	proxyImage := "localhost:5001/runtime-pdf3-proxy:latest"
 	workerImage := "localhost:5001/runtime-pdf3-worker:latest"
 
-	proxySize, err := getImageSize(t, runtime, proxyImage)
+	client := harness.Runtime.ContainerClient
+	proxySize, err := getImageSize(t, client, proxyImage)
 	if err != nil {
 		t.Fatalf("Failed to get proxy image size: %v", err)
 	}
 
-	workerSize, err := getImageSize(t, runtime, workerImage)
+	workerSize, err := getImageSize(t, client, workerImage)
 	if err != nil {
 		t.Fatalf("Failed to get worker image size: %v", err)
 	}

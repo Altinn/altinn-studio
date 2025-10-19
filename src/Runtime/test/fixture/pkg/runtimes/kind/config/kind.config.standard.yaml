@@ -1,6 +1,6 @@
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
-name: pdf3-cluster
+name: runtime-fixture-kind-standard
 containerdConfigPatches:
 - |-
   [plugins."io.containerd.grpc.v1.cri".registry]

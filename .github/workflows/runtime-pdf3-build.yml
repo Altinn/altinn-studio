@@ -23,36 +23,30 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: DeterminateSystems/nix-installer-action@786fff0690178f1234e4e1fe9b536e94f5433196 # v20
-      - uses: DeterminateSystems/magic-nix-cache-action@565684385bcd71bad329742eefe8d12f2e765b39 # v13
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6
         with:
-          use-flakehub: 'disabled'
-          use-gha-cache: 'enabled'
+          go-version-file: src/Runtime/pdf3/go.mod
+          cache-dependency-path: src/Runtime/pdf3/go.sum
 
-      - name: Set up development environment
-        run: |
-          nix develop --command bash -c "which go && go version && which kind && which kubectl && which helm && which stern && which golangci-lint"
+      - name: Cache CLI tools
+        uses: actions/cache@v4
+        with:
+          path: src/Runtime/pdf3/.cache/bin
+          key: pdf3-tools-${{ runner.os }}-${{ hashFiles('src/Runtime/test/fixture/pkg/tools/.tool-versions') }}
+          restore-keys: |
+            pdf3-tools-${{ runner.os }}-
+
+      - name: Setup
+        run: make setup
 
       - name: Run format check
-        run: nix develop --command make format
+        run: make format
 
       - name: Run linters
-        run: nix develop --command make lint
-
-      - name: Create cluster
-        run: nix develop --command make cluster
-
-      - name: Start registry
-        run: nix develop --command make registry
-
-      - name: Build images
-        run: nix develop --command make build
-
-      - name: Deploy to cluster
-        run: nix develop --command make run
+        run: make lint
 
       - name: Run tests
-        run: nix develop --command make test
+        run: make test
 
       - name: Upload test logs
         if: failure()
@@ -61,7 +55,3 @@ jobs:
           name: runtime-pdf3-test-logs
           path: src/Runtime/pdf3/test/logs/
           retention-days: 7
-
-      - name: Cleanup cluster
-        if: always()
-        run: nix develop --command make cluster stop=1

@@ -1,5 +1,8 @@
-.PHONY: help nix-update gen cluster registry format lint build-local build run test test-loop logs loadtest
+.PHONY: help format lint build-local test test-loop logs loadtest run stop
 .DEFAULT_GOAL := help
+
+CACHE_DIR := .cache
+BIN_DIR := .cache/bin
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -7,169 +10,62 @@ help: ## Show this help message
 	@echo 'Available targets:'
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-15s %s\n", $$1, $$2}'
 
-nix-update: ## Update nix flake dependencies
-	nix flake update
+setup: ## Install required development tools
+	@go run ../test/fixture/cmd/setup --cache $(CACHE_DIR) --tools golangci-lint
 
-# Detect available container runtime
-ifneq ($(shell command -v podman 2>/dev/null),)
-CONTAINER_CMD := podman
-CONTAINER_IMG_PUSH_CMD := podman push --tls-verify=false
-else ifneq ($(shell command -v docker 2>/dev/null),)
-CONTAINER_CMD := docker
-CONTAINER_IMG_PUSH_CMD := docker push
-else
-$(error Neither podman nor docker found. Please install one of them.)
-endif
+build: ## Build all packages
+	@echo "Building packages..."
+	@go build ./...
+	@echo "✓ Build successful"
 
-# Detect available sha256 command
-ifneq ($(shell command -v sha256sum 2>/dev/null),)
-SHA256_CMD := sha256sum
-else ifneq ($(shell command -v shasum 2>/dev/null),)
-SHA256_CMD := shasum -a 256
-else
-$(error Neither sha256sum nor shasum found. Please install coreutils or perl.)
-endif
+clean: ## Clean build artifacts and test cache
+	@echo "Cleaning..."
+	@go clean -cache -testcache -modcache
+	@rm -f coverage.out
+	@echo "✓ Cleaned"
 
-cluster: ## Create local Kind cluster (use 'make cluster stop=1' to delete)
-ifdef stop
-	@echo "Deleting cluster pdf3-cluster..."
-	@kind delete cluster --name pdf3-cluster
-else
-	@if kind get clusters 2>/dev/null | grep -q '^pdf3-cluster$$'; then \
-		echo "Cluster pdf3-cluster already exists, skipping creation"; \
-	else \
-		set -e; \
-		kind create cluster --config infra/kind.config.yaml; \
-		kubectl config use-context kind-pdf3-cluster; \
-		helm repo add traefik https://traefik.github.io/charts; \
-		helm repo add linkerd-edge https://helm.linkerd.io/edge; \
-		helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/; \
-		helm repo add altinn-studio https://charts.altinn.studio; \
-		sleep 1; \
-		helm install --version 3.13.0 metrics-server metrics-server/metrics-server \
-			--set args[0]=--kubelet-insecure-tls \
-			--set args[1]=--kubelet-preferred-address-types=InternalIP\\,Hostname\\,ExternalIP; \
-		helm install --version 26.1.0 traefik traefik/traefik \
-			-n traefik --create-namespace \
-			--set ports.web.nodePort=30000 \
-			--set ports.websecure.nodePort=30001 \
-			--set ports.traefik.expose=true \
-			--set ports.traefik.nodePort=30002 \
-			--set service.type=NodePort; \
-		helm install --version 2025.10.1 linkerd-crds linkerd-edge/linkerd-crds -n linkerd --create-namespace; \
-		helm install --version 2025.10.1 linkerd-control-plane \
-			-n linkerd \
-			--set-file identityTrustAnchorsPEM=infra/certs/ca.crt \
-			--set-file identity.issuer.tls.crtPEM=infra/certs/issuer.crt \
-			--set-file identity.issuer.tls.keyPEM=infra/certs/issuer.key \
-			linkerd-edge/linkerd-control-plane; \
-		helm install -n pdf --create-namespace pdf-generator altinn-studio/pdf-generator \
-			--set image.repository="browserless/chrome" \
-			--set image.tag="1-puppeteer-21.4.1"; \
-		kubectl create namespace runtime-pdf3; \
-		kubectl apply -f infra/testserver.yaml; \
-	fi
-endif
+tidy: ## Tidy go modules
+	@echo "Tidying go modules..."
+	@go mod tidy
+	@echo "✓ Modules tidied"
 
-registry: ## Starts a local registry
-	./registry.sh
+fmt: setup ## Format Go code
+	@echo "Formatting code..."
+	@$(BIN_DIR)/golangci-lint fmt
+	@echo "✓ Code formatted"
 
-format: ## Run code formatters
-	golangci-lint fmt
+lint: setup ## Run linters with auto-fix
+	@echo "Running linters..."
+	@$(BIN_DIR)/golangci-lint run --fix
 
-lint: ## Run linters
-	golangci-lint run
+test: ## Run all tests (simple first, then smoke)
+	@go run ./cmd/tester test --keep-running
 
-build-local: ## Build using the local go toolchain
-	go build ./...
+test-smoke: ## Run smoke tests only
+	@go run ./cmd/tester test --smoke --keep-running
 
-build: cluster ## Build and load Docker images (cached)
-	@echo "Checking for changes in source code..."
-	@current_hash=$$(find cmd internal -type f -name '*.go' 2>/dev/null | sort | xargs cat 2>/dev/null | $(SHA256_CMD) | cut -d' ' -f1); \
-	dockerfile_hash=$$(cat Dockerfile.proxy Dockerfile.worker 2>/dev/null | $(SHA256_CMD) | cut -d' ' -f1); \
-	combined_hash="$$current_hash-$$dockerfile_hash"; \
-	if [ -f .last-build-hash ] && [ "$$(cat .last-build-hash)" = "$$combined_hash" ]; then \
-		echo "No source changes detected, skipping image rebuild"; \
-	else \
-		echo "Source changes detected, rebuilding images..."; \
-		$(CONTAINER_CMD) build -t localhost:5001/runtime-pdf3-proxy:latest -f Dockerfile.proxy .; \
-		$(CONTAINER_CMD) build -t localhost:5001/runtime-pdf3-worker:latest -f Dockerfile.worker .; \
-		# kind load docker-image localhost:5001/runtime-pdf3-proxy:latest --name pdf3-cluster; \
-		# kind load docker-image localhost:5001/runtime-pdf3-worker:latest --name pdf3-cluster; \
-		$(CONTAINER_IMG_PUSH_CMD) localhost:5001/runtime-pdf3-proxy:latest; \
-		$(CONTAINER_IMG_PUSH_CMD) localhost:5001/runtime-pdf3-worker:latest; \
-		echo "$$combined_hash" > .last-build-hash; \
-	fi
+test-simple: ## Run simple tests only
+	@go run ./cmd/tester test --simple --keep-running
 
-run: registry build ## Deploy to cluster and restart services (cached)
-	@echo "Checking for changes in manifests..."
-	@infra_hash=$$(find infra -type f 2>/dev/null | sort | xargs cat 2>/dev/null | $(SHA256_CMD) | cut -d' ' -f1); \
-	if [ -f .last-deploy-hash ] && [ "$$(cat .last-deploy-hash)" = "$$infra_hash" ] && ! [ .last-build-hash -nt .last-deploy-hash 2>/dev/null ]; then \
-		echo "No manifest or build changes detected, skipping deploy"; \
-	else \
-		echo "Changes detected, deploying..."; \
-		proxy_running=$$(kubectl get deployment pdf3-proxy -n runtime-pdf3 -o jsonpath='{.status.availableReplicas}' 2>/dev/null || echo "0"); \
-		worker_running=$$(kubectl get deployment pdf3-worker -n runtime-pdf3 -o jsonpath='{.status.availableReplicas}' 2>/dev/null || echo "0"); \
-		kubectl kustomize infra/kustomize/local | kubectl apply -f - -n runtime-pdf3; \
-		if [ "$$proxy_running" != "0" ]; then \
-			kubectl rollout restart -n runtime-pdf3 deployment/pdf3-proxy; \
-		fi; \
-		if [ "$$worker_running" != "0" ]; then \
-			kubectl rollout restart -n runtime-pdf3 deployment/pdf3-worker; \
-		fi; \
-		kubectl rollout status -n runtime-pdf3 deployment/pdf3-proxy --timeout=30s; \
-		kubectl rollout status -n runtime-pdf3 deployment/pdf3-worker --timeout=30s; \
-		echo "$$infra_hash" > .last-deploy-hash; \
-		sleep 5; \
-	fi
+check: tidy fmt lint test ## Run fmt, lint, and test
+	@echo ""
+	@echo "✓ All checks passed"
 
-test: run ## Run all tests (smoke tests run exclusively, then simple tests)
-	# Create logs directory
-	@mkdir -p test/logs
-	# count=1 to circumvent go cache
-	@set +e; \
-	START_TIME=$$(date +%s); \
-	echo "Running smoke tests..."; \
-	go test -count=1 -timeout 5m -v ./test/integration/smoke/...; \
-	SMOKE_EXIT=$$?; \
-	echo "Running simple tests..."; \
-	go test -count=1 -timeout 5m -v ./test/integration/simple/...; \
-	SIMPLE_EXIT=$$?; \
-	END_TIME=$$(date +%s); \
-	DURATION=$$((END_TIME - START_TIME + 10)); \
-	echo "Capturing logs from last $${DURATION}s to test/logs/..."; \
-	stern -l app=pdf3-proxy -n runtime-pdf3 -E linkerd-init -E linkerd-proxy --since $${DURATION}s --no-follow > test/logs/proxy.log 2>&1 || true; \
-	stern -l app=pdf3-worker -n runtime-pdf3 -E linkerd-init -E linkerd-proxy --since $${DURATION}s --no-follow > test/logs/worker.log 2>&1 || true; \
-	if [ $$SMOKE_EXIT -ne 0 ]; then exit $$SMOKE_EXIT; fi; \
-	exit $$SIMPLE_EXIT
-
-test-smoke: run ## Run smoke tests only
-	@go test -count=1 -timeout 5m -v ./test/integration/smoke/...
-
-test-simple: run ## Run simple tests only
-	@go test -count=1 -timeout 5m -v ./test/integration/simple/...
-
-test-loop: run ## Run tests n times (use 'make test-loop n=10' to run 10 times)
+test-loop: ## Run tests n times (use 'make test-loop n=10' to run 10 times)
 ifndef n
 	$(error n parameter is required. Usage: make test-loop n=10)
 endif
-	@echo "Running tests $(n) times..."
-	@i=1; while [ $$i -le $(n) ]; do \
-		echo ""; \
-		echo "============================================================"; \
-		echo "Test iteration $$i of $(n)"; \
-		echo "============================================================"; \
-		CI=true $(MAKE) test || { echo ""; echo "FAILED on iteration $$i of $(n)"; exit 1; }; \
-		i=$$((i + 1)); \
-	done
-	@echo ""
-	@echo "============================================================"
-	@echo "SUCCESS: All $(n) test iterations passed"
-	@echo "============================================================"
+	@go run ./cmd/tester test --n $(n)
+
+run: ## Start the runtime fixture/cluster
+	@go run ./cmd/tester start
+
+stop: ## Stop the runtime fixture/cluster
+	@go run ./cmd/tester stop
 
 logs: ## Stream logs from pdf3 components
 	stern -l component=pdf3 -n runtime-pdf3 -E linkerd-init -E linkerd-proxy --tail -1
 
 loadtest: ## Run k6 load tests
-	$(CONTAINER_CMD) run --rm -i --net=host grafana/k6:1.3.0 run - <test/load/test.ts
+	@go run ./cmd/tester loadtest
 
