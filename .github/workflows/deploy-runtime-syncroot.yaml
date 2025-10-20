@@ -62,4 +62,4 @@ jobs:
 
       - name: tag artifact at_ring1 (ttd/at22)
         run: |
-          flux tag artifact oci://altinncr.azurecr.io/studio-apps/syncroot:$(git rev-parse --short HEAD) --tag ${{ inputs.ring }}
+          flux tag artifact oci://altinncr.azurecr.io/studio-apps/syncroot:$(git rev-parse --short HEAD) --tag ${{ inputs.ring || 'at_ring1' }}
