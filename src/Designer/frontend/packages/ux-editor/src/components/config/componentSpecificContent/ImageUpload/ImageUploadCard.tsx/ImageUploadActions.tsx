@@ -1,3 +1,4 @@
+import React from 'react';
 import { StudioButton } from '@studio/components';
 import type { ExternalCrop, InternalCrop, ErrorProps } from '../ImageUploadTypes';
 import { getCropToBeSaved, getDisabledState } from '../ImageUploadUtils';

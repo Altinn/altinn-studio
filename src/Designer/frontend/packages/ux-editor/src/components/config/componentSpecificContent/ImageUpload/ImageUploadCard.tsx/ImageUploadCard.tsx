@@ -8,7 +8,7 @@ import { ImageUploadActions } from './ImageUploadActions';
 import { ImageUploadShape } from './ImageUploadShape';
 import { useTranslation } from 'react-i18next';
 
-type ImageUploadCard = {
+export type ImageUploadCardProps = {
   externalCrop?: ExternalCrop;
   handleSaveChanges: (CropToBeSaved: ExternalCrop) => void;
   setOpenCard: (open: boolean) => void;
@@ -18,7 +18,7 @@ export const ImageUploadCard = ({
   externalCrop,
   handleSaveChanges,
   setOpenCard,
-}: ImageUploadCard) => {
+}: ImageUploadCardProps) => {
   const [internalCrop, setInternalCrop] = useState<InternalCrop>(getInitialValues(externalCrop));
   const [errors, setErrors] = useState<ErrorProps>({});
   const { t } = useTranslation();

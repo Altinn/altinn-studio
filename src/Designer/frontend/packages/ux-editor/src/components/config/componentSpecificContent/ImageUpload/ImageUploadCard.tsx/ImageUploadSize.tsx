@@ -1,3 +1,4 @@
+import React from 'react';
 import { useComponentPropertyLabel } from '@altinn/ux-editor/hooks';
 import type { ErrorProps, InternalCrop } from '../ImageUploadTypes';
 import { isRectangleShape, SizeOptions } from '../ImageUploadUtils';
