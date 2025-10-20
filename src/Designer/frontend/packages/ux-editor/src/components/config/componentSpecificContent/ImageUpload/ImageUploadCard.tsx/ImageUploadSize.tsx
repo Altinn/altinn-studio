@@ -5,7 +5,7 @@ import { isRectangleShape, SizeOptions } from '../ImageUploadUtils';
 import { StudioTextfield } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
-type ImageUploadSizeProps = {
+export type ImageUploadSizeProps = {
   internalCrop: InternalCrop;
   errors: ErrorProps;
   handleNewCrop: (newInternalCrop: InternalCrop) => void;
