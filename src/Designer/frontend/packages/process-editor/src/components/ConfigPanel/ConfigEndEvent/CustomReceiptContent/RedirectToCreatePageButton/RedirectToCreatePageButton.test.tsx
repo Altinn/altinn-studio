@@ -10,30 +10,23 @@ import {
   mockBpmnApiContextValue,
 } from '../../../../../../test/mocks/bpmnContextMock';
 import { TestAppRouter } from '@studio/testing/testRoutingUtils';
-import userEvent from '@testing-library/user-event';
-
-const mockNavigate = jest.fn();
-
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: () => mockNavigate,
-}));
 
 describe('RedirectToCreatePageButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('Calls navigate when the button is clicked', async () => {
-    const user = userEvent.setup();
+  it('Renders link with correct href', async () => {
     renderRedirectToCreatePageButton();
 
     const navigationButton = screen.getByRole('link', {
       name: textMock('process_editor.configuration_panel_custom_receipt_navigate_to_design_link'),
     });
 
-    await user.click(navigationButton);
-    expect(mockNavigate).toHaveBeenCalledWith('/testOrg/testApp/ui-editor/layoutSet/testId');
+    expect(navigationButton).toHaveProperty(
+      'href',
+      'http://localhost/testOrg/testApp/ui-editor/layoutSet/testId',
+    );
   });
 });
 
