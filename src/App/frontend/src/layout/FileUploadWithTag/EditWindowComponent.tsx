@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 
-import { Combobox } from '@digdir/designsystemet-react';
+import { EXPERIMENTAL_Suggestion as Suggestion } from '@digdir/designsystemet-react';
 import deepEqual from 'fast-deep-equal';
+import type { SuggestionItem } from '@digdir/designsystemet-react';
 
 import { Button } from 'src/app-components/Button/Button';
 import { Flex } from 'src/app-components/Flex/Flex';
@@ -21,7 +22,7 @@ import classes from 'src/layout/FileUploadWithTag/EditWindowComponent.module.css
 import comboboxClasses from 'src/styles/combobox.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import { optionSearchFilter } from 'src/utils/options';
+import { optionFilter } from 'src/utils/options';
 import type { IAttachment } from 'src/features/attachments';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 
@@ -46,6 +47,7 @@ export function EditWindowComponent({
   const uploadedAttachment = isAttachmentUploaded(attachment) ? attachment : undefined;
   const rawSelectedTags = uploadedAttachment?.data.tags?.filter((tag) => options?.find((o) => o.value === tag)) ?? [];
   const [chosenTags, setChosenTags] = useState<string[]>(rawSelectedTags);
+  const chosenTagsLabels = chosenTags.map((tag) => langAsString(options?.find((o) => o.value === tag)?.label ?? ''));
   const nodeId = useIndexedId(baseComponentId);
   const updateAttachment = useAttachmentsUpdater();
 
@@ -53,6 +55,15 @@ export function EditWindowComponent({
   const onAttachmentSave = useOnAttachmentSave();
 
   const hasErrors = hasValidationErrors(attachmentValidations);
+
+  const formatSelectedValue = (tags: string[]): string | SuggestionItem | undefined => {
+    const tag = tags[0];
+    if (!tag) {
+      return undefined;
+    }
+    const option = options?.find((o) => o.value === tag);
+    return option ? { value: option.value, label: langAsString(option.label) } : tag;
+  };
 
   const handleSave = async () => {
     if (!uploadedAttachment) {
@@ -165,34 +176,44 @@ export function EditWindowComponent({
               item
               style={{ minWidth: '150px', flexGrow: 1, maxWidth: '100%', flexBasis: 0 }}
             >
-              <Combobox
-                id={`attachment-tag-dropdown-${uniqueId}`}
-                filter={optionSearchFilter}
-                size='sm'
-                hideLabel={true}
-                label={langAsString('general.choose')}
-                value={chosenTags}
-                onValueChange={setChosenTags}
-                error={hasErrors}
+              <Suggestion
+                multiple={false}
+                filter={(elm) => optionFilter(elm, chosenTagsLabels)}
+                data-size='sm'
+                selected={formatSelectedValue(chosenTags)}
                 className={comboboxClasses.container}
+                style={{ width: '100%' }}
               >
-                <Combobox.Empty>
-                  <Lang id='form_filler.no_options_found' />
-                </Combobox.Empty>
-                {options?.map((option) => (
-                  <Combobox.Option
-                    key={option.value}
-                    value={option.value}
-                    description={option.description ? langAsString(option.description) : undefined}
-                    displayValue={langAsString(option.label) || '\u200b'} // Workaround to prevent component from crashing due to empty string
-                  >
-                    <span>
-                      <wbr />
-                      <Lang id={option.label} />
-                    </span>
-                  </Combobox.Option>
-                ))}
-              </Combobox>
+                <Suggestion.Input
+                  id={`attachment-tag-dropdown-${uniqueId}`}
+                  aria-invalid={hasErrors}
+                  aria-label={langAsString('general.choose')}
+                />
+                <Suggestion.List>
+                  <Suggestion.Empty>
+                    <Lang id='form_filler.no_options_found' />
+                  </Suggestion.Empty>
+                  {options?.map((option) => (
+                    <Suggestion.Option
+                      key={option.value}
+                      value={option.value}
+                      label={langAsString(option.label) || '\u200b'}
+                      onClick={(_) => setChosenTags(option?.value ? [option?.value] : [])}
+                    >
+                      <span>
+                        <wbr />
+                        <Lang id={option.label} />
+                        {option.description && (
+                          <>
+                            <br />
+                            <Lang id={option.description} />
+                          </>
+                        )}
+                      </span>
+                    </Suggestion.Option>
+                  ))}
+                </Suggestion.List>
+              </Suggestion>
             </Flex>
             <Flex
               item

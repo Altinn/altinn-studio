@@ -30,6 +30,7 @@ export * from './StudioDivider';
 export * from './StudioDragAndDrop';
 export * from './StudioDragAndDropTree';
 export * from './StudioDropdown';
+export * from './StudioError';
 export * from './StudioErrorSummary';
 export * from './StudioExpression';
 export * from './StudioField';

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+    <title>@ViewBag.Org- @ViewBag.App</title>
+    <link rel="icon" href="https://altinncdn.no/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="https://altinncdn.no/toolkits/altinn-app-frontend/4/altinn-app-frontend.css">
+
+    <!-- Access react dev tools in cypress -->
+    <script>
+      if (window.Cypress) {
+        window["__REACT_DEVTOOLS_GLOBAL_HOOK__"] = window.parent["__REACT_DEVTOOLS_GLOBAL_HOOK__"];
+      }
+    </script>
+</head>
+<body>
+    <div>
+        <div id="root"></div>
+        <script>
+            window.org = window.location.pathname.split('/')[1];
+            window.app = window.location.pathname.split('/')[2];
+        </script>
+    </div>
+    <script src="https://altinncdn.no/toolkits/altinn-app-frontend/4/altinn-app-frontend.js" crossorigin></script>
+    <script src="/ttd/stateless-app/process-navigator.js"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+{
+  "$schema" : "http://json-schema.org/schema#",
+  "$id" : "schema.json",
+  "type" : "object",
+  "properties" : {
+    "melding" : {
+      "$ref" : "#/definitions/LikertSurvey"
+    }
+  },
+  "definitions" : {
+    "LikertSurvey" : {
+      "properties" : {
+        "Questions" : {
+          "type" : "array",
+          "minItems" : 1,
+          "items" : {
+            "$ref" : "#/definitions/Question"
+          }
+        }
+      },
+      "required" : [
+        "Questions"
+      ],
+      "@xsdAnyAttribute" : true
+    },
+    "Question" : {
+      "properties" : {
+        "Id" : {
+          "$ref" : "#/definitions/Text"
+        },
+        "Answer" : {
+          "$ref" : "#/definitions/Text"
+        }
+      },
+      "required" : [
+        "Id",
+        "Answer"
+      ]
+    },
+    "Text" : {
+      "type" : "string"
+    }
+  }
+}

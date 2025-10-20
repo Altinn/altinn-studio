@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { StudioBlobDownloader } from '@studio/components-legacy';
+import { StudioBlobDownloader } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { useTextResourcesQuery, useOptionListsQuery } from 'app-shared/hooks/queries';

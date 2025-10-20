@@ -1,0 +1,11 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/layout/footer.schema.v1.json",
+  "footer": [
+    {
+      "type": "Link",
+      "icon": "information",
+      "title": "general.accessibility",
+      "target": "https://www.altinn.no/om-altinn/tilgjengelighet/"
+    }
+  ]
+}
