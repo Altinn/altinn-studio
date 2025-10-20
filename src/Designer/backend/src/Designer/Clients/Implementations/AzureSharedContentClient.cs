@@ -33,8 +33,9 @@ public class AzureSharedContentClient(
     private const string IndexFileName = "_index.json";
     private const string LatestCodeListFileName = "_latest.json";
 
-    private string _currentVersion = InitialVersion;
-    private readonly Dictionary<string, string> _fileNamesAndContent = [];
+    internal string CurrentVersion = InitialVersion;
+    internal readonly Dictionary<string, string> FileNamesAndContent = [];
+
     private readonly string _sharedContentBaseUri = CombineWithDelimiter(
         sharedContentClientSettings.Value.StorageAccountUrl, sharedContentClientSettings.Value.StorageContainerName);
 
@@ -73,7 +74,7 @@ public class AzureSharedContentClient(
         Task.WaitAll(tasks, cancellationToken);
     }
 
-    private async Task HandleOrganizationIndex(string orgName, CancellationToken cancellationToken)
+    internal async Task HandleOrganizationIndex(string orgName, CancellationToken cancellationToken)
     {
         string rootIndexPath = CombineWithDelimiter(_sharedContentBaseUri, IndexFileName);
         HttpResponseMessage rootIndexResponse = await httpClient.GetAsync(new Uri(rootIndexPath), cancellationToken);
@@ -95,7 +96,7 @@ public class AzureSharedContentClient(
         }
     }
 
-    private async Task HandleResourceTypeIndex(string resourceTypeIndexPrefix, string resourceType, CancellationToken cancellationToken)
+    internal async Task HandleResourceTypeIndex(string resourceTypeIndexPrefix, string resourceType, CancellationToken cancellationToken)
     {
         string resourceTypeIndexPath = CombineWithDelimiter(resourceTypeIndexPrefix, IndexFileName);
         string resourceTypeIndexUri = CombineWithDelimiter(_sharedContentBaseUri, resourceTypeIndexPath);
@@ -120,7 +121,7 @@ public class AzureSharedContentClient(
         }
     }
 
-    private async Task HandleResourceIndex(string resourceIndexPrefix, string resourceId, CancellationToken cancellationToken)
+    internal async Task HandleResourceIndex(string resourceIndexPrefix, string resourceId, CancellationToken cancellationToken)
     {
         string resourceIndexPath = CombineWithDelimiter(resourceIndexPrefix, IndexFileName);
         string codeListIdIndexUri = CombineWithDelimiter(_sharedContentBaseUri, resourceIndexPath);
@@ -145,7 +146,7 @@ public class AzureSharedContentClient(
         }
     }
 
-    private async Task HandleVersionIndex(string versionIndexPrefix, CancellationToken cancellationToken)
+    internal async Task HandleVersionIndex(string versionIndexPrefix, CancellationToken cancellationToken)
     {
         string versionIndexPath = CombineWithDelimiter(versionIndexPrefix, IndexFileName);
         string versionIndexUri = CombineWithDelimiter(_sharedContentBaseUri, versionIndexPath);
@@ -163,7 +164,7 @@ public class AzureSharedContentClient(
 
             if (versions is not null)
             {
-                string versionWithPrefix = CombineWithDelimiter(versionIndexPrefix, JsonFileName(_currentVersion));
+                string versionWithPrefix = CombineWithDelimiter(versionIndexPrefix, JsonFileName(CurrentVersion));
                 versions.Add(versionWithPrefix);
                 AddIndexFile(versionIndexPath, versions);
             }
@@ -179,16 +180,16 @@ public class AzureSharedContentClient(
         }
     }
 
-    private void AddIndexFile(string indexPath, List<string> prefixes)
+    internal void AddIndexFile(string indexPath, List<string> prefixes)
     {
         IndexFile index = new(Prefixes: prefixes);
         string contents = JsonSerializer.Serialize(index, s_jsonOptions);
-        _fileNamesAndContent[indexPath] = contents;
+        FileNamesAndContent[indexPath] = contents;
     }
 
-    private void CreateCodeListFiles(CodeList codeList, string codeListFolderPath, string versionPrefix)
+    internal void CreateCodeListFiles(CodeList codeList, string codeListFolderPath, string versionPrefix)
     {
-        string version = CombineWithDelimiter(versionPrefix, JsonFileName(_currentVersion));
+        string version = CombineWithDelimiter(versionPrefix, JsonFileName(CurrentVersion));
         var codeListContents = new SharedCodeList(
             Codes: codeList.Codes,
             Version: version,
@@ -197,12 +198,12 @@ public class AzureSharedContentClient(
         );
         string contentsString = JsonSerializer.Serialize(codeListContents, s_jsonOptions);
 
-        string codeListFileName = JsonFileName(_currentVersion);
+        string codeListFileName = JsonFileName(CurrentVersion);
         string codeListFilePath = CombineWithDelimiter(codeListFolderPath, codeListFileName);
-        _fileNamesAndContent[codeListFilePath] = contentsString;
+        FileNamesAndContent[codeListFilePath] = contentsString;
 
         string lastestCodeListFilePath = CombineWithDelimiter(codeListFolderPath, LatestCodeListFileName);
-        _fileNamesAndContent[lastestCodeListFilePath] = contentsString;
+        FileNamesAndContent[lastestCodeListFilePath] = contentsString;
     }
 
     private List<Task> PrepareBlobTasks(BlobContainerClient containerClient, CancellationToken cancellationToken = default)
@@ -210,7 +211,7 @@ public class AzureSharedContentClient(
         SemaphoreSlim semaphore = new(10); // We allocate 10 simultaneous tasks as max, even though current total is lower
         List<Task> tasks = [];
 
-        foreach (KeyValuePair<string, string> fileNameAndContent in _fileNamesAndContent)
+        foreach (KeyValuePair<string, string> fileNameAndContent in FileNamesAndContent)
         {
             BlobClient blobClient = containerClient.GetBlobClient(fileNameAndContent.Key);
             var content = BinaryData.FromString(fileNameAndContent.Value);
@@ -249,14 +250,14 @@ public class AzureSharedContentClient(
     /// Combines with forward slash delimiter, no trailing slash.
     /// </summary>
     /// <param name="segments">Segments to join</param>
-    private static string CombineWithDelimiter(params string[] segments)
+    internal static string CombineWithDelimiter(params string[] segments)
     {
         return string.Join("/", segments.Select(segment => segment.Trim('/')));
     }
 
-    private static string JsonFileName(string filename) => $"{filename}.json";
+    internal static string JsonFileName(string filename) => $"{filename}.json";
 
-    private void SetCurrentVersion(List<string>? input)
+    internal void SetCurrentVersion(List<string>? input)
     {
         if (input is null)
         {
@@ -274,7 +275,7 @@ public class AzureSharedContentClient(
         }
 
         int version = versions.Max();
-        _currentVersion = (version + 1).ToString();
+        CurrentVersion = (version + 1).ToString();
     }
 
     private BlobContainerClient GetContainerClient()
