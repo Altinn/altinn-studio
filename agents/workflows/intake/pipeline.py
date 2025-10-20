@@ -5,13 +5,14 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from textwrap import dedent
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import mlflow
 
 from agents.services.llm import LLMClient
 from agents.workflows.shared.utils import load_system_prompt
 from shared.utils.logging_utils import get_logger
+from shared.models import AgentAttachment
 
 log = get_logger(__name__)
 
@@ -30,7 +31,12 @@ def _build_context(facts: Dict[str, List[str]]) -> RepositoryContext:
     return RepositoryContext()
 
 
-def run_intake_pipeline(repo_path: str, user_goal: str) -> Dict[str, object]:
+def run_intake_pipeline(
+    repo_path: str,
+    user_goal: str,
+    *,
+    attachments: Optional[List[AgentAttachment]] = None,
+) -> Dict[str, object]:
     """Execute the intake workflow and return plan WITHOUT repository context."""
     
     # Don't scan here - let the scan node handle repository discovery
@@ -53,7 +59,7 @@ def run_intake_pipeline(repo_path: str, user_goal: str) -> Dict[str, object]:
         span.set_attributes({**metadata, "user_goal_length": len(user_goal)})
         span.set_inputs({"user_goal": user_goal})
 
-        response = client.call_sync(system_prompt, user_prompt)
+        response = client.call_sync(system_prompt, user_prompt, attachments=attachments)
         span.set_outputs({
             "raw_response": response[:5000],
             "formats": {

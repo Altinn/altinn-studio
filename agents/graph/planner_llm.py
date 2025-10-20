@@ -12,7 +12,7 @@ def planner_llm(state: AgentState) -> AgentState:
     """Initial planner node leveraging the planner workflow pipeline."""
 
     try:
-        result = generate_initial_plan(state.user_goal)
+        result = generate_initial_plan(state.user_goal, attachments=state.attachments)
         state.general_plan = result.get("parsed_plan")
         state.implementation_plan = result.get("raw_plan")
 

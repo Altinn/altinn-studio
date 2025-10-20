@@ -5,9 +5,10 @@ from __future__ import annotations
 import json
 import mlflow
 from textwrap import dedent
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
 from agents.services.llm import LLMClient
+from shared.models import AgentAttachment
 from agents.services.telemetry import is_json
 from shared.utils.logging_utils import get_logger
 
@@ -18,6 +19,7 @@ def generate_initial_plan(
     user_goal: str,
     *,
     planner_step: Optional[str] = None,
+    attachments: Optional[List[AgentAttachment]] = None,
 ) -> Dict[str, Any]:
     """Generate the initial high-level implementation plan from the planner LLM."""
 
@@ -54,7 +56,7 @@ def generate_initial_plan(
             "planner_step_present": bool(planner_step),
         })
 
-        response = client.call_sync(system_prompt, user_prompt)
+        response = client.call_sync(system_prompt, user_prompt, attachments=attachments)
         span.set_outputs({
             "raw_response": response[:5000],
             "formats": {

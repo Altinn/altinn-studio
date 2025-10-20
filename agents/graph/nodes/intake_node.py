@@ -14,7 +14,11 @@ async def handle(state: AgentState) -> AgentState:
     """Generate an initial plan and repository context."""
 
     try:
-        result: Dict[str, Any] = run_intake_pipeline(state.repo_path, state.user_goal)
+        result: Dict[str, Any] = run_intake_pipeline(
+            state.repo_path,
+            state.user_goal,
+            attachments=state.attachments,
+        )
 
         state.step_plan = [result["plan"]]
         # Don't set repo_facts here - let scan node handle it

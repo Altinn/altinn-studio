@@ -2,11 +2,12 @@
 import json
 import asyncio
 import mlflow
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from langchain_openai import AzureChatOpenAI, ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from shared.config.base_config import get_config
 from shared.utils.logging_utils import get_logger
+from shared.models import AgentAttachment
 
 log = get_logger(__name__)
 config = get_config()
@@ -46,6 +47,8 @@ class LLMClient:
             temperature = config.LLM_TEMPERATURE
         
         self.model_version = model_version
+        self.model = config.LLM_MODEL
+        self.temperature = config.LLM_TEMPERATURE
         
         # Prefer Azure OpenAI if available
         if config.AZURE_API_KEY:
@@ -76,7 +79,24 @@ class LLMClient:
             log.warning("No LLM API key configured - LLM features will be limited")
             self.llm = None
 
-    async def call_async(self, system_prompt: str, user_prompt: str) -> str:
+        self.supports_vision: bool = getattr(config, "LLM_SUPPORTS_VISION", True)
+
+    def _build_human_message(self, user_prompt: str, attachments: Optional[List[AgentAttachment]] = None) -> HumanMessage:
+        if attachments and not self.supports_vision:
+            log.warning(
+                "Attachments provided but model %s does not support multimodal input; attachments will be ignored.",
+                self.model,
+            )
+        if attachments:
+            content = [{"type": "text", "text": user_prompt}]
+            for attachment in attachments:
+                block = attachment.to_content_block()
+                if block:
+                    content.append(block)
+            return HumanMessage(content=content)
+        return HumanMessage(content=user_prompt)
+
+    async def call_async(self, system_prompt: str, user_prompt: str, attachments: Optional[List[AgentAttachment]] = None) -> str:
         """Make async LLM call"""
         if self.llm is None:
             raise ValueError("LLM not configured - please set OPENAI_API_KEY")
@@ -84,7 +104,7 @@ class LLMClient:
         try:
             messages = [
                 SystemMessage(content=system_prompt),
-                HumanMessage(content=user_prompt)
+                self._build_human_message(user_prompt, attachments)
             ]
 
             # Run in thread pool since LangChain doesn't have native async for ChatOpenAI
@@ -114,14 +134,14 @@ class LLMClient:
                 "temperature": 0.1
             }
     
-    def call_sync(self, system_message: str, user_message: str) -> str:
+    def call_sync(self, system_message: str, user_message: str, attachments: Optional[List[AgentAttachment]] = None) -> str:
         """
         Synchronous call to LLM
         
         Args:
             system_message: System prompt
             user_message: User message
-            
+        
         Returns:
             Response text
         """
@@ -131,12 +151,14 @@ class LLMClient:
                 "system_message": system_message,
                 "user_message": user_message,
                 "role": self.role,
-                "model_metadata": self.get_model_metadata()
+                "model_metadata": self.get_model_metadata(),
+                "attachment_count": len(attachments) if attachments else 0,
+                "attachment_names": [att.name for att in attachments] if attachments else []
             })
-            
+
             messages = [
                 SystemMessage(content=system_message),
-                HumanMessage(content=user_message)
+                self._build_human_message(user_message, attachments)
             ]
             
             try:
@@ -182,11 +204,16 @@ def get_llm_client(role: str = "default") -> LLMClient:
         _clients[role] = LLMClient(role=role)
     return _clients[role]
 
-async def parse_intent_with_llm(goal: str) -> Dict[str, Any]:
+async def parse_intent_with_llm(goal: str, attachments: Optional[List[AgentAttachment]] = None) -> Dict[str, Any]:
     """Parse user intent using LLM"""
 # TODO: Move this to system_prompts
     system_prompt = """You are an intent parser for Altinn app development goals.
 Parse the user's goal into structured intent information.
+
+The user may provide attachments (PDFs, images, etc.) as supporting context.
+Treat references to attachments or images as normal Altinn workflow requirements.
+Do NOT mark the goal unsafe merely because it requires interpreting an attachment or
+because it mentions data models, text resources, or other standard Altinn assets.
 
 SAFE ACTIONS: add, update, modify, create, insert
 SAFE COMPONENTS: field, input, text, label, button, validation, layout, form, display, component
@@ -215,7 +242,7 @@ Examples:
     user_prompt = f"Parse this goal: {goal}"
 
     client = get_llm_client()
-    response = await client.call_async(system_prompt, user_prompt)
+    response = await client.call_async(system_prompt, user_prompt, attachments=attachments)
 
     try:
         # Parse JSON response

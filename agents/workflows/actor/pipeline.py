@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional
 from agents.services.llm import LLMClient
 from agents.services.telemetry import format_as_markdown, is_json
 from shared.utils.logging_utils import get_logger
+from shared.models import AgentAttachment
 
 log = get_logger(__name__)
 
@@ -26,6 +27,7 @@ async def run_actor_pipeline(
     tool_plan_override: Optional[List[Dict[str, Any]]] = None,
     tool_results_override: Optional[List[Dict[str, Any]]] = None,
     implementation_plan_override: Optional[Dict[str, Any]] = None,
+    attachments: Optional[List[AgentAttachment]] = None,
 ) -> Dict[str, Any]:
     """Execute the full actor workflow pipeline."""
 
@@ -33,9 +35,10 @@ async def run_actor_pipeline(
     if not hasattr(mcp_client, '_available_tools') or not mcp_client._available_tools:
         await mcp_client.connect()
 
-    general_plan = general_plan_override or await create_general_plan(user_goal, planner_step)
+    attachments = attachments or repo_facts.get("attachments")
+    general_plan = general_plan_override or await create_general_plan(user_goal, planner_step, attachments=attachments)
     tool_plan = tool_plan_override or await create_tool_plan(
-        user_goal, general_plan, repo_facts, mcp_client._available_tools, planner_step
+        user_goal, general_plan, repo_facts, mcp_client._available_tools, planner_step, attachments=attachments
     )
     if tool_results_override is not None:
         tool_results = tool_results_override
@@ -46,11 +49,11 @@ async def run_actor_pipeline(
     implementation_plan = (
         implementation_plan_override
         or await create_implementation_plan(
-            mcp_client, user_goal, repo_facts, tool_results, general_plan, planner_step
+            mcp_client, user_goal, repo_facts, tool_results, general_plan, planner_step, attachments=attachments
         )
     )
     patch = await synthesize_patch(
-        user_goal, repo_facts, tool_results, implementation_plan, general_plan, planner_step, repository_path
+        user_goal, repo_facts, tool_results, implementation_plan, general_plan, planner_step, repository_path, attachments=attachments
     )
 
     return {
@@ -62,7 +65,7 @@ async def run_actor_pipeline(
     }
 
 
-async def create_general_plan(user_goal: str, planner_step: Optional[str] = None) -> Dict[str, Any]:
+async def create_general_plan(user_goal: str, planner_step: Optional[str] = None, *, attachments: Optional[List[AgentAttachment]] = None) -> Dict[str, Any]:
     client = LLMClient(role="planner")
     system_prompt = (
         "You are the lead strategist for an Altinn multi-agent build system. "
@@ -93,7 +96,7 @@ async def create_general_plan(user_goal: str, planner_step: Optional[str] = None
         span.set_attributes({**metadata, "user_goal_length": len(user_goal)})
         span.set_inputs({"user_goal": user_goal, "planner_step_present": bool(planner_step)})
 
-        response = client.call_sync(system_prompt, user_prompt)
+        response = client.call_sync(system_prompt, user_prompt, attachments=attachments)
         span.set_outputs(
             {
                 "raw_response": response[:5000],
@@ -110,6 +113,8 @@ async def create_tool_plan(
     repo_facts: Dict[str, Any],
     available_tools: List[str] = None,
     planner_step: Optional[str] = None,
+    *,
+    attachments: Optional[List[AgentAttachment]] = None,
 ) -> List[Dict[str, Any]]:
     client = LLMClient(role="planner")
     system_prompt = (
@@ -193,7 +198,7 @@ async def create_tool_plan(
             }
         )
 
-        response = client.call_sync(system_prompt, user_prompt)
+        response = client.call_sync(system_prompt, user_prompt, attachments=attachments)
         span.set_outputs(
             {
                 "raw_response": response[:5000],
@@ -325,6 +330,8 @@ async def create_implementation_plan(
     tool_results: List[Dict[str, Any]],
     general_plan: Dict[str, Any],
     planner_step: Optional[str] = None,
+    *,
+    attachments: Optional[List[AgentAttachment]] = None,
 ) -> Dict[str, Any]:
     payload = {
         "user_goal": user_goal,
@@ -350,13 +357,17 @@ async def create_implementation_plan(
             raise Exception(f"planning_tool failed: {error_message}")
 
         planning_text = extract_tool_text(planning_result)
-        
+        log.info(f"Planning tool result type: {type(planning_result)}")
+        log.info(f"Planning text length: {len(planning_text)}")
+        log.info(f"Planning text preview: {planning_text[:200]}")
+
         # Check if planning_text is markdown documentation instead of JSON
         if planning_text.strip().startswith("#") or not planning_text.strip().startswith("{"):
+            log.info("Planning tool returned documentation, generating implementation plan from documentation")
             planning_text = await generate_implementation_plan_from_docs(
-                planning_text, user_goal, repo_facts, tool_results, general_plan
+                planning_text, user_goal, repo_facts, tool_results, general_plan, attachments=attachments
             )
-        
+
         span.set_outputs(
             {
                 "raw_result": planning_text[:5000],
@@ -373,6 +384,8 @@ async def generate_implementation_plan_from_docs(
     repo_facts: Dict[str, Any],
     tool_results: List[Dict[str, Any]],
     general_plan: Dict[str, Any],
+    *,
+    attachments: Optional[List[AgentAttachment]] = None,
 ) -> str:
     """Generate a structured implementation plan from MCP documentation using LLM."""
     
@@ -426,66 +439,14 @@ Focus on the specific user goal and be concrete about file paths, component IDs,
     try:
         response = await client.call_async(
             system_prompt="You are an expert Altinn developer creating implementation plans. Be specific, practical, and follow Altinn conventions.",
-            user_prompt=prompt
+            user_prompt=prompt,
+            attachments=attachments,
         )
         return response.strip()
     except Exception as e:
         log.error(f"Failed to generate implementation plan from docs: {e}")
         # Don't provide a generic fallback - if planning fails, let the user know
         raise Exception(f"Failed to generate implementation plan from MCP documentation: {e}. The planning tool returned unusable documentation.")
-
-
-async def create_implementation_plan(
-    mcp_client,
-    user_goal: str,
-    repo_facts: Dict[str, Any],
-    tool_results: List[Dict[str, Any]],
-    general_plan: Dict[str, Any],
-    planner_step: Optional[str] = None,
-) -> Dict[str, Any]:
-    payload = {
-        "user_goal": user_goal,
-        "general_plan": general_plan,
-        "tool_results": tool_results,
-        "repository_facts": repo_facts,
-        "planner_step": planner_step,
-    }
-
-    with mlflow.start_span(name="implementation_planning_tool", span_type="TOOL") as span:
-        span.set_inputs(
-            {
-                "payload_keys": list(payload.keys()),
-                "files_known": len(repo_facts.get("files", [])) if isinstance(repo_facts, dict) else 0,
-            }
-        )
-
-        planning_result = await mcp_client.call_tool("planning_tool", payload)
-        if isinstance(planning_result, dict) and "error" in planning_result:
-            error_message = planning_result["error"]
-            span.set_status("ERROR")
-            span.set_outputs({"success": False, "error": error_message})
-            raise Exception(f"planning_tool failed: {error_message}")
-
-        planning_text = extract_tool_text(planning_result)
-        log.info(f"Planning tool result type: {type(planning_result)}")
-        log.info(f"Planning text length: {len(planning_text)}")
-        log.info(f"Planning text preview: {planning_text[:200]}")
-        
-        # Check if planning_text is markdown documentation instead of JSON
-        if planning_text.strip().startswith("#") or not planning_text.strip().startswith("{"):
-            log.info("Planning tool returned documentation, generating implementation plan from documentation")
-            planning_text = await generate_implementation_plan_from_docs(
-                planning_text, user_goal, repo_facts, tool_results, general_plan
-            )
-        
-        span.set_outputs(
-            {
-                "raw_result": planning_text[:5000],
-                "formats": {"text": planning_text, "markdown": "```\n" + planning_text + "\n```"},
-            }
-        )
-
-    return parse_json_response(planning_text, "implementation plan")
 
 
 async def synthesize_patch(
@@ -496,6 +457,8 @@ async def synthesize_patch(
     general_plan: Dict[str, Any],
     planner_step: Optional[str] = None,
     repository_path: Optional[str] = None,
+    *,
+    attachments: Optional[List[AgentAttachment]] = None,
 ) -> Dict[str, Any]:
     client = LLMClient(role="actor")
     system_prompt = (

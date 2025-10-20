@@ -1,5 +1,6 @@
 """Base configuration"""
 import os
+import tempfile
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -74,6 +75,10 @@ class BaseConfig:
     LLM_TEMPERATURE_ACTOR = float(os.getenv("LLM_TEMPERATURE_ACTOR", "0.1"))  # Lower for precision
     LLM_TEMPERATURE_REVIEWER = float(os.getenv("LLM_TEMPERATURE_REVIEWER", "0.2"))
     LLM_TEMPERATURE_VERIFIER = float(os.getenv("LLM_TEMPERATURE_VERIFIER", "0.0"))  # Deterministic
+
+    # Attachment storage
+    _DEFAULT_ATTACHMENTS_PATH = Path(tempfile.gettempdir()) / "altinity_agent_attachments"
+    ATTACHMENTS_ROOT = Path(os.getenv("AGENT_ATTACHMENTS_PATH", str(_DEFAULT_ATTACHMENTS_PATH)))
 
     # MLflow configuration
     MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", str(PROJECT_ROOT / "mlruns"))

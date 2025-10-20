@@ -1,10 +1,12 @@
 from typing import List, Optional, Literal, Dict, Any
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from shared.models import AgentAttachment
 
 class AgentState(BaseModel):
     session_id: str
     user_goal: str
     repo_path: str
+    attachments: List[AgentAttachment] = Field(default_factory=list)
     general_plan: Optional[Dict[str, Any]] = None  # Goal-centric high level plan (LLM only)
     tool_plan: Optional[List[Dict[str, Any]]] = None  # Ordered list of tools to execute
     tool_results: Optional[List[Dict[str, Any]]] = None  # Outputs from executed tools
