@@ -2,7 +2,3 @@
   margin-inline: var(--custom-receipt-spacing);
   margin-block: var(--fds-spacing-5);
 }
-
-.link {
-  color: var(--fds-semantic-text-action-second-on_action);
-}
