@@ -14,6 +14,7 @@ using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.SharedContent;
+using Azure;
 using Azure.Identity;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
@@ -79,9 +80,7 @@ public class AzureSharedContentClient(
         string rootIndexContent = await rootIndexResponse.Content.ReadAsStringAsync(cancellationToken);
         if (string.IsNullOrEmpty(rootIndexContent))
         {
-            IndexFile index = new(Prefixes: [orgName]);
-            string contents = JsonSerializer.Serialize(index, s_jsonOptions);
-            _fileNamesAndContent[IndexFileName] = contents;
+            AddIndexFile(rootIndexPath, [orgName]);
         }
         else
         {
@@ -90,9 +89,7 @@ public class AzureSharedContentClient(
             if (organizations?.Contains(orgName) is false)
             {
                 organizations.Add(orgName);
-                IndexFile index = new(Prefixes: organizations);
-                string contents = JsonSerializer.Serialize(index, s_jsonOptions);
-                _fileNamesAndContent[IndexFileName] = contents;
+                AddIndexFile(rootIndexPath, organizations);
             }
         }
     }
@@ -107,9 +104,7 @@ public class AzureSharedContentClient(
 
         if (resourceTypeIndexResponse.StatusCode == HttpStatusCode.NotFound)
         {
-            IndexFile index = new(Prefixes: [resourceTypeWithPrefix]);
-            string fileContents = JsonSerializer.Serialize(index, s_jsonOptions);
-            _fileNamesAndContent[resourceTypeIndexPath] = fileContents;
+            AddIndexFile(resourceTypeIndexPath, [resourceTypeWithPrefix]);
         }
         else
         {
@@ -119,9 +114,7 @@ public class AzureSharedContentClient(
             if (resourceTypes?.Contains(resourceTypeWithPrefix) is false)
             {
                 resourceTypes.Add(resourceTypeWithPrefix);
-                IndexFile index = new(Prefixes: resourceTypes);
-                string contents = JsonSerializer.Serialize(index, s_jsonOptions);
-                _fileNamesAndContent[resourceTypeIndexPath] = contents;
+                AddIndexFile(resourceTypeIndexPath, resourceTypes);
             }
         }
     }
@@ -136,9 +129,7 @@ public class AzureSharedContentClient(
 
         if (codeListIdIndexResponse.StatusCode == HttpStatusCode.NotFound)
         {
-            IndexFile index = new(Prefixes: [resourceIdWithPrefix]);
-            string contents = JsonSerializer.Serialize(index, s_jsonOptions);
-            _fileNamesAndContent[resourceIndexPath] = contents;
+            AddIndexFile(resourceIndexPath, [resourceIdWithPrefix]);
         }
         else
         {
@@ -148,9 +139,7 @@ public class AzureSharedContentClient(
             if (codeListIds?.Contains(resourceIdWithPrefix) is false)
             {
                 codeListIds.Add(resourceIdWithPrefix);
-                IndexFile index = new(Prefixes: codeListIds);
-                string contents = JsonSerializer.Serialize(index, s_jsonOptions);
-                _fileNamesAndContent[resourceIndexPath] = contents;
+                AddIndexFile(resourceIndexPath, codeListIds);
             }
         }
     }
@@ -175,24 +164,25 @@ public class AzureSharedContentClient(
             {
                 string versionWithPrefix = CombineWithDelimiter(versionIndexPrefix, JsonFileName(_currentVersion));
                 versions.Add(versionWithPrefix);
-                IndexFile index = new(Prefixes: versions);
-                string contents = JsonSerializer.Serialize(index, s_jsonOptions);
-                _fileNamesAndContent[versionIndexPath] = contents;
+                AddIndexFile(versionIndexPath, versions);
             }
             else
             {
-                IndexFile index = new(Prefixes: [initialVersionWithPrefix]);
-                string contents = JsonSerializer.Serialize(index, s_jsonOptions);
-                _fileNamesAndContent[versionIndexPath] = contents;
+                AddIndexFile(versionIndexPath, [initialVersionWithPrefix]);
             }
         }
 
         if (versionIndexResponse.StatusCode == HttpStatusCode.NotFound)
         {
-            IndexFile index = new(Prefixes: [initialVersionWithPrefix]);
-            string contents = JsonSerializer.Serialize(index, s_jsonOptions);
-            _fileNamesAndContent[versionIndexPath] = contents;
+            AddIndexFile(versionIndexPath, [initialVersionWithPrefix]);
         }
+    }
+
+    private void AddIndexFile(string indexPath, List<string> prefixes)
+    {
+        IndexFile index = new(Prefixes: prefixes);
+        string contents = JsonSerializer.Serialize(index, s_jsonOptions);
+        _fileNamesAndContent[indexPath] = contents;
     }
 
     private void CreateCodeListFiles(CodeList codeList, string codeListFolderPath, string versionPrefix)
@@ -280,7 +270,6 @@ public class AzureSharedContentClient(
 
         int version = versions.Max();
         _currentVersion = (version + 1).ToString();
-
     }
 
     private BlobContainerClient GetContainerClient()
