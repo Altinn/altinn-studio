@@ -1,0 +1,74 @@
+.placeholder {
+  background-image:
+    linear-gradient(
+      45deg,
+      rgba(204, 204, 204, 0.5) 25%,
+      transparent 25%,
+      transparent 75%,
+      rgba(204, 204, 204, 0.5) 75%,
+      rgba(204, 204, 204, 0.5) 100%
+    ),
+    linear-gradient(
+      45deg,
+      rgba(204, 204, 204, 0.5) 25%,
+      rgba(255, 255, 255, 0.5) 25%,
+      rgba(255, 255, 255, 0.5) 75%,
+      rgba(204, 204, 204, 0.5) 75%,
+      rgba(204, 204, 204, 0.5) 100%
+    );
+  background-size: 20px 20px;
+  background-position:
+    0 0,
+    10px 10px;
+  height: 320px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--ds-size-4);
+  border-radius: var(--ds-border-radius-lg);
+  border: var(--ds-border-width-default) solid var(--ds-color-border-subtle);
+  box-sizing: border-box;
+}
+
+.underLine {
+  border-bottom: 2px solid var(--colors-primary-blue) !important;
+}
+
+.dropZone {
+  padding: var(--ds-size-4);
+  background-color: var(--ds-color-neutral-surface-default);
+  border-radius: var(--ds-border-radius-lg);
+  border: 2px dashed var(--ds-color-border-default);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+
+.placeholder:hover,
+.dragActive {
+  background-image:
+    linear-gradient(
+      45deg,
+      rgba(204, 204, 204, 0.75) 25%,
+      transparent 25%,
+      transparent 75%,
+      rgba(204, 204, 204, 0.75) 75%,
+      rgba(204, 204, 204, 0.75) 100%
+    ),
+    linear-gradient(
+      45deg,
+      rgba(204, 204, 204, 0.75) 25%,
+      rgba(255, 255, 255, 0.75) 25%,
+      rgba(255, 255, 255, 0.75) 75%,
+      rgba(204, 204, 204, 0.75) 75%,
+      rgba(204, 204, 204, 0.75) 100%
+    );
+}
+
+.placeholder:hover .dropZone,
+.dragActive .dropZone {
+  border-style: solid;
+}

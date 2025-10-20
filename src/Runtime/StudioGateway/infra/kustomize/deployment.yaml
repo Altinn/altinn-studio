@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: studio-gateway
+  annotations:
+    altinn.studio/image: studio-gateway:latest
+    altinn.studio/image-tag: latest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: studio-gateway
+  template:
+    metadata:
+      labels:
+        app: studio-gateway
+    spec:
+      serviceAccountName: studio-gateway
+      # explicitly set security context to embedded .net non-root user (1654)
+      securityContext:
+        runAsUser: 1654
+        runAsGroup: 1654
+        fsGroup: 1654
+        runAsNonRoot: true
+      containers:
+        - name: studio-gateway
+          image: studio-gateway:latest
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          env:
+            - name: ASPNETCORE_HTTP_PORTS
+              value: "8080"
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3

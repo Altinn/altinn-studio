@@ -1,31 +1,29 @@
 # Studio Assistant
 
-The Assistant is a standard, shareable package for managing AI chat in Studio.
-The library provides a consistent interface, and allows for easy reuse across different projects.
+The Studio Assistant is a standard, shareable React package for managing AI chat in Altinn Studio.
 
-This package takes a configuration object from you as consumer, making it flexible for various needs.
+## Interface Modes
+
+The package contains two interface modes:
+
+- Complete mode, with thread history, preview and a file browser
+- Compact mode, a one-column version which only contains a single chat thread. Typical usage is as a pop-up assistant in the lower right corner of the browser window.
 
 ## Installation
 
 Since this package is part of a monorepo, you can include it in your project using Yarn:
 `yarn add "@studio/assistant@workspace:^"`
 
-## Usage
+## Dependencies
 
-The central class in this package is AssistantImpl. Consumers supply a configuration object, allowing for customization.
+This package aims to keep the number of dependencies to a minimum, mainly to prevent circular dependencies in Studio, but also to make the package easier to port to other uses.
 
-```tsx
-const MyAssistant = (): React.ReactElement => {
-  const { getAssistant } = new AssistantImpl({
-    heading: 'AI Assistant',
-    buttonTexts: {
-      send: 'Send',
-    },
-    onSubmitMessage: handleSubmitMessage,
-  });
+When making changes to this package, do not include other dependencies than:
 
-  return <div>{getAssistant()}</div>;
-};
-```
+- React
+- studio-components
+- studio-hooks
+- studio-icons
+- studio-pure-functions
 
-Note that there is no translation capability set up for this module, so all texts must be passed explicitly (i.e. do the translation where you implement this module).
+Note that there is no translation capability set up for this module, so all texts must be passed through the `texts` prop.

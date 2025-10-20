@@ -1,6 +1,7 @@
 import React, { type ReactElement, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph, StudioTextfield } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components-legacy';
+import { StudioLabelAsParagraph } from '@studio/components';
 import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
@@ -19,7 +20,7 @@ import { Accordion } from '@digdir/designsystemet-react';
 export const PolicyAccessPackages = (): ReactElement => {
   const { t } = useTranslation();
   const { policyRules, accessPackages, setPolicyRules, savePolicy } = usePolicyEditorContext();
-  const { policyRule } = usePolicyRuleContext();
+  const { policyRule, policyError, setPolicyError } = usePolicyRuleContext();
 
   const [searchValue, setSearchValue] = useState<string>('');
   const [chosenAccessPackages, setChosenAccessPackages] = useState<string[]>(
@@ -64,6 +65,10 @@ export const PolicyAccessPackages = (): ReactElement => {
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
+    setPolicyError({
+      ...policyError,
+      subjectsError: newSelectedAccessPackageUrns.length === 0 && policyRule.subject.length === 0,
+    });
   };
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -77,7 +82,7 @@ export const PolicyAccessPackages = (): ReactElement => {
 
   return (
     <div className={classes.accessPackages}>
-      <StudioLabelAsParagraph size='md' spacing>
+      <StudioLabelAsParagraph data-size='md'>
         {t('policy_editor.access_package_header')}
       </StudioLabelAsParagraph>
       <ChosenAccessPackages
@@ -90,12 +95,12 @@ export const PolicyAccessPackages = (): ReactElement => {
           <Accordion.Header>{t('policy_editor.access_package_accordion_header')}</Accordion.Header>
           <Accordion.Content className={classes.accessPackages}>
             <PolicyAccessPackagesWarning />
-            <StudioLabelAsParagraph size='xs' spacing>
+            <StudioLabelAsParagraph data-size='xs'>
               {t('policy_editor.access_package_all_packages')}
             </StudioLabelAsParagraph>
             <StudioTextfield
               label={
-                <StudioLabelAsParagraph size='xs'>
+                <StudioLabelAsParagraph data-size='xs'>
                   {t('policy_editor.access_package_search')}
                 </StudioLabelAsParagraph>
               }

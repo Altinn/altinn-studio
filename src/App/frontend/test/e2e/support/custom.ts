@@ -632,7 +632,7 @@ function buildPdfUrl(href: string): string {
 
 Cypress.Commands.add(
   'testPdf',
-  ({
+  function ({
     snapshotName = false,
     beforeReload,
     callback,
@@ -640,7 +640,15 @@ Cypress.Commands.add(
     returnToForm = false,
     enableResponseFuzzing = false,
     buildUrl = buildPdfUrl,
-  }) => {
+  }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((this as any).test._retries).to.eq(
+      0,
+      'This test should not be retried, as the real PDF generator needs everything to be working every time. Cypress ' +
+        'automatic retrying should be disabled for this test to make sure we catch bugs instead of silently working ' +
+        'around flaky tests.',
+    );
+
     // Store initial viewport size for later
     cy.getCurrentViewportSize().as('testPdfViewportSize');
 

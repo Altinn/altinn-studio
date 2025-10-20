@@ -6,8 +6,8 @@ import { DefaultToolbar } from './DefaultToolbar';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './Elements.module.css';
 
-import { StudioError, StudioSpinner } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioSpinner } from '@studio/components-legacy';
+import { StudioButton, StudioError } from '@studio/components';
 import { ShrinkIcon } from '@studio/icons';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useTranslation } from 'react-i18next';
