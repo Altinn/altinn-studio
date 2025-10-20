@@ -1,0 +1,2152 @@
+﻿{
+	"$schema" : "http://json-schema.org/schema#",
+	"$id" : "schema.json",
+	"type" : "object",
+	"properties" : {
+			"Skjema" : {
+					"texts" : {
+							"LEDE" : {
+									"NOB" : "Arbeidsgiverskjema AFP"
+								}
+						},
+					"$ref" : "#/definitions/Skjema"
+				},
+			"OpplysningerOmArbeidstakeren-grp-8819" : {
+					"texts" : {
+							"LEDE" : {
+									"NOB" : "Arbeidsforhold"
+								}
+						},
+					"$ref" : "#/definitions/OpplysningerOmArbeidstakeren-grp-8819"
+				},
+			"Skjemainstans-grp-8854" : {
+					"texts" : {
+							"LEDE" : {
+									"NOB" : "Skjemainstans"
+								}
+						},
+					"$ref" : "#/definitions/Skjemainstans-grp-8854"
+				},
+			"Journalnummer-datadef-33316" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Journalnummer"
+								}
+						},
+					"$ref" : "#/definitions/Journalnummer-datadef-33316"
+				},
+			"IdentifikasjonsnummerKrav-datadef-33317" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Identifikasjonsnummer på kravet."
+								}
+						},
+					"$ref" : "#/definitions/IdentifikasjonsnummerKrav-datadef-33317"
+				},
+			"OpplysningerOmArbeidstakeren-grp-8855" : {
+					"texts" : {
+							"LEDE" : {
+									"NOB" : "Opplysninger om arbeidstakeren"
+								}
+						},
+					"$ref" : "#/definitions/OpplysningerOmArbeidstakeren-grp-8855"
+				},
+			"AnsattNavn-datadef-1223" : {
+					"$ref" : "#/definitions/AnsattNavn-datadef-1223"
+				},
+			"AnsattFodselsnummer-datadef-1224" : {
+					"$ref" : "#/definitions/AnsattFodselsnummer-datadef-1224"
+				},
+			"OppgavegiverTelefonnummer-datadef-27335" : {
+					"$ref" : "#/definitions/OppgavegiverTelefonnummer-datadef-27335"
+				},
+			"OppgavegiverEPost-datadef-27334" : {
+					"$ref" : "#/definitions/OppgavegiverEPost-datadef-27334"
+				},
+			"AnsattSoknadAFPDato-datadef-33282" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Hvilken dato arbeidstaker søker AFP fra."
+								}
+						},
+					"$ref" : "#/definitions/AnsattSoknadAFPDato-datadef-33282"
+				},
+			"Arbeidsforhold-grp-8856" : {
+					"texts" : {
+							"LEDE" : {
+									"NOB" : "Arbeidsforhold"
+								}
+						},
+					"$ref" : "#/definitions/Arbeidsforhold-grp-8856"
+				},
+			"AnsattTiltredelseDato-datadef-1387" : {
+					"$ref" : "#/definitions/AnsattTiltredelseDato-datadef-1387"
+				},
+			"AnsattSammenhengendeAnsattAnsettelse-datadef-33267" : {
+					"$ref" : "#/definitions/AnsattSammenhengendeAnsattAnsettelse-datadef-33267"
+				},
+			"AnsattArbeidsforholdPabegynt-datadef-33268" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Oppgi når nåværende arbeidsforhold ble påbegynt."
+								}
+						},
+					"$ref" : "#/definitions/AnsattArbeidsforholdPabegynt-datadef-33268"
+				},
+			"AnsattArbeidsforholdOpphort-datadef-33269" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Er det bestemt når arbeidsforhold skal opphøre."
+								}
+						},
+					"$ref" : "#/definitions/AnsattArbeidsforholdOpphort-datadef-33269"
+				},
+			"AnsattArbeidsforholdOpphortDato-datadef-33261" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Opphørsdato dersom arbeidsforholdet har opphørt."
+								}
+						},
+					"$ref" : "#/definitions/AnsattArbeidsforholdOpphortDato-datadef-33261"
+				},
+			"AnsattLonnUtbetaltDato-datadef-33262" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Dato for siste lønnsutbetalingsdato når arbeidsforholdet er opphørt."
+								}
+						},
+					"$ref" : "#/definitions/AnsattLonnUtbetaltDato-datadef-33262"
+				},
+			"AnsattArbeidsforholdOpphortDato-datadef-33270" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Dato for siste arbeidsdag når arbeidsforholdet allerede er avsluttet."
+								}
+						},
+					"$ref" : "#/definitions/AnsattArbeidsforholdOpphortDato-datadef-33270"
+				},
+			"AnsattArbeidsforholdOpphortArsak-datadef-33271" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Årsaken til at arbeidsforholdet ble avsluttet."
+								}
+						},
+					"$ref" : "#/definitions/AnsattArbeidsforholdOpphortArsak-datadef-33271"
+				},
+			"AnsattLonnSpesifisertManed-datadef-33263" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Arbeidstakers nåværende lønn pr måned."
+								}
+						},
+					"$ref" : "#/definitions/AnsattLonnSpesifisertManed-datadef-33263"
+				},
+			"AnsattLonnBelopPeriode-datadef-33264" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Arbeidstakers samlede lønn siste 15 måneder."
+								}
+						},
+					"$ref" : "#/definitions/AnsattLonnBelopPeriode-datadef-33264"
+				},
+			"StillingsbrokGrad-grp-8821" : {
+					"texts" : {
+							"LEDE" : {
+									"NOB" : "Stillingsbrøk/-grad"
+								}
+						},
+					"$ref" : "#/definitions/StillingsbrokGrad-grp-8821"
+				},
+			"NavarendeStillingsbrokGrad-grp-8857" : {
+					"texts" : {
+							"LEDE" : {
+									"NOB" : "Nåværende stillingsbrøk/-grad"
+								}
+						},
+					"$ref" : "#/definitions/NavarendeStillingsbrokGrad-grp-8857"
+				},
+			"AnsattHeltidDeltidSesong-datadef-33273" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Er arbeidstaker heltidsansatt, deltidsansatt eller sesongarbeider."
+								}
+						},
+					"$ref" : "#/definitions/AnsattHeltidDeltidSesong-datadef-33273"
+				},
+			"AnsattStillingsprosent-datadef-31808" : {
+					"texts" : {
+							"DEF" : {
+									"NON" : "Stillingsprosent til den ansatte i HUK-området."
+								}
+						},
+					"$ref" : "#/definitions/AnsattStillingsprosent-datadef-31808"
+				},
+			"NarBegynteArbeidstakerenINavarendeStillingsbrokGrad-grp-8860" : {
+					"texts" : {
+							"LEDE" : {
+									"NOB" : "Når begynte arbeidstakeren i nåværende stillingsbrøk/-grad?"
+								}
+						},
+					"$ref" : "#/definitions/NarBegynteArbeidstakerenINavarendeStillingsbrokGrad-grp-8860"
+				},
+			"AnsattPabegyntStillingDato-datadef-33272" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Dato arbeidstaker begynte i nåværende stilling."
+								}
+						},
+					"$ref" : "#/definitions/AnsattPabegyntStillingDato-datadef-33272"
+				},
+			"ForhenvarendeStillingsbrokGrad-grp-8858" : {
+					"texts" : {
+							"LEDE" : {
+									"NOB" : "Stillingsbrøk/-grad før nåværende stilling"
+								}
+						},
+					"$ref" : "#/definitions/ForhenvarendeStillingsbrokGrad-grp-8858"
+				},
+			"AnsattHeltidDeltidSesongArbeidetIkkeIForetaketTidligere-datadef-33274" : {
+					"$ref" : "#/definitions/AnsattHeltidDeltidSesongArbeidetIkkeIForetaketTidligere-datadef-33274"
+				},
+			"AnsattStillingsbrokTidligereProsent-datadef-33277" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Stillingsbrøk av deltidsansettelse."
+								}
+						},
+					"$ref" : "#/definitions/AnsattStillingsbrokTidligereProsent-datadef-33277"
+				},
+			"TidsromForDenneStillingsbrokenGraden-grp-8859" : {
+					"texts" : {
+							"LEDE" : {
+									"NOB" : "Tidsrom for denne stillingsbrøken/-graden"
+								}
+						},
+					"$ref" : "#/definitions/TidsromForDenneStillingsbrokenGraden-grp-8859"
+				},
+			"AnsattStillingTidligereFra-datadef-33275" : {
+					"$ref" : "#/definitions/AnsattStillingTidligereFra-datadef-33275"
+				},
+			"AnsattStillingTidligereTil-datadef-33276" : {
+					"$ref" : "#/definitions/AnsattStillingTidligereTil-datadef-33276"
+				},
+			"Permisjonsopplysninger-grp-8822" : {
+					"texts" : {
+							"LEDE" : {
+									"NOB" : "Permisjonsopplysninger"
+								}
+						},
+					"$ref" : "#/definitions/Permisjonsopplysninger-grp-8822"
+				},
+			"AnsattSykemeldt-datadef-33265" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Har arbeidstaker til sammen vært sykemeldt mer enn 52 uker i løpet av de tre siste årene."
+								}
+						},
+					"$ref" : "#/definitions/AnsattSykemeldt-datadef-33265"
+				},
+			"AnsattPermittert-datadef-33278" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Har ansatte vært permittert i løpet av siste tre år."
+								}
+						},
+					"$ref" : "#/definitions/AnsattPermittert-datadef-33278"
+				},
+			"AnsattPermittertPermiteringsgrad-datadef-33279" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Permitteringsgrad."
+								}
+						},
+					"$ref" : "#/definitions/AnsattPermittertPermiteringsgrad-datadef-33279"
+				},
+			"AnsattPermittertDato-datadef-33283" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Permitteringsdato."
+								}
+						},
+					"$ref" : "#/definitions/AnsattPermittertDato-datadef-33283"
+				},
+			"AnsattPermisjon-datadef-33280" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Har arbeidstaker i løpet av siste tre år hatt permisjon i mer enn 26 uker."
+								}
+						},
+					"$ref" : "#/definitions/AnsattPermisjon-datadef-33280"
+				},
+			"AnsattPermisjonType-datadef-33281" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Permisjonstype."
+								}
+						},
+					"$ref" : "#/definitions/AnsattPermisjonType-datadef-33281"
+				},
+			"AnsattYtelserMottattUtenArbeidsplikt-datadef-33293" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Har arbeidstakeren i løpet av siste tre år mottatt ytelser uten motsvarende arbeidsplikt."
+								}
+						},
+					"$ref" : "#/definitions/AnsattYtelserMottattUtenArbeidsplikt-datadef-33293"
+				},
+			"AnsattEierandel20EllerMer-datadef-33294" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Har arbeidstaker etter tylte 53 år hatt en eierandel på 20% eller mer i foretaket eller i annet selskap i samme konsern."
+								}
+						},
+					"$ref" : "#/definitions/AnsattEierandel20EllerMer-datadef-33294"
+				},
+			"AnsattIForetaketHovedbeskjeftigelse-datadef-33284" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Har arbeidstakeren hatt arbeidet i foretaket som sin hovedbeskjeftigelse."
+								}
+						},
+					"$ref" : "#/definitions/AnsattIForetaketHovedbeskjeftigelse-datadef-33284"
+				},
+			"AnsattStillingsbrokUnder20-datadef-33285" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Har arbeidstakeren etter fylte 53 år hatt stillingsbrøk på under 20%."
+								}
+						},
+					"$ref" : "#/definitions/AnsattStillingsbrokUnder20-datadef-33285"
+				},
+			"Foretak-grp-8820" : {
+					"texts" : {
+							"LEDE" : {
+									"NOB" : "Foretak"
+								}
+						},
+					"$ref" : "#/definitions/Foretak-grp-8820"
+				},
+			"InnsenderNavn-datadef-3443" : {
+					"$ref" : "#/definitions/InnsenderNavn-datadef-3443"
+				},
+			"EnhetNavnEndring-datadef-33286" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Tidligere navn på enhet (siste 10 år)."
+								}
+						},
+					"$ref" : "#/definitions/EnhetNavnEndring-datadef-33286"
+				},
+			"InnsenderAdresse-datadef-3445" : {
+					"$ref" : "#/definitions/InnsenderAdresse-datadef-3445"
+				},
+			"InnsenderPostnummer-datadef-11339" : {
+					"$ref" : "#/definitions/InnsenderPostnummer-datadef-11339"
+				},
+			"InnsenderPoststed-datadef-11340" : {
+					"$ref" : "#/definitions/InnsenderPoststed-datadef-11340"
+				},
+			"EnhetTelefonnummer-datadef-755" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Telefonnummer til juridisk enhet"
+								}
+						},
+					"$ref" : "#/definitions/EnhetTelefonnummer-datadef-755"
+				},
+			"EnhetTelefaksnummer-datadef-1816" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Telefaksnummer til juridisk enhet"
+								}
+						},
+					"$ref" : "#/definitions/EnhetTelefaksnummer-datadef-1816"
+				},
+			"EnhetEPost-datadef-21591" : {
+					"$ref" : "#/definitions/EnhetEPost-datadef-21591"
+				},
+			"ForetakOrganisasjonsnummer-datadef-33552" : {
+					"$ref" : "#/definitions/ForetakOrganisasjonsnummer-datadef-33552"
+				},
+			"EnhetOrganisasjonsnummerNy-datadef-22684" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Den aktuelle enhets nye organisasjonsnummer ved overdragelse eller fradeling til ny  enhet",
+									"NON" : "Den aktuelle einings nye organisasjonsnummer ved overdragelse eller fradeling til ny eining"
+								}
+						},
+					"$ref" : "#/definitions/EnhetOrganisasjonsnummerNy-datadef-22684"
+				},
+			"EnhetOrganisasjonsnummerEndringArsak-datadef-33287" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Årsak til endring av organisasjonsnummer."
+								}
+						},
+					"$ref" : "#/definitions/EnhetOrganisasjonsnummerEndringArsak-datadef-33287"
+				},
+			"BedriftOrganisasjonsnummer-datadef-19" : {
+					"$ref" : "#/definitions/BedriftOrganisasjonsnummer-datadef-19"
+				},
+			"BedriftOrganisasjonsnummerNy-datadef-33292" : {
+					"$ref" : "#/definitions/BedriftOrganisasjonsnummerNy-datadef-33292"
+				},
+			"BedriftOrganisasjonsnummerEndringArsak-datadef-33288" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Årsak til endring av bedriftsnummer."
+								}
+						},
+					"$ref" : "#/definitions/BedriftOrganisasjonsnummerEndringArsak-datadef-33288"
+				},
+			"AnsattAnsettelsePgaFusjonFisjonOverdragelse-datadef-33289" : {
+					"texts" : {
+							"DEF" : {
+									"NOB" : "Er ansatte blitt ansatt i foretaket i forbindelse med sammenslåing (fusjon), deling (fisjon) eller overdragelse av virksomhet."
+								}
+						},
+					"$ref" : "#/definitions/AnsattAnsettelsePgaFusjonFisjonOverdragelse-datadef-33289"
+				},
+			"EnhetNavnEndring-datadef-31" : {
+					"$ref" : "#/definitions/EnhetNavnEndring-datadef-31"
+				},
+			"Merknad-datadef-33290" : {
+					"$ref" : "#/definitions/Merknad-datadef-33290"
+				}
+		},
+	"definitions" : {
+			"Skjema" : {
+					"properties" : {
+							"skjemanummer" : {
+									"const" : "1472",
+									"type" : "integer",
+									"@xsdType" : "XmlAttribute"
+								},
+							"spesifikasjonsnummer" : {
+									"const" : "9812",
+									"type" : "integer",
+									"@xsdType" : "XmlAttribute"
+								},
+							"blankettnummer" : {
+									"const" : "AFP-01",
+									"type" : "string",
+									"@xsdType" : "XmlAttribute"
+								},
+							"tittel" : {
+									"const" : "Arbeidsgiverskjema AFP",
+									"type" : "string",
+									"@xsdType" : "XmlAttribute"
+								},
+						"JobTitle": {
+							"type" : "string"
+						},
+						"queryParam2": {
+							"type" : "string"
+						},
+						"queryParam3": {
+							"type" : "string"
+						},
+							"gruppeid" : {
+									"const" : "8818",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"etatid" : {
+									"enum" : [
+											"987414502"
+										],
+									"type" : "string",
+									"@xsdType" : "XmlAttribute"
+								},
+							"OpplysningerOmArbeidstakeren-grp-8819" : {
+									"$ref" : "#/definitions/OpplysningerOmArbeidstakeren-grp-8819"
+								},
+							"StillingsbrokGrad-grp-8821" : {
+									"$ref" : "#/definitions/StillingsbrokGrad-grp-8821"
+								},
+							"Permisjonsopplysninger-grp-8822" : {
+									"$ref" : "#/definitions/Permisjonsopplysninger-grp-8822"
+								},
+							"Foretak-grp-8820" : {
+									"$ref" : "#/definitions/Foretak-grp-8820"
+								}
+						},
+					"required" : [
+							"skjemanummer",
+							"spesifikasjonsnummer"
+						],
+					"@xsdAnyAttribute" : true
+				},
+			"OpplysningerOmArbeidstakeren-grp-8819" : {
+					"properties" : {
+							"gruppeid" : {
+									"const" : "8819",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"Skjemainstans-grp-8854" : {
+									"$ref" : "#/definitions/Skjemainstans-grp-8854"
+								},
+							"OpplysningerOmArbeidstakeren-grp-8855" : {
+									"$ref" : "#/definitions/OpplysningerOmArbeidstakeren-grp-8855"
+								},
+							"Arbeidsforhold-grp-8856" : {
+									"$ref" : "#/definitions/Arbeidsforhold-grp-8856"
+								}
+						},
+					"required" : [
+							"gruppeid"
+						]
+				},
+			"Skjemainstans-grp-8854" : {
+					"properties" : {
+							"gruppeid" : {
+									"const" : "8854",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"Journalnummer-datadef-33316" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Journalnummer"
+												}
+										},
+									"$ref" : "#/definitions/Journalnummer-datadef-33316"
+								},
+							"IdentifikasjonsnummerKrav-datadef-33317" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "KravID"
+												}
+										},
+									"$ref" : "#/definitions/IdentifikasjonsnummerKrav-datadef-33317"
+								}
+						},
+					"required" : [
+							"gruppeid"
+						]
+				},
+			"Journalnummer-datadef-33316" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33316",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Heltall20-repformat-696",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"Heltall20-repformat-696" : {
+					"minimum" : -7.766279631452242E+18,
+					"maximum" : 7.766279631452242E+18,
+					"type" : "integer"
+				},
+			"IdentifikasjonsnummerKrav-datadef-33317" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33317",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst20-repformat-85",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"Tekst20-repformat-85" : {
+					"minLength" : 1,
+					"maxLength" : 20,
+					"type" : "string"
+				},
+			"OpplysningerOmArbeidstakeren-grp-8855" : {
+					"properties" : {
+							"gruppeid" : {
+									"const" : "8855",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"AnsattNavn-datadef-1223" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Navn"
+												}
+										},
+									"$ref" : "#/definitions/AnsattNavn-datadef-1223"
+								},
+							"AnsattFodselsnummer-datadef-1224" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Fødselsnummer"
+												}
+										},
+									"$ref" : "#/definitions/AnsattFodselsnummer-datadef-1224"
+								},
+							"OppgavegiverTelefonnummer-datadef-27335" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Telefonnummer"
+												}
+										},
+									"$ref" : "#/definitions/OppgavegiverTelefonnummer-datadef-27335"
+								},
+							"OppgavegiverEPost-datadef-27334" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "E-post"
+												}
+										},
+									"$ref" : "#/definitions/OppgavegiverEPost-datadef-27334"
+								},
+							"AnsattSoknadAFPDato-datadef-33282" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Tidspunkt AFP søkes fra"
+												}
+										},
+									"$ref" : "#/definitions/AnsattSoknadAFPDato-datadef-33282"
+								}
+						},
+					"required" : [
+							"gruppeid"
+						]
+				},
+			"AnsattNavn-datadef-1223" : {
+					"properties" : {
+							"orid" : {
+									"const" : "1223",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst35-repformat-3",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"Tekst35-repformat-3" : {
+					"minLength" : 1,
+					"maxLength" : 35,
+					"type" : "string"
+				},
+			"AnsattFodselsnummer-datadef-1224" : {
+					"properties" : {
+							"orid" : {
+									"const" : "1224",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst1111Modulus11-repformat-18",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"Tekst1111Modulus11-repformat-18" : {
+					"texts" : {
+							"FEIL" : {
+									"NOB" : "Ugyldig fødselsnummer",
+									"NON" : "Ugyldig fødselsnummer"
+								}
+						},
+					"minLength" : 11,
+					"maxLength" : 11,
+					"type" : "string"
+				},
+			"OppgavegiverTelefonnummer-datadef-27335" : {
+					"properties" : {
+							"orid" : {
+									"const" : "27335",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst11-repformat-489",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"Tekst11-repformat-489" : {
+					"minLength" : 1,
+					"maxLength" : 11,
+					"type" : "string"
+				},
+			"OppgavegiverEPost-datadef-27334" : {
+					"properties" : {
+							"orid" : {
+									"const" : "27334",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst50-repformat-70",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"Tekst50-repformat-70" : {
+					"minLength" : 1,
+					"maxLength" : 50,
+					"type" : "string"
+				},
+			"AnsattSoknadAFPDato-datadef-33282" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33282",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Dato-repformat-5",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"Dato-repformat-5" : {
+					"type" : "string",
+					"format" : "date"
+				},
+			"Arbeidsforhold-grp-8856" : {
+					"properties" : {
+							"gruppeid" : {
+									"const" : "8856",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"AnsattTiltredelseDato-datadef-1387" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Når ble arbeidstakeren ansatt?"
+												}
+										},
+									"$ref" : "#/definitions/AnsattTiltredelseDato-datadef-1387"
+								},
+							"AnsattSammenhengendeAnsattAnsettelse-datadef-33267" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Har arbeidstakeren vært sammenhengende ansatt fra denne dato?"
+												}
+										},
+									"$ref" : "#/definitions/AnsattSammenhengendeAnsattAnsettelse-datadef-33267"
+								},
+							"AnsattArbeidsforholdPabegynt-datadef-33268" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Oppgi når nåværende arbeidsforhold begynte"
+												}
+										},
+									"$ref" : "#/definitions/AnsattArbeidsforholdPabegynt-datadef-33268"
+								},
+							"AnsattArbeidsforholdOpphort-datadef-33269" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Er det bestemt når arbeidsforholdet skal opphøre?"
+												}
+										},
+									"$ref" : "#/definitions/AnsattArbeidsforholdOpphort-datadef-33269"
+								},
+							"AnsattArbeidsforholdOpphortDato-datadef-33261" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Oppgi opphørsdato"
+												}
+										},
+									"$ref" : "#/definitions/AnsattArbeidsforholdOpphortDato-datadef-33261"
+								},
+							"AnsattLonnUtbetaltDato-datadef-33262" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Oppgi siste dag arbeidstakeren mottar lønn"
+												}
+										},
+									"$ref" : "#/definitions/AnsattLonnUtbetaltDato-datadef-33262"
+								},
+							"AnsattArbeidsforholdOpphortDato-datadef-33270" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Hvis arbeidsforholdet allerede er avsluttet, oppgi siste arbeidsdag"
+												}
+										},
+									"$ref" : "#/definitions/AnsattArbeidsforholdOpphortDato-datadef-33270"
+								},
+							"AnsattArbeidsforholdOpphortArsak-datadef-33271" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Hva var grunnen til at arbeidsforholdet ble avsluttet?"
+												}
+										},
+									"$ref" : "#/definitions/AnsattArbeidsforholdOpphortArsak-datadef-33271"
+								},
+							"AnsattLonnSpesifisertManed-datadef-33263" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Oppgi arbeidstakerens nåværende pensjonsgivende inntekt pr. måned"
+												}
+										},
+									"$ref" : "#/definitions/AnsattLonnSpesifisertManed-datadef-33263"
+								},
+							"AnsattLonnBelopPeriode-datadef-33264" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Oppgi samlet pensjonsgivende inntekt (kode 111-A SKD) arbeidstaker har  mottatt siste 15 måneder"
+												}
+										},
+									"$ref" : "#/definitions/AnsattLonnBelopPeriode-datadef-33264"
+								}
+						},
+					"required" : [
+							"gruppeid",
+							"AnsattTiltredelseDato-datadef-1387",
+							"AnsattSammenhengendeAnsattAnsettelse-datadef-33267",
+							"AnsattArbeidsforholdOpphort-datadef-33269",
+							"AnsattLonnSpesifisertManed-datadef-33263",
+							"AnsattLonnBelopPeriode-datadef-33264"
+						]
+				},
+			"AnsattTiltredelseDato-datadef-1387" : {
+					"properties" : {
+							"orid" : {
+									"const" : "1387",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Dato-repformat-5",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"AnsattSammenhengendeAnsattAnsettelse-datadef-33267" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33267",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/KodelisteEttValg2JaNei-repformat-4",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"KodelisteEttValg2JaNei-repformat-4" : {
+					"minLength" : 1,
+					"maxLength" : 3,
+					"enum" : [
+							"Ja",
+							"Nei"
+						],
+					"type" : "string"
+				},
+			"AnsattArbeidsforholdPabegynt-datadef-33268" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33268",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Dato-repformat-5",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"AnsattArbeidsforholdOpphort-datadef-33269" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33269",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/KodelisteEttValg2JaNei-repformat-4",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"AnsattArbeidsforholdOpphortDato-datadef-33261" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33261",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Dato-repformat-5",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"AnsattLonnUtbetaltDato-datadef-33262" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33262",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Dato-repformat-5",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"AnsattArbeidsforholdOpphortDato-datadef-33270" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33270",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Dato-repformat-5",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"AnsattArbeidsforholdOpphortArsak-datadef-33271" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33271",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Kodeliste4EttValgAvslutningsarsak-repformat-1038",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"Kodeliste4EttValgAvslutningsarsak-repformat-1038" : {
+					"minLength" : 1,
+					"maxLength" : 10,
+					"enum" : [
+							"Oppsigelse",
+							"Avskjed",
+							"Pensjonert",
+							"Annet"
+						],
+					"type" : "string"
+				},
+			"AnsattLonnSpesifisertManed-datadef-33263" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33263",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Heltall11-repformat-754",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"Heltall11-repformat-754" : {
+					"minimum" : -99999999999,
+					"maximum" : 99999999999,
+					"type" : "integer"
+				},
+			"AnsattLonnBelopPeriode-datadef-33264" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33264",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Heltall11-repformat-754",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"StillingsbrokGrad-grp-8821" : {
+					"properties" : {
+							"gruppeid" : {
+									"const" : "8821",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"NavarendeStillingsbrokGrad-grp-8857" : {
+									"$ref" : "#/definitions/NavarendeStillingsbrokGrad-grp-8857"
+								},
+							"ForhenvarendeStillingsbrokGrad-grp-8858" : {
+									"$ref" : "#/definitions/ForhenvarendeStillingsbrokGrad-grp-8858"
+								}
+						},
+					"required" : [
+							"gruppeid"
+						]
+				},
+			"NavarendeStillingsbrokGrad-grp-8857" : {
+					"properties" : {
+							"gruppeid" : {
+									"const" : "8857",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"AnsattHeltidDeltidSesong-datadef-33273" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Er arbeidstaker heltidsansatt, deltidsansatt eller sesongarbeidstaker?"
+												}
+										},
+									"$ref" : "#/definitions/AnsattHeltidDeltidSesong-datadef-33273"
+								},
+							"AnsattStillingsprosent-datadef-31808" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Oppgi stillingsbrøk/-grad"
+												}
+										},
+									"$ref" : "#/definitions/AnsattStillingsprosent-datadef-31808"
+								},
+							"NarBegynteArbeidstakerenINavarendeStillingsbrokGrad-grp-8860" : {
+									"$ref" : "#/definitions/NarBegynteArbeidstakerenINavarendeStillingsbrokGrad-grp-8860"
+								}
+						},
+					"required" : [
+							"gruppeid",
+							"AnsattHeltidDeltidSesong-datadef-33273"
+						]
+				},
+			"AnsattHeltidDeltidSesong-datadef-33273" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33273",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Kodeliste3EttValgAnsettelsesforhold-repformat-1039",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"Kodeliste3EttValgAnsettelsesforhold-repformat-1039" : {
+					"minLength" : 1,
+					"maxLength" : 20,
+					"enum" : [
+							"Heltidsansatt",
+							"Deltidsansatt",
+							"Sesongarbeider"
+						],
+					"type" : "string"
+				},
+			"AnsattStillingsprosent-datadef-31808" : {
+					"properties" : {
+							"orid" : {
+									"const" : "31808",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/PosHeltall3-repformat-126",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"PosHeltall3-repformat-126" : {
+					"maximum" : 999,
+					"type" : "integer",
+					"minimum" : 1
+				},
+			"NarBegynteArbeidstakerenINavarendeStillingsbrokGrad-grp-8860" : {
+					"properties" : {
+							"gruppeid" : {
+									"const" : "8860",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"AnsattPabegyntStillingDato-datadef-33272" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Fra dato"
+												}
+										},
+									"$ref" : "#/definitions/AnsattPabegyntStillingDato-datadef-33272"
+								}
+						},
+					"required" : [
+							"gruppeid",
+							"AnsattPabegyntStillingDato-datadef-33272"
+						]
+				},
+			"AnsattPabegyntStillingDato-datadef-33272" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33272",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Dato-repformat-5",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"ForhenvarendeStillingsbrokGrad-grp-8858" : {
+					"properties" : {
+							"gruppeid" : {
+									"const" : "8858",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"AnsattHeltidDeltidSesongArbeidetIkkeIForetaketTidligere-datadef-33274" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Arbeidstakers tidligere stilling"
+												}
+										},
+									"$ref" : "#/definitions/AnsattHeltidDeltidSesongArbeidetIkkeIForetaketTidligere-datadef-33274"
+								},
+							"AnsattStillingsbrokTidligereProsent-datadef-33277" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Oppgi stillingsbrøk/-grad"
+												}
+										},
+									"$ref" : "#/definitions/AnsattStillingsbrokTidligereProsent-datadef-33277"
+								},
+							"TidsromForDenneStillingsbrokenGraden-grp-8859" : {
+									"$ref" : "#/definitions/TidsromForDenneStillingsbrokenGraden-grp-8859"
+								}
+						},
+					"required" : [
+							"gruppeid",
+							"AnsattHeltidDeltidSesongArbeidetIkkeIForetaketTidligere-datadef-33274"
+						]
+				},
+			"AnsattHeltidDeltidSesongArbeidetIkkeIForetaketTidligere-datadef-33274" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33274",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/KodelisteEttValg4-repformat-1040",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"KodelisteEttValg4-repformat-1040" : {
+					"minLength" : 1,
+					"maxLength" : 30,
+					"enum" : [
+							"Heltidsansatt",
+							"Deltidsansatt",
+							"Sesongarbeider",
+							"Arbeidet ikke i foretaket"
+						],
+					"type" : "string"
+				},
+			"AnsattStillingsbrokTidligereProsent-datadef-33277" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33277",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/PosHeltall3-repformat-126",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"TidsromForDenneStillingsbrokenGraden-grp-8859" : {
+					"properties" : {
+							"gruppeid" : {
+									"const" : "8859",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"AnsattStillingTidligereFra-datadef-33275" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Fra dato"
+												}
+										},
+									"$ref" : "#/definitions/AnsattStillingTidligereFra-datadef-33275"
+								},
+							"AnsattStillingTidligereTil-datadef-33276" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Til dato"
+												}
+										},
+									"$ref" : "#/definitions/AnsattStillingTidligereTil-datadef-33276"
+								}
+						},
+					"required" : [
+							"gruppeid"
+						]
+				},
+			"AnsattStillingTidligereFra-datadef-33275" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33275",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Dato-repformat-5",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"AnsattStillingTidligereTil-datadef-33276" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33276",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Dato-repformat-5",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"Permisjonsopplysninger-grp-8822" : {
+					"properties" : {
+							"gruppeid" : {
+									"const" : "8822",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"AnsattSykemeldt-datadef-33265" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Har arbeidstakeren i løpet av de siste tre år til sammen vært  sykemeldt mer enn 26 uker?"
+												},
+											"HJELP" : {
+													"NOB" : "Hvis arbeidstakeren ikke har vært ansatt i bedriften i hele  treårsperioden, er spørsmålet om arbeidstaker har vært sykemeldt mer  enn 52 uker siden vedkommende begynte i foretaket."
+												}
+										},
+									"$ref" : "#/definitions/AnsattSykemeldt-datadef-33265"
+								},
+							"AnsattPermittert-datadef-33278" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Har arbeidstakeren i løpet av de siste tre år vært permittert?"
+												},
+											"HJELP" : {
+													"NOB" : "Hvis arbeidstakeren ikke har vært ansatt i bedriften i hele  treårsperioden, er spørsmålet om arbeidstaker har vært permittert  siden vedkommende begynte i foretaket."
+												}
+										},
+									"$ref" : "#/definitions/AnsattPermittert-datadef-33278"
+								},
+							"AnsattPermittertPermiteringsgrad-datadef-33279" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Permitteringsgrad"
+												}
+										},
+									"$ref" : "#/definitions/AnsattPermittertPermiteringsgrad-datadef-33279"
+								},
+							"AnsattPermittertDato-datadef-33283" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Fra dato"
+												}
+										},
+									"$ref" : "#/definitions/AnsattPermittertDato-datadef-33283"
+								},
+							"AnsattPermisjon-datadef-33280" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Har arbeidstakeren i løpet av de siste tre år til sammen hatt  permisjon i mer enn 26 uker?"
+												},
+											"HJELP" : {
+													"NOB" : "Hvis arbeidstakeren ikke har vært ansatt i bedriften i hele  treårsperioden, er spørsmålet om arbeidstaker har hatt permisjon mer  enn 26 uker siden vedkommende begynte i foretaket"
+												}
+										},
+									"$ref" : "#/definitions/AnsattPermisjon-datadef-33280"
+								},
+							"AnsattPermisjonType-datadef-33281" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Oppgi type permisjon"
+												}
+										},
+									"$ref" : "#/definitions/AnsattPermisjonType-datadef-33281"
+								},
+							"AnsattYtelserMottattUtenArbeidsplikt-datadef-33293" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Har arbeidstakeren i løpet av de siste tre år fått utbetalt pensjon,  ventelønn eller annen ytelse uten motsvarende arbeidsplikt, fra  nåværende eller tidligere arbeidsforhold?"
+												},
+											"HJELP" : {
+													"NOB" : "Svar ja også dersom arbeidstakeren har mottatt pensjon eller fått  redusert stillingsbrøken/-graden, men opprettholdt tidligere lønn.  Hvis arbeidstakeren ikke har vært ansatt i bedriften i hele  treårsperioden, er\n                                    spørsmålet om arbeidstakeren har mottatt ytelser  uten motsvarende arbeidsplikt siden vedkommende begynte i foretaket."
+												}
+										},
+									"$ref" : "#/definitions/AnsattYtelserMottattUtenArbeidsplikt-datadef-33293"
+								},
+							"AnsattEierandel20EllerMer-datadef-33294" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Har arbeidstakeren etter fylte 53 år hatt en eierandel på 20 % eller  mer i foretaket eller i annet selskap i samme konsern?"
+												}
+										},
+									"$ref" : "#/definitions/AnsattEierandel20EllerMer-datadef-33294"
+								},
+							"AnsattIForetaketHovedbeskjeftigelse-datadef-33284" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Har arbeidstakeren hatt arbeidet i foretaket som sin  hovedbeskjeftigelse?"
+												},
+											"HJELP" : {
+													"NOB" : "Svar nei dersom arbeidsgiver kjenner til at arbeidstaker har brukt mer  enn halvparten av arbeidstiden i annet foretak."
+												}
+										},
+									"$ref" : "#/definitions/AnsattIForetaketHovedbeskjeftigelse-datadef-33284"
+								},
+							"AnsattStillingsbrokUnder20-datadef-33285" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Har arbeidstakeren etter fylte 53 år hatt stillingsbrøk/-grad på under  20 %?"
+												}
+										},
+									"$ref" : "#/definitions/AnsattStillingsbrokUnder20-datadef-33285"
+								}
+						},
+					"required" : [
+							"gruppeid",
+							"AnsattSykemeldt-datadef-33265",
+							"AnsattPermittert-datadef-33278",
+							"AnsattPermisjon-datadef-33280",
+							"AnsattYtelserMottattUtenArbeidsplikt-datadef-33293",
+							"AnsattEierandel20EllerMer-datadef-33294",
+							"AnsattIForetaketHovedbeskjeftigelse-datadef-33284",
+							"AnsattStillingsbrokUnder20-datadef-33285"
+						]
+				},
+			"AnsattSykemeldt-datadef-33265" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33265",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/KodelisteEttValg2JaNei-repformat-4",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"AnsattPermittert-datadef-33278" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33278",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/KodelisteEttValg2JaNei-repformat-4",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"AnsattPermittertPermiteringsgrad-datadef-33279" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33279",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/PosHeltall3-repformat-126",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"AnsattPermittertDato-datadef-33283" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33283",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Dato-repformat-5",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"AnsattPermisjon-datadef-33280" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33280",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/KodelisteEttValg2JaNei-repformat-4",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"AnsattPermisjonType-datadef-33281" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33281",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst100-repformat-48",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"Tekst100-repformat-48" : {
+					"minLength" : 1,
+					"maxLength" : 100,
+					"type" : "string"
+				},
+			"AnsattYtelserMottattUtenArbeidsplikt-datadef-33293" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33293",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/KodelisteEttValg2JaNei-repformat-4",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"AnsattEierandel20EllerMer-datadef-33294" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33294",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/KodelisteEttValg3JaNeiVetIkke-repformat-887",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"KodelisteEttValg3JaNeiVetIkke-repformat-887" : {
+					"minLength" : 1,
+					"maxLength" : 2,
+					"enum" : [
+							"5",
+							"10",
+							"15"
+						],
+					"type" : "string"
+				},
+			"AnsattIForetaketHovedbeskjeftigelse-datadef-33284" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33284",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/KodelisteEttValg3JaNeiVetIkke-repformat-887",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"AnsattStillingsbrokUnder20-datadef-33285" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33285",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/KodelisteEttValg2JaNei-repformat-4",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"Foretak-grp-8820" : {
+					"properties" : {
+							"gruppeid" : {
+									"const" : "8820",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"InnsenderNavn-datadef-3443" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Enhetens navn"
+												}
+										},
+									"$ref" : "#/definitions/InnsenderNavn-datadef-3443"
+								},
+							"EnhetNavnEndring-datadef-33286" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Oppgi tidligere navn på foretaket dersom det har skiftet navn de siste  10 år"
+												}
+										},
+									"$ref" : "#/definitions/EnhetNavnEndring-datadef-33286"
+								},
+							"InnsenderAdresse-datadef-3445" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Postadresse"
+												}
+										},
+									"$ref" : "#/definitions/InnsenderAdresse-datadef-3445"
+								},
+							"InnsenderPostnummer-datadef-11339" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Postnummer"
+												}
+										},
+									"$ref" : "#/definitions/InnsenderPostnummer-datadef-11339"
+								},
+							"InnsenderPoststed-datadef-11340" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Poststed"
+												}
+										},
+									"$ref" : "#/definitions/InnsenderPoststed-datadef-11340"
+								},
+							"EnhetTelefonnummer-datadef-755" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Telefon"
+												}
+										},
+									"$ref" : "#/definitions/EnhetTelefonnummer-datadef-755"
+								},
+							"EnhetTelefaksnummer-datadef-1816" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Telefaks"
+												}
+										},
+									"$ref" : "#/definitions/EnhetTelefaksnummer-datadef-1816"
+								},
+							"EnhetEPost-datadef-21591" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "E-post"
+												}
+										},
+									"$ref" : "#/definitions/EnhetEPost-datadef-21591"
+								},
+							"ForetakOrganisasjonsnummer-datadef-33552" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Organisasjonsnummer"
+												}
+										},
+									"$ref" : "#/definitions/ForetakOrganisasjonsnummer-datadef-33552"
+								},
+							"EnhetOrganisasjonsnummerNy-datadef-22684" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Hvis ovennevnte organisasjonsnummer ikke stemmer, fyll ut riktig  nummer"
+												}
+										},
+									"$ref" : "#/definitions/EnhetOrganisasjonsnummerNy-datadef-22684"
+								},
+							"EnhetOrganisasjonsnummerEndringArsak-datadef-33287" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Oppgi grunn til endring av organisasjonsnummer"
+												}
+										},
+									"$ref" : "#/definitions/EnhetOrganisasjonsnummerEndringArsak-datadef-33287"
+								},
+							"BedriftOrganisasjonsnummer-datadef-19" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Undernummer hvor arbeidstakeren er registrert i Arbeidsgiver- og  arbeidstakerregisteret"
+												}
+										},
+									"$ref" : "#/definitions/BedriftOrganisasjonsnummer-datadef-19"
+								},
+							"BedriftOrganisasjonsnummerNy-datadef-33292" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Hvis ovennevnte undernummer ikke stemmer, fyll ut riktig nummer"
+												}
+										},
+									"$ref" : "#/definitions/BedriftOrganisasjonsnummerNy-datadef-33292"
+								},
+							"BedriftOrganisasjonsnummerEndringArsak-datadef-33288" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Oppgi grunn til endring av undernummer"
+												}
+										},
+									"$ref" : "#/definitions/BedriftOrganisasjonsnummerEndringArsak-datadef-33288"
+								},
+							"AnsattAnsettelsePgaFusjonFisjonOverdragelse-datadef-33289" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Har arbeidstakeren blitt ansatt i foretaket i forbindelse med  sammenslåing (fusjon), deling (fisjon) eller overdragelse av  virksomhet?"
+												}
+										},
+									"$ref" : "#/definitions/AnsattAnsettelsePgaFusjonFisjonOverdragelse-datadef-33289"
+								},
+							"EnhetNavnEndring-datadef-31" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Navn på foretaket som har vært omfattet av foretaksendringen"
+												}
+										},
+									"$ref" : "#/definitions/EnhetNavnEndring-datadef-31"
+								},
+							"Merknad-datadef-33290" : {
+									"texts" : {
+											"LEDE" : {
+													"NOB" : "Merknad"
+												}
+										},
+									"$ref" : "#/definitions/Merknad-datadef-33290"
+								}
+						},
+					"required" : [
+							"gruppeid"
+						]
+				},
+			"InnsenderNavn-datadef-3443" : {
+					"properties" : {
+							"orid" : {
+									"const" : "3443",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst175-repformat-8",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"Tekst175-repformat-8" : {
+					"minLength" : 1,
+					"maxLength" : 175,
+					"type" : "string"
+				},
+			"EnhetNavnEndring-datadef-33286" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33286",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst175-repformat-8",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"InnsenderAdresse-datadef-3445" : {
+					"properties" : {
+							"orid" : {
+									"const" : "3445",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst105-repformat-9",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"Tekst105-repformat-9" : {
+					"minLength" : 1,
+					"maxLength" : 105,
+					"type" : "string"
+				},
+			"InnsenderPostnummer-datadef-11339" : {
+					"properties" : {
+							"orid" : {
+									"const" : "11339",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst44BareTall-repformat-10",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"Tekst44BareTall-repformat-10" : {
+					"texts" : {
+							"FEIL" : {
+									"EN" : "Enter positive integer with four digits",
+									"NOB" : "Feltet krever positivt heltall med fire siffer",
+									"NON" : "Feltet krev positivt heiltal med fire siffer"
+								}
+						},
+					"minLength" : 4,
+					"maxLength" : 4,
+					"pattern" : "[0-9]{4}",
+					"type" : "string"
+				},
+			"InnsenderPoststed-datadef-11340" : {
+					"properties" : {
+							"orid" : {
+									"const" : "11340",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst35-repformat-3",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"EnhetTelefonnummer-datadef-755" : {
+					"properties" : {
+							"orid" : {
+									"const" : "755",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst13-repformat-12",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"Tekst13-repformat-12" : {
+					"minLength" : 1,
+					"maxLength" : 13,
+					"type" : "string"
+				},
+			"EnhetTelefaksnummer-datadef-1816" : {
+					"properties" : {
+							"orid" : {
+									"const" : "1816",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst13-repformat-12",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"EnhetEPost-datadef-21591" : {
+					"properties" : {
+							"orid" : {
+									"const" : "21591",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst100-repformat-48",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"ForetakOrganisasjonsnummer-datadef-33552" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33552",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst99Modulus11-repformat-1",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"Tekst99Modulus11-repformat-1" : {
+					"texts" : {
+							"FEIL" : {
+									"NOB" : "Ugyldig organisasjonsnummer",
+									"NON" : "Ugyldig organisasjonsnummer"
+								}
+						},
+					"minLength" : 9,
+					"maxLength" : 9,
+					"type" : "string"
+				},
+			"EnhetOrganisasjonsnummerNy-datadef-22684" : {
+					"properties" : {
+							"orid" : {
+									"const" : "22684",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst99Modulus11-repformat-1",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"EnhetOrganisasjonsnummerEndringArsak-datadef-33287" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33287",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst500-repformat-166",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"Tekst500-repformat-166" : {
+					"minLength" : 1,
+					"maxLength" : 500,
+					"type" : "string"
+				},
+			"BedriftOrganisasjonsnummer-datadef-19" : {
+					"properties" : {
+							"orid" : {
+									"const" : "19",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst99Modulus11-repformat-1",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"BedriftOrganisasjonsnummerNy-datadef-33292" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33292",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst99Modulus11-repformat-1",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"BedriftOrganisasjonsnummerEndringArsak-datadef-33288" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33288",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst500-repformat-166",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"AnsattAnsettelsePgaFusjonFisjonOverdragelse-datadef-33289" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33289",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/KodelisteEttValg2JaNei-repformat-4",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"EnhetNavnEndring-datadef-31" : {
+					"properties" : {
+							"orid" : {
+									"const" : "31",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst175-repformat-8",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				},
+			"Merknad-datadef-33290" : {
+					"properties" : {
+							"orid" : {
+									"const" : "33290",
+									"type" : "integer",
+									"minimum" : 1,
+									"@xsdType" : "XmlAttribute"
+								},
+							"value" : {
+									"$ref" : "#/definitions/Tekst500-repformat-166",
+									"@xsdType" : "XmlSimpleContentExtension"
+								}
+						},
+					"required" : [
+							"orid",
+							"value"
+						]
+				}
+		}
+}

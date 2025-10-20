@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { PagesRouter } from './PagesRouter';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { RouterContext } from '../../../contexts/RouterContext';
-import type { PageName } from '../../../types/PageName';
+import { PageName } from '../../../types/PageName';
 import { renderWithProviders } from '../../../../test-utils/renderWithProviders';
 
 const navigateMock = jest.fn();
@@ -30,14 +30,16 @@ describe('PagesRouter', () => {
     });
     await user.click(imagesNavTitle);
     expect(navigateMock).toHaveBeenCalledTimes(1);
-    expect(navigateMock).toHaveBeenCalledWith('images');
+    expect(navigateMock).toHaveBeenCalledWith(PageName.Images);
   });
 });
 
-const renderPagesRouter = (pageNames: PageName[] = ['codeListsWithTextResources', 'images']) => {
+const renderPagesRouter = (
+  pageNames: PageName[] = [PageName.CodeListsWithTextResources, PageName.Images],
+) => {
   renderWithProviders(
     <RouterContext.Provider
-      value={{ currentPage: 'codeListsWithTextResources', navigate: navigateMock }}
+      value={{ currentPage: PageName.CodeListsWithTextResources, navigate: navigateMock }}
     >
       <PagesRouter pageNames={pageNames} />
     </RouterContext.Provider>,

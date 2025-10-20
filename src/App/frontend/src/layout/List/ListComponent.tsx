@@ -298,7 +298,6 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
             <Table.Row
               key={JSON.stringify(row)}
               onClick={!readOnly ? () => handleRowClick(row) : undefined}
-              className={cn({ [classes.readOnlyRow]: readOnly })}
             >
               {!readOnly && (
                 <Table.Cell

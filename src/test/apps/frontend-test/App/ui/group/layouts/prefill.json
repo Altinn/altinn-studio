@@ -1,0 +1,75 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "nav-prefill",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "choose-group-prefills",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Velg hvilke rader du vil starte med"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "PrefillValues"
+        },
+        "required": false,
+        "readOnly": false,
+        "options": [
+          {
+            "label": "En liten endring",
+            "value": "liten"
+          },
+          {
+            "label": "En middels endring",
+            "value": "middels"
+          },
+          {
+            "label": "En stor endring",
+            "value": "stor"
+          },
+          {
+            "label": "En svær endring",
+            "value": "svaer"
+          },
+          {
+            "label": "En enorm endring",
+            "value": "enorm"
+          }
+        ]
+      },
+      {
+        "id": "prefill-enabled",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Aktiver preutfylling?",
+          "description": "Skru denne av for å deaktivere preutfylling. Legg merke til at dette ikke fungerer ved å direkte skru av preutfylling, men å jukse til skriving av `PrefillValuesShadow` slik at preutfyllingskoden ikke kjører i `ProcessDataWrite`. Dette gjør vi for å teste at ruleHandler kan skrive til stier i datamodellen som ikke er knyttet til komponenter."
+        },
+        "dataModelBindings": {
+          "simpleBinding": "PrefillValuesEnabled"
+        },
+        "options": [
+          {
+            "label": "Ja",
+            "value": "true"
+          },
+          {
+            "label": "Nei",
+            "value": "false"
+          }
+        ]
+      },
+      {
+        "id": "nav-buttons-prefill",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "Neste",
+          "back": "Forrige"
+        }
+      }
+    ]
+  }
+}
+

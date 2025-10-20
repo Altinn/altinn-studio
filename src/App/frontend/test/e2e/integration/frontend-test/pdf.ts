@@ -11,7 +11,7 @@ const appFrontend = new AppFrontend();
 const likertPage = new Likert();
 
 describe('PDF', () => {
-  it('should generate PDF for message step', () => {
+  it('should generate PDF for message step', { retries: 0 }, () => {
     cy.goto('message');
     cy.get('#finishedLoading').should('exist');
 
@@ -27,7 +27,7 @@ describe('PDF', () => {
     });
   });
 
-  it('downstream requests includes trace context header', () => {
+  it('downstream requests includes trace context header', { retries: 0 }, () => {
     const traceparentValue = '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01';
     const tracestateValue = 'altinn';
     const domain = new URL(Cypress.config().baseUrl!).hostname;
@@ -67,7 +67,7 @@ describe('PDF', () => {
     });
   });
 
-  it('should generate PDF for changename step', () => {
+  it('should generate PDF for changename step', { retries: 0 }, () => {
     cy.interceptLayout(
       'changename',
       (component) => {
@@ -185,7 +185,7 @@ describe('PDF', () => {
     });
   });
 
-  it('should generate PDF for group step', () => {
+  it('should generate PDF for group step', { retries: 0 }, () => {
     cy.goto('group');
     cy.findByRole('checkbox', { name: /liten/i }).check();
     cy.findByRole('checkbox', { name: /middels/i }).check();
@@ -230,7 +230,7 @@ describe('PDF', () => {
     });
   });
 
-  it('should generate PDF for group step (using Summary1 pdfLayout)', () => {
+  it('should generate PDF for group step (using Summary1 pdfLayout)', { retries: 0 }, () => {
     cy.intercept('GET', '**/api/layoutsettings/group', (req) => {
       req.on('response', (res) => {
         const body = JSON.parse(res.body) as ILayoutSettings;
@@ -268,7 +268,7 @@ describe('PDF', () => {
     });
   });
 
-  it('should generate PDF for group step (using Summary2 automatic PDF)', () => {
+  it('should generate PDF for group step (using Summary2 automatic PDF)', { retries: 0 }, () => {
     cy.setFeatureToggle('betaPDFenabled', true);
     cy.goto('group');
     cy.findByRole('checkbox', { name: /liten/i }).check();
@@ -299,7 +299,7 @@ describe('PDF', () => {
     });
   });
 
-  it('should generate PDF for likert step', () => {
+  it('should generate PDF for likert step', { retries: 0 }, () => {
     cy.goto('likert');
     cy.findByRole('table', { name: likertPage.optionalTableTitle }).within(() => {
       likertPage.optionalQuestions.forEach((question, index) => {
@@ -335,7 +335,7 @@ describe('PDF', () => {
     });
   });
 
-  it('should generate PDF for datalist step', () => {
+  it('should generate PDF for datalist step', { retries: 0 }, () => {
     // Removing Summary2 page. That page references previous tasks and data models in previous tasks that won't even
     // be created when we skip over those previous tasks by calling gotoAndComplete(). Not removing that page would
     // simply crash the whole PDF generation.
@@ -358,7 +358,7 @@ describe('PDF', () => {
     });
   });
 
-  it('should use custom PDF if set', () => {
+  it('should use custom PDF if set', { retries: 0 }, () => {
     const pdfLayoutName = 'CustomPDF';
 
     cy.intercept('GET', '**/layoutsettings/**', (req) =>
@@ -462,7 +462,7 @@ describe('PDF', () => {
   });
 
   // Used to cause a crash, @see https://github.com/Altinn/app-frontend-react/pull/2019
-  it('Grid in Group should display correctly', () => {
+  it('Grid in Group should display correctly', { retries: 0 }, () => {
     cy.intercept('GET', '**/layouts/**', (req) => {
       req.on('response', (res) => {
         const body: ILayoutCollection = JSON.parse(res.body);

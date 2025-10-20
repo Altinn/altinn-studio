@@ -9,15 +9,16 @@ import classes from './CodeListsWithTextResourcesPage.module.css';
 import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
 import type { CodeListReference } from './types/CodeListReference';
 import {
+  createTextResourceWithLanguage,
   filterCodeLists,
   getTextResourcesForLanguage,
-  createTextResourceWithLanguage,
 } from './utils';
 import type { TextResourceWithLanguage } from '../../../../types/TextResourceWithLanguage';
 import type { TextResources } from '../../../../types/TextResources';
 import type { CodeListWithMetadata } from './types/CodeListWithMetadata';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { InfoBox } from '../../InfoBox';
+import { PageName } from '../../../../types/PageName';
 
 export type CodeListData = {
   title: string;
@@ -127,7 +128,7 @@ export function CodeListsWithTextResourcesPage({
         codeListsUsages={codeListsUsages}
         textResources={textResourcesForLanguage}
       />
-      {codeListIsEmpty && <InfoBox pageName='codeListsWithTextResources' />}
+      {codeListIsEmpty && <InfoBox pageName={PageName.CodeListsWithTextResources} />}
     </div>
   );
 }

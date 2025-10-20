@@ -1,0 +1,117 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": ["notEquals", ["dataModel", "PetsUseOptionComponent"], true],
+    "layout": [
+      {
+        "id": "nav-option-comp",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "header-collection1",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Option-kommponenter i horisontal visning (3x)"
+        },
+        "size": "h2"
+      },
+      {
+        "id": "option-test1",
+        "type": "Option",
+        "textResourceBindings": {
+          "title": "Svømmedyr",
+          "description": "Dyr som svømmer"
+        },
+        "value": "Fish",
+        "optionsId": "pet-species"
+      },
+      {
+        "id": "option-test2",
+        "type": "Option",
+        "textResourceBindings": {
+          "title": "Gnagerdyr",
+          "description": "Her er et dyr som gnager"
+        },
+        "value": "Hamster",
+        "optionsId": "pet-species",
+        "direction": "horizontal"
+      },
+      {
+        "id": "option-test3",
+        "type": "Option",
+        "textResourceBindings": {
+          "title": "Mjauedyr",
+          "description": "Dyr som mjauer"
+        },
+        "value": "Cat",
+        "optionsId": "pet-species",
+        "direction": "horizontal"
+      },
+      {
+        "id": "header-collection2",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Option-kommponenter i vertikal visning (2 + 2)"
+        },
+        "size": "h2"
+      },
+      {
+        "id": "option-test4",
+        "type": "Option",
+        "textResourceBindings": {
+          "title": "Svømmedyr",
+          "description": "Dyr som svømmer"
+        },
+        "value": "Fish",
+        "optionsId": "pet-species",
+        "direction": "vertical",
+        "grid": { "md": 6 }
+      },
+      {
+        "id": "option-test5",
+        "type": "Option",
+        "textResourceBindings": {
+          "title": "Gnagerdyr",
+          "description": "Her er et dyr som gnager"
+        },
+        "value": "Hamster",
+        "optionsId": "pet-species",
+        "direction": "vertical",
+        "grid": { "md": 6 }
+      },
+      {
+        "id": "option-test6",
+        "type": "Option",
+        "textResourceBindings": {
+          "title": "Mjauedyr",
+          "description": "Dyr som mjauer"
+        },
+        "value": "Cat",
+        "optionsId": "pet-species",
+        "direction": "vertical",
+        "grid": { "md": 6 }
+      },
+      {
+        "id": "option-test7",
+        "type": "Option",
+        "textResourceBindings": {
+          "title": "Brækedyr",
+          "description": "Dyr som bræker"
+        },
+        "value": "Sheep",
+        "optionsId": "pet-species",
+        "direction": "vertical",
+        "grid": { "md": 6 }
+      },
+      {
+        "id": "nav-page-option-comp",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "Neste",
+          "back": "Forrige"
+        },
+        "showBackButton": true
+      }
+    ]
+  }
+}
