@@ -1,28 +1,28 @@
 import { useComponentPropertyLabel } from '@altinn/ux-editor/hooks';
 import { StudioSelect } from '@studio/components';
-import type { Crop, ShapeOptions } from '../ImageUploadTypes';
+import type { InternalCrop, ShapeOptions } from '../ImageUploadTypes';
 
 type ImageUploadShapeProps = {
-  tempCrop: Crop;
-  handleNewCrop: (newCrop: Crop) => void;
+  internalCrop: InternalCrop;
+  handleNewCrop: (newCrop: InternalCrop) => void;
 };
 
 export const ImageUploadShape = ({
-  tempCrop,
+  internalCrop,
   handleNewCrop,
 }: ImageUploadShapeProps): React.ReactElement => {
   const componentPropertyLabel = useComponentPropertyLabel();
   const shapeOptions: ShapeOptions[] = ['circle', 'rectangle'];
 
   const handleShapeChange = (newShape: ShapeOptions) => {
-    const newCrop = { ...tempCrop, shape: newShape };
+    const newCrop = { ...internalCrop, shape: newShape };
     handleNewCrop(newCrop);
   };
 
   return (
     <StudioSelect
       label={componentPropertyLabel('Bildeform')}
-      value={tempCrop.shape}
+      value={internalCrop.shape}
       onChange={(event) => {
         handleShapeChange(event.target.value as ShapeOptions);
       }}

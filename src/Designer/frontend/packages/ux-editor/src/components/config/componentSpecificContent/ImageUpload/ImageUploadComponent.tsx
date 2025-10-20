@@ -6,7 +6,7 @@ import { PlusCircleIcon } from '@studio/icons';
 import { useComponentPropertyLabel } from '@altinn/ux-editor/hooks';
 import { useDisplayCropValues } from './useDisplayCropValues';
 import { ImageUploadCard } from './ImageUploadCard.tsx/ImageUploadCard';
-import type { Crop } from './ImageUploadTypes';
+import type { ExternalCrop } from './ImageUploadTypes';
 
 type ImageUploadComponentProps = {
   component: FormItem<ComponentType.ImageUpload>;
@@ -35,16 +35,16 @@ export const ImageUploadComponent = ({
     );
   }
 
-  const handleSaveChanges = (tempCrop: Crop) => {
+  const handleSaveChanges = (cropToBeSaved: ExternalCrop) => {
     handleComponentChange({
       ...component,
-      crop: tempCrop,
+      crop: cropToBeSaved,
     });
   };
 
   return (
     <ImageUploadCard
-      initialCrop={component?.crop}
+      externalCrop={component?.crop}
       handleSaveChanges={handleSaveChanges}
       setOpenCard={setOpenCard}
     />

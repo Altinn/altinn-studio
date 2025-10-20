@@ -1,31 +1,31 @@
 import { StudioButton } from '@studio/components';
-import type { Crop, ErrorProps } from '../ImageUploadTypes';
+import type { ExternalCrop, InternalCrop, ErrorProps } from '../ImageUploadTypes';
 import { getCropToBeSaved, getDisabledState } from '../ImageUploadUtils';
 import classes from './ImageUploadActions.module.css';
 import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 
 type ImageUploadActionsProps = {
-  tempCrop: Crop;
-  initialCrop?: Crop;
+  internalCrop: InternalCrop;
+  externalCrop?: ExternalCrop;
   errors: ErrorProps;
   setOpenCard: (open: boolean) => void;
-  handleSaveChanges: (tempCrop: Crop) => void;
+  handleSaveChanges: (cropToBeSaved: ExternalCrop) => void;
 };
 
 export const ImageUploadActions = ({
-  tempCrop,
-  initialCrop,
+  internalCrop,
+  externalCrop,
   errors,
   setOpenCard,
   handleSaveChanges,
 }: ImageUploadActionsProps) => {
   const { t } = useTranslation();
-  const isDisabled = getDisabledState({ errors, tempCrop, initialCrop });
+  const isDisabled = getDisabledState({ errors, internalCrop, externalCrop });
 
   const handleSave = () => {
     setOpenCard(false);
-    handleSaveChanges(getCropToBeSaved(tempCrop));
+    handleSaveChanges(getCropToBeSaved(internalCrop));
   };
 
   const handleCancel = () => {

@@ -1,4 +1,4 @@
-import type { Crop, ErrorProps, RectangleComponent } from './ImageUploadTypes';
+import type { ExternalCrop, ErrorProps, InternalCrop, RectangleShape } from './ImageUploadTypes';
 
 export enum SizeOptions {
   Width = 'width',
@@ -11,10 +11,10 @@ export enum ShapeOptions {
   Rectangle = 'rectangle',
 }
 
-export const isRectangleComponent = (cropValues: Crop): cropValues is RectangleComponent =>
-  cropValues?.shape === 'rectangle';
+export const isRectangleShape = (internalCrop: InternalCrop): internalCrop is RectangleShape =>
+  internalCrop?.shape === ShapeOptions.Rectangle;
 
-export const getInitialValues = (crop?: Crop): Crop => {
+export const getInitialValues = (crop?: ExternalCrop): ExternalCrop => {
   const DEFAULT_VALUE = 250;
   const { width, height, diameter } = (crop || {}) as Partial<{
     width: number;
@@ -33,24 +33,19 @@ export const getInitialValues = (crop?: Crop): Crop => {
   };
 };
 
-export const getCropToBeSaved = (tempCrop: Crop): Crop => {
-  if (tempCrop.shape === ShapeOptions.Rectangle) {
-    return { shape: tempCrop.shape, width: tempCrop.width, height: tempCrop.height };
+export const getCropToBeSaved = (internalCrop: InternalCrop): ExternalCrop => {
+  if (internalCrop.shape === ShapeOptions.Rectangle) {
+    return { shape: internalCrop.shape, width: internalCrop.width, height: internalCrop.height };
   }
 
-  return { shape: tempCrop.shape, diameter: tempCrop.diameter };
+  return { shape: internalCrop.shape, diameter: internalCrop.diameter };
 };
 
-type ValidateCropValuesProps = {
-  newCrop: Crop;
-  initialCrop?: Crop;
-};
-
-export const validateCrop = ({ newCrop }: ValidateCropValuesProps): ErrorProps => {
+export const validateCrop = (newInternalCrop: ExternalCrop): ErrorProps => {
   const validationResult: ErrorProps = {};
 
   Object.values(SizeOptions).forEach((key) => {
-    const value = newCrop[key] as number;
+    const value = newInternalCrop[key] as number;
     const isEmpty = value === null || value === undefined || isNaN(value);
     validationResult[key] = isEmpty ? 'ux_editor.component_properties.crop_size.error' : null;
   });
@@ -60,13 +55,13 @@ export const validateCrop = ({ newCrop }: ValidateCropValuesProps): ErrorProps =
 
 type GetDisabledStateProps = {
   errors: ErrorProps;
-  tempCrop: Crop;
-  initialCrop?: Crop;
+  internalCrop: InternalCrop;
+  externalCrop?: ExternalCrop;
 };
 
-export const getDisabledState = ({ errors, tempCrop, initialCrop }: GetDisabledStateProps) => {
-  const cropToSave = getCropToBeSaved(tempCrop);
-  const isCropChanged = JSON.stringify(cropToSave) !== JSON.stringify(initialCrop);
+export const getDisabledState = ({ errors, internalCrop, externalCrop }: GetDisabledStateProps) => {
+  const cropToSave = getCropToBeSaved(internalCrop);
+  const isCropChanged = JSON.stringify(cropToSave) !== JSON.stringify(externalCrop);
   const hasErrors = Object.keys(cropToSave).some((key) => errors[key] != null);
 
   return !isCropChanged || hasErrors;

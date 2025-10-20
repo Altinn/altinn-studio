@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { useDisplayCropValues } from './useDisplayCropValues';
-import type { Crop } from './ImageUploadTypes';
+import type { ExternalCrop } from './ImageUploadTypes';
 
 describe('useDisplayCropValues', () => {
   it('should return null when no crop values are provided', () => {
@@ -9,7 +9,7 @@ describe('useDisplayCropValues', () => {
   });
 
   it('should format crop values correctly', () => {
-    const cropValues: Crop = {
+    const cropValues: ExternalCrop = {
       shape: 'rectangle',
       width: 200,
       height: 100,

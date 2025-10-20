@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StudioCard, StudioDivider, StudioParagraph } from '@studio/components';
-import type { ErrorProps, Crop, CropValues } from '../ImageUploadTypes';
+import type { ErrorProps, ExternalCrop, InternalCrop } from '../ImageUploadTypes';
 import { getInitialValues, validateCrop } from '../ImageUploadUtils';
 import classes from './ImageUploadCard.module.css';
 import { ImageUploadSize } from './ImageUploadSize';
@@ -9,24 +9,24 @@ import { ImageUploadShape } from './ImageUploadShape';
 import { useTranslation } from 'react-i18next';
 
 type ImageUploadCard = {
-  initialCrop?: Crop;
-  handleSaveChanges: (tempCrop: Crop) => void;
+  externalCrop?: ExternalCrop;
+  handleSaveChanges: (CropToBeSaved: ExternalCrop) => void;
   setOpenCard: (open: boolean) => void;
 };
 
 export const ImageUploadCard = ({
-  initialCrop,
+  externalCrop,
   handleSaveChanges,
   setOpenCard,
 }: ImageUploadCard) => {
-  const [tempCrop, setTempCrop] = useState<CropValues>(getInitialValues(initialCrop));
+  const [internalCrop, setInternalCrop] = useState<InternalCrop>(getInitialValues(externalCrop));
   const [errors, setErrors] = useState<ErrorProps>({});
   const { t } = useTranslation();
 
-  const handleNewCrop = (newCrop: Crop) => {
-    const validationErrors = validateCrop({ newCrop, initialCrop });
+  const handleNewCrop = (newCrop: InternalCrop) => {
+    const validationErrors = validateCrop(newCrop);
     setErrors(validationErrors);
-    setTempCrop(newCrop);
+    setInternalCrop(newCrop);
   };
 
   return (
@@ -36,11 +36,11 @@ export const ImageUploadCard = ({
       <StudioParagraph className={classes.cardDescription}>
         {t('ux_editor.component_properties.crop_description')}
       </StudioParagraph>
-      <ImageUploadShape tempCrop={tempCrop} handleNewCrop={handleNewCrop} />
-      <ImageUploadSize handleNewCrop={handleNewCrop} tempCrop={tempCrop} errors={errors} />
+      <ImageUploadShape internalCrop={internalCrop} handleNewCrop={handleNewCrop} />
+      <ImageUploadSize handleNewCrop={handleNewCrop} internalCrop={internalCrop} errors={errors} />
       <ImageUploadActions
-        tempCrop={tempCrop}
-        initialCrop={initialCrop}
+        internalCrop={internalCrop}
+        externalCrop={externalCrop}
         errors={errors}
         setOpenCard={setOpenCard}
         handleSaveChanges={handleSaveChanges}
