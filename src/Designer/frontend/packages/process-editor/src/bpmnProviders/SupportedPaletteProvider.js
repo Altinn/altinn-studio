@@ -186,6 +186,29 @@ class SupportedPaletteProvider {
       };
     }
 
+    function createCustomPdfServiceTask() {
+      const taskType = 'pdf';
+
+      return function (event) {
+        const task = buildAltinnServiceTask(taskType);
+
+        const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
+          values: [
+            bpmnFactory.create('altinn:TaskExtension', {
+              taskType: taskType,
+              pdfConfig: bpmnFactory.create('altinn:PdfConfig'),
+            }),
+          ],
+        });
+
+        modeling.updateProperties(task, {
+          extensionElements,
+        });
+
+        create.start(event, task);
+      };
+    }
+
     const buildAltinnTask = (taskType) => {
       const businessObject = bpmnFactory.create('bpmn:Task', {
         name: `Altinn ${taskType} task`,
@@ -193,6 +216,19 @@ class SupportedPaletteProvider {
 
       const task = elementFactory.createShape({
         type: 'bpmn:Task',
+        businessObject,
+      });
+
+      return task;
+    };
+
+    const buildAltinnServiceTask = (taskType) => {
+      const businessObject = bpmnFactory.create('bpmn:ServiceTask', {
+        name: `Altinn ${taskType} task`,
+      });
+
+      const task = elementFactory.createShape({
+        type: 'bpmn:ServiceTask',
         businessObject,
       });
 
@@ -254,6 +290,15 @@ class SupportedPaletteProvider {
           action: {
             click: createCustomPaymentTask(),
             dragstart: createCustomPaymentTask(),
+          },
+        },
+        'create.altinn-pdf-task': {
+          group: 'activity',
+          className: `bpmn-icon-task-generic bpmn-icon-pdf-task`,
+          title: translate('Create PDF service task'),
+          action: {
+            click: createCustomPdfServiceTask(),
+            dragstart: createCustomPdfServiceTask(),
           },
         },
       };
