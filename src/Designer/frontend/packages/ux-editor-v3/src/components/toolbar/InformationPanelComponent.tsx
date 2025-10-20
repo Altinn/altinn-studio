@@ -7,7 +7,8 @@ import {
   getComponentTitleByComponentType,
 } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph, StudioPopover } from '@studio/components-legacy';
+import { StudioPopover } from '@studio/components-legacy';
+import { StudioLabelAsParagraph } from '@studio/components';
 import { InformationIcon } from '@studio/icons';
 import { Paragraph } from '@digdir/designsystemet-react';
 
@@ -32,7 +33,7 @@ export const InformationPanelComponent = ({
       </StudioPopover.Trigger>
       <StudioPopover.Content>
         <div className={classNames(classes.informationPanelHeader)}>
-          <StudioLabelAsParagraph size='small'>
+          <StudioLabelAsParagraph>
             {getComponentTitleByComponentType(selectedComponent, t)}
           </StudioLabelAsParagraph>
         </div>

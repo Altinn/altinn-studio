@@ -1,14 +1,20 @@
 import React, { type ReactElement } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph } from '@studio/components-legacy';
-import { StudioAlert, StudioParagraph, StudioList, StudioLink } from '@studio/components';
+import {
+  StudioAlert,
+  StudioParagraph,
+  StudioList,
+  StudioLabelAsParagraph,
+  StudioLink,
+} from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
+import classes from './PolicyAccessPackagesWarning.module.css';
 
 export const PolicyAccessPackagesWarning = (): ReactElement => {
   const { t } = useTranslation();
   return (
     <StudioAlert data-color='warning'>
-      <StudioLabelAsParagraph size='md' spacing>
+      <StudioLabelAsParagraph data-size='md' className={classes.header}>
         {t('policy_editor.access_package_warning_header')}
       </StudioLabelAsParagraph>
       <StudioParagraph spacing>
@@ -25,7 +31,7 @@ export const PolicyAccessPackagesWarning = (): ReactElement => {
         </Trans>
       </StudioParagraph>
       <StudioParagraph spacing>{t('policy_editor.access_package_warning_body2')}</StudioParagraph>
-      <StudioLabelAsParagraph size='sm'>
+      <StudioLabelAsParagraph data-size='sm'>
         {t('policy_editor.access_package_warning_header2')}
       </StudioLabelAsParagraph>
       <StudioList.Root data-size='sm'>
