@@ -1463,6 +1463,7 @@
   "ux_editor.component_properties.componentRef": "ID på komponenten det gjelder (componentRef)",
   "ux_editor.component_properties.config_is_expression_message": "Denne egenskapen er konfigurert som et uttrykk, og kan foreløpig ikke redigeres her.",
   "ux_editor.component_properties.cropShape": "Bildeform",
+  "ux_editor.component_properties.crop_card.title": "Form og størrelse",
   "ux_editor.component_properties.crop_circle": "Sirkel",
   "ux_editor.component_properties.crop_description": "Vi anbefaler ikke større enn 270 piksler for å ta hensyn til mobilvisning.",
   "ux_editor.component_properties.crop_diameter": "Diameter",

@@ -31,7 +31,7 @@ export const ImageUploadCard = ({
 
   return (
     <StudioCard className={classes.cardWrapper}>
-      <StudioParagraph>Form og størrelse</StudioParagraph>
+      <StudioParagraph>{t('ux_editor.component_properties.crop_card.title')}</StudioParagraph>
       <StudioDivider />
       <StudioParagraph className={classes.cardDescription}>
         {t('ux_editor.component_properties.crop_description')}
