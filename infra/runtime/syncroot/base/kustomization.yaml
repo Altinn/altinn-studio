@@ -5,3 +5,4 @@ resources:
   - pdf.yaml
   - studio-gateway.yaml
   - flux-notifications.yaml
+  - altinn-charts.yaml
