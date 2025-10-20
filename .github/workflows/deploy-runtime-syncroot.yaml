@@ -26,7 +26,7 @@ jobs:
   push-syncroot-artifact:
     name: Push syncroot as OCI artifact
     runs-on: ubuntu-latest
-    environment: dev
+    environment: ${{ inputs.ring == '' && 'dev' || startsWith(inputs.ring, 'at_') && 'dev' || startsWith(inputs.ring, 'tt_') && 'staging' || 'prod' }}
     permissions:
       id-token: write # Require write permission to Fetch an OIDC token.
     defaults:
