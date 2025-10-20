@@ -62,6 +62,21 @@ describe('ConfigPanel', () => {
     ).toBeInTheDocument();
   });
 
+  it('should render ConfigServiceTask if bpmn type is ServiceTask', () => {
+    renderConfigPanel({
+      modelerRef: {
+        current: {
+          get: () => {},
+        } as unknown as Modeler,
+      },
+      bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.ServiceTask },
+    });
+    const editTaskIdButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_change_task_id'),
+    });
+    expect(editTaskIdButton).toBeInTheDocument();
+  });
+
   it.each([
     {
       task: BpmnTypeEnum.Process,
