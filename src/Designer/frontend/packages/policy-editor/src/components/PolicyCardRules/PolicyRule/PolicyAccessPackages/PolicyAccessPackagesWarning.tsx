@@ -1,7 +1,12 @@
 import React, { type ReactElement } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { StudioAlert, StudioParagraph, StudioList, StudioLabelAsParagraph } from '@studio/components';
-import { StudioLink } from '@studio/components-legacy';
+import {
+  StudioAlert,
+  StudioParagraph,
+  StudioList,
+  StudioLabelAsParagraph,
+  StudioLink,
+} from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import classes from './PolicyAccessPackagesWarning.module.css';
 
