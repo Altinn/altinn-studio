@@ -117,48 +117,6 @@ public sealed class InitialDataResponse
 }
 
 /// <summary>
-/// Frontend-specific application settings.
-/// </summary>
-// public sealed class FrontendAppSettings
-// {
-//     /// <summary>
-//     /// CDN base URL.
-//     /// </summary>
-//     [JsonPropertyName("cdnUrl")]
-//     public string? CdnUrl { get; set; }
-//
-//     /// <summary>
-//     /// API base URL.
-//     /// </summary>
-//     [JsonPropertyName("apiUrl")]
-//     public string? ApiUrl { get; set; }
-//
-//     /// <summary>
-//     /// Whether the app is stateless.
-//     /// </summary>
-//     [JsonPropertyName("isStateless")]
-//     public bool IsStateless { get; set; }
-//
-//     /// <summary>
-//     /// OIDC provider if configured.
-//     /// </summary>
-//     [JsonPropertyName("oidcProvider")]
-//     public string? OidcProvider { get; set; }
-//
-//     /// <summary>
-//     /// Current task ID from route (for deep linking).
-//     /// </summary>
-//     [JsonPropertyName("currentTaskId")]
-//     public string? CurrentTaskId { get; set; }
-//
-//     /// <summary>
-//     /// Current page ID from route (for deep linking).
-//     /// </summary>
-//     [JsonPropertyName("currentPageId")]
-//     public string? CurrentPageId { get; set; }
-// }
-
-/// <summary>
 /// Frontend-specific platform settings.
 /// </summary>
 public sealed class FrontendPlatformSettings

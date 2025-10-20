@@ -5,16 +5,12 @@ using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Process;
-using Altinn.App.Core.Internal.Process.Elements;
-using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
@@ -30,7 +26,6 @@ internal sealed class InitialDataService : IInitialDataService
     private readonly IInstanceClient _instanceClient;
     private readonly IProfileClient _profileClient;
     private readonly IRegisterClient _registerClient;
-    private readonly IUserTokenProvider _userTokenProvider;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly IProcessStateService _processStateService;
@@ -54,7 +49,6 @@ internal sealed class InitialDataService : IInitialDataService
         IInstanceClient instanceClient,
         IProfileClient profileClient,
         IRegisterClient registerClient,
-        IUserTokenProvider userTokenProvider,
         IHttpContextAccessor httpContextAccessor,
         IAuthenticationContext authenticationContext,
         IProcessStateService processStateService,
@@ -70,7 +64,6 @@ internal sealed class InitialDataService : IInitialDataService
         _instanceClient = instanceClient;
         _profileClient = profileClient;
         _registerClient = registerClient;
-        _userTokenProvider = userTokenProvider;
         _httpContextAccessor = httpContextAccessor;
         _authenticationContext = authenticationContext;
         _processStateService = processStateService;

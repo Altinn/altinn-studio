@@ -29,9 +29,7 @@ public class HomeController : Controller
     };
 
     private readonly IAntiforgery _antiforgery;
-    private readonly PlatformSettings _platformSettings;
     private readonly IWebHostEnvironment _env;
-    private readonly AppSettings _appSettings;
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
     private readonly IInitialDataService _initialDataService;
@@ -67,9 +65,7 @@ public class HomeController : Controller
     )
     {
         _antiforgery = antiforgery;
-        _platformSettings = platformSettings.Value;
         _env = env;
-        _appSettings = appSettings.Value;
         _appResources = appResources;
         _appMetadata = appMetadata;
         _initialDataService = initialDataService;
@@ -175,7 +171,7 @@ public class HomeController : Controller
 
         if (instances.Count > 1 && application.OnEntry?.Show == "select-instance")
         {
-            return Redirect(Request.GetDisplayUrl() + "instance-selection");
+            return Redirect(Request.GetDisplayUrl() + "/instance-selection");
         }
 
         var currentTask = mostRecentInstance.Process.CurrentTask;
