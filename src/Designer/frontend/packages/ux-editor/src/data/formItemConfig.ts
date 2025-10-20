@@ -497,7 +497,6 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       target: {
         type: 'layoutSet',
-        taskId: '',
       },
     },
     propertyPath: 'definitions/summary2Component',
