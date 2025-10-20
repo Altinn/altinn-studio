@@ -14,7 +14,12 @@ import userEvent from '@testing-library/user-event';
 import type { FormComponent } from '../../../../types/FormComponent';
 import { AppContext } from '../../../../AppContext';
 import { appContextMock } from '../../../../testing/appContextMock';
-import * as router from 'react-router';
+import { useNavigate } from 'react-router-dom';
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: jest.fn(),
+}));
 
 const handleComponentChangeMock = jest.fn();
 const subformLayoutSetId = 'subformLayoutSetId';
@@ -42,7 +47,7 @@ describe('EditLayoutSetForSubform', () => {
 
   it('should call navigate when navigating to subform', async () => {
     const navigateMock = jest.fn();
-    jest.spyOn(router, 'useNavigate').mockImplementation(() => navigateMock);
+    jest.mocked(useNavigate).mockReturnValue(navigateMock);
     const user = userEvent.setup();
     renderEditLayoutSetForSubform({
       layoutSetsMock: layoutSetsDefault,
