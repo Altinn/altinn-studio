@@ -29,7 +29,7 @@ export const ImageUploadComponent = ({
         onClick={() => setOpenCard(true)}
         className={className}
         icon={!cropValuesDisplayed && <PlusCircleIcon />}
-        property={componentPropertyLabel('Bildeform')}
+        property={componentPropertyLabel('crop_shape')}
         value={cropValuesDisplayed}
       />
     );
