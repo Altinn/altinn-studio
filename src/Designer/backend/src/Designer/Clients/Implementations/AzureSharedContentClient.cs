@@ -79,7 +79,7 @@ public class AzureSharedContentClient(
         string rootIndexContent = await rootIndexResponse.Content.ReadAsStringAsync(cancellationToken);
         if (string.IsNullOrEmpty(rootIndexContent))
         {
-            IndexFile index = new(Prefixes: [orgName], Latest: null);
+            IndexFile index = new(Prefixes: [orgName]);
             string contents = JsonSerializer.Serialize(index, s_jsonOptions);
             _fileNamesAndContent[IndexFileName] = contents;
         }
@@ -90,7 +90,7 @@ public class AzureSharedContentClient(
             if (organizations?.Contains(orgName) is false)
             {
                 organizations.Add(orgName);
-                IndexFile index = new(Prefixes: organizations, Latest: null);
+                IndexFile index = new(Prefixes: organizations);
                 string contents = JsonSerializer.Serialize(index, s_jsonOptions);
                 _fileNamesAndContent[IndexFileName] = contents;
             }
@@ -107,7 +107,7 @@ public class AzureSharedContentClient(
 
         if (resourceTypeIndexResponse.StatusCode == HttpStatusCode.NotFound)
         {
-            IndexFile index = new(Prefixes: [resourceTypeWithPrefix], Latest: null);
+            IndexFile index = new(Prefixes: [resourceTypeWithPrefix]);
             string fileContents = JsonSerializer.Serialize(index, s_jsonOptions);
             _fileNamesAndContent[resourceTypeIndexPath] = fileContents;
         }
@@ -119,7 +119,7 @@ public class AzureSharedContentClient(
             if (resourceTypes?.Contains(resourceTypeWithPrefix) is false)
             {
                 resourceTypes.Add(resourceTypeWithPrefix);
-                IndexFile index = new(Prefixes: resourceTypes, Latest: null);
+                IndexFile index = new(Prefixes: resourceTypes);
                 string contents = JsonSerializer.Serialize(index, s_jsonOptions);
                 _fileNamesAndContent[resourceTypeIndexPath] = contents;
             }
@@ -136,7 +136,7 @@ public class AzureSharedContentClient(
 
         if (codeListIdIndexResponse.StatusCode == HttpStatusCode.NotFound)
         {
-            IndexFile index = new(Prefixes: [resourceIdWithPrefix], Latest: null);
+            IndexFile index = new(Prefixes: [resourceIdWithPrefix]);
             string contents = JsonSerializer.Serialize(index, s_jsonOptions);
             _fileNamesAndContent[resourceIndexPath] = contents;
         }
@@ -148,7 +148,7 @@ public class AzureSharedContentClient(
             if (codeListIds?.Contains(resourceIdWithPrefix) is false)
             {
                 codeListIds.Add(resourceIdWithPrefix);
-                IndexFile index = new(Prefixes: codeListIds, Latest: null);
+                IndexFile index = new(Prefixes: codeListIds);
                 string contents = JsonSerializer.Serialize(index, s_jsonOptions);
                 _fileNamesAndContent[resourceIndexPath] = contents;
             }
@@ -175,13 +175,13 @@ public class AzureSharedContentClient(
             {
                 string versionWithPrefix = CombineWithDelimiter(versionIndexPrefix, JsonFileName(_currentVersion));
                 versions.Add(versionWithPrefix);
-                IndexFile index = new(Prefixes: versions, Latest: versionWithPrefix);
+                IndexFile index = new(Prefixes: versions);
                 string contents = JsonSerializer.Serialize(index, s_jsonOptions);
                 _fileNamesAndContent[versionIndexPath] = contents;
             }
             else
             {
-                IndexFile index = new(Prefixes: [initialVersionWithPrefix], Latest: initialVersionWithPrefix);
+                IndexFile index = new(Prefixes: [initialVersionWithPrefix]);
                 string contents = JsonSerializer.Serialize(index, s_jsonOptions);
                 _fileNamesAndContent[versionIndexPath] = contents;
             }
@@ -189,7 +189,7 @@ public class AzureSharedContentClient(
 
         if (versionIndexResponse.StatusCode == HttpStatusCode.NotFound)
         {
-            IndexFile index = new(Prefixes: [initialVersionWithPrefix], Latest: initialVersionWithPrefix);
+            IndexFile index = new(Prefixes: [initialVersionWithPrefix]);
             string contents = JsonSerializer.Serialize(index, s_jsonOptions);
             _fileNamesAndContent[versionIndexPath] = contents;
         }
