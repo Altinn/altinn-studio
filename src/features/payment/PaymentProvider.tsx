@@ -26,6 +26,9 @@ type PaymentContextProvider = {
 
 export const PaymentContext = createContext<PaymentContextProps | undefined>(undefined);
 
+// Module-level tracking to prevent duplicate payment calls across component remounts
+const paymentInitiatedForInstance = new Map<string, boolean>();
+
 export const PaymentProvider: React.FC<PaymentContextProvider> = ({ children }) => {
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
@@ -55,6 +58,7 @@ function PaymentNavigation() {
   const paymentInfo = usePaymentInformation();
   const isPdf = useIsPdf();
   const { performPayment, skipPayment } = usePayment();
+  const instanceGuid = useNavigationParam('instanceGuid');
 
   const paymentDoesNotExist = paymentInfo?.status === PaymentStatus.Uninitialized;
   const isPaymentProcess = useIsPayment();
@@ -62,10 +66,21 @@ function PaymentNavigation() {
   // If when landing on payment task, PaymentStatus is Uninitialized, initiate it by calling the pay action and
   // go to payment provider
   useEffect(() => {
-    if (isPaymentProcess && paymentDoesNotExist && !isPdf) {
-      performPayment();
+    if (isPaymentProcess && paymentDoesNotExist && !isPdf && instanceGuid) {
+      // Check module-level map to prevent duplicate calls across remounts
+      if (!paymentInitiatedForInstance.get(instanceGuid)) {
+        paymentInitiatedForInstance.set(instanceGuid, true);
+        performPayment();
+      }
+    } else if (
+      instanceGuid &&
+      paymentInfo?.status !== undefined &&
+      paymentInfo.status !== PaymentStatus.Uninitialized
+    ) {
+      // Clean up the flag once payment status is known and no longer Uninitialized
+      paymentInitiatedForInstance.delete(instanceGuid);
     }
-  }, [isPaymentProcess, paymentDoesNotExist, performPayment, isPdf]);
+  }, [isPaymentProcess, paymentDoesNotExist, performPayment, isPdf, instanceGuid, paymentInfo?.status]);
 
   const paymentCompleted = paymentInfo?.status === PaymentStatus.Paid || paymentInfo?.status === PaymentStatus.Skipped;
 
