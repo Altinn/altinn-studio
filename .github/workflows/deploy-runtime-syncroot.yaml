@@ -8,6 +8,19 @@ on:
       - infra/runtime/syncroot/**
       - .github/workflows/deploy-runtime-syncroot.yaml
   workflow_dispatch:
+    inputs:
+      ring:
+        description: 'Ring (upgrade channel) to tag the syncroot artifact with. Must be one of [at_ring1, at_ring2, tt_ring1, tt_ring2, prod_ring1, prod_ring2]. Defaults to at_ring1'
+        required: false
+        default: 'at_ring1'
+        type: choice
+        options:
+          - 'at_ring1'
+          - 'at_ring2'
+          - 'tt_ring1'
+          - 'tt_ring2'
+          - 'prod_ring1'
+          - 'prod_ring2'
 
 jobs:
   push-syncroot-artifact:
@@ -49,4 +62,4 @@ jobs:
 
       - name: tag artifact at_ring1 (ttd/at22)
         run: |
-          flux tag artifact oci://altinncr.azurecr.io/studio-apps/syncroot:$(git rev-parse --short HEAD) --tag at_ring1
+          flux tag artifact oci://altinncr.azurecr.io/studio-apps/syncroot:$(git rev-parse --short HEAD) --tag ${{ inputs.ring }}
