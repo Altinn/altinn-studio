@@ -1,7 +1,7 @@
 import React, { type ReactElement } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph, StudioLink, StudioList } from '@studio/components-legacy';
-import { StudioAlert, StudioParagraph } from '@studio/components';
+import { StudioLabelAsParagraph } from '@studio/components-legacy';
+import { StudioAlert, StudioParagraph, StudioList, StudioLink } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export const PolicyAccessPackagesWarning = (): ReactElement => {
@@ -28,7 +28,7 @@ export const PolicyAccessPackagesWarning = (): ReactElement => {
       <StudioLabelAsParagraph size='sm'>
         {t('policy_editor.access_package_warning_header2')}
       </StudioLabelAsParagraph>
-      <StudioList.Root size='sm'>
+      <StudioList.Root data-size='sm'>
         <StudioList.Unordered>
           <StudioList.Item>{t('policy_editor.access_package_warning_listitem1')}</StudioList.Item>
           <StudioList.Item>{t('policy_editor.access_package_warning_listitem2')}</StudioList.Item>
