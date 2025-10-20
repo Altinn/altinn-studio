@@ -2,6 +2,7 @@ import BpmnModeler from 'bpmn-js/lib/Modeler';
 import SupportedPaletteProvider from '../../bpmnProviders/SupportedPaletteProvider';
 import SupportedContextPadProvider from '../../bpmnProviders/SupportedContextPadProvider';
 import { altinnCustomTasks } from '../../extensions/altinnCustomTasks';
+import UpdateTaskIdCommandHandler from '@altinn/process-editor/commandHandlers/UpdateTaskIdCommandHandler';
 
 export class BpmnModelerInstance {
   private static instance: BpmnModeler | null = null;
@@ -22,7 +23,11 @@ export class BpmnModelerInstance {
     if (shouldCreateNewInstance) {
       BpmnModelerInstance.instance = new BpmnModeler({
         container: canvasContainer,
-        additionalModules: [SupportedPaletteProvider, SupportedContextPadProvider],
+        additionalModules: [
+          SupportedPaletteProvider,
+          SupportedContextPadProvider,
+          UpdateTaskIdCommandHandler,
+        ],
         moddleExtensions: {
           altinn: altinnCustomTasks,
         },
