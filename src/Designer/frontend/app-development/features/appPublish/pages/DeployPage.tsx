@@ -10,7 +10,8 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { Link } from '@digdir/designsystemet-react';
 import { EmailContactProvider } from 'app-shared/getInTouch/providers';
 import { GetInTouchWith } from 'app-shared/getInTouch';
-import { StudioError, StudioPageSpinner } from '@studio/components-legacy';
+import { StudioPageSpinner } from '@studio/components-legacy';
+import { StudioError } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export function DeployPage() {

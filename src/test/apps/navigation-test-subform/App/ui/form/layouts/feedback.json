@@ -1,0 +1,25 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": ["commaContains", ["dataModel", "extra"], "feedback"],
+    "layout": [
+      {
+        "dataModelBindings": {
+          "simpleBinding": "feedback"
+        },
+        "id": "feedback",
+        "type": "TextArea",
+        "textResourceBindings": {
+          "title": "feedback.feedback.title"
+        }
+      },
+      {
+        "id": "NavigationButtons-wD0wZh",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      }
+    ]
+  }
+}
+

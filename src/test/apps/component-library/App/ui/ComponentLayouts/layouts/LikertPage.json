@@ -1,0 +1,99 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": false,
+    "layout": [
+      {
+        "id": "LikertPage-NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "LikertPage-Header",
+        "type": "Header",
+        "size": "h2",
+        "textResourceBindings": {
+            "title": "LikertPage"
+        }
+      },
+      {
+        "id": "LikertPage-Header-Component",
+        "type": "Header",
+        "size": "h3",
+        "textResourceBindings": {
+            "title": "Header.Component"
+        }
+      },
+      {
+        "id": "LikertPage-Likert",
+        "type": "Likert",
+        "textResourceBindings": {
+          "title": "Skolearbeid",
+          "description": "På de neste spørsmålene skal du svare i kontekst av klasserommet.",
+          "leftColumnHeader": "Spørsmål",
+          "questions": "likert-row-title"
+        },
+        "dataModelBindings": {
+          "questions": "LikertExample",
+          "answer": "LikertExample.Answer"
+        },
+        "filter": [
+          {
+            "key": "start",
+            "value": "0"
+          },
+          {
+            "key": "stop",
+            "value": "3"
+          }
+        ],
+        "optionsId": "likertOptions"
+      },
+      {
+        "id": "LikertPage-Summary-Group",
+        "type": "Group",
+        "children": [
+          "LikertPage-Header-Summary",
+          "LikertPage-Summary",
+          "LikertPage-Header-Summary2",
+          "LikertPage-Summary2"
+        ]
+      },
+      {
+        "size": "h3",
+        "id": "LikertPage-Header-Summary",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Summary"
+        }
+      },
+      {
+        "id": "LikertPage-Summary",
+        "type": "Summary",
+        "componentRef": "LikertPage-Likert"
+      },
+      {
+        "size": "h3",
+        "id": "LikertPage-Header-Summary2",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Summary2"
+        }
+      },
+      {
+        "id": "LikertPage-Summary2",
+        "type": "Summary2",
+        "hidden": false,
+        "target": {
+          "type": "component",
+          "id": "LikertPage-Likert"
+        }
+      },
+      {
+        "id": "LikertPage-NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      }
+    ]
+  }
+}

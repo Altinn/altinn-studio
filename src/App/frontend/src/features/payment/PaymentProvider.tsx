@@ -10,8 +10,8 @@ import { PaymentStatus } from 'src/features/payment/types';
 import { usePerformPayActionMutation } from 'src/features/payment/usePerformPaymentMutation';
 import { useIsPayment } from 'src/features/payment/utils';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { useEffectEvent } from 'src/hooks/useEffectEvent';
 import { useIsPdf } from 'src/hooks/useIsPdf';
+import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 
 type PaymentContextProps = {
@@ -38,8 +38,8 @@ export const PaymentProvider: React.FC<PaymentContextProvider> = ({ children }) 
 
   const isLoading = isPaymentPending || isConfirmPending;
 
-  const performPayment = useEffectEvent(() => mutateAsync());
-  const skipPayment = useEffectEvent(() => processConfirm());
+  const performPayment = useOurEffectEvent(() => mutateAsync());
+  const skipPayment = useOurEffectEvent(() => processConfirm());
 
   const contextValue = useShallowMemo({ performPayment, skipPayment, paymentError });
 
