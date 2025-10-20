@@ -14,7 +14,7 @@ export enum ShapeOptions {
 export const isRectangleShape = (internalCrop: InternalCrop): internalCrop is RectangleShape =>
   internalCrop?.shape === ShapeOptions.Rectangle;
 
-export const getInitialValues = (crop?: ExternalCrop): ExternalCrop => {
+export const getInitialValues = (crop?: ExternalCrop): InternalCrop => {
   const DEFAULT_VALUE = 250;
   const { width, height, diameter } = (crop || {}) as Partial<{
     width: number;
@@ -41,7 +41,7 @@ export const getCropToBeSaved = (internalCrop: InternalCrop): ExternalCrop => {
   return { shape: internalCrop.shape, diameter: internalCrop.diameter };
 };
 
-export const validateCrop = (newInternalCrop: ExternalCrop): ErrorProps => {
+export const validateCrop = (newInternalCrop: InternalCrop): ErrorProps => {
   const validationResult: ErrorProps = {};
 
   Object.values(SizeOptions).forEach((key) => {

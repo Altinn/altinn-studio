@@ -21,7 +21,7 @@ export const ImageUploadShape = ({
 
   return (
     <StudioSelect
-      label={componentPropertyLabel('Bildeform')}
+      label={componentPropertyLabel('crop_shape')}
       value={internalCrop.shape}
       onChange={(event) => {
         handleShapeChange(event.target.value as ShapeOptions);
