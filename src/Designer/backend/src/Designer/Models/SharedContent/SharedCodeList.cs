@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Altinn.Studio.Designer.Models;
+namespace Altinn.Studio.Designer.Models.SharedContent;
 
 public sealed record SharedCodeList(List<Code> Codes, string Version, CodeListSource? Source, List<string>? TagNames)
 {

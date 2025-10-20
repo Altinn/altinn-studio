@@ -34,7 +34,7 @@ public class AzureSharedContentClient(
 
     private string _currentVersion = InitialVersion;
     private readonly Dictionary<string, string> _fileNamesAndContent = [];
-    private readonly string _sharedContentBaseUri = JoinWithForwardSlashBetween(
+    private readonly string _sharedContentBaseUri = CombineWithDelimiter(
         sharedContentClientSettings.Value.StorageAccountUrl, sharedContentClientSettings.Value.StorageContainerName);
 
     private static readonly JsonSerializerOptions s_jsonOptions = new()
@@ -54,15 +54,15 @@ public class AzureSharedContentClient(
         }
 
         string resourceTypeIndexPrefix = orgName;
-        string resourceIndexPrefix = JoinWithForwardSlashBetween(orgName, CodeList);
-        string versionIndexPrefix = JoinWithForwardSlashBetween(orgName, CodeList, codeListId);
+        string resourceIndexPrefix = CombineWithDelimiter(orgName, CodeList);
+        string versionIndexPrefix = CombineWithDelimiter(orgName, CodeList, codeListId);
 
         await HandleOrganizationIndex(orgName, cancellationToken);
         await HandleResourceTypeIndex(resourceTypeIndexPrefix, CodeList, cancellationToken);
         await HandleResourceIndex(resourceIndexPrefix, codeListId, cancellationToken);
         await HandleVersionIndex(versionIndexPrefix, cancellationToken);
 
-        string codeListFolderPath = JoinWithForwardSlashBetween(orgName, CodeList, codeListId);
+        string codeListFolderPath = CombineWithDelimiter(orgName, CodeList, codeListId);
         CreateCodeListFiles(codeList, codeListFolderPath, versionIndexPrefix);
 
         BlobContainerClient containerClient = GetContainerClient();
@@ -72,25 +72,25 @@ public class AzureSharedContentClient(
 
     private async Task HandleOrganizationIndex(string orgName, CancellationToken cancellationToken)
     {
-        string rootIndexPath = JoinWithForwardSlashBetween(_sharedContentBaseUri, IndexFileName);
+        string rootIndexPath = CombineWithDelimiter(_sharedContentBaseUri, IndexFileName);
         HttpResponseMessage rootIndexResponse = await httpClient.GetAsync(new Uri(rootIndexPath), cancellationToken);
         ThrowIfUnhealthyEndpoint(rootIndexResponse);
 
         string rootIndexContent = await rootIndexResponse.Content.ReadAsStringAsync(cancellationToken);
         if (string.IsNullOrEmpty(rootIndexContent))
         {
-            OrganizationsIndex index = new(Organizations: [orgName]);
+            IndexFile index = new(Prefixes: [orgName], Latest: null);
             string contents = JsonSerializer.Serialize(index, s_jsonOptions);
             _fileNamesAndContent[IndexFileName] = contents;
         }
         else
         {
-            OrganizationsIndex? organizationsIndex = JsonSerializer.Deserialize<OrganizationsIndex>(rootIndexContent, s_jsonOptions);
-            List<string>? organizations = organizationsIndex?.Organizations;
+            IndexFile? organizationsIndex = JsonSerializer.Deserialize<IndexFile>(rootIndexContent, s_jsonOptions);
+            List<string>? organizations = organizationsIndex?.Prefixes;
             if (organizations?.Contains(orgName) is false)
             {
                 organizations.Add(orgName);
-                OrganizationsIndex index = new(Organizations: organizations);
+                IndexFile index = new(Prefixes: organizations, Latest: null);
                 string contents = JsonSerializer.Serialize(index, s_jsonOptions);
                 _fileNamesAndContent[IndexFileName] = contents;
             }
@@ -99,27 +99,27 @@ public class AzureSharedContentClient(
 
     private async Task HandleResourceTypeIndex(string resourceTypeIndexPrefix, string resourceType, CancellationToken cancellationToken)
     {
-        string resourceTypeIndexPath = JoinWithForwardSlashBetween(resourceTypeIndexPrefix, IndexFileName);
-        string resourceTypeIndexUri = JoinWithForwardSlashBetween(_sharedContentBaseUri, resourceTypeIndexPath);
+        string resourceTypeIndexPath = CombineWithDelimiter(resourceTypeIndexPrefix, IndexFileName);
+        string resourceTypeIndexUri = CombineWithDelimiter(_sharedContentBaseUri, resourceTypeIndexPath);
         HttpResponseMessage resourceTypeIndexResponse = await httpClient.GetAsync(new Uri(resourceTypeIndexUri), cancellationToken);
 
-        string resourceTypeWithPrefix = JoinWithForwardSlashBetween(resourceTypeIndexPrefix, resourceType);
+        string resourceTypeWithPrefix = CombineWithDelimiter(resourceTypeIndexPrefix, resourceType);
 
         if (resourceTypeIndexResponse.StatusCode == HttpStatusCode.NotFound)
         {
-            ResourceTypesIndex index = new(ResourceTypes: [resourceTypeWithPrefix]);
+            IndexFile index = new(Prefixes: [resourceTypeWithPrefix], Latest: null);
             string fileContents = JsonSerializer.Serialize(index, s_jsonOptions);
             _fileNamesAndContent[resourceTypeIndexPath] = fileContents;
         }
         else
         {
             string resourceTypeIndexContent = await resourceTypeIndexResponse.Content.ReadAsStringAsync(cancellationToken);
-            ResourceTypesIndex? resourceTypesIndex = JsonSerializer.Deserialize<ResourceTypesIndex>(resourceTypeIndexContent, s_jsonOptions);
-            List<string>? resourceTypes = resourceTypesIndex?.ResourceTypes;
+            IndexFile? resourceTypesIndex = JsonSerializer.Deserialize<IndexFile>(resourceTypeIndexContent, s_jsonOptions);
+            List<string>? resourceTypes = resourceTypesIndex?.Prefixes;
             if (resourceTypes?.Contains(resourceTypeWithPrefix) is false)
             {
                 resourceTypes.Add(resourceTypeWithPrefix);
-                ResourceTypesIndex index = new(ResourceTypes: resourceTypes);
+                IndexFile index = new(Prefixes: resourceTypes, Latest: null);
                 string contents = JsonSerializer.Serialize(index, s_jsonOptions);
                 _fileNamesAndContent[resourceTypeIndexPath] = contents;
             }
@@ -128,27 +128,27 @@ public class AzureSharedContentClient(
 
     private async Task HandleResourceIndex(string resourceIndexPrefix, string resourceId, CancellationToken cancellationToken)
     {
-        string resourceIndexPath = JoinWithForwardSlashBetween(resourceIndexPrefix, IndexFileName);
-        string codeListIdIndexUri = JoinWithForwardSlashBetween(_sharedContentBaseUri, resourceIndexPath);
+        string resourceIndexPath = CombineWithDelimiter(resourceIndexPrefix, IndexFileName);
+        string codeListIdIndexUri = CombineWithDelimiter(_sharedContentBaseUri, resourceIndexPath);
         HttpResponseMessage codeListIdIndexResponse = await httpClient.GetAsync(new Uri(codeListIdIndexUri), cancellationToken);
 
-        string resourceIdWithPrefix = JoinWithForwardSlashBetween(resourceIndexPrefix, resourceId);
+        string resourceIdWithPrefix = CombineWithDelimiter(resourceIndexPrefix, resourceId);
 
         if (codeListIdIndexResponse.StatusCode == HttpStatusCode.NotFound)
         {
-            ResourceIdsIndex index = new(ResourceIds: [resourceIdWithPrefix]);
+            IndexFile index = new(Prefixes: [resourceIdWithPrefix], Latest: null);
             string contents = JsonSerializer.Serialize(index, s_jsonOptions);
             _fileNamesAndContent[resourceIndexPath] = contents;
         }
         else
         {
             string codeListIdIndexContent = await codeListIdIndexResponse.Content.ReadAsStringAsync(cancellationToken);
-            ResourceIdsIndex? resourceTypesIndex = JsonSerializer.Deserialize<ResourceIdsIndex>(codeListIdIndexContent, s_jsonOptions);
-            List<string>? codeListIds = resourceTypesIndex?.ResourceIds;
+            IndexFile? resourceTypesIndex = JsonSerializer.Deserialize<IndexFile>(codeListIdIndexContent, s_jsonOptions);
+            List<string>? codeListIds = resourceTypesIndex?.Prefixes;
             if (codeListIds?.Contains(resourceIdWithPrefix) is false)
             {
                 codeListIds.Add(resourceIdWithPrefix);
-                ResourceIdsIndex index = new(ResourceIds: codeListIds);
+                IndexFile index = new(Prefixes: codeListIds, Latest: null);
                 string contents = JsonSerializer.Serialize(index, s_jsonOptions);
                 _fileNamesAndContent[resourceIndexPath] = contents;
             }
@@ -157,31 +157,31 @@ public class AzureSharedContentClient(
 
     private async Task HandleVersionIndex(string versionIndexPrefix, CancellationToken cancellationToken)
     {
-        string versionIndexPath = JoinWithForwardSlashBetween(versionIndexPrefix, IndexFileName);
-        string versionIndexUri = JoinWithForwardSlashBetween(_sharedContentBaseUri, versionIndexPath);
+        string versionIndexPath = CombineWithDelimiter(versionIndexPrefix, IndexFileName);
+        string versionIndexUri = CombineWithDelimiter(_sharedContentBaseUri, versionIndexPath);
         HttpResponseMessage versionIndexResponse = await httpClient.GetAsync(new Uri(versionIndexUri), cancellationToken);
 
-        string initialVersionWithPrefix = JoinWithForwardSlashBetween(versionIndexPrefix, JsonFileName(InitialVersion));
+        string initialVersionWithPrefix = CombineWithDelimiter(versionIndexPrefix, JsonFileName(InitialVersion));
 
         if (versionIndexResponse.StatusCode == HttpStatusCode.OK)
         {
             string versionIndexContent = await versionIndexResponse.Content.ReadAsStringAsync(cancellationToken);
-            VersionsIndex? versionsIndex = JsonSerializer.Deserialize<VersionsIndex>(versionIndexContent, s_jsonOptions);
-            List<string>? versions = versionsIndex?.Versions;
+            IndexFile? versionsIndex = JsonSerializer.Deserialize<IndexFile>(versionIndexContent, s_jsonOptions);
+            List<string>? versions = versionsIndex?.Prefixes;
 
             SetCurrentVersion(versions);
 
             if (versions is not null)
             {
-                string versionWithPrefix = JoinWithForwardSlashBetween(versionIndexPrefix, JsonFileName(_currentVersion));
+                string versionWithPrefix = CombineWithDelimiter(versionIndexPrefix, JsonFileName(_currentVersion));
                 versions.Add(versionWithPrefix);
-                VersionsIndex index = new(Versions: versions, Latest: versionWithPrefix);
+                IndexFile index = new(Prefixes: versions, Latest: versionWithPrefix);
                 string contents = JsonSerializer.Serialize(index, s_jsonOptions);
                 _fileNamesAndContent[versionIndexPath] = contents;
             }
             else
             {
-                VersionsIndex index = new(Versions: [initialVersionWithPrefix], Latest: initialVersionWithPrefix);
+                IndexFile index = new(Prefixes: [initialVersionWithPrefix], Latest: initialVersionWithPrefix);
                 string contents = JsonSerializer.Serialize(index, s_jsonOptions);
                 _fileNamesAndContent[versionIndexPath] = contents;
             }
@@ -189,7 +189,7 @@ public class AzureSharedContentClient(
 
         if (versionIndexResponse.StatusCode == HttpStatusCode.NotFound)
         {
-            VersionsIndex index = new(Versions: [initialVersionWithPrefix], Latest: initialVersionWithPrefix);
+            IndexFile index = new(Prefixes: [initialVersionWithPrefix], Latest: initialVersionWithPrefix);
             string contents = JsonSerializer.Serialize(index, s_jsonOptions);
             _fileNamesAndContent[versionIndexPath] = contents;
         }
@@ -197,7 +197,7 @@ public class AzureSharedContentClient(
 
     private void CreateCodeListFiles(CodeList codeList, string codeListFolderPath, string versionPrefix)
     {
-        string version = JoinWithForwardSlashBetween(versionPrefix, JsonFileName(_currentVersion));
+        string version = CombineWithDelimiter(versionPrefix, JsonFileName(_currentVersion));
         var codeListContents = new SharedCodeList(
             Codes: codeList.Codes,
             Version: version,
@@ -207,10 +207,10 @@ public class AzureSharedContentClient(
         string contentsString = JsonSerializer.Serialize(codeListContents, s_jsonOptions);
 
         string codeListFileName = JsonFileName(_currentVersion);
-        string codeListFilePath = JoinWithForwardSlashBetween(codeListFolderPath, codeListFileName);
+        string codeListFilePath = CombineWithDelimiter(codeListFolderPath, codeListFileName);
         _fileNamesAndContent[codeListFilePath] = contentsString;
 
-        string lastestCodeListFilePath = JoinWithForwardSlashBetween(codeListFolderPath, LatestCodeListFileName);
+        string lastestCodeListFilePath = CombineWithDelimiter(codeListFolderPath, LatestCodeListFileName);
         _fileNamesAndContent[lastestCodeListFilePath] = contentsString;
     }
 
@@ -250,7 +250,11 @@ public class AzureSharedContentClient(
         }
     }
 
-    private static string JoinWithForwardSlashBetween(params string[] segments)
+    /// <summary>
+    /// Combines with forward slash delimiter, no trailing slash.
+    /// </summary>
+    /// <param name="segments">Segments to join</param>
+    private static string CombineWithDelimiter(params string[] segments)
     {
         return string.Join("/", segments.Select(segment => segment.Trim('/')));
     }

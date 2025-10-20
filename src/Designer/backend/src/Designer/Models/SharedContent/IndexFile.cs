@@ -3,4 +3,4 @@ using System.Collections.Generic;
 
 namespace Altinn.Studio.Designer.Models.SharedContent;
 
-public record ResourceTypesIndex(List<string> ResourceTypes);
+public record IndexFile(List<string> Prefixes, string? Latest);
