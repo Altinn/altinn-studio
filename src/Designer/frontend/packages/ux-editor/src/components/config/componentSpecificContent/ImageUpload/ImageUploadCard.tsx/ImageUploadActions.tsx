@@ -25,8 +25,8 @@ export const ImageUploadActions = ({
   const isDisabled = getDisabledState({ errors, internalCrop, externalCrop });
 
   const handleSave = () => {
-    setOpenCard(false);
     handleSaveChanges(getCropToBeSaved(internalCrop));
+    setOpenCard(false);
   };
 
   const handleCancel = () => {
