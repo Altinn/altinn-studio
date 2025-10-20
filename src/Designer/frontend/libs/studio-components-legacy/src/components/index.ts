@@ -38,7 +38,6 @@ export * from './StudioPageImageBackgroundContainer';
 export * from './StudioPageSpinner';
 export * from './StudioParagraph';
 export * from './StudioPopover';
-export * from './StudioRecommendedNextAction';
 export * from './StudioRedirectBox';
 export * from './StudioResizableLayout';
 export * from './StudioSearch';
