@@ -54,6 +54,9 @@ public class AzureSharedContentClient(
             throw new ConfigurationErrorsException("Base url for the content library must be set before publishing.");
         }
 
+        BlobContainerClient containerClient = GetContainerClient();
+        await ThrowIfUnhealthy(containerClient, cancellationToken);
+
         string resourceTypeIndexPrefix = orgName;
         string resourceIndexPrefix = CombineWithDelimiter(orgName, CodeList);
         string versionIndexPrefix = CombineWithDelimiter(orgName, CodeList, codeListId);
@@ -66,7 +69,6 @@ public class AzureSharedContentClient(
         string codeListFolderPath = CombineWithDelimiter(orgName, CodeList, codeListId);
         CreateCodeListFiles(codeList, codeListFolderPath, versionIndexPrefix);
 
-        BlobContainerClient containerClient = GetContainerClient();
         List<Task> tasks = PrepareBlobTasks(containerClient, cancellationToken);
         Task.WaitAll(tasks, cancellationToken);
     }
@@ -75,7 +77,6 @@ public class AzureSharedContentClient(
     {
         string rootIndexPath = CombineWithDelimiter(_sharedContentBaseUri, IndexFileName);
         HttpResponseMessage rootIndexResponse = await httpClient.GetAsync(new Uri(rootIndexPath), cancellationToken);
-        ThrowIfUnhealthyEndpoint(rootIndexResponse);
 
         string rootIndexContent = await rootIndexResponse.Content.ReadAsStringAsync(cancellationToken);
         if (string.IsNullOrEmpty(rootIndexContent))
@@ -231,11 +232,15 @@ public class AzureSharedContentClient(
         return tasks;
     }
 
-    private void ThrowIfUnhealthyEndpoint(HttpResponseMessage rootIndexResponse)
+    private async Task ThrowIfUnhealthy(BlobContainerClient client, CancellationToken cancellationToken = default)
     {
-        if (rootIndexResponse.StatusCode == HttpStatusCode.NotFound)
+        try
         {
-            logger.LogError($"Shared content storage container not found, class: {nameof(AzureSharedContentClient)}");
+            await client.ExistsAsync(cancellationToken);
+        }
+        catch (Exception ex) when (ex is RequestFailedException or AggregateException)
+        {
+            logger.LogError($"Shared content storage container not found, class: {nameof(AzureSharedContentClient)} Message: {ex.Message}");
             throw new InvalidOperationException("Request failed.");
         }
     }
