@@ -8,7 +8,7 @@ import { useDisplayCropValues } from './useDisplayCropValues';
 import { ImageUploadCard } from './ImageUploadCard.tsx/ImageUploadCard';
 import type { ExternalCrop } from './ImageUploadTypes';
 
-type ImageUploadComponentProps = {
+export type ImageUploadComponentProps = {
   component: FormItem<ComponentType.ImageUpload>;
   handleComponentChange: (component: FormItem) => void;
   className?: string;
