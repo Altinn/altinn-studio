@@ -1,7 +1,7 @@
 import React from 'react';
 import { PageName } from '../types/PageName';
 import { BookIcon, CodeListsIcon, ImageIcon } from '@studio/icons';
-import type { StudioContentMenuLinkTabProps } from '@studio/components-legacy';
+import type { StudioContentMenuLinkTabProps } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { pageRouterQueryParamKey } from '../utils/router/QueryParamsRouter';

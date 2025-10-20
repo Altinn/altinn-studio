@@ -34,7 +34,7 @@ public record FluxEvent
     /// <summary>
     /// Optional metadata for the event.
     /// </summary>
-    public Dictionary<string, string>? Metadata { get; init; }
+    public IReadOnlyDictionary<string, string>? Metadata { get; init; }
 
     /// <summary>
     /// Name of the controller that emitted this event.

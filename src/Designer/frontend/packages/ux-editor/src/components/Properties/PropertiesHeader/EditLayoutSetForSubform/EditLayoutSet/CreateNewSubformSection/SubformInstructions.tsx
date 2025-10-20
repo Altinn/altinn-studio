@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioList } from '@studio/components-legacy';
+import { StudioList } from '@studio/components';
 
 export const SubformInstructions = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -12,7 +12,7 @@ export const SubformInstructions = (): React.ReactElement => {
   ];
 
   return (
-    <StudioList.Root size='sm'>
+    <StudioList.Root data-size='sm'>
       <StudioList.Heading>
         {t('ux_editor.component_properties.subform.no_existing_layout_set_instructions_header')}
       </StudioList.Heading>

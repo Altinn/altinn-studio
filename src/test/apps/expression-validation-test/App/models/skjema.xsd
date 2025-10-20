@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xs:annotation>
+    <xs:documentation>
+      <xsd:attribute name="rootNode" fixed="" />
+    </xs:documentation>
+  </xs:annotation>
+  <xs:element name="skjema">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="root">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="fornavn" type="xs:string" />
+              <xs:element minOccurs="0" name="etternavn" type="xs:string" />
+              <xs:element minOccurs="0" name="alder" type="xs:long" />
+              <xs:element minOccurs="0" maxOccurs="99" name="arbeidserfaring">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="0" name="arbeidsgiver" type="xs:string" />
+                    <xs:element minOccurs="0" name="fortsattAnsatt" type="xs:boolean" />
+                    <xs:element minOccurs="0" name="fra" type="xs:string" />
+                    <xs:element minOccurs="0" name="til" type="xs:string" />
+                    <xs:element minOccurs="0" name="stilling" type="xs:string" />
+                    <xs:element minOccurs="0" name="beskrivelse" type="xs:string" />
+                    <xs:element minOccurs="0" maxOccurs="99" name="prosjekter">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element minOccurs="0" name="tittel" type="xs:string" />
+                          <xs:element minOccurs="0" name="beskrivelse" type="xs:string" />
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element minOccurs="0" maxOccurs="unbounded" name="vedlegg" type="xs:string" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element minOccurs="0" name="epost" type="xs:string" />
+              <xs:element minOccurs="0" name="telefonnummer" type="xs:long" />
+              <xs:element minOccurs="0" name="bosted" type="xs:string" />
+              <xs:element minOccurs="0" name="kjonn" type="xs:string" />
+              <xs:element minOccurs="0" name="SF_skjul-felter" type="xs:string" />
+              <xs:element minOccurs="0" name="SF_skjul-arbeidsgiver" type="xs:string" />
+              <xs:element minOccurs="0" name="SF_skjul-prosjekt" type="xs:string" />
+              <xs:element minOccurs="0" name="SF_validate-tags" type="xs:boolean" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="vedlegg" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xsd:schema>

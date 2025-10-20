@@ -1,0 +1,20 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout-sets.schema.v1.json",
+  "sets": [
+    {
+      "id": "form",
+      "dataType": "data",
+      "tasks": ["Task_1"]
+    },
+    {
+      "id": "confirm1",
+      "dataType": "data",
+      "tasks": ["Task_2"]
+    },
+    {
+      "id": "confirm2",
+      "dataType": "data",
+      "tasks": ["Task_3"]
+    }
+  ]
+}

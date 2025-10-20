@@ -30,7 +30,6 @@ export * from './StudioIconTextfield';
 export * from './StudioInputTable';
 export * from './StudioLabelAsParagraph';
 export * from './StudioLabelWrapper';
-export * from './StudioList';
 export * from './StudioModal';
 export * from './StudioRadio';
 export * from './StudioNativeSelect';

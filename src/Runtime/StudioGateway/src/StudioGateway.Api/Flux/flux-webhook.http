@@ -6,77 +6,77 @@ GET {{baseUrl}}/health/live
 ### Health Check - Ready
 GET {{baseUrl}}/health/ready
 
-### Flux Webhook - Kustomization ReconciliationSucceeded
+### Flux Webhook - HelmRelease Install Succeeded
 POST {{baseUrl}}/flux/webhook
 Content-Type: application/json
 
 {
   "involvedObject": {
-    "kind": "Kustomization",
+    "kind": "HelmRelease",
     "namespace": "flux-system",
-    "name": "dummy-service",
-    "uid": "22254537-ebaf-452b-9abf-fe86c4630b0a",
-    "apiVersion": "kustomize.toolkit.fluxcd.io/v1",
-    "resourceVersion": "800"
+    "name": "dummy-helmrelease",
+    "uid": "7584995d-e301-42fb-a9c1-199c9b9f69bd",
+    "apiVersion": "helm.toolkit.fluxcd.io/v2",
+    "resourceVersion": "843"
   },
   "severity": "info",
-  "timestamp": "2025-10-15T08:26:40Z",
-  "message": "Reconciliation finished in 24.395791ms, next run in 5m0s",
-  "reason": "ReconciliationSucceeded",
+  "timestamp": "2025-10-15T20:13:06Z",
+  "message": "Helm install succeeded for release flux-system/dummy-helmrelease.v1 with chart dummy-helmrelease@0.1.0",
+  "reason": "InstallSucceeded",
   "metadata": {
-    "commit_status": "update",
-    "originRevision": "main/bea3eed51cd4e6888c56f5e793685563fbc56214",
-    "revision": "dev@sha256:1c84c410d931ff420d914ced82ec83a3e97f0b3c0cb64a2a694d1f121bcc3708"
+    "app-version": "1.0",
+    "revision": "0.1.0"
   },
-  "reportingController": "kustomize-controller",
-  "reportingInstance": "kustomize-controller-696779bb78-fjknx"
+  "reportingController": "helm-controller",
+  "reportingInstance": "helm-controller-5788788f55-c8nx8"
 }
 
-### Flux Webhook - Kustomization Progressing
+### Flux Webhook - HelmRelease Upgrade Failed
 POST {{baseUrl}}/flux/webhook
 Content-Type: application/json
 
 {
   "involvedObject": {
-    "kind": "Kustomization",
+    "kind": "HelmRelease",
     "namespace": "flux-system",
-    "name": "dummy-service",
-    "uid": "22254537-ebaf-452b-9abf-fe86c4630b0a",
-    "apiVersion": "kustomize.toolkit.fluxcd.io/v1",
-    "resourceVersion": "800"
-  },
-  "severity": "info",
-  "timestamp": "2025-10-15T08:26:40Z",
-  "message": "Service/apps/dummy-service created\nDeployment/apps/dummy-service created",
-  "reason": "Progressing",
-  "metadata": {
-    "originRevision": "main/bea3eed51cd4e6888c56f5e793685563fbc56214",
-    "revision": "dev@sha256:1c84c410d931ff420d914ced82ec83a3e97f0b3c0cb64a2a694d1f121bcc3708"
-  },
-  "reportingController": "kustomize-controller",
-  "reportingInstance": "kustomize-controller-696779bb78-fjknx"
-}
-
-### Flux Webhook - Kustomization Error Example
-POST {{baseUrl}}/flux/webhook
-Content-Type: application/json
-
-{
-  "involvedObject": {
-    "kind": "Kustomization",
-    "namespace": "flux-system",
-    "name": "test-service",
-    "uid": "test-uid-12345",
-    "apiVersion": "kustomize.toolkit.fluxcd.io/v1",
-    "resourceVersion": "100"
+    "name": "dummy-helmrelease",
+    "uid": "7584995d-e301-42fb-a9c1-199c9b9f69bd",
+    "apiVersion": "helm.toolkit.fluxcd.io/v2",
+    "resourceVersion": "2018"
   },
   "severity": "error",
-  "timestamp": "2025-10-15T10:00:00Z",
-  "message": "Reconciliation failed: unable to apply manifest",
-  "reason": "ReconciliationFailed",
+  "timestamp": "2025-10-15T20:25:47Z",
+  "message": "Helm upgrade failed for release flux-system/dummy-helmrelease with chart dummy-helmrelease@0.2.0: context deadline exceeded\n\nLast Helm logs:\n\n2025-10-15T20:20:47.711697385Z: Patch Deployment \"dummy-helmrelease\" in namespace apps\n2025-10-15T20:20:47.714563301Z: waiting for release dummy-helmrelease resources (created: 0 updated: 2  deleted: 0)\n2025-10-15T20:20:47.714576926Z: beginning wait for 2 resources with timeout of 5m0s\n2025-10-15T20:20:47.717013885Z: ReplicaSet is not ready: apps/dummy-helmrelease-56bf59f949. observedGeneration (0) does not match spec generation (1).\n2025-10-15T20:20:49.725789219Z: Deployment is not ready: apps/dummy-helmrelease. 0 out of 1 expected pods are ready\n2025-10-15T20:25:45.724051384Z: Deployment is not ready: apps/dummy-helmrelease. 0 out of 1 expected pods are ready (147 duplicate lines omitted)\n2025-10-15T20:25:47.713122301Z: Error received when checking status of resource dummy-helmrelease. Error: 'client rate limiter Wait returned an error: context deadline exceeded', Resource details: 'Resource: \"/v1, Resource=services\", GroupVersionKind: \"/v1, Kind=Service\"\nName: \"dummy-helmrelease\", Namespace: \"apps\"'\n2025-10-15T20:25:47.713167551Z: Retryable error? true\n2025-10-15T20:25:47.713182468Z: Retrying as current number of retries 0 less than max number of retries 30\n2025-10-15T20:25:47.713205301Z: wait for resources failed after 5m0s: context deadline exceeded\n2025-10-15T20:25:47.721818801Z: warning: Upgrade \"dummy-helmrelease\" failed: context deadline exceeded",
+  "reason": "UpgradeFailed",
   "metadata": {
-    "revision": "main@sha256:abc123"
+    "app-version": "1.0",
+    "revision": "0.2.0"
   },
-  "reportingController": "kustomize-controller",
-  "reportingInstance": "kustomize-controller-696779bb78-test"
+  "reportingController": "helm-controller",
+  "reportingInstance": "helm-controller-5788788f55-c8nx8"
+}
+
+### Flux Webhook - HelmRelease Upgrade Succeeded
+POST {{baseUrl}}/flux/webhook
+Content-Type: application/json
+
+{
+  "involvedObject": {
+    "kind": "HelmRelease",
+    "namespace": "flux-system",
+    "name": "dummy-helmrelease",
+    "uid": "7584995d-e301-42fb-a9c1-199c9b9f69bd",
+    "apiVersion": "helm.toolkit.fluxcd.io/v2",
+    "resourceVersion": "3615"
+  },
+  "severity": "info",
+  "timestamp": "2025-10-15T20:31:12Z",
+  "message": "Helm upgrade succeeded for release flux-system/dummy-helmrelease.v6 with chart dummy-helmrelease@0.3.0",
+  "reason": "UpgradeSucceeded",
+  "metadata": {
+    "app-version": "1.0",
+    "revision": "0.3.0"
+  },
+  "reportingController": "helm-controller",
+  "reportingInstance": "helm-controller-5788788f55-c8nx8"
 }

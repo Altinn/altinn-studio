@@ -1,0 +1,69 @@
+.controlsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-3);
+}
+
+.zoomControls {
+  display: flex;
+  align-items: center;
+}
+
+.zoomSlider {
+  width: 100%;
+  height: var(--ds-size-2);
+  background-color: var(--ds-color-neutral-border-strong);
+  border-radius: var(--ds-border-radius-full);
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  touch-action: none;
+}
+
+/* Chrome / Safari / Edge */
+.zoomSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: var(--ds-size-7);
+  height: var(--ds-size-7);
+  border-radius: var(--ds-border-radius-full);
+  border: 1px solid var(--ds-color-border-strong);
+  background: var(--ds-color-base-contrast-default);
+  cursor: pointer;
+}
+
+/* Firefox */
+.zoomSlider::-moz-range-thumb {
+  width: var(--ds-size-7);
+  height: var(--ds-size-7);
+  border-radius: var(--ds-border-radius-full);
+  border: 1px solid var(--ds-color-border-strong);
+  background: var(--ds-color-base-contrast-default);
+  cursor: pointer;
+}
+
+/* Firefox track (to override default blue bar) */
+.zoomSlider::-moz-range-track {
+  background-color: var(--ds-color-neutral-border-strong);
+  height: var(--ds-size-2);
+  border-radius: var(--ds-border-radius-full);
+}
+
+.actionButtons {
+  display: flex;
+  gap: var(--ds-size-2);
+  flex-direction: row;
+  align-items: center;
+}
+
+.resetButton {
+  font-size: var(--ds-size-6);
+  color: var(--ds-color-text-default);
+}
+
+@media (max-width: 450px) {
+  .actionButtons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
