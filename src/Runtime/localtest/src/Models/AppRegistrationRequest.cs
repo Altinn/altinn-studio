@@ -16,5 +16,11 @@ namespace LocalTest.Models
         /// Port number the app is running on
         /// </summary>
         public int Port { get; set; }
+
+        /// <summary>
+        /// Hostname or IP address where the app is accessible from localtest.
+        /// If not provided, defaults to "host.docker.internal" for apps running on the host machine.
+        /// </summary>
+        public string? Hostname { get; set; }
     }
 }

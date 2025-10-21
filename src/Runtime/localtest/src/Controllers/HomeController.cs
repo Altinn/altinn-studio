@@ -139,8 +139,8 @@ namespace LocalTest.Controllers
                 return BadRequest("Invalid port number");
             }
 
-            _appRegistryService.Register(request.AppId, request.Port);
-            return Ok(new { message = "App registered successfully", appId = request.AppId, port = request.Port });
+            _appRegistryService.Register(request.AppId, request.Port, request.Hostname);
+            return Ok(new { message = "App registered successfully", appId = request.AppId, port = request.Port, hostname = request.Hostname });
         }
 
         /// <summary>

@@ -3,11 +3,16 @@
 #
 # Usage:
 #   docker compose -f docker-compose.yml -f docker-compose.testapps.yml up --build
+#
+# If you want to run all the apps inside docker as well, you can build them (outside docker) and run:
+#   cd ../../test/apps && make build-all
+#   docker compose -f docker-compose.yml -f docker-compose.testapps.yml --profile run-all-prebuilt up --build
 
 services:
   altinn_platform_pdf:
     profiles:
       - disabled # Old PDF generator, not used anymore in newer apps
+
   localtest_loadbalancer:
     profiles:
       - disabled # Not needed, we're proxying everything in localtest
@@ -17,3 +22,40 @@ services:
       - "80:5101"
     environment:
       - LocalPlatformSettings__LocalAppMode=auto
+
+  altinn_testapps:
+    container_name: altinn-testapps
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    restart: always
+    networks:
+      - altinntestlocal_network
+    working_dir: /altinn-studio/src/test/apps
+    command: >
+      bash -c "
+      trap 'trap - SIGTERM SIGINT; kill -TERM 0' SIGTERM SIGINT;
+      echo 'Starting all apps (be sure to build these first!)';
+      for app_dir in /altinn-studio/src/test/apps/*/App; do
+        app_name=$$(basename $$(dirname $$app_dir));
+        (
+          cd $$app_dir;
+          ASPNETCORE_ENVIRONMENT=Development dotnet run --no-build --no-launch-profile 2>&1 | sed -u \"s/^/[$$app_name] /\"
+        ) &
+      done;
+      wait
+      "
+    volumes:
+      - ../../../:/altinn-studio:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "${TEST_DOMAIN:-local.altinn.cloud}:host-gateway"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - PlatformSettings__ApiStorageEndpoint=http://altinn_localtest:5101/storage/api/v1/
+      - PlatformSettings__ApiRegisterEndpoint=http://altinn_localtest:5101/register/api/v1/
+      - PlatformSettings__ApiProfileEndpoint=http://altinn_localtest:5101/profile/api/v1/
+      - PlatformSettings__ApiAuthenticationEndpoint=http://altinn_localtest:5101/authentication/api/v1/
+      - PlatformSettings__ApiAuthorizationEndpoint=http://altinn_localtest:5101/authorization/api/v1/
+      - PlatformSettings__ApiPdf2Endpoint=http://altinn_pdf:5300/pdf
+    depends_on:
+      - altinn_localtest
+    profiles: ["run-all-prebuilt"]
