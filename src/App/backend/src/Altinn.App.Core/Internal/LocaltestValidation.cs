@@ -241,7 +241,22 @@ internal sealed class LocaltestValidation : BackgroundService
             var applicationMetadata = await _appMetadata.GetApplicationMetadata();
             var appId = applicationMetadata.Id; // Should be in format "org/app"
 
-            var registrationRequest = new { appId = appId, port = port };
+            // Determine hostname: if running in Docker container, use container hostname
+            // Otherwise use host.docker.internal (default) to reach host from localtest container
+            string? hostname = null;
+            if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
+            {
+                // Running inside a container - use container's hostname
+                hostname = Environment.GetEnvironmentVariable("HOSTNAME");
+            }
+            // If hostname is null, localtest will default to "host.docker.internal"
+
+            var registrationRequest = new
+            {
+                appId = appId,
+                port = port,
+                hostname = hostname,
+            };
 
             using var client = _httpClientFactory.CreateClient();
             var url = $"{baseUrl}/Home/Localtest/Register";
@@ -250,8 +265,9 @@ internal sealed class LocaltestValidation : BackgroundService
             if (response.IsSuccessStatusCode)
             {
                 _logger.LogInformation(
-                    "Successfully registered app {AppId} on port {Port} with localtest",
+                    "Successfully registered app {AppId} on {Hostname}:{Port} with localtest",
                     appId,
+                    hostname ?? "host.docker.internal",
                     port
                 );
             }

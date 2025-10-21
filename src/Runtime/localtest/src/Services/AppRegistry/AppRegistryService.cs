@@ -17,15 +17,17 @@ namespace LocalTest.Services.AppRegistry
         }
 
         /// <summary>
-        /// Register an app with its port number
+        /// Register an app with its port number and hostname
         /// </summary>
         /// <param name="appId">Application ID (org/app format)</param>
         /// <param name="port">Port number the app is running on</param>
-        public void Register(string appId, int port)
+        /// <param name="hostname">Hostname or IP address (defaults to host.docker.internal)</param>
+        public void Register(string appId, int port, string? hostname = null)
         {
-            var registration = new AppRegistration(appId, port, DateTime.UtcNow);
+            hostname ??= "host.docker.internal";
+            var registration = new AppRegistration(appId, port, hostname, DateTime.UtcNow);
             _registrations.AddOrUpdate(appId, registration, (_, _) => registration);
-            _logger.LogInformation("Registered app {AppId} on port {Port}", appId, port);
+            _logger.LogInformation("Registered app {AppId} on {Hostname}:{Port}", appId, hostname, port);
         }
 
         /// <summary>
@@ -61,5 +63,5 @@ namespace LocalTest.Services.AppRegistry
     /// <summary>
     /// Represents a registered app
     /// </summary>
-    public record AppRegistration(string AppId, int Port, DateTime RegisteredAt);
+    public record AppRegistration(string AppId, int Port, string Hostname, DateTime RegisteredAt);
 }

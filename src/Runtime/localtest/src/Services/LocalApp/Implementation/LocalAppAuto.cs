@@ -64,8 +64,8 @@ namespace LocalTest.Services.LocalApp.Implementation
             }
 
             var client = _httpClientFactory.CreateClient();
-            // Use host.docker.internal to reach host machine from Docker container
-            client.BaseAddress = new Uri($"http://host.docker.internal:{registration.Port}");
+            // Use the registered hostname (defaults to host.docker.internal for apps running on host)
+            client.BaseAddress = new Uri($"http://{registration.Hostname}:{registration.Port}");
             client.Timeout = TimeSpan.FromHours(1);
             return client;
         }
