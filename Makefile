@@ -13,7 +13,7 @@ SUBTREES := localtest:src/Runtime/localtest:../app-localtest:Altinn/app-localtes
 TEST_APPS := anonymous-stateless-app:https://dev.altinn.studio/repos/ttd/anonymous-stateless-app.git:master \
             component-library:https://altinn.studio/repos/ttd/component-library.git:master \
             expression-validation-test:https://dev.altinn.studio/repos/ttd/expression-validation-test.git:master \
-            frontend-test:https://dev.altinn.studio/repos/ttd/frontend-test.git:master \
+            frontend-test:https://dev.altinn.studio/repos/ttd/frontend-test.git:next-app-lib \
             multiple-datamodels-test:https://dev.altinn.studio/repos/ttd/multiple-datamodels-test.git:master \
             navigation-test-subform:https://dev.altinn.studio/repos/ttd/navigation-test-subform.git:master \
             payment-test:https://dev.altinn.studio/repos/ttd/payment-test.git:master \
