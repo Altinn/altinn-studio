@@ -58,7 +58,7 @@ func main() {
 
 	// Start HTTP server for both PDF generation and probes
 	http.HandleFunc("/health/startup", func(w http.ResponseWriter, r *http.Request) {
-		if host.IsShuttingDown() {
+		if host.IsShuttingDown() || !gen.IsReady() {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			if _, err := w.Write([]byte("Shutting down")); err != nil {
 				log.Printf("Failed to write health check response: %v\n", err)
@@ -71,7 +71,7 @@ func main() {
 		}
 	})
 	http.HandleFunc("/health/ready", func(w http.ResponseWriter, r *http.Request) {
-		if host.IsShuttingDown() {
+		if host.IsShuttingDown() || !gen.IsReady() {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			if _, err := w.Write([]byte("Shutting down")); err != nil {
 				log.Printf("Failed to write health check response: %v\n", err)
@@ -139,20 +139,23 @@ func generatePdfHandler(gen types.PdfGenerator) http.HandlerFunc {
 			return
 		}
 
-		if r.Header.Get("Content-Type") != "application/json" {
+		ct := strings.ToLower(r.Header.Get("Content-Type"))
+		if !strings.HasPrefix(ct, "application/json") {
 			w.WriteHeader(http.StatusUnsupportedMediaType)
 			if _, err := w.Write([]byte("Content-Type must be application/json")); err != nil {
 				log.Printf("Failed to write error response: %v\n", err)
 			}
 			return
 		}
-		if testing.HasTestHeader(r.Header) && !runtime.IsTestInternalsMode {
+		if !runtime.IsTestInternalsMode && r.Header.Get(testing.TestInputHeaderName) != "" {
 			w.WriteHeader(http.StatusBadRequest)
-			if _, err := w.Write([]byte("Illeagel internals test mode header")); err != nil {
+			if _, err := w.Write([]byte("Illegal internals test mode header")); err != nil {
 				log.Printf("Failed to write error response: %v\n", err)
 			}
 			return
 		}
+
+		defer func() { _ = r.Body.Close() }()
 
 		var req types.PdfRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

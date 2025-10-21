@@ -25,14 +25,14 @@ func New(kubectlBinPath string) (*KubernetesClient, error) {
 
 // ApplyManifest applies Kubernetes manifest YAML content using kubectl apply
 // This function is idempotent - it can be called multiple times safely
-func (c *KubernetesClient) ApplyManifest(yaml string) error {
+func (c *KubernetesClient) ApplyManifest(yaml string) (string, error) {
 	cmd := exec.Command(c.kubectlBin, "apply", "-f", "-")
 	cmd.Stdin = strings.NewReader(yaml)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to apply manifest: %w\nOutput: %s", err, string(output))
+		return "", fmt.Errorf("failed to apply manifest: %w\nOutput: %s", err, string(output))
 	}
-	return nil
+	return string(output), nil
 }
 
 // Get checks if a Kubernetes resource exists
@@ -57,9 +57,14 @@ func (c *KubernetesClient) Get(resource, name, namespace string) error {
 // Returns true if the CRD exists, false otherwise
 func (c *KubernetesClient) CRDExists(crdName string) (bool, error) {
 	cmd := exec.Command(c.kubectlBin, "get", "crd", crdName)
-	if err := cmd.Run(); err != nil {
-		// CRD doesn't exist
-		return false, nil
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		// Check if it's a NotFound error (CRD doesn't exist)
+		if strings.Contains(string(output), "NotFound") {
+			return false, nil
+		}
+		// Real error - return it with context
+		return false, fmt.Errorf("failed to check CRD existence: %w\nOutput: %s", err, string(output))
 	}
 	return true, nil
 }

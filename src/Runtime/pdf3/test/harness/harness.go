@@ -2,8 +2,6 @@ package harness
 
 import (
 	"bytes"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,7 +10,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -20,6 +17,7 @@ import (
 	"altinn.studio/pdf3/internal/assert"
 	ptesting "altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
+	"altinn.studio/runtime-fixture/pkg/checksum"
 	"altinn.studio/runtime-fixture/pkg/flux"
 	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
 )
@@ -143,7 +141,7 @@ type PdfResponse struct {
 
 // LoadOutput fetches the test output from the API if testInput was provided
 func (r *PdfResponse) LoadOutput(t *testing.T) (*ptesting.PdfInternalsTestOutput, error) {
-	if r.Input.ID == "" {
+	if r.Input == nil || r.Input.ID == "" {
 		return nil, nil // No test input, nothing to load
 	}
 
@@ -376,7 +374,7 @@ func BuildAndPushImages() (bool, error) {
 		"Dockerfile.proxy",
 		"Dockerfile.worker",
 	}
-	currentHash, err := computeFilesChecksum(projectRoot, patterns)
+	currentHash, err := checksum.ComputeFilesChecksum(projectRoot, patterns)
 	if err != nil {
 		return false, fmt.Errorf("failed to compute checksum: %w", err)
 	}
@@ -454,7 +452,7 @@ func PushKustomizeArtifact() (bool, error) {
 		"infra/kustomize/**/*.yaml",
 		"infra/kustomize/**/*.yml",
 	}
-	currentHash, err := computeFilesChecksum(projectRoot, patterns)
+	currentHash, err := checksum.ComputeFilesChecksum(projectRoot, patterns)
 	if err != nil {
 		return false, fmt.Errorf("failed to compute checksum: %w", err)
 	}
@@ -556,7 +554,7 @@ func DeployPdf3ViaFlux(imagesChanged, kustomizeChanged bool) (bool, error) {
 	// Apply the complete manifest in a single request
 	fmt.Println("Applying pdf3 manifest...")
 	start := time.Now()
-	if err := Runtime.KubernetesClient.ApplyManifest(manifest); err != nil {
+	if _, err := Runtime.KubernetesClient.ApplyManifest(manifest); err != nil {
 		return false, fmt.Errorf("failed to apply manifest: %w", err)
 	}
 	logDuration("Apply pdf3 manifest", start)
@@ -600,43 +598,6 @@ func DeployPdf3ViaFlux(imagesChanged, kustomizeChanged bool) (bool, error) {
 	fmt.Println("✓ pdf3 deployed via Flux")
 	logDuration("Deploy pdf3 via Flux (total)", overallStart)
 	return true, nil
-}
-
-// computeFilesChecksum computes a SHA256 hash of the contents of files matching the given glob patterns
-func computeFilesChecksum(projectRoot string, patterns []string) (string, error) {
-	var allFiles []string
-
-	for _, pattern := range patterns {
-		matches, err := filepath.Glob(filepath.Join(projectRoot, pattern))
-		if err != nil {
-			return "", fmt.Errorf("failed to glob pattern %s: %w", pattern, err)
-		}
-		allFiles = append(allFiles, matches...)
-	}
-
-	// Sort files for consistent ordering
-	sort.Strings(allFiles)
-
-	// Compute combined hash
-	hasher := sha256.New()
-	for _, file := range allFiles {
-		// Skip directories
-		info, err := os.Stat(file)
-		if err != nil {
-			return "", fmt.Errorf("failed to stat file %s: %w", file, err)
-		}
-		if info.IsDir() {
-			continue
-		}
-
-		data, err := os.ReadFile(file)
-		if err != nil {
-			return "", fmt.Errorf("failed to read file %s: %w", file, err)
-		}
-		hasher.Write(data)
-	}
-
-	return hex.EncodeToString(hasher.Sum(nil)), nil
 }
 
 // readCachedChecksum reads a cached checksum from .cache/checksums/{name}.txt

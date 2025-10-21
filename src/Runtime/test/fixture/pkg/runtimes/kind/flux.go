@@ -101,8 +101,10 @@ func (r *KindContainerRuntime) areTraefikCRDsInstalled() (bool, error) {
 	return exists, nil
 }
 
-// reconcileTraefik forces Flux to reconcile the Traefik HelmRelease and waits for it to be ready
+// reconcileTraefik forces Flux to reconcile the Traefik CRDs and main Traefik HelmReleases
 // This ensures the Traefik CRDs (like IngressRoute) are available before deploying testserver
+// The traefik-crds HelmRelease is reconciled synchronously (blocking) to ensure CRDs exist,
+// while the main traefik HelmRelease is reconciled asynchronously (non-blocking) since it has disableWait: true
 func (r *KindContainerRuntime) reconcileTraefik() error {
 	// First check if Traefik CRDs are already installed
 	installed, err := r.areTraefikCRDsInstalled()
@@ -115,13 +117,27 @@ func (r *KindContainerRuntime) reconcileTraefik() error {
 		return nil
 	}
 
-	fmt.Println("Reconciling Traefik HelmRelease...")
+	fmt.Println("Reconciling traefik-crds HelmRelease (blocking)...")
 
-	// Force reconciliation (synchronous, blocking)
-	opts := flux.DefaultReconcileOptions()
-	if err := r.FluxClient.ReconcileHelmRelease("traefik", "traefik", opts); err != nil {
-		return fmt.Errorf("failed to reconcile traefik: %w", err)
+	// Reconcile traefik-crds synchronously (blocking) to ensure CRDs are installed
+	syncOpts := flux.DefaultReconcileOptions()
+	if err := r.FluxClient.ReconcileHelmRelease("traefik-crds", "traefik", syncOpts); err != nil {
+		return fmt.Errorf("failed to reconcile traefik-crds: %w", err)
 	}
+
+	fmt.Println("✓ Traefik CRDs reconciled")
+	fmt.Println("Reconciling traefik HelmRelease (async)...")
+
+	// Reconcile traefik asynchronously (non-blocking) since it has disableWait: true in the manifest
+	asyncOpts := flux.ReconcileOptions{
+		ShouldWait: false,
+		Timeout:    0,
+	}
+	if err := r.FluxClient.ReconcileHelmRelease("traefik", "traefik", asyncOpts); err != nil {
+		return fmt.Errorf("failed to trigger traefik reconcile: %w", err)
+	}
+
+	fmt.Println("✓ Traefik reconciliation triggered (running in background)")
 
 	return nil
 }
@@ -134,7 +150,7 @@ func (r *KindContainerRuntime) reconcileTraefik() error {
 func (r *KindContainerRuntime) applyBaseInfrastructure() error {
 	fmt.Println("Applying base infrastructure manifest...")
 	manifest := r.buildBaseInfrastructureManifest()
-	if err := r.applyManifestFromString(manifest); err != nil {
+	if _, err := r.KubernetesClient.ApplyManifest(manifest); err != nil {
 		return fmt.Errorf("failed to apply base infrastructure: %w", err)
 	}
 	fmt.Println("✓ Base infrastructure manifest applied")

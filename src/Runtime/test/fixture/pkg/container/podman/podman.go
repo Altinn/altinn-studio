@@ -44,12 +44,17 @@ func (p *Cli) Inspect(target, format string) (string, error) {
 }
 
 func (p *Cli) ImageInspect(image, format string) (string, error) {
-	cmd := exec.Command(p.Name(), "image", "inspect", image)
+	args := []string{"image", "inspect"}
+	if format != "" {
+		args = append(args, "-f", format)
+	}
+	args = append(args, image)
+	cmd := exec.Command(p.Name(), args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("failed to inspect image %s: %w\nOutput: %s", image, err, string(output))
 	}
-	return string(output), nil
+	return strings.TrimSpace(string(output)), nil
 }
 
 func (p *Cli) Exec(container string, args ...string) error {

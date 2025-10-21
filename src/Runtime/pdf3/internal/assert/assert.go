@@ -19,27 +19,12 @@ func AssertWithMessage(condition bool, message string) {
 
 //go:noinline
 func panicking(message string) {
-	// _, filePath, lineNumber, ok := runtime.Caller(2)
-	// if ok {
-	// 	if message != "" {
-	// 		log.Fatalf("Assertion failed at %s:%d: %s", filePath, lineNumber, message)
-	// 	} else {
-	// 		log.Fatalf("Assertion failed at %s:%d", filePath, lineNumber)
-	// 	}
-	// } else {
-	// 	if message != "" {
-	// 		log.Fatalf("Assertion failed at unkonwn location: %s", message)
-	// 	} else {
-	// 		log.Fatalln("Assertion failed at unknown loation")
-	// 	}
-	// }
-
 	buf := make([]byte, 1<<16)
-	_ = runtime.Stack(buf, false)
+	n := runtime.Stack(buf, false)
 
 	if message != "" {
-		log.Fatalf("Assertion failed: %s:\n%s", message, buf)
+		log.Fatalf("Assertion failed: %s:\n%s", message, string(buf[:n]))
 	} else {
-		log.Fatalf("Assertion failed:\n%s", buf)
+		log.Fatalf("Assertion failed:\n%s", string(buf[:n]))
 	}
 }

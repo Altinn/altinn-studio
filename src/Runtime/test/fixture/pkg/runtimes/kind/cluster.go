@@ -8,8 +8,7 @@ import (
 func (r *KindContainerRuntime) clusterExists() (bool, error) {
 	clusters, err := r.KindClient.GetClusters()
 	if err != nil {
-		// If kind fails, assume no clusters exist
-		return false, nil
+		return false, fmt.Errorf("checking kind clusters: %w", err)
 	}
 
 	for _, cluster := range clusters {
@@ -43,10 +42,4 @@ func (r *KindContainerRuntime) setKubectlContext() error {
 	}
 
 	return nil
-}
-
-// applyManifestFromString applies Kubernetes manifest YAML content using kubectl apply
-// This function is idempotent - it can be called multiple times safely
-func (r *KindContainerRuntime) applyManifestFromString(yaml string) error {
-	return r.KubernetesClient.ApplyManifest(yaml)
 }

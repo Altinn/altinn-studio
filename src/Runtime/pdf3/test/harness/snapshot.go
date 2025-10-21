@@ -31,7 +31,7 @@ func Snapshot(t *testing.T, data []byte, name string, ext string) {
 	directory := path.Join(wd, "_snapshots")
 	err = os.MkdirAll(directory, directoryMode)
 	if err != nil {
-		t.Fatalf("Couldnt create snapshot directory: %v", err)
+		t.Fatalf("Couldn't create snapshot directory: %v", err)
 	}
 
 	if ext == "" {

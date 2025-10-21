@@ -74,7 +74,22 @@ func setupRuntime() (*kind.KindContainerRuntime, error) {
 	}()
 
 	// As soon as the registry is started, we can start building and pushing
-	<-registryStartedEvent
+	// Use select to handle early failures and avoid deadlock
+	var runtimeResultValue *Result[*kind.KindContainerRuntime]
+	select {
+	case <-registryStartedEvent:
+		// Normal path - registry started, continue to build/push
+	case result := <-runtimeResult:
+		// Early failure - SetupCluster failed before registry started
+		runtimeResultValue = &result
+		if _, err := result.Unwrap(); err != nil {
+			return nil, fmt.Errorf("failed to setup cluster: %w", err)
+		}
+		// If we got here, cluster setup completed but didn't signal registry event
+		// This shouldn't happen in normal flow, but we can continue
+	case <-time.After(2 * time.Minute):
+		return nil, fmt.Errorf("timeout waiting for registry to start")
+	}
 
 	// Step 2: Build and push images
 	buildResult := make(chan Result[bool], 1)
@@ -91,7 +106,16 @@ func setupRuntime() (*kind.KindContainerRuntime, error) {
 	}()
 
 	// Now let's wait for the runtime to be fully built
-	runtime, err := (<-runtimeResult).Unwrap()
+	// Check if we already consumed runtimeResult earlier (in case of early completion/failure)
+	var runtime *kind.KindContainerRuntime
+	var err error
+	if runtimeResultValue != nil {
+		// We already consumed runtimeResult earlier in the select
+		runtime, err = runtimeResultValue.Unwrap()
+	} else {
+		// Normal path - read from channel
+		runtime, err = (<-runtimeResult).Unwrap()
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to setup cluster: %w", err)
 	}

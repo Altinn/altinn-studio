@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 )
 
 type PdfRequest struct {
@@ -172,16 +173,12 @@ var ValidFormats = []string{
 
 // Validate validates the PdfRequest according to browserless schema rules
 func (r *PdfRequest) Validate() error {
-	// Validate URL (required)
-	if r.URL == "" {
-		return errors.New("url is required")
-	}
-
-	// Validate URL format - must be parseable
-	// We'll use a simple check that it's a non-empty string
-	// More strict URL validation could be added if needed
-	if len(r.URL) == 0 {
-		return errors.New("url must not be empty")
+	// Validate URL (required and well-formed)
+	if _, err := url.ParseRequestURI(r.URL); err != nil {
+		if r.URL == "" {
+			return errors.New("url is required")
+		}
+		return fmt.Errorf("url is not well-formed: %w", err)
 	}
 
 	// Validate Options.Format (if specified, must be valid)

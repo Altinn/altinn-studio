@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 const (
@@ -262,7 +263,8 @@ func (r *KindContainerRuntime) configureRegistryMirror(nodes []string, registry,
 }
 
 // createRegistryConfigMap creates a ConfigMap documenting the local registry
-func (r *KindContainerRuntime) createRegistryConfigMap() error {
+// returns true if the configmap was added or updated, false otherwise
+func (r *KindContainerRuntime) createRegistryConfigMap() (bool, error) {
 	fmt.Println("Creating local-registry-hosting ConfigMap...")
 
 	configMapYAML := fmt.Sprintf(`apiVersion: v1
@@ -276,12 +278,18 @@ data:
     help: "https://kind.sigs.k8s.io/docs/user/local-registry/"
 `, registryPort)
 
-	if err := r.KubernetesClient.ApplyManifest(configMapYAML); err != nil {
-		return fmt.Errorf("failed to create registry ConfigMap: %w", err)
+	output, err := r.KubernetesClient.ApplyManifest(configMapYAML)
+	if err != nil {
+		return false, fmt.Errorf("failed to create registry ConfigMap: %w", err)
 	}
 
-	fmt.Println("✓ Registry ConfigMap created")
-	return nil
+	if strings.Contains(output, "unchanged") {
+		fmt.Println("✓ Registry ConfigMap created")
+		return false, nil
+	} else {
+		fmt.Println("✓ Registry ConfigMap changed")
+		return true, nil
+	}
 }
 
 // startRegistry ensures the container registry is running and configured
@@ -311,6 +319,14 @@ func (r *KindContainerRuntime) startRegistry() error {
 }
 
 func (r *KindContainerRuntime) configureRegistry() error {
+	if wasChanged, err := r.createRegistryConfigMap(); err != nil {
+		return err
+	} else if !wasChanged {
+		// If we configmap was already there, then we must have configured
+		// everything else as well
+		return nil
+	}
+
 	// Connect registry to kind network
 	if err := r.connectRegistryToKindNetwork(); err != nil {
 		return err
@@ -323,11 +339,6 @@ func (r *KindContainerRuntime) configureRegistry() error {
 
 	// Configure registry in kind nodes
 	if err := r.configureRegistryInNodes(); err != nil {
-		return err
-	}
-
-	// Create registry ConfigMap
-	if err := r.createRegistryConfigMap(); err != nil {
 		return err
 	}
 

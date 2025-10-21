@@ -27,8 +27,7 @@ func (c *KindClient) GetClusters() ([]string, error) {
 	cmd := exec.Command(c.kindBin, "get", "clusters")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		// If kind fails, assume no clusters exist
-		return nil, nil
+		return nil, fmt.Errorf("kind get clusters failed: %s: %w", string(output), err)
 	}
 
 	clusters := strings.Split(strings.TrimSpace(string(output)), "\n")

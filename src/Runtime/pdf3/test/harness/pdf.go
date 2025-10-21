@@ -24,26 +24,28 @@ func MakePdfDeterministic(t *testing.T, pdf []byte) []byte {
 
 	result := bytes.Clone(pdf)
 
-	makeDateDeterministic := func(t *testing.T, dest []byte, src []byte, prefix []byte, date []byte) {
+	makeDateDeterministic := func(t *testing.T, dest, src, prefix, date []byte) {
 		index := bytes.Index(src, prefix)
 		if index != -1 {
 			sliced := src[index:]
-			startParens := index + bytes.Index(sliced, []byte{'('})
-			if startParens == -1 {
+			openOff := bytes.Index(sliced, []byte{'('})
+			if openOff == -1 {
 				t.Errorf("Couldn't parse creation date value")
 				return
 			}
-			endParens := index + bytes.Index(sliced, []byte{')'})
-			if endParens == -1 {
+			closeOff := bytes.Index(sliced, []byte{')'})
+			if closeOff == -1 {
 				t.Errorf("Couldn't parse creation date value")
 				return
 			}
+			startParens := index + openOff
+			endParens := index + closeOff
 			if endParens-(startParens+1) != len(date) {
 				t.Errorf("Couldn't fit deterministic date in /CreationDate field")
 				return
 			}
 
-			copy(dest[startParens:], date)
+			copy(dest[startParens+1:], date)
 		}
 	}
 

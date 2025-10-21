@@ -358,7 +358,7 @@ func (r *KindContainerRuntime) setupStandardVariant() error {
 	// Step 10: Apply testserver manifest
 	fmt.Println("\n10. Applying testserver manifest...")
 	start = time.Now()
-	if err := r.applyManifestFromString(string(testserverManifest)); err != nil {
+	if _, err := r.KubernetesClient.ApplyManifest(string(testserverManifest)); err != nil {
 		return fmt.Errorf("failed to apply testserver manifest: %w", err)
 	}
 	fmt.Println("✓ Testserver manifest applied")

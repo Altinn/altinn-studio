@@ -17,6 +17,9 @@ import (
 // Connection represents a Chrome DevTools Protocol connection
 type Connection interface {
 	// SendCommand sends a CDP command and waits for the response
+	// This method is NOT threadsafe. We use this from the processing go routine of a
+	// browser session. There should only ever be 1 thread sending commands at a time.
+	// The browser session owns the connection.
 	SendCommand(ctx context.Context, method string, params interface{}) (*CDPResponse, error)
 
 	// Close closes the connection and cleans up resources
@@ -123,6 +126,8 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 					text,
 				)
 				assert.AssertWithMessage(
+					// We check ctx here as it is tied to host shutdown.
+					// It's OK to close if the host is shutting down, but NOT OK otherwise
 					ctx.Err() != nil,
 					message,
 				)

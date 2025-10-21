@@ -34,7 +34,6 @@ func Test_Simple(t *testing.T) {
 func Test_Networking(t *testing.T) {
 	url := harness.JumpboxURL + "/health/startup"
 
-	// Create HTTP client with 10s timeout for PDF generation
 	client := &http.Client{
 		Timeout: 3 * time.Second,
 	}
@@ -172,7 +171,7 @@ func Test_WithCleanupDelay(t *testing.T) {
 	testInput := ptesting.NewTestInput(3)
 	resp, err := harness.RequestNewPDFWithTestInput(t, req, testInput)
 	if err != nil {
-		t.Fatalf("Failed to generate PDF with thrown errors: %v", err)
+		t.Fatalf("Failed to generate PDF while testing cleanup delay: %v", err)
 	}
 
 	if !harness.IsPDF(resp.Data) {

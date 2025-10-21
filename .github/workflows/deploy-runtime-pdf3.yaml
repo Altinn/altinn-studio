@@ -8,12 +8,29 @@ on:
       - src/Runtime/pdf3/**
       - .github/workflows/deploy-runtime-pdf3.yaml
   workflow_dispatch:
+    inputs:
+      ring:
+        description: |
+          Ring (upgrade channel) to tag the artifact with.⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+          Defaults to 'at_ring1'.⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+          'xx_ring1` means ttd clusters,
+          while `xx_ring2` are non-ttd clusters (all serviceowners)
+        required: false
+        default: 'at_ring1'
+        type: choice
+        options:
+          - 'at_ring1'
+          - 'at_ring2'
+          - 'tt_ring1'
+          - 'tt_ring2'
+          - 'prod_ring1'
+          - 'prod_ring2'
 
 jobs:
   push-pdf3-artifact:
     name: Push pdf3 as OCI artifact
     runs-on: ubuntu-latest
-    environment: dev
+    environment: ${{ inputs.ring == '' && 'dev' || startsWith(inputs.ring, 'at_') && 'dev' || startsWith(inputs.ring, 'tt_') && 'staging' || 'prod' }}
     permissions:
       id-token: write # Require write permission to Fetch an OIDC token.
     defaults:
@@ -79,19 +96,16 @@ jobs:
           docker push ${{ steps.vars.outputs.image_worker_repo }} &
           wait
 
-      - name: yq install
-        uses: mikefarah/yq@6251e95af8df3505def48c71f3119836701495d6 # v4.47.2
-
       - name: patch base with image tag
-        working-directory: src/Runtime/pdf3/infra/kustomize
+        working-directory: src/Runtime/pdf3/infra/kustomize/base
         run: |
           export PROXY_IMAGE="${{ steps.vars.outputs.image_proxy_repo }}"
           export WORKER_IMAGE="${{ steps.vars.outputs.image_worker_repo }}"
           export IMAGE_TAG="${{ steps.vars.outputs.tag }}"
-          yq -i '.metadata.annotations["altinn.studio/image"] = env(PROXY_IMAGE)' proxy-deployment.yaml
-          yq -i '.metadata.annotations["altinn.studio/image"] = env(WORKER_IMAGE)' worker-deployment.yaml
-          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' proxy-deployment.yaml
-          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' worker-deployment.yaml
+          yq -i '.metadata.annotations["altinn.studio/image"] = env(PROXY_IMAGE)' proxy.yaml
+          yq -i '.metadata.annotations["altinn.studio/image"] = env(WORKER_IMAGE)' worker.yaml
+          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' proxy.yaml
+          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' worker.yaml
 
       - name: push artifact
         working-directory: src/Runtime/pdf3/infra/kustomize
@@ -103,6 +117,6 @@ jobs:
             --source="$(git config --get remote.origin.url)" \
             --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
 
-      - name: tag artifact at_ring1 (ttd/at22)
+      - name: tag artifact
         run: |
-          flux tag artifact oci://${{ steps.vars.outputs.config_repo }} --tag at_ring1
+          flux tag artifact oci://${{ steps.vars.outputs.config_repo }} --tag ${{ inputs.ring || 'at_ring1' }}

@@ -136,7 +136,8 @@ func generatePdf(client *http.Client, workerAddr string) func(http.ResponseWrite
 			})
 			return
 		}
-		if r.Header.Get("Content-Type") != "application/json" {
+		ct := strings.ToLower(r.Header.Get("Content-Type"))
+		if !strings.HasPrefix(ct, "application/json") {
 			writeProblemDetails(w, http.StatusUnsupportedMediaType, ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.13",
 				Title:  "Unsupported Media Type",
@@ -145,15 +146,28 @@ func generatePdf(client *http.Client, workerAddr string) func(http.ResponseWrite
 			})
 			return
 		}
-		if testing.HasTestHeader(r.Header) && !runtime.IsTestInternalsMode {
+		const maxBodySize = 1024 * 64 // 64K should be plenty for the JSON request
+		if r.ContentLength > maxBodySize {
+			writeProblemDetails(w, http.StatusRequestEntityTooLarge, ProblemDetails{
+				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.11",
+				Title:  "Request Entity Too Large",
+				Status: http.StatusRequestEntityTooLarge,
+				Detail: fmt.Sprintf("Request body too large (max %d bytes)", maxBodySize),
+			})
+			return
+		}
+		if !runtime.IsTestInternalsMode && r.Header.Get(testing.TestInputHeaderName) != "" {
 			writeProblemDetails(w, http.StatusBadRequest, ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
 				Title:  "Bad Request",
-				Status: http.StatusUnsupportedMediaType,
+				Status: http.StatusBadRequest,
 				Detail: "Illegal test internals mode header",
 			})
 			return
 		}
+
+		r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
+		defer func() { _ = r.Body.Close() }()
 
 		var req types.PdfRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -263,7 +277,7 @@ func callWorker(
 		workerIP = resp.Header.Get("X-Worker-IP")
 	}
 	if err != nil {
-		if attempt < maxRetries && r.Context().Err() == nil {
+		if attempt < maxRetries && ctx.Err() == nil {
 			// This is an error condition that may hit if the worker
 			// crashes or similar. Worthwhile to retry here
 			duration := time.Since(start)

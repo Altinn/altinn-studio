@@ -45,7 +45,7 @@ func runStatus() error {
 		return fmt.Errorf("usage: runtime-health status [flags] <environment> <resource-type> <namespace/name>\n\n" +
 			"Arguments:\n" +
 			"  environment     at22, tt02, or prod\n" +
-			"  resource-type   hr (helmrelease) or ks (kustomization)\n" +
+			"  resource-type   hr (helmrelease) or ks (kustomization) or dep (deployment)\n" +
 			"  namespace/name  Resource location (e.g., default/my-app)\n\n" +
 			"Flags:\n" +
 			"  -serviceowner string\n" +
