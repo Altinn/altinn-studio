@@ -290,11 +290,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task EnsureCloneExists(string org, string repository)
+        public async Task CloneIfNotExists(string org, string repository)
         {
             try
             {
-                await _decoratedService.EnsureCloneExists(org, repository);
+                await _decoratedService.CloneIfNotExists(org, repository);
             }
             catch (Exception ex)
             {

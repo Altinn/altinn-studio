@@ -191,7 +191,7 @@ public partial class AltinnOrgGitRepository : AltinnGitRepository
     /// <summary>
     /// Updates a code list with the provided id.
     /// </summary>
-    /// <param name="codeListId">The name of the cost list to update.</param>
+    /// <param name="codeListId">The name of the code list to update.</param>
     /// <param name="codeList">The code list contents.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     public async Task UpdateCodeList(string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
@@ -207,7 +207,7 @@ public partial class AltinnOrgGitRepository : AltinnGitRepository
     /// <summary>
     /// Updates a code list with the provided id.
     /// </summary>
-    /// <param name="codeListId">The name of the cost list to update.</param>
+    /// <param name="codeListId">The name of the code list to update.</param>
     /// <param name="codeList">The code list contents.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     public async Task UpdateCodeListNew(string codeListId, CodeList? codeList, CancellationToken cancellationToken = default)
@@ -218,16 +218,13 @@ public partial class AltinnOrgGitRepository : AltinnGitRepository
 
         if (codeList is null)
         {
-            if (FileExistsByRelativePath(codeListFilePath))
-            {
-                DeleteFileByRelativePath(codeListFilePath);
-            }
-            return;
+            DeleteFileIfExists(codeListFilePath);
         }
-
-        string codeListString = JsonSerializer.Serialize(codeList, s_jsonOptions);
-
-        await WriteTextByRelativePathAsync(codeListFilePath, codeListString, true, cancellationToken);
+        else
+        {
+            string codeListString = JsonSerializer.Serialize(codeList, s_jsonOptions);
+            await WriteTextByRelativePathAsync(codeListFilePath, codeListString, true, cancellationToken);
+        }
     }
 
     /// <summary>
@@ -258,7 +255,7 @@ public partial class AltinnOrgGitRepository : AltinnGitRepository
     /// <summary>
     /// Deletes a code list with the provided id.
     /// </summary>
-    /// <param name="codeListId">The name of the cost list to be deleted.</param>
+    /// <param name="codeListId">The name of the code list to be deleted.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     public void DeleteCodeList(string codeListId, CancellationToken cancellationToken = default)
     {
@@ -271,6 +268,14 @@ public partial class AltinnOrgGitRepository : AltinnGitRepository
         }
 
         DeleteFileByRelativePath(codeListFilePath);
+    }
+
+    private void DeleteFileIfExists(string filePath)
+    {
+        if (FileExistsByRelativePath(filePath))
+        {
+            DeleteFileByRelativePath(filePath);
+        }
     }
 
     private static string TextResourceFilePath(string languageCode)

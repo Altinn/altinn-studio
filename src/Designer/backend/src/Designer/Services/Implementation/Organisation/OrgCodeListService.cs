@@ -142,7 +142,7 @@ public class OrgCodeListService : IOrgCodeListService
         ValidateCodeListTitles(request.CodeListWrappers);
         ValidateCommitMessage(request.CommitMessage);
         string repositoryName = GetStaticContentRepo(org);
-        await _sourceControl.EnsureCloneExists(org, repositoryName);
+        await _sourceControl.CloneIfNotExists(org, repositoryName);
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repositoryName, developer);
 
         string latestCommitSha = await _gitea.GetLatestCommitOnBranch(org, repositoryName, General.DefaultBranch);

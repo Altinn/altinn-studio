@@ -133,7 +133,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository</param>
-        Task EnsureCloneExists(string org, string repository);
+        Task CloneIfNotExists(string org, string repository);
 
         /// <summary>
         /// Creates a new branch in the given repository.

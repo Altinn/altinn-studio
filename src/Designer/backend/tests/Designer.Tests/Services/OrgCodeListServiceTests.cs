@@ -146,7 +146,7 @@ public class OrgCodeListServiceTests : IDisposable
         _giteaMock
             .Setup(service => service.GetLatestCommitOnBranch(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Reference);
-        _sourceControlMock.Setup(service => service.EnsureCloneExists(It.IsAny<string>(), It.IsAny<string>()))
+        _sourceControlMock.Setup(service => service.CloneIfNotExists(It.IsAny<string>(), It.IsAny<string>()))
             .Returns(Task.CompletedTask);
         _sourceControlMock.Setup(service => service.CheckoutRepoOnBranch(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
         _sourceControlMock.Setup(service => service.CommitToLocalRepo(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
@@ -167,7 +167,7 @@ public class OrgCodeListServiceTests : IDisposable
         AltinnRepoEditingContext expected = AltinnRepoEditingContext.FromOrgRepoDeveloper(TargetOrg, targetRepository, Developer);
 
         _giteaMock.Verify(service => service.GetLatestCommitOnBranch(TargetOrg, targetRepository, "master", default), Times.Once);
-        _sourceControlMock.Verify(service => service.EnsureCloneExists(TargetOrg, targetRepository), Times.Once);
+        _sourceControlMock.Verify(service => service.CloneIfNotExists(TargetOrg, targetRepository), Times.Once);
         _sourceControlMock.Verify(service => service.CheckoutRepoOnBranch(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), "master"), Times.Once);
         _sourceControlMock.Verify(service => service.CommitToLocalRepo(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), GiteaCommitMessage), Times.Once);
         _sourceControlMock.Verify(service => service.Push(TargetOrg, targetRepository), Times.Once);
@@ -195,7 +195,7 @@ public class OrgCodeListServiceTests : IDisposable
         _giteaMock
             .Setup(service => service.GetLatestCommitOnBranch(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(LatestCommitOnRemote);
-        _sourceControlMock.Setup(service => service.EnsureCloneExists(It.IsAny<string>(), It.IsAny<string>()))
+        _sourceControlMock.Setup(service => service.CloneIfNotExists(It.IsAny<string>(), It.IsAny<string>()))
             .Returns(Task.CompletedTask);
 
         _sourceControlMock.Setup(service => service.DeleteLocalBranchIfExists(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()));
@@ -224,7 +224,7 @@ public class OrgCodeListServiceTests : IDisposable
         string expectedFeatureBranchName = expected.Developer;
 
         _giteaMock.Verify(service => service.GetLatestCommitOnBranch(TargetOrg, targetRepository, "master", default), Times.Once);
-        _sourceControlMock.Verify(service => service.EnsureCloneExists(TargetOrg, targetRepository), Times.Once);
+        _sourceControlMock.Verify(service => service.CloneIfNotExists(TargetOrg, targetRepository), Times.Once);
 
         _sourceControlMock.Verify(service => service.DeleteLocalBranchIfExists(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), expectedFeatureBranchName), Times.Exactly(2));
         _sourceControlMock.Verify(service => service.CreateLocalBranch(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), expectedFeatureBranchName, Reference), Times.Once);
@@ -560,7 +560,7 @@ public class OrgCodeListServiceTests : IDisposable
     }
 
     [Fact]
-    public void ValidateCodeListTitles_ShouldThrowException_WhenX()
+    public void ValidateCodeListTitles_ShouldThrowException_WhenIllegalTitle()
     {
         // Arrange
         List<CodeListWrapper> wrappers =

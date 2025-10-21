@@ -421,7 +421,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task EnsureCloneExists(string org, string repository)
+        public async Task CloneIfNotExists(string org, string repository)
         {
             string repoLocation = FindLocalRepoLocation(org, repository);
             if (!Directory.Exists(repoLocation))
@@ -480,28 +480,27 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public void CommitToLocalRepo(AltinnRepoEditingContext editingContext, string message)
         {
-            string localPath = FindLocalRepoLocation(editingContext);
-            using var repo = new LibGit2Sharp.Repository(localPath);
+            using LibGit2Sharp.Repository repo = CreateLocalRepo(editingContext);
 
             if (repo.RetrieveStatus().IsDirty)
             {
-                Commands.Stage(repo, "*");
+                string commitMessage = message ?? string.Empty;
+                string noteMessage = "studio-commit";
                 LibGit2Sharp.Signature signature = GetDeveloperSignature();
-                message ??= string.Empty;
-                LibGit2Sharp.Commit commit = repo.Commit(message, signature, signature);
+
+                Commands.Stage(repo, "*");
+                LibGit2Sharp.Commit commit = repo.Commit(commitMessage, signature, signature);
                 NoteCollection notes = repo.Notes;
-                notes.Add(commit.Id, "studio-commit", signature, signature, notes.DefaultNamespace);
+                notes.Add(commit.Id, noteMessage, signature, signature, notes.DefaultNamespace);
             }
         }
 
         /// <inheritdoc/>
         public void RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext)
         {
-            string localPath = FindLocalRepoLocation(editingContext);
-            using LibGit2Sharp.Repository repo = new(localPath);
+            using LibGit2Sharp.Repository repo = CreateLocalRepo(editingContext);
 
-            string developer = editingContext.Developer;
-            Identity identity = new(developer, $"{developer}@noreply.altinn.studio");
+            Identity identity = GetDefaultIdentity(editingContext.Developer);
             RebaseOptions rebaseOptions = new() { FileConflictStrategy = CheckoutFileConflictStrategy.Ours };
             Branch upstream = repo.Branches.FirstOrDefault(b => b.FriendlyName.Equals(DefaultBranch));
 
@@ -535,8 +534,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public void CreateLocalBranch(AltinnRepoEditingContext editingContext, string branchName, string commitSha = null)
         {
-            string localPath = FindLocalRepoLocation(editingContext);
-            using LibGit2Sharp.Repository repo = new(localPath);
+            using LibGit2Sharp.Repository repo = CreateLocalRepo(editingContext);
 
             Branch branch = repo.Branches.FirstOrDefault(branch => branch.FriendlyName == branchName);
             if (branch is not null) { return; }
@@ -563,8 +561,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public void DeleteLocalBranchIfExists(AltinnRepoEditingContext editingContext, string branchName)
         {
-            string localPath = FindLocalRepoLocation(editingContext);
-            using LibGit2Sharp.Repository repo = new(localPath);
+            using LibGit2Sharp.Repository repo = CreateLocalRepo(editingContext);
 
             if (LocalBranchIsHead(repo, branchName))
             {
@@ -581,8 +578,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public void CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName)
         {
-            string localPath = FindLocalRepoLocation(editingContext);
-            using LibGit2Sharp.Repository repo = new(localPath);
+            using LibGit2Sharp.Repository repo = CreateLocalRepo(editingContext);
 
             Branch branch = repo.Branches.Single(branch => branch.FriendlyName == branchName);
             Commands.Checkout(repo, branch);
@@ -673,6 +669,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var username = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             return new LibGit2Sharp.Signature(username, $"{username}@noreply.altinn.studio", DateTime.Now);
+        }
+
+        private static Identity GetDefaultIdentity(string developer)
+        {
+            string email = $"{developer}@noreply.altinn.studio";
+            return new Identity(developer, email);
+        }
+
+        private LibGit2Sharp.Repository CreateLocalRepo(AltinnRepoEditingContext editingContext)
+        {
+            string localPath = FindLocalRepoLocation(editingContext);
+            return  new LibGit2Sharp.Repository(localPath);
         }
 
         private async Task<LibGit2Sharp.Handlers.CredentialsHandler> GetCredentialsAsync(string accessToken = "")

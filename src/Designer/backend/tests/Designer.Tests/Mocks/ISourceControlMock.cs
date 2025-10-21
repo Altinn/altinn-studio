@@ -147,7 +147,7 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public Task EnsureCloneExists(string org, string repository) => Task.CompletedTask;
+        public Task CloneIfNotExists(string org, string repository) => Task.CompletedTask;
 
         Task<Branch> ISourceControl.CreateBranch(string org, string repository, string branchName)
         {

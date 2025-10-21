@@ -297,13 +297,13 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public async Task DecoratedISourceControlService_EnsureCloneExists_LogsErrorWithAdditionalInfo()
+        public async Task DecoratedISourceControlService_CloneIfNotExists_LogsErrorWithAdditionalInfo()
         {
             (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
 
             try
             {
-                await service.EnsureCloneExists("org_should_not_exists", "repo_should_not_exists");
+                await service.CloneIfNotExists("org_should_not_exists", "repo_should_not_exists");
             }
             catch
             {
@@ -523,7 +523,7 @@ namespace Designer.Tests.Services
             throw new NotImplementedException();
         }
 
-        public Task EnsureCloneExists(string org, string repository)
+        public Task CloneIfNotExists(string org, string repository)
         {
             throw new NotImplementedException();
         }
