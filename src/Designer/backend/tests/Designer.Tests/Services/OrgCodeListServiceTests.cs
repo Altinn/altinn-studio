@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Exceptions.CodeList;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Helpers;
@@ -166,7 +167,7 @@ public class OrgCodeListServiceTests : IDisposable
         // Assert
         AltinnRepoEditingContext expected = AltinnRepoEditingContext.FromOrgRepoDeveloper(TargetOrg, targetRepository, Developer);
 
-        _giteaMock.Verify(service => service.GetLatestCommitOnBranch(TargetOrg, targetRepository, "master", default), Times.Once);
+        _giteaMock.Verify(service => service.GetLatestCommitOnBranch(TargetOrg, targetRepository, General.DefaultBranch, CancellationToken.None), Times.Once);
         _sourceControlMock.Verify(service => service.CloneIfNotExists(TargetOrg, targetRepository), Times.Once);
         _sourceControlMock.Verify(service => service.CheckoutRepoOnBranch(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), "master"), Times.Once);
         _sourceControlMock.Verify(service => service.CommitToLocalRepo(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), GiteaCommitMessage), Times.Once);
@@ -223,7 +224,7 @@ public class OrgCodeListServiceTests : IDisposable
         AltinnRepoEditingContext expected = AltinnRepoEditingContext.FromOrgRepoDeveloper(TargetOrg, targetRepository, Developer);
         string expectedFeatureBranchName = expected.Developer;
 
-        _giteaMock.Verify(service => service.GetLatestCommitOnBranch(TargetOrg, targetRepository, "master", default), Times.Once);
+        _giteaMock.Verify(service => service.GetLatestCommitOnBranch(TargetOrg, targetRepository, General.DefaultBranch, CancellationToken.None), Times.Once);
         _sourceControlMock.Verify(service => service.CloneIfNotExists(TargetOrg, targetRepository), Times.Once);
 
         _sourceControlMock.Verify(service => service.DeleteLocalBranchIfExists(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), expectedFeatureBranchName), Times.Exactly(2));

@@ -488,7 +488,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 string noteMessage = "studio-commit";
                 LibGit2Sharp.Signature signature = GetDeveloperSignature();
 
-                Commands.Stage(repo, "*");
+                CommandsExtensions.StageAllChanges(repo);
                 LibGit2Sharp.Commit commit = repo.Commit(commitMessage, signature, signature);
                 NoteCollection notes = repo.Notes;
                 notes.Add(commit.Id, noteMessage, signature, signature, notes.DefaultNamespace);
@@ -545,6 +545,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return;
             }
             LibGit2Sharp.Commit commit = repo.Lookup<LibGit2Sharp.Commit>(commitSha);
+            if (commit is null)
+            {
+                throw new ArgumentException($"Commit '{commitSha}' not found in repository.", nameof(commitSha));
+            }
             repo.CreateBranch(branchName, commit);
         }
 
@@ -569,7 +573,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 CheckoutRepoOnBranch(editingContext, defaultBranchName);
             }
 
-            if (LocalBranchExists(repo, branchName) && LocalBranchIsHead(repo, branchName) is false)
+            if (LocalBranchExists(repo, branchName))
             {
                 repo.Branches.Remove(branchName);
             }

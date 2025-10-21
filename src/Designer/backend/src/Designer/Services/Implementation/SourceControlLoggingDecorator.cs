@@ -298,7 +298,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "EnsureCloneExists", org, repository);
+                LogError(ex, "CloneIfNotExists", org, repository);
                 throw;
             }
         }

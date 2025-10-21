@@ -19,7 +19,7 @@ public partial class AltinnOrgGitRepository : AltinnGitRepository
     private const string CodeListFolder = "CodeLists/";
     private const string CodeListWithTextResourcesFolder = "CodeListsWithTextResources/";
     private const string LanguageResourceFolderName = "Texts/";
-    private const string TextResourceFileNamePattern = "resource.??.json";
+    private const string TextResourceFileNamePattern = "resource.*.json";
 
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
@@ -55,8 +55,8 @@ public partial class AltinnOrgGitRepository : AltinnGitRepository
 
         foreach (string filePath in languageFilePaths)
         {
-            string fileName = Path.GetFileNameWithoutExtension(filePath);
-            if (fileName == null)
+            string? fileName = Path.GetFileNameWithoutExtension(filePath);
+            if (fileName is null)
             {
                 continue;
             }

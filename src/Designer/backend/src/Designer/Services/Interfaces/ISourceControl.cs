@@ -162,7 +162,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task DeleteRepository(string org, string repository);
 
         /// <summary>
-        /// Checkout the repository on specified commit.
+        /// Checkout the repository on specified branch.
         /// </summary>
         /// <param name="editingContext">The altinn repo editing context</param>
         /// <param name="branchName">The name of the branch</param>
