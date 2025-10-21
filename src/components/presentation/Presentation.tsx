@@ -121,5 +121,9 @@ export const useHasPresentation = () => useHasProvider();
  * for loaders, this can be used to prevent the loader from creating a presentation.
  */
 export function DummyPresentation({ children }: PropsWithChildren) {
-  return <PresentationProvider value={undefined}>{children}</PresentationProvider>;
+  return (
+    <PresentationProvider value={undefined}>
+      <RenderStart>{children}</RenderStart>
+    </PresentationProvider>
+  );
 }

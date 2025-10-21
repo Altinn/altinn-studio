@@ -8,7 +8,7 @@ import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { returnConfirmSummaryObject } from 'src/features/processEnd/confirm/helpers/returnConfirmSummaryObject';
+import { returnConfirmSummaryObject } from 'src/features/process/confirm/helpers/returnConfirmSummaryObject';
 import {
   filterOutDataModelRefDataAsPdfAndAppOwnedDataTypes,
   getAttachmentsWithDataType,

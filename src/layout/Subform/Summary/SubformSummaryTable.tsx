@@ -11,7 +11,7 @@ import { useDataTypeFromLayoutSet, useLayoutLookups } from 'src/features/form/la
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
+import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { isSubformValidation } from 'src/features/validation';
 import { useComponentValidationsFor } from 'src/features/validation/selectors/componentValidationsForNode';
 import { useAllNavigationParams, useIsSubformPage } from 'src/hooks/navigation';

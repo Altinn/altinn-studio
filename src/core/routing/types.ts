@@ -4,5 +4,6 @@ export enum SearchParams {
   ExitSubform = 'exitSubform',
   Validate = 'validate',
   Pdf = 'pdf',
+  PdfForTask = 'task',
   BackToPage = 'backToPage',
 }

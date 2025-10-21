@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
 import { Heading } from '@digdir/designsystemet-react';
@@ -7,6 +8,7 @@ import { Flex } from 'src/app-components/Flex/Flex';
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
 import { DummyPresentation } from 'src/components/presentation/Presentation';
 import { BlockPrint, ReadyForPrint } from 'src/components/ReadyForPrint';
+import { SearchParams } from 'src/core/routing/types';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
@@ -24,28 +26,42 @@ import { AllSubformSummaryComponent2 } from 'src/layout/Subform/Summary/SubformS
 import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { SummaryComponent2 } from 'src/layout/Summary2/SummaryComponent2/SummaryComponent2';
+import { TaskSummaryWrapper } from 'src/layout/Summary2/SummaryComponent2/TaskSummaryWrapper';
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useItemIfType } from 'src/utils/layout/useNodeItem';
 import type { IPdfFormat } from 'src/features/pdf/types';
 
-export const PDFView2 = () => {
-  const order = usePageOrder();
-  const { data: pdfSettings, isFetching: pdfFormatIsLoading } = usePdfFormatQuery(true);
+export function PdfFromLayout() {
   const pdfLayoutName = usePdfLayoutName();
-
-  if (pdfFormatIsLoading) {
-    return <BlockPrint />;
-  }
-
   if (pdfLayoutName) {
-    // Render all components directly if given a separate PDF layout
     return (
       <PdfWrapping>
         <PlainPage pageKey={pdfLayoutName} />
       </PdfWrapping>
     );
+  }
+
+  return <AutoGeneratePdfFromLayout />;
+}
+
+function AutoGeneratePdfFromLayout() {
+  const [params] = useSearchParams();
+  const taskIds = params.getAll(SearchParams.PdfForTask);
+  if (taskIds.length > 0) {
+    throw new Error(
+      `Unexpected search param ${SearchParams.PdfForTask} provided. This mode does not support passing ` +
+        `${SearchParams.PdfForTask} as a search param, but will auto-generate a PDF from the ` +
+        `current layout-set instead. To use the multi-task mode, you cannot have a layout-set ` +
+        `set up for the current task.`,
+    );
+  }
+
+  const { data: pdfSettings, isFetching: pdfFormatIsLoading } = usePdfFormatQuery(true);
+
+  if (pdfFormatIsLoading) {
+    return <BlockPrint />;
   }
 
   return (
@@ -61,20 +77,55 @@ export const PDFView2 = () => {
             }}
           />
         </div>
-        {order
-          .filter((pageKey) => !pdfSettings?.excludedPages.includes(pageKey))
-          .map((pageKey) => (
-            <PdfForPage
-              key={pageKey}
-              pageKey={pageKey}
-              pdfSettings={pdfSettings}
-            />
-          ))}
+        <AllPages pdfSettings={pdfSettings} />
         <AllSubformSummaryComponent2 />
       </PdfWrapping>
     </DummyPresentation>
   );
-};
+}
+
+export function PdfForServiceTask() {
+  const [params] = useSearchParams();
+  const taskIds = params.getAll(SearchParams.PdfForTask);
+  if (taskIds.length === 0) {
+    throw new Error(
+      `No task ids provided (this mode requires passing one or multiple ${SearchParams.PdfForTask} as a search param)`,
+    );
+  }
+
+  return <AutoGeneratePdfFromTasks taskIds={taskIds} />;
+}
+
+function AutoGeneratePdfFromTasks({ taskIds }: { taskIds: string[] }) {
+  return (
+    <DummyPresentation>
+      <PdfWrapping>
+        <div className={classes.instanceInfo}>
+          <InstanceInformation
+            elements={{
+              dateSent: true,
+              sender: true,
+              receiver: true,
+              referenceNumber: true,
+            }}
+          />
+        </div>
+        {taskIds.map((taskId, idx) => (
+          <TaskSummaryWrapper
+            key={taskId}
+            taskId={taskId}
+          >
+            {idx > 0 && <div className={classes.pageBreak} />}
+            {/* Settings intentionally omitted, as this is new functionality
+            and PDF settings are deprecated at this point. */}
+            <AllPages pdfSettings={undefined} />
+            <AllSubformSummaryComponent2 />
+          </TaskSummaryWrapper>
+        ))}
+      </PdfWrapping>
+    </DummyPresentation>
+  );
+}
 
 function PdfWrapping({ children }: PropsWithChildren) {
   const orgLogoEnabled = Boolean(useApplicationMetadata().logoOptions);
@@ -139,20 +190,32 @@ function PlainPage({ pageKey }: { pageKey: string }) {
   );
 }
 
+function AllPages({ pdfSettings }: { pdfSettings: IPdfFormat | undefined }) {
+  const order = usePageOrder();
+  const visiblePages = getPdfVisiblePages(order, pdfSettings);
+
+  return (
+    <>
+      {visiblePages.map((pageKey) => (
+        <PdfForPage
+          key={pageKey}
+          pageKey={pageKey}
+          pdfSettings={pdfSettings}
+        />
+      ))}
+    </>
+  );
+}
+
+function getPdfVisiblePages(pages: string[], pdfSettings: IPdfFormat | undefined): string[] {
+  if (!pdfSettings?.excludedPages) {
+    return pages;
+  }
+  return pages.filter((pageKey) => !pdfSettings.excludedPages.includes(pageKey));
+}
+
 function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: IPdfFormat | undefined }) {
-  const lookups = useLayoutLookups();
-  const children = useMemo(() => {
-    const topLevel = lookups.topLevelComponents[pageKey] ?? [];
-    return topLevel.filter((baseId) => {
-      const component = lookups.getComponent(baseId);
-      const def = getComponentDef(component.type);
-      return (
-        component.type !== 'Subform' &&
-        !pdfSettings?.excludedComponents.includes(baseId) &&
-        def.shouldRenderInAutomaticPDF(component as never)
-      );
-    });
-  }, [lookups, pageKey, pdfSettings?.excludedComponents]);
+  const children = useTopLevelComponentsToAutoRender(pageKey, pdfSettings);
   const hidden = useIsHiddenMulti(children);
 
   return (
@@ -177,6 +240,22 @@ function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: IP
       </Flex>
     </div>
   );
+}
+
+function useTopLevelComponentsToAutoRender(pageKey: string, pdfSettings: IPdfFormat | undefined): string[] {
+  const lookups = useLayoutLookups();
+  return useMemo(() => {
+    const topLevel = lookups.topLevelComponents[pageKey] ?? [];
+    return topLevel.filter((baseId) => {
+      const component = lookups.getComponent(baseId);
+      const def = getComponentDef(component.type);
+      return (
+        component.type !== 'Subform' &&
+        !pdfSettings?.excludedComponents.includes(baseId) &&
+        def.shouldRenderInAutomaticPDF(component as never)
+      );
+    });
+  }, [lookups, pageKey, pdfSettings?.excludedComponents]);
 }
 
 function PdfForNode({ baseComponentId }: { baseComponentId: string }) {

@@ -7,7 +7,7 @@ import { TaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { Loader } from 'src/core/loading/Loader';
 import { FormProvider } from 'src/features/form/FormContext';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
-import { PDFWrapper } from 'src/features/pdf/PDFWrapper';
+import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
@@ -22,11 +22,11 @@ export function SubformWrapper({ baseComponentId, children }: PropsWithChildren<
 
 export function SubformForm() {
   return (
-    <PDFWrapper>
+    <PdfWrapper>
       <PresentationComponent>
         <Form />
       </PresentationComponent>
-    </PDFWrapper>
+    </PdfWrapper>
   );
 }
 

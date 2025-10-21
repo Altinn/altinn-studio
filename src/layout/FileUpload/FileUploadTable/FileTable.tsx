@@ -2,7 +2,7 @@ import React from 'react';
 
 import { isAttachmentUploaded } from 'src/features/attachments';
 import { Lang } from 'src/features/language/Lang';
-import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
+import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableComponent.module.css';
 import { FileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRow';
 import { FileTableRowProvider } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
