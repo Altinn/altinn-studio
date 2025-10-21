@@ -25,10 +25,21 @@ class LLMClient:
         self.role = role
         
         # Select model, version, and temperature based on role
+        model: Optional[str] = None
+        model_version: Optional[str] = None
+        temperature: Optional[float] = None
+
         if role == "planner":
             model = config.LLM_MODEL_PLANNER
             model_version = config.LLM_VERSION_PLANNER
-            temperature = config.LLM_TEMPERATURE_PLANNER
+            if config.LLM_TEMPERATURE_PLANNER is not None:
+                try:
+                    temperature = float(config.LLM_TEMPERATURE_PLANNER)
+                except ValueError:
+                    log.warning(
+                        "Invalid planner temperature %s; falling back to provider default",
+                        config.LLM_TEMPERATURE_PLANNER,
+                    )
         elif role == "actor":
             model = config.LLM_MODEL_ACTOR
             model_version = config.LLM_VERSION_ACTOR
@@ -47,14 +58,16 @@ class LLMClient:
             temperature = config.LLM_TEMPERATURE
         
         self.model_version = model_version
-        self.model = config.LLM_MODEL
-        self.temperature = config.LLM_TEMPERATURE
-        
+        self.model = model
+        self.temperature = temperature if temperature is not None else config.LLM_TEMPERATURE
+
         # Prefer Azure OpenAI if available
         if config.AZURE_API_KEY:
             version_info = f", version={model_version}" if model_version else ""
-            log.info(f"Using Azure OpenAI for LLM operations (role={role}, model={model}{version_info}, temp={temperature})")
-            
+            log.info(
+                f"Using Azure OpenAI for LLM operations (role={role}, model={model}{version_info}, temperature={temperature if temperature is not None else 'default'})"
+            )
+
             # For reasoning models (gpt-5, o1, o3), temperature must be 1.0 or unset
             llm_params = {
                 "azure_endpoint": config.AZURE_ENDPOINT,
@@ -62,19 +75,23 @@ class LLMClient:
                 "api_version": config.AZURE_API_VERSION,
                 "deployment_name": model,
             }
-            
-            # Only set temperature if it's not 1.0 (reasoning models use default=1.0)
-            if temperature != 1.0:
+
+            # Only set temperature if explicitly configured and not 1.0 (reasoning models use default=1.0)
+            if temperature is not None and temperature != 1.0:
                 llm_params["temperature"] = temperature
-            
+
             self.llm = AzureChatOpenAI(**llm_params)
         elif config.OPENAI_API_KEY and config.OPENAI_API_KEY != "your_openai_api_key_here":
-            log.info(f"Using OpenAI for LLM operations (role={role}, model={model}, temp={temperature})")
-            self.llm = ChatOpenAI(
-                api_key=config.OPENAI_API_KEY,
-                model=model,
-                temperature=temperature
+            log.info(
+                f"Using OpenAI for LLM operations (role={role}, model={model}, temperature={temperature if temperature is not None else 'default'})"
             )
+            chat_kwargs = {
+                "api_key": config.OPENAI_API_KEY,
+                "model": model,
+            }
+            if temperature is not None:
+                chat_kwargs["temperature"] = temperature
+            self.llm = ChatOpenAI(**chat_kwargs)
         else:
             log.warning("No LLM API key configured - LLM features will be limited")
             self.llm = None
@@ -118,10 +135,22 @@ class LLMClient:
     def get_model_metadata(self) -> dict:
         """Get model metadata for tracing"""
         try:
+            model_name = (
+                self.llm.deployment_name
+                if hasattr(self.llm, "deployment_name")
+                else self.llm.model_name
+                if hasattr(self.llm, "model_name")
+                else "unknown"
+            )
+
+            llm_temp = getattr(self.llm, "temperature", None)
+            if llm_temp is None:
+                llm_temp = self.temperature if self.temperature is not None else config.LLM_TEMPERATURE
+
             metadata = {
                 "role": str(self.role),
-                "model": str(self.llm.deployment_name if hasattr(self.llm, 'deployment_name') else self.llm.model_name if hasattr(self.llm, 'model_name') else "unknown"),
-                "temperature": float(self.llm.temperature) if hasattr(self.llm, 'temperature') else 0.1
+                "model": str(model_name),
+                "temperature": float(llm_temp) if llm_temp is not None else 0.1,
             }
             if self.model_version:
                 metadata["model_version"] = str(self.model_version)

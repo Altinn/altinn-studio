@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional
 
 from agents.services.llm import LLMClient
 from agents.services.telemetry import format_as_markdown, is_json
+from agents.services.repo import ensure_text_resources_in_patch
 from shared.utils.logging_utils import get_logger
 from shared.models import AgentAttachment
 
@@ -53,8 +54,29 @@ async def run_actor_pipeline(
         )
     )
     patch = await synthesize_patch(
-        user_goal, repo_facts, tool_results, implementation_plan, general_plan, planner_step, repository_path, attachments=attachments
+        user_goal,
+        repo_facts,
+        tool_results,
+        implementation_plan,
+        general_plan,
+        planner_step,
+        repository_path,
+        attachments=attachments,
     )
+
+    if repository_path:
+        added_keys = ensure_text_resources_in_patch(
+            patch,
+            repository_path,
+            resource_files=repo_facts.get("resources"),
+            available_locales=repo_facts.get("available_locales"),
+        )
+        if added_keys:
+            log.info(
+                "Ensured %d missing text resource bindings: %s",
+                len(added_keys),
+                ", ".join(added_keys[:10]) + ("..." if len(added_keys) > 10 else ""),
+            )
 
     return {
         "general_plan": general_plan,
@@ -70,7 +92,8 @@ async def create_general_plan(user_goal: str, planner_step: Optional[str] = None
     system_prompt = (
         "You are the lead strategist for an Altinn multi-agent build system. "
         "Summarize the requested change, highlight key requirements, identify risks, "
-        "and outline major subtasks. Respond with JSON only."
+        "and outline major subtasks. Respond with JSON only. "
+        "Always call out when new text resources are required so later steps plan explicit resource creation across all locales."
     )
     user_prompt = dedent(
         f"""
@@ -120,7 +143,8 @@ async def create_tool_plan(
     system_prompt = (
         "You manage tool orchestration for Altinn automation. Based on the goal, "
         "general plan, and repository facts, propose an ordered list of tools to gather the necessary "
-        "context before implementation. Only suggest tools that are actually available and relevant."
+        "context before implementation. Only suggest tools that are actually available and relevant. "
+        "If new text resources may be needed, include resource-focused tools to retrieve existing keys."
     )
 
     # Create repo summary for context
@@ -169,6 +193,7 @@ async def create_tool_plan(
         - DO NOT select validator tools (*_validator_tool) - they are for verification phase only
         - DO NOT select tools that modify generated files (.cs, .xsd) - only modify source files
         - Focus on tools that gather context: layout_components_tool, resource_tool, datamodel_tool
+        - Always gather existing text resource keys when new UI text is expected (resource_tool).
         - Consider what information is already available in repo_facts vs what needs to be gathered
         - Be selective - prefer fewer, more relevant tools over exhaustive lists
         - For layout_components_tool: Use the goal_summary from GENERAL PLAN as the query - it provides rich context about user intent
@@ -465,7 +490,8 @@ async def synthesize_patch(
         "You are the implementation agent for Altinn apps. Your ONLY task is to produce a JSON patch using EXACTLY these generic operations: "
         "insert_json_array_item, insert_json_property, insert_text_at_pattern, replace_text. "
         "DO NOT call any MCP tools. DO NOT use tool calls. DO NOT mention any tools. "
-        "DO NOT include any explanatory text. Output ONLY valid JSON with 'files' and 'changes' keys."
+        "DO NOT include any explanatory text. Output ONLY valid JSON with 'files' and 'changes' keys. "
+        "Every textResourceBindings entry you introduce MUST reference an existing text resource. If it doesn't exist yet, include operations to add it in each required locale's resource file before returning the patch."
         "\n\n"
         "CRITICAL CONSTRAINTS FOR ALTINN COMPONENTS:"
         "- ONLY use properties that are explicitly mentioned as valid in the layout_properties_tool results"
@@ -542,11 +568,15 @@ async def synthesize_patch(
 
         CRITICAL: Generate the patch JSON with EXACTLY these keys: "files" (array of strings) and "changes" (array of objects).
 
+        For every value referenced in textResourceBindings, ensure the patch includes an insert_json_array_item operation inserting {{"id": binding, "value": translated_text}} into each App/config/texts/resource.<locale>.json file.
+
         IMPORTANT: Before creating any component properties, check the TOOL RESULTS section for layout_properties_tool results to see what properties are valid for each component type. Only use properties that are explicitly validated by the schema.
 
         For datamodel updates, use the CURRENT MODEL SCHEMA to understand the existing structure and add new fields to appropriate schema objects. Follow JSON Schema conventions and avoid unnecessary nesting.
 
         IMPORTANT: For Altinn datamodels, you should ONLY update the .schema.json file. The .cs and .xsd files will be automatically regenerated from the .schema.json using MCP tools. Do NOT manually update .cs or .xsd files in your patch.
+
+        IMPORTANT: Never leave a textResourceBindings reference without a matching resource entry across locales. Create them in the same patch.
 
         When placing components "after" another field, use the CURRENT LAYOUT CONTENT to identify the correct component ID by finding the component with the matching textResourceBindings.title value.
 

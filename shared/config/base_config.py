@@ -71,7 +71,7 @@ class BaseConfig:
     LLM_VERSION_VERIFIER = os.getenv("LLM_VERSION_VERIFIER")
     
     # Temperature settings per role
-    LLM_TEMPERATURE_PLANNER = float(os.getenv("LLM_TEMPERATURE_PLANNER", "0.3"))  # Higher for creativity
+    LLM_TEMPERATURE_PLANNER = os.getenv("LLM_TEMPERATURE_PLANNER")  # Higher for creativity
     LLM_TEMPERATURE_ACTOR = float(os.getenv("LLM_TEMPERATURE_ACTOR", "0.1"))  # Lower for precision
     LLM_TEMPERATURE_REVIEWER = float(os.getenv("LLM_TEMPERATURE_REVIEWER", "0.2"))
     LLM_TEMPERATURE_VERIFIER = float(os.getenv("LLM_TEMPERATURE_VERIFIER", "0.0"))  # Deterministic
