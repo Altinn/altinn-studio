@@ -1,0 +1,313 @@
+{
+  "language": "nb",
+  "resources": [
+    {
+      "id": "styre-og-revisjon.Input-LXbBzK.title",
+      "value": "E-post (for varsel om signering)"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Input-HB2jK2.title",
+      "value": "E-post (for varsel om signering)"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Input-cgGsVM.title",
+      "value": "E-post (for varsel om signering)"
+    },
+    {
+      "id": "signering-av-stiftelsesdok.FileUpload-fU4NBP.description",
+      "value": "Last opp filer som må signeres av stifterne."
+    },
+    {
+      "id": "signering-av-stiftelsesdok.FileUpload-fU4NBP.title",
+      "value": "Stiftelsesdokumenter"
+    },
+    {
+      "id": "signering-av-stiftelsesdok.Button-cBQsfZ.title",
+      "value": "Til signering"
+    },
+    {
+      "id": "signering-av-stiftelsesdok.Header-NfIrgi.title",
+      "value": "Stiftelsesdokumenter"
+    },
+    {
+      "id": "styre-og-revisjon.Address-zMK6HS.title",
+      "value": "Adresse"
+    },
+    {
+      "id": "styre-og-revisjon.Input-VOCYsx.title",
+      "value": "Navn"
+    },
+    {
+      "id": "styre-og-revisjon.Input-X4c6ij.title",
+      "value": "Organisasjonsnummer"
+    },
+    {
+      "id": "styre-og-revisjon.Group-hMnQkh.title",
+      "value": "Revisor"
+    },
+    {
+      "id": "styre-og-revisjon.Group-ZQZ86T.title",
+      "value": "Revisjon av årsregnskap"
+    },
+    {
+      "id": "styre-og-revisjon.Header-13sPak.title",
+      "value": "Revisjon av årsregnskap"
+    },
+    {
+      "id": "styre-og-revisjon.har-nestleder-checkbox.title",
+      "value": "Nestleder"
+    },
+    {
+      "id": "styre-og-revisjon.RadioButtons-lupcRJ.title",
+      "value": "Skal selskapets årsregnskap revideres?"
+    },
+    {
+      "id": "dJkCTKVMUIRE",
+      "value": "Årsregnskapene skal revideres og selskapet skal ha revisor."
+    },
+    {
+      "id": "oaCgQfxaJNG1",
+      "value": "Årsregnskapene skal ikke revideres og selskapet skal ikke ha revisor"
+    },
+    {
+      "id": "JnZveKSrltOi",
+      "value": "Skal styret ha nestleder?"
+    },
+    {
+      "id": "styre-og-revisjon.Checkboxes-OFWMMA.title",
+      "value": "Skal styret ha nestleder?"
+    },
+    {
+      "id": "styre-og-revisjon.RepeatingGroup-ThvmON.title",
+      "value": "Styremedlemmer"
+    },
+    {
+      "id": "styre-og-revisjon.Input-apAWap.title",
+      "value": "Fødselsnummer"
+    },
+    {
+      "id": "styre-og-revisjon.Input-Xsnqfr.title",
+      "value": "Etternavn"
+    },
+    {
+      "id": "styre-og-revisjon.Group-7sWmxA.title",
+      "value": "Nestleder"
+    },
+    {
+      "id": "styre-og-revisjon.Input-jrEjP2.title",
+      "value": "Fødselsnummer"
+    },
+    {
+      "id": "styre-og-revisjon.Input-O3dFrw.title",
+      "value": "Etternavn"
+    },
+    {
+      "id": "styre-og-revisjon.Input-quTwIG.title",
+      "value": "Fødselsnummer"
+    },
+    {
+      "id": "styre-og-revisjon.Input-pwsJeJ.title",
+      "value": "Etternavn"
+    },
+    {
+      "id": "styre-og-revisjon.Group-02BCRt.title",
+      "value": "Styreleder"
+    },
+    {
+      "id": "styre-og-revisjon.Paragraph-XHM2lo.title",
+      "value": "Styret skal ha ett eller flere medlemmer. Består styret av bare en person, skal denne være styreleder."
+    },
+    {
+      "id": "styre-og-revisjon.Header-fX9LfC.title",
+      "value": "Styre"
+    },
+    {
+      "id": "aksjekapital.Header-fwRDii.title",
+      "value": "Aksjekapital"
+    },
+    {
+      "id": "aksjekapital.frist-innbetaling.title",
+      "value": "Frist for innbetaling av aksjeinnskuddet"
+    },
+    {
+      "id": "aksjekapital.paalydende-input.title",
+      "value": "Aksjens pålydende"
+    },
+    {
+      "id": "aksjekapital.aksjekapital-input.title",
+      "value": "Aksjekapital"
+    },
+    {
+      "id": "di8UgmCpnzKG",
+      "value": "Ja"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Input-G9nlUc.title",
+      "value": "Fødselsnummer"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Input-WmFYXj.title",
+      "value": "Etternavn"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Checkboxes-dgmutj.title",
+      "value": ""
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Group-xCsfYx.title",
+      "value": "Fullmektig"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Group-0GS4J3.title",
+      "value": "Aksjetegning"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Input-f5s6V5.title",
+      "value": "Betalt per aksje"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Input-Vq1fOU.title",
+      "value": "Antall aksjer"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Header-i8RjIf.title",
+      "value": "Aksjetegning"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.stifter-personer-repeating-group.add_button_full",
+      "value": "Legg til person"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.stiftere-virksomheter.add_button_full",
+      "value": "Legg til virksomhet"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.organisasjonsnummer.title",
+      "value": "Oranisasjonsnummer"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.stiftere-virksomheter.title",
+      "value": "Virksomheter"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.RepeatingGroup-hkXdP3.title",
+      "value": "Personer"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Paragraph-vF8Zjw.title",
+      "value": "Stiftere kan være både personer og virksomheter. Alle stifterne må tegne aksjer i selskapet."
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Header-LSgLyT.title",
+      "value": "Stiftere og aksjetegning"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Input-NQacsF.title",
+      "value": "Fødselsnummer"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.etternavn.title",
+      "value": "Etternavn"
+    },
+    {
+      "id": "signering-av-stiftelsesdok",
+      "value": "Signering av stiftelsesdokument"
+    },
+    {
+      "id": "styre-og-revisjon",
+      "value": "Styre og revisjon"
+    },
+    {
+      "id": "aksjekapital",
+      "value": "Aksjekapital"
+    },
+    {
+      "id": "stiftere-og-aksjetegning",
+      "value": "Stiftere og aksjetegning"
+    },
+    {
+      "id": "Side1.selskapets-formaal.title",
+      "value": "Vedtektsfestet formål"
+    },
+    {
+      "id": "Side1.Input-H0Menv.title",
+      "value": "Navn"
+    },
+    {
+      "id": "om-selskapet",
+      "value": "Om selskapet"
+    },
+    {
+      "id": "appName",
+      "value": "Stiftelse av aksjeselskap"
+    },
+    {
+      "id": "next",
+      "value": "Neste"
+    },
+    {
+      "id": "back",
+      "value": "Tilbake"
+    },
+    {
+      "id": "signing.correspondence_title_common",
+      "value": "Oppgave - Signer stiftelsesdokumenter"
+    },
+    {
+      "id": "signing.correspondence_summary_stifter_person",
+      "value": "Du har blitt lagt til som signatar."
+    },
+    {
+      "id": "signing.correspondence_summary_stifter_organisasjon",
+      "value": "Organisjonen har blitt lagt til som signatar."
+    },
+    {
+      "id": "signing.correspondence_summary_revisor",
+      "value": "Organisjonen har blitt lagt til som revisor."
+    },
+    {
+      "id": "signing.correspondence_body_stifter_person",
+      "value": "Du har blitt lagt til som signatar for stiftelsesdokumenter. <br /> $instanceUrl$ <br /><br />Hvis du lurer på noe, ta kontakt med Brønnøysundregistrene på telefon 75 00 75 00."
+    },
+    {
+      "id": "signing.correspondence_body_stifter_organisasjon",
+      "value": "Organisjonen har blitt lagt til som signatar for stiftelsesdokumenter. <br /> $instanceUrl$ <br /><br />Ved spørsmål, ta kontakt med Brønnøysundregistrene på telefon 75 00 75 00."
+    },
+    {
+      "id": "signing.correspondence_body_revisor",
+      "value": "Organisjonen har blitt lagt til som revisor for et selskap. Revisor må signere for å ta på seg oppdraget. <br /> $instanceUrl$ <br /><br />Ved spørsmål, ta kontakt med Brønnøysundregistrene på telefon 75 00 75 00."
+    },
+    {
+      "id": "signing.notification_content",
+      "value": "Hei $correspondenceRecipientName$,\n\nDu har mottatt stiftelsesdokumenter for signering i Altinn. Logg inn på Altinn for å signere dokumentene.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
+    },
+    {
+      "id": "signing.email_subject",
+      "value": "Stiftelsesdokumenter mottatt for signering i Altinn. Gå til Altinn-innboks for å signere."
+    },
+    {
+      "id": "signing.revisor_notification_content",
+      "value": "Nytt revisjonsoppdrag for $correspondenceRecipientName$ er mottatt for signering i Altinn. Logg inn på Altinn for å signere.\n\nMed vennlig hilsen\nBrønnøysundregistrene"
+    },
+    {
+      "id": "signing.revisor_email_subject",
+      "value": "Revisjonsoppdrag mottatt for signering i Altinn. Gå til Altinn-innboks for å signere."
+    },
+    {
+      "id": "singing.summary.title.override",
+      "value": "Følgende parter har signert stiftelsesdokumentene"
+    },
+        {
+      "id": "signing.correspondence_receipt_title",
+      "value": "Kvittering: Signering av stiftelsesdokumenter"
+    },
+    {
+      "id": "signing.correspondence_receipt_summary",
+      "value": "Du har signert stiftelsesdokumentene"
+    },
+    {
+      "id": "signing.correspondence_receipt_body",
+      "value": "Dokumentene du har signert er vedlagt. Disse kan lastes ned om ønskelig. <br /><br />Hvis du lurer på noe, ta kontakt med Brønnøysundregistrene på telefon 75 00 75 00."
+    }
+  ]
+}

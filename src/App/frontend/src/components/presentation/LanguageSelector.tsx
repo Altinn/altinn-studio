@@ -76,10 +76,17 @@ export const LanguageSelector = () => {
                   key={lang}
                   asChild
                   value={lang}
+                  onKeyDown={(e) => {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                      updateLanguage(lang);
+                      e.preventDefault();
+                    }
+                  }}
                 >
                   <Dropdown.Item>
                     <Dropdown.Button
                       onClick={() => updateLanguage(lang)}
+                      tabIndex={-1}
                       aria-checked={selected}
                       role='menuitemradio'
                     >

@@ -31,10 +31,7 @@ export const uploadFileWithTagAndVerify = (fileName: string, fileType: string) =
     .find('input[type="file"]')
     .selectFile(makeTestFile(fileName), { force: true });
   cy.contains('label', 'Filtype').click();
-  cy.get('div[role="listbox"]').contains('span', fileType).click();
-  cy.get('input[id^="attachment-tag-dropdown-"]').should(($input) => {
-    expect($input.val()).to.eq(fileType);
-  });
+  cy.dsSelect('[data-componenttype="FileUploadWithTag"] u-combobox', fileType);
   cy.get('button[id^=attachment-save-tag-button]').click();
 
   cy.get('[data-testid="tagFile-summary"]').first().should('be.visible');
