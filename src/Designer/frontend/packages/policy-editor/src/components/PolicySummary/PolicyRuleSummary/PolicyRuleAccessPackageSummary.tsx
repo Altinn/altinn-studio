@@ -49,9 +49,9 @@ export const PolicyRuleAccessPackageSummary = ({
                     (subResource) => {
                       return (
                         <StudioTag
-                          size='sm'
+                          data-size='sm'
                           key={`${accessPackage}-${action}-${subResource}`}
-                          color='info'
+                          data-color='info'
                         >
                           {subResource}
                         </StudioTag>
