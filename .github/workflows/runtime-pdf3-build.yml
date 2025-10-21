@@ -29,7 +29,7 @@ jobs:
           cache-dependency-path: src/Runtime/pdf3/go.sum
 
       - name: Cache CLI tools
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: src/Runtime/pdf3/.cache/bin
           key: pdf3-tools-${{ runner.os }}-${{ hashFiles('src/Runtime/test/fixture/pkg/tools/.tool-versions') }}

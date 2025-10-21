@@ -177,7 +177,7 @@ func Test_Validation_InvalidCookieSameSite(t *testing.T) {
 		{
 			Name:     "test",
 			Value:    "value",
-			SameSite: "Invalid", // Invalid: must be Strict or Lax
+			SameSite: "Invalid", // Invalid: must be 'Strict', 'Lax', or 'None'
 		},
 	}
 
