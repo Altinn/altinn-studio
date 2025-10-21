@@ -92,6 +92,8 @@
       "allowedContributers": [
         "app:owned"
       ],
+      "actionRequiredToRead": "signature-access",
+      "actionRequiredToWrite": "signature-access",
       "taskId": "SigningTask_Founders",
       "maxCount": 10,
       "minCount": 1
@@ -104,6 +106,8 @@
       "allowedContributers": [
         "app:owned"
       ],
+      "actionRequiredToRead": "signature-access",
+      "actionRequiredToWrite": "signature-access",
       "taskId": "SigningTask_Founders",
       "maxCount": 1,
       "minCount": 1
@@ -116,6 +120,8 @@
       "allowedContributers": [
         "app:owned"
       ],
+      "actionRequiredToRead": "signature-access",
+      "actionRequiredToWrite": "signature-access",
       "taskId": "SigningTask_Auditor",
       "maxCount": 1,
       "minCount": 0
@@ -128,6 +134,8 @@
       "allowedContributers": [
         "app:owned"
       ],
+      "actionRequiredToRead": "signature-access",
+      "actionRequiredToWrite": "signature-access",
       "taskId": "SigningTask_Auditor",
       "maxCount": 1,
       "minCount": 1
