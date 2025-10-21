@@ -2,6 +2,8 @@ package harness
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -17,6 +20,8 @@ import (
 	"altinn.studio/pdf3/internal/assert"
 	ptesting "altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
+	"altinn.studio/runtime-fixture/pkg/flux"
+	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
 )
 
 var IsCI bool = os.Getenv("CI") != ""
@@ -24,27 +29,56 @@ var IsCI bool = os.Getenv("CI") != ""
 var (
 	TestServerURL string
 	JumpboxURL    string
+	Runtime       *kind.KindContainerRuntime
+	cachePath     = ".cache"
 )
+
+// logDuration logs the duration of an operation
+// Usage: defer logDuration("Operation name", time.Now())
+func logDuration(stepName string, start time.Time) {
+	fmt.Printf("  [%s took %s]\n", stepName, time.Since(start))
+}
 
 func Init() {
 	TestServerURL = "http://testserver.default.svc.cluster.local"
 	JumpboxURL = "http://localhost:8020"
 
+	fmt.Println("=== Initializing Test Harness ===")
+
+	var err error
+	projectRoot, err := FindProjectRoot()
+	if err != nil {
+		fmt.Printf("Couldn't find project root: %v", err)
+		os.Exit(1)
+	}
+	Runtime, err = kind.Load(kind.KindContainerRuntimeVariantStandard, filepath.Join(projectRoot, cachePath))
+	if err != nil {
+		fmt.Printf("Error loading runtime: %v", err)
+		os.Exit(1)
+	}
+
 	// Wait for services to be ready
 	fmt.Println("Waiting for services to be ready...")
-	if err := waitForServices(); err != nil {
+	if err := WaitForServices(); err != nil {
 		fmt.Fprintf(os.Stderr, "Services not ready: %v\n", err)
 		os.Exit(1)
 	}
+
+	fmt.Println("=== Test Harness Ready ===")
 }
 
-// waitForServices waits for proxy and test server to be ready
-func waitForServices() error {
+// WaitForServices waits for proxy and test server to be ready
+func WaitForServices() error {
 	client := &http.Client{Timeout: 2 * time.Second}
-	maxRetries := 30
+	timeout := 30 * time.Second
+	deadline := time.Now().Add(timeout)
 
 	// Wait for proxy
-	for i := 0; i < maxRetries; i++ {
+	for {
+		if time.Now().After(deadline) {
+			return fmt.Errorf("timed out waiting for proxy to get ready")
+		}
+
 		req, err := http.NewRequest("GET", JumpboxURL+"/health/startup", nil)
 		if err != nil {
 			return err
@@ -60,10 +94,8 @@ func waitForServices() error {
 			}
 			_ = resp.Body.Close()
 		}
-		if i == maxRetries-1 {
-			return fmt.Errorf("proxy not ready after %d attempts", maxRetries)
-		}
-		time.Sleep(1 * time.Second)
+
+		time.Sleep(500 * time.Millisecond)
 	}
 
 	return nil
@@ -246,9 +278,15 @@ func RequestPDFWithHost(t *testing.T, req *types.PdfRequest, overrideHost string
 	}, nil
 }
 
+var projectRoot string
+
 // FindProjectRoot searches upward for a directory containing go.mod
 // It starts from the current working directory and checks up to maxIterations parent directories
 func FindProjectRoot() (string, error) {
+	if projectRoot != "" {
+		return projectRoot, nil
+	}
+
 	const maxIterations = 10
 
 	// Get current working directory
@@ -264,6 +302,7 @@ func FindProjectRoot() (string, error) {
 		// Check if go.mod exists in current directory
 		goModPath := filepath.Join(dir, "go.mod")
 		if _, err := os.Stat(goModPath); err == nil {
+			projectRoot = dir
 			return dir, nil
 		}
 
@@ -280,4 +319,349 @@ func FindProjectRoot() (string, error) {
 	}
 
 	return "", errors.New("exceeded maximum iterations searching for go.mod")
+}
+
+// SetupCluster starts the Kind container runtime with all dependencies
+func SetupCluster(registryStartedEvent chan<- struct{}) (*kind.KindContainerRuntime, error) {
+	fmt.Println("=== Setting up Kind cluster ===")
+	overallStart := time.Now()
+
+	// Find project root to resolve relative paths
+	projectRoot, err := FindProjectRoot()
+	if err != nil {
+		return nil, fmt.Errorf("failed to find project root: %w", err)
+	}
+
+	// Create absolute cache path
+	absoluteCachePath := filepath.Join(projectRoot, cachePath)
+
+	// Create Kind container runtime
+	Runtime, err = kind.New(kind.KindContainerRuntimeVariantStandard, absoluteCachePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create kind runtime: %w", err)
+	}
+	Runtime.RegistryStartedEvent = registryStartedEvent
+
+	// Run the runtime (idempotent)
+	start := time.Now()
+	if err := Runtime.Run(); err != nil {
+		return nil, fmt.Errorf("failed to run kind runtime: %w", err)
+	}
+	logDuration("Run Kind runtime", start)
+
+	fmt.Println("✓ Kind cluster ready")
+	logDuration("Setup Kind cluster (total)", overallStart)
+	return Runtime, nil
+}
+
+// BuildAndPushImages builds Docker images and pushes them to the local registry
+// Returns true if images were rebuilt, false if skipped due to no changes
+func BuildAndPushImages() (bool, error) {
+	fmt.Println("=== Building and pushing Docker images ===")
+	overallStart := time.Now()
+
+	// Find project root
+	projectRoot, err := FindProjectRoot()
+	if err != nil {
+		return false, fmt.Errorf("failed to find project root: %w", err)
+	}
+
+	// Compute checksum of all files that affect the Docker build
+	fmt.Println("Checking for changes in source code...")
+	patterns := []string{
+		"cmd/**/*.go",
+		"internal/**/*.go",
+		"go.mod",
+		"go.sum",
+		"Dockerfile.proxy",
+		"Dockerfile.worker",
+	}
+	currentHash, err := computeFilesChecksum(projectRoot, patterns)
+	if err != nil {
+		return false, fmt.Errorf("failed to compute checksum: %w", err)
+	}
+
+	// Check cached checksum
+	cachedHash, err := readCachedChecksum(projectRoot, "docker-images")
+	if err != nil {
+		return false, fmt.Errorf("failed to read cached checksum: %w", err)
+	}
+
+	if cachedHash == currentHash {
+		fmt.Println("No source changes detected, skipping image rebuild")
+		logDuration("Build and push images (skipped)", overallStart)
+		return false, nil
+	}
+
+	fmt.Println("Source changes detected, rebuilding images...")
+
+	// Build proxy image
+	fmt.Println("Building proxy image...")
+	start := time.Now()
+	if err := Runtime.ContainerClient.Build(projectRoot, "Dockerfile.proxy", "localhost:5001/runtime-pdf3-proxy:latest"); err != nil {
+		return false, err
+	}
+	logDuration("Build proxy image", start)
+
+	// Build worker image
+	fmt.Println("Building worker image...")
+	start = time.Now()
+	if err := Runtime.ContainerClient.Build(projectRoot, "Dockerfile.worker", "localhost:5001/runtime-pdf3-worker:latest"); err != nil {
+		return false, err
+	}
+	logDuration("Build worker image", start)
+
+	// Push images to registry
+	fmt.Println("Pushing images to registry...")
+	start = time.Now()
+
+	// Push proxy image
+	if err := Runtime.ContainerClient.Push("localhost:5001/runtime-pdf3-proxy:latest"); err != nil {
+		return false, err
+	}
+
+	// Push worker image
+	if err := Runtime.ContainerClient.Push("localhost:5001/runtime-pdf3-worker:latest"); err != nil {
+		return false, err
+	}
+	logDuration("Push images to registry", start)
+
+	// Update cached checksum
+	if err := writeCachedChecksum(projectRoot, "docker-images", currentHash); err != nil {
+		return false, fmt.Errorf("failed to write cached checksum: %w", err)
+	}
+
+	fmt.Println("✓ Images built and pushed")
+	logDuration("Build and push images (total)", overallStart)
+	return true, nil
+}
+
+// PushKustomizeArtifact pushes the kustomize directory as an OCI artifact
+// Returns true if artifact was pushed, false if skipped due to no changes
+func PushKustomizeArtifact() (bool, error) {
+	fmt.Println("=== Pushing kustomize artifact ===")
+	overallStart := time.Now()
+
+	// Find project root
+	projectRoot, err := FindProjectRoot()
+	if err != nil {
+		return false, fmt.Errorf("failed to find project root: %w", err)
+	}
+
+	// Compute checksum of all kustomize files
+	fmt.Println("Checking for changes in kustomize configuration...")
+	patterns := []string{
+		"infra/kustomize/**/*.yaml",
+		"infra/kustomize/**/*.yml",
+	}
+	currentHash, err := computeFilesChecksum(projectRoot, patterns)
+	if err != nil {
+		return false, fmt.Errorf("failed to compute checksum: %w", err)
+	}
+
+	// Check cached checksum
+	cachedHash, err := readCachedChecksum(projectRoot, "kustomize")
+	if err != nil {
+		return false, fmt.Errorf("failed to read cached checksum: %w", err)
+	}
+
+	if cachedHash == currentHash {
+		fmt.Println("No kustomize changes detected, skipping artifact push")
+		logDuration("Push kustomize artifact (skipped)", overallStart)
+		return false, nil
+	}
+
+	fmt.Println("Kustomize changes detected, pushing artifact...")
+
+	// Push the entire kustomize directory so that local can reference ../base
+	kustomizePath := filepath.Join(projectRoot, "infra", "kustomize")
+
+	// Use flux CLI from the cache path (installed by Kind runtime)
+	start := time.Now()
+	if err := Runtime.FluxClient.PushArtifact(
+		"oci://localhost:5001/runtime-pdf3-repo:local",
+		kustomizePath,
+		"local",
+		"local",
+	); err != nil {
+		return false, err
+	}
+	logDuration("Push artifact to OCI registry", start)
+
+	// Update cached checksum
+	if err := writeCachedChecksum(projectRoot, "kustomize", currentHash); err != nil {
+		return false, fmt.Errorf("failed to write cached checksum: %w", err)
+	}
+
+	fmt.Println("✓ Kustomize artifact pushed")
+	logDuration("Push kustomize artifact (total)", overallStart)
+	return true, nil
+}
+
+// deploymentsExist checks if both pdf3 deployments exist in the cluster
+func deploymentsExist() bool {
+	// Check if pdf3-proxy deployment exists
+	if err := Runtime.KubernetesClient.Get("deployment", "pdf3-proxy", "runtime-pdf3"); err != nil {
+		return false
+	}
+
+	// Check if pdf3-worker deployment exists
+	if err := Runtime.KubernetesClient.Get("deployment", "pdf3-worker", "runtime-pdf3"); err != nil {
+		return false
+	}
+
+	return true
+}
+
+// DeployPdf3ViaFlux deploys pdf3 using Flux
+// Returns true if deployment was performed, false if skipped due to no changes
+func DeployPdf3ViaFlux(imagesChanged, kustomizeChanged bool) (bool, error) {
+	fmt.Println("=== Deploying pdf3 via Flux ===")
+	overallStart := time.Now()
+
+	// Skip deployment if nothing changed and deployments already exist
+	if !imagesChanged && !kustomizeChanged && deploymentsExist() {
+		fmt.Println("No changes detected and deployments exist, skipping deployment")
+		logDuration("Deploy pdf3 via Flux (skipped)", overallStart)
+		return false, nil
+	}
+
+	// Find project root
+	projectRoot, err := FindProjectRoot()
+	if err != nil {
+		return false, fmt.Errorf("failed to find project root: %w", err)
+	}
+
+	// Read the base syncroot manifest
+	syncrootPath := filepath.Join(projectRoot, "..", "..", "..", "infra", "runtime", "syncroot", "base", "pdf3.yaml")
+	manifestBytes, err := os.ReadFile(syncrootPath)
+	if err != nil {
+		return false, fmt.Errorf("failed to read syncroot manifest: %w", err)
+	}
+
+	// Apply string replacements to adapt for local development
+	manifest := string(manifestBytes)
+	manifest = strings.ReplaceAll(manifest, "provider: azure", "insecure: true")
+	manifest = strings.ReplaceAll(manifest, "tag: ${UPGRADE_CHANNEL}", "tag: local")
+	manifest = strings.ReplaceAll(manifest, "url: oci://altinncr.azurecr.io/studio-apps/runtime-pdf3-repo", "url: oci://kind-registry:5000/runtime-pdf3-repo")
+	manifest = strings.ReplaceAll(manifest, "path: ./${ENVIRONMENT}", "path: ./local")
+	manifest = strings.ReplaceAll(manifest, "interval: 5m", "interval: 1m")
+	manifest = strings.ReplaceAll(manifest, "retryInterval: 5m", "retryInterval: 30s")
+	manifest = strings.ReplaceAll(manifest, "timeout: 5m", "timeout: 1m")
+	manifest = strings.ReplaceAll(manifest, "prune: false", "prune: true")
+	manifest = strings.ReplaceAll(manifest, "upgrade_channel: ${UPGRADE_CHANNEL}", "upgrade_channel: local")
+	manifest = strings.ReplaceAll(manifest, "environment: ${ENVIRONMENT}", "environment: local")
+	manifest = strings.ReplaceAll(manifest, "serviceowner: ${SERVICEOWNER_ID}", "serviceowner: test")
+
+	// Apply the complete manifest in a single request
+	fmt.Println("Applying pdf3 manifest...")
+	start := time.Now()
+	if err := Runtime.KubernetesClient.ApplyManifest(manifest); err != nil {
+		return false, fmt.Errorf("failed to apply manifest: %w", err)
+	}
+	logDuration("Apply pdf3 manifest", start)
+
+	// Default reconcile options (blocking/synchronous)
+	reconcileOpts := flux.DefaultReconcileOptions()
+
+	// Trigger immediate reconciliation of OCIRepository
+	fmt.Println("Triggering OCIRepository reconciliation...")
+	start = time.Now()
+	if err := Runtime.FluxClient.ReconcileSourceOCI("pdf3-app-repo", "runtime-pdf3", reconcileOpts); err != nil {
+		return false, fmt.Errorf("failed to reconcile OCIRepository: %w", err)
+	}
+	logDuration("Reconcile OCIRepository", start)
+
+	// Trigger immediate reconciliation of Kustomization
+	fmt.Println("Triggering Kustomization reconciliation...")
+	start = time.Now()
+	if err := Runtime.FluxClient.ReconcileKustomization("pdf3-app", "runtime-pdf3", true, reconcileOpts); err != nil {
+		return false, fmt.Errorf("failed to reconcile Kustomization: %w", err)
+	}
+	logDuration("Reconcile Kustomization", start)
+
+	fmt.Println("✓ Flux reconciliation complete")
+
+	// Wait for deployments to be ready
+	fmt.Println("Waiting for pdf3-proxy deployment...")
+	start = time.Now()
+	if err := Runtime.KubernetesClient.RolloutStatus("pdf3-proxy", "runtime-pdf3", 120*time.Second); err != nil {
+		return false, fmt.Errorf("failed waiting for pdf3-proxy: %w", err)
+	}
+	logDuration("Wait for pdf3-proxy deployment", start)
+
+	fmt.Println("Waiting for pdf3-worker deployment...")
+	start = time.Now()
+	if err := Runtime.KubernetesClient.RolloutStatus("pdf3-worker", "runtime-pdf3", 120*time.Second); err != nil {
+		return false, fmt.Errorf("failed waiting for pdf3-worker: %w", err)
+	}
+	logDuration("Wait for pdf3-worker deployment", start)
+
+	fmt.Println("✓ pdf3 deployed via Flux")
+	logDuration("Deploy pdf3 via Flux (total)", overallStart)
+	return true, nil
+}
+
+// computeFilesChecksum computes a SHA256 hash of the contents of files matching the given glob patterns
+func computeFilesChecksum(projectRoot string, patterns []string) (string, error) {
+	var allFiles []string
+
+	for _, pattern := range patterns {
+		matches, err := filepath.Glob(filepath.Join(projectRoot, pattern))
+		if err != nil {
+			return "", fmt.Errorf("failed to glob pattern %s: %w", pattern, err)
+		}
+		allFiles = append(allFiles, matches...)
+	}
+
+	// Sort files for consistent ordering
+	sort.Strings(allFiles)
+
+	// Compute combined hash
+	hasher := sha256.New()
+	for _, file := range allFiles {
+		// Skip directories
+		info, err := os.Stat(file)
+		if err != nil {
+			return "", fmt.Errorf("failed to stat file %s: %w", file, err)
+		}
+		if info.IsDir() {
+			continue
+		}
+
+		data, err := os.ReadFile(file)
+		if err != nil {
+			return "", fmt.Errorf("failed to read file %s: %w", file, err)
+		}
+		hasher.Write(data)
+	}
+
+	return hex.EncodeToString(hasher.Sum(nil)), nil
+}
+
+// readCachedChecksum reads a cached checksum from .cache/checksums/{name}.txt
+func readCachedChecksum(projectRoot, name string) (string, error) {
+	checksumPath := filepath.Join(projectRoot, cachePath, "checksums", name+".txt")
+	data, err := os.ReadFile(checksumPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "", nil // No cached checksum
+		}
+		return "", err
+	}
+	return strings.TrimSpace(string(data)), nil
+}
+
+// writeCachedChecksum writes a checksum to .cache/checksums/{name}.txt
+func writeCachedChecksum(projectRoot, name, hash string) error {
+	checksumDir := filepath.Join(projectRoot, cachePath, "checksums")
+	if err := os.MkdirAll(checksumDir, 0755); err != nil {
+		return fmt.Errorf("failed to create checksums directory: %w", err)
+	}
+
+	checksumPath := filepath.Join(checksumDir, name+".txt")
+	if err := os.WriteFile(checksumPath, []byte(hash), 0644); err != nil {
+		return fmt.Errorf("failed to write checksum: %w", err)
+	}
+	return nil
 }

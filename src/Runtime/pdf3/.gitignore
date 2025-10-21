@@ -1,6 +1,5 @@
 artifacts/
 bin/
 .yarn/
-.last-build-hash
-.last-deploy-hash
 test/logs/
+.cache/
