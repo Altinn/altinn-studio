@@ -193,11 +193,12 @@ func generatePdf(client *http.Client, workerAddr string) func(http.ResponseWrite
 
 		// Start generating the PDF with some (rather dumb) retry logic
 		// Retry logic:
-		//   Max 50 retry attempts on 429 (queue full) errors,
-		//   while waiting 100ms in between attempts
-		const maxRetries = 50
-		duration := time.Since(start)
-		log.Printf("[%s, %d/%d, %05dms] generating PDF..\n", req.URL, 0, maxRetries, duration.Milliseconds())
+		//   Max 40 retry attempts on 429 (queue full) errors,
+		//   while waiting 250ms in between attempts
+		//   means we might try to allocate a worker for 10 seconds before giving up.
+		//   If the cluster has available capacity a pod can boot in 2-10 seconds
+		const maxRetries = 40
+		log.Printf("[%s, %d/%d, %s] generating PDF..\n", req.URL, 0, maxRetries, time.Since(start))
 
 		// Prepare request body
 		reqBody, err := json.Marshal(req)
@@ -280,16 +281,15 @@ func callWorker(
 		if attempt < maxRetries && ctx.Err() == nil {
 			// This is an error condition that may hit if the worker
 			// crashes or similar. Worthwhile to retry here
-			duration := time.Since(start)
 			log.Printf(
-				"[%s, %d/%d, %05dms] worker request failed, will retry: %v\n",
+				"[%s, %d/%d, %s] worker request failed, will retry: %v\n",
 				req.URL,
 				attempt,
 				maxRetries,
-				duration.Milliseconds(),
+				time.Since(start),
 				err,
 			)
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(250 * time.Millisecond)
 			return false
 		}
 		writeProblemDetails(w, http.StatusInternalServerError, ProblemDetails{
@@ -298,13 +298,12 @@ func callWorker(
 			Status: http.StatusInternalServerError,
 			Detail: fmt.Sprintf("Failed to communicate with PDF worker: %v", err),
 		})
-		duration := time.Since(start)
 		log.Printf(
-			"[%s, %d/%d, %05dms] error calling PDF worker: %s: %v\n",
+			"[%s, %d/%d, %s] error calling PDF worker: %s: %v\n",
 			req.URL,
 			attempt,
 			maxRetries,
-			duration.Milliseconds(),
+			time.Since(start),
 			workerId,
 			err,
 		)
@@ -330,13 +329,12 @@ func callWorker(
 		if _, err := io.Copy(w, resp.Body); err != nil {
 			log.Printf("[%s] Failed to write PDF response data: %s, %v\n", req.URL, workerId, err)
 		}
-		duration := time.Since(start)
 		log.Printf(
-			"[%s, %d/%d, %05dms] successfully generated PDF: %s\n",
+			"[%s, %d/%d, %s] successfully generated PDF: %s\n",
 			req.URL,
 			attempt,
 			maxRetries,
-			duration.Milliseconds(),
+			time.Since(start),
 			workerId,
 		)
 		return true
@@ -344,13 +342,12 @@ func callWorker(
 
 	// Check if this is a retryable error (429 - queue full)
 	if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
-		duration := time.Since(start)
 		log.Printf(
-			"[%s, %d/%d, %05dms] worker queue full for %s retrying...\n",
+			"[%s, %d/%d, %s] worker queue full for %s retrying...\n",
 			req.URL,
 			attempt,
 			maxRetries,
-			duration.Milliseconds(),
+			time.Since(start),
 			workerId,
 		)
 		time.Sleep(100 * time.Millisecond)
@@ -394,13 +391,12 @@ func callWorker(
 		Status: statusCode,
 		Detail: string(errorDetail),
 	})
-	duration := time.Since(start)
 	log.Printf(
-		"[%s, %d/%d, %05dms] error during generation. Worker: %s, Code: %d, detail: %s\n",
+		"[%s, %d/%d, %s] error during generation. Worker: %s, Code: %d, detail: %s\n",
 		req.URL,
 		attempt,
 		maxRetries,
-		duration.Milliseconds(),
+		time.Since(start),
 		workerId,
 		statusCode,
 		errorDetail,
@@ -484,12 +480,12 @@ func (w *workerConnectivity) GetState() WorkerConnectivityState {
 }
 
 type ProblemDetails struct {
-	Type       string                 `json:"type,omitempty"`
-	Title      string                 `json:"title,omitempty"`
-	Status     int                    `json:"status,omitempty"`
-	Detail     string                 `json:"detail,omitempty"`
-	Instance   string                 `json:"instance,omitempty"`
-	Extensions map[string]interface{} `json:"extensions,omitempty"`
+	Type       string         `json:"type,omitempty"`
+	Title      string         `json:"title,omitempty"`
+	Status     int            `json:"status,omitempty"`
+	Detail     string         `json:"detail,omitempty"`
+	Instance   string         `json:"instance,omitempty"`
+	Extensions map[string]any `json:"extensions,omitempty"`
 }
 
 func writeProblemDetails(w http.ResponseWriter, statusCode int, problem ProblemDetails) {

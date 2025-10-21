@@ -8,7 +8,7 @@ export const options = {
       executor: 'constant-arrival-rate',
       rate: 3,
       timeUnit: '1s',
-      duration: '30s',
+      duration: '60s',
       gracefulStop: '0s',
       preAllocatedVUs: 10,
       maxVUs: 15,
@@ -18,8 +18,8 @@ export const options = {
       executor: 'constant-arrival-rate',
       rate: 3,
       timeUnit: '1s',
-      duration: '30s',
-      startTime: '30s',  // duration + gracefulStop
+      duration: '60s',
+      startTime: '60s',  // duration + gracefulStop
       preAllocatedVUs: 8,
       maxVUs: 15,
       tags: { service: 'new' },

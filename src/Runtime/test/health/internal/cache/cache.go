@@ -16,8 +16,8 @@ const (
 
 // CacheEntry represents a cached value with timestamp
 type CacheEntry struct {
-	Timestamp time.Time   `json:"timestamp"`
-	Data      interface{} `json:"data"`
+	Timestamp time.Time `json:"timestamp"`
+	Data      any       `json:"data"`
 }
 
 // ensureCacheDir ensures the cache directory exists
@@ -31,7 +31,7 @@ func getCachePath(name string) string {
 }
 
 // Get retrieves a cached value if it exists and is not expired
-func Get(name string, target interface{}) (bool, error) {
+func Get(name string, target any) (bool, error) {
 	path := getCachePath(name)
 
 	data, err := os.ReadFile(path)
@@ -64,7 +64,7 @@ func Get(name string, target interface{}) (bool, error) {
 }
 
 // Set stores a value in the cache
-func Set(name string, value interface{}) error {
+func Set(name string, value any) error {
 	if err := ensureCacheDir(); err != nil {
 		return fmt.Errorf("failed to create cache directory: %w", err)
 	}
@@ -89,7 +89,7 @@ func Set(name string, value interface{}) error {
 
 // GetStale retrieves a cached value regardless of expiration
 // Useful for fallback scenarios like rate limiting
-func GetStale(name string, target interface{}) (bool, error) {
+func GetStale(name string, target any) (bool, error) {
 	path := getCachePath(name)
 
 	data, err := os.ReadFile(path)

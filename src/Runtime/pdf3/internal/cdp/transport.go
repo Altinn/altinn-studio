@@ -14,20 +14,33 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+type Command struct {
+	Method string
+	Params any
+}
+
+type CommandResponse struct {
+	Resp *CDPResponse
+	Err  error
+}
+
 // Connection represents a Chrome DevTools Protocol connection
 type Connection interface {
 	// SendCommand sends a CDP command and waits for the response
 	// This method is NOT threadsafe. We use this from the processing go routine of a
 	// browser session. There should only ever be 1 thread sending commands at a time.
 	// The browser session owns the connection.
-	SendCommand(ctx context.Context, method string, params interface{}) (*CDPResponse, error)
+	SendCommand(ctx context.Context, method string, params any) (*CDPResponse, error)
+
+	// SendCommandBatch sends a batch of unrelated commands
+	SendCommandBatch(ctx context.Context, batch []Command) []*CommandResponse
 
 	// Close closes the connection and cleans up resources
 	Close() error
 }
 
 // EventHandler handles CDP events
-type EventHandler func(method string, params interface{})
+type EventHandler func(method string, params any)
 
 // Connect establishes a connection to a Chrome DevTools Protocol endpoint
 // Returns: Connection, targetID, error
@@ -149,19 +162,44 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 
 	// Create connection wrapper
 	conn := &connection{
-		id:            id,
-		wsConn:        wsConn,
-		nextCommandID: 1,
-		pendingCmds:   concurrent.NewMap[int64, chan CDPResponse](),
-		eventHandler:  eventHandler,
-		ctx:           connCtx,
-		cancel:        cancel,
+		id:     id,
+		wsConn: wsConn,
+
+		nextCommandID:  1,
+		nextBatchID:    1,
+		pendingCmds:    concurrent.NewMap[int64, chan CDPResponse](),
+		pendingBatches: concurrent.NewMap[int64, *batchState](),
+		cmdIDToBatchID: concurrent.NewMap[int64, int64](),
+
+		eventHandler: eventHandler,
+		ctx:          connCtx,
+		cancel:       cancel,
 	}
 
 	// Start background message handler
 	go conn.handleMessages()
+	go conn.watchdog()
 
 	return conn, targetID, nil
+}
+
+func (c *connection) watchdog() {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			log.Println("CDP connection watchdog tick")
+			const treshold int = 32
+			assert.AssertWithMessage(c.cmdIDToBatchID.Len() <= treshold, "CDP connection batch datastructure overflowing")
+			assert.AssertWithMessage(c.pendingBatches.Len() <= treshold, "CDP connection batch datastructure overflowing")
+			assert.AssertWithMessage(c.pendingCmds.Len() <= treshold, "CDP connection cmd datastructure overflowing")
+		case <-c.ctx.Done():
+			log.Println("CDP connection watchdog shutting down")
+			return
+		}
+	}
 }
 
 // GetBrowserVersion retrieves the browser version information
@@ -171,7 +209,7 @@ func GetBrowserVersion(conn Connection) (*types.BrowserVersion, error) {
 		return nil, fmt.Errorf("failed to get browser version: %w", err)
 	}
 
-	result, ok := resp.Result.(map[string]interface{})
+	result, ok := resp.Result.(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("invalid response format")
 	}
@@ -185,27 +223,38 @@ func GetBrowserVersion(conn Connection) (*types.BrowserVersion, error) {
 	}, nil
 }
 
-func getStringFromMap(m map[string]interface{}, key string) string {
+func getStringFromMap(m map[string]any, key string) string {
 	if v, ok := m[key].(string); ok {
 		return v
 	}
 	return ""
 }
 
+type batchState struct {
+	result    chan struct{}
+	cmdIds    []int64
+	responses []*CommandResponse
+}
+
 // connection implements the Connection interface
 type connection struct {
-	id            int
-	wsConn        *websocket.Conn
-	nextCommandID int64
-	pendingCmds   *concurrent.Map[int64, chan CDPResponse]
-	eventHandler  EventHandler
+	id     int
+	wsConn *websocket.Conn
+
+	nextCommandID  int64
+	nextBatchID    int64
+	pendingCmds    *concurrent.Map[int64, chan CDPResponse]
+	pendingBatches *concurrent.Map[int64, *batchState]
+	cmdIDToBatchID *concurrent.Map[int64, int64]
+
+	eventHandler EventHandler
 
 	ctx    context.Context
 	cancel context.CancelFunc
 }
 
 // SendCommand sends a CDP command and waits for the response
-func (c *connection) SendCommand(ctx context.Context, method string, params interface{}) (*CDPResponse, error) {
+func (c *connection) SendCommand(ctx context.Context, method string, params any) (*CDPResponse, error) {
 	// Connection must be valid when sending commands
 	assert.AssertWithMessage(c.wsConn != nil, "Attempted to send command on nil WebSocket connection")
 	assert.AssertWithMessage(c.pendingCmds != nil, "Attempted to send command with nil pendingCmds map")
@@ -221,11 +270,11 @@ func (c *connection) SendCommand(ctx context.Context, method string, params inte
 
 	responseCh := make(chan CDPResponse, 1)
 	c.pendingCmds.Set(cmdID, responseCh)
+	defer c.pendingCmds.GetAndDelete(cmdID)
 
 	// Send command
 	err := c.wsConn.WriteJSON(cmd)
 	if err != nil {
-		c.pendingCmds.GetAndDelete(cmdID)
 		return nil, fmt.Errorf("failed to send command: %w", err)
 	}
 
@@ -237,14 +286,109 @@ func (c *connection) SendCommand(ctx context.Context, method string, params inte
 		}
 		return &response, nil
 	case <-ctx.Done():
-		c.pendingCmds.GetAndDelete(cmdID)
 		return nil, ctx.Err()
 	case <-c.ctx.Done():
-		c.pendingCmds.GetAndDelete(cmdID)
 		return nil, fmt.Errorf("connection closed")
-	case <-time.After(30 * time.Second):
-		c.pendingCmds.GetAndDelete(cmdID)
+	case <-time.After(20 * time.Second):
 		return nil, fmt.Errorf("timeout waiting for response to command %s", method)
+	}
+}
+
+func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*CommandResponse {
+	// Connection must be valid when sending commands
+	assert.AssertWithMessage(c.wsConn != nil, "Attempted to send command on nil WebSocket connection")
+	assert.AssertWithMessage(c.pendingBatches != nil, "Attempted to send command with nil pendingCmds map")
+
+	batchID := c.nextBatchID
+	c.nextBatchID++
+	state := &batchState{
+		result:    make(chan struct{}),
+		cmdIds:    make([]int64, len(batch)),
+		responses: make([]*CommandResponse, len(batch)),
+	}
+	c.pendingBatches.Set(batchID, state)
+	defer func() {
+		state, _ := c.pendingBatches.GetAndDelete(batchID)
+		if state != nil {
+			for _, cmdID := range state.cmdIds {
+				c.cmdIDToBatchID.GetAndDelete(cmdID)
+			}
+		}
+	}()
+
+	outbox := make([]CDPCommand, len(batch))
+
+	for i, cmdInfo := range batch {
+		cmdID := c.nextCommandID
+		c.nextCommandID++
+		state.cmdIds[i] = cmdID
+		c.cmdIDToBatchID.Set(cmdID, batchID)
+
+		cmd := CDPCommand{
+			ID:     cmdID,
+			Method: cmdInfo.Method,
+			Params: cmdInfo.Params,
+		}
+		outbox[i] = cmd
+	}
+
+	for i, cmd := range outbox {
+		err := c.wsConn.WriteJSON(cmd)
+		if err != nil {
+			state.responses[i] = &CommandResponse{
+				Resp: nil,
+				Err:  fmt.Errorf("failed to send command: %w", err),
+			}
+		}
+	}
+
+	// Wait for responses
+	select {
+	case <-state.result:
+		nonNilResponses := 0
+		for _, resp := range state.responses {
+			if resp != nil {
+				nonNilResponses++
+			}
+		}
+		assert.AssertWithMessage(nonNilResponses == len(batch), "We should have a response for every cmd")
+		return state.responses
+	case <-ctx.Done():
+		for i, resp := range state.responses {
+			if resp == nil {
+				state.responses[i] = &CommandResponse{
+					Resp: nil,
+					Err:  ctx.Err(),
+				}
+			} else {
+				resp.Err = ctx.Err()
+			}
+		}
+		return state.responses
+	case <-c.ctx.Done():
+		for i, resp := range state.responses {
+			if resp == nil {
+				state.responses[i] = &CommandResponse{
+					Resp: nil,
+					Err:  fmt.Errorf("connection closed"),
+				}
+			} else {
+				resp.Err = fmt.Errorf("connection closed")
+			}
+		}
+		return state.responses
+	case <-time.After(20 * time.Second):
+		for i, resp := range state.responses {
+			if resp == nil {
+				state.responses[i] = &CommandResponse{
+					Resp: nil,
+					Err:  fmt.Errorf("timeout waiting for response to command %s", outbox[i].Method),
+				}
+			} else {
+				resp.Err = fmt.Errorf("timeout waiting for response to command %s", outbox[i].Method)
+			}
+		}
+		return state.responses
 	}
 }
 
@@ -316,17 +460,47 @@ func (c *connection) handleMessages() {
 			}
 
 			if msg.ID != nil {
-				// This is a response to a command
-				responseCh, ok := c.pendingCmds.GetAndDelete(*msg.ID)
-				// Chrome sent a response for a command we never sent or already handled
-				// This indicates either protocol corruption or a bug in our command tracking
-				assert.AssertWithMessage(ok, fmt.Sprintf("Received response for unknown command ID %d", *msg.ID))
-				assert.AssertWithMessage(responseCh != nil, fmt.Sprintf("Response channel for command ID %d is nil", *msg.ID))
+				batchID, batchOK := c.cmdIDToBatchID.GetAndDelete(*msg.ID)
+				responseCh, cmdOK := c.pendingCmds.GetAndDelete(*msg.ID)
+				// If we actually can't correlate this back to the request, it is likely timed out
+				assert.AssertWithMessage((batchOK || cmdOK) && batchOK != cmdOK, fmt.Sprintf("Invalid state for %d: %s", *msg.ID, msg.Method))
 
-				responseCh <- CDPResponse{
-					ID:     msg.ID,
-					Result: msg.Result,
-					Error:  msg.Error,
+				if cmdOK {
+					assert.AssertWithMessage(responseCh != nil, fmt.Sprintf("Response channel for command ID %d is nil", *msg.ID))
+					responseCh <- CDPResponse{
+						ID:     msg.ID,
+						Result: msg.Result,
+						Error:  msg.Error,
+					}
+				} else if batchOK {
+					state, ok := c.pendingBatches.Get(batchID)
+					assert.AssertWithMessage(ok, "Should always be able to get batch")
+					index := -1
+					for i, potentialCmdID := range state.cmdIds {
+						if potentialCmdID == *msg.ID {
+							index = i
+							break
+						}
+					}
+					assert.AssertWithMessage(index != -1, "Should always be able to find cmd in batch state")
+					state.responses[index] = &CommandResponse{
+						Resp: &CDPResponse{
+							ID:     msg.ID,
+							Result: msg.Result,
+							Error:  msg.Error,
+						},
+						Err: nil,
+					}
+					isComplete := true
+					for _, resp := range state.responses {
+						if resp == nil {
+							isComplete = false
+						}
+					}
+					if isComplete {
+						close(state.result)
+						_, _ = c.pendingBatches.GetAndDelete(batchID)
+					}
 				}
 			} else if msg.Method != "" {
 				// This is an event - call the event handler

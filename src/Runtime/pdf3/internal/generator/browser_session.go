@@ -3,8 +3,10 @@ package generator
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"log"
+	"net/url"
 	"regexp"
 	"strings"
 	"sync/atomic"
@@ -71,17 +73,17 @@ func newBrowserSession(id int) (*browserSession, error) {
 	}
 
 	// Enable required domains
-	_, err = w.sendCommand("Page.enable", nil)
+	_, err = w.conn.SendCommand(w.ctx, "Page.enable", nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to call Page.enable: %w", err)
 	}
 
-	_, err = w.sendCommand("Runtime.enable", nil)
+	_, err = w.conn.SendCommand(w.ctx, "Runtime.enable", nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to enable Runtime.enable: %w", err)
 	}
 
-	_, err = w.sendCommand("Log.enable", nil)
+	_, err = w.conn.SendCommand(w.ctx, "Log.enable", nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to enable Log.enable: %w", err)
 	}
@@ -104,18 +106,18 @@ func (w *browserSession) tryEnqueue(req workerRequest) bool {
 	}
 }
 
-func (w *browserSession) handleEvent(method string, params interface{}) {
+func (w *browserSession) handleEvent(method string, params any) {
 	switch method {
 	case "Runtime.consoleAPICalled":
-		if p, ok := params.(map[string]interface{}); ok {
+		if p, ok := params.(map[string]any); ok {
 			if apiType, ok := p["type"].(string); ok && apiType == "error" {
 				w.consoleErrors.Add(1)
 				log.Printf("[%d, %s] console error: %v\n", w.id, w.currentUrl, p)
 			}
 		}
 	case "Log.entryAdded":
-		if p, ok := params.(map[string]interface{}); ok {
-			if entry, ok := p["entry"].(map[string]interface{}); ok {
+		if p, ok := params.(map[string]any); ok {
+			if entry, ok := p["entry"].(map[string]any); ok {
 				if level, ok := entry["level"].(string); ok && level == "error" {
 					w.browserErrors.Add(1)
 					log.Printf("[%d, %s] log error: %v\n", w.id, w.currentUrl, entry)
@@ -123,10 +125,6 @@ func (w *browserSession) handleEvent(method string, params interface{}) {
 			}
 		}
 	}
-}
-
-func (w *browserSession) sendCommand(method string, params interface{}) (*cdp.CDPResponse, error) {
-	return w.conn.SendCommand(w.ctx, method, params)
 }
 
 func (w *browserSession) handleRequests() {
@@ -174,7 +172,7 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 		}
 
 		duration := time.Since(start)
-		log.Printf("[%d, %s] completed PDF request in %.2f seconds\n", w.id, w.currentUrl, duration.Seconds())
+		log.Printf("[%d, %s] completed PDF request in %s\n", w.id, w.currentUrl, duration)
 	}()
 
 	if req.ctx.Err() != nil {
@@ -208,7 +206,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 
 		// Navigate back to default
 		start := time.Now()
-		_, err := w.sendCommand("Page.navigate", map[string]interface{}{
+		_, err := w.conn.SendCommand(w.ctx, "Page.navigate", map[string]any{
 			"url": "about:blank",
 		})
 		if err != nil {
@@ -239,7 +237,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		}
 
 		duration := time.Since(start)
-		log.Printf("[%d, %s] cleanup completed in %.2f seconds\n", w.id, w.currentUrl, duration.Seconds())
+		log.Printf("[%d, %s] cleanup completed in %s\n", w.id, w.currentUrl, duration)
 	}()
 
 	// Set cookies
@@ -249,7 +247,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		}
 
 		// Build cookies array for Network.setCookies
-		cookies := make([]map[string]interface{}, 0, len(request.Cookies))
+		cookies := make([]map[string]any, 0, len(request.Cookies))
 		for _, cookie := range request.Cookies {
 			sameSite := "Lax"
 			switch cookie.SameSite {
@@ -259,7 +257,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 				sameSite = "None"
 			}
 
-			cookies = append(cookies, map[string]interface{}{
+			cookies = append(cookies, map[string]any{
 				"name":     cookie.Name,
 				"value":    cookie.Value,
 				"domain":   cookie.Domain,
@@ -271,7 +269,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		}
 
 		// Set all cookies in a single batch call
-		_, err := w.sendCommand("Network.setCookies", map[string]interface{}{
+		_, err := w.conn.SendCommand(w.ctx, "Network.setCookies", map[string]any{
 			"cookies": cookies,
 		})
 		if err != nil {
@@ -289,7 +287,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		return nil
 	}
 
-	_, err := w.sendCommand("Page.navigate", map[string]interface{}{
+	_, err := w.conn.SendCommand(w.ctx, "Page.navigate", map[string]any{
 		"url": request.URL,
 	})
 	if err != nil {
@@ -341,7 +339,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 	}
 
 	// Generate PDF with Puppeteer-compatible defaults
-	pdfParams := map[string]interface{}{
+	pdfParams := map[string]any{
 		"scale":                   1.0,
 		"displayHeaderFooter":     false,
 		"headerTemplate":          "",
@@ -397,14 +395,14 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		pdfParams["marginLeft"] = convertMargin(request.Options.Margin.Left)
 	}
 
-	resp, err := w.sendCommand("Page.printToPDF", pdfParams)
+	resp, err := w.conn.SendCommand(w.ctx, "Page.printToPDF", pdfParams)
 	if err != nil {
 		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
 		return nil
 	}
 
 	// Extract PDF data
-	result, ok := resp.Result.(map[string]interface{})
+	result, ok := resp.Result.(map[string]any)
 	if !ok {
 		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", fmt.Errorf("invalid PDF response format")))
 		return nil
@@ -446,7 +444,7 @@ func (w *browserSession) waitForElement(req *workerRequest, selector string, tim
 		expression = w.buildSimpleWaitExpression(selector, timeoutMs)
 	}
 
-	resp, err := w.sendCommand("Runtime.evaluate", map[string]interface{}{
+	resp, err := w.conn.SendCommand(w.ctx, "Runtime.evaluate", map[string]any{
 		"expression":    expression,
 		"awaitPromise":  true,
 		"returnByValue": true,
@@ -458,8 +456,8 @@ func (w *browserSession) waitForElement(req *workerRequest, selector string, tim
 	}
 
 	// Expect a boolean result indicating whether the element was found within timeout
-	if result, ok := resp.Result.(map[string]interface{}); ok {
-		if resultObj, ok := result["result"].(map[string]interface{}); ok {
+	if result, ok := resp.Result.(map[string]any); ok {
+		if resultObj, ok := result["result"].(map[string]any); ok {
 			if value, ok := resultObj["value"].(bool); ok {
 				if !value {
 					log.Printf("[%d, %s] failed to wait for element %q: timeout\n", w.id, w.currentUrl, selector)
@@ -621,27 +619,27 @@ func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutM
 	})()`, selector, timeoutMs, visibilityHelper, checkElementDef)
 }
 
-func (w *browserSession) getCookies() ([]map[string]interface{}, error) {
+func (w *browserSession) getCookies() ([]map[string]any, error) {
 	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
 
-	resp, err := w.sendCommand("Network.getCookies", map[string]interface{}{})
+	resp, err := w.conn.SendCommand(w.ctx, "Network.getCookies", map[string]any{})
 	if err != nil {
 		return nil, err
 	}
 
-	result, ok := resp.Result.(map[string]interface{})
+	result, ok := resp.Result.(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("invalid cookie response format")
 	}
 
-	cookies, ok := result["cookies"].([]interface{})
+	cookies, ok := result["cookies"].([]any)
 	if !ok {
-		return []map[string]interface{}{}, nil // No cookies
+		return []map[string]any{}, nil // No cookies
 	}
 
-	cookieList := make([]map[string]interface{}, 0, len(cookies))
+	cookieList := make([]map[string]any, 0, len(cookies))
 	for _, c := range cookies {
-		if cookie, ok := c.(map[string]interface{}); ok {
+		if cookie, ok := c.(map[string]any); ok {
 			cookieList = append(cookieList, cookie)
 		}
 	}
@@ -700,13 +698,39 @@ func (w *browserSession) cleanupBrowser(req *workerRequest) {
 		return
 	}
 
-	// Clear storage data for the origin using CDP command
-	_, err := w.sendCommand("Storage.clearDataForOrigin", map[string]interface{}{
-		"origin":       req.request.URL,
-		"storageTypes": "all",
-	})
+	u, err := url.ParseRequestURI(req.request.URL)
+	assert.AssertWithMessage(err == nil, "URL should be validated at API layer")
 
-	req.cleanedUp = err == nil
+	now := time.Now()
+	log.Printf("Worker %d sending cleanup batch command...\n", w.id)
+	responses := w.conn.SendCommandBatch(w.ctx, []cdp.Command{
+		{Method: "Storage.clearDataForOrigin", Params: map[string]any{
+			"origin":       fmt.Sprintf("%s://%s", u.Scheme, u.Host),
+			"storageTypes": "all",
+		}},
+		{Method: "Network.clearBrowserCache", Params: nil},
+		{Method: "Page.resetNavigationHistory", Params: nil},
+	})
+	log.Printf("Worker %d cleanup batch command completed in %s\n", w.id, time.Since(now))
+
+	var errors strings.Builder
+	for _, response := range responses {
+		if response.Err != nil {
+			errors.WriteString(response.Err.Error())
+			errors.WriteByte('\n')
+		}
+		if response.Resp.Error != nil {
+			json, _ := json.Marshal(response.Resp.Error)
+			errors.WriteString(string(json))
+			errors.WriteByte('\n')
+		}
+	}
+
+	if errors.Len() != 0 {
+		assert.AssertWithMessage(false, fmt.Sprintf("Errors from browser cleanup:\n%s", errors.String()))
+	}
+
+	req.cleanedUp = true
 }
 
 func (w *browserSession) close() {

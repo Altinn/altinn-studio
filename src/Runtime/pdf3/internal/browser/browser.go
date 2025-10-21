@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"sort"
 	"strings"
+
+	"altinn.studio/pdf3/internal/assert"
 )
 
 // Process represents a running browser process with its connection details
@@ -14,6 +16,7 @@ type Process struct {
 	Cmd          *exec.Cmd
 	DebugPort    string
 	DebugBaseURL string
+	DataDir      string
 }
 
 // Start creates and starts a new Chrome/Chromium headless browser process
@@ -27,11 +30,14 @@ func Start(id int) (*Process, error) {
 		debugPort = 5049 // Special case for init worker
 	}
 
+	var dataDir string
 	for i, arg := range args {
 		if strings.HasPrefix(arg, "--user-data-dir=") {
 			if id >= 0 {
-				args[i] = fmt.Sprintf("--user-data-dir=/tmp/browser-%d", id)
+				dataDir = fmt.Sprintf("/tmp/browser-%d", id)
+				args[i] = fmt.Sprintf("--user-data-dir=%s", dataDir)
 			} else {
+				dataDir = "/tmp/browser-init"
 				args[i] = "--user-data-dir=/tmp/browser-init"
 			}
 		}
@@ -39,6 +45,7 @@ func Start(id int) (*Process, error) {
 			args[i] = fmt.Sprintf("--remote-debugging-port=%d", debugPort)
 		}
 	}
+	assert.AssertWithMessage(dataDir != "", "Should always initialize dataDir")
 
 	// Add about:blank argument to create default page target
 	args = append(args, "about:blank")
@@ -61,6 +68,7 @@ func Start(id int) (*Process, error) {
 		Cmd:          cmd,
 		DebugPort:    debugPortStr,
 		DebugBaseURL: debugBaseURL,
+		DataDir:      dataDir,
 	}, nil
 }
 
