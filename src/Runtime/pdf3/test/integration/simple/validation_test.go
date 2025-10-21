@@ -190,7 +190,7 @@ func Test_Validation_InvalidCookieSameSite(t *testing.T) {
 		t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, statusCode)
 	}
 
-	if !strings.Contains(resp, "sameSite must be 'Strict' or 'Lax'") {
+	if !strings.Contains(resp, "sameSite must be 'Strict', 'Lax', or 'None'") {
 		t.Errorf("Expected error message to contain sameSite error, got: %s", resp)
 	}
 }

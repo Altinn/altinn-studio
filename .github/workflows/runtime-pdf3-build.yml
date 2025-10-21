@@ -39,8 +39,8 @@ jobs:
       - name: Setup
         run: make setup
 
-      - name: Run format check
-        run: make format
+      - name: Run fmt
+        run: make fmt
 
       - name: Run linters
         run: make lint
