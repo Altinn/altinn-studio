@@ -34,9 +34,9 @@ export const PolicyRuleSummary = ({ policyRule }: PolicyRuleSummaryProps): React
       </StudioTable.Cell>
       <StudioTable.Cell>
         <div className={classes.subjectsCell}>
-          {policyRule.subject.map((s) => {
+          {policyRule.subject.map((s, index) => {
             return (
-              <StudioTag data-size='sm' key={s} data-color='info'>
+              <StudioTag data-size='sm' key={`${index}-${s}`} data-color='info'>
                 {getSubjectDisplayName(s, subjects)}
               </StudioTag>
             );
