@@ -1,6 +1,6 @@
 import React, { forwardRef, type Ref } from 'react';
 import { StudioButton } from '../StudioButton';
-import classes from './StudioActionButtons.module.css';
+import classes from './StudioFormActions.module.css';
 import {
   PrimaryActionMode,
   primaryConfig,
@@ -9,10 +9,10 @@ import {
 } from './StudioFormActionsUtils';
 
 export type StudioFormActionsProps = {
-  primaryText: string;
-  secondaryText: string;
   onPrimaryAction: () => void;
   onSecondaryAction: () => void;
+  primaryText?: string;
+  secondaryText?: string;
   isLoading?: boolean;
   disabled?: boolean;
   primaryMode?: PrimaryActionMode;
@@ -21,10 +21,10 @@ export type StudioFormActionsProps = {
 
 function StudioFormActions(
   {
-    primaryText,
-    secondaryText,
     onPrimaryAction,
     onSecondaryAction,
+    primaryText,
+    secondaryText,
     isLoading,
     disabled,
     primaryMode = PrimaryActionMode.Save,

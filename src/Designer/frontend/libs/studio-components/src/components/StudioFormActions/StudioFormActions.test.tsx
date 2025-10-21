@@ -2,7 +2,6 @@ import React, { type Ref } from 'react';
 import { StudioFormActions, type StudioFormActionsProps } from './StudioFormActions';
 import { render, type RenderResult, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { PrimaryActionMode, SecondaryActionMode } from './StudioFormActionsUtils';
 
 const defaultProps: StudioFormActionsProps = {
   primaryText: 'Save',
