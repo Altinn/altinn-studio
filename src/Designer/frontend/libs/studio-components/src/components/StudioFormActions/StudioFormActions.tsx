@@ -7,6 +7,7 @@ import {
   SecondaryActionMode,
   secondaryConfig,
 } from './StudioFormActionsUtils';
+import { StudioSpinner } from '../StudioSpinner';
 
 export type StudioFormActionsProps = {
   onPrimaryAction: () => void;
@@ -14,6 +15,7 @@ export type StudioFormActionsProps = {
   primaryText?: string;
   secondaryText?: string;
   isLoading?: boolean;
+  spinnerAriaLabel?: string;
   disabled?: boolean;
   primaryMode?: PrimaryActionMode;
   secondaryMode?: SecondaryActionMode;
@@ -26,6 +28,7 @@ function StudioFormActions(
     primaryText,
     secondaryText,
     isLoading,
+    spinnerAriaLabel,
     disabled,
     primaryMode = PrimaryActionMode.Save,
     secondaryMode = SecondaryActionMode.Cancel,
@@ -34,13 +37,14 @@ function StudioFormActions(
 ): React.ReactElement {
   const primary = primaryConfig[primaryMode];
   const secondary = secondaryConfig[secondaryMode];
+  const primaryIcon = isLoading ? <StudioSpinner aria-label={spinnerAriaLabel} /> : primary.icon;
 
   return (
     <div className={classes.buttonGroup} ref={ref}>
       <StudioButton
         onClick={onPrimaryAction}
         disabled={disabled || isLoading}
-        icon={primary.icon}
+        icon={primaryIcon}
         variant={primary.variant}
       >
         {primaryText}

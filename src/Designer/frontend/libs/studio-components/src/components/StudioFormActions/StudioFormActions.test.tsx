@@ -50,6 +50,13 @@ describe('StudioFormActions', () => {
     renderStudioFormActions({}, ref);
     expect(ref.current).toBeInstanceOf(HTMLDivElement);
   });
+
+  it('should show loading spinner in primary button when isLoading is true', () => {
+    renderStudioFormActions({ isLoading: true, spinnerAriaLabel: 'loading' });
+    const spinner = screen.getByTestId('studio-spinner-test-id');
+    expect(spinner).toBeInTheDocument();
+    expect(spinner).toHaveAttribute('aria-label', 'loading');
+  });
 });
 
 const renderStudioFormActions = (
