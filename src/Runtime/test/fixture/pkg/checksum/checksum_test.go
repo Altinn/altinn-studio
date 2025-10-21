@@ -31,14 +31,14 @@ func setupTestDir(t *testing.T) string {
 	//           └── utils.go
 
 	files := map[string]string{
-		"file1.go":                "package main",
-		"file2.txt":               "some text",
-		"go.mod":                  "module test",
-		"cmd/app1/main.go":        "package main\nfunc main() {}",
-		"cmd/app2/main.go":        "package main\nfunc main() { println(\"app2\") }",
-		"internal/pkg1/code.go":   "package pkg1",
+		"file1.go":                   "package main",
+		"file2.txt":                  "some text",
+		"go.mod":                     "module test",
+		"cmd/app1/main.go":           "package main\nfunc main() {}",
+		"cmd/app2/main.go":           "package main\nfunc main() { println(\"app2\") }",
+		"internal/pkg1/code.go":      "package pkg1",
 		"internal/pkg1/code_test.go": "package pkg1",
-		"internal/pkg2/utils.go":  "package pkg2",
+		"internal/pkg2/utils.go":     "package pkg2",
 	}
 
 	for path, content := range files {
@@ -169,7 +169,10 @@ func TestComputeFilesChecksum_MultiplePatterns(t *testing.T) {
 
 		// Restore original for next iteration
 		dir = setupTestDir(t)
-		hash, _ = ComputeFilesChecksum(dir, patterns)
+		hash, err = ComputeFilesChecksum(dir, patterns)
+		if err != nil {
+			t.Fatalf("ComputeFilesChecksum failed: %v", err)
+		}
 	}
 }
 
@@ -266,9 +269,9 @@ func TestMatchRecursivePattern_VariousPatterns(t *testing.T) {
 	dir := setupTestDir(t)
 
 	testCases := []struct {
-		pattern      string
+		pattern       string
 		expectedCount int
-		description  string
+		description   string
 	}{
 		{"cmd/**/*.go", 2, "all .go files in cmd"},
 		{"internal/**/*.go", 3, "all .go files in internal"},

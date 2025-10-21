@@ -63,7 +63,7 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 		if err == nil {
 			_ = resp.Body.Close()
 		}
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 	}
 
 	if err != nil {
@@ -151,7 +151,7 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 			break
 		}
 
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 	}
 
 	if err != nil {

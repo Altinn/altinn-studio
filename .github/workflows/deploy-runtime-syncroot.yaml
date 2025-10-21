@@ -11,8 +11,8 @@ on:
     inputs:
       ring:
         description: |
-          Ring (upgrade channel) to tag the artifact with.⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-          Defaults to 'at_ring1'.⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+          Ring (upgrade channel) to tag the artifact with.
+          Defaults to 'at_ring1'.
           'xx_ring1` means ttd clusters,
           while `xx_ring2` are non-ttd clusters (all serviceowners)
         required: false

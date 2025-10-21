@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strconv"
-	"strings"
 	"time"
 
 	"altinn.studio/pdf3/internal/assert"
@@ -56,7 +54,8 @@ func getBrowserVersion() (types.BrowserVersion, error) {
 }
 
 func New() (*Custom, error) {
-	log.Printf("Starting Custom CDP with %d browser workers\n", 2)
+	const workerCount int = 1
+	log.Printf("Starting Custom CDP with %d browser workers\n", workerCount)
 
 	generator := &Custom{}
 
@@ -88,9 +87,9 @@ func New() (*Custom, error) {
 			sessions <- session
 		}
 
-		sessions := make(chan *browserSession, 1)
+		sessions := make(chan *browserSession, workerCount)
 
-		go init(1, sessions)
+		go init(workerCount, sessions)
 
 		generator.session = <-sessions
 	}()
@@ -208,70 +207,6 @@ func (r *workerRequest) hasResponded() bool {
 type workerResponse struct {
 	Data  []byte
 	Error *types.PDFError
-}
-
-var unitToPixels = map[string]float64{
-	"px": 1,
-	"in": 96,
-	"cm": 37.8,
-	"mm": 3.78,
-}
-
-// paperFormats defines standard paper sizes in inches (compatible with Puppeteer)
-var paperFormats = map[string]struct{ width, height float64 }{
-	"letter":  {8.5, 11},
-	"legal":   {8.5, 14},
-	"tabloid": {11, 17},
-	"ledger":  {17, 11},
-	"a0":      {33.1, 46.8},
-	"a1":      {23.4, 33.1},
-	"a2":      {16.54, 23.4},
-	"a3":      {11.7, 16.54},
-	"a4":      {8.27, 11.7},
-	"a5":      {5.83, 8.27},
-	"a6":      {4.13, 5.83},
-}
-
-// convertMargin converts margin strings to inches (compatible with Puppeteer)
-// Supports: px, in, cm, mm
-// Numbers without units are treated as pixels
-func convertMargin(margin string) float64 {
-	margin = strings.TrimSpace(margin)
-	if margin == "" {
-		return 0.0
-	}
-
-	var pixels float64
-	var unit string
-	var valueStr string
-
-	// Check if margin has a unit suffix
-	if len(margin) >= 2 {
-		possibleUnit := strings.ToLower(margin[len(margin)-2:])
-		if _, ok := unitToPixels[possibleUnit]; ok {
-			unit = possibleUnit
-			valueStr = margin[:len(margin)-2]
-		}
-	}
-
-	// If no recognized unit, treat as pixels
-	if unit == "" {
-		unit = "px"
-		valueStr = margin
-	}
-
-	// Parse the numeric value
-	value, err := strconv.ParseFloat(strings.TrimSpace(valueStr), 64)
-	if err != nil {
-		log.Printf("Failed to parse margin value %q: %v, using 0\n", margin, err)
-		return 0.0
-	}
-
-	// Convert to pixels
-	pixels = value * unitToPixels[unit]
-
-	// Convert pixels to inches (96 pixels = 1 inch)
-	return pixels / 96.0
 }
 
 // mapCustomError wraps raw custom implementation errors while preserving our PDFErrors

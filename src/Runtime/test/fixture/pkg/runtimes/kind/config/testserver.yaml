@@ -73,6 +73,21 @@ data:
             const becomesHidden = parseInt(urlParams.get('becomeshidden') || '0', 10);
             const useClass = urlParams.has('useclass'); // Use class-based visibility instead of style attribute
 
+            const readyDiv = document.createElement('div');
+            readyDiv.id = 'readyForPrint';
+            readyDiv.textContent = 'Ready for PDF generation!';
+
+            if (initiallyHidden) {
+                if (useClass) {
+                    readyDiv.classList.add('hidden');
+                } else {
+                    readyDiv.style.display = 'none';
+                }
+            }
+            if (becomesHidden) {
+              document.body.appendChild(readyDiv);
+            }
+
             // Start simulation when page fully loads
             window.onload = function() {
                 // Log errors if requested
@@ -137,19 +152,9 @@ data:
                     // Wait for remaining time, then show ready state (unless neverready is set)
                     setTimeout(() => {
                         if (!neverReady) {
-                            const readyDiv = document.createElement('div');
-                            readyDiv.id = 'readyForPrint';
-                            readyDiv.textContent = 'Ready for PDF generation!';
-
-                            if (initiallyHidden) {
-                                if (useClass) {
-                                    readyDiv.classList.add('hidden');
-                                } else {
-                                    readyDiv.style.display = 'none';
-                                }
+                            if (!becomesHidden) {
+                              document.body.appendChild(readyDiv);
                             }
-
-                            document.body.appendChild(readyDiv);
 
                             // Handle becomesVisible: make element visible after delay
                             if (becomesVisible > 0 && initiallyHidden) {

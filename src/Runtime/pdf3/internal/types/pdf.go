@@ -6,7 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 )
+
+// Contract should be based on puppeteer
+// https://github.com/browserless/browserless/blob/270aca39704908da227c9cc5b6acd50cd6ee5f9f/src/schemas.ts#L194
 
 type PdfRequest struct {
 	URL                  string     `json:"url"`
@@ -104,10 +108,14 @@ type PdfMargin struct {
 }
 
 type Cookie struct {
+	Domain   string `json:"domain,omitempty"`
+	HttpOnly *bool  `json:"httpOnly,omitempty"`
 	Name     string `json:"name"`
-	Value    string `json:"value"`
-	Domain   string `json:"domain"`
+	Path     string `json:"path,omitempty"`
 	SameSite string `json:"sameSite"`
+	Secure   *bool  `json:"secure,omitempty"`
+	Url      string `json:"url,omitempty"`
+	Value    string `json:"value"`
 }
 
 type PdfResult struct {
@@ -165,10 +173,20 @@ type PdfGenerator interface {
 	IsReady() bool
 }
 
-// ValidFormats lists all valid PDF format values (must match paperFormats in generator.go)
+// ValidFormats lists all valid PDF format values (must match paperFormats in browser_session.go)
+// See source: https://github.com/puppeteer/puppeteer/blob/f5d922c19e61acb4205a86780967360f3531faef/packages/puppeteer-core/src/common/PDFOptions.ts#L30-L70
 var ValidFormats = []string{
-	"Letter", "Legal", "Tabloid", "Ledger",
-	"A0", "A1", "A2", "A3", "A4", "A5", "A6",
+	"letter",
+	"legal",
+	"tabloid",
+	"ledger",
+	"a0",
+	"a1",
+	"a2",
+	"a3",
+	"a4",
+	"a5",
+	"a6",
 }
 
 // Validate validates the PdfRequest according to browserless schema rules
@@ -185,7 +203,7 @@ func (r *PdfRequest) Validate() error {
 	if r.Options.Format != "" {
 		valid := false
 		for _, format := range ValidFormats {
-			if r.Options.Format == format {
+			if strings.EqualFold(r.Options.Format, format) {
 				valid = true
 				break
 			}
@@ -211,6 +229,9 @@ func (r *PdfRequest) Validate() error {
 			}
 			if opts.Timeout != nil && *opts.Timeout < 0 {
 				return errors.New("waitFor timeout must be >= 0")
+			}
+			if opts.Visible != nil && opts.Hidden != nil && *opts.Visible && *opts.Hidden {
+				return errors.New("waitFor options cannot have both visible and hidden set to true")
 			}
 		}
 	}

@@ -350,7 +350,7 @@ func callWorker(
 			time.Since(start),
 			workerId,
 		)
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(250 * time.Millisecond)
 		return false
 	}
 

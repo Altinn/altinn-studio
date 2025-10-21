@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -257,15 +258,27 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 				sameSite = "None"
 			}
 
-			cookies = append(cookies, map[string]any{
+			cookieValue := map[string]any{
 				"name":     cookie.Name,
 				"value":    cookie.Value,
-				"domain":   cookie.Domain,
-				"path":     "/",
-				"secure":   false,
-				"httpOnly": false,
 				"sameSite": sameSite,
-			})
+			}
+			if cookie.Domain != "" {
+				cookieValue["domain"] = cookie.Domain
+			}
+			if cookie.Path != "" {
+				cookieValue["path"] = cookie.Path
+			}
+			if cookie.Secure != nil {
+				cookieValue["secure"] = *cookie.Secure
+			}
+			if cookie.HttpOnly != nil {
+				cookieValue["httpOnly"] = *cookie.HttpOnly
+			}
+			if cookie.Url != "" {
+				cookieValue["url"] = cookie.Url
+			}
+			cookies = append(cookies, cookieValue)
 		}
 
 		// Set all cookies in a single batch call
@@ -437,6 +450,11 @@ func (w *browserSession) waitForElement(req *workerRequest, selector string, tim
 	needsVisibilityCheck := checkVisible || checkHidden
 
 	if needsVisibilityCheck {
+		assert.AssertWithMessage(
+			checkVisible != checkHidden,
+			// Is caught during validation
+			"Can't check for both hidden and visible at the same time",
+		)
 		// Complex case: visibility checking with polling fallback
 		expression = w.buildVisibilityWaitExpression(selector, timeoutMs, checkVisible, checkHidden)
 	} else {
@@ -533,10 +551,6 @@ func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutM
 	    if (style.display === 'none') return false;
 	    if (style.visibility === 'hidden' || style.visibility === 'collapse') return false;
 	    if (style.opacity === '0') return false;
-	    // offsetParent is null for elements with display:none or not in document
-	    // BODY is always null even when visible, so we exclude it
-	    if (el.offsetParent === null && el.tagName !== 'BODY') return false;
-	    // Check if element has empty bounding box (like Puppeteer does)
 	    const rect = el.getBoundingClientRect();
 	    if (rect.width === 0 || rect.height === 0) return false;
 	    return true;
@@ -546,7 +560,7 @@ func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutM
 	if checkVisible {
 		checkElementDef = `const checkElement = (el) => el && isVisible(el);`
 	} else if checkHidden {
-		checkElementDef = `const checkElement = (el) => el && !isVisible(el);`
+		checkElementDef = `const checkElement = (el) => !el || !isVisible(el);`
 	}
 
 	if htmlIDSelectorPattern.MatchString(selector) {
@@ -756,4 +770,69 @@ func (w *browserSession) close() {
 	}
 
 	log.Printf("Worker %d closed\n", w.id)
+}
+
+// paperFormats defines standard paper sizes in inches (compatible with Puppeteer)
+// See source: https://github.com/puppeteer/puppeteer/blob/f5d922c19e61acb4205a86780967360f3531faef/packages/puppeteer-core/src/common/PDFOptions.ts#L30-L70
+var paperFormats = map[string]struct{ width, height float64 }{
+	"letter":  {8.5, 11},
+	"legal":   {8.5, 14},
+	"tabloid": {11, 17},
+	"ledger":  {17, 11},
+	"a0":      {33.1, 46.8},
+	"a1":      {23.4, 33.1},
+	"a2":      {16.54, 23.4},
+	"a3":      {11.7, 16.54},
+	"a4":      {8.27, 11.7},
+	"a5":      {5.83, 8.27},
+	"a6":      {4.13, 5.83},
+}
+
+var unitToPixels = map[string]float64{
+	"px": 1,
+	"in": 96,
+	"cm": 37.8,
+	"mm": 3.78,
+}
+
+// convertMargin converts margin strings to inches (compatible with Puppeteer)
+// Supports: px, in, cm, mm
+// Numbers without units are treated as pixels
+func convertMargin(margin string) float64 {
+	margin = strings.TrimSpace(margin)
+	if margin == "" {
+		return 0.0
+	}
+
+	var pixels float64
+	var unit string
+	var valueStr string
+
+	// Check if margin has a unit suffix
+	if len(margin) >= 2 {
+		possibleUnit := strings.ToLower(margin[len(margin)-2:])
+		if _, ok := unitToPixels[possibleUnit]; ok {
+			unit = possibleUnit
+			valueStr = margin[:len(margin)-2]
+		}
+	}
+
+	// If no recognized unit, treat as pixels
+	if unit == "" {
+		unit = "px"
+		valueStr = margin
+	}
+
+	// Parse the numeric value
+	value, err := strconv.ParseFloat(strings.TrimSpace(valueStr), 64)
+	if err != nil {
+		log.Printf("Failed to parse margin value %q: %v, using 0\n", margin, err)
+		return 0.0
+	}
+
+	// Convert to pixels
+	pixels = value * unitToPixels[unit]
+
+	// Convert pixels to inches (96 pixels = 1 inch)
+	return pixels / 96.0
 }
