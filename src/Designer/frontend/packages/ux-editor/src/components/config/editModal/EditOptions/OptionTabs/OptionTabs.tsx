@@ -25,7 +25,7 @@ export function OptionTabs({ component, handleComponentChange, optionListIds }: 
   return (
     <StudioTabs
       value={selectedOptionsType}
-      data-size='small'
+      data-size='sm'
       onChange={(value) => {
         setSelectedOptionsType(value as SelectedOptionsType);
       }}
