@@ -44,9 +44,9 @@ namespace LocalTest.Configuration
         }
 
         public string LocalFrontendHostname { get; set; } = "localhost";
-        
+
         public string LocalFrontendProtocol { get; set; } = "http";
-        
+
         /// <summary>
         /// Url for the local app when LocalAppMode == http
         /// <summary>
@@ -84,5 +84,7 @@ namespace LocalTest.Configuration
         public string InstanceDelegationsDataFolder { get; set; } = "instanceDelegations";
 
         public string LocalGrafanaUrl { get; set; }
+
+        public bool EnableGrafana { get; set; } = false;
     }
 }

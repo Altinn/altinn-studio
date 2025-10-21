@@ -14,8 +14,8 @@ public class InfraController : ControllerBase
     private readonly GeneralSettings _generalSettings;
 
     public InfraController(
-        ILogger<InfraController> logger, 
-        IHttpClientFactory httpClientFactory, 
+        ILogger<InfraController> logger,
+        IHttpClientFactory httpClientFactory,
         IOptions<LocalPlatformSettings> localPlatformSettings,
         IOptions<GeneralSettings> generalSettings
     )
@@ -29,6 +29,11 @@ public class InfraController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Grafana(CancellationToken cancellationToken)
     {
+        if (!_localPlatformSettings.EnableGrafana)
+        {
+            return StatusCode(StatusCodes.Status503ServiceUnavailable);
+        }
+
         using var client = _httpClientFactory.CreateClient();
         client.Timeout = TimeSpan.FromSeconds(2);
 
