@@ -1,10 +1,15 @@
 import { useRunningAppsQuery } from 'admin/hooks/queries/useRunningAppsQuery';
 import classes from './AppsTable.module.css';
 import type { RunningApplication } from 'admin/types/RunningApplication';
-import { StudioSpinner, StudioTable, StudioSearch, StudioError } from '@studio/components';
+import {
+  StudioSpinner,
+  StudioTable,
+  StudioSearch,
+  StudioError,
+  StudioTabs,
+} from '@studio/components';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioTabs } from '@studio/components-legacy';
 import { Link } from 'react-router-dom';
 import type { TFunction } from 'i18next';
 
@@ -53,7 +58,7 @@ const AppsTableWithData = ({ runningApps }: AppsTableWithDataProps) => {
         ))}
       </StudioTabs.List>
       {availableEnvironments.map((env) => (
-        <StudioTabs.Content key={env} value={env}>
+        <StudioTabs.Panel key={env} value={env}>
           <StudioSearch
             className={classes.appSearch}
             value={search}
@@ -80,7 +85,7 @@ const AppsTableWithData = ({ runningApps }: AppsTableWithDataProps) => {
                 ))}
             </StudioTable.Body>
           </StudioTable>
-        </StudioTabs.Content>
+        </StudioTabs.Panel>
       ))}
     </StudioTabs>
   );
