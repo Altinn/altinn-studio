@@ -13,8 +13,8 @@ on:
         description: |
           Ring (upgrade channel) to tag the artifact with.
           Defaults to 'at_ring1'.
-          'xx_ring1` means ttd clusters,
-          while `xx_ring2` are non-ttd clusters (all serviceowners)
+          'xx_ring1' means ttd clusters,
+          while 'xx_ring2' are non-ttd clusters (all serviceowners)
         required: false
         default: 'at_ring1'
         type: choice
@@ -65,9 +65,13 @@ jobs:
 
       - name: docker build
         run: |
+          set -e
           docker build -t ${{ steps.vars.outputs.image_proxy_repo }} -f Dockerfile.proxy . &
+          PROXY_PID=$!
           docker build -t ${{ steps.vars.outputs.image_worker_repo }} -f Dockerfile.worker . &
-          wait
+          WORKER_PID=$!
+          wait $PROXY_PID
+          wait $WORKER_PID
 
       - name: scan image - proxy
         uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # 0.33.1
