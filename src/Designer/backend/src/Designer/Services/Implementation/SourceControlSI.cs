@@ -680,7 +680,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private LibGit2Sharp.Repository CreateLocalRepo(AltinnRepoEditingContext editingContext)
         {
             string localPath = FindLocalRepoLocation(editingContext);
-            return  new LibGit2Sharp.Repository(localPath);
+            return new LibGit2Sharp.Repository(localPath);
         }
 
         private async Task<LibGit2Sharp.Handlers.CredentialsHandler> GetCredentialsAsync(string accessToken = "")
