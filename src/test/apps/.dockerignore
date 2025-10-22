@@ -1,0 +1,16 @@
+# Ignore build artifacts and cache directories
+**/bin/
+**/obj/
+**/.vs/
+**/.vscode/
+
+# Ignore git
+.git/
+.gitignore
+
+# Ignore test results
+**/TestResults/
+
+# Ignore user-specific files
+*.user
+*.suo

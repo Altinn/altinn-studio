@@ -4,9 +4,6 @@
 # Usage:
 #   docker compose -f docker-compose.yml -f docker-compose.testapps.yml up --build
 #
-# If you want to run all the apps inside docker as well, you can build them (outside docker) and run:
-#   cd ../../test/apps && make build-all
-#   docker compose -f docker-compose.yml -f docker-compose.testapps.yml --profile run-all-prebuilt up --build
 
 services:
   altinn_platform_pdf:
@@ -25,26 +22,12 @@ services:
 
   altinn_testapps:
     container_name: altinn-testapps
-    image: mcr.microsoft.com/dotnet/sdk:8.0
+    build:
+      context: ../../..
+      dockerfile: src/test/apps/Dockerfile
     restart: always
     networks:
       - altinntestlocal_network
-    working_dir: /altinn-studio/src/test/apps
-    command: >
-      bash -c "
-      trap 'trap - SIGTERM SIGINT; kill -TERM 0' SIGTERM SIGINT;
-      echo 'Starting all apps (be sure to build these first!)';
-      for app_dir in /altinn-studio/src/test/apps/*/App; do
-        app_name=$$(basename $$(dirname $$app_dir));
-        (
-          cd $$app_dir;
-          ASPNETCORE_ENVIRONMENT=Development dotnet run --no-build --no-launch-profile 2>&1 | sed -u \"s/^/[$$app_name] /\"
-        ) &
-      done;
-      wait
-      "
-    volumes:
-      - ../../../:/altinn-studio:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
       - "${TEST_DOMAIN:-local.altinn.cloud}:host-gateway"
@@ -58,4 +41,3 @@ services:
       - PlatformSettings__ApiPdf2Endpoint=http://altinn_pdf:5300/pdf
     depends_on:
       - altinn_localtest
-    profiles: ["run-all-prebuilt"]
