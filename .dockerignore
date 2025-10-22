@@ -10,3 +10,9 @@
 **/bin
 **/obj
 # Designer needs a wider context since it's using an app-template outside of the Designer folder.
+
+# Test-apps are built in its own container
+!src/App/backend
+!src/App/fileanalyzers
+!src/App/codelists
+!src/test/apps
