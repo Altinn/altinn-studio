@@ -79,7 +79,7 @@ class SupportedPaletteProvider {
       const taskType = 'signing';
 
       return function (event) {
-        const task = buildAltinnTask(`userControlled ${taskType}`);
+        const task = buildAltinnTask(`user-controlled ${taskType}`);
 
         const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
           values: [
