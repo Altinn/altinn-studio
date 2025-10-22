@@ -13,7 +13,14 @@ spec:
     metadata:
       labels:
         run: altinn-designer
+      {{- if .Values.serviceAccount.useWorkloadIdentity }}
+      annotations:
+        azure.workload.identity/use: "true"
+      {{- end }}
     spec:
+      {{- if .Values.serviceAccount.enabled }}
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           lifecycle:
