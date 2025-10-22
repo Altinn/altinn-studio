@@ -90,7 +90,7 @@ export class OnProcessTaskRemoveHandler {
 
   private handleSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
     this.handleGenericSigningTaskRemove(taskMetadata);
-    if (TaskUtils.isUserControlledSigning(taskMetadata.taskEvent.element)) {
+    if (TaskUtils.isUserControlledSigning(taskMetadata.taskEvent.element as Element)) {
       this.handleRemoveSigneeState(taskMetadata);
     }
   }

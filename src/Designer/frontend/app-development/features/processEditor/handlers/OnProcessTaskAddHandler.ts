@@ -102,7 +102,7 @@ export class OnProcessTaskAddHandler {
    */
   private handleSigningTaskAdd(taskMetadata: OnProcessTaskEvent): void {
     this.handleGenericSigningTaskAdd(taskMetadata);
-    if (TaskUtils.isUserControlledSigning(taskMetadata.taskEvent.element)) {
+    if (TaskUtils.isUserControlledSigning(taskMetadata.taskEvent.element as Element)) {
       this.addSigneeStateToApplicationMetadata(taskMetadata);
     }
   }
