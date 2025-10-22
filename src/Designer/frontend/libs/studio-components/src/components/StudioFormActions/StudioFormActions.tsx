@@ -36,7 +36,7 @@ function StudioFormActions(
         onClick={primary.onClick}
         disabled={isPrimaryButtonDisabled}
         loading={isLoading}
-        aria-label={iconOnly ? primary.label : null}
+        aria-label={iconOnly && primary.label}
       >
         {!isLoading && <StudioSaveIcon aria-hidden />}
         {shouldDisplayLabel && primary.label}
@@ -45,7 +45,7 @@ function StudioFormActions(
         onClick={secondary.onClick}
         disabled={isSecondaryButtonDisabled}
         variant='secondary'
-        aria-label={iconOnly ? secondary.label : null}
+        aria-label={iconOnly && secondary.label}
       >
         <StudioCancelIcon aria-hidden />
         {shouldDisplayLabel && secondary.label}
