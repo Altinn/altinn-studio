@@ -33,6 +33,7 @@ services:
       - "${TEST_DOMAIN:-local.altinn.cloud}:host-gateway"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - AppSettings__OpenIdWellKnownEndpoint=http://altinn_localtest:5101/authentication/api/v1/openid/
       - PlatformSettings__ApiStorageEndpoint=http://altinn_localtest:5101/storage/api/v1/
       - PlatformSettings__ApiRegisterEndpoint=http://altinn_localtest:5101/register/api/v1/
       - PlatformSettings__ApiProfileEndpoint=http://altinn_localtest:5101/profile/api/v1/
