@@ -3,7 +3,7 @@ replicaCount: 1
 environment: dev
 
 serviceAccount:
-  enabled: false
+  enabled: true
   name: "altinn-designer"
   useWorkloadIdentity: true
 
