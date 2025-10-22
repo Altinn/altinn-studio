@@ -86,25 +86,18 @@ func (c *FluxClient) PushArtifact(url, path, source, revision string) error {
 }
 
 // ReconcileHelmRelease reconciles a HelmRelease resource
-func (c *FluxClient) ReconcileHelmRelease(name, namespace string, opts ReconcileOptions) error {
+func (c *FluxClient) ReconcileHelmRelease(name, namespace string, withSource bool, opts ReconcileOptions) error {
 	args := []string{
 		"reconcile", "helmrelease",
 		name,
 		"-n", namespace,
 	}
 
-	return c.runReconcile("HelmRelease", name, namespace, args, opts)
-}
-
-// ReconcileSourceOCI reconciles an OCIRepository source
-func (c *FluxClient) ReconcileSourceOCI(name, namespace string, opts ReconcileOptions) error {
-	args := []string{
-		"reconcile", "source", "oci",
-		name,
-		"-n", namespace,
+	if withSource {
+		args = append(args, "--with-source")
 	}
 
-	return c.runReconcile("OCIRepository", name, namespace, args, opts)
+	return c.runReconcile("HelmRelease", name, namespace, args, opts)
 }
 
 // ReconcileKustomization reconciles a Kustomization resource

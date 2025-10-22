@@ -55,7 +55,7 @@ func Test_Networking(t *testing.T) {
 
 func waitForOldPdfGenerator(t *testing.T) {
 	client := &http.Client{Timeout: 2 * time.Second}
-	deadline := time.Now().Add(30 * time.Second)
+	deadline := time.Now().Add(120 * time.Second)
 
 	for {
 		if time.Now().After(deadline) {

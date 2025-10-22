@@ -69,6 +69,7 @@ export * from './StudioSpinner';
 export * from './StudioSuggestion';
 export * from './StudioSwitch';
 export * from './StudioTable';
+export * from './StudioTableLocalPagination';
 export * from './StudioTableRemotePagination';
 export * from './StudioTabs';
 export * from './StudioTag';

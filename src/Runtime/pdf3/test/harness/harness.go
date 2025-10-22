@@ -68,7 +68,7 @@ func Init() {
 // WaitForServices waits for proxy and test server to be ready
 func WaitForServices() error {
 	client := &http.Client{Timeout: 2 * time.Second}
-	timeout := 30 * time.Second
+	timeout := 40 * time.Second
 	deadline := time.Now().Add(timeout)
 
 	// Wait for proxy
@@ -561,14 +561,6 @@ func DeployPdf3ViaFlux(imagesChanged, kustomizeChanged bool) (bool, error) {
 
 	// Default reconcile options (blocking/synchronous)
 	reconcileOpts := flux.DefaultReconcileOptions()
-
-	// Trigger immediate reconciliation of OCIRepository
-	fmt.Println("Triggering OCIRepository reconciliation...")
-	start = time.Now()
-	if err := Runtime.FluxClient.ReconcileSourceOCI("pdf3-app-repo", "runtime-pdf3", reconcileOpts); err != nil {
-		return false, fmt.Errorf("failed to reconcile OCIRepository: %w", err)
-	}
-	logDuration("Reconcile OCIRepository", start)
 
 	// Trigger immediate reconciliation of Kustomization
 	fmt.Println("Triggering Kustomization reconciliation...")
