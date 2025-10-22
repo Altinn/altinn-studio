@@ -116,7 +116,7 @@ internal sealed class SignatureHashValidator(
             HasRestrictedRead(applicationMetadata, instance, dataElementSignature.DataElementId)
                 ? StorageAuthenticationMethod.ServiceOwner()
                 : null,
-            cancellationToken
+            cancellationToken: cancellationToken
         );
 
         string sha256Hash = await GenerateSha256Hash(dataStream);

@@ -120,6 +120,7 @@ public class SignatureHashValidatorTests
                     It.IsAny<Guid>(),
                     It.IsAny<Guid>(),
                     It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
+                    null,
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -143,7 +144,15 @@ public class SignatureHashValidatorTests
         await _validator.Validate(_dataAccessorMock.Object, "signing-task", "en");
 
         _dataClientMock.Verify(
-            x => x.GetBinaryDataStream(12345, It.IsAny<Guid>(), It.IsAny<Guid>(), null, It.IsAny<CancellationToken>()),
+            x =>
+                x.GetBinaryDataStream(
+                    12345,
+                    It.IsAny<Guid>(),
+                    It.IsAny<Guid>(),
+                    null,
+                    null,
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
     }
@@ -197,6 +206,7 @@ public class SignatureHashValidatorTests
                     It.IsAny<Guid>(),
                     It.IsAny<Guid>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
+                    null,
                     It.IsAny<CancellationToken>()
                 ),
             Times.Exactly(2)
@@ -236,6 +246,7 @@ public class SignatureHashValidatorTests
                     It.IsAny<Guid>(),
                     It.IsAny<Guid>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
+                    null,
                     It.IsAny<CancellationToken>()
                 ),
             Times.Never
@@ -380,6 +391,7 @@ public class SignatureHashValidatorTests
                     It.IsAny<Guid>(),
                     It.IsAny<Guid>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
+                    null,
                     It.IsAny<CancellationToken>()
                 )
             )

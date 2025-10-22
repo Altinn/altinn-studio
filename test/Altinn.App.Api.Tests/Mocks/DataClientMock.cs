@@ -113,11 +113,14 @@ public class DataClientMock : IDataClient
         Guid instanceGuid,
         Guid dataId,
         StorageAuthenticationMethod? authenticationMethod = null,
+        TimeSpan? timeout = null,
         CancellationToken cancellationToken = default
     )
     {
-        if (cancellationToken.IsCancellationRequested)
-            return Task.FromCanceled<Stream>(cancellationToken);
+        using var cts = cancellationToken.WithTimeout(timeout ?? TimeSpan.FromSeconds(100));
+
+        if (cts.Token.IsCancellationRequested)
+            return Task.FromCanceled<Stream>(cts.Token);
 
         (string org, string app) = TestData.GetInstanceOrgApp(
             new InstanceIdentifier(instanceOwnerPartyId, instanceGuid)

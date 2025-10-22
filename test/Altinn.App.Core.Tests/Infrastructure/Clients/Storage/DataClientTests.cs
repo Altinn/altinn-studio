@@ -1147,7 +1147,6 @@ public class DataClientTests
         public required ServiceProvider ServiceProvider { get; init; }
         public required FixtureMocks Mocks { get; init; }
         public required HttpClient BaseHttpClient { get; init; }
-        public required HttpClient StreamingHttpClient { get; init; }
 
         public static Fixture Create(
             Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> dataClientDelegatingHandler,
@@ -1162,11 +1161,6 @@ public class DataClientTests
                     x.GetAltinnExchangedToken(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>())
                 )
                 .ReturnsAsync(_testTokens.ServiceOwnerToken);
-
-            // Setup HttpClientFactory for streaming client creation
-            DelegatingHandlerStub streamingDelegatingHandler = new(dataClientDelegatingHandler);
-            HttpClient streamingClient = new(streamingDelegatingHandler);
-            mocks.HttpClientFactoryMock.Setup(x => x.CreateClient(string.Empty)).Returns(streamingClient);
 
             var services = new ServiceCollection();
             services.Configure<PlatformSettings>(options => options.ApiStorageEndpoint = ApiStorageEndpoint);
@@ -1197,7 +1191,6 @@ public class DataClientTests
                 ServiceProvider = serviceProvider,
                 DataClient = new DataClient(httpClient, serviceProvider),
                 BaseHttpClient = httpClient,
-                StreamingHttpClient = streamingClient,
             };
         }
 
@@ -1214,7 +1207,6 @@ public class DataClientTests
         {
             await ServiceProvider.DisposeAsync();
             BaseHttpClient.Dispose();
-            StreamingHttpClient.Dispose();
         }
     }
 

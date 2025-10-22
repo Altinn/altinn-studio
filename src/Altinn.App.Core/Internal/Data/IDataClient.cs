@@ -135,6 +135,7 @@ public interface IDataClient
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataId">the data id</param>
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="timeout">Optional timeout for the operation. Defaults to 100 seconds if not specified.</param>
     /// <param name="cancellationToken">An optional cancellation token</param>
     /// <exception cref="Altinn.App.Core.Helpers.PlatformHttpException">Thrown when the data element is not found or other HTTP errors occur</exception>
     Task<Stream> GetBinaryDataStream(
@@ -142,6 +143,7 @@ public interface IDataClient
         Guid instanceGuid,
         Guid dataId,
         StorageAuthenticationMethod? authenticationMethod = null,
+        TimeSpan? timeout = null,
         CancellationToken cancellationToken = default
     );
 
