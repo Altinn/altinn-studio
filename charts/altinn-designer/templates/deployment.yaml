@@ -13,6 +13,9 @@ spec:
     metadata:
       labels:
         run: altinn-designer
+        {{- if .Values.serviceAccount.useWorkloadIdentity }}
+        azure.workload.identity/use: "true"
+        {{- end }}
       {{- if .Values.serviceAccount.useWorkloadIdentity }}
       annotations:
         azure.workload.identity/use: "true"
