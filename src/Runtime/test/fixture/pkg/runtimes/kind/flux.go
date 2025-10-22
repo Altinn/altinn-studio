@@ -101,43 +101,50 @@ func (r *KindContainerRuntime) areTraefikCRDsInstalled() (bool, error) {
 	return exists, nil
 }
 
-// reconcileTraefik forces Flux to reconcile the Traefik CRDs and main Traefik HelmReleases
-// This ensures the Traefik CRDs (like IngressRoute) are available before deploying testserver
-// The traefik-crds HelmRelease is reconciled synchronously (blocking) to ensure CRDs exist,
-// while the main traefik HelmRelease is reconciled asynchronously (non-blocking) since it has disableWait: true
-func (r *KindContainerRuntime) reconcileTraefik() error {
-	// First check if Traefik CRDs are already installed
+func (r *KindContainerRuntime) reconcileBaseInfra() error {
+	// First check if Traefik CRDs are already installed, if they are
+	// the cluster was probably already running and we can just skip
 	installed, err := r.areTraefikCRDsInstalled()
 	if err != nil {
 		return err
 	}
 
 	if installed {
-		fmt.Println("Traefik CRDs already available")
+		fmt.Println("Base infrastructure already running, skipping")
 		return nil
 	}
 
-	fmt.Println("Reconciling traefik-crds HelmRelease (blocking)...")
+	fmt.Println("Reconciling traefik-crds (blocking)...")
 
 	// Reconcile traefik-crds synchronously (blocking) to ensure CRDs are installed
+	time.Sleep(1 * time.Second)
 	syncOpts := flux.DefaultReconcileOptions()
-	if err := r.FluxClient.ReconcileHelmRelease("traefik-crds", "traefik", syncOpts); err != nil {
+	if err := r.FluxClient.ReconcileHelmRelease("traefik-crds", "traefik", true, syncOpts); err != nil {
 		return fmt.Errorf("failed to reconcile traefik-crds: %w", err)
 	}
 
 	fmt.Println("✓ Traefik CRDs reconciled")
-	fmt.Println("Reconciling traefik HelmRelease (async)...")
+	fmt.Println("Reconciling other base infra (async)...")
 
 	// Reconcile traefik asynchronously (non-blocking) since it has disableWait: true in the manifest
 	asyncOpts := flux.ReconcileOptions{
 		ShouldWait: false,
 		Timeout:    0,
 	}
-	if err := r.FluxClient.ReconcileHelmRelease("traefik", "traefik", asyncOpts); err != nil {
-		return fmt.Errorf("failed to trigger traefik reconcile: %w", err)
+	if err := r.FluxClient.ReconcileHelmRelease("linkerd-crds", "linkerd", true, asyncOpts); err != nil {
+		return fmt.Errorf("failed to trigger async linkerd-crds reconcile: %w", err)
+	}
+	if err := r.FluxClient.ReconcileHelmRelease("linkerd-control-plane", "linkerd", true, asyncOpts); err != nil {
+		return fmt.Errorf("failed to trigger async linkerd-control-plane reconcile: %w", err)
+	}
+	if err := r.FluxClient.ReconcileHelmRelease("traefik", "traefik", true, asyncOpts); err != nil {
+		return fmt.Errorf("failed to trigger async traefik reconcile: %w", err)
+	}
+	if err := r.FluxClient.ReconcileHelmRelease("pdf-generator", "pdf", true, asyncOpts); err != nil {
+		return fmt.Errorf("failed to trigger async pdf/pdf-generator reconcile: %w", err)
 	}
 
-	fmt.Println("✓ Traefik reconciliation triggered (running in background)")
+	fmt.Println("✓ Base infra reconciliation triggered (running in background)")
 
 	return nil
 }
