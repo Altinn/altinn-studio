@@ -12,6 +12,7 @@
   "api_errors.ResourceNotFound": "Studio prøver å finne en fil som ikke finnes.",
   "api_errors.Unauthorized": "Handlingen du prøver å utføre krever rettigheter du ikke har. Du blir nå logget ut.",
   "api_errors.UploadedImageNotValid": "Det opplastede bildet er ikke en gyldig filtype",
+  "app_content_library.code_lists.name": "Navn",
   "app_content_library.code_lists.page_name": "Kodelister (ny)",
   "app_content_library.code_lists_with_text_resources.add_new_code_list": "Legg til kodeliste",
   "app_content_library.code_lists_with_text_resources.code_list_delete": "Slett kodeliste",
