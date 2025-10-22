@@ -50,7 +50,7 @@ public class AzureSharedContentClient(
 
     public async Task PublishCodeList(string orgName, string codeListId, CodeList codeList, CancellationToken cancellationToken = default)
     {
-        if (_sharedContentBaseUri is null)
+        if (string.IsNullOrEmpty(_sharedContentBaseUri))
         {
             throw new ConfigurationErrorsException("Base url for the content library must be set before publishing.");
         }
@@ -74,108 +74,111 @@ public class AzureSharedContentClient(
         Task.WaitAll(tasks, cancellationToken);
     }
 
-    internal async Task HandleOrganizationIndex(string orgName, CancellationToken cancellationToken)
+    internal async Task HandleOrganizationIndex(string orgName, CancellationToken cancellationToken = default)
     {
-        string rootIndexPath = CombineWithDelimiter(_sharedContentBaseUri, IndexFileName);
-        HttpResponseMessage rootIndexResponse = await httpClient.GetAsync(new Uri(rootIndexPath), cancellationToken);
+        string url = CombineWithDelimiter(_sharedContentBaseUri, IndexFileName);
+        string path = IndexFileName; // No prefix since it's on root.
+        HttpResponseMessage response = await httpClient.GetAsync(new Uri(url), cancellationToken);
 
-        string rootIndexContent = await rootIndexResponse.Content.ReadAsStringAsync(cancellationToken);
-        if (string.IsNullOrEmpty(rootIndexContent))
+        await HandleResponse(response, orgName, path, cancellationToken);
+    }
+
+    internal async Task HandleResourceTypeIndex(string resourceTypeIndexPrefix, string resourceType, CancellationToken cancellationToken = default)
+    {
+        string path = CombineWithDelimiter(resourceTypeIndexPrefix, IndexFileName);
+        string url = CombineWithDelimiter(_sharedContentBaseUri, path);
+        HttpResponseMessage response = await httpClient.GetAsync(new Uri(url), cancellationToken);
+
+        string content = CombineWithDelimiter(resourceTypeIndexPrefix, resourceType);
+        await HandleResponse(response, content, path, cancellationToken);
+    }
+
+    internal async Task HandleResourceIndex(string resourceIndexPrefix, string resourceId, CancellationToken cancellationToken = default)
+    {
+        string path = CombineWithDelimiter(resourceIndexPrefix, IndexFileName);
+        string url = CombineWithDelimiter(_sharedContentBaseUri, path);
+        HttpResponseMessage response = await httpClient.GetAsync(new Uri(url), cancellationToken);
+
+        string content = CombineWithDelimiter(resourceIndexPrefix, resourceId);
+        await HandleResponse(response, content, path, cancellationToken);
+    }
+
+    internal async Task HandleVersionIndex(string versionIndexPrefix, CancellationToken cancellationToken = default)
+    {
+        string path = CombineWithDelimiter(versionIndexPrefix, IndexFileName);
+        string uri = CombineWithDelimiter(_sharedContentBaseUri, path);
+        HttpResponseMessage response = await httpClient.GetAsync(new Uri(uri), cancellationToken);
+
+        string content = CombineWithDelimiter(versionIndexPrefix, JsonFileName(InitialVersion));
+
+        switch (response.StatusCode)
         {
-            AddIndexFile(rootIndexPath, [orgName]);
+            case HttpStatusCode.OK:
+                await HandleVersionIndexSuccess(response, versionIndexPrefix, path, cancellationToken);
+                break;
+            case HttpStatusCode.NotFound:
+                AddIndexFile(path, [content]);
+                break;
+            default:
+                logger.LogError($"Unexpected response code: {response.StatusCode}, class: ${nameof(AzureSharedContentClient)}");
+                throw new InvalidOperationException($"Request failed, class: {nameof(AzureSharedContentClient)}");
         }
-        else
+
+        await HandleResponse(response, content, path, cancellationToken);
+    }
+
+    private async Task HandleResponse(HttpResponseMessage response, string content, string path, CancellationToken cancellationToken = default)
+    {
+        switch (response.StatusCode)
         {
-            IndexFile? organizationsIndex = JsonSerializer.Deserialize<IndexFile>(rootIndexContent, s_jsonOptions);
-            List<string>? organizations = organizationsIndex?.Prefixes;
-            if (organizations?.Contains(orgName) is false)
-            {
-                organizations.Add(orgName);
-                AddIndexFile(rootIndexPath, organizations);
-            }
+            case HttpStatusCode.OK:
+                await HandleIndexSuccess(response, content, path, cancellationToken);
+                break;
+            case HttpStatusCode.NotFound:
+                AddIndexFile(path, [content]);
+                break;
+            default:
+                logger.LogError($"Unexpected response code: {response.StatusCode}, class: ${nameof(AzureSharedContentClient)}");
+                throw new InvalidOperationException($"Request failed, class: {nameof(AzureSharedContentClient)}");
         }
     }
 
-    internal async Task HandleResourceTypeIndex(string resourceTypeIndexPrefix, string resourceType, CancellationToken cancellationToken)
+    private async Task HandleIndexSuccess(
+        HttpResponseMessage response,
+        string content,
+        string indexFilePath,
+        CancellationToken cancellationToken = default
+    )
     {
-        string resourceTypeIndexPath = CombineWithDelimiter(resourceTypeIndexPrefix, IndexFileName);
-        string resourceTypeIndexUri = CombineWithDelimiter(_sharedContentBaseUri, resourceTypeIndexPath);
-        HttpResponseMessage resourceTypeIndexResponse = await httpClient.GetAsync(new Uri(resourceTypeIndexUri), cancellationToken);
-
-        string resourceTypeWithPrefix = CombineWithDelimiter(resourceTypeIndexPrefix, resourceType);
-
-        if (resourceTypeIndexResponse.StatusCode == HttpStatusCode.NotFound)
+        IndexFile? indexFile = await response.Content.ReadAsAsync<IndexFile?>(cancellationToken);
+        List<string>? prefixes = indexFile?.Prefixes;
+        if (prefixes?.Contains(content) is false)
         {
-            AddIndexFile(resourceTypeIndexPath, [resourceTypeWithPrefix]);
-        }
-        else
-        {
-            string resourceTypeIndexContent = await resourceTypeIndexResponse.Content.ReadAsStringAsync(cancellationToken);
-            IndexFile? resourceTypesIndex = JsonSerializer.Deserialize<IndexFile>(resourceTypeIndexContent, s_jsonOptions);
-            List<string>? resourceTypes = resourceTypesIndex?.Prefixes;
-            if (resourceTypes?.Contains(resourceTypeWithPrefix) is false)
-            {
-                resourceTypes.Add(resourceTypeWithPrefix);
-                AddIndexFile(resourceTypeIndexPath, resourceTypes);
-            }
+            prefixes.Add(content);
+            AddIndexFile(indexFilePath, prefixes);
         }
     }
 
-    internal async Task HandleResourceIndex(string resourceIndexPrefix, string resourceId, CancellationToken cancellationToken)
+    private async Task HandleVersionIndexSuccess(
+        HttpResponseMessage response,
+        string versionIndexPrefix,
+        string versionIndexPath,
+        CancellationToken cancellationToken = default
+    )
     {
-        string resourceIndexPath = CombineWithDelimiter(resourceIndexPrefix, IndexFileName);
-        string codeListIdIndexUri = CombineWithDelimiter(_sharedContentBaseUri, resourceIndexPath);
-        HttpResponseMessage codeListIdIndexResponse = await httpClient.GetAsync(new Uri(codeListIdIndexUri), cancellationToken);
+        IndexFile? versionsIndex = await response.Content.ReadAsAsync<IndexFile?>(cancellationToken);
+        List<string>? versions = versionsIndex?.Prefixes;
 
-        string resourceIdWithPrefix = CombineWithDelimiter(resourceIndexPrefix, resourceId);
-
-        if (codeListIdIndexResponse.StatusCode == HttpStatusCode.NotFound)
+        if (versions is not null)
         {
-            AddIndexFile(resourceIndexPath, [resourceIdWithPrefix]);
-        }
-        else
-        {
-            string codeListIdIndexContent = await codeListIdIndexResponse.Content.ReadAsStringAsync(cancellationToken);
-            IndexFile? resourceTypesIndex = JsonSerializer.Deserialize<IndexFile>(codeListIdIndexContent, s_jsonOptions);
-            List<string>? codeListIds = resourceTypesIndex?.Prefixes;
-            if (codeListIds?.Contains(resourceIdWithPrefix) is false)
-            {
-                codeListIds.Add(resourceIdWithPrefix);
-                AddIndexFile(resourceIndexPath, codeListIds);
-            }
-        }
-    }
-
-    internal async Task HandleVersionIndex(string versionIndexPrefix, CancellationToken cancellationToken)
-    {
-        string versionIndexPath = CombineWithDelimiter(versionIndexPrefix, IndexFileName);
-        string versionIndexUri = CombineWithDelimiter(_sharedContentBaseUri, versionIndexPath);
-        HttpResponseMessage versionIndexResponse = await httpClient.GetAsync(new Uri(versionIndexUri), cancellationToken);
-
-        string initialVersionWithPrefix = CombineWithDelimiter(versionIndexPrefix, JsonFileName(InitialVersion));
-
-        if (versionIndexResponse.StatusCode == HttpStatusCode.OK)
-        {
-            string versionIndexContent = await versionIndexResponse.Content.ReadAsStringAsync(cancellationToken);
-            IndexFile? versionsIndex = JsonSerializer.Deserialize<IndexFile>(versionIndexContent, s_jsonOptions);
-            List<string>? versions = versionsIndex?.Prefixes;
-
             SetCurrentVersion(versions);
-
-            if (versions is not null)
-            {
-                string versionWithPrefix = CombineWithDelimiter(versionIndexPrefix, JsonFileName(CurrentVersion));
-                versions.Add(versionWithPrefix);
-                AddIndexFile(versionIndexPath, versions);
-            }
-            else
-            {
-                AddIndexFile(versionIndexPath, [initialVersionWithPrefix]);
-            }
+            string versionWithPrefix = CombineWithDelimiter(versionIndexPrefix, JsonFileName(CurrentVersion));
+            versions.Add(versionWithPrefix);
+            AddIndexFile(versionIndexPath, versions);
         }
-
-        if (versionIndexResponse.StatusCode == HttpStatusCode.NotFound)
+        else
         {
+            string initialVersionWithPrefix = CombineWithDelimiter(versionIndexPrefix, JsonFileName(InitialVersion));
             AddIndexFile(versionIndexPath, [initialVersionWithPrefix]);
         }
     }
@@ -190,7 +193,7 @@ public class AzureSharedContentClient(
     internal void CreateCodeListFiles(CodeList codeList, string codeListFolderPath, string versionPrefix)
     {
         string version = CombineWithDelimiter(versionPrefix, JsonFileName(CurrentVersion));
-        var codeListContents = new SharedCodeList(
+        SharedCodeList codeListContents = new(
             Codes: codeList.Codes,
             Version: version,
             Source: codeList.Source,
@@ -206,7 +209,7 @@ public class AzureSharedContentClient(
         FileNamesAndContent[lastestCodeListFilePath] = contentsString;
     }
 
-    private List<Task> PrepareBlobTasks(BlobContainerClient containerClient, CancellationToken cancellationToken = default)
+    internal List<Task> PrepareBlobTasks(BlobContainerClient containerClient, CancellationToken cancellationToken = default)
     {
         SemaphoreSlim semaphore = new(10); // We allocate 10 simultaneous tasks as max, even though current total is lower
         List<Task> tasks = [];
@@ -214,7 +217,7 @@ public class AzureSharedContentClient(
         foreach (KeyValuePair<string, string> fileNameAndContent in FileNamesAndContent)
         {
             BlobClient blobClient = containerClient.GetBlobClient(fileNameAndContent.Key);
-            var content = BinaryData.FromString(fileNameAndContent.Value);
+            BinaryData content = BinaryData.FromString(fileNameAndContent.Value);
             tasks.Add(Task.Run(async () =>
             {
                 await semaphore.WaitAsync(cancellationToken);
@@ -233,7 +236,7 @@ public class AzureSharedContentClient(
         return tasks;
     }
 
-    private async Task ThrowIfUnhealthy(BlobContainerClient client, CancellationToken cancellationToken = default)
+    internal async Task ThrowIfUnhealthy(BlobContainerClient client, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -242,7 +245,7 @@ public class AzureSharedContentClient(
         catch (Exception ex) when (ex is RequestFailedException or AggregateException)
         {
             logger.LogError($"Shared content storage container not found, class: {nameof(AzureSharedContentClient)} Message: {ex.Message}");
-            throw new InvalidOperationException("Request failed.");
+            throw new InvalidOperationException($"Request failed, class: {nameof(AzureSharedContentClient)}");
         }
     }
 
@@ -252,18 +255,14 @@ public class AzureSharedContentClient(
     /// <param name="segments">Segments to join</param>
     internal static string CombineWithDelimiter(params string[] segments)
     {
-        return string.Join("/", segments.Select(segment => segment.Trim('/')));
+        return string.Join('/', segments.Select(segment => segment.Trim('/')));
     }
 
     internal static string JsonFileName(string filename) => $"{filename}.json";
 
-    internal void SetCurrentVersion(List<string>? input)
+    internal void SetCurrentVersion(List<string> versionPrefixes)
     {
-        if (input is null)
-        {
-            return;
-        }
-        IEnumerable<string?> versionsAsString = input.Select(Path.GetFileNameWithoutExtension);
+        IEnumerable<string?> versionsAsString = versionPrefixes.Select(Path.GetFileNameWithoutExtension);
         List<int> versions = [];
 
         foreach (string? versionAsString in versionsAsString)
@@ -273,6 +272,8 @@ public class AzureSharedContentClient(
                 versions.Add(int.Parse(versionAsString));
             }
         }
+
+        if (versions.Count == 0) { return; }
 
         int version = versions.Max();
         CurrentVersion = (version + 1).ToString();

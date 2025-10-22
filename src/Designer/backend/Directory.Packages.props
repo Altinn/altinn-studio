@@ -82,5 +82,6 @@
     <PackageVersion Include="WireMock.Net" Version="1.8.18" />
     <PackageVersion Include="DistributedLock.FileSystem" Version="1.0.3" />
     <PackageVersion Include="System.Linq.Dynamic.Core" Version="1.6.7" />
+    <PackageVersion Include="Verify.Xunit" Version="31.0.3" />
   </ItemGroup>
 </Project>
