@@ -46,7 +46,7 @@ export class OnProcessTaskRemoveHandler {
   }
 
   private handlePaymentTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as unknown as Element);
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
     const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
       taskMetadata.taskType,
       taskMetadata.taskEvent.element.businessObject,
@@ -132,7 +132,7 @@ export class OnProcessTaskRemoveHandler {
   }
 
   private handleGenericSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as unknown as Element);
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
     const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
       taskMetadata.taskType,
       taskMetadata.taskEvent.element.businessObject,
@@ -156,7 +156,7 @@ export class OnProcessTaskRemoveHandler {
   }
 
   private handleRemoveSigneeState(taskMetadata: OnProcessTaskEvent): void {
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as unknown as Element);
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
     const dataTypeId = studioModeler.getSigneeStatesDataTypeId(
       taskMetadata.taskType,
       taskMetadata.taskEvent.element.businessObject,
