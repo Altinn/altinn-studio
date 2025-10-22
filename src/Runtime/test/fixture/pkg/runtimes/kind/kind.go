@@ -322,6 +322,8 @@ func (r *KindContainerRuntime) setupStandardVariant() error {
 	// Step 6: Install Flux
 	fmt.Println("\n6. Installing Flux...")
 	start := time.Now()
+	// TODO: find a way to customize controllers for vertical scaling
+	// e.g. concurrency and requeueuing
 	if err := r.installFluxToCluster(); err != nil {
 		return fmt.Errorf("failed to install flux: %w", err)
 	}
@@ -346,14 +348,14 @@ func (r *KindContainerRuntime) setupStandardVariant() error {
 	fmt.Println("✓ Flux controllers ready")
 	logDuration("Wait for Flux controllers", start)
 
-	// Step 9: Reconcile Traefik to ensure CRDs are available
-	fmt.Println("\n9. Reconciling Traefik...")
+	// Step 9: Reconcile base infra
+	fmt.Println("\n9. Reconciling base infra...")
 	start = time.Now()
-	if err := r.reconcileTraefik(); err != nil {
-		return fmt.Errorf("failed to reconcile traefik: %w", err)
+	if err := r.reconcileBaseInfra(); err != nil {
+		return fmt.Errorf("failed to reconcile base infra: %w", err)
 	}
-	fmt.Println("✓ Traefik ready")
-	logDuration("Reconcile Traefik", start)
+	fmt.Println("✓ Base infra ready")
+	logDuration("Reconcile base infra", start)
 
 	// Step 10: Apply testserver manifest
 	fmt.Println("\n10. Applying testserver manifest...")
