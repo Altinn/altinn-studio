@@ -27,9 +27,10 @@ const packagesToTransform = [
   'vfile-message',
 ].join('|');
 
+// For packages that declare ESM exports but not CJS
 const resolveNodeModulesPath = (subPath) => {
-  return path.join(__dirname, "../../../node_modules/", subPath);
-}
+  return path.join(__dirname, '../../../node_modules/', subPath);
+};
 
 /** @type {import('jest').Config} */
 const config = {

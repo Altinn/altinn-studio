@@ -6,6 +6,7 @@ import type {
   AddLayoutSetMutationPayload,
 } from '../../../hooks/mutations/useAddLayoutSetMutation';
 import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
+import type { Element } from 'bpmn-js/lib/model/Types';
 
 export enum AllowedContributor {
   AppOwned = 'app:owned',
@@ -64,7 +65,7 @@ export class OnProcessTaskAddHandler {
   private handlePaymentTaskAdd(taskMetadata: OnProcessTaskEvent): void {
     this.addLayoutSet(this.createLayoutSetConfig(taskMetadata));
 
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as unknown as Element);
     const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
       taskMetadata.taskType,
       taskMetadata.taskEvent.element.businessObject,
@@ -132,7 +133,7 @@ export class OnProcessTaskAddHandler {
 
   private handleGenericSigningTaskAdd(taskMetadata: OnProcessTaskEvent): void {
     this.addLayoutSet(this.createLayoutSetConfig(taskMetadata));
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as any);
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as unknown as Element);
     const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
       taskMetadata.taskType,
       taskMetadata.taskEvent.element.businessObject,
@@ -146,7 +147,7 @@ export class OnProcessTaskAddHandler {
   }
 
   private addSigneeStateToApplicationMetadata(taskMetadata: OnProcessTaskEvent): void {
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as any);
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as unknown as Element);
 
     this.addDataTypeToAppMetadata({
       dataTypeId: studioModeler.getSigneeStatesDataTypeId(

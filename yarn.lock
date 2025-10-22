@@ -48,7 +48,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/process-editor@workspace:src/Designer/frontend/packages/process-editor"
   dependencies:
+    "@types/bpmn-moddle": "npm:9.0.0"
     bpmn-js: "npm:18.7.0"
+    bpmn-moddle: "npm:9.0.4"
     jest: "npm:29.7.0"
   peerDependencies:
     react: 18.3.1
@@ -3563,6 +3565,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/bpmn-moddle@npm:9.0.0":
+  version: 9.0.0
+  resolution: "@types/bpmn-moddle@npm:9.0.0"
+  checksum: 10/9548899aa2905a7174fc29b779122ef7c81e7ad5687b730bb29a0d92986138f301f2c8db7abf1ee01c0c3f37a638990111867edbdafeb5c8c7fcbae4226bb678
+  languageName: node
+  linkType: hard
+
 "@types/chai@npm:^5.2.2":
   version: 5.2.2
   resolution: "@types/chai@npm:5.2.2"
@@ -4585,7 +4594,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-shared@workspace:src/Designer/frontend/packages/shared"
   dependencies:
+    "@types/bpmn-moddle": "npm:9.0.0"
     "@types/react": "npm:18.3.24"
+    bpmn-moddle: "npm:9.0.4"
     classnames: "npm:2.5.1"
     jest: "npm:29.7.0"
     qs: "npm:6.14.0"
@@ -5105,7 +5116,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bpmn-moddle@npm:^9.0.4":
+"bpmn-moddle@npm:9.0.4, bpmn-moddle@npm:^9.0.4":
   version: 9.0.4
   resolution: "bpmn-moddle@npm:9.0.4"
   dependencies:
