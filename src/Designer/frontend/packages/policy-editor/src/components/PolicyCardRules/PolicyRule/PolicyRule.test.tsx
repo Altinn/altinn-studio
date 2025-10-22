@@ -5,7 +5,7 @@ import { PolicyRule, type PolicyRuleProps } from './PolicyRule';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { mockActionId3 } from '../../../../test/mocks/policyActionMocks';
 import { mockPolicyRuleCard1 } from '../../../../test/mocks/policyRuleMocks';
-import { mockSubjectTitle2 } from '../../../../test/mocks/policySubjectMocks';
+import { mockSubject2, mockSubjectTitle2 } from '../../../../test/mocks/policySubjectMocks';
 import {
   PolicyEditorContext,
   type PolicyEditorContextProps,
@@ -75,14 +75,15 @@ describe('PolicyRule', () => {
     await user.selectOptions(actionSelect, screen.getByRole('option', { name: actionOption }));
     await user.tab();
 
-    const [subjectSelect] = screen.getAllByLabelText(
-      textMock('policy_editor.rule_card_subjects_title'),
+    const altinnRoleTab = screen.getByText(
+      textMock('policy_editor.rule_card_subjects_altinn_roles'),
     );
-    await user.selectOptions(
-      subjectSelect,
-      screen.getByRole('option', { name: mockSubjectTitle2 }),
+    await user.click(altinnRoleTab);
+
+    const subjectCheckbox = screen.getByLabelText(
+      `${mockSubjectTitle2} (${mockSubject2.legacyRoleCode})`,
     );
-    await user.tab();
+    await user.click(subjectCheckbox);
 
     const [descriptionField] = screen.getAllByLabelText(
       textMock('policy_editor.rule_card_description_title'),
