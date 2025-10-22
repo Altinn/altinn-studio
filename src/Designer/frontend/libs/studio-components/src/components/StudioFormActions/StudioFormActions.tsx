@@ -3,17 +3,14 @@ import { StudioButton } from '../StudioButton';
 import classes from './StudioFormActions.module.css';
 import { StudioCancelIcon, StudioSaveIcon } from '@studio/icons';
 
-export type PrimaryProps = {
+type actionProps = {
   label: string;
   disabled?: boolean;
   onClick: () => void;
 };
 
-export type SecondaryProps = {
-  label: string;
-  disabled?: boolean;
-  onClick: () => void;
-};
+export type PrimaryProps = actionProps;
+export type SecondaryProps = actionProps;
 
 export type StudioFormActionsProps = {
   primary: PrimaryProps;
