@@ -34,15 +34,15 @@ const HeaderButtonListItem = ({ menuItem }: HeaderButtonListItemProps): ReactEle
       <StudioPageHeader.HeaderLink
         isBeta={menuItem.isBeta}
         renderLink={(props) => (
-          <NavLink to={menuItem.link} {...props}>
-            <span
-              className={cn({
-                [classes.active]:
-                  UrlUtils.extractLastRouterParam(menuItem.link) === currentRoutePath,
-              })}
-            >
-              {menuItem.name}
-            </span>
+          <NavLink
+            data-color='neutral'
+            to={menuItem.link}
+            {...props}
+            className={cn({
+              [classes.active]: UrlUtils.extractLastRouterParam(menuItem.link) === currentRoutePath,
+            })}
+          >
+            {menuItem.name}
           </NavLink>
         )}
       />

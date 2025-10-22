@@ -1,7 +1,7 @@
 .wrapper {
   display: flex;
   align-items: center;
-  gap: var(--fds-spacing-8);
+  gap: var(--ds-size-8);
 }
 
 .menu {
@@ -10,11 +10,11 @@
   justify-content: flex-start;
   list-style-type: none;
   flex: 2;
-  padding: 0 var(--fds-spacing-4);
-  gap: var(--fds-spacing-2);
-  font-size: var(--fds-sizing-4);
+  padding: 0 var(--ds-size-4);
+  gap: var(--ds-size-8);
+  font-size: var(--ds-font-size-5);
 }
 
 .active {
-  border-bottom: 2px solid var(--fds-semantic-surface-neutral-default);
+  border-bottom: 2px solid var(--ds-color-text-default);
 }
