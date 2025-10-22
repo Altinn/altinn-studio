@@ -1,0 +1,231 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: linkerd
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: traefik
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pdf
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: linkerd-identity-issuer
+  namespace: linkerd
+type: Opaque
+stringData:
+  ca.crt: |
+    {{CA_CRT}}
+  tls.crt: |
+    {{ISSUER_CRT}}
+  tls.key: |
+    {{ISSUER_KEY}}
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: metrics-server
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://kubernetes-sigs.github.io/metrics-server/
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: traefik
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://traefik.github.io/charts
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: traefik-crds
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://traefik.github.io/charts
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: linkerd-edge
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://helm.linkerd.io/edge
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: altinn-studio
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://charts.altinn.studio
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: metrics-server
+  namespace: kube-system
+spec:
+  interval: 1h
+  install:
+    disableWait: true
+  upgrade:
+    disableWait: true
+  chart:
+    spec:
+      chart: metrics-server
+      version: 3.13.0
+      sourceRef:
+        kind: HelmRepository
+        name: metrics-server
+        namespace: flux-system
+  values:
+    args:
+      - --kubelet-insecure-tls
+      - --kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: traefik-crds
+  namespace: traefik
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: traefik-crds
+      version: 1.11.1
+      sourceRef:
+        kind: HelmRepository
+        name: traefik-crds
+        namespace: flux-system
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: traefik
+  namespace: traefik
+spec:
+  interval: 1h
+  dependsOn:
+    - name: traefik-crds
+  install:
+    disableWait: true
+  upgrade:
+    disableWait: true
+  chart:
+    spec:
+      chart: traefik
+      version: 37.1.1
+      sourceRef:
+        kind: HelmRepository
+        name: traefik
+        namespace: flux-system
+  values:
+    ports:
+      web:
+        nodePort: 30000
+        expose:
+          default: true
+      websecure:
+        nodePort: 30001
+        expose:
+          default: true
+      traefik:
+        nodePort: 30002
+        expose:
+          default: true
+    service:
+      type: NodePort
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: linkerd-crds
+  namespace: linkerd
+spec:
+  interval: 1h
+  install:
+    disableWait: true
+  upgrade:
+    disableWait: true
+  chart:
+    spec:
+      chart: linkerd-crds
+      version: 2025.10.1
+      sourceRef:
+        kind: HelmRepository
+        name: linkerd-edge
+        namespace: flux-system
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: linkerd-control-plane
+  namespace: linkerd
+spec:
+  interval: 1h
+  install:
+    disableWait: true
+  upgrade:
+    disableWait: true
+  dependsOn:
+    - name: linkerd-crds
+  chart:
+    spec:
+      chart: linkerd-control-plane
+      version: 2025.10.1
+      sourceRef:
+        kind: HelmRepository
+        name: linkerd-edge
+        namespace: flux-system
+  valuesFrom:
+    - kind: Secret
+      name: linkerd-identity-issuer
+      valuesKey: ca.crt
+      targetPath: identityTrustAnchorsPEM
+    - kind: Secret
+      name: linkerd-identity-issuer
+      valuesKey: tls.crt
+      targetPath: identity.issuer.tls.crtPEM
+    - kind: Secret
+      name: linkerd-identity-issuer
+      valuesKey: tls.key
+      targetPath: identity.issuer.tls.keyPEM
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: pdf-generator
+  namespace: pdf
+spec:
+  interval: 1h
+  install:
+    disableWait: true
+  upgrade:
+    disableWait: true
+  chart:
+    spec:
+      chart: pdf-generator
+      version: '1.9.0'
+      sourceRef:
+        kind: HelmRepository
+        name: altinn-studio
+        namespace: flux-system
+  values:
+    image:
+      repository: browserless/chrome
+      tag: 1-puppeteer-21.4.1
