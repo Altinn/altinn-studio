@@ -150,7 +150,8 @@ public class AzureSharedContentClient(
         CancellationToken cancellationToken = default
     )
     {
-        IndexFile? indexFile = await response.Content.ReadAsAsync<IndexFile?>(cancellationToken);
+        string indexFileString = await response.Content.ReadAsStringAsync(cancellationToken);
+        IndexFile? indexFile = JsonSerializer.Deserialize<IndexFile?>(indexFileString, s_jsonOptions);
         List<string>? prefixes = indexFile?.Prefixes;
         if (prefixes?.Contains(content) is false)
         {
@@ -166,7 +167,8 @@ public class AzureSharedContentClient(
         CancellationToken cancellationToken = default
     )
     {
-        IndexFile? versionsIndex = await response.Content.ReadAsAsync<IndexFile?>(cancellationToken);
+        string versionsIndexString = await response.Content.ReadAsStringAsync(cancellationToken);
+        IndexFile? versionsIndex = JsonSerializer.Deserialize<IndexFile?>(versionsIndexString, s_jsonOptions);
         List<string>? versions = versionsIndex?.Prefixes;
 
         if (versions is not null)
