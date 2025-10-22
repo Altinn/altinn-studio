@@ -1,4 +1,4 @@
-﻿﻿namespace PolicyAdmin.Models
+﻿namespace PolicyAdmin.Models
 {
     public class SubjectOption
     {
