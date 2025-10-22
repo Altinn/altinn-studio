@@ -230,10 +230,11 @@ namespace Altinn.App.Core.Extensions
     }
     public static class HttpClientExtension
     {
-        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> DeleteAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, string? platformAccessToken = null) { }
-        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, string? platformAccessToken = null) { }
-        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> PostAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, System.Net.Http.HttpContent? content, string? platformAccessToken = null) { }
-        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> PutAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, System.Net.Http.HttpContent? content, string? platformAccessToken = null) { }
+        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> DeleteAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
+        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
+        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetStreamingAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
+        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> PostAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, System.Net.Http.HttpContent? content, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
+        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> PutAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, System.Net.Http.HttpContent? content, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
     }
     public static class HttpContextExtensions
     {
@@ -2447,6 +2448,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         public System.Threading.Tasks.Task<bool> DeleteData(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataGuid, bool delay, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task<System.IO.Stream> GetBinaryData(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<System.IO.Stream> GetBinaryDataStream(int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task<byte[]> GetDataBytes(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task<object> GetFormData(System.Guid instanceGuid, System.Type type, string org, string app, int instanceOwnerPartyId, System.Guid dataId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string? filename, System.IO.Stream stream, string? generatedFromTask = null, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
@@ -2928,6 +2930,7 @@ namespace Altinn.App.Core.Internal.Data
         System.Threading.Tasks.Task<bool> DeleteData(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataGuid, bool delay, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<System.IO.Stream> GetBinaryData(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<System.IO.Stream> GetBinaryDataStream(int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<byte[]> GetDataBytes(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<object> GetFormData(System.Guid instanceGuid, System.Type type, string org, string app, int instanceOwnerPartyId, System.Guid dataId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string? filename, System.IO.Stream stream, string? generatedFromTask = null, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
@@ -4833,6 +4836,7 @@ namespace Altinn.App.Core.Models.Validation
             public static string DataElementTooLarge { get; }
             public static string DataElementValidatedAtWrongTask { get; }
             public static string InvalidFileNameFormat { get; }
+            public static string InvalidSignatureHash { get; }
             public static string MissingContentType { get; }
             public static string MissingFileName { get; }
             public static string MissingSignatures { get; }
