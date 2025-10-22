@@ -48,7 +48,7 @@ create-pr: ## Push changes and create pull request for sync job
 		echo "Pushing changes to remote..."; \
 		git push -u origin $$current_branch && \
 		echo "Creating pull request..." && \
-		gh pr create --title "chore: syncing $$subtree_name" --body "@coderabbitai ignore" --base $(DEFAULT_BRANCH) --head $$current_branch || \
+		gh pr create --title "chore: syncing $$subtree_name" --body "@coderabbitai ignore" --label "skip-manual-testing,skip-releasenotes" --base $(DEFAULT_BRANCH) --head $$current_branch || \
 		echo "WARNING: Failed to create PR. You may need to create it manually."; \
 	else \
 		echo "WARNING: gh command not found. Skipping automatic PR creation."; \
@@ -128,6 +128,16 @@ $(foreach subtree,$(SUBTREES), \
 # Sync all test apps
 sync-test-apps: ## Sync all test app subtrees
 	@echo "Syncing all test apps..."
+	@# Check for uncommitted changes
+	@if ! git diff-index --quiet HEAD --; then \
+		echo "ERROR: You have uncommitted changes in your working directory"; \
+		echo "Please commit or stash your changes before syncing:"; \
+		echo "  git add ."; \
+		echo "  git commit -m 'your message'"; \
+		echo "  OR"; \
+		echo "  git stash"; \
+		exit 1; \
+	fi
 	@current_branch=$$(git rev-parse --abbrev-ref HEAD); \
 	if [ "$$current_branch" != "$(DEFAULT_BRANCH)" ]; then \
 		echo "ERROR: You must be on the $(DEFAULT_BRANCH) branch to start a sync"; \
@@ -143,29 +153,28 @@ sync-test-apps: ## Sync all test app subtrees
 	fi; \
 	echo "Creating branch $$branch_name..."; \
 	git checkout -b $$branch_name
-	@set -e; \
-	conflicts_detected=0; \
-	$(foreach app,$(TEST_APPS), \
+	@$(foreach app,$(TEST_APPS), \
 		app_name=$$(echo "$(app)" | cut -d: -f1); \
 		repo_url=$$(echo "$(app)" | cut -d: -f2-3); \
 		branch=$$(echo "$(app)" | cut -d: -f4); \
 		echo ""; \
 		echo "Syncing $$app_name from $$repo_url ($$branch)..."; \
-		if ! git subtree pull --prefix=src/test/apps/$$app_name $$repo_url $$branch --squash; then \
-			echo "WARNING: Conflicts detected for $$app_name"; \
-			conflicts_detected=1; \
+		git fetch $$repo_url $$branch && \
+		if GIT_MERGE_AUTOEDIT=no git subtree pull --prefix=src/test/apps/$$app_name $$repo_url $$branch; then \
+			echo "OK: $$app_name synced successfully"; \
+		else \
+			echo ""; \
+			echo "==============================================="; \
+			echo "Merge conflicts detected for $$app_name!"; \
+			echo "==============================================="; \
+			echo ""; \
+			echo "Please resolve conflicts in the affected files,"; \
+			echo "then stage and commit your changes:"; \
+			echo "  git add ."; \
+			echo "  git commit --no-edit"; \
+			echo ""; \
+			read -p "Press Enter after resolving conflicts to continue..." dummy; \
 		fi;)
-	@if [ $$conflicts_detected -eq 1 ]; then \
-		echo ""; \
-		echo "==============================================="; \
-		echo "Merge conflicts detected!"; \
-		echo "==============================================="; \
-		echo ""; \
-		echo "Please resolve conflicts in the affected test-apps/files,"; \
-		echo "then stage and commit your changes:"; \
-		echo "  git add ."; \
-		echo "  git commit --no-edit"; \
-		echo ""; \
-		read -p "Press Enter after resolving conflicts to continue with PR creation..." dummy; \
-	fi
-	@$(MAKE) create-pr SUBTREE_NAME=test-apps
+	@echo ""
+	@echo "All test apps synced successfully!"
+	@$(MAKE) -f Makefile2 create-pr SUBTREE_NAME=test-apps
