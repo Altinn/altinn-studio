@@ -76,7 +76,7 @@ public class ProxyMiddleware
                 var registration = _appRegistryService.GetRegistration(appId);
                 if (registration != null)
                 {
-                    var targetUrl = $"http://host.docker.internal:{registration.Port}";
+                    var targetUrl = $"http://{registration.Hostname}:{registration.Port}";
                     _logger.LogDebug("Proxying request for {AppId} to {TargetUrl}", appId, targetUrl);
                     await ProxyRequest(context, targetUrl);
                     return;
@@ -84,13 +84,22 @@ public class ProxyMiddleware
                 else
                 {
                     _logger.LogWarning("App {AppId} not registered, cannot proxy request", appId);
+                    context.Response.StatusCode = 404;
+                    await context.Response.WriteAsJsonAsync(new { error = $"App {appId} is not registered" });
+                    return;
                 }
             }
         }
 
-        // Fallback to LocalAppUrl for backward compatibility or if app not found
-        await ProxyRequest(context, localPlatformSettings.Value.LocalAppUrl);
-        return;
+        // Fallback to LocalAppUrl for backward compatibility (only in http mode)
+        if (!string.IsNullOrEmpty(localPlatformSettings.Value.LocalAppUrl))
+        {
+            await ProxyRequest(context, localPlatformSettings.Value.LocalAppUrl);
+            return;
+        }
+
+        // If we get here in auto mode, the path didn't match an app
+        await _nextMiddleware(context);
     }
 
     /// <summary>
