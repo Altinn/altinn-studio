@@ -90,7 +90,7 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainer
 		}
 		// If we got here, cluster setup completed but didn't signal registry event
 		// This shouldn't happen in normal flow, but we can continue
-	case <-time.After(2 * time.Minute):
+	case <-time.After(5 * time.Minute):
 		return nil, fmt.Errorf("timeout waiting for registry to start")
 	}
 

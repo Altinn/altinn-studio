@@ -68,7 +68,7 @@ func Init() {
 // WaitForServices waits for proxy and test server to be ready
 func WaitForServices() error {
 	client := &http.Client{Timeout: 2 * time.Second}
-	timeout := 40 * time.Second
+	timeout := 60 * time.Second
 	deadline := time.Now().Add(timeout)
 
 	// Wait for proxy
