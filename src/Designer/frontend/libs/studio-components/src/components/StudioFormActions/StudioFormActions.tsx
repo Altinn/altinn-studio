@@ -1,4 +1,4 @@
-import React, { forwardRef, type HTMLAttributes, type Ref } from 'react';
+import React, { forwardRef, type Ref } from 'react';
 import { StudioButton } from '../StudioButton';
 import classes from './StudioFormActions.module.css';
 import { StudioCancelIcon, StudioSaveIcon } from '@studio/icons';
@@ -7,7 +7,7 @@ type actionProps = {
   label: string;
   disabled?: boolean;
   onClick: () => void;
-} & HTMLAttributes<HTMLButtonElement>;
+};
 
 export type PrimaryProps = actionProps;
 export type SecondaryProps = actionProps;
@@ -34,7 +34,6 @@ function StudioFormActions(
         disabled={isPrimaryButtonDisabled}
         loading={isLoading}
         aria-label={iconOnly ? primary.label : undefined}
-        {...primary}
       >
         {!isLoading && <StudioSaveIcon aria-hidden />}
         {shouldDisplayLabel && primary.label}
@@ -44,7 +43,6 @@ function StudioFormActions(
         disabled={isSecondaryButtonDisabled}
         variant='secondary'
         aria-label={iconOnly ? secondary.label : undefined}
-        {...secondary}
       >
         <StudioCancelIcon aria-hidden />
         {shouldDisplayLabel && secondary.label}
