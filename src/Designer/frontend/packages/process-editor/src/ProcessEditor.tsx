@@ -1,10 +1,10 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  StudioPageError,
   StudioPageSpinner,
   StudioRecommendedNextActionContextProvider,
 } from '@studio/components-legacy';
+import { StudioPageError } from '@studio/components';
 import { Canvas } from './components/Canvas';
 import { BpmnContextProvider, useBpmnContext } from './contexts/BpmnContext';
 import { ConfigPanel } from './components/ConfigPanel';

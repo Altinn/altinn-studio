@@ -6,6 +6,7 @@ import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths';
 import preferredImportPath from 'eslint-plugin-preferred-import-path';
 import reactPlugin from 'eslint-plugin-react';
 import reactCompiler from 'eslint-plugin-react-compiler';
+import reactHooks from 'eslint-plugin-react-hooks';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import sonarjs from 'eslint-plugin-sonarjs';
 import testingLibrary from 'eslint-plugin-testing-library';
@@ -37,7 +38,6 @@ export default tseslint.config(
       'plugin:import/typescript',
       'plugin:jsx-a11y/recommended',
       'plugin:react/recommended',
-      'plugin:react-hooks/recommended',
       'plugin:prettier/recommended',
     ),
   ),
@@ -54,7 +54,6 @@ export default tseslint.config(
       'snapshots.js',
     ],
   },
-
   {
     plugins: {
       sonarjs: fixupPluginRules(sonarjs),
@@ -63,6 +62,7 @@ export default tseslint.config(
       'simple-import-sort': simpleImportSort,
       'unused-imports': unusedImports,
       react: fixupPluginRules(reactPlugin),
+      'react-hooks': reactHooks,
       'react-compiler': reactCompiler,
       local: {
         rules: {
@@ -128,6 +128,7 @@ export default tseslint.config(
 
       'unused-imports/no-unused-imports': ['error'],
 
+      'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': ['error', { additionalHooks: '^(useMemoDeepEqual)$' }],
       'react/jsx-filename-extension': ['error', { extensions: ['.jsx', '.tsx'] }],
       'react/jsx-curly-brace-presence': ['error', { props: 'never', children: 'never' }],

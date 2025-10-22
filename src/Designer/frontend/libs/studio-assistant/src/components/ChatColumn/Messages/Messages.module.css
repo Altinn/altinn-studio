@@ -1,0 +1,19 @@
+.messagesContainer {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0; /* Makes container scrollable */
+  padding: var(--ds-size-6);
+  gap: var(--ds-size-4);
+  overflow-y: auto;
+}
+
+.userMessage {
+  background-color: var(--ds-color-accent-background-tinted);
+  max-width: 100ch;
+  align-self: flex-end;
+}
+
+.assistantMessage {
+  padding: var(--ds-size-2);
+  max-width: 100ch;
+}

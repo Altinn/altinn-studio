@@ -5,24 +5,50 @@ on:
     branches:
       - main
     paths:
-      - infra/runtime/pdf3/**
+      - src/Runtime/pdf3/**
       - .github/workflows/deploy-runtime-pdf3.yaml
   workflow_dispatch:
+    inputs:
+      ring:
+        description: |
+          Ring (upgrade channel) to tag the artifact with.
+          Defaults to 'at_ring1'.
+          'xx_ring1' means ttd clusters,
+          while 'xx_ring2' are non-ttd clusters (all serviceowners)
+        required: false
+        default: 'at_ring1'
+        type: choice
+        options:
+          - 'at_ring1'
+          - 'at_ring2'
+          - 'tt_ring1'
+          - 'tt_ring2'
+          - 'prod_ring1'
+          - 'prod_ring2'
 
 jobs:
   push-pdf3-artifact:
     name: Push pdf3 as OCI artifact
     runs-on: ubuntu-latest
-    environment: dev
+    environment: ${{ inputs.ring == '' && 'dev' || startsWith(inputs.ring, 'at_') && 'dev' || startsWith(inputs.ring, 'tt_') && 'staging' || 'prod' }}
     permissions:
       id-token: write # Require write permission to Fetch an OIDC token.
     defaults:
       run:
-        working-directory: ./infra/runtime
+        working-directory: src/Runtime/pdf3
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
         with:
           fetch-depth: 0 # Shallow clone
+
+      - name: set vars
+        id: vars
+        run: |
+          echo "registry_name=altinncr" >> $GITHUB_OUTPUT
+          echo "image_proxy_repo=altinncr.azurecr.io/studio-apps/runtime-pdf3-proxy:$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "image_worker_repo=altinncr.azurecr.io/studio-apps/runtime-pdf3-worker:$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "config_repo=altinncr.azurecr.io/studio-apps/runtime-pdf3-repo:$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "tag=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: az login
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
@@ -32,21 +58,69 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
       - name: az acr login
-        run: az acr login --name altinncr
+        run: az acr login --name ${{ steps.vars.outputs.registry_name }}
 
       - name: flux install
         uses: fluxcd/flux2/action@6bf37f6a560fd84982d67f853162e4b3c2235edb # v2.6.4
 
-      - name: push artifact
+      - name: docker build
         run: |
-          cd pdf3/
-          flux push artifact oci://altinncr.azurecr.io/studio-apps/runtime-pdf3-repo:$(git rev-parse --short HEAD) \
+          set -e
+          docker build -t ${{ steps.vars.outputs.image_proxy_repo }} -f Dockerfile.proxy . &
+          PROXY_PID=$!
+          docker build -t ${{ steps.vars.outputs.image_worker_repo }} -f Dockerfile.worker . &
+          WORKER_PID=$!
+          wait $PROXY_PID
+          wait $WORKER_PID
+
+      - name: scan image - proxy
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # 0.33.1
+        with:
+          image-ref: '${{ steps.vars.outputs.image_proxy_repo }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: scan image - worker
+        if: success() || failure()
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # 0.33.1
+        with:
+          image-ref: '${{ steps.vars.outputs.image_worker_repo }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: push images
+        run: |
+          docker push ${{ steps.vars.outputs.image_proxy_repo }} &
+          docker push ${{ steps.vars.outputs.image_worker_repo }} &
+          wait
+
+      - name: patch base with image tag
+        working-directory: src/Runtime/pdf3/infra/kustomize/base
+        run: |
+          export PROXY_IMAGE="${{ steps.vars.outputs.image_proxy_repo }}"
+          export WORKER_IMAGE="${{ steps.vars.outputs.image_worker_repo }}"
+          export IMAGE_TAG="${{ steps.vars.outputs.tag }}"
+          yq -i '.metadata.annotations["altinn.studio/image"] = env(PROXY_IMAGE)' proxy.yaml
+          yq -i '.metadata.annotations["altinn.studio/image"] = env(WORKER_IMAGE)' worker.yaml
+          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' proxy.yaml
+          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' worker.yaml
+
+      - name: push artifact
+        working-directory: src/Runtime/pdf3/infra/kustomize
+        run: |
+          flux push artifact oci://${{ steps.vars.outputs.config_repo }} \
             --provider=generic \
             --reproducible \
             --path="." \
             --source="$(git config --get remote.origin.url)" \
             --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
 
-      - name: tag artifact at_ring1 (ttd/at22)
+      - name: tag artifact
         run: |
-          flux tag artifact oci://altinncr.azurecr.io/studio-apps/runtime-pdf3-repo:$(git rev-parse --short HEAD) --tag at_ring1
+          flux tag artifact oci://${{ steps.vars.outputs.config_repo }} --tag ${{ inputs.ring || 'at_ring1' }}

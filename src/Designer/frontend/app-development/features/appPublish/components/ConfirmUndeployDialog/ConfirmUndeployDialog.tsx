@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import React, { useRef, useState } from 'react';
-import { StudioModal, StudioTextfield, StudioAlert, StudioLink } from '@studio/components-legacy';
-import { StudioButton, StudioParagraph } from '@studio/components';
+import { StudioModal, StudioTextfield, StudioAlert } from '@studio/components-legacy';
+import { StudioButton, StudioParagraph, StudioLink } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
 import classes from './ConfirmUndeployDialog.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

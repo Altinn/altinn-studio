@@ -1,0 +1,72 @@
+{
+  "id": "ttd/payment-test",
+  "org": "ttd",
+  "title": {
+    "nb": "payment-test"
+  },
+  "dataTypes": [
+    {
+      "id": "ref-data-as-pdf",
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
+      "maxCount": 0,
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "model",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.Form",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "paymentInformation",
+      "allowedContentTypes": [
+        "application/json"
+      ],
+      "maxCount": 1,
+      "minCount": 0,
+      "grouping": "Betaling"
+    },
+    {
+      "id": "paymentReceiptPdf",
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
+      "maxCount": 1,
+      "minCount": 0,
+      "grouping": "Betaling"
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": false,
+    "subUnit": false
+  },
+  "autoDeleteOnProcessEnd": false,
+  "created": "2024-01-16T12:10:58.6880735Z",
+  "createdBy": "TrineH",
+  "lastChanged": "2024-01-16T12:10:58.6880744Z",
+  "lastChangedBy": "TrineH",
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/application/application-metadata.schema.v1.json"
+}

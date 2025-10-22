@@ -21,13 +21,18 @@ export const Instances = () => {
           </StudioBreadcrumbs.Item>
           <StudioBreadcrumbs.Item>
             <StudioBreadcrumbs.Link asChild>
-              <Link to=''>{app}</Link>
+              <Link to={`/${org}/apps/${env}/${app}`}>{app}</Link>
+            </StudioBreadcrumbs.Link>
+          </StudioBreadcrumbs.Item>
+          <StudioBreadcrumbs.Item>
+            <StudioBreadcrumbs.Link asChild>
+              <Link to=''>Instanser</Link>
             </StudioBreadcrumbs.Link>
           </StudioBreadcrumbs.Item>
         </StudioBreadcrumbs.List>
       </StudioBreadcrumbs>
       <h1>
-        {env} / {app}
+        {env} / {app} / Instanser
       </h1>
       <div className={classes.filterWrapper}>
         <ProcessTaskPicker org={org} env={env} app={app} state={processTaskPickerState} />

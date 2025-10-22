@@ -3,7 +3,8 @@ import type { RepoIncludingStarredData } from 'dashboard/utils/repoUtils/repoUti
 import { useTranslation } from 'react-i18next';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_OPTIONS } from '../../constants';
-import { StudioTableLocalPagination, StudioTableRemotePagination } from '@studio/components-legacy';
+import { StudioTableRemotePagination } from '@studio/components-legacy';
+import { StudioTableLocalPagination } from '@studio/components';
 import type { Columns, PaginationTexts, RemotePaginationProps } from '@studio/components-legacy';
 import { ActionLinks } from './ActionLinks';
 import { FavoriteButton } from './FavoriteButton';

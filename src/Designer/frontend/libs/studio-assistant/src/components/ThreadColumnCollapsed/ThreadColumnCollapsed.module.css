@@ -1,0 +1,15 @@
+.threadColumnCollapsed {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--ds-color-neutral-background-default);
+  padding-block: var(--ds-size-6);
+  width: 80px; /* Has to match the value of StudioResizableLayout's 'collapsedSize' prop */
+  align-items: center;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  width: fit-content;
+  gap: var(--ds-size-4);
+}

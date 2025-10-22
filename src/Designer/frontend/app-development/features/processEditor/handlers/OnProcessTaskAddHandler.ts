@@ -7,6 +7,7 @@ import type {
 } from '../../../hooks/mutations/useAddLayoutSetMutation';
 import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
 import type { Element } from 'bpmn-js/lib/model/Types';
+import { TaskUtils } from '@altinn/process-editor/utils/taskUtils';
 
 export enum AllowedContributor {
   AppOwned = 'app:owned',
@@ -41,10 +42,6 @@ export class OnProcessTaskAddHandler {
 
     if (taskMetadata.taskType === 'signing') {
       this.handleSigningTaskAdd(taskMetadata);
-    }
-
-    if (taskMetadata.taskType === 'userControlledSigning') {
-      this.handleUserControlledSigningTaskAdd(taskMetadata);
     }
   }
 
@@ -105,16 +102,9 @@ export class OnProcessTaskAddHandler {
    */
   private handleSigningTaskAdd(taskMetadata: OnProcessTaskEvent): void {
     this.handleGenericSigningTaskAdd(taskMetadata);
-  }
-
-  /**
-   * Adds a dataType and layoutset to the added user-controlled-signing task
-   * @param taskMetadata
-   * @private
-   */
-  private handleUserControlledSigningTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    this.handleGenericSigningTaskAdd(taskMetadata);
-    this.addSigneeStateToApplicationMetadata(taskMetadata);
+    if (TaskUtils.isUserControlledSigning(taskMetadata.taskEvent.element)) {
+      this.addSigneeStateToApplicationMetadata(taskMetadata);
+    }
   }
 
   /**

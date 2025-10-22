@@ -364,6 +364,8 @@ steps:
         metadata:
           name: ${RELEASE_NAME}
           namespace: default
+          labels:
+            altinn.studio/managed-by: altinn-studio
         spec:
           releaseName: ${RELEASE_NAME}
           targetNamespace: default
