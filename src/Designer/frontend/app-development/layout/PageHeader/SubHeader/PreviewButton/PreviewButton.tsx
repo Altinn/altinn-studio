@@ -3,18 +3,16 @@ import classes from './PreviewButton.module.css';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useMediaQuery } from '@studio/components-legacy';
-import { StudioPageHeader } from '@studio/components';
+import { StudioLinkButton, StudioPageHeader } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { PlayFillIcon } from '@studio/icons';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
-import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 import { useSearchParams } from 'react-router-dom';
 
 export const PreviewButton = (): ReactElement => {
   const { t } = useTranslation();
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const { org, app } = useStudioEnvironmentParams();
-  const { variant } = usePageHeaderContext();
 
   const [searchParams] = useSearchParams();
   const layout = searchParams?.get('layout');
@@ -24,16 +22,16 @@ export const PreviewButton = (): ReactElement => {
   const previewLink: string = `${packagesRouter.getPackageNavigationUrl('preview')}${previewLinkQueryParams}`;
 
   return (
-    <StudioPageHeader.HeaderButton
+    <StudioPageHeader.HeaderLink
       aria-label={t('top_menu.preview')}
-      as='a'
       className={classes.previewLink}
-      color='dark'
-      href={previewLink}
-      variant={variant}
-    >
-      <PlayFillIcon className={classes.playIcon} />
-      {shouldDisplayText && t('top_menu.preview')}
-    </StudioPageHeader.HeaderButton>
+      data-color='dark'
+      renderLink={(props) => (
+        <StudioLinkButton href={previewLink} variant='tertiary' {...props}>
+          <PlayFillIcon className={classes.playIcon} />
+          {shouldDisplayText && t('top_menu.preview')}
+        </StudioLinkButton>
+      )}
+    ></StudioPageHeader.HeaderLink>
   );
 };

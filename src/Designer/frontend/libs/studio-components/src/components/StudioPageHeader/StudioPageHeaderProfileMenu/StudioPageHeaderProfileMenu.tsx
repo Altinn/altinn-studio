@@ -56,11 +56,11 @@ const StudioPageHeaderMenuContentGroup = ({
   onClickItem,
 }: StudioPageHeaderMenuContentGroupProps): ReactElement => {
   return (
-    <StudioDropdown.Item className={classes.dropDownMenuGroup}>
+    <div className={classes.dropDownMenuGroup}>
       {group.items.map((item: StudioProfileMenuItem) => (
         <StudioProfileMenuGroupItem key={item.itemName} item={item} onClickItem={onClickItem} />
       ))}
-    </StudioDropdown.Item>
+    </div>
   );
 };
 

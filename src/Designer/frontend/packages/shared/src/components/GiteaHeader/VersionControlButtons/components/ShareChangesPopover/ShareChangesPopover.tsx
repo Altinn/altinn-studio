@@ -66,8 +66,8 @@ export const ShareChangesPopover = () => {
         disabled={!hasPushRights || hasMergeConflict}
         title={renderCorrectTitle()}
         icon={<UploadIcon />}
-        color='light'
-        variant='regular'
+        data-color='neutral'
+        variant='tertiary'
         aria-label={t('sync_header.changes_to_share')}
       >
         {shouldDisplayText && t('sync_header.changes_to_share')}

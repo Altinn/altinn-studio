@@ -33,7 +33,7 @@ describe('AppPreviewSubMenu', () => {
 
     renderAppPreviewSubMenu();
 
-    const link = screen.getByRole('link', { name: textMock('top_menu.preview_back_to_editing') });
+    const link = screen.getByRole('button', { name: textMock('top_menu.preview_back_to_editing') });
     expect(link).toHaveAttribute('aria-label', textMock('top_menu.preview_back_to_editing'));
   });
 });
