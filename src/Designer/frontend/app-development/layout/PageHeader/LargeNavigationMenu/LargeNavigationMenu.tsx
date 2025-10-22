@@ -2,10 +2,9 @@ import React, { type ReactElement } from 'react';
 import classes from './LargeNavigationMenu.module.css';
 import cn from 'classnames';
 import { NavLink, useLocation } from 'react-router-dom';
-import { StudioPageHeader } from '@studio/components-legacy';
+import { StudioPageHeader } from '@studio/components';
 import { UrlUtils } from '@studio/pure-functions';
 import { type NavigationMenuItem } from 'app-development/types/HeaderMenu/NavigationMenuItem';
-import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 
 export type LargeNavigationMenuProps = {
   menuItems: NavigationMenuItem[];
@@ -27,15 +26,12 @@ type HeaderButtonListItemProps = {
   menuItem: NavigationMenuItem;
 };
 const HeaderButtonListItem = ({ menuItem }: HeaderButtonListItemProps): ReactElement => {
-  const { variant } = usePageHeaderContext();
   const location = useLocation();
   const currentRoutePath: string = UrlUtils.extractLastRouterParam(location.pathname);
 
   return (
     <li key={menuItem.name}>
       <StudioPageHeader.HeaderLink
-        color='dark'
-        variant={variant}
         isBeta={menuItem.isBeta}
         renderLink={(props) => (
           <NavLink to={menuItem.link} {...props}>

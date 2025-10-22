@@ -1,7 +1,8 @@
 import React from 'react';
 import classes from './AppPreviewSubMenu.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
+import { useMediaQuery } from '@studio/components-legacy';
+import { StudioPageHeader } from '@studio/components';
 import { ArrowLeftIcon } from '@studio/icons';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useBackToEditingHref } from '../../hooks/useBackToEditingHref';

@@ -1,8 +1,8 @@
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import type { Org } from 'app-shared/types/OrgList';
-import type { StudioProfileMenuGroup } from '@studio/components-legacy';
-import { StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
-import { StudioAvatar } from '@studio/components';
+import type { StudioProfileMenuGroup } from '@studio/components';
+import { useMediaQuery } from '@studio/components-legacy';
+import { StudioAvatar, StudioPageHeader } from '@studio/components';
 import type { ReactElement } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -42,8 +42,6 @@ const CenterContent = (): ReactElement => {
   return (
     <StudioPageHeader.Center>
       <StudioPageHeader.HeaderLink
-        color='dark'
-        variant='regular'
         renderLink={(props) => (
           <NavLink to={'/'} {...props}>
             <span>{t('top_menu.about')}</span>
@@ -92,7 +90,6 @@ const ProfileMenu = ({ user, org }: ProfileMenuProps): ReactElement => {
     <StudioPageHeader.ProfileMenu
       profileMenuGroups={profileMenuGroups}
       triggerButtonText={userNameAndOrg}
-      ariaLabelTriggerButton={userNameAndOrg}
       profileImage={
         <StudioAvatar
           src={user?.avatar_url}
@@ -100,8 +97,6 @@ const ProfileMenu = ({ user, org }: ProfileMenuProps): ReactElement => {
           title={t('shared.header_profile_icon_text')}
         />
       }
-      color='dark'
-      variant={'regular'}
     />
   );
 };

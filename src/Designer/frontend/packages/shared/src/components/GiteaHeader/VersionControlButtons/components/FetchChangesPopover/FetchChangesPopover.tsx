@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StudioPageHeader, StudioPopover, useMediaQuery } from '@studio/components-legacy';
+import { StudioPopover, useMediaQuery } from '@studio/components-legacy';
+import { StudioPageHeader } from '@studio/components';
 import { DownloadIcon } from '@studio/icons';
 import classes from './FetchChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';

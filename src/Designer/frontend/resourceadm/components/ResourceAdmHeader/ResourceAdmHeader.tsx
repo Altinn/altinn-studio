@@ -6,7 +6,7 @@ import {
   StudioPageHeader,
   type StudioProfileMenuGroup,
   type StudioProfileMenuItem,
-} from '@studio/components-legacy';
+} from '@studio/components';
 import { useMediaQuery } from '@studio/hooks';
 import { StudioAvatar } from '@studio/components';
 import { getOrgNameByUsername } from '../../utils/userUtils';
@@ -93,9 +93,6 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
   return (
     <StudioPageHeader.ProfileMenu
       triggerButtonText={showButtonText && triggerButtonText}
-      ariaLabelTriggerButton={triggerButtonText}
-      color='dark'
-      variant='regular'
       profileImage={
         <StudioAvatar
           src={user?.avatar_url}
