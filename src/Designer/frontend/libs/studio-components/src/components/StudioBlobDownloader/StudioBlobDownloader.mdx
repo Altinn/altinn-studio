@@ -8,17 +8,17 @@ import * as StudioBlobDownloaderStories from './StudioBlobDownloader.stories';
   StudioBlobDownloader
 </Heading>
 <Paragraph>
-  StudioBlobDownloader renders a button that triggers the download of data in the specified file format.
-  The data is generated on-demand when the user clicks the download button, which is ideal for expensive
-  transformations or dynamic data that should only be computed when actually needed.
+  StudioBlobDownloader renders a button that triggers the download of data in the specified file
+  format. The data is generated on-demand when the user clicks the download button, which is ideal
+  for expensive transformations or dynamic data that should only be computed when actually needed.
 </Paragraph>
 
 <Heading level={2} size='xsmall'>
   Basic Usage
 </Heading>
 <Paragraph>
-  Use the `getData` prop to provide a function that returns the data to download. This function
-  will only be called when the user clicks the download button.
+  Use the `getData` prop to provide a function that returns the data to download. This function will
+  only be called when the user clicks the download button.
 </Paragraph>
 
 <Canvas of={StudioBlobDownloaderStories.Preview} />
@@ -28,8 +28,8 @@ import * as StudioBlobDownloaderStories from './StudioBlobDownloader.stories';
 </Heading>
 <Paragraph>
   When dealing with expensive data transformations or large datasets, the lazy evaluation approach
-  ensures optimal performance. The data is only generated when the user actually wants to download it,
-  preventing unnecessary computations during component rendering.
+  ensures optimal performance. The data is only generated when the user actually wants to download
+  it, preventing unnecessary computations during component rendering.
 </Paragraph>
 
 <Canvas of={StudioBlobDownloaderStories.WithLazyGeneration} />
