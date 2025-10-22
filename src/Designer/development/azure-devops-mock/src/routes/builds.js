@@ -80,19 +80,18 @@ export const buildRoute = async (req, res) => {
 };
 
 export const kubernetesWrapperRoute = async (req, res) => {
-  const release = req.query.labelSelector.split('=')[1].split('-');
-  const org = release[0];
-  const app = release.slice(1).join('-');
+  const { org, env } = req.params;
+  const release = req.query.labelSelector?.slice('release='.length);
 
-  res.json(
-    deploys
-      .filter(
-        (deploy) =>
-          deploy.envName === req.query.envName && deploy.org === org && deploy.app === app,
-      )
+  const kubernetesWrapperDeployments = [
+    { version: '123456', release: 'kuberneteswrapper' },
+    ...deploys
+      .filter((deploy) => deploy.envName === env && deploy.org === org)
       .map((deploy) => ({
         version: deploy.tagName,
-        release: [deploy.org, deploy.app].join('-'),
+        release: `${deploy.org}-${deploy.app}`,
       })),
-  );
+  ];
+
+  res.json(kubernetesWrapperDeployments.filter((deploy) => !release || deploy.release === release));
 };
