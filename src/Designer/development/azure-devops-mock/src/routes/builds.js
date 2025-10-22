@@ -19,7 +19,15 @@ export const buildsRoute = async (req, res) => {
 
   if (isDeploy) {
     deploys = [
-      ...deploys.filter((item) => item.envName !== params.APP_ENVIRONMENT),
+      ...deploys.filter(
+        (d) =>
+          !(
+            d.app === params.APP_REPO &&
+            d.org === params.APP_OWNER &&
+            d.envName === params.APP_ENVIRONMENT &&
+            d.tagName === params.TAGNAME
+          ),
+      ),
       {
         app: params.APP_REPO,
         org: params.APP_OWNER,
@@ -66,7 +74,7 @@ export const buildsRoute = async (req, res) => {
 // http://localhost:6161/_apis/build/builds/80891942?api-version=5.1
 export const buildRoute = async (req, res) => {
   const { BuildNumber } = req.params;
-  const build = builds.find((b) => b.Id === parseInt(BuildNumber));
+  const build = builds.find((b) => b.Id === parseInt(BuildNumber)) || {};
   if (build.Status === 'notStarted') {
     build.Status = 'inProgress';
     build.Result = 'none';
