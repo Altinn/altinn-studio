@@ -199,17 +199,6 @@ internal class TranslationService : ITranslationService
                         _ => "Field is required",
                     },
                 };
-            case "backend.validation_errors.invalid_signature_hash":
-                return new TextResourceElement()
-                {
-                    Id = "backend.validation_errors.invalid_signature_hash",
-                    Value = language switch
-                    {
-                        LanguageConst.Nb => "Signerte data er endret etter at signaturen ble utført.",
-                        LanguageConst.Nn => "Signerte data er endra etter at signaturen vart utført.",
-                        _ => "The signed data has been modified after the signature was made.",
-                    },
-                };
         }
 
         return null;
