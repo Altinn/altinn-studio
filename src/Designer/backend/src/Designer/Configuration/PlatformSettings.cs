@@ -102,6 +102,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// </summary>
         public string RolesUrl { get; set; }
 
+        /// <summary>
         /// Url pattern to access app cluster
         /// </summary>
         public string AppClusterUrlPattern { get; set; }
