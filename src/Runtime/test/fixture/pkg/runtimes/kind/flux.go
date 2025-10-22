@@ -140,9 +140,6 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 	if err := r.FluxClient.ReconcileHelmRelease("traefik", "traefik", true, asyncOpts); err != nil {
 		return fmt.Errorf("failed to trigger async traefik reconcile: %w", err)
 	}
-	if err := r.FluxClient.ReconcileHelmRelease("pdf-generator", "pdf", true, asyncOpts); err != nil {
-		return fmt.Errorf("failed to trigger async pdf/pdf-generator reconcile: %w", err)
-	}
 
 	fmt.Println("✓ Base infra reconciliation triggered (running in background)")
 

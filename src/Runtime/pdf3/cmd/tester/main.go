@@ -48,6 +48,9 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "  test       Run integration tests")
 	fmt.Fprintln(os.Stderr, "  loadtest   Run k6 load tests")
 	fmt.Fprintln(os.Stderr, "")
+	fmt.Fprintln(os.Stderr, "Start argument:")
+	fmt.Fprintln(os.Stderr, "  standard")
+	fmt.Fprintln(os.Stderr, "  minimal")
 	fmt.Fprintln(os.Stderr, "Test flags:")
 	fmt.Fprintln(os.Stderr, "  --smoke           Run smoke tests only")
 	fmt.Fprintln(os.Stderr, "  --simple          Run simple tests only")
@@ -60,7 +63,7 @@ func printUsage() {
 }
 
 // setupRuntime sets up the Kind cluster, builds images, and deploys pdf3
-func setupRuntime() (*kind.KindContainerRuntime, error) {
+func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainerRuntime, error) {
 	fmt.Println("=== Setting Up Runtime ===")
 
 	// Step 1: Setup cluster
@@ -69,7 +72,7 @@ func setupRuntime() (*kind.KindContainerRuntime, error) {
 	registryStartedEvent := make(chan struct{}, 1)
 	runtimeResult := make(chan Result[*kind.KindContainerRuntime], 1)
 	go func() {
-		runtime, err := harness.SetupCluster(registryStartedEvent)
+		runtime, err := harness.SetupCluster(variant, registryStartedEvent)
 		runtimeResult <- NewResult(runtime, err)
 	}()
 
@@ -131,7 +134,7 @@ func setupRuntime() (*kind.KindContainerRuntime, error) {
 	}
 
 	// Step 4: Deploy pdf3 via Flux
-	_, err = harness.DeployPdf3ViaFlux(imagesChanged, kustomizeChanged)
+	_, err = harness.DeployPdf3ViaFlux(variant, imagesChanged, kustomizeChanged)
 	if err != nil {
 		return nil, fmt.Errorf("failed to deploy pdf3: %w", err)
 	}
@@ -143,7 +146,24 @@ func setupRuntime() (*kind.KindContainerRuntime, error) {
 func runStart() {
 	fmt.Println("=== PDF3 Runtime Start ===")
 
-	_, err := setupRuntime()
+	if len(os.Args) < 3 {
+		fmt.Fprintf(os.Stderr, "Not enough arguments. Must specify 'standard' or 'minimal' for the start command\n")
+		os.Exit(1)
+	}
+	arg := os.Args[2]
+
+	var variant kind.KindContainerRuntimeVariant
+	switch arg {
+	case "standard":
+		variant = kind.KindContainerRuntimeVariantStandard
+	case "minimal":
+		variant = kind.KindContainerRuntimeVariantMinimal
+	default:
+		fmt.Fprintf(os.Stderr, "Invalid arg '%s'. Must specify 'standard' or 'minimal' for the start command\n", arg)
+		os.Exit(1)
+	}
+
+	_, err := setupRuntime(variant)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to start runtime: %v\n", err)
 		os.Exit(1)
@@ -166,7 +186,7 @@ func runStop() {
 
 	// Load existing runtime
 	cachePath := filepath.Join(projectRoot, ".cache")
-	runtime, err := kind.Load(kind.KindContainerRuntimeVariantStandard, cachePath)
+	runtime, err := kind.LoadCurrent(cachePath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load runtime: %v\n", err)
 		os.Exit(1)
@@ -201,7 +221,7 @@ func runTest() {
 	fmt.Println("=== PDF3 Test Orchestrator ===")
 
 	// Setup runtime
-	runtime, err := setupRuntime()
+	runtime, err := setupRuntime(kind.KindContainerRuntimeVariantMinimal)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to setup runtime: %v\n", err)
 		os.Exit(1)
@@ -383,7 +403,7 @@ func runLoadtest() {
 	fmt.Println("=== PDF3 Load Test ===")
 
 	// Setup runtime
-	runtime, err := setupRuntime()
+	runtime, err := setupRuntime(kind.KindContainerRuntimeVariantStandard)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to setup runtime: %v\n", err)
 		os.Exit(1)
