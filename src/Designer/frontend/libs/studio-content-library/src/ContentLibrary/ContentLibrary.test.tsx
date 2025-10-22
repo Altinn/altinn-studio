@@ -6,7 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { mockPagesConfig } from '../../mocks/mockPagesConfig';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { RouterContext } from '../contexts/RouterContext';
-import type { PageName } from '../types/PageName';
+import { PageName } from '../types/PageName';
 import { renderWithProviders } from '../../test-utils/renderWithProviders';
 
 const navigateMock = jest.fn();
@@ -30,7 +30,7 @@ describe('ContentLibrary', () => {
   });
 
   it('renders the ContentLibrary with codeList content when acting as currentPage', () => {
-    renderContentLibrary('codeListsWithTextResources');
+    renderContentLibrary(PageName.CodeListsWithTextResources);
     const codeListTitle = screen.getByRole('heading', {
       name: textMock('app_content_library.code_lists_with_text_resources.page_name'),
     });
@@ -43,7 +43,7 @@ describe('ContentLibrary', () => {
     const imagesPageNavigation = screen.getByText(textMock('app_content_library.images.page_name'));
     await user.click(imagesPageNavigation);
     expect(navigateMock).toHaveBeenCalledTimes(1);
-    expect(navigateMock).toHaveBeenCalledWith('images');
+    expect(navigateMock).toHaveBeenCalledWith(PageName.Images);
   });
 
   it('renders 404 not found page when pageName without supported implementation is passed', () => {

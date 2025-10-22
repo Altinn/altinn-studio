@@ -1,0 +1,82 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": ["commaContains", ["dataModel", "extra"], "summary"],
+    "layout": [
+      {
+        "componentRef": "firstname",
+        "id": "Summary-OUQOpH",
+        "type": "Summary"
+      },
+      {
+        "componentRef": "lastname",
+        "id": "Summary-8fAUjk",
+        "type": "Summary"
+      },
+      {
+        "componentRef": "age",
+        "id": "Summary-0y5P1Z",
+        "type": "Summary"
+      },
+      {
+        "componentRef": "birthday",
+        "id": "Summary-OQCwr7",
+        "type": "Summary"
+      },
+      {
+        "componentRef": "emails",
+        "id": "Summary-2jQzxG",
+        "type": "Summary"
+      },
+      {
+        "id": "Summary-subform-full",
+        "type": "Summary2",
+        "target": {
+          "id": "subform"
+        },
+        "overrides": [
+          {
+            "componentId": "subform",
+            "display": "full"
+          }
+        ]
+      },
+      {
+        "id": "Summary-subform-table",
+        "type": "Summary2",
+        "target": {
+          "id": "subform"
+        },
+        "overrides": [
+          {
+            "componentId": "subform",
+            "display": "table"
+          }
+        ]
+      },
+      {
+        "id": "Summary-subform",
+        "type": "Summary",
+        "componentRef": "subform"
+      },
+      {
+        "id": "ButtonGroup-uyAk1H",
+        "type": "ButtonGroup",
+        "children": ["NavigationButtons-AftsFv", "Button-sPjiD2"]
+      },
+      {
+        "id": "NavigationButtons-AftsFv",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      },
+      {
+        "id": "Button-sPjiD2",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "summary.Button-sPjiD2.title"
+        }
+      }
+    ]
+  }
+}

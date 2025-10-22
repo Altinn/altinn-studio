@@ -9,8 +9,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useTranslation } from 'react-i18next';
 import { DeploymentStatusList } from './DeploymentStatusList';
 import { DeploymentLogList } from './DeploymentLogList';
-import { StudioError } from '@studio/components-legacy';
-import { StudioSpinner } from '@studio/components';
+import { StudioSpinner, StudioError } from '@studio/components';
 import type { Environment } from 'app-shared/types/Environment';
 
 type DeploymentContainerProps = Pick<HTMLAttributes<HTMLDivElement>, 'className'>;

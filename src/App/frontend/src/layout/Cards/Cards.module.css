@@ -11,3 +11,7 @@ video {
 .cardMedia:last-of-type {
   margin-top: auto;
 }
+
+.mediaCard {
+  margin-bottom: -7px;
+}

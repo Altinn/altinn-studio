@@ -1,0 +1,198 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": ["equals", ["dataModel", "numAboveLimit"], 0],
+    "layout": [
+      {
+        "id": "nav-rep2",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "header-rep2",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": [
+            "concat",
+            "Endringer med fra-verdi over ",
+            ["dataModel", "hideRowValue"],
+            " NOK"
+          ]
+        },
+        "size": "h3"
+      },
+      {
+        "id": "mainGroup2",
+        "type": "RepeatingGroup",
+        "children": ["currentValue2", "newValue2", "source2"],
+        "dataModelBindings": {
+          "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
+        },
+        "textResourceBindings": {
+          "title": "Group title"
+        },
+        "tableHeaders": ["source2", "currentValue2", "newValue2"],
+        "tableColumns": {
+          "currentValue2": {
+            "alignText": "left",
+            "editInTable": true,
+            "showInExpandedEdit": true
+          },
+          "newValue2": {
+            "alignText": "left",
+            "editInTable": true,
+            "showInExpandedEdit": true
+          }
+        },
+        "hiddenRow": [
+          "lessThan",
+          [
+            "dataModel",
+            "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+          ],
+          ["dataModel", "hideRowValue"]
+        ],
+        "edit": {
+          "mode": "onlyTable",
+          "addButton": false,
+          "deleteButton": false
+        },
+        "rowsAfter": [
+          {
+            "header": true,
+            "cells": [
+              {},
+              { "text": "Alle endringer" },
+              { "text": "Disse endringene" }
+            ]
+          },
+          {
+            "readOnly": true,
+            "cells": [
+              { "text": "SUM" },
+              { "component": "sum-all" },
+              { "component": "sum-above-limit" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "currentValue2",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Endre fra"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+        },
+        "required": false,
+        "readOnly": [
+          "dataModel",
+          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+        ],
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "md": 6
+        },
+        "formatting": {
+          "number": {
+            "thousandSeparator": " ",
+            "prefix": "NOK ",
+            "allowNegative": false
+          },
+          "align": "right"
+        }
+      },
+      {
+        "id": "newValue2",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Endre til"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value"
+        },
+        "required": false,
+        "readOnly": [
+          "dataModel",
+          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+        ],
+        "grid": {
+          "md": 6
+        },
+        "formatting": {
+          "number": {
+            "thousandSeparator": " ",
+            "prefix": "NOK ",
+            "allowNegative": false
+          },
+          "align": "right"
+        }
+      },
+      {
+        "id": "source2",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Hvor fikk du vite om skjemaet?",
+          "tableTitle": "Kilde"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.source"
+        },
+        "optionsId": "list",
+        "required": false,
+        "readOnly": false,
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "md": 6
+        },
+        "preselectedOptionIndex": 0
+      },
+      {
+        "id": "sum-all",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Sum av alle endringer"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "sumAll"
+        },
+        "readOnly": true,
+        "formatting": {
+          "number": {
+            "thousandSeparator": " ",
+            "prefix": "NOK "
+          },
+          "align": "right"
+        }
+      },
+      {
+        "id": "sum-above-limit",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Sum av disse endringene"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "sumAboveLimit"
+        },
+        "readOnly": true,
+        "formatting": {
+          "number": {
+            "thousandSeparator": " ",
+            "prefix": "NOK "
+          },
+          "align": "right"
+        }
+      },
+      {
+        "id": "nav-page-rep2",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "Neste",
+          "back": "Forrige"
+        },
+        "showBackButton": true
+      }
+    ]
+  }
+}
+

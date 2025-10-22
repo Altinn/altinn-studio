@@ -7,8 +7,9 @@ import {
   StudioDetails,
   StudioTag,
   StudioLink,
+  StudioError,
 } from '@studio/components';
-import { StudioError, StudioTabs } from '@studio/components-legacy';
+import { StudioTabs } from '@studio/components-legacy';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDateAndTime } from 'admin/utils/formatDateAndTime';

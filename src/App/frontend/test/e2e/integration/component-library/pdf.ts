@@ -6,7 +6,7 @@ import type { ILayoutCollection } from 'src/layout/layout';
 const appFrontend = new AppFrontend();
 
 describe('PDF', () => {
-  it('Custom PDF page with hideEmptyFields, custom logo, externalApi', () => {
+  it('Custom PDF page with hideEmptyFields, custom logo, externalApi', { retries: 0 }, () => {
     const pdfLayoutName = 'pdf-page';
     cy.intercept('GET', '**/layoutsettings/**', (req) =>
       req.on('response', (res) => {
