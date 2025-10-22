@@ -2,14 +2,13 @@ import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import type { Org } from 'app-shared/types/OrgList';
 import type { StudioProfileMenuGroup } from '@studio/components';
 import { useMediaQuery } from '@studio/components-legacy';
-import { StudioAvatar, StudioPageHeader } from '@studio/components';
+import { StudioAvatar, StudioLinkButton, StudioPageHeader } from '@studio/components';
 import type { ReactElement } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { User } from 'app-shared/types/Repository';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { NavLink } from 'react-router-dom';
 
 type PageHeaderProps = {
   org: Org;
@@ -43,9 +42,9 @@ const CenterContent = (): ReactElement => {
     <StudioPageHeader.Center>
       <StudioPageHeader.HeaderLink
         renderLink={(props) => (
-          <NavLink to={'/'} {...props}>
+          <StudioLinkButton href={'/'} {...props} variant='tertiary'>
             <span>{t('top_menu.about')}</span>
-          </NavLink>
+          </StudioLinkButton>
         )}
       />
     </StudioPageHeader.Center>
