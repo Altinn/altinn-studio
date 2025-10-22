@@ -2,14 +2,20 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Models;
 using Altinn.Platform.Storage.Interface.Models;
+<<<<<<< HEAD
 using PsA3Forms.Clients;
 using PsA3Forms.DTOs;
+=======
+>>>>>>> 64e752d3f9de966e8518134708856bcdcee12c50
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.App.Core.Internal.Data;
+<<<<<<< HEAD
 using System.Reflection;
+=======
+>>>>>>> 64e752d3f9de966e8518134708856bcdcee12c50
 
 namespace Altinn.App.logic
 {
@@ -17,12 +23,19 @@ namespace Altinn.App.logic
     {
         public string Id { get; set; } = "casesList";
         private readonly IDataClient _dataClient;
+<<<<<<< HEAD
         private readonly TrademarkSearchResultDTO _trademarkSearchResultDTO;
 
         public DataProcessor(IDataClient dataClient, TrademarkSearchResultDTO trademarkSearchResultDTO)
         {
             _dataClient = dataClient;
             _trademarkSearchResultDTO = trademarkSearchResultDTO;
+=======
+
+        public DataProcessor(IDataClient dataClient)
+        {
+            _dataClient = dataClient;
+>>>>>>> 64e752d3f9de966e8518134708856bcdcee12c50
         }
 
         public Task ProcessDataRead(Instance instance, Guid? dataId, object data, string language)
@@ -37,10 +50,18 @@ namespace Altinn.App.logic
                 var currentFields = await GetCurrentFields(instance, dataId.Value, data);   
                 int index = (form.GoodsAndServicesProperties?.Inventory?.InventoryProperties?.Count > 0) ? form.GoodsAndServicesProperties.Inventory.InventoryProperties.Count - 1 : 0;
 
+<<<<<<< HEAD
                 if (currentFields.ContainsKey("Trademark.TrademarkType") || currentFields.ContainsKey("Trademark.TrademarkText") || currentFields.ContainsKey($"GoodsAndServicesProperties.Inventory.InventoryProperties[{index}].NiceClassification"))
                 {
                     var SearchTrademarkInfoClient = new SearchTrademarkInfoClient();
 
+=======
+                if (currentFields.ContainsKey("Trademark.TrademarkType") ||
+                    currentFields.ContainsKey("Trademark.TrademarkText") ||
+                    currentFields.ContainsKey($"GoodsAndServicesProperties.Inventory.InventoryProperties[{index}].NiceClassification"))
+                {
+                    // Dummy implementation - generating fake trademark search results
+>>>>>>> 64e752d3f9de966e8518134708856bcdcee12c50
                     var trademark = form.Trademark?.TrademarkType;
                     var trademarkText = form.Trademark?.TrademarkText;
                     var classes = new List<string>();
@@ -57,6 +78,7 @@ namespace Altinn.App.logic
                         }
                         if (classes.Count > 0)
                         {
+<<<<<<< HEAD
                             TrademarkSearchResultDTO results = await SearchTrademarkInfoClient.GetInfoAboutTrademarks(trademarkText, classes, trademark, "nb");
                             List<TrademarkDTO> trademarkList = results.Results;
                             string searchLinkUrl = results.SearchServiceLink;
@@ -73,6 +95,27 @@ namespace Altinn.App.logic
                                 };
                                 searchResults.Add(searchResult);
                             }
+=======
+                            // Generate dummy search results
+                            List<SearchResult> searchResults = new List<SearchResult>
+                            {
+                                new SearchResult
+                                {
+                                    TrademarkText = $"Similar to {trademarkText} #1",
+                                    ApplicationNumber = "2024001234",
+                                    GoodsAndServicesClassNumber = string.Join(", ", classes),
+                                    Status = "Registered"
+                                },
+                                new SearchResult
+                                {
+                                    TrademarkText = $"Similar to {trademarkText} #2",
+                                    ApplicationNumber = "2024005678",
+                                    GoodsAndServicesClassNumber = classes[0],
+                                    Status = "Pending"
+                                }
+                            };
+
+>>>>>>> 64e752d3f9de966e8518134708856bcdcee12c50
                             if (searchResults.Count > 0)
                             {
                                 SimilarTrademarks similarTrademarks = new()
@@ -80,7 +123,11 @@ namespace Altinn.App.logic
                                     SearchResult = searchResults
                                 };
                                 form.SimilarTrademarks = similarTrademarks;
+<<<<<<< HEAD
                                 form.SimilarTrademarks.SearchServiceLink = searchLinkUrl;
+=======
+                                form.SimilarTrademarks.SearchServiceLink = "https://example.com/trademark-search";
+>>>>>>> 64e752d3f9de966e8518134708856bcdcee12c50
                             }
                         }
 
