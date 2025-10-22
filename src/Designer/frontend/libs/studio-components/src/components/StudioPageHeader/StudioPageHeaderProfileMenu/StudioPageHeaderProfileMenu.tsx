@@ -1,6 +1,7 @@
 import React, { type ReactNode, type ReactElement } from 'react';
 import classes from './StudioPageHeaderProfileMenu.module.css';
 import { StudioDropdown } from '../../StudioDropdown';
+import { useStudioDropdownContext } from '../../StudioDropdown/context/StudioDropdownContext';
 import { type StudioProfileMenuItem } from './types/StudioProfileMenuItem';
 import { type StudioProfileMenuGroup } from './types/StudioProfileMenuGroup';
 
@@ -25,23 +26,26 @@ export const StudioPageHeaderProfileMenu = ({
       iconPlacement='right'
       data-color-scheme='light'
     >
-      <StudioPageHeaderMenuContent profileMenuGroups={profileMenuGroups} onClickItem={close} />
+      <StudioPageHeaderMenuContent profileMenuGroups={profileMenuGroups} />
     </StudioDropdown>
   );
 };
 
 type StudioPageHeaderMenuContentProps = {
   profileMenuGroups: StudioProfileMenuGroup[];
-  onClickItem: () => void;
 };
 const StudioPageHeaderMenuContent = ({
   profileMenuGroups,
-  onClickItem,
 }: StudioPageHeaderMenuContentProps): ReactElement => {
+  const { setOpen } = useStudioDropdownContext();
   return (
     <StudioDropdown.List>
       {profileMenuGroups.map((group: StudioProfileMenuGroup, index: number) => (
-        <StudioPageHeaderMenuContentGroup key={index} group={group} onClickItem={onClickItem} />
+        <StudioPageHeaderMenuContentGroup
+          key={index}
+          group={group}
+          onClickItem={() => setOpen(false)}
+        />
       ))}
     </StudioDropdown.List>
   );
@@ -114,6 +118,10 @@ type StudioProfileMenuLinkProps = {
 
 const StudioProfileMenuLink = ({ item }: StudioProfileMenuLinkProps): ReactElement => {
   const { href, openInNewTab } = item.action;
+  const { setOpen } = useStudioDropdownContext();
+
+  const handleClick = (): void => setOpen(false);
+
   return (
     <StudioDropdown.Item>
       <StudioDropdown.Button asChild>
@@ -121,6 +129,8 @@ const StudioProfileMenuLink = ({ item }: StudioProfileMenuLinkProps): ReactEleme
           href={href}
           target={openInNewTab ? '_blank' : undefined}
           rel={openInNewTab ? 'noopener noreferrer' : undefined}
+          role='menuitem'
+          onClick={handleClick}
         >
           {item.itemName}
         </a>

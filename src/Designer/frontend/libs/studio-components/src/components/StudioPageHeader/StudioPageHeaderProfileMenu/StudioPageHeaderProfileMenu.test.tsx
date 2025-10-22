@@ -111,7 +111,7 @@ describe('StudioProfileMenu', () => {
     const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
     await user.click(triggerButton);
 
-    const link = screen.getByRole('link', { name: menuItem2 });
+    const link = screen.getByRole('menuitem', { name: menuItem2 });
     expect(link).toHaveAttribute('href', menuItem2Link);
     expect(link).not.toHaveAttribute('target', '_blank');
     expect(link).not.toHaveAttribute('rel', 'noopener noreferrer');
@@ -124,7 +124,7 @@ describe('StudioProfileMenu', () => {
     const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
     await user.click(triggerButton);
 
-    const link = screen.getByRole('link', { name: menuItem3 });
+    const link = screen.getByRole('menuitem', { name: menuItem3 });
     expect(link).toHaveAttribute('href', menuItem3Link);
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
@@ -179,7 +179,7 @@ describe('StudioProfileMenu', () => {
     const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
     await user.click(triggerButton);
 
-    const link = screen.getByRole('link', { name: menuItem3 });
+    const link = screen.getByRole('menuitem', { name: menuItem3 });
     await user.click(link);
 
     expect(screen.getByRole('menuitemradio', { name: menuItem1 })).toBeInTheDocument();
@@ -193,7 +193,7 @@ describe('StudioProfileMenu', () => {
     const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
     await user.click(triggerButton);
 
-    const link = screen.getByRole('link', { name: menuItem2 });
+    const link = screen.getByRole('menuitem', { name: menuItem2 });
     expect(link).toHaveAttribute('href', menuItem2Link);
     expect(link).not.toHaveAttribute('target', '_blank');
     expect(link).not.toHaveAttribute('rel', 'noopener noreferrer');
