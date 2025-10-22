@@ -230,8 +230,8 @@ describe('OnProcessTaskRemoveHandler', () => {
     };
 
     const taskMetadata = createTaskMetadataMock(
-      'userControlledSigning',
-      getMockBpmnElementForTask('userControlledSigning').businessObject,
+      'signing',
+      getMockBpmnElementForTask('signing').businessObject,
     );
 
     const onProcessTaskRemoveHandler = createOnRemoveProcessTaskHandler({
@@ -241,7 +241,7 @@ describe('OnProcessTaskRemoveHandler', () => {
     onProcessTaskRemoveHandler.handleOnProcessTaskRemove(taskMetadata);
 
     expect(deleteDataTypeFromAppMetadataMock).toHaveBeenCalledWith({
-      dataTypeId: 'userControlledSigningInformation-1234',
+      dataTypeId: 'signatureInformation-1234',
     });
 
     expect(deleteLayoutSetMock).toHaveBeenCalledWith({
