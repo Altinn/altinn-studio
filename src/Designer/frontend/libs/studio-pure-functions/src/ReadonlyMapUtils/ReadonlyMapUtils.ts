@@ -7,7 +7,7 @@ export class ReadonlyMapUtils {
   }
 
   static prependEntry<K, V>(map: ReadonlyMap<K, V>, key: K, value: V): ReadonlyMap<K, V> {
-    const entries: [K, V][] = Array(...map);
+    const entries: [K, V][] = [...map];
     const updatedEntries = ArrayUtils.prepend<[K, V]>(entries, [key, value]);
     return new Map(updatedEntries);
   }

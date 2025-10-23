@@ -1,10 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { CodeListsPage } from './CodeListsPage';
 import React from 'react';
 import { userEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { within } from 'storybook/test';
 
 describe('CodeListsPage', () => {
   it('Renders with no code lists by default', () => {

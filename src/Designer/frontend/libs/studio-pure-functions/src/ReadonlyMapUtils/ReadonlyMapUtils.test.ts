@@ -8,7 +8,7 @@ describe('ReadonlyMapUtils', () => {
         ['b', 2],
       ]);
       const updatedMap = ReadonlyMapUtils.updateValue(map, 'a', 3);
-      expect(Array(...updatedMap)).toEqual([
+      expect([...updatedMap]).toEqual([
         ['a', 3],
         ['b', 2],
       ]);
@@ -31,7 +31,7 @@ describe('ReadonlyMapUtils', () => {
         ['b', 2],
       ]);
       const updatedMap = ReadonlyMapUtils.prependEntry(map, 'c', 3);
-      expect(Array(...updatedMap)).toEqual([
+      expect([...updatedMap]).toEqual([
         ['c', 3],
         ['a', 1],
         ['b', 2],
@@ -55,7 +55,7 @@ describe('ReadonlyMapUtils', () => {
         ['b', 2],
       ]);
       const updatedMap = ReadonlyMapUtils.deleteEntry(map, 'a');
-      expect(Array(...updatedMap)).toEqual([['b', 2]]);
+      expect([...updatedMap]).toEqual([['b', 2]]);
     });
 
     it('Creates a new instance', () => {

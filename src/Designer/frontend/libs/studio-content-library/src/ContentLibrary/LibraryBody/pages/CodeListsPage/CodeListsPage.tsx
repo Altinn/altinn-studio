@@ -14,7 +14,7 @@ import type { CodeListData } from './types/CodeListData';
 
 export type CodeListsPageProps = {};
 
-export function CodeListsPage({}: CodeListsPageProps): ReactElement {
+export function CodeListsPage(_props: CodeListsPageProps): ReactElement {
   const { t } = useTranslation();
   const [codeListMap, setCodeListMap] = useState<CodeListMap>(createCodeListMap());
 
