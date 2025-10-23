@@ -49,7 +49,7 @@ func Init() {
 		fmt.Printf("Couldn't find project root: %v", err)
 		os.Exit(1)
 	}
-	Runtime, err = kind.Load(kind.KindContainerRuntimeVariantStandard, filepath.Join(projectRoot, cachePath))
+	Runtime, err = kind.LoadCurrent(filepath.Join(projectRoot, cachePath))
 	if err != nil {
 		fmt.Printf("Error loading runtime: %v", err)
 		os.Exit(1)
@@ -68,7 +68,7 @@ func Init() {
 // WaitForServices waits for proxy and test server to be ready
 func WaitForServices() error {
 	client := &http.Client{Timeout: 2 * time.Second}
-	timeout := 40 * time.Second
+	timeout := 60 * time.Second
 	deadline := time.Now().Add(timeout)
 
 	// Wait for proxy
@@ -320,7 +320,7 @@ func FindProjectRoot() (string, error) {
 }
 
 // SetupCluster starts the Kind container runtime with all dependencies
-func SetupCluster(registryStartedEvent chan<- struct{}) (*kind.KindContainerRuntime, error) {
+func SetupCluster(variant kind.KindContainerRuntimeVariant, registryStartedEvent chan<- struct{}) (*kind.KindContainerRuntime, error) {
 	fmt.Println("=== Setting up Kind cluster ===")
 	overallStart := time.Now()
 
@@ -334,7 +334,7 @@ func SetupCluster(registryStartedEvent chan<- struct{}) (*kind.KindContainerRunt
 	absoluteCachePath := filepath.Join(projectRoot, cachePath)
 
 	// Create Kind container runtime
-	Runtime, err = kind.New(kind.KindContainerRuntimeVariantStandard, absoluteCachePath)
+	Runtime, err = kind.New(variant, absoluteCachePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kind runtime: %w", err)
 	}
@@ -513,7 +513,7 @@ func deploymentsExist() bool {
 
 // DeployPdf3ViaFlux deploys pdf3 using Flux
 // Returns true if deployment was performed, false if skipped due to no changes
-func DeployPdf3ViaFlux(imagesChanged, kustomizeChanged bool) (bool, error) {
+func DeployPdf3ViaFlux(variant kind.KindContainerRuntimeVariant, imagesChanged, kustomizeChanged bool) (bool, error) {
 	fmt.Println("=== Deploying pdf3 via Flux ===")
 	overallStart := time.Now()
 
@@ -530,26 +530,19 @@ func DeployPdf3ViaFlux(imagesChanged, kustomizeChanged bool) (bool, error) {
 		return false, fmt.Errorf("failed to find project root: %w", err)
 	}
 
-	// Read the base syncroot manifest
-	syncrootPath := filepath.Join(projectRoot, "..", "..", "..", "infra", "runtime", "syncroot", "base", "pdf3.yaml")
-	manifestBytes, err := os.ReadFile(syncrootPath)
-	if err != nil {
-		return false, fmt.Errorf("failed to read syncroot manifest: %w", err)
+	var variantName string
+	switch variant {
+	case kind.KindContainerRuntimeVariantMinimal:
+		variantName = "minimal"
+	case kind.KindContainerRuntimeVariantStandard:
+		variantName = "standard"
 	}
 
-	// Apply string replacements to adapt for local development
-	manifest := string(manifestBytes)
-	manifest = strings.ReplaceAll(manifest, "provider: azure", "insecure: true")
-	manifest = strings.ReplaceAll(manifest, "tag: ${UPGRADE_CHANNEL}", "tag: local")
-	manifest = strings.ReplaceAll(manifest, "url: oci://altinncr.azurecr.io/studio-apps/runtime-pdf3-repo", "url: oci://kind-registry:5000/runtime-pdf3-repo")
-	manifest = strings.ReplaceAll(manifest, "path: ./${ENVIRONMENT}", "path: ./local")
-	manifest = strings.ReplaceAll(manifest, "interval: 5m", "interval: 1m")
-	manifest = strings.ReplaceAll(manifest, "retryInterval: 5m", "retryInterval: 30s")
-	manifest = strings.ReplaceAll(manifest, "timeout: 5m", "timeout: 1m")
-	manifest = strings.ReplaceAll(manifest, "prune: false", "prune: true")
-	manifest = strings.ReplaceAll(manifest, "upgrade_channel: ${UPGRADE_CHANNEL}", "upgrade_channel: local")
-	manifest = strings.ReplaceAll(manifest, "environment: ${ENVIRONMENT}", "environment: local")
-	manifest = strings.ReplaceAll(manifest, "serviceowner: ${SERVICEOWNER_ID}", "serviceowner: test")
+	syncRootDir := filepath.Join(projectRoot, "infra", "kustomize", fmt.Sprintf("local-syncroot-%s", variantName))
+	manifest, err := Runtime.KubernetesClient.KustomizeRender(syncRootDir)
+	if err != nil {
+		return false, err
+	}
 
 	// Apply the complete manifest in a single request
 	fmt.Println("Applying pdf3 manifest...")

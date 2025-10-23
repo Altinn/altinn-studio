@@ -1,0 +1,66 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../../../../../infra/runtime/syncroot/base/altinn-charts.yaml
+  - ../../../../../../infra/runtime/syncroot/base/pdf.yaml
+  - ../../../../../../infra/runtime/syncroot/base/pdf3.yaml
+patches:
+  # pdf-generator minimal replicas configuration
+  - target:
+      kind: HelmRelease
+      name: pdf-generator
+    patch: |-
+      - op: replace
+        path: /spec/values/replicaCount
+        value: 1
+      - op: replace
+        path: /spec/values/environment
+        value: local
+      - op: replace
+        path: /spec/values/autoscaling
+        value:
+          enabled: false
+      - op: replace
+        path: /spec/values/image
+        value:
+          repository: browserless/chrome
+          tag: 1-puppeteer-21.4.1
+  - patch: |-
+      apiVersion: source.toolkit.fluxcd.io/v1
+      kind: OCIRepository
+      metadata:
+        name: pdf3-app-repo
+        namespace: runtime-pdf3
+      spec:
+        insecure: true
+        provider: generic
+        ref:
+          tag: local
+  - patch: |-
+      apiVersion: source.toolkit.fluxcd.io/v1
+      kind: OCIRepository
+      metadata:
+        name: pdf3-app-repo
+        namespace: runtime-pdf3
+      spec:
+        url: oci://kind-registry:5000/runtime-pdf3-repo
+  - patch: |-
+      apiVersion: kustomize.toolkit.fluxcd.io/v1
+      kind: Kustomization
+      metadata:
+        name: pdf3-app
+        namespace: runtime-pdf3
+      spec:
+        path: ./local-minimal
+        prune: true
+  - patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: runtime-environment
+        namespace: runtime-pdf3
+      data:
+        upgrade_channel: local
+        environment: local
+        serviceowner: ttd
+

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"altinn.studio/runtime-fixture/pkg/cache"
@@ -75,7 +76,11 @@ func logDuration(stepName string, start time.Time) {
 
 // New creates a new KindContainerRuntime instance
 func New(variant KindContainerRuntimeVariant, cachePath string) (*KindContainerRuntime, error) {
-	r, err := newInternal(variant, cachePath, false)
+	r, clusters, err := initialize(cachePath, false)
+	if err != nil {
+		return nil, err
+	}
+	err = newInternal(r, clusters, variant, cachePath, false)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +115,11 @@ func New(variant KindContainerRuntimeVariant, cachePath string) (*KindContainerR
 }
 
 func Load(variant KindContainerRuntimeVariant, cachePath string) (*KindContainerRuntime, error) {
-	r, err := newInternal(variant, cachePath, true)
+	r, clusters, err := initialize(cachePath, true)
+	if err != nil {
+		return nil, err
+	}
+	err = newInternal(r, clusters, variant, cachePath, true)
 	if err != nil {
 		return nil, err
 	}
@@ -118,18 +127,94 @@ func Load(variant KindContainerRuntimeVariant, cachePath string) (*KindContainer
 	return r, nil
 }
 
-func newInternal(variant KindContainerRuntimeVariant, cachePath string, isLoad bool) (*KindContainerRuntime, error) {
-	// Validate and create cachePath
-	if isLoad {
-		if _, err := os.Stat(cachePath); err != nil {
-			return nil, fmt.Errorf("cache directory stat error: %w", err)
-		}
-	} else {
-		if err := cache.EnsureCache(cachePath); err != nil {
-			return nil, fmt.Errorf("failed to ensure cache directory: %w", err)
+func LoadCurrent(cachePath string) (*KindContainerRuntime, error) {
+	r, clusters, err := initialize(cachePath, true)
+	if err != nil {
+		return nil, err
+	}
+	var variant *KindContainerRuntimeVariant = nil
+	for _, cluster := range clusters {
+		if cluster == "runtime-fixture-kind-standard" {
+			v := KindContainerRuntimeVariantStandard
+			variant = &v
+			break
+		} else if cluster == "runtime-fixture-kind-minimal" {
+			v := KindContainerRuntimeVariantMinimal
+			variant = &v
+			break
 		}
 	}
 
+	if variant == nil {
+		return nil, fmt.Errorf("no KindContainerRuntime cluster is currently running")
+	}
+
+	err = newInternal(r, clusters, *variant, cachePath, true)
+	if err != nil {
+		return nil, err
+	}
+
+	return r, nil
+}
+
+func initialize(cachePath string, isLoad bool) (*KindContainerRuntime, []string, error) {
+	// Validate and create cachePath
+	if isLoad {
+		if _, err := os.Stat(cachePath); err != nil {
+			return nil, nil, fmt.Errorf("cache directory stat error: %w", err)
+		}
+	} else {
+		if err := cache.EnsureCache(cachePath); err != nil {
+			return nil, nil, fmt.Errorf("failed to ensure cache directory: %w", err)
+		}
+	}
+
+	// Initialiize clients
+	containerClient, err := container.Detect()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to detect container runtime: %w", err)
+	}
+	installer, err := tools.NewInstaller(cachePath, false, true)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if _, err := installer.Install(context.Background(), ""); err != nil {
+		return nil, nil, fmt.Errorf("failed to ensure CLIs: %w", err)
+	}
+
+	fluxClient, err := installer.GetFluxClient()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	kubernetesClient, err := installer.GetKubernetesClient()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	kindClient, err := installer.GetKindClient()
+	if err != nil {
+		return nil, nil, err
+	}
+	clusters, err := kindClient.GetClusters()
+	if err != nil {
+		return nil, nil, fmt.Errorf("couldn't get current clusters: %w", err)
+	}
+
+	return &KindContainerRuntime{
+		cachePath: cachePath,
+
+		Installer: installer,
+
+		ContainerClient:  containerClient,
+		FluxClient:       fluxClient,
+		KindClient:       kindClient,
+		KubernetesClient: kubernetesClient,
+	}, clusters, nil
+}
+
+func newInternal(r *KindContainerRuntime, clusters []string, variant KindContainerRuntimeVariant, cachePath string, isLoad bool) error {
 	var clusterName string
 	var configDir string
 
@@ -141,70 +226,39 @@ func newInternal(variant KindContainerRuntimeVariant, cachePath string, isLoad b
 		clusterName = "runtime-fixture-kind-minimal"
 		configDir = filepath.Join(cachePath, "config", "kind-minimal")
 	default:
-		return nil, fmt.Errorf("unknown variant: %d", variant)
+		return fmt.Errorf("unknown variant: %d", variant)
+	}
+
+	foundCluster := false
+	for _, cluster := range clusters {
+		if cluster != clusterName {
+			return fmt.Errorf("another KindContainerRuntime cluster variant is already running: %s", cluster)
+		} else {
+			foundCluster = true
+		}
 	}
 
 	if isLoad {
+		if !foundCluster {
+			return fmt.Errorf("KindContainerRuntime cluster variant wasn't found running")
+		}
 		if _, err := os.Stat(configDir); err != nil {
-			return nil, fmt.Errorf("cache config directory stat error: %w", err)
+			return fmt.Errorf("cache config directory stat error: %w", err)
 		}
 	} else {
 		err := cache.EnsureDirExists(configDir)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	configPath := filepath.Join(configDir, "kind.config.yaml")
-	certsPath := filepath.Join(configDir, "certs")
-	testserverPath := filepath.Join(configDir, "testserver.yaml")
+	r.variant = variant
+	r.clusterName = clusterName
+	r.configPath = filepath.Join(configDir, "kind.config.yaml")
+	r.certsPath = filepath.Join(configDir, "certs")
+	r.testserverPath = filepath.Join(configDir, "testserver.yaml")
 
-	// Initialiize clients
-	containerClient, err := container.Detect()
-	if err != nil {
-		return nil, fmt.Errorf("failed to detect container runtime: %w", err)
-	}
-	installer, err := tools.NewInstaller(cachePath, false, true)
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err := installer.Install(context.Background(), ""); err != nil {
-		return nil, fmt.Errorf("failed to ensure CLIs: %w", err)
-	}
-
-	fluxClient, err := installer.GetFluxClient()
-	if err != nil {
-		return nil, err
-	}
-
-	kubernetesClient, err := installer.GetKubernetesClient()
-	if err != nil {
-		return nil, err
-	}
-
-	kindClient, err := installer.GetKindClient()
-	if err != nil {
-		return nil, err
-	}
-
-	r := &KindContainerRuntime{
-		variant:        variant,
-		cachePath:      cachePath,
-		clusterName:    clusterName,
-		configPath:     configPath,
-		certsPath:      certsPath,
-		testserverPath: testserverPath,
-
-		Installer: installer,
-
-		ContainerClient:  containerClient,
-		FluxClient:       fluxClient,
-		KindClient:       kindClient,
-		KubernetesClient: kubernetesClient,
-	}
-
-	return r, nil
+	return nil
 }
 
 // writeCertificates writes embedded certificates to the certs directory
@@ -306,19 +360,16 @@ func (r *KindContainerRuntime) Run() error {
 	fmt.Println("✓ Container registry configured")
 	logDuration("Configure container registry", start)
 
-	// Only install components for Standard variant
-	if r.variant == KindContainerRuntimeVariantStandard {
-		if err := r.setupStandardVariant(); err != nil {
-			return err
-		}
+	if err := r.installInfra(); err != nil {
+		return err
 	}
 
 	fmt.Println("\n=== Kind Container Runtime Ready ===")
 	return nil
 }
 
-// setupStandardVariant sets up all components for the Standard variant
-func (r *KindContainerRuntime) setupStandardVariant() error {
+// installInfra sets up all components for the Standard variant
+func (r *KindContainerRuntime) installInfra() error {
 	// Step 6: Install Flux
 	fmt.Println("\n6. Installing Flux...")
 	start := time.Now()
@@ -360,7 +411,11 @@ func (r *KindContainerRuntime) setupStandardVariant() error {
 	// Step 10: Apply testserver manifest
 	fmt.Println("\n10. Applying testserver manifest...")
 	start = time.Now()
-	if _, err := r.KubernetesClient.ApplyManifest(string(testserverManifest)); err != nil {
+	testserverYaml := string(testserverManifest)
+	if r.variant == KindContainerRuntimeVariantMinimal {
+		testserverYaml = strings.ReplaceAll(testserverYaml, "replicas: 3", "replicas: 1")
+	}
+	if _, err := r.KubernetesClient.ApplyManifest(testserverYaml); err != nil {
 		return fmt.Errorf("failed to apply testserver manifest: %w", err)
 	}
 	fmt.Println("✓ Testserver manifest applied")

@@ -58,7 +58,10 @@ endif
 	@go run ./cmd/tester test --n $(n)
 
 run: ## Start the runtime fixture/cluster
-	@go run ./cmd/tester start
+ifndef v
+	$(error v parameter is required. Usage: make run v=minimal|standard)
+endif
+	@go run ./cmd/tester start $(v)
 
 stop: ## Stop the runtime fixture/cluster
 	@go run ./cmd/tester stop
