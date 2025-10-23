@@ -56,7 +56,7 @@ public class AzureSharedContentClient(
         }
 
         BlobContainerClient containerClient = GetContainerClient();
-        // await ThrowIfUnhealthy(containerClient, cancellationToken);
+        await ThrowIfUnhealthy(containerClient, cancellationToken);
 
         string resourceTypeIndexPrefix = orgName;
         string resourceIndexPrefix = CombineWithDelimiter(orgName, CodeList);
