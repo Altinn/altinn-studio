@@ -149,7 +149,14 @@ public class AzureSharedContentClient(
         string indexFileString = await response.Content.ReadAsStringAsync(cancellationToken);
         IndexFile? indexFile = JsonSerializer.Deserialize<IndexFile?>(indexFileString, s_jsonOptions);
         List<string>? prefixes = indexFile?.Prefixes;
-        if (prefixes?.Contains(content) is false)
+
+        if (prefixes is null)
+        {
+            AddIndexFile(indexFilePath, [content]);
+            return;
+        }
+
+        if (prefixes.Contains(content) is false)
         {
             prefixes.Add(content);
             AddIndexFile(indexFilePath, prefixes);
