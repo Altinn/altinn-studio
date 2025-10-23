@@ -1,0 +1,29 @@
+{
+  "language": "nb",
+  "resources": [
+    {
+      "id": "ServiceName",
+      "value": "anonymous-stateless-app"
+    },
+    {
+      "id": "33316.Journalnummerdatadef33316.Label",
+      "value": "Journalnummer"
+    },
+    {
+      "id": "1223.AnsattNavndatadef1223.Label",
+      "value": "Navn"
+    },
+    {
+      "id": "text",
+      "value": "## Dette er en anonym stateless app brukt for cypress tester. "
+    },
+    {
+      "id": "appName",
+      "value": "anonymous-stateless-app"
+    },
+    {
+      "id": "simpleFrame",
+      "value": "<html><head><title>Demo</title><style>body { margin: 0px } h1 { color: red; font-size: 18px }</style></head><body><h1>The red title is rendered within an iframe</h1></html>"
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 
 import { Dialog, Dropdown } from '@digdir/designsystemet-react';
 import { BulletListIcon } from '@navikt/aksel-icons';
@@ -27,7 +28,9 @@ export function PopoverNavigation(props: Parameters<typeof Button>[0]) {
 function InnerPopoverNavigation(props: Parameters<typeof Button>[0]) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const modalRef = useRef<HTMLDialogElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+  const dropdownStyle = useDynamicHeight(dropdownRef, isDialogOpen && !isMobile);
 
   useEffect(() => {
     isDialogOpen && modalRef.current?.showModal();
@@ -57,12 +60,14 @@ function InnerPopoverNavigation(props: Parameters<typeof Button>[0]) {
             <Lang id='navigation.form_pages' />
           </Dropdown.Trigger>
           <Dropdown
+            ref={dropdownRef}
             data-testid='page-navigation-dialog'
             placement='bottom-start'
             autoFocus={true}
             autoPlacement={false}
             open={isDialogOpen}
             onClose={closeDialog}
+            style={dropdownStyle}
           >
             <Dropdown.Heading asChild>
               <AppNavigationHeading
@@ -115,4 +120,40 @@ function InnerPopoverNavigation(props: Parameters<typeof Button>[0]) {
       </Dialog>
     </Dialog.TriggerContext>
   );
+}
+
+function useDynamicHeight(elementRef: React.RefObject<HTMLDivElement | null>, isActive: boolean): CSSProperties {
+  const [maxHeight, setMaxHeight] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    if (!isActive || !elementRef.current) {
+      return;
+    }
+
+    const updateMaxHeight = () => {
+      const rect = elementRef.current?.getBoundingClientRect();
+      if (rect) {
+        const availableHeight = Math.max(0, window.innerHeight - rect.top - 20); // 20px margin, non-negative
+        setMaxHeight(availableHeight);
+      }
+    };
+
+    updateMaxHeight();
+
+    const resizeObserver = new ResizeObserver(updateMaxHeight);
+    if (elementRef.current) {
+      resizeObserver.observe(elementRef.current);
+    }
+
+    window.addEventListener('resize', updateMaxHeight);
+    window.addEventListener('scroll', updateMaxHeight, true);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateMaxHeight);
+      window.removeEventListener('scroll', updateMaxHeight, true);
+    };
+  }, [isActive, elementRef]);
+
+  return { maxHeight: maxHeight ? `${maxHeight}px` : undefined, overflowY: 'auto' };
 }

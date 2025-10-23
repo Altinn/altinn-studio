@@ -1,0 +1,54 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "text1",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Datamodell 1"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell1",
+            "field": "tekstfelt"
+          }
+        },
+        "renderAsSummary": true
+      },
+      {
+        "id": "text2",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": [
+            "concat",
+            "Datamodell 2 (fra uttrykk)<br>**",
+            ["dataModel", "tekstfelt", "modell2"],
+            "**"
+          ]
+        }
+      },
+      {
+        "id": "text3",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Datamodell 3"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell3",
+            "field": "tekstfelt"
+          }
+        },
+        "renderAsSummary": true
+      },
+      {
+        "id": "tekst",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Takk for din innsending ;)"
+        }
+      }
+    ]
+  }
+}

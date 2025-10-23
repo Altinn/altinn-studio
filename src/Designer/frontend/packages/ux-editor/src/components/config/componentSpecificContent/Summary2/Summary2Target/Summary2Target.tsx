@@ -46,13 +46,13 @@ export const Summary2Target = ({ target, onChange, className }: Summary2TargetPr
   const componentOptions = getComponentOptions({ formLayoutsData, getComponentTitle });
 
   const handleLayoutSetChange = (taskId: string) => {
-    const updatedTarget = { ...target, id: '', taskId };
+    const updatedTarget = { ...target, taskId, id: undefined };
     onChange(updatedTarget);
   };
 
   const handleTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newType = event.target.value as SummaryTargetType;
-    const updatedTarget = { ...target, type: newType, id: '' };
+    const updatedTarget = { ...target, type: newType, id: undefined };
     // set default value for page
     if (newType === 'page' && pageOptions.some((page) => page.id === selectedFormLayoutName)) {
       updatedTarget.id = selectedFormLayoutName;

@@ -2,7 +2,7 @@ import React from 'react';
 import { useRouterContext } from '../../../contexts/RouterContext';
 import type { PageName } from '../../../types/PageName';
 import { useContentTabs } from '../../../hooks/useLibraryMenuContentTabs';
-import { StudioContentMenu } from '@studio/components-legacy';
+import { StudioContentMenu } from '@studio/components';
 
 type PagesRouterProps = {
   pageNames: PageName[];

@@ -77,5 +77,16 @@
     "src/App/fileanalyzers/**",
     "src/App/codelists/**"
   ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update tools in .tool-versions with inline renovate comments",
+      "managerFilePatterns": ["/\\.tool-versions$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\n[^\\s]+\\s+(?<currentValue>\\S+)"
+      ],
+      "versioningTemplate": "semver"
+    }
+  ],
   "schedule": ["before 07:00 on Monday"]
 }
