@@ -1,0 +1,4 @@
+.buttonGroup {
+  display: flex;
+  gap: var(--ds-size-2);
+}

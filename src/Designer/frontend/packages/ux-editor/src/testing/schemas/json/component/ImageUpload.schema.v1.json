@@ -145,23 +145,57 @@
         }
       }
     },
-    "cropShape": {
-      "title": "Shape",
-      "description": "The shape of the cropping area",
-      "enum": ["square", "circle"],
-      "default": "circle"
-    },
-    "cropWidth": {
-      "title": "Width",
-      "description": "Optional width of the cropping area",
-      "type": "number",
-      "default": 250
-    },
-    "cropHeight": {
-      "title": "Height",
-      "description": "Optional height of the cropping area",
-      "type": "number",
-      "default": 250
+    "crop": {
+      "title": "CropConfig",
+      "description": "Configuration for the cropping area",
+      "oneOf": [
+        {
+          "title": "CropConfigCircle",
+          "type": "object",
+          "properties": {
+            "shape": {
+              "const": "circle",
+              "title": "Shape",
+              "description": "Circular cropping area"
+            },
+            "diameter": {
+              "type": "number",
+              "title": "Diameter",
+              "description": "Diameter of the circle",
+              "default": 250
+            }
+          },
+          "required": ["shape"]
+        },
+        {
+          "title": "CropConfigRect",
+          "type": "object",
+          "properties": {
+            "shape": {
+              "const": "rectangle",
+              "title": "Shape",
+              "description": "Rectangular cropping area"
+            },
+            "width": {
+              "type": "number",
+              "title": "Width",
+              "description": "Width of the rectangle",
+              "default": 250
+            },
+            "height": {
+              "type": "number",
+              "title": "Height",
+              "description": "Height of the rectangle",
+              "default": 250
+            }
+          },
+          "required": ["shape"]
+        }
+      ],
+      "default": {
+        "shape": "circle",
+        "diameter": 250
+      }
     },
     "dataModelBindings": {
       "title": "Data model binding",
