@@ -121,6 +121,24 @@ func (c *KubernetesClient) RolloutStatus(deployment, namespace string, timeout t
 	return nil
 }
 
+func (c *KubernetesClient) KustomizeRender(path string) (string, error) {
+	args := []string{
+		"kustomize",
+		".",
+		"--load-restrictor",
+		"LoadRestrictionsNone",
+	}
+
+	cmd := exec.Command(c.kubectlBin, args...)
+	cmd.Dir = path
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("failed rendering kustomization at %s: %w", path, err)
+	}
+
+	return string(output), nil
+}
+
 // LogOptions configures how logs should be collected
 type LogOptions struct {
 	// Namespace to collect logs from

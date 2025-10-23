@@ -3,7 +3,8 @@ kind: Kustomization
 resources:
   - ../base
 patches:
-  # Add TEST_INTERNALS_MODE environment variable for local/test environment
+  # - Add TEST_INTERNALS_MODE environment variable for local/test environment
+  # - Set image and image pull policy
   - target:
       kind: Deployment
       name: pdf3-worker
@@ -13,41 +14,30 @@ patches:
         value:
           name: TEST_INTERNALS_MODE
           value: "true"
-  - target:
-      kind: Deployment
-      name: pdf3-proxy
-    patch: |-
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: TEST_INTERNALS_MODE
-          value: "true"
-  # Update images
-  - target:
-      kind: Deployment
-      name: pdf3-worker
-    patch: |-
       - op: replace
         path: /spec/template/spec/containers/0/image
         value: "localhost:5001/runtime-pdf3-worker:latest"
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: "Always"
+      - op: replace
+        path: /spec/replicas
+        value: 3
   - target:
       kind: Deployment
       name: pdf3-proxy
     patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: TEST_INTERNALS_MODE
+          value: "true"
       - op: replace
         path: /spec/template/spec/containers/0/image
         value: "localhost:5001/runtime-pdf3-proxy:latest"
-  - target:
-      kind: Deployment
-      name: pdf3-worker
-    patch: |-
       - op: replace
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: "Always"
-  - target:
-      kind: Deployment
-      name: pdf3-proxy
-    patch: |-
       - op: replace
-        path: /spec/template/spec/containers/0/imagePullPolicy
-        value: "Always"
+        path: /spec/replicas
+        value: 3

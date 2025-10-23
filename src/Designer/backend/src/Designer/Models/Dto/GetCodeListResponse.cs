@@ -5,21 +5,16 @@ using System.Linq;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
-public sealed record UpdateCodeListRequest(List<CodeListWrapper> CodeListWrappers, string BaseCommitSha, string? CommitMessage = null)
+public sealed record GetCodeListResponse(List<CodeListWrapper> CodeListWrappers, string CommitSha)
 {
-    public bool Equals(UpdateCodeListRequest? other)
+    public bool Equals(GetCodeListResponse? other)
     {
         if (other is null)
         {
             return false;
         }
 
-        if (Equals(other.BaseCommitSha, BaseCommitSha) is false)
-        {
-            return false;
-        }
-
-        if (Equals(other.CommitMessage, CommitMessage) is false)
+        if (Equals(other.CommitSha, CommitSha) is false)
         {
             return false;
         }
@@ -34,8 +29,7 @@ public sealed record UpdateCodeListRequest(List<CodeListWrapper> CodeListWrapper
     public override int GetHashCode()
     {
         var hash = new HashCode();
-        hash.Add(BaseCommitSha);
-        hash.Add(CommitMessage);
+        hash.Add(CommitSha);
 
         if (CodeListWrappers is not null)
         {

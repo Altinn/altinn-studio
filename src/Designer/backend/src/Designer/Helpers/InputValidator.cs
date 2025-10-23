@@ -11,7 +11,7 @@ public static partial class InputValidator
         {
             return true;
         }
-        return LatinCharacterAndNumbers_AllowUnderscores().Match(title).Success is false;
+        return LatinCharacterAndNumbers_AllowUnderscoreAndHyphen().Match(title).Success is false;
     }
 
     public static bool IsValidGiteaCommitMessage(string? commitMessage)
@@ -31,6 +31,6 @@ public static partial class InputValidator
         return commitMessage.Length <= 5120;
     }
 
-    [GeneratedRegex("^[a-zA-Z0-9][a-zA-Z0-9_.-]*$", RegexOptions.NonBacktracking | RegexOptions.CultureInvariant)]
-    private static partial Regex LatinCharacterAndNumbers_AllowUnderscores();
+    [GeneratedRegex("^[a-zA-Z0-9][a-zA-Z0-9_-]*$", RegexOptions.NonBacktracking | RegexOptions.CultureInvariant)]
+    private static partial Regex LatinCharacterAndNumbers_AllowUnderscoreAndHyphen();
 }
