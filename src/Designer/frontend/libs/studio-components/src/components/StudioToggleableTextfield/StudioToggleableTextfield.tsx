@@ -8,15 +8,15 @@ import type { Override } from '../../types/Override';
 
 type InputChangeEvent = React.ChangeEvent<HTMLInputElement>;
 type InputFocusEvent = React.FocusEvent<HTMLInputElement>;
-type TextAreaFocusEvent = React.FocusEvent<HTMLTextAreaElement>;
-type TextAreaChangeEvent = React.ChangeEvent<HTMLTextAreaElement>;
 
 export type StudioToggleableTextfieldProps = Override<
   {
     customValidation?: (value: string) => string | undefined;
     onIsViewMode?: (isViewMode: boolean) => void;
+    onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
   },
-  StudioIconTextfieldProps
+  Omit<StudioIconTextfieldProps, 'onChange' | 'onBlur'>
 >;
 
 function StudioToggleableTextfield(
@@ -34,14 +34,19 @@ function StudioToggleableTextfield(
     defaultValue,
     ...rest
   }: StudioToggleableTextfieldProps,
-  ref: Ref<HTMLInputElement>,
+  ref: Ref<HTMLDivElement>,
 ): ReactElement {
   const [isViewMode, setIsViewMode] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+  const [currentValue, setCurrentValue] = useState<string>(String(value ?? defaultValue ?? ''));
 
   useEffect(() => {
     if (onIsViewMode) onIsViewMode(isViewMode);
   }, [isViewMode, onIsViewMode]);
+
+  useEffect(() => {
+    setCurrentValue(String(value ?? defaultValue ?? ''));
+  }, [value, defaultValue]);
 
   const toggleViewMode = (): void => {
     setIsViewMode((prevMode) => !prevMode);
@@ -57,15 +62,16 @@ function StudioToggleableTextfield(
     return false;
   };
 
-  const handleOnBlur = (event: TextAreaFocusEvent & InputFocusEvent): void => {
-    onBlur?.(event);
+  const handleOnBlur = (event: InputFocusEvent): void => {
     if (errorMessage || error) return;
     toggleViewMode();
+    onBlur?.(event);
   };
 
-  const handleOnChange = (event: TextAreaChangeEvent & InputChangeEvent): void => {
+  const handleOnChange = (event: InputChangeEvent): void => {
+    setCurrentValue(event.target.value);
     if (customValidation) {
-      runCustomValidation(event as InputChangeEvent);
+      runCustomValidation(event);
     }
     onChange?.(event);
   };
@@ -77,12 +83,13 @@ function StudioToggleableTextfield(
         property={label}
         onClick={toggleViewMode}
         title={title}
-        value={value ?? defaultValue}
+        value={currentValue}
         className={classes.propertyButton}
       />
     );
   return (
     <StudioIconTextfield
+      className={classes.textfield}
       autoFocus
       error={error || errorMessage}
       icon={icon}
@@ -91,7 +98,7 @@ function StudioToggleableTextfield(
       onChange={handleOnChange}
       ref={ref}
       title={title}
-      value={value}
+      value={currentValue}
       defaultValue={defaultValue}
       onClick={onClick}
       {...rest}

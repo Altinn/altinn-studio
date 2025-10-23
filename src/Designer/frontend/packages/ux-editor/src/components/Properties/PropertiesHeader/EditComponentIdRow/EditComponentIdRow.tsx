@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
-import {
-  StudioToggleableTextfieldSchema,
-  type SchemaValidationError,
-} from '@studio/components-legacy';
+import { StudioToggleableTextfieldSchema, type SchemaValidationError } from '@studio/components';
 import { Alert } from '@digdir/designsystemet-react';
 import classes from './EditComponentIdRow.module.css';
 import { idExists } from '../../../../utils/formLayoutsUtils';

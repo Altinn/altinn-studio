@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioToggleableTextfield } from '@studio/components-legacy';
+import { StudioToggleableTextfield } from '@studio/components';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 

@@ -3,12 +3,12 @@ import type {
   CodeListEditorTexts,
   TextResource,
 } from '@studio/components-legacy';
+import { StudioModal, StudioCodeListEditor } from '@studio/components-legacy';
 import {
-  StudioModal,
-  StudioCodeListEditor,
+  StudioDeleteButton,
+  StudioDisplayTile,
   StudioToggleableTextfield,
-} from '@studio/components-legacy';
-import { StudioDeleteButton, StudioDisplayTile } from '@studio/components';
+} from '@studio/components';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../../types/CodeListWithMetadata';

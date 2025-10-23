@@ -1,3 +1,7 @@
 .propertyButton {
   margin: 0;
 }
+
+.textfield {
+  margin: var(--ds-size-4);
+}
