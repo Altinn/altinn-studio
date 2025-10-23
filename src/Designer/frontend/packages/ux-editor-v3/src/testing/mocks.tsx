@@ -9,7 +9,7 @@ import { render, renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { ILayoutSettings } from 'app-shared/types/global';
-import { BrowserRouter } from 'react-router-dom';
+import { TestAppRouter } from '@studio/testing/testRoutingUtils';
 import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
 import { layout1NameMock, layout2NameMock } from './layoutMock';
 import { appStateMock } from './stateMocks';
@@ -54,7 +54,7 @@ const wrapper = ({
       <PreviewConnectionContextProvider>
         <Provider store={store}>
           <AppContext.Provider value={{ ...appContextMock, ...appContextProps }}>
-            <BrowserRouter>{component}</BrowserRouter>
+            <TestAppRouter>{component}</TestAppRouter>
           </AppContext.Provider>
         </Provider>
       </PreviewConnectionContextProvider>
@@ -136,7 +136,7 @@ export const renderWithProviders = (
         <PreviewConnectionContextProvider>
           <Provider store={store}>
             <AppContext.Provider value={{ ...appContextMock, ...appContextProps }}>
-              <BrowserRouter>{children}</BrowserRouter>
+              <TestAppRouter>{children}</TestAppRouter>
             </AppContext.Provider>
           </Provider>
         </PreviewConnectionContextProvider>

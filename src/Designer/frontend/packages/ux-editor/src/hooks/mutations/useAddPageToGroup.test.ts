@@ -4,7 +4,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderHookWithProviders } from '../../../../ux-editor/src/testing/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
-import { layoutSet1NameMock } from 'app-shared/hooks/useSelectedFormLayoutSetName.test';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 describe('useAddPageToGroup', () => {
   beforeEach(() => {

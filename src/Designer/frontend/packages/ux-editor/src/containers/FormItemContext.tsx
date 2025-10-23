@@ -18,6 +18,7 @@ import { LayoutItemType } from '../types/global';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../hooks';
 import type { MutateOptions } from '@tanstack/react-query';
+import useUxEditorParams from '../hooks/useUxEditorParams';
 
 export type FormItemContext = {
   formItemId: string;
@@ -70,9 +71,10 @@ export const FormItemContextProvider = ({
   children,
 }: FormItemContextProviderProps): React.JSX.Element => {
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName, selectedFormLayoutName, updateLayoutsForPreview } =
-    useAppContext();
-  const prevSelectedFormLayoutSetNameRef = useRef(selectedFormLayoutSetName);
+  const { selectedFormLayoutName, updateLayoutsForPreview } = useAppContext();
+  const { layoutSet } = useUxEditorParams();
+
+  const prevSelectedFormLayoutSetNameRef = useRef(layoutSet);
   const prevSelectedFormLayoutNameRef = useRef(selectedFormLayoutName);
 
   const autoSaveTimeoutRef = useRef(undefined);
@@ -112,7 +114,7 @@ export const FormItemContextProvider = ({
 
         const mutationOptions = {
           onSuccess: async () => {
-            await updateLayoutsForPreview(selectedFormLayoutSetName, hasNewId);
+            await updateLayoutsForPreview(layoutSet, hasNewId);
           },
           ...mutateOptions,
         };
@@ -128,7 +130,7 @@ export const FormItemContextProvider = ({
         }
       }
     },
-    [updateLayoutsForPreview, selectedFormLayoutSetName, updateFormComponent, updateFormContainer],
+    [updateLayoutsForPreview, layoutSet, updateFormComponent, updateFormContainer],
   );
 
   const handleEdit = useCallback((updatedForm: FormContainer | FormComponent): void => {
@@ -158,18 +160,18 @@ export const FormItemContextProvider = ({
   useEffect(() => {
     const autoSaveOnLayoutChange = async () => {
       if (
-        prevSelectedFormLayoutSetNameRef.current === selectedFormLayoutSetName &&
+        prevSelectedFormLayoutSetNameRef.current === layoutSet &&
         prevSelectedFormLayoutNameRef.current !== selectedFormLayoutName
       ) {
         await handleSave();
       }
       handleDiscard();
-      prevSelectedFormLayoutSetNameRef.current = selectedFormLayoutSetName;
+      prevSelectedFormLayoutSetNameRef.current = layoutSet;
       prevSelectedFormLayoutNameRef.current = selectedFormLayoutName;
     };
 
     autoSaveOnLayoutChange();
-  }, [handleDiscard, handleSave, selectedFormLayoutSetName, selectedFormLayoutName]);
+  }, [handleDiscard, handleSave, layoutSet, selectedFormLayoutName]);
 
   const value = useMemo(
     () => ({

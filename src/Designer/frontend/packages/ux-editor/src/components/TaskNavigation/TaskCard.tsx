@@ -13,10 +13,11 @@ import {
 import { getLayoutSetIcon } from '../../utils/getLayoutSetIcon';
 import { useDeleteLayoutSetMutation } from 'app-development/hooks/mutations/useDeleteLayoutSetMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useAppContext } from '../../hooks/useAppContext';
 import { TaskCardEditing } from './TaskCardEditing';
 import classes from './TaskCard.module.css';
 import { ExportForm } from '../Elements/ExportForm';
+import { useNavigate } from 'react-router-dom';
+import getLayoutSetPath from '@altinn/ux-editor/utils/routeUtils';
 
 type TaskCardProps = {
   layoutSetModel: LayoutSetModel;
@@ -26,9 +27,9 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: deleteLayoutSet } = useDeleteLayoutSetMutation(org, app);
-  const { setSelectedFormLayoutSetName } = useAppContext();
   const taskName = getLayoutSetTypeTranslationKey(layoutSetModel);
   const taskIcon = getLayoutSetIcon(layoutSetModel);
+  const navigate = useNavigate();
 
   const [editing, setEditing] = useState(false);
 
@@ -62,7 +63,7 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
   }
 
   const goToFormEditor = () => {
-    setSelectedFormLayoutSetName(layoutSetModel.id);
+    navigate(getLayoutSetPath(org, app, layoutSetModel.id));
   };
 
   return (

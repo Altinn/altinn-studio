@@ -27,6 +27,7 @@ import {
   isPagesModelWithGroups,
   type PagesModelWithPageOrder,
 } from 'app-shared/types/api/dto/PagesModel';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -41,21 +42,17 @@ import {
 export const DesignView = (): ReactNode => {
   const { org, app } = useStudioEnvironmentParams();
   const {
-    selectedFormLayoutSetName,
     selectedFormLayoutName,
     setSelectedItem,
     setSelectedFormLayoutName,
     updateLayoutsForPreview,
   } = useAppContext();
-  const { data: pagesModel, isPending: pagesQueryPending } = usePagesQuery(
-    org,
-    app,
-    selectedFormLayoutSetName,
-  );
+  const { layoutSet } = useUxEditorParams();
+  const { data: pagesModel, isPending: pagesQueryPending } = usePagesQuery(org, app, layoutSet);
   const { mutate: addPageMutation, isPending: isAddPageMutationPending } = useAddPageMutation(
     org,
     app,
-    selectedFormLayoutSetName,
+    layoutSet,
   );
 
   const { mutate: addGroupMutation, isPending: isAddGroupMutationPending } = useAddGroupMutation(
@@ -65,7 +62,7 @@ export const DesignView = (): ReactNode => {
 
   // Referring to useFormLayoutSettingsQuery twice is a hack to ensure designView is re-rendered after converting
   // a newly added layout to a PDF. See issue: https://github.com/Altinn/altinn-studio/issues/13679
-  useFormLayoutSettingsQuery(org, app, selectedFormLayoutSetName);
+  useFormLayoutSettingsQuery(org, app, layoutSet);
   const layouts = useFormLayouts();
   const { getPdfLayoutName } = usePdf();
 
@@ -111,7 +108,7 @@ export const DesignView = (): ReactNode => {
       onSuccess: async () => {
         setSelectedFormLayoutName(page.id);
         setSelectedItem({ type: ItemType.Page, id: page.id });
-        await updateLayoutsForPreview(selectedFormLayoutSetName);
+        await updateLayoutsForPreview(layoutSet);
       },
     });
   };
