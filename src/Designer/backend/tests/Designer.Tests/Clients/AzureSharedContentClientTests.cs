@@ -189,7 +189,7 @@ public class AzureSharedContentClientTests
     }
 
     [Fact]
-    public async Task UploadBlobs()
+    public void UploadBlobs()
     {
         // Arrange
         Mock<BlobClient> blobClientMock = new();
