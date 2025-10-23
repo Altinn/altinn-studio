@@ -69,8 +69,7 @@ public class AzureSharedContentClient(
         string codeListFolderPath = CombineWithDelimiter(orgName, CodeList, codeListId);
         CreateCodeListFiles(codeList, codeListFolderPath, versionIndexPrefix);
 
-        List<Task> tasks = PrepareBlobTasks(containerClient, cancellationToken);
-        Task.WaitAll(tasks, cancellationToken);
+        await Task.WhenAll(PrepareBlobTasks(containerClient, cancellationToken));
     }
 
     internal async Task HandleOrganizationIndex(string orgName, CancellationToken cancellationToken = default)
