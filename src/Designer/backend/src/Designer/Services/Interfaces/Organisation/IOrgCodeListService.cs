@@ -112,6 +112,4 @@ public interface IOrgCodeListService
     /// <param name="request">The publish code list request</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     Task PublishCodeList(string org, PublishCodeListRequest request, CancellationToken cancellationToken = default);
-
-    Task PublishCodeListThisExistsOnlyForTesting(string org, CancellationToken cancellationToken = default);
 }

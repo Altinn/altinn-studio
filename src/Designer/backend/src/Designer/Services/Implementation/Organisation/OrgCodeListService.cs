@@ -306,36 +306,6 @@ public class OrgCodeListService : IOrgCodeListService
         await _sharedContentClient.PublishCodeList(org, codeListId, codeList, cancellationToken);
     }
 
-    public async Task PublishCodeListThisExistsOnlyForTesting(string org, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        const string CodeListId = "someNewCodeList";
-        Dictionary<string, string> label = new() { { "nb", "tekst" }, { "en", "text" } };
-        Dictionary<string, string> description = new() { { "nb", "Dette er en tekst" }, { "en", "This is a text" } };
-        Dictionary<string, string> helpText = new() { { "nb", "Velg dette valget for å få en tekst" }, { "en", "Choose this option to get a text" } };
-        List<Code> listOfCodes =
-        [
-            new(
-                Value: "value1",
-                Label: label,
-                Description: description,
-                HelpText: helpText,
-                Tags: ["test-data"]
-            )
-        ];
-        CodeListSource source = new(Name: "test-data-files");
-        CodeList codeList = new(
-            Source: source,
-            Codes: listOfCodes,
-            TagNames: ["test-data-category"]
-        );
-
-        PublishCodeListRequest request = new(Title: CodeListId, CodeList: codeList);
-
-        await PublishCodeList(org, request, cancellationToken);
-    }
-
     private async Task<List<Option>> GetCodeList(string org, string developer, string codeListId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

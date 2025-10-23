@@ -128,25 +128,6 @@ public class OrgCodeListController : ControllerBase
         }
     }
 
-    [HttpPost]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [Route("new/publish/test")]
-    public async Task<ActionResult> PublishCodeListTest(string org, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        try
-        {
-            await _orgCodeListService.PublishCodeListThisExistsOnlyForTesting(org, cancellationToken);
-            return Ok();
-        }
-        catch (ConfigurationErrorsException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
-
     /// <summary>
     /// Creates or overwrites a code list.
     /// </summary>
