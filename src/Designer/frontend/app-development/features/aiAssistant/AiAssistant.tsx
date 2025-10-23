@@ -4,6 +4,7 @@ import type { AssistantTexts } from '@studio/assistant';
 import { Assistant } from '@studio/assistant';
 import { useTranslation } from 'react-i18next';
 import { useAltinityAssistant } from './hooks';
+import { StudioHeading, StudioParagraph } from '@studio/components';
 
 export function AiAssistant(): ReactElement {
   const { t } = useTranslation();
@@ -52,6 +53,16 @@ export function AiAssistant(): ReactElement {
       onDeleteThread={deleteThread}
       connectionStatus={connectionStatus}
       workflowStatus={workflowStatus}
+      previewContent={<PreviewContent />}
     />
+  );
+}
+
+function PreviewContent(): ReactElement {
+  return (
+    <>
+      <StudioHeading>Preview</StudioHeading>
+      <StudioParagraph>Hello preview world!</StudioParagraph>
+    </>
   );
 }

@@ -97,7 +97,7 @@ const AppPreview = (): ReactElement => {
 
 export type ToolColumnProps = {
   mode: ToolColumnMode;
-  previewContent?: ReactElement;
+  previewContent: ReactElement;
   fileBrowserContent?: ReactElement;
 };
 

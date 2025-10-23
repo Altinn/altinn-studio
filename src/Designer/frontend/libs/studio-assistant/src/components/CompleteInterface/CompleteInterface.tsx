@@ -10,15 +10,8 @@ import { ThreadColumnCollapsed } from '../ThreadColumnCollapsed/ThreadColumnColl
 import { ChatColumn } from '../ChatColumn/ChatColumn';
 import { ToolColumnMode } from '../../types/ToolColumnMode';
 import type { AssistantProps } from '../../Assistant/Assistant';
-import type { ConnectionStatus } from '../../types/ConnectionStatus';
 
-export type CompleteInterfaceProps = Omit<AssistantProps, 'enableCompactInterface'> & {
-  activeThreadId?: string;
-  connectionStatus?: ConnectionStatus;
-  onSelectThread?: (threadId: string) => void;
-  onDeleteThread?: (threadId: string) => void;
-  onCreateThread?: () => void;
-};
+export type CompleteInterfaceProps = Omit<AssistantProps, 'enableCompactInterface'>;
 
 /**
  * Full page version of the chat interface with thread history, preview and code viewer.
@@ -32,6 +25,7 @@ export function CompleteInterface({
   onSelectThread,
   onDeleteThread,
   onCreateThread,
+  previewContent,
 }: CompleteInterfaceProps): ReactElement {
   const [isThreadColumnCollapsed, setIsThreadColumnCollapsed] = useState(false);
   const [toolColumnMode, setToolColumnMode] = useState<ToolColumnMode>(ToolColumnMode.Preview);
@@ -103,7 +97,7 @@ export function CompleteInterface({
           />
         </StudioResizableLayout.Element>
         <StudioResizableLayout.Element minimumSize={200}>
-          <ToolColumn mode={toolColumnMode} />
+          <ToolColumn mode={toolColumnMode} previewContent={previewContent} />
         </StudioResizableLayout.Element>
       </StudioResizableLayout.Container>
     </div>
