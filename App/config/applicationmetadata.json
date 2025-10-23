@@ -57,7 +57,10 @@
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],
-      "enabledFileValidators": []
+      "enabledFileValidators": [],
+      "allowedContributers": [
+        "app:owned"
+      ]
     },
     {
       "id": "signature2",
@@ -72,7 +75,10 @@
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],
-      "enabledFileValidators": []
+      "enabledFileValidators": [],
+      "allowedContributers": [
+        "app:owned"
+      ]
     }
   ],
   "partyTypesAllowed": {
