@@ -4,6 +4,7 @@ import { PaymentPolicyBuilder } from '../../../utils/policy';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { getLayoutSetIdFromTaskId } from '../bpmnHandlerUtils/bpmnHandlerUtils';
 import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
+import { TaskUtils } from '@altinn/process-editor/utils/taskUtils';
 
 export class OnProcessTaskRemoveHandler {
   constructor(
@@ -27,10 +28,6 @@ export class OnProcessTaskRemoveHandler {
 
     if (taskMetadata.taskType === 'signing') {
       this.handleSigningTaskRemove(taskMetadata);
-    }
-
-    if (taskMetadata.taskType === 'userControlledSigning') {
-      this.handleUserControlledSigningTaskRemove(taskMetadata);
     }
   }
 
@@ -92,11 +89,9 @@ export class OnProcessTaskRemoveHandler {
 
   private handleSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
     this.handleGenericSigningTaskRemove(taskMetadata);
-  }
-
-  private handleUserControlledSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    this.handleGenericSigningTaskRemove(taskMetadata);
-    this.handleRemoveSigneeState(taskMetadata);
+    if (TaskUtils.isUserControlledSigning(taskMetadata.taskEvent.element)) {
+      this.handleRemoveSigneeState(taskMetadata);
+    }
   }
 
   private removeDeletedSignatureTypeFromTasks(

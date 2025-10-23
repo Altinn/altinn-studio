@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioRecommendedNextAction, StudioTextfield } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components-legacy';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { SubformDataModel } from './SubformDataModel';
@@ -12,7 +12,7 @@ import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMeta
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import { extractDataTypeNamesFromAppMetadata } from 'app-development/features/dataModelling/SchemaEditorWithToolbar/TopToolbar/utils/validationUtils';
 import { useValidateSchemaName } from 'app-shared/hooks/useValidateSchemaName';
-import { StudioCard } from '@studio/components';
+import { StudioCard, StudioRecommendedNextAction } from '@studio/components';
 import classes from './CreateNewSubformSection.module.css';
 
 type CreateNewSubformSectionProps = {
