@@ -18,14 +18,13 @@ using Azure;
 using Azure.Identity;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.Clients.Implementations;
 
 public class AzureSharedContentClient(
     HttpClient httpClient,
     ILogger<AzureSharedContentClient> logger,
-    IOptions<SharedContentClientSettings> sharedContentClientSettings
+    SharedContentClientSettings sharedContentClientSettings
 ) : ISharedContentClient
 {
     private const string InitialVersion = "1";
@@ -37,7 +36,7 @@ public class AzureSharedContentClient(
     internal readonly Dictionary<string, string> FileNamesAndContent = [];
 
     private readonly string _sharedContentBaseUri = CombineWithDelimiter(
-        sharedContentClientSettings.Value.StorageAccountUrl, sharedContentClientSettings.Value.StorageContainerName);
+        sharedContentClientSettings.StorageAccountUrl, sharedContentClientSettings.StorageContainerName);
 
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
@@ -289,8 +288,8 @@ public class AzureSharedContentClient(
 
     private BlobContainerClient GetContainerClient()
     {
-        string storageContainerName = sharedContentClientSettings.Value.StorageContainerName;
-        string storageAccountUrl = sharedContentClientSettings.Value.StorageAccountUrl;
+        string storageContainerName = sharedContentClientSettings.StorageContainerName;
+        string storageAccountUrl = sharedContentClientSettings.StorageAccountUrl;
         BlobServiceClient blobServiceClient = new(new Uri(storageAccountUrl), new DefaultAzureCredential());
         return blobServiceClient.GetBlobContainerClient(storageContainerName);
     }

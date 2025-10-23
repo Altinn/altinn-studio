@@ -670,10 +670,8 @@ public class AzureSharedContentClientTests
     {
         Mock<HttpClient> httpClientMock = new();
         Mock<ILogger<AzureSharedContentClient>> logger = new();
-        Mock<IOptions<SharedContentClientSettings>> settingsMock = new();
         SharedContentClientSettings settings = new() { StorageAccountUrl = "http://test.no", StorageContainerName = "storageAccountName" };
-        settingsMock.Setup(iOptions => iOptions.Value).Returns(settings);
 
-        return new AzureSharedContentClient(httpClient ?? httpClientMock.Object, logger.Object, settingsMock.Object);
+        return new AzureSharedContentClient(httpClient ?? httpClientMock.Object, logger.Object, settings);
     }
 }
