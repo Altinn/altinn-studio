@@ -19,7 +19,7 @@ export const options = {
       rate: 3,
       timeUnit: '1s',
       duration: '60s',
-      startTime: '60s',  // duration + gracefulStop
+      startTime: '60s', // duration + gracefulStop
       preAllocatedVUs: 8,
       maxVUs: 15,
       tags: { service: 'new' },
@@ -75,9 +75,7 @@ const payload = JSON.stringify({
 
 const endpoint = 'http://localhost:8020/pdf';
 
-http.setResponseCallback(
-  http.expectedStatuses(200, 429)
-);
+http.setResponseCallback(http.expectedStatuses(200, 429));
 
 export default function () {
   const service = scenario.name === 'new_service' ? 'new' : 'old';
@@ -97,12 +95,18 @@ export default function () {
 
   const res = http.post(endpoint, payload, params);
 
-  check(res, {
-    [`[${service}] PDF generation success`]: (r) => {
-      return r.status === 200 &&
-        r.headers['Content-Type']?.includes('application/pdf') &&
-        !!r.body &&
-        r.body.slice(0, 5) === '%PDF-';
+  check(
+    res,
+    {
+      [`[${service}] PDF generation success`]: (r) => {
+        return (
+          r.status === 200 &&
+          r.headers['Content-Type']?.includes('application/pdf') &&
+          !!r.body &&
+          r.body.slice(0, 5) === '%PDF-'
+        );
+      },
     },
-  }, tags);
+    tags,
+  );
 }
