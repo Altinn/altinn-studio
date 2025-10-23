@@ -245,7 +245,8 @@ public class AzureSharedContentClientTests
                 )
             .ReturnsAsync(new HttpResponseMessage
             {
-                StatusCode = HttpStatusCode.OK, Content = new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json)
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json)
             });
         HttpClient httpClient = new(mockHandler.Object);
         AzureSharedContentClient client = GetClientForTest(httpClient);
@@ -275,7 +276,8 @@ public class AzureSharedContentClientTests
             )
             .ReturnsAsync(new HttpResponseMessage
             {
-                StatusCode = HttpStatusCode.OK, Content = null
+                StatusCode = HttpStatusCode.OK,
+                Content = null
             });
         HttpClient httpClient = new(mockHandler.Object);
         AzureSharedContentClient client = GetClientForTest(httpClient);
@@ -335,7 +337,8 @@ public class AzureSharedContentClientTests
             )
             .ReturnsAsync(new HttpResponseMessage
             {
-                StatusCode = HttpStatusCode.BadRequest, Content = null
+                StatusCode = HttpStatusCode.BadRequest,
+                Content = null
             });
         HttpClient httpClient = new(mockHandler.Object);
         AzureSharedContentClient client = GetClientForTest(httpClient);
@@ -367,7 +370,8 @@ public class AzureSharedContentClientTests
             )
             .ReturnsAsync(new HttpResponseMessage
             {
-                StatusCode = HttpStatusCode.OK, Content = new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json)
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json)
             });
         HttpClient httpClient = new(mockHandler.Object);
         AzureSharedContentClient client = GetClientForTest(httpClient);
@@ -465,7 +469,8 @@ public class AzureSharedContentClientTests
             )
             .ReturnsAsync(new HttpResponseMessage
             {
-                StatusCode = HttpStatusCode.OK, Content = new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json)
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json)
             });
         HttpClient httpClient = new(mockHandler.Object);
         AzureSharedContentClient client = GetClientForTest(httpClient);
@@ -562,7 +567,8 @@ public class AzureSharedContentClientTests
             )
             .ReturnsAsync(new HttpResponseMessage
             {
-                StatusCode = HttpStatusCode.OK, Content = new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json)
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json)
             });
         HttpClient httpClient = new(mockHandler.Object);
         AzureSharedContentClient client = GetClientForTest(httpClient);
@@ -636,13 +642,6 @@ public class AzureSharedContentClientTests
         Assert.Equal($"Request failed, class: {nameof(AzureSharedContentClient)}", exception.Message);
         mockHandler.VerifyAll();
     }
-
-
-
-
-
-
-
 
     private static CodeList SetupCodeList()
     {
