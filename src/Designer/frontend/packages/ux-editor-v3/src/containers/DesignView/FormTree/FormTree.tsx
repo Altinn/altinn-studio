@@ -1,6 +1,6 @@
 import React from 'react';
 import type { IInternalLayout } from '../../../types/global';
-import { StudioDragAndDropTree } from '@studio/components-legacy';
+import { StudioDragAndDropTree } from '@studio/components';
 import { renderItemList } from './renderItemList';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useFormItemContext } from '../../FormItemContext';
