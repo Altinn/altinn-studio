@@ -236,11 +236,16 @@ public class AzureSharedContentClient(
     {
         try
         {
-            await client.ExistsAsync(cancellationToken);
+            Response<bool> exists = await client.ExistsAsync(cancellationToken);
+            if (exists.Value is false)
+            {
+                logger.LogError("Shared content storage container does not exist. Client: {Client}", nameof(BlobContainerClient));
+                throw new InvalidOperationException($"Container not found, class: {nameof(AzureSharedContentClient)}");
+            }
         }
         catch (Exception ex) when (ex is RequestFailedException or AggregateException)
         {
-            logger.LogError($"Shared content storage container not found, class: {nameof(AzureSharedContentClient)} Message: {ex.Message}");
+            logger.LogError($"Error while retrieving shared content storage container, class: {nameof(AzureSharedContentClient)} Message: {ex.Message}");
             throw new InvalidOperationException($"Request failed, class: {nameof(AzureSharedContentClient)}");
         }
     }
