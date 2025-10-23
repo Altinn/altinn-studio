@@ -6,7 +6,7 @@ import { useAutoSizeTextArea } from 'app-shared/hooks/useAutoSizeTextArea';
 import { APP_NAME } from 'app-shared/constants';
 import { FormField } from 'app-shared/components/FormField/FormField';
 import { useTranslation } from 'react-i18next';
-import { StudioTextarea } from '@studio/components-legacy';
+import { StudioTextarea } from '@studio/components';
 
 export interface TextEntryProps extends TextTableRowEntry {
   textId: string;

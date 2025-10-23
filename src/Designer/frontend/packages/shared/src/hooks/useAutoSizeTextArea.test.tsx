@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioTextarea } from '@studio/components-legacy';
+import { StudioTextarea } from '@studio/components';
 import {
   DEFAULT_MAX_HEIGHT_PX_TEXTAREA,
   DEFAULT_MIN_HEIGHT_PX_TEXTAREA,
@@ -12,7 +12,9 @@ describe('useAutoSizeTextArea', () => {
     const testLabel = 'LabelForAShortText';
     const TestComponent = ({ value }: { value: string }) => {
       const textareaRef = useAutoSizeTextArea(value);
-      return <StudioTextarea label={testLabel} value={value} ref={textareaRef} />;
+      return (
+        <StudioTextarea label={testLabel} value={value} onChange={() => {}} ref={textareaRef} />
+      );
     };
 
     render(<TestComponent value={'A text'} />);
@@ -35,7 +37,9 @@ describe('useAutoSizeTextArea', () => {
 
     const TestComponent = ({ value }: { value: string }) => {
       const textareaRef = useAutoSizeTextArea(value);
-      return <StudioTextarea label={testLabel} value={value} ref={textareaRef} />;
+      return (
+        <StudioTextarea label={testLabel} value={value} onChange={() => {}} ref={textareaRef} />
+      );
     };
 
     render(<TestComponent value='A text' />);
@@ -58,7 +62,9 @@ describe('useAutoSizeTextArea', () => {
     const TestComponent = ({ value }: { value: string }) => {
       const textareaRef = useAutoSizeTextArea(value);
 
-      return <StudioTextarea label={testLabel} value={value} ref={textareaRef} />;
+      return (
+        <StudioTextarea label={testLabel} value={value} onChange={() => {}} ref={textareaRef} />
+      );
     };
 
     render(<TestComponent value='A text' />);
@@ -80,7 +86,9 @@ describe('useAutoSizeTextArea', () => {
     });
     const TestComponent = ({ value }: { value: string }) => {
       const textareaRef = useAutoSizeTextArea(value, { minHeightInPx: newMinHeight });
-      return <StudioTextarea label={testLabel} value={value} ref={textareaRef} />;
+      return (
+        <StudioTextarea label={testLabel} value={value} onChange={() => {}} ref={textareaRef} />
+      );
     };
 
     render(<TestComponent value='A text' />);
@@ -101,7 +109,9 @@ describe('useAutoSizeTextArea', () => {
     });
     const TestComponent = ({ value }: { value: string }) => {
       const textareaRef = useAutoSizeTextArea(value, { maxHeightInPx: newMaxHeight });
-      return <StudioTextarea label={testLabel} value={value} ref={textareaRef} />;
+      return (
+        <StudioTextarea label={testLabel} value={value} onChange={() => {}} ref={textareaRef} />
+      );
     };
 
     render(<TestComponent value='A text' />);
