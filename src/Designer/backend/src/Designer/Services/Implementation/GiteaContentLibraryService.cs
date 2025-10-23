@@ -11,12 +11,14 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class GiteaContentLibraryService : IGiteaContentLibraryService
 {
     private readonly IGitea _giteaApiWrapper;
+    private readonly ILogger<GiteaContentLibraryService> _logger;
     private const string CodeListFolderPath = "CodeListsWithTextResources/";
     private const string TextResourceFolderPath = "Texts/";
 
@@ -26,9 +28,10 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
         PropertyNameCaseInsensitive = true
     };
 
-    public GiteaContentLibraryService(IGitea giteaApiWrapper)
+    public GiteaContentLibraryService(IGitea giteaApiWrapper, ILogger<GiteaContentLibraryService> logger)
     {
         _giteaApiWrapper = giteaApiWrapper;
+        _logger = logger;
     }
 
     /// <inheritdoc />
@@ -121,7 +124,15 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     private async Task<List<FileSystemObject>> GetDirectoryFromGitea(string orgName, string directoryPath)
     {
         string repoName = GetContentRepoName(orgName);
-        return await _giteaApiWrapper.GetDirectoryAsync(orgName, repoName, directoryPath, string.Empty);
+        try
+        {
+            return await _giteaApiWrapper.GetDirectoryAsync(orgName, repoName, directoryPath, string.Empty);
+        }
+        catch (DirectoryNotFoundException ex)
+        {
+            _logger.LogWarning("Could not find directory: {DirectoryPath}, class: {ClassName}, message: {Message}", directoryPath, nameof(GiteaContentLibraryService), ex.Message);
+            return [];
+        }
     }
 
     private async Task<string> GetFileFromGitea(string orgName, string filePath)

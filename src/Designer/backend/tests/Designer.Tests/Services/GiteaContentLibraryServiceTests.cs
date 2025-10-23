@@ -12,6 +12,7 @@ using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using LibGit2Sharp;
+using Microsoft.Extensions.Logging;
 using Moq;
 using SharedResources.Tests;
 using Xunit;
@@ -41,7 +42,8 @@ public class GiteaContentLibraryServiceTests
     public GiteaContentLibraryServiceTests()
     {
         _giteaApiWrapperMock = new Mock<IGitea>();
-        _giteaContentLibraryService = new GiteaContentLibraryService(_giteaApiWrapperMock.Object);
+        Mock<ILogger<GiteaContentLibraryService>> loggerMock = new();
+        _giteaContentLibraryService = new GiteaContentLibraryService(_giteaApiWrapperMock.Object, loggerMock.Object);
     }
 
     [Fact]
