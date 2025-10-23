@@ -1023,7 +1023,7 @@
         "allowCustomValue": false,
         "current": {
           "text": "All",
-          "value": ["$__all"]
+          "value": "$__all"
         },
         "datasource": {
           "type": "prometheus",
@@ -1057,28 +1057,6 @@
         "refresh": 1,
         "regex": "Managed_Prometheus_$org-$env-amw",
         "type": "datasource"
-      },
-      {
-        "current": {
-          "text": "",
-          "value": ""
-        },
-        "definition": "",
-        "description": "",
-        "name": "query0",
-        "options": [],
-        "query": {
-          "azureLogAnalytics": {
-            "query": "",
-            "resources": []
-          },
-          "queryType": "Azure Log Analytics",
-          "refId": "A",
-          "subscription": "CA0666D3-B3C0-4159-93F1-B71777ED4338"
-        },
-        "refresh": 1,
-        "regex": "",
-        "type": "query"
       }
     ]
   },
@@ -1090,5 +1068,5 @@
   "timezone": "browser",
   "title": "Overview",
   "uid": "AltinnStudioOverview",
-  "version": 36
+  "version": 1
 }

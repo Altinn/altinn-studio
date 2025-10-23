@@ -1,0 +1,11 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: external-grafana-altinn-studio-overview
+  namespace: grafana
+spec:
+  folderRef: external-grafana-altinn-studio
+  instanceSelector:
+    matchLabels:
+      dashboards: 'external-grafana'
+  url: 'https://raw.githubusercontent.com/Altinn/altinn-studio/feat/admin-grafana-operators/src/Runtime/grafana/dashboards/altinn-studio-overview.json'
