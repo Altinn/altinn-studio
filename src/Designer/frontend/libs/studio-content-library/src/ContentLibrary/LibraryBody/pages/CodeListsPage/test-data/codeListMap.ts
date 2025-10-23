@@ -1,5 +1,6 @@
 import type { CodeList } from '../types/CodeList';
 import type { CodeListData } from '../types/CodeListData';
+import type { CodeListMap } from '../types/CodeListMap';
 
 export const colours: CodeList = [
   { value: 'red', label: { nb: 'Rød', en: 'Red' } },
@@ -34,7 +35,7 @@ export const countriesData: CodeListData = {
 };
 export const countriesKey = 'c2b0e032-8800-4b60-9e9e-ffe4197bcbad';
 
-export const codeListMap = new Map<string, CodeListData>([
+export const codeListMap: CodeListMap = new Map<string, CodeListData>([
   [coloursKey, coloursData],
   [fruitsKey, fruitsData],
   [countriesKey, countriesData],
