@@ -130,7 +130,7 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
         }
         catch (DirectoryNotFoundException ex)
         {
-            _logger.LogWarning("Could not find directory: {DirectoryPath}, class: {ClassName}, message: {Message}", directoryPath, nameof(GiteaContentLibraryService),  ex.Message);
+            _logger.LogWarning("Could not find directory: {DirectoryPath}, class: {ClassName}, message: {Message}", directoryPath, nameof(GiteaContentLibraryService), ex.Message);
             return [];
         }
     }
