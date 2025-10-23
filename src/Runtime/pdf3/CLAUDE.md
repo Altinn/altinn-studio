@@ -11,6 +11,7 @@ This is **pdf3**, a new PDF generation solution for Altinn Studio apps. It repla
 ## Development Environment
 
 ### Prerequisites
+
 - **OS**: Linux or macOS only
 - **Container runtime**: Docker or Podman required
 - **Nix**: Use `nix develop` for reproducible dev environment
@@ -18,6 +19,7 @@ This is **pdf3**, a new PDF generation solution for Altinn Studio apps. It repla
 ### Common Commands
 
 #### Building and Running
+
 ```bash
 make build-local    # Build using local Go toolchain (fast, no Docker)
 make build          # Build Docker images and load into Kind cluster (cached)
@@ -26,6 +28,7 @@ make test           # Run integration tests (builds/deploys first)
 ```
 
 #### Development Workflow
+
 ```bash
 make cluster        # Create Kind cluster with all dependencies (one-time setup)
 make cluster stop=1 # Delete the cluster
@@ -36,6 +39,7 @@ make loadtest       # Run k6 load tests
 ```
 
 #### Running Single Tests
+
 ```bash
 # Run all tests
 go test -count=1 -v ./...
@@ -43,6 +47,7 @@ go test -count=1 -v ./...
 # Run specific test
 go test -count=1 -v ./test/integration -run TestPDFGeneration_Simple
 ```
+
 Note: `-count=1` circumvents Go's test cache, ensuring fresh test runs.
 
 ## Architecture
@@ -50,6 +55,7 @@ Note: `-count=1` circumvents Go's test cache, ensuring fresh test runs.
 ### Component Structure
 
 **Two main binaries:**
+
 1. **Proxy** (`cmd/proxy/main.go`) - Public-facing HTTP API on port 5030
    - Accepts PDF generation requests at `POST /pdf`
    - Health endpoints: `/health/startup`, `/health/ready`, `/health/live`
@@ -143,6 +149,7 @@ Note: `-count=1` circumvents Go's test cache, ensuring fresh test runs.
 **Always run integration tests after changes** to PDF generation logic, as they validate end-to-end behavior
 
 Use `make test` which handles build/deploy automatically, or run manually:
+
 ```bash
 make run  # Deploy changes
 make test
