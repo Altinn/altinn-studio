@@ -45,7 +45,6 @@ export * from './StudioSpinner';
 export * from './StudioSwitch';
 export * from './StudioTable';
 export * from './StudioTableRemotePagination';
-export * from './StudioTag';
 export * from './StudioTextResourceInput';
 export * from './StudioTextResourcePicker';
 export * from './StudioTextarea';
