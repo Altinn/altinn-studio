@@ -476,7 +476,7 @@ public class AzureSharedContentClientTests
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
         // Act
-        await client.HandleResourceIndex(prefix, resourceType);
+        await client.HandleResourceTypeIndex(prefix, resourceType);
 
         // Assert
         string path = $"{prefix}/_index.json";
