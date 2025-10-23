@@ -15,7 +15,6 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.SharedContent;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 using VerifyXunit;
@@ -190,7 +189,7 @@ public class AzureSharedContentClientTests
     }
 
     [Fact]
-    public async Task PrepareBlobTasks()
+    public async Task UploadBlobs()
     {
         // Arrange
         Mock<BlobClient> blobClientMock = new();
@@ -203,28 +202,12 @@ public class AzureSharedContentClientTests
         client.FileNamesAndContent["ttd/code_lists/someCodeList/1.json"] = content;
 
         // Act
-        List<Task> result = client.PrepareBlobTasks(containerClientMock.Object);
+        client.UploadBlobs(containerClientMock.Object);
 
         // Assert
-        await Assert.Single(result);
         blobClientMock
             .Verify(c => c.UploadAsync(It.Is<BinaryData>(bd => bd.ToString() == content), true, It.IsAny<CancellationToken>()), Times.Once);
         containerClientMock.Verify();
-    }
-
-    [Fact]
-    public void PrepareBlobTasks_EmptyFileNamesAndContentList()
-    {
-        // Arrange
-        Mock<BlobContainerClient> mock = new();
-        AzureSharedContentClient client = GetClientForTest();
-
-        // Act
-        List<Task> result = client.PrepareBlobTasks(mock.Object);
-
-        // Assert
-        Assert.Empty(result);
-        mock.Verify();
     }
 
     [Fact]

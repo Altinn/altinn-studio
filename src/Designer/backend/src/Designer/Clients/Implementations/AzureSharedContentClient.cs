@@ -69,7 +69,7 @@ public class AzureSharedContentClient(
         string codeListFolderPath = CombineWithDelimiter(orgName, CodeList, codeListId);
         CreateCodeListFiles(codeList, codeListFolderPath, versionIndexPrefix);
 
-        await Task.WhenAll(PrepareBlobTasks(containerClient, cancellationToken));
+        UploadBlobs(containerClient, cancellationToken);
     }
 
     internal async Task HandleOrganizationIndex(string orgName, CancellationToken cancellationToken = default)
@@ -221,31 +221,19 @@ public class AzureSharedContentClient(
         FileNamesAndContent[lastestCodeListFilePath] = contentsString;
     }
 
-    internal List<Task> PrepareBlobTasks(BlobContainerClient containerClient, CancellationToken cancellationToken = default)
+    internal void UploadBlobs(BlobContainerClient containerClient, CancellationToken cancellationToken = default)
     {
-        SemaphoreSlim semaphore = new(10); // We allocate 10 simultaneous tasks as max, even though current total is lower
-        List<Task> tasks = [];
+        var options = new ParallelOptions { MaxDegreeOfParallelism = 10, CancellationToken = cancellationToken };
 
-        foreach (KeyValuePair<string, string> fileNameAndContent in FileNamesAndContent)
-        {
-            BlobClient blobClient = containerClient.GetBlobClient(fileNameAndContent.Key);
-            BinaryData content = BinaryData.FromString(fileNameAndContent.Value);
-            tasks.Add(Task.Run(async () =>
-            {
-                await semaphore.WaitAsync(cancellationToken);
-                try
+        Parallel
+            .ForEachAsync(FileNamesAndContent, options, async (fileNameAndContent, token) =>
                 {
-                    await blobClient.UploadAsync(content, overwrite: true, cancellationToken);
-                }
-                finally
-                {
-                    semaphore.Release();
-                }
-
-            }, cancellationToken));
-        }
-
-        return tasks;
+                    BlobClient blobClient = containerClient.GetBlobClient(fileNameAndContent.Key);
+                    BinaryData content = BinaryData.FromString(fileNameAndContent.Value);
+                    await blobClient.UploadAsync(content, overwrite: true, token);
+                })
+            .GetAwaiter()
+            .GetResult();
     }
 
     internal async Task ThrowIfUnhealthy(BlobContainerClient client, CancellationToken cancellationToken = default)
