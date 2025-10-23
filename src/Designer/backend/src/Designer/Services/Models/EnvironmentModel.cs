@@ -9,13 +9,6 @@ namespace Altinn.Studio.Designer.Services.Models
     public class EnvironmentModel
     {
         /// <summary>
-        /// AppsUrl
-        /// </summary>
-        [Required]
-        [JsonPropertyName("appsUrl")]
-        public string AppsUrl { get; set; }
-
-        /// <summary>
         /// PlatformUrl
         /// </summary>
         [Required]

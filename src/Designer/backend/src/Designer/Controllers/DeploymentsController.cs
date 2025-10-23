@@ -58,7 +58,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             SearchResults<DeploymentEntity> deployments = await _deploymentService.GetAsync(org, app, query, cancellationToken);
 
-            List<KubernetesDeployment> kubernetesDeploymentList = await _kubernetesDeploymentsService.GetAsync(org, app);
+            List<KubernetesDeployment> kubernetesDeploymentList = await _kubernetesDeploymentsService.GetAsync(org, app, cancellationToken);
 
             return new DeploymentsResponse
             {
