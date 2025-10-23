@@ -239,7 +239,7 @@ public class OrgCodeListServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleSimpleCommit_OrchestratesSourceControl()
+    public async Task HandleCommit()
     {
         // Arrange
         const string GiteaCommitMessage = "some message";
@@ -266,7 +266,7 @@ public class OrgCodeListServiceTests : IDisposable
         );
 
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(TargetOrg, targetRepository, Developer);
-        await orgListService.HandleSimpleCommit(editingContext, request);
+        await orgListService.HandleCommit(editingContext, request);
 
         // Assert
         _sourceControlMock.Verify(service => service.CheckoutRepoOnBranch(It.Is<AltinnRepoEditingContext>(actual => editingContext.Equals(actual)), "master"), Times.Once);
@@ -274,7 +274,7 @@ public class OrgCodeListServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleCommitWithFeatureBranch_OrchestratesSourceControl()
+    public async Task HandleDivergentCommit()
     {
         // Arrange
         const string GiteaCommitMessage = "some message";
@@ -305,7 +305,7 @@ public class OrgCodeListServiceTests : IDisposable
             CommitMessage: GiteaCommitMessage
         );
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(TargetOrg, targetRepository, Developer);
-        await orgListService.HandleCommitWithFeatureBranch(editingContext, request);
+        await orgListService.HandleDivergentCommit(editingContext, request);
 
         // Assert
         string expectedFeatureBranchName = editingContext.Developer;

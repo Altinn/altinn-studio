@@ -148,11 +148,11 @@ public class OrgCodeListService : IOrgCodeListService
         string latestCommitSha = await _gitea.GetLatestCommitOnBranch(org, repositoryName, General.DefaultBranch, cancellationToken);
         if (latestCommitSha == request.BaseCommitSha)
         {
-            await HandleSimpleCommit(editingContext, request, cancellationToken);
+            await HandleCommit(editingContext, request, cancellationToken);
         }
         else
         {
-            await HandleCommitWithFeatureBranch(editingContext, request, cancellationToken);
+            await HandleDivergentCommit(editingContext, request, cancellationToken);
         }
         bool pushOk = await _sourceControl.Push(org, repositoryName);
         if (!pushOk)
@@ -161,7 +161,7 @@ public class OrgCodeListService : IOrgCodeListService
         }
     }
 
-    internal async Task HandleSimpleCommit(AltinnRepoEditingContext editingContext, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
+    internal async Task HandleCommit(AltinnRepoEditingContext editingContext, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
     {
         _sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
         foreach (CodeListWrapper wrapper in request.CodeListWrappers)
@@ -171,7 +171,7 @@ public class OrgCodeListService : IOrgCodeListService
         _sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? DefaultCommitMessage);
     }
 
-    internal async Task HandleCommitWithFeatureBranch(AltinnRepoEditingContext editingContext, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
+    internal async Task HandleDivergentCommit(AltinnRepoEditingContext editingContext, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
     {
         string branchName = editingContext.Developer;
         _sourceControl.DeleteLocalBranchIfExists(editingContext, branchName);
