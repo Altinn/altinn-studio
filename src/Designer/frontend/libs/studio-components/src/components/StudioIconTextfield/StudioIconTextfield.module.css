@@ -13,7 +13,7 @@
 }
 
 .iconLabel p {
-  margin: var(--ds-size-2);
+  margin: 0 0 var(--ds-size-2);
 }
 
 .iconLabel:has(:nth-child(3)) {
