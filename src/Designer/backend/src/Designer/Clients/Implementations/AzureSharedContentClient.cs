@@ -217,8 +217,8 @@ public class AzureSharedContentClient(
         string codeListFilePath = CombineWithDelimiter(codeListFolderPath, codeListFileName);
         FileNamesAndContent[codeListFilePath] = contentsString;
 
-        string lastestCodeListFilePath = CombineWithDelimiter(codeListFolderPath, LatestCodeListFileName);
-        FileNamesAndContent[lastestCodeListFilePath] = contentsString;
+        string latestCodeListFilePath = CombineWithDelimiter(codeListFolderPath, LatestCodeListFileName);
+        FileNamesAndContent[latestCodeListFilePath] = contentsString;
     }
 
     internal async Task UploadBlobs(BlobContainerClient containerClient, CancellationToken cancellationToken = default)
