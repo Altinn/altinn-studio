@@ -39,7 +39,7 @@ spec:
       name: cpu
       target:
         type: Utilization
-        averageUtilization: 50
+        averageUtilization: 60
   behavior:
     scaleUp:
       stabilizationWindowSeconds: 0
@@ -57,21 +57,12 @@ spec:
         # If we've seen lots of traffic we should be careful when scaling down
         # So we should scale up quickly, but down slowly (at least slower)
         value: 1
-        periodSeconds: 30
+        periodSeconds: 60
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: pdf3-worker
-  annotations:
-    # Let's linkerd do topology (AZ) aware routing
-    # Since Azure bills for cross-AZ traffic,
-    # this is an optimization that might be worthwhile
-    # The idea is that application pods (which also have linkerd sidecars)
-    # will route PDF requests to pods residing in the same AZ.
-    # The linkerd sidecar uses the below annotation to make routing decisions.
-    # See doc: https://linkerd.io/2-edge/tasks/enabling-topology-aware-routing/
-    # service.kubernetes.io/topology-aware-hints: auto
 spec:
   # ClusterIP is the default and recommended type for internal services
   # Explicit declaration improves clarity and prevents accidental exposure
@@ -233,6 +224,9 @@ spec:
             # For a 1 CPU core + 1 GB RAM VM, current configuration
             # would fit 3 replicas on one 1 node
             requests:
+              # With the current nodes in AKS, the browser instance
+              # can easily saturate a core (1000m). But it won't do that
+              # all the time, so settling on 750m for reserving capacity
               cpu: 750m
               memory: 512Mi
           volumeMounts:
