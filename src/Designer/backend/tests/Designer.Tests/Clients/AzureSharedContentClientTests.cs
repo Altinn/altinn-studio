@@ -53,6 +53,51 @@ public class AzureSharedContentClientTests
     }
 
     [Fact]
+    public void CombineWithDelimiter_Nulls()
+    {
+        // Arrange
+        string? firstParam = null;
+        string? secondParam = null;
+        string expected = "";
+
+        // Act
+        string result = AzureSharedContentClient.CombineWithDelimiter(firstParam, secondParam);
+
+        // Assert
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void CombineWithDelimiter_LeftNull()
+    {
+        // Arrange
+        string? firstParam = null;
+        string? secondParam = "second";
+        string expected = "second";
+
+        // Act
+        string result = AzureSharedContentClient.CombineWithDelimiter(firstParam, secondParam);
+
+        // Assert
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void CombineWithDelimiter_RightNull()
+    {
+        // Arrange
+        string? firstParam = "first";
+        string? secondParam = null;
+        string expected = "first";
+
+        // Act
+        string result = AzureSharedContentClient.CombineWithDelimiter(firstParam, secondParam);
+
+        // Assert
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
     public void JsonFileName()
     {
         // Arrange
@@ -97,13 +142,12 @@ public class AzureSharedContentClientTests
     }
 
     [Fact]
-    public void AddIndexFile()
+    public async Task AddIndexFile()
     {
         // Arrange
         string indexPath = "ttd/_index.json";
         string prefix = "ttd/code_lists";
         List<string> prefixes = [prefix];
-        string expected = "{\r\n  \"prefixes\": [\r\n    \"ttd/code_lists\"\r\n  ]\r\n}";
         AzureSharedContentClient client = GetClientForTest();
 
         // Act
@@ -111,7 +155,7 @@ public class AzureSharedContentClientTests
 
         // Assert
         Assert.NotEmpty(client.FileNamesAndContent);
-        Assert.Equal(expected, client.FileNamesAndContent[indexPath]);
+        await Verifier.Verify(client.FileNamesAndContent);
     }
 
     [Fact]
