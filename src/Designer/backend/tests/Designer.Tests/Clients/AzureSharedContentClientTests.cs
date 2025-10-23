@@ -189,7 +189,7 @@ public class AzureSharedContentClientTests
     }
 
     [Fact]
-    public void UploadBlobs()
+    public async Task UploadBlobs()
     {
         // Arrange
         Mock<BlobClient> blobClientMock = new();
@@ -202,7 +202,7 @@ public class AzureSharedContentClientTests
         client.FileNamesAndContent["ttd/code_lists/someCodeList/1.json"] = content;
 
         // Act
-        client.UploadBlobs(containerClientMock.Object);
+        await client.UploadBlobs(containerClientMock.Object);
 
         // Assert
         blobClientMock

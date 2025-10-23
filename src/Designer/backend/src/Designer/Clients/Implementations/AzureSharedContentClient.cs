@@ -69,7 +69,7 @@ public class AzureSharedContentClient(
         string codeListFolderPath = CombineWithDelimiter(orgName, CodeList, codeListId);
         CreateCodeListFiles(codeList, codeListFolderPath, versionIndexPrefix);
 
-        UploadBlobs(containerClient, cancellationToken);
+        await UploadBlobs(containerClient, cancellationToken);
     }
 
     internal async Task HandleOrganizationIndex(string orgName, CancellationToken cancellationToken = default)
@@ -221,19 +221,15 @@ public class AzureSharedContentClient(
         FileNamesAndContent[lastestCodeListFilePath] = contentsString;
     }
 
-    internal void UploadBlobs(BlobContainerClient containerClient, CancellationToken cancellationToken = default)
+    internal async Task UploadBlobs(BlobContainerClient containerClient, CancellationToken cancellationToken = default)
     {
         var options = new ParallelOptions { MaxDegreeOfParallelism = 10, CancellationToken = cancellationToken };
-
-        Parallel
-            .ForEachAsync(FileNamesAndContent, options, async (fileNameAndContent, token) =>
-                {
-                    BlobClient blobClient = containerClient.GetBlobClient(fileNameAndContent.Key);
-                    BinaryData content = BinaryData.FromString(fileNameAndContent.Value);
-                    await blobClient.UploadAsync(content, overwrite: true, token);
-                })
-            .GetAwaiter()
-            .GetResult();
+        await Parallel.ForEachAsync(FileNamesAndContent, options, async (fileNameAndContent, token) =>
+        {
+            BlobClient blobClient = containerClient.GetBlobClient(fileNameAndContent.Key);
+            BinaryData content = BinaryData.FromString(fileNameAndContent.Value);
+            await blobClient.UploadAsync(content, overwrite: true, token);
+        });
     }
 
     internal async Task ThrowIfUnhealthy(BlobContainerClient client, CancellationToken cancellationToken = default)
