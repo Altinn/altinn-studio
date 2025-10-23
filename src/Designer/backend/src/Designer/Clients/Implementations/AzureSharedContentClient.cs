@@ -123,8 +123,6 @@ public class AzureSharedContentClient(
                 logger.LogError($"Unexpected response code: {response.StatusCode}, class: ${nameof(AzureSharedContentClient)}");
                 throw new InvalidOperationException($"Request failed, class: {nameof(AzureSharedContentClient)}");
         }
-
-        await HandleResponse(response, content, path, cancellationToken);
     }
 
     private async Task HandleResponse(HttpResponseMessage response, string content, string path, CancellationToken cancellationToken = default)
@@ -168,6 +166,13 @@ public class AzureSharedContentClient(
     )
     {
         string versionsIndexString = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        if (string.IsNullOrEmpty(versionsIndexString))
+        {
+            AddIndexFile(versionIndexPath, [CombineWithDelimiter(versionIndexPrefix, JsonFileName(InitialVersion))]);
+            return;
+        }
+
         IndexFile? versionsIndex = JsonSerializer.Deserialize<IndexFile?>(versionsIndexString, s_jsonOptions);
         List<string>? versions = versionsIndex?.Prefixes;
 
@@ -255,9 +260,10 @@ public class AzureSharedContentClient(
     /// Combines with forward slash delimiter, no trailing slash.
     /// </summary>
     /// <param name="segments">Segments to join</param>
-    internal static string CombineWithDelimiter(params string[] segments)
+    internal static string CombineWithDelimiter(params string?[] segments)
     {
-        return string.Join('/', segments.Select(segment => segment.Trim('/')));
+        IEnumerable<string?> nonNulls = segments.Where(segment => segment is not null);
+        return string.Join('/', nonNulls.Select(segment => segment?.Trim('/')));
     }
 
     internal static string JsonFileName(string filename) => $"{filename}.json";
