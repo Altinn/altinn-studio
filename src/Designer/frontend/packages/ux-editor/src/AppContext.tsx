@@ -6,7 +6,7 @@ import { useSelectedFormLayoutSetName } from 'app-shared/hooks/useSelectedFormLa
 import { AppsQueryKey } from 'app-shared/types/AppsQueryKey';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioPageSpinner } from '@studio/components-legacy';
+import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { ItemType } from './components/Properties/ItemType';
 

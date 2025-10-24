@@ -1,7 +1,7 @@
 import React from 'react';
 import type { LangCode } from '@altinn/text-editor';
 import { TextEditor as TextEditorImpl, defaultLangCode } from '@altinn/text-editor';
-import { StudioPageSpinner } from '@studio/components-legacy';
+import { StudioPageSpinner } from '@studio/components';
 import { useLocalStorage } from '@studio/components-legacy/src/hooks/useLocalStorage';
 import { useSearchParams } from 'react-router-dom';
 import type { TextResourceIdMutation } from '@altinn/text-editor/types';
