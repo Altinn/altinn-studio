@@ -118,7 +118,7 @@ public class AzureSharedContentClient(
                 AddIndexFile(path, [content]);
                 break;
             default:
-                logger.LogError($"Unexpected response code: {response.StatusCode}, class: ${nameof(AzureSharedContentClient)}");
+                logger.LogError("Unexpected response code: {StatusCode}, class: ${Client}", response.StatusCode, nameof(AzureSharedContentClient));
                 throw new InvalidOperationException($"Request failed, class: {nameof(AzureSharedContentClient)}");
         }
     }
@@ -134,7 +134,7 @@ public class AzureSharedContentClient(
                 AddIndexFile(path, [content]);
                 break;
             default:
-                logger.LogError($"Unexpected response code: {response.StatusCode}, class: ${nameof(AzureSharedContentClient)}");
+                logger.LogError("Unexpected response code: {StatusCode}, class: ${Client}", response.StatusCode, nameof(AzureSharedContentClient));
                 throw new InvalidOperationException($"Request failed, class: {nameof(AzureSharedContentClient)}");
         }
     }
