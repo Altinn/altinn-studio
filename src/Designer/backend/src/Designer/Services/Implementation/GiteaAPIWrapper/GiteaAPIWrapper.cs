@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -13,7 +12,6 @@ using System.Web;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -526,28 +524,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             FileSystemObject[] files = await Task.WhenAll(tasks);
             return [.. files.Where(file => file is not null)];
-        }
-
-        /// <inheritdoc/>
-        public async Task<bool> ModifyMultipleFiles(string org, string repository, GiteaMultipleFilesDto files, CancellationToken cancellationToken = default)
-        {
-            string content = JsonSerializer.Serialize(files, s_jsonOptions);
-            using HttpResponseMessage response = await _httpClient.PostAsync($"repos/{org}/{repository}/contents", new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json), cancellationToken);
-            if (!response.IsSuccessStatusCode)
-            {
-                string body = await response.Content.ReadAsStringAsync(cancellationToken);
-                GiteaBadRequestDto failureResponse = JsonSerializer.Deserialize<GiteaBadRequestDto>(body);
-                string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-                _logger.LogError("User {developer} - ModifyMultipleFiles failed with status code {statusCode} for {org}/{repository}. Url: {url}, Message: {message}",
-                    developer,
-                    response.StatusCode,
-                    org,
-                    repository,
-                    failureResponse?.Url,
-                    failureResponse?.Message ?? body
-                );
-            }
-            return response.IsSuccessStatusCode;
         }
 
         /// <inheritdoc/>
