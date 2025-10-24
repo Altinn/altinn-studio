@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -99,13 +100,32 @@ public class OrgCodeListController : ControllerBase
         try
         {
             await _orgCodeListService.UpdateCodeListsNew(org, developer, requestBody, cancellationToken);
+            return Ok();
         }
         catch (Exception ex) when (ex is IllegalFileNameException or IllegalCommitMessageException)
         {
             return BadRequest(ex.Message);
         }
 
-        return Ok();
+    }
+
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Route("new/publish")]
+    public async Task<ActionResult> PublishCodeList(string org, [FromBody] PublishCodeListRequest requestBody, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        try
+        {
+            await _orgCodeListService.PublishCodeList(org, requestBody, cancellationToken);
+            return Ok();
+        }
+        catch (Exception ex) when (ex is ConfigurationErrorsException or IllegalFileNameException or ArgumentNullException)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     /// <summary>
