@@ -75,10 +75,11 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainer
 	// Step 1: Setup cluster
 	// We run this asynchronously as bootstrapping a full kind cluster takes some time.
 	// As long as the registry is started, we can start building stuff on our side
-	registryStartedEvent := make(chan struct{}, 1)
+	registryStartedEvent := make(chan error, 1)
+	ingressReadyEvent := make(chan error, 1)
 	runtimeResult := make(chan Result[*kind.KindContainerRuntime], 1)
 	go func() {
-		runtime, err := harness.SetupCluster(variant, registryStartedEvent)
+		runtime, err := harness.SetupCluster(variant, registryStartedEvent, ingressReadyEvent)
 		runtimeResult <- NewResult(runtime, err)
 	}()
 
@@ -143,6 +144,15 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainer
 	_, err = harness.DeployPdf3ViaFlux(variant, imagesChanged, kustomizeChanged)
 	if err != nil {
 		return nil, fmt.Errorf("failed to deploy pdf3: %w", err)
+	}
+
+	// Step 5: let's wait for ingress
+	fmt.Printf("Waiting for ingress...\n")
+	start := time.Now()
+	err = <-ingressReadyEvent
+	harness.LogDuration("Waited for ingress", start)
+	if err != nil {
+		return nil, fmt.Errorf("failed to wait for ingress: %w", err)
 	}
 
 	fmt.Println("✓ Runtime setup complete")

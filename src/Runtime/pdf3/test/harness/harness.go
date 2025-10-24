@@ -31,9 +31,9 @@ var (
 	cachePath     = ".cache"
 )
 
-// logDuration logs the duration of an operation
-// Usage: defer logDuration("Operation name", time.Now())
-func logDuration(stepName string, start time.Time) {
+// LogDuration logs the duration of an operation
+// Usage: defer LogDuration("Operation name", time.Now())
+func LogDuration(stepName string, start time.Time) {
 	fmt.Printf("  [%s took %s]\n", stepName, time.Since(start))
 }
 
@@ -279,7 +279,11 @@ func FindProjectRoot() (string, error) {
 }
 
 // SetupCluster starts the Kind container runtime with all dependencies
-func SetupCluster(variant kind.KindContainerRuntimeVariant, registryStartedEvent chan<- struct{}) (*kind.KindContainerRuntime, error) {
+func SetupCluster(
+	variant kind.KindContainerRuntimeVariant,
+	registryStartedEvent chan<- error,
+	ingressReadyEvent chan<- error,
+) (*kind.KindContainerRuntime, error) {
 	fmt.Println("=== Setting up Kind cluster ===")
 	overallStart := time.Now()
 
@@ -298,16 +302,17 @@ func SetupCluster(variant kind.KindContainerRuntimeVariant, registryStartedEvent
 		return nil, fmt.Errorf("failed to create kind runtime: %w", err)
 	}
 	Runtime.RegistryStartedEvent = registryStartedEvent
+	Runtime.IngressReadyEvent = ingressReadyEvent
 
 	// Run the runtime (idempotent)
 	start := time.Now()
 	if err := Runtime.Run(); err != nil {
 		return nil, fmt.Errorf("failed to run kind runtime: %w", err)
 	}
-	logDuration("Run Kind runtime", start)
+	LogDuration("Run Kind runtime", start)
 
 	fmt.Println("✓ Kind cluster ready")
-	logDuration("Setup Kind cluster (total)", overallStart)
+	LogDuration("Setup Kind cluster (total)", overallStart)
 	return Runtime, nil
 }
 
@@ -346,7 +351,7 @@ func BuildAndPushImages() (bool, error) {
 
 	if cachedHash == currentHash {
 		fmt.Println("No source changes detected, skipping image rebuild")
-		logDuration("Build and push images (skipped)", overallStart)
+		LogDuration("Build and push images (skipped)", overallStart)
 		return false, nil
 	}
 
@@ -358,7 +363,7 @@ func BuildAndPushImages() (bool, error) {
 	if err := Runtime.ContainerClient.Build(projectRoot, "Dockerfile.proxy", "localhost:5001/runtime-pdf3-proxy:latest"); err != nil {
 		return false, err
 	}
-	logDuration("Build proxy image", start)
+	LogDuration("Build proxy image", start)
 
 	// Build worker image
 	fmt.Println("Building worker image...")
@@ -366,7 +371,7 @@ func BuildAndPushImages() (bool, error) {
 	if err := Runtime.ContainerClient.Build(projectRoot, "Dockerfile.worker", "localhost:5001/runtime-pdf3-worker:latest"); err != nil {
 		return false, err
 	}
-	logDuration("Build worker image", start)
+	LogDuration("Build worker image", start)
 
 	// Push images to registry
 	fmt.Println("Pushing images to registry...")
@@ -381,7 +386,7 @@ func BuildAndPushImages() (bool, error) {
 	if err := Runtime.ContainerClient.Push("localhost:5001/runtime-pdf3-worker:latest"); err != nil {
 		return false, err
 	}
-	logDuration("Push images to registry", start)
+	LogDuration("Push images to registry", start)
 
 	// Update cached checksum
 	if err := writeCachedChecksum(projectRoot, "docker-images", currentHash); err != nil {
@@ -389,7 +394,7 @@ func BuildAndPushImages() (bool, error) {
 	}
 
 	fmt.Println("✓ Images built and pushed")
-	logDuration("Build and push images (total)", overallStart)
+	LogDuration("Build and push images (total)", overallStart)
 	return true, nil
 }
 
@@ -424,7 +429,7 @@ func PushKustomizeArtifact() (bool, error) {
 
 	if cachedHash == currentHash {
 		fmt.Println("No kustomize changes detected, skipping artifact push")
-		logDuration("Push kustomize artifact (skipped)", overallStart)
+		LogDuration("Push kustomize artifact (skipped)", overallStart)
 		return false, nil
 	}
 
@@ -443,7 +448,7 @@ func PushKustomizeArtifact() (bool, error) {
 	); err != nil {
 		return false, err
 	}
-	logDuration("Push artifact to OCI registry", start)
+	LogDuration("Push artifact to OCI registry", start)
 
 	// Update cached checksum
 	if err := writeCachedChecksum(projectRoot, "kustomize", currentHash); err != nil {
@@ -451,7 +456,7 @@ func PushKustomizeArtifact() (bool, error) {
 	}
 
 	fmt.Println("✓ Kustomize artifact pushed")
-	logDuration("Push kustomize artifact (total)", overallStart)
+	LogDuration("Push kustomize artifact (total)", overallStart)
 	return true, nil
 }
 
@@ -479,7 +484,7 @@ func DeployPdf3ViaFlux(variant kind.KindContainerRuntimeVariant, imagesChanged, 
 	// Skip deployment if nothing changed and deployments already exist
 	if !imagesChanged && !kustomizeChanged && deploymentsExist() {
 		fmt.Println("No changes detected and deployments exist, skipping deployment")
-		logDuration("Deploy pdf3 via Flux (skipped)", overallStart)
+		LogDuration("Deploy pdf3 via Flux (skipped)", overallStart)
 		return false, nil
 	}
 
@@ -509,7 +514,7 @@ func DeployPdf3ViaFlux(variant kind.KindContainerRuntimeVariant, imagesChanged, 
 	if _, err := Runtime.KubernetesClient.ApplyManifest(manifest); err != nil {
 		return false, fmt.Errorf("failed to apply manifest: %w", err)
 	}
-	logDuration("Apply pdf3 manifest", start)
+	LogDuration("Apply pdf3 manifest", start)
 
 	// Default reconcile options (blocking/synchronous)
 	reconcileOpts := flux.DefaultReconcileOptions()
@@ -520,27 +525,27 @@ func DeployPdf3ViaFlux(variant kind.KindContainerRuntimeVariant, imagesChanged, 
 	if err := Runtime.FluxClient.ReconcileKustomization("pdf3-app", "runtime-pdf3", true, reconcileOpts); err != nil {
 		return false, fmt.Errorf("failed to reconcile Kustomization: %w", err)
 	}
-	logDuration("Reconcile Kustomization", start)
+	LogDuration("Reconcile Kustomization", start)
 
 	fmt.Println("✓ Flux reconciliation complete")
 
 	// Wait for deployments to be ready
 	fmt.Println("Waiting for pdf3-proxy deployment...")
 	start = time.Now()
-	if err := Runtime.KubernetesClient.RolloutStatus("pdf3-proxy", "runtime-pdf3", 120*time.Second); err != nil {
+	if err := Runtime.KubernetesClient.RolloutStatus("pdf3-proxy", "runtime-pdf3", 2*time.Minute); err != nil {
 		return false, fmt.Errorf("failed waiting for pdf3-proxy: %w", err)
 	}
-	logDuration("Wait for pdf3-proxy deployment", start)
+	LogDuration("Wait for pdf3-proxy deployment", start)
 
 	fmt.Println("Waiting for pdf3-worker deployment...")
 	start = time.Now()
-	if err := Runtime.KubernetesClient.RolloutStatus("pdf3-worker", "runtime-pdf3", 120*time.Second); err != nil {
+	if err := Runtime.KubernetesClient.RolloutStatus("pdf3-worker", "runtime-pdf3", 2*time.Minute); err != nil {
 		return false, fmt.Errorf("failed waiting for pdf3-worker: %w", err)
 	}
-	logDuration("Wait for pdf3-worker deployment", start)
+	LogDuration("Wait for pdf3-worker deployment", start)
 
 	fmt.Println("✓ pdf3 deployed via Flux")
-	logDuration("Deploy pdf3 via Flux (total)", overallStart)
+	LogDuration("Deploy pdf3 via Flux (total)", overallStart)
 	return true, nil
 }
 

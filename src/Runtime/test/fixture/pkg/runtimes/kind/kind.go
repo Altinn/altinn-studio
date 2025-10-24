@@ -65,7 +65,8 @@ type KindContainerRuntime struct {
 	KindClient       *kindcli.KindClient
 	KubernetesClient *kubernetes.KubernetesClient
 
-	RegistryStartedEvent chan<- struct{}
+	RegistryStartedEvent chan<- error
+	IngressReadyEvent    chan<- error
 }
 
 // logDuration logs the duration of an operation
@@ -313,7 +314,9 @@ func (r *KindContainerRuntime) Run() error {
 
 	if r.RegistryStartedEvent != nil {
 		go func() {
-			timeout := 5 * time.Second
+			succeeded := false
+			defer func() { fmt.Printf("Done waiting for registry. Succeeded=%t\n", succeeded) }()
+			timeout := 30 * time.Second
 			deadline := time.Now().Add(timeout)
 
 			httpClient := &http.Client{
@@ -321,18 +324,21 @@ func (r *KindContainerRuntime) Run() error {
 			}
 
 			for !time.Now().After(deadline) {
-
 				resp, err := httpClient.Get("http://localhost:5001/v2/")
-				if err != nil {
-					continue
-				}
-				status := resp.StatusCode
-				_ = resp.Body.Close()
-				if status == http.StatusOK {
+				if err == nil && resp.StatusCode == http.StatusOK {
+					_ = resp.Body.Close()
+					succeeded = true
 					break
+				} else if resp != nil {
+					_ = resp.Body.Close()
 				}
+				time.Sleep(250 * time.Millisecond)
 			}
-			close(r.RegistryStartedEvent)
+			if succeeded {
+				r.RegistryStartedEvent <- nil
+			} else {
+				r.RegistryStartedEvent <- fmt.Errorf("timed out waiting for registry")
+			}
 		}()
 	}
 

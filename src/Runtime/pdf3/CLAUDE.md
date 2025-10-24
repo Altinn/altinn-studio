@@ -141,7 +141,7 @@ make check                # Complete CI check (tidy, fmt, lint, test)
 
 ### Deployment
 
-**Local**: KindCotainerRuntime-based fixture
+**Local**: KindContainerRuntime-based fixture
 
 **Manifests**: `infra/kustomize/`
 - `base/` - Base deployment configs
