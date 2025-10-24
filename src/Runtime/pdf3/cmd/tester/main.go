@@ -505,6 +505,7 @@ func runLoadtestEnv() {
 	}
 	fmt.Printf("✓ Chrome found at: %s\n", chromePath)
 	env = append(env, fmt.Sprintf("K6_BROWSER_EXECUTABLE_PATH=%s", chromePath))
+	env = append(env, "K6_WEB_DASHBOARD=true")
 
 	// Get k6 binary path from installer
 	k6Tool, err := installer.GetToolInfo("k6")

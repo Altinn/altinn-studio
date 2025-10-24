@@ -48,6 +48,13 @@ func run() error {
 	}
 }
 
+func validateEnvironment(environment string) error {
+	if environment != "at22" && environment != "at24" && environment != "tt02" && environment != "prod" {
+		return fmt.Errorf("invalid environment: %s (expected: at22, at24, tt02, or prod)", environment)
+	}
+	return nil
+}
+
 func runSetWeight() error {
 	setWeightCmd := flag.NewFlagSet("set-weight", flag.ExitOnError)
 	serviceowner := setWeightCmd.String("serviceowner", "", "Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
@@ -96,8 +103,8 @@ func runSetWeight() error {
 		return fmt.Errorf("weights must sum to 100 (got weight1=%d + weight2=%d = %d)", weight1, weight2, weight1+weight2)
 	}
 
-	if environment != "at22" && environment != "at24" && environment != "tt02" && environment != "prod" {
-		return fmt.Errorf("invalid environment: %s (expected: at22, at24, tt02, or prod)", environment)
+	if err := validateEnvironment(environment); err != nil {
+		return err
 	}
 
 	fmt.Println("Validating prerequisites...")
@@ -242,8 +249,8 @@ func runStatus() error {
 	resourceTypeStr := args[1]
 	namespaceAndName := args[2]
 
-	if environment != "at22" && environment != "at24" && environment != "tt02" && environment != "prod" {
-		return fmt.Errorf("invalid environment: %s (expected: at22, tt02, or prod)", environment)
+	if err := validateEnvironment(environment); err != nil {
+		return err
 	}
 
 	resourceType, err := kubernetes.ParseResourceType(resourceTypeStr)
@@ -363,8 +370,8 @@ func runExec() error {
 	commandArgs := args[2:]
 
 	// Validate environment
-	if environment != "at22" && environment != "at24" && environment != "tt02" && environment != "prod" {
-		return fmt.Errorf("invalid environment: %s (expected: at22, at24, tt02, or prod)", environment)
+	if err := validateEnvironment(environment); err != nil {
+		return err
 	}
 
 	// Validate command and get context flag

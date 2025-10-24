@@ -3,27 +3,23 @@ import encoding from 'k6/encoding';
 import { check } from 'k6';
 import { expect } from 'https://jslib.k6.io/k6-testing/0.5.0/index.js';
 
-// Uses app
-// - https://altinn.studio/editor/ttd/subform-test/overview
-// - https://ttd.apps.at24.altinn.cloud/ttd/subform-test/
-const PID = "43913000170";
-const PARTY_ID = "50940728";
-const USER_ID = "20847028";
-const APP_OWNER = "ttd";
-const APP_NAME = "subform-test";
-const SCOPES = "altinn:portal/enduser";
-const INSTANCE_ID="3751c1ea-747f-4104-ba00-4d48211ebd2e"
-const ENV = "at24";
+const requiredEnvVars = ['PID', 'PARTY_ID', 'USER_ID', 'INSTANCE_ID', 'ENV', 'SCOPES', 'APP_OWNER', 'APP_NAME'];
+const missingVars = requiredEnvVars.filter(varName => !__ENV[varName]);
+if (missingVars.length > 0) {
+  throw new Error(`Missing required environment variables: ${missingVars.join(', ')}. Please set these before running the test to avoid accidentally committing secrets.`);
+}
+
+const PID = __ENV.PID;
+const PARTY_ID = __ENV.PARTY_ID;
+const USER_ID = __ENV.USER_ID;
+const INSTANCE_ID = __ENV.INSTANCE_ID;
+const ENV = __ENV.ENV;
+const APP_OWNER = __ENV.APP_OWNER;
+const APP_NAME = __ENV.APP_NAME;
+const SCOPES = __ENV.SCOPES;
 const ENCODED_SCOPES = encodeURIComponent(SCOPES);
-const TOP_DOMAIN = "altinn.cloud";
-// const PARTY_ID = "51242501";
-// const USER_ID = "2185701";
-// const APP_OWNER = "ttd";
-// const APP_NAME = "martinotest";
-// const SCOPES = "altinn:instances.read altinn:instances.write";
-// const ENV = "tt02";
-// const ENCODED_SCOPES = encodeURIComponent(SCOPES);
-// const TOP_DOMAIN = "altinn.no";
+// AT environments (at21, at22, at23, at24, etc.) use altinn.cloud, others use altinn.no
+const TOP_DOMAIN = ENV.toLowerCase().startsWith('at') ? 'altinn.cloud' : 'altinn.no';
 const BASE_URL = `https://${APP_OWNER}.apps.${ENV}.${TOP_DOMAIN}/${APP_OWNER}/${APP_NAME}`;
 
 const TEST_TOOLS_USERNAME = __ENV.ALTINN_TESTTOOLS_USERNAME;
@@ -35,8 +31,8 @@ export const options = {
       executor: 'constant-arrival-rate',
       rate: 3,
       timeUnit: '1s',
-      duration: '120s',
-      gracefulStop: '0s',
+      duration: '5m',
+      gracefulStop: '30s',
       preAllocatedVUs: 20,
       maxVUs: 50,
       // options: {
@@ -88,7 +84,7 @@ export default async function(data) {
   // 2. Render PDF preview for empty instance for now
   const preview = http.get(
     `${BASE_URL}/instances/${PARTY_ID}/${INSTANCE_ID}/pdf/preview`,
-    { headers: headers }
+    { headers: headers, timeout: '30s' }
   );
   check(preview, {
     'PDF rendering succeeds': r => (
