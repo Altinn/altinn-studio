@@ -1,7 +1,6 @@
 import React from 'react';
 import classes from './SubResources.module.css';
-import { StudioLabelAsParagraph } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import { ResourceNarrowingList } from './ResourceNarrowingList';
 import { useTranslation } from 'react-i18next';
@@ -51,7 +50,7 @@ export const SubResources = (): React.ReactElement => {
 
   return (
     <>
-      <StudioLabelAsParagraph className={classes.label} size='small'>
+      <StudioLabelAsParagraph className={classes.label} data-size='sm'>
         {t('policy_editor.rule_card_sub_resource_title')}
       </StudioLabelAsParagraph>
       {displayResources}

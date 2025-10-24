@@ -1,0 +1,575 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "Grid-NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "size": "h2",
+        "id": "Grid-Header",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Grid"
+        }
+      },
+      {
+        "size": "h3",
+        "id": "GridPage-Header-Component",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Component"
+        }
+      },
+      {
+        "id": "all-grid-components",
+        "type": "Grid",
+        "textResourceBindings": {
+          "title": "Grid.Title",
+          "description": "Grid.Description"
+        },
+        "rows": [
+          {
+            "header": true,
+            "cells": [
+              {
+                "text": "Komponenttype"
+              },
+              {
+                "text": "Eksempel"
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "text": "Button"
+              },
+              {
+                "component": "grid-example-button"
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "text": "PrintButton"
+              },
+              {
+                "component": "grid-example-print-button"
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "text": "InstantiationButton"
+              },
+              {
+                "component": "grid-example-instantiation-button"
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "text": "Header"
+              },
+              {
+                "component": "grid-example-header"
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "text": "Paragraph"
+              },
+              {
+                "component": "grid-example-paragraph"
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "text": "Image"
+              },
+              {
+                "component": "grid-example-image"
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "text": "Datepicker"
+              },
+              {
+                "component": "grid-example-datepicker"
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "text": "Dropdown"
+              },
+              {
+                "component": "grid-example-dropdown"
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "text": "MultipleSelect"
+              },
+              {
+                "component": "grid-example-multiple-select"
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "text": "TextArea"
+              },
+              {
+                "component": "grid-example-text-area"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "grid-example-button",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "A button example"
+        }
+      },
+      {
+        "id": "grid-example-print-button",
+        "type": "PrintButton",
+        "textResourceBindings": {
+          "title": "Print button example"
+        }
+      },
+      {
+        "id": "grid-example-instantiation-button",
+        "type": "InstantiationButton",
+        "textResourceBindings": {
+          "title": "Instantiation button example"
+        }
+      },
+      {
+        "id": "grid-example-datepicker",
+        "type": "Datepicker",
+        "textResourceBindings": {
+          "title": "Datepicker example"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleDate"
+        }
+      },
+      {
+        "id": "grid-example-dropdown",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Dropdown example"
+        },
+        "optionsId": "reasons",
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleDropdown"
+        }
+      },
+      {
+        "id": "grid-example-header",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header example"
+        },
+        "size": "h2"
+      },
+      {
+        "id": "grid-example-image",
+        "type": "Image",
+        "textResourceBindings": {
+          "altTextImg": "Altinn logo"
+        },
+        "image": {
+          "src": {
+            "nb": "assets/altinn-logo.svg"
+          },
+          "width": "100%",
+          "align": "flex-start"
+        }
+      },
+      {
+        "id": "grid-example-multiple-select",
+        "type": "MultipleSelect",
+        "textResourceBindings": {
+          "title": "Multiple select example"
+        },
+        "optionsId": "reasons",
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleMultiSelect"
+        }
+      },
+      {
+        "id": "grid-example-paragraph",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Paragraph example"
+        }
+      },
+      {
+        "id": "grid-example-text-area",
+        "type": "TextArea",
+        "textResourceBindings": {
+          "title": "Text area example"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleTextArea"
+        }
+      },
+      {
+        "id": "grid-example-common-fields",
+        "type": "Grid",
+        "textResourceBindings": {
+          "title": "Grid.Title",
+          "description": "Grid.Description"
+        },
+        "rows": [
+          {
+            "header": true,
+            "readOnly": false,
+            "cells": [
+              {
+                "text": "Row number"
+              },
+              {
+                "labelFrom": "grid-input-field"
+              },
+              {
+                "text": "heading2"
+              },
+              {
+                "text": "heading3"
+              }
+            ]
+          },
+          {
+            "header": false,
+            "readOnly": false,
+            "cells": [
+              {
+                "text": "Row 1"
+              },
+              {
+                "component": "grid-input-field"
+              },
+              {
+                "component": "grid-checkbox-field"
+              },
+              {
+                "component": "grid-radio-field"
+              }
+            ]
+          },
+          {
+            "header": false,
+            "readOnly": false,
+            "cells": [
+              {
+                "text": "Row 2"
+              },
+              {
+                "component": "grid-input-field-two"
+              },
+              {
+                "component": "grid-checkbox-field-two"
+              },
+              {
+                "component": "grid-radio-field-two"
+              }
+            ]
+          },
+          {
+            "header": false,
+            "readOnly": false,
+            "cells": [
+              {
+                "text": "Row 3"
+              },
+              {
+                "component": "grid-input-field-three"
+              },
+              {
+                "component": "grid-checkbox-field-three"
+              },
+              {
+                "component": "grid-radio-field-three"
+              }
+            ]
+          },
+          {
+            "readOnly": true,
+            "cells": [
+              {
+                "text": "Row 1 - readonly"
+              },
+              {
+                "component": "grid-input-field-readonly"
+              },
+              {
+                "component": "grid-checkbox-field-readonly"
+              },
+              {
+                "component": "grid-radio-field-readonly"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "grid-input-field",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Grid.Input.Title"
+        },
+        "required": false,
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleInput"
+        }
+      },
+      {
+        "id": "grid-radio-field",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "My radio field"
+        },
+        "options": [
+          {
+            "label": "Ja",
+            "value": "option1"
+          },
+          {
+            "label": "Nei",
+            "value": "option2"
+          }
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleRadio"
+        }
+      },
+      {
+        "id": "grid-checkbox-field",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "My radio field"
+        },
+        "options": [
+          {
+            "label": "Valg 1",
+            "value": "option1"
+          },
+          {
+            "label": "Valg 2",
+            "value": "option2"
+          },
+          {
+            "label": "Valg 3",
+            "value": "option3"
+          }
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleCheckbox"
+        }
+      },
+      {
+        "id": "grid-input-field-two",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "My input field"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleInputTwo"
+        }
+      },
+      {
+        "id": "grid-radio-field-two",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "My radio field"
+        },
+        "options": [
+          {
+            "label": "Ja",
+            "value": "option1"
+          },
+          {
+            "label": "Nei",
+            "value": "option2"
+          }
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleRadioTwo"
+        }
+      },
+      {
+        "id": "grid-checkbox-field-two",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "My radio field"
+        },
+        "options": [
+          {
+            "label": "Valg 1",
+            "value": "option1"
+          },
+          {
+            "label": "Valg 2",
+            "value": "option2"
+          },
+          {
+            "label": "Valg 3",
+            "value": "option3"
+          }
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleCheckboxTwo"
+        }
+      },
+      {
+        "id": "grid-input-field-three",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "My input field"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleInputThree"
+        }
+      },
+      {
+        "id": "grid-radio-field-three",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "My radio field"
+        },
+        "options": [
+          {
+            "label": "Ja",
+            "value": "option1"
+          },
+          {
+            "label": "Nei",
+            "value": "option2"
+          }
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleRadioThree"
+        }
+      },
+      {
+        "id": "grid-checkbox-field-three",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "My radio field"
+        },
+        "options": [
+          {
+            "label": "Valg 1",
+            "value": "option1"
+          },
+          {
+            "label": "Valg 2",
+            "value": "option2"
+          },
+          {
+            "label": "Valg 3",
+            "value": "option3"
+          }
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleCheckboxThree"
+        }
+      },
+      {
+        "id": "grid-input-field-readonly",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "My input field"
+        },
+        "readOnly": true,
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleInput"
+        }
+      },
+      {
+        "id": "grid-radio-field-readonly",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "My radio field"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleRadio"
+        },
+        "readOnly": true
+      },
+      {
+        "id": "grid-checkbox-field-readonly",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "My radio field"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleCheckbox"
+        },
+        "readOnly": true
+      },
+      {
+        "size": "h3",
+        "id": "GridPage-Header-Summary",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Summary"
+        }
+      },
+      {
+        "id": "old-summary",
+        "type": "Summary",
+        "componentRef": "all-grid-components"
+      },
+      {
+        "id": "old-summary-common-fields",
+        "type": "Summary",
+        "componentRef": "grid-example-common-fields"
+      },
+      {
+        "size": "h3",
+        "id": "GridPage-Header-Summary2",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Summary2"
+        }
+      },
+      {
+        "id": "new-summary",
+        "type": "Summary2",
+        "target": {
+          "type": "page",
+          "id": "GridPage"
+        }
+      },
+      {
+        "id": "NavigationButtons-nkqJlY",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      }
+    ]
+  }
+}

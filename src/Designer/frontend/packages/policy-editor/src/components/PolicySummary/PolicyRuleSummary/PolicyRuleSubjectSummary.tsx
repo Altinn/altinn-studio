@@ -1,6 +1,7 @@
 import React from 'react';
 import { usePolicyEditorContext } from '../../../contexts/PolicyEditorContext';
-import { StudioTable, StudioTag } from '@studio/components-legacy';
+import { StudioTable } from '@studio/components-legacy';
+import { StudioTag } from '@studio/components';
 import {
   getSubjectCategoryTextKey,
   getSubjectDisplayName,
@@ -38,7 +39,11 @@ export const PolicyRuleSubjectSummary = ({
               {actionsForRole[action]
                 ? ArrayUtils.getArrayFromString(actionsForRole[action]).map((subResource) => {
                     return (
-                      <StudioTag size='sm' key={`${subject}-${action}-${subResource}`} color='info'>
+                      <StudioTag
+                        data-size='sm'
+                        key={`${subject}-${action}-${subResource}`}
+                        data-color='info'
+                      >
                         {subResource}
                       </StudioTag>
                     );

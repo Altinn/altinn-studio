@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Dropzone from 'react-dropzone';
 
-import { Combobox, Fieldset } from '@digdir/designsystemet-react';
+import { EXPERIMENTAL_Suggestion as Suggestion, Fieldset } from '@digdir/designsystemet-react';
 import { DownloadIcon, UploadIcon } from '@navikt/aksel-icons';
 import axios from 'axios';
 
@@ -11,6 +11,8 @@ import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useIsInFormContext } from 'src/features/form/FormContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import comboboxClasses from 'src/styles/combobox.module.css';
+import { optionFilter } from 'src/utils/options';
 import { getStatefulDataModelUrl } from 'src/utils/urls/appUrlHelper';
 
 export function DownloadXMLButton() {
@@ -69,25 +71,34 @@ const InnerDownloadXMLButton = () => {
       }
     }
   };
+
   return (
     <Fieldset>
-      <Fieldset.Legend>Skejmadata</Fieldset.Legend>
+      <Fieldset.Legend>Skjemadata</Fieldset.Legend>
       {writableDataTypes?.length > 1 && (
-        <Combobox
-          size='sm'
-          value={selectedDataType ? [selectedDataType] : []}
-          onValueChange={(values) => setSelectedDataType(values.at(0))}
+        <Suggestion
+          multiple={false}
+          filter={optionFilter}
+          data-size='sm'
+          selected={selectedDataType ? { value: selectedDataType, label: selectedDataType } : undefined}
+          className={comboboxClasses.container}
+          style={{ width: '100%' }}
         >
-          {writableDataTypes.map((dataType) => (
-            <Combobox.Option
-              key={dataType}
-              value={dataType}
-              displayValue={dataType}
-            >
-              {dataType}
-            </Combobox.Option>
-          ))}
-        </Combobox>
+          <Suggestion.Input aria-label='Velg datatype' />
+          <Suggestion.List>
+            <Suggestion.Empty>Ingen datatyper funnet</Suggestion.Empty>
+            {writableDataTypes.map((dataType) => (
+              <Suggestion.Option
+                key={dataType}
+                value={dataType}
+                label={dataType}
+                onClick={() => setSelectedDataType(dataType)}
+              >
+                {dataType}
+              </Suggestion.Option>
+            ))}
+          </Suggestion.List>
+        </Suggestion>
       )}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <Button

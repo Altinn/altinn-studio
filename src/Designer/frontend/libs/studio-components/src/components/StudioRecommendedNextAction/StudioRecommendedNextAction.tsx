@@ -47,7 +47,7 @@ export const StudioRecommendedNextAction = ({
           <StudioParagraph data-size='sm' className={classes.description}>
             {description}
           </StudioParagraph>
-          {children}
+          <div className={classes.container}>{children}</div>
           <div className={classes.buttonGroup}>
             {!hideSaveButton && (
               <StudioButton type='submit' variant='primary'>

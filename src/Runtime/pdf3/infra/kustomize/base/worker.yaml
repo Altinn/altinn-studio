@@ -1,0 +1,234 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdf3-worker-pdb
+spec:
+  # Makes sure that during e.g. nodepool upgrades, when nodes are drained
+  # we apply a constraint that at most 1 AZ (hopefully, depending on skew)
+  # is disrupted at a time
+  # Examples:
+  #  3 replicas * 30% = 0.9 = 1 unavailable
+  #  4 replicas * 30% = 1.2 = 2 unavailable
+  #  5 replicas * 30% = 1.5 = 2 unavailable
+  #  6 replicas * 30% = 1.8 = 2 unavailable
+  #  7 replicas * 30% = 2.1 = 3 unavailable
+  #  8 replicas * 30% = 2.4 = 3 unavailable
+  #  9 replicas * 30% = 2.7 = 3 unavailable
+  # 10 replicas * 30% = 3.0 = 3 unavailable
+  # 11 replicas * 30% = 3.3 = 4 unavailable
+  # 12 replicas * 30% = 3.6 = 4 unavailable
+  maxUnavailable: '30%'
+  selector:
+    matchLabels:
+      app: pdf3-worker
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: pdf3-worker-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: pdf3-worker
+  minReplicas: 3
+  maxReplicas: 30
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 60
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Pods
+        # Limits scaleup of at most 2 pods per 10 second period
+        # With the current node size it won't take long before new nodes need to be added to the cluster
+        value: 2
+        periodSeconds: 10
+    scaleDown:
+      # When evaluating the policy, takes the max metric value from the past 5 minutes
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Pods
+        # If we've seen lots of traffic we should be careful when scaling down
+        # So we should scale up quickly, but down slowly (at least slower)
+        value: 1
+        periodSeconds: 60
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pdf3-worker
+spec:
+  # ClusterIP is the default and recommended type for internal services
+  # Explicit declaration improves clarity and prevents accidental exposure
+  type: ClusterIP
+  ports:
+  - port: 5031
+    targetPort: 5031
+    protocol: TCP
+    name: http
+  selector:
+    app: pdf3-worker
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pdf3-worker-sa
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pdf3-worker
+  annotations:
+    altinn.studio/image: runtime-pdf3-worker:latest
+    altinn.studio/image-tag: latest
+spec:
+  minReadySeconds: 3
+  revisionHistoryLimit: 5
+  progressDeadlineSeconds: 60
+  # 1 replica per availability zone by default (hopefully)
+  # See podAntiAffinity and topologySpreadConstraints below
+  replicas: 3
+  strategy:
+    # Rolling upgrade of pods
+    type: RollingUpdate
+    rollingUpdate:
+      # Conservative rollout.
+      # Setting maxUnavailable to 0 means we will never scale lower than desired replicas
+      # during rollouts, but we might have to scale up the nodepool due to surge
+      # Surge examples:
+      #  3 replicas * 20% = 0.6 = 1 surge
+      #  4 replicas * 20% = 0.8 = 1 surge
+      #  5 replicas * 20% = 1.0 = 1 surge
+      #  6 replicas * 20% = 1.2 = 2 surge
+      #  7 replicas * 20% = 1.4 = 2 surge
+      #  8 replicas * 20% = 1.6 = 2 surge
+      #  9 replicas * 20% = 1.8 = 2 surge
+      # 10 replicas * 20% = 2.0 = 2 surge
+      # 11 replicas * 20% = 2.2 = 3 surge
+      # 12 replicas * 20% = 2.4 = 3 surge
+      maxUnavailable: 0
+      maxSurge: '20%'
+  selector:
+    matchLabels:
+      app: pdf3-worker
+  template:
+    metadata:
+      labels:
+        app: pdf3-worker
+        component: pdf3
+      # We don't use linkerd annotation here as only the proxy contacts it
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          # Spread pods across different hosts/nodes during scheduling
+          # This prevents multiple replicas from running on the same node
+          # improving fault tolerance if a node fails
+          - weight: 100
+            podAffinityTerm:
+              topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app: pdf3-worker
+      topologySpreadConstraints:
+        # Ensure that pods are evenly spread across availability zones
+        # a skew of 1 _can_ result in 1 AZ being unused when AZs = 3 and replicas = 3
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          # ScheduleAnyway ensures progress even if distribution is imperfect
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: pdf3-worker
+      serviceAccountName: pdf3-worker-sa
+      automountServiceAccountToken: false
+      # Rendering PDF can take some time.
+      # The client (the apps) timeout after roughly 30 seconds
+      # so setting this to 60s should give plenty of time to close down/drain active requests
+      # before finally terminating.
+      # Changing this should also lead to changes in the `runtime.Host` configuration of the process
+      terminationGracePeriodSeconds: 60
+      volumes:
+      - emptyDir:
+          medium: Memory
+          sizeLimit: 64Mi
+        name: tmpdisk
+      securityContext:
+        # Run as 'nobody'
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        runAsNonRoot: true
+        # Seccomp (secure computing mode) restricts syscalls the container can make
+        # RuntimeDefault uses the container runtime's default profile, blocking risky syscalls
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: pdf3-worker
+          image: ""
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            privileged: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: http
+              containerPort: 5031
+              protocol: TCP
+          # Startup probe allows up to 90 seconds (30 * 3s) for the container to start
+          # This prevents the liveness probe from killing slow-starting containers
+          # Once startup succeeds, liveness/readiness probes take over
+          startupProbe:
+            httpGet:
+              path: /health/startup
+              port: 5031
+            failureThreshold: 30
+            periodSeconds: 2
+            timeoutSeconds: 1
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 5031
+            periodSeconds: 3
+            # Allow 3 consecutive failures before marking pod unready (removes from service)
+            failureThreshold: 3
+            timeoutSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 5031
+            initialDelaySeconds: 10
+            periodSeconds: 3
+            # Higher threshold (5) for liveness to avoid unnecessary restarts during transient issues
+            # Takes 15 seconds of consecutive failures before pod is restarted
+            failureThreshold: 5
+            timeoutSeconds: 2
+          env:
+          - name: TZ
+            value: Europe/Oslo
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          resources:
+            # Requests affect sheduling/scaling decisions.
+            # For a 1 CPU core + 1 GB RAM VM, current configuration
+            # would fit 3 replicas on one 1 node
+            requests:
+              # With the current nodes in AKS, the browser instance
+              # can easily saturate a core (1000m). But it won't do that
+              # all the time, so settling on 750m for reserving capacity
+              cpu: 750m
+              memory: 512Mi
+          volumeMounts:
+          - mountPath: /tmp
+            name: tmpdisk

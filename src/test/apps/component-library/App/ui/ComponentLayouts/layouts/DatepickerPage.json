@@ -1,0 +1,86 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "Datepicker-NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "size": "h2",
+        "id": "DatepickerHeader",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "DatepickerPage"
+        }
+      },
+      {
+        "id": "DatepickerExample1",
+        "type": "Datepicker",
+        "textResourceBindings": {
+          "title": "datofeltet",
+          "shortName": "dato-short"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "DatepickerExample"
+        },
+        "readOnly": false,
+        "format": "DD/MM/YYYY",
+        "minDate": ["dataModel","DatepickerMinDateExample"],
+        "maxDate":  ["dataModel","DatepickerMaxDateExample"],
+        "required": true,
+        "timeStamp": false,
+        "grid": {
+          "md": 6
+        }
+      },
+      
+      {
+        "id": "DatepickerMinDateExample1",
+        "type": "Datepicker",
+        "textResourceBindings": {
+          "title": "sett min dato for datofeltet",
+          "shortName": "dato-short"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "DatepickerMinDateExample"
+        },
+        "format": "DD/MM/YYYY"
+      },
+      {
+        "id": "DatepickerMaxDateExample1",
+        "type": "Datepicker",
+        "textResourceBindings": {
+          "title": "sett max dato for datofeltet",
+          "shortName": "dato-short"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "DatepickerMaxDateExample"
+        },
+        "format": "DD/MM/YYYY"
+      },
+      {
+        "size": "h3",
+        "id": "DatepickerHeader2",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Datepicker Summary example:"
+        }
+      },
+      {
+        "id": "DatepickerSummary1",
+        "type": "Summary2",
+        "target": {
+          "type": "component",
+          "id": "DatepickerExample1"
+        }
+      },
+      {
+        "id": "Datepicker-NavigationButtons",
+        "type": "NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {}
+      }
+    ]
+  }
+}

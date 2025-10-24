@@ -1,6 +1,5 @@
 import React, { useState, type MouseEvent } from 'react';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
-import { StudioIconCard } from '@studio/components-legacy/src/components/StudioIconCard/StudioIconCard';
 import { PencilIcon } from '@studio/icons';
 import { getLayoutSetTypeTranslationKey } from 'app-shared/utils/layoutSetsUtils';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +8,7 @@ import {
   StudioParagraph,
   StudioDeleteButton,
   StudioHeading,
+  StudioIconCard,
 } from '@studio/components';
 import { getLayoutSetIcon } from '../../utils/getLayoutSetIcon';
 import { useDeleteLayoutSetMutation } from 'app-development/hooks/mutations/useDeleteLayoutSetMutation';
