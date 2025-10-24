@@ -49,7 +49,8 @@ public class AlertsService(
         {
             Id = alert.Labels["__alert_rule_uid__"], // alert.Fingerprint,
             Type = alert.Labels["Type"], // Text = alert.Annotations["summary"].Replace("'", ""),
-            App = "ttd" + alert.Labels["__name__"] // alert.Labels["cloud/rolename"],
+            App = "ttd" + alert.Labels["__name__"], // alert.Labels["cloud/rolename"],
+            Url = baseUrl
         });
     }
 }
