@@ -212,7 +212,7 @@ func generatePdf(client *http.Client, workerAddr string) func(http.ResponseWrite
 			return
 		}
 
-		ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+		ctx, cancel := context.WithTimeout(r.Context(), 35*time.Second)
 		defer cancel()
 
 		workerEndpoint := workerAddr + "/generate"

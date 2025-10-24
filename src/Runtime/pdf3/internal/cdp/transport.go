@@ -289,7 +289,7 @@ func (c *connection) SendCommand(ctx context.Context, method string, params any)
 		return nil, ctx.Err()
 	case <-c.ctx.Done():
 		return nil, fmt.Errorf("connection closed")
-	case <-time.After(20 * time.Second):
+	case <-time.After(35 * time.Second):
 		return nil, fmt.Errorf("timeout waiting for response to command %s", method)
 	}
 }
@@ -377,7 +377,7 @@ func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*C
 			}
 		}
 		return state.responses
-	case <-time.After(20 * time.Second):
+	case <-time.After(35 * time.Second):
 		for i, resp := range state.responses {
 			if resp == nil {
 				state.responses[i] = &CommandResponse{

@@ -131,7 +131,7 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 		}, nil
 	case <-ctx.Done():
 		return nil, types.NewPDFError(types.ErrClientDropped, "", ctx.Err())
-	case <-time.After(30 * time.Second):
+	case <-time.After(35 * time.Second):
 		log.Printf("Client timeout waiting for PDF generation (30s) for URL: %s - abandoning request\n", request.URL)
 		return nil, types.NewPDFError(types.ErrTimeout, "", nil)
 	}

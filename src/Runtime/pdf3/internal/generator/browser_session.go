@@ -318,9 +318,10 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			return nil
 		}
 
+		const maxWaitMs int32 = 30_000
 		if selector, ok := request.WaitFor.AsString(); ok {
 			// Simple string selector - wait for element existence only
-			err := w.waitForElement(req, selector, 25000, false, false)
+			err := w.waitForElement(req, selector, maxWaitMs, false, false)
 			if err != nil {
 				return nil
 			}
@@ -329,7 +330,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			time.Sleep(time.Duration(timeout) * time.Millisecond)
 		} else if opts, ok := request.WaitFor.AsOptions(); ok {
 			// Full options with selector, visible, hidden, timeout
-			timeoutMs := int32(25000) // default timeout
+			timeoutMs := maxWaitMs // default timeout
 			if opts.Timeout != nil {
 				timeoutMs = *opts.Timeout
 			}
