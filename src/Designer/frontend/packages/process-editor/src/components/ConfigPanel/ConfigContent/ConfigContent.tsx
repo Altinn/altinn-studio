@@ -3,8 +3,7 @@ import classes from './ConfigContent.module.css';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { EditTaskId } from './EditTaskId/EditTaskId';
-import { useStudioRecommendedNextActionContext } from '@studio/components-legacy';
-import { StudioDisplayTile } from '@studio/components';
+import { StudioDisplayTile, useStudioRecommendedNextActionContext } from '@studio/components';
 import { EditDataTypes } from './EditDataTypes';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { Accordion } from '@digdir/designsystemet-react';
@@ -27,7 +26,7 @@ export const ConfigContent = (): React.ReactElement => {
   const layoutSet = layoutSets?.sets.find((set) => set.tasks?.includes(bpmnDetails.id));
   const existingDataTypeForTask = layoutSet?.dataType;
   const isSigningTask = bpmnDetails.taskType === 'signing';
-  const isUserControlledSigningTask = bpmnDetails.taskType === 'userControlledSigning';
+  const isUserControlledSigningTask = TaskUtils.isUserControlledSigning(bpmnDetails.element);
   const shouldDisplayEditDataTypesToSign = isSigningTask || isUserControlledSigningTask;
 
   const taskHasConnectedLayoutSet = layoutSets?.sets?.some(

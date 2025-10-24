@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { usePolicyEditorContext } from '../../../contexts/PolicyEditorContext';
-import { StudioTable, StudioTag } from '@studio/components-legacy';
+import { StudioTable, StudioTag } from '@studio/components';
 import {
   getAccessPackageDisplayName,
   mapActionsForRoleOrAccessPackage,
@@ -49,9 +49,9 @@ export const PolicyRuleAccessPackageSummary = ({
                     (subResource) => {
                       return (
                         <StudioTag
-                          size='sm'
+                          data-size='sm'
                           key={`${accessPackage}-${action}-${subResource}`}
-                          color='info'
+                          data-color='info'
                         >
                           {subResource}
                         </StudioTag>

@@ -63,7 +63,7 @@ public class GetCodeListsNewTests : DesignerEndpointsTestsBase<GetCodeListsNewTe
             Source: source,
             TagNames: ["tagName"]
         );
-        List<CodeListWrapper> expected =
+        List<CodeListWrapper> codeListWrappers =
         [
             new(
                 Title: "CodeListId",
@@ -71,6 +71,8 @@ public class GetCodeListsNewTests : DesignerEndpointsTestsBase<GetCodeListsNewTe
                 HasError: false
             )
         ];
+
+        var expected = new GetCodeListResponse(codeListWrappers, "latestCommitSha");
 
         _orgCodeListService
             .Setup(service => service.GetCodeListsNew(Org, It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -82,7 +84,7 @@ public class GetCodeListsNewTests : DesignerEndpointsTestsBase<GetCodeListsNewTe
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(request);
         string responseBody = await response.Content.ReadAsStringAsync();
-        List<CodeListWrapper>? result = JsonSerializer.Deserialize<List<CodeListWrapper>>(responseBody, s_jsonOptions);
+        GetCodeListResponse? result = JsonSerializer.Deserialize<GetCodeListResponse>(responseBody, s_jsonOptions);
 
         // Assert
         Assert.NotNull(result);
