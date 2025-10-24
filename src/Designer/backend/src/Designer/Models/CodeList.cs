@@ -26,11 +26,6 @@ public sealed record CodeList(List<Code> Codes, CodeListSource? Source, List<str
 
         if (other.TagNames is null || TagNames is null)
         {
-            return false;
-        }
-
-        if (other.TagNames is null || TagNames is null)
-        {
             if (other.TagNames != TagNames)
             {
                 return false;
