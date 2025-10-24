@@ -6,6 +6,7 @@ import (
 	"time"
 
 	ptesting "altinn.studio/pdf3/internal/testing"
+	"altinn.studio/pdf3/internal/types"
 	"altinn.studio/pdf3/test/harness"
 )
 
@@ -137,6 +138,37 @@ func Test_WithThrownErrors(t *testing.T) {
 	}
 
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
+}
+
+func Test_WaitForTimeoutWithErrors(t *testing.T) {
+	t.Parallel()
+
+	req := harness.GetDefaultPdfRequest(t)
+	// Page will throw an error AND never show the ready element
+	req.URL = harness.TestServerURL + "/app/?render=light&throwerrors=1&neverready"
+
+	req.WaitFor = types.NewWaitForString("#readyForPrint")
+
+	_, err := harness.RequestNewPDF(t, req)
+	if err == nil {
+		t.Fatal("Expected timeout error when element never appears, but PDF generation succeeded")
+	}
+
+	t.Logf("Expected error occurred: %v", err)
+
+	req2 := harness.GetDefaultPdfRequest(t)
+	req2.URL = harness.TestServerURL + "/app/?render=light"
+
+	resp2, err2 := harness.RequestNewPDF(t, req2)
+	if err2 != nil {
+		t.Fatalf("Connection broken after timeout - subsequent request failed: %v", err2)
+	}
+
+	if !harness.IsPDF(resp2.Data) {
+		t.Error("Subsequent response is not a valid PDF")
+	}
+
+	t.Logf("Connection healthy after timeout - subsequent PDF generated successfully (%d bytes)", len(resp2.Data))
 }
 
 func Test_WithCleanupDelay(t *testing.T) {
