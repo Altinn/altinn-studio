@@ -185,10 +185,15 @@
       {
         endpoint: GET {org}/{app},
         metadata: {
-          errorMessageTextResourceKeyUser: null,
-          errorMessageTextResourceKeyServiceOwner: null,
-          requiredScopesUsers: null,
-          requiredScopesServiceOwners: null
+          errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
+          errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
+          requiredScopesUsers: [
+            custom:instances.read,
+            altinn:portal/enduser
+          ],
+          requiredScopesServiceOwners: [
+            custom:serviceowner/instances.read
+          ]
         }
       },
       {
@@ -405,6 +410,62 @@
           errorMessageTextResourceKeyServiceOwner: null,
           requiredScopesUsers: null,
           requiredScopesServiceOwners: null
+        }
+      },
+      {
+        endpoint: GET {org}/{app}/debug-initial-data,
+        metadata: {
+          errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
+          errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
+          requiredScopesUsers: [
+            custom:instances.read,
+            altinn:portal/enduser
+          ],
+          requiredScopesServiceOwners: [
+            custom:serviceowner/instances.read
+          ]
+        }
+      },
+      {
+        endpoint: GET {org}/{app}/instance/{partyId}/{instanceGuid},
+        metadata: {
+          errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
+          errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
+          requiredScopesUsers: [
+            custom:instances.read,
+            altinn:portal/enduser
+          ],
+          requiredScopesServiceOwners: [
+            custom:serviceowner/instances.read
+          ]
+        }
+      },
+      {
+        endpoint: GET {org}/{app}/instance/{partyId}/{instanceGuid}/{taskId},
+        metadata: {
+          errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
+          errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
+          requiredScopesUsers: [
+            custom:instances.read,
+            altinn:portal/enduser
+          ],
+          requiredScopesServiceOwners: [
+            custom:serviceowner/instances.read
+          ]
+        }
+      },
+      {
+        endpoint: GET {org}/{app}/instance/{partyId}/{instanceGuid}/{taskId}/{pageId},
+        metadata: {
+          errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
+          errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
+          requiredScopesUsers: [
+            custom:instances.read,
+            altinn:portal/enduser
+          ],
+          requiredScopesServiceOwners: [
+            custom:serviceowner/instances.read
+          ]
         }
       },
       {
@@ -768,6 +829,48 @@
           errorMessageTextResourceKeyServiceOwner: null,
           requiredScopesUsers: null,
           requiredScopesServiceOwners: null
+        }
+      },
+      {
+        endpoint: GET {org}/{app}/{partyId}/{instanceGuid},
+        metadata: {
+          errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
+          errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
+          requiredScopesUsers: [
+            custom:instances.read,
+            altinn:portal/enduser
+          ],
+          requiredScopesServiceOwners: [
+            custom:serviceowner/instances.read
+          ]
+        }
+      },
+      {
+        endpoint: GET {org}/{app}/{partyId}/{instanceGuid}/{taskId},
+        metadata: {
+          errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
+          errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
+          requiredScopesUsers: [
+            custom:instances.read,
+            altinn:portal/enduser
+          ],
+          requiredScopesServiceOwners: [
+            custom:serviceowner/instances.read
+          ]
+        }
+      },
+      {
+        endpoint: GET {org}/{app}/{partyId}/{instanceGuid}/{taskId}/{pageId},
+        metadata: {
+          errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
+          errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
+          requiredScopesUsers: [
+            custom:instances.read,
+            altinn:portal/enduser
+          ],
+          requiredScopesServiceOwners: [
+            custom:serviceowner/instances.read
+          ]
         }
       },
       {

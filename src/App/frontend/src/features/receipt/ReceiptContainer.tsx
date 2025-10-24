@@ -85,19 +85,9 @@ export function DefaultReceipt() {
 
 export const ReceiptContainer = () => {
   const applicationMetadata = useApplicationMetadata();
-  const {
-    lastChanged,
-    instanceOrg,
-    instanceOwner,
-    dataElements = [],
-  } = useInstanceDataQuery({
-    select: (instance) => ({
-      lastChanged: instance.lastChanged,
-      instanceOrg: instance.org,
-      instanceOwner: instance.instanceOwner,
-      dataElements: instance.data,
-    }),
-  }).data ?? {};
+  const instance = useInstanceDataQuery().data;
+  const { lastChanged, org: instanceOrg, instanceOwner, data: dataElements = [] } = instance ?? {};
+
   const langTools = useLanguage();
   const receiver = useAppReceiver();
   const instanceOwnerParty = useInstanceOwnerParty();

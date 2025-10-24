@@ -123,7 +123,8 @@ export function createNodesDataStore({ validationsProcessedLast, ...props }: Cre
     },
     nodeData: {},
     hiddenViaRules: {},
-    hiddenViaRulesRan: false,
+    // If there are no conditional rules, mark as already run to avoid blocking render
+    hiddenViaRulesRan: !window.conditionalRuleHandlerObject,
     validationsProcessedLast,
   };
 
@@ -229,7 +230,23 @@ export function createNodesDataStore({ validationsProcessedLast, ...props }: Cre
       ),
 
     reset: (layouts, validationsProcessedLast: ValidationsProcessedLast) =>
-      set(() => ({ ...structuredClone(defaultState), layouts, validationsProcessedLast })),
+      set(() => {
+        const newState = { ...structuredClone(defaultState), layouts, validationsProcessedLast };
+
+        // Pre-populate all pages from layouts to avoid race condition where WhenParentAdded
+        // checks for page existence before AddPage component's useLayoutEffect runs
+        if (layouts) {
+          for (const pageKey of Object.keys(layouts)) {
+            newState.pagesData.pages[pageKey] = {
+              type: 'page',
+              pageKey,
+              errors: undefined,
+            };
+          }
+        }
+
+        return newState;
+      }),
 
     ...(Object.values(StorePlugins)
       .map((plugin) => plugin.extraFunctions(set))
