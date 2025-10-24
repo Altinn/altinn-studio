@@ -3,9 +3,11 @@ import { CodeListsWithTextResources } from './CodeListsWithTextResources';
 import { Images } from './Images';
 import type { Page } from './Page';
 import { PageName } from '../types/PageName';
+import { CodeLists } from './CodeLists';
 
 export const pages: { [Name in PageName]: Page<Name> } = {
   [PageName.LandingPage]: new Landing(),
+  [PageName.CodeLists]: new CodeLists(),
   [PageName.CodeListsWithTextResources]: new CodeListsWithTextResources(),
   [PageName.Images]: new Images(),
 };
