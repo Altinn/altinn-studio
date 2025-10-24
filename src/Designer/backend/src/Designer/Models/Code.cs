@@ -60,7 +60,7 @@ public sealed record Code(
     {
         var hash = new HashCode();
 
-        hash.Add(Value);
+        hash.Add(Value, StringComparer.Ordinal);
 
         foreach (KeyValuePair<string, string> kvp in Label.OrderBy(k => k.Key, StringComparer.Ordinal))
         {
@@ -90,7 +90,7 @@ public sealed record Code(
         {
             foreach (string tag in Tags)
             {
-                hash.Add(tag);
+                hash.Add(tag, StringComparer.Ordinal);
             }
         }
         return hash.ToHashCode();

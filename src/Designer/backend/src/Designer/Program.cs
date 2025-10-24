@@ -100,17 +100,17 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
         logger.LogInformation("// Program.cs // SetConfigurationProviders // Attempting to configure KeyVault");
         DefaultAzureCredential azureCredentials = new();
         SecretClient keyVaultClient = new(new Uri(secretUri), azureCredentials);
-        config.AddAzureKeyVault(new Uri(secretUri), azureCredentials);
 
         try
         {
+            config.AddAzureKeyVault(new Uri(secretUri), azureCredentials);
             string secretId = "ApplicationInsights--ConnectionString";
             KeyVaultSecret kvSecret = await keyVaultClient.GetSecretAsync(secretId);
             applicationInsightsConnectionString = kvSecret.Value;
         }
         catch (Exception vaultException)
         {
-            logger.LogError(vaultException, $"Could not find secret for application insights");
+            logger.LogError(vaultException, "Could not find secret for application insights");
         }
     }
 

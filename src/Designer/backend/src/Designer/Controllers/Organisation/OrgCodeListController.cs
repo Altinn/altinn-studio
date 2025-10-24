@@ -122,7 +122,7 @@ public class OrgCodeListController : ControllerBase
             await _orgCodeListService.PublishCodeList(org, requestBody, cancellationToken);
             return Ok();
         }
-        catch (ConfigurationErrorsException ex)
+        catch (Exception ex) when (ex is ConfigurationErrorsException or IllegalFileNameException or ArgumentNullException)
         {
             return BadRequest(ex.Message);
         }

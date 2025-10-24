@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,7 +24,7 @@ namespace Designer.Tests.Services;
 
 public class OrgCodeListServiceTests : IDisposable
 {
-    private string TargetOrg { get; set; }
+    private string? TargetOrg { get; set; }
 
     private const string Org = "ttd";
     private const string Repo = "org-content";
@@ -61,7 +62,7 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Act
         var fetchedCodeLists = await service.GetCodeLists(TargetOrg, Developer);
-        List<Option> fetchedCodeListData = fetchedCodeLists.Find(e => e.Title == "codeListNumber").Data;
+        List<Option>? fetchedCodeListData = fetchedCodeLists.Find(e => e.Title == "codeListNumber")?.Data;
 
         // Assert
         Assert.Equal(expectedCodeList.Count, fetchedCodeListData?.Count);
@@ -347,7 +348,7 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Act
         var codeListData = await service.CreateCodeList(TargetOrg, Developer, CodeListId, newCodeList);
-        List<Option> codeList = codeListData.Find(e => e.Title == CodeListId).Data;
+        List<Option>? codeList = codeListData.Find(e => e.Title == CodeListId)?.Data;
 
         // Assert
         Assert.Equal(8, codeListData.Count);
@@ -382,7 +383,7 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Act
         var codeListData = await service.UpdateCodeList(TargetOrg, Developer, CodeListId, newCodeList);
-        List<Option> codeList = codeListData.Find(e => e.Title == CodeListId).Data;
+        List<Option>? codeList = codeListData.Find(e => e.Title == CodeListId)?.Data;
 
         // Assert
         Assert.Equal(7, codeListData.Count);
@@ -446,9 +447,9 @@ public class OrgCodeListServiceTests : IDisposable
         var service = GetOrgCodeListService();
 
         // Act
-        var codeListData = await service.UploadCodeList(TargetOrg, Developer, file);
+        List<OptionListData> codeListData = await service.UploadCodeList(TargetOrg, Developer, file);
         stream.Close();
-        List<Option> codeList = codeListData.Find(e => e.Title == CodeListId).Data;
+        List<Option>? codeList = codeListData.Find(e => e.Title == CodeListId)?.Data;
 
         // Assert
         Assert.Equal(8, codeListData.Count);
@@ -587,6 +588,25 @@ public class OrgCodeListServiceTests : IDisposable
         Assert.Throws<IllegalCommitMessageException>(() => OrgCodeListService.ValidateCommitMessage(invalidCommitMessage));
     }
 
+    [Fact]
+    public async Task PublishCodeList_DelegatesToClient()
+    {
+        // Arrange
+        const string OrgName = "ttd";
+        const string CodeListId = "myList";
+        Mock<ISharedContentClient> sharedContentClientMock = new();
+        OrgCodeListService service = GetOrgCodeListService(sharedContentClientMock);
+
+        CodeList codeList = SetupCodeList();
+        PublishCodeListRequest req = new(Title: CodeListId, CodeList: codeList);
+
+        // Act
+        await service.PublishCodeList(OrgName, req, CancellationToken.None);
+
+        // Assert
+        sharedContentClientMock.Verify(c => c.PublishCodeList(OrgName, CodeListId, codeList, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
     private static CodeList SetupCodeList()
     {
         Dictionary<string, string> label = new() { { "nb", "tekst" }, { "en", "text" } };
@@ -617,10 +637,10 @@ public class OrgCodeListServiceTests : IDisposable
         return Convert.ToBase64String(contentAsBytes);
     }
 
-    private OrgCodeListService GetOrgCodeListService()
+    private OrgCodeListService GetOrgCodeListService(Mock<ISharedContentClient>? mock = null)
     {
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        Mock<ISharedContentClient> contentClientMock = new();
+        Mock<ISharedContentClient> contentClientMock = mock ?? new Mock<ISharedContentClient>();
         return new OrgCodeListService(altinnGitRepositoryFactory, _giteaMock.Object, _sourceControlMock.Object, contentClientMock.Object);
     }
 

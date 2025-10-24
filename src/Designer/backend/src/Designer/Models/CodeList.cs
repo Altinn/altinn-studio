@@ -51,7 +51,7 @@ public sealed record CodeList(List<Code> Codes, CodeListSource? Source, List<str
         {
             foreach (string name in TagNames)
             {
-                hash.Add(name);
+                hash.Add(name, StringComparer.Ordinal);
             }
         }
 

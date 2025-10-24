@@ -106,7 +106,7 @@ public interface IOrgCodeListService
     public void UpdateCodeListId(string org, string developer, string codeListId, string newCodeListId);
 
     /// <summary>
-    ///
+    /// Publishes a code list to shared content storage.
     /// </summary>
     /// <param name="org">Organisation</param>
     /// <param name="request">The publish code list request</param>

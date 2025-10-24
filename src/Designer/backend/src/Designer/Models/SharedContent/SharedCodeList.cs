@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Altinn.Studio.Designer.Models.SharedContent;
 
-public sealed record SharedCodeList(List<Code> Codes, string Version, CodeListSource? Source, List<string>? TagNames)
+public sealed record SharedCodeList(IReadOnlyList<Code> Codes, string Version, CodeListSource? Source, IReadOnlyList<string>? TagNames)
 {
     public bool Equals(SharedCodeList? other)
     {
@@ -60,7 +60,7 @@ public sealed record SharedCodeList(List<Code> Codes, string Version, CodeListSo
             hash.Add(code);
         }
 
-        hash.Add(Version);
+        hash.Add(Version, StringComparer.Ordinal);
         hash.Add(Source);
 
         if (TagNames is not null)

@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Mime;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -17,27 +19,25 @@ using Altinn.Studio.Designer.Models.SharedContent;
 using Azure;
 using Azure.Identity;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
-using Sprache;
 
 namespace Altinn.Studio.Designer.Clients.Implementations;
 
-public class AzureSharedContentClient(
-    HttpClient httpClient,
-    ILogger<AzureSharedContentClient> logger,
-    SharedContentClientSettings sharedContentClientSettings
-) : ISharedContentClient
+public class AzureSharedContentClient : ISharedContentClient
 {
+    private readonly HttpClient _httpClient;
+    private readonly ILogger<AzureSharedContentClient> _logger;
+    private readonly SharedContentClientSettings _sharedContentClientSettings;
+    private readonly string _sharedContentBaseUri;
+
     private const string InitialVersion = "1";
-    private const string CodeList = "code_lists";
+    private const string CodeListsSegment = "code_lists";
     private const string IndexFileName = "_index.json";
     private const string LatestCodeListFileName = "_latest.json";
 
     internal string CurrentVersion = InitialVersion;
     internal readonly Dictionary<string, string> FileNamesAndContent = [];
-
-    private readonly string _sharedContentBaseUri = CombineWithDelimiter(
-        sharedContentClientSettings.StorageAccountUrl, sharedContentClientSettings.StorageContainerName);
 
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
@@ -48,26 +48,37 @@ public class AzureSharedContentClient(
         AllowTrailingCommas = true
     };
 
+    public AzureSharedContentClient(HttpClient httpClient, ILogger<AzureSharedContentClient> logger, SharedContentClientSettings sharedContentClientSettings)
+    {
+        _httpClient = httpClient;
+        _logger = logger;
+        _sharedContentClientSettings = sharedContentClientSettings;
+
+        string storageAccountUrl = sharedContentClientSettings.StorageAccountUrl;
+        string storageContainerName = sharedContentClientSettings.StorageContainerName;
+
+        if (string.IsNullOrWhiteSpace(storageAccountUrl) || string.IsNullOrWhiteSpace(storageContainerName))
+        {
+            throw new ConfigurationErrorsException("StorageAccountUrl and StorageContainerName are required");
+        }
+        _sharedContentBaseUri = CombineWithDelimiter(storageAccountUrl, storageContainerName);
+    }
+
     public async Task PublishCodeList(string orgName, string codeListId, CodeList codeList, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrEmpty(_sharedContentBaseUri))
-        {
-            throw new ConfigurationErrorsException("Base url for the content library must be set before publishing.");
-        }
-
         BlobContainerClient containerClient = GetContainerClient();
         await ThrowIfUnhealthy(containerClient, cancellationToken);
 
         string resourceTypeIndexPrefix = orgName;
-        string resourceIndexPrefix = CombineWithDelimiter(orgName, CodeList);
-        string versionIndexPrefix = CombineWithDelimiter(orgName, CodeList, codeListId);
+        string resourceIndexPrefix = CombineWithDelimiter(orgName, CodeListsSegment);
+        string versionIndexPrefix = CombineWithDelimiter(orgName, CodeListsSegment, codeListId);
 
         await HandleOrganizationIndex(orgName, cancellationToken);
-        await HandleResourceTypeIndex(resourceTypeIndexPrefix, CodeList, cancellationToken);
+        await HandleResourceTypeIndex(resourceTypeIndexPrefix, CodeListsSegment, cancellationToken);
         await HandleResourceIndex(resourceIndexPrefix, codeListId, cancellationToken);
         await HandleVersionIndex(versionIndexPrefix, cancellationToken);
 
-        string codeListFolderPath = CombineWithDelimiter(orgName, CodeList, codeListId);
+        string codeListFolderPath = CombineWithDelimiter(orgName, CodeListsSegment, codeListId);
         CreateCodeListFiles(codeList, codeListFolderPath, versionIndexPrefix);
 
         await UploadBlobs(containerClient, cancellationToken);
@@ -77,7 +88,7 @@ public class AzureSharedContentClient(
     {
         string url = CombineWithDelimiter(_sharedContentBaseUri, IndexFileName);
         string path = IndexFileName; // No prefix since it's on root.
-        HttpResponseMessage response = await httpClient.GetAsync(new Uri(url), cancellationToken);
+        using HttpResponseMessage response = await _httpClient.GetAsync(new Uri(url), cancellationToken);
 
         await HandleResponse(response, orgName, path, cancellationToken);
     }
@@ -86,7 +97,7 @@ public class AzureSharedContentClient(
     {
         string path = CombineWithDelimiter(resourceTypeIndexPrefix, IndexFileName);
         string url = CombineWithDelimiter(_sharedContentBaseUri, path);
-        HttpResponseMessage response = await httpClient.GetAsync(new Uri(url), cancellationToken);
+        using HttpResponseMessage response = await _httpClient.GetAsync(new Uri(url), cancellationToken);
 
         string content = CombineWithDelimiter(resourceTypeIndexPrefix, resourceType);
         await HandleResponse(response, content, path, cancellationToken);
@@ -96,7 +107,7 @@ public class AzureSharedContentClient(
     {
         string path = CombineWithDelimiter(resourceIndexPrefix, IndexFileName);
         string url = CombineWithDelimiter(_sharedContentBaseUri, path);
-        HttpResponseMessage response = await httpClient.GetAsync(new Uri(url), cancellationToken);
+        using HttpResponseMessage response = await _httpClient.GetAsync(new Uri(url), cancellationToken);
 
         string content = CombineWithDelimiter(resourceIndexPrefix, resourceId);
         await HandleResponse(response, content, path, cancellationToken);
@@ -106,7 +117,7 @@ public class AzureSharedContentClient(
     {
         string path = CombineWithDelimiter(versionIndexPrefix, IndexFileName);
         string uri = CombineWithDelimiter(_sharedContentBaseUri, path);
-        HttpResponseMessage response = await httpClient.GetAsync(new Uri(uri), cancellationToken);
+        using HttpResponseMessage response = await _httpClient.GetAsync(new Uri(uri), cancellationToken);
 
         string content = CombineWithDelimiter(versionIndexPrefix, JsonFileName(InitialVersion));
 
@@ -119,7 +130,7 @@ public class AzureSharedContentClient(
                 AddIndexFile(path, [content]);
                 break;
             default:
-                logger.LogError("Unexpected response code: {StatusCode}, class: ${Client}", response.StatusCode, nameof(AzureSharedContentClient));
+                _logger.LogError("Unexpected response status code {StatusCode}, in {Client}", response.StatusCode, nameof(AzureSharedContentClient));
                 throw new InvalidOperationException($"Request failed, class: {nameof(AzureSharedContentClient)}");
         }
     }
@@ -135,7 +146,7 @@ public class AzureSharedContentClient(
                 AddIndexFile(path, [content]);
                 break;
             default:
-                logger.LogError("Unexpected response code: {StatusCode}, class: ${Client}", response.StatusCode, nameof(AzureSharedContentClient));
+                _logger.LogError("Unexpected response status code {StatusCode}, in {Client}", response.StatusCode, nameof(AzureSharedContentClient));
                 throw new InvalidOperationException($"Request failed, class: {nameof(AzureSharedContentClient)}");
         }
     }
@@ -224,29 +235,37 @@ public class AzureSharedContentClient(
 
     internal async Task UploadBlobs(BlobContainerClient containerClient, CancellationToken cancellationToken = default)
     {
-        var options = new ParallelOptions { MaxDegreeOfParallelism = 10, CancellationToken = cancellationToken };
+        ParallelOptions options = new() { MaxDegreeOfParallelism = 10, CancellationToken = cancellationToken };
         await Parallel.ForEachAsync(FileNamesAndContent, options, async (fileNameAndContent, token) =>
         {
             BlobClient blobClient = containerClient.GetBlobClient(fileNameAndContent.Key);
             BinaryData content = BinaryData.FromString(fileNameAndContent.Value);
-            await blobClient.UploadAsync(content, overwrite: true, token);
+            BlobUploadOptions uploadOptions = new()
+            {
+                HttpHeaders = new BlobHttpHeaders
+                {
+                    ContentType = MediaTypeNames.Application.Json,
+                    ContentEncoding = Encoding.UTF8.ToString()
+                }
+            };
+            await blobClient.UploadAsync(content, uploadOptions, token);
         });
     }
 
-    internal async Task ThrowIfUnhealthy(BlobContainerClient client, CancellationToken cancellationToken = default)
+    internal async Task ThrowIfUnhealthy(BlobContainerClient containerClient, CancellationToken cancellationToken = default)
     {
         try
         {
-            Response<bool> exists = await client.ExistsAsync(cancellationToken);
+            Response<bool> exists = await containerClient.ExistsAsync(cancellationToken);
             if (exists.Value is false)
             {
-                logger.LogError("Shared content storage container does not exist. Client: {Client}", nameof(BlobContainerClient));
+                _logger.LogError("Shared content storage container '{ContainerName}' does not exist. Client: {Client}", containerClient.Name, nameof(BlobContainerClient));
                 throw new InvalidOperationException($"Container not found, class: {nameof(AzureSharedContentClient)}");
             }
         }
         catch (Exception ex) when (ex is RequestFailedException or AggregateException)
         {
-            logger.LogError(ex, "Shared content storage check failed in {Class}", nameof(AzureSharedContentClient));
+            _logger.LogError(ex, "Shared content storage check failed in {Class}", nameof(AzureSharedContentClient));
             throw new InvalidOperationException($"Request failed, class: {nameof(AzureSharedContentClient)}");
         }
     }
@@ -257,7 +276,7 @@ public class AzureSharedContentClient(
     /// <param name="segments">Segments to join</param>
     internal static string CombineWithDelimiter(params string?[] segments)
     {
-        IEnumerable<string?> nonNulls = segments.Where(segment => segment is not null);
+        IEnumerable<string?> nonNulls = segments.Where(segment => string.IsNullOrWhiteSpace(segment) is false);
         return string.Join('/', nonNulls.Select(segment => segment?.Trim('/')));
     }
 
@@ -279,7 +298,7 @@ public class AzureSharedContentClient(
                 continue;
             }
 
-            logger.LogWarning("Could not parse version string to int: {VersionString}, class: {Class}", versionAsString, nameof(AzureSharedContentClient));
+            _logger.LogWarning("Could not parse version string to int: {VersionString}, class: {Class}", versionAsString, nameof(AzureSharedContentClient));
         }
 
         if (versions.Count == 0) { return; }
@@ -290,8 +309,8 @@ public class AzureSharedContentClient(
 
     private BlobContainerClient GetContainerClient()
     {
-        string storageContainerName = sharedContentClientSettings.StorageContainerName;
-        string storageAccountUrl = sharedContentClientSettings.StorageAccountUrl;
+        string storageContainerName = _sharedContentClientSettings.StorageContainerName;
+        string storageAccountUrl = _sharedContentClientSettings.StorageAccountUrl;
         BlobServiceClient blobServiceClient = new(new Uri(storageAccountUrl), new DefaultAzureCredential());
         return blobServiceClient.GetBlobContainerClient(storageContainerName);
     }
