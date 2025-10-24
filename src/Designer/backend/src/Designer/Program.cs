@@ -20,6 +20,7 @@ using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Tracing;
 using Altinn.Studio.Designer.TypedHttpClients;
+using Azure;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -105,8 +106,9 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
         {
             config.AddAzureKeyVault(new Uri(secretUri), azureCredentials);
             string secretId = "ApplicationInsights--ConnectionString";
-            KeyVaultSecret kvSecret = await keyVaultClient.GetSecretAsync(secretId);
-            applicationInsightsConnectionString = kvSecret.Value;
+            Response<KeyVaultSecret> kvSecret = await keyVaultClient.GetSecretAsync(secretId);
+            KeyVaultSecret secretValue = kvSecret.Value;
+            applicationInsightsConnectionString = secretValue.Value;
         }
         catch (Exception vaultException)
         {

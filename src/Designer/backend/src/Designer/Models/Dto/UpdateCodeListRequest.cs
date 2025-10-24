@@ -34,8 +34,8 @@ public sealed record UpdateCodeListRequest(List<CodeListWrapper> CodeListWrapper
     public override int GetHashCode()
     {
         var hash = new HashCode();
-        hash.Add(BaseCommitSha);
-        hash.Add(CommitMessage);
+        hash.Add(BaseCommitSha, StringComparer.Ordinal);
+        hash.Add(CommitMessage, StringComparer.Ordinal);
 
         foreach (CodeListWrapper wrapper in CodeListWrappers)
         {

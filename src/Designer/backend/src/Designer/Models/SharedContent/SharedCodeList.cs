@@ -67,7 +67,7 @@ public sealed record SharedCodeList(IReadOnlyList<Code> Codes, string Version, C
         {
             foreach (string tag in TagNames)
             {
-                hash.Add(tag);
+                hash.Add(tag, StringComparer.Ordinal);
             }
         }
         return hash.ToHashCode();
