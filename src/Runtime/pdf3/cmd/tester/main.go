@@ -442,7 +442,7 @@ func runLoadtestEnv() {
 		fmt.Fprintf(os.Stderr, "Couldn't read .env file: %v\n", err)
 		os.Exit(1)
 	}
-	defer envFile.Close() // Ensure the envFile is closed
+	defer func() { _ = envFile.Close() }()
 
 	scanner := bufio.NewScanner(envFile)
 	for scanner.Scan() {

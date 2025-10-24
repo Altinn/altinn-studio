@@ -54,7 +54,10 @@ func Test_Networking(t *testing.T) {
 }
 
 func Test_CompareOldAndNew(t *testing.T) {
-	harness.Runtime.KubernetesClient.RolloutStatus("pdf-generator", "pdf", 120*time.Second)
+	err := harness.Runtime.KubernetesClient.RolloutStatus("pdf-generator", "pdf", 120*time.Second)
+	if err != nil {
+		t.Fatalf("Error waiting for old PDF generator: %v", err)
+	}
 
 	req := harness.GetDefaultPdfRequest(t)
 	req.URL = harness.TestServerURL + "/app/?render=light"
