@@ -87,14 +87,16 @@ describe('FormDesigner', () => {
 
   it('should render the spinner', () => {
     render();
-    expect(screen.getByText(textMock('ux_editor.loading_form_layout'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('ux_editor.loading_form_layout'))).toBeInTheDocument();
   });
 
   it('should render the component', async () => {
     await waitForData();
     render();
     await waitFor(() =>
-      expect(screen.queryByText(textMock('ux_editor.loading_form_layout'))).not.toBeInTheDocument(),
+      expect(
+        screen.queryByLabelText(textMock('ux_editor.loading_form_layout')),
+      ).not.toBeInTheDocument(),
     );
   });
 
@@ -142,14 +144,20 @@ describe('FormDesigner', () => {
     render();
 
     await waitFor(() =>
-      expect(screen.queryByText(textMock('ux_editor.loading_form_layout'))).not.toBeInTheDocument(),
+      expect(
+        screen.queryByLabelText(textMock('ux_editor.loading_form_layout')),
+      ).not.toBeInTheDocument(),
     );
 
-    await user.click(screen.getByTitle(textMock('left_menu.close_components')));
-    expect(screen.getByTitle(textMock('left_menu.open_components'))).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: textMock('left_menu.close_components') }));
+    expect(
+      screen.getByRole('button', { name: textMock('left_menu.open_components') }),
+    ).toBeInTheDocument();
 
-    await user.click(screen.getByTitle(textMock('left_menu.open_components')));
-    expect(screen.getByTitle(textMock('left_menu.close_components'))).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: textMock('left_menu.open_components') }));
+    expect(
+      screen.getByRole('button', { name: textMock('left_menu.close_components') }),
+    ).toBeInTheDocument();
   });
 
   it('should be able to collapse and uncollapse preview', async () => {
@@ -157,13 +165,19 @@ describe('FormDesigner', () => {
     render();
 
     await waitFor(() =>
-      expect(screen.queryByText(textMock('ux_editor.loading_form_layout'))).not.toBeInTheDocument(),
+      expect(
+        screen.queryByLabelText(textMock('ux_editor.loading_form_layout')),
+      ).not.toBeInTheDocument(),
     );
 
-    await user.click(screen.getByTitle(textMock('ux_editor.close_preview')));
-    expect(screen.getByTitle(textMock('ux_editor.open_preview'))).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: textMock('ux_editor.close_preview') }));
+    expect(
+      screen.getByRole('button', { name: textMock('ux_editor.open_preview') }),
+    ).toBeInTheDocument();
 
-    await user.click(screen.getByTitle(textMock('ux_editor.open_preview')));
-    expect(screen.getByTitle(textMock('ux_editor.close_preview'))).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: textMock('ux_editor.open_preview') }));
+    expect(
+      screen.getByRole('button', { name: textMock('ux_editor.close_preview') }),
+    ).toBeInTheDocument();
   });
 });

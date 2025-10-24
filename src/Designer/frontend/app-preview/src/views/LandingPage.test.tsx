@@ -42,14 +42,14 @@ describe('LandingPage', () => {
   it('should display a spinner initially when loading user', () => {
     renderLandingPage();
 
-    expect(screen.getByTitle(textMock('preview.loading_page'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('preview.loading_page'))).toBeInTheDocument();
   });
 
   it('should render the app title if on a large screen', async () => {
     (useMediaQuery as jest.Mock).mockReturnValue(false);
     renderLandingPage();
 
-    await waitForElementToBeRemoved(screen.queryByTitle(textMock('preview.loading_page')));
+    await waitForElementToBeRemoved(screen.queryByLabelText(textMock('preview.loading_page')));
 
     expect(screen.getByText('testApp')).toBeInTheDocument();
   });
@@ -58,7 +58,7 @@ describe('LandingPage', () => {
     (useMediaQuery as jest.Mock).mockReturnValue(true);
     renderLandingPage();
 
-    await waitForElementToBeRemoved(screen.queryByTitle(textMock('preview.loading_page')));
+    await waitForElementToBeRemoved(screen.queryByLabelText(textMock('preview.loading_page')));
 
     expect(screen.queryByText('testApp')).not.toBeInTheDocument();
   });
@@ -70,7 +70,7 @@ describe('LandingPage', () => {
       getUser: jest.fn().mockImplementation(() => Promise.resolve(userMock)),
     });
 
-    await waitForElementToBeRemoved(screen.queryByTitle(textMock('preview.loading_page')));
+    await waitForElementToBeRemoved(screen.queryByLabelText(textMock('preview.loading_page')));
 
     await user.click(
       screen.getByRole('button', {
@@ -89,7 +89,7 @@ describe('LandingPage', () => {
   it('should display the iframe with the correct src', async () => {
     renderLandingPage();
 
-    await waitForElementToBeRemoved(screen.queryByTitle(textMock('preview.loading_page')));
+    await waitForElementToBeRemoved(screen.queryByLabelText(textMock('preview.loading_page')));
 
     const iframe = screen.getByTitle(textMock('preview.title'));
     expect(iframe).toHaveAttribute(
@@ -108,7 +108,7 @@ describe('LandingPage', () => {
         ),
     });
 
-    await waitForElementToBeRemoved(screen.queryByTitle(textMock('preview.loading_page')));
+    await waitForElementToBeRemoved(screen.queryByLabelText(textMock('preview.loading_page')));
 
     expect(
       screen.getByText(textMock('ux_editor.preview.subform_unsupported_warning')),

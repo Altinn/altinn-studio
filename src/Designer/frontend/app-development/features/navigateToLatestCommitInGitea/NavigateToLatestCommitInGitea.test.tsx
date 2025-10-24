@@ -25,7 +25,7 @@ describe('NavigateToLatestCommitInGitea', () => {
 
   it('renders a spinner if master branch status is pending', () => {
     renderLatestCommit();
-    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('general.loading'))).toBeInTheDocument();
   });
 });
 
