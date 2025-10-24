@@ -6,12 +6,10 @@
     <UserSecretsId>833f0be1-8b48-403d-8631-c14e0da2ef0a</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api" Version="8.3.5" />
-    <PackageReference Include="Altinn.App.Core" Version="8.3.5" />
+    <PackageReference Include="Altinn.App.Api" Version="8.8.2" />
+    <PackageReference Include="Altinn.App.Core" Version="8.8.2" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0" />
-    <PackageReference Include="PsA3Forms" Version="2.7.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-    <PackageReference Include="Altinn.Codelists" Version="0.7.0" />
+    <PackageReference Include="Altinn.Codelists" Version="8.0.2" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\css\" />

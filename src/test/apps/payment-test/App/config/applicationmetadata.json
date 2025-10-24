@@ -45,7 +45,8 @@
       ],
       "maxCount": 1,
       "minCount": 0,
-      "grouping": "Betaling"
+      "grouping": "Betaling",
+      "allowedContributers": ["app:owned"]
     },
     {
       "id": "paymentReceiptPdf",
