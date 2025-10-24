@@ -1,3 +1,37 @@
 .appSearch {
   max-width: 400px;
 }
+
+.appsTable {
+}
+
+.alertsHeaderCell {
+  text-align: right;
+  width: 40%;
+}
+
+.alertCell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-size-2);
+  align-items: flex-start;
+  justify-content: end;
+}
+
+.alert {
+  border: none;
+  padding: var(--ds-size-2) var(--ds-size-2) var(--ds-size-2) var(--ds-size-11);
+  white-space: nowrap;
+}
+
+.alertText {
+  white-space: nowrap;
+}
+
+.alertLink {
+  background-color: #f3d2d2;
+  margin-left: var(--ds-size-2);
+  padding: var(--ds-size-1) var(--ds-size-2);
+  text-decoration: underline;
+  white-space: nowrap;
+}

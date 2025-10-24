@@ -1,5 +1,7 @@
 const adminApiBasePath = `/designer/api/admin`;
 
+export const alertsPath = (org: string, env: string) =>
+  `${adminApiBasePath}/alerts/${org}/${env}/firing-alerts`; // Get
 export const runningAppsPath = (org: string) => `${adminApiBasePath}/applications/${org}`; // Get
 export const instancesListPath = (
   org: string,

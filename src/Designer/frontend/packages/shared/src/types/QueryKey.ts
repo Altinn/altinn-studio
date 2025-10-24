@@ -59,6 +59,7 @@ export enum QueryKey {
   TaskNavigationGroup = 'TaskNavigationGroup',
 
   // Admin
+  Alerts = 'Alerts',
   AppInstances = 'AppInstances',
   AppInstanceDetails = 'AppInstanceDetails',
   AppProcessTasks = 'AppProcessTasks',

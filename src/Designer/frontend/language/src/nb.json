@@ -1,4 +1,8 @@
 {
+  "admin.alerts.5xx-failed-requests": "5xx-feil",
+  "admin.alerts.server-exceptions": "Serverunntak",
+  "admin.alerts.server-response-time": "Treg serverrespons",
+  "admin.alerts.link": "Se logger i Grafana her",
   "ai_assistant.about_assistant": "Om assistenten",
   "ai_assistant.add_attachment": "Last opp vedlegg",
   "ai_assistant.allow_app_changes": "Tillat endringer i appen",
