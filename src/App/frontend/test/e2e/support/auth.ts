@@ -140,7 +140,6 @@ type LocalLoginParams =
 
 function localLogin({ authenticationLevel, ...rest }: LocalLoginParams) {
   cy.visit(`${Cypress.config('baseUrl')}`);
-
   if ('partyId' in rest) {
     const partyId = rest.partyId;
     cy.log(`Logging in as local user: ${partyId} with authentication level: ${authenticationLevel}`);

@@ -3,7 +3,7 @@ import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 
 import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
-import { ComponentRouting, ProcessWrapper } from 'src/components/wrappers/ProcessWrapper';
+import { ComponentRouting, NavigateToStartUrl, ProcessWrapper } from 'src/components/wrappers/ProcessWrapper';
 import { Entrypoint } from 'src/features/entrypoint/Entrypoint';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
@@ -50,6 +50,11 @@ export const App = () => (
           </FixWrongReceiptType>
         }
       >
+        <Route
+          index
+          element={<NavigateToStartUrl forceCurrentTask={false} />}
+        />
+
         <Route path=':pageKey'>
           <Route
             index

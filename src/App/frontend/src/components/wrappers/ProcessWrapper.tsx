@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
@@ -12,6 +12,7 @@ import classes from 'src/components/wrappers/ProcessWrapper.module.css';
 import { Loader } from 'src/core/loading/Loader';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { getProcessNextMutationKey, getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
@@ -73,18 +74,11 @@ export function NavigateToStartUrl({ forceCurrentTask = true }: { forceCurrentTa
   const navigate = useNavigate();
   const currentTaskId = getTargetTaskFromProcess(useProcessQuery().data);
   const startUrl = useStartUrl(forceCurrentTask ? currentTaskId : undefined);
-  const location = useLocation();
+  const meta = useApplicationMetadata();
 
-  const processNextKey = getProcessNextMutationKey();
-  const queryClient = useQueryClient();
-  const isRunningProcessNext = queryClient.isMutating({ mutationKey: processNextKey });
-  const isNavigating = useIsNavigating();
-
-  const currentLocation = location.pathname + location.search;
-
-  if (isRunningProcessNext) {
-    return <Loader reason='navigate-to-start-process-next' />;
-  }
+  useEffect(() => {
+    navigate(`/${meta.id}${startUrl}`, { replace: true });
+  }, [meta.id, navigate, startUrl]);
 
   return <Loader reason='navigate-to-start' />;
 }
@@ -94,8 +88,6 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   const currentTaskId = process?.currentTask?.elementId;
 
   const taskId = useNavigationParam('taskId');
-  const isCurrentTask =
-    currentTaskId === undefined && taskId === TaskKeys.CustomReceipt ? true : currentTaskId === taskId;
 
   const isWrongTask = useIsWrongTask(taskId);
   const isValidTaskId = useIsValidTaskId()(taskId);

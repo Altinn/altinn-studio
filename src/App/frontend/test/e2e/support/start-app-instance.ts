@@ -1,28 +1,26 @@
 import dotenv from 'dotenv';
 
 import { cyUserLogin, tenorUserLogin } from 'test/e2e/support/auth';
-import type { AppResponseRef } from 'test/e2e/support/auth';
 
 Cypress.Commands.add('startAppInstance', (appName, options) => {
-  const {
-    cyUser = 'default',
-    tenorUser = null,
-    evaluateBefore,
-    urlSuffix = '',
-    authenticationLevel = '1',
-  } = options || {};
+  const { cyUser = 'default', tenorUser = null, urlSuffix = '', authenticationLevel = '1' } = options || {};
   const env = dotenv.config({ quiet: true }).parsed || {};
-  cy.log(`Starting app instance: ${appName}`);
-
-  // You can override the host we load css/js from, using multiple methods:
-  //   1. Start Cypress with --env environment=<docker|podman|tt02>,host=<host>
-  //   2. Set CYPRESS_HOST=<host> in your .env file
-  // This is useful, for example if you want to run a Cypress test locally in the background while working on
-  // other things. Build the app-frontend with `yarn build` and serve it with `yarn serve 8081`, then run
-  // Cypress using a command like this:
-  //   npx cypress run --env environment=tt02,host=localhost:8081 -s 'test/e2e/integration/*/*.ts'
   const targetHost = Cypress.env('host') || env.CYPRESS_HOST || 'localhost:8080';
+  const targetUrlRaw = getTargetUrl(appName) + urlSuffix;
 
+  const protocol = targetUrlRaw.startsWith('https://') ? 'https' : 'http';
+  const frontendUrl = `${protocol}://${targetHost}`;
+
+  cy.log(`Starting app instance: ${appName}`);
+  cy.log(`frontendUrl: ${frontendUrl}`);
+
+  if (tenorUser) {
+    tenorUserLogin({ appName, tenorUser, authenticationLevel });
+  } else if (cyUser) {
+    cyUserLogin({ cyUser, authenticationLevel });
+  }
+
+  cy.setCookie('frontendVersion', frontendUrl);
   const visitOptions: Partial<Cypress.VisitOptions> = {
     onBeforeLoad: (win) => {
       const wrap =
@@ -55,6 +53,23 @@ Cypress.Commands.add('startAppInstance', (appName, options) => {
     },
   };
 
+  cy.visit(targetUrlRaw, visitOptions);
+
+  // If we landed on instance-selection, click the new instance button
+  cy.url().then((url) => {
+    if (url.includes('instance-selection')) {
+      cy.get('#new-instance-button').click();
+    }
+  });
+
+  // You can override the host we load css/js from, using multiple methods:
+  //   1. Start Cypress with --env environment=<docker|podman|tt02>,host=<host>
+  //   2. Set CYPRESS_HOST=<host> in your .env file
+  // This is useful, for example if you want to run a Cypress test locally in the background while working on
+  // other things. Build the app-frontend with `yarn build` and serve it with `yarn serve 8081`, then run
+  // Cypress using a command like this:x
+  //   npx cypress run --env environment=tt02,host=localhost:8081 -s 'test/e2e/integration/*/*.ts'
+
   // Run this using --env environment=<docker|podman|tt02>,responseFuzzing=on to simulate an unreliable network. This might
   // help us find bugs (usually race conditions) that only occur requests/responses arrive out of order.
   if (Cypress.env('responseFuzzing') === 'on') {
@@ -66,44 +81,6 @@ Cypress.Commands.add('startAppInstance', (appName, options) => {
     cy.log(`Response fuzzing off, enable with --env responseFuzzing=on`);
   }
 
-  const targetUrlRaw = getTargetUrl(appName) + urlSuffix;
-
-  // This mechanism lets you override what happens in the @app response, for example in a login handler.
-  cy.wrap<AppResponseRef>({ current: undefined }).as('appResponse');
-
-  // Rewrite all references to the app-frontend with a local URL
-  // We cannot just intercept and redirect (like we did before), because Percy reads this DOM to figure out where
-  // to download assets from. If we redirect, Percy will download from altinncdn.no, which will cause the test to
-  // use outdated CSS.
-  // https://docs.percy.io/docs/debugging-sdks#asset-discovery
-  cy.get<AppResponseRef>('@appResponse').then((ref) => {
-    cy.intercept('**/*', (req) => {
-      // Only intercept HTML responses, not API calls or assets
-      if (!req.url.includes('/api/') && !req.url.includes('/altinn-app-frontend.')) {
-        const cookies = req.headers['cookie'] || '';
-
-        req.on('response', (res) => {
-          const isHtml = res.headers['content-type']?.includes('text/html');
-          if (isHtml && typeof res.body === 'string') {
-            if (ref.current) {
-              ref.current(res);
-              return;
-            }
-
-            if (evaluateBefore && !cookies.includes('cy-evaluated-js=true')) {
-              res.body = generateHtmlToEval(evaluateBefore);
-              return;
-            }
-
-            const source = /https?:\/\/.*?\/altinn-app-frontend\./g;
-            const target = `http://${targetHost}/altinn-app-frontend.`;
-            res.body = res.body.replace(source, target);
-          }
-        });
-      }
-    }).as('app');
-  });
-
   cy.intercept('GET', `http://${targetHost}/altinn-app-frontend.js`).as('js');
   cy.intercept('GET', `http://${targetHost}/altinn-app-frontend.css`).as('css');
 
@@ -111,16 +88,6 @@ Cypress.Commands.add('startAppInstance', (appName, options) => {
     req.destroy();
     throw new Error('Requested asset from altinncdn.no, our rewrite code is apparently not working, aborting test');
   });
-
-  cy.clearCookies();
-
-  if (tenorUser) {
-    tenorUserLogin({ appName, tenorUser, authenticationLevel });
-  } else if (cyUser) {
-    cyUserLogin({ cyUser, authenticationLevel });
-  }
-
-  cy.visit(targetUrlRaw, visitOptions);
 
   // Make sure the app has started loading before continuing
   cy.findByTestId('presentation').should('exist');
@@ -142,32 +109,4 @@ export function getTargetUrl(appName: string) {
   return Cypress.env('type') === 'localtest'
     ? `${Cypress.config('baseUrl')}/ttd/${appName}`
     : `https://ttd.apps.${Cypress.config('baseUrl')?.slice(8)}/ttd/${appName}`;
-}
-
-function generateHtmlToEval(javascript: string) {
-  return `
-    <html lang="en">
-    <head>
-      <title>Evaluating JavaScript before starting app</title>
-      <script>
-        async function toEvaluate() {
-          ${javascript}
-        }
-
-        window.addEventListener('DOMContentLoaded', async () => {
-          const maybeReturnUrl = await toEvaluate();
-          document.cookie = 'cy-evaluated-js=true';
-          if (maybeReturnUrl && typeof maybeReturnUrl === 'string') {
-            window.location.href = maybeReturnUrl;
-          } else {
-            window.location.reload();
-          }
-        });
-      </script>
-    </head>
-    <body>
-      <div id="cy-evaluating-js"></div>
-    </body>
-  </html>
-  `.trim();
 }

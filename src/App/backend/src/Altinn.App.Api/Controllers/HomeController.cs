@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Configuration;
@@ -37,6 +36,7 @@ public class HomeController : Controller
     private readonly List<string> _onEntryWithInstance = new List<string> { "new-instance", "select-instance" };
     private readonly IAuthenticationContext _authenticationContext;
     private readonly IInstanceClient _instanceClient;
+    private readonly ILogger<HomeController> _logger;
 
     /// <summary>
     /// Initialize a new instance of the <see cref="HomeController"/> class.
@@ -51,6 +51,7 @@ public class HomeController : Controller
     /// <param name="generalSettings">The general settings</param>
     /// <param name="authenticationContext">The authentication context service</param>
     /// <param name="instanceClient">The instance client service</param>
+    /// <param name="logger">The logger</param>
     public HomeController(
         IAntiforgery antiforgery,
         IOptions<PlatformSettings> platformSettings,
@@ -61,7 +62,8 @@ public class HomeController : Controller
         IInitialDataService initialDataService,
         IOptions<GeneralSettings> generalSettings,
         IAuthenticationContext authenticationContext,
-        IInstanceClient instanceClient
+        IInstanceClient instanceClient,
+        ILogger<HomeController> logger
     )
     {
         _antiforgery = antiforgery;
@@ -72,6 +74,7 @@ public class HomeController : Controller
         _generalSettings = generalSettings.Value;
         _authenticationContext = authenticationContext;
         _instanceClient = instanceClient;
+        _logger = logger;
     }
 
     /// <summary>
@@ -169,9 +172,10 @@ public class HomeController : Controller
             return Content(html, "text/html; charset=utf-8");
         }
 
-        if (instances.Count > 1 && application.OnEntry?.Show == "select-instance")
+        // if (instances.Count > 1 && application.OnEntry?.Show == "select-instance")
+        if (application.OnEntry?.Show == "select-instance")
         {
-            return Redirect(Request.GetDisplayUrl() + "/instance-selection");
+            return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/instance-selection");
         }
 
         var currentTask = mostRecentInstance.Process.CurrentTask;
@@ -188,7 +192,7 @@ public class HomeController : Controller
         }
 
         string redirectUrl =
-            $"{Request.GetDisplayUrl()}instance/{mostRecentInstance.Id}/{currentTask.ElementId}/{firstPageId}";
+            $"{Request.GetDisplayUrl()}/instance/{mostRecentInstance.Id}/{currentTask.ElementId}/{firstPageId}";
         return Redirect(redirectUrl);
     }
 
@@ -260,6 +264,7 @@ public class HomeController : Controller
             userProfile = details.Profile,
             layoutSets,
         };
+
         var dataJson = JsonSerializer.Serialize(data, _jsonSerializerOptions);
         var html = GenerateHtmlWithInstances(org, app, dataJson);
         return Content(html, "text/html; charset=utf-8");
@@ -412,7 +417,9 @@ public class HomeController : Controller
             string instanceId = $"{partyId}/{instanceGuid}";
 
             var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
+
             var initialData = await _initialDataService.GetInitialData(org, app, instanceId, partyId, language);
+
             var html = GenerateHtml(org, app, initialData);
             return Content(html, "text/html; charset=utf-8");
         }
@@ -637,10 +644,22 @@ public class HomeController : Controller
         Altinn.App.Core.Features.Bootstrap.Models.InitialDataResponse initialData
     )
     {
+        // Check if frontendVersion cookie is set and use it as base URL
         var cdnUrl =
             _generalSettings.FrontendBaseUrl?.TrimEnd('/') ?? "https://altinncdn.no/toolkits/altinn-app-frontend";
+        var useCustomFrontendVersion = false;
+        if (HttpContext.Request.Cookies.TryGetValue("frontendVersion", out var frontendVersionCookie))
+        {
+            if (!string.IsNullOrEmpty(frontendVersionCookie))
+            {
+                cdnUrl = frontendVersionCookie.TrimEnd('/');
+                useCustomFrontendVersion = true;
+            }
+        }
 
-        var appVersion = "4"; // Default version, can be made configurable later
+        // Don't append version if using custom frontend URL
+        var appVersion = useCustomFrontendVersion ? "" : "4";
+        var versionPath = string.IsNullOrEmpty(appVersion) ? "" : $"{appVersion}/";
 
         // Serialize initial data to JSON
         var initialDataJson = JsonSerializer.Serialize(initialData, _jsonSerializerOptions);
@@ -648,43 +667,34 @@ public class HomeController : Controller
         var customCss = GetCustomCss(org, app);
         var customJs = GetCustomJs(org, app);
 
-        var html = new StringBuilder();
-        html.AppendLine("<!DOCTYPE html>");
-        html.AppendLine("<html lang=\"no\">");
-        html.AppendLine("<head>");
-        html.AppendLine("  <meta charset=\"utf-8\">");
-        html.AppendLine("  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">");
-        html.AppendLine("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\">");
-        html.AppendLine($"  <title>{org} - {app}</title>");
-        html.AppendLine("  <link rel=\"icon\" href=\"https://altinncdn.no/favicon.ico\">");
-        html.AppendLine(
-            $"  <link rel=\"stylesheet\" type=\"text/css\" href=\"{cdnUrl}/{appVersion}/altinn-app-frontend.css\">"
-        );
+        // Build optional sections
+        var customCssTag = !string.IsNullOrEmpty(customCss) ? $"\n  <style>{customCss}</style>" : "";
+        var customJsTag = !string.IsNullOrEmpty(customJs) ? $"\n  <script>{customJs}</script>" : "";
 
-        if (!string.IsNullOrEmpty(customCss))
-        {
-            html.AppendLine($"  <style>{customCss}</style>");
-        }
+        var htmlContent = $$"""
+            <!DOCTYPE html>
+            <html lang="no">
+            <head>
+              <meta charset="utf-8">
+              <meta http-equiv="X-UA-Compatible" content="IE=edge">
+              <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+              <title>{{org}} - {{app}}</title>
+              <link rel="icon" href="https://altinncdn.no/favicon.ico">
+              <link rel="stylesheet" type="text/css" href="{{cdnUrl}}/{{versionPath}}altinn-app-frontend.css">{{customCssTag}}
+            </head>
+            <body>
+              <div id="root"></div>
+              <script>
+                window.AltinnAppData = {{initialDataJson}};
+                window.org = '{{org}}';
+                window.app = '{{app}}';
+              </script>
+              <script src="{{cdnUrl}}/{{versionPath}}altinn-app-frontend.js"></script>{{customJsTag}}
+            </body>
+            </html>
+            """;
 
-        html.AppendLine("</head>");
-        html.AppendLine("<body>");
-        html.AppendLine("  <div id=\"root\"></div>");
-        html.AppendLine("  <script>");
-        html.AppendLine($"    window.AltinnAppData = {initialDataJson};");
-        html.AppendLine($"    window.org = '{org}';");
-        html.AppendLine($"    window.app = '{app}';");
-        html.AppendLine("  </script>");
-        html.AppendLine($"  <script src=\"{cdnUrl}/{appVersion}/altinn-app-frontend.js\"></script>");
-
-        if (!string.IsNullOrEmpty(customJs))
-        {
-            html.AppendLine($"  <script>{customJs}</script>");
-        }
-
-        html.AppendLine("</body>");
-        html.AppendLine("</html>");
-
-        return html.ToString();
+        return htmlContent;
     }
 
     private string? GetCustomCss(string org, string app)
@@ -755,15 +765,21 @@ public class HomeController : Controller
 
                     (async function() {
                       try {
+                        // Debug: Log all cookies
+                        console.log('All cookies:', document.cookie);
+
                         const xsrfToken = document.cookie
                           .split('; ')
                           .find(row => row.startsWith('XSRF-TOKEN='))
                           ?.split('=')[1];
 
+                        console.log('XSRF Token found:', xsrfToken ? 'yes' : 'no');
+
                         if (!xsrfToken) {
-                          throw new Error('XSRF token not found');
+                          throw new Error('XSRF token not found in cookies');
                         }
 
+                        console.log('Attempting to create instance...');
                         const response = await fetch('/{{org}}/{{app}}/instances?instanceOwnerPartyId={{partyId}}', {
                           method: 'POST',
                           headers: {
@@ -773,8 +789,16 @@ public class HomeController : Controller
                         });
 
                         if (!response.ok) {
-                          const errorText = await response.text();
-                          throw new Error(`Failed to create instance: ${response.status} - ${errorText}`);
+                          const contentType = response.headers.get('content-type');
+                          let errorDetail;
+                          if (contentType && contentType.includes('application/json')) {
+                            errorDetail = await response.json();
+                            console.error('Error response (JSON):', errorDetail);
+                          } else {
+                            errorDetail = await response.text();
+                            console.error('Error response (text):', errorDetail);
+                          }
+                          throw new Error(`Failed to create instance: ${response.status} - ${JSON.stringify(errorDetail)}`);
                         }
 
                         const instance = await response.json();
@@ -824,51 +848,53 @@ public class HomeController : Controller
 
     private string GenerateHtmlWithInstances(string org, string app, string dataJson)
     {
+        // Check if frontendVersion cookie is set and use it as base URL
         var cdnUrl =
             _generalSettings.FrontendBaseUrl?.TrimEnd('/') ?? "https://altinncdn.no/toolkits/altinn-app-frontend";
+        var useCustomFrontendVersion = false;
+        if (HttpContext.Request.Cookies.TryGetValue("frontendVersion", out var frontendVersionCookie))
+        {
+            if (!string.IsNullOrEmpty(frontendVersionCookie))
+            {
+                cdnUrl = frontendVersionCookie.TrimEnd('/');
+                useCustomFrontendVersion = true;
+            }
+        }
 
-        var appVersion = "4";
+        // Don't append version if using custom frontend URL
+        var appVersion = useCustomFrontendVersion ? "" : "4";
+        var versionPath = string.IsNullOrEmpty(appVersion) ? "" : $"{appVersion}/";
 
         var customCss = GetCustomCss(org, app);
         var customJs = GetCustomJs(org, app);
 
-        var html = new StringBuilder();
-        html.AppendLine("<!DOCTYPE html>");
-        html.AppendLine("<html lang=\"no\">");
-        html.AppendLine("<head>");
-        html.AppendLine("  <meta charset=\"utf-8\">");
-        html.AppendLine("  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">");
-        html.AppendLine("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\">");
-        html.AppendLine($"  <title>{org} - {app}</title>");
-        html.AppendLine("  <link rel=\"icon\" href=\"https://altinncdn.no/favicon.ico\">");
-        html.AppendLine(
-            $"  <link rel=\"stylesheet\" type=\"text/css\" href=\"{cdnUrl}/{appVersion}/altinn-app-frontend.css\">"
-        );
+        // Build optional sections
+        var customCssTag = !string.IsNullOrEmpty(customCss) ? $"\n  <style>{customCss}</style>" : "";
+        var customJsTag = !string.IsNullOrEmpty(customJs) ? $"\n  <script>{customJs}</script>" : "";
 
-        if (!string.IsNullOrEmpty(customCss))
-        {
-            html.AppendLine($"  <style>{customCss}</style>");
-        }
+        var htmlContent = $$"""
+            <!DOCTYPE html>
+            <html lang="no">
+            <head>
+              <meta charset="utf-8">
+              <meta http-equiv="X-UA-Compatible" content="IE=edge">
+              <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+              <title>{{org}} - {{app}}</title>
+              <link rel="icon" href="https://altinncdn.no/favicon.ico">
+              <link rel="stylesheet" type="text/css" href="{{cdnUrl}}/{{versionPath}}altinn-app-frontend.css">{{customCssTag}}
+            </head>
+            <body>
+              <div id="root"></div>
+              <script>
+                window.AltinnAppData = {{dataJson}};
+                window.org = '{{org}}';
+                window.app = '{{app}}';
+              </script>
+              <script src="{{cdnUrl}}/{{versionPath}}altinn-app-frontend.js"></script>{{customJsTag}}
+            </body>
+            </html>
+            """;
 
-        html.AppendLine("</head>");
-        html.AppendLine("<body>");
-        html.AppendLine("  <div id=\"root\"></div>");
-        html.AppendLine("  <script>");
-        html.AppendLine($"    window.AltinnAppData = {dataJson};");
-        html.AppendLine($"    window.org = '{org}';");
-        html.AppendLine($"    window.app = '{app}';");
-        html.AppendLine("  </script>");
-
-        html.AppendLine($"  <script src=\"{cdnUrl}/{appVersion}/altinn-app-frontend.js\"></script>");
-
-        if (!string.IsNullOrEmpty(customJs))
-        {
-            html.AppendLine($"  <script>{customJs}</script>");
-        }
-
-        html.AppendLine("</body>");
-        html.AppendLine("</html>");
-
-        return html.ToString();
+        return htmlContent;
     }
 }

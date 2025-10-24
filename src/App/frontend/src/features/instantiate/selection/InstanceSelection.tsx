@@ -8,6 +8,7 @@ import { Pagination } from 'src/app-components/Pagination/Pagination';
 import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import {
@@ -71,7 +72,7 @@ export function InstanceSelection() {
   const rowsPerPageOptions = instanceSelectionOptions?.rowsPerPageOptions ?? [10, 25, 50];
   const instantiation = useInstantiation();
   const selectedParty = useSelectedParty();
-  const { performProcess, isAnyProcessing, isThisProcessing: isLoading } = useIsProcessing();
+  const { isAnyProcessing, isThisProcessing: isLoading } = useIsProcessing();
 
   const appName = useAppName();
   const appOwner = useAppOwner();
@@ -85,6 +86,8 @@ export function InstanceSelection() {
 
   const instances = instanceSelectionOptions?.sortDirection === 'desc' ? [..._instances].reverse() : _instances;
   const paginatedInstances = instances.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+
+  const { doInstantiate } = useAppMutations();
 
   function handleRowsPerPageChanged(newRowsPerPage: number) {
     setRowsPerPage(newRowsPerPage);
@@ -269,18 +272,12 @@ export function InstanceSelection() {
               disabled={isAnyProcessing}
               isLoading={isLoading}
               size='md'
-              onClick={() =>
-                performProcess(async () => {
-                  if (selectedParty) {
-                    await instantiation.instantiate(selectedParty.partyId, {
-                      force: true,
-                      onSuccess: (data) => {
-                        window.location.href = `/${window.org}/${window.app}/instance/${data.id}`;
-                      },
-                    });
-                  }
-                })
-              }
+              onClick={async () => {
+                if (selectedParty) {
+                  const data = await doInstantiate(selectedParty.partyId);
+                  window.location.href = `/${window.org}/${window.app}/instance/${data.id}`;
+                }
+              }}
               id='new-instance-button'
             >
               <Lang id='instance_selection.new_instance' />
