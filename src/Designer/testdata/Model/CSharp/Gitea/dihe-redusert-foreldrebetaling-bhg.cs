@@ -15,6 +15,7 @@ namespace Altinn.App.Models
     [XmlElement("FORMID", Order = 1)]
     [JsonProperty("FORMID")]
     [JsonPropertyName("FORMID")]
+    [Required]
     public string FORMID { get; set; }
 
     [XmlElement("AVSMOT", Order = 2)]
@@ -54,81 +55,97 @@ namespace Altinn.App.Models
     [XmlElement("AM_ID", Order = 1)]
     [JsonProperty("AM_ID")]
     [JsonPropertyName("AM_ID")]
+    [Required]
     public string AM_ID { get; set; }
 
     [XmlElement("AM_JPID", Order = 2)]
     [JsonProperty("AM_JPID")]
     [JsonPropertyName("AM_JPID")]
+    [Required]
     public string AM_JPID { get; set; }
 
     [XmlElement("AM_IHTYPE", Order = 3)]
     [JsonProperty("AM_IHTYPE")]
     [JsonPropertyName("AM_IHTYPE")]
+    [Required]
     public string AM_IHTYPE { get; set; }
 
     [XmlElement("AM_KOPIMOT", Order = 4)]
     [JsonProperty("AM_KOPIMOT")]
     [JsonPropertyName("AM_KOPIMOT")]
+    [Required]
     public string AM_KOPIMOT { get; set; }
 
     [XmlElement("AM_BEHANSV", Order = 5)]
     [JsonProperty("AM_BEHANSV")]
     [JsonPropertyName("AM_BEHANSV")]
+    [Required]
     public string AM_BEHANSV { get; set; }
 
     [XmlElement("AM_NAVN", Order = 6)]
     [JsonProperty("AM_NAVN")]
     [JsonPropertyName("AM_NAVN")]
+    [Required]
     public string AM_NAVN { get; set; }
 
     [XmlElement("AM_GRUPPEMOT", Order = 7)]
     [JsonProperty("AM_GRUPPEMOT")]
     [JsonPropertyName("AM_GRUPPEMOT")]
+    [Required]
     public string AM_GRUPPEMOT { get; set; }
 
     [XmlElement("AM_ADRESSE", Order = 8)]
     [JsonProperty("AM_ADRESSE")]
     [JsonPropertyName("AM_ADRESSE")]
+    [Required]
     public string AM_ADRESSE { get; set; }
 
     [XmlElement("AM_POSTNR_PO", Order = 9)]
     [JsonProperty("AM_POSTNR_PO")]
     [JsonPropertyName("AM_POSTNR_PO")]
+    [Required]
     public string AM_POSTNR_PO { get; set; }
 
     [XmlElement("AM_POSTSTED", Order = 10)]
     [JsonProperty("AM_POSTSTED")]
     [JsonPropertyName("AM_POSTSTED")]
+    [Required]
     public string AM_POSTSTED { get; set; }
 
     [XmlElement("AM_EPOSTADR", Order = 11)]
     [JsonProperty("AM_EPOSTADR")]
     [JsonPropertyName("AM_EPOSTADR")]
+    [Required]
     public string AM_EPOSTADR { get; set; }
 
     [XmlElement("AM_ADMID_AI", Order = 12)]
     [JsonProperty("AM_ADMID_AI")]
     [JsonPropertyName("AM_ADMID_AI")]
+    [Required]
     public string AM_ADMID_AI { get; set; }
 
     [XmlElement("AM_NASJONALIDENTIFIKATOR_G", Order = 13)]
     [JsonProperty("AM_NASJONALIDENTIFIKATOR_G")]
     [JsonPropertyName("AM_NASJONALIDENTIFIKATOR_G")]
+    [Required]
     public string AM_NASJONALIDENTIFIKATOR_G { get; set; }
 
     [XmlElement("AM_TLF_G", Order = 14)]
     [JsonProperty("AM_TLF_G")]
     [JsonPropertyName("AM_TLF_G")]
+    [Required]
     public string AM_TLF_G { get; set; }
 
     [XmlElement("AM_IFKODE_IF", Order = 15)]
     [JsonProperty("AM_IFKODE_IF")]
     [JsonPropertyName("AM_IFKODE_IF")]
+    [Required]
     public string AM_IFKODE_IF { get; set; }
 
     [XmlElement("AM_PERSON_G", Order = 16)]
     [JsonProperty("AM_PERSON_G")]
     [JsonPropertyName("AM_PERSON_G")]
+    [Required]
     public string AM_PERSON_G { get; set; }
 
   }
@@ -146,11 +163,13 @@ namespace Altinn.App.Models
     [XmlElement("DL_DOKID_DB", Order = 1)]
     [JsonProperty("DL_DOKID_DB")]
     [JsonPropertyName("DL_DOKID_DB")]
+    [Required]
     public string DL_DOKID_DB { get; set; }
 
     [XmlElement("DL_TYPE_DT", Order = 2)]
     [JsonProperty("DL_TYPE_DT")]
     [JsonPropertyName("DL_TYPE_DT")]
+    [Required]
     public string DL_TYPE_DT { get; set; }
 
   }
@@ -168,11 +187,13 @@ namespace Altinn.App.Models
     [XmlElement("DB_DOKID", Order = 1)]
     [JsonProperty("DB_DOKID")]
     [JsonPropertyName("DB_DOKID")]
+    [Required]
     public string DB_DOKID { get; set; }
 
     [XmlElement("DB_TITTEL", Order = 2)]
     [JsonProperty("DB_TITTEL")]
     [JsonPropertyName("DB_TITTEL")]
+    [Required]
     public string DB_TITTEL { get; set; }
 
   }
@@ -190,16 +211,19 @@ namespace Altinn.App.Models
     [XmlElement("VE_DOKID_DB", Order = 1)]
     [JsonProperty("VE_DOKID_DB")]
     [JsonPropertyName("VE_DOKID_DB")]
+    [Required]
     public string VE_DOKID_DB { get; set; }
 
     [XmlElement("VE_DOKFORMAT_LF", Order = 2)]
     [JsonProperty("VE_DOKFORMAT_LF")]
     [JsonPropertyName("VE_DOKFORMAT_LF")]
+    [Required]
     public string VE_DOKFORMAT_LF { get; set; }
 
     [XmlElement("VE_FILREF", Order = 3)]
     [JsonProperty("VE_FILREF")]
     [JsonPropertyName("VE_FILREF")]
+    [Required]
     public string VE_FILREF { get; set; }
 
   }
@@ -209,6 +233,7 @@ namespace Altinn.App.Models
     [XmlElement("kommune", Order = 1)]
     [JsonProperty("kommune")]
     [JsonPropertyName("kommune")]
+    [Required]
     public string kommune { get; set; }
 
     [XmlElement("soker", Order = 2)]
@@ -224,6 +249,7 @@ namespace Altinn.App.Models
     [XmlElement("girSamtykke", Order = 4)]
     [JsonProperty("girSamtykke")]
     [JsonPropertyName("girSamtykke")]
+    [Required]
     public string girSamtykke { get; set; }
 
     [XmlElement("sokerSkattegrunnlag", Order = 5)]
@@ -246,16 +272,19 @@ namespace Altinn.App.Models
     [XmlElement("nedgangInntekt", Order = 8)]
     [JsonProperty("nedgangInntekt")]
     [JsonPropertyName("nedgangInntekt")]
+    [Required]
     public string nedgangInntekt { get; set; }
 
     [XmlElement("upload_vedlegg", Order = 9)]
     [JsonProperty("upload_vedlegg")]
     [JsonPropertyName("upload_vedlegg")]
+    [Required]
     public string upload_vedlegg { get; set; }
 
     [XmlElement("riktigInntekt", Order = 10)]
     [JsonProperty("riktigInntekt")]
     [JsonPropertyName("riktigInntekt")]
+    [Required]
     public string riktigInntekt { get; set; }
 
   }
@@ -265,41 +294,49 @@ namespace Altinn.App.Models
     [XmlElement("navn", Order = 1)]
     [JsonProperty("navn")]
     [JsonPropertyName("navn")]
+    [Required]
     public string navn { get; set; }
 
     [XmlElement("fodselsnummer", Order = 2)]
     [JsonProperty("fodselsnummer")]
     [JsonPropertyName("fodselsnummer")]
+    [Required]
     public string fodselsnummer { get; set; }
 
     [XmlElement("adresse", Order = 3)]
     [JsonProperty("adresse")]
     [JsonPropertyName("adresse")]
+    [Required]
     public string adresse { get; set; }
 
     [XmlElement("postnummer", Order = 4)]
     [JsonProperty("postnummer")]
     [JsonPropertyName("postnummer")]
+    [Required]
     public string postnummer { get; set; }
 
     [XmlElement("poststed", Order = 5)]
     [JsonProperty("poststed")]
     [JsonPropertyName("poststed")]
+    [Required]
     public string poststed { get; set; }
 
     [XmlElement("medSokerNavn", Order = 6)]
     [JsonProperty("medSokerNavn")]
     [JsonPropertyName("medSokerNavn")]
+    [Required]
     public string medSokerNavn { get; set; }
 
     [XmlElement("medSokerFodselsnummer", Order = 7)]
     [JsonProperty("medSokerFodselsnummer")]
     [JsonPropertyName("medSokerFodselsnummer")]
+    [Required]
     public string medSokerFodselsnummer { get; set; }
 
     [XmlElement("medSokerSammeAdresseSomSoker", Order = 8)]
     [JsonProperty("medSokerSammeAdresseSomSoker")]
     [JsonPropertyName("medSokerSammeAdresseSomSoker")]
+    [Required]
     public string medSokerSammeAdresseSomSoker { get; set; }
 
   }
@@ -317,26 +354,31 @@ namespace Altinn.App.Models
     [XmlElement("navn", Order = 1)]
     [JsonProperty("navn")]
     [JsonPropertyName("navn")]
+    [Required]
     public string navn { get; set; }
 
     [XmlElement("fodselsnummer", Order = 2)]
     [JsonProperty("fodselsnummer")]
     [JsonPropertyName("fodselsnummer")]
+    [Required]
     public string fodselsnummer { get; set; }
 
     [XmlElement("navnBhgSfo", Order = 3)]
     [JsonProperty("navnBhgSfo")]
     [JsonPropertyName("navnBhgSfo")]
+    [Required]
     public string navnBhgSfo { get; set; }
 
     [XmlElement("sokerOm", Order = 4)]
     [JsonProperty("sokerOm")]
     [JsonPropertyName("sokerOm")]
+    [Required]
     public string sokerOm { get; set; }
 
     [XmlElement("bhgEllerSfo", Order = 5)]
     [JsonProperty("bhgEllerSfo")]
     [JsonPropertyName("bhgEllerSfo")]
+    [Required]
     public string bhgEllerSfo { get; set; }
 
   }
@@ -354,6 +396,7 @@ namespace Altinn.App.Models
     [XmlElement("grunnlagNavn", Order = 1)]
     [JsonProperty("grunnlagNavn")]
     [JsonPropertyName("grunnlagNavn")]
+    [Required]
     public string grunnlagNavn { get; set; }
 
     [Range(Double.MinValue,Double.MaxValue)]
@@ -370,11 +413,13 @@ namespace Altinn.App.Models
     [XmlElement("testFelt", Order = 1)]
     [JsonProperty("testFelt")]
     [JsonPropertyName("testFelt")]
+    [Required]
     public string testFelt { get; set; }
 
     [XmlElement("sokerForBarn", Order = 2)]
     [JsonProperty("sokerForBarn")]
     [JsonPropertyName("sokerForBarn")]
+    [Required]
     public string sokerForBarn { get; set; }
 
     [XmlElement("prefillBarn", Order = 3)]
@@ -385,16 +430,19 @@ namespace Altinn.App.Models
     [XmlElement("prefillBarnNavn", Order = 4)]
     [JsonProperty("prefillBarnNavn")]
     [JsonPropertyName("prefillBarnNavn")]
+    [Required]
     public string prefillBarnNavn { get; set; }
 
     [XmlElement("skjulSkatteinfo", Order = 5)]
     [JsonProperty("skjulSkatteinfo")]
     [JsonPropertyName("skjulSkatteinfo")]
+    [Required]
     public string skjulSkatteinfo { get; set; }
 
     [XmlElement("folkeregPartner", Order = 6)]
     [JsonProperty("folkeregPartner")]
     [JsonPropertyName("folkeregPartner")]
+    [Required]
     public string folkeregPartner { get; set; }
 
   }

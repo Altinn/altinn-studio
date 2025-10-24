@@ -49,6 +49,7 @@ namespace Altinn.App.Models
     [XmlElement("hvemSokesDetFor", Order = 1)]
     [JsonProperty("hvemSokesDetFor")]
     [JsonPropertyName("hvemSokesDetFor")]
+    [Required]
     public string hvemSokesDetFor { get; set; }
 
   }
@@ -60,6 +61,7 @@ namespace Altinn.App.Models
     [XmlElement("fornavn", Order = 1)]
     [JsonProperty("fornavn")]
     [JsonPropertyName("fornavn")]
+    [Required]
     public string fornavn { get; set; }
 
     [MinLength(1)]
@@ -74,12 +76,14 @@ namespace Altinn.App.Models
     [XmlElement("etternavn", Order = 3)]
     [JsonProperty("etternavn")]
     [JsonPropertyName("etternavn")]
+    [Required]
     public string etternavn { get; set; }
 
     [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
     [XmlElement("fodselsdato", Order = 4)]
     [JsonProperty("fodselsdato")]
     [JsonPropertyName("fodselsdato")]
+    [Required]
     public string fodselsdato { get; set; }
 
     [RegularExpression(@"[0-9]{11}")]
@@ -93,26 +97,31 @@ namespace Altinn.App.Models
     [XmlElement("nummerPaaReisedokument", Order = 6)]
     [JsonProperty("nummerPaaReisedokument")]
     [JsonPropertyName("nummerPaaReisedokument")]
+    [Required]
     public string nummerPaaReisedokument { get; set; }
 
     [XmlElement("Adresse", Order = 7)]
     [JsonProperty("Adresse")]
     [JsonPropertyName("Adresse")]
+    [Required]
     public string Adresse { get; set; }
 
     [XmlElement("Postnummer", Order = 8)]
     [JsonProperty("Postnummer")]
     [JsonPropertyName("Postnummer")]
+    [Required]
     public string Postnummer { get; set; }
 
     [XmlElement("Poststed", Order = 9)]
     [JsonProperty("Poststed")]
     [JsonPropertyName("Poststed")]
+    [Required]
     public string Poststed { get; set; }
 
     [XmlElement("Land", Order = 10)]
     [JsonProperty("Land")]
     [JsonPropertyName("Land")]
+    [Required]
     public string Land { get; set; }
 
     [MinLength(1)]
@@ -121,6 +130,7 @@ namespace Altinn.App.Models
     [XmlElement("telefonnummer", Order = 11)]
     [JsonProperty("telefonnummer")]
     [JsonPropertyName("telefonnummer")]
+    [Required]
     public string telefonnummer { get; set; }
 
     [MinLength(1)]
@@ -129,6 +139,7 @@ namespace Altinn.App.Models
     [XmlElement("epost", Order = 12)]
     [JsonProperty("epost")]
     [JsonPropertyName("epost")]
+    [Required]
     public string epost { get; set; }
 
   }
@@ -140,6 +151,7 @@ namespace Altinn.App.Models
     [XmlElement("fornavn", Order = 1)]
     [JsonProperty("fornavn")]
     [JsonPropertyName("fornavn")]
+    [Required]
     public string fornavn { get; set; }
 
     [MinLength(1)]
@@ -154,6 +166,7 @@ namespace Altinn.App.Models
     [XmlElement("etternavn", Order = 3)]
     [JsonProperty("etternavn")]
     [JsonPropertyName("etternavn")]
+    [Required]
     public string etternavn { get; set; }
 
     [RegularExpression(@"[0-9]{11}")]
@@ -165,21 +178,25 @@ namespace Altinn.App.Models
     [XmlElement("Adresse", Order = 5)]
     [JsonProperty("Adresse")]
     [JsonPropertyName("Adresse")]
+    [Required]
     public string Adresse { get; set; }
 
     [XmlElement("Postnummer", Order = 6)]
     [JsonProperty("Postnummer")]
     [JsonPropertyName("Postnummer")]
+    [Required]
     public string Postnummer { get; set; }
 
     [XmlElement("Poststed", Order = 7)]
     [JsonProperty("Poststed")]
     [JsonPropertyName("Poststed")]
+    [Required]
     public string Poststed { get; set; }
 
     [XmlElement("Land", Order = 8)]
     [JsonProperty("Land")]
     [JsonPropertyName("Land")]
+    [Required]
     public string Land { get; set; }
 
     [MinLength(1)]
@@ -206,6 +223,7 @@ namespace Altinn.App.Models
     [XmlElement("ankomstdato", Order = 1)]
     [JsonProperty("ankomstdato")]
     [JsonPropertyName("ankomstdato")]
+    [Required]
     public string ankomstdato { get; set; }
 
     [XmlElement("landOppholdtI", Order = 2)]
@@ -225,6 +243,7 @@ namespace Altinn.App.Models
     [XmlElement("sammenstilling", Order = 1)]
     [JsonProperty("sammenstilling")]
     [JsonPropertyName("sammenstilling")]
+    [Required]
     public string sammenstilling { get; set; }
 
     [XmlElement("helseproblemer", Order = 2)]
@@ -305,11 +324,13 @@ namespace Altinn.App.Models
     [XmlElement("avsender", Order = 2)]
     [JsonProperty("avsender")]
     [JsonPropertyName("avsender")]
+    [Required]
     public string avsender { get; set; }
 
     [XmlElement("altinnRef", Order = 3)]
     [JsonProperty("altinnRef")]
     [JsonPropertyName("altinnRef")]
+    [Required]
     public string altinnRef { get; set; }
 
   }
