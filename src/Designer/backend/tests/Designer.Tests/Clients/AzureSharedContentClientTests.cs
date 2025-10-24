@@ -207,7 +207,7 @@ public class AzureSharedContentClientTests
         // Assert
         blobClientMock
             .Verify(c => c.UploadAsync(It.Is<BinaryData>(bd => bd.ToString() == content), true, It.IsAny<CancellationToken>()), Times.Once);
-        containerClientMock.Verify();
+        containerClientMock.Verify(c => c.GetBlobClient("ttd/code_lists/someCodeList/1.json"), Times.Once);
     }
 
     [Fact]
