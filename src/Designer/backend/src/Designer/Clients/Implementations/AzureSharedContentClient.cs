@@ -240,15 +240,7 @@ public class AzureSharedContentClient : ISharedContentClient
         {
             BlobClient blobClient = containerClient.GetBlobClient(fileNameAndContent.Key);
             BinaryData content = BinaryData.FromString(fileNameAndContent.Value);
-            BlobUploadOptions uploadOptions = new()
-            {
-                HttpHeaders = new BlobHttpHeaders
-                {
-                    ContentType = MediaTypeNames.Application.Json,
-                    ContentEncoding = Encoding.UTF8.ToString()
-                }
-            };
-            await blobClient.UploadAsync(content, uploadOptions, token);
+            await blobClient.UploadAsync(content, overwrite: true, token);
         });
     }
 
