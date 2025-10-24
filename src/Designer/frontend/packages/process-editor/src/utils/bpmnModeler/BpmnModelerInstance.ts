@@ -22,9 +22,6 @@ export class BpmnModelerInstance {
     if (shouldCreateNewInstance) {
       BpmnModelerInstance.instance = new BpmnModeler({
         container: canvasContainer,
-        keyboard: {
-          bindTo: document,
-        },
         additionalModules: [SupportedPaletteProvider, SupportedContextPadProvider],
         moddleExtensions: {
           altinn: altinnCustomTasks,
