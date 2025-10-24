@@ -12,7 +12,7 @@ jobs:
   build-and-deploy-at-ring1:
     name: Build and deploy to at_ring1
     runs-on: ubuntu-latest
-    environment: dev
+    environment: runtime_at_ring1
     permissions:
       id-token: write # Require write permission to Fetch an OIDC token.
     defaults:
