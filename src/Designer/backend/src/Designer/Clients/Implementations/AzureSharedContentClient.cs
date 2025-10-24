@@ -18,6 +18,7 @@ using Azure;
 using Azure.Identity;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
+using Sprache;
 
 namespace Altinn.Studio.Designer.Clients.Implementations;
 
@@ -269,10 +270,16 @@ public class AzureSharedContentClient(
 
         foreach (string? versionAsString in versionsAsString)
         {
-            if (versionAsString is not null)
+            if (versionAsString is null) { continue; }
+
+            bool success = int.TryParse(versionAsString, out int versionAsInt);
+            if (success)
             {
-                versions.Add(int.Parse(versionAsString));
+                versions.Add(versionAsInt);
+                continue;
             }
+
+            logger.LogWarning("Could not parse version string to int: {VersionString}, class: {Class}", versionAsString, nameof(AzureSharedContentClient));
         }
 
         if (versions.Count == 0) { return; }
