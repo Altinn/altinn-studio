@@ -1,0 +1,15 @@
+# Tool versions for runtime-fixture
+# Format: <tool-name> <version> <checksum-url-template>
+# URL templates support {os}, {arch}, {version}, {version_no_v} placeholders
+# renovate: datasource=github-releases depName=golangci/golangci-lint
+golangci-lint v2.5.0 https://github.com/golangci/golangci-lint/releases/download/{version}/golangci-lint-{version_no_v}-checksums.txt
+# renovate: datasource=github-releases depName=kubernetes-sigs/kind
+kind v0.29.0 https://github.com/kubernetes-sigs/kind/releases/download/{version}/kind-{os}-{arch}.sha256sum
+# renovate: datasource=github-releases depName=helm/helm
+helm v3.19.0 https://get.helm.sh/helm-{version}-{os}-{arch}.tar.gz.sha256sum
+# renovate: datasource=github-releases depName=kubernetes/kubernetes
+kubectl v1.34.1 https://dl.k8s.io/release/{version}/bin/{os}/{arch}/kubectl.sha256
+# renovate: datasource=github-releases depName=fluxcd/flux2
+flux v2.7.2 https://github.com/fluxcd/flux2/releases/download/{version}/flux_{version_no_v}_checksums.txt
+# renovate: datasource=github-releases depName=grafana/k6
+k6 v1.3.0 https://github.com/grafana/k6/releases/download/{version}/k6-{version}-checksums.txt

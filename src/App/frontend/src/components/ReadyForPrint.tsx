@@ -88,6 +88,8 @@ export function useHasElementsByClass(className: string) {
     observer.observe(document.body, {
       childList: true,
       subtree: true,
+      attributes: true,
+      attributeFilter: ['class'],
     });
 
     updateCount();
@@ -98,4 +100,13 @@ export function useHasElementsByClass(className: string) {
   }, [className]);
 
   return hasElements;
+}
+
+export function BlockPrint() {
+  return (
+    <div
+      className={loadingClassName}
+      style={{ display: 'none' }}
+    />
+  );
 }

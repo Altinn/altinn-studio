@@ -2,8 +2,8 @@ import React from 'react';
 import classes from './PolicyResourceFields.module.css';
 import { MultiplyIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph, StudioTextfield } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioTextfield } from '@studio/components-legacy';
+import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 import { usePolicyEditorContext } from '../../../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../../../contexts/PolicyRuleContext';
 import { getUpdatedRules } from '../../../../../../utils/PolicyRuleUtils';
@@ -64,8 +64,8 @@ export const PolicyResourceFields = ({
       <div className={classes.inputWrapper}>
         <div className={classes.textfieldWrapper}>
           {!canEditTypeAndId && (
-            <StudioLabelAsParagraph spacing size='small' className={classes.label}>
-              Type
+            <StudioLabelAsParagraph data-size='sm' className={classes.label}>
+              {t('policy_editor.rule_card_sub_resource_type_label')}
             </StudioLabelAsParagraph>
           )}
           <StudioTextfield
@@ -80,8 +80,8 @@ export const PolicyResourceFields = ({
         </div>
         <div className={classes.textfieldWrapper}>
           {!canEditTypeAndId && (
-            <StudioLabelAsParagraph spacing size='small' className={classes.label}>
-              Id
+            <StudioLabelAsParagraph data-size='sm' className={classes.label}>
+              {t('policy_editor.rule_card_sub_resource_id_label')}
             </StudioLabelAsParagraph>
           )}
           <StudioTextfield
