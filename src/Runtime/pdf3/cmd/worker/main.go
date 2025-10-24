@@ -234,7 +234,7 @@ func getTestOutputHandler() http.HandlerFunc {
 			return
 		}
 
-		// Wait for all snapshots to be collected (with 5 second timeout)
+		// Wait for all snapshots to be collected
 		if !output.WaitForComplete(30 * time.Second) {
 			w.WriteHeader(http.StatusRequestTimeout)
 			if _, err := w.Write([]byte("Timeout waiting for test output to complete")); err != nil {

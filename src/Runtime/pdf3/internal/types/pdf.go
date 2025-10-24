@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 )
 
 // Contract should be based on puppeteer
@@ -189,6 +190,31 @@ var ValidFormats = []string{
 	"a6",
 }
 
+// Timeout constants for PDF generation operations.
+// - PDF generation max wait timeout is 30s
+// - The total request timeouts becomes 30s + 5s
+// We don't really expect to hit the total request timeout unless the client
+// has spent some time in a retry loop
+const (
+	MaxTimeoutMs int32 = 30_000
+
+	TimeoutBufferMs int32 = 5_000
+
+	RequestTimeoutMs int32 = MaxTimeoutMs + TimeoutBufferMs
+)
+
+// RequestTimeout returns the request timeout as a time.Duration.
+// This is the maximum time allowed for a complete PDF generation request.
+func RequestTimeout() time.Duration {
+	return time.Duration(RequestTimeoutMs) * time.Millisecond
+}
+
+// MaxWaitForTimeout returns the maximum WaitFor timeout as a time.Duration.
+// This is the maximum time users can configure for waiting for page elements.
+func MaxWaitForTimeout() time.Duration {
+	return time.Duration(MaxTimeoutMs) * time.Millisecond
+}
+
 // Validate validates the PdfRequest according to browserless schema rules
 func (r *PdfRequest) Validate() error {
 	// Validate URL (required and well-formed)
@@ -222,13 +248,19 @@ func (r *PdfRequest) Validate() error {
 		} else if timeout, ok := r.WaitFor.AsTimeout(); ok {
 			if timeout < 0 {
 				return errors.New("waitFor timeout must be >= 0")
+			} else if timeout > MaxTimeoutMs {
+				return errors.New("waitFor timeout must be <= 30000 ms")
 			}
 		} else if opts, ok := r.WaitFor.AsOptions(); ok {
 			if opts.Selector == "" {
 				return errors.New("waitFor selector must not be empty")
 			}
-			if opts.Timeout != nil && *opts.Timeout < 0 {
-				return errors.New("waitFor timeout must be >= 0")
+			if opts.Timeout != nil {
+				if *opts.Timeout < 0 {
+					return errors.New("waitFor timeout must be >= 0")
+				} else if *opts.Timeout > MaxTimeoutMs {
+					return errors.New("waitFor timeout must be <= 30000 ms")
+				}
 			}
 			if opts.Visible != nil && opts.Hidden != nil && *opts.Visible && *opts.Hidden {
 				return errors.New("waitFor options cannot have both visible and hidden set to true")
