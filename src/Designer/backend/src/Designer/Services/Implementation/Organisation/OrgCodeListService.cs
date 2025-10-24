@@ -302,7 +302,7 @@ public class OrgCodeListService : IOrgCodeListService
 
         string codeListId = request.Title;
         CodeList codeList = request.CodeList;
-        if (InputValidator.IsInvalidCodeListTitle(codeListId) is false)
+        if (InputValidator.IsInvalidCodeListTitle(codeListId))
         {
             throw new IllegalFileNameException("The code list title contains invalid characters. Allowed: letters, numbers, underscores (_) and hyphens (-).");
         }
