@@ -124,6 +124,11 @@ func Load(variant KindContainerRuntimeVariant, cachePath string) (*KindContainer
 		return nil, err
 	}
 
+	// Set kubectl context to match the loaded cluster
+	if err := r.setKubectlContext(); err != nil {
+		return nil, fmt.Errorf("failed to set kubectl context: %w", err)
+	}
+
 	return r, nil
 }
 
@@ -154,6 +159,11 @@ func LoadCurrent(cachePath string) (*KindContainerRuntime, error) {
 		return nil, err
 	}
 
+	// Set kubectl context to match the loaded cluster
+	if err := r.setKubectlContext(); err != nil {
+		return nil, fmt.Errorf("failed to set kubectl context: %w", err)
+	}
+
 	return r, nil
 }
 
@@ -179,7 +189,8 @@ func initialize(cachePath string, isLoad bool) (*KindContainerRuntime, []string,
 		return nil, nil, err
 	}
 
-	if _, err := installer.Install(context.Background(), ""); err != nil {
+	// Install only the tools needed for KindContainerRuntime (not k6, which is only needed for loadtest)
+	if _, err := installer.Install(context.Background(), "kind,kubectl,helm,flux,golangci-lint"); err != nil {
 		return nil, nil, fmt.Errorf("failed to ensure CLIs: %w", err)
 	}
 

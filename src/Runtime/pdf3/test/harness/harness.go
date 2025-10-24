@@ -55,48 +55,7 @@ func Init() {
 		os.Exit(1)
 	}
 
-	// Wait for services to be ready
-	fmt.Println("Waiting for services to be ready...")
-	if err := WaitForServices(); err != nil {
-		fmt.Fprintf(os.Stderr, "Services not ready: %v\n", err)
-		os.Exit(1)
-	}
-
 	fmt.Println("=== Test Harness Ready ===")
-}
-
-// WaitForServices waits for proxy and test server to be ready
-func WaitForServices() error {
-	client := &http.Client{Timeout: 2 * time.Second}
-	timeout := 60 * time.Second
-	deadline := time.Now().Add(timeout)
-
-	// Wait for proxy
-	for {
-		if time.Now().After(deadline) {
-			return fmt.Errorf("timed out waiting for proxy to get ready")
-		}
-
-		req, err := http.NewRequest("GET", JumpboxURL+"/health/startup", nil)
-		if err != nil {
-			return err
-		}
-		req.Host = "pdf3-proxy.runtime-pdf3.svc.cluster.local"
-
-		resp, err := client.Do(req)
-		if err == nil {
-			// Close response body when err is nil - we're in a retry loop, so ignoring error is acceptable
-			if resp.StatusCode == http.StatusOK {
-				_ = resp.Body.Close()
-				break
-			}
-			_ = resp.Body.Close()
-		}
-
-		time.Sleep(500 * time.Millisecond)
-	}
-
-	return nil
 }
 
 func GetDefaultPdfRequest(t *testing.T) *types.PdfRequest {
