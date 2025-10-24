@@ -329,7 +329,7 @@ void Configure(IConfiguration configuration)
 
 void CreateDirectory(IConfiguration configuration)
 {
-    Console.WriteLine($"// Program.cs // CreateDirectory // Trying to create directory");
+    logger.LogInformation("// Program.cs // CreateDirectory // Trying to create directory");
 
     // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
     // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
@@ -344,7 +344,7 @@ void CreateDirectory(IConfiguration configuration)
     if (!Directory.Exists(repoLocation))
     {
         Directory.CreateDirectory(repoLocation);
-        Console.WriteLine($"// Program.cs // CreateDirectory // Successfully created directory");
+        logger.LogInformation("// Program.cs // CreateDirectory // Successfully created directory");
     }
 }
 
