@@ -2299,7 +2299,7 @@ namespace Altinn.App.Core.Implementation
     }
     public class PrefillSI : Altinn.App.Core.Internal.Prefill.IPrefill
     {
-        public PrefillSI(Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Implementation.PrefillSI> logger, Altinn.App.Core.Internal.App.IAppResources appResourcesService, Altinn.App.Core.Internal.Registers.IAltinnPartyClient altinnPartyClient, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
+        public PrefillSI(Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Implementation.PrefillSI> logger, Altinn.App.Core.Internal.App.IAppResources appResourcesService, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, System.IServiceProvider serviceProvider, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
         public void PrefillDataModel(object dataModel, System.Collections.Generic.Dictionary<string, string> externalPrefill, bool continueOnError = false) { }
         public System.Threading.Tasks.Task PrefillDataModel(string partyId, string dataModelName, object dataModel, System.Collections.Generic.Dictionary<string, string>? externalPrefill = null) { }
     }

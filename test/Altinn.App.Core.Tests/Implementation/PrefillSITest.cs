@@ -2,6 +2,7 @@ using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Implementation;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Registers;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -26,7 +27,7 @@ public class TestPrefillFields
 public class PrefillSITests
 {
     [Fact]
-    public void PrefillDataModel_AssignsValuesCorrectly()
+    public async Task PrefillDataModel_AssignsValuesCorrectly()
     {
         var externalPrefill = new Dictionary<string, string>
         {
@@ -43,14 +44,17 @@ public class PrefillSITests
 
         var loggerMock = new Mock<ILogger<PrefillSI>>();
         var appResourcesMock = new Mock<IAppResources>();
-        var altinnPartyClientMock = new Mock<IAltinnPartyClient>();
         var authenticationContextMock = new Mock<IAuthenticationContext>();
+        var services = new ServiceCollection();
+        var registryClientMock = new Mock<IRegisterClient>();
+        services.AddSingleton<IRegisterClient>(registryClientMock.Object);
+        await using var sp = services.BuildStrictServiceProvider();
 
         var prefillToTest = new PrefillSI(
             loggerMock.Object,
             appResourcesMock.Object,
-            altinnPartyClientMock.Object,
-            authenticationContextMock.Object
+            authenticationContextMock.Object,
+            sp
         );
 
         prefillToTest.PrefillDataModel(dataModel, externalPrefill, continueOnError: false);
