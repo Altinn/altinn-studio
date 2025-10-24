@@ -245,7 +245,7 @@ public class AzureSharedContentClient(
         }
         catch (Exception ex) when (ex is RequestFailedException or AggregateException)
         {
-            logger.LogError($"Error while retrieving shared content storage container, class: {nameof(AzureSharedContentClient)} Message: {ex.Message}");
+            logger.LogError(ex, "Shared content storage check failed in {Class}", nameof(AzureSharedContentClient));
             throw new InvalidOperationException($"Request failed, class: {nameof(AzureSharedContentClient)}");
         }
     }
