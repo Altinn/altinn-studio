@@ -65,8 +65,6 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "  (default: run both smoke and simple tests)")
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "Loadtest local flags:")
-	fmt.Fprintln(os.Stderr, "  --script <name>       Test script to run (default: test-local.ts)")
-	fmt.Fprintln(os.Stderr, "                        Options: test-local.ts, test-env.js")
 	fmt.Fprintln(os.Stderr, "  --keep-running, --kr  Keep cluster running after loadtest completes")
 }
 

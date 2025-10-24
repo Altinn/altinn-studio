@@ -10,7 +10,7 @@ import (
 
 // HTTPRouteBackendRef represents a backend reference in an HTTPRoute (minimal for validation)
 type HTTPRouteBackendRef struct {
-	Weight int `json:"weight"`
+	Weight *int `json:"weight,omitempty"`
 }
 
 // HTTPRouteRule represents a rule in an HTTPRoute (minimal for validation)
@@ -119,12 +119,12 @@ func buildWeightPatch(weight1, weight2 int, hasReconcileAnnotation bool, hasAnyA
 	// Replace weights
 	operations = append(operations,
 		JSONPatchOperation{
-			Op:    "replace",
+			Op:    "add",
 			Path:  "/spec/rules/0/backendRefs/0/weight",
 			Value: weight1,
 		},
 		JSONPatchOperation{
-			Op:    "replace",
+			Op:    "add",
 			Path:  "/spec/rules/0/backendRefs/1/weight",
 			Value: weight2,
 		},
@@ -222,8 +222,15 @@ func GetHTTPRouteFromCluster(ctx context.Context, clusterName string, namespace 
 		return result
 	}
 
-	result.CurrentWeight1 = route.Spec.Rules[0].BackendRefs[0].Weight
-	result.CurrentWeight2 = route.Spec.Rules[0].BackendRefs[1].Weight
+	currentWeight1 := route.Spec.Rules[0].BackendRefs[0].Weight
+	currentWeight2 := route.Spec.Rules[0].BackendRefs[1].Weight
+	if currentWeight1 == nil || currentWeight2 == nil {
+		result.Error = fmt.Errorf("httproute in %s does not have weight", clusterName)
+		return result
+	}
+
+	result.CurrentWeight1 = *currentWeight1
+	result.CurrentWeight2 = *currentWeight2
 
 	// Check if annotations exist and if the specific reconcile annotation exists
 	result.HasAnyAnnotations = route.Metadata.Annotations != nil

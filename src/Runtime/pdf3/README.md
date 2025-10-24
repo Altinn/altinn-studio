@@ -9,7 +9,7 @@ New PDF generation solution for Altinn Studio apps.
 
 ## Local browser headless-shell installation
 
-Some dependencies might be needed to run det headle-shell instance installed through `make browser`.
+Some dependencies might be needed to run the headless-shell instance installed through `make browser`.
 You can run `ldd <binary> | grep not` to see any dependencies the binary expects to be installed.
 
 ### Arch
