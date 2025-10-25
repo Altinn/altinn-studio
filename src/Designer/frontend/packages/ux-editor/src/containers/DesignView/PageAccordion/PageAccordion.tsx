@@ -102,7 +102,7 @@ export const PageAccordion = ({
           <StudioButton
             icon={<TrashIcon aria-hidden />}
             onClick={handleConfirmDelete}
-            title={t('general.delete_item', { item: pageId })}
+            title={t('general.delete_item', { item: pageName || pageId })}
             variant='tertiary'
             disabled={isPending}
           />
