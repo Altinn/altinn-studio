@@ -500,7 +500,10 @@ func writeProblemDetails(w http.ResponseWriter, statusCode int, problem ProblemD
 
 func forwardTestOutputRequest(client *http.Client) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		assert.AssertWithMessage(runtime.IsTestInternalsMode, "Test output endpoint should only be registered in test internals mode")
+		assert.AssertWithMessage(
+			runtime.IsTestInternalsMode,
+			"Test output endpoint should only be registered in test internals mode",
+		)
 
 		// Extract test ID from URL path: /testoutput/{id}
 		testID := strings.TrimPrefix(r.URL.Path, "/testoutput/")

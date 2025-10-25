@@ -418,7 +418,14 @@ func collectLogs(runtime *kind.KindContainerRuntime, logsDir string, sinceSecond
 
 // findChromePath locates the chrome-headless-shell executable in .cache
 func findChromePath(projectRoot string) (string, error) {
-	pattern := filepath.Join(projectRoot, ".cache", "chrome-headless-shell", "*", "chrome-headless-shell-linux64", "chrome-headless-shell")
+	pattern := filepath.Join(
+		projectRoot,
+		".cache",
+		"chrome-headless-shell",
+		"*",
+		"chrome-headless-shell-linux64",
+		"chrome-headless-shell",
+	)
 	matches, err := filepath.Glob(pattern)
 	if err != nil {
 		return "", fmt.Errorf("failed to search for chrome: %w", err)

@@ -177,7 +177,10 @@ func (r *workerRequest) tryRespondOk(data []byte) {
 			log.Printf("Worker: responded successfully for URL: %s, data size: %d bytes\n", r.request.URL, len(data))
 			break
 		default:
-			log.Printf("Worker: client abandoned request (likely timed out), dropping response for URL: %s\n", r.request.URL)
+			log.Printf(
+				"Worker: client abandoned request (likely timed out), dropping response for URL: %s\n",
+				r.request.URL,
+			)
 		}
 		r.responder = nil
 	}
@@ -194,7 +197,10 @@ func (r *workerRequest) tryRespondError(err *types.PDFError) {
 			log.Printf("Worker: responded with error for URL: %s\n", r.request.URL)
 			break
 		default:
-			log.Printf("Worker: client abandoned request (likely timed out), dropping response for URL: %s\n", r.request.URL)
+			log.Printf(
+				"Worker: client abandoned request (likely timed out), dropping response for URL: %s\n",
+				r.request.URL,
+			)
 		}
 		r.responder = nil
 	}

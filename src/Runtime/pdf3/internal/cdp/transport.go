@@ -8,10 +8,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/websocket"
+
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/concurrent"
 	"altinn.studio/pdf3/internal/types"
-	"github.com/gorilla/websocket"
 )
 
 type Command struct {
@@ -192,8 +193,14 @@ func (c *connection) watchdog() {
 		case <-ticker.C:
 			log.Println("CDP connection watchdog tick")
 			const treshold int = 32
-			assert.AssertWithMessage(c.cmdIDToBatchID.Len() <= treshold, "CDP connection batch datastructure overflowing")
-			assert.AssertWithMessage(c.pendingBatches.Len() <= treshold, "CDP connection batch datastructure overflowing")
+			assert.AssertWithMessage(
+				c.cmdIDToBatchID.Len() <= treshold,
+				"CDP connection batch datastructure overflowing",
+			)
+			assert.AssertWithMessage(
+				c.pendingBatches.Len() <= treshold,
+				"CDP connection batch datastructure overflowing",
+			)
 			assert.AssertWithMessage(c.pendingCmds.Len() <= treshold, "CDP connection cmd datastructure overflowing")
 		case <-c.ctx.Done():
 			log.Println("CDP connection watchdog shutting down")
@@ -402,7 +409,13 @@ func (c *connection) Close() error {
 	// If there are pending commands, it means we're closing while requests are in-flight,
 	// which indicates a bug in graceful shutdown coordination.
 	pendingCount := c.pendingCmds.Len()
-	assert.AssertWithMessage(pendingCount == 0, fmt.Sprintf("Connection closed with %d pending commands - graceful shutdown not properly coordinated", pendingCount))
+	assert.AssertWithMessage(
+		pendingCount == 0,
+		fmt.Sprintf(
+			"Connection closed with %d pending commands - graceful shutdown not properly coordinated",
+			pendingCount,
+		),
+	)
 
 	c.cancel()
 
@@ -455,7 +468,10 @@ func (c *connection) handleMessages() {
 			var msg CDPMessage
 			if err := json.Unmarshal(result.payload, &msg); err != nil {
 				// Chrome should never send invalid JSON - this indicates protocol corruption
-				assert.AssertWithMessage(false, fmt.Sprintf("Chrome sent malformed JSON: %v (payload: %s)", err, string(result.payload)))
+				assert.AssertWithMessage(
+					false,
+					fmt.Sprintf("Chrome sent malformed JSON: %v (payload: %s)", err, string(result.payload)),
+				)
 				continue
 			}
 
@@ -465,15 +481,25 @@ func (c *connection) handleMessages() {
 
 				// Both false means this is a late response for a timed-out command - ignore it
 				if !batchOK && !cmdOK {
-					log.Printf("Worker %d: Received late response for command %d (likely timed out) - ignoring\n", c.id, *msg.ID)
+					log.Printf(
+						"Worker %d: Received late response for command %d (likely timed out) - ignoring\n",
+						c.id,
+						*msg.ID,
+					)
 					continue
 				}
 
 				// Exactly one must be true - commands can't be in both states
-				assert.AssertWithMessage(batchOK != cmdOK, fmt.Sprintf("Command %d exists in both batch and single command state", *msg.ID))
+				assert.AssertWithMessage(
+					batchOK != cmdOK,
+					fmt.Sprintf("Command %d exists in both batch and single command state", *msg.ID),
+				)
 
 				if cmdOK {
-					assert.AssertWithMessage(responseCh != nil, fmt.Sprintf("Response channel for command ID %d is nil", *msg.ID))
+					assert.AssertWithMessage(
+						responseCh != nil,
+						fmt.Sprintf("Response channel for command ID %d is nil", *msg.ID),
+					)
 					responseCh <- CDPResponse{
 						ID:     msg.ID,
 						Result: msg.Result,

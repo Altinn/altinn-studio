@@ -204,7 +204,10 @@ func generatePdfHandler(gen types.PdfGenerator) http.HandlerFunc {
 
 func getTestOutputHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		assert.AssertWithMessage(runtime.IsTestInternalsMode, "Test output handler should only be registered in test internals mode")
+		assert.AssertWithMessage(
+			runtime.IsTestInternalsMode,
+			"Test output handler should only be registered in test internals mode",
+		)
 
 		if r.Method != http.MethodGet {
 			w.WriteHeader(http.StatusMethodNotAllowed)

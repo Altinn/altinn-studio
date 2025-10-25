@@ -161,7 +161,11 @@ func RequestNewPDF(t *testing.T, req *types.PdfRequest) (*PdfResponse, error) {
 }
 
 // requestNewPDF sends a PDF generation request to the new PDF generator solution
-func RequestNewPDFWithTestInput(t *testing.T, req *types.PdfRequest, testInput *ptesting.PdfInternalsTestInput) (*PdfResponse, error) {
+func RequestNewPDFWithTestInput(
+	t *testing.T,
+	req *types.PdfRequest,
+	testInput *ptesting.PdfInternalsTestInput,
+) (*PdfResponse, error) {
 	return RequestPDFWithHost(t, req, "pdf3-proxy.runtime-pdf3.svc.cluster.local", testInput)
 }
 
@@ -171,7 +175,12 @@ func RequestOldPDF(t *testing.T, req *types.PdfRequest) (*PdfResponse, error) {
 }
 
 // requestPDF sends a PDF generation request to the proxy
-func RequestPDFWithHost(t *testing.T, req *types.PdfRequest, overrideHost string, testInput *ptesting.PdfInternalsTestInput) (*PdfResponse, error) {
+func RequestPDFWithHost(
+	t *testing.T,
+	req *types.PdfRequest,
+	overrideHost string,
+	testInput *ptesting.PdfInternalsTestInput,
+) (*PdfResponse, error) {
 	reqBody, err := json.Marshal(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)

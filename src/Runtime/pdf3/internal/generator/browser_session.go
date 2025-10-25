@@ -68,7 +68,11 @@ func newBrowserSession(id int) (*browserSession, error) {
 	w.conn, w.targetID, err = cdp.Connect(ctx, id, w.browser.DebugBaseURL, w.handleEvent)
 	if err != nil {
 		if closeErr := w.browser.Close(); closeErr != nil {
-			log.Printf("ERROR: Worker %d failed to connect AND failed to close browser: %v - process is lingering!\n", id, closeErr)
+			log.Printf(
+				"ERROR: Worker %d failed to connect AND failed to close browser: %v - process is lingering!\n",
+				id,
+				closeErr,
+			)
 		}
 		return nil, fmt.Errorf("failed to connect to browser: %w", err)
 	}
@@ -233,7 +237,11 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			}
 
 			if !req.cleanedUp {
-				log.Fatalf("[%d, %s] failed to cleanup storage, we're in an unsafe state and can't proceed", w.id, w.currentUrl)
+				log.Fatalf(
+					"[%d, %s] failed to cleanup storage, we're in an unsafe state and can't proceed",
+					w.id,
+					w.currentUrl,
+				)
 			}
 		}
 
@@ -441,7 +449,12 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 // waitForElement waits for an element to match the given criteria using MutationObserver.
 // For simple existence checks, uses MutationObserver only.
 // For visibility checks, adds polling to catch CSS rule changes.
-func (w *browserSession) waitForElement(req *workerRequest, selector string, timeoutMs int32, checkVisible, checkHidden bool) error {
+func (w *browserSession) waitForElement(
+	req *workerRequest,
+	selector string,
+	timeoutMs int32,
+	checkVisible, checkHidden bool,
+) error {
 	if selector == "" {
 		return nil
 	}
@@ -480,7 +493,9 @@ func (w *browserSession) waitForElement(req *workerRequest, selector string, tim
 				if !value {
 					log.Printf("[%d, %s] failed to wait for element %q: timeout\n", w.id, w.currentUrl, selector)
 					err := fmt.Errorf("timeout")
-					req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", selector), err))
+					req.tryRespondError(
+						types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", selector), err),
+					)
 					return err
 				}
 			} else {
@@ -541,7 +556,11 @@ func (w *browserSession) buildSimpleWaitExpression(selector string, timeoutMs in
 
 // buildVisibilityWaitExpression generates JavaScript for visibility checking with polling fallback.
 // Uses MutationObserver for attribute changes + polling for CSS rule changes.
-func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutMs int32, checkVisible, checkHidden bool) string {
+func (w *browserSession) buildVisibilityWaitExpression(
+	selector string,
+	timeoutMs int32,
+	checkVisible, checkHidden bool,
+) string {
 	// Visibility helper function
 	visibilityHelper := `
 	  // Check if element is visible using computed styles

@@ -246,7 +246,11 @@ func (r *PdfRequest) Validate() error {
 		}
 		if cookie.SameSite != "" {
 			if cookie.SameSite != "Strict" && cookie.SameSite != "Lax" && cookie.SameSite != "None" {
-				return fmt.Errorf("cookie[%d]: sameSite must be 'Strict', 'Lax', or 'None', got '%s'", i, cookie.SameSite)
+				return fmt.Errorf(
+					"cookie[%d]: sameSite must be 'Strict', 'Lax', or 'None', got '%s'",
+					i,
+					cookie.SameSite,
+				)
 			}
 			if cookie.SameSite == "None" {
 				if cookie.Secure == nil || !*cookie.Secure {
