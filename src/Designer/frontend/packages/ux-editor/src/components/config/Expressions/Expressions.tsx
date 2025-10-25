@@ -41,7 +41,6 @@ export const Expressions = () => {
 
   return (
     <div className={classes.root}>
-      <ReadMoreLink />
       {!propertiesWithExpressions.length && <Placeholder componentName={formItem.id} />}
       {Object.values(propertiesWithExpressions).map((property) => (
         <ExpressionContent
@@ -54,15 +53,6 @@ export const Expressions = () => {
       ))}
       <NewExpressionButton />
     </div>
-  );
-};
-
-const ReadMoreLink = () => {
-  const t = useText();
-  return (
-    <Link href={altinnDocsUrl({ relativeUrl: 'altinn-studio/designer/build-app/expressions' })}>
-      {t('right_menu.read_more_about_expressions')}
-    </Link>
   );
 };
 

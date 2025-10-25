@@ -164,11 +164,6 @@ describe('Expressions', () => {
     renderExpressions({ formItem });
     screen.getByText(textMock('right_menu.read_more_about_expressions'));
   });
-
-  it('renders link to docs', () => {
-    renderExpressions();
-    screen.getByRole('link', { name: textMock('right_menu.read_more_about_expressions') });
-  });
 });
 
 const renderExpressions = (formItemContext: Partial<FormItemContext> = {}) => {
