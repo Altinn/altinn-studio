@@ -73,7 +73,7 @@ export const PageAccordion = ({
 
     if (isUsingGroups) {
       const updatedGroups = getUpdatedGroupsExcludingPage({
-        pageId: pageId,
+        pageId,
         groups: pages.groups,
         groupIndex,
       });
