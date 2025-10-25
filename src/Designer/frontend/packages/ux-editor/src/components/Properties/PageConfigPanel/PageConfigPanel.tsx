@@ -60,17 +60,15 @@ export const PageConfigPanel = ({ selectedItem }: PageConfigPanelProps) => {
         }}
       />
       <Fragment key={selectedItem.id}>
-        <EditPageId layoutName={selectedItem.id} />
+        <div className={classes.mainConfig}>
+          <EditPageId layoutName={selectedItem.id} />
+          <NameConfig selectedItem={selectedItem} />
+        </div>
         <Accordion>
           <Accordion.Item>
             <Accordion.Header>{t('right_menu.text')}</Accordion.Header>
             <Accordion.Content className={classes.text}>
-              <TextResource
-                handleIdChange={() => {}} // The id is not editable in this context, as it must match the layout name
-                label={t('ux_editor.modal_properties_textResourceBindings_page_name')}
-                textResourceId={selectedItem.id}
-                disableSearch={true}
-              />
+              <NameConfig selectedItem={selectedItem} />
             </Accordion.Content>
           </Accordion.Item>
           <Accordion.Item>
@@ -89,5 +87,18 @@ export const PageConfigPanel = ({ selectedItem }: PageConfigPanelProps) => {
       </Fragment>
       <PageConfigWarningModal open={hasDuplicatedIdsInAllLayouts} />
     </>
+  );
+};
+
+const NameConfig = ({ selectedItem }: PageConfigPanelProps) => {
+  const t = useText();
+
+  return (
+    <TextResource
+      handleIdChange={() => {}} // The id is not editable in this context, as it must match the layout name
+      label={t('ux_editor.modal_properties_textResourceBindings_page_name')}
+      textResourceId={selectedItem.id}
+      disableSearch={true}
+    />
   );
 };
