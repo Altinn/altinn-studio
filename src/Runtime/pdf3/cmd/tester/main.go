@@ -95,8 +95,7 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainer
 		if _, err := result.Unwrap(); err != nil {
 			return nil, fmt.Errorf("failed to setup cluster: %w", err)
 		}
-		// If we got here, cluster setup completed but didn't signal registry event
-		// This shouldn't happen in normal flow, but we can continue
+		return nil, fmt.Errorf("got runtime result but no registry event, invalid state")
 	case <-time.After(5 * time.Minute):
 		return nil, fmt.Errorf("timeout waiting for registry to start")
 	}
