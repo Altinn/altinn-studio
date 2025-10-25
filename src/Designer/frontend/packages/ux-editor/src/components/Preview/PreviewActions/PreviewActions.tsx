@@ -43,6 +43,7 @@ export const PreviewActions = ({
         title={t('ux_editor.open_preview_in_new_tab')}
         href={previewLink}
         target='_blank'
+        rel='noopener noreferrer'
       >
         <ExternalLinkIcon aria-hidden />
       </StudioLinkButton>
