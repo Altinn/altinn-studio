@@ -2029,6 +2029,7 @@
   "ux_editor.no_components_selected": "Velg en side for å se forhåndsvisningen",
   "ux_editor.no_text": "Ingen tekst",
   "ux_editor.open_preview": "Åpne forhåndsvisning",
+  "ux_editor.open_preview_in_new_tab": "Åpne forhåndsvisning i ny fane",
   "ux_editor.options.code_list_only": "Denne komponenten støtter bare oppsett med forhåndsdefinerte kodelister.",
   "ux_editor.options.code_list_reference_id.description": "Her kan du legge til en referanse-ID til en dynamisk kodeliste som er satt opp i koden.",
   "ux_editor.options.code_list_reference_id.description_details": "Du bruker dynamiske kodelister for å tilpasse alternativer for brukerne. Det kan for eksempel være tilpasninger ut fra geografisk plassering, eller valg brukeren gjør tidligere i skjemaet.",
