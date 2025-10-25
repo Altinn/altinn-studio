@@ -6,6 +6,7 @@
 
 .toolbar {
   display: flex;
+  border-bottom: 2px solid var(--ds-color-neutral-border-subtle);
 }
 
 .toolbarCollapsed {
