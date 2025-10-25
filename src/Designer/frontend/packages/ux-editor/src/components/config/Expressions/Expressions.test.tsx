@@ -162,7 +162,8 @@ describe('Expressions', () => {
       },
     };
     renderExpressions({ formItem });
-    screen.getByText(textMock('right_menu.read_more_about_expressions'));
+    const addExpressionBtn = screen.getByText(textMock('right_menu.expressions_add'));
+    expect(addExpressionBtn).toBeInTheDocument();
   });
 });
 
