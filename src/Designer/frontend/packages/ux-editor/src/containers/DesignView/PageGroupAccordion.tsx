@@ -172,7 +172,7 @@ export const PageGroupAccordion = ({
           return (
             <Accordion key={page.id} className={classes.groupPageAccordionWrapper}>
               <PageAccordion
-                pageName={page.id}
+                pageId={page.id}
                 isOpen={page.id === selectedFormLayoutName}
                 onClick={() => onAccordionClick(page.id)}
                 isInvalid={isInvalidLayout}

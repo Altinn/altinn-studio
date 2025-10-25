@@ -32,7 +32,7 @@ const mockChildren: ReactNode = (
 const mockOnClick = jest.fn();
 
 const defaultProps: PageAccordionProps = {
-  pageName: mockPageName1,
+  pageId: mockPageName1,
   children: mockChildren,
   isOpen: false,
   onClick: mockOnClick,
