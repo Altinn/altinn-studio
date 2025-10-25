@@ -35,7 +35,7 @@ export type PageAccordionProps = {
  *    Displays an accordion for a page, as well as a menu button where the user can
  *    move accordions, edit the name on them and delete them.
  *
- * @property {string}[pageName] - The name of the page
+ * @property {string}[pageId] - The id of the page
  * @property {ReactNode}[children] - The children of the component
  * @property {boolean}[isOpen] - If the accordion is open or not
  * @property {function}[onClick] - Function to execute when the accordion is clicked
