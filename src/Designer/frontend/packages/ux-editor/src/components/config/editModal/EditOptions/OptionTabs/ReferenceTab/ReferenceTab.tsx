@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import type { IGenericEditComponent } from '../../../../componentConfig';
-import { useTranslation, Trans } from 'react-i18next';
-import { altinnDocsUrl } from 'app-shared/ext-urls';
+import { useTranslation } from 'react-i18next';
 import { StudioSpinner, StudioTextfield } from '@studio/components-legacy';
 import { StudioAlert, StudioParagraph } from '@studio/components';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
