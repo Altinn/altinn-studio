@@ -139,7 +139,7 @@ export const DesignView = (): ReactNode => {
       return (
         <PageAccordion
           key={pageModel.id}
-          pageName={pageModel.id}
+          pageId={pageModel.id}
           isOpen={pageModel.id === selectedFormLayoutName}
           onClick={() => handleClickAccordion(pageModel.id)}
           isInvalid={isInvalidLayout}

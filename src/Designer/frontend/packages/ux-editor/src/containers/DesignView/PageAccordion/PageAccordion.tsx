@@ -14,10 +14,12 @@ import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
 import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
 import { getUpdatedGroupsExcludingPage } from '../../../utils/designViewUtils/designViewUtils';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
+import { useTextResourceValue } from '@altinn/ux-editor/components/TextResource/hooks/useTextResourceValue';
+
 import cn from 'classnames';
 
 export type PageAccordionProps = {
-  pageName: string;
+  pageId: string;
   children: ReactNode;
   isOpen: boolean;
   onClick: () => void;
@@ -42,7 +44,7 @@ export type PageAccordionProps = {
  * @returns {ReactNode} - The rendered component
  */
 export const PageAccordion = ({
-  pageName,
+  pageId,
   children,
   isOpen,
   onClick,
@@ -56,7 +58,7 @@ export const PageAccordion = ({
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, selectedItem, setSelectedItem } = useAppContext();
   const { data: pages } = usePagesQuery(org, app, selectedFormLayoutSetName);
-
+  const pageName = useTextResourceValue(pageId);
   const { mutate: deletePage, isPending } = useDeletePageMutation(
     org,
     app,
@@ -67,17 +69,17 @@ export const PageAccordion = ({
   const isUsingGroups = isPagesModelWithGroups(pages);
   const handleConfirmDelete = () => {
     if (!confirm(t('ux_editor.page_delete_text'))) return;
-    if (selectedItem?.id === pageName) setSelectedItem(null);
+    if (selectedItem?.id === pageId) setSelectedItem(null);
 
     if (isUsingGroups) {
       const updatedGroups = getUpdatedGroupsExcludingPage({
-        pageId: pageName,
+        pageId: pageId,
         groups: pages.groups,
         groupIndex,
       });
       changePageGroups({ ...pages, groups: updatedGroups });
     } else {
-      deletePage(pageName);
+      deletePage(pageId);
     }
   };
 
@@ -85,29 +87,29 @@ export const PageAccordion = ({
     <Accordion.Item open={isOpen} className={classes.accordionItem}>
       <div className={classes.accordionHeaderRow}>
         <div
-          data-testid={accordionHeaderId(pageName)}
+          data-testid={accordionHeaderId(pageId)}
           className={
             isInvalid || hasDuplicatedIds ? classes.accordionHeaderWarning : classes.accordionHeader
           }
         >
           <Accordion.Header level={3} onHeaderClick={onClick}>
-            {pageName}
+            {pageName || pageId}
           </Accordion.Header>
         </div>
         <div className={cn(classes.navigationMenu, { [classes.accordionSelected]: isOpen })}>
           {pageIsPdf && <FilePdfIcon className={classes.pdfIcon} />}
-          {showNavigationMenu && <NavigationMenu pageName={pageName} />}
+          {showNavigationMenu && <NavigationMenu pageName={pageId} />}
           <StudioButton
             icon={<TrashIcon aria-hidden />}
             onClick={handleConfirmDelete}
-            title={t('general.delete_item', { item: pageName })}
+            title={t('general.delete_item', { item: pageId })}
             variant='tertiary'
             disabled={isPending}
           />
         </div>
       </div>
       <Accordion.Content
-        data-testid={pageAccordionContentId(pageName)}
+        data-testid={pageAccordionContentId(pageId)}
         className={classes.accordionContent}
       >
         {children}
