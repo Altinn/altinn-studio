@@ -133,7 +133,7 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 		return nil, types.NewPDFError(types.ErrClientDropped, "", ctx.Err())
 	case <-time.After(types.RequestTimeout()):
 		assert.AssertWithMessage(false, "generator failed to respond to request, something must be stuck")
-		return nil, nil
+		return nil, types.NewPDFError(types.ErrGenerationFail, "internal request timeout", nil)
 	}
 }
 

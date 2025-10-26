@@ -291,7 +291,7 @@ func (c *connection) SendCommand(ctx context.Context, method string, params any)
 		return nil, fmt.Errorf("connection closed")
 	case <-time.After(types.RequestTimeout()):
 		assert.AssertWithMessage(false, "browser failed to respond to request, something must be stuck")
-		return nil, nil
+		return nil, fmt.Errorf("cdp command timeout after %s", types.RequestTimeout())
 	}
 }
 
@@ -380,7 +380,17 @@ func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*C
 		return state.responses
 	case <-time.After(types.RequestTimeout()):
 		assert.AssertWithMessage(false, "browser failed to respond to request, something must be stuck")
-		return nil
+		for i, resp := range state.responses {
+			if resp == nil {
+				state.responses[i] = &CommandResponse{
+					Resp: nil,
+					Err:  fmt.Errorf("cdp batch timeout after %s", types.RequestTimeout()),
+				}
+			} else if resp.Err == nil {
+				resp.Err = fmt.Errorf("cdp batch timeout after %s", types.RequestTimeout())
+			}
+		}
+		return state.responses
 	}
 }
 
