@@ -8,9 +8,17 @@ spec:
   instanceSelector:
     matchLabels:
       dashboards: 'external-grafana'
+  settings:
+    httpMethod: "POST"
   valuesFrom:
-    - targetPath: settings.url
+    - targetPath: url
       valueFrom:
         secretKeyRef:
-          name: api-webhook-secret
+          name: grafana-webhook-auth
           key: url
+    - targetPath: token
+      valueFrom:
+        secretKeyRef:
+          name: grafana-webhook-auth
+          key: token
+
