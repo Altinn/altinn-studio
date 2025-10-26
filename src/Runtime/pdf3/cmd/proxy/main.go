@@ -389,7 +389,7 @@ func callWorker(
 		Type:   problemType,
 		Title:  problemTitle,
 		Status: statusCode,
-		Detail: string(errorDetail),
+		Detail: errorDetail,
 	})
 	log.Printf(
 		"[%s, %d/%d, %s] error during generation. Worker: %s, Code: %d, detail: %s\n",

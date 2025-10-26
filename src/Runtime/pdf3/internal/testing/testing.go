@@ -79,7 +79,7 @@ func (i *PdfInternalsTestInput) Deserialize(headers http.Header) {
 	assert.Assert(i != nil)
 	header := headers.Get(TestInputHeaderName)
 	if header != "" {
-		value, err := base64.StdEncoding.DecodeString(string(header))
+		value, err := base64.StdEncoding.DecodeString(header)
 		assert.AssertWithMessage(err == nil, "Should be able to decode input")
 		err = json.Unmarshal(value, i)
 		assert.AssertWithMessage(err == nil, "Should be able to deserialize input")
