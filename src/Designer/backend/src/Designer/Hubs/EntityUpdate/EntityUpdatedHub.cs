@@ -22,6 +22,7 @@ public class EntityUpdatedHub : Hub<IEntityUpdateClient>
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
         string connectionId = Context.ConnectionId;
         await Groups.AddToGroupAsync(connectionId, developer);
+        await Groups.AddToGroupAsync(connectionId, "ttd");
         await base.OnConnectedAsync();
     }
 
@@ -30,6 +31,7 @@ public class EntityUpdatedHub : Hub<IEntityUpdateClient>
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
         string connectionId = Context.ConnectionId;
         await Groups.RemoveFromGroupAsync(connectionId, developer);
+        await Groups.RemoveFromGroupAsync(connectionId, "ttd");
         await base.OnDisconnectedAsync(exception);
     }
 }

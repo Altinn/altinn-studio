@@ -5,11 +5,14 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Alerts;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClient.StudioGateway;
+using Altinn.Studio.Designer.Hubs.EntityUpdate;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class AlertsService(
-    IStudioGatewayClient studioGatewayClient
+    IStudioGatewayClient studioGatewayClient,
+    IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext
     ) : IAlertsService
 {
     /// <inheritdoc />
@@ -29,5 +32,15 @@ public class AlertsService(
             App = alert.App,
             Url = alert.Url
         });
+    }
+
+    /// <inheritdoc />
+    public async Task UpsertFiringAlerts(
+        string org,
+        string env,
+        CancellationToken ct
+    )
+    {
+        await entityUpdatedHubContext.Clients.Group(org).EntityUpdated(new EntityUpdated(EntityConstants.Alert));
     }
 }

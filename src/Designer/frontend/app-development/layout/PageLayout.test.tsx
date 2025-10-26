@@ -8,7 +8,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { repoStatus } from 'app-shared/mocks/mocks';
 import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
-import { useWebSocket } from 'app-development/hooks/useWebSocket';
+import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { syncEntityUpdateWebSocketHub, syncEventsWebSocketHub } from 'app-shared/api/paths';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';

@@ -12,4 +12,10 @@ public interface IAlertsService
         string env,
         CancellationToken cancellationToken = default
     );
+
+    public Task UpsertFiringAlerts(
+        string org,
+        string env,
+        CancellationToken ct
+    );
 }
