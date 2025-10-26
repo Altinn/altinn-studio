@@ -32,7 +32,7 @@ var (
 )
 
 // LogDuration logs the duration of an operation
-// Usage: defer LogDuration("Operation name", time.Now())
+// Usage: defer LogDuration("Operation name", time.Now()).
 func LogDuration(stepName string, start time.Time) {
 	fmt.Printf("  [%s took %s]\n", stepName, time.Since(start))
 }
@@ -98,7 +98,7 @@ type PdfResponse struct {
 	WorkerIP string // Worker IP that generated this PDF (for routing test output requests)
 }
 
-// LoadOutput fetches the test output from the API if testInput was provided
+// LoadOutput fetches the test output from the API if testInput was provided.
 func (r *PdfResponse) LoadOutput(t *testing.T) (*ptesting.PdfInternalsTestOutput, error) {
 	if r.Input == nil || r.Input.ID == "" {
 		return nil, nil // No test input, nothing to load
@@ -112,7 +112,7 @@ func (r *PdfResponse) LoadOutput(t *testing.T) (*ptesting.PdfInternalsTestOutput
 	return output, nil
 }
 
-// getTestOutput fetches a test output from the proxy by ID (which forwards to worker)
+// getTestOutput fetches a test output from the proxy by ID (which forwards to worker).
 func getTestOutput(_ *testing.T, id string, workerIP string) (*ptesting.PdfInternalsTestOutput, error) {
 	assert.Assert(id != "")
 	assert.Assert(workerIP != "")
@@ -122,12 +122,12 @@ func getTestOutput(_ *testing.T, id string, workerIP string) (*ptesting.PdfInter
 		Timeout: 30 * time.Second,
 	}
 
-	httpReq, err := http.NewRequest("GET", url, nil)
+	httpReq, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
 	httpReq.Host = "pdf3-proxy.runtime-pdf3.svc.cluster.local"
-	httpReq.Header.Set("X-Target-Worker-IP", workerIP)
+	httpReq.Header.Set("X-Target-Worker-Ip", workerIP)
 
 	resp, err := client.Do(httpReq)
 	if err != nil {
@@ -155,12 +155,12 @@ func getTestOutput(_ *testing.T, id string, workerIP string) (*ptesting.PdfInter
 	return &output, nil
 }
 
-// requestNewPDF sends a PDF generation request to the new PDF generator solution
+// requestNewPDF sends a PDF generation request to the new PDF generator solution.
 func RequestNewPDF(t *testing.T, req *types.PdfRequest) (*PdfResponse, error) {
 	return RequestPDFWithHost(t, req, "pdf3-proxy.runtime-pdf3.svc.cluster.local", nil)
 }
 
-// requestNewPDF sends a PDF generation request to the new PDF generator solution
+// requestNewPDF sends a PDF generation request to the new PDF generator solution.
 func RequestNewPDFWithTestInput(
 	t *testing.T,
 	req *types.PdfRequest,
@@ -169,12 +169,12 @@ func RequestNewPDFWithTestInput(
 	return RequestPDFWithHost(t, req, "pdf3-proxy.runtime-pdf3.svc.cluster.local", testInput)
 }
 
-// requestOldPDF sends a PDF generation request to the old PDF generator solution
+// requestOldPDF sends a PDF generation request to the old PDF generator solution.
 func RequestOldPDF(t *testing.T, req *types.PdfRequest) (*PdfResponse, error) {
 	return RequestPDFWithHost(t, req, "pdf-generator.pdf.svc.cluster.local", nil)
 }
 
-// requestPDF sends a PDF generation request to the proxy
+// requestPDF sends a PDF generation request to the proxy.
 func RequestPDFWithHost(
 	t *testing.T,
 	req *types.PdfRequest,
@@ -193,7 +193,7 @@ func RequestPDFWithHost(
 		Timeout: 30 * time.Second,
 	}
 
-	httpReq, err := http.NewRequest("POST", url, bytes.NewReader((reqBody)))
+	httpReq, err := http.NewRequest(http.MethodPost, url, bytes.NewReader((reqBody)))
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +231,7 @@ func RequestPDFWithHost(
 	// In test internals mode, capture the worker IP for routing test output requests
 	workerIP := ""
 	if testInput != nil {
-		workerIP = resp.Header.Get("X-Worker-IP")
+		workerIP = resp.Header.Get("X-Worker-Ip")
 		if workerIP == "" {
 			t.Fatal("Warning: X-Worker-IP header not present in response")
 		}
@@ -247,7 +247,7 @@ func RequestPDFWithHost(
 var projectRoot string
 
 // FindProjectRoot searches upward for a directory containing go.mod
-// It starts from the current working directory and checks up to maxIterations parent directories
+// It starts from the current working directory and checks up to maxIterations parent directories.
 func FindProjectRoot() (string, error) {
 	if projectRoot != "" {
 		return projectRoot, nil
@@ -264,7 +264,7 @@ func FindProjectRoot() (string, error) {
 	// Track the previous directory to detect when we've reached the filesystem root
 	prevDir := ""
 
-	for i := 0; i < maxIterations; i++ {
+	for range maxIterations {
 		// Check if go.mod exists in current directory
 		goModPath := filepath.Join(dir, "go.mod")
 		if _, err := os.Stat(goModPath); err == nil {
@@ -287,7 +287,7 @@ func FindProjectRoot() (string, error) {
 	return "", errors.New("exceeded maximum iterations searching for go.mod")
 }
 
-// SetupCluster starts the Kind container runtime with all dependencies
+// SetupCluster starts the Kind container runtime with all dependencies.
 func SetupCluster(
 	variant kind.KindContainerRuntimeVariant,
 	registryStartedEvent chan<- error,
@@ -326,7 +326,7 @@ func SetupCluster(
 }
 
 // BuildAndPushImages builds Docker images and pushes them to the local registry
-// Returns true if images were rebuilt, false if skipped due to no changes
+// Returns true if images were rebuilt, false if skipped due to no changes.
 func BuildAndPushImages() (bool, error) {
 	fmt.Println("=== Building and pushing Docker images ===")
 	overallStart := time.Now()
@@ -408,7 +408,7 @@ func BuildAndPushImages() (bool, error) {
 }
 
 // PushKustomizeArtifact pushes the kustomize directory as an OCI artifact
-// Returns true if artifact was pushed, false if skipped due to no changes
+// Returns true if artifact was pushed, false if skipped due to no changes.
 func PushKustomizeArtifact() (bool, error) {
 	fmt.Println("=== Pushing kustomize artifact ===")
 	overallStart := time.Now()
@@ -469,7 +469,7 @@ func PushKustomizeArtifact() (bool, error) {
 	return true, nil
 }
 
-// deploymentsExist checks if both pdf3 deployments exist in the cluster
+// deploymentsExist checks if both pdf3 deployments exist in the cluster.
 func deploymentsExist() bool {
 	// Check if pdf3-proxy deployment exists
 	if err := Runtime.KubernetesClient.Get("deployment", "pdf3-proxy", "runtime-pdf3"); err != nil {
@@ -485,7 +485,7 @@ func deploymentsExist() bool {
 }
 
 // DeployPdf3ViaFlux deploys pdf3 using Flux
-// Returns true if deployment was performed, false if skipped due to no changes
+// Returns true if deployment was performed, false if skipped due to no changes.
 func DeployPdf3ViaFlux(variant kind.KindContainerRuntimeVariant, imagesChanged, kustomizeChanged bool) (bool, error) {
 	fmt.Println("=== Deploying pdf3 via Flux ===")
 	overallStart := time.Now()
@@ -558,7 +558,7 @@ func DeployPdf3ViaFlux(variant kind.KindContainerRuntimeVariant, imagesChanged, 
 	return true, nil
 }
 
-// readCachedChecksum reads a cached checksum from .cache/checksums/{name}.txt
+// readCachedChecksum reads a cached checksum from .cache/checksums/{name}.txt.
 func readCachedChecksum(projectRoot, name string) (string, error) {
 	checksumPath := filepath.Join(projectRoot, cachePath, "checksums", name+".txt")
 	data, err := os.ReadFile(checksumPath)
@@ -571,7 +571,7 @@ func readCachedChecksum(projectRoot, name string) (string, error) {
 	return strings.TrimSpace(string(data)), nil
 }
 
-// writeCachedChecksum writes a checksum to .cache/checksums/{name}.txt
+// writeCachedChecksum writes a checksum to .cache/checksums/{name}.txt.
 func writeCachedChecksum(projectRoot, name, hash string) error {
 	checksumDir := filepath.Join(projectRoot, cachePath, "checksums")
 	if err := os.MkdirAll(checksumDir, 0755); err != nil {

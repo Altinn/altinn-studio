@@ -1,4 +1,4 @@
-package simple
+package simple_test
 
 import (
 	"bytes"
@@ -227,7 +227,7 @@ func Test_Validation_ValidRequestStillWorks(t *testing.T) {
 }
 
 // sendInvalidRequest sends a request that is expected to fail validation
-// and returns the response body and status code
+// and returns the response body and status code.
 func sendInvalidRequest(_ *testing.T, req *types.PdfRequest) (string, int, error) {
 	reqBody, err := json.Marshal(req)
 	if err != nil {
@@ -240,7 +240,7 @@ func sendInvalidRequest(_ *testing.T, req *types.PdfRequest) (string, int, error
 		Timeout: 10 * time.Second,
 	}
 
-	httpReq, err := http.NewRequest("POST", url, bytes.NewReader(reqBody))
+	httpReq, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(reqBody))
 	if err != nil {
 		return "", 0, err
 	}

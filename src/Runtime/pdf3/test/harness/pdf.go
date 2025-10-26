@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-// IsPDF checks if the given bytes represent a valid PDF file
+// IsPDF checks if the given bytes represent a valid PDF file.
 func IsPDF(data []byte) bool {
 	// PDF files start with %PDF-
 	if len(data) < 5 {

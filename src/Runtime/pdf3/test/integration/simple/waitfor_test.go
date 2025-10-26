@@ -1,4 +1,4 @@
-package simple
+package simple_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	"altinn.studio/pdf3/test/harness"
 )
 
-// Test_WaitForVisible tests waiting for an element that starts hidden and becomes visible
+// Test_WaitForVisible tests waiting for an element that starts hidden and becomes visible.
 func Test_WaitForVisible(t *testing.T) {
 	req := harness.GetDefaultPdfRequest(t)
 	// Element will be initially hidden and become visible after 500ms
@@ -39,7 +39,7 @@ func Test_WaitForVisible(t *testing.T) {
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
 }
 
-// Test_WaitForHidden tests waiting for an element that starts visible and becomes hidden
+// Test_WaitForHidden tests waiting for an element that starts visible and becomes hidden.
 func Test_WaitForHidden(t *testing.T) {
 	req := harness.GetDefaultPdfRequest(t)
 	// Element will be visible initially and become hidden after 500ms
@@ -71,7 +71,7 @@ func Test_WaitForHidden(t *testing.T) {
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
 }
 
-// Test_WaitForVisibleTimeout tests that timeout occurs when element never becomes visible
+// Test_WaitForVisibleTimeout tests that timeout occurs when element never becomes visible.
 func Test_WaitForVisibleTimeout(t *testing.T) {
 	req := harness.GetDefaultPdfRequest(t)
 	// Element will be initially hidden and stay hidden
@@ -94,7 +94,7 @@ func Test_WaitForVisibleTimeout(t *testing.T) {
 	t.Logf("Expected error occurred: %v", err)
 }
 
-// Test_WaitForHiddenTimeout tests that timeout occurs when element never becomes hidden
+// Test_WaitForHiddenTimeout tests that timeout occurs when element never becomes hidden.
 func Test_WaitForHiddenTimeout(t *testing.T) {
 	t.Skip(
 		"Currently can't test this, it seems like PDF generation completes immediately (we cant add the div fast enough)",
@@ -121,7 +121,7 @@ func Test_WaitForHiddenTimeout(t *testing.T) {
 	t.Logf("Expected error occurred: %v", err)
 }
 
-// Test_WaitForNoVisibilityCheck tests that without visible/hidden flags, it works as before
+// Test_WaitForNoVisibilityCheck tests that without visible/hidden flags, it works as before.
 func Test_WaitForNoVisibilityCheck(t *testing.T) {
 	req := harness.GetDefaultPdfRequest(t)
 	// Element exists but is hidden - should still succeed without visibility check
@@ -151,7 +151,7 @@ func Test_WaitForNoVisibilityCheck(t *testing.T) {
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
 }
 
-// Test_WaitForAlreadyVisible tests waiting for element that is already visible (immediate success)
+// Test_WaitForAlreadyVisible tests waiting for element that is already visible (immediate success).
 func Test_WaitForAlreadyVisible(t *testing.T) {
 	req := harness.GetDefaultPdfRequest(t)
 	// Element will be visible from the start (no initiallyhidden)
@@ -183,7 +183,7 @@ func Test_WaitForAlreadyVisible(t *testing.T) {
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
 }
 
-// Test_WaitForAlreadyHidden tests waiting for element that is already hidden (immediate success)
+// Test_WaitForAlreadyHidden tests waiting for element that is already hidden (immediate success).
 func Test_WaitForAlreadyHidden(t *testing.T) {
 	req := harness.GetDefaultPdfRequest(t)
 	// Element will be hidden from the start
@@ -216,7 +216,7 @@ func Test_WaitForAlreadyHidden(t *testing.T) {
 }
 
 // Test_WaitForClassSelector tests waiting for element using a class selector (general path)
-// This tests the non-ID-optimized code path in waitForElement
+// This tests the non-ID-optimized code path in waitForElement.
 func Test_WaitForClassSelector(t *testing.T) {
 	req := harness.GetDefaultPdfRequest(t)
 	// Use class selector to wait for existing content div
@@ -249,7 +249,7 @@ func Test_WaitForClassSelector(t *testing.T) {
 }
 
 // Test_WaitForVisibleViaClassRemoval tests waiting for element that becomes visible via class removal
-// This tests that MutationObserver detects class attribute changes
+// This tests that MutationObserver detects class attribute changes.
 func Test_WaitForVisibleViaClassRemoval(t *testing.T) {
 	req := harness.GetDefaultPdfRequest(t)
 	// Element starts with 'hidden' class and becomes visible by removing the class after 500ms
@@ -282,7 +282,7 @@ func Test_WaitForVisibleViaClassRemoval(t *testing.T) {
 }
 
 // Test_WaitForHiddenViaClassAddition tests waiting for element that becomes hidden via class addition
-// This tests that MutationObserver detects class attribute changes
+// This tests that MutationObserver detects class attribute changes.
 func Test_WaitForHiddenViaClassAddition(t *testing.T) {
 	req := harness.GetDefaultPdfRequest(t)
 	// Element starts visible and becomes hidden by adding 'hidden' class after 500ms

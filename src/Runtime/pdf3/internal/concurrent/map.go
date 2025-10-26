@@ -61,7 +61,7 @@ func (cm *Map[K, V]) Len() int {
 
 // Update atomically updates the value for a key using the provided function.
 // The caller should know that the key is there.
-// If the key isn't in the map, we crash
+// If the key isn't in the map, we crash.
 func (cm *Map[K, V]) Update(k K, fn func(*V)) bool {
 	cm.mu.Lock()
 	defer cm.mu.Unlock()

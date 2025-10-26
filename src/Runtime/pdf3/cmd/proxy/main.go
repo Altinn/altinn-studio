@@ -275,7 +275,7 @@ func callWorker(
 	workerIP := ""
 	if resp != nil {
 		workerId = resp.Header.Get("X-Worker-Id")
-		workerIP = resp.Header.Get("X-Worker-IP")
+		workerIP = resp.Header.Get("X-Worker-Ip")
 	}
 	if err != nil {
 		if attempt < maxRetries && ctx.Err() == nil {
@@ -317,7 +317,7 @@ func callWorker(
 		// so they can route test output requests to the correct worker pod
 		if runtime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
 			assert.AssertWithMessage(workerIP != "", "Worker IP should always be set in test internals mode")
-			w.Header().Set("X-Worker-IP", workerIP)
+			w.Header().Set("X-Worker-Ip", workerIP)
 			w.Header().Set("X-Worker-Id", workerId)
 			log.Printf("[TEST] Returning worker info: IP %s, ID %s\n", workerIP, workerId)
 		}
@@ -381,7 +381,7 @@ func callWorker(
 	// so tests can still fetch test output from the correct worker
 	if runtime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
 		assert.Assert(workerIP != "")
-		w.Header().Set("X-Worker-IP", workerIP)
+		w.Header().Set("X-Worker-Ip", workerIP)
 		w.Header().Set("X-Worker-Id", workerId)
 	}
 
@@ -509,7 +509,7 @@ func forwardTestOutputRequest(client *http.Client) func(http.ResponseWriter, *ht
 		testID := strings.TrimPrefix(r.URL.Path, "/testoutput/")
 
 		// Client should provide the worker IP via header to ensure we hit the right pod
-		targetWorkerIP := r.Header.Get("X-Target-Worker-IP")
+		targetWorkerIP := r.Header.Get("X-Target-Worker-Ip")
 		assert.AssertWithMessage(targetWorkerIP != "", "X-Target-Worker-IP header is required in test internals mode")
 
 		// Route directly to the specified worker pod IP

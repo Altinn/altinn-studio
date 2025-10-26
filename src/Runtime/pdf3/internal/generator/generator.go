@@ -21,7 +21,7 @@ type Custom struct {
 	session *browserSession
 }
 
-// getBrowserVersion starts a temporary browser and retrieves its version information
+// getBrowserVersion starts a temporary browser and retrieves its version information.
 func getBrowserVersion() (types.BrowserVersion, error) {
 	// Start temporary browser instance
 	browserProc, err := browser.Start(-1)
@@ -215,7 +215,7 @@ type workerResponse struct {
 	Error *types.PDFError
 }
 
-// mapCustomError wraps raw custom implementation errors while preserving our PDFErrors
+// mapCustomError wraps raw custom implementation errors while preserving our PDFErrors.
 func mapCustomError(err error) *types.PDFError {
 	if err == nil {
 		return nil

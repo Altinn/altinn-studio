@@ -129,7 +129,7 @@ func main() {
 func generatePdfHandler(gen types.PdfGenerator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Worker-Id", workerId)
-		w.Header().Set("X-Worker-IP", workerIP)
+		w.Header().Set("X-Worker-Ip", workerIP)
 
 		if r.Method != http.MethodPost {
 			w.WriteHeader(http.StatusMethodNotAllowed)

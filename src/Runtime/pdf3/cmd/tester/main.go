@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -68,7 +69,7 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "  --keep-running, --kr  Keep cluster running after loadtest completes")
 }
 
-// setupRuntime sets up the Kind cluster, builds images, and deploys pdf3
+// setupRuntime sets up the Kind cluster, builds images, and deploys pdf3.
 func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainerRuntime, error) {
 	fmt.Println("=== Setting Up Runtime ===")
 
@@ -98,7 +99,7 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainer
 		// If we got here, cluster setup completed but didn't signal registry event
 		// This shouldn't happen in normal flow, but we can continue
 	case <-time.After(5 * time.Minute):
-		return nil, fmt.Errorf("timeout waiting for registry to start")
+		return nil, errors.New("timeout waiting for registry to start")
 	}
 
 	// Step 2: Build and push images
@@ -307,7 +308,8 @@ func runTest() {
 		if runBoth || *runSimple {
 			fmt.Println("Running simple tests...")
 			if err := runTests(projectRoot, "./test/integration/simple/..."); err != nil {
-				if exitErr, ok := err.(*exec.ExitError); ok {
+				exitErr := &exec.ExitError{}
+				if errors.As(err, &exitErr) {
 					testExitCode = exitErr.ExitCode()
 				} else {
 					testExitCode = 1
@@ -324,7 +326,8 @@ func runTest() {
 		if testExitCode == 0 && (runBoth || *runSmoke) {
 			fmt.Println("Running smoke tests...")
 			if err := runTests(projectRoot, "./test/integration/smoke/..."); err != nil {
-				if exitErr, ok := err.(*exec.ExitError); ok {
+				exitErr := &exec.ExitError{}
+				if errors.As(err, &exitErr) {
 					testExitCode = exitErr.ExitCode()
 				} else {
 					testExitCode = 1
@@ -371,7 +374,7 @@ func runTest() {
 	fmt.Println("\n=== All Tests PASSED ===")
 }
 
-// runTests executes go test for the specified package path
+// runTests executes go test for the specified package path.
 func runTests(projectRoot, packagePath string) error {
 	cmd := exec.Command("go", "test", "-count=1", "-timeout", "5m", packagePath)
 	cmd.Dir = projectRoot
@@ -381,7 +384,7 @@ func runTests(projectRoot, packagePath string) error {
 	return cmd.Run()
 }
 
-// collectLogs collects logs from pdf3 components using kubectl
+// collectLogs collects logs from pdf3 components using kubectl.
 func collectLogs(runtime *kind.KindContainerRuntime, logsDir string, sinceSeconds int) error {
 	kubernetesClient := runtime.KubernetesClient
 
@@ -416,7 +419,7 @@ func collectLogs(runtime *kind.KindContainerRuntime, logsDir string, sinceSecond
 	return nil
 }
 
-// findChromePath locates the chrome-headless-shell executable in .cache
+// findChromePath locates the chrome-headless-shell executable in .cache.
 func findChromePath(projectRoot string) (string, error) {
 	pattern := filepath.Join(
 		projectRoot,
@@ -431,7 +434,7 @@ func findChromePath(projectRoot string) (string, error) {
 		return "", fmt.Errorf("failed to search for chrome: %w", err)
 	}
 	if len(matches) == 0 {
-		return "", fmt.Errorf("chrome-headless-shell not found in .cache (run 'make browser' to download)")
+		return "", errors.New("chrome-headless-shell not found in .cache (run 'make browser' to download)")
 	}
 	// If multiple versions exist, return the first match (could sort by version if needed)
 	return matches[0], nil

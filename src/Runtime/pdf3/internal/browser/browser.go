@@ -6,12 +6,13 @@ import (
 	"log"
 	"os/exec"
 	"sort"
+	"strconv"
 	"strings"
 
 	"altinn.studio/pdf3/internal/assert"
 )
 
-// Process represents a running browser process with its connection details
+// Process represents a running browser process with its connection details.
 type Process struct {
 	Cmd          *exec.Cmd
 	DebugPort    string
@@ -56,7 +57,7 @@ func Start(id int) (*Process, error) {
 	}
 
 	cmd := exec.Command("/headless-shell/headless-shell", args...)
-	debugPortStr := fmt.Sprintf("%d", debugPort)
+	debugPortStr := strconv.Itoa(debugPort)
 	debugBaseURL := fmt.Sprintf("http://127.0.0.1:%d", debugPort)
 
 	// Start the browser process
@@ -72,7 +73,7 @@ func Start(id int) (*Process, error) {
 	}, nil
 }
 
-// Close terminates the browser process
+// Close terminates the browser process.
 func (p *Process) Close() error {
 	if p.Cmd != nil && p.Cmd.Process != nil {
 		if err := p.Cmd.Process.Kill(); err != nil {
@@ -84,7 +85,7 @@ func (p *Process) Close() error {
 	return nil
 }
 
-// createBrowserArgs returns the Chrome/Chromium arguments for headless PDF generation
+// createBrowserArgs returns the Chrome/Chromium arguments for headless PDF generation.
 func createBrowserArgs() []string {
 	return []string{
 		"--disable-background-networking",
@@ -122,7 +123,7 @@ func createBrowserArgs() []string {
 	}
 }
 
-// logArgs logs browser arguments in a sorted, JSON format
+// logArgs logs browser arguments in a sorted, JSON format.
 func logArgs(args []string) {
 	sortedArgs := make([]string, len(args))
 	copy(sortedArgs, args)

@@ -1,7 +1,13 @@
-package generator
+package generator_test
 
-import "testing"
+import (
+	"testing"
 
+	"altinn.studio/pdf3/internal/generator"
+)
+
+// TODO: This test directly tests an implementation detail (the regex pattern).
+// The selector matching behavior should be tested through integration tests instead.
 func TestHtmlIDPattern(t *testing.T) {
 	tests := []struct {
 		selector string
@@ -47,7 +53,7 @@ func TestHtmlIDPattern(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.selector, func(t *testing.T) {
-			got := htmlIDSelectorPattern.MatchString(tt.selector)
+			got := generator.HtmlIDSelectorPattern.MatchString(tt.selector)
 			if got != tt.want {
 				t.Errorf("htmlIDPattern.MatchString(%q) = %v, want %v (%s)",
 					tt.selector, got, tt.want, tt.reason)

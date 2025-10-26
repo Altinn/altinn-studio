@@ -1,31 +1,33 @@
-package types
+package types_test
 
 import (
 	"testing"
+
+	"altinn.studio/pdf3/internal/types"
 )
 
 func TestPdfRequest_Validate_Valid(t *testing.T) {
 	tests := []struct {
 		name string
-		req  PdfRequest
+		req  types.PdfRequest
 	}{
 		{
 			name: "minimal valid request",
-			req: PdfRequest{
+			req: types.PdfRequest{
 				URL: "http://example.com",
 			},
 		},
 		{
 			name: "valid request with all fields",
-			req: PdfRequest{
+			req: types.PdfRequest{
 				URL: "http://example.com",
-				Options: PdfOptions{
+				Options: types.PdfOptions{
 					Format:              "A4",
 					HeaderTemplate:      "<div/>",
 					FooterTemplate:      "<div/>",
 					DisplayHeaderFooter: true,
 					PrintBackground:     true,
-					Margin: PdfMargin{
+					Margin: types.PdfMargin{
 						Top:    "1in",
 						Right:  "1in",
 						Bottom: "1in",
@@ -33,8 +35,8 @@ func TestPdfRequest_Validate_Valid(t *testing.T) {
 					},
 				},
 				SetJavaScriptEnabled: true,
-				WaitFor:              NewWaitForString("#ready"),
-				Cookies: []Cookie{
+				WaitFor:              types.NewWaitForString("#ready"),
+				Cookies: []types.Cookie{
 					{
 						Name:     "test",
 						Value:    "value",
@@ -46,34 +48,34 @@ func TestPdfRequest_Validate_Valid(t *testing.T) {
 		},
 		{
 			name: "valid format Letter",
-			req: PdfRequest{
+			req: types.PdfRequest{
 				URL: "http://example.com",
-				Options: PdfOptions{
+				Options: types.PdfOptions{
 					Format: "Letter",
 				},
 			},
 		},
 		{
 			name: "valid waitFor timeout",
-			req: PdfRequest{
+			req: types.PdfRequest{
 				URL:     "http://example.com",
-				WaitFor: NewWaitForTimeout(5000),
+				WaitFor: types.NewWaitForTimeout(5000),
 			},
 		},
 		{
 			name: "valid waitFor selector options",
-			req: PdfRequest{
+			req: types.PdfRequest{
 				URL: "http://example.com",
-				WaitFor: NewWaitForOptions(WaitForOptions{
+				WaitFor: types.NewWaitForOptions(types.WaitForOptions{
 					Selector: "#element",
 				}),
 			},
 		},
 		{
 			name: "cookie with Strict sameSite",
-			req: PdfRequest{
+			req: types.PdfRequest{
 				URL: "http://example.com",
-				Cookies: []Cookie{
+				Cookies: []types.Cookie{
 					{
 						Name:     "cookie",
 						Value:    "value",
@@ -84,9 +86,9 @@ func TestPdfRequest_Validate_Valid(t *testing.T) {
 		},
 		{
 			name: "cookie without sameSite",
-			req: PdfRequest{
+			req: types.PdfRequest{
 				URL: "http://example.com",
-				Cookies: []Cookie{
+				Cookies: []types.Cookie{
 					{
 						Name:  "cookie",
 						Value: "value",
@@ -109,21 +111,21 @@ func TestPdfRequest_Validate_Valid(t *testing.T) {
 func TestPdfRequest_Validate_Invalid(t *testing.T) {
 	tests := []struct {
 		name        string
-		req         PdfRequest
+		req         types.PdfRequest
 		expectedErr string
 	}{
 		{
 			name: "missing URL",
-			req: PdfRequest{
+			req: types.PdfRequest{
 				URL: "",
 			},
 			expectedErr: "url is required",
 		},
 		{
 			name: "invalid format",
-			req: PdfRequest{
+			req: types.PdfRequest{
 				URL: "http://example.com",
-				Options: PdfOptions{
+				Options: types.PdfOptions{
 					Format: "InvalidFormat",
 				},
 			},
@@ -131,25 +133,25 @@ func TestPdfRequest_Validate_Invalid(t *testing.T) {
 		},
 		{
 			name: "waitFor empty string",
-			req: PdfRequest{
+			req: types.PdfRequest{
 				URL:     "http://example.com",
-				WaitFor: NewWaitForString(""),
+				WaitFor: types.NewWaitForString(""),
 			},
 			expectedErr: "waitFor string must not be empty",
 		},
 		{
 			name: "waitFor negative timeout",
-			req: PdfRequest{
+			req: types.PdfRequest{
 				URL:     "http://example.com",
-				WaitFor: NewWaitForTimeout(-100),
+				WaitFor: types.NewWaitForTimeout(-100),
 			},
 			expectedErr: "waitFor timeout must be >= 0",
 		},
 		{
 			name: "waitFor options with empty selector",
-			req: PdfRequest{
+			req: types.PdfRequest{
 				URL: "http://example.com",
-				WaitFor: NewWaitForOptions(WaitForOptions{
+				WaitFor: types.NewWaitForOptions(types.WaitForOptions{
 					Selector: "",
 				}),
 			},
@@ -157,11 +159,11 @@ func TestPdfRequest_Validate_Invalid(t *testing.T) {
 		},
 		{
 			name: "waitFor options with negative timeout",
-			req: PdfRequest{
+			req: types.PdfRequest{
 				URL: "http://example.com",
-				WaitFor: func() *WaitFor {
+				WaitFor: func() *types.WaitFor {
 					timeout := int32(-100)
-					return NewWaitForOptions(WaitForOptions{
+					return types.NewWaitForOptions(types.WaitForOptions{
 						Selector: "#element",
 						Timeout:  &timeout,
 					})
@@ -171,9 +173,9 @@ func TestPdfRequest_Validate_Invalid(t *testing.T) {
 		},
 		{
 			name: "cookie missing name",
-			req: PdfRequest{
+			req: types.PdfRequest{
 				URL: "http://example.com",
-				Cookies: []Cookie{
+				Cookies: []types.Cookie{
 					{
 						Name:  "",
 						Value: "value",
@@ -184,9 +186,9 @@ func TestPdfRequest_Validate_Invalid(t *testing.T) {
 		},
 		{
 			name: "cookie missing value",
-			req: PdfRequest{
+			req: types.PdfRequest{
 				URL: "http://example.com",
-				Cookies: []Cookie{
+				Cookies: []types.Cookie{
 					{
 						Name:  "test",
 						Value: "",
@@ -197,9 +199,9 @@ func TestPdfRequest_Validate_Invalid(t *testing.T) {
 		},
 		{
 			name: "cookie invalid sameSite",
-			req: PdfRequest{
+			req: types.PdfRequest{
 				URL: "http://example.com",
-				Cookies: []Cookie{
+				Cookies: []types.Cookie{
 					{
 						Name:     "test",
 						Value:    "value",
@@ -211,9 +213,9 @@ func TestPdfRequest_Validate_Invalid(t *testing.T) {
 		},
 		{
 			name: "multiple cookies, second one invalid",
-			req: PdfRequest{
+			req: types.PdfRequest{
 				URL: "http://example.com",
-				Cookies: []Cookie{
+				Cookies: []types.Cookie{
 					{
 						Name:  "valid",
 						Value: "value",
@@ -243,11 +245,11 @@ func TestPdfRequest_Validate_Invalid(t *testing.T) {
 }
 
 func TestPdfRequest_Validate_AllFormats(t *testing.T) {
-	for _, format := range ValidFormats {
+	for _, format := range types.ValidFormats {
 		t.Run("format_"+format, func(t *testing.T) {
-			req := PdfRequest{
+			req := types.PdfRequest{
 				URL: "http://example.com",
-				Options: PdfOptions{
+				Options: types.PdfOptions{
 					Format: format,
 				},
 			}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/url"
@@ -21,10 +22,10 @@ import (
 	"altinn.studio/pdf3/internal/types"
 )
 
-// htmlIDSelectorPattern matches pure ID selectors like #myId, #my-id, #my_id
+// HtmlIDSelectorPattern matches pure ID selectors like #myId, #my-id, #my_id
 // but rejects complex selectors like #id.class, #id[attr], #id > child, etc.
 // Allows any HTML5 ID characters except CSS selector metacharacters.
-var htmlIDSelectorPattern = regexp.MustCompile(`^#[^\s.:\[\]>+~,()]+$`)
+var HtmlIDSelectorPattern = regexp.MustCompile(`^#[^\s.:\[\]>+~,()]+$`)
 
 type browserSession struct {
 	id       int
@@ -100,7 +101,7 @@ func newBrowserSession(id int) (*browserSession, error) {
 }
 
 // tryEnqueue attempts to enqueue a request if the session is ready
-// Returns true if the request was enqueued, false otherwise
+// Returns true if the request was enqueued, false otherwise.
 func (w *browserSession) tryEnqueue(req workerRequest) bool {
 	select {
 	// Queue is unbuffered, so if it isn't waiting here yet just return false
@@ -425,13 +426,13 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 	// Extract PDF data
 	result, ok := resp.Result.(map[string]any)
 	if !ok {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", fmt.Errorf("invalid PDF response format")))
+		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", errors.New("invalid PDF response format")))
 		return nil
 	}
 
 	dataStr, ok := result["data"].(string)
 	if !ok {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", fmt.Errorf("no PDF data in response")))
+		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", errors.New("no PDF data in response")))
 		return nil
 	}
 
@@ -492,7 +493,7 @@ func (w *browserSession) waitForElement(
 			if value, ok := resultObj["value"].(bool); ok {
 				if !value {
 					log.Printf("[%d, %s] failed to wait for element %q: timeout\n", w.id, w.currentUrl, selector)
-					err := fmt.Errorf("timeout")
+					err := errors.New("timeout")
 					req.tryRespondError(
 						types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", selector), err),
 					)
@@ -510,7 +511,7 @@ func (w *browserSession) waitForElement(
 // buildSimpleWaitExpression generates JavaScript for simple element existence checking.
 // Uses MutationObserver only, no polling (original behavior).
 func (w *browserSession) buildSimpleWaitExpression(selector string, timeoutMs int32) string {
-	if htmlIDSelectorPattern.MatchString(selector) {
+	if HtmlIDSelectorPattern.MatchString(selector) {
 		// ID-optimized path
 		id := selector[1:]
 		return fmt.Sprintf(`(function(){
@@ -582,7 +583,7 @@ func (w *browserSession) buildVisibilityWaitExpression(
 		checkElementDef = `const checkElement = (el) => !el || !isVisible(el);`
 	}
 
-	if htmlIDSelectorPattern.MatchString(selector) {
+	if HtmlIDSelectorPattern.MatchString(selector) {
 		// ID-optimized path with visibility checking
 		id := selector[1:]
 		return fmt.Sprintf(`(function(){
@@ -662,7 +663,7 @@ func (w *browserSession) getCookies() ([]map[string]any, error) {
 
 	result, ok := resp.Result.(map[string]any)
 	if !ok {
-		return nil, fmt.Errorf("invalid cookie response format")
+		return nil, errors.New("invalid cookie response format")
 	}
 
 	cookies, ok := result["cookies"].([]any)
@@ -754,7 +755,7 @@ func (w *browserSession) cleanupBrowser(req *workerRequest) {
 		}
 		if response.Resp.Error != nil {
 			json, _ := json.Marshal(response.Resp.Error)
-			errors.WriteString(string(json))
+			errors.Write(json)
 			errors.WriteByte('\n')
 		}
 	}
@@ -816,7 +817,7 @@ var unitToPixels = map[string]float64{
 
 // convertMargin converts margin strings to inches (compatible with Puppeteer)
 // Supports: px, in, cm, mm
-// Numbers without units are treated as pixels
+// Numbers without units are treated as pixels.
 func convertMargin(margin string) float64 {
 	margin = strings.TrimSpace(margin)
 	if margin == "" {

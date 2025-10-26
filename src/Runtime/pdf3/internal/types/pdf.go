@@ -76,17 +76,17 @@ func (w *WaitFor) AsOptions() (WaitForOptions, bool) {
 	return opts, ok
 }
 
-// NewWaitForString creates a WaitFor with a string value (event name like "load", "domcontentloaded", "networkidle")
+// NewWaitForString creates a WaitFor with a string value (event name like "load", "domcontentloaded", "networkidle").
 func NewWaitForString(s string) *WaitFor {
 	return &WaitFor{value: s}
 }
 
-// NewWaitForTimeout creates a WaitFor with a timeout in milliseconds
+// NewWaitForTimeout creates a WaitFor with a timeout in milliseconds.
 func NewWaitForTimeout(timeout int32) *WaitFor {
 	return &WaitFor{value: timeout}
 }
 
-// NewWaitForOptions creates a WaitFor with selector options
+// NewWaitForOptions creates a WaitFor with selector options.
 func NewWaitForOptions(opts WaitForOptions) *WaitFor {
 	return &WaitFor{value: opts}
 }
@@ -189,7 +189,7 @@ var ValidFormats = []string{
 	"a6",
 }
 
-// Validate validates the PdfRequest according to browserless schema rules
+// Validate validates the PdfRequest according to browserless schema rules.
 func (r *PdfRequest) Validate() error {
 	// Validate URL (required and well-formed)
 	if _, err := url.ParseRequestURI(r.URL); err != nil {

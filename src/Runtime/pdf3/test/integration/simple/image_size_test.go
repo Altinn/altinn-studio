@@ -1,4 +1,4 @@
-package simple
+package simple_test
 
 import (
 	"encoding/json"
@@ -10,20 +10,20 @@ import (
 	"altinn.studio/runtime-fixture/pkg/container"
 )
 
-// imageInfo represents the structure returned by docker/podman image inspect
+// imageInfo represents the structure returned by docker/podman image inspect.
 type imageInfo struct {
 	Size int64 `json:"Size"`
 }
 
-// getImageSize queries the container runtime for image size in bytes
-func getImageSize(t *testing.T, cli container.ContainerClient, image string) (int64, error) {
+// getImageSize queries the container runtime for image size in bytes.
+func getImageSize(_ *testing.T, cli container.ContainerClient, image string) (int64, error) {
 	output, err := cli.ImageInspect(image, "")
 	if err != nil {
 		return 0, err
 	}
 
 	var info []imageInfo
-	if err := json.Unmarshal([]byte(output), &info); err != nil {
+	if err = json.Unmarshal([]byte(output), &info); err != nil {
 		return 0, fmt.Errorf("failed to parse image inspect output: %w", err)
 	}
 
@@ -34,7 +34,7 @@ func getImageSize(t *testing.T, cli container.ContainerClient, image string) (in
 	return info[0].Size, nil
 }
 
-// roundToNearestMiB converts bytes to MiB and rounds to nearest integer
+// roundToNearestMiB converts bytes to MiB and rounds to nearest integer.
 func roundToNearestMiB(bytes int64) int64 {
 	mib := float64(bytes) / (1024.0 * 1024.0)
 	return int64(math.Round(mib))

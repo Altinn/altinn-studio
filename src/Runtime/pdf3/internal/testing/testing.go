@@ -13,7 +13,7 @@ import (
 	"altinn.studio/pdf3/internal/runtime"
 )
 
-// contextKey is a custom type for context keys to avoid collisions
+// contextKey is a custom type for context keys to avoid collisions.
 type contextKey string
 
 const testInputContextKey contextKey = "test-input"
@@ -23,7 +23,7 @@ type PdfInternalsTestInput struct {
 	CleanupDelaySeconds int    `json:"cleanupDelaySeconds"`
 }
 
-// NewTestInput creates a new test input with a generated UUID
+// NewTestInput creates a new test input with a generated UUID.
 func NewTestInput(cleanupDelaySeconds int) *PdfInternalsTestInput {
 	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	return &PdfInternalsTestInput{
@@ -49,7 +49,7 @@ func NewDefaultTestInput() *PdfInternalsTestInput {
 
 const TestInputHeaderName string = "X-Internals-Test-Input"
 
-// TestInputContextKey returns the context key for storing test input
+// TestInputContextKey returns the context key for storing test input.
 func TestInputContextKey() contextKey {
 	return testInputContextKey
 }
@@ -108,7 +108,7 @@ type PdfInternalsTestOutput struct {
 	complete      chan struct{}  `json:"-"`             // Closed when all snapshots are collected
 }
 
-// NewTestOutput creates a new test output with the ID from the input
+// NewTestOutput creates a new test output with the ID from the input.
 func NewTestOutput(input *PdfInternalsTestInput) *PdfInternalsTestOutput {
 	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	assert.Assert(input != nil)
@@ -120,7 +120,7 @@ func NewTestOutput(input *PdfInternalsTestInput) *PdfInternalsTestOutput {
 	}
 }
 
-// MarkComplete signals that all browser state snapshots have been collected
+// MarkComplete signals that all browser state snapshots have been collected.
 func (o *PdfInternalsTestOutput) MarkComplete() {
 	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	if o.complete != nil {
@@ -128,7 +128,7 @@ func (o *PdfInternalsTestOutput) MarkComplete() {
 	}
 }
 
-// WaitForComplete waits for all snapshots to be collected, with a timeout
+// WaitForComplete waits for all snapshots to be collected, with a timeout.
 func (o *PdfInternalsTestOutput) WaitForComplete(timeout time.Duration) bool {
 	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	if o.complete == nil {
@@ -168,10 +168,10 @@ func (o *PdfInternalsTestOutput) SnapshotString() string {
 	return string(json)
 }
 
-// Global test output store for test internals mode
+// Global test output store for test internals mode.
 var testOutputStore = concurrent.NewMap[string, *PdfInternalsTestOutput]()
 
-// StoreTestOutput stores a test output by ID (only in test internals mode)
+// StoreTestOutput stores a test output by ID (only in test internals mode).
 func StoreTestOutput(output *PdfInternalsTestOutput) {
 	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	assert.Assert(output != nil)
@@ -179,14 +179,14 @@ func StoreTestOutput(output *PdfInternalsTestOutput) {
 	testOutputStore.Set(output.ID, output)
 }
 
-// GetTestOutput retrieves a test output by ID (only in test internals mode)
+// GetTestOutput retrieves a test output by ID (only in test internals mode).
 func GetTestOutput(id string) (*PdfInternalsTestOutput, bool) {
 	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	assert.AssertWithMessage(id != "", "Test output ID is required")
 	return testOutputStore.Get(id)
 }
 
-// UpdateTestOutput atomically updates a test output by ID (only in test internals mode)
+// UpdateTestOutput atomically updates a test output by ID (only in test internals mode).
 func UpdateTestOutput(id string, fn func(*PdfInternalsTestOutput)) bool {
 	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	assert.AssertWithMessage(id != "", "Test output ID is required")

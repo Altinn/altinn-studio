@@ -3,6 +3,7 @@ package cdp
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -25,7 +26,7 @@ type CommandResponse struct {
 	Err  error
 }
 
-// Connection represents a Chrome DevTools Protocol connection
+// Connection represents a Chrome DevTools Protocol connection.
 type Connection interface {
 	// SendCommand sends a CDP command and waits for the response
 	// This method is NOT threadsafe. We use this from the processing go routine of a
@@ -40,11 +41,11 @@ type Connection interface {
 	Close() error
 }
 
-// EventHandler handles CDP events
+// EventHandler handles CDP events.
 type EventHandler func(method string, params any)
 
 // Connect establishes a connection to a Chrome DevTools Protocol endpoint
-// Returns: Connection, targetID, error
+// Returns: Connection, targetID, error.
 func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler EventHandler) (Connection, string, error) {
 	// List available targets (should find the about:blank page we created)
 	listURL := fmt.Sprintf("%s/json", debugBaseURL)
@@ -109,7 +110,7 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 	// Connect to the page's WebSocket
 	wsURL := target.WebSocketDebuggerURL
 	if wsURL == "" {
-		return nil, "", fmt.Errorf("no webSocketDebuggerUrl in response")
+		return nil, "", errors.New("no webSocketDebuggerUrl in response")
 	}
 	// Chrome page targets must have a WebSocket URL - this is a protocol invariant
 	assert.AssertWithMessage(wsURL != "", "Page target missing WebSocketDebuggerURL - protocol violation")
@@ -209,7 +210,7 @@ func (c *connection) watchdog() {
 	}
 }
 
-// GetBrowserVersion retrieves the browser version information
+// GetBrowserVersion retrieves the browser version information.
 func GetBrowserVersion(conn Connection) (*types.BrowserVersion, error) {
 	resp, err := conn.SendCommand(context.Background(), "Browser.getVersion", nil)
 	if err != nil {
@@ -218,7 +219,7 @@ func GetBrowserVersion(conn Connection) (*types.BrowserVersion, error) {
 
 	result, ok := resp.Result.(map[string]any)
 	if !ok {
-		return nil, fmt.Errorf("invalid response format")
+		return nil, errors.New("invalid response format")
 	}
 
 	return &types.BrowserVersion{
@@ -243,7 +244,7 @@ type batchState struct {
 	responses []*CommandResponse
 }
 
-// connection implements the Connection interface
+// connection implements the Connection interface.
 type connection struct {
 	id     int
 	wsConn *websocket.Conn
@@ -260,7 +261,7 @@ type connection struct {
 	cancel context.CancelFunc
 }
 
-// SendCommand sends a CDP command and waits for the response
+// SendCommand sends a CDP command and waits for the response.
 func (c *connection) SendCommand(ctx context.Context, method string, params any) (*CDPResponse, error) {
 	// Connection must be valid when sending commands
 	assert.AssertWithMessage(c.wsConn != nil, "Attempted to send command on nil WebSocket connection")
@@ -295,7 +296,7 @@ func (c *connection) SendCommand(ctx context.Context, method string, params any)
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	case <-c.ctx.Done():
-		return nil, fmt.Errorf("connection closed")
+		return nil, errors.New("connection closed")
 	case <-time.After(20 * time.Second):
 		return nil, fmt.Errorf("timeout waiting for response to command %s", method)
 	}
@@ -377,10 +378,10 @@ func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*C
 			if resp == nil {
 				state.responses[i] = &CommandResponse{
 					Resp: nil,
-					Err:  fmt.Errorf("connection closed"),
+					Err:  errors.New("connection closed"),
 				}
 			} else {
-				resp.Err = fmt.Errorf("connection closed")
+				resp.Err = errors.New("connection closed")
 			}
 		}
 		return state.responses
@@ -399,7 +400,7 @@ func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*C
 	}
 }
 
-// Close closes the connection and cleans up resources
+// Close closes the connection and cleans up resources.
 func (c *connection) Close() error {
 	// Connection should always be valid when Close is called
 	assert.AssertWithMessage(c.wsConn != nil, "Attempted to close connection with nil WebSocket")
@@ -422,7 +423,7 @@ func (c *connection) Close() error {
 	return c.wsConn.Close()
 }
 
-// handleMessages reads messages from the WebSocket and routes them
+// handleMessages reads messages from the WebSocket and routes them.
 func (c *connection) handleMessages() {
 	// Connection must be fully initialized before handling messages
 	assert.AssertWithMessage(c.wsConn != nil, "Message handler started with nil WebSocket connection")

@@ -1,4 +1,4 @@
-package simple
+package simple_test
 
 import (
 	"net/http"
@@ -39,7 +39,7 @@ func Test_Networking(t *testing.T) {
 		Timeout: 3 * time.Second,
 	}
 
-	httpReq, err := http.NewRequest("GET", url, nil)
+	httpReq, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		t.Fatalf("Failed to create HTTP request: %v", err)
 	}
