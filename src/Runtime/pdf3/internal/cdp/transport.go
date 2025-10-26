@@ -316,9 +316,9 @@ func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*C
 	}
 	c.pendingBatches.Set(batchID, state)
 	defer func() {
-		state, _ := c.pendingBatches.GetAndDelete(batchID)
-		if state != nil {
-			for _, cmdID := range state.cmdIds {
+		deletedState, _ := c.pendingBatches.GetAndDelete(batchID)
+		if deletedState != nil {
+			for _, cmdID := range deletedState.cmdIds {
 				c.cmdIDToBatchID.GetAndDelete(cmdID)
 			}
 		}

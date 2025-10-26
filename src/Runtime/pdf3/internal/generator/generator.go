@@ -29,8 +29,8 @@ func getBrowserVersion() (types.BrowserVersion, error) {
 		return types.BrowserVersion{}, fmt.Errorf("failed to create temporary browser for version info: %w", err)
 	}
 	defer func() {
-		if err := browserProc.Close(); err != nil {
-			log.Printf("WARNING: Failed to close temporary browser: %v - process may be lingering\n", err)
+		if closeErr := browserProc.Close(); closeErr != nil {
+			log.Printf("WARNING: Failed to close temporary browser: %v - process may be lingering\n", closeErr)
 		}
 	}()
 
@@ -79,9 +79,9 @@ func New() (*Custom, error) {
 		init := func(i int, sessions chan<- *browserSession) {
 			log.Printf("Starting browser worker %d\n", i)
 
-			session, err := newBrowserSession(i)
-			if err != nil {
-				log.Fatalf("Failed to create worker %d: %v", i, err)
+			session, sessionErr := newBrowserSession(i)
+			if sessionErr != nil {
+				log.Fatalf("Failed to create worker %d: %v", i, sessionErr)
 			}
 
 			sessions <- session

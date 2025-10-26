@@ -116,15 +116,15 @@ func (w *browserSession) handleEvent(method string, params any) {
 	switch method {
 	case "Runtime.consoleAPICalled":
 		if p, ok := params.(map[string]any); ok {
-			if apiType, ok := p["type"].(string); ok && apiType == "error" {
+			if apiType, typeOK := p["type"].(string); typeOK && apiType == "error" {
 				w.consoleErrors.Add(1)
 				log.Printf("[%d, %s] console error: %v\n", w.id, w.currentUrl, p)
 			}
 		}
 	case "Log.entryAdded":
 		if p, ok := params.(map[string]any); ok {
-			if entry, ok := p["entry"].(map[string]any); ok {
-				if level, ok := entry["level"].(string); ok && level == "error" {
+			if entry, entryOK := p["entry"].(map[string]any); entryOK {
+				if level, levelOK := entry["level"].(string); levelOK && level == "error" {
 					w.browserErrors.Add(1)
 					log.Printf("[%d, %s] log error: %v\n", w.id, w.currentUrl, entry)
 				}
@@ -291,11 +291,11 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		}
 
 		// Set all cookies in a single batch call
-		_, err := w.conn.SendCommand(w.ctx, "Network.setCookies", map[string]any{
+		_, cookieErr := w.conn.SendCommand(w.ctx, "Network.setCookies", map[string]any{
 			"cookies": cookies,
 		})
-		if err != nil {
-			req.tryRespondError(types.NewPDFError(types.ErrSetCookieFail, "", err))
+		if cookieErr != nil {
+			req.tryRespondError(types.NewPDFError(types.ErrSetCookieFail, "", cookieErr))
 			return nil
 		}
 	}
@@ -309,11 +309,11 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		return nil
 	}
 
-	_, err := w.conn.SendCommand(w.ctx, "Page.navigate", map[string]any{
+	_, navErr := w.conn.SendCommand(w.ctx, "Page.navigate", map[string]any{
 		"url": request.URL,
 	})
-	if err != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
+	if navErr != nil {
+		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", navErr))
 		return nil
 	}
 
@@ -327,16 +327,16 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			return nil
 		}
 
-		if selector, ok := request.WaitFor.AsString(); ok {
+		if selector, selectorOK := request.WaitFor.AsString(); selectorOK {
 			// Simple string selector - wait for element existence only
-			err := w.waitForElement(req, selector, 25000, false, false)
-			if err != nil {
+			waitErr := w.waitForElement(req, selector, 25000, false, false)
+			if waitErr != nil {
 				return nil
 			}
-		} else if timeout, ok := request.WaitFor.AsTimeout(); ok {
+		} else if timeout, timeoutOK := request.WaitFor.AsTimeout(); timeoutOK {
 			// Simple timeout delay
 			time.Sleep(time.Duration(timeout) * time.Millisecond)
-		} else if opts, ok := request.WaitFor.AsOptions(); ok {
+		} else if opts, optsOK := request.WaitFor.AsOptions(); optsOK {
 			// Full options with selector, visible, hidden, timeout
 			timeoutMs := int32(25000) // default timeout
 			if opts.Timeout != nil {
@@ -345,8 +345,8 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			checkVisible := opts.Visible != nil && *opts.Visible
 			checkHidden := opts.Hidden != nil && *opts.Hidden
 
-			err := w.waitForElement(req, opts.Selector, timeoutMs, checkVisible, checkHidden)
-			if err != nil {
+			waitErr := w.waitForElement(req, opts.Selector, timeoutMs, checkVisible, checkHidden)
+			if waitErr != nil {
 				return nil
 			}
 		}
@@ -489,15 +489,15 @@ func (w *browserSession) waitForElement(
 
 	// Expect a boolean result indicating whether the element was found within timeout
 	if result, ok := resp.Result.(map[string]any); ok {
-		if resultObj, ok := result["result"].(map[string]any); ok {
-			if value, ok := resultObj["value"].(bool); ok {
+		if resultObj, resultOK := result["result"].(map[string]any); resultOK {
+			if value, valueOK := resultObj["value"].(bool); valueOK {
 				if !value {
 					log.Printf("[%d, %s] failed to wait for element %q: timeout\n", w.id, w.currentUrl, selector)
-					err := errors.New("timeout")
+					timeoutErr := errors.New("timeout")
 					req.tryRespondError(
-						types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", selector), err),
+						types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", selector), timeoutErr),
 					)
-					return err
+					return timeoutErr
 				}
 			} else {
 				log.Printf("[%d, %s] unexpected evaluation result type waiting for %q\n", w.id, w.currentUrl, selector)
@@ -673,7 +673,7 @@ func (w *browserSession) getCookies() ([]map[string]any, error) {
 
 	cookieList := make([]map[string]any, 0, len(cookies))
 	for _, c := range cookies {
-		if cookie, ok := c.(map[string]any); ok {
+		if cookie, cookieOK := c.(map[string]any); cookieOK {
 			cookieList = append(cookieList, cookie)
 		}
 	}

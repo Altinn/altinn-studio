@@ -210,8 +210,8 @@ func runStop() {
 	}
 
 	// Stop the runtime
-	if err := runtime.Stop(); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to stop runtime: %v\n", err)
+	if stopErr := runtime.Stop(); stopErr != nil {
+		fmt.Fprintf(os.Stderr, "Failed to stop runtime: %v\n", stopErr)
 		os.Exit(1)
 	}
 
@@ -266,9 +266,9 @@ func runTest() {
 			fmt.Println("\n=== Keeping cluster running (--keep-running flag set) ===")
 			return
 		}
-		err := runtime.Stop()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to stop cluster: %v\n", err)
+		stopErr := runtime.Stop()
+		if stopErr != nil {
+			fmt.Fprintf(os.Stderr, "Failed to stop cluster: %v\n", stopErr)
 		}
 	}()
 
@@ -276,8 +276,8 @@ func runTest() {
 
 	// Create logs directory
 	logsDir := filepath.Join(projectRoot, "test", "logs")
-	if err := os.MkdirAll(logsDir, 0755); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create logs directory: %v\n", err)
+	if mkdirErr := os.MkdirAll(logsDir, 0755); mkdirErr != nil {
+		fmt.Fprintf(os.Stderr, "Failed to create logs directory: %v\n", mkdirErr)
 		os.Exit(1)
 	}
 
@@ -289,9 +289,9 @@ func runTest() {
 
 	// Set CI=true when looping for flakiness testing
 	if *iterations > 1 {
-		err := os.Setenv("CI", "true")
-		if err != nil {
-			fmt.Printf("Couldn't set CI env variable for snapshot failures: %v\n", err)
+		setenvErr := os.Setenv("CI", "true")
+		if setenvErr != nil {
+			fmt.Printf("Couldn't set CI env variable for snapshot failures: %v\n", setenvErr)
 			os.Exit(1)
 		}
 	}
@@ -307,9 +307,9 @@ func runTest() {
 
 		if runBoth || *runSimple {
 			fmt.Println("Running simple tests...")
-			if err := runTests(projectRoot, "./test/integration/simple/..."); err != nil {
+			if testErr := runTests(projectRoot, "./test/integration/simple/..."); testErr != nil {
 				exitErr := &exec.ExitError{}
-				if errors.As(err, &exitErr) {
+				if errors.As(testErr, &exitErr) {
 					testExitCode = exitErr.ExitCode()
 				} else {
 					testExitCode = 1
@@ -325,9 +325,9 @@ func runTest() {
 
 		if testExitCode == 0 && (runBoth || *runSmoke) {
 			fmt.Println("Running smoke tests...")
-			if err := runTests(projectRoot, "./test/integration/smoke/..."); err != nil {
+			if testErr := runTests(projectRoot, "./test/integration/smoke/..."); testErr != nil {
 				exitErr := &exec.ExitError{}
-				if errors.As(err, &exitErr) {
+				if errors.As(testErr, &exitErr) {
 					testExitCode = exitErr.ExitCode()
 				} else {
 					testExitCode = 1
@@ -360,8 +360,8 @@ func runTest() {
 	durationSeconds := int(duration.Seconds()) + 5 // Add 5s buffer
 
 	fmt.Printf("Capturing logs from last %ds to test/logs/...\n", durationSeconds)
-	if err := collectLogs(runtime, logsDir, durationSeconds); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: Failed to collect logs: %v\n", err)
+	if collectErr := collectLogs(runtime, logsDir, durationSeconds); collectErr != nil {
+		fmt.Fprintf(os.Stderr, "Warning: Failed to collect logs: %v\n", collectErr)
 		// Don't exit on log collection failure
 	}
 
@@ -450,8 +450,8 @@ func runLoadtestEnv() {
 
 	env := os.Environ()
 	envFilePath := filepath.Join(projectRoot, ".env")
-	if _, err := os.Stat(envFilePath); err != nil {
-		fmt.Fprintf(os.Stderr, ".env file is required for running env tests: %v\n", err)
+	if _, statErr := os.Stat(envFilePath); statErr != nil {
+		fmt.Fprintf(os.Stderr, ".env file is required for running env tests: %v\n", statErr)
 		os.Exit(1)
 	}
 
@@ -476,8 +476,8 @@ func runLoadtestEnv() {
 		env = append(env, line)
 	}
 
-	if err := scanner.Err(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error during .env file scanning: %v\n", err)
+	if scanErr := scanner.Err(); scanErr != nil {
+		fmt.Fprintf(os.Stderr, "Error during .env file scanning: %v\n", scanErr)
 		os.Exit(1)
 	}
 
@@ -488,8 +488,8 @@ func runLoadtestEnv() {
 		fmt.Fprintf(os.Stderr, "Error constructing tools installer: %v\n", err)
 		os.Exit(1)
 	}
-	if _, err := installer.Install(context.Background(), "k6"); err != nil {
-		fmt.Fprintf(os.Stderr, "Error installing tools: %v\n", err)
+	if _, installErr := installer.Install(context.Background(), "k6"); installErr != nil {
+		fmt.Fprintf(os.Stderr, "Error installing tools: %v\n", installErr)
 		os.Exit(1)
 	}
 
@@ -502,8 +502,8 @@ func runLoadtestEnv() {
 		makeCmd.Dir = projectRoot
 		makeCmd.Stdout = os.Stdout
 		makeCmd.Stderr = os.Stderr
-		if err := makeCmd.Run(); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to download Chrome: %v\n", err)
+		if runErr := makeCmd.Run(); runErr != nil {
+			fmt.Fprintf(os.Stderr, "Failed to download Chrome: %v\n", runErr)
 			os.Exit(1)
 		}
 		// Try finding Chrome again after download
@@ -541,8 +541,8 @@ func runLoadtestEnv() {
 	cmd.Stderr = os.Stderr
 	cmd.Env = env
 
-	if err := cmd.Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "Load test failed: %v\n", err)
+	if runErr := cmd.Run(); runErr != nil {
+		fmt.Fprintf(os.Stderr, "Load test failed: %v\n", runErr)
 		os.Exit(1)
 	}
 
@@ -589,8 +589,8 @@ func runLoadtestLocal() {
 
 	// Install k6 for loadtest
 	fmt.Println("\n=== Installing k6 ===")
-	if _, err := runtime.Installer.Install(context.Background(), "k6"); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to install k6: %v\n", err)
+	if _, installErr := runtime.Installer.Install(context.Background(), "k6"); installErr != nil {
+		fmt.Fprintf(os.Stderr, "Failed to install k6: %v\n", installErr)
 		os.Exit(1)
 	}
 
@@ -599,9 +599,9 @@ func runLoadtestLocal() {
 			fmt.Println("\n=== Keeping cluster running (--keep-running flag set) ===")
 			return
 		}
-		err := runtime.Stop()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to stop cluster: %v\n", err)
+		stopErr := runtime.Stop()
+		if stopErr != nil {
+			fmt.Fprintf(os.Stderr, "Failed to stop cluster: %v\n", stopErr)
 		}
 	}()
 
@@ -614,8 +614,8 @@ func runLoadtestLocal() {
 	go func() {
 		defer depWg.Done()
 		fmt.Println("Waiting for pdf-generator deployment (old service)...")
-		if err := runtime.KubernetesClient.RolloutStatus("pdf-generator", "pdf", 2*time.Minute); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed waiting for pdf-generator deployment: %v\n", err)
+		if rolloutErr := runtime.KubernetesClient.RolloutStatus("pdf-generator", "pdf", 2*time.Minute); rolloutErr != nil {
+			fmt.Fprintf(os.Stderr, "Failed waiting for pdf-generator deployment: %v\n", rolloutErr)
 			os.Exit(1)
 		}
 	}()
@@ -623,8 +623,8 @@ func runLoadtestLocal() {
 	go func() {
 		defer depWg.Done()
 		fmt.Println("Waiting for pdf3-proxy deployment (new service)...")
-		if err := runtime.KubernetesClient.RolloutStatus("pdf3-proxy", "runtime-pdf3", 2*time.Minute); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed waiting for pdf3-proxy deployment: %v\n", err)
+		if rolloutErr := runtime.KubernetesClient.RolloutStatus("pdf3-proxy", "runtime-pdf3", 2*time.Minute); rolloutErr != nil {
+			fmt.Fprintf(os.Stderr, "Failed waiting for pdf3-proxy deployment: %v\n", rolloutErr)
 			os.Exit(1)
 		}
 	}()
@@ -632,8 +632,8 @@ func runLoadtestLocal() {
 	go func() {
 		defer depWg.Done()
 		fmt.Println("Waiting for pdf3-worker deployment (new service)...")
-		if err := runtime.KubernetesClient.RolloutStatus("pdf3-worker", "runtime-pdf3", 2*time.Minute); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed waiting for pdf3-worker deployment: %v\n", err)
+		if rolloutErr := runtime.KubernetesClient.RolloutStatus("pdf3-worker", "runtime-pdf3", 2*time.Minute); rolloutErr != nil {
+			fmt.Fprintf(os.Stderr, "Failed waiting for pdf3-worker deployment: %v\n", rolloutErr)
 			os.Exit(1)
 		}
 	}()
@@ -664,8 +664,8 @@ func runLoadtestLocal() {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	if err := cmd.Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "Load test failed: %v\n", err)
+	if runErr := cmd.Run(); runErr != nil {
+		fmt.Fprintf(os.Stderr, "Load test failed: %v\n", runErr)
 		os.Exit(1)
 	}
 

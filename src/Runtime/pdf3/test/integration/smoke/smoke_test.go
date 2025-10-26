@@ -81,10 +81,10 @@ func runSmokeTest(t *testing.T, testCase *testCase) {
 			}
 
 			if testInput != nil {
-				if output, err := resp.LoadOutput(t); err != nil {
+				if output, outputErr := resp.LoadOutput(t); outputErr != nil {
 					result.errors = append(
 						result.errors,
-						fmt.Errorf("request %d: failed to load test output: %w", index, err),
+						fmt.Errorf("request %d: failed to load test output: %w", index, outputErr),
 					)
 				} else if output != nil && output.HadErrors() {
 					result.errors = append(result.errors, fmt.Errorf("request %d: response had errors reported in browsers", index))

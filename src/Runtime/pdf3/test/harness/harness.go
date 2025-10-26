@@ -148,8 +148,8 @@ func getTestOutput(_ *testing.T, id string, workerIP string) (*ptesting.PdfInter
 	}
 
 	var output ptesting.PdfInternalsTestOutput
-	if err := json.Unmarshal(data, &output); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal test output: %w", err)
+	if unmarshalErr := json.Unmarshal(data, &output); unmarshalErr != nil {
+		return nil, fmt.Errorf("failed to unmarshal test output: %w", unmarshalErr)
 	}
 
 	return &output, nil
@@ -267,7 +267,7 @@ func FindProjectRoot() (string, error) {
 	for range maxIterations {
 		// Check if go.mod exists in current directory
 		goModPath := filepath.Join(dir, "go.mod")
-		if _, err := os.Stat(goModPath); err == nil {
+		if _, statErr := os.Stat(goModPath); statErr == nil {
 			projectRoot = dir
 			return dir, nil
 		}
@@ -297,7 +297,8 @@ func SetupCluster(
 	overallStart := time.Now()
 
 	// Find project root to resolve relative paths
-	projectRoot, err := FindProjectRoot()
+	var err error
+	projectRoot, err = FindProjectRoot()
 	if err != nil {
 		return nil, fmt.Errorf("failed to find project root: %w", err)
 	}
@@ -315,8 +316,8 @@ func SetupCluster(
 
 	// Run the runtime (idempotent)
 	start := time.Now()
-	if err := Runtime.Run(); err != nil {
-		return nil, fmt.Errorf("failed to run kind runtime: %w", err)
+	if runErr := Runtime.Run(); runErr != nil {
+		return nil, fmt.Errorf("failed to run kind runtime: %w", runErr)
 	}
 	LogDuration("Run Kind runtime", start)
 
@@ -332,7 +333,8 @@ func BuildAndPushImages() (bool, error) {
 	overallStart := time.Now()
 
 	// Find project root
-	projectRoot, err := FindProjectRoot()
+	var err error
+	projectRoot, err = FindProjectRoot()
 	if err != nil {
 		return false, fmt.Errorf("failed to find project root: %w", err)
 	}
@@ -369,16 +371,16 @@ func BuildAndPushImages() (bool, error) {
 	// Build proxy image
 	fmt.Println("Building proxy image...")
 	start := time.Now()
-	if err := Runtime.ContainerClient.Build(projectRoot, "Dockerfile.proxy", "localhost:5001/runtime-pdf3-proxy:latest"); err != nil {
-		return false, err
+	if buildErr := Runtime.ContainerClient.Build(projectRoot, "Dockerfile.proxy", "localhost:5001/runtime-pdf3-proxy:latest"); buildErr != nil {
+		return false, buildErr
 	}
 	LogDuration("Build proxy image", start)
 
 	// Build worker image
 	fmt.Println("Building worker image...")
 	start = time.Now()
-	if err := Runtime.ContainerClient.Build(projectRoot, "Dockerfile.worker", "localhost:5001/runtime-pdf3-worker:latest"); err != nil {
-		return false, err
+	if buildErr := Runtime.ContainerClient.Build(projectRoot, "Dockerfile.worker", "localhost:5001/runtime-pdf3-worker:latest"); buildErr != nil {
+		return false, buildErr
 	}
 	LogDuration("Build worker image", start)
 
@@ -387,19 +389,19 @@ func BuildAndPushImages() (bool, error) {
 	start = time.Now()
 
 	// Push proxy image
-	if err := Runtime.ContainerClient.Push("localhost:5001/runtime-pdf3-proxy:latest"); err != nil {
-		return false, err
+	if pushErr := Runtime.ContainerClient.Push("localhost:5001/runtime-pdf3-proxy:latest"); pushErr != nil {
+		return false, pushErr
 	}
 
 	// Push worker image
-	if err := Runtime.ContainerClient.Push("localhost:5001/runtime-pdf3-worker:latest"); err != nil {
-		return false, err
+	if pushErr := Runtime.ContainerClient.Push("localhost:5001/runtime-pdf3-worker:latest"); pushErr != nil {
+		return false, pushErr
 	}
 	LogDuration("Push images to registry", start)
 
 	// Update cached checksum
-	if err := writeCachedChecksum(projectRoot, "docker-images", currentHash); err != nil {
-		return false, fmt.Errorf("failed to write cached checksum: %w", err)
+	if writeErr := writeCachedChecksum(projectRoot, "docker-images", currentHash); writeErr != nil {
+		return false, fmt.Errorf("failed to write cached checksum: %w", writeErr)
 	}
 
 	fmt.Println("✓ Images built and pushed")
@@ -414,7 +416,8 @@ func PushKustomizeArtifact() (bool, error) {
 	overallStart := time.Now()
 
 	// Find project root
-	projectRoot, err := FindProjectRoot()
+	var err error
+	projectRoot, err = FindProjectRoot()
 	if err != nil {
 		return false, fmt.Errorf("failed to find project root: %w", err)
 	}
@@ -449,19 +452,19 @@ func PushKustomizeArtifact() (bool, error) {
 
 	// Use flux CLI from the cache path (installed by Kind runtime)
 	start := time.Now()
-	if err := Runtime.FluxClient.PushArtifact(
+	if pushErr := Runtime.FluxClient.PushArtifact(
 		"oci://localhost:5001/runtime-pdf3-repo:local",
 		kustomizePath,
 		"local",
 		"local",
-	); err != nil {
-		return false, err
+	); pushErr != nil {
+		return false, pushErr
 	}
 	LogDuration("Push artifact to OCI registry", start)
 
 	// Update cached checksum
-	if err := writeCachedChecksum(projectRoot, "kustomize", currentHash); err != nil {
-		return false, fmt.Errorf("failed to write cached checksum: %w", err)
+	if writeErr := writeCachedChecksum(projectRoot, "kustomize", currentHash); writeErr != nil {
+		return false, fmt.Errorf("failed to write cached checksum: %w", writeErr)
 	}
 
 	fmt.Println("✓ Kustomize artifact pushed")
@@ -498,7 +501,8 @@ func DeployPdf3ViaFlux(variant kind.KindContainerRuntimeVariant, imagesChanged, 
 	}
 
 	// Find project root
-	projectRoot, err := FindProjectRoot()
+	var err error
+	projectRoot, err = FindProjectRoot()
 	if err != nil {
 		return false, fmt.Errorf("failed to find project root: %w", err)
 	}
@@ -520,8 +524,8 @@ func DeployPdf3ViaFlux(variant kind.KindContainerRuntimeVariant, imagesChanged, 
 	// Apply the complete manifest in a single request
 	fmt.Println("Applying pdf3 manifest...")
 	start := time.Now()
-	if _, err := Runtime.KubernetesClient.ApplyManifest(manifest); err != nil {
-		return false, fmt.Errorf("failed to apply manifest: %w", err)
+	if _, applyErr := Runtime.KubernetesClient.ApplyManifest(manifest); applyErr != nil {
+		return false, fmt.Errorf("failed to apply manifest: %w", applyErr)
 	}
 	LogDuration("Apply pdf3 manifest", start)
 
@@ -531,8 +535,8 @@ func DeployPdf3ViaFlux(variant kind.KindContainerRuntimeVariant, imagesChanged, 
 	// Trigger immediate reconciliation of Kustomization
 	fmt.Println("Triggering Kustomization reconciliation...")
 	start = time.Now()
-	if err := Runtime.FluxClient.ReconcileKustomization("pdf3-app", "runtime-pdf3", true, reconcileOpts); err != nil {
-		return false, fmt.Errorf("failed to reconcile Kustomization: %w", err)
+	if reconcileErr := Runtime.FluxClient.ReconcileKustomization("pdf3-app", "runtime-pdf3", true, reconcileOpts); reconcileErr != nil {
+		return false, fmt.Errorf("failed to reconcile Kustomization: %w", reconcileErr)
 	}
 	LogDuration("Reconcile Kustomization", start)
 
@@ -541,15 +545,15 @@ func DeployPdf3ViaFlux(variant kind.KindContainerRuntimeVariant, imagesChanged, 
 	// Wait for deployments to be ready
 	fmt.Println("Waiting for pdf3-proxy deployment...")
 	start = time.Now()
-	if err := Runtime.KubernetesClient.RolloutStatus("pdf3-proxy", "runtime-pdf3", 2*time.Minute); err != nil {
-		return false, fmt.Errorf("failed waiting for pdf3-proxy: %w", err)
+	if rolloutErr := Runtime.KubernetesClient.RolloutStatus("pdf3-proxy", "runtime-pdf3", 2*time.Minute); rolloutErr != nil {
+		return false, fmt.Errorf("failed waiting for pdf3-proxy: %w", rolloutErr)
 	}
 	LogDuration("Wait for pdf3-proxy deployment", start)
 
 	fmt.Println("Waiting for pdf3-worker deployment...")
 	start = time.Now()
-	if err := Runtime.KubernetesClient.RolloutStatus("pdf3-worker", "runtime-pdf3", 2*time.Minute); err != nil {
-		return false, fmt.Errorf("failed waiting for pdf3-worker: %w", err)
+	if rolloutErr := Runtime.KubernetesClient.RolloutStatus("pdf3-worker", "runtime-pdf3", 2*time.Minute); rolloutErr != nil {
+		return false, fmt.Errorf("failed waiting for pdf3-worker: %w", rolloutErr)
 	}
 	LogDuration("Wait for pdf3-worker deployment", start)
 

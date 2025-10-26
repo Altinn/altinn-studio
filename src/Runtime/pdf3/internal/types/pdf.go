@@ -219,11 +219,11 @@ func (r *PdfRequest) Validate() error {
 			if str == "" {
 				return errors.New("waitFor string must not be empty")
 			}
-		} else if timeout, ok := r.WaitFor.AsTimeout(); ok {
+		} else if timeout, timeoutOK := r.WaitFor.AsTimeout(); timeoutOK {
 			if timeout < 0 {
 				return errors.New("waitFor timeout must be >= 0")
 			}
-		} else if opts, ok := r.WaitFor.AsOptions(); ok {
+		} else if opts, optsOK := r.WaitFor.AsOptions(); optsOK {
 			if opts.Selector == "" {
 				return errors.New("waitFor selector must not be empty")
 			}

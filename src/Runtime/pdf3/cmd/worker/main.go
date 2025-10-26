@@ -51,8 +51,8 @@ func main() {
 	}
 	defer func() {
 		// Closing PDF generator during shutdown
-		if err := gen.Close(); err != nil {
-			log.Printf("Failed to close PDF generator: %v\n", err)
+		if closeErr := gen.Close(); closeErr != nil {
+			log.Printf("Failed to close PDF generator: %v\n", closeErr)
 		}
 	}()
 
@@ -60,33 +60,33 @@ func main() {
 	http.HandleFunc("/health/startup", func(w http.ResponseWriter, r *http.Request) {
 		if host.IsShuttingDown() || !gen.IsReady() {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			if _, err := w.Write([]byte("Shutting down")); err != nil {
-				log.Printf("Failed to write health check response: %v\n", err)
+			if _, writeErr := w.Write([]byte("Shutting down")); writeErr != nil {
+				log.Printf("Failed to write health check response: %v\n", writeErr)
 			}
 		} else {
 			w.WriteHeader(http.StatusOK)
-			if _, err := w.Write([]byte("OK")); err != nil {
-				log.Printf("Failed to write health check response: %v\n", err)
+			if _, writeErr := w.Write([]byte("OK")); writeErr != nil {
+				log.Printf("Failed to write health check response: %v\n", writeErr)
 			}
 		}
 	})
 	http.HandleFunc("/health/ready", func(w http.ResponseWriter, r *http.Request) {
 		if host.IsShuttingDown() || !gen.IsReady() {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			if _, err := w.Write([]byte("Shutting down")); err != nil {
-				log.Printf("Failed to write health check response: %v\n", err)
+			if _, writeErr := w.Write([]byte("Shutting down")); writeErr != nil {
+				log.Printf("Failed to write health check response: %v\n", writeErr)
 			}
 		} else {
 			w.WriteHeader(http.StatusOK)
-			if _, err := w.Write([]byte("OK")); err != nil {
-				log.Printf("Failed to write health check response: %v\n", err)
+			if _, writeErr := w.Write([]byte("OK")); writeErr != nil {
+				log.Printf("Failed to write health check response: %v\n", writeErr)
 			}
 		}
 	})
 	http.HandleFunc("/health/live", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		if _, err := w.Write([]byte("OK")); err != nil {
-			log.Printf("Failed to write health check response: %v\n", err)
+		if _, writeErr := w.Write([]byte("OK")); writeErr != nil {
+			log.Printf("Failed to write health check response: %v\n", writeErr)
 		}
 	})
 
@@ -106,8 +106,8 @@ func main() {
 
 	go func() {
 		log.Printf("Starting worker HTTP server on %s\n", httpServer.Addr)
-		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("HTTP server crashed: %v", err)
+		if listenErr := httpServer.ListenAndServe(); listenErr != nil && listenErr != http.ErrServerClosed {
+			log.Fatalf("HTTP server crashed: %v", listenErr)
 		}
 	}()
 
@@ -133,8 +133,8 @@ func generatePdfHandler(gen types.PdfGenerator) http.HandlerFunc {
 
 		if r.Method != http.MethodPost {
 			w.WriteHeader(http.StatusMethodNotAllowed)
-			if _, err := w.Write([]byte("Only POST method is allowed")); err != nil {
-				log.Printf("Failed to write error response: %v\n", err)
+			if _, writeErr := w.Write([]byte("Only POST method is allowed")); writeErr != nil {
+				log.Printf("Failed to write error response: %v\n", writeErr)
 			}
 			return
 		}
@@ -142,15 +142,15 @@ func generatePdfHandler(gen types.PdfGenerator) http.HandlerFunc {
 		ct := strings.ToLower(r.Header.Get("Content-Type"))
 		if !strings.HasPrefix(ct, "application/json") {
 			w.WriteHeader(http.StatusUnsupportedMediaType)
-			if _, err := w.Write([]byte("Content-Type must be application/json")); err != nil {
-				log.Printf("Failed to write error response: %v\n", err)
+			if _, writeErr := w.Write([]byte("Content-Type must be application/json")); writeErr != nil {
+				log.Printf("Failed to write error response: %v\n", writeErr)
 			}
 			return
 		}
 		if !runtime.IsTestInternalsMode && r.Header.Get(testing.TestInputHeaderName) != "" {
 			w.WriteHeader(http.StatusBadRequest)
-			if _, err := w.Write([]byte("Illegal internals test mode header")); err != nil {
-				log.Printf("Failed to write error response: %v\n", err)
+			if _, writeErr := w.Write([]byte("Illegal internals test mode header")); writeErr != nil {
+				log.Printf("Failed to write error response: %v\n", writeErr)
 			}
 			return
 		}
@@ -160,8 +160,8 @@ func generatePdfHandler(gen types.PdfGenerator) http.HandlerFunc {
 		var req types.PdfRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			if _, err := fmt.Fprintf(w, "Invalid JSON payload: %v", err); err != nil {
-				log.Printf("Failed to write error response: %v\n", err)
+			if _, writeErr := fmt.Fprintf(w, "Invalid JSON payload: %v", err); writeErr != nil {
+				log.Printf("Failed to write error response: %v\n", writeErr)
 			}
 			return
 		}
@@ -186,8 +186,8 @@ func generatePdfHandler(gen types.PdfGenerator) http.HandlerFunc {
 			}
 
 			w.WriteHeader(errorCode)
-			if _, err := w.Write([]byte(errStr)); err != nil {
-				log.Printf("Failed to write error response: %v\n", err)
+			if _, writeErr := w.Write([]byte(errStr)); writeErr != nil {
+				log.Printf("Failed to write error response: %v\n", writeErr)
 			}
 			return
 		}
@@ -196,8 +196,8 @@ func generatePdfHandler(gen types.PdfGenerator) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/pdf")
 
 		w.WriteHeader(http.StatusOK)
-		if _, err := w.Write(result.Data); err != nil {
-			log.Printf("Failed to write PDF response: %v\n", err)
+		if _, writeErr := w.Write(result.Data); writeErr != nil {
+			log.Printf("Failed to write PDF response: %v\n", writeErr)
 		}
 	}
 }
@@ -254,14 +254,14 @@ func getTestOutputHandler() http.HandlerFunc {
 		if err != nil {
 			log.Printf("Failed to marshal test output: %v\n", err)
 			w.WriteHeader(http.StatusInternalServerError)
-			if _, err := w.Write([]byte("Failed to serialize test output")); err != nil {
-				log.Printf("Failed to write error response: %v\n", err)
+			if _, writeErr := w.Write([]byte("Failed to serialize test output")); writeErr != nil {
+				log.Printf("Failed to write error response: %v\n", writeErr)
 			}
 			return
 		}
 
-		if _, err := w.Write(jsonData); err != nil {
-			log.Printf("Failed to write test output response: %v\n", err)
+		if _, writeErr := w.Write(jsonData); writeErr != nil {
+			log.Printf("Failed to write test output response: %v\n", writeErr)
 		}
 	}
 }

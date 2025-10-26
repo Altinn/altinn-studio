@@ -40,9 +40,9 @@ func Snapshot(t *testing.T, data []byte, name string, ext string) {
 	fileName := path.Join(wd, "_snapshots", testName) + "." + ext
 
 	if IsCI {
-		existingData, err := os.ReadFile(fileName)
-		if err != nil {
-			t.Errorf("Error reading existing snapshot at: %s: %v", fileName, err)
+		existingData, readErr := os.ReadFile(fileName)
+		if readErr != nil {
+			t.Errorf("Error reading existing snapshot at: %s: %v", fileName, readErr)
 			return
 		} else if !bytes.Equal(existingData, data) {
 			t.Errorf("Snapshots not equal for: %s", fileName)

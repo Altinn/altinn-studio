@@ -326,8 +326,8 @@ func callWorker(
 		w.Header().Set("Content-Type", "application/pdf")
 
 		w.WriteHeader(http.StatusOK)
-		if _, err := io.Copy(w, resp.Body); err != nil {
-			log.Printf("[%s] Failed to write PDF response data: %s, %v\n", req.URL, workerId, err)
+		if _, copyErr := io.Copy(w, resp.Body); copyErr != nil {
+			log.Printf("[%s] Failed to write PDF response data: %s, %v\n", req.URL, workerId, copyErr)
 		}
 		log.Printf(
 			"[%s, %d/%d, %s] successfully generated PDF: %s\n",
@@ -519,8 +519,8 @@ func forwardTestOutputRequest(client *http.Client) func(http.ResponseWriter, *ht
 		httpReq, err := http.NewRequestWithContext(r.Context(), r.Method, workerEndpoint, nil)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			if _, err := w.Write([]byte("Failed to create worker request")); err != nil {
-				log.Printf("Failed to write error response: %v\n", err)
+			if _, writeErr := w.Write([]byte("Failed to create worker request")); writeErr != nil {
+				log.Printf("Failed to write error response: %v\n", writeErr)
 			}
 			return
 		}
@@ -528,8 +528,8 @@ func forwardTestOutputRequest(client *http.Client) func(http.ResponseWriter, *ht
 		resp, err := client.Do(httpReq)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			if _, err := fmt.Fprintf(w, "Failed to communicate with worker: %v", err); err != nil {
-				log.Printf("Failed to write error response: %v\n", err)
+			if _, writeErr := fmt.Fprintf(w, "Failed to communicate with worker: %v", err); writeErr != nil {
+				log.Printf("Failed to write error response: %v\n", writeErr)
 			}
 			return
 		}
@@ -544,8 +544,8 @@ func forwardTestOutputRequest(client *http.Client) func(http.ResponseWriter, *ht
 		w.WriteHeader(resp.StatusCode)
 
 		// Copy response body
-		if _, err := io.Copy(w, resp.Body); err != nil {
-			log.Printf("Failed to write test output response: %v\n", err)
+		if _, copyErr := io.Copy(w, resp.Body); copyErr != nil {
+			log.Printf("Failed to write test output response: %v\n", copyErr)
 		}
 	}
 }
