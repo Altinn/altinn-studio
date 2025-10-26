@@ -78,25 +78,27 @@ describe('SchemaInspector', () => {
 
     renderSchemaInspector(mockUiSchema, getMockSchemaByPath(schemaPointer));
 
-    const minLength = '100';
-    const maxLength = '666';
+    const minLength = '5';
+    const maxLength = '9';
 
     const minLengthTextField = await screen.findByLabelText(textMock('schema_editor.minLength'));
-    await user.clear(minLengthTextField);
-    await user.type(minLengthTextField, minLength);
+    await user.tripleClick(minLengthTextField);
+    await user.keyboard(minLength);
     await user.tab();
 
     expect(saveDataModel).toHaveBeenCalled();
-    let updatedModel = getSavedModel(saveDataModel, 3);
+    const minLengthCallCount = saveDataModel.mock.calls.length;
+    let updatedModel = getSavedModel(saveDataModel, minLengthCallCount - 1);
     let updatedNode = updatedModel.getNodeBySchemaPointer(schemaPointer) as FieldNode;
     expect(updatedNode.restrictions.minLength).toEqual(parseInt(minLength));
 
     const maxLengthTextField = await screen.findByLabelText(textMock('schema_editor.maxLength'));
-    await user.clear(maxLengthTextField);
-    await user.type(maxLengthTextField, maxLength);
+    await user.tripleClick(maxLengthTextField);
+    await user.keyboard(maxLength);
     await user.tab();
 
-    updatedModel = getSavedModel(saveDataModel, 7);
+    const maxLengthCallCount = saveDataModel.mock.calls.length;
+    updatedModel = getSavedModel(saveDataModel, maxLengthCallCount - 1);
     updatedNode = updatedModel.getNodeBySchemaPointer(schemaPointer) as FieldNode;
     expect(updatedNode.restrictions.maxLength).toEqual(parseInt(maxLength));
   });

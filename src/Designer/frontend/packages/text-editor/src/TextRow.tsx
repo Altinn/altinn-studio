@@ -9,8 +9,7 @@ import { validateTextId } from './utils';
 import { TextEntry } from './TextEntry';
 import { Variables } from './Variables';
 import { AltinnConfirmDialog } from 'app-shared/components';
-import { StudioTextfield } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioTextfield } from '@studio/components';
 
 export interface TextRowProps {
   idExists: (newTextId: string, oldTextId: string) => boolean;
@@ -112,11 +111,13 @@ export const TextRow = ({
         <div className={classes.textIdContainer}>
           {textIdEditOpen ? (
             <StudioTextfield
+              className={classes.textField}
               value={textIdValue}
               aria-label={t('text_editor.key.edit', { textKey: textIdValue })}
               error={keyError}
               onBlur={keyError ? undefined : handleTextIdBlur}
               onChange={(e) => handleTextIdChange(e.target.value)}
+              data-size='sm'
             />
           ) : (
             <div role='text' aria-readonly className={classes.textId}>

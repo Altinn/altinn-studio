@@ -3,12 +3,13 @@ import React, { useCallback, useState, useMemo } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import classes from './StringRestrictions.module.css';
-import { Fieldset, Label, Switch } from '@digdir/designsystemet-react';
+import { Fieldset, Switch } from '@digdir/designsystemet-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { makeDomFriendlyID } from '../../../../utils/ui-schema-utils';
 import { useTranslation } from 'react-i18next';
-import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
+import { StudioNativeSelect } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components';
 import { ItemWrapper } from '../ItemWrapper';
 import {
   isDateOrTimeFormat,
@@ -129,7 +130,6 @@ export function StringRestrictions({
         />
         <div className={classes.regexTest}>
           <div className={classes.regexTestLabel}>
-            <Label htmlFor={fieldId}>{t('pattern_test_field')}</Label>
             {pattern &&
               (regexTestValueMatchesRegex ? (
                 <span className={classes.regexTestMatchIndicatorTrue}>{t('pattern_matches')}</span>
@@ -150,13 +150,16 @@ export function StringRestrictions({
                 </span>
               ))}
             </div>
-            <StudioTextfield
-              id={fieldId}
-              onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                handleValueChange(event.target.value)
-              }
-              value={regexTestValue}
-            />
+            <div className={classes.lengthField}>
+              <StudioTextfield
+                label={t('pattern_test_field')}
+                id={fieldId}
+                onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                  handleValueChange(event.target.value)
+                }
+                value={regexTestValue}
+              />
+            </div>
           </div>
         </div>
       </Fieldset>

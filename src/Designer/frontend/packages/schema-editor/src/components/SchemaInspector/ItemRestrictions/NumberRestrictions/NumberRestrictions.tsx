@@ -5,7 +5,7 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { IntRestrictionKey } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
 import classes from './NumberRestrictions.module.css';
-import { ErrorMessage, Switch, Label } from '@digdir/designsystemet-react';
+import { ErrorMessage, Switch } from '@digdir/designsystemet-react';
 import type {
   NumberRestrictionsReducerAction,
   NumberRestrictionsReducerState,
@@ -16,7 +16,7 @@ import {
 } from './NumberRestrictionsReducer';
 import { NumberRestrictionsError } from '@altinn/schema-editor/types';
 import { ValidationUtils } from '@studio/pure-functions';
-import { StudioTextfield } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components';
 import { ItemWrapper } from '../ItemWrapper';
 
 export interface NumberRestrictionsProps extends RestrictionItemProps {
@@ -85,7 +85,6 @@ export function NumberRestrictions({
   return (
     <ItemWrapper>
       <div>
-        <Label htmlFor='schema_editor.minimum_'>{t(minLabel)}</Label>
         <div className={classes.formatFieldsRowContent}>
           <div>
             <StudioTextfield
@@ -93,6 +92,7 @@ export function NumberRestrictions({
               onChange={onChangeMinNumber}
               value={formatState.min === undefined ? '' : formatState.min.toString()}
               type='number'
+              label={t(minLabel)}
             />
             <div className={classes.minNumberErrorMassage}>
               <ErrorMessage>{minMaxErrorMessage}</ErrorMessage>
@@ -110,7 +110,6 @@ export function NumberRestrictions({
         </div>
       </div>
       <div>
-        <Label htmlFor='schema_editor.maximum_'>{t(maxLabel)}</Label>
         <div className={classes.formatFieldsRowContent}>
           <div>
             <StudioTextfield
@@ -118,6 +117,7 @@ export function NumberRestrictions({
               onChange={onChangeMaxNumber}
               value={formatState.max === undefined ? '' : formatState.max.toString()}
               type='number'
+              label={t(maxLabel)}
             />
             <div className={classes.minNumberErrorMassage}>
               <ErrorMessage>{minMaxErrorMessage}</ErrorMessage>
@@ -136,11 +136,11 @@ export function NumberRestrictions({
         </div>
       </div>
       <div>
-        <Label htmlFor='schema_editor.multipleOf'>{t('schema_editor.multipleOf')}</Label>
         <div className={classes.formatFieldsRowContent}>
           <StudioTextfield
             id='schema_editor.multipleOf'
             type='number'
+            label={t('schema_editor.multipleOf')}
             onChange={(e: ChangeEvent<HTMLInputElement>) =>
               dispatchAction(NumberRestrictionsReducerActionType.setMultipleOf, e.target.value)
             }

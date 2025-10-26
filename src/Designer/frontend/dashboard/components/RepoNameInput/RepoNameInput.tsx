@@ -3,7 +3,7 @@ import classes from './RepoNameInput.module.css';
 import { Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import type { StudioTextfieldProps } from '@studio/components-legacy';
-import { StudioTextfield } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components';
 
 type RepoNameInputProps = {
   repoName?: string;

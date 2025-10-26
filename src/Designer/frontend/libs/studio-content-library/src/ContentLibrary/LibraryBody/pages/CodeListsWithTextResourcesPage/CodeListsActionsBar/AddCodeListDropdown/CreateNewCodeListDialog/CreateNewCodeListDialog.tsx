@@ -1,6 +1,6 @@
 import React, { forwardRef, useState } from 'react';
 import type { RefObject, ReactElement } from 'react';
-import { StudioCodeListEditor, StudioTextfield } from '@studio/components-legacy';
+import { StudioCodeListEditor } from '@studio/components-legacy';
 import type {
   CodeListWithTextResources,
   CodeListEditorTexts,
@@ -13,7 +13,7 @@ import classes from './CreateNewCodeListDialog.module.css';
 import type { CodeListWithMetadata } from '../../../types/CodeListWithMetadata';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../../hooks/useInputCodeListNameErrorMessage';
-import { StudioDialog, StudioHeading, StudioButton } from '@studio/components';
+import { StudioDialog, StudioHeading, StudioButton, StudioTextfield } from '@studio/components';
 
 export type CreateNewCodeListDialogProps = {
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;

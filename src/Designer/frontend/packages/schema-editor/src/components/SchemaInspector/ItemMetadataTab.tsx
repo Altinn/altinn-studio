@@ -1,5 +1,5 @@
-import { StudioErrorMessage, StudioSwitch, StudioTextfield } from '@studio/components-legacy';
-import { StudioSpinner, StudioFieldset } from '@studio/components';
+import { StudioErrorMessage, StudioSwitch } from '@studio/components-legacy';
+import { StudioSpinner, StudioFieldset, StudioTextfield } from '@studio/components';
 import { useDataTypeQuery } from 'app-shared/hooks/queries/useDataTypeQuery';
 import React from 'react';
 import { useTranslation } from 'react-i18next';

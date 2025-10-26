@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import classes from './RemoveChangesPopoverContent.module.css';
-import { StudioTextfield } from '@studio/components-legacy';
-import { StudioButton, StudioParagraph, StudioHeading, StudioSpinner } from '@studio/components';
+import {
+  StudioButton,
+  StudioParagraph,
+  StudioHeading,
+  StudioSpinner,
+  StudioTextfield,
+} from '@studio/components';
 import { useTranslation, Trans } from 'react-i18next';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
 

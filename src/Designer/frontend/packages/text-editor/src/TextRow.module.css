@@ -18,8 +18,11 @@
 }
 
 .textEntryComponent textArea {
-  margin: 10px 0px 0px 0;
-  min-width: 340px;
+  margin: var(--ds-size-2);
+}
+
+.textField {
+  margin: var(--ds-size-3) 0 var(--ds-size-2);
 }
 
 .textIdContainer {

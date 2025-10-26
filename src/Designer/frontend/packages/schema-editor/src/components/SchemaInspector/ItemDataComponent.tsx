@@ -30,7 +30,8 @@ import { useTranslation } from 'react-i18next';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
 import { NameField } from './NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { StudioNativeSelect, StudioTextarea, StudioTextfield } from '@studio/components-legacy';
+import { StudioNativeSelect, StudioTextarea } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components';
 
 export type IItemDataComponentProps = {
   schemaNode: UiSchemaNode;
@@ -176,11 +177,10 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
       )}
       {hasCustomProps && <CustomProperties path={schemaPointer} />}
       <Fieldset legend={t('schema_editor.descriptive_fields')} className={classes.fieldSet}>
-        <div>
+        <div className={classes.fieldSetItem}>
           <StudioTextfield
             id={titleId}
             label={t('schema_editor.title')}
-            aria-label={t('schema_editor.title')}
             onBlur={onChangeTitle}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setItemItemTitle(e.target.value)}
             value={itemTitle}
@@ -189,7 +189,6 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
         <div>
           <StudioTextarea
             id={descriptionId}
-            aria-label={t('schema_editor.description')}
             label={t('schema_editor.description')}
             onBlur={onChangeDescription}
             onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>

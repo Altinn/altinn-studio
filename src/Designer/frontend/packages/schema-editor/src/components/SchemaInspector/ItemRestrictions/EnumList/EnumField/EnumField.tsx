@@ -3,8 +3,7 @@ import React, { useEffect, useState } from 'react';
 import classes from './EnumField.module.css';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
-import { StudioTextfield } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioTextfield } from '@studio/components';
 
 export type EnumFieldProps = {
   value: string;
@@ -47,7 +46,6 @@ export const EnumField = ({
     <div className={classes.root}>
       <StudioTextfield
         label={label}
-        hideLabel
         disabled={readOnly}
         value={inputValue}
         onChange={handleChange}
