@@ -3,17 +3,17 @@ kind: GrafanaContactPoint
 metadata:
   name: altinn-studio-slack
 spec:
-  name: Altinn Studio - Slack
+  name: Altinn Studio Slack
   type: slack
   instanceSelector:
     matchLabels:
       dashboards: 'external-grafana'
   valuesFrom:
-    - targetPath: settings.url
+    - targetPath: slack-webhook-url
       valueFrom:
         secretKeyRef:
-          name: slack-webhook-secret
-          key: url
+          name: grafana-webhook-auth
+          key: slack-webhook-url
   settings:
     text: '{{ template "slack.message" . }}'
     title: '{{ template "slack.default.title" . }}'

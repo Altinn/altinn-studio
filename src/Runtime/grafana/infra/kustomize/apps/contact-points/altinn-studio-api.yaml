@@ -9,16 +9,16 @@ spec:
     matchLabels:
       dashboards: 'external-grafana'
   settings:
-    httpMethod: "POST"
+    httpMethod: 'POST'
   valuesFrom:
     - targetPath: url
       valueFrom:
         secretKeyRef:
           name: grafana-webhook-auth
-          key: url
+          key: admin-webhook-url
     - targetPath: token
       valueFrom:
         secretKeyRef:
           name: grafana-webhook-auth
-          key: token
+          key: admin-webhook-token
 
