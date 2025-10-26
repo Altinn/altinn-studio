@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.Studio.Designer.Controllers;
 
 [ApiController]
-[Route("designer/api/admin/[controller]")]
+[Route("designer/api/admin/[controller]/{org}/{env}")]
 public class AlertsController(
     IAlertsService alertsService,
     ILogger<AlertsController> logger
@@ -18,7 +18,7 @@ public class AlertsController(
     private readonly IAlertsService _alertsService = alertsService;
     private readonly ILogger<AlertsController> _logger = logger;
 
-    [HttpGet("{org}/{env}/firing-alerts")]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<Alert>>> GetFiringAlerts(
         string org,
         string env,
