@@ -70,7 +70,7 @@ export const ItemFieldsTableRow = ({
           hideLabel
           onKeyDown={onKeyDown}
           schemaPointer={fullPath}
-          aria-label={t('schema_editor.field_name')}
+          ariaLabel={t('schema_editor.field_name')}
         />
       </td>
       <td className={cn(classes.tableColumnType, classes.tableCell)}>

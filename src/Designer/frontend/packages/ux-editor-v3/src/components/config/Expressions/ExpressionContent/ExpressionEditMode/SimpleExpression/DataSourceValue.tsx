@@ -11,7 +11,8 @@ import {
 import { useText } from '../../../../../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../../../../hooks/useAppContext';
-import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
+import { StudioNativeSelect } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components';
 import { ToggleGroup } from '@digdir/designsystemet-react';
 
 export interface DataSourceValueProps {

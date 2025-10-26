@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { StudioTextfield, StudioNativeSelect } from '@studio/components-legacy';
+import { StudioNativeSelect } from '@studio/components-legacy';
 import {
   StudioButton,
   StudioParagraph,
   StudioCard,
   StudioSpinner,
   StudioTabs,
+  StudioTextfield,
 } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './CreateSubformMode.module.css';

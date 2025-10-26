@@ -1,6 +1,6 @@
 import { Summary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
-import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
-import { StudioParagraph, StudioHeading } from '@studio/components';
+import { StudioNativeSelect } from '@studio/components-legacy';
+import { StudioParagraph, StudioHeading, StudioTextfield } from '@studio/components';
 import React from 'react';
 import classes from './Summary2Target.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -119,7 +119,6 @@ export const Summary2Target = ({ target, onChange, className }: Summary2TargetPr
       )}
       {target.type === 'layoutSet' && (
         <StudioTextfield
-          key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
           label={t('ux_editor.component_properties.target_unit_layout_set')}
           value={selectedLayoutSetTargetName}
           disabled={true}

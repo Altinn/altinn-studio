@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import type { IGenericEditComponent } from '../../../../componentConfig';
 import { useTranslation, Trans } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { StudioSpinner, StudioTextfield } from '@studio/components-legacy';
-import { StudioAlert, StudioParagraph } from '@studio/components';
+import { StudioSpinner } from '@studio/components-legacy';
+import { StudioAlert, StudioParagraph, StudioTextfield } from '@studio/components';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -18,7 +18,7 @@ export function ReferenceTab({
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds, isPending } = useOptionListIdsQuery(org, app);
   const [referenceId, setReferenceId] = useState<string>(
-    isOptionsIdReferenceId(optionListIds, component.optionsId) ? component.optionsId : undefined,
+    isOptionsIdReferenceId(optionListIds, component.optionsId) ? component.optionsId : '',
   );
 
   const handleOptionsIdChange = (optionsId: string) => {
