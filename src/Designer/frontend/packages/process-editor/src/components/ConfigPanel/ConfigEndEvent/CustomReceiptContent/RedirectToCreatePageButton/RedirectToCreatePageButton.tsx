@@ -1,8 +1,7 @@
 import React from 'react';
 import classes from './RedirectToCreatePageButton.module.css';
 import { PencilWritingIcon } from '@studio/icons';
-import { StudioRedirectBox } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioRedirectBox } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import getLayoutSetPath from '@altinn/ux-editor/utils/routeUtils';
