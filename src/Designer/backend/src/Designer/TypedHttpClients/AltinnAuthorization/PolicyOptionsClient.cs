@@ -87,7 +87,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
                 HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
                 response.EnsureSuccessStatusCode();
                 string subjectOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
-                oldSubjectOptions = JsonSerializer.Deserialize<List<OldSubjectOption>>(subjectOptionsString, _serializerOptions);
+                oldSubjectOptions = JsonSerializer.Deserialize<List<OldSubjectOption>>(subjectOptionsString, _serializerOptions) ?? [];
             }
             catch (Exception ex)
             {
@@ -100,7 +100,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
                 HttpResponseMessage newResponse = await _client.GetAsync(newRolesUrl, cancellationToken);
                 newResponse.EnsureSuccessStatusCode();
                 string newSubjectOptionsString = await newResponse.Content.ReadAsStringAsync(cancellationToken);
-                newSubjectOptions = JsonSerializer.Deserialize<List<SubjectOption>>(newSubjectOptionsString, _serializerOptions);
+                newSubjectOptions = JsonSerializer.Deserialize<List<SubjectOption>>(newSubjectOptionsString, _serializerOptions) ?? [];
             }
             catch (Exception ex)
             {
@@ -110,6 +110,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
 
             oldSubjectOptions.ForEach(oldSubject =>
             {
+                if (string.IsNullOrWhiteSpace(oldSubject.SubjectId))
+                {
+                    return; // skip invalid legacy entries
+                }
                 string newRoleCode = $"urn:altinn:rolecode:{oldSubject.SubjectId}";
                 SubjectOption match = newSubjectOptions.Find(n => string.Equals(n.LegacyUrn, newRoleCode, StringComparison.OrdinalIgnoreCase));
                 if (match != null)

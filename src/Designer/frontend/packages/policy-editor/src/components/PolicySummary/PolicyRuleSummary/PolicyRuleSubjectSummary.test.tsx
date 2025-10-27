@@ -34,7 +34,7 @@ const mockSubjects: PolicySubject[] = [
     legacyUrn: 'urn:altinn:org:[org]',
     provider: {
       code: 'sys-internal',
-      id: '',
+      id: '277ebf42-f5b6-4724-a753-15cd24f1703b',
       name: 'Intern',
     },
   },

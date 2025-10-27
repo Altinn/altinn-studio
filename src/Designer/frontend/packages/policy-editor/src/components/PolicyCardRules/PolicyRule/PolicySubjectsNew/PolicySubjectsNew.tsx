@@ -30,7 +30,7 @@ export const PolicySubjectsNew = () => {
     return accessPackages.flatMap((a) => a.areas).flatMap((a) => a.packages);
   }, [accessPackages]);
 
-  const handleSubjectChange = (subjectUrn: string, subjectLegacyUrn: string): void => {
+  const handleSubjectChange = (subjectUrn: string, subjectLegacyUrn?: string): void => {
     const updatedSubjects = hasSubject(policyRule.subject, subjectUrn, subjectLegacyUrn)
       ? policyRule.subject.filter((s) => s !== subjectUrn && s !== subjectLegacyUrn)
       : [...policyRule.subject, subjectLegacyUrn ?? subjectUrn]; // prefer legacyUrn over urn, until AM is updated to handle new subject urns
