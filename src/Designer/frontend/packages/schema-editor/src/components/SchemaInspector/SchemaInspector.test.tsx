@@ -78,12 +78,12 @@ describe('SchemaInspector', () => {
 
     renderSchemaInspector(mockUiSchema, getMockSchemaByPath(schemaPointer));
 
-    const minLength = '5';
-    const maxLength = '9';
+    const minLength = '100';
+    const maxLength = '666';
 
     const minLengthTextField = await screen.findByLabelText(textMock('schema_editor.minLength'));
-    await user.tripleClick(minLengthTextField);
-    await user.keyboard(minLength);
+    await user.clear(minLengthTextField);
+    await user.type(minLengthTextField, minLength);
     await user.tab();
 
     expect(saveDataModel).toHaveBeenCalled();
@@ -93,8 +93,8 @@ describe('SchemaInspector', () => {
     expect(updatedNode.restrictions.minLength).toEqual(parseInt(minLength));
 
     const maxLengthTextField = await screen.findByLabelText(textMock('schema_editor.maxLength'));
-    await user.tripleClick(maxLengthTextField);
-    await user.keyboard(maxLength);
+    await user.clear(maxLengthTextField);
+    await user.type(maxLengthTextField, maxLength);
     await user.tab();
 
     const maxLengthCallCount = saveDataModel.mock.calls.length;

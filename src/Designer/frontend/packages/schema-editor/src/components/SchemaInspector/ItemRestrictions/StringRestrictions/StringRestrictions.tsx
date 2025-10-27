@@ -31,7 +31,11 @@ export function StringRestrictions({
 }: RestrictionItemProps) {
   const translation = useTranslation();
   const t = (key: string) => translation.t('schema_editor.' + key);
+  const restrictionMinLength = restrictions[StrRestrictionKey.minLength] || '';
+  const restrictionMaxLength = restrictions[StrRestrictionKey.maxLength] || '';
   const [regexTestValue, setRegexTestValue] = useState<string>('');
+  const [minLength, setMinLength] = useState<string>(restrictionMinLength);
+  const [maxLength, setMaxLength] = useState<string>(restrictionMaxLength);
   const pattern = restrictions[StrRestrictionKey.pattern] || '';
   const regexTestValueSplitByMatches = splitStringByMatches(pattern, regexTestValue);
   const regexTestValueMatchesRegex = regexTestValueSplitByMatches.some(({ match }) => match);
@@ -103,20 +107,22 @@ export function StringRestrictions({
           <StudioTextfield
             type='number'
             label={t(StrRestrictionKey.minLength)}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setMinLength(e.target.value)}
+            onBlur={(e: React.FocusEvent<HTMLInputElement>) =>
               setRestriction(StrRestrictionKey.minLength, e.target.value)
             }
-            value={restrictions[StrRestrictionKey.minLength] || ''}
+            value={minLength}
           />
         </div>
         <div className={classes.lengthField}>
           <StudioTextfield
             type='number'
             label={t(StrRestrictionKey.maxLength)}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setMaxLength(e.target.value)}
+            onBlur={(e: React.FocusEvent<HTMLInputElement>) =>
               setRestriction(StrRestrictionKey.maxLength, e.target.value)
             }
-            value={restrictions[StrRestrictionKey.maxLength] || ''}
+            value={maxLength}
           />
         </div>
       </div>

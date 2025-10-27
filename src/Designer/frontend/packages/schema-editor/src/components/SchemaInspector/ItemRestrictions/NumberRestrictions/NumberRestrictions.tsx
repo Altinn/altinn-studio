@@ -66,20 +66,33 @@ export function NumberRestrictions({
     ),
   }[formatState.numberRestrictionsError];
 
-  const onChangeMinNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMinMaxChange = (
+    event: React.ChangeEvent<HTMLInputElement> | React.FocusEvent<HTMLInputElement>,
+    actionType:
+      | NumberRestrictionsReducerActionType.setMin
+      | NumberRestrictionsReducerActionType.setMax,
+  ) => {
     const newValue = event.target.value.trim();
     dispatchAction(
-      NumberRestrictionsReducerActionType.setMin,
+      actionType,
       ValidationUtils.valueExists(newValue) ? parseFloat(newValue) : undefined,
     );
   };
 
+  const onChangeMinNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
+    handleMinMaxChange(event, NumberRestrictionsReducerActionType.setMin);
+  };
+
+  const onBlurMinNumber = (event: React.FocusEvent<HTMLInputElement>) => {
+    handleMinMaxChange(event, NumberRestrictionsReducerActionType.setMin);
+  };
+
   const onChangeMaxNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = event.target.value.trim();
-    dispatchAction(
-      NumberRestrictionsReducerActionType.setMax,
-      ValidationUtils.valueExists(newValue) ? parseFloat(newValue) : undefined,
-    );
+    handleMinMaxChange(event, NumberRestrictionsReducerActionType.setMax);
+  };
+
+  const onBlurMaxNumber = (event: React.FocusEvent<HTMLInputElement>) => {
+    handleMinMaxChange(event, NumberRestrictionsReducerActionType.setMax);
   };
 
   return (
@@ -90,6 +103,7 @@ export function NumberRestrictions({
             <StudioTextfield
               id='schema_editor.minimum_'
               onChange={onChangeMinNumber}
+              onBlur={onBlurMinNumber}
               value={formatState.min === undefined ? '' : formatState.min.toString()}
               type='number'
               label={t(minLabel)}
@@ -115,6 +129,7 @@ export function NumberRestrictions({
             <StudioTextfield
               id='schema_editor.maximum_'
               onChange={onChangeMaxNumber}
+              onBlur={onBlurMaxNumber}
               value={formatState.max === undefined ? '' : formatState.max.toString()}
               type='number'
               label={t(maxLabel)}

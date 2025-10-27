@@ -145,7 +145,8 @@ describe('NumberRestrictions component', () => {
     );
   });
 
-  it('Should call onChangeRestrictions with undefined values when inputs are empty', () => {
+  it('Should call onChangeRestrictions with correct values when value is cleared', async () => {
+    const user = userEvent.setup();
     const onChangeRestrictions = jest.fn();
     const props = {
       restrictions: {},
@@ -158,11 +159,25 @@ describe('NumberRestrictions component', () => {
     const textBoxMinimum = screen.getByRole('spinbutton', {
       name: textMock('schema_editor.minimum_inclusive'),
     });
-    expect(textBoxMinimum).toHaveValue(null);
-
+    await user.type(textBoxMinimum, '0');
+    await user.clear(textBoxMinimum);
     const textBoxMaximum = screen.getByRole('spinbutton', {
       name: textMock('schema_editor.maximum_inclusive'),
     });
-    expect(textBoxMaximum).toHaveValue(null);
+    await user.type(textBoxMaximum, '0');
+    await user.clear(textBoxMaximum);
+    await user.click(document.body);
+    const expectedRestrictions = {
+      [IntRestrictionKey.minimum]: undefined,
+      [IntRestrictionKey.exclusiveMinimum]: undefined,
+      [IntRestrictionKey.maximum]: undefined,
+      [IntRestrictionKey.exclusiveMaximum]: undefined,
+      [IntRestrictionKey.multipleOf]: undefined,
+      [IntRestrictionKey.integer]: undefined,
+    };
+
+    await waitFor(() =>
+      expect(onChangeRestrictions).toHaveBeenCalledWith('', expectedRestrictions),
+    );
   });
 });
