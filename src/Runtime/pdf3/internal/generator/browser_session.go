@@ -339,7 +339,12 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			}
 		} else if timeout, ok := request.WaitFor.AsTimeout(); ok {
 			// Simple timeout delay
-			time.Sleep(time.Duration(timeout) * time.Millisecond)
+			select {
+			case <-time.After(time.Duration(timeout) * time.Millisecond):
+			case <-req.ctx.Done():
+				req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
+				return nil
+			}
 		} else if opts, ok := request.WaitFor.AsOptions(); ok {
 			// Full options with selector, visible, hidden, timeout
 			timeoutMs := maxWaitMs // default timeout
