@@ -76,7 +76,7 @@ describe('OrgContentLibraryPage', () => {
 
   it('renders a spinner while waiting for code lists', () => {
     renderOrgContentLibraryWithRepoStatus();
-    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('general.loading'))).toBeInTheDocument();
   });
 
   it('Renders an error message when the code lists query fails', async () => {

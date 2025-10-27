@@ -1,12 +1,23 @@
-import http from "k6/http";
+import http from 'k6/http';
 import encoding from 'k6/encoding';
 import { check } from 'k6';
 import { expect } from 'https://jslib.k6.io/k6-testing/0.5.0/index.js';
 
-const requiredEnvVars = ['PID', 'PARTY_ID', 'USER_ID', 'INSTANCE_ID', 'ENV', 'SCOPES', 'APP_OWNER', 'APP_NAME'];
-const missingVars = requiredEnvVars.filter(varName => !__ENV[varName]);
+const requiredEnvVars = [
+  'PID',
+  'PARTY_ID',
+  'USER_ID',
+  'INSTANCE_ID',
+  'ENV',
+  'SCOPES',
+  'APP_OWNER',
+  'APP_NAME',
+];
+const missingVars = requiredEnvVars.filter((varName) => !__ENV[varName]);
 if (missingVars.length > 0) {
-  throw new Error(`Missing required environment variables: ${missingVars.join(', ')}. Please set these before running the test to avoid accidentally committing secrets.`);
+  throw new Error(
+    `Missing required environment variables: ${missingVars.join(', ')}. Please set these before running the test to avoid accidentally committing secrets.`,
+  );
 }
 
 const PID = __ENV.PID;
@@ -45,21 +56,24 @@ export const options = {
 };
 
 export function setup() {
-  const authBaseUrl = `https://altinn-testtools-token-generator.azurewebsites.net`
-  const authUrl = `${authBaseUrl}/api/GetPersonalToken?env=${ENV}&scopes=${ENCODED_SCOPES}&partyId=${PARTY_ID}&pid=${PID}&userId=${USER_ID}`
+  const authBaseUrl = `https://altinn-testtools-token-generator.azurewebsites.net`;
+  const authUrl = `${authBaseUrl}/api/GetPersonalToken?env=${ENV}&scopes=${ENCODED_SCOPES}&partyId=${PARTY_ID}&pid=${PID}&userId=${USER_ID}`;
   const encodedCredentials = encoding.b64encode(`${TEST_TOOLS_USERNAME}:${TEST_TOOLS_PASSWORD}`);
   const res = http.get(authUrl, { headers: { Authorization: `Basic ${encodedCredentials}` } });
-  expect(res.status, `Got unexpected status code ${res.status} when trying to setup. Exiting.`).toBe(200);
-  return { token: res.body }
+  expect(
+    res.status,
+    `Got unexpected status code ${res.status} when trying to setup. Exiting.`,
+  ).toBe(200);
+  return { token: res.body };
 }
 
-export default async function(data) {
+export default async function (data) {
   const token = data.token;
   const headers = {
     // NOTE: using the cookie jar unfortunately doesn't work, we get 400
     // presumably due to missing XSRF token cookies that are normally present
     // We can use k6/browser module if we want to be more portal-user-like
-    'Authorization': `Bearer ${token}`,
+    Authorization: `Bearer ${token}`,
   };
 
   // 1. Instantiate
@@ -82,17 +96,16 @@ export default async function(data) {
   // const instance = JSON.parse(instantiation.body);
 
   // 2. Render PDF preview for empty instance for now
-  const preview = http.get(
-    `${BASE_URL}/instances/${PARTY_ID}/${INSTANCE_ID}/pdf/preview`,
-    { headers: headers, timeout: '30s' }
-  );
+  const preview = http.get(`${BASE_URL}/instances/${PARTY_ID}/${INSTANCE_ID}/pdf/preview`, {
+    headers: headers,
+    timeout: '30s',
+  });
   check(preview, {
-    'PDF rendering succeeds': r => (
+    'PDF rendering succeeds': (r) =>
       r.status === 200 &&
       r.headers['Content-Type']?.includes('application/pdf') &&
       !!r.body &&
-      r.body.slice(0, 5) === '%PDF-'
-    ),
+      r.body.slice(0, 5) === '%PDF-',
   });
 
   // 3. Delete the instance if possible
@@ -105,4 +118,3 @@ export default async function(data) {
   //   `Got unexpected status code ${deletion.status} for instance deletion:\n${deletion.body}`
   // ).toBe(200);
 }
-
