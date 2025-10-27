@@ -119,7 +119,7 @@ func getTestOutput(_ *testing.T, id string, workerIP string) (*ptesting.PdfInter
 	url := JumpboxURL + "/testoutput/" + id
 
 	client := &http.Client{
-		Timeout: 30 * time.Second,
+		Timeout: types.RequestTimeout(),
 	}
 
 	httpReq, err := http.NewRequest("GET", url, nil)
@@ -179,9 +179,8 @@ func RequestPDFWithHost(t *testing.T, req *types.PdfRequest, overrideHost string
 
 	url := JumpboxURL + "/pdf"
 
-	// Create HTTP client with 30s timeout for PDF generation
 	client := &http.Client{
-		Timeout: 30 * time.Second,
+		Timeout: types.RequestTimeout(),
 	}
 
 	httpReq, err := http.NewRequest("POST", url, bytes.NewReader((reqBody)))

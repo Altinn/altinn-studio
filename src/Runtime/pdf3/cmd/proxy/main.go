@@ -39,7 +39,7 @@ func main() {
 	}
 
 	httpClient := &http.Client{
-		Timeout: 35 * time.Second, // Slightly longer than worker's 30s timeout
+		Timeout: types.RequestTimeout(),
 	}
 
 	connectivity := NewConnectivityChecker(httpClient, workerHTTPAddr)
@@ -212,9 +212,6 @@ func generatePdf(client *http.Client, workerAddr string) func(http.ResponseWrite
 			return
 		}
 
-		ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
-		defer cancel()
-
 		workerEndpoint := workerAddr + "/generate"
 
 		attempt := 1
@@ -222,7 +219,7 @@ func generatePdf(client *http.Client, workerAddr string) func(http.ResponseWrite
 			assert.AssertWithMessage(attempt <= maxRetries, "Overflowed retry attempts")
 
 			ret := callWorker(
-				ctx,
+				r.Context(),
 				client,
 				workerEndpoint,
 				r,
