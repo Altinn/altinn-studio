@@ -32,6 +32,7 @@ services:
       - "host.docker.internal:host-gateway"
       - "${TEST_DOMAIN:-local.altinn.cloud}:host-gateway"
     environment:
+      - TZ=Europe/Oslo
       - ASPNETCORE_ENVIRONMENT=Development
       - AppSettings__OpenIdWellKnownEndpoint=http://altinn_localtest:5101/authentication/api/v1/openid/
       - PlatformSettings__ApiStorageEndpoint=http://altinn_localtest:5101/storage/api/v1/
