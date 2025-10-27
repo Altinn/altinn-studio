@@ -118,7 +118,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
                 }
             });
 
-            return subjectOptions;   
+            return subjectOptions;
         }
     }
 }
