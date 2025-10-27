@@ -72,23 +72,53 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
         public async Task<List<SubjectOption>> GetSubjectOptions(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            string url = _platformSettings.RolesUrl;
+            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/subjectoptions.json";
+            string newRolesUrl = _platformSettings.RolesUrl;
 
-            List<SubjectOption> subjectOptions;
+            // temp implementation: a flag will be added to the new roles API, which will determine if a role can be used in 
+            // policy editor or not. Since this flag is not implemented yet; load the old roles list, and look up each role
+            // in the new role API to get return roles in new format (with new descriptions)
+            List<SubjectOption> subjectOptions = [];
+            List<OldSubjectOption> oldSubjectOptions = [];
+            List<SubjectOption> newSubjectOptions = [];
 
             try
             {
                 HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
                 response.EnsureSuccessStatusCode();
                 string subjectOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
-                subjectOptions = System.Text.Json.JsonSerializer.Deserialize<List<SubjectOption>>(subjectOptionsString, _serializerOptions);
-                return subjectOptions;
+                oldSubjectOptions = JsonSerializer.Deserialize<List<OldSubjectOption>>(subjectOptionsString, _serializerOptions);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed retrieving Subject options from {Url}", url);
                 throw new Exception($"Something went wrong when retrieving Subject options", ex);
             }
+
+            try
+            {
+                HttpResponseMessage newResponse = await _client.GetAsync(newRolesUrl, cancellationToken);
+                newResponse.EnsureSuccessStatusCode();
+                string newSubjectOptionsString = await newResponse.Content.ReadAsStringAsync(cancellationToken);
+                newSubjectOptions = JsonSerializer.Deserialize<List<SubjectOption>>(newSubjectOptionsString, _serializerOptions);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed retrieving Subject options from {Url}", url);
+                throw new Exception($"Something went wrong when retrieving Subject options", ex);
+            }
+
+            oldSubjectOptions.ForEach(oldSubject =>
+            {
+                string newRoleCode = $"urn:altinn:rolecode:{oldSubject.SubjectId}";
+                SubjectOption match = newSubjectOptions.Find(n => string.Equals(n.LegacyUrn, newRoleCode, StringComparison.OrdinalIgnoreCase));
+                if (match != null)
+                {
+                    subjectOptions.Add(match);
+                }
+            });
+
+            return subjectOptions;   
         }
     }
 }
