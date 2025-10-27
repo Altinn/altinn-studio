@@ -1,8 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { PencilIcon } from '@studio/icons';
-import { StudioRedirectBox } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioRedirectBox } from '@studio/components';
 import classes from './RedirectToLayoutSet.module.css';
 import { useNavigate } from 'react-router-dom';
 import getLayoutSetPath from '../../../../utils/routeUtils';

@@ -7,13 +7,13 @@ import { useFormItemContext } from './FormItemContext';
 import { useAppContext, useText } from '../hooks';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
+import { useLocalStorage } from '@studio/components-legacy';
 import {
-  StudioDragAndDropTree,
+  StudioPageError,
   StudioPageSpinner,
+  StudioDragAndDropTree,
   StudioResizableLayout,
-  useLocalStorage,
-} from '@studio/components-legacy';
-import { StudioPageError } from '@studio/components';
+} from '@studio/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useUserQuery } from 'app-shared/hooks/queries';

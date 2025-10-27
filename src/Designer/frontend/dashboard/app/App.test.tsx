@@ -39,7 +39,7 @@ describe('App', () => {
 
   it('should display spinner while loading', () => {
     renderApp();
-    expect(screen.getByText(textMock('dashboard.loading'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('dashboard.loading'))).toBeInTheDocument();
   });
 
   it('should display error when failing to fetch current user', async () => {
@@ -109,7 +109,8 @@ function renderApp(args: RenderAppArgs = {}): RenderResult {
   });
 }
 
-const querySpinner = (): HTMLElement | null => screen.queryByTitle(textMock('dashboard.loading'));
+const querySpinner = (): HTMLElement | null =>
+  screen.queryByLabelText(textMock('dashboard.loading'));
 
 const getFavouriteAppListHeading = (): HTMLElement =>
   screen.getByRole('heading', { name: textMock('dashboard.favourites') });
