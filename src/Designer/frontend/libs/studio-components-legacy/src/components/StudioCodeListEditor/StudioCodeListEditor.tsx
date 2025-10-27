@@ -23,7 +23,7 @@ import { PlusIcon } from '@studio/icons';
 import { areThereCodeListErrors, findCodeListErrors, isCodeListValid } from './validation';
 import type { ValueErrorMap } from './types/ValueErrorMap';
 import { StudioFieldset } from '../StudioFieldset';
-// This ESLint disable comment is needed to avoid a circular dependency issue until we remove the entire compoenent StudioCodeListEditor from studio-components-legacy
+// This ESLint disable comment is needed to avoid a circular dependency issue until we remove the entire component StudioCodeListEditor from studio-components-legacy
 // eslint-disable-next-line no-restricted-imports
 import { StudioValidationMessage } from '@studio/components';
 import type { TextResource } from '../../types/TextResource';
