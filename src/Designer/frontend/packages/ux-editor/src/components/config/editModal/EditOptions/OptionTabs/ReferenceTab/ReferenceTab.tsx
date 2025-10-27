@@ -34,7 +34,7 @@ export function ReferenceTab({
   if (isPending) {
     return (
       <StudioSpinner
-        showSpinnerTitle={false}
+        aria-label={t('global.loading')}
         spinnerTitle={t('ux_editor.modal_properties_loading')}
       />
     );
