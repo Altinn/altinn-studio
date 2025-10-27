@@ -2,6 +2,7 @@ using System.Collections;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -10,7 +11,6 @@ namespace Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyValuePair<DataElement?, object>>
 {
     private readonly ApplicationMetadata _applicationMetadata;
-    private readonly string? _defaultTaskId;
     private readonly string _defaultDataType;
 
     public InstanceDataAccessorFake(
@@ -21,7 +21,7 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
     )
     {
         _applicationMetadata = applicationMetadata ?? new ApplicationMetadata("app/org") { DataTypes = [] };
-        _defaultTaskId = defaultTaskId;
+        TaskId = defaultTaskId;
         _defaultDataType = defaultDataType;
         Instance = instance;
         Instance.Data ??= new();
@@ -48,7 +48,7 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
             dataType = new DataType()
             {
                 Id = dataElement.DataType,
-                TaskId = _defaultTaskId,
+                TaskId = TaskId,
                 AppLogic = new() { ClassRef = data.GetType().FullName },
                 MaxCount = maxCount,
             };
@@ -67,6 +67,10 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
     }
 
     public Instance Instance { get; }
+
+    public string? TaskId { get; }
+
+    public string? Language => null;
 
     public IReadOnlyCollection<DataType> DataTypes => _applicationMetadata.DataTypes;
 
@@ -90,6 +94,11 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
         throw new NotImplementedException(
             "GetPreviousDataAccessor is not yet implemented for InstanceDataAccessorFake"
         );
+    }
+
+    public LayoutEvaluatorState? GetLayoutEvaluatorState()
+    {
+        throw new NotImplementedException();
     }
 
     public Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementIdentifier dataElementIdentifier)

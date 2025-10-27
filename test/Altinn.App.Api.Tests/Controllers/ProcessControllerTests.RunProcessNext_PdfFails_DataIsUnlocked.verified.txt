@@ -81,16 +81,6 @@
       HasParent: true
     },
     {
-      Name: ApplicationMetadata.Service.GetTexts,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
-      Name: ApplicationMetadata.Service.GetTexts,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
       Name: ApplicationMetadata.Service.GetValidationConfiguration,
       IdFormat: W3C,
       HasParent: true

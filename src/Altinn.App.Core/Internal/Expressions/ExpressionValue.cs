@@ -273,6 +273,28 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
         };
 
     /// <summary>
+    /// Converts the current instance of <see cref="ExpressionValue"/> to its string representation
+    /// suitable for text-based contexts.
+    /// </summary>
+    /// <returns>
+    /// A string representation of the value. Returns "true" for boolean true, "false" for boolean false,
+    /// the string content for string values, the numeric value as a string for number values, or an empty string for null.
+    /// Throws <see cref="InvalidOperationException"/> for invalid or unsupported value kinds.
+    /// </returns>
+    public string? ToStringForText() =>
+        _valueKind switch
+        {
+            JsonValueKind.Null => null,
+            JsonValueKind.True => "true",
+            JsonValueKind.False => "false",
+            JsonValueKind.String => String,
+            JsonValueKind.Number => Number.ToString(CultureInfo.InvariantCulture),
+            // JsonValueKind.Object => JsonSerializer.Serialize(Object),
+            // JsonValueKind.Array => JsonSerializer.Serialize(Array),
+            _ => throw new InvalidOperationException($"Invalid value kind {ValueKind}"),
+        };
+
+    /// <summary>
     /// Get the value as a string that can be used for equality comparisons in ["equals"] expressions.
     ///
     /// Has special handeling for strings that are "true", "false", or "null" to make them equal to the primitive types

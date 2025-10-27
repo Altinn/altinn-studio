@@ -418,19 +418,20 @@ public class TestFunctions
         switch (test.Expects.ValueKind)
         {
             case JsonValueKind.String:
-                result.Should().Be(test.Expects.GetString());
+                Assert.Equal(test.Expects.GetString(), result);
                 break;
             case JsonValueKind.True:
+                Assert.True(result as bool?);
                 result.Should().Be(true);
                 break;
             case JsonValueKind.False:
-                result.Should().Be(false);
+                Assert.False(result as bool?);
                 break;
             case JsonValueKind.Null:
-                result.Should().Be(null);
+                Assert.Null(result);
                 break;
             case JsonValueKind.Number:
-                result.Should().Be(test.Expects.GetDouble());
+                Assert.Equal(test.Expects.GetDouble(), result);
                 break;
             case JsonValueKind.Undefined:
 

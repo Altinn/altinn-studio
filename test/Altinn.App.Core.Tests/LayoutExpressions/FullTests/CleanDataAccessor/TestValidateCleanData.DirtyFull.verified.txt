@@ -92,6 +92,8 @@
               ValidationErrorOnPendingFileScan: false
             }
           ],
+          TaskId: Task_1-access,
+          Language: test-language,
           HasAbandonIssues: false
         },
         language: test-language,

@@ -9,6 +9,8 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Profile;
+using Altinn.App.Core.Internal.Texts;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Tests.TestUtils;
 using Altinn.App.PlatformServices.Tests.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
@@ -18,11 +20,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Moq;
+using Xunit.Abstractions;
 
 namespace Altinn.App.PlatformServices.Tests.Internal.Pdf;
 
 public class PdfServiceTests
 {
+    private readonly ITestOutputHelper _outputHelper;
     private const string HostName = "at22.altinn.cloud";
 
     private readonly Mock<IAppResources> _appResources = new();
@@ -43,10 +47,9 @@ public class PdfServiceTests
 
     private readonly Mock<IAuthenticationContext> _authenticationContext = new();
 
-    private readonly Mock<ILogger<PdfService>> _logger = new();
-
-    public PdfServiceTests()
+    public PdfServiceTests(ITestOutputHelper outputHelper)
     {
+        _outputHelper = outputHelper;
         var resource = new TextResource()
         {
             Id = "digdir-not-really-an-app-nb",
@@ -312,14 +315,18 @@ public class PdfServiceTests
     )
     {
         return new PdfService(
-            appResources?.Object ?? _appResources.Object,
             dataClient?.Object ?? _dataClient.Object,
             httpContentAccessor?.Object ?? _httpContextAccessor.Object,
             pdfGeneratorClient?.Object ?? _pdfGeneratorClient.Object,
             pdfGeneratorSettingsOptions ?? _pdfGeneratorSettingsOptions,
             generalSettingsOptions ?? _generalSettingsOptions,
-            _logger.Object,
+            FakeLoggerXunit.Get<PdfService>(_outputHelper),
             authenticationContext?.Object ?? _authenticationContext.Object,
+            new TranslationService(
+                new AppIdentifier("digdir", "not-really-an-app"),
+                appResources?.Object ?? _appResources.Object,
+                FakeLoggerXunit.Get<TranslationService>(_outputHelper)
+            ),
             telemetrySink?.Object
         );
     }

@@ -1195,6 +1195,8 @@ namespace Altinn.App.Core.Features
         System.Collections.Generic.IReadOnlyDictionary<Altinn.Platform.Storage.Interface.Models.DataType, Altinn.App.Core.Features.StorageAuthenticationMethod> AuthenticationMethodOverrides { get; }
         System.Collections.Generic.IReadOnlyCollection<Altinn.Platform.Storage.Interface.Models.DataType> DataTypes { get; }
         Altinn.Platform.Storage.Interface.Models.Instance Instance { get; }
+        string? Language { get; }
+        string? TaskId { get; }
         System.Threading.Tasks.Task<System.ReadOnlyMemory<byte>> GetBinaryData(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
         Altinn.App.Core.Features.IInstanceDataAccessor GetCleanAccessor(Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption = 1);
         Altinn.Platform.Storage.Interface.Models.DataElement GetDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
@@ -3044,6 +3046,7 @@ namespace Altinn.App.Core.Internal.Expressions
         public object? ToObject() { }
         public override string ToString() { }
         public string? ToStringForEquals() { }
+        public string? ToStringForText() { }
         public static Altinn.App.Core.Internal.Expressions.ExpressionValue FromObject(object? value) { }
         public static Altinn.App.Core.Internal.Expressions.ExpressionValue op_Implicit(bool? value) { }
         public static Altinn.App.Core.Internal.Expressions.ExpressionValue op_Implicit(double? value) { }
@@ -3079,11 +3082,12 @@ namespace Altinn.App.Core.Internal.Expressions
         public void GetComponent(string pageName, string componentId) { }
         public System.Threading.Tasks.Task<Altinn.App.Core.Models.Expressions.ComponentContext?> GetComponentContext(string? pageName, string componentId, int[]? rowIndexes = null) { }
         public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.Expressions.ComponentContext>> GetComponentContexts() { }
+        public Altinn.Platform.Storage.Interface.Models.DataType? GetDefaultDataType() { }
         public string? GetFrontendSetting(string key) { }
         public string? GetGatewayAction() { }
         public string GetInstanceContext(string key) { }
         public string GetLanguage() { }
-        public System.Threading.Tasks.Task<object?> GetModelData(Altinn.App.Core.Models.Layout.ModelBinding key, Altinn.App.Core.Models.DataElementIdentifier defaultDataElementIdentifier, int[]? indexes) { }
+        public System.Threading.Tasks.Task<object?> GetModelData(Altinn.App.Core.Models.Layout.ModelBinding key, Altinn.App.Core.Models.DataElementIdentifier? defaultDataElementIdentifier, int[]? indexes) { }
         public System.Threading.Tasks.Task<Altinn.App.Core.Models.Layout.DataReference[]> GetResolvedKeys(Altinn.App.Core.Models.Layout.DataReference reference) { }
         public System.TimeZoneInfo? GetTimeZone() { }
         public System.Threading.Tasks.Task RemoveDataField(Altinn.App.Core.Models.Layout.DataReference key, Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption) { }
@@ -3186,7 +3190,7 @@ namespace Altinn.App.Core.Internal.Pdf
     }
     public class PdfService : Altinn.App.Core.Internal.Pdf.IPdfService
     {
-        public PdfService(Altinn.App.Core.Internal.App.IAppResources appResources, Altinn.App.Core.Internal.Data.IDataClient dataClient, Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor, Altinn.App.Core.Internal.Pdf.IPdfGeneratorClient pdfGeneratorClient, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Internal.Pdf.PdfGeneratorSettings> pdfGeneratorSettings, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.GeneralSettings> generalSettings, Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Internal.Pdf.PdfService> logger, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
+        public PdfService(Altinn.App.Core.Internal.Data.IDataClient dataClient, Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor, Altinn.App.Core.Internal.Pdf.IPdfGeneratorClient pdfGeneratorClient, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Internal.Pdf.PdfGeneratorSettings> pdfGeneratorSettings, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.GeneralSettings> generalSettings, Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Internal.Pdf.PdfService> logger, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, Altinn.App.Core.Internal.Texts.ITranslationService translationService, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
         public System.Threading.Tasks.Task GenerateAndStorePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, System.Threading.CancellationToken ct) { }
         public System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, System.Threading.CancellationToken ct) { }
         public System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, bool isPreview, System.Threading.CancellationToken ct) { }
@@ -3771,8 +3775,11 @@ namespace Altinn.App.Core.Internal.Texts
     }
     public interface ITranslationService
     {
+        [System.Obsolete("Multiple keys should be implemented by a default fallback that references the oth" +
+            "er key")]
         System.Threading.Tasks.Task<string?> TranslateFirstMatchingTextKey(string? language, params string[] keys);
         System.Threading.Tasks.Task<string?> TranslateTextKey(string key, string? language, System.Collections.Generic.Dictionary<string, string>? customTextParameters = null);
+        System.Threading.Tasks.Task<string?> TranslateTextKey(string key, Altinn.App.Core.Features.IInstanceDataAccessor instanceDataAccessor, Altinn.App.Core.Models.Expressions.ComponentContext? context = null, System.Collections.Generic.Dictionary<string, string>? customTextParameters = null);
         System.Threading.Tasks.Task<string?> TranslateTextKey(string key, Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state, Altinn.App.Core.Models.Expressions.ComponentContext? context, System.Collections.Generic.Dictionary<string, string>? customTextParameters = null);
         System.Threading.Tasks.Task<string?> TranslateTextKeyLenient(string? key, string? language);
     }

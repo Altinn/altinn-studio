@@ -79,7 +79,7 @@ public class TranslationServiceTests
     {
         await using var provider = _services.BuildServiceProvider();
         var translationService = provider.GetRequiredService<ITranslationService>();
-        var result = await translationService.TranslateTextKey("text", null);
+        var result = await translationService.TranslateTextKey("text", language: null);
         Assert.Equal("bokmål", result);
     }
 

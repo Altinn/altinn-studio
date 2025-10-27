@@ -1,5 +1,6 @@
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -14,6 +15,16 @@ public interface IInstanceDataAccessor
     /// The instance that the accessor can access data for.
     /// </summary>
     Instance Instance { get; }
+
+    /// <summary>
+    /// If available, the language currently preferred for the user.
+    /// </summary>
+    string? Language { get; }
+
+    /// <summary>
+    /// If available, the taskId context for which data is being accessed.
+    /// </summary>
+    string? TaskId { get; }
 
     /// <summary>
     /// Get the data types from application metadata.
@@ -58,6 +69,13 @@ public interface IInstanceDataAccessor
     /// </summary>
     /// <exception cref="InvalidOperationException">If the data element is not found on the instance</exception>
     DataElement GetDataElement(DataElementIdentifier dataElementIdentifier);
+
+    /// <summary>
+    /// Currently marked internal, as we might want to deprecate <see cref="LayoutEvaluatorState"/> and use
+    /// <see cref="IInstanceDataAccessor"/> directly in the expression evaluator.
+    /// </summary>
+    /// <returns></returns>
+    internal LayoutEvaluatorState? GetLayoutEvaluatorState();
 
     /// <summary>
     /// <para>Set the authentication method used when reading and writing data of the given data type.</para>

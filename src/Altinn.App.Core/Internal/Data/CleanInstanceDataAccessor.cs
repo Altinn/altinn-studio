@@ -10,38 +10,34 @@ using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Data;
 
-internal class CleanInstanceDataAccessor : IInstanceDataAccessor
+internal sealed class CleanInstanceDataAccessor : IInstanceDataAccessor
 {
     private readonly IInstanceDataAccessor _dataAccessor;
-    private readonly string? _taskId;
     private readonly IAppResources _appResources;
     private readonly FrontEndSettings _frontEndSettings;
     private readonly RowRemovalOption _rowRemovalOption;
-    private readonly string? _language;
     private readonly ITranslationService _translationService;
     private readonly Telemetry? _telemetry;
 
     public CleanInstanceDataAccessor(
         IInstanceDataAccessor dataAccessor,
-        string? taskId,
         IAppResources appResources,
         ITranslationService translationService,
         FrontEndSettings frontEndSettings,
         RowRemovalOption rowRemovalOption,
-        string? language,
         Telemetry? telemetry
     )
     {
         _dataAccessor = dataAccessor;
-        _taskId = taskId;
         _appResources = appResources;
         _frontEndSettings = frontEndSettings;
         _rowRemovalOption = rowRemovalOption;
-        _language = language;
         _telemetry = telemetry;
         _translationService = translationService;
 
-        LayoutModel? layouts = taskId is not null ? appResources.GetLayoutModelForTask(taskId) : null;
+        LayoutModel? layouts = dataAccessor.TaskId is not null
+            ? appResources.GetLayoutModelForTask(dataAccessor.TaskId)
+            : null;
         if (layouts is null)
         {
             _hiddenFieldsTask = new(() => Task.FromResult(new List<DataReference>()));
@@ -53,12 +49,11 @@ internal class CleanInstanceDataAccessor : IInstanceDataAccessor
                 layouts,
                 translationService,
                 frontEndSettings,
-                gatewayAction: null,
-                language
+                gatewayAction: null
             );
             _hiddenFieldsTask = new(() =>
             {
-                using var activity = telemetry?.StartRemoveHiddenDataForValidation();
+                using var activity = _telemetry?.StartRemoveHiddenDataForValidation();
                 return LayoutEvaluator.GetHiddenFieldsForRemoval(state, evaluateRemoveWhenHidden: false);
             });
         }
@@ -72,6 +67,8 @@ internal class CleanInstanceDataAccessor : IInstanceDataAccessor
 
     public IReadOnlyCollection<DataType> DataTypes => _dataAccessor.DataTypes;
 
+    public string? TaskId => _dataAccessor.TaskId;
+    public string? Language => _dataAccessor.Language;
     public IReadOnlyDictionary<DataType, StorageAuthenticationMethod> AuthenticationMethodOverrides =>
         _dataAccessor.AuthenticationMethodOverrides;
 
@@ -124,12 +121,10 @@ internal class CleanInstanceDataAccessor : IInstanceDataAccessor
         }
         return new CleanInstanceDataAccessor(
             _dataAccessor,
-            _taskId,
             _appResources,
             _translationService,
             _frontEndSettings,
             rowRemovalOption,
-            _language,
             _telemetry
         );
     }
@@ -147,6 +142,13 @@ internal class CleanInstanceDataAccessor : IInstanceDataAccessor
     public DataElement GetDataElement(DataElementIdentifier dataElementIdentifier)
     {
         return _dataAccessor.GetDataElement(dataElementIdentifier);
+    }
+
+    public LayoutEvaluatorState? GetLayoutEvaluatorState()
+    {
+        throw new NotImplementedException(
+            "GetLayoutEvaluatorState is not implemented in CleanInstanceDataAccessor, because LayoutEvaluatorState will be deprecated."
+        );
     }
 
     public void OverrideAuthenticationMethod(DataType dataType, StorageAuthenticationMethod method)

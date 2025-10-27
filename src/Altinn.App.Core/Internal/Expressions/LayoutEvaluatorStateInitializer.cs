@@ -65,6 +65,9 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
 
         public Instance Instance { get; }
 
+        public string? TaskId => null;
+        public string? Language => null;
+
         public IReadOnlyCollection<DataType> DataTypes => _applicationMetadata.DataTypes;
 
         public async Task<object> GetFormData(DataElementIdentifier dataElementIdentifier)
@@ -85,7 +88,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
             return Task.FromResult(_data);
         }
 
-        public IInstanceDataAccessor GetCleanAccessor(RowRemovalOption rowRemovalOption)
+        public IInstanceDataAccessor GetCleanAccessor(RowRemovalOption rowRemovalOption = RowRemovalOption.SetToNull)
         {
             throw new NotSupportedException("Legacy single data accessor does not implement GetCleanAccessor");
         }
@@ -93,6 +96,11 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
         public IInstanceDataAccessor GetPreviousDataAccessor()
         {
             throw new NotSupportedException("Legacy single data accessor does not implement GetPreviousDataAccessor");
+        }
+
+        public LayoutEvaluatorState? GetLayoutEvaluatorState()
+        {
+            throw new NotImplementedException("Legacy single data accessor does not implement GetLayoutEvaluatorState");
         }
 
         public Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementIdentifier dataElementIdentifier)
