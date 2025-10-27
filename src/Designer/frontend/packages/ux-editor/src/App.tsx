@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { FormDesigner } from './containers/FormDesigner';
-import { useText, useAppContext } from './hooks';
+import { useText } from './hooks';
 import { StudioPageSpinner } from '@studio/components-legacy';
 import { StudioPageError } from '@studio/components';
 import { useDataModelMetadataQuery } from './hooks/queries/useDataModelMetadataQuery';
@@ -13,6 +13,7 @@ import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { FormDesignerToolbar } from '@altinn/ux-editor/containers/FormDesignerToolbar';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
+import useUxEditorParams from './hooks/useUxEditorParams';
 
 /**
  * This is the main React component responsible for controlling
@@ -48,7 +49,7 @@ export function App() {
 
   const t = useText();
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { layoutSet } = useUxEditorParams();
   const { status: widgetsStatus, isError: widgetFetchedError } = useWidgetsQuery(org, app);
   const { status: layoutSetsStatus, isError: layoutSetsFetchedError } = useLayoutSetsQuery(
     org,
@@ -58,7 +59,7 @@ export function App() {
   const { status: dataModelStatus, isError: dataModelFetchedError } = useDataModelMetadataQuery({
     org,
     app,
-    layoutSetName: selectedFormLayoutSetName,
+    layoutSetName: layoutSet,
     hideDefault: true,
   });
   const { status: textsStatus, data: textResources } = useTextResourcesQuery(org, app);

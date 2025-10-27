@@ -1,0 +1,36 @@
+# Build stage
+FROM golang:1.25-trixie@sha256:03c629da2a724b8978e9b571a40f3afa65ddd30a978464c6de99c4f4c2fe2314 AS builder
+
+WORKDIR /app
+
+# Copy go mod files first for better dependency caching
+COPY go.mod go.sum ./
+
+# Remove the test fixture dependency from go.mod as it's not needed for building binaries
+# The test/harness package is only imported by test files, not by cmd/proxy or cmd/worker
+RUN sed -i '/require altinn.studio\/runtime-fixture/d' go.mod && \
+    sed -i '/replace altinn.studio\/runtime-fixture/d' go.mod
+
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/proxy
+
+# Runtime stage
+FROM scratch
+
+WORKDIR /app
+
+# Copy the binary from builder stage
+COPY --from=builder /app/main .
+
+EXPOSE 5030
+
+COPY --from=builder /etc/passwd /etc/passwd
+USER nobody
+
+# Run the service
+ENTRYPOINT ["./main"]

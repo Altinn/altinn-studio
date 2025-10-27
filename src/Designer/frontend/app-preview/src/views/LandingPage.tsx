@@ -13,37 +13,37 @@ import { UserProfileMenu } from '../components/UserProfileMenu';
 import { PreviewControlHeader } from '../components/PreviewControlHeader';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayoutName';
-import { useSelectedFormLayoutSetName } from 'app-shared/hooks/useSelectedFormLayoutSetName';
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
 import { StudioAlert } from '@studio/components';
+import { useNavigate, useParams } from 'react-router-dom';
 
 export type PreviewAsViewSize = 'desktop' | 'mobile';
 
 export const LandingPage = () => {
   const { org, app } = useStudioEnvironmentParams();
+  const { layoutSet } = useParams();
   const { t } = useTranslation();
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const previewConnection = usePreviewConnection();
   const { data: user, isPending: isPendingUser } = useUserQuery();
   const { data: repository } = useRepoMetadataQuery(org, app);
   const { data: layoutSets, isPending: pendingLayoutsets } = useLayoutSetsQuery(org, app);
-  const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
-    useSelectedFormLayoutSetName(layoutSets);
-  const { selectedFormLayoutName } = useSelectedFormLayoutName(selectedFormLayoutSetName);
+  const { selectedFormLayoutName } = useSelectedFormLayoutName(layoutSet);
+  const navigate = useNavigate();
   const [previewViewSize, setPreviewViewSize] = useLocalStorage<PreviewAsViewSize>(
     'viewSize',
     'desktop',
   );
-  const taskId = useSelectedTaskId(selectedFormLayoutSetName);
+  const taskId = useSelectedTaskId(layoutSet);
   const {
     mutate: createInstance,
     data: instance,
     isPending: instanceIsPending,
   } = useCreatePreviewInstanceMutation(org, app);
 
-  const currentLayoutSet = layoutSets?.sets?.find((set) => set.id === selectedFormLayoutSetName);
+  const currentLayoutSet = layoutSets?.sets?.find((set) => set.id === layoutSet);
   const isSubform = currentLayoutSet?.type === 'subform';
 
   useEffect(() => {
@@ -53,10 +53,8 @@ export const LandingPage = () => {
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
 
-  const handleChangeLayoutSet = (layoutSet: string) => {
-    setSelectedFormLayoutSetName(layoutSet);
-    // might need to remove selected layout from local storage to make sure first page is selected
-    window.location.reload();
+  const handleChangeLayoutSet = (set: string) => {
+    navigate(`/${org}/${app}/${set}`);
   };
 
   if (previewConnection) {
@@ -78,7 +76,7 @@ export const LandingPage = () => {
   const previewUrl = previewPage(
     org,
     app,
-    getSelectedFormLayoutSetName(selectedFormLayoutSetName),
+    getSelectedFormLayoutSetName(layoutSet),
     taskId,
     selectedFormLayoutName,
     instance?.id,
@@ -105,7 +103,7 @@ export const LandingPage = () => {
         <PreviewControlHeader
           setViewSize={setPreviewViewSize}
           viewSize={previewViewSize}
-          selectedLayoutSet={selectedFormLayoutSetName}
+          selectedLayoutSet={layoutSet}
           handleChangeLayoutSet={handleChangeLayoutSet}
         />
         <PreviewLimitationsInfo />
@@ -122,7 +120,7 @@ export const LandingPage = () => {
   );
 };
 
-const getSelectedFormLayoutSetName = (selectedFormLayoutSetName: string): string => {
-  if (selectedFormLayoutSetName === '') return undefined;
-  return selectedFormLayoutSetName;
+const getSelectedFormLayoutSetName = (layoutSet: string): string | undefined => {
+  if (layoutSet === '') return undefined;
+  return layoutSet;
 };

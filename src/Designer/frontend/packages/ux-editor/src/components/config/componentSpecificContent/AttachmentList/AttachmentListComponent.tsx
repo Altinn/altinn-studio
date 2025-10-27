@@ -2,7 +2,6 @@ import React from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import { useAppContext } from '../../../../hooks/useAppContext';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { useTranslation } from 'react-i18next';
 import { reservedDataTypes } from './attachmentListUtils';
@@ -14,6 +13,7 @@ import type { AvailableAttachementLists, InternalDataTypesFormat } from './types
 import { convertInternalToExternalFormat } from './convertFunctions/convertToExternalFormat';
 import { convertExternalToInternalFormat } from './convertFunctions/convertToInternalFormat';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 type AttachmentListComponentProps = IGenericEditComponent<ComponentType.AttachmentList> & {
   className?: string;
@@ -28,14 +28,14 @@ export const AttachmentListComponent = ({
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
   const { data: appMetadata, isPending: appMetadataPending } = useAppMetadataQuery(org, app);
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { layoutSet } = useUxEditorParams();
 
   if (appMetadataPending)
     return <StudioSpinner spinnerTitle={t('ux_editor.component_properties.loading')} />;
 
   const availableAttachments: AvailableAttachementLists = getAvailableAttachments(
     layoutSets,
-    selectedFormLayoutSetName,
+    layoutSet,
     appMetadata.dataTypes,
   );
 
@@ -52,7 +52,7 @@ export const AttachmentListComponent = ({
   };
 
   const isTaskCustomReceipt = layoutSets?.sets
-    .find((layoutSet) => layoutSet.id === selectedFormLayoutSetName)
+    .find((set) => set.id === layoutSet)
     ?.tasks?.includes('CustomReceipt');
 
   const { dataTypeIds = [] } = component || {};

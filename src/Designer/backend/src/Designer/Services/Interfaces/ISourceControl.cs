@@ -133,7 +133,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository</param>
-        Task VerifyCloneExists(string org, string repository);
+        Task CloneIfNotExists(string org, string repository);
 
         /// <summary>
         /// Creates a new branch in the given repository.
@@ -159,6 +159,48 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository</param>
         /// <returns></returns>
-        public Task DeleteRepository(string org, string repository);
+        Task DeleteRepository(string org, string repository);
+
+        /// <summary>
+        /// Checkout the repository on specified branch.
+        /// </summary>
+        /// <param name="editingContext">The altinn repo editing context</param>
+        /// <param name="branchName">The name of the branch</param>
+        void CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName);
+
+        /// <summary>
+        /// Make a commit to local repository.
+        /// </summary>
+        /// <param name="editingContext">The altinn repo editing context</param>
+        /// <param name="message">The commit message</param>
+        void CommitToLocalRepo(AltinnRepoEditingContext editingContext, string message);
+
+        /// <summary>
+        /// Rebases local branch onto default remote branch.
+        /// </summary>
+        /// <param name="editingContext">The altinn repo editing context</param>
+        void RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext);
+
+        /// <summary>
+        /// Deletes a local branch based on the specified name.
+        /// </summary>
+        /// <param name="editingContext">The altinn repo editing context</param>
+        /// <param name="branchName">The name of the branch</param>
+        void DeleteLocalBranchIfExists(AltinnRepoEditingContext editingContext, string branchName);
+
+        /// <summary>
+        /// Creates a local branch based on the specified commit sha if given.
+        /// </summary>
+        /// <param name="editingContext">The altinn repo editing context</param>
+        /// <param name="branchName">The name of the branch</param>
+        /// <param name="commitSha">The commit sha</param>
+        void CreateLocalBranch(AltinnRepoEditingContext editingContext, string branchName, string commitSha = null);
+
+        /// <summary>
+        /// Merge feature branch into head branch.
+        /// </summary>
+        /// <param name="editingContext">The altinn repo editing context</param>
+        /// <param name="featureBranch">The name of the feature branch</param>
+        void MergeBranchIntoHead(AltinnRepoEditingContext editingContext, string featureBranch);
     }
 }
