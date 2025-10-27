@@ -36,14 +36,14 @@ describe('ProcessEditor', () => {
     const queryClientMock = createQueryClientMock();
     queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], []);
     renderProcessEditor({ queryClient: queryClientMock });
-    screen.getByText(textMock('process_editor.loading'));
+    screen.getByLabelText(textMock('process_editor.loading'));
   });
 
   it('renders spinner when appMetadata is not fetched', () => {
     const queryClientMock = createQueryClientMock();
     queryClientMock.setQueryData([QueryKey.AppVersion, org, app], defaultAppVersion);
     renderProcessEditor({ queryClient: queryClientMock });
-    screen.getByText(textMock('process_editor.loading'));
+    screen.getByLabelText(textMock('process_editor.loading'));
   });
 
   it('renders processEditor with "noBpmnFound" error message when appLibVersion is fetched but no bpmn is found', () => {

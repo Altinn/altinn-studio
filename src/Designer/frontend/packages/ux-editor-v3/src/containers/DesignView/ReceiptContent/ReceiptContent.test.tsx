@@ -20,7 +20,7 @@ import {
 } from '../../../testing/mocks';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
-import { StudioDragAndDrop } from '@studio/components-legacy';
+import { StudioDragAndDrop } from '@studio/components';
 import { FormItemContextProvider } from '../../FormItemContext';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';

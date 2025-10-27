@@ -1,8 +1,7 @@
 import React, { useEffect } from 'react';
 import { FormDesigner } from './containers/FormDesigner';
 import { useText } from './hooks';
-import { StudioPageSpinner } from '@studio/components-legacy';
-import { StudioPageError } from '@studio/components';
+import { StudioPageError, StudioPageSpinner } from '@studio/components';
 import { useDataModelMetadataQuery } from './hooks/queries/useDataModelMetadataQuery';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
