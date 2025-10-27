@@ -96,12 +96,12 @@ type FileUploadComponentBase = {
 };
 
 type CricleCropProps = {
-  type: 'circle';
+  shape: 'circle';
   diameter: number;
 };
 
 type RectangleCropProps = {
-  type: 'rectangle';
+  shape: 'rectangle';
   width: number;
   height: number;
 };
