@@ -14,7 +14,7 @@ import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
 import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
 import { getUpdatedGroupsExcludingPage } from '../../../utils/designViewUtils/designViewUtils';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
-import { useTextResourceValue } from '@altinn/ux-editor/components/TextResource/hooks/useTextResourceValue';
+import { useTextResourceValue } from '../../../components/TextResource/hooks/useTextResourceValue';
 
 import cn from 'classnames';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
