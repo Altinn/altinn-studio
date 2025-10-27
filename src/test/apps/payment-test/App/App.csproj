@@ -12,7 +12,6 @@
     <ProjectReference Include="../../../../App/backend/src/Altinn.App.Core/Altinn.App.Core.csproj" />
     <ProjectReference Include="../../../../App/codelists/src/Altinn.Codelists/Altinn.Codelists.csproj" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0" />
-    <PackageReference Include="PsA3Forms" Version="2.7.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\css\" />
