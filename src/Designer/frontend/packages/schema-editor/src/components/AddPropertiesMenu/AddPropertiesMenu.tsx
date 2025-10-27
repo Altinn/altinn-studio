@@ -11,7 +11,8 @@ import {
   PlusIcon,
 } from '@studio/icons';
 import { ObjectKind, FieldType } from '@altinn/schema-model';
-import { type StudioButtonProps, StudioDropdownMenu } from '@studio/components-legacy';
+import { type StudioButtonProps } from '@studio/components-legacy';
+import { StudioDropdown } from '@studio/components';
 
 export interface AddPropertiesMenuProps {
   onItemClick?: (kind: ObjectKind, fieldType?: FieldType) => void;
@@ -28,30 +29,27 @@ const propertyItems = [
   { kind: ObjectKind.Reference, icon: ReferenceIcon },
 ];
 
-export const AddPropertiesMenu = ({ onItemClick, anchorButtonProps }: AddPropertiesMenuProps) => {
+export const AddPropertiesMenu = ({ onItemClick }: AddPropertiesMenuProps) => {
   const { t } = useTranslation();
 
   return (
-    <StudioDropdownMenu
-      anchorButtonProps={{
-        children: t('schema_editor.add_property'),
-        color: 'second',
-        icon: <PlusIcon />,
-        variant: 'secondary',
-        ...anchorButtonProps,
-      }}
-      size='small'
-      placement='bottom-start'
+    <StudioDropdown
+      icon={<PlusIcon />}
+      triggerButtonText={t('schema_editor.add_property')}
+      triggerButtonVariant='secondary'
     >
-      {propertyItems.map(({ kind, fieldType, icon: Icon }) => (
-        <StudioDropdownMenu.Item
-          key={`${kind}-${fieldType}`}
-          onClick={() => onItemClick(kind, fieldType)}
-          icon={<Icon />}
-        >
-          {t(`schema_editor.add_${fieldType || kind}`)}
-        </StudioDropdownMenu.Item>
-      ))}
-    </StudioDropdownMenu>
+      <StudioDropdown.List>
+        {propertyItems.map(({ kind, fieldType, icon: Icon }) => (
+          <StudioDropdown.Item
+            key={`${kind}-${fieldType}`}
+            onClick={() => onItemClick(kind, fieldType)}
+          >
+            <StudioDropdown.Button icon={<Icon />}>
+              {t(`schema_editor.add_${fieldType || kind}`)}
+            </StudioDropdown.Button>
+          </StudioDropdown.Item>
+        ))}
+      </StudioDropdown.List>
+    </StudioDropdown>
   );
 };
