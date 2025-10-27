@@ -42,7 +42,6 @@ export const StudioIconTextfield = forwardRef<HTMLDivElement, StudioIconTextfiel
         <IconLabel htmlFor={inputId} id={labelId} icon={icon} label={label} readonly={readOnly} />
         <StudioTextfield
           disabled={readOnly}
-          id={inputId}
           className={classes.textfield}
           aria-labelledby={labelId}
           value={value}
