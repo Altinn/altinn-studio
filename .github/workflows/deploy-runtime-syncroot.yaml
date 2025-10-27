@@ -12,7 +12,7 @@ jobs:
   build-and-deploy-at-ring1:
     name: Build and deploy to at_ring1
     runs-on: ubuntu-latest
-    environment: runtime_at_ring1
+    environment: dev
     permissions:
       id-token: write # Require write permission to Fetch an OIDC token.
     defaults:
@@ -60,7 +60,7 @@ jobs:
     name: Promote to at_ring2
     needs: [build-and-deploy-at-ring1]
     runs-on: ubuntu-latest
-    environment: runtime_at_ring2
+    environment: dev
     permissions:
       id-token: write
     defaults:
@@ -90,7 +90,7 @@ jobs:
     name: Promote to tt_ring1
     needs: [build-and-deploy-at-ring1, promote-at-ring2]
     runs-on: ubuntu-latest
-    environment: runtime_tt_ring1
+    environment: staging
     permissions:
       id-token: write
     defaults:
@@ -120,7 +120,7 @@ jobs:
     name: Promote to tt_ring2
     needs: [build-and-deploy-at-ring1, promote-tt-ring1]
     runs-on: ubuntu-latest
-    environment: runtime_tt_ring2
+    environment: staging
     permissions:
       id-token: write
     defaults:
@@ -150,7 +150,7 @@ jobs:
     name: Promote to prod_ring1
     needs: [build-and-deploy-at-ring1, promote-tt-ring2]
     runs-on: ubuntu-latest
-    environment: runtime_prod_ring1
+    environment: prod
     permissions:
       id-token: write
     defaults:
@@ -180,7 +180,7 @@ jobs:
     name: Promote to prod_ring2
     needs: [build-and-deploy-at-ring1, promote-prod-ring1]
     runs-on: ubuntu-latest
-    environment: runtime_prod_ring2
+    environment: prod
     permissions:
       id-token: write
     defaults:
