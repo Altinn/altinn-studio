@@ -297,13 +297,13 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public async Task DecoratedISourceControlService_VerifyCloneExists_LogsErrorWithAdditionalInfo()
+        public async Task DecoratedISourceControlService_CloneIfNotExists_LogsErrorWithAdditionalInfo()
         {
             (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
 
             try
             {
-                await service.VerifyCloneExists("org_should_not_exists", "repo_should_not_exists");
+                await service.CloneIfNotExists("org_should_not_exists", "repo_should_not_exists");
             }
             catch
             {
@@ -418,6 +418,36 @@ namespace Designer.Tests.Services
             throw new NotImplementedException();
         }
 
+        public void CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CommitToLocalRepo(AltinnRepoEditingContext editingContext, string message)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void DeleteLocalBranchIfExists(AltinnRepoEditingContext editingContext, string branchName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CreateLocalBranch(AltinnRepoEditingContext editingContext, string branchName, string commitSha = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void MergeBranchIntoHead(AltinnRepoEditingContext editingContext, string featureBranch)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task FetchRemoteChanges(string org, string repository)
         {
             throw new NotImplementedException();
@@ -493,7 +523,7 @@ namespace Designer.Tests.Services
             throw new NotImplementedException();
         }
 
-        public Task VerifyCloneExists(string org, string repository)
+        public Task CloneIfNotExists(string org, string repository)
         {
             throw new NotImplementedException();
         }

@@ -4,6 +4,8 @@ import { PaymentPolicyBuilder } from '../../../utils/policy';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { getLayoutSetIdFromTaskId } from '../bpmnHandlerUtils/bpmnHandlerUtils';
 import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
+import type { Element } from 'bpmn-js/lib/model/Types';
+import { TaskUtils } from '@altinn/process-editor/utils/taskUtils';
 
 export class OnProcessTaskRemoveHandler {
   constructor(
@@ -28,10 +30,6 @@ export class OnProcessTaskRemoveHandler {
     if (taskMetadata.taskType === 'signing') {
       this.handleSigningTaskRemove(taskMetadata);
     }
-
-    if (taskMetadata.taskType === 'userControlledSigning') {
-      this.handleUserControlledSigningTaskRemove(taskMetadata);
-    }
   }
 
   private handleDataTaskRemove(taskMetadata: OnProcessTaskEvent): void {
@@ -48,7 +46,7 @@ export class OnProcessTaskRemoveHandler {
   }
 
   private handlePaymentTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
     const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
       taskMetadata.taskType,
       taskMetadata.taskEvent.element.businessObject,
@@ -92,11 +90,9 @@ export class OnProcessTaskRemoveHandler {
 
   private handleSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
     this.handleGenericSigningTaskRemove(taskMetadata);
-  }
-
-  private handleUserControlledSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    this.handleGenericSigningTaskRemove(taskMetadata);
-    this.handleRemoveSigneeState(taskMetadata);
+    if (TaskUtils.isUserControlledSigning(taskMetadata.taskEvent.element as Element)) {
+      this.handleRemoveSigneeState(taskMetadata);
+    }
   }
 
   private removeDeletedSignatureTypeFromTasks(
@@ -136,7 +132,7 @@ export class OnProcessTaskRemoveHandler {
   }
 
   private handleGenericSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
     const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
       taskMetadata.taskType,
       taskMetadata.taskEvent.element.businessObject,
@@ -160,7 +156,7 @@ export class OnProcessTaskRemoveHandler {
   }
 
   private handleRemoveSigneeState(taskMetadata: OnProcessTaskEvent): void {
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
     const dataTypeId = studioModeler.getSigneeStatesDataTypeId(
       taskMetadata.taskType,
       taskMetadata.taskEvent.element.businessObject,
