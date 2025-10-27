@@ -11,3 +11,5 @@ helm v3.19.0 https://get.helm.sh/helm-{version}-{os}-{arch}.tar.gz.sha256sum
 kubectl v1.34.1 https://dl.k8s.io/release/{version}/bin/{os}/{arch}/kubectl.sha256
 # renovate: datasource=github-releases depName=fluxcd/flux2
 flux v2.7.2 https://github.com/fluxcd/flux2/releases/download/{version}/flux_{version_no_v}_checksums.txt
+# renovate: datasource=github-releases depName=grafana/k6
+k6 v1.3.0 https://github.com/grafana/k6/releases/download/{version}/k6-{version}-checksums.txt

@@ -30,8 +30,8 @@ import { useTranslation } from 'react-i18next';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
 import { NameField } from './NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { StudioNativeSelect, StudioTextarea } from '@studio/components-legacy';
-import { StudioTextfield } from '@studio/components';
+import { StudioNativeSelect } from '@studio/components-legacy';
+import { StudioTextarea, StudioTextfield } from '@studio/components';
 
 export type IItemDataComponentProps = {
   schemaNode: UiSchemaNode;

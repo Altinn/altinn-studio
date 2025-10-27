@@ -7,8 +7,7 @@ import { useCreateReleaseMutation } from '../../../hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FormField } from 'app-shared/components/FormField';
-import { StudioTextarea } from '@studio/components-legacy';
-import { StudioButton, StudioTextfield } from '@studio/components';
+import { StudioButton, StudioTextarea, StudioTextfield } from '@studio/components';
 
 export function CreateRelease() {
   const { org, app } = useStudioEnvironmentParams();

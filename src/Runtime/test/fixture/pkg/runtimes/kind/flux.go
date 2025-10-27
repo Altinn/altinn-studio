@@ -111,6 +111,9 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 
 	if installed {
 		fmt.Println("Base infrastructure already running, skipping")
+		if r.IngressReadyEvent != nil {
+			r.IngressReadyEvent <- nil
+		}
 		return nil
 	}
 
@@ -135,6 +138,34 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 	}
 
 	fmt.Println("✓ Base infra reconciled")
+
+	if r.IngressReadyEvent != nil {
+		go func() {
+			var err error
+			defer func() { fmt.Printf("Done waiting for ingress. Error=%v\n", err) }()
+			deadline := time.Now().Add(2 * time.Minute)
+
+			for !time.Now().After(deadline) {
+				err = r.KubernetesClient.Get("deployment", "traefik", "traefik")
+				if err == nil {
+					break
+				}
+				time.Sleep(250 * time.Millisecond)
+			}
+
+			if err != nil {
+				r.IngressReadyEvent <- fmt.Errorf("error waiting for ingress deployment: %v", err)
+				return
+			}
+
+			err = r.KubernetesClient.RolloutStatus("traefik", "traefik", 2*time.Minute)
+			if err == nil {
+				r.IngressReadyEvent <- nil
+			} else {
+				r.IngressReadyEvent <- fmt.Errorf("error waiting for ingress readiness: %v", err)
+			}
+		}()
+	}
 
 	return nil
 }
