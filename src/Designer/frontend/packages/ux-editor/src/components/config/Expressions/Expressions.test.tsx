@@ -161,12 +161,8 @@ describe('Expressions', () => {
       },
     };
     renderExpressions({ formItem });
-    screen.getByText(textMock('right_menu.read_more_about_expressions'));
-  });
-
-  it('renders link to docs', () => {
-    renderExpressions();
-    screen.getByRole('link', { name: textMock('right_menu.read_more_about_expressions') });
+    const addExpressionBtn = screen.getByText(textMock('right_menu.expressions_add'));
+    expect(addExpressionBtn).toBeInTheDocument();
   });
 });
 
