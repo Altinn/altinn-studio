@@ -11,6 +11,11 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { DataType } from 'app-shared/types/DataType';
 import userEvent from '@testing-library/user-event';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
+import { app, org } from '@studio/testing/testids';
+
+jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
+  useStudioEnvironmentParams: () => ({ org, app }),
+}));
 
 describe('ItemMetadataTab', () => {
   it('should render correctly', async () => {
