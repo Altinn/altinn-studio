@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import type { ChangeEventHandler, ReactElement } from 'react';
+import type { ChangeEventHandler, ReactElement, ReactNode } from 'react';
 import { useCodeListEditorTexts } from '../useCodeListEditorTexts';
 import {
   StudioCodeListEditor,
@@ -46,7 +46,9 @@ export function CodeListDataEditor({
 
   return (
     <StudioDetails>
-      <StudioDetails.Summary>{data.name}</StudioDetails.Summary>
+      <StudioDetails.Summary>
+        <Name name={data.name} />
+      </StudioDetails.Summary>
       <StudioDetails.Content className={classes.content}>
         <StudioTextfield
           className={classes.nameField}
@@ -70,3 +72,10 @@ export function CodeListDataEditor({
 }
 
 const DEFAULT_LANGUAGE = 'nb';
+
+function Name({ name }: { name: string }): ReactNode {
+  const { t } = useTranslation();
+  if (name) return name;
+  else
+    return <span className={classes.unnamed}>{t('app_content_library.code_lists.unnamed')}</span>;
+}

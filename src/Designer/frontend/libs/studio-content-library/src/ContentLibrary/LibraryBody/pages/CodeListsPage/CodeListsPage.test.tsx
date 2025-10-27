@@ -14,7 +14,8 @@ describe('CodeListsPage', () => {
     const user = userEvent.setup();
     renderCodeListPage();
     await user.click(screen.getByRole('button', { name: textMock('general.add') }));
-    expect(getCodeListHeading('')).toBeInTheDocument();
+    const nameOfNewList = textMock('app_content_library.code_lists.unnamed');
+    expect(getCodeListHeading(nameOfNewList)).toBeInTheDocument();
   });
 
   it('Rerenders with updated data when something is changed', async () => {
@@ -23,7 +24,7 @@ describe('CodeListsPage', () => {
     renderCodeListPage();
     await user.click(screen.getByRole('button', { name: textMock('general.add') }));
 
-    const details = getCodeListDetails('');
+    const details = getCodeListDetails(textMock('app_content_library.code_lists.unnamed'));
     const nameLabel = textMock('app_content_library.code_lists.name');
     const nameInput = within(details).getByRole('textbox', { name: nameLabel });
     await user.type(nameInput, newName);
@@ -35,10 +36,11 @@ describe('CodeListsPage', () => {
     const user = userEvent.setup();
     renderCodeListPage();
     await user.click(screen.getByRole('button', { name: textMock('general.add') }));
-    const details = getCodeListDetails('');
+    const nameOfNewList = textMock('app_content_library.code_lists.unnamed');
+    const details = getCodeListDetails(nameOfNewList);
     const deleteButton = within(details).getByRole('button', { name: textMock('general.delete') });
     await user.click(deleteButton);
-    expect(queryCodeListHeading('')).not.toBeInTheDocument();
+    expect(queryCodeListHeading(nameOfNewList)).not.toBeInTheDocument();
   });
 });
 
