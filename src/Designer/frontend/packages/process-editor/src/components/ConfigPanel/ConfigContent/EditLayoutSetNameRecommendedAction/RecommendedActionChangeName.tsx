@@ -1,9 +1,9 @@
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import {
+  StudioIconTextfield,
   StudioRecommendedNextAction,
   useStudioRecommendedNextActionContext,
-} from '@studio/components-legacy';
-import { StudioIconTextfield } from '@studio/components';
+} from '@studio/components';
 import { KeyVerticalIcon } from '@studio/icons';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';

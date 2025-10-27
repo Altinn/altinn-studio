@@ -51,14 +51,16 @@ describe('AppContentLibrary', () => {
 
   it('renders a spinner when waiting for option lists', () => {
     renderAppContentLibrary();
-    const spinner = screen.getByText(textMock('general.loading'));
+    const spinner = screen.getByLabelText(textMock('general.loading'));
     expect(spinner).toBeInTheDocument();
   });
 
   it('Renders an error message when the option lists query fails', async () => {
     const getOptionLists = () => Promise.reject(new Error('Test error'));
     renderAppContentLibrary({ queries: { getOptionLists } });
-    await waitFor(expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument);
+    await waitFor(
+      expect(screen.queryByLabelText(textMock('general.loading'))).not.toBeInTheDocument,
+    );
     const errorMessage = screen.getByText(textMock('app_content_library.fetch_error'));
     expect(errorMessage).toBeInTheDocument();
   });
@@ -66,7 +68,9 @@ describe('AppContentLibrary', () => {
   it('Renders an error message when getAvailableResourcesFromOrg fails', async () => {
     const getAvailableResourcesFromOrg = () => Promise.reject(new Error('Test error'));
     renderAppContentLibrary({ queries: { getAvailableResourcesFromOrg } });
-    await waitFor(expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument);
+    await waitFor(
+      expect(screen.queryByLabelText(textMock('general.loading'))).not.toBeInTheDocument,
+    );
     const errorMessage = screen.getByText(textMock('app_content_library.fetch_error'));
     expect(errorMessage).toBeInTheDocument();
   });

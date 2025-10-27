@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/url"
@@ -20,11 +21,6 @@ import (
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
 )
-
-// htmlIDSelectorPattern matches pure ID selectors like #myId, #my-id, #my_id
-// but rejects complex selectors like #id.class, #id[attr], #id > child, etc.
-// Allows any HTML5 ID characters except CSS selector metacharacters.
-var htmlIDSelectorPattern = regexp.MustCompile(`^#[^\s.:\[\]>+~,()]+$`)
 
 type browserSession struct {
 	id       int
@@ -188,7 +184,6 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 	}
 
 	err := w.generatePdf(req)
-
 	if err != nil {
 		req.tryRespondError(mapCustomError(err))
 	}
@@ -196,6 +191,8 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 
 func (w *browserSession) generatePdf(req *workerRequest) error {
 	request := req.request
+
+	startedProcessing := false
 
 	// Ensure cleanup always runs
 	defer func() {
@@ -205,13 +202,27 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		// Capture browser state before cleanup (for test internals mode)
 		w.tryUpdateTestModeOutput(req, "BeforeCleanup", false)
 
+		if !startedProcessing {
+			log.Printf("[%d, %s] never started processing, skipping cleanup\n", w.id, w.currentUrl)
+			req.cleanedUp = true
+			return
+		}
+
 		// Navigate back to default
 		start := time.Now()
-		_, err := w.conn.SendCommand(w.ctx, "Page.navigate", map[string]any{
-			"url": "about:blank",
-		})
+		var err error
+		for range 3 {
+			// Not using request context here, the client might have dropped out already and we should always complete cleanup
+			_, err = w.conn.SendCommand(w.ctx, "Page.navigate", map[string]any{
+				"url": "about:blank",
+			})
+			if err == nil {
+				break
+			}
+			log.Printf("[%d, %s] failed to navigate back to about:blank, retrying...\n", w.id, w.currentUrl)
+		}
 		if err != nil {
-			log.Printf("[%d, %s] failed to navigate out of url: %v\n", w.id, w.currentUrl, err)
+			assert.AssertWithMessage(false, fmt.Sprintf("failed to navigate back to about:blank during cleanup: %v", err))
 		}
 
 		if testInput := req.tryGetTestModeInput(); testInput != nil && testInput.CleanupDelaySeconds > 0 {
@@ -241,12 +252,12 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		log.Printf("[%d, %s] cleanup completed in %s\n", w.id, w.currentUrl, duration)
 	}()
 
+	if req.ctx.Err() != nil {
+		return types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err())
+	}
+
 	// Set cookies
 	if len(request.Cookies) > 0 {
-		if req.ctx.Err() != nil {
-			return types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err())
-		}
-
 		// Build cookies array for Network.setCookies
 		cookies := make([]map[string]any, 0, len(request.Cookies))
 		for _, cookie := range request.Cookies {
@@ -281,12 +292,12 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			cookies = append(cookies, cookieValue)
 		}
 
-		// Set all cookies in a single batch call
-		_, err := w.conn.SendCommand(w.ctx, "Network.setCookies", map[string]any{
+		startedProcessing = true
+		_, err := w.conn.SendCommand(req.ctx, "Network.setCookies", map[string]any{
 			"cookies": cookies,
 		})
 		if err != nil {
-			req.tryRespondError(types.NewPDFError(types.ErrSetCookieFail, "", err))
+			req.tryRespondError(contextErrorToPDFError(err, types.ErrSetCookieFail, ""))
 			return nil
 		}
 	}
@@ -300,11 +311,12 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		return nil
 	}
 
-	_, err := w.conn.SendCommand(w.ctx, "Page.navigate", map[string]any{
+	startedProcessing = true
+	_, err := w.conn.SendCommand(req.ctx, "Page.navigate", map[string]any{
 		"url": request.URL,
 	})
 	if err != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
+		req.tryRespondError(contextErrorToPDFError(err, types.ErrGenerationFail, ""))
 		return nil
 	}
 
@@ -318,9 +330,10 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			return nil
 		}
 
+		const maxWaitMs int32 = types.MaxTimeoutMs
 		if selector, ok := request.WaitFor.AsString(); ok {
 			// Simple string selector - wait for element existence only
-			err := w.waitForElement(req, selector, 25000, false, false)
+			err := w.waitForElement(req, selector, maxWaitMs, false, false)
 			if err != nil {
 				return nil
 			}
@@ -329,7 +342,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			time.Sleep(time.Duration(timeout) * time.Millisecond)
 		} else if opts, ok := request.WaitFor.AsOptions(); ok {
 			// Full options with selector, visible, hidden, timeout
-			timeoutMs := int32(25000) // default timeout
+			timeoutMs := maxWaitMs // default timeout
 			if opts.Timeout != nil {
 				timeoutMs = *opts.Timeout
 			}
@@ -408,9 +421,9 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		pdfParams["marginLeft"] = convertMargin(request.Options.Margin.Left)
 	}
 
-	resp, err := w.conn.SendCommand(w.ctx, "Page.printToPDF", pdfParams)
+	resp, err := w.conn.SendCommand(req.ctx, "Page.printToPDF", pdfParams)
 	if err != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
+		req.tryRespondError(contextErrorToPDFError(err, types.ErrGenerationFail, ""))
 		return nil
 	}
 
@@ -462,14 +475,14 @@ func (w *browserSession) waitForElement(req *workerRequest, selector string, tim
 		expression = w.buildSimpleWaitExpression(selector, timeoutMs)
 	}
 
-	resp, err := w.conn.SendCommand(w.ctx, "Runtime.evaluate", map[string]any{
+	resp, err := w.conn.SendCommand(req.ctx, "Runtime.evaluate", map[string]any{
 		"expression":    expression,
 		"awaitPromise":  true,
 		"returnByValue": true,
 	})
 	if err != nil {
 		log.Printf("[%d, %s] failed to wait for element %q: %v\n", w.id, w.currentUrl, selector, err)
-		req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", selector), err))
+		req.tryRespondError(contextErrorToPDFError(err, types.ErrElementNotReady, fmt.Sprintf("element %q", selector)))
 		return err
 	}
 
@@ -717,6 +730,7 @@ func (w *browserSession) cleanupBrowser(req *workerRequest) {
 
 	now := time.Now()
 	log.Printf("Worker %d sending cleanup batch command...\n", w.id)
+	// Not using request context here, the client might have dropped out already and we should always complete cleanup
 	responses := w.conn.SendCommandBatch(w.ctx, []cdp.Command{
 		{Method: "Storage.clearDataForOrigin", Params: map[string]any{
 			"origin":       fmt.Sprintf("%s://%s", u.Scheme, u.Host),
@@ -835,4 +849,30 @@ func convertMargin(margin string) float64 {
 
 	// Convert pixels to inches (96 pixels = 1 inch)
 	return pixels / 96.0
+}
+
+// htmlIDSelectorPattern matches pure ID selectors like #myId, #my-id, #my_id
+// but rejects complex selectors like #id.class, #id[attr], #id > child, etc.
+// Allows any HTML5 ID characters except CSS selector metacharacters.
+var htmlIDSelectorPattern = regexp.MustCompile(`^#[^\s.:\[\]>+~,()]+$`)
+
+// contextErrorToPDFError checks if an error is context-related and returns the appropriate PDFError.
+// If the error is context.Canceled, it returns ErrClientDropped.
+// If the error is context.DeadlineExceeded, it returns ErrTimeout.
+// Otherwise, it returns a PDFError with the fallback error type.
+func contextErrorToPDFError(err error, fallbackType error, detail string) *types.PDFError {
+	if err == nil {
+		return nil
+	}
+
+	// Check if the error is context-related
+	if errors.Is(err, context.Canceled) {
+		return types.NewPDFError(types.ErrClientDropped, detail, err)
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return types.NewPDFError(types.ErrTimeout, detail, err)
+	}
+
+	// Not a context error, use the fallback type
+	return types.NewPDFError(fallbackType, detail, err)
 }

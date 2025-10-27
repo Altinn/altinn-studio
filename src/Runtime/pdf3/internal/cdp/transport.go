@@ -289,8 +289,9 @@ func (c *connection) SendCommand(ctx context.Context, method string, params any)
 		return nil, ctx.Err()
 	case <-c.ctx.Done():
 		return nil, fmt.Errorf("connection closed")
-	case <-time.After(20 * time.Second):
-		return nil, fmt.Errorf("timeout waiting for response to command %s", method)
+	case <-time.After(types.RequestTimeout()):
+		assert.AssertWithMessage(false, "browser failed to respond to request, something must be stuck")
+		return nil, fmt.Errorf("cdp command timeout after %s", types.RequestTimeout())
 	}
 }
 
@@ -377,15 +378,16 @@ func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*C
 			}
 		}
 		return state.responses
-	case <-time.After(20 * time.Second):
+	case <-time.After(types.RequestTimeout()):
+		assert.AssertWithMessage(false, "browser failed to respond to request, something must be stuck")
 		for i, resp := range state.responses {
 			if resp == nil {
 				state.responses[i] = &CommandResponse{
 					Resp: nil,
-					Err:  fmt.Errorf("timeout waiting for response to command %s", outbox[i].Method),
+					Err:  fmt.Errorf("cdp batch timeout after %s", types.RequestTimeout()),
 				}
-			} else {
-				resp.Err = fmt.Errorf("timeout waiting for response to command %s", outbox[i].Method)
+			} else if resp.Err == nil {
+				resp.Err = fmt.Errorf("cdp batch timeout after %s", types.RequestTimeout())
 			}
 		}
 		return state.responses
@@ -462,7 +464,13 @@ func (c *connection) handleMessages() {
 			if msg.ID != nil {
 				batchID, batchOK := c.cmdIDToBatchID.GetAndDelete(*msg.ID)
 				responseCh, cmdOK := c.pendingCmds.GetAndDelete(*msg.ID)
-				// If we actually can't correlate this back to the request, it is likely timed out
+
+				// If we hit this assertion, it means that Chrome actually didn't respond in time, here's why:
+				// The SendCommand methods only `GetAndDelete` if we timeout after types.RequestTimeout()
+				// However, this should not be a normal occurrence. The max timeout used during PDF generation
+				// WaitFor config is types.MaxTimeoutMs, and we validate that in types.Validate.
+				// So in the case where something is actually broken in comms between this process and Chrome,
+				// we should just crash.
 				assert.AssertWithMessage((batchOK || cmdOK) && batchOK != cmdOK, fmt.Sprintf("Invalid state for %d: %s", *msg.ID, msg.Method))
 
 				if cmdOK {

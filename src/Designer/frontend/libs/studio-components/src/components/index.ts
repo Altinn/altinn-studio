@@ -36,6 +36,7 @@ export * from './StudioExpression';
 export * from './StudioField';
 export * from './StudioFieldset';
 export * from './StudioFileUploader';
+export * from './StudioFormActions';
 export * from './StudioFormGroup';
 export * from './StudioGridSelector';
 export * from './StudioHeading';
