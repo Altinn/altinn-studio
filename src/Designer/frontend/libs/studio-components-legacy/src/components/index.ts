@@ -41,7 +41,6 @@ export * from './StudioResizableLayout';
 export * from './StudioSearch';
 export * from './StudioSectionHeader';
 export * from './StudioSpinner';
-export * from './StudioSwitch';
 export * from './StudioTable';
 export * from './StudioTableRemotePagination';
 export * from './StudioTextResourceInput';

@@ -66,7 +66,7 @@ describe('ItemMetadataTab', () => {
     await user.clear(maxCountSpinButton());
     await user.type(maxCountSpinButton(), '3');
     await user.type(minCountSpinButton(), '2');
-    await user.click(autoCreateCheckbox());
+    await user.click(autoCreateSwitch());
     await waitForDebounce();
     expect(updateDataType).toHaveBeenCalledTimes(2);
     expect(updateDataType).toHaveBeenCalledWith(
@@ -118,6 +118,6 @@ const maxCountSpinButton = () =>
   screen.getByRole('spinbutton', { name: /schema_editor\.metadata\.maxCount/i });
 const minCountSpinButton = () =>
   screen.getByRole('spinbutton', { name: /schema_editor\.metadata\.minCount/i });
-const autoCreateCheckbox = () =>
-  screen.getByRole('checkbox', { name: /schema_editor\.metadata\.autoCreate/i });
+const autoCreateSwitch = () =>
+  screen.getByRole('switch', { name: /schema_editor\.metadata\.autoCreate/i });
 const noMetadataErrorMessage = () => screen.getByText(/schema_editor.metadata.not_found/);
