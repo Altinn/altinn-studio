@@ -6,6 +6,7 @@ import (
 	"time"
 
 	ptesting "altinn.studio/pdf3/internal/testing"
+	"altinn.studio/pdf3/internal/types"
 	"altinn.studio/pdf3/test/harness"
 )
 
@@ -53,36 +54,11 @@ func Test_Networking(t *testing.T) {
 	harness.Snapshot(t, []byte(err.Error()), "error", "txt")
 }
 
-func waitForOldPdfGenerator(t *testing.T) {
-	client := &http.Client{Timeout: 2 * time.Second}
-	deadline := time.Now().Add(120 * time.Second)
-
-	for {
-		if time.Now().After(deadline) {
-			t.Fatal("timed out waiting for old PDF generator to get ready")
-		}
-
-		req, err := http.NewRequest("GET", harness.JumpboxURL+"/metrics", nil)
-		if err != nil {
-			t.Fatalf("Failed to create health check request: %v", err)
-		}
-		req.Host = "pdf-generator.pdf.svc.cluster.local"
-
-		resp, err := client.Do(req)
-		if err == nil && resp.StatusCode == http.StatusOK {
-			_ = resp.Body.Close()
-			break
-		}
-		if err == nil {
-			_ = resp.Body.Close()
-		}
-
-		time.Sleep(100 * time.Millisecond)
-	}
-}
-
 func Test_CompareOldAndNew(t *testing.T) {
-	waitForOldPdfGenerator(t)
+	err := harness.Runtime.KubernetesClient.RolloutStatus("pdf-generator", "pdf", 2*time.Minute)
+	if err != nil {
+		t.Fatalf("Error waiting for old PDF generator: %v", err)
+	}
 
 	req := harness.GetDefaultPdfRequest(t)
 	req.URL = harness.TestServerURL + "/app/?render=light"
@@ -162,6 +138,39 @@ func Test_WithThrownErrors(t *testing.T) {
 	}
 
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
+}
+
+func Test_WaitForTimeoutWithErrors(t *testing.T) {
+	t.Parallel()
+
+	req := harness.GetDefaultPdfRequest(t)
+	// Page will throw an error AND never show the ready element
+	req.URL = harness.TestServerURL + "/app/?render=light&throwerrors=1&neverready"
+
+	req.WaitFor = types.NewWaitForString("#readyForPrint")
+
+	_, err := harness.RequestNewPDF(t, req)
+	if err == nil {
+		t.Fatal("Expected timeout error when element never appears, but PDF generation succeeded")
+	}
+
+	harness.Snapshot(t, []byte(err.Error()), "error", "txt")
+
+	t.Logf("Expected error occurred: %v", err)
+
+	req2 := harness.GetDefaultPdfRequest(t)
+	req2.URL = harness.TestServerURL + "/app/?render=light"
+
+	resp2, err2 := harness.RequestNewPDF(t, req2)
+	if err2 != nil {
+		t.Fatalf("Connection broken after timeout - subsequent request failed: %v", err2)
+	}
+
+	if !harness.IsPDF(resp2.Data) {
+		t.Error("Subsequent response is not a valid PDF")
+	}
+
+	t.Logf("Connection healthy after timeout - subsequent PDF generated successfully (%d bytes)", len(resp2.Data))
 }
 
 func Test_WithCleanupDelay(t *testing.T) {

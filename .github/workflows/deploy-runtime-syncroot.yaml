@@ -7,39 +7,27 @@ on:
     paths:
       - infra/runtime/syncroot/**
       - .github/workflows/deploy-runtime-syncroot.yaml
-  workflow_dispatch:
-    inputs:
-      ring:
-        description: |
-          Ring (upgrade channel) to tag the artifact with.
-          Defaults to 'at_ring1'.
-          'xx_ring1' means ttd clusters,
-          while 'xx_ring2' are non-ttd clusters (all serviceowners)
-        required: false
-        default: 'at_ring1'
-        type: choice
-        options:
-          - 'at_ring1'
-          - 'at_ring2'
-          - 'tt_ring1'
-          - 'tt_ring2'
-          - 'prod_ring1'
-          - 'prod_ring2'
 
 jobs:
-  push-syncroot-artifact:
-    name: Push syncroot as OCI artifact
+  build-and-deploy-at-ring1:
+    name: Build and deploy to at_ring1
     runs-on: ubuntu-latest
-    environment: ${{ inputs.ring == '' && 'dev' || startsWith(inputs.ring, 'at_') && 'dev' || startsWith(inputs.ring, 'tt_') && 'staging' || 'prod' }}
+    environment: runtime_at_ring1
     permissions:
       id-token: write # Require write permission to Fetch an OIDC token.
     defaults:
       run:
         working-directory: ./infra/runtime
+    outputs:
+      artifact_tag: ${{ steps.get-hash.outputs.hash }}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
         with:
           fetch-depth: 0 # Shallow clone
+
+      - name: Get git hash
+        id: get-hash
+        run: echo "hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: az login
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
@@ -57,13 +45,163 @@ jobs:
       - name: push artifact
         run: |
           cd syncroot/
-          flux push artifact oci://altinncr.azurecr.io/studio-apps/syncroot:$(git rev-parse --short HEAD) \
+          flux push artifact oci://altinncr.azurecr.io/studio-apps/syncroot:${{ steps.get-hash.outputs.hash }} \
             --provider=generic \
             --reproducible \
             --path="." \
             --source="$(git config --get remote.origin.url)" \
             --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
 
-      - name: tag artifact
+      - name: tag artifact as at_ring1
         run: |
-          flux tag artifact oci://altinncr.azurecr.io/studio-apps/syncroot:$(git rev-parse --short HEAD) --tag ${{ inputs.ring || 'at_ring1' }}
+          flux tag artifact oci://altinncr.azurecr.io/studio-apps/syncroot:${{ steps.get-hash.outputs.hash }} --tag at_ring1
+
+  promote-at-ring2:
+    name: Promote to at_ring2
+    needs: [build-and-deploy-at-ring1]
+    runs-on: ubuntu-latest
+    environment: runtime_at_ring2
+    permissions:
+      id-token: write
+    defaults:
+      run:
+        working-directory: ./infra/runtime
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name altinncr
+
+      - name: flux install
+        uses: fluxcd/flux2/action@6bf37f6a560fd84982d67f853162e4b3c2235edb # v2.6.4
+
+      - name: tag artifact as at_ring2
+        run: |
+          flux tag artifact oci://altinncr.azurecr.io/studio-apps/syncroot:${{ needs.build-and-deploy-at-ring1.outputs.artifact_tag }} --tag at_ring2
+
+  promote-tt-ring1:
+    name: Promote to tt_ring1
+    needs: [build-and-deploy-at-ring1, promote-at-ring2]
+    runs-on: ubuntu-latest
+    environment: runtime_tt_ring1
+    permissions:
+      id-token: write
+    defaults:
+      run:
+        working-directory: ./infra/runtime
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name altinncr
+
+      - name: flux install
+        uses: fluxcd/flux2/action@6bf37f6a560fd84982d67f853162e4b3c2235edb # v2.6.4
+
+      - name: tag artifact as tt_ring1
+        run: |
+          flux tag artifact oci://altinncr.azurecr.io/studio-apps/syncroot:${{ needs.build-and-deploy-at-ring1.outputs.artifact_tag }} --tag tt_ring1
+
+  promote-tt-ring2:
+    name: Promote to tt_ring2
+    needs: [build-and-deploy-at-ring1, promote-tt-ring1]
+    runs-on: ubuntu-latest
+    environment: runtime_tt_ring2
+    permissions:
+      id-token: write
+    defaults:
+      run:
+        working-directory: ./infra/runtime
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name altinncr
+
+      - name: flux install
+        uses: fluxcd/flux2/action@6bf37f6a560fd84982d67f853162e4b3c2235edb # v2.6.4
+
+      - name: tag artifact as tt_ring2
+        run: |
+          flux tag artifact oci://altinncr.azurecr.io/studio-apps/syncroot:${{ needs.build-and-deploy-at-ring1.outputs.artifact_tag }} --tag tt_ring2
+
+  promote-prod-ring1:
+    name: Promote to prod_ring1
+    needs: [build-and-deploy-at-ring1, promote-tt-ring2]
+    runs-on: ubuntu-latest
+    environment: runtime_prod_ring1
+    permissions:
+      id-token: write
+    defaults:
+      run:
+        working-directory: ./infra/runtime
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name altinncr
+
+      - name: flux install
+        uses: fluxcd/flux2/action@6bf37f6a560fd84982d67f853162e4b3c2235edb # v2.6.4
+
+      - name: tag artifact as prod_ring1
+        run: |
+          flux tag artifact oci://altinncr.azurecr.io/studio-apps/syncroot:${{ needs.build-and-deploy-at-ring1.outputs.artifact_tag }} --tag prod_ring1
+
+  promote-prod-ring2:
+    name: Promote to prod_ring2
+    needs: [build-and-deploy-at-ring1, promote-prod-ring1]
+    runs-on: ubuntu-latest
+    environment: runtime_prod_ring2
+    permissions:
+      id-token: write
+    defaults:
+      run:
+        working-directory: ./infra/runtime
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name altinncr
+
+      - name: flux install
+        uses: fluxcd/flux2/action@6bf37f6a560fd84982d67f853162e4b3c2235edb # v2.6.4
+
+      - name: tag artifact as prod_ring2
+        run: |
+          flux tag artifact oci://altinncr.azurecr.io/studio-apps/syncroot:${{ needs.build-and-deploy-at-ring1.outputs.artifact_tag }} --tag prod_ring2

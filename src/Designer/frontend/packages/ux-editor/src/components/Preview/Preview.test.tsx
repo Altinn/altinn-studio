@@ -8,10 +8,18 @@ import userEvent from '@testing-library/user-event';
 import { appContextMock } from '../../testing/appContextMock';
 import { previewPage } from 'app-shared/api/paths';
 import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
-import { app, org } from '@studio/testing/testids';
-import { subformLayoutMock } from '../../testing/subformLayoutMock';
+import { app, layoutSet, org } from '@studio/testing/testids';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 describe('Preview', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('Renders an iframe with the ref from AppContext', async () => {
     render();
     await waitForElementToBeRemoved(() =>
@@ -107,7 +115,7 @@ describe('Preview', () => {
         previewPage(
           org,
           app,
-          appContextMock.selectedFormLayoutSetName,
+          layoutSet,
           TASKID_FOR_STATELESS_APPS,
           appContextMock.selectedFormLayoutName,
           mockInstanceId,
@@ -126,7 +134,7 @@ describe('Preview', () => {
         previewPage(
           org,
           app,
-          appContextMock.selectedFormLayoutSetName,
+          layoutSet,
           TASKID_FOR_STATELESS_APPS,
           newSelectedFormLayoutName,
           mockInstanceId,
@@ -135,8 +143,19 @@ describe('Preview', () => {
   });
 
   it('should show a warning that subform is unsupported in preview', async () => {
-    appContextMock.selectedFormLayoutSetName = subformLayoutMock.layoutSetName;
-    render();
+    render({
+      queries: {
+        getLayoutSets: jest
+          .fn()
+          .mockImplementation(() =>
+            Promise.resolve({ sets: [{ id: layoutSet, type: 'subform' }] }),
+          ),
+        createPreviewInstance: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve({ id: mockInstanceId })),
+      },
+      queryClient: createQueryClientMock(),
+    });
     await waitForElementToBeRemoved(() =>
       screen.queryByText(textMock('preview.loading_preview_controller')),
     );
@@ -149,17 +168,17 @@ const collapseToggle = jest.fn();
 const mockInstanceId = '1';
 
 export const render = (options: Partial<ExtendedRenderOptions> = {}) => {
+  const defaultQueries = {
+    createPreviewInstance: jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ id: mockInstanceId })),
+  };
+
   options = {
     ...options,
     queries: {
-      getLayoutSets: jest
-        .fn()
-        .mockImplementation(() =>
-          Promise.resolve({ sets: [{ id: subformLayoutMock.layoutSetName, type: 'subform' }] }),
-        ),
-      createPreviewInstance: jest
-        .fn()
-        .mockImplementation(() => Promise.resolve({ id: mockInstanceId })),
+      ...defaultQueries,
+      ...options.queries,
     },
   };
   return renderWithProviders(
