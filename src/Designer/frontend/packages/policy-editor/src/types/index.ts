@@ -23,8 +23,8 @@ export interface PolicySubject {
   name: string;
   description: string;
   urn: string;
-  legacyRoleCode: string;
-  legacyUrn: string;
+  legacyRoleCode?: string;
+  legacyUrn?: string;
   provider: {
     id: string;
     name: string;
