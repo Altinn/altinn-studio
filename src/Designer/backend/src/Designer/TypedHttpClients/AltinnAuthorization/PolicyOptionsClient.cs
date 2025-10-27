@@ -104,7 +104,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed retrieving Subject options from {Url}", url);
+                _logger.LogError(ex, "Failed retrieving Subject options from {Url}", newRolesUrl);
                 throw new Exception($"Something went wrong when retrieving Subject options", ex);
             }
 
