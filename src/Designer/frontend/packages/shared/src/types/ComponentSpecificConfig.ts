@@ -11,10 +11,6 @@ import type {
   ExplicitDataModelBinding,
   IDataModelBindingsKeyValueExplicit,
 } from '@altinn/ux-editor/types/global';
-import type {
-  CircleShape,
-  RectangleShape,
-} from '../../../ux-editor/src/components/config/componentSpecificContent/ImageUpload/ImageUploadTypes';
 
 type DataModelBindingsForAddress = {
   address: ExplicitDataModelBinding;
@@ -97,6 +93,17 @@ type FileUploadComponentBase = {
   minNumberOfAttachments: number;
   validFileEndings?: string;
   alertOnDelete?: BooleanExpression;
+};
+
+type CricleCropProps = {
+  type: 'circle';
+  diameter: number;
+};
+
+type RectangleCropProps = {
+  type: 'rectangle';
+  width: number;
+  height: number;
 };
 
 type FormComponentProps = {
@@ -250,7 +257,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     };
   };
   [ComponentType.ImageUpload]: {
-    crop?: CircleShape | RectangleShape;
+    crop?: CricleCropProps | RectangleCropProps;
   };
   [ComponentType.Input]: FormComponentProps &
     SummarizableComponentProps &
