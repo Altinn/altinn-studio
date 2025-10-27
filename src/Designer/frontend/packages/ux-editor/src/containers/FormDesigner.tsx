@@ -7,12 +7,8 @@ import { useFormItemContext } from './FormItemContext';
 import { useAppContext, useText } from '../hooks';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
-import {
-  StudioDragAndDropTree,
-  StudioResizableLayout,
-  useLocalStorage,
-} from '@studio/components-legacy';
-import { StudioPageError, StudioPageSpinner } from '@studio/components';
+import { useLocalStorage } from '@studio/components-legacy';
+import { StudioPageError, StudioPageSpinner, StudioDragAndDropTree } from '@studio/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useUserQuery } from 'app-shared/hooks/queries';
@@ -31,41 +27,26 @@ import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation'
 import { Preview } from '../components/Preview';
 import { useFeatureFlag, FeatureFlag } from '@studio/feature-flags';
 import { ItemType } from '../components/Properties/ItemType';
+import useUxEditorParams from '../hooks/useUxEditorParams';
 
 export const FormDesigner = (): JSX.Element => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: user } = useUserQuery();
-  const {
-    selectedFormLayoutSetName,
-    selectedFormLayoutName,
-    updateLayoutsForPreview,
-    setSelectedItem,
-  } = useAppContext();
+  const { layoutSet } = useUxEditorParams();
+  const { selectedFormLayoutName, updateLayoutsForPreview, setSelectedItem } = useAppContext();
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
     org,
     app,
-    selectedFormLayoutSetName,
+    layoutSet,
   );
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
-    org,
-    app,
-    selectedFormLayoutSetName,
-  );
-  const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(
-    org,
-    app,
-    selectedFormLayoutSetName,
-  );
-  const { mutate: addItemToLayout } = useAddItemToLayoutMutation(
-    org,
-    app,
-    selectedFormLayoutSetName,
-  );
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, layoutSet);
+  const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(org, app, layoutSet);
+  const { mutate: addItemToLayout } = useAddItemToLayoutMutation(org, app, layoutSet);
   const { mutate: updateFormLayout } = useFormLayoutMutation(
     org,
     app,
     selectedFormLayoutName,
-    selectedFormLayoutSetName,
+    layoutSet,
   );
   const { handleEdit } = useFormItemContext();
   const [previewCollapsed, setPreviewCollapsed] = useLocalStorage<boolean>(
@@ -81,8 +62,12 @@ export const FormDesigner = (): JSX.Element => {
   const t = useText();
   const isAddComponentModalEnabled = useFeatureFlag(FeatureFlag.AddComponentModal);
 
-  const formLayoutIsReady =
-    selectedFormLayoutSetName && formLayouts && formLayoutSettings && isRuleConfigFetched;
+  const formLayoutIsReady = !!(
+    layoutSet &&
+    formLayouts &&
+    formLayoutSettings &&
+    isRuleConfigFetched
+  );
 
   const mapErrorToDisplayError = (): { title: string; message: string } => {
     const defaultTitle = t('general.fetch_error_title');
@@ -119,7 +104,7 @@ export const FormDesigner = (): JSX.Element => {
         { componentType: type, newId, parentId, index },
         {
           onSuccess: async () => {
-            await updateLayoutsForPreview(selectedFormLayoutSetName);
+            await updateLayoutsForPreview(layoutSet);
           },
         },
       );
@@ -137,7 +122,7 @@ export const FormDesigner = (): JSX.Element => {
         { internalLayout: updatedLayout },
         {
           onSuccess: async () => {
-            await updateLayoutsForPreview(selectedFormLayoutSetName);
+            await updateLayoutsForPreview(layoutSet);
           },
         },
       );

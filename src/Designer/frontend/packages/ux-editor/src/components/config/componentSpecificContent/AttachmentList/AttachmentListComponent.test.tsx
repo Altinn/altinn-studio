@@ -77,8 +77,8 @@ const render = async (
   }
   return renderWithProviders(<AttachmentListComponent {...defaultProps} {...props} />, {
     queryClient: client,
-    appContextProps: {
-      selectedFormLayoutSetName: selectedLayoutSet,
+    uxEditorParams: {
+      layoutSet: selectedLayoutSet,
     },
   });
 };
