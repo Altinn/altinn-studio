@@ -8,7 +8,7 @@ import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { previewPage } from 'app-shared/api/paths';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
-import { StudioPageHeader, StudioPageSpinner, useMediaQuery } from '@studio/components-legacy';
+import { StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
 import { UserProfileMenu } from '../components/UserProfileMenu';
 import { PreviewControlHeader } from '../components/PreviewControlHeader';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
@@ -16,7 +16,7 @@ import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayou
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
-import { StudioAlert } from '@studio/components';
+import { StudioAlert, StudioPageSpinner } from '@studio/components';
 import { useNavigate, useParams } from 'react-router-dom';
 
 export type PreviewAsViewSize = 'desktop' | 'mobile';
