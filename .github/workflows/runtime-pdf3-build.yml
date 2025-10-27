@@ -45,6 +45,9 @@ jobs:
       - name: Run linters
         run: make lint
 
+      - name: Run fixture
+        run: make run v=minimal
+
       - name: Run tests
         run: make test
 

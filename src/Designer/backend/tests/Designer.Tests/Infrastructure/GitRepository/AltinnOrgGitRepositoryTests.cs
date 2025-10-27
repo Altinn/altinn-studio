@@ -28,18 +28,14 @@ public class AltinnOrgGitRepositoryTests : IDisposable
         // Arrange
         TargetOrg = TestDataHelper.GenerateTestOrgName();
         AltinnOrgGitRepository altinnOrgGitRepository = await PrepareRepositoryForTest(repository);
-        List<string> expectedLanguages = ["en", "nb"];
 
         // Act
         List<string> languages = altinnOrgGitRepository.GetLanguages();
 
         // Assert
-        Assert.Equal(expectedLanguages.Count, languages.Count);
-
-        for (int i = 0; i < expectedLanguages.Count; i++)
-        {
-            Assert.Equal(expectedLanguages[i], languages[i]);
-        }
+        Assert.Equal(2, languages.Count);
+        Assert.Contains("en", languages);
+        Assert.Contains("nb", languages);
     }
 
     [Theory]

@@ -11,7 +11,7 @@ export const options = {
       duration: '60s',
       gracefulStop: '0s',
       preAllocatedVUs: 10,
-      maxVUs: 15,
+      maxVUs: 20,
       tags: { service: 'old' },
     },
     new_service: {
@@ -20,8 +20,8 @@ export const options = {
       timeUnit: '1s',
       duration: '60s',
       startTime: '60s', // duration + gracefulStop
-      preAllocatedVUs: 8,
-      maxVUs: 15,
+      preAllocatedVUs: 10,
+      maxVUs: 30,
       tags: { service: 'new' },
     },
   },
@@ -29,6 +29,10 @@ export const options = {
     // HTTP metrics
     'http_req_duration{service:old}': ['p(95)<10000'],
     'http_req_duration{service:new}': ['p(95)<10000'],
+    'http_req_failed{service:old}': [],
+    'http_req_failed{service:new}': [],
+    'http_reqs{service:old}': [],
+    'http_reqs{service:new}': [],
 
     // Execution metrics - add thresholds to show in summary
     'dropped_iterations{service:old}': [],
@@ -74,8 +78,6 @@ const payload = JSON.stringify({
 });
 
 const endpoint = 'http://localhost:8020/pdf';
-
-http.setResponseCallback(http.expectedStatuses(200, 429));
 
 export default function () {
   const service = scenario.name === 'new_service' ? 'new' : 'old';

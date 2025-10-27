@@ -3,20 +3,19 @@
 New PDF generation solution for Altinn Studio apps.
 
 - OS support: Linux and macOS
-- Dev env using nix: `nix develop`
+- Required Go 1.25+
 - Requires `docker` or `podman` on the host system
 
-## Nix setup
 
-Nix should work using the standard installers.
-Need to change config to use flakes:
+## Local browser headless-shell installation
+
+Some dependencies might be needed to run the headless-shell instance installed through `make browser`.
+You can run `ldd <binary> | grep not` to see any dependencies the binary expects to be installed.
+
+### Arch
+
+These may or may not already be present, depending on env. On WSL 2 arch this is necessary:
 
 ```sh
-echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
-# Or
-echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
+sudo pacman -Sy nss at-spi2-core libxcomposite libxdamage libxrandr libxkbcommon mesa alsa-lib
 ```
-
-## MacOS potential issues
-
-- https://github.com/NixOS/nixpkgs/issues/355486

@@ -15,6 +15,7 @@ on:
       - 'package.json'
       - 'src/Designer/development/**'
       - 'src/App/template/**'
+      - 'yarn.lock'
   workflow_dispatch:
 
 concurrency:

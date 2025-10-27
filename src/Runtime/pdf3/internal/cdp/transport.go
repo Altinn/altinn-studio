@@ -462,8 +462,15 @@ func (c *connection) handleMessages() {
 			if msg.ID != nil {
 				batchID, batchOK := c.cmdIDToBatchID.GetAndDelete(*msg.ID)
 				responseCh, cmdOK := c.pendingCmds.GetAndDelete(*msg.ID)
-				// If we actually can't correlate this back to the request, it is likely timed out
-				assert.AssertWithMessage((batchOK || cmdOK) && batchOK != cmdOK, fmt.Sprintf("Invalid state for %d: %s", *msg.ID, msg.Method))
+
+				// Both false means this is a late response for a timed-out command - ignore it
+				if !batchOK && !cmdOK {
+					log.Printf("Worker %d: Received late response for command %d (likely timed out) - ignoring\n", c.id, *msg.ID)
+					continue
+				}
+
+				// Exactly one must be true - commands can't be in both states
+				assert.AssertWithMessage(batchOK != cmdOK, fmt.Sprintf("Command %d exists in both batch and single command state", *msg.ID))
 
 				if cmdOK {
 					assert.AssertWithMessage(responseCh != nil, fmt.Sprintf("Response channel for command ID %d is nil", *msg.ID))
