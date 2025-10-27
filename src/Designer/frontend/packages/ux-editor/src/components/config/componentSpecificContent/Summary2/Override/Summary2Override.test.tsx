@@ -400,7 +400,6 @@ const render = (props?: Partial<Summary2OverrideProps>) => {
   renderWithProviders(<Summary2Override {...defaultProps} {...props} />, {
     queryClient,
     appContextProps: {
-      selectedFormLayoutSetName: layoutSet1NameMock,
       selectedFormLayoutName: layout1NameMock,
     },
   });

@@ -17,6 +17,7 @@ import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
 import { useTextResourceValue } from '@altinn/ux-editor/components/TextResource/hooks/useTextResourceValue';
 
 import cn from 'classnames';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export type PageAccordionProps = {
   pageId: string;
@@ -56,15 +57,12 @@ export const PageAccordion = ({
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName, selectedItem, setSelectedItem } = useAppContext();
-  const { data: pages } = usePagesQuery(org, app, selectedFormLayoutSetName);
+  const { selectedItem, setSelectedItem } = useAppContext();
+  const { layoutSet } = useUxEditorParams();
+  const { data: pages } = usePagesQuery(org, app, layoutSet);
   const pageName = useTextResourceValue(pageId);
-  const { mutate: deletePage, isPending } = useDeletePageMutation(
-    org,
-    app,
-    selectedFormLayoutSetName,
-  );
-  const { mutate: changePageGroups } = useChangePageGroupOrder(org, app, selectedFormLayoutSetName);
+  const { mutate: deletePage, isPending } = useDeletePageMutation(org, app, layoutSet);
+  const { mutate: changePageGroups } = useChangePageGroupOrder(org, app, layoutSet);
 
   const isUsingGroups = isPagesModelWithGroups(pages);
   const handleConfirmDelete = () => {
