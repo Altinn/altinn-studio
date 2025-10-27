@@ -1,112 +1,112 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with code in this repository.
 
 ## Overview
 
-This is **pdf3**, a new PDF generation solution for Altinn Studio apps. It replaces the previous Browserless/Puppeteer-based implementation with a custom Chrome DevTools Protocol (CDP) implementation that directly controls headless Chrome browsers for generating PDFs from web pages.
+**pdf3** is a PDF generation service for Altinn Studio apps. It uses Chrome DevTools Protocol (CDP) to control headless Chrome browsers for generating PDFs from web pages.
 
-**Key architecture**: Two-tier system with a proxy and worker components, running in Kubernetes (local development uses Kind cluster).
+**Architecture**: Two-tier system (proxy + worker) running in Kubernetes. Local development uses a Kind cluster.
 
 ## Development Environment
 
 ### Prerequisites
 
 - **OS**: Linux or macOS only
-- **Container runtime**: Docker or Podman required
-- **Nix**: Use `nix develop` for reproducible dev environment
+- **Go**: 1.25.2 or later
+- **Container runtime**: Docker or Podman
 
 ### Common Commands
 
-#### Building and Running
+All orchestration commands use the Makefile, which internally calls `go run ./cmd/tester`:
 
 ```bash
-make build-local    # Build using local Go toolchain (fast, no Docker)
-make build          # Build Docker images and load into Kind cluster (cached)
-make run            # Deploy to cluster and restart services (cached)
-make test           # Run integration tests (builds/deploys first)
+# Setup and cluster management
+make run v=minimal        # Start Kind cluster with minimal deployment (default)
+make run v=standard       # Start Kind cluster with standard deployment (used for loadtests locally)
+make stop                 # Stop and delete the cluster
+
+# Development workflow
+make build                # Build Go packages locally
+make fmt                  # Format code with golangci-lint
+make lint                 # Run linters with auto-fix
+make tidy                 # Tidy go modules
+
+# Testing
+make test                 # Run all integration tests (simple + smoke)
+make test-simple          # Run simple integration tests only
+make test-smoke           # Run smoke tests only
+make test-loop n=10       # Run tests 10 times (flakiness check)
+
+# Load testing
+make loadtest-local       # Run k6 load tests against local cluster
+make loadtest-env         # Run k6 load tests against remote environment
+
+# Monitoring
+make logs                 # Stream logs from pdf3 components using stern
+
+# Utilities
+make clean                # Clean build/test cache
+make check                # Complete CI check (tidy, fmt, lint, test)
 ```
-
-#### Development Workflow
-
-```bash
-make cluster        # Create Kind cluster with all dependencies (one-time setup)
-make cluster stop=1 # Delete the cluster
-make format         # Format code with golangci-lint
-make lint           # Run linters
-make logs           # Stream logs from pdf3 components using stern
-make loadtest       # Run k6 load tests
-```
-
-#### Running Single Tests
-
-```bash
-# Run all tests
-go test -count=1 -v ./...
-
-# Run specific test
-go test -count=1 -v ./test/integration -run TestPDFGeneration_Simple
-```
-
-Note: `-count=1` circumvents Go's test cache, ensuring fresh test runs.
 
 ## Architecture
 
-### Component Structure
+### Binaries (cmd/)
 
-**Two main binaries:**
-
-1. **Proxy** (`cmd/proxy/main.go`) - Public-facing HTTP API on port 5030
-   - Accepts PDF generation requests at `POST /pdf`
-   - Health endpoints: `/health/startup`, `/health/ready`, `/health/live`
-   - Implements retry logic for queue-full scenarios (429 responses)
+1. **cmd/proxy/main.go** - Public HTTP API (port 5030)
+   - Endpoint: `POST /pdf` - accepts PDF generation requests
+   - Health: `/health/startup`, `/health/ready`, `/health/live`
+   - Retries on worker queue-full (429) responses
    - Forwards requests to worker via HTTP
 
-2. **Worker** (`cmd/worker/main.go`) - PDF generator on port 5031
-   - Generates PDFs using Chrome DevTools Protocol
-   - Health endpoints: `/health/startup`, `/health/ready`, `/health/live`
-   - Handles PDF generation at `POST /generate`
-   - Runs 2 browser sessions for concurrent request handling
+2. **cmd/worker/main.go** - PDF generator (port 5031)
+   - Endpoint: `POST /generate` - generates PDFs
+   - Health: `/health/startup`, `/health/ready`, `/health/live`
+   - Manages 1 browser session with Chrome CDP
+   - Returns 429 when queue is full
+
+3. **cmd/tester/main.go** - Test orchestration CLI
+   - Subcommands: `start`, `stop`, `test`, `loadtest-local`, `loadtest-env`
+   - Handles cluster setup, Docker builds, image pushes, Flux deployments
+   - Used by Makefile for all orchestration tasks
 
 ### Key Internal Packages
 
-- **`internal/generator`**: Core PDF generation logic using CDP
-  - Manages 2 browser sessions (double-buffered for low latency)
-  - Session states: Ready → Generating → CleaningUp → Ready
-  - Queue capacity: 1 request per session (2 total, returns 429 when full)
-  - Tracks console errors and browser errors during PDF generation
+- **internal/generator** - Core PDF generation using CDP
+  - Manages 1 browser session, 30-second timeout
+  - States: Ready → Generating → CleaningUp → Ready
+  - Returns 429 (ErrQueueFull) when at capacity
 
-- **`internal/browser`**: Chrome browser process management
-  - Starts/stops headless Chrome instances using `/headless-shell/headless-shell` binary
-  - Configures browser arguments (headless mode, security flags, etc.)
+- **internal/browser** - Chrome process management
+  - Starts/stops headless Chrome at `/headless-shell/headless-shell`
 
-- **`internal/runtime`**: Graceful shutdown coordinator
-  - Handles SIGTERM/SIGINT with configurable drain periods
-  - Provides contexts for server shutdown coordination
-  - Use `host.ServerContext()` for server base contexts
+- **internal/cdp** - Chrome DevTools Protocol client
+  - WebSocket connection to browser debug port
+  - CDP command/response handling
+
+- **internal/types** - Shared types
+  - `PdfRequest`, `PdfResult`, `PDFError`
+  - Error types: `ErrQueueFull`, `ErrTimeout`, `ErrClientDropped`, etc.
+
+- **internal/runtime** - Graceful shutdown coordinator
+  - Signal handling (SIGTERM/SIGINT)
+  - Use `host.ServerContext()` for server contexts
   - Use `host.IsShuttingDown()` in readiness probes
 
-- **`internal/cdp`**: Chrome DevTools Protocol client utilities
-  - WebSocket connection management
-  - CDP command/response handling
-  - Connects to browser debug port for communication
+- **internal/testing** - Test internals mode support
+  - Headers: `X-Internals-Test-Input`, `X-Internals-Test-Output`
+  - Tracks browser errors and console logs
 
-- **`internal/types`**: Shared types including `PdfRequest`, `PdfResult`, `PDFError`
-  - `PdfRequest.WaitFor` can be string (CSS selector), timeout (ms), or options object
-  - Test internals mode support for tracking browser errors and console logs
-  - Error types: `ErrQueueFull`, `ErrTimeout`, `ErrClientDropped`, `ErrSetCookieFail`, `ErrElementNotReady`, `ErrGenerationFail`, `ErrUnhandledBrowserError`
-
-- **`internal/concurrent`**: Thread-safe data structures (e.g., `Map`)
-
-- **`internal/assert`**: Runtime assertions for invariant checking. Asserts should be used to catch programmer errors (e.g. invalid assumptions about program state)
-
-- **`internal/log`**: Logging setup and configuration
+- **internal/assert** - Runtime assertions for invariant checking. Asserts should be used to catch programmer errors (e.g. invalid/unchecked assumptions about program state)
+- **internal/concurrent** - Thread-safe data structures (e.g., `Map`)
+- **internal/log** - Logging configuration
 
 ### Request Flow
 
-1. Client → Proxy (`POST /pdf` with JSON body)
-2. Proxy validates request and forwards to Worker via HTTP
-3. Worker picks available browser session (or returns 429 if queue full)
+1. Client → Proxy (`POST /pdf`)
+2. Proxy validates and forwards to Worker
+3. Worker queues request (returns 429 if queue full)
 4. Browser session:
    - Sets cookies
    - Navigates to URL
@@ -114,46 +114,51 @@ Note: `-count=1` circumvents Go's test cache, ensuring fresh test runs.
    - Calls `Page.printToPDF` via CDP
    - Returns base64-encoded PDF
    - Cleans up (navigate to `about:blank`, clear storage)
-5. Worker returns PDF bytes to Proxy
-6. Proxy retries on 429 (up to 50 attempts with 100ms backoff)
+5. Worker returns PDF to Proxy
+6. Proxy retries on 429 (configurable)
 7. Proxy returns PDF to client
 
 ### Test Infrastructure
 
-- **Integration tests**: `test/integration/integration_test.go`
-  - Requires running cluster (`make run` first, or use `make test`)
-  - Uses a "jumpbox" proxy at `localhost:8020` to route requests (simulates ingress)
-  - Tests include: simple generation, queue retry logic, error tracking, comparison with old generator, network isolation
-  - Snapshot testing available via `test/harness` package
+**Integration tests** (`test/integration/`):
+- **simple/** - Main integration tests
+  - Tests: PDF generation, WaitFor, console/thrown errors, cookies, old generator comparison
+  - Snapshot testing with `_snapshots/` directory
+  - Test server: `http://testserver.default.svc.cluster.local`
+  - Jumpbox proxy: `http://localhost:8020`
+- **smoke/** - Smoke tests
 
-- **Test server**: Deployed as `testserver.default.svc.cluster.local`
-  - Serves test pages with configurable behavior via query params:
-    - `render=light` - renders a light version of the test page
-    - `logerrors=N` - logs N console errors during rendering
-    - `throwerrors=N` - throws N JavaScript errors during rendering
+**Load tests** (`test/load/`):
+- **test-local.ts** - k6 script for local cluster
+- **test-env.js** - k6 script for remote environments
 
-- **Test internals mode**: Special testing mode for tracking errors
-  - Enabled via environment variable `TEST_INTERNALS_MODE`
-  - Uses headers `X-Internals-Test-Input` and `X-Internals-Test-Output` for passing test data
-  - Tracks console error logs and browser errors during PDF generation
-  - Allows for general failure injection so that failure conditions can be tested (and their outputs)
+**Test harness** (`test/harness/`):
+- `harness.go` - Test utilities (Init, RequestPDF, Snapshot, etc.)
+- `pdf.go` - PDF validation utilities
+- `snapshot.go` - Snapshot testing helpers
+
+**Test logs**: Output to `test/logs/proxy.log` and `test/logs/worker.log`
 
 ### Deployment
 
-- **Local**: Kind cluster with Linkerd service mesh, Traefik ingress, metrics-server
-- **Kustomize**: `infra/kustomize/local/` contains deployment manifests
-- **Build caching**: Makefile uses hash-based caching (`.last-build-hash`, `.last-deploy-hash`)
+**Local**: KindContainerRuntime-based fixture
+
+**Manifests**: `infra/kustomize/`
+- `base/` - Base deployment configs
+- `local-minimal/`, `local-standard/` - Local variants
 
 ## Testing Strategy
 
-**Always run integration tests after changes** to PDF generation logic, as they validate end-to-end behavior
-
-Use `make test` which handles build/deploy automatically, or run manually:
+**Always run integration tests after changes** to PDF generation logic.
 
 ```bash
-make run  # Deploy changes
-make test
+# Recommended workflow
+make run v=minimal     # Start cluster (if not running)
+make test              # Run all tests
+
+# Or run specific test suites
+make test-simple       # Simple tests only
+make test-smoke        # Smoke tests only
 ```
 
-The tests output logs from the PDF3 containers into `test/logs/proxy.log` and `test/logs/worker.log`.
-These can be inspected upon test failures.
+Test logs are saved to `test/logs/` for debugging failures.
