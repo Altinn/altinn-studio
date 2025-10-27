@@ -96,6 +96,14 @@ const AppsTableWithDataByEnv = ({ org, runningApps, env }: AppsTableWithDataByEn
             .filter((app) => !search || app.app.toLowerCase().includes(search.toLowerCase()))
             .map((app) => {
               const appAlerts = alerts?.filter((alert) => alert.app === app.app);
+              return {
+                ...app,
+                alerts: appAlerts,
+                hasAlerts: appAlerts?.length > 0,
+              };
+            })
+            .sort((a, b) => Number(b.hasAlerts) - Number(a.hasAlerts) || a.app.localeCompare(b.app))
+            .map((app) => {
               return (
                 <StudioTable.Row key={app.app}>
                   <StudioTable.Cell>
@@ -104,7 +112,7 @@ const AppsTableWithDataByEnv = ({ org, runningApps, env }: AppsTableWithDataByEn
                   <StudioTable.Cell>{app.version}</StudioTable.Cell>
                   <StudioTable.Cell>
                     <div className={classes.alertCell}>
-                      {appAlerts?.map((alert) => {
+                      {app.alerts?.map((alert) => {
                         return (
                           <StudioAlert
                             key={alert.type}
