@@ -36,7 +36,6 @@ export * from './StudioNativeSelect';
 export * from './StudioPageHeader';
 export * from './StudioParagraph';
 export * from './StudioPopover';
-export * from './StudioResizableLayout';
 export * from './StudioSearch';
 export * from './StudioSectionHeader';
 export * from './StudioSpinner';
