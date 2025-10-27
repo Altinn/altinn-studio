@@ -6,7 +6,6 @@ New PDF generation solution for Altinn Studio apps.
 - Required Go 1.25+
 - Requires `docker` or `podman` on the host system
 
-
 ## Local browser headless-shell installation
 
 Some dependencies might be needed to run the headless-shell instance installed through `make browser`.
