@@ -10,13 +10,13 @@ build-all:
 	done
 
 clean-all:
-	@(cd ../../App/backend/ && dotnet clean) || true
-	@(cd ../../App/fileanalyzers/ && dotnet clean) || true
-	@(cd ../../App/codelists/ && dotnet clean) || true
+	@(cd ../../App/backend/ && dotnet clean && rm -rf bin/ obj/) || true
+	@(cd ../../App/fileanalyzers/ && dotnet clean && rm -rf bin/ obj/) || true
+	@(cd ../../App/codelists/ && dotnet clean && rm -rf bin/ obj/) || true
 	@for app_dir in $(APP_DIRS); do \
 		app_name=$$(basename $$(dirname $$app_dir)); \
 		echo "Cleaning $$app_name..."; \
-		(cd $$app_dir && dotnet clean) || true; \
+		(cd $$app_dir && dotnet clean && rm -rf bin/ obj/) || true; \
 	done
 	@echo "All apps cleaned!"
 
