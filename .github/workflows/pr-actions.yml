@@ -62,7 +62,7 @@ jobs:
           echo $version
 
       - name: Create PR comment
-        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5
         id: pr-comment
         with:
           issue-number: ${{ github.event.issue.number }}
@@ -122,7 +122,7 @@ jobs:
            --azure-sa-name "${{ secrets.PRODUCTION_STORAGEACCOUNT_NAME }}" \
 
       - name: Update PR comment - failure
-        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5
         if: failure()
         with:
           issue-number: ${{ github.event.issue.number }}
@@ -132,7 +132,7 @@ jobs:
             > ❌ Failed: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
       - name: Update PR comment - success
-        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5
         if: success()
         with:
           issue-number: ${{ github.event.issue.number }}
