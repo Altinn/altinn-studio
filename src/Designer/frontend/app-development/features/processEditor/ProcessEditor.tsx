@@ -5,7 +5,7 @@ import { useBpmnMutation } from 'app-shared/hooks/mutations/useBpmnMutation';
 import { useBpmnQuery } from 'app-shared/hooks/queries/useBpmnQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { toast } from 'react-toastify';
-import { StudioPageSpinner } from '@studio/components-legacy';
+import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useAppMetadataQuery, useAppVersionQuery } from 'app-shared/hooks/queries';
 import { useUpdateLayoutSetIdMutation } from '../../hooks/mutations/useUpdateLayoutSetIdMutation';

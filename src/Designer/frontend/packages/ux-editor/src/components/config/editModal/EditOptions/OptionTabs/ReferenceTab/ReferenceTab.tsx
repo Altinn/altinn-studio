@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import type { IGenericEditComponent } from '../../../../componentConfig';
-import { useTranslation, Trans } from 'react-i18next';
-import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { StudioSpinner } from '@studio/components-legacy';
-import { StudioAlert, StudioParagraph, StudioTextfield } from '@studio/components';
+import { useTranslation } from 'react-i18next';
+import { StudioAlert, StudioParagraph, StudioTextfield, StudioSpinner } from '@studio/components';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -63,17 +61,6 @@ export function ReferenceTab({
           {t('ux_editor.options.tab_reference_id_alert_title')}
         </StudioAlert>
       )}
-      <p>
-        <Trans i18nKey={'ux_editor.modal_properties_code_list_read_more'}>
-          <a
-            href={altinnDocsUrl({
-              relativeUrl: 'altinn-studio/guides/development/options/sources/dynamic/',
-            })}
-            target='_newTab'
-            rel='noopener noreferrer'
-          />
-        </Trans>
-      </p>
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
 } from '../../../../../../test/mocks/bpmnContextMock';
 import { type LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
+import { TestAppRouter } from '@studio/testing/testRoutingUtils';
 
 const invalidFormatLayoutSetName: string = 'Receipt/';
 const emptyLayoutSetName: string = '';
@@ -171,12 +172,14 @@ describe('CustomReceipt', () => {
 
 const renderCustomReceipt = (bpmnApiContextProps: Partial<BpmnApiContextProps> = {}) => {
   return render(
-    <BpmnApiContext.Provider value={{ ...defaultBpmnContextProps, ...bpmnApiContextProps }}>
-      <BpmnContext.Provider value={mockBpmnContextValue}>
-        <BpmnConfigPanelFormContextProvider>
-          <CustomReceipt />
-        </BpmnConfigPanelFormContextProvider>
-      </BpmnContext.Provider>
-    </BpmnApiContext.Provider>,
+    <TestAppRouter>
+      <BpmnApiContext.Provider value={{ ...defaultBpmnContextProps, ...bpmnApiContextProps }}>
+        <BpmnContext.Provider value={mockBpmnContextValue}>
+          <BpmnConfigPanelFormContextProvider>
+            <CustomReceipt />
+          </BpmnConfigPanelFormContextProvider>
+        </BpmnContext.Provider>
+      </BpmnApiContext.Provider>
+    </TestAppRouter>,
   );
 };
