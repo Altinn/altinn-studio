@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
@@ -122,7 +123,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
                 }
             });
 
-            return subjectOptions;
+            return [.. subjectOptions.OrderBy(s => s.Name, StringComparer.OrdinalIgnoreCase)];
         }
     }
 }
