@@ -192,6 +192,10 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 }
 
 func (c *connection) watchdog() {
+	defer func() {
+		assert.AssertWithMessage(c.ctx.Err() != nil, "Exited CDP watchdog loop, but connection context isn't cancelled")
+	}()
+
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
 
@@ -421,6 +425,10 @@ func (c *connection) Close() error {
 
 // handleMessages reads messages from the WebSocket and routes them
 func (c *connection) handleMessages() {
+	defer func() {
+		assert.AssertWithMessage(c.ctx.Err() != nil, "Exited CDP message handler loop, but connection context isn't cancelled")
+	}()
+
 	// Connection must be fully initialized before handling messages
 	assert.AssertWithMessage(c.wsConn != nil, "Message handler started with nil WebSocket connection")
 	assert.AssertWithMessage(c.pendingCmds != nil, "Message handler started with nil pendingCmds map")
@@ -434,6 +442,10 @@ func (c *connection) handleMessages() {
 
 	// Start a goroutine to read from WebSocket
 	go func() {
+		defer func() {
+			assert.AssertWithMessage(c.ctx.Err() != nil, "Exited WebSocket reader loop, but connection context isn't cancelled")
+		}()
+
 		for {
 			_, payload, err := c.wsConn.ReadMessage()
 			select {
@@ -442,7 +454,6 @@ func (c *connection) handleMessages() {
 				return
 			case readCh <- readResult{payload: payload, err: err}:
 				if err != nil {
-					assert.AssertWithMessage(c.ctx.Err() != nil, "Got ws read error not due to shutdown")
 					return
 				}
 			}
