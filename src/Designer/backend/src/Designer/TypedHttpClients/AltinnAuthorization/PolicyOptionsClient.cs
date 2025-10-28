@@ -109,19 +109,23 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
                 throw new Exception($"Something went wrong when retrieving Subject options", ex);
             }
 
-            oldSubjectOptions.ForEach(oldSubject =>
+            var byLegacyUrn = newSubjectOptions
+                .Where(n => !string.IsNullOrWhiteSpace(n.LegacyUrn))
+                .ToDictionary(n => n.LegacyUrn!, StringComparer.OrdinalIgnoreCase);
+
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var oldSubject in oldSubjectOptions)
             {
                 if (string.IsNullOrWhiteSpace(oldSubject.SubjectId))
                 {
-                    return; // skip invalid legacy entries
+                    continue; // skip invalid legacy entries
                 }
-                string newRoleCode = $"urn:altinn:rolecode:{oldSubject.SubjectId}";
-                SubjectOption match = newSubjectOptions.Find(n => string.Equals(n.LegacyUrn, newRoleCode, StringComparison.OrdinalIgnoreCase));
-                if (match != null)
+                var newRoleCode = $"urn:altinn:rolecode:{oldSubject.SubjectId}";
+                if (byLegacyUrn.TryGetValue(newRoleCode, out var match) && seen.Add(match.Id))
                 {
                     subjectOptions.Add(match);
                 }
-            });
+            }
 
             return [.. subjectOptions.OrderBy(s => s.Name, StringComparer.OrdinalIgnoreCase)];
         }
