@@ -95,8 +95,7 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainer
 		if _, err := result.Unwrap(); err != nil {
 			return nil, fmt.Errorf("failed to setup cluster: %w", err)
 		}
-		// If we got here, cluster setup completed but didn't signal registry event
-		// This shouldn't happen in normal flow, but we can continue
+		return nil, fmt.Errorf("got runtime result but no registry event, invalid state")
 	case <-time.After(5 * time.Minute):
 		return nil, fmt.Errorf("timeout waiting for registry to start")
 	}
@@ -305,8 +304,23 @@ func runTest() {
 		}
 
 		if runBoth || *runSimple {
-			fmt.Println("Running simple tests...")
+			fmt.Println("Running simple integration tests...")
 			if err := runTests(projectRoot, "./test/integration/simple/..."); err != nil {
+				if exitErr, ok := err.(*exec.ExitError); ok {
+					testExitCode = exitErr.ExitCode()
+				} else {
+					testExitCode = 1
+				}
+				// Exit immediately on failure when looping
+				if *iterations > 1 {
+					fmt.Println("")
+					fmt.Printf("FAILED on iteration %d of %d\n", i, *iterations)
+					break
+				}
+			}
+
+			fmt.Println("Running unit tests...")
+			if err := runTests(projectRoot, "./internal/..."); err != nil {
 				if exitErr, ok := err.(*exec.ExitError); ok {
 					testExitCode = exitErr.ExitCode()
 				} else {
@@ -322,7 +336,7 @@ func runTest() {
 		}
 
 		if testExitCode == 0 && (runBoth || *runSmoke) {
-			fmt.Println("Running smoke tests...")
+			fmt.Println("Running smoke integration tests...")
 			if err := runTests(projectRoot, "./test/integration/smoke/..."); err != nil {
 				if exitErr, ok := err.(*exec.ExitError); ok {
 					testExitCode = exitErr.ExitCode()
