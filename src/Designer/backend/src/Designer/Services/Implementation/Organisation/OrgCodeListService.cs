@@ -171,6 +171,21 @@ public class OrgCodeListService : IOrgCodeListService
         }
     }
 
+    /// <inheritdoc />
+    public async Task PublishCodeList(string org, PublishCodeListRequest request, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string codeListId = request.Title;
+        CodeList codeList = request.CodeList;
+        if (InputValidator.IsInvalidCodeListTitle(codeListId))
+        {
+            throw new IllegalFileNameException("The code list title contains invalid characters.");
+        }
+
+        await _sharedContentClient.PublishCodeList(org, codeListId, codeList, cancellationToken);
+    }
+
     internal async Task HandleCommit(AltinnRepoEditingContext editingContext, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
     {
         _sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
@@ -207,21 +222,6 @@ public class OrgCodeListService : IOrgCodeListService
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
         await altinnOrgGitRepository.UpdateCodeListNew(codeListId, codeList, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public async Task PublishCodeList(string org, PublishCodeListRequest request, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        string codeListId = request.Title;
-        CodeList codeList = request.CodeList;
-        if (InputValidator.IsInvalidCodeListTitle(codeListId))
-        {
-            throw new IllegalFileNameException("The code list title contains invalid characters.");
-        }
-
-        await _sharedContentClient.PublishCodeList(org, codeListId, codeList, cancellationToken);
     }
 
     internal static void ValidateCodeListTitles(List<CodeListWrapper> codeListWrappers)
