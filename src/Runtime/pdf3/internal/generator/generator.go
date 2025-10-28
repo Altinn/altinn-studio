@@ -60,6 +60,11 @@ func New() (*Custom, error) {
 	generator := &Custom{}
 
 	go func() {
+		defer func() {
+			r := recover()
+			assert.AssertWithMessage(r == nil, fmt.Sprintf("Generator initialization panicked: %v", r))
+		}()
+
 		log.Printf("Initializing Custom CDP\n")
 
 		// Get and set browser version
@@ -76,22 +81,16 @@ func New() (*Custom, error) {
 			version.ProtocolVersion,
 		)
 
-		init := func(i int, sessions chan<- *browserSession) {
+		init := func(i int) *browserSession {
 			log.Printf("Starting browser worker %d\n", i)
 
 			session, err := newBrowserSession(i)
-			if err != nil {
-				log.Fatalf("Failed to create worker %d: %v", i, err)
-			}
+			assert.AssertWithMessage(err == nil, fmt.Sprintf("Failed to create worker %d: %v", i, err))
 
-			sessions <- session
+			return session
 		}
 
-		sessions := make(chan *browserSession, workerCount)
-
-		go init(workerCount, sessions)
-
-		generator.session = <-sessions
+		generator.session = init(workerCount)
 	}()
 
 	return generator, nil
