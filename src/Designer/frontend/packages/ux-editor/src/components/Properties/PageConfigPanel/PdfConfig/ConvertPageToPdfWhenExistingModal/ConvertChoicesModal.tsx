@@ -5,9 +5,9 @@ import { OverrideCurrentPdfByConversionChoices } from './OverrideCurrentPdfByCon
 import { useTranslation } from 'react-i18next';
 import { usePdf } from '@altinn/ux-editor/hooks/usePdf/usePdf';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useAppContext } from '@altinn/ux-editor/hooks';
 import { useDeleteLayoutMutation } from '@altinn/ux-editor/hooks/mutations/useDeleteLayoutMutation';
 import { useSavableFormLayoutSettings } from '@altinn/ux-editor/hooks/useSavableFormLayoutSettings';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 type ConvertChoicesModalProps = {
   handleModalAction: () => void;
@@ -15,9 +15,9 @@ type ConvertChoicesModalProps = {
 export const ConvertChoicesModal = forwardRef<HTMLDialogElement, ConvertChoicesModalProps>(
   ({ handleModalAction }, ref): JSX.Element => {
     const { org, app } = useStudioEnvironmentParams();
-    const { selectedFormLayoutSetName } = useAppContext();
+    const { layoutSet } = useUxEditorParams();
     const { t } = useTranslation();
-    const { mutate: deleteLayout } = useDeleteLayoutMutation(org, app, selectedFormLayoutSetName);
+    const { mutate: deleteLayout } = useDeleteLayoutMutation(org, app, layoutSet);
     const { getPdfLayoutName, convertCurrentPageToPdf, convertExistingPdfToPage } = usePdf();
     const savableLayoutSettings = useSavableFormLayoutSettings();
     const dialogRef = useForwardedRef<HTMLDialogElement>(ref);

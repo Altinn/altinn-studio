@@ -127,7 +127,7 @@ func TestPdfRequest_Validate_Invalid(t *testing.T) {
 					Format: "InvalidFormat",
 				},
 			},
-			expectedErr: "invalid format: InvalidFormat",
+			expectedErr: "invalid format: InvalidFormat (must be one of: [letter legal tabloid ledger a0 a1 a2 a3 a4 a5 a6])",
 		},
 		{
 			name: "waitFor empty string",
@@ -207,7 +207,7 @@ func TestPdfRequest_Validate_Invalid(t *testing.T) {
 					},
 				},
 			},
-			expectedErr: "cookie[0]: sameSite must be 'Strict' or 'Lax'",
+			expectedErr: "cookie[0]: sameSite must be 'Strict', 'Lax', or 'None', got 'Invalid'",
 		},
 		{
 			name: "multiple cookies, second one invalid",

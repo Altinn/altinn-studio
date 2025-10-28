@@ -8,13 +8,13 @@ import type {
   TextResourceWithLanguage,
 } from '@studio/content-library';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
-import { StudioPageSpinner } from '@studio/components-legacy';
 import {
   StudioAlert,
   StudioParagraph,
   StudioCenter,
   StudioSpinner,
   StudioPageError,
+  StudioPageSpinner,
 } from '@studio/components';
 import { useUpdateOrgCodeListMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListMutation';
 import { useTranslation } from 'react-i18next';
