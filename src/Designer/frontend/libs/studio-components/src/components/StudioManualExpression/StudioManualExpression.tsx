@@ -1,25 +1,25 @@
 import React, { useState } from 'react';
-import type { Expression } from '../types/Expression';
-import { isStringValidAsExpression } from '../validators/isStringValidAsExpression';
-import { stringToExpression } from '../converters/stringToExpression';
-import { expressionToString } from '../converters/expressionToString';
-import { StudioTextarea } from '../../StudioTextarea';
-import classes from './ManualEditor.module.css';
-import { useStudioExpressionContext } from '../StudioExpressionContext';
+import type { Expression } from '../StudioExpression/types/Expression';
+import { isStringValidAsExpression } from '../StudioExpression/validators/isStringValidAsExpression';
+import { stringToExpression, expressionToString } from './StudioManualExpressionUtils';
+import { StudioTextarea } from '../StudioTextarea';
+import classes from './StudioManualExpression.module.css';
 import { usePropState } from '@studio/hooks';
+import type { ExpressionTexts } from '../StudioExpression';
 
-export type ManualEditorProps = {
+export type StudioManualExpressionProps = {
   expression: Expression;
-  onChange: (expression: Expression) => void;
-  isManualExpressionValidRef: React.MutableRefObject<boolean>;
+  onValidExpressionChange: (expression: Expression) => void;
+  onValidityChange: (isValid: boolean) => void;
+  texts: ExpressionTexts;
 };
 
-export const ManualEditor = ({
+export const StudioManualExpression = ({
   expression: givenExpression,
-  onChange,
-  isManualExpressionValidRef,
-}: ManualEditorProps): React.ReactElement => {
-  const { texts } = useStudioExpressionContext();
+  onValidExpressionChange,
+  onValidityChange,
+  texts,
+}: StudioManualExpressionProps): React.ReactElement => {
   const initialExpressionString = expressionToString(givenExpression);
   const isInitiallyValid = isStringValidAsExpression(initialExpressionString);
   const [expressionString, setExpressionString] = usePropState<string>(initialExpressionString);
@@ -28,14 +28,13 @@ export const ManualEditor = ({
   const handleChange: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {
     const { value } = event.target;
     setExpressionString(value);
-    if (isStringValidAsExpression(value)) {
+    const isStringValid = isStringValidAsExpression(value);
+    setIsValid(isStringValid);
+    onValidityChange(isStringValid);
+
+    if (isStringValid) {
       const expression = stringToExpression(value);
-      onChange(expression);
-      setIsValid(true);
-      isManualExpressionValidRef.current = true;
-    } else {
-      setIsValid(false);
-      isManualExpressionValidRef.current = false;
+      onValidExpressionChange(expression);
     }
   };
 
