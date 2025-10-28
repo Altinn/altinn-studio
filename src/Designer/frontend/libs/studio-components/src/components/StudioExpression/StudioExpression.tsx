@@ -1,9 +1,9 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { BooleanExpression } from './types/Expression';
 import { isExpressionValid } from './validators/isExpressionValid';
 import { Tabs } from '@digdir/designsystemet-react';
 import { SimplifiedEditor } from './SimplifiedEditor';
-import { ManualEditor } from './ManualEditor';
+import { StudioManualExpression } from '../StudioManualExpression';
 import { isExpressionSimple } from './validators/isExpressionSimple';
 import {
   StudioExpressionContextProvider,
@@ -76,12 +76,12 @@ const ValidExpression = ({
   const isSimplified = useMemo(() => isExpressionSimple(expression), [expression]);
   const initialTab = isSimplified ? TabId.Simplified : TabId.Manual;
   const [selectedTab, setSelectedTab] = useState<TabId>(initialTab);
-  const isManualExpressionValidRef = useRef<boolean>(true);
+  const [isValid, setIsValid] = useState<boolean>(true);
 
   const handleChangeTab = (tab: TabId): void => {
-    if (!isManualExpressionValidRef.current) {
+    if (!isValid) {
       if (confirm(texts.changeToSimplifiedWarning)) {
-        isManualExpressionValidRef.current = true;
+        setIsValid(true);
         setSelectedTab(tab);
       }
     } else {
@@ -103,10 +103,11 @@ const ValidExpression = ({
         />
       </Tabs.Panel>
       <Tabs.Panel value={TabId.Manual} className={classes.tabContent}>
-        <ManualEditor
+        <StudioManualExpression
           expression={expression}
-          onChange={onChange}
-          isManualExpressionValidRef={isManualExpressionValidRef}
+          onValidExpressionChange={onChange}
+          onValidityChange={setIsValid}
+          texts={texts}
         />
       </Tabs.Panel>
     </Tabs>
