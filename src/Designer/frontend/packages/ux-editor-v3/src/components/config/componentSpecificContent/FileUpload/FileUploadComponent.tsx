@@ -9,7 +9,7 @@ import type {
 } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
-import { StudioTextfield } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components';
 
 export const FileUploadComponent = ({
   component,

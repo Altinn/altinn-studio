@@ -5,8 +5,8 @@ import { DropdownMenu, ErrorMessage } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { getPageNameErrorKey } from '../../../../../utils/designViewUtils';
 import { PencilIcon } from '@studio/icons';
-import { StudioPopover, StudioTextfield } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioPopover } from '@studio/components-legacy';
+import { StudioButton, StudioTextfield } from '@studio/components';
 
 export type InputPopoverProps = {
   disabled: boolean;

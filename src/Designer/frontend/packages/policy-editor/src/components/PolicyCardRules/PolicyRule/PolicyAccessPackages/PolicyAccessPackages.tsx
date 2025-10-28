@@ -1,7 +1,6 @@
 import React, { type ReactElement, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioTextfield } from '@studio/components-legacy';
-import { StudioLabelAsParagraph } from '@studio/components';
+import { StudioLabelAsParagraph, StudioTextfield } from '@studio/components';
 import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
@@ -104,7 +103,6 @@ export const PolicyAccessPackages = (): ReactElement => {
                   {t('policy_editor.access_package_search')}
                 </StudioLabelAsParagraph>
               }
-              hideLabel
               placeholder={t('policy_editor.access_package_search')}
               value={searchValue}
               onChange={handleSearch}

@@ -1,4 +1,5 @@
-import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
+import { StudioNativeSelect } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { getComponentPropertyLabel } from '../../../utils/language';

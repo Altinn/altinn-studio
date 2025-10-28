@@ -166,6 +166,7 @@ describe('NumberRestrictions component', () => {
     });
     await user.type(textBoxMaximum, '0');
     await user.clear(textBoxMaximum);
+    await user.click(document.body);
     const expectedRestrictions = {
       [IntRestrictionKey.minimum]: undefined,
       [IntRestrictionKey.exclusiveMinimum]: undefined,

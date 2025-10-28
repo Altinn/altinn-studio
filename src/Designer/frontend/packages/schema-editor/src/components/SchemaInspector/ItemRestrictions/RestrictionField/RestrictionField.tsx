@@ -1,7 +1,7 @@
 import type { BaseSyntheticEvent, ChangeEvent } from 'react';
 import React from 'react';
 import { makeDomFriendlyID } from '../../../../utils/ui-schema-utils';
-import { StudioTextfield } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components';
 
 export interface IRestrictionFieldProps {
   className?: string;
@@ -33,7 +33,6 @@ export const RestrictionField = ({
   return (
     <div className={className}>
       <StudioTextfield
-        aria-label={label}
         id={fieldId}
         label={label}
         onChange={handleChange}

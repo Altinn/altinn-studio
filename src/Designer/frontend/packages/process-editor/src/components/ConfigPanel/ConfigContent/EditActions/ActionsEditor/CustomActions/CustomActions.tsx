@@ -1,6 +1,5 @@
 import React from 'react';
-import { StudioTextfield } from '@studio/components-legacy';
-import { StudioHelpText } from '@studio/components';
+import { StudioHelpText, StudioTextfield } from '@studio/components';
 import { useDebounce } from '@studio/hooks';
 import { Switch } from '@digdir/designsystemet-react';
 import {

@@ -13,8 +13,7 @@ import type {
   FormRadioButtonsComponent,
 } from '../../../types/FormComponent';
 import { FormField } from '../../FormField';
-import { StudioTextfield } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioTextfield } from '@studio/components';
 
 export interface ISelectionEditComponentProvidedProps
   extends IGenericEditComponent<FormCheckboxesComponent | FormRadioButtonsComponent> {
