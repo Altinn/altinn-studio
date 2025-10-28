@@ -1,5 +1,5 @@
-import { StudioErrorMessage, StudioSwitch, StudioTextfield } from '@studio/components-legacy';
-import { StudioSpinner, StudioFieldset } from '@studio/components';
+import { StudioErrorMessage, StudioTextfield } from '@studio/components-legacy';
+import { StudioSpinner, StudioFieldset, StudioSwitch } from '@studio/components';
 import { useDataTypeQuery } from 'app-shared/hooks/queries/useDataTypeQuery';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -72,15 +72,14 @@ export const ItemMetadataTab = () => {
       />
       {dataType.appLogic && (
         <StudioSwitch
+          label={t('schema_editor.metadata.autoCreate')}
           checked={dataType.appLogic.autoCreate}
           onChange={async (event: React.ChangeEvent<HTMLInputElement>) => {
             const updatedAppLogic = { ...dataType.appLogic, autoCreate: event.target.checked };
             const updatedDataType = { ...dataType, appLogic: updatedAppLogic };
             saveMetadata(updatedDataType);
           }}
-        >
-          {t('schema_editor.metadata.autoCreate')}
-        </StudioSwitch>
+        ></StudioSwitch>
       )}
     </StudioFieldset>
   );

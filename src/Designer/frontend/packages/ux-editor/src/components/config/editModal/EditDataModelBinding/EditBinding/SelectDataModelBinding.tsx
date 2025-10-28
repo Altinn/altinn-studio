@@ -4,10 +4,10 @@ import { FormField } from 'app-shared/components/FormField';
 import { StudioNativeSelect } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useAppContext } from '../../../../../hooks';
 import { useGetBindableDataTypes } from '../../../../../hooks/useGetBindableDataTypes';
 import { useValidDataModels } from '../../../../../hooks/useValidDataModels';
 import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 type SelectDataModelProps = {
   currentDataModel: string;
@@ -23,13 +23,9 @@ export const SelectDataModelBinding = ({
   const { t } = useTranslation();
   const id = useId();
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { layoutSet } = useUxEditorParams();
   const { selectedDataModel } = useValidDataModels(currentDataModel);
-  const { defaultDataTypeName, bindableDataTypes } = useGetBindableDataTypes(
-    org,
-    app,
-    selectedFormLayoutSetName,
-  );
+  const { defaultDataTypeName, bindableDataTypes } = useGetBindableDataTypes(org, app, layoutSet);
   const propertyPath = `definitions/component/properties/dataModelBindings/properties/${bindingKey}/dataType`;
 
   const handleDataModelChange = (newDataModel: string) => {

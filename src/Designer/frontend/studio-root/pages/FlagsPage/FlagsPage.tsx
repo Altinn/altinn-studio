@@ -1,8 +1,7 @@
 import type { ChangeEventHandler, ReactElement } from 'react';
 import React, { useCallback } from 'react';
 import { FeatureFlag, useFeatureToggle } from '@studio/feature-flags';
-import { StudioSwitch } from '@studio/components-legacy';
-import { StudioCodeFragment, StudioHeading } from '@studio/components';
+import { StudioSwitch, StudioHeading } from '@studio/components';
 import classes from './FlagsPage.module.css';
 import { useTranslation } from 'react-i18next';
 
@@ -39,9 +38,5 @@ function Flag({ flagName }: FeatureFlagProps): ReactElement {
     [toggle],
   );
 
-  return (
-    <StudioSwitch checked={isEnabled} onChange={handleToggle}>
-      <StudioCodeFragment>{flagName}</StudioCodeFragment>
-    </StudioSwitch>
-  );
+  return <StudioSwitch checked={isEnabled} onChange={handleToggle} label={flagName} />;
 }
