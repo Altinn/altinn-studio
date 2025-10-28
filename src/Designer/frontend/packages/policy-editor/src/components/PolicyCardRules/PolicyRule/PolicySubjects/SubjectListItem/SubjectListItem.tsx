@@ -27,10 +27,7 @@ export const SubjectListItem = ({
   const Icon = icon;
 
   return (
-    <div
-      key={urn}
-      className={cn(classes.subjectItem, { [classes.selectedSubject]: isSelectedListItem })}
-    >
+    <div className={cn(classes.subjectItem, { [classes.selectedSubject]: isSelectedListItem })}>
       <Icon className={classes.iconContainer} />
       <div className={classes.subjectTitle}>
         {title}
