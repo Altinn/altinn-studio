@@ -95,6 +95,9 @@ public class OrgCodeListService : IOrgCodeListService
     /// <inheritdoc />
     public async Task<GetCodeListResponse> GetCodeListsNew(string org, string? reference = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        Guard.AssertValidateOrganization(org);
+
         string repository = GetStaticContentRepo(org);
         List<FileSystemObject> files = await _gitea.GetCodeListDirectoryContentAsync(org, repository, reference, cancellationToken);
         string latestCommitSha = await _gitea.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
@@ -143,6 +146,8 @@ public class OrgCodeListService : IOrgCodeListService
     /// <inheritdoc />
     public async Task UpdateCodeListsNew(string org, string developer, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        Guard.AssertValidateOrganization(org);
         ValidateCodeListTitles(request.CodeListWrappers);
         ValidateCommitMessage(request.CommitMessage);
         string repositoryName = GetStaticContentRepo(org);
