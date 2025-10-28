@@ -20,9 +20,11 @@ export const NewExpressionButton = () => {
 
   return (
     <StudioDropdown icon={<PlusIcon />} triggerButtonText={title} triggerButtonVariant='secondary'>
-      {remainingProperties.map((property) => (
-        <MenuItem property={property} key={JSON.stringify(property)} />
-      ))}
+      <StudioDropdown.List>
+        {remainingProperties.map((property) => (
+          <MenuItem property={property} key={JSON.stringify(property)} />
+        ))}
+      </StudioDropdown.List>
     </StudioDropdown>
   );
 };
