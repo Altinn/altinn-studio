@@ -1,7 +1,7 @@
 import React from 'react';
 import { useRouterContext } from '../../../contexts/RouterContext';
 import type { PageName } from '../../../types/PageName';
-import { StudioContentMenu } from '@studio/components-legacy';
+import { StudioContentMenu } from '@studio/components';
 import type { ContentLibraryConfig } from '../../../types/ContentLibraryConfig';
 import type { Page } from '../../../pages/Page';
 import { pages } from '../../../pages';

@@ -3,7 +3,7 @@ import React from 'react';
 import type { PagePropsMap } from '../types/PagesProps';
 import { useTranslation } from 'react-i18next';
 import { pageRouterQueryParamKey } from '../utils/router/QueryParamsRouter';
-import { StudioContentMenu } from '@studio/components-legacy';
+import { StudioContentMenu } from '@studio/components';
 import { Link } from 'react-router-dom';
 import type { ContentLibraryConfig } from '../types/ContentLibraryConfig';
 
