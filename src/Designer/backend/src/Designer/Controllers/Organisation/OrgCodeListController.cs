@@ -102,7 +102,7 @@ public class OrgCodeListController : ControllerBase
             await _orgCodeListService.UpdateCodeListsNew(org, developer, requestBody, cancellationToken);
             return Ok();
         }
-        catch (Exception ex) when (ex is IllegalFileNameException or IllegalCommitMessageException)
+        catch (Exception ex) when (ex is IllegalFileNameException or IllegalCommitMessageException or ArgumentException)
         {
             return BadRequest(ex.Message);
         }
