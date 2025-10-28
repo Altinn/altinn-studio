@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -9,6 +10,8 @@ import (
 	"syscall"
 	"testing"
 	"time"
+
+	"altinn.studio/pdf3/internal/assert"
 )
 
 var IsTestInternalsMode bool = os.Getenv("TEST_INTERNALS_MODE") == "true" || testing.Testing()
@@ -82,6 +85,11 @@ func NewHost(
 }
 
 func (h *Host) run() {
+	defer func() {
+		r := recover()
+		assert.AssertWithMessage(r == nil, fmt.Sprintf("Runtime host shutdown coordinator panicked: %v", r))
+	}()
+
 	// We received SIGINT/SIGTERM
 	// 1. Log and notify
 	<-h.signalCtx.Done()
