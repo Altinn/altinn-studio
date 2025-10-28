@@ -154,6 +154,8 @@ func Test_WaitForTimeoutWithErrors(t *testing.T) {
 		t.Fatal("Expected timeout error when element never appears, but PDF generation succeeded")
 	}
 
+	harness.Snapshot(t, []byte(err.Error()), "error", "txt")
+
 	t.Logf("Expected error occurred: %v", err)
 
 	req2 := harness.GetDefaultPdfRequest(t)
