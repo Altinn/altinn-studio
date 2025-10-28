@@ -14,7 +14,7 @@ import { ObjectKind, FieldType } from '@altinn/schema-model';
 import { StudioDropdown } from '@studio/components';
 
 export interface AddPropertiesMenuProps {
-  onItemClick?: (kind: ObjectKind, fieldType?: FieldType) => void;
+  onItemClick: (kind: ObjectKind, fieldType?: FieldType) => void;
 }
 
 const propertyItems = [
