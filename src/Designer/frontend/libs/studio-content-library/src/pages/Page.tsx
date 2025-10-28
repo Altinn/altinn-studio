@@ -1,5 +1,6 @@
 import type { PageName } from '../types/PageName';
-import React, { ComponentProps, ReactElement } from 'react';
+import React from 'react';
+import type { ComponentProps, ReactElement } from 'react';
 import type { PagePropsMap } from '../types/PagesProps';
 import { useTranslation } from 'react-i18next';
 import { pageRouterQueryParamKey } from '../utils/router/QueryParamsRouter';
