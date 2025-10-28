@@ -3,11 +3,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 
-namespace Altinn.Studio.Designer.Services.Interfaces;
+namespace Altinn.Studio.Designer.TypedHttpClient.Grafana;
 
-public interface IAlertProvider
+public interface IGrafanaClient
 {
-    public Task<IEnumerable<Alert>> GetFiringAlertsAsync(
+    public Task<IEnumerable<GrafanaAlert>> GetFiringAlertsAsync(
         string org,
         string env,
         CancellationToken cancellationToken = default

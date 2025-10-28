@@ -13,14 +13,16 @@ public class AlertsService(
     ) : IAlertsService
 {
     /// <inheritdoc />
-    public async Task<IEnumerable<Alert>> GetFiringAlerts(
+    public async Task<IEnumerable<Alert>> GetFiringAlertsAsync(
         string org,
         string env,
         CancellationToken cancellationToken = default
     )
     {
         IAlertProvider service = serviceProvider.GetRequiredKeyedService<IAlertProvider>("Grafana");
-        IEnumerable<Alert> alerts = await service.GetFiringAlerts(org, env, cancellationToken);
+
+        IEnumerable<Alert> alerts = await service.GetFiringAlertsAsync(org, env, cancellationToken);
+
         return alerts;
     }
 }

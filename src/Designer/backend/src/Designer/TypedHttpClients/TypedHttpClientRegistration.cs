@@ -2,10 +2,13 @@ using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Mime;
+using System.Threading.Tasks;
+using Altinn.App.Core.Internal.Secrets;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClient.Grafana;
 using Altinn.Studio.Designer.TypedHttpclients.DelegatingHandlers;
 using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
@@ -64,6 +67,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddTransient<PlatformSubscriptionAuthDelegatingHandler>();
             services.AddMaskinportenHttpClient();
             services.AddSlackClient(config);
+            services.AddGrafanaClient();
 
             return services;
         }
@@ -185,5 +189,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
             }).AddHttpMessageHandler<EnsureSuccessHandler>();
         }
+
+        private static IHttpClientBuilder AddGrafanaClient(this IServiceCollection services)
+        => services.AddHttpClient<IGrafanaClient, GrafanaClient>()
+                .AddHttpMessageHandler<EnsureSuccessHandler>();
     }
 }

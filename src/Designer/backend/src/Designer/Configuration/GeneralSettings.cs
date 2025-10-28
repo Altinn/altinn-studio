@@ -65,24 +65,5 @@ namespace Altinn.Studio.Designer.Configuration
         public string EnvironmentsUrl { get; set; }
 
         public string OrganizationsUrl { get; set; }
-
-        /// <summary>
-        /// Gets or sets the grafana api settings
-        /// </summary>
-        public GrafanaApiSettings GrafanaApiSettings { get; set; }
-
-        /// <summary>
-        /// Get url to grafana api
-        /// </summary>
-        public string GetGrafanaApiUrl(string org, string env)
-        {
-            return (env == "production" ? GrafanaApiSettings.ProdUrl : GrafanaApiSettings.TestUrl).Replace("{org}", org);
-        }
-    }
-
-    public class GrafanaApiSettings
-    {
-        public string TestUrl { get; set; }
-        public string ProdUrl { get; set; }
     }
 }

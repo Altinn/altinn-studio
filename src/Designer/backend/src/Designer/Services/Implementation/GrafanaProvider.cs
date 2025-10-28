@@ -1,49 +1,32 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.App.Core.Internal.Secrets;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClient.Grafana;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class GrafanaProvider(
-    HttpClient httpClient,
-    ISecretsClient secretsClient,
-    IOptions<GeneralSettings> generalSettings
+    IGrafanaClient grafanaClient,
+    IOptions<GrafanaSettings> grafanaSettings
     ) : IAlertProvider
 {
-    private readonly HttpClient _httpClient = httpClient;
-    private readonly ISecretsClient _secretsClient = secretsClient;
-    private readonly GeneralSettings _generalSettings = generalSettings.Value;
+    private readonly GrafanaSettings _grafanaSettings = grafanaSettings.Value;
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Alert>> GetFiringAlerts(
+    public async Task<IEnumerable<Alert>> GetFiringAlertsAsync(
         string org,
         string env,
-        CancellationToken cancellationToken = default
+        CancellationToken cancellationToken
     )
     {
-        string apiToken = await _secretsClient.GetSecretAsync("GrafanaApiToken");
-        _httpClient.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", apiToken);
+        string baseUrl = _grafanaSettings.GetSettings(env).GetBaseUri(org);
 
-        string baseUrl = _generalSettings.GetGrafanaApiUrl(org, env);
-        string url = $"{baseUrl}/api/alertmanager/grafana/api/v2/alerts?active=true&silenced=false&inhibited=false";
-
-        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
-
-        HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
-        response.EnsureSuccessStatusCode();
-
-        List<GrafanaAlert> alerts = await response.Content.ReadFromJsonAsync<List<GrafanaAlert>>(options, cancellationToken: cancellationToken) ?? [];
+        IEnumerable<GrafanaAlert> alerts = await grafanaClient.GetFiringAlertsAsync(org, env, cancellationToken);
 
         return alerts.Select(alert =>
         {
@@ -53,8 +36,23 @@ public class GrafanaProvider(
                 AlertRuleId = alert.Labels["__alert_rule_uid__"],
                 Type = alert.Labels.TryGetValue("Type", out string type) ? type : string.Empty, // Text = alert.Annotations["summary"].Replace("'", ""),
                 App = alert.Labels["cloud/rolename"],
-                Url = alert.Annotations.TryGetValue("__dashboardUid__", out string dashboardId) ? alert.Annotations.TryGetValue("__panelId__", out string panelId) ? $"{baseUrl}/d/{dashboardId}/?viewPanel={panelId}" : $"{baseUrl}/d/{dashboardId}" : alert.GeneratorURL
+                Url = BuildAlertLink(baseUrl, alert)
             };
         });
+    }
+
+    private static string BuildAlertLink(string baseUrl, GrafanaAlert alert)
+    {
+        if (alert.Annotations.TryGetValue("__dashboardUid__", out string dashboardId))
+        {
+            if (alert.Annotations.TryGetValue("__panelId__", out string panelId))
+            {
+                return $"{baseUrl}/d/{dashboardId}/?viewPanel={panelId}";
+            }
+
+            return $"{baseUrl}/d/{dashboardId}";
+        }
+
+        return alert.GeneratorURL;
     }
 }

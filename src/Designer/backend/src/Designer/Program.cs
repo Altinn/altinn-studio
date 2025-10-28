@@ -3,8 +3,6 @@ using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Altinn.ApiClients.Maskinporten.Extensions;
-using Altinn.App.Core.Infrastructure.Clients.KeyVault;
-using Altinn.App.Core.Internal.Secrets;
 using Altinn.Common.AccessToken.Configuration;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
@@ -36,7 +34,6 @@ using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
@@ -238,16 +235,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.ConfigureAuthentication(configuration, env);
 
     services.Configure<CacheSettings>(configuration.GetSection("CacheSettings"));
-
-    if (!env.IsDevelopment())
-    {
-        services.TryAddSingleton<ISecretsClient, SecretsClient>();
-        services.Configure<KeyVaultSettings>(configuration.GetSection("kvSetting"));
-    }
-    else
-    {
-        services.TryAddSingleton<ISecretsClient, SecretsLocalClient>();
-    }
 
     services.AddLocalization(options => options.ResourcesPath = "Resources");
 

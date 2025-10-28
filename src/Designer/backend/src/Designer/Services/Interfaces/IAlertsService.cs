@@ -7,9 +7,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 
 public interface IAlertsService
 {
-    public Task<IEnumerable<Alert>> GetFiringAlerts(
+    public Task<IEnumerable<Alert>> GetFiringAlertsAsync(
         string org,
         string env,
-        CancellationToken ct
+        CancellationToken cancellationToken = default
     );
 }

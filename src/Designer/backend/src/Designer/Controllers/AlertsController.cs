@@ -25,7 +25,8 @@ public class AlertsController(
         CancellationToken ct
     )
     {
-        IEnumerable<Alert> alerts = await _alertsService.GetFiringAlerts(org, env, ct);
+        IEnumerable<Alert> alerts = await _alertsService.GetFiringAlertsAsync(org, env, ct);
+
         return Ok(alerts);
     }
 }
