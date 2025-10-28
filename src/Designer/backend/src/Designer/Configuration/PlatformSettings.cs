@@ -15,6 +15,11 @@ namespace Altinn.Studio.Designer.Configuration
         public string ApiStorageApplicationUri { get; set; }
 
         /// <summary>
+        /// Uniform resource identifier for Platform.Storage Instances
+        /// </summary>
+        public string ApiStorageInstancesUri { get; set; }
+
+        /// <summary>
         /// Uniform resource locator for Platform.Authorization policies
         /// </summary>
         public string ApiAuthorizationPolicyUri { get; set; }

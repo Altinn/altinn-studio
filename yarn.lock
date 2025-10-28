@@ -4939,6 +4939,7 @@ __metadata:
     morgan: "npm:1.10.1"
     nodemon: "npm:3.1.10"
     p-queue: "npm:8.1.1"
+    uuid: "npm:13.0.0"
   languageName: unknown
   linkType: soft
 
