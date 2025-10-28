@@ -16,7 +16,7 @@ import {
 } from '@studio/components';
 import { getUpdatedRules } from '../../utils/PolicyRuleUtils';
 import classes from './ConsentResourcePolicyRulesEditor.module.css';
-import { PolicySubjectsNew } from '../PolicyCardRules/PolicyRule/PolicySubjectsNew';
+import { PolicySubjects } from '../PolicyCardRules/PolicyRule/PolicySubjects';
 
 export const ConsentResourcePolicyRulesEditor = () => {
   const { policyRules, showAllErrors } = usePolicyEditorContext();
@@ -66,7 +66,7 @@ const AcceptConsentPolicyRule = ({
           description={t('policy_editor.consent_resource_consent_description')}
         >
           <div>
-            <PolicySubjectsNew />
+            <PolicySubjects />
             {showErrors && <PolicyRuleErrorMessage />}
           </div>
         </StudioFieldset>

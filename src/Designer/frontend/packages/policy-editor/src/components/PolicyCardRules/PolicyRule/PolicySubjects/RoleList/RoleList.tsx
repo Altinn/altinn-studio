@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { PolicySubject } from '@altinn/policy-editor/types';
-import { StudioAlert, StudioCheckbox, StudioSearch } from '@studio/components';
+import { StudioAlert, StudioSearch } from '@studio/components';
 import { PersonTallShortIcon } from '@studio/icons';
-import classes from './PolicySubjectsNew.module.css';
+import classes from './RoleList.module.css';
 import { hasSubject } from '@altinn/policy-editor/utils';
+import { SubjectListItem } from '../SubjectListItem';
 
 interface RoleListProps {
   selectedSubjects: string[];
@@ -25,7 +26,7 @@ export const RoleList = ({ subjects, selectedSubjects, heading, handleChange }: 
   });
 
   return (
-    <div className={classes.subjectList}>
+    <div className={classes.roleList}>
       <StudioSearch
         label=''
         aria-label={t('policy_editor.rule_card_subjects_search', { searchCollection: heading })}
@@ -41,22 +42,15 @@ export const RoleList = ({ subjects, selectedSubjects, heading, handleChange }: 
         const legacyRoleCode = subject.legacyRoleCode ? ` (${subject.legacyRoleCode})` : '';
         const subjectTitle = `${subject.name}${legacyRoleCode}`;
         return (
-          <div key={subject.urn} className={classes.subjectItem}>
-            <PersonTallShortIcon className={classes.iconContainer} />
-            <div className={classes.subjectTitle}>
-              {subjectTitle}
-              <div data-color='neutral' className={classes.subjectSubTitle}>
-                {subject.description}
-              </div>
-            </div>
-            <StudioCheckbox
-              data-size='md'
-              className={classes.subjectCheckbox}
-              checked={hasSubject(selectedSubjects, subject.urn, subject.legacyUrn)}
-              onChange={() => handleChange(subject.urn, subject.legacyUrn)}
-              aria-label={subjectTitle}
-            />
-          </div>
+          <SubjectListItem
+            key={subject.urn}
+            urn={subject.urn}
+            icon={PersonTallShortIcon}
+            title={subjectTitle}
+            description={subject.description}
+            isChecked={hasSubject(selectedSubjects, subject.urn, subject.legacyUrn)}
+            handleChange={handleChange}
+          />
         );
       })}
     </div>

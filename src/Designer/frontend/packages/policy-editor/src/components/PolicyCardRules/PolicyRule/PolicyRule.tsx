@@ -11,7 +11,7 @@ import { PolicyRuleErrorMessage } from './PolicyRuleErrorMessage';
 import { getNewRuleId } from '../../../utils';
 import { usePolicyEditorContext } from '../../../contexts/PolicyEditorContext';
 import { ObjectUtils } from '@studio/pure-functions';
-import { PolicySubjectsNew } from './PolicySubjectsNew';
+import { PolicySubjects } from './PolicySubjects';
 
 export type PolicyRuleProps = {
   policyRule: PolicyRuleCard;
@@ -88,7 +88,7 @@ export const PolicyRule = ({
         >
           <SubResources />
           <PolicyActions />
-          <PolicySubjectsNew />
+          <PolicySubjects />
           <PolicyDescription />
         </ExpandablePolicyElement>
         {showErrors && <PolicyRuleErrorMessage />}

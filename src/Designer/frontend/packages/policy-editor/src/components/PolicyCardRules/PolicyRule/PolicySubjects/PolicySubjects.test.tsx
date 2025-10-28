@@ -14,7 +14,7 @@ import type {
   PolicyAccessPackageArea,
   PolicyAccessPackageAreaGroup,
 } from 'app-shared/types/PolicyAccessPackages';
-import { PolicySubjectsNew } from './PolicySubjectsNew';
+import { PolicySubjects } from './PolicySubjects';
 import { policySubjectOrg } from '@altinn/policy-editor/utils';
 import {
   mockSubject1,
@@ -101,12 +101,12 @@ const subjects = [
   policySubjectOrg,
 ];
 
-describe('PolicySubjectsNew', () => {
+describe('PolicySubjects', () => {
   afterEach(jest.clearAllMocks);
 
   it('should show subject checkbox checked when subject is added with urn', async () => {
     const user = userEvent.setup();
-    renderPolicySubjectsNew();
+    renderPolicySubjects();
 
     const altinnRolesTab = screen.getByText(
       textMock('policy_editor.rule_card_subjects_altinn_roles'),
@@ -121,7 +121,7 @@ describe('PolicySubjectsNew', () => {
 
   it('should show subject checkbox checked when subject is added with legacyUrn', async () => {
     const user = userEvent.setup();
-    renderPolicySubjectsNew();
+    renderPolicySubjects();
 
     const checkbox = screen.getByLabelText(
       `${revisorRoleSubject.name} (${revisorRoleSubject.legacyRoleCode})`,
@@ -133,7 +133,7 @@ describe('PolicySubjectsNew', () => {
 
   it('should remove subject from selected list when subject checkbox is clicked', async () => {
     const user = userEvent.setup();
-    renderPolicySubjectsNew();
+    renderPolicySubjects();
 
     const label = `${mockSubject1.name} (${mockSubject1.legacyRoleCode})`;
     const selectedSubjectCheckbox = screen.getByLabelText(label);
@@ -144,7 +144,7 @@ describe('PolicySubjectsNew', () => {
 
   it('should remove access package from selected list when selected access package checkbox is clicked', async () => {
     const user = userEvent.setup();
-    renderPolicySubjectsNew();
+    renderPolicySubjects();
 
     const selectedAccessPackageCheckbox = screen.getByLabelText(lufttransportPackage.name);
     await user.click(selectedAccessPackageCheckbox);
@@ -153,7 +153,7 @@ describe('PolicySubjectsNew', () => {
   });
 
   it('should show unknown access package if rule contains unknown access package', () => {
-    renderPolicySubjectsNew();
+    renderPolicySubjects();
 
     expect(
       screen.getByText(textMock('policy_editor.access_package_unknown_heading')),
@@ -161,7 +161,7 @@ describe('PolicySubjectsNew', () => {
   });
 
   it('should show error if no subject is selected', () => {
-    renderPolicySubjectsNew();
+    renderPolicySubjects();
 
     expect(
       screen.getByText(textMock('policy_editor.rule_card_subjects_error')),
@@ -169,7 +169,7 @@ describe('PolicySubjectsNew', () => {
   });
 
   it('should show ccr subjects in first tab', () => {
-    renderPolicySubjectsNew();
+    renderPolicySubjects();
 
     expect(
       screen.getByText(`${revisorRoleSubject.name} (${revisorRoleSubject.legacyRoleCode})`),
@@ -178,7 +178,7 @@ describe('PolicySubjectsNew', () => {
 
   it('should show access packages in second tab', async () => {
     const user = userEvent.setup();
-    renderPolicySubjectsNew();
+    renderPolicySubjects();
 
     const accessPackagesTab = screen.getByText(
       textMock('policy_editor.rule_card_subjects_access_packages'),
@@ -190,7 +190,7 @@ describe('PolicySubjectsNew', () => {
 
   it('should show altinn 2 and altinn 3 roles in third tab', async () => {
     const user = userEvent.setup();
-    renderPolicySubjectsNew();
+    renderPolicySubjects();
 
     const altinnRolesTab = screen.getByText(
       textMock('policy_editor.rule_card_subjects_altinn_roles'),
@@ -205,7 +205,7 @@ describe('PolicySubjectsNew', () => {
 
   it('should show org subject in fourth tab', async () => {
     const user = userEvent.setup();
-    renderPolicySubjectsNew();
+    renderPolicySubjects();
 
     const otherRolesTab = screen.getByText(
       textMock('policy_editor.rule_card_subjects_other_roles'),
@@ -218,7 +218,7 @@ describe('PolicySubjectsNew', () => {
   });
 });
 
-const renderPolicySubjectsNew = () => {
+const renderPolicySubjects = () => {
   const queryClient = createQueryClientMock();
 
   return render(
@@ -259,7 +259,7 @@ const ContextWrapper = () => {
           policyRule: { ...policyRules[0] },
         }}
       >
-        <PolicySubjectsNew />
+        <PolicySubjects />
       </PolicyRuleContext.Provider>
     </PolicyEditorContext.Provider>
   );

@@ -3,15 +3,15 @@ import { StudioTabs } from '@studio/components';
 import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
-import classes from './PolicySubjectsNew.module.css';
+import classes from './PolicySubjects.module.css';
 import { PackageIcon, PersonTallShortIcon } from '@studio/icons';
 import { PolicyAccessPackages } from '../PolicyAccessPackages';
 import { ErrorMessage } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import type { PolicyAccessPackage } from 'app-shared/types/PolicyAccessPackages';
-import { SelectedSubjectsList } from './SelectedSubjectsList';
-import { RoleList } from './RoleList';
+import { RoleList } from './RoleList/RoleList';
 import { findSubject, hasSubject } from '@altinn/policy-editor/utils';
+import { SubjectListItem } from './SubjectListItem';
 
 enum TabId {
   ErRoles = 'ErRoles',
@@ -20,7 +20,7 @@ enum TabId {
   Other = 'Other',
 }
 
-export const PolicySubjectsNew = () => {
+export const PolicySubjects = () => {
   const { t } = useTranslation();
   const { policyRules, subjects, accessPackages, setPolicyRules, savePolicy } =
     usePolicyEditorContext();
@@ -85,35 +85,53 @@ export const PolicySubjectsNew = () => {
       <div data-color='neutral' className={classes.subjectDescription}>
         {t('policy_editor.rule_card_subjects_subtitle')}
       </div>
-      <SelectedSubjectsList
-        items={policyRule.subject.map((urn) => {
-          const subject = findSubject(subjects, urn);
-          const legacyRoleCode = subject?.legacyRoleCode ? ` (${subject.legacyRoleCode})` : '';
-          return {
-            urn: urn,
-            title: `${subject?.name}${legacyRoleCode}`,
-            legacyUrn: subject?.legacyUrn,
-          };
-        })}
-        title={t('policy_editor.rule_card_subjects_chosen_roles')}
-        icon={<PersonTallShortIcon className={classes.iconContainer} />}
-        handleRemove={handleSubjectChange}
-      />
-      <SelectedSubjectsList
-        items={policyRule.accessPackages.map((accessPackageUrn) => {
-          let accessPackage = accessPackageList.find((s) => s.urn === accessPackageUrn);
-          if (!accessPackage) {
-            accessPackage = createUnknownAccessPackageData(accessPackageUrn);
-          }
-          return {
-            urn: accessPackageUrn,
-            title: accessPackage.name,
-          };
-        })}
-        title={t('policy_editor.rule_card_subjects_chosen_access_packages')}
-        icon={<PackageIcon className={classes.iconContainer} />}
-        handleRemove={handleRemoveAccessPackage}
-      />
+      {policyRule.subject.length > 0 && (
+        <div className={classes.selectedSubjectList}>
+          <div className={classes.selectedListTitle}>
+            {t('policy_editor.rule_card_subjects_chosen_roles')}
+          </div>
+          {policyRule.subject.map((urn) => {
+            const subject = findSubject(subjects, urn);
+            const legacyRoleCode = subject?.legacyRoleCode ? ` (${subject.legacyRoleCode})` : '';
+            return (
+              <SubjectListItem
+                key={`${urn}-selected`}
+                urn={urn}
+                legacyUrn={subject?.legacyUrn}
+                title={`${subject?.name}${legacyRoleCode}`}
+                icon={PersonTallShortIcon}
+                isChecked={true}
+                isSelectedListItem
+                handleChange={handleSubjectChange}
+              />
+            );
+          })}
+        </div>
+      )}
+      {policyRule.accessPackages.length > 0 && (
+        <div className={classes.selectedSubjectList}>
+          <div className={classes.selectedListTitle}>
+            {t('policy_editor.rule_card_subjects_chosen_access_packages')}
+          </div>
+          {policyRule.accessPackages.map((accessPackageUrn) => {
+            let accessPackage = accessPackageList.find((s) => s.urn === accessPackageUrn);
+            if (!accessPackage) {
+              accessPackage = createUnknownAccessPackageData(accessPackageUrn);
+            }
+            return (
+              <SubjectListItem
+                key={`${accessPackageUrn}-selected`}
+                urn={accessPackageUrn}
+                title={accessPackage.name}
+                icon={PackageIcon}
+                isChecked={true}
+                isSelectedListItem
+                handleChange={handleRemoveAccessPackage}
+              />
+            );
+          })}
+        </div>
+      )}
       <StudioTabs defaultValue={TabId.ErRoles}>
         <StudioTabs.List>
           <StudioTabs.Tab value={TabId.ErRoles}>
