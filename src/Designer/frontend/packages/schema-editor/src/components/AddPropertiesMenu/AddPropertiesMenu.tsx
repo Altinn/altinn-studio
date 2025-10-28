@@ -11,12 +11,10 @@ import {
   PlusIcon,
 } from '@studio/icons';
 import { ObjectKind, FieldType } from '@altinn/schema-model';
-import { type StudioButtonProps } from '@studio/components-legacy';
 import { StudioDropdown } from '@studio/components';
 
 export interface AddPropertiesMenuProps {
   onItemClick?: (kind: ObjectKind, fieldType?: FieldType) => void;
-  anchorButtonProps?: StudioButtonProps;
 }
 
 const propertyItems = [
