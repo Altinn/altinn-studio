@@ -41,11 +41,12 @@ describe('FeedbackFormImpl', () => {
 
     render(<div>{feedbackForm.getFeedbackForm()}</div>);
 
-    expect(screen.queryByText('Give feedback - heading')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
     const triggerButton = screen.getByRole('button', { name: 'Give feedback' });
     await user.click(triggerButton);
 
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Give feedback - heading')).toBeInTheDocument();
   });
 });

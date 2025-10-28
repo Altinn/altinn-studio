@@ -1,6 +1,5 @@
 import React, { useRef } from 'react';
-import { StudioModal } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioDialog, StudioHeading } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { DialogContent } from './components/DialogContent';
 
@@ -19,13 +18,14 @@ export const UndeployConsequenceDialog = ({
       <StudioButton onClick={openDialog} variant='tertiary'>
         {t('app_deployment.undeploy_button')}
       </StudioButton>
-      <StudioModal.Dialog
-        closeButtonTitle={t('sync_header.close_local_changes_button')}
-        heading={t('app_deployment.unpublish_consequence_dialog_title')}
-        ref={dialogRef}
-      >
+      <StudioDialog ref={dialogRef}>
+        <StudioDialog.Block>
+          <StudioHeading level={2}>
+            {t('app_deployment.unpublish_consequence_dialog_title')}
+          </StudioHeading>
+        </StudioDialog.Block>
         <DialogContent environment={environment} />
-      </StudioModal.Dialog>
+      </StudioDialog>
     </>
   );
 };

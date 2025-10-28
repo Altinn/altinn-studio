@@ -1,7 +1,6 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useRef } from 'react';
 import { toast } from 'react-toastify';
-import { StudioModal } from '@studio/components-legacy';
-import { StudioButton, StudioParagraph } from '@studio/components';
+import { StudioButton, StudioParagraph, StudioDialog, StudioHeading } from '@studio/components';
 import type { ButtonTexts, QuestionConfig, QuestionsProps } from '../types/QuestionsProps';
 import { YesNoQuestion } from './Question/YesNoQuestion';
 import { useFeedbackFormContext } from '../contexts/FeedbackFormContext';
@@ -37,12 +36,7 @@ export function FeedbackForm({
 
   const handleCloseModal = () => {
     setAnswers({});
-    modalRef.current?.close();
   };
-
-  const handleOpenModal = useCallback(() => {
-    modalRef.current?.showModal();
-  }, []);
 
   const handleAnswerChange = (questionId: string, answer: any) => {
     const newAnswers = { ...answers, [questionId]: answer };
@@ -52,7 +46,7 @@ export function FeedbackForm({
   const handleSubmit = () => {
     submitFeedback({ ...answers, feedbackFormId: id }, submitPath)
       .then(() => {
-        handleCloseModal();
+        modalRef.current?.close();
         toast.success(t('feedback.success_message'));
       })
       .catch(() => {
@@ -83,32 +77,29 @@ export function FeedbackForm({
     }
   };
   return (
-    <StudioModal.Root>
-      <StudioButton
-        className={position === 'fixed' ? classes.fixed : undefined}
-        onClick={handleOpenModal}
-      >
+    <StudioDialog.TriggerContext>
+      <StudioDialog.Trigger className={position === 'fixed' ? classes.fixed : undefined}>
         {buttonTexts.trigger}
-      </StudioButton>
-      <StudioModal.Dialog
-        onClose={handleCloseModal}
-        heading={heading}
-        closeButtonTitle={buttonTexts.close}
-        ref={modalRef}
-      >
-        <StudioParagraph spacing>{description}</StudioParagraph>
-        {questions.map((question) => {
-          return renderQuestion(question);
-        })}
-        {disclaimer && (
-          <StudioParagraph data-size='xs' className={classes.disclaimer} spacing>
-            {disclaimer}
-          </StudioParagraph>
-        )}
-        <StudioButton onClick={handleSubmit} data-color='success'>
-          {buttonTexts.submit}
-        </StudioButton>
-      </StudioModal.Dialog>
-    </StudioModal.Root>
+      </StudioDialog.Trigger>
+      <StudioDialog ref={modalRef} onClose={handleCloseModal}>
+        <StudioDialog.Block>
+          <StudioHeading level={2}>{heading}</StudioHeading>
+        </StudioDialog.Block>
+        <StudioDialog.Block>
+          <StudioParagraph spacing>{description}</StudioParagraph>
+          {questions.map((question) => {
+            return renderQuestion(question);
+          })}
+          {disclaimer && (
+            <StudioParagraph data-size='xs' className={classes.disclaimer} spacing>
+              {disclaimer}
+            </StudioParagraph>
+          )}
+          <StudioButton onClick={handleSubmit} data-color='success'>
+            {buttonTexts.submit}
+          </StudioButton>
+        </StudioDialog.Block>
+      </StudioDialog>
+    </StudioDialog.TriggerContext>
   );
 }

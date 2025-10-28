@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import type { FileStatus, RepoContentStatus } from 'app-shared/types/RepoStatus';
-import { StudioModal, StudioSpinner } from '@studio/components-legacy';
-import { StudioError } from '@studio/components';
+import { StudioSpinner } from '@studio/components-legacy';
+import { StudioError, StudioDialog, StudioHeading } from '@studio/components';
 import { Table, Tag } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './FileChangesInfoModal.module.css';
@@ -34,47 +34,51 @@ export const FileChangesInfoModal = ({
     repoDiffStatus === 'success' && Object.keys(repoDiff).includes(filePath);
 
   return (
-    <StudioModal.Root>
-      <StudioModal.Trigger
+    <StudioDialog.TriggerContext>
+      <StudioDialog.Trigger
         icon={<ClockDashedIcon />}
         variant='tertiary'
         className={classes.openDialogButton}
       >
         {t('sync_header.review_file_changes')}
-      </StudioModal.Trigger>
-      <StudioModal.Dialog
-        className={classes.dialog}
-        closeButtonTitle={t('sync_header.show_changes_modal.close_button')}
-        footer={renderDiffStatus(repoDiffStatus)}
-        heading={t('sync_header.show_changes_modal.title')}
-        icon={<ClockDashedIcon />}
-      >
-        <div>
-          <Table zebra className={classes.table}>
-            <Table.Head>
-              <Table.Row>
-                <Table.HeaderCell>
-                  {t('sync_header.show_changes_modal.column_header_file_name')}
-                </Table.HeaderCell>
-                <Table.HeaderCell className={classes.fileStatusCell}>
-                  {t('sync_header.show_changes_modal.column_header_file_status')}
-                </Table.HeaderCell>
-              </Table.Row>
-            </Table.Head>
-            <Table.Body>
-              {fileChanges.map((fileChange) => (
-                <FileChangeTableRow
-                  key={fileChange.filePath}
-                  fileChange={fileChange}
-                  diff={gitDiffIncludesFile(fileChange.filePath) && repoDiff[fileChange.filePath]}
-                  repoDiffStatus={repoDiffStatus}
-                />
-              ))}
-            </Table.Body>
-          </Table>
-        </div>
-      </StudioModal.Dialog>
-    </StudioModal.Root>
+      </StudioDialog.Trigger>
+      <StudioDialog className={classes.dialog}>
+        <StudioDialog.Block>
+          <StudioHeading level={2}>
+            <ClockDashedIcon /> {t('sync_header.show_changes_modal.title')}
+          </StudioHeading>
+        </StudioDialog.Block>
+        <StudioDialog.Block>
+          <div>
+            <Table zebra className={classes.table}>
+              <Table.Head>
+                <Table.Row>
+                  <Table.HeaderCell>
+                    {t('sync_header.show_changes_modal.column_header_file_name')}
+                  </Table.HeaderCell>
+                  <Table.HeaderCell className={classes.fileStatusCell}>
+                    {t('sync_header.show_changes_modal.column_header_file_status')}
+                  </Table.HeaderCell>
+                </Table.Row>
+              </Table.Head>
+              <Table.Body>
+                {fileChanges.map((fileChange) => (
+                  <FileChangeTableRow
+                    key={fileChange.filePath}
+                    fileChange={fileChange}
+                    diff={gitDiffIncludesFile(fileChange.filePath) && repoDiff[fileChange.filePath]}
+                    repoDiffStatus={repoDiffStatus}
+                  />
+                ))}
+              </Table.Body>
+            </Table>
+          </div>
+        </StudioDialog.Block>
+        {renderDiffStatus(repoDiffStatus) && (
+          <StudioDialog.Block>{renderDiffStatus(repoDiffStatus)}</StudioDialog.Block>
+        )}
+      </StudioDialog>
+    </StudioDialog.TriggerContext>
   );
 };
 

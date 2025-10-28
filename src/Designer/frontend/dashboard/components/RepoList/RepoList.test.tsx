@@ -7,6 +7,8 @@ import type { RepoListProps } from './RepoList';
 import { RepoList } from './RepoList';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 const renderWithMockServices = (
   componentProps: Partial<RepoListProps>,
@@ -24,8 +26,24 @@ const renderWithMockServices = (
     onSortClick: jest.fn(),
     ...componentProps,
   };
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.CurrentUser], {
+    id: 1,
+    login: 'testuser',
+    full_name: 'Test User',
+  });
+  queryClient.setQueryData(
+    [QueryKey.Organizations],
+    [
+      {
+        id: 1,
+        username: 'testorg',
+        full_name: 'Test Organization',
+      },
+    ],
+  );
   render(
-    <MockServicesContextWrapper customServices={services}>
+    <MockServicesContextWrapper customServices={services} client={queryClient}>
       <RepoList {...allComponentProps} />
     </MockServicesContextWrapper>,
   );

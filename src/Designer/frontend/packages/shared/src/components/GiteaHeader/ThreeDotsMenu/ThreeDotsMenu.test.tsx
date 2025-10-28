@@ -38,12 +38,18 @@ describe('ThreeDotsMenu', () => {
   });
 
   it('Reopens the local changes modal when the user clicks the button after having closed it', async () => {
+    const consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => {});
     const user = userEvent.setup();
     renderThreeDotsMenu();
     await user.click(getGiteaMenuButton());
     await user.click(getLocalChangesButton());
     expect(getLocalChangesHeading()).toBeInTheDocument();
     await user.click(getCloseLocalChangesButton());
+    const dialog = screen.getByRole('dialog', { name: '' }) as HTMLDialogElement;
+    dialog.close();
+    dialog.dispatchEvent(new Event('close', { bubbles: true }));
+    consoleErrorMock.mockRestore();
+
     expect(queryLocalChangesHeading()).not.toBeInTheDocument();
     await user.click(getLocalChangesButton());
     expect(getLocalChangesHeading()).toBeInTheDocument();
@@ -76,4 +82,4 @@ const cloneButtonName = textMock('sync_header.clone');
 const localChangesButtonName = textMock('sync_header.local_changes');
 const repositoryLinkName = textMock('sync_header.repository');
 const localChangesHeading = textMock('sync_header.local_changes');
-const closeLocalChangesButtonName = 'close modal'; // Todo: Replace with textMock('sync_header.close_local_changes_button') when https://github.com/digdir/designsystemet/issues/2195 is fixed
+const closeLocalChangesButtonName = 'Lukk dialogvindu';

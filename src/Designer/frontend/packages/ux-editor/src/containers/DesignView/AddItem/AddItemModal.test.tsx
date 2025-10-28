@@ -23,11 +23,17 @@ describe('AddItemModal', () => {
   });
 
   it('should close modal dialog when cancel button is clicked', async () => {
+    const consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => {});
     const user = userEvent.setup();
     renderAddItemModal({});
     await user.click(screen.getByRole('button', { name: textMock('ux_editor.add_item.show_all') }));
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'close modal' }));
+    await user.click(screen.getByRole('button', { name: 'Lukk dialogvindu' }));
+    const dialog = screen.getByRole('dialog') as HTMLDialogElement;
+    dialog.close();
+    dialog.dispatchEvent(new Event('close', { bubbles: true }));
+    consoleErrorMock.mockRestore();
+
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });

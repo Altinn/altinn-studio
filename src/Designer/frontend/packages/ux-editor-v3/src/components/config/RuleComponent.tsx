@@ -6,8 +6,7 @@ import { withTranslation } from 'react-i18next';
 import classes from './RuleComponent.module.css';
 import type { RuleConnection, RuleConnections } from 'app-shared/types/RuleConfig';
 import type i18next from 'i18next';
-import { StudioModal } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioDialog, StudioHeading } from '@studio/components';
 import { CogIcon, PlusIcon } from '@studio/icons';
 
 export interface IRuleComponentProps {
@@ -42,6 +41,22 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
   }
 
   public componentDidMount() {
+    this.syncPropsToState();
+  }
+
+  public componentDidUpdate(prevProps: IRuleComponentProps) {
+    // Update state when props change (important for StudioDialog which keeps component mounted)
+    if (!this.props.connectionId) return;
+
+    const currentConnection = this.props.ruleConnection?.[this.props.connectionId];
+    const prevConnection = prevProps.ruleConnection?.[this.props.connectionId];
+
+    if (currentConnection && currentConnection !== prevConnection) {
+      this.syncPropsToState();
+    }
+  }
+
+  private syncPropsToState() {
     if (this.props.connectionId) {
       for (let i = 0; this.props.ruleModelElements.length - 1; i++) {
         // eslint-disable-next-line max-len
@@ -122,132 +137,138 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
     const selectedMethod = this.state.ruleConnection.selectedFunction;
     const selectedMethodNr = this.state.selectedFunctionNr;
     return (
-      <StudioModal.Root>
+      <StudioDialog.TriggerContext>
         {this.renderTrigger()}
-        <StudioModal.Dialog
-          ref={this.state.dialogRef}
-          closeButtonTitle={this.props.t('general.close')}
-          heading={this.props.t('ux_editor.modal_configure_rules_header')}
-        >
-          <div className={classes.formGroup}>
-            <label htmlFor='selectRule' className={classes.label}>
-              {this.props.t('ux_editor.modal_configure_rules_helper')}
-            </label>
-            <select
-              id='selectRule'
-              onChange={this.handleSelectedMethodChange}
-              value={selectedMethod}
-              className={classes.customSelect}
-              style={{ fontSize: '16px' }}
-            >
-              <option value={''}>{this.props.t('general.choose_method')}</option>
-              {this.props.ruleModelElements?.map((funcObj: IRuleModelFieldElement) => {
-                return (
-                  <option key={funcObj.name} value={funcObj.name}>
-                    {funcObj.name}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-          {this.state.ruleConnection.selectedFunction ? (
-            <>
-              <div>
-                <h2 className={classes.subTitle}>
-                  {this.props.t('ux_editor.modal_configure_rules_configure_input_header')}
-                </h2>
-                {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map(
-                  (paramName: string) => {
-                    return (
-                      <React.Fragment key={paramName}>
-                        <label className={classes.label} htmlFor={paramName}>
-                          {this.props.t(
-                            'ux_editor.modal_configure_rules_configure_input_param_helper',
-                          )}
-                        </label>
-                        <div className={classes.configureInputParamsContainer} key={paramName}>
-                          <input
-                            id={paramName}
-                            name={paramName}
-                            type='text'
-                            className={classes.inputType}
-                            value={this.props.ruleModelElements[selectedMethodNr].inputs[paramName]}
-                            width={10}
-                            disabled={true}
-                          />
-                          <div>
-                            <SelectDataModelComponent
-                              label={this.props.t('ux_editor.modal_properties_data_model_helper')}
-                              onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
-                              selectedElement={this.state.ruleConnection.inputParams[paramName]}
-                              hideRestrictions={true}
+        <StudioDialog ref={this.state.dialogRef}>
+          <StudioDialog.Block>
+            <StudioHeading level={2}>
+              {this.props.t('ux_editor.modal_configure_rules_header')}
+            </StudioHeading>
+          </StudioDialog.Block>
+          <StudioDialog.Block>
+            <div className={classes.formGroup}>
+              <label htmlFor='selectRule' className={classes.label}>
+                {this.props.t('ux_editor.modal_configure_rules_helper')}
+              </label>
+              <select
+                name='selectRule'
+                id='selectRule'
+                onChange={this.handleSelectedMethodChange}
+                value={selectedMethod}
+                className={classes.customSelect}
+                style={{ fontSize: '16px' }}
+              >
+                <option value={''}>{this.props.t('general.choose_method')}</option>
+                {this.props.ruleModelElements?.map((funcObj: IRuleModelFieldElement) => {
+                  return (
+                    <option key={funcObj.name} value={funcObj.name}>
+                      {funcObj.name}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+            {this.state.ruleConnection.selectedFunction ? (
+              <>
+                <div>
+                  <h2 className={classes.subTitle}>
+                    {this.props.t('ux_editor.modal_configure_rules_configure_input_header')}
+                  </h2>
+                  {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map(
+                    (paramName: string) => {
+                      return (
+                        <React.Fragment key={paramName}>
+                          <label className={classes.label} htmlFor={paramName}>
+                            {this.props.t(
+                              'ux_editor.modal_configure_rules_configure_input_param_helper',
+                            )}
+                          </label>
+                          <div className={classes.configureInputParamsContainer} key={paramName}>
+                            <input
+                              id={paramName}
+                              name={paramName}
+                              type='text'
+                              className={classes.inputType}
+                              value={
+                                this.props.ruleModelElements[selectedMethodNr].inputs[paramName]
+                              }
+                              width={10}
+                              disabled={true}
                             />
+                            <div>
+                              <SelectDataModelComponent
+                                label={this.props.t('ux_editor.modal_properties_data_model_helper')}
+                                onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
+                                selectedElement={this.state.ruleConnection.inputParams[paramName]}
+                                hideRestrictions={true}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      </React.Fragment>
-                    );
-                  },
-                )}
-              </div>
-              <div>
-                <h2 className={classes.subTitle}>
-                  {this.props.t('ux_editor.modal_configure_rules_configure_output_header')}
-                </h2>
-                <label className={classes.label} htmlFor='outParam'>
-                  {this.props.t('ux_editor.modal_configure_rules_configure_output_param_helper')}
-                </label>
-                <div className={classes.configureInputParamsContainer}>
-                  <input
-                    id='outParam0'
-                    name='outParam0'
-                    type='text'
-                    className={classes.inputType}
-                    value='outParam0'
-                    width={10}
-                    disabled={true}
-                  />
-                  <div>
-                    <SelectDataModelComponent
-                      label={this.props.t('ux_editor.modal_properties_data_model_helper')}
-                      onDataModelChange={this.handleOutParamDataChange.bind(null, 'outParam0')}
-                      selectedElement={this.state.ruleConnection.outParams.outParam0}
-                      hideRestrictions={true}
+                        </React.Fragment>
+                      );
+                    },
+                  )}
+                </div>
+                <div>
+                  <h2 className={classes.subTitle}>
+                    {this.props.t('ux_editor.modal_configure_rules_configure_output_header')}
+                  </h2>
+                  <label className={classes.label} htmlFor='outParam0'>
+                    {this.props.t('ux_editor.modal_configure_rules_configure_output_param_helper')}
+                  </label>
+                  <div className={classes.configureInputParamsContainer}>
+                    <input
+                      id='outParam0'
+                      name='outParam0'
+                      type='text'
+                      className={classes.inputType}
+                      value='outParam0'
+                      width={10}
+                      disabled={true}
                     />
+                    <div>
+                      <SelectDataModelComponent
+                        label={this.props.t('ux_editor.modal_properties_data_model_helper')}
+                        onDataModelChange={this.handleOutParamDataChange.bind(null, 'outParam0')}
+                        selectedElement={this.state.ruleConnection.outParams.outParam0}
+                        hideRestrictions={true}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </>
-          ) : null}
-          <div className={classes.buttonsContainer}>
-            {this.state.ruleConnection.selectedFunction ? (
-              <StudioButton
-                onClick={this.handleSaveEdit}
-                type='submit'
-                className={classes.saveButton}
-              >
-                {this.props.t('general.save')}
-              </StudioButton>
+              </>
             ) : null}
-            {this.props.connectionId ? (
+            <div className={classes.buttonsContainer}>
+              {this.state.ruleConnection.selectedFunction ? (
+                <StudioButton
+                  onClick={this.handleSaveEdit}
+                  type='submit'
+                  className={classes.saveButton}
+                >
+                  {this.props.t('general.save')}
+                </StudioButton>
+              ) : null}
+              {this.props.connectionId ? (
+                <StudioButton
+                  type='button'
+                  className={classes.dangerButton}
+                  onClick={this.handleDeleteConnection}
+                >
+                  {this.props.t('general.delete')}
+                </StudioButton>
+              ) : null}
               <StudioButton
-                type='button'
-                className={classes.dangerButton}
-                onClick={this.handleDeleteConnection}
+                className={classes.cancelButton}
+                onClick={() => {
+                  this.state.dialogRef.current?.close();
+                }}
               >
-                {this.props.t('general.delete')}
+                {this.props.t('general.cancel')}
               </StudioButton>
-            ) : null}
-            <StudioButton
-              className={classes.cancelButton}
-              onClick={() => {
-                this.state.dialogRef.current?.close();
-              }}
-            >
-              {this.props.t('general.cancel')}
-            </StudioButton>
-          </div>
-        </StudioModal.Dialog>
-      </StudioModal.Root>
+            </div>
+          </StudioDialog.Block>
+        </StudioDialog>
+      </StudioDialog.TriggerContext>
     );
   }
 
@@ -255,16 +276,16 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
     return !this.props.connectionId ? (
       <>
         <span>{this.props.t('right_menu.rules_calculations')}</span>
-        <StudioModal.Trigger
+        <StudioDialog.Trigger
           aria-label={this.props.t('right_menu.rules_calculations_add_alt')}
           icon={<PlusIcon />}
           variant='tertiary'
         />
       </>
     ) : (
-      <StudioModal.Trigger variant='tertiary' icon={<CogIcon />}>
+      <StudioDialog.Trigger variant='tertiary' icon={<CogIcon />}>
         {this.state.ruleConnection?.selectedFunction?.toString()}
-      </StudioModal.Trigger>
+      </StudioDialog.Trigger>
     );
   }
 }

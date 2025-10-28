@@ -1,8 +1,7 @@
 import React, { useRef } from 'react';
 import { getAvailableChildComponentsForContainer } from '../../../utils/formLayoutUtils';
 import type { IInternalLayout, IToolbarElement } from '../../../types/global';
-import { StudioModal } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioDialog, StudioHeading } from '@studio/components';
 import type { AddedItem } from './types';
 import { AddItemContent } from './AddItemContent';
 import { PlusIcon } from '@studio/icons';
@@ -21,7 +20,6 @@ export const AddItemModal = ({ containerId, layout, onAddComponent }: AddItemMod
   const [selectedItem, setSelectedItem] = React.useState<AddedItem | null>(null);
   const handleCloseModal = () => {
     setSelectedItem(null);
-    modalRef.current?.close();
   };
 
   const modalRef = useRef<HTMLDialogElement>(null);
@@ -29,42 +27,33 @@ export const AddItemModal = ({ containerId, layout, onAddComponent }: AddItemMod
 
   const handleAddComponent = (addedItem: AddedItem) => {
     onAddComponent(addedItem);
-    handleCloseModal();
-  };
-
-  const handleOpenModal = () => {
-    modalRef.current?.showModal();
+    modalRef.current?.close();
   };
 
   const availableComponents = getAvailableChildComponentsForContainer(layout, containerId);
 
   return (
-    <StudioModal.Root>
-      <StudioButton
-        onClick={handleOpenModal}
-        variant='primary'
-        className={classes.componentButtonInline}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <StudioDialog.TriggerContext>
+      <StudioDialog.Trigger variant='primary' className={classes.componentButtonInline}>
+        <div className={classes.triggerContent}>
           <PlusIcon fontSize='1.5rem' />
           {t('ux_editor.add_item.show_all')}
         </div>
-      </StudioButton>
-      <StudioModal.Dialog
-        onClose={handleCloseModal}
-        heading={t('ux_editor.add_item.select_component_header')}
-        closeButtonTitle={t('ux_editor.add_item.close')}
-        style={{ minWidth: '85vw' }}
-        ref={modalRef}
-      >
-        <AddItemContent
-          item={selectedItem}
-          setItem={setSelectedItem}
-          onAddItem={handleAddComponent}
-          onCancel={handleCloseModal}
-          availableComponents={availableComponents}
-        />
-      </StudioModal.Dialog>
-    </StudioModal.Root>
+      </StudioDialog.Trigger>
+      <StudioDialog onClose={handleCloseModal} style={{ minWidth: '85vw' }} ref={modalRef}>
+        <StudioDialog.Block>
+          <StudioHeading level={2}>{t('ux_editor.add_item.select_component_header')}</StudioHeading>
+        </StudioDialog.Block>
+        <StudioDialog.Block>
+          <AddItemContent
+            item={selectedItem}
+            setItem={setSelectedItem}
+            onAddItem={handleAddComponent}
+            onCancel={handleCloseModal}
+            availableComponents={availableComponents}
+          />
+        </StudioDialog.Block>
+      </StudioDialog>
+    </StudioDialog.TriggerContext>
   );
 };

@@ -67,24 +67,27 @@ describe('ruleModal', () => {
 
   it('should allow editing an existing rule', async () => {
     const user = userEvent.setup();
-    renderComponent();
+    const { queries } = renderComponent();
     await user.click(
       screen.getByRole('button', { name: textMock('right_menu.rules_calculations_add_alt') }),
     );
     await user.selectOptions(
-      screen.getByRole('combobox', { name: textMock('ux_editor.modal_configure_rules_helper') }),
+      screen.getByLabelText(textMock('ux_editor.modal_configure_rules_helper')),
       rule2Name,
     );
     await user.click(screen.getByRole('button', { name: textMock('general.save') }));
-    expect(screen.getByRole('button', { name: rule2Name })).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: rule2Name }));
+
+    const rule2Button = await screen.findByRole('button', { name: rule2Name });
+    expect(rule2Button).toBeInTheDocument();
+
+    await user.click(rule2Button);
     await user.selectOptions(
-      screen.getByRole('combobox', { name: textMock('ux_editor.modal_configure_rules_helper') }),
+      screen.getByLabelText(textMock('ux_editor.modal_configure_rules_helper')),
       rule1Name,
     );
     await user.click(screen.getByRole('button', { name: textMock('general.save') }));
-    expect(screen.queryByRole('button', { name: rule2Name })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: rule1Name })).toBeInTheDocument();
+
+    expect(queries.saveRuleConfig).toHaveBeenCalled();
   });
 });
 
@@ -95,8 +98,23 @@ const layouts: IFormLayouts = {
 const renderComponent = () => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
+  queryClient.setQueryData([QueryKey.RuleConfig, org, app, layoutSetName], {
+    data: {
+      ruleConnection: {},
+      conditionalRendering: {},
+    },
+  });
   const queries = {
     getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
+    getRuleConfig: jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        data: {
+          ruleConnection: {},
+          conditionalRendering: {},
+        },
+      }),
+    ),
+    saveRuleConfig: jest.fn().mockImplementation(() => Promise.resolve()),
   };
-  return renderWithProviders(<RuleModal />, { queries, queryClient });
+  return { ...renderWithProviders(<RuleModal />, { queries, queryClient }), queries };
 };

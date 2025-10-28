@@ -3,6 +3,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DeployMoreOptionsMenu } from './DeployMoreOptionsMenu';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 describe('DeployMoreOptionsMenu', () => {
   const linkToEnv = 'https://unit-test';
@@ -47,7 +49,11 @@ describe('DeployMoreOptionsMenu', () => {
 });
 
 function renderMenu(linkToEnv: string): void {
-  render(<DeployMoreOptionsMenu linkToEnv={linkToEnv} environment='unit-test-env' />);
+  render(
+    <ServicesContextProvider {...queriesMock} client={undefined}>
+      <DeployMoreOptionsMenu linkToEnv={linkToEnv} environment='unit-test-env' />
+    </ServicesContextProvider>,
+  );
 }
 
 async function openMenu(): Promise<void> {

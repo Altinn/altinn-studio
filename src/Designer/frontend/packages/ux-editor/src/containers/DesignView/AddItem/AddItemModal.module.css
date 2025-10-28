@@ -4,3 +4,9 @@
   margin: 4px;
   padding: 6px;
 }
+
+.triggerContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}

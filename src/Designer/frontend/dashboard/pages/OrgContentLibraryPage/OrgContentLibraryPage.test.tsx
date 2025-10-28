@@ -275,7 +275,10 @@ describe('OrgContentLibraryPage', () => {
     const user = userEvent.setup();
     renderOrgContentLibraryWithData();
     await user.click(screen.getByRole('button', { name: /Gi tilbakemelding/ }));
-    expect(screen.getByRole('dialog', { name: /Gi tilbakemelding om biblioteket/ })).toBeVisible();
+    expect(screen.getByRole('dialog')).toBeVisible();
+    expect(
+      screen.getByRole('heading', { name: /Gi tilbakemelding om biblioteket/ }),
+    ).toBeInTheDocument();
   });
 
   it('Renders with the organisation library heading', () => {

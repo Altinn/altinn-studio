@@ -1,5 +1,5 @@
 import React, { forwardRef, useState } from 'react';
-import { StudioModal } from '@studio/components-legacy';
+import { StudioDialog, StudioHeading } from '@studio/components';
 import { useForwardedRef } from '@studio/hooks';
 import { useTranslation } from 'react-i18next';
 import { useCopyAppMutation } from 'dashboard/hooks/mutations/useCopyAppMutation';
@@ -74,26 +74,26 @@ export const MakeCopyModal = forwardRef<HTMLDialogElement, MakeCopyModalProps>(
     };
 
     return (
-      <StudioModal.Dialog
-        closeButtonTitle={t('dashboard.copy_modal_close_button_label')}
-        heading={t('dashboard.copy_application')}
-        open={open}
-        ref={dialogRef}
-      >
-        <NewApplicationForm
-          onSubmit={createClonedRepo}
-          user={user}
-          organizations={organizations}
-          isLoading={isCopyAppPending || isCopyAppSuccess}
-          submitButtonText={t('dashboard.make_copy')}
-          formError={formError}
-          setFormError={setFormError}
-          actionableElement={{
-            type: 'button',
-            onClick: closeDialog,
-          }}
-        />
-      </StudioModal.Dialog>
+      <StudioDialog open={open} ref={dialogRef}>
+        <StudioDialog.Block>
+          <StudioHeading level={2}>{t('dashboard.copy_application')}</StudioHeading>
+        </StudioDialog.Block>
+        <StudioDialog.Block>
+          <NewApplicationForm
+            onSubmit={createClonedRepo}
+            user={user}
+            organizations={organizations}
+            isLoading={isCopyAppPending || isCopyAppSuccess}
+            submitButtonText={t('dashboard.make_copy')}
+            formError={formError}
+            setFormError={setFormError}
+            actionableElement={{
+              type: 'button',
+              onClick: closeDialog,
+            }}
+          />
+        </StudioDialog.Block>
+      </StudioDialog>
     );
   },
 );

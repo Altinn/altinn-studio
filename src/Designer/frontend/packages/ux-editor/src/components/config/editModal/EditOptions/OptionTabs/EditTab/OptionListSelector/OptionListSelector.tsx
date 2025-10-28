@@ -4,8 +4,8 @@ import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation } from 'react-i18next';
-import { StudioModal, StudioSpinner } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioSpinner } from '@studio/components-legacy';
+import { StudioButton, StudioDialog, StudioHeading } from '@studio/components';
 import { BookIcon } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { handleOptionsChange, updateComponentOptionsId } from '../../utils/optionsUtils';
@@ -73,20 +73,23 @@ function OptionListSelectorWithData({
       <StudioButton onClick={handleClick} variant={'secondary'}>
         {t('ux_editor.modal_properties_code_list')}
       </StudioButton>
-      <StudioModal.Dialog
-        ref={modalRef}
-        className={classes.modal}
-        contentClassName={classes.modalContent}
-        closeButtonTitle={t('general.close')}
-        heading={t('ux_editor.options.modal_header_select_library_code_list')}
-        icon={<BookIcon />}
-      >
-        <ModalContent
-          optionListIds={optionListIds}
-          component={component}
-          handleComponentChange={handleComponentChange}
-        />
-      </StudioModal.Dialog>
+      <StudioDialog ref={modalRef} className={classes.modal}>
+        <StudioDialog.Block>
+          <div className={classes.headingWithIcon}>
+            <BookIcon />
+            <StudioHeading level={2}>
+              {t('ux_editor.options.modal_header_select_library_code_list')}
+            </StudioHeading>
+          </div>
+        </StudioDialog.Block>
+        <StudioDialog.Block className={classes.modalContent}>
+          <ModalContent
+            optionListIds={optionListIds}
+            component={component}
+            handleComponentChange={handleComponentChange}
+          />
+        </StudioDialog.Block>
+      </StudioDialog>
     </>
   );
 }
