@@ -63,7 +63,7 @@ describe('ActionLinks', () => {
 
   const giteaButtonName = textMock('dashboard.show_repo', { appName: repoName });
   const editButtonName = textMock('dashboard.edit_app', { appName: repoName });
-  const dropdownButtonName = '';
+  const dropdownButtonName = textMock('dashboard.app_dropdown', { appName: repoName });
   const makeCopyOptionName = textMock('dashboard.make_copy');
   const openInNewOptionName = textMock('dashboard.open_in_new');
   const copyModalHeading = textMock('dashboard.copy_application');

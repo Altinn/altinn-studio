@@ -65,7 +65,11 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
         className={classes.editButton}
         icon={editIconWithLink}
       />
-      <StudioDropdown triggerButtonVariant='tertiary' icon={<MenuElipsisVerticalIcon />}>
+      <StudioDropdown
+        triggerButtonVariant='tertiary'
+        icon={<MenuElipsisVerticalIcon />}
+        triggerButtonAriaLabel={t('dashboard.app_dropdown', { appName: repoName })}
+      >
         <StudioDropdown.List>
           <StudioDropdown.Item>
             <StudioDropdown.Button

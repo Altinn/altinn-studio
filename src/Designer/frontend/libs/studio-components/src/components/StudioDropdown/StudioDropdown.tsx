@@ -14,6 +14,7 @@ export type StudioDropdownProps = {
   triggerButtonText?: string;
   triggerButtonVariant?: StudioButtonProps['variant'];
   triggerButtonDisabled?: boolean;
+  triggerButtonAriaLabel?: string;
 
   'data-color-scheme'?: 'light' | 'dark';
 } & Omit<WithoutAsChild<DropdownProps>, 'anchorEl' | 'open' | 'onClose'>;
@@ -24,6 +25,7 @@ export function StudioDropdown({
   triggerButtonText,
   triggerButtonVariant,
   triggerButtonDisabled = false,
+  triggerButtonAriaLabel,
   children,
   'data-color': dataColor,
   'data-color-scheme': dataColorScheme,
@@ -43,6 +45,7 @@ export function StudioDropdown({
         onClick={handleClick}
         icon={!triggerButtonText}
         disabled={triggerButtonDisabled}
+        aria-label={triggerButtonAriaLabel}
         aria-expanded={open}
       >
         <TextWithIcon icon={icon} iconPlacement={iconPlacement}>
