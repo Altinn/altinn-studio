@@ -95,7 +95,7 @@ describe('PolicyTab', () => {
   });
 
   it('fetches subjects on mount', () => {
-    const getPolicySubjects = jest.fn().mockImplementation(() => Promise.resolve([]));
+    const getPolicySubjects = jest.fn().mockImplementation(() => Promise.resolve({}));
     renderPolicyTab({ getPolicySubjects });
     expect(getPolicySubjects).toHaveBeenCalledTimes(1);
   });
