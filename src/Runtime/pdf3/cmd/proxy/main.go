@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"sync/atomic"
 	"time"
 	"unicode/utf8"
 
@@ -42,18 +41,11 @@ func main() {
 		Timeout: types.RequestTimeout(),
 	}
 
-	connectivity := NewConnectivityChecker(httpClient, workerHTTPAddr)
-
 	// Setup HTTP server
 	http.HandleFunc("/health/startup", func(w http.ResponseWriter, r *http.Request) {
 		if host.IsShuttingDown() {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			if _, err := w.Write([]byte("Shutting down")); err != nil {
-				log.Printf("Failed to write health check response: %v\n", err)
-			}
-		} else if connectivity.GetState() != WorkerConnectivityStateHealthy {
-			w.WriteHeader(http.StatusServiceUnavailable)
-			if _, err := w.Write([]byte("No connectivity")); err != nil {
 				log.Printf("Failed to write health check response: %v\n", err)
 			}
 		} else {
@@ -67,11 +59,6 @@ func main() {
 		if host.IsShuttingDown() {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			if _, err := w.Write([]byte("Shutting down")); err != nil {
-				log.Printf("Failed to write health check response: %v\n", err)
-			}
-		} else if connectivity.GetState() != WorkerConnectivityStateHealthy {
-			w.WriteHeader(http.StatusServiceUnavailable)
-			if _, err := w.Write([]byte("No connectivity")); err != nil {
 				log.Printf("Failed to write health check response: %v\n", err)
 			}
 		} else {
@@ -410,81 +397,6 @@ func callWorker(
 		errorDetail,
 	)
 	return true
-}
-
-type WorkerConnectivityState uint32
-
-const (
-	WorkerConnectivityStateNone WorkerConnectivityState = iota
-	WorkerConnectivityStateHealthy
-	WorkerConnectivityStateBroken
-)
-
-type workerConnectivity struct {
-	state atomic.Uint32
-}
-
-func NewConnectivityChecker(client *http.Client, workerAddr string) *workerConnectivity {
-	self := &workerConnectivity{
-		state: atomic.Uint32{},
-	}
-
-	go func() {
-		for {
-			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-			req, err := http.NewRequestWithContext(ctx, http.MethodGet, workerAddr+"/health/ready", nil)
-			if err != nil {
-				cancel()
-				log.Printf("Failed to create health check request: %v\n", err)
-				time.Sleep(5 * time.Second)
-				continue
-			}
-
-			resp, err := client.Do(req)
-			cancel()
-
-			gotValidResponse := err == nil && resp != nil && resp.StatusCode == http.StatusOK
-			if resp != nil {
-				_ = resp.Body.Close()
-			}
-
-			var sleepDuration time.Duration
-			if gotValidResponse {
-				previousState := WorkerConnectivityState(self.state.Swap(uint32(WorkerConnectivityStateHealthy)))
-				switch previousState {
-				case WorkerConnectivityStateNone:
-					log.Println("Initialized connectivity to worker")
-				case WorkerConnectivityStateHealthy:
-					break
-				case WorkerConnectivityStateBroken:
-					log.Println("Regained connectivity to worker")
-				}
-
-				sleepDuration = 10 * time.Second
-			} else {
-				previousState := WorkerConnectivityState(self.state.Swap(uint32(WorkerConnectivityStateBroken)))
-				switch previousState {
-				case WorkerConnectivityStateNone:
-					log.Printf("Could not initialize connection to worker. Error: %v\n", err)
-				case WorkerConnectivityStateHealthy:
-					log.Printf("Failed first try at regaining connection to worker. Error: %v\n", err)
-				case WorkerConnectivityStateBroken:
-					log.Printf("Failed retry to gain connection to worker. Error: %v\n", err)
-				}
-
-				sleepDuration = 5 * time.Second
-			}
-
-			time.Sleep(sleepDuration)
-		}
-	}()
-
-	return self
-}
-
-func (w *workerConnectivity) GetState() WorkerConnectivityState {
-	state := w.state.Load()
-	return WorkerConnectivityState(state)
 }
 
 type ProblemDetails struct {
