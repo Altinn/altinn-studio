@@ -5,5 +5,5 @@ export enum FeatureFlag {
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
   AppMetadata = 'appMetadata',
   ImageUpload = 'imageUpload',
-  NewCodeListApi = 'newCodeListApi',
+  NewCodeLists = 'newCodeLists',
 }
