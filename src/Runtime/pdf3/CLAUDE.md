@@ -121,6 +121,7 @@ make check                # Complete CI check (tidy, fmt, lint, test)
 ### Test Infrastructure
 
 **Integration tests** (`test/integration/`):
+
 - **simple/** - Main integration tests
   - Tests: PDF generation, WaitFor, console/thrown errors, cookies, old generator comparison
   - Snapshot testing with `_snapshots/` directory
@@ -129,10 +130,12 @@ make check                # Complete CI check (tidy, fmt, lint, test)
 - **smoke/** - Smoke tests
 
 **Load tests** (`test/load/`):
+
 - **test-local.ts** - k6 script for local cluster
 - **test-env.js** - k6 script for remote environments
 
 **Test harness** (`test/harness/`):
+
 - `harness.go` - Test utilities (Init, RequestPDF, Snapshot, etc.)
 - `pdf.go` - PDF validation utilities
 - `snapshot.go` - Snapshot testing helpers
@@ -144,6 +147,7 @@ make check                # Complete CI check (tidy, fmt, lint, test)
 **Local**: KindContainerRuntime-based fixture
 
 **Manifests**: `infra/kustomize/`
+
 - `base/` - Base deployment configs
 - `local-minimal/`, `local-standard/` - Local variants
 
