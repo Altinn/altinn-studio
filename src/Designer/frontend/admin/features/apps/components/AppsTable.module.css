@@ -2,7 +2,8 @@
   max-width: 400px;
 }
 
-.appsTable {
+.alertsError {
+  margin: var(--ds-size-6) 0;
 }
 
 .alertsHeaderCell {

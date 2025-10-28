@@ -11,7 +11,7 @@ import {
   StudioLink,
 } from '@studio/components';
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import type { TFunction } from 'i18next';
 import { useAlertsQuery } from 'admin/hooks/queries/useAlertsQuery';
@@ -61,7 +61,9 @@ const AppsTableWithData = ({ org, runningApps }: AppsTableWithDataProps) => {
         ))}
       </StudioTabs.List>
       {availableEnvironments.map((env) => (
-        <AppsTableWithDataByEnv key={env} org={org} env={env} runningApps={runningApps} />
+        <StudioTabs.Panel key={env} value={env}>
+          <AppsTableWithDataByEnv key={env} org={org} env={env} runningApps={runningApps} />
+        </StudioTabs.Panel>
       ))}
     </StudioTabs>
   );
@@ -74,16 +76,32 @@ type AppsTableWithDataByEnvProps = AppsTableWithDataProps & {
 const AppsTableWithDataByEnv = ({ org, runningApps, env }: AppsTableWithDataByEnvProps) => {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
-  const { data: alerts } = useAlertsQuery(org, env);
+  const {
+    data: alerts,
+    isPending: alertsIsPending,
+    isError: alertsIsError,
+  } = useAlertsQuery(org, env, {
+    hideDefaultError: true,
+  });
+
+  if (alertsIsPending) {
+    return <StudioSpinner aria-label={t('general.loading')} />;
+  }
+
   return (
-    <StudioTabs.Panel key={env} value={env}>
+    <>
+      {alertsIsError && (
+        <StudioAlert data-color={'danger'} className={classes.alertsError}>
+          <Trans i18nKey={'admin.alerts.error'} values={{ env }} />
+        </StudioAlert>
+      )}
       <StudioSearch
         className={classes.appSearch}
         value={search}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
         label={t('Søk i apper')}
       />
-      <StudioTable className={classes.appsTable}>
+      <StudioTable>
         <StudioTable.Head>
           <StudioTable.Row>
             <StudioTable.Cell>{t('Navn')}</StudioTable.Cell>
@@ -115,7 +133,7 @@ const AppsTableWithDataByEnv = ({ org, runningApps, env }: AppsTableWithDataByEn
                       {app.alerts?.map((alert) => {
                         return (
                           <StudioAlert
-                            key={alert.type}
+                            key={alert.alertId}
                             data-color='danger'
                             data-size='xs'
                             className={classes.alert}
@@ -141,6 +159,6 @@ const AppsTableWithDataByEnv = ({ org, runningApps, env }: AppsTableWithDataByEn
             })}
         </StudioTable.Body>
       </StudioTable>
-    </StudioTabs.Panel>
+    </>
   );
 };

@@ -3,6 +3,7 @@
   "admin.alerts.server-exceptions": "Serverunntak",
   "admin.alerts.server-response-time": "Treg serverrespons",
   "admin.alerts.link": "Se logger i Grafana her",
+  "admin.alerts.error": "Kunne ikke hente varslene fra {{env}}. Prøv igjen senere.",
   "ai_assistant.about_assistant": "Om assistenten",
   "ai_assistant.add_attachment": "Last opp vedlegg",
   "ai_assistant.allow_app_changes": "Tillat endringer i appen",

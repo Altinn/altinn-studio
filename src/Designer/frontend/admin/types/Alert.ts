@@ -1,5 +1,6 @@
 export type Alert = {
-  id: string;
+  alertId: string;
+  alertRuleId: string;
   type: string;
   app: string;
   url: string;

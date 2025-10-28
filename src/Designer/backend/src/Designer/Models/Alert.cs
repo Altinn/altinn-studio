@@ -5,8 +5,11 @@ namespace Altinn.Studio.Designer.Models;
 
 public class Alert
 {
-    [JsonPropertyName("id")]
-    public required string Id { get; set; }
+    [JsonPropertyName("alertId")]
+    public required string AlertId { get; set; }
+
+    [JsonPropertyName("alertRuleId")]
+    public required string AlertRuleId { get; set; }
 
     [JsonPropertyName("type")]
     public required string Type { get; set; }
@@ -21,20 +24,5 @@ public class Alert
 public record GrafanaAlert(
     Dictionary<string, string> Labels,
     Dictionary<string, string> Annotations,
-    string StartsAt,
-    string EndsAt,
     string GeneratorURL,
-    string Fingerprint,
-    GrafanaAlertStatus Status);
-
-public record GrafanaAlertStatus(
-    string State,
-    string[] SilencedBy,
-    string[] InhibitedBy);
-
-//   "receivers": [
-//     {
-//       "name": "admin"
-//     }
-//   ],
-//   "updatedAt": "2025-10-21T12:15:40.005+02:00",
+    string Fingerprint);
