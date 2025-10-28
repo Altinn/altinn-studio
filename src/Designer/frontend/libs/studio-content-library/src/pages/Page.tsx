@@ -1,6 +1,6 @@
 import type { PageName } from '../types/PageName';
 import React from 'react';
-import type { ComponentProps, ReactElement } from 'react';
+import type { ComponentProps } from 'react';
 import type { PagePropsMap } from '../types/PagesProps';
 import { useTranslation } from 'react-i18next';
 import { pageRouterQueryParamKey } from '../utils/router/QueryParamsRouter';
@@ -56,7 +56,7 @@ type LinkTabProps = Omit<ComponentProps<typeof StudioContentMenu.LinkTab>, 'tabN
   titleKey: string;
 };
 
-function LinkTab({ titleKey, ...rest }: LinkTabProps): ReactElement {
+function LinkTab({ titleKey, ...rest }: LinkTabProps): React.ReactElement {
   const { t } = useTranslation();
   return <StudioContentMenu.LinkTab tabName={t(titleKey)} {...rest} />;
 }
