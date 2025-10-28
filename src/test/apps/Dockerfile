@@ -11,7 +11,7 @@ WORKDIR /src/test/apps
 RUN make clean-all && make build-all
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0
-WORKDIR /app
+WORKDIR /src
 
 # Install make
 RUN apt-get update && apt-get install -y make && rm -rf /var/lib/apt/lists/*
@@ -20,5 +20,8 @@ COPY --from=build /src/ /src/
 
 WORKDIR /src/test/apps
 
-# Run all apps with signal handling for graceful shutdown
-CMD ["bash", "-c", "trap 'trap - SIGTERM SIGINT; kill -TERM 0' SIGTERM SIGINT; make run-all"]
+# Copy and set up the wrapper script for signal handling
+COPY src/test/apps/docker-run-all-apps.sh ./
+RUN chmod +x docker-run-all-apps.sh
+
+CMD ["./docker-run-all-apps.sh"]

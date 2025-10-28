@@ -40,6 +40,8 @@ services:
       - PlatformSettings__ApiProfileEndpoint=http://altinn_localtest:5101/profile/api/v1/
       - PlatformSettings__ApiAuthenticationEndpoint=http://altinn_localtest:5101/authentication/api/v1/
       - PlatformSettings__ApiAuthorizationEndpoint=http://altinn_localtest:5101/authorization/api/v1/
+      - PlatformSettings__ApiAccessManagementEndpoint=http://altinn_localtest:5101/accessmanagement/api/v1/
       - PlatformSettings__ApiPdf2Endpoint=http://host.docker.internal:5300/pdf
     depends_on:
       - altinn_localtest
+    stop_grace_period: 5s
