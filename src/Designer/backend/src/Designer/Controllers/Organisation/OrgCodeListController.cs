@@ -14,6 +14,7 @@ using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Controllers.Organisation;
 
@@ -26,14 +27,17 @@ namespace Altinn.Studio.Designer.Controllers.Organisation;
 public class OrgCodeListController : ControllerBase
 {
     private readonly IOrgCodeListService _orgCodeListService;
+    private readonly ILogger<OrgCodeListController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OrgCodeListController"/> class.
     /// </summary>
     /// <param name="orgCodeListService">The CodeList service for organisation level</param>
-    public OrgCodeListController(IOrgCodeListService orgCodeListService)
+    /// <param name="logger">The logger</param>
+    public OrgCodeListController(IOrgCodeListService orgCodeListService, ILogger<OrgCodeListController> logger)
     {
         _orgCodeListService = orgCodeListService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -104,7 +108,12 @@ public class OrgCodeListController : ControllerBase
         }
         catch (Exception ex) when (ex is IllegalFileNameException or IllegalCommitMessageException or ArgumentException)
         {
-            return BadRequest(ex.Message);
+            _logger.LogError(ex, "Invalid request to update codelists for org {Org}.", org);
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid request",
+                Status = StatusCodes.Status400BadRequest
+            });
         }
 
     }
@@ -124,7 +133,12 @@ public class OrgCodeListController : ControllerBase
         }
         catch (Exception ex) when (ex is ConfigurationErrorsException or IllegalFileNameException or ArgumentNullException)
         {
-            return BadRequest(ex.Message);
+            _logger.LogError(ex, "Invalid request to publish codelist for org {Org}.", org);
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid request",
+                Status = StatusCodes.Status400BadRequest
+            });
         }
     }
 
