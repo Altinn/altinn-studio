@@ -69,10 +69,6 @@
     @using (Html.BeginForm("LogInTestUser", "Home", FormMethod.Post, new { Class = "form-signin", enctype = "multipart/form-data" }))
     {
       @Html.AntiForgeryToken();
-      <div class="form-group">
-        <label for="UserSelect">Select test users</label>
-        @Html.DropDownListFor(model => model.UserSelect, Model.TestUsers, new { Class = "form-control" })
-      </div>
       @if(!Model.AppModeIsHttp)
       {
         <div class="form-group">
@@ -84,9 +80,13 @@
           {
             <label for="AppPathSelection">Select app to test found in @Model.AppPath</label>
           }
-          @Html.DropDownListFor(model => model.AppPathSelection, Model.TestApps, new { Class = "form-control" })
+          @Html.DropDownListFor(model => model.AppPathSelection, Model.TestApps, new { Class = "form-control", id = "AppPathSelection" })
         </div>
       }
+      <div class="form-group">
+        <label for="UserSelect">Select test users</label>
+        @Html.DropDownListFor(model => model.UserSelect, Model.TestUsers, new { Class = "form-control", id = "UserSelect" })
+      </div>
       <div class="form-group">
         <label for="AuthenticationLevel">Select your authentication level</label>
         @Html.DropDownListFor(model => model.AuthenticationLevel, Model.AuthenticationLevels, new { Class = "form-control" })

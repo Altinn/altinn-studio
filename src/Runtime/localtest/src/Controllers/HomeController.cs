@@ -37,6 +37,7 @@ namespace LocalTest.Controllers
         private readonly ILocalApp _localApp;
         private readonly TestDataService _testDataService;
         private readonly AppRegistryService? _appRegistryService;
+        private readonly ILogger<HomeController> _logger;
 
         public HomeController(
             IOptions<GeneralSettings> generalSettings,
@@ -47,6 +48,7 @@ namespace LocalTest.Controllers
             IParties partiesService,
             ILocalApp localApp,
             TestDataService testDataService,
+            ILogger<HomeController> logger,
             AppRegistryService? appRegistryService = null)
         {
             _generalSettings = generalSettings.Value;
@@ -58,6 +60,7 @@ namespace LocalTest.Controllers
             _localApp = localApp;
             _testDataService = testDataService;
             _appRegistryService = appRegistryService;
+            _logger = logger;
         }
 
         [AllowAnonymous]
@@ -139,8 +142,16 @@ namespace LocalTest.Controllers
                 return BadRequest("Invalid port number");
             }
 
-            _appRegistryService.Register(request.AppId, request.Port, request.Hostname);
-            return Ok(new { message = "App registered successfully", appId = request.AppId, port = request.Port, hostname = request.Hostname });
+            try
+            {
+                _appRegistryService.Register(request.AppId, request.Port, request.Hostname, request.TestData);
+                return Ok(new { message = "App registered successfully", appId = request.AppId, port = request.Port, hostname = request.Hostname });
+            }
+            catch (InvalidOperationException ex)
+            {
+                // This happens when trying to register conflicting user IDs
+                return BadRequest(ex.Message);
+            }
         }
 
         /// <summary>
@@ -196,7 +207,13 @@ namespace LocalTest.Controllers
         {
             if (startAppModel.AuthenticationLevel != "-1")
             {
-                UserProfile profile = await _userProfileService.GetUser(startAppModel.UserId);
+                UserProfile? profile = await _userProfileService.GetUser(startAppModel.UserId);
+
+                if (profile == null)
+                {
+                    return BadRequest("User not found");
+                }
+
                 int authenticationLevel = Convert.ToInt32(startAppModel.AuthenticationLevel);
 
                 string token = await _authenticationService.GenerateTokenForProfile(profile, authenticationLevel);
@@ -353,6 +370,11 @@ namespace LocalTest.Controllers
             foreach (UserProfile profile in data.Profile.User.Values)
             {
                 var properProfile = await _userProfileService.GetUser(profile.UserId);
+
+                if (properProfile == null)
+                {
+                    continue;
+                }
 
                 var userParties = await _partiesService.GetParties(properProfile.UserId);
 

@@ -89,16 +89,20 @@ public class ProxyMiddleware
                     return;
                 }
             }
+
+            // In auto mode, if path doesn't match an app pattern, don't proxy - let next middleware handle it
+            await _nextMiddleware(context);
+            return;
         }
 
-        // Fallback to LocalAppUrl for backward compatibility (only in http mode)
+        // Fallback to LocalAppUrl for backward compatibility (only in http mode, when not in auto mode)
         if (!string.IsNullOrEmpty(localPlatformSettings.Value.LocalAppUrl))
         {
             await ProxyRequest(context, localPlatformSettings.Value.LocalAppUrl);
             return;
         }
 
-        // If we get here in auto mode, the path didn't match an app
+        // If we get here, no proxy target available
         await _nextMiddleware(context);
     }
 

@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Threading.Channels;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.App;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,6 +34,7 @@ internal sealed class LocaltestValidation : BackgroundService
     private readonly Channel<VersionResult> _resultChannel;
     private readonly IServer _server;
     private readonly IAppMetadata _appMetadata;
+    private readonly IWebHostEnvironment _webHostEnvironment;
     private string? _registeredAppId = null;
 
     internal IAsyncEnumerable<VersionResult> Results => _resultChannel.Reader.ReadAllAsync();
@@ -45,6 +47,7 @@ internal sealed class LocaltestValidation : BackgroundService
         IHostApplicationLifetime lifetime,
         IServer server,
         IAppMetadata appMetadata,
+        IWebHostEnvironment webHostEnvironment,
         TimeProvider? timeProvider = null
     )
     {
@@ -55,6 +58,7 @@ internal sealed class LocaltestValidation : BackgroundService
         _lifetime = lifetime;
         _server = server;
         _appMetadata = appMetadata;
+        _webHostEnvironment = webHostEnvironment;
         _timeProvider = timeProvider ?? TimeProvider.System;
         _resultChannel = Channel.CreateBounded<VersionResult>(
             new BoundedChannelOptions(10) { FullMode = BoundedChannelFullMode.DropWrite }
@@ -90,6 +94,8 @@ internal sealed class LocaltestValidation : BackgroundService
                             {
                                 // Version 3+ supports app registration
                                 await RegisterWithLocaltest(baseUrl, stoppingToken);
+                                // Wait for app shutdown before unregistering
+                                await Task.Delay(Timeout.InfiniteTimeSpan, stoppingToken);
                                 return;
                             }
                             if (version >= 2)
@@ -257,11 +263,29 @@ internal sealed class LocaltestValidation : BackgroundService
         }
         // If hostname is null, localtest will default to "host.docker.internal"
 
+        // Try to load testData.json from wwwroot
+        System.Text.Json.JsonElement? testData = null;
+        try
+        {
+            var testDataPath = Path.Combine(_webHostEnvironment.WebRootPath ?? _webHostEnvironment.ContentRootPath, "testData.json");
+            if (File.Exists(testDataPath))
+            {
+                var testDataJson = await File.ReadAllTextAsync(testDataPath, stoppingToken);
+                testData = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(testDataJson);
+                _logger.LogInformation("Loaded testData.json for app {AppId} from {Path}", appId, testDataPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not load testData.json for app {AppId}", appId);
+        }
+
         var registrationRequest = new
         {
             appId = appId,
             port = port,
             hostname = hostname,
+            testData = testData,
         };
 
         var url = $"{baseUrl}/Home/Localtest/Register";
