@@ -291,7 +291,7 @@ describe('OrgContentLibraryPage', () => {
   });
 
   it('Renders with the new code list page when the feature flag is enabled', () => {
-    renderOrgContentLibraryWithData({ featureFlags: [FeatureFlag.NewCodeListApi] });
+    renderOrgContentLibraryWithData({ featureFlags: [FeatureFlag.NewCodeLists] });
     const pagesConfig = retrievePagesConfig();
     expect(pagesConfig).toHaveProperty('codeLists');
   });
