@@ -13,15 +13,23 @@
         {
           "name": "AltinnStudioRuntime",
           "domain": "testserver.default.svc.cluster.local"
+        },
+        {
+          "name": "isolation_test_parent",
+          "domain": ".default.svc.cluster.local"
+        },
+        {
+          "name": "isolation_test_same",
+          "domain": "testserver.default.svc.cluster.local"
         }
       ],
-      "consoleErrorLogs": 1,
+      "consoleErrorLogs": 0,
       "browserErrors": 0
     },
     {
       "state": "After",
       "cookies": [],
-      "consoleErrorLogs": 1,
+      "consoleErrorLogs": 0,
       "browserErrors": 0
     }
   ]
