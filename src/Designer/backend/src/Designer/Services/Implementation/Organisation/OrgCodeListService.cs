@@ -148,6 +148,7 @@ public class OrgCodeListService : IOrgCodeListService
     {
         cancellationToken.ThrowIfCancellationRequested();
         Guard.AssertValidateOrganization(org);
+
         ValidateCodeListTitles(request.CodeListWrappers);
         ValidateCommitMessage(request.CommitMessage);
         string repositoryName = GetStaticContentRepo(org);
@@ -175,6 +176,7 @@ public class OrgCodeListService : IOrgCodeListService
     public async Task PublishCodeList(string org, PublishCodeListRequest request, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        Guard.AssertValidateOrganization(org);
 
         string codeListId = request.Title;
         CodeList codeList = request.CodeList;
