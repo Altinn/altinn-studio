@@ -126,6 +126,9 @@ public class OrgCodeListController : ControllerBase
     {
         cancellationToken.ThrowIfCancellationRequested();
 
+        string orgNr = AuthenticationHelper.GetDeveloperOrgNr(HttpContext);
+        // TODO: find a way to compare orgNr with shorthand org name, the input 'org' parameter
+
         try
         {
             await _orgCodeListService.PublishCodeList(org, requestBody, cancellationToken);
