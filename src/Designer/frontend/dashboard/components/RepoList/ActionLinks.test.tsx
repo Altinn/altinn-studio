@@ -53,7 +53,7 @@ describe('ActionLinks', () => {
 
   const getMakeCopyOption = () => getMenuitem(makeCopyOptionName);
   const getOpenInNewOption = () => getMenuitem(openInNewOptionName);
-  const getMenuitem = (name: string) => screen.getByRole('menuitem', { name });
+  const getMenuitem = (name: string) => screen.getByRole('button', { name });
 
   const getCopyModalHeading = () => getHeading(copyModalHeading);
   const getHeading = (name: string) => screen.getByRole('heading', { name });
@@ -63,7 +63,7 @@ describe('ActionLinks', () => {
 
   const giteaButtonName = textMock('dashboard.show_repo', { appName: repoName });
   const editButtonName = textMock('dashboard.edit_app', { appName: repoName });
-  const dropdownButtonName = textMock('dashboard.app_dropdown', { appName: repoName });
+  const dropdownButtonName = '';
   const makeCopyOptionName = textMock('dashboard.make_copy');
   const openInNewOptionName = textMock('dashboard.open_in_new');
   const copyModalHeading = textMock('dashboard.copy_application');

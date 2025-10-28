@@ -38,11 +38,8 @@ export const AddPropertiesMenu = ({ onItemClick }: AddPropertiesMenuProps) => {
     >
       <StudioDropdown.List>
         {propertyItems.map(({ kind, fieldType, icon: Icon }) => (
-          <StudioDropdown.Item
-            key={`${kind}-${fieldType}`}
-            onClick={() => onItemClick(kind, fieldType)}
-          >
-            <StudioDropdown.Button icon={<Icon />}>
+          <StudioDropdown.Item key={`${kind}-${fieldType}`}>
+            <StudioDropdown.Button icon={<Icon />} onClick={() => onItemClick(kind, fieldType)}>
               {t(`schema_editor.add_${fieldType || kind}`)}
             </StudioDropdown.Button>
           </StudioDropdown.Item>

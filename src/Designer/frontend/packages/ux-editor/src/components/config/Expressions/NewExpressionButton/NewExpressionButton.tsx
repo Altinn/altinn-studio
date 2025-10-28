@@ -19,7 +19,12 @@ export const NewExpressionButton = () => {
     : t('right_menu.expressions_expressions_limit_reached_alert');
 
   return (
-    <StudioDropdown icon={<PlusIcon />} triggerButtonText={title} triggerButtonVariant='secondary'>
+    <StudioDropdown
+      icon={<PlusIcon />}
+      triggerButtonText={title}
+      triggerButtonVariant='secondary'
+      triggerButtonDisabled={!areThereRemainingProperties}
+    >
       <StudioDropdown.List>
         {remainingProperties.map((property) => (
           <MenuItem property={property} key={JSON.stringify(property)} />
@@ -40,8 +45,8 @@ const MenuItem = ({ property }: { property: FormItemProperty }) => {
   };
 
   return (
-    <StudioDropdown.Item onClick={handleAddExpression}>
-      <StudioDropdown.Button>{text}</StudioDropdown.Button>
+    <StudioDropdown.Item>
+      <StudioDropdown.Button onClick={handleAddExpression}>{text}</StudioDropdown.Button>
     </StudioDropdown.Item>
   );
 };
