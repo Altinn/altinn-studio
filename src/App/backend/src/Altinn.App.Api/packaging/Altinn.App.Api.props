@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <!--
+    This props file is included in the Altinn.App.Api nuget package and will
+    apply to the App projects when they reference said nuget package.
+   -->
+  <PropertyGroup>
+    <IsAltinnApp>true</IsAltinnApp>
+  </PropertyGroup>
+  <ItemGroup>
+    <!--
+      We include config files as addition files so that they are more easily referenced
+      in analyzers and source generators.
+    -->
+    <AdditionalFiles Include="config/**" />
+    <AdditionalFiles Include="ui/**/*.json" />
+  </ItemGroup>
+</Project>

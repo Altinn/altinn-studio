@@ -107,7 +107,8 @@ public interface IDataClient
     );
 
     /// <summary>
-    /// Gets the data as is.
+    /// Gets the data as is. Note: This method buffers the entire response in memory before returning the stream.
+    /// For memory-efficient processing of large files, use <see cref="GetBinaryDataStream"/> instead.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -123,6 +124,26 @@ public interface IDataClient
         Guid instanceGuid,
         Guid dataId,
         StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Gets the data as an unbuffered stream for memory-efficient processing of large files.
+    /// Throws <see cref="Altinn.App.Core.Helpers.PlatformHttpException"/> if the data element is not found or other HTTP errors occur.
+    /// </summary>
+    /// <param name="instanceOwnerPartyId">The instance owner id</param>
+    /// <param name="instanceGuid">The instance id</param>
+    /// <param name="dataId">the data id</param>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="timeout">Optional timeout for the operation. Defaults to 100 seconds if not specified.</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
+    /// <exception cref="Altinn.App.Core.Helpers.PlatformHttpException">Thrown when the data element is not found or other HTTP errors occur</exception>
+    Task<Stream> GetBinaryDataStream(
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        Guid dataId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        TimeSpan? timeout = null,
         CancellationToken cancellationToken = default
     );
 

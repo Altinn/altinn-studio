@@ -77,7 +77,7 @@ public readonly struct DataElementIdentifier : IEquatable<DataElementIdentifier>
     /// </summary>
     public static bool operator ==(DataElementIdentifier left, DataElementIdentifier right)
     {
-        return left.Equals(right);
+        return left.Guid.Equals(right.Guid);
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ public readonly struct DataElementIdentifier : IEquatable<DataElementIdentifier>
     /// </summary>
     public static bool operator !=(DataElementIdentifier left, DataElementIdentifier right)
     {
-        return !left.Equals(right);
+        return !left.Guid.Equals(right.Guid);
     }
 
     /// <inheritdoc />
