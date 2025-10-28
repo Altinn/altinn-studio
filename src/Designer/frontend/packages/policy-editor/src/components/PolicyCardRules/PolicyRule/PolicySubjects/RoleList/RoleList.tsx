@@ -45,6 +45,7 @@ export const RoleList = ({ subjects, selectedSubjects, heading, handleChange }: 
           <SubjectListItem
             key={subject.urn}
             urn={subject.urn}
+            legacyUrn={subject.legacyUrn}
             icon={PersonTallShortIcon}
             title={subjectTitle}
             description={subject.description}

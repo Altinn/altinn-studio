@@ -3,7 +3,7 @@ import cn from 'classnames';
 import { StudioCheckbox } from '@studio/components';
 import classes from './SubjectListItem.module.css';
 
-interface SubjectListItem {
+interface SubjectListItemProps {
   icon: ElementType;
   urn: string;
   legacyUrn?: string;
@@ -23,7 +23,7 @@ export const SubjectListItem = ({
   isChecked,
   isSelectedListItem,
   handleChange,
-}: SubjectListItem) => {
+}: SubjectListItemProps) => {
   const Icon = icon;
 
   return (

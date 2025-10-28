@@ -149,7 +149,7 @@ describe('PolicySubjects', () => {
     const selectedAccessPackageCheckbox = screen.getByLabelText(lufttransportPackage.name);
     await user.click(selectedAccessPackageCheckbox);
 
-    expect(screen.queryByText(accessPackageAreaTransport.name)).not.toBeInTheDocument();
+    expect(screen.queryByText(lufttransportPackage.name)).not.toBeInTheDocument();
   });
 
   it('should show unknown access package if rule contains unknown access package', () => {
