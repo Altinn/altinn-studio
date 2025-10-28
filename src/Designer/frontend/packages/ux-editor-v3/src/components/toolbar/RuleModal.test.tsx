@@ -89,6 +89,28 @@ describe('ruleModal', () => {
 
     expect(queries.saveRuleConfig).toHaveBeenCalled();
   });
+
+  it('should update component when rule connection props change', () => {
+    const connectionId = 'test-connection';
+    const { rerender, queryClient } = renderComponentWithConnection(connectionId, rule1Name);
+    expect(screen.getByRole('button', { name: rule1Name })).toBeInTheDocument();
+
+    const updatedRuleConfig = {
+      data: {
+        ruleConnection: {
+          [connectionId]: {
+            selectedFunction: rule2Name,
+            inputParams: {},
+            outParams: {},
+          },
+        },
+        conditionalRendering: {},
+      },
+    };
+    queryClient.setQueryData([QueryKey.RuleConfig, org, app, layoutSetName], updatedRuleConfig);
+    rerender(<RuleModal />);
+    expect(screen.getByRole('button', { name: rule2Name })).toBeInTheDocument();
+  });
 });
 
 const layoutSetName = layoutSet1NameMock;
@@ -117,4 +139,58 @@ const renderComponent = () => {
     saveRuleConfig: jest.fn().mockImplementation(() => Promise.resolve()),
   };
   return { ...renderWithProviders(<RuleModal />, { queries, queryClient }), queries };
+};
+
+const renderComponentWithConnection = (connectionId: string, ruleName: string) => {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
+  queryClient.setQueryData([QueryKey.RuleConfig, org, app, layoutSetName], {
+    data: {
+      ruleConnection: {
+        [connectionId]: {
+          selectedFunction: ruleName,
+          inputParams: {},
+          outParams: {},
+        },
+      },
+      conditionalRendering: {},
+    },
+  });
+  // Mock the parsed rule model elements
+  queryClient.setQueryData(
+    [QueryKey.RuleHandler, org, app, layoutSetName],
+    [
+      {
+        name: rule1Name,
+        inputs: { first: 'first name', last: 'last name' },
+        outputs: { outParam0: 'outParam0' },
+        type: 'rule',
+      },
+      {
+        name: rule2Name,
+        inputs: { first: 'first name', last: 'last name' },
+        outputs: { outParam0: 'outParam0' },
+        type: 'rule',
+      },
+    ],
+  );
+  const queries = {
+    getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
+    getRuleConfig: jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        data: {
+          ruleConnection: {
+            [connectionId]: {
+              selectedFunction: ruleName,
+              inputParams: {},
+              outParams: {},
+            },
+          },
+          conditionalRendering: {},
+        },
+      }),
+    ),
+    saveRuleConfig: jest.fn().mockImplementation(() => Promise.resolve()),
+  };
+  return { ...renderWithProviders(<RuleModal />, { queries, queryClient }), queries, queryClient };
 };

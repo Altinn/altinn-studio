@@ -45,7 +45,6 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
   }
 
   public componentDidUpdate(prevProps: IRuleComponentProps) {
-    // Update state when props change (important for StudioDialog which keeps component mounted)
     if (!this.props.connectionId) return;
 
     const currentConnection = this.props.ruleConnection?.[this.props.connectionId];

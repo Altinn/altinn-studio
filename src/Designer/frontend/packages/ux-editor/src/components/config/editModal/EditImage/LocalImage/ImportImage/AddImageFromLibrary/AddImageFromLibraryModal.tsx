@@ -19,7 +19,7 @@ export const AddImageFromLibraryModal = forwardRef<
   const { data: imagesFileNames } = useGetAllImageFileNamesQuery(org, app);
 
   return (
-    <StudioDialog ref={ref} className={imagesFileNames?.length > 0 && classes.dialog}>
+    <StudioDialog ref={ref} className={imagesFileNames?.length > 0 ? classes.dialog : undefined}>
       <StudioDialog.Block>
         <StudioHeading level={2}>
           {t('ux_editor.properties_panel.images.choose_from_library_modal_title')}

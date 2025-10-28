@@ -87,6 +87,7 @@ function OptionListSelectorWithData({
             optionListIds={optionListIds}
             component={component}
             handleComponentChange={handleComponentChange}
+            modalRef={modalRef}
           />
         </StudioDialog.Block>
       </StudioDialog>
@@ -94,16 +95,20 @@ function OptionListSelectorWithData({
   );
 }
 
-type ModalContentProps = OptionListSelectorWithDataProps;
+type ModalContentProps = OptionListSelectorWithDataProps & {
+  modalRef: React.RefObject<HTMLDialogElement>;
+};
 
 function ModalContent({
   optionListIds,
   component,
   handleComponentChange,
+  modalRef,
 }: ModalContentProps): React.ReactNode {
   const handleClick = (optionsId: string) => {
     const updatedComponent = updateComponentOptionsId(component, optionsId);
     handleOptionsChange(updatedComponent, handleComponentChange);
+    modalRef.current?.close();
   };
 
   return (
