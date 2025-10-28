@@ -1,9 +1,10 @@
 import type { PageName } from '../types/PageName';
 import React from 'react';
+import type { ComponentProps } from 'react';
 import type { PagePropsMap } from '../types/PagesProps';
 import { useTranslation } from 'react-i18next';
 import { pageRouterQueryParamKey } from '../utils/router/QueryParamsRouter';
-import { StudioContentMenu } from '@studio/components-legacy';
+import { StudioContentMenu } from '@studio/components';
 import { Link } from 'react-router-dom';
 import type { ContentLibraryConfig } from '../types/ContentLibraryConfig';
 
@@ -29,23 +30,15 @@ export abstract class Page<Name extends PageName> {
   abstract renderPageComponent(props: PagePropsMap<Name>): React.ReactElement;
 
   renderTab(): React.ReactElement {
-    const title = this.useTitle();
     return (
-      <StudioContentMenu.LinkTab
+      <LinkTab
         key={this.name}
         icon={this.renderIcon()}
         tabId={this.name}
-        tabName={title}
+        titleKey={this.titleKey}
         renderTab={this.renderLink}
       />
     );
-  }
-
-  private useTitle(): string {
-    /* Eslint misinterprets this as a class component, while it's really just a hook used in a functional component within a class */
-    /* eslint-disable-next-line react-hooks/rules-of-hooks */
-    const { t } = useTranslation();
-    return t(this.titleKey);
   }
 
   abstract renderIcon(): React.ReactElement;
@@ -57,4 +50,13 @@ export abstract class Page<Name extends PageName> {
   private get link(): string {
     return `?${pageRouterQueryParamKey}=${this.name}`;
   }
+}
+
+type LinkTabProps = Omit<ComponentProps<typeof StudioContentMenu.LinkTab>, 'tabName'> & {
+  titleKey: string;
+};
+
+function LinkTab({ titleKey, ...rest }: LinkTabProps): React.ReactElement {
+  const { t } = useTranslation();
+  return <StudioContentMenu.LinkTab tabName={t(titleKey)} {...rest} />;
 }

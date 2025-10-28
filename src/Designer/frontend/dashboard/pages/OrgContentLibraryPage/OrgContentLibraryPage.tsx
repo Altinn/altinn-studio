@@ -120,7 +120,7 @@ function OrgContentLibraryWithContextAndData({
   const { mutate: updateCodeListId } = useUpdateOrgCodeListIdMutation(orgName);
   const { mutate: updateTextResources } = useUpdateOrgTextResourcesMutation(orgName);
   const { t } = useTranslation();
-  const displayNewCodeListPage = useFeatureFlag(FeatureFlag.NewCodeListApi);
+  const displayNewCodeListPage = useFeatureFlag(FeatureFlag.NewCodeLists);
 
   const handleUpload = useUploadCodeList(orgName);
 
