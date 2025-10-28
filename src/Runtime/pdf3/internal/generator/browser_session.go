@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/url"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -654,7 +655,7 @@ func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutM
 func (w *browserSession) getCookies() ([]map[string]any, error) {
 	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
 
-	resp, err := w.conn.SendCommand(w.ctx, "Network.getCookies", map[string]any{})
+	resp, err := w.conn.SendCommand(w.ctx, "Storage.getCookies", map[string]any{})
 	if err != nil {
 		return nil, err
 	}
@@ -686,22 +687,35 @@ func (w *browserSession) getBrowserState(state string) testing.BrowserState {
 	if err != nil {
 		return testing.BrowserState{
 			State:            state,
-			Cookies:          []string{},
+			Cookies:          []testing.CookieInfo{},
 			ConsoleErrorLogs: int(w.consoleErrors.Load()),
 			BrowserErrors:    int(w.browserErrors.Load()),
 		}
 	}
 
-	cookieNames := make([]string, 0, len(cookies))
+	cookieInfos := make([]testing.CookieInfo, 0, len(cookies))
 	for _, cookie := range cookies {
-		if name, ok := cookie["name"].(string); ok {
-			cookieNames = append(cookieNames, name)
+		name, hasName := cookie["name"].(string)
+		domain, _ := cookie["domain"].(string)
+		if hasName {
+			cookieInfos = append(cookieInfos, testing.CookieInfo{
+				Name:   name,
+				Domain: domain,
+			})
 		}
 	}
 
+	// Sort for deterministic ordering (prevents snapshot flakiness)
+	sort.SliceStable(cookieInfos, func(i, j int) bool {
+		if cookieInfos[i].Name != cookieInfos[j].Name {
+			return cookieInfos[i].Name < cookieInfos[j].Name
+		}
+		return cookieInfos[i].Domain < cookieInfos[j].Domain
+	})
+
 	return testing.BrowserState{
 		State:            state,
-		Cookies:          cookieNames,
+		Cookies:          cookieInfos,
 		ConsoleErrorLogs: int(w.consoleErrors.Load()),
 		BrowserErrors:    int(w.browserErrors.Load()),
 	}
@@ -741,6 +755,7 @@ func (w *browserSession) cleanupBrowser(req *workerRequest) {
 			"origin":       fmt.Sprintf("%s://%s", u.Scheme, u.Host),
 			"storageTypes": "all",
 		}},
+		{Method: "Storage.clearCookies", Params: nil},
 		{Method: "Network.clearBrowserCache", Params: nil},
 		{Method: "Page.resetNavigationHistory", Params: nil},
 	})

@@ -288,3 +288,44 @@ func Test_RequestCancellationWaitForTimeout(t *testing.T) {
 
 	requestPDFWithCancellation(t, req, 250*time.Millisecond)
 }
+
+func Test_CookieIsolation(t *testing.T) {
+	req1 := harness.GetDefaultPdfRequest(t)
+	req1.URL = harness.TestServerURL + "/app/?render=light&setcookie" // Set the various cookies
+
+	resp1, err1 := harness.RequestNewPDF(t, req1)
+	if err1 != nil {
+		t.Fatalf("First request failed: %v", err1)
+	}
+
+	if !harness.IsPDF(resp1.Data) {
+		t.Error("First response is not a valid PDF")
+	}
+
+	output1, err := resp1.LoadOutput(t)
+	if err != nil {
+		t.Fatalf("Failed to load first request output: %v", err)
+	}
+
+	harness.Snapshot(t, []byte(output1.SnapshotString()), "first_request", "json")
+
+	req2 := harness.GetDefaultPdfRequest(t)
+	req2.URL = harness.TestServerURL + "/app/?render=light" // No setcookie here
+
+	resp2, err2 := harness.RequestNewPDF(t, req2)
+	if err2 != nil {
+		t.Fatalf("Second request failed: %v", err2)
+	}
+
+	if !harness.IsPDF(resp2.Data) {
+		t.Error("Second response is not a valid PDF")
+	}
+
+	output2, err := resp2.LoadOutput(t)
+	if err != nil {
+		t.Fatalf("Failed to load second request output: %v", err)
+	}
+
+	// We now expect from these snapshots that there are just the single default cookie in this snapshot
+	harness.Snapshot(t, []byte(output2.SnapshotString()), "second_request", "json")
+}
