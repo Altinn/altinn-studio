@@ -156,6 +156,13 @@ public class AzureSharedContentClient : ISharedContentClient
     )
     {
         string indexFileString = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        if (string.IsNullOrEmpty(indexFileString))
+        {
+            AddIndexFile(indexFilePath, [content]);
+            return;
+        }
+
         IndexFile? indexFile = JsonSerializer.Deserialize<IndexFile?>(indexFileString, s_jsonOptions);
         List<string>? prefixes = indexFile?.Prefixes;
 
