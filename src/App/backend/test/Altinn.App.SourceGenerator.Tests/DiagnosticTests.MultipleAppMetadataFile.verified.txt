@@ -1,0 +1,17 @@
+﻿[
+  {
+    Location: C:\temp\config\applicationmetadata.json: (0,0)-(0,0),
+    Message: Error in applicationmetadata.json: Multiple applicationmetadata.json file found,
+    Severity: Warning,
+    WarningLevel: 1,
+    Descriptor: {
+      Id: ALTINNAPP0002,
+      Title: Application metadata error,
+      HelpLink: https://docs.altinn.studio/nb/altinn-studio/reference/analysis/rules/altinnapp0002,
+      MessageFormat: Error in applicationmetadata.json: {0},
+      Category: Metadata,
+      DefaultSeverity: Warning,
+      IsEnabledByDefault: true
+    }
+  }
+]

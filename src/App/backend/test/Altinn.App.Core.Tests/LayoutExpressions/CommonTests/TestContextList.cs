@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Internal.Expressions;
-using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
@@ -71,7 +70,8 @@ public class TestContextList
 
         var instance = new Instance() { Data = [] };
         var dataType = new DataType() { Id = "default" };
-        var layout = new LayoutSetComponent(test.Layouts.Values.ToList(), "layout", dataType);
+        var layout = new LayoutSetComponent(test.Layouts, "layout", dataType);
+
         var componentModel = new LayoutModel([layout], null);
         var state = new LayoutEvaluatorState(
             DynamicClassBuilder.DataAccessorFromJsonDocument(
@@ -85,14 +85,19 @@ public class TestContextList
 
         test.ParsingException.Should().BeNull("Loading of test failed");
 
-        var results = (await state.GetComponentContexts())
-            .Select(c => ComponentContextForTestSpec.FromContext(c))
-            .ToList();
+        var results = (await state.GetComponentContexts()).Select(ComponentContextForTestSpec.FromContext).ToList();
         _output.WriteLine(JsonSerializer.Serialize(new { resultContexts = results }, _jsonSerializerOptions));
 
         foreach (var (result, expected, index) in results.Zip(test.Expected, Enumerable.Range(0, int.MaxValue)))
         {
-            result.Should().BeEquivalentTo(expected, "component context at {0} should match", index);
+            result
+                .Should()
+                .BeEquivalentTo(
+                    expected,
+                    opt => opt.WithStrictOrdering(),
+                    "component context at {0} should match",
+                    index
+                );
         }
 
         results.Count.Should().Be(test.Expected.Count);
