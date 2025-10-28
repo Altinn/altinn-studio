@@ -234,6 +234,11 @@ func generatePdf(client *http.Client, workerAddr string) func(http.ResponseWrite
 				return
 			}
 
+			// Check if context is cancelled before retrying
+			if r.Context().Err() != nil {
+				return
+			}
+
 			attempt++
 		}
 	}
@@ -286,7 +291,10 @@ func callWorker(
 				time.Since(start),
 				err,
 			)
-			time.Sleep(250 * time.Millisecond)
+			select {
+			case <-time.After(250 * time.Millisecond):
+			case <-ctx.Done():
+			}
 			return false
 		}
 		writeProblemDetails(w, http.StatusInternalServerError, ProblemDetails{
@@ -347,7 +355,10 @@ func callWorker(
 			time.Since(start),
 			workerId,
 		)
-		time.Sleep(250 * time.Millisecond)
+		select {
+		case <-time.After(250 * time.Millisecond):
+		case <-ctx.Done():
+		}
 		return false
 	}
 

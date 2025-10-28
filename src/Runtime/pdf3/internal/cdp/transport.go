@@ -63,7 +63,11 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 		if err == nil {
 			_ = resp.Body.Close()
 		}
-		time.Sleep(50 * time.Millisecond)
+		select {
+		case <-time.After(50 * time.Millisecond):
+		case <-ctx.Done():
+			return nil, "", ctx.Err()
+		}
 	}
 
 	if err != nil {
@@ -151,7 +155,11 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 			break
 		}
 
-		time.Sleep(50 * time.Millisecond)
+		select {
+		case <-time.After(50 * time.Millisecond):
+		case <-ctx.Done():
+			return nil, "", ctx.Err()
+		}
 	}
 
 	if err != nil {
@@ -465,13 +473,17 @@ func (c *connection) handleMessages() {
 				batchID, batchOK := c.cmdIDToBatchID.GetAndDelete(*msg.ID)
 				responseCh, cmdOK := c.pendingCmds.GetAndDelete(*msg.ID)
 
-				// If we hit this assertion, it means that Chrome actually didn't respond in time, here's why:
-				// The SendCommand methods only `GetAndDelete` if we timeout after types.RequestTimeout()
-				// However, this should not be a normal occurrence. The max timeout used during PDF generation
-				// WaitFor config is types.MaxTimeoutMs, and we validate that in types.Validate.
-				// So in the case where something is actually broken in comms between this process and Chrome,
-				// we should just crash.
-				assert.AssertWithMessage((batchOK || cmdOK) && batchOK != cmdOK, fmt.Sprintf("Invalid state for %d: %s", *msg.ID, msg.Method))
+				if !batchOK && !cmdOK {
+					// There are two potential reasons for this:
+					// - Client dropped the outer request, and removed the pending command in the SendCommand defer block after exiting
+					// - Chrome sent response after RequestTimeout
+					// we can't really differentiate between this atm, so let's just log it
+					log.Printf("Worker %d: Received late response for command %d (likely timed out) - ignoring\n", c.id, *msg.ID)
+					continue
+				}
+
+				// Exactly one must be true - commands can't be in both states
+				assert.AssertWithMessage(batchOK != cmdOK, fmt.Sprintf("Command %d exists in both batch and single command state", *msg.ID))
 
 				if cmdOK {
 					assert.AssertWithMessage(responseCh != nil, fmt.Sprintf("Response channel for command ID %d is nil", *msg.ID))
