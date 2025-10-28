@@ -68,14 +68,14 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
       <StudioDropdown triggerButtonVariant='tertiary' icon={<MenuElipsisVerticalIcon />}>
         <StudioDropdown.List>
           <StudioDropdown.Item onClick={() => handleOpenCopyModal(repoFullName)}>
-            <StudioButton icon={<FilesIcon />} variant='tertiary'>
+            <StudioDropdown.Button icon={<FilesIcon />}>
               {t('dashboard.make_copy')}
-            </StudioButton>
+            </StudioDropdown.Button>
           </StudioDropdown.Item>
           <StudioDropdown.Item onClick={() => window.open(editUrl, '_blank')}>
-            <StudioButton icon={<ExternalLinkIcon />} variant='tertiary'>
+            <StudioDropdown.Button icon={<ExternalLinkIcon />}>
               {t('dashboard.open_in_new')}
-            </StudioButton>
+            </StudioDropdown.Button>
           </StudioDropdown.Item>
         </StudioDropdown.List>
       </StudioDropdown>
