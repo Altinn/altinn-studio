@@ -57,6 +57,7 @@ func NewMaskinportenClientReconciler(
 // +kubebuilder:rbac:groups=resources.altinn.studio,resources=maskinportenclients,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=resources.altinn.studio,resources=maskinportenclients/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=resources.altinn.studio,resources=maskinportenclients/finalizers,verbs=update
+// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -113,6 +114,12 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 
 	currentState, err := r.fetchCurrentState(ctx, req)
 	if err != nil {
+		// Check if this is a missing secret error (expected/recoverable condition)
+		if _, ok := err.(*maskinporten.MissingSecretError); ok {
+			log.Info("App secret not found yet, will retry later", "app", req.AppId)
+			// Requeue with a delay without logging as error
+			return ctrl.Result{RequeueAfter: r.getRequeueAfter()}, nil
+		}
 		r.updateStatusWithError(ctx, err, "fetchCurrentState failed", instance, nil)
 		return ctrl.Result{}, err
 	}

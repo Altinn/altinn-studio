@@ -18,6 +18,16 @@ import (
 
 const JsonFileName = "maskinporten-settings.json"
 
+// MissingSecretError is returned when the app secret doesn't exist yet
+// This is a recoverable error that should be handled gracefully
+type MissingSecretError struct {
+	AppName string
+}
+
+func (e *MissingSecretError) Error() string {
+	return fmt.Sprintf("app secret not found for MaskinportenClient: %s", e.AppName)
+}
+
 // ClientState reprsents a snapshot of the state of a Maskinporten client
 // across sources such as
 //   - MaskinportenClient k8s CRD
@@ -112,8 +122,10 @@ func NewClientState(
 	if crd == nil {
 		return nil, errors.New("tried to hydrate client state without CRD")
 	}
+	// Secret may be nil if the app hasn't been deployed yet or secret was deleted
+	// This is a recoverable condition - we'll wait for the secret to be created
 	if secret == nil {
-		return nil, errors.Errorf("null secret when hydrating for app: %s", crd.Name)
+		return nil, &MissingSecretError{AppName: crd.Name}
 	}
 	if api == nil && apiJwks != nil {
 		return nil, errors.New("unexpected condition, api resource was not created but api JWKS was")
@@ -357,7 +369,7 @@ func (s *ClientState) Reconcile(
 }
 
 func getClientNamePrefix(context *operatorcontext.Context) string {
-	return fmt.Sprintf("altinnoperator-%s-%s-", context.ServiceOwnerName, context.Environment)
+	return fmt.Sprintf("altinnoperator-%s-%s-", context.ServiceOwnerId, context.Environment)
 }
 
 func GetClientName(context *operatorcontext.Context, appId string) string {
@@ -371,7 +383,7 @@ func (s *ClientState) buildApiReq(context *operatorcontext.Context) *AddClientRe
 	clientName := GetClientName(context, s.AppId)
 	description := fmt.Sprintf(
 		"Altinn Operator managed client for %s/%s/%s",
-		context.ServiceOwnerName,
+		context.ServiceOwnerId,
 		context.Environment,
 		s.AppId,
 	)

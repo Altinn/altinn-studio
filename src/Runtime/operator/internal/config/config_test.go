@@ -28,8 +28,9 @@ func TestConfigMissingValuesFail(t *testing.T) {
 	_, err = file.WriteString("maskinporten_api.url=https://example.com")
 	Expect(err).NotTo(HaveOccurred())
 
-	operatorContext := operatorcontext.DiscoverOrDie(context.Background())
-	cfg, err := GetConfig(operatorContext, ConfigSourceDefault, file.Name())
+	ctx := context.Background()
+	environment := operatorcontext.EnvironmentLocal
+	cfg, err := GetConfig(ctx, environment, file.Name())
 	Expect(cfg).To(BeNil())
 	Expect(err).To(HaveOccurred())
 	_, ok := err.(validator.ValidationErrors)
@@ -41,11 +42,39 @@ func TestConfigMissingValuesFail(t *testing.T) {
 func TestConfigTestEnvLoadsOk(t *testing.T) {
 	RegisterTestingT(t)
 
-	operatorContext := operatorcontext.DiscoverOrDie(context.Background())
-	cfg, err := GetConfig(operatorContext, ConfigSourceDefault, "")
+	ctx := context.Background()
+	environment := operatorcontext.EnvironmentLocal
+	cfg, err := GetConfig(ctx, environment, "")
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
 	Expect(cfg.MaskinportenApi.ClientId).To(Equal("altinn_apps_supplier_client"))
 	Expect(cfg.MaskinportenApi.AuthorityUrl).To(Equal("http://localhost:8050"))
 	Expect(cfg.MaskinportenApi.Jwk).NotTo(BeNil())
+	Expect(cfg.OrgRegistry.URL).To(Equal("http://localhost:8052/orgs/altinn-orgs.json"))
+}
+
+func TestSafeLogValueRedactsSecrets(t *testing.T) {
+	RegisterTestingT(t)
+
+	ctx := context.Background()
+	environment := operatorcontext.EnvironmentLocal
+	cfg, err := GetConfig(ctx, environment, "")
+	Expect(err).NotTo(HaveOccurred())
+	Expect(cfg).NotTo(BeNil())
+
+	// Get safe log value
+	safeLog := cfg.SafeLogValue()
+
+	// Verify the JWK is redacted in the safe log output
+	maskinportenApi, ok := safeLog["maskinporten_api"].(map[string]any)
+	Expect(ok).To(BeTrue(), "maskinporten_api should be a map")
+	Expect(maskinportenApi["jwk"]).To(Equal("[REDACTED]"))
+
+	// Verify other fields are still present
+	Expect(maskinportenApi["client_id"]).To(Equal("altinn_apps_supplier_client"))
+	Expect(maskinportenApi["authority_url"]).To(Equal("http://localhost:8050"))
+
+	// Verify the actual config still has the real JWK
+	Expect(cfg.MaskinportenApi.Jwk).NotTo(Equal("[REDACTED]"))
+	Expect(cfg.MaskinportenApi.Jwk).NotTo(BeEmpty())
 }

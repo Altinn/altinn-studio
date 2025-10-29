@@ -125,7 +125,7 @@ func (s *CryptoService) createCert(
 	certTemplate := x509.Certificate{
 		SerialNumber: serial,
 		Subject: pkix.Name{
-			Organization: []string{s.ctx.ServiceOwnerName},
+			Organization: []string{s.ctx.ServiceOwnerId},
 			CommonName:   certCommonName,
 		},
 		Issuer:                s.getIssuer(),

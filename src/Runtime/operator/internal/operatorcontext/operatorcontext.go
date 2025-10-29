@@ -2,18 +2,34 @@ package operatorcontext
 
 import (
 	"context"
+	"os"
 
+	"github.com/go-errors/errors"
+
+	"altinn.studio/operator/internal/orgs"
 	"altinn.studio/operator/internal/telemetry"
 	"github.com/google/uuid"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 )
 
-const EnvironmentLocal = "local"
-const EnvironmentDev = "dev"
+const EnvironmentLocal = "localtest"
+
+// ResolveEnvironment determines the environment from the override or OPERATOR_ENVIRONMENT env var.
+// Returns EnvironmentLocal if neither is set.
+func ResolveEnvironment(override string) string {
+	if override != "" {
+		return override
+	}
+	environment := os.Getenv("OPERATOR_ENVIRONMENT")
+	if environment == "" {
+		return EnvironmentLocal
+	}
+	return environment
+}
 
 type Context struct {
-	ServiceOwnerName  string
+	ServiceOwnerId    string
 	ServiceOwnerOrgNo string
 	Environment       string
 	RunId             string
@@ -26,32 +42,50 @@ func (c *Context) IsLocal() bool {
 	return c.Environment == EnvironmentLocal
 }
 
-func (c *Context) IsDev() bool {
-	return c.Environment == EnvironmentDev
-}
-
 func (c *Context) OverrideEnvironment(env string) {
 	c.Environment = env
 }
 
-func Discover(ctx context.Context) (*Context, error) {
+func Discover(ctx context.Context, environment string, orgRegistry *orgs.OrgRegistry) (*Context, error) {
 	err := ctx.Err()
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: this should come from the environment/context somewhere
-	// there should be 1:1 mapping between TE/env:cluster
-	serviceOwnerName := "local"
-	serviceOwnerOrgNo := "991825827"
-	environment := EnvironmentLocal
+	if environment != EnvironmentLocal {
+		if orgRegistry == nil {
+			return nil, errors.Errorf("OrgRegistry is needed for %s", environment)
+		}
+	}
+
+	serviceOwnerId := os.Getenv("OPERATOR_SERVICEOWNER")
+	if serviceOwnerId == "" {
+		if environment != EnvironmentLocal {
+			return nil, errors.New("OPERATOR_SERVICEOWNER environment variable is not set")
+		}
+		serviceOwnerId = "ttd"
+	}
+
+	serviceOwnerOrgNo := ""
+	if orgRegistry != nil {
+		if org, ok := orgRegistry.Get(serviceOwnerId); ok {
+			serviceOwnerOrgNo = org.OrgNr
+		} else {
+			if environment != EnvironmentLocal {
+				return nil, errors.Errorf("could not find org for service owner id %s", serviceOwnerId)
+			} else {
+				serviceOwnerOrgNo = "991825827"
+			}
+		}
+	}
+
 	runId, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
 	}
 
 	return &Context{
-		ServiceOwnerName:  serviceOwnerName,
+		ServiceOwnerId:    serviceOwnerId,
 		ServiceOwnerOrgNo: serviceOwnerOrgNo,
 		Environment:       environment,
 		RunId:             runId.String(),
@@ -60,8 +94,8 @@ func Discover(ctx context.Context) (*Context, error) {
 	}, nil
 }
 
-func DiscoverOrDie(ctx context.Context) *Context {
-	context, err := Discover(ctx)
+func DiscoverOrDie(ctx context.Context, environment string, orgRegistry *orgs.OrgRegistry) *Context {
+	context, err := Discover(ctx, environment, orgRegistry)
 	if err != nil {
 		panic(err)
 	}

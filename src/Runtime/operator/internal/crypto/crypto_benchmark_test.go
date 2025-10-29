@@ -12,7 +12,7 @@ import (
 )
 
 func benchmarkCreateJwks(b *testing.B, algo x509.SignatureAlgorithm, keySize int) {
-	operatorCtx := operatorcontext.DiscoverOrDie(context.Background())
+	operatorCtx := operatorcontext.DiscoverOrDie(context.Background(), operatorcontext.EnvironmentLocal, nil)
 	clock := clockwork.NewFakeClockAt(time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC))
 	random := utils.NewDeterministicRand()
 	service := NewService(operatorCtx, clock, random, algo, keySize)

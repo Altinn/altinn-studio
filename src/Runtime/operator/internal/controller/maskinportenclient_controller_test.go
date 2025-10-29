@@ -19,8 +19,8 @@ import (
 
 var _ = Describe("MaskinportenClient Controller", func() {
 	Context("When reconciling a resource", func() {
-		const resourceName = "local-testapp"
-		const secretName = "local-testapp-deployment-secrets"
+		const resourceName = "ttd-localtestapp"
+		const secretName = "ttd-localtestapp-deployment-secrets"
 
 		ctx := context.Background()
 
@@ -44,7 +44,7 @@ var _ = Describe("MaskinportenClient Controller", func() {
 						Name:      resourceName,
 						Namespace: "default",
 						Labels: map[string]string{
-							"app": "local-testapp-deployment",
+							"app": "ttd-localtestapp-deployment",
 						},
 					},
 					Spec: resourcesv1alpha1.MaskinportenClientSpec{
@@ -63,7 +63,7 @@ var _ = Describe("MaskinportenClient Controller", func() {
 						Name:      secretName,
 						Namespace: "default",
 						Labels: map[string]string{
-							"app": "local-testapp-deployment",
+							"app": "ttd-localtestapp-deployment",
 						},
 					},
 					Type: corev1.SecretTypeOpaque,
@@ -90,7 +90,7 @@ var _ = Describe("MaskinportenClient Controller", func() {
 		})
 		It("should successfully reconcile the resource", func() {
 			By("Reconciling the created resource")
-			rt, err := internal.NewRuntime(context.Background(), "")
+			rt, err := internal.NewRuntime(context.Background(), "", nil)
 			Expect(err).NotTo(HaveOccurred())
 			controllerReconciler := NewMaskinportenClientReconciler(
 				rt,
