@@ -267,7 +267,10 @@ internal sealed class LocaltestValidation : BackgroundService
         System.Text.Json.JsonElement? testData = null;
         try
         {
-            var testDataPath = Path.Combine(_webHostEnvironment.WebRootPath ?? _webHostEnvironment.ContentRootPath, "testData.json");
+            var testDataPath = Path.Combine(
+                _webHostEnvironment.WebRootPath ?? _webHostEnvironment.ContentRootPath,
+                "testData.json"
+            );
             if (File.Exists(testDataPath))
             {
                 var testDataJson = await File.ReadAllTextAsync(testDataPath, stoppingToken);
