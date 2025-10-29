@@ -218,7 +218,7 @@ export const ResourceTable = ({
         <div className={classes.envHeaderCell}>
           {t('dashboard.resource_table_header_environment')}
           <StudioDropdown
-            icon={<FilterIcon />}
+            icon={<FilterIcon title={t('dashboard.resource_table_env_filter_button_aria_label')} />}
             triggerButtonText={selectedEnvs.length > 0 ? `(${selectedEnvs.length})` : ''}
             triggerButtonVariant='tertiary'
           >
