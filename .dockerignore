@@ -6,13 +6,15 @@
 !yarn.lock
 !.yarn*
 !src/App/template/src
-**/node_modules
-**/bin
-**/obj
 # Designer needs a wider context since it's using an app-template outside of the Designer folder.
 
-# Test-apps are built in its own container
+# Test-apps are built in its own container, so they need to be included
 !src/App/backend
 !src/App/fileanalyzers
 !src/App/codelists
 !src/test/apps
+
+# Exclusions (will also be excluded from previously included directories)
+**/bin
+**/obj
+**/node_modules

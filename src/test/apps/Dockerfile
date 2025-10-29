@@ -8,7 +8,7 @@ COPY src/App/codelists/ ./App/codelists/
 COPY src/test/apps/ ./test/apps/
 
 WORKDIR /src/test/apps
-RUN make clean-all && make build-all
+RUN make build-all
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0
 WORKDIR /src
