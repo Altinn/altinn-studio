@@ -20,6 +20,11 @@ function isFeatureSupported({
   feature: AppFeature;
   currentNugetVersion: string | undefined;
 }) {
+  if (JSON.parse('true')) {
+    // TODO: Clean up backwards compatibility for v8. For now, we just assume every feature is supported in the monorepo
+    return true;
+  }
+
   if (!currentNugetVersion) {
     return false;
   }
