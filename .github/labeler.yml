@@ -5,77 +5,77 @@ solution/platform:
 
 solution/studio/designer:
 - changed-files:
-  - any-glob-to-any-file: ['src/Designer/backend/**/*', 'frontend/**/*']
+  - any-glob-to-any-file: 'src/Designer/**/*'
 
 solution/studio/repos:
 - changed-files:
-  - any-glob-to-any-file: 'gitea/**/*'
+  - any-glob-to-any-file: 'src/gitea/**/*'
 
 # Labels for areas
 area/app-deploy:
 - changed-files:
-  - any-glob-to-any-file: ['frontend/app-development/features/appPublish/**/*', 'frontend/app-development/sharedResources/appDeployment/**/*', 'backend/src/Designer/**/*Deployment*.cs', 'backend/src/Designer/**/*Release*.cs']
+  - any-glob-to-any-file: ['src/Designer/frontend/app-development/features/appPublish/**/*', 'src/Designer/backend/src/Designer/**/*Deployment*.cs', 'src/Designer/backend/src/Designer/**/*Release*.cs']
 
 area/app-preview:
 - changed-files:
-  - any-glob-to-any-file: ['frontend/app-preview/**/*', 'src/Designer/backend/src/Designer/Controllers/PreviewController.cs']
+  - any-glob-to-any-file: ['src/Designer/frontend/app-preview/**/*', 'src/Designer/backend/src/Designer/Controllers/PreviewController.cs']
 
 area/authorization:
 - changed-files:
-  - any-glob-to-any-file: ['frontend/packages/policy-editor/**/*']
+  - any-glob-to-any-file: ['src/Designer/frontend/packages/policy-editor/**/*']
 
 area/dashboard:
 - changed-files:
-  - any-glob-to-any-file: ['frontend/dashboard/**/*']
+  - any-glob-to-any-file: ['src/Designer/frontend/dashboard/**/*']
 
 area/data-modeling:
 - changed-files:
-  - any-glob-to-any-file: ['frontend/packages/schema-editor/**/*', 'frontend/packages/schema-model/**/*', 'frontend/app-development/features/dataModelling/**/*', 'backend/src/DataModeling/**/*']
+  - any-glob-to-any-file: ['src/Designer/frontend/packages/schema-editor/**/*', 'src/Designer/frontend/packages/schema-model/**/*', 'src/Designer/frontend/app-development/features/dataModelling/**/*', 'src/Designer/backend/src/DataModeling/**/*']
 
 area/overview:
 - changed-files:
-  - any-glob-to-any-file: ['frontend/app-development/features/overview/**/*']
+  - any-glob-to-any-file: ['src/Designer/frontend/app-development/features/overview/**/*']
 
 area/process:
 - changed-files:
-  - any-glob-to-any-file: ['frontend/app-development/features/processEditor/**/*', 'frontend/packages/process-editor/**/*', 'backend/src/Designer/**/*ProcessesModeling*.cs']
+  - any-glob-to-any-file: ['src/Designer/frontend/app-development/features/processEditor/**/*', 'src/Designer/frontend/packages/process-editor/**/*', 'src/Designer/backend/src/Designer/**/*ProcessesModeling*.cs']
 
 area/resource-registry:
 - changed-files:
-  - any-glob-to-any-file: 'frontend/resourceAdm/**/*'
+  - any-glob-to-any-file: 'src/Designer/frontend/resourceadm/**/*'
 
 area/settings:
 - changed-files:
-  - any-glob-to-any-file: 'frontend/app-development/layout/SettingsModalButton/**/*'
+  - any-glob-to-any-file: 'src/Designer/frontend/app-development/layout/SettingsModalButton/**/*'
 
 area/studio-root:
 - changed-files:
-  - any-glob-to-any-file: 'frontend/studio-root/**/*'
+  - any-glob-to-any-file: 'src/Designer/frontend/studio-root/**/*'
 
 area/text-editor:
 - changed-files:
-  - any-glob-to-any-file: ['frontend/packages/text-editor/**', 'frontend/app-development/features/textEditor/**/*', 'backend/src/Designer/**/*Text*.cs',]
+  - any-glob-to-any-file: ['src/Designer/frontend/packages/text-editor/**', 'src/Designer/frontend/app-development/features/textEditor/**/*', 'src/Designer/backend/src/Designer/**/*Text*.cs']
 
 area/ui-editor:
 - changed-files:
-  - any-glob-to-any-file: 'frontend/packages/ux-editor/**/*'
+  - any-glob-to-any-file: 'src/Designer/frontend/packages/ux-editor/**/*'
 
 area/version-control:
 - changed-files:
-  - any-glob-to-any-file: 'frontend/packages/shared/src/components/GiteaHeader/**/*'
+  - any-glob-to-any-file: 'src/Designer/frontend/packages/shared/src/components/GiteaHeader/**/*'
 
 ## Other labels
 kind/dependencies:
 - changed-files:
-  - any-glob-to-any-file: ['src/Designer/backend/Directory.Packages.props', 'frontend/**/package.json']
+  - any-glob-to-any-file: ['src/Designer/backend/Directory.Packages.props', '**/package.json']
 
 quality/testing:
 - changed-files:
-  - any-glob-to-any-file: ['frontend/testing/**/*', 'src/Designer/backend/tests/**/*', 'src/Designer/testdata/**/*']
+  - any-glob-to-any-file: ['src/Designer/frontend/testing/**/*', 'src/Designer/backend/tests/**/*', 'src/Designer/testdata/**/*']
 
 skip-releasenotes:
 - changed-files:
-  - any-glob-to-any-file: ['.github/**/*', '.husky/**/*', '.vscode/**/*', '.yarn/**/*', 'src/Designer/testdata/**/*', 'development/**/*', 'src/**/*']
+  - any-glob-to-any-file: ['.github/**/*', '.husky/**/*', '.vscode/**/*', '.yarn/**/*', 'src/Designer/testdata/**/*', 'src/Designer/development/**/*', 'src/**/*']
 
 backend:
 - changed-files:
@@ -83,4 +83,4 @@ backend:
 
 frontend:
 - changed-files:
-  - any-glob-to-any-file: 'frontend/**/*'
+  - any-glob-to-any-file: 'src/Designer/frontend/**/*'

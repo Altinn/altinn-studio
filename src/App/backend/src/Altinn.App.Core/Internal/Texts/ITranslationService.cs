@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Validation;
@@ -29,13 +30,28 @@ public interface ITranslationService
     /// </summary>
     /// <param name="key">The identifier of the text resource to be translated.</param>
     /// <param name="state">The layout evaluator state containing shared data required for translation.</param>
-    /// <param name="context">The component context in which the translation is being performed.</param>
+    /// <param name="context">The component context used for relative path resolution.</param>
     /// <param name="customTextParameters">Dictionary of extra parameters for rendering this text <see cref="ValidationIssue.CustomTextParameters"/></param>
     /// <returns>The translated text value, or null if the key cannot be translated.</returns>
     Task<string?> TranslateTextKey(
         string key,
         LayoutEvaluatorState state,
-        ComponentContext context,
+        ComponentContext? context,
+        Dictionary<string, string>? customTextParameters = null
+    );
+
+    /// <summary>
+    /// Translates the specified text key using the provided instance data accessor and component context to support dynamic variable replacement.
+    /// </summary>
+    /// <param name="key">The resource key</param>
+    /// <param name="instanceDataAccessor">The instance data accessor providing access to instance data</param>
+    /// <param name="context">The component context used for relative path resolution</param>
+    /// <param name="customTextParameters">Dictionary of extra parameters for rendering this text <see cref="ValidationIssue.CustomTextParameters"/></param>
+    /// <returns>The translated text value, or null if the key cannot be translated</returns>
+    Task<string?> TranslateTextKey(
+        string key,
+        IInstanceDataAccessor instanceDataAccessor,
+        ComponentContext? context = null,
         Dictionary<string, string>? customTextParameters = null
     );
 
@@ -54,5 +70,6 @@ public interface ITranslationService
     /// <param name="language">Language for the text. If omitted, 'nb' will be used</param>
     /// <param name="keys">Array of keys to search for</param>
     /// <returns>The value of the first matching text resource in the specified language or null</returns>
+    [Obsolete("Multiple keys should be implemented by a default fallback that references the other key")]
     Task<string?> TranslateFirstMatchingTextKey(string? language, params string[] keys);
 }

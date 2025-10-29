@@ -272,12 +272,19 @@ namespace Altinn.Studio.Designer.Controllers
                     string cacheKey = $"resourcelist_${environment}";
                     if (!_memoryCache.TryGetValue(cacheKey, out List<ServiceResource> environmentResources))
                     {
-                        environmentResources = await _resourceRegistry.GetResourceList(environment, false);
-
-                        var cacheEntryOptions = new MemoryCacheEntryOptions()
-                            .SetPriority(CacheItemPriority.High)
-                            .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
-                        _memoryCache.Set(cacheKey, environmentResources, cacheEntryOptions);
+                        try
+                        {
+                            environmentResources = await _resourceRegistry.GetResourceList(environment, false);
+                            var cacheEntryOptions = new MemoryCacheEntryOptions()
+                                .SetPriority(CacheItemPriority.High)
+                                .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
+                            _memoryCache.Set(cacheKey, environmentResources, cacheEntryOptions);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error fetching resource list for env {environment}: {ex.Message}");
+                            environmentResources = [];
+                        }
                     }
 
                     IEnumerable<ServiceResource> environmentResourcesForOrg = environmentResources.Where(x =>

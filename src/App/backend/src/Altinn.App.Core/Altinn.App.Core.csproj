@@ -45,32 +45,14 @@
   <ItemGroup>
     <!-- Internal analyzers are for analysis of _our_ code, so we reference this project as an analyzer (it's a build-time dep) -->
     <ProjectReference Include="../Altinn.App.Internal.Analyzers/Altinn.App.Internal.Analyzers.csproj" PrivateAssets="all" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
-
-    <!-- We reference the app analyzers to make sure it's built, but we don't really reference it. We just include it in packaging below -->
-    <ProjectReference Include="../Altinn.App.Analyzers/Altinn.App.Analyzers.csproj" PrivateAssets="all" ReferenceOutputAssembly="false" OutputItemType="None" />
-    <!-- This makes sure that the app analyzers is bundled alongside Altinn.App.Core when referenced in an app -->
-    <None Include="../Altinn.App.Analyzers/bin/$(Configuration)/netstandard2.0/Altinn.App.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="true" />
-    <!-- We will probably use System.Text.Json while analyzing in the future, this setup has been tested -->
-    <!-- <None Include="../Altinn.App.Analyzers/bin/$(Configuration)/netstandard2.0/System.Text.Json.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="true" /> -->
-    <!-- These MSBuild props are applied to the app when they reference the Altinn.App.Core package. Used for <AdditionalFile /> inclusions etc. -->
-    <None Include="packaging/Altinn.App.Core.props" Pack="true" PackagePath="build/" Visible="true" Condition="'$(MinVerVersionOverride)'==''" />
-    <!--
-      When we do PR builds/experimental releases we set tne MinVerVersionOverride from CI, and we also append '.Experimental' to package IDs.
-      The props file name must match the package ID for the package it is included in.
-     -->
-    <None Include="packaging/Altinn.App.Core.Experimental.props" Pack="true" PackagePath="build/" Visible="true" Condition="'$(MinVerVersionOverride)'!=''" />
   </ItemGroup>
-
-  <Target Name="CreateExperimentalPropsFile" AfterTargets="Build" Condition="'$(MinVerVersionOverride)'!=''">
-    <!-- For PR/experimental builds we need to rename the props file (only happens in CI) -->
-    <Move SourceFiles="packaging/Altinn.App.Core.props" DestinationFiles="packaging/Altinn.App.Core.Experimental.props"/>
-  </Target>
 
   <ItemGroup>
     <InternalsVisibleTo Include="Altinn.App.Api" />
 
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
     <InternalsVisibleTo Include="Altinn.App.Api.Tests" />
+    <InternalsVisibleTo Include="Altinn.App.SourceGenerator.Integration.Tests" />
     <InternalsVisibleTo Include="Altinn.App.Benchmarks" />
     <InternalsVisibleTo Include="Altinn.App.Tests.Common" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />

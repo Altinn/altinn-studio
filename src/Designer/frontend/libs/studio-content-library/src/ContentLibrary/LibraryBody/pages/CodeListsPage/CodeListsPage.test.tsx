@@ -6,10 +6,6 @@ import { userEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('CodeListsPage', () => {
-  it('Renders with no code lists by default', () => {
-    renderCodeListPage();
-  });
-
   it('Adds a new code list when the add button is clicked', async () => {
     const user = userEvent.setup();
     renderCodeListPage();

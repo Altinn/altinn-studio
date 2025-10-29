@@ -32,6 +32,9 @@ public abstract class GenericFormDataValidator<TModel> : IFormDataValidator
     /// <inheritdoc/>
     public virtual bool NoIncrementalValidation => false;
 
+    /// <inheritdoc />
+    public virtual bool ShouldRunAfterRemovingHiddenData => false;
+
     // ReSharper disable once StaticMemberInGenericType
     private static readonly AsyncLocal<List<ValidationIssue>> _validationIssues = new();
 
