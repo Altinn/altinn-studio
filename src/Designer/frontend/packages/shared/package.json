@@ -12,9 +12,9 @@
   },
   "devDependencies": {
     "@types/bpmn-moddle": "9.0.0",
-    "@types/react": "18.3.24",
+    "@types/react": "18.3.26",
     "jest": "29.7.0",
-    "typescript": "5.9.2"
+    "typescript": "5.9.3"
   },
   "license": "3-Clause BSD",
   "private": true,
