@@ -1,0 +1,8 @@
+apiVersion: resources.altinn.studio/v1alpha1
+kind: MaskinportenClient
+metadata:
+  labels:
+    app: local-testapp-deployment
+  name: local-testapp
+spec:
+  scopes: ['altinn:resourceregistry/resource.read']
