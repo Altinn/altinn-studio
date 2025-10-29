@@ -55,6 +55,10 @@ public class Adresse
 
     [JsonPropertyName("poststed")]
     public string? Poststed { get; set; }
+
+    // List of string is invalid in altinn datamodels, but might be used for backend purposes and must compile
+    [JsonPropertyName("tags")]
+    public List<string>? Tags { get; set; }
 }
 
 public class Empty { }

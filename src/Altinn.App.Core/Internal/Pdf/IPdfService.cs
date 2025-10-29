@@ -24,7 +24,7 @@ public interface IPdfService
     /// <param name="ct">Cancellation token for when a request should be stopped before it's completed.</param>
     Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken ct);
 
-    // <inheritdoc cref="GeneratePdf(Instance, string, CancellationToken)" select="summary"/>
+    /// <inheritdoc cref="GeneratePdf(Instance, string, CancellationToken)" select="summary"/>
     /// <param name="instance">
     ///   <inheritdoc cref="GeneratePdf(Instance, string, CancellationToken)" path="/param[@name='instance']"/>
     /// </param>

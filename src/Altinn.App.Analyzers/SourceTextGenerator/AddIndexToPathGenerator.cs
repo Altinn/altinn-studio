@@ -69,7 +69,7 @@ internal static class AddIndexToPathGenerator
             """
         );
 
-        foreach (var child in node.Properties.Where(IsRelevantForRecursion))
+        foreach (var child in node.Properties)
         {
             builder.Append(
                 $$"""
@@ -90,7 +90,7 @@ internal static class AddIndexToPathGenerator
                                         buffer[bufferOffset++] = '[';
                                         if (!literalIndex.TryFormat(buffer[bufferOffset..], out int charsWritten))
                                         {
-                                            throw new global::System.FormatException($"Invalid index in {path}.");
+                                            throw new global::System.ArgumentException($"Buffer too small to write index for {path}.");
                                         }
 
                                         bufferOffset += charsWritten;
@@ -101,7 +101,10 @@ internal static class AddIndexToPathGenerator
                                     {
                                         // Write index from rowIndexes to buffer
                                         buffer[bufferOffset++] = '[';
-                                        rowIndexes[0].TryFormat(buffer.Slice(bufferOffset), out int charsWritten);
+                                        if (!rowIndexes[0].TryFormat(buffer[bufferOffset..], out int charsWritten))
+                                        {
+                                            throw new global::System.ArgumentException($"Buffer too small to write index for {path}.");
+                                        }
                                         bufferOffset += charsWritten;
                                         buffer[bufferOffset++] = ']';
                                         rowIndexes = rowIndexes.Slice(1);
@@ -123,35 +126,26 @@ internal static class AddIndexToPathGenerator
                     """
                 );
             }
-            builder.Append(
-                $$"""
-                                if (pathOffset != -1)
-                                {
-                                    AddIndexToPathRecursive_{{child.Name}}(
-                                        path,
-                                        pathOffset,
-                                        rowIndexes,
-                                        buffer,
-                                        ref bufferOffset
-                                    );
-                                }
-                                return;
+            if (!child.IsJsonValueType)
+            {
+                builder.Append(
+                    $$"""
+                                    if (pathOffset != -1)
+                                    {
+                                        AddIndexToPathRecursive_{{child.Name}}(
+                                            path,
+                                            pathOffset,
+                                            rowIndexes,
+                                            buffer,
+                                            ref bufferOffset
+                                        );
+                                    }
 
-                """
-            );
-        }
+                    """
+                );
+            }
 
-        foreach (var child in node.Properties.Where(c => !IsRelevantForRecursion(c)))
-        {
-            builder.Append(
-                $$"""
-                            case "{{child.JsonName}}":
-                                segment.CopyTo(buffer.Slice(bufferOffset));
-                                bufferOffset += {{child.JsonName.Length}};
-                                return;
-
-                """
-            );
+            builder.Append("                return;\n");
         }
 
         builder.Append(
@@ -164,14 +158,9 @@ internal static class AddIndexToPathGenerator
 
             """
         );
-        foreach (var child in node.Properties.Where(c => IsRelevantForRecursion(c)))
+        foreach (var child in node.Properties.Where(c => !c.IsJsonValueType))
         {
             GenerateRecursiveMethod(builder, child, generatedTypeNames);
         }
-    }
-
-    private static bool IsRelevantForRecursion(ModelPathNode node)
-    {
-        return node.Properties.Count != 0;
     }
 }

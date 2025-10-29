@@ -26,6 +26,10 @@ public class TestFormDataWrapperFactory(ITestOutputHelper testOutputHelper)
         Assert.NotNull(result);
         Assert.Equal(model, result);
 
+        // Try to force garbage collection to get a better measurement of second execution
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+
         // Measure second execution time
         stopwatch.Restart();
         var wrapper2 = FormDataWrapperFactory.Create(model);
@@ -37,6 +41,6 @@ public class TestFormDataWrapperFactory(ITestOutputHelper testOutputHelper)
 
         // Assert that the second execution is very fast (due to caching)
         // Would like to assert lower, but lets be conservative to avoid flaky tests
-        Assert.InRange(stopwatch.Elapsed, TimeSpan.Zero, TimeSpan.FromMilliseconds(2));
+        Assert.InRange(stopwatch.Elapsed, TimeSpan.Zero, TimeSpan.FromMilliseconds(1));
     }
 }

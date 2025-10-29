@@ -53,7 +53,7 @@ internal sealed class SigningService(
     private readonly ISigningCallToActionService _signingCallToActionService = signingCallToActionService;
     private const string ApplicationJsonContentType = "application/json";
 
-    // <inheritdoc />
+    /// <inheritdoc />
     public async Task<List<SigneeContext>> InitializeSignees(
         IInstanceDataMutator instanceDataMutator,
         List<SigneeContext> signeeContexts,
@@ -157,7 +157,7 @@ internal sealed class SigningService(
         return signeeContexts;
     }
 
-    // <inheritdoc />
+    /// <inheritdoc />
     public async Task<List<SigneeContext>> GetSigneeContexts(
         IInstanceDataAccessor instanceDataAccessor,
         AltinnSignatureConfiguration signatureConfiguration,
@@ -189,7 +189,7 @@ internal sealed class SigningService(
         return signeeContexts;
     }
 
-    // <inheritdoc />
+    /// <inheritdoc />
     public async Task<List<OrganizationSignee>> GetAuthorizedOrganizationSignees(
         IInstanceDataAccessor instanceDataAccessor,
         AltinnSignatureConfiguration signatureConfiguration,
@@ -217,7 +217,7 @@ internal sealed class SigningService(
         return authorizedOrganizations;
     }
 
-    // <inheritdoc />
+    /// <inheritdoc />
     public async Task AbortRuntimeDelegatedSigning(
         IInstanceDataMutator instanceDataMutator,
         AltinnSignatureConfiguration signatureConfiguration,

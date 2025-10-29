@@ -44,12 +44,6 @@ internal static class GetterGenerator
         HashSet<string> generatedTypes
     )
     {
-        if (modelPathNode.Properties.Count == 0)
-        {
-            // Do not generate for primitive types
-            return;
-        }
-
         if (modelPathNode.ListType != null && generatedTypes.Add(modelPathNode.ListType))
         {
             builder.Append(
@@ -62,21 +56,29 @@ internal static class GetterGenerator
                         int offset
                     )
                     {
+                        if (literalIndex == -1)
+                        {
+                            return model;
+                        }
+
                         if (model is null || literalIndex < 0 || literalIndex >= model.Count)
                         {
                             return null;
                         }
 
-                        return GetRecursive(model[literalIndex], path, offset);
+                        {{(
+                    modelPathNode.Properties.Count == 0
+                        ? "return model[literalIndex];"
+                        : "return GetRecursive(model[literalIndex], path, offset);"
+                )}}
                     }
 
                 """
             );
         }
-
-        if (!generatedTypes.Add(modelPathNode.TypeName))
+        if (modelPathNode.IsJsonValueType || !generatedTypes.Add(modelPathNode.TypeName))
         {
-            // Do not generate the same type twice
+            // Do not generate recursive getters for primitive types, or types already generated
             return;
         }
 
@@ -89,9 +91,9 @@ internal static class GetterGenerator
                     int offset
                 )
                 {
-                    if(model is null)
+                    if (model is null || offset == -1)
                     {
-                        return null;
+                        return model;
                     }
 
                     return ParseSegment(path, offset, out int nextOffset, out int literalIndex) switch
@@ -104,20 +106,21 @@ internal static class GetterGenerator
             builder.Append(
                 child switch
                 {
+                    { ListType: not null } =>
+                        $"            \"{child.JsonName}\" => GetRecursive(model.{child.CSharpName}, path, literalIndex, nextOffset),\r\n",
                     { Properties.Count: 0 } =>
                         $"            \"{child.JsonName}\" when nextOffset is -1 && literalIndex is -1 => model.{child.CSharpName},\r\n",
-                    { ListType: not null } =>
-                        $"            \"{child.JsonName}\" when nextOffset > -1 && literalIndex > -1 => GetRecursive(model.{child.CSharpName}, path, literalIndex, nextOffset),\r\n",
                     _ =>
-                        $"            \"{child.JsonName}\" when nextOffset > -1 && literalIndex is -1 => GetRecursive(model.{child.CSharpName}, path, nextOffset),\r\n",
+                        $"            \"{child.JsonName}\" when literalIndex is -1 => GetRecursive(model.{child.CSharpName}, path, nextOffset),\r\n",
                 }
             );
         }
 
+        // Return null for unknown paths
+        // Could be an exception when we have proper validation
         builder.Append(
             """
-                        "" => model,
-                        // _ => throw new global::System.ArgumentException("{path} is not a valid path."),
+                        // _ => throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException($"{path} is not a valid path."),
                         _ => null,
                     };
                 }

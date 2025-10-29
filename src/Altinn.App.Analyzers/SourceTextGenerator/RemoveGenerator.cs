@@ -44,12 +44,6 @@ internal static class RemoveGenerator
         HashSet<string> generatedTypes
     )
     {
-        if (modelPathNode.Properties.Count == 0)
-        {
-            // Do not generate for primitive types
-            return;
-        }
-
         if (modelPathNode.ListType != null && generatedTypes.Add(modelPathNode.ListType))
         {
             builder.Append(
@@ -83,14 +77,33 @@ internal static class RemoveGenerator
                                     break;
                             }
                         }
-                        else
-                        {
-                            RemoveRecursive(model[index], path, offset, rowRemovalOption);
-                        }
+                """
+            );
+            if (modelPathNode.Properties.Count > 0)
+            {
+                // Don't recurs into primitives (classes with no properties)
+                builder.Append(
+                    """
+
+                            else
+                            {
+                                RemoveRecursive(model[index], path, offset, rowRemovalOption);
+                            }
+                    """
+                );
+            }
+            builder.Append(
+                """
+
                     }
 
                 """
             );
+        }
+        if (modelPathNode.Properties.Count == 0)
+        {
+            // Do not generate for primitive types
+            return;
         }
 
         if (!generatedTypes.Add(modelPathNode.TypeName))
