@@ -3022,6 +3022,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@studio/browser-storage@workspace:src/Designer/frontend/libs/studio-browser-storage":
+  version: 0.0.0-use.local
+  resolution: "@studio/browser-storage@workspace:src/Designer/frontend/libs/studio-browser-storage"
+  dependencies:
+    "@types/jest": "npm:^29.5.5"
+    eslint: "npm:8.57.1"
+    jest: "npm:^29.7.0"
+    jest-environment-jsdom: "npm:^29.7.0"
+    ts-jest: "npm:^29.1.1"
+    typescript: "npm:5.9.2"
+  languageName: unknown
+  linkType: soft
+
 "@studio/components-legacy@workspace:^, @studio/components-legacy@workspace:src/Designer/frontend/libs/studio-components-legacy":
   version: 0.0.0-use.local
   resolution: "@studio/components-legacy@workspace:src/Designer/frontend/libs/studio-components-legacy"
