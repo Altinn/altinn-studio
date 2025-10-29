@@ -13,3 +13,15 @@
   flex-wrap: wrap;
   gap: var(--ds-size-1);
 }
+
+.headerCell {
+  top: 0;
+  position: sticky;
+  background: #fff;
+}
+
+.envHeaderCell {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+}

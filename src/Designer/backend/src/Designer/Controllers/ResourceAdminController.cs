@@ -235,6 +235,7 @@ namespace Altinn.Studio.Designer.Controllers
                 {
                     Identifier = resource.Identifier,
                     Title = resource.Title,
+                    ResourceType = resource.ResourceType
                 });
             }
             else
@@ -302,6 +303,7 @@ namespace Altinn.Studio.Designer.Controllers
                                 Identifier = resource.Identifier,
                                 Title = resource.Title,
                                 CreatedBy = "",
+                                ResourceType = resource.ResourceType,
                                 LastChanged = null,
                                 Environments = []
                             };

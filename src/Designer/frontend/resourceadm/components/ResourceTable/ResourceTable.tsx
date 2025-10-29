@@ -1,17 +1,21 @@
 import React from 'react';
 import classes from './ResourceTable.module.css';
-import { PencilIcon, FileImportIcon } from '@studio/icons';
+import { PencilIcon, FileImportIcon, FilterIcon } from '@studio/icons';
 import {
   StudioButton,
   StudioSpinner,
   StudioTag,
   StudioTableLocalPagination,
+  StudioDropdown,
+  StudioCheckbox,
+  useStudioCheckboxGroup,
 } from '@studio/components';
 
 import type { Columns } from '@studio/components-legacy';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
 import { LOCAL_RESOURCE_CHANGED_TIME } from '../../utils/resourceListUtils';
+import { getAvailableEnvironments, resourceTypeMap } from '../../utils/resourceUtils';
 
 const isDateEqualToLocalResourceChangedTime = (date: Date): boolean => {
   return (
@@ -26,6 +30,10 @@ const isDateEqualToMinDate = (date: Date): boolean => {
 };
 
 export type ResourceTableProps = {
+  /**
+   * Org code
+   */
+  org: string;
   /**
    * The list to display in the table
    */
@@ -59,12 +67,23 @@ export type ResourceTableProps = {
  * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceTable = ({
+  org,
   list,
   onClickEditResource,
   onClickImportResource,
   importResourceId,
 }: ResourceTableProps): React.JSX.Element => {
   const { t, i18n } = useTranslation();
+
+  const orgEnvs = [
+    { id: 'gitea', label: 'dashboard.resource_table_row_in_gitea' },
+    ...getAvailableEnvironments(org),
+  ];
+  const {
+    getCheckboxProps,
+    value: selectedEnvs,
+    setValue: setSelectedEnvs,
+  } = useStudioCheckboxGroup();
 
   const renderLinkCell = (listItem: ResourceListItem): React.ReactElement => {
     const existsInGitea = listItem.environments.some((env: string) => env === 'gitea');
@@ -115,53 +134,68 @@ export const ResourceTable = ({
     );
   };
 
-  const listData = list.map((listItem) => {
-    return {
-      ...listItem,
-      id: listItem.identifier,
-      lastChanged: (listItem.lastChanged ?? '').toString(),
-      title: getListItemTitle(listItem),
+  const listData = list
+    .filter((listItem) => selectedEnvs.every((env) => listItem.environments.includes(env)))
+    .map((listItem) => {
+      return {
+        ...listItem,
+        id: listItem.identifier,
+        lastChanged: (listItem.lastChanged ?? '').toString(),
+        title: getListItemTitle(listItem),
 
-      environments: (
-        <div className={classes.tagContainer}>
-          {listItem.environments.map((env: string) => {
-            let tagText = env.toUpperCase();
-            if (env === 'prod') {
-              tagText = t('dashboard.resource_table_row_in_prod');
-            } else if (env === 'gitea') {
-              tagText = t('dashboard.resource_table_row_in_gitea');
-            }
-            return (
-              <StudioTag key={env} data-color='info'>
-                {tagText}
-              </StudioTag>
-            );
-          })}
-        </div>
-      ),
-      links: <div className={classes.editLinkCell}>{renderLinkCell(listItem)}</div>,
-    };
-  });
+        environments: (
+          <div className={classes.tagContainer}>
+            {listItem.environments.map((env: string) => {
+              let tagText = env.toUpperCase();
+              if (env === 'prod') {
+                tagText = t('dashboard.resource_table_row_in_prod');
+              } else if (env === 'gitea') {
+                tagText = t('dashboard.resource_table_row_in_gitea');
+              }
+              return (
+                <StudioTag key={env} data-color='info'>
+                  {tagText}
+                </StudioTag>
+              );
+            })}
+          </div>
+        ),
+        links: <div className={classes.editLinkCell}>{renderLinkCell(listItem)}</div>,
+      };
+    });
 
   const columns: Columns = [
     {
       accessor: 'title',
       heading: t('dashboard.resource_table_header_name'),
+      headerCellClass: classes.headerCell,
       sortable: true,
     },
     {
       accessor: 'identifier',
       heading: t('dashboard.resource_table_header_resourceid'),
+      headerCellClass: classes.headerCell,
       sortable: true,
+    },
+    {
+      accessor: 'resourceType',
+      heading: 'Ressurstype',
+      headerCellClass: classes.headerCell,
+      sortable: true,
+      bodyCellFormatter: (value: string) => {
+        return t(resourceTypeMap[value]) ?? 'Ukjent';
+      },
     },
     {
       accessor: 'createdBy',
       heading: t('dashboard.resource_table_header_createdby'),
+      headerCellClass: classes.headerCell,
       sortable: true,
     },
     {
       accessor: 'lastChanged',
       heading: t('dashboard.resource_table_header_last_changed'),
+      headerCellClass: classes.headerCell,
       sortable: true,
       bodyCellFormatter: (value: string) => {
         if (!value) {
@@ -180,11 +214,39 @@ export const ResourceTable = ({
     },
     {
       accessor: 'environments',
-      heading: t('dashboard.resource_table_header_environment'),
+      heading: (
+        <div className={classes.envHeaderCell}>
+          {t('dashboard.resource_table_header_environment')}
+          <StudioDropdown
+            icon={<FilterIcon />}
+            triggerButtonText={selectedEnvs.length > 0 ? `(${selectedEnvs.length})` : ''}
+            triggerButtonVariant='tertiary'
+          >
+            <StudioDropdown.List>
+              <StudioDropdown.Item>
+                <StudioCheckbox
+                  checked={selectedEnvs.length === 0}
+                  label={t('dashboard.resource_table_env_filter_all')}
+                  onChange={() => setSelectedEnvs([])}
+                />
+              </StudioDropdown.Item>
+              {orgEnvs.map((env) => {
+                return (
+                  <StudioDropdown.Item key={env.id}>
+                    <StudioCheckbox {...getCheckboxProps(env.id)} label={t(env.label)} />
+                  </StudioDropdown.Item>
+                );
+              })}
+            </StudioDropdown.List>
+          </StudioDropdown>
+        </div>
+      ),
+      headerCellClass: classes.headerCell,
     },
     {
       accessor: 'links',
       heading: '',
+      headerCellClass: classes.headerCell,
     },
   ];
 
@@ -192,7 +254,7 @@ export const ResourceTable = ({
     <StudioTableLocalPagination
       columns={columns}
       rows={listData}
-      size='small'
+      size='sm'
       emptyTableFallback={t('dashboard.resource_table_no_resources_result')}
     />
   );

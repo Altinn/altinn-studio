@@ -105,6 +105,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
             </StudioHeading>
           </div>
           <ResourceTable
+            org={org}
             list={filteredResourceList}
             onClickEditResource={handleNavigateToResource}
             onClickImportResource={onClickImportResource}

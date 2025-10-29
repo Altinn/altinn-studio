@@ -408,6 +408,7 @@
   "dashboard.resource_roadmap_label": "Veikart",
   "dashboard.resource_status_description": "Vi oppdaterer deg om nye utgaver av Studio og gir deg driftsmeldinger som kan ha betydning for deg når du utvikler tjenester.",
   "dashboard.resource_status_label": "Driftsmeldinger",
+  "dashboard.resource_table_env_filter_all": "Vis alle",
   "dashboard.resource_table_header_createdby": "Opprettet av",
   "dashboard.resource_table_header_environment": "Miljø",
   "dashboard.resource_table_header_last_changed": "Siste delte endringer",

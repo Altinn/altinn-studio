@@ -219,6 +219,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 Identifier = serviceResource.Identifier,
                 Title = serviceResource.Title,
+                ResourceType = serviceResource.ResourceType
             };
 
             string resourceFolder = serviceResource.Identifier;

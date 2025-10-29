@@ -1,6 +1,8 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
+using Altinn.Studio.Designer.Enums;
 
 namespace Altinn.Studio.Designer.Models
 {
@@ -15,6 +17,12 @@ namespace Altinn.Studio.Designer.Models
         /// The title of service
         /// </summary>
         public Dictionary<string, string>? Title { get; set; }
+
+        /// <summary>
+        /// The resource type
+        /// </summary>
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public ResourceType? ResourceType { get; set; }
 
         /// <summary>
         /// The user who created the resource
