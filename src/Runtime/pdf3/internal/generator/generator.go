@@ -4,25 +4,27 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"time"
 
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/browser"
 	"altinn.studio/pdf3/internal/cdp"
+	"altinn.studio/pdf3/internal/log"
 	"altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
 )
 
 type Custom struct {
+	logger         *slog.Logger
 	browserVersion types.BrowserVersion
 
 	session *browserSession
 }
 
 // getBrowserVersion starts a temporary browser and retrieves its version information
-func getBrowserVersion() (types.BrowserVersion, error) {
+func getBrowserVersion(logger *slog.Logger) (types.BrowserVersion, error) {
 	// Start temporary browser instance
 	browserProc, err := browser.Start(-1)
 	if err != nil {
@@ -30,7 +32,7 @@ func getBrowserVersion() (types.BrowserVersion, error) {
 	}
 	defer func() {
 		if err := browserProc.Close(); err != nil {
-			log.Printf("WARNING: Failed to close temporary browser: %v - process may be lingering\n", err)
+			logger.Error("Failed to close temporary browser", "error", err)
 		}
 	}()
 
@@ -54,37 +56,37 @@ func getBrowserVersion() (types.BrowserVersion, error) {
 }
 
 func New() (*Custom, error) {
-	log.Printf("Starting PDF generator\n")
+	logger := log.NewComponent("generator")
+	logger.Info("Starting PDF generator")
 
-	generator := &Custom{}
+	generator := &Custom{
+		logger: logger,
+	}
 
 	go func() {
 		defer func() {
 			r := recover()
-			assert.AssertWithMessage(r == nil, fmt.Sprintf("Generator initialization panicked: %v", r))
+			assert.AssertWithMessage(r == nil, "Generator initialization panicked", "error", r)
 		}()
 
-		log.Printf("Initializing Custom CDP\n")
+		logger.Info("Initializing Custom CDP")
 
 		// Get and set browser version
-		version, err := getBrowserVersion()
-		if err != nil {
-			log.Fatalf("Failed to get browser version: %v", err)
-		}
+		version, err := getBrowserVersion(logger)
+		assert.AssertWithMessage(err == nil, "Failed to get browser version", "error", err)
 
 		generator.browserVersion = version
-		log.Printf(
-			"Chrome version: %s (revision: %s, protocol: %s)\n",
-			version.Product,
-			version.Revision,
-			version.ProtocolVersion,
+		logger.Info("Chrome version",
+			"product", version.Product,
+			"revision", version.Revision,
+			"protocol", version.ProtocolVersion,
 		)
 
 		init := func(id int) *browserSession {
-			log.Printf("Starting browser worker %d\n", id)
+			logger.Info("Starting browser worker", "id", id)
 
-			session, err := newBrowserSession(id)
-			assert.AssertWithMessage(err == nil, fmt.Sprintf("Failed to create worker %d: %v", id, err))
+			session, err := newBrowserSession(logger, id)
+			assert.AssertWithMessage(err == nil, "Failed to create worker", "id", id, "error", err)
 
 			return session
 		}
@@ -100,8 +102,8 @@ func (g *Custom) IsReady() bool {
 }
 
 func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types.PdfResult, *types.PDFError) {
-	assert.AssertWithMessage(g.session != nil, "The worker should not call the generator unless it is ready")
-	assert.AssertWithMessage(request.Validate() == nil, "Invalid request passed through to worker")
+	assert.AssertWithMessage(g.session != nil, "The worker should not call the generator unless it is ready", "url", request.URL)
+	assert.AssertWithMessage(request.Validate() == nil, "Invalid request passed through to worker", "url", request.URL)
 
 	responder := make(chan workerResponse, 1)
 	req := workerRequest{
@@ -109,12 +111,13 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 		responder: responder,
 		ctx:       ctx,
 		cleanedUp: false,
+		logger:    g.logger.With("url", request.URL),
 	}
 
 	if g.session.tryEnqueue(req) {
 		// Successfully enqueued to browserA
 	} else {
-		log.Printf("Request queue full, rejecting request for URL: %s\n", request.URL)
+		g.logger.Warn("Request queue full, rejecting request", "url", request.URL)
 		return nil, types.NewPDFError(types.ErrQueueFull, "", nil)
 	}
 
@@ -130,12 +133,13 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 	case <-ctx.Done():
 		return nil, types.NewPDFError(types.ErrClientDropped, "", ctx.Err())
 	case <-time.After(types.RequestTimeout()):
-		assert.AssertWithMessage(false, "generator failed to respond to request, something must be stuck")
+		assert.AssertWithMessage(false, "generator failed to respond to request, something must be stuck", "url", request.URL)
 		return nil, types.NewPDFError(types.ErrGenerationFail, "internal request timeout", nil)
 	}
 }
 
 func (g *Custom) Close() error {
+	g.logger.Info("Closing PDF generator")
 	if g.session != nil {
 		g.session.close()
 	}
@@ -147,6 +151,7 @@ type workerRequest struct {
 	responder chan workerResponse
 	ctx       context.Context
 	cleanedUp bool
+	logger    *slog.Logger
 }
 
 func (r *workerRequest) tryGetTestModeInput() *testing.PdfInternalsTestInput {
@@ -172,10 +177,10 @@ func (r *workerRequest) tryRespondOk(data []byte) {
 		}
 		select {
 		case r.responder <- response:
-			log.Printf("Worker: responded successfully for URL: %s, data size: %d bytes\n", r.request.URL, len(data))
+			r.logger.Info("Responded successfully", "data_size", len(data))
 			break
 		default:
-			log.Printf("Worker: client abandoned request (likely timed out), dropping response for URL: %s\n", r.request.URL)
+			r.logger.Warn("Client abandoned request (likely timed out), dropping response")
 		}
 		r.responder = nil
 	}
@@ -189,10 +194,10 @@ func (r *workerRequest) tryRespondError(err *types.PDFError) {
 		}
 		select {
 		case r.responder <- response:
-			log.Printf("Worker: responded with error for URL: %s\n", r.request.URL)
+			r.logger.Info("Responded with error", "error", err)
 			break
 		default:
-			log.Printf("Worker: client abandoned request (likely timed out), dropping response for URL: %s\n", r.request.URL)
+			r.logger.Warn("Client abandoned request (likely timed out), dropping response")
 		}
 		r.responder = nil
 	}
