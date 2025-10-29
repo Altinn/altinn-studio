@@ -10,7 +10,6 @@ export type SimpleInstance = {
   isRead: boolean;
   currentTaskName?: string;
   currentTaskId?: string;
-  dueBefore?: string;
   archivedAt?: string;
   softDeletedAt?: string;
   hardDeletedAt?: string;

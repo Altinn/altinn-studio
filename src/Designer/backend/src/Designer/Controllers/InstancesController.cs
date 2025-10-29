@@ -11,19 +11,19 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace Altinn.Studio.Admin.Controllers;
+namespace Altinn.Studio.Designer.Controllers;
 
 [ApiController]
 [Authorize]
 [Route("designer/api/admin/[controller]")]
 public class InstancesController : ControllerBase
 {
-    private readonly ILogger<ApplicationsController> _logger;
+    private readonly ILogger<InstancesController> _logger;
     private readonly IAltinnStorageInstancesClient _instancesClient;
 
     public InstancesController(
         IAltinnStorageInstancesClient instancesClient,
-        ILogger<ApplicationsController> logger
+        ILogger<InstancesController> logger
     )
     {
         _instancesClient = instancesClient;

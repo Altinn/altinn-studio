@@ -19,7 +19,7 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
     private readonly HttpClient _httpClient;
     private readonly IEnvironmentsService _environmentsService;
     private readonly PlatformSettings _platformSettings;
-    private readonly ILogger<AltinnStorageAppMetadataClient> _logger;
+    private readonly ILogger<AltinnStorageInstancesClient> _logger;
 
     private const int SIZE = 10;
 
@@ -27,7 +27,7 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
         HttpClient httpClient,
         IEnvironmentsService environmentsService,
         PlatformSettings options,
-        ILogger<AltinnStorageAppMetadataClient> logger
+        ILogger<AltinnStorageInstancesClient> logger
     )
     {
         _httpClient = httpClient;

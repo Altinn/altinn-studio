@@ -51,8 +51,7 @@ export const storageInstancesRoute = (req, res) => {
   const size = req.query['size'] ?? 10;
 
   res.json({
-    count: 1,
-    self: '',
+    count: size,
     next: 'next',
     instances: Array.from({ length: size }, () => makeInstance(org, app, currentTask, isComplete)),
   });

@@ -1,3 +1,5 @@
+#nullable enable
+
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -18,17 +20,17 @@ public class QueryResponse<T>
     /// The current query.
     /// </summary>
     [JsonPropertyName("self")]
-    public string Self { get; set; }
+    public string? Self { get; set; }
 
     /// <summary>
     /// A link to the next page.
     /// </summary>
     [JsonPropertyName("next")]
-    public string Next { get; set; }
+    public string? Next { get; set; }
 
     /// <summary>
     /// The metadata.
     /// </summary>
     [JsonPropertyName("instances")]
-    public List<T> Instances { get; set; }
+    public required List<T> Instances { get; set; }
 }
