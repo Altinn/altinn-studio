@@ -13,7 +13,7 @@ export type LocalPaginationProps = {
 export type StudioTableLocalPaginationProps = {
   columns: Columns;
   rows: Rows;
-  size?: 'small' | 'medium' | 'large';
+  size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
   loadingText?: string;
   emptyTableFallback?: React.ReactNode;
@@ -28,7 +28,7 @@ function StudioTableLocalPagination(
     columns,
     rows,
     sortedRows: externalSortedRows,
-    size = 'medium',
+    size = 'md',
     isLoading = false,
     loadingText,
     emptyTableFallback,
@@ -75,7 +75,7 @@ function StudioTableLocalPagination(
     <StudioTableRemotePagination
       columns={columns}
       rows={rowsToRender}
-      data-size={size}
+      size={size}
       isLoading={isLoading}
       loadingText={loadingText}
       emptyTableFallback={emptyTableFallback}
