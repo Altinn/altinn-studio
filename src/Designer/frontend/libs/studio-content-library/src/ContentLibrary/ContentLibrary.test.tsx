@@ -31,7 +31,7 @@ describe('ContentLibrary', () => {
     expect(landingPageTitle).toBeInTheDocument();
   });
 
-  it.each([PageName.CodeListsWithTextResources, PageName.Images])(
+  it.each([PageName.CodeLists, PageName.CodeListsWithTextResources, PageName.Images])(
     'Renders the %s when that page is selected',
     (pageName) => {
       const page = getPage(pageName);
