@@ -1,0 +1,32 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - resources.altinn.studio
+  resources:
+  - maskinportenclients
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - resources.altinn.studio
+  resources:
+  - maskinportenclients/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - resources.altinn.studio
+  resources:
+  - maskinportenclients/status
+  verbs:
+  - get
+  - patch
+  - update
