@@ -19,8 +19,8 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
 
   const taskIdsId = useId();
 
-  const pdfConfig = bpmnDetails.element.businessObject.extensionElements?.values[0].pdfConfig;
-  const currentFilename = pdfConfig?.filename?.value;
+  const pdfConfig = bpmnDetails.element.businessObject.extensionElements.values[0].pdfConfig;
+  const currentFilename = pdfConfig.filename?.value;
 
   const [filename, setFilename] = useState<string>(currentFilename);
 
@@ -28,18 +28,22 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
   const allTasks = studioModeler.getAllTasksByType('bpmn:Task');
   const availableTasks = allTasks.map((task) => ({
     id: task.id,
-    name: task.businessObject?.name || task.id,
+    name: task.businessObject?.name || '',
   }));
 
   const currentTaskIds =
-    (pdfConfig?.autoPdfTaskIds?.taskIds as [{ value: string }])
+    (pdfConfig.autoPdfTaskIds?.taskIds as [{ value: string }])
       ?.filter((taskId) => availableTasks.map((task) => task.id).includes(taskId.value))
       .map((taskId) => taskId.value) || [];
 
   const [selectedTaskIds, setSelectedTaskIds] = useState(currentTaskIds);
 
+  const selectedTasks = availableTasks?.filter((task) => selectedTaskIds.includes(task.id)) || [];
+
   const handleFilenameBlur = () => {
-    if (filename === pdfConfig.filename) return;
+    if (filename === pdfConfig.filename) {
+      return;
+    }
 
     const filenameElement = filename
       ? bpmnFactory.create('altinn:Filename', {
@@ -108,8 +112,10 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
           property={t('process_editor.configuration_panel_set_auto_pdf_tasks')}
           title={t('process_editor.configuration_panel_set_auto_pdf_tasks')}
           icon={<LinkIcon />}
-          value={selectedTaskIds?.map((dataType: string) => (
-            <div key={dataType}>{dataType}</div>
+          value={selectedTasks?.map((task) => (
+            <div key={task.id}>
+              {task.name} ({task.id})
+            </div>
           ))}
         />
       )}
