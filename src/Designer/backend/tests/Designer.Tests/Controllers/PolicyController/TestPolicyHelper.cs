@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable disable
+using System.Collections.Generic;
 using Altinn.Studio.PolicyAdmin.Constants;
 using Altinn.Studio.PolicyAdmin.Models;
 

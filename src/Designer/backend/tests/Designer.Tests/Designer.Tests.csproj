@@ -4,6 +4,7 @@
     <IsPackable>false</IsPackable>
     <AssemblyName>Altinn.Studio.Designer.Tests</AssemblyName>
     <RootNamespace>Designer.Tests</RootNamespace>
+    <nullable>enable</nullable>
   </PropertyGroup>
 
   <PropertyGroup>
