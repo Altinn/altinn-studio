@@ -13,7 +13,7 @@ describe('getVisiblePages', () => {
     expect(getVisiblePages(10, 10)).toEqual([1, undefined, 9, 10]);
   });
 
-  it('should return all pages when totalPages <= 7', () => {
+  it('should return all pages when totalPages <= 5', () => {
     expect(getVisiblePages(3, 5)).toEqual([1, 2, 3, 4, 5]);
   });
 });

@@ -1,6 +1,6 @@
 export type VisiblePage = number | undefined;
 
-// Display a maximum of 5 page buttons including first and last page
+// Display first page, last page, and up to 3 pages around current page, with ellipsis indicators for gaps
 export const getVisiblePages = (currentPage: number, totalPages: number): VisiblePage[] => {
   if (totalPages <= 5) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
