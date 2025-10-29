@@ -1,3 +1,4 @@
+#nullable disable
 namespace Altinn.Studio.Designer.Filters.IO;
 
 public class IoErrorCodes
