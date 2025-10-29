@@ -3091,6 +3091,14 @@ __metadata:
     "@digdir/designsystemet-theme": "npm:^1.0.8"
     "@studio/components": "workspace:^"
     "@studio/components-legacy": "workspace:^"
+    "@testing-library/jest-dom": "npm:6.6.4"
+    "@testing-library/react": "npm:16.3.0"
+    "@types/jest": "npm:29.5.14"
+    eslint: "npm:8.57.1"
+    jest: "npm:29.7.0"
+    jest-environment-jsdom: "npm:29.7.0"
+    ts-jest: "npm:29.4.4"
+    typescript: "npm:5.9.2"
   languageName: unknown
   linkType: soft
 
@@ -14340,7 +14348,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-jest@npm:^29.1.1":
+"ts-jest@npm:29.4.4, ts-jest@npm:^29.1.1":
   version: 29.4.4
   resolution: "ts-jest@npm:29.4.4"
   dependencies:
