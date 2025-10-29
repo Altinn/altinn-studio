@@ -1,0 +1,76 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: altinn-deployment-chart
+  namespace: default
+spec:
+  type: oci
+  interval: 5m
+  url: oci://kind-registry:5000
+  insecure: true
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ttd-localtestapp
+  namespace: default
+spec:
+  releaseName: ttd-localtestapp
+  targetNamespace: default
+  interval: 5m
+  chart:
+    spec:
+      chart: deployment
+      sourceRef:
+        kind: HelmRepository
+        name: altinn-deployment-chart
+        namespace: default
+  values:
+    replicaCount: 1
+    autoscaling:
+      enabled: false
+    image:
+      repository: localhost:5001/runtime-operator-localtestapp
+      tag: latest
+      pullPolicy: Always
+    ipv6:
+      enabled: false
+    linkerd:
+      enabled: false
+    volumeMounts: []
+    volumes: []
+    ingressRoute:
+      name: localtestapp-ingress
+      entryPoints:
+        - web
+      routes:
+        - match: PathPrefix(`/localtestapp`)
+          kind: Rule
+          services:
+            - name: localtestapp
+              port: 80
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+    startup:
+      enabled: true
+      path: /health
+      failureThreshold: 30
+      periodSeconds: 1
+      timeoutSeconds: 1
+    readiness:
+      enabled: true
+      path: /health
+      initialDelaySeconds: 0
+      failureThreshold: 1
+      periodSeconds: 2
+      timeoutSeconds: 1
+    liveness:
+      enabled: true
+      path: /health
+      initialDelaySeconds: 0
+      failureThreshold: 3
+      periodSeconds: 10
+      timeoutSeconds: 1
