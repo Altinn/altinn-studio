@@ -42,7 +42,7 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
   const selectedTasks = availableTasks?.filter((task) => selectedTaskIds.includes(task.id)) || [];
 
   const handleFilenameBlur = () => {
-    if (filename === pdfConfig.filename) {
+    if (filename === pdfConfig.filename?.value) {
       return;
     }
 
