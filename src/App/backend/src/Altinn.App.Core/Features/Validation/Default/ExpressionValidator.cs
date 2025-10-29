@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
@@ -120,7 +119,10 @@ public class ExpressionValidator : IValidator
             gatewayAction: null,
             language
         );
-        var hiddenFields = await LayoutEvaluator.GetHiddenFieldsForRemoval(evaluatorState);
+        var hiddenFields = await LayoutEvaluator.GetHiddenFieldsForRemoval(
+            evaluatorState,
+            evaluateRemoveWhenHidden: false
+        );
 
         var validationIssues = new List<ValidationIssue>();
         DataElementIdentifier dataElementIdentifier = dataElement;
@@ -143,8 +145,9 @@ public class ExpressionValidator : IValidator
                     continue;
                 }
                 var context = new ComponentContext(
+                    evaluatorState,
                     component: null,
-                    rowIndices: DataModel.GetRowIndices(resolvedField.Field),
+                    rowIndices: GetRowIndices(resolvedField.Field),
                     dataElementIdentifier: resolvedField.DataElementIdentifier
                 );
                 var positionalArguments = new object[] { resolvedField.Field };
@@ -163,6 +166,44 @@ public class ExpressionValidator : IValidator
         }
 
         return validationIssues;
+    }
+
+    private static int[]? GetRowIndices(string field)
+    {
+        Span<int> rowIndicesSpan = stackalloc int[200]; // Assuming max 200 indices for simplicity recursion will never go deeper than 3-4
+        int count = 0;
+        for (int index = 0; index < field.Length; index++)
+        {
+            if (field[index] == '[')
+            {
+                int startIndex = index + 1;
+                int endIndex = field.IndexOf(']', startIndex);
+                if (endIndex == -1)
+                {
+                    throw new InvalidOperationException($"Unpaired [ character in field: {field}");
+                }
+                string indexString = field[startIndex..endIndex];
+                if (int.TryParse(indexString, out int rowIndex))
+                {
+                    rowIndicesSpan[count] = rowIndex;
+                    count++;
+                    index = endIndex; // Move index to the end of the current bracket
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"Invalid row index in field: {field} at position {startIndex}"
+                    );
+                }
+            }
+        }
+        if (count == 0)
+        {
+            return null; // No indices found
+        }
+        int[] rowIndices = new int[count];
+        rowIndicesSpan[..count].CopyTo(rowIndices);
+        return rowIndices;
     }
 
     private async Task RunValidation(

@@ -1,10 +1,8 @@
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Altinn.App.Core.Models.Layout.Components;
+using Altinn.App.Core.Models.Layout.Components.Base;
 using Altinn.App.Core.Tests.TestUtils;
 using FluentAssertions;
-using Xunit.Sdk;
 
 namespace Altinn.App.Core.Tests.Models;
 
@@ -21,21 +19,19 @@ public class PageComponentConverterTests
     public void RunPageComponentConverterTest(string fileName, string folder)
     {
         var testCase = LoadData(fileName, folder);
-        var exception = Record.Exception(() => JsonSerializer.Deserialize<PageComponent>(testCase.Layout));
 
         if (testCase.Valid)
         {
-            exception.Should().BeNull();
+            var page = PageComponent.Parse(testCase.Layout, "testPage", "testLayout");
             if (testCase.ExpectedHierarchy is not null)
             {
-                var page = JsonSerializer.Deserialize<PageComponent>(testCase.Layout)!;
-
                 var hierarchy = GenerateTestHierarchy(page);
                 hierarchy.Should().BeEquivalentTo(testCase.ExpectedHierarchy);
             }
         }
         else
         {
+            var exception = Record.Exception(() => PageComponent.Parse(testCase.Layout, "testPage", "testLayout"));
             exception.Should().NotBeNull();
         }
     }
@@ -46,24 +42,26 @@ public class PageComponentConverterTests
         return JsonSerializer.Deserialize<PageComponentConverterTestModel>(data, _jsonSerializerOptions)!;
     }
 
-    private HierarchyTestModel[] GenerateTestHierarchy(GroupComponent group)
+    private List<HierarchyTestModel>? GenerateTestHierarchy(BaseComponent component)
     {
         var children = new List<HierarchyTestModel>();
-        foreach (var child in group.Children)
+        var childComponents =
+            component switch
+            {
+                PageComponent page => page.Components,
+                RepeatingReferenceComponent repeatingGroup => repeatingGroup.AllChildren,
+                SimpleReferenceComponent nonRepeatingGroup => nonRepeatingGroup.AllChildren,
+                NoReferenceComponent => [],
+                _ => throw new NotSupportedException(
+                    $"Component type {component.GetType().Name} is not supported for hierarchy generation."
+                ),
+            } ?? throw new Exception("Component has no children.");
+        foreach (var child in childComponents)
         {
-            if (child is GroupComponent childGroup)
-            {
-                children.Add(
-                    new HierarchyTestModel { Id = childGroup.Id, Children = GenerateTestHierarchy(childGroup) }
-                );
-            }
-            else
-            {
-                children.Add(new HierarchyTestModel { Id = child.Id });
-            }
+            children.Add(new HierarchyTestModel { Id = child.Id, Children = GenerateTestHierarchy(child) });
         }
 
-        return children.ToArray();
+        return children.Count == 0 ? null : children;
     }
 }
 
@@ -73,12 +71,12 @@ public class PageComponentConverterTestModel
 
     public JsonElement Layout { get; set; }
 
-    public HierarchyTestModel[]? ExpectedHierarchy { get; set; }
+    public List<HierarchyTestModel>? ExpectedHierarchy { get; set; }
 }
 
 public class HierarchyTestModel
 {
     public string Id { get; set; } = string.Empty;
 
-    public HierarchyTestModel[]? Children { get; set; }
+    public List<HierarchyTestModel>? Children { get; set; }
 }
