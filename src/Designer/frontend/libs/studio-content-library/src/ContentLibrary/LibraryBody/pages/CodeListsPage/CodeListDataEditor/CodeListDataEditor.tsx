@@ -13,11 +13,11 @@ import { updateCodes, updateName } from './utils';
 import { useTranslation } from 'react-i18next';
 import classes from './CodeListDataEditor.module.css';
 
-export type CodeListDataEditorProps = {
+export type CodeListDataEditorProps = Readonly<{
   data: CodeListData;
   onUpdate: (newData: CodeListData) => void;
   onDelete: () => void;
-};
+}>;
 
 export function CodeListDataEditor({
   data,

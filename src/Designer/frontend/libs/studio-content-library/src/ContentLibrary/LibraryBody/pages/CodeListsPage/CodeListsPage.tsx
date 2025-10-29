@@ -53,7 +53,7 @@ export function CodeListsPage(_props: CodeListsPageProps): ReactElement {
         {t('general.add')}
       </StudioButton>
       <StudioCard>
-        {Array(...codeListMap).map(([key, data]) => (
+        {[...codeListMap].map(([key, data]) => (
           <CodeListDataEditor
             data={data}
             key={key}
