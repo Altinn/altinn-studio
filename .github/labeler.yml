@@ -54,7 +54,7 @@ area/studio-root:
 
 area/text-editor:
 - changed-files:
-  - any-glob-to-any-file: ['src/Designer/frontend/packages/text-editor/**', 'src/Designer/frontend/app-development/features/textEditor/**/*', 'src/Designer/backend/src/Designer/**/*Text*.cs',]
+  - any-glob-to-any-file: ['src/Designer/frontend/packages/text-editor/**', 'src/Designer/frontend/app-development/features/textEditor/**/*', 'src/Designer/backend/src/Designer/**/*Text*.cs']
 
 area/ui-editor:
 - changed-files:
