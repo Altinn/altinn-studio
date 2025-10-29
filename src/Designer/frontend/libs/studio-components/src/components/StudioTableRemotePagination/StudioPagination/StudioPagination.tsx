@@ -20,6 +20,13 @@ export function StudioPagination({
 }: StudioPaginationProps): React.ReactElement {
   const safeCurrent = currentPage || 1;
   const safeTotal = totalPages || 1;
+  const visiblePages = [
+    safeCurrent - 2,
+    safeCurrent - 1,
+    safeCurrent,
+    safeCurrent + 1,
+    safeCurrent + 2,
+  ].filter((p) => p >= 1 && p <= safeTotal);
 
   return (
     <Pagination aria-label='Pagination'>
@@ -28,10 +35,10 @@ export function StudioPagination({
           <Pagination.Button
             aria-label={previousButtonAriaLabel ?? 'Previous'}
             variant='tertiary'
-            onClick={() => onChange(Math.max(1, safeCurrent - 1))}
-          ></Pagination.Button>
+            onClick={() => onChange(safeCurrent - 1)}
+          />
         </Pagination.Item>
-        {Array.from({ length: safeTotal }, (_, index) => index + 1).map((pageNumber) => (
+        {visiblePages.map((pageNumber) => (
           <Pagination.Item key={pageNumber}>
             <Pagination.Button
               aria-label={numberButtonAriaLabel?.(pageNumber)}
@@ -47,8 +54,8 @@ export function StudioPagination({
           <Pagination.Button
             aria-label={nextButtonAriaLabel ?? 'Next'}
             variant='tertiary'
-            onClick={() => onChange(Math.min(safeTotal, safeCurrent + 1))}
-          ></Pagination.Button>
+            onClick={() => onChange(safeCurrent + 1)}
+          />
         </Pagination.Item>
       </Pagination.List>
     </Pagination>
