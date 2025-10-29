@@ -1,0 +1,81 @@
+{
+  "name": "Simple grid with rows and columns",
+  "layouts": {
+    "Page1": {
+      "data": {
+        "layout": [
+          {
+            "id": "comp1",
+            "type": "Header"
+          },
+          {
+            "id": "group1",
+            "type": "Grid",
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "text": "Group row 0"
+                  },
+                  {
+                    "component": "comp3"
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "text": "Group row 1"
+                  },
+                  {
+                    "component": "comp4"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "comp3",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "gruppe1.comp3binding"
+            }
+          },
+          {
+            "id": "comp4",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "gruppe1.comp4binding"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "expectedContexts": [
+    {
+      "component": "Page1",
+      "currentLayout": "Page1",
+      "children": [
+        {
+          "component": "comp1",
+          "currentLayout": "Page1"
+        },
+        {
+          "component": "group1",
+          "currentLayout": "Page1",
+          "children": [
+            {
+              "component": "comp3",
+              "currentLayout": "Page1"
+            },
+            {
+              "component": "comp4",
+              "currentLayout": "Page1"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

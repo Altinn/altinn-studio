@@ -28,10 +28,10 @@
   <ItemGroup>
     <!--
       This is just to enforce that the project builds completely before tests in this project runs.
-      This is necessery because there are fixtures (e.g. testapp) that depend on Altinn.App.Core
+      This is necessary because there are fixtures (e.g. testapp) that depend on Altinn.App.Api
       and we may have race conditions if `dotnet test` is run in parallel with tests depending on these fixtures.
     -->
-    <ProjectReference Include="../../src/Altinn.App.Core/Altinn.App.Core.csproj" />
+    <ProjectReference Include="../../src/Altinn.App.Api/Altinn.App.Api.csproj" />
 
     <ProjectReference Include="../../src/Altinn.App.Analyzers/Altinn.App.Analyzers.csproj" />
     <ProjectReference Include="../../src/Altinn.App.Internal.Analyzers/Altinn.App.Internal.Analyzers.csproj" />
