@@ -12,8 +12,8 @@ import type {
   ContentLibraryConfig,
   PagesConfig,
   ResourceContentLibraryImpl,
-  TextResourceWithLanguage,
   TextResources,
+  TextResourceWithLanguage,
 } from '@studio/content-library';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { Route, Routes } from 'react-router-dom';
@@ -28,6 +28,7 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import userEvent from '@testing-library/user-event';
+import { FeatureFlag } from '@studio/feature-flags';
 
 // Test data:
 const orgName: string = 'org';
@@ -281,6 +282,18 @@ describe('OrgContentLibraryPage', () => {
   it('Renders with the organisation library heading', () => {
     renderOrgContentLibraryWithData();
     expect(retrieveConfig().heading).toBe(textMock('org_content_library.library_heading'));
+  });
+
+  it('Does not render with the new code list page by default', () => {
+    renderOrgContentLibraryWithData();
+    const pagesConfig = retrievePagesConfig();
+    expect(pagesConfig).not.toHaveProperty('codeLists');
+  });
+
+  it('Renders with the new code list page when the feature flag is enabled', () => {
+    renderOrgContentLibraryWithData({ featureFlags: [FeatureFlag.NewCodeLists] });
+    const pagesConfig = retrievePagesConfig();
+    expect(pagesConfig).toHaveProperty('codeLists');
   });
 });
 
