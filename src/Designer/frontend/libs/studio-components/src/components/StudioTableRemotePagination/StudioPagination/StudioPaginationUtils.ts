@@ -8,7 +8,7 @@ export const getVisiblePages = (currentPage: number, totalPages: number): Visibl
 
   const pages: VisiblePage[] = [1];
 
-  if (currentPage > 2) {
+  if (currentPage > 3) {
     pages.push(undefined);
   }
 
@@ -18,7 +18,7 @@ export const getVisiblePages = (currentPage: number, totalPages: number): Visibl
     pages.push(i);
   }
 
-  if (currentPage < totalPages - 1) {
+  if (currentPage < totalPages - 2) {
     pages.push(undefined);
   }
 
