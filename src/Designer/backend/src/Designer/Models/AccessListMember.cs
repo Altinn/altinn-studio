@@ -1,5 +1,4 @@
-﻿#nullable enable
-namespace Altinn.Studio.Designer.Models
+﻿namespace Altinn.Studio.Designer.Models
 {
     public class AccessListMember
     {
