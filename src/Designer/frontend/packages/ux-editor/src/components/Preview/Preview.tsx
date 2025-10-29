@@ -7,8 +7,13 @@ import { useAppContext, useGetLayoutSetByName } from '../../hooks';
 import { useChecksum } from '../../hooks/useChecksum.ts';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/designsystemet-react';
-import { StudioErrorMessage } from '@studio/components-legacy';
-import { StudioButton, StudioCenter, StudioAlert, StudioSpinner } from '@studio/components';
+import {
+  StudioButton,
+  StudioCenter,
+  StudioAlert,
+  StudioSpinner,
+  StudioValidationMessage,
+} from '@studio/components';
 import type { SupportedView } from './ViewToggler/ViewToggler';
 import { ViewToggler } from './ViewToggler/ViewToggler';
 import { ShrinkIcon } from '@studio/icons';
@@ -117,7 +122,7 @@ const PreviewFrame = () => {
     return (
       <StudioCenter>
         {createInstanceError ? (
-          <StudioErrorMessage>{t('general.page_error_title')}</StudioErrorMessage>
+          <StudioValidationMessage>{t('general.page_error_title')}</StudioValidationMessage>
         ) : (
           <StudioSpinner aria-hidden spinnerTitle={t('preview.loading_preview_controller')} />
         )}
