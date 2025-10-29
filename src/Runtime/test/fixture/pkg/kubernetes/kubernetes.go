@@ -146,7 +146,7 @@ func (c *KubernetesClient) KustomizeRender(path string) (string, error) {
 	cmd.Dir = path
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("failed rendering kustomization at %s: %w", path, err)
+		return "", fmt.Errorf("failed rendering kustomization at %s: %w: %s", path, err, output)
 	}
 
 	return string(output), nil

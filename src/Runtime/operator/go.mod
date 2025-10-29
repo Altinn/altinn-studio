@@ -1,10 +1,9 @@
 module altinn.studio/operator
 
-go 1.22.0
-
-toolchain go1.22.4
+go 1.25.2
 
 require (
+	altinn.studio/runtime-fixture v0.0.0
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.12.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.6.0
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets v1.1.0
@@ -126,3 +125,5 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
+
+replace altinn.studio/runtime-fixture => ../test/fixture
