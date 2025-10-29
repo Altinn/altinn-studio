@@ -280,8 +280,9 @@ namespace Altinn.Studio.Designer.Controllers
                                 .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
                             _memoryCache.Set(cacheKey, environmentResources, cacheEntryOptions);
                         }
-                        catch
+                        catch (Exception ex)
                         {
+                            Console.WriteLine($"Error fetching resource list for env {environment}: {ex.Message}");
                             environmentResources = [];
                         }
                     }
