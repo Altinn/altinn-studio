@@ -51,6 +51,7 @@ describe('ResourceTable', () => {
   const mockOnClickImportResource = jest.fn();
 
   const defaultProps: ResourceTableProps = {
+    org: 'ttd',
     list: mockResourceList,
     onClickEditResource: mockOnClickEditResource,
     onClickImportResource: mockOnClickImportResource,
@@ -183,5 +184,40 @@ describe('ResourceTable', () => {
 
     const importSpinner = screen.getByLabelText(textMock('dashboard.resource_table_row_importing'));
     expect(importSpinner).toBeInTheDocument();
+  });
+
+  it('should show resources from only selected environment when environments column is filtered', async () => {
+    const user = userEvent.setup();
+    render(<ResourceTable {...defaultProps} />);
+
+    const envFilterButton = screen.getByRole('checkbox', {
+      name: textMock('resourceadm.deploy_at22_env'),
+    });
+    await user.click(envFilterButton);
+
+    expect(screen.queryByText(resource1Title)).not.toBeInTheDocument();
+    expect(screen.queryByText(resource2Title)).not.toBeInTheDocument();
+    expect(screen.getByText(resource3Title)).toBeInTheDocument();
+    expect(screen.queryByText(resource4Title)).not.toBeInTheDocument();
+  });
+
+  it('should show resources from all environments when show all filter is set', async () => {
+    const user = userEvent.setup();
+    render(<ResourceTable {...defaultProps} />);
+
+    const envFilterButton = screen.getByRole('checkbox', {
+      name: textMock('resourceadm.deploy_at22_env'),
+    });
+    await user.click(envFilterButton);
+
+    const showAllEnvFilterButton = screen.getByRole('checkbox', {
+      name: textMock('dashboard.resource_table_env_filter_all'),
+    });
+    await user.click(showAllEnvFilterButton);
+
+    expect(screen.getByText(resource1Title)).toBeInTheDocument();
+    expect(screen.getByText(resource2Title)).toBeInTheDocument();
+    expect(screen.getByText(resource3Title)).toBeInTheDocument();
+    expect(screen.getByText(resource4Title)).toBeInTheDocument();
   });
 });

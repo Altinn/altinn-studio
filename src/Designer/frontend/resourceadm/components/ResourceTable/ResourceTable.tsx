@@ -183,7 +183,7 @@ export const ResourceTable = ({
       headerCellClass: classes.headerCell,
       sortable: true,
       bodyCellFormatter: (value: string) => {
-        return t(resourceTypeMap[value]) ?? 'Ukjent';
+        return t(resourceTypeMap[value]);
       },
     },
     {
