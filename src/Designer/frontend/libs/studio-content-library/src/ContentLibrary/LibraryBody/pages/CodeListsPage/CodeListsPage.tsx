@@ -43,7 +43,7 @@ export function CodeListsPage(_props: CodeListsPageProps): ReactElement {
     <>
       <StudioHeading>{t('app_content_library.code_lists.page_name')}</StudioHeading>
       <StudioButton onClick={handleAddCodeList}>{t('general.add')}</StudioButton>
-      {Array(...codeListMap).map(([key, data]) => (
+      {[...codeListMap].map(([key, data]) => (
         <CodeListDataEditor
           data={data}
           key={key}

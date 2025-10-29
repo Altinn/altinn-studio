@@ -12,11 +12,11 @@ import type { CodeListData } from '../types/CodeListData';
 import { updateCodes, updateName } from './utils';
 import { useTranslation } from 'react-i18next';
 
-export type CodeListDataEditorProps = {
+export type CodeListDataEditorProps = Readonly<{
   data: CodeListData;
   onUpdate: (newData: CodeListData) => void;
   onDelete: () => void;
-};
+}>;
 
 export function CodeListDataEditor({
   data,
