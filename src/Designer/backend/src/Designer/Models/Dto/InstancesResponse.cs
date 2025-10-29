@@ -6,7 +6,7 @@ using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage.Models;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
-public class InstancesResponse()
+public class InstancesResponse
 {
     [JsonPropertyName("instances")]
     public required List<SimpleInstance> Instances { get; set; }
