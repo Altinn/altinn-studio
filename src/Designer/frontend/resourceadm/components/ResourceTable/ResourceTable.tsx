@@ -254,7 +254,7 @@ export const ResourceTable = ({
     <StudioTableLocalPagination
       columns={columns}
       rows={listData}
-      size='sm'
+      size='small'
       emptyTableFallback={t('dashboard.resource_table_no_resources_result')}
     />
   );
