@@ -6,7 +6,7 @@ spec:
   instanceSelector:
     matchLabels:
       dashboards: 'external-grafana'
-  name: Slack
+  name: Altinn Studio Slack
   editable: true
   template: |
     {{ define "slack.message" -}}
