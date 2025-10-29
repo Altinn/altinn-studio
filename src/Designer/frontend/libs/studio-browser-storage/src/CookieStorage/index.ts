@@ -1,2 +1,2 @@
 export { CookieStorage } from './CookieStorage';
-export type { CookieOptions, TypedCookieStorage } from './types';
+export type { CookieOptions } from './types';
