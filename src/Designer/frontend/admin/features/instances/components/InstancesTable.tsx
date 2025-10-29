@@ -107,15 +107,13 @@ const InstancesTableWithData = ({
 // TODO: These may not be reducable to a single status?
 function getStatus(instance: SimpleInstance) {
   switch (true) {
-    case instance.isSoftDeleted:
-    case instance.isHardDeleted:
+    case instance.softDeletedAt != null:
+    case instance.hardDeletedAt != null:
       return 'Slettet';
-    case instance.isConfirmed:
+    case instance.confirmedAt != null:
       return 'Bekreftet';
-    case instance.isArchived:
+    case instance.archivedAt != null:
       return 'Arkivert';
-    case instance.isComplete:
-      return 'Levert';
     default:
       return 'Aktiv';
   }

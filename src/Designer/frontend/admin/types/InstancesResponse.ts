@@ -11,7 +11,6 @@ export type SimpleInstance = {
   currentTaskName?: string;
   currentTaskId?: string;
   dueBefore?: string;
-  completedAt?: string;
   archivedAt?: string;
   softDeletedAt?: string;
   hardDeletedAt?: string;
