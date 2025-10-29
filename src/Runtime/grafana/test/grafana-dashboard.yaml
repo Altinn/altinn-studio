@@ -6,7 +6,7 @@ spec:
   resyncPeriod: 30s
   instanceSelector:
     matchLabels:
-      dashboards: "grafana"
+      dashboards: "external-grafana"
   json: >
     {
       "title": "Sample Dashboard",
