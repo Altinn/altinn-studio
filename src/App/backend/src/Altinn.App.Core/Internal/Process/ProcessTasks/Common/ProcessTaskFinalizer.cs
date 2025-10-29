@@ -81,10 +81,12 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
         string? language = null
     )
     {
-        var data = await dataAccessor.GetFormData(dataElement);
+        var formDataWrapper = await dataAccessor.GetFormDataWrapper(dataElement);
 
         // remove AltinnRowIds
-        ObjectUtils.RemoveAltinnRowId(data);
+        formDataWrapper.RemoveAltinnRowIds();
+
+        var data = formDataWrapper.BackingData<object>();
 
         // Remove hidden data before validation, ignore hidden rows.
         if (_appSettings.Value?.RemoveHiddenData == true)
@@ -98,7 +100,11 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
                 gatewayAction: null,
                 language
             );
-            await LayoutEvaluator.RemoveHiddenDataAsync(evaluationState, RowRemovalOption.DeleteRow);
+            await LayoutEvaluator.RemoveHiddenDataAsync(
+                evaluationState,
+                RowRemovalOption.DeleteRow,
+                evaluateRemoveWhenHidden: true
+            );
         }
 
         // Remove shadow fields
@@ -136,7 +142,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
                     ?? throw new JsonException(
                         "Could not deserialize back datamodel after removing shadow fields. Data was \"null\""
                     );
-                dataAccessor.SetFormData(dataElement, newData);
+                dataAccessor.SetFormData(dataElement, FormDataWrapperFactory.Create(newData));
             }
         }
     }

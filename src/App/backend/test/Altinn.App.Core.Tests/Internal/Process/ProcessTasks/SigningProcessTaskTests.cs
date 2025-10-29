@@ -11,6 +11,7 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +28,7 @@ public class SigningProcessTaskTests
     private readonly Mock<ISigningService> _signingServiceMock = new(MockBehavior.Strict);
     private readonly Mock<ISigneeContextsManager> _signeeContextsManagerMock = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
+    private readonly Mock<ITranslationService> _translationServiceMock = new(MockBehavior.Strict);
     private readonly Mock<IHostEnvironment> _hostEnvironmentMock = new(MockBehavior.Strict);
     private readonly Mock<IAppModel> _appModelMock = new(MockBehavior.Strict);
     private readonly Mock<IDataClient> _dataClientMock = new(MockBehavior.Strict);
@@ -46,6 +48,7 @@ public class SigningProcessTaskTests
         _serviceCollection.AddSingleton(_instanceClientMock.Object);
         _serviceCollection.AddSingleton(_appModelMock.Object);
         _serviceCollection.AddSingleton(_appMetadataMock.Object);
+        _serviceCollection.AddSingleton(_translationServiceMock.Object);
         _serviceCollection.AddSingleton(_hostEnvironmentMock.Object);
         _serviceCollection.AddSingleton(_dataClientMock.Object);
         _serviceCollection.AddSingleton(_pdfServiceMock.Object);
