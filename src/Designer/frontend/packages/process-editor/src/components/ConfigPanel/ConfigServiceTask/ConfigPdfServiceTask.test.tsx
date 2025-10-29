@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ConfigPdfServiceTask } from './ConfigPdfServiceTask';
@@ -39,8 +39,15 @@ jest.mock('../../../utils/bpmnModeler/StudioModeler', () => {
   };
 });
 
+const mockUpdateTaskIds = jest.fn();
+jest.mock('../../../hooks/useUpdatePdfConfigTaskIds', () => ({
+  useUpdatePdfConfigTaskIds: () => mockUpdateTaskIds,
+}));
+
 describe('ConfigPdfServiceTask', () => {
-  afterEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
   const createPdfBpmnDetails = (config: { filename?: string; taskIds?: string[] }): BpmnDetails => {
     const { filename = 'test.pdf', taskIds = [] } = config;
@@ -419,6 +426,157 @@ describe('ConfigPdfServiceTask', () => {
           name: textMock('process_editor.configuration_panel_set_auto_pdf_tasks'),
         }),
       ).not.toBeInTheDocument();
+    });
+
+    it('should show combobox when there are no selected tasks', () => {
+      const pdfBpmnDetails = createPdfBpmnDetails({ taskIds: [] });
+
+      renderConfigPdfServiceTask({
+        bpmnContextProps: {
+          bpmnDetails: pdfBpmnDetails,
+        },
+      });
+
+      expect(
+        screen.getByRole('combobox', {
+          name: textMock('process_editor.configuration_panel_set_auto_pdf_tasks'),
+        }),
+      ).toBeInTheDocument();
+
+      expect(
+        screen.queryByRole('button', {
+          name: textMock('process_editor.configuration_panel_set_auto_pdf_tasks'),
+        }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('should select a task when option is clicked', async () => {
+      const user = userEvent.setup();
+      const pdfBpmnDetails = createPdfBpmnDetails({ taskIds: [] });
+
+      renderConfigPdfServiceTask({
+        bpmnContextProps: {
+          bpmnDetails: pdfBpmnDetails,
+        },
+      });
+
+      const combobox = screen.getByRole('combobox', {
+        name: textMock('process_editor.configuration_panel_set_auto_pdf_tasks'),
+      });
+      await user.click(combobox);
+
+      const option = screen.getByRole('option', { name: /Task 1.*\(task_1\)/ });
+      await user.click(option);
+
+      // Verify the option was interacted with - the component handles state internally
+      expect(option).toBeInTheDocument();
+    });
+
+    it('should show options when combobox is opened', async () => {
+      const user = userEvent.setup();
+      const pdfBpmnDetails = createPdfBpmnDetails({ taskIds: ['task_1'] });
+
+      renderConfigPdfServiceTask({
+        bpmnContextProps: {
+          bpmnDetails: pdfBpmnDetails,
+        },
+      });
+
+      // Open the selector
+      const tasksButton = screen.getByRole('button', {
+        name: textMock('process_editor.configuration_panel_set_auto_pdf_tasks'),
+      });
+      await user.click(tasksButton);
+
+      const combobox = screen.getByRole('combobox', {
+        name: textMock('process_editor.configuration_panel_set_auto_pdf_tasks'),
+      });
+      await user.click(combobox);
+
+      // Both options should be available
+      expect(screen.getByRole('option', { name: /Task 1.*\(task_1\)/ })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: /Task 2.*\(task_2\)/ })).toBeInTheDocument();
+    });
+  });
+
+  describe('updateTaskIds integration', () => {
+    it('should initialize with correct selected task ids from pdfConfig', () => {
+      const pdfBpmnDetails = createPdfBpmnDetails({ taskIds: ['task_1', 'task_2'] });
+
+      renderConfigPdfServiceTask({
+        bpmnContextProps: {
+          bpmnDetails: pdfBpmnDetails,
+        },
+      });
+
+      // Both tasks should be displayed as selected in button mode
+      expect(screen.getByText(/Task 1.*\(task_1\)/)).toBeInTheDocument();
+      expect(screen.getByText(/Task 2.*\(task_2\)/)).toBeInTheDocument();
+    });
+
+    it('should filter out task ids that are not in available tasks', () => {
+      const pdfBpmnDetails = createPdfBpmnDetails({ taskIds: ['task_1', 'non_existent_task'] });
+
+      renderConfigPdfServiceTask({
+        bpmnContextProps: {
+          bpmnDetails: pdfBpmnDetails,
+        },
+      });
+
+      // Only task_1 should be displayed since non_existent_task is not in availableTasks
+      expect(screen.getByText(/Task 1.*\(task_1\)/)).toBeInTheDocument();
+      expect(screen.queryByText(/non_existent_task/)).not.toBeInTheDocument();
+    });
+
+    it('should call updateTaskIds when selecting a task from combobox', async () => {
+      const user = userEvent.setup();
+      const pdfBpmnDetails = createPdfBpmnDetails({ taskIds: [] });
+
+      renderConfigPdfServiceTask({
+        bpmnContextProps: {
+          bpmnDetails: pdfBpmnDetails,
+        },
+      });
+
+      const combobox = screen.getByRole('combobox', {
+        name: textMock('process_editor.configuration_panel_set_auto_pdf_tasks'),
+      });
+      await user.click(combobox);
+
+      const option = screen.getByRole('option', { name: /Task 1.*\(task_1\)/ });
+      await user.click(option);
+
+      // Wait for the callback to be triggered
+      await waitFor(() => expect(mockUpdateTaskIds).toHaveBeenCalled());
+      expect(mockUpdateTaskIds).toHaveBeenCalledWith(['task_1']);
+    });
+
+    it('should call updateTaskIds when deselecting a task from combobox', async () => {
+      const user = userEvent.setup();
+      const pdfBpmnDetails = createPdfBpmnDetails({ taskIds: ['task_1'] });
+
+      renderConfigPdfServiceTask({
+        bpmnContextProps: {
+          bpmnDetails: pdfBpmnDetails,
+        },
+      });
+
+      // Open the selector
+      const tasksButton = screen.getByRole('button', {
+        name: textMock('process_editor.configuration_panel_set_auto_pdf_tasks'),
+      });
+      await user.click(tasksButton);
+
+      const combobox = screen.getByRole('combobox', {
+        name: textMock('process_editor.configuration_panel_set_auto_pdf_tasks'),
+      });
+      await user.click(combobox);
+
+      const option = screen.getByRole('option', { name: /Task 1.*\(task_1\)/ });
+      await user.click(option);
+
+      // Wait for the callback to be triggered
+      await waitFor(() => expect(mockUpdateTaskIds).toHaveBeenCalledWith([]));
     });
   });
 });

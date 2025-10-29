@@ -13,16 +13,15 @@ import { useUpdatePdfConfigTaskIds } from '@altinn/process-editor/hooks/useUpdat
 export const ConfigPdfServiceTask = (): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails, modelerRef } = useBpmnContext();
+  const taskIdsId = useId();
+  const updateTaskIds = useUpdatePdfConfigTaskIds();
+
   const modelerInstance = modelerRef.current;
   const modeling: Modeling = modelerInstance.get('modeling');
   const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
 
-  const taskIdsId = useId();
-
   const pdfConfig = bpmnDetails.element.businessObject.extensionElements.values[0].pdfConfig;
   const currentFilename = pdfConfig.filename?.value;
-
-  const [filename, setFilename] = useState<string>(currentFilename);
 
   const studioModeler = new StudioModeler();
   const allTasks = studioModeler.getAllTasksByType('bpmn:Task');
@@ -36,7 +35,9 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
       ?.filter((taskId) => availableTasks.map((task) => task.id).includes(taskId.value))
       .map((taskId) => taskId.value) || [];
 
+  const [filename, setFilename] = useState<string>(currentFilename);
   const [selectedTaskIds, setSelectedTaskIds] = useState(currentTaskIds);
+  const [taskIdsSelectVisible, setTaskIdsSelectVisible] = useState(!selectedTaskIds.length);
 
   const selectedTasks = availableTasks?.filter((task) => selectedTaskIds.includes(task.id)) || [];
 
@@ -56,14 +57,10 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
     });
   };
 
-  const updateTaskIds = useUpdatePdfConfigTaskIds();
-
   const handleTaskIdsChange = (newTaskIds: string[]) => {
     setSelectedTaskIds(newTaskIds);
     updateTaskIds(newTaskIds);
   };
-
-  const [taskIdsSelectVisible, setTaskIdsSelectVisible] = useState(!selectedTaskIds.length);
 
   return (
     <>
