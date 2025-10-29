@@ -1,8 +1,8 @@
-resources:
-- manager.yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+resources:
+- manager.yaml
 images:
 - name: controller
-  newName: altinn.studio/operator
-  newTag: v0.0.1
+  newName: runtime-operator-controller
+  newTag: latest
