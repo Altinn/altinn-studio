@@ -23,6 +23,7 @@ import (
 	"altinn.studio/operator/internal/fakes"
 	"altinn.studio/operator/internal/maskinporten"
 	"altinn.studio/operator/internal/operatorcontext"
+	"altinn.studio/operator/internal/orgs"
 )
 
 type contextKey string
@@ -40,15 +41,17 @@ func main() {
 	ctx := setupSignalHandler()
 	var wg sync.WaitGroup
 
-	operatorContext := operatorcontext.DiscoverOrDie(ctx)
-	cfg := config.GetConfigOrDie(operatorContext, config.ConfigSourceKoanf, "")
+	environment := operatorcontext.ResolveEnvironment("")
+	cfg := config.GetConfigOrDie(ctx, environment, "")
+	_ = operatorcontext.DiscoverOrDie(ctx, environment, nil)
 
 	state := fakes.NewState(cfg)
 	ctx = context.WithValue(ctx, StateKey, state)
 
-	wg.Add(2)
+	wg.Add(3)
 	go runMaskinportenApi(ctx, &wg)
 	go runSelfServiceApi(ctx, &wg)
+	go runOrgRegistryApi(ctx, &wg)
 
 	log.Println("Started server threads")
 	wg.Wait()
@@ -521,6 +524,40 @@ func runSelfServiceApi(ctx context.Context, wg *sync.WaitGroup) {
 		mux.HandleFunc("/api/v1/altinn/admin/clients/{clientId}", handleClientByID)
 		mux.HandleFunc("/api/v1/altinn/admin/clients/{clientId}/jwks", handleClientJwks)
 	})
+}
+
+func runOrgRegistryApi(ctx context.Context, wg *sync.WaitGroup) {
+	defer wg.Done()
+	name := "Org Registry API"
+	addr := ":8052"
+
+	serve(ctx, name, addr, func(mux *http.ServeMux) {
+		mux.HandleFunc("/orgs/altinn-orgs.json", handleOrgRegistry)
+	})
+}
+
+func handleOrgRegistry(w http.ResponseWriter, r *http.Request) {
+	if r.Method != GET {
+		w.WriteHeader(404)
+		return
+	}
+
+	fakeOrgs := map[string]orgs.Org{
+		"ttd": {
+			Name:  orgs.OrgName{En: "Test Department", Nb: "Testdepartementet", Nn: "Testdepartementet"},
+			OrgNr: "991825827",
+		},
+		"digdir": {
+			Name:  orgs.OrgName{En: "Norwegian Digitalisation Agency", Nb: "Digitaliseringsdirektoratet", Nn: "Digitaliseringsdirektoratet"},
+			OrgNr: "991825827",
+		},
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(fakeOrgs); err != nil {
+		w.WriteHeader(500)
+		log.Printf("couldn't write response: %v\n", errors.Wrap(err, 0))
+	}
 }
 
 func healthEndpoint(w http.ResponseWriter, r *http.Request) {

@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.22 AS builder
+FROM golang:1.25-trixie@sha256:03c629da2a724b8978e9b571a40f3afa65ddd30a978464c6de99c4f4c2fe2314 AS builder
 ARG TARGETOS
 ARG TARGETARCH
 
@@ -7,6 +7,12 @@ WORKDIR /workspace
 # Copy the Go Modules manifests
 COPY go.mod go.mod
 COPY go.sum go.sum
+
+# Remove the test fixture dependency from go.mod as it's not needed for building binaries
+# The test/harness package is only imported by test files, not by cmd/proxy or cmd/worker
+RUN sed -i '/altinn.studio\/runtime-fixture v/d' go.mod && \
+    sed -i '/replace altinn.studio\/runtime-fixture/d' go.mod
+
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
 RUN go mod download

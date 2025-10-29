@@ -2,8 +2,11 @@
 # Ignore build and test binaries.
 bin/
 test/
+dist/
 .github/
 .vscode/
+.cache/
+.gocache/
 
 *.svg
 *.out

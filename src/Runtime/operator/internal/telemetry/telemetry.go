@@ -40,11 +40,11 @@ func ConfigureOTel(ctx context.Context) (shutdown func(context.Context) error, e
 	}
 
 	// handleErr calls shutdown for cleanup and makes sure that all errors are returned.
-	handleErr := func(inErr error) {
+	_ = func(inErr error) {
 		err = errors.Join(inErr, shutdown(ctx))
 	}
 
-	res, err := resource.New(ctx,
+	_, err = resource.New(ctx,
 		resource.WithAttributes(
 			// the service name used to display traces in backends
 			semconv.ServiceName(ServiceName),
@@ -59,22 +59,22 @@ func ConfigureOTel(ctx context.Context) (shutdown func(context.Context) error, e
 	otel.SetTextMapPropagator(prop)
 
 	// Set up trace provider.
-	tracerProvider, err := newTraceProvider(ctx, res)
-	if err != nil {
-		handleErr(err)
-		return shutdown, err
-	}
-	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
-	otel.SetTracerProvider(tracerProvider)
+	// tracerProvider, err := newTraceProvider(ctx, res)
+	// if err != nil {
+	// 	handleErr(err)
+	// 	return shutdown, err
+	// }
+	// shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
+	// otel.SetTracerProvider(tracerProvider)
 
 	// Set up meter provider.
-	meterProvider, err := newMeterProvider(ctx, res)
-	if err != nil {
-		handleErr(err)
-		return shutdown, err
-	}
-	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
-	otel.SetMeterProvider(meterProvider)
+	// meterProvider, err := newMeterProvider(ctx, res)
+	// if err != nil {
+	// 	handleErr(err)
+	// 	return shutdown, err
+	// }
+	// shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
+	// otel.SetMeterProvider(meterProvider)
 
 	return shutdown, err
 }

@@ -1,14 +1,16 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path"
 
-	"altinn.studio/operator/internal/operatorcontext"
+	"altinn.studio/operator/internal/telemetry"
 	"github.com/knadh/koanf/parsers/dotenv"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
+	"go.opentelemetry.io/otel"
 )
 
 var (
@@ -16,30 +18,32 @@ var (
 	parser = dotenv.ParserEnv("", ".", func(s string) string { return s })
 )
 
-func loadFromKoanf(operatorContext *operatorcontext.Context, configFilePath string) (*Config, error) {
-	span := operatorContext.StartSpan("GetConfig.Koanf")
+// loadFromKoanf loads configuration from a .env file.
+// The file path is determined by:
+// 1. The configFilePath parameter if provided
+// 2. The OPERATOR_CONFIG_FILE environment variable if set
+// 3. Falls back to "{environment}.env" in the project root (for local development)
+func loadFromKoanf(ctx context.Context, configFilePath string) (*Config, error) {
+	tracer := otel.Tracer(telemetry.ServiceName)
+	_, span := tracer.Start(ctx, "GetConfig.Koanf")
 	defer span.End()
 
-	rootDir := TryFindProjectRoot()
-
+	// Determine config file path
 	if configFilePath == "" {
-		configFilePath = fmt.Sprintf("%s.env", operatorContext.Environment)
-	}
-
-	if !operatorContext.IsLocal() && !operatorContext.IsDev() {
-		return nil, fmt.Errorf("loading config from koanf is only supported for local environment")
-	}
-
-	if _, err := os.Stat(configFilePath); os.IsNotExist(err) {
-		if path.IsAbs(configFilePath) {
-			return nil, fmt.Errorf("env file does not exist: '%s'", configFilePath)
-		} else {
-			return nil, fmt.Errorf("env file does not exist in '%s': '%s'", rootDir, configFilePath)
+		if envPath := os.Getenv("OPERATOR_CONFIG_FILE"); envPath != "" {
+			configFilePath = envPath
 		}
 	}
 
-	if !path.IsAbs(configFilePath) {
-		configFilePath = path.Join(rootDir, configFilePath)
+	// If still empty, fall back to localtest.env in project root (for local development)
+	if configFilePath == "" {
+		rootDir := TryFindProjectRoot()
+		configFilePath = path.Join(rootDir, "localtest.env")
+	}
+
+	// Check file exists
+	if _, err := os.Stat(configFilePath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("config file does not exist: '%s'", configFilePath)
 	}
 
 	if err := k.Load(file.Provider(configFilePath), parser); err != nil {

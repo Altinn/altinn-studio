@@ -28,8 +28,10 @@ func getMaskinportenApiFixture(
 	g *gomega.WithT,
 	generateApis func(cfg *config.Config) (apis []testApi),
 ) (*httptest.Server, *config.Config, *operatorcontext.Context) {
-	operatorContext := operatorcontext.DiscoverOrDie(context.Background())
-	cfg := config.GetConfigOrDie(operatorContext, config.ConfigSourceDefault, "")
+	ctx := context.Background()
+	environment := operatorcontext.EnvironmentLocal
+	cfg := config.GetConfigOrDie(ctx, environment, "")
+	operatorContext := operatorcontext.DiscoverOrDie(ctx, environment, nil)
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		apis := generateApis(cfg)
@@ -88,8 +90,9 @@ func getMaskinportenApiWellKnownFixture(
 func TestFixtureIsNotRemote(t *testing.T) {
 	g := NewWithT(t)
 
-	operatorContext := operatorcontext.DiscoverOrDie(context.Background())
-	configBefore := config.GetConfigOrDie(operatorContext, config.ConfigSourceDefault, "")
+	ctx := context.Background()
+	environment := operatorcontext.EnvironmentLocal
+	configBefore := config.GetConfigOrDie(ctx, environment, "")
 
 	server, configAfter, _ := getMaskinportenApiWellKnownFixture(g, http.StatusOK)
 	defer server.Close()
@@ -228,13 +231,9 @@ func TestFetchAccessTokenReal(t *testing.T) {
 	ctx := context.Background()
 	clock := clockwork.NewFakeClock()
 
-	operatorContext := operatorcontext.DiscoverOrDie(ctx)
-	operatorContext.OverrideEnvironment(operatorcontext.EnvironmentDev)
-	cfg := config.GetConfigOrDie(
-		operatorContext,
-		config.ConfigSourceDefault,
-		"",
-	)
+	environment := operatorcontext.EnvironmentLocal
+	cfg := config.GetConfigOrDie(ctx, environment, "")
+	operatorContext := operatorcontext.DiscoverOrDie(ctx, environment, nil)
 	client, err := NewHttpApiClient(&cfg.MaskinportenApi, operatorContext, clock)
 	g.Expect(err).NotTo(HaveOccurred())
 

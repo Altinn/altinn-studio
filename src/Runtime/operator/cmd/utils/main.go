@@ -101,18 +101,19 @@ func getToken() {
 	}
 
 	ctx := context.Background()
+	environment := operatorcontext.ResolveEnvironment("")
 
-	// Create operator context
-	operatorCtx, err := operatorcontext.Discover(ctx)
+	// Load configuration from env file
+	cfg, err := config.GetConfig(ctx, environment, envFile)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to discover operator context: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to load config from %s: %v\n", envFile, err)
 		os.Exit(1)
 	}
 
-	// Load configuration from env file
-	cfg, err := config.GetConfig(operatorCtx, config.ConfigSourceKoanf, envFile)
+	// Create operator context
+	operatorCtx, err := operatorcontext.Discover(ctx, environment, nil)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to load config from %s: %v\n", envFile, err)
+		fmt.Fprintf(os.Stderr, "Failed to discover operator context: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -245,15 +246,16 @@ func deleteClient() {
 
 func setupMaskinportenClient(envFile string) (context.Context, *config.Config, *maskinporten.HttpApiClient, error) {
 	ctx := context.Background()
+	environment := operatorcontext.ResolveEnvironment("")
 
-	operatorCtx, err := operatorcontext.Discover(ctx)
-	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to discover operator context: %w", err)
-	}
-
-	cfg, err := config.GetConfig(operatorCtx, config.ConfigSourceKoanf, envFile)
+	cfg, err := config.GetConfig(ctx, environment, envFile)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to load config from %s: %w", envFile, err)
+	}
+
+	operatorCtx, err := operatorcontext.Discover(ctx, environment, nil)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to discover operator context: %w", err)
 	}
 
 	clock := clockwork.NewRealClock()
@@ -304,9 +306,10 @@ func createJwk() {
 	}
 
 	ctx := context.Background()
+	environment := operatorcontext.ResolveEnvironment("")
 
 	// Create operator context
-	operatorCtx, err := operatorcontext.Discover(ctx)
+	operatorCtx, err := operatorcontext.Discover(ctx, environment, nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to discover operator context: %v\n", err)
 		os.Exit(1)

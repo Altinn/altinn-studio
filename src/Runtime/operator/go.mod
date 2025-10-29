@@ -1,10 +1,9 @@
 module altinn.studio/operator
 
-go 1.22.0
-
-toolchain go1.22.4
+go 1.25.2
 
 require (
+	altinn.studio/runtime-fixture v0.0.0
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.12.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.6.0
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets v1.1.0
@@ -12,6 +11,7 @@ require (
 	github.com/gkampitakis/go-snaps v0.5.7
 	github.com/go-errors/errors v1.5.1
 	github.com/go-jose/go-jose/v4 v4.0.2
+	github.com/go-logr/logr v1.4.1
 	github.com/go-playground/validator/v10 v10.19.0
 	github.com/google/uuid v1.6.0
 	github.com/jonboulle/clockwork v0.4.0
@@ -49,7 +49,6 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/gkampitakis/ciinfo v0.3.0 // indirect
 	github.com/gkampitakis/go-diff v1.3.2 // indirect
-	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-logr/zapr v1.3.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect
@@ -126,3 +125,5 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
+
+replace altinn.studio/runtime-fixture => ../test/fixture

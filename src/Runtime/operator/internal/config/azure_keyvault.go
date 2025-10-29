@@ -1,111 +1,56 @@
 package config
 
 import (
+	"context"
 	"fmt"
-	"time"
 
 	"altinn.studio/operator/internal/operatorcontext"
+	"altinn.studio/operator/internal/telemetry"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
+	"go.opentelemetry.io/otel"
 )
 
-func loadFromAzureKeyVault(operatorContext *operatorcontext.Context) (*Config, error) {
-	span := operatorContext.StartSpan("GetConfig.AzureKeyVault")
+// loadSecretsFromKeyVault loads sensitive configuration (client_id, jwk) from Azure Key Vault
+// and overlays them onto the existing config. Other configuration values come from the config file.
+func loadSecretsFromKeyVault(ctx context.Context, environment string, cfg *Config) error {
+	tracer := otel.Tracer(telemetry.ServiceName)
+	ctx, span := tracer.Start(ctx, "GetConfig.AzureKeyVault")
 	defer span.End()
 
 	var cred azcore.TokenCredential
 	var err error
 
-	if operatorContext.IsLocal() {
+	if environment == operatorcontext.EnvironmentLocal {
 		cred, err = azidentity.NewDefaultAzureCredential(nil)
 	} else {
 		cred, err = azidentity.NewWorkloadIdentityCredential(nil)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("error getting credentials for loading config: %w", err)
+		return fmt.Errorf("error getting credentials for loading secrets: %w", err)
 	}
 
-	url := fmt.Sprintf("https://altinn-%s-operator-kv.vault.azure.net", operatorContext.Environment)
+	url := fmt.Sprintf("https://altinn-%s-operator-kv.vault.azure.net", environment)
 	client, err := azsecrets.NewClient(url, cred, nil)
 	if err != nil {
-		return nil, fmt.Errorf("error building client for Azure KV: %w", err)
+		return fmt.Errorf("error building client for Azure KV: %w", err)
 	}
 
-	config := &Config{}
-	err = loadMaskinportenApiFromAzureKeyVault(operatorContext, client, config)
+	// Load client_id
+	clientIdSecret, err := client.GetSecret(ctx, "MaskinportenApi.ClientId", "", nil)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("error getting secret MaskinportenApi.ClientId: %w", err)
 	}
+	cfg.MaskinportenApi.ClientId = *clientIdSecret.Value
 
-	err = loadControllerFromAzureKeyVault(operatorContext, client, config)
+	// Load jwk
+	jwkSecret, err := client.GetSecret(ctx, "MaskinportenApi.Jwk", "", nil)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("error getting secret MaskinportenApi.Jwk: %w", err)
 	}
-
-	return config, nil
-}
-
-func loadMaskinportenApiFromAzureKeyVault(
-	operatorContext *operatorcontext.Context,
-	client *azsecrets.Client,
-	config *Config,
-) error {
-	secretKeys := []string{"ClientId", "Url", "Jwk", "Scope"}
-
-	for _, secretKey := range secretKeys {
-		secret, err := client.GetSecret(
-			operatorContext.Context,
-			fmt.Sprintf("%s.%s", "MaskinportenApi", secretKey),
-			"",
-			nil,
-		)
-		if err != nil {
-			return fmt.Errorf("error getting secret: %s, %w", secretKey, err)
-		}
-
-		switch secretKey {
-		case fmt.Sprintf("%s.%s", "MaskinportenApi", "ClientId"):
-			config.MaskinportenApi.ClientId = *secret.Value
-		case fmt.Sprintf("%s.%s", "MaskinportenApi", "AuthorityUrl"):
-			config.MaskinportenApi.AuthorityUrl = *secret.Value
-		case fmt.Sprintf("%s.%s", "MaskinportenApi", "Jwk"):
-			config.MaskinportenApi.Jwk = *secret.Value
-		case fmt.Sprintf("%s.%s", "MaskinportenApi", "Scope"):
-			config.MaskinportenApi.Scope = *secret.Value
-		}
-	}
-
-	return nil
-}
-
-func loadControllerFromAzureKeyVault(
-	operatorContext *operatorcontext.Context,
-	client *azsecrets.Client,
-	config *Config,
-) error {
-	secretKeys := []string{"RequeueAfter"}
-
-	for _, secretKey := range secretKeys {
-		secret, err := client.GetSecret(
-			operatorContext.Context,
-			fmt.Sprintf("%s.%s", "Controller", secretKey),
-			"",
-			nil,
-		)
-		if err != nil {
-			return fmt.Errorf("error getting secret: %s, %w", secretKey, err)
-		}
-
-		switch secretKey {
-		case fmt.Sprintf("%s.%s", "Controller", "RequeueAfter"):
-			config.Controller.RequeueAfter, err = time.ParseDuration(*secret.Value)
-			if err != nil {
-				return err
-			}
-		}
-	}
+	cfg.MaskinportenApi.Jwk = *jwkSecret.Value
 
 	return nil
 }

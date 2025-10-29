@@ -21,10 +21,10 @@ create: ## Initialize the test-application infra.
 	cd ../../ && make install
 
 .PHONY: build
-build: ## Build the operator-testapp image.
+build: ## Build the operator-localtestapp image.
 	kubectl config use-context kind-operator
-	docker build -t operator-testapp:latest . && helm dep up ./deployment/
-	kind load docker-image operator-testapp:latest --name operator
+	docker build -t operator-localtestapp:latest . && helm dep up ./deployment/
+	kind load docker-image operator-localtestapp:latest --name operator
 
 # .PHONY: deps
 # deps: ## Install dependencies for the operator
@@ -36,7 +36,7 @@ build: ## Build the operator-testapp image.
 .PHONY: deploy
 deploy: build ## Deploy test-application to current kube context.
 	kubectl config use-context kind-operator
-	helm upgrade --install --force operator-testapp ./deployment --set deployment.image.repository=operator-testapp
+	helm upgrade --install --force operator-localtestapp ./deployment --set deployment.image.repository=operator-localtestapp
 
 .PHONY: client
 client: ## Deploy a MaskinportenClient CRD to the cluster.
@@ -51,5 +51,5 @@ delete-client: ## Delete a MaskinportenClient CRD on the cluster.
 .PHONY: destroy
 destroy: ## Destroy the test-application, including kind cluster.
 	kubectl config use-context kind-operator
-	helm uninstall --ignore-not-found local-testapp
+	helm uninstall --ignore-not-found ttd-localtestapp
 	kind delete cluster --name operator

@@ -4,63 +4,42 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"path/filepath"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
+	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/test/utils"
+	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
 )
 
 const namespace = "runtime-operator"
 
+var Runtime *kind.KindContainerRuntime
+
 var _ = Describe("controller", Ordered, func() {
 	BeforeAll(func() {
-		By("installing kind cluster")
-		Expect(utils.StartKindCluster()).To(Succeed())
+		By("loading kind runtime")
 
-		By("installing test app")
-		Expect(utils.StartTestApp()).To(Succeed())
-
-		By("creating manager namespace")
-		cmd := exec.Command("kubectl", "create", "ns", namespace)
-		_, err := utils.Run(cmd, "")
-		Expect(err).To(Succeed())
+		var err error
+		projectRoot := config.TryFindProjectRoot()
+		Runtime, err = kind.LoadCurrent(filepath.Join(projectRoot, ".cache"))
+		ExpectWithOffset(2, err).NotTo(HaveOccurred())
 	})
-
-	// AfterAll(func() {
-	// 	By("uninstalling kind cluster")
-	// 	Expect(utils.Destroy()).To(Succeed())
-	// })
 
 	Context("Operator", func() {
 		It("should run successfully", func() {
 			var controllerPodName string
-			var err error
-
-			// projectimage stores the name of the image used in the example
-			var projectimage = "localhost:5001/altinn-studio-operator:v0.0.1"
-
-			By("building the manager(Operator) image")
-			cmd := exec.Command("make", "docker-build", fmt.Sprintf("IMG=%s", projectimage))
-			_, err = utils.Run(cmd, "")
-			ExpectWithOffset(1, err).NotTo(HaveOccurred())
-
-			By("loading the the manager(Operator) image on Kind")
-			err = utils.LoadImageToKindClusterWithName(projectimage)
-			ExpectWithOffset(1, err).NotTo(HaveOccurred())
-
-			By("deploying the controller-manager")
-			cmd = exec.Command("make", "deploy", fmt.Sprintf("IMG=%s", projectimage))
-			_, err = utils.Run(cmd, "")
-			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 			By("validating that the controller-manager pod is running as expected")
 			verifyControllerUp := func() error {
 				// Get pod name
 
-				cmd = exec.Command("kubectl", "get",
+				cmd := exec.Command("kubectl", "get",
 					"pods", "-l", "control-plane=controller-manager",
 					"-o", "go-template={{ range .items }}"+
 						"{{ if not .metadata.deletionTimestamp }}"+
@@ -95,11 +74,30 @@ var _ = Describe("controller", Ordered, func() {
 
 		It("should respond to MaskinportenClient", func() {
 
-			By("creating MaskinportenClient resource")
-			Expect(utils.ApplyMaskinportenClient()).To(Succeed())
-
 			By("constructing k8s client")
 			k8sClient, err := utils.GetK8sClient()
+			Expect(err).To(Succeed())
+
+			By("creating MaskinportenClient resource")
+			maskinportenClient := &resourcesv1alpha1.MaskinportenClient{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "ttd-localtestapp",
+					Namespace: "default",
+					Labels: map[string]string{
+						"app": "ttd-localtestapp-deployment",
+					},
+				},
+				Spec: resourcesv1alpha1.MaskinportenClientSpec{
+					Scopes: []string{"altinn:serviceowner/instances.read", "altinn:serviceowner/instances.write"},
+				},
+			}
+
+			err = k8sClient.Post().
+				Resource("maskinportenclients").
+				Namespace("default").
+				Body(maskinportenClient).
+				Do(context.Background()).
+				Error()
 			Expect(err).To(Succeed())
 
 			By("validating that the corresponding status is updated after reconcile")
@@ -108,7 +106,7 @@ var _ = Describe("controller", Ordered, func() {
 				err := k8sClient.Get().
 					Resource("maskinportenclients").
 					Namespace("default").
-					Name("local-testapp").
+					Name("ttd-localtestapp").
 					Do(context.Background()).
 					Into(maskinportenClient)
 

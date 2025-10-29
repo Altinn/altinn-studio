@@ -13,13 +13,13 @@
             "program": "${workspaceFolder}/cmd/main.go",
             "console": "integratedTerminal"
         },
-        // go run cmd/maskinporten_fakes/main.go
+        // go run cmd/fakes/main.go
         {
             "name": "Run Fake APIs",
             "type": "go",
             "request": "launch",
             "mode": "debug",
-            "program": "${workspaceFolder}/cmd/maskinporten_fakes/main.go",
+            "program": "${workspaceFolder}/cmd/fakes/main.go",
             "console": "integratedTerminal"
         },
         // go test ./test/e2e/ -v -ginkgo.v

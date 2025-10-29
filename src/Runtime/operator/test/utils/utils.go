@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -19,34 +18,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
 )
-
-func StartKindCluster() error {
-	return runTestAppMakeTarget("create")
-}
-
-func StartTestApp() error {
-	return runTestAppMakeTarget("deploy")
-}
-
-func ApplyMaskinportenClient() error {
-	return runTestAppMakeTarget("client")
-}
-
-func Destroy() error {
-	return runTestAppMakeTarget("destroy")
-}
-
-func runTestAppMakeTarget(target string) error {
-	dir, err := GetProjectDir()
-	if err != nil {
-		return err
-	}
-	dir = path.Join(dir, "test", "app")
-
-	cmd := exec.Command("make", target)
-	_, err = Run(cmd, dir)
-	return err
-}
 
 // Run executes the provided command within this context
 func Run(cmd *exec.Cmd, dir string) ([]byte, error) {
@@ -72,15 +43,6 @@ func Run(cmd *exec.Cmd, dir string) ([]byte, error) {
 	}
 
 	return output, nil
-}
-
-// LoadImageToKindCluster loads a local docker image to the kind cluster
-func LoadImageToKindClusterWithName(name string) error {
-	cluster := "operator"
-	kindOptions := []string{"load", "docker-image", name, "--name", cluster}
-	cmd := exec.Command("kind", kindOptions...)
-	_, err := Run(cmd, "")
-	return err
 }
 
 // GetNonEmptyLines converts given command output string into individual objects

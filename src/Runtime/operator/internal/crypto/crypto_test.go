@@ -130,7 +130,7 @@ func TestPublicJwksConversion(t *testing.T) {
 }
 
 func createService() (*CryptoService, clockwork.FakeClock) {
-	operatorContext := operatorcontext.DiscoverOrDie(context.Background())
+	operatorContext := operatorcontext.DiscoverOrDie(context.Background(), operatorcontext.EnvironmentLocal, nil)
 	clock := clockwork.NewFakeClockAt(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC))
 	random := utils.NewDeterministicRand()
 	service := NewDefaultService(operatorContext, clock, random)

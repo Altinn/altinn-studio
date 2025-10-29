@@ -79,7 +79,7 @@ func main() {
 
 	ctx, span := otel.Tracer(telemetry.ServiceName).Start(ctx, "Main")
 
-	rt, err := internal.NewRuntime(ctx, "")
+	rt, err := internal.NewRuntime(ctx, "", &setupLog)
 	if err != nil {
 		setupLog.Error(err, "unable to initialize runtime")
 		span.End()
