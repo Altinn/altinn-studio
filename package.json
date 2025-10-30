@@ -156,7 +156,7 @@
     "fast-array-diff": "1.1.0",
     "fast-json-patch": "3.1.1",
     "html-react-parser": "5.2.7",
-    "immer": "10.1.3",
+    "immer": "10.2.0",
     "jsonpointer": "5.0.1",
     "leaflet": "1.9.4",
     "lru-cache": "11.2.2",
