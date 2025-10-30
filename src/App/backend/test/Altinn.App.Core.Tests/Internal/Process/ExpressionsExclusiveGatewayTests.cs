@@ -223,7 +223,7 @@ public class ExpressionsExclusiveGatewayTests
         {
             Id = "500000/60226acd-b821-4aae-82cd-97a342071bd3",
             InstanceOwner = new() { PartyId = "500000" },
-            AppId = "ttd/test",
+            AppId = AppId,
             Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
             Data = new()
             {
@@ -249,8 +249,8 @@ public class ExpressionsExclusiveGatewayTests
         object? formData = null
     )
     {
-        _resources.Setup(r => r.GetLayoutSetForTask("Task_1")).Returns(layoutSet);
-        var appMetadata = new ApplicationMetadata("ttd/test-app") { DataTypes = dataTypes };
+        _resources.Setup(r => r.GetLayoutSetForTask(TaskId)).Returns(layoutSet);
+        var appMetadata = new ApplicationMetadata(AppId) { DataTypes = dataTypes };
         var modelSerializationService = new ModelSerializationService(_appModel.Object);
         _appMetadata.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(appMetadata).Verifiable(Times.AtLeastOnce);
         if (formData != null)
@@ -275,15 +275,17 @@ public class ExpressionsExclusiveGatewayTests
         var frontendSettings = Options.Create(new FrontEndSettings());
 
         var dataAccessor = new InstanceDataUnitOfWork(
-            instance,
-            _dataClient.Object,
-            _instanceClient.Object,
-            appMetadata,
-            modelSerializationService,
-            null!,
-            null!,
-            TaskId,
-            null
+            instance: instance,
+            dataClient: _dataClient.Object,
+            instanceClient: _instanceClient.Object,
+            appMetadata: appMetadata,
+            translationService: null!,
+            modelSerializationService: modelSerializationService,
+            appResources: null!,
+            frontEndSettings: null!,
+            taskId: TaskId,
+            language: null,
+            telemetry: null
         );
 
         var layoutStateInit = new LayoutEvaluatorStateInitializer(

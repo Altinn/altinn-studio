@@ -3278,6 +3278,10 @@
           "SF_test": {
             "type": "string",
             "nullable": true
+          },
+          "hiddenNotRemove": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
