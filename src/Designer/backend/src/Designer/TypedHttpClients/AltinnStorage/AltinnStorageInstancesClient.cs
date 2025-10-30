@@ -47,20 +47,28 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
     )
     {
         var platformUri = await _environmentsService.CreatePlatformUri(env);
+        var uri = $"{platformUri}{_platformSettings.ApiStorageInstancesUri}{org}/{app}";
 
-        var uri = QueryHelpers.AddQueryString(
-            $"{platformUri}{_platformSettings.ApiStorageInstancesUri}{org}/{app}",
-            new Dictionary<string, string?>
-            {
-                ["size"] = $"{SIZE}",
-                ["continuationToken"] = continuationToken,
-                ["process.currentTask"] = currentTaskFilter,
-                ["process.isComplete"] =
-                    processIsCompleteFilter != null
-                        ? processIsCompleteFilter.Value.ToString().ToLowerInvariant()
-                        : null,
-            }
-        );
+        uri = QueryHelpers.AddQueryString(uri, "size", SIZE.ToString());
+
+        if (!string.IsNullOrEmpty(continuationToken))
+        {
+            uri = QueryHelpers.AddQueryString(uri, "continuationToken", continuationToken);
+        }
+
+        if (!string.IsNullOrEmpty(currentTaskFilter))
+        {
+            uri = QueryHelpers.AddQueryString(uri, "process.currentTask", currentTaskFilter);
+        }
+
+        if (processIsCompleteFilter != null)
+        {
+            uri = QueryHelpers.AddQueryString(
+                uri,
+                "process.isComplete",
+                processIsCompleteFilter.Value.ToString()
+            );
+        }
 
         using var response = await _httpClient.GetAsync(uri, ct);
         response.EnsureSuccessStatusCode();
