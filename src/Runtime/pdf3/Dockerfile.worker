@@ -1,0 +1,38 @@
+# Build stage
+FROM golang:1.25-trixie@sha256:7534a6264850325fcce93e47b87a0e3fddd96b308440245e6ab1325fa8a44c91 AS builder
+
+WORKDIR /app
+
+# Copy go mod files first for better dependency caching
+COPY go.mod go.sum ./
+
+# Remove the test fixture dependency from go.mod as it's not needed for building binaries
+# The test/harness package is only imported by test files, not by cmd/proxy or cmd/worker
+RUN sed -i '/require altinn.studio\/runtime-fixture/d' go.mod && \
+    sed -i '/replace altinn.studio\/runtime-fixture/d' go.mod
+
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/worker
+
+# Runtime stage
+FROM docker.io/chromedp/headless-shell:stable@sha256:de5b057849de96955de7662023420a46355abfbb24d57aa01282ec7c811aacab
+
+WORKDIR /app
+
+# Copy the binary from builder stage
+COPY --from=builder /app/main .
+
+# Create output directory and pre-download Chrome
+RUN mkdir -p ./output
+
+EXPOSE 5031
+
+USER nobody
+
+# Run the service
+ENTRYPOINT ["./main"]

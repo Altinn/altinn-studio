@@ -7,15 +7,16 @@ import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { AppContentLibrary } from 'app-development/features/appContentLibrary';
 import { UiEditor } from 'app-development/features/uiEditor/UiEditor';
 import { AppSettings } from 'app-development/features/appSettings/AppSettings';
+import { AiAssistant } from 'app-development/features/aiAssistant/AiAssistant';
 
 interface RouterRoute {
-  path: RoutePaths;
+  path: string;
   subapp: any;
 }
 
 export const routerRoutes: RouterRoute[] = [
   {
-    path: RoutePaths.UIEditor,
+    path: RoutePaths.UIEditor + '/*',
     subapp: UiEditor,
   },
   {
@@ -45,5 +46,9 @@ export const routerRoutes: RouterRoute[] = [
   {
     path: RoutePaths.AppSettings,
     subapp: AppSettings,
+  },
+  {
+    path: RoutePaths.AiAssistant,
+    subapp: AiAssistant,
   },
 ];

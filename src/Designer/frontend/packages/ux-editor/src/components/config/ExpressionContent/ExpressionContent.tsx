@@ -1,16 +1,16 @@
 import type { ReactNode } from 'react';
 import React, { useMemo } from 'react';
 import { getComponentIds, getDataModelElementNames } from '../../../utils/expressionsUtils';
-import type { Expression, DataLookupOptions } from '@studio/components-legacy';
-import { DataLookupFuncName } from '@studio/components-legacy';
-import { StudioDeleteButton } from '@studio/components';
+import type { Expression, DataLookupOptions } from '@studio/components';
+import { DataLookupFuncName, StudioDeleteButton } from '@studio/components';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useDataModelMetadataQuery } from '../../../hooks/queries/useDataModelMetadataQuery';
 import { Paragraph } from '@digdir/designsystemet-react';
 import classes from './ExpressionContent.module.css';
 import { Expression as ExpressionWithTexts } from './Expression';
-import { useText, useAppContext } from '../../../hooks';
+import { useText } from '../../../hooks';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export interface ExpressionContentProps {
   expression: Expression;
@@ -27,12 +27,12 @@ export const ExpressionContent = ({
 }: ExpressionContentProps) => {
   const t = useText();
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName } = useAppContext();
-  const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
+  const { layoutSet } = useUxEditorParams();
+  const { data: formLayoutsData } = useFormLayoutsQuery(org, app, layoutSet);
   const { data: dataModelMetadata } = useDataModelMetadataQuery({
     org,
     app,
-    layoutSetName: selectedFormLayoutSetName,
+    layoutSetName: layoutSet,
   });
   const dataLookupOptions: Partial<DataLookupOptions> = useMemo(
     () => ({

@@ -3,7 +3,7 @@ import React from 'react';
 import { useOrgListQuery } from 'app-development/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
-import { StudioError, StudioSpinner } from '@studio/components-legacy';
+import { StudioSpinner, StudioError } from '@studio/components';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { RepoOwnedByPersonInfo } from './RepoOwnedByPersonInfo';
 import { NoEnvironmentsAlert } from './NoEnvironmentsAlert';
@@ -31,9 +31,7 @@ export const Deployments = ({ className }: DeploymentsProps) => {
   const { t } = useTranslation();
 
   if (isOrgsPending || repositoryIsPending) {
-    return (
-      <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.deployments_loading')} />
-    );
+    return <StudioSpinner aria-hidden spinnerTitle={t('overview.deployments_loading')} />;
   }
 
   if (isOrgsError || repositoryIsError)

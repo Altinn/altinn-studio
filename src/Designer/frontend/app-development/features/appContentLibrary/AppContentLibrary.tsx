@@ -15,7 +15,7 @@ import {
 } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { mapToCodeListDataList } from './utils/mapToCodeListDataList';
-import { StudioPageError, StudioPageSpinner } from '@studio/components-legacy';
+import { StudioPageError, StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
@@ -132,7 +132,7 @@ function AppContentLibraryWithData({
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
     heading: t('app_content_library.library_heading'),
     pages: {
-      codeList: {
+      codeListsWithTextResources: {
         props: {
           codeListDataList,
           onCreateCodeList: handleCreate,

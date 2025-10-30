@@ -9,8 +9,7 @@ import type { ExpressionContentProps } from './ExpressionContent';
 import { ExpressionContent } from './ExpressionContent';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { AppContextProps } from '../../../AppContext';
-import { LogicalTupleOperator } from '@studio/components-legacy';
+import { LogicalTupleOperator } from '@studio/components';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';
@@ -79,8 +78,6 @@ describe('ExpressionContent', () => {
 });
 
 const renderExpressionContent = (props: Partial<ExpressionContentProps> = {}) => {
-  const appContextProps: Partial<AppContextProps> = { selectedFormLayoutSetName: layoutSetName };
-
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   queryClient.setQueryData(
@@ -89,7 +86,6 @@ const renderExpressionContent = (props: Partial<ExpressionContentProps> = {}) =>
   );
 
   return renderWithProviders(<ExpressionContent {...defaultProps} {...props} />, {
-    appContextProps,
     queryClient,
   });
 };

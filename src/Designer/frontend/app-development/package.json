@@ -9,6 +9,7 @@
     "not op_mini all"
   ],
   "dependencies": {
+    "@studio/assistant": "workspace:^",
     "@studio/content-library": "workspace:^",
     "@studio/feedback-form": "workspace:^",
     "@studio/hooks": "workspace:^",
@@ -24,7 +25,7 @@
   },
   "devDependencies": {
     "jest": "29.7.0",
-    "typescript": "5.9.2",
+    "typescript": "5.9.3",
     "vite": "^6.3.2"
   },
   "license": "3-Clause BSD",

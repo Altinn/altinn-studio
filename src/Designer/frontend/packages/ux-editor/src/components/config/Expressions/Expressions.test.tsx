@@ -14,9 +14,8 @@ import type { FormComponent } from '../../../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { parsableLogicalExpression } from '../../../testing/expressionMocks';
 import type { FormContainer } from '../../../types/FormContainer';
-import type { AppContextProps } from '../../../AppContext';
 import { ObjectUtils } from '@studio/pure-functions';
-import { LogicalTupleOperator } from '@studio/components-legacy';
+import { LogicalTupleOperator } from '@studio/components';
 import { app, org } from '@studio/testing/testids';
 
 // Test data:
@@ -162,18 +161,12 @@ describe('Expressions', () => {
       },
     };
     renderExpressions({ formItem });
-    screen.getByText(textMock('right_menu.read_more_about_expressions'));
-  });
-
-  it('renders link to docs', () => {
-    renderExpressions();
-    screen.getByRole('link', { name: textMock('right_menu.read_more_about_expressions') });
+    const addExpressionBtn = screen.getByText(textMock('right_menu.expressions_add'));
+    expect(addExpressionBtn).toBeInTheDocument();
   });
 });
 
 const renderExpressions = (formItemContext: Partial<FormItemContext> = {}) => {
-  const appContextProps: Partial<AppContextProps> = { selectedFormLayoutSetName: layoutSetName };
-
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   queryClient.setQueryData(
@@ -185,6 +178,6 @@ const renderExpressions = (formItemContext: Partial<FormItemContext> = {}) => {
     <FormItemContext.Provider value={{ ...defaultFormItemContext, ...formItemContext }}>
       <Expressions />
     </FormItemContext.Provider>,
-    { queryClient, appContextProps },
+    { queryClient },
   );
 };

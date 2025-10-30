@@ -7,8 +7,13 @@ import { useAppContext, useGetLayoutSetByName } from '../../hooks';
 import { useChecksum } from '../../hooks/useChecksum.ts';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/designsystemet-react';
-import { StudioErrorMessage, StudioSpinner } from '@studio/components-legacy';
-import { StudioButton, StudioCenter, StudioAlert } from '@studio/components';
+import {
+  StudioButton,
+  StudioCenter,
+  StudioAlert,
+  StudioSpinner,
+  StudioValidationMessage,
+} from '@studio/components';
 import type { SupportedView } from './ViewToggler/ViewToggler';
 import { ViewToggler } from './ViewToggler/ViewToggler';
 import { ShrinkIcon } from '@studio/icons';
@@ -16,6 +21,7 @@ import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitations
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
 import { useUserQuery } from 'app-shared/hooks/queries';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export type PreviewProps = {
   collapsed: boolean;
@@ -84,8 +90,9 @@ const NoSelectedPageMessage = () => {
 const PreviewFrame = () => {
   const { org, app } = useStudioEnvironmentParams();
   const [viewportToSimulate, setViewportToSimulate] = useState<SupportedView>('desktop');
-  const { previewIframeRef, selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
-  const taskId = useSelectedTaskId(selectedFormLayoutSetName);
+  const { previewIframeRef, selectedFormLayoutName } = useAppContext();
+  const { layoutSet } = useUxEditorParams();
+  const taskId = useSelectedTaskId(layoutSet);
   const { t } = useTranslation();
   const { data: user } = useUserQuery();
 
@@ -98,7 +105,7 @@ const PreviewFrame = () => {
     isPending: createInstancePending,
   } = useCreatePreviewInstanceMutation(org, app);
 
-  const currentLayoutSet = useGetLayoutSetByName({ name: selectedFormLayoutSetName, org, app });
+  const currentLayoutSet = useGetLayoutSetByName({ name: layoutSet, org, app });
   const isSubform = currentLayoutSet?.type === 'subform';
 
   useEffect(() => {
@@ -115,21 +122,14 @@ const PreviewFrame = () => {
     return (
       <StudioCenter>
         {createInstanceError ? (
-          <StudioErrorMessage>{t('general.page_error_title')}</StudioErrorMessage>
+          <StudioValidationMessage>{t('general.page_error_title')}</StudioValidationMessage>
         ) : (
-          <StudioSpinner spinnerTitle={t('preview.loading_preview_controller')} />
+          <StudioSpinner aria-hidden spinnerTitle={t('preview.loading_preview_controller')} />
         )}
       </StudioCenter>
     );
   }
-  const previewURL = previewPage(
-    org,
-    app,
-    selectedFormLayoutSetName,
-    taskId,
-    selectedFormLayoutName,
-    instance?.id,
-  );
+  const previewURL = previewPage(org, app, layoutSet, taskId, selectedFormLayoutName, instance?.id);
 
   return (
     <div className={classes.root}>

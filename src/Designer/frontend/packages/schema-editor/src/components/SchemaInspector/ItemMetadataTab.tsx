@@ -1,10 +1,10 @@
+import { StudioTextfield } from '@studio/components-legacy';
 import {
-  StudioErrorMessage,
-  StudioFieldset,
   StudioSpinner,
+  StudioFieldset,
   StudioSwitch,
-  StudioTextfield,
-} from '@studio/components-legacy';
+  StudioValidationMessage,
+} from '@studio/components';
 import { useDataTypeQuery } from 'app-shared/hooks/queries/useDataTypeQuery';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -35,11 +35,13 @@ export const ItemMetadataTab = () => {
   };
 
   if (isPending) {
-    return <StudioSpinner spinnerTitle={t('general.loading')}></StudioSpinner>;
+    return <StudioSpinner aria-hidden spinnerTitle={t('general.loading')}></StudioSpinner>;
   }
 
   if (!dataType) {
-    return <StudioErrorMessage>{t('schema_editor.metadata.not_found')}</StudioErrorMessage>;
+    return (
+      <StudioValidationMessage>{t('schema_editor.metadata.not_found')}</StudioValidationMessage>
+    );
   }
 
   const hasMaxCountError =
@@ -77,15 +79,14 @@ export const ItemMetadataTab = () => {
       />
       {dataType.appLogic && (
         <StudioSwitch
+          label={t('schema_editor.metadata.autoCreate')}
           checked={dataType.appLogic.autoCreate}
           onChange={async (event: React.ChangeEvent<HTMLInputElement>) => {
             const updatedAppLogic = { ...dataType.appLogic, autoCreate: event.target.checked };
             const updatedDataType = { ...dataType, appLogic: updatedAppLogic };
             saveMetadata(updatedDataType);
           }}
-        >
-          {t('schema_editor.metadata.autoCreate')}
-        </StudioSwitch>
+        ></StudioSwitch>
       )}
     </StudioFieldset>
   );

@@ -8,7 +8,7 @@ namespace Altinn.Studio.Designer.Models
     /// A context class representing an Altinn repository in editing mode.
     /// This class in part of internal domain model and should not be exposed to the outside world.
     /// </summary>
-    public class AltinnRepoEditingContext : AltinnRepoContext
+    public record AltinnRepoEditingContext : AltinnRepoContext
     {
         /// <summary>
         /// Developer that is editing the repository.
@@ -34,5 +34,7 @@ namespace Altinn.Studio.Designer.Models
         {
             return new AltinnRepoEditingContext(org, repo, developer);
         }
+
+        public string Path => System.IO.Path.Join(Developer, Org, Repo);
     }
 }

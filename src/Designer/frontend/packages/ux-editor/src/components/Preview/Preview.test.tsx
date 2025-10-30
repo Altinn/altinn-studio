@@ -8,14 +8,22 @@ import userEvent from '@testing-library/user-event';
 import { appContextMock } from '../../testing/appContextMock';
 import { previewPage } from 'app-shared/api/paths';
 import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
-import { app, org } from '@studio/testing/testids';
-import { subformLayoutMock } from '../../testing/subformLayoutMock';
+import { app, layoutSet, org } from '@studio/testing/testids';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 describe('Preview', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('Renders an iframe with the ref from AppContext', async () => {
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+      screen.queryByText(textMock('preview.loading_preview_controller')),
     );
     expect(screen.getByTitle(textMock('ux_editor.preview'))).toBe(
       appContextMock.previewIframeRef.current,
@@ -26,7 +34,7 @@ describe('Preview', () => {
     const user = userEvent.setup();
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+      screen.queryByText(textMock('preview.loading_preview_controller')),
     );
 
     const switchButton = screen.getByRole('checkbox', {
@@ -51,7 +59,7 @@ describe('Preview', () => {
   it('Renders the information alert with preview being limited', async () => {
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+      screen.queryByText(textMock('preview.loading_preview_controller')),
     );
 
     const previewLimitationsAlert = screen.getByText(textMock('preview.limitations_info'));
@@ -72,7 +80,7 @@ describe('Preview', () => {
     const user = userEvent.setup();
     const view = render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+      screen.queryByText(textMock('preview.loading_preview_controller')),
     );
 
     const hidePreviewButton = screen.getByRole('button', {
@@ -94,20 +102,20 @@ describe('Preview', () => {
 
   it('shows a spinner when preview instance is loading', () => {
     render();
-    expect(screen.getByTitle(textMock('preview.loading_preview_controller'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('preview.loading_preview_controller'))).toBeInTheDocument();
   });
 
   it('reloads preview when the selected form layout name changes', async () => {
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+      screen.queryByText(textMock('preview.loading_preview_controller')),
     );
     expect(appContextMock.previewIframeRef?.current?.src).toBe(
       'http://localhost' +
         previewPage(
           org,
           app,
-          appContextMock.selectedFormLayoutSetName,
+          layoutSet,
           TASKID_FOR_STATELESS_APPS,
           appContextMock.selectedFormLayoutName,
           mockInstanceId,
@@ -119,14 +127,14 @@ describe('Preview', () => {
 
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+      screen.queryByText(textMock('preview.loading_preview_controller')),
     );
     expect(appContextMock.previewIframeRef.current.src).toBe(
       'http://localhost' +
         previewPage(
           org,
           app,
-          appContextMock.selectedFormLayoutSetName,
+          layoutSet,
           TASKID_FOR_STATELESS_APPS,
           newSelectedFormLayoutName,
           mockInstanceId,
@@ -135,13 +143,37 @@ describe('Preview', () => {
   });
 
   it('should show a warning that subform is unsupported in preview', async () => {
-    appContextMock.selectedFormLayoutSetName = subformLayoutMock.layoutSetName;
-    render();
+    render({
+      queries: {
+        getLayoutSets: jest
+          .fn()
+          .mockImplementation(() =>
+            Promise.resolve({ sets: [{ id: layoutSet, type: 'subform' }] }),
+          ),
+        createPreviewInstance: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve({ id: mockInstanceId })),
+      },
+      queryClient: createQueryClientMock(),
+    });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+      screen.queryByText(textMock('preview.loading_preview_controller')),
     );
 
     expect(screen.getByText(/ux_editor.preview.subform_unsupported_warning/i)).toBeInTheDocument();
+  });
+
+  it('should show error message when preview instance creation fails', async () => {
+    render({
+      queries: {
+        createPreviewInstance: jest.fn().mockImplementation(() => Promise.reject('Error')),
+      },
+    });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('preview.loading_preview_controller')),
+    );
+
+    expect(screen.getByText(textMock('general.page_error_title'))).toBeInTheDocument();
   });
 });
 
@@ -149,17 +181,17 @@ const collapseToggle = jest.fn();
 const mockInstanceId = '1';
 
 export const render = (options: Partial<ExtendedRenderOptions> = {}) => {
+  const defaultQueries = {
+    createPreviewInstance: jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ id: mockInstanceId })),
+  };
+
   options = {
     ...options,
     queries: {
-      getLayoutSets: jest
-        .fn()
-        .mockImplementation(() =>
-          Promise.resolve({ sets: [{ id: subformLayoutMock.layoutSetName, type: 'subform' }] }),
-        ),
-      createPreviewInstance: jest
-        .fn()
-        .mockImplementation(() => Promise.resolve({ id: mockInstanceId })),
+      ...defaultQueries,
+      ...options.queries,
     },
   };
   return renderWithProviders(

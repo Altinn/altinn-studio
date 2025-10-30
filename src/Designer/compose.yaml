@@ -28,7 +28,7 @@ services:
     environment:
       - DEVELOP_APP_DEVELOPMENT=${DEVELOP_APP_DEVELOPMENT:-0}
       - DEVELOP_RESOURCE_ADMIN=${DEVELOP_RESOURCE_ADMIN:-0}
-      - DEVELOP_ADMIN_FRONTEND=${DEVELOP_ADMIN_FRONTEND:-0}
+      - DEVELOP_ADMIN=${DEVELOP_ADMIN:-0}
       - DEVELOP_BACKEND=${DEVELOP_BACKEND:-0}
       - DEVELOP_DASHBOARD=${DEVELOP_DASHBOARD:-0}
       - DEVELOP_PREVIEW=${DEVELOP_PREVIEW:-0}
@@ -86,6 +86,7 @@ services:
       - OidcLoginSettings:CookieExpiryTimeInMinutes=59
       - OidcLoginSettings:FetchClientIdAndSecretFromRootEnvFile=false
       - FeatureManagement:Ansattporten=${FEATUREFLAGS_ANSATTPORTEN:-false}
+      - FeatureManagement:GitOpsDeploy=${FEATUREFLAGS_GITOPSDEPLOY:-true}
       - AnsattPortenLoginSettings:ClientId=${ANSATTPORTEN_CLIENTID:-}
       - AnsattPortenLoginSettings:ClientSecret=${ANSATTPORTEN_CLIENTSECRET:-}
       - RedisCacheSettings:UseRedisCache=true
@@ -93,6 +94,7 @@ services:
       - RedisCacheSettings:InstanceName=designer
       - SchedulingSettings:UsePersistentScheduling=true
       - SchedulingSettings:AddHostedService=true
+      - GitOpsSettings:BotPersonalAccessToken=${GITOPS_BOT_PERSONAL_ACCESS_TOKEN:-}
     ports:
       - '6000:6000'
     depends_on:

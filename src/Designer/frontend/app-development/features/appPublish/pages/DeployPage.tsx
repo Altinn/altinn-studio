@@ -10,7 +10,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { Link } from '@digdir/designsystemet-react';
 import { EmailContactProvider } from 'app-shared/getInTouch/providers';
 import { GetInTouchWith } from 'app-shared/getInTouch';
-import { StudioError, StudioPageSpinner } from '@studio/components-legacy';
+import { StudioError, StudioPageSpinner } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export function DeployPage() {
@@ -44,7 +44,7 @@ export function DeployPage() {
         <div style={{ paddingTop: '2.4rem' }}>
           <Trans i18nKey={'app_deployment.no_env_2'}>
             <a
-              href={altinnDocsUrl({ relativeUrl: 'altinn-studio/reference/testing/local/' })}
+              href={altinnDocsUrl({ relativeUrl: 'altinn-studio/v8/reference/testing/local/' })}
               target='_new'
               rel='noopener noreferrer'
             />

@@ -5,14 +5,23 @@ import { layoutMock } from '../../testing/layoutMock';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../testing/mocks';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { StudioDragAndDropTree } from '@studio/components-legacy';
+import { StudioDragAndDropTree } from '@studio/components';
 import { FormItemContextProvider } from '../FormItemContext';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { internalLayoutWithMultiPageGroup } from '../../testing/layoutWithMultiPageGroupMocks';
+import { FeatureFlag } from '@studio/feature-flags';
+import type { IInternalLayout } from '../../types/global';
 
 const defaultProps: FormLayoutProps = {
   layout: layoutMock,
   isInvalid: false,
+};
+const emptyLayout: IInternalLayout = {
+  components: {},
+  containers: {},
+  order: {},
+  customDataProperties: {},
+  customRootProperties: {},
 };
 
 describe('FormLayout', () => {
@@ -55,13 +64,26 @@ describe('FormLayout', () => {
     const uniqueIds = screen.queryByText(/idContainer3/i);
     expect(uniqueIds).not.toBeInTheDocument();
   });
+
+  it('Does not display the add item button by default when the layout is empty', () => {
+    render({ layout: emptyLayout });
+    expect(screen.queryByRole('button', { name: addComponentButtonName })).not.toBeInTheDocument();
+  });
+
+  it('Displays the add item button when the layout is empty and the add component modal flag is enabled', () => {
+    render({ layout: emptyLayout }, [FeatureFlag.AddComponentModal]);
+    expect(screen.getByRole('button', { name: addComponentButtonName })).toBeInTheDocument();
+  });
 });
 
-const render = (props?: Partial<FormLayoutProps>) =>
+const render = (props?: Partial<FormLayoutProps>, featureFlags?: FeatureFlag[]) =>
   renderWithProviders(
     <StudioDragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
       <FormItemContextProvider>
         <FormLayout {...defaultProps} {...props} />
       </FormItemContextProvider>
     </StudioDragAndDropTree.Provider>,
+    { featureFlags },
   );
+
+const addComponentButtonName = textMock('ux_editor.add_item.add_component');

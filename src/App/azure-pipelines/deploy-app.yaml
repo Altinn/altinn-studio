@@ -22,6 +22,7 @@ variables:
   # GITEA_ENVIRONMENT: ''
   # HOSTNAME: ''
   # TAGNAME: ''
+  # PUSH_SYNCROOT_GITOPS_IMAGE: 'false' # Set to 'true' to enable pushing sync-root artifact
 
   # Variables for generating yaml files. Paths are relative to the root of the apps repository
   FLUX_ARTIFACT_DIR: 'flux-artifact'
@@ -33,6 +34,10 @@ variables:
 
   AI_SERVICE_CONNECTION_ID_TEST: 'c3cabb67-2cf6-4114-acd3-e1f0e32eea82'
   AI_SERVICE_CONNECTION_ID_PROD: '4c145755-0ab0-4c62-b182-4d2fbb9563ed'
+
+  GITOPS_ORGANIZATION: 'als'
+  GITOPS_REPO_SUFFIX: '-gitops'
+  GITOPS_REPO_CLONE_DIR: 'gitops'
 
 
 trigger: none
@@ -62,7 +67,30 @@ steps:
     displayName: Pull Repo
     inputs:
       script: |
-        git clone https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO $APP_COMMIT_ID
+        # Should use oauth token when authenticating to private repo
+
+        git clone --recurse-submodules https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO $APP_COMMIT_ID
+        cd $APP_COMMIT_ID
+
+        ## Ensure we use correct commit
+        # Get the latest commit ID of the current git branch
+        latestCommit=$(git rev-parse HEAD)
+
+        # Compare the commits
+        if [ "$targetCommit" == "$APP_COMMIT_ID" ]; then
+            echo "Already using latest commit on this branch, moving on."
+        else
+            echo "Target commit ID is not latest commit on this branch. Fetching target commit"
+            git fetch origin $APP_COMMIT_ID
+            git reset --hard FETCH_HEAD
+        fi
+
+  - task: CmdLine@2
+    displayName: Pull GitOps directory
+    condition: eq(variables['PUSH_SYNCROOT_GITOPS_IMAGE'], 'true')
+    inputs:
+      script: |
+        git clone https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$GITOPS_ORGANIZATION/$APP_OWNER$GITOPS_REPO_SUFFIX $GITOPS_REPO_CLONE_DIR
 
   - task: Bash@3
     displayName: Set environment variables (ALTINN_HOST and RG_NAME) based on APP_ENVIRONMENT
@@ -336,6 +364,8 @@ steps:
         metadata:
           name: ${RELEASE_NAME}
           namespace: default
+          labels:
+            altinn.studio/managed-by: altinn-studio
         spec:
           releaseName: ${RELEASE_NAME}
           targetNamespace: default
@@ -503,19 +533,75 @@ steps:
         ACR_NAME="${APP_OWNER}altinnregistry01"
 
         # install flux cli
-        curl -s https://fluxcd.io/install.sh | sudo bash
+        export FLUX_VERSION=2.6.4
+        curl -s https://fluxcd.io/install.sh | sudo -E bash
 
         # Use Flux to push and tag the artifact
-        flux push artifact oci://$ACR_NAME.azurecr.io/configs/$APP_ENVIRONMENT/$RELEASE_NAME:$TAGNAME \
+        flux push artifact oci://$ACR_NAME.azurecr.io/configs/$APP_REPO:$APP_ENVIRONMENT-$TAGNAME \
           --path="./$FLUX_ARTIFACT_DIR" \
           --source="https://$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO/commit/$APP_COMMIT_ID" \
           --revision="$APP_COMMIT_ID" \
           --provider azure
 
         # Tag as environment
-        flux tag artifact oci://$ACR_NAME.azurecr.io/configs/$APP_ENVIRONMENT/$RELEASE_NAME:$TAGNAME  \
+        flux tag artifact oci://$ACR_NAME.azurecr.io/configs/$APP_REPO:$APP_ENVIRONMENT-$TAGNAME  \
           --tag $APP_ENVIRONMENT \
           --provider azure
 
+  - task: AzureCLI@2
+    displayName: 'Push sync-root OCI artifact to ACR'
+    condition: eq(variables['PUSH_SYNCROOT_GITOPS_IMAGE'], 'true')
+    inputs:
+      azureSubscription: 'altinn-studio-apps-deploy'
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        ACR_NAME="${APP_OWNER}altinnregistry01"
 
+        # Determine studio environment from ALTINN_STUDIO_HOSTNAME
+        case "$ALTINN_STUDIO_HOSTNAME" in
+          "dev.altinn.studio")
+            STUDIO_ENVIRONMENT="dev"
+            ;;
+          "staging.altinn.studio")
+            STUDIO_ENVIRONMENT="staging"
+            ;;
+          "altinn.studio")
+            STUDIO_ENVIRONMENT="prod"
+            ;;
+          *)
+            echo "Unknown ALTINN_STUDIO_HOSTNAME: $ALTINN_STUDIO_HOSTNAME"
+            exit 1
+            ;;
+        esac
 
+        # Create temporary directory for sync-root content (only YAML files)
+        SYNC_ROOT_DIR="$(pwd)/sync-root-temp"
+        mkdir -p "$SYNC_ROOT_DIR"
+
+        # Copy only YAML files while preserving directory structure
+        rsync -av --include='*/' --include='*.yaml' --include='*.yml' --exclude='*' "$GITOPS_REPO_CLONE_DIR/" "$SYNC_ROOT_DIR/"
+
+        # Get current commit ID
+        COMMIT_ID="$(cd "$GITOPS_REPO_CLONE_DIR" && git rev-parse HEAD)"
+
+        # Ensure flux cli is installed (reuse from previous task or install if needed)
+        if ! command -v flux &> /dev/null; then
+            export FLUX_VERSION=2.6.4
+            curl -s https://fluxcd.io/install.sh | sudo -E bash
+        fi
+
+        # Push the sync-root artifact with commit ID as tag
+        flux push artifact oci://$ACR_NAME.azurecr.io/configs/sync-root/$STUDIO_ENVIRONMENT:$COMMIT_ID \
+          --path="./sync-root-temp" \
+          --source="https://$GITEA_ENVIRONMENT/$GITOPS_ORGANIZATION/$APP_OWNER$GITOPS_REPO_SUFFIX/commit/$COMMIT_ID" \
+          --revision="$COMMIT_ID" \
+          --provider azure
+
+        # Tag the artifact with environment name as well
+        flux tag artifact oci://$ACR_NAME.azurecr.io/configs/sync-root/$STUDIO_ENVIRONMENT:$COMMIT_ID \
+          --tag "$APP_ENVIRONMENT" \
+          --provider azure
+
+        # Cleanup temporary directory
+        rm -rf "$SYNC_ROOT_DIR"

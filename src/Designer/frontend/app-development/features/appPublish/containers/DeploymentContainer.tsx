@@ -11,7 +11,7 @@ import { DeploymentEnvironment } from '../components/DeploymentEnvironment';
 import { getAppLink } from 'app-shared/ext-urls';
 import { useTranslation } from 'react-i18next';
 import { PROD_ENV_TYPE } from 'app-shared/constants';
-import { StudioError, StudioPageSpinner } from '@studio/components-legacy';
+import { StudioError, StudioPageSpinner } from '@studio/components';
 
 export const DeploymentContainer = () => {
   const { org, app } = useStudioEnvironmentParams();

@@ -214,7 +214,7 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource)
+        public Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource, CancellationToken cancellation)
         {
             return Task.FromResult(new ListviewServiceResource { CreatedBy = "testUser", Identifier = serviceResource.Identifier, Title = new Dictionary<string, string> { { "test", "test" } }, LastChanged = DateTime.Now, HasPolicy = true });
         }
@@ -228,5 +228,7 @@ namespace Designer.Tests.Mocks
         {
             return Task.FromResult(true);
         }
+
+        public Task<string> GetLatestCommitOnBranch(string org, string repository, string branchName = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 }

@@ -2,9 +2,6 @@ syntax: glob
 
 ### VisualStudio ###
 
-# Tool Runtime Dir
-[Tt]ools/
-
 # User-specific files
 *.suo
 *.user
@@ -366,15 +363,15 @@ src/Altinn.Apps/AppTemplates/AspNet/App/Properties/launchSettings.json
 
 
 ## Test repositories
-backend/tests/Designer.Tests/_TestData/Repositories/**/**/test-repo-*/**
-backend/tests/Designer.Tests/_TestData/Remote/**/test-repo-*/**
-backend/tests/Designer.Tests/_TestData/Repositories/**/**/test-repo_*/**
-backend/tests/Designer.Tests/_TestData/Remote/**/test-repo_*/**
+src/Designer/backend/tests/Designer.Tests/_TestData/Repositories/**/**/test-repo-*/**
+src/Designer/backend/tests/Designer.Tests/_TestData/Remote/**/test-repo-*/**
+src/Designer/backend/tests/Designer.Tests/_TestData/Repositories/**/**/test-repo_*/**
+src/Designer/backend/tests/Designer.Tests/_TestData/Remote/**/test-repo_*/**
 
 **/.env
 src/studio/.devcontainer/**
 
-backend/srcaccesstoken/
+src/Designer/backend/srcaccesstoken/
 
 ## Yarn
 /.pnp.*

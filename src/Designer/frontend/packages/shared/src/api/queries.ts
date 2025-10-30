@@ -181,7 +181,7 @@ export const getPolicySubjects = (org: string, repo: string) => get<PolicySubjec
 export const getAccessPackages = (org: string, repo: string) => get<PolicyAccessPackageAreaGroup[]>(resourceAccessPackagesPath(org, repo));
 export const getAccessPackageServices = (accessPackageUrn: string, env: string) => get<AccessPackageResource[]>(resourceAccessPackageServicesPath(accessPackageUrn, env));
 export const getResource = (org: string, repo: string, id: string) => get<Resource>(resourceSinglePath(org, repo, id));
-export const getResourceList = (org: string) => get<ResourceListItem[]>(resourceListPath(org));
+export const getResourceList = (org: string, skipGiteaFields = false) => get<ResourceListItem[]>(resourceListPath(org, skipGiteaFields));
 export const getResourcePublishStatus = (org: string, repo: string, id: string) => get<ResourceVersionStatus>(resourcePublishStatusPath(org, repo, id));
 export const getValidatePolicy = (org: string, repo: string, id: string) => get<Validation>(resourceValidatePolicyPath(org, repo, id));
 export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));

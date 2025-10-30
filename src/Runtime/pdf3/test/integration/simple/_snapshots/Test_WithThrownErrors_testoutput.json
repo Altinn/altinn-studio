@@ -1,0 +1,28 @@
+{
+  "id": "UUID",
+  "browserStates": [
+    {
+      "state": "Before",
+      "cookies": [],
+      "consoleErrorLogs": 0,
+      "browserErrors": 0
+    },
+    {
+      "state": "BeforeCleanup",
+      "cookies": [
+        {
+          "name": "AltinnStudioRuntime",
+          "domain": "testserver.default.svc.cluster.local"
+        }
+      ],
+      "consoleErrorLogs": 1,
+      "browserErrors": 0
+    },
+    {
+      "state": "After",
+      "cookies": [],
+      "consoleErrorLogs": 1,
+      "browserErrors": 0
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pdf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pdf-migration
+  namespace: pdf
+spec:
+  type: ClusterIP
+  ports:
+  - name: pdf-generator
+    port: 80
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app: pdf-generator
+    release: pdf-generator
+---
+# This HTTPRoute will be used by linkerd to route traffic between
+# - pdf/pdf-generator (from helmrelease below)
+# - runtime-pdf3/pdf3-proxy (from the kustommization pdf3-app in pdf3.yaml)
+# We can use this for canary/A-B testing during a migration period.
+# When we want to rollout PDF3 and remove the old one, we will
+# 1. Deploy with 100% of traffic going to pdf3
+# 2. Deploy with the following changes:
+#   2.1. Remove the backend ref for pdf-generator (pdf-migration) and the pdf-migration svc
+#   2.2. Copy the namespace and Service manifest used as parentRef (pdf/pdf-generator svc) to pdf3.yaml
+#   2.3. Remove this manifest (pdf.yaml, the helmrelease will be pruned, but we will have kept the namespace and the svc)
+# That way all the apps can keep targeting `PlatformSettings__ApiPdf2Endpoint=http://pdf-generator.pdf.svc.cluster.local/pdf`
+# and at some point we can inject/update configuration so that we can remove the old namepace (?)
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: pdf3-migration
+  namespace: pdf
+spec:
+  parentRefs:
+  - group: ""
+    kind: Service
+    name: pdf-generator
+    namespace: pdf
+    port: 80
+  rules:
+  - backendRefs:
+    - name: pdf-migration
+      namespace: pdf
+      kind: Service
+      port: 80
+      weight: 100
+    - name: pdf3-proxy
+      namespace: runtime-pdf3
+      kind: Service
+      port: 80
+      weight: 0
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: pdf-generator
+  namespace: pdf
+spec:
+  releaseName: pdf-generator
+  targetNamespace: pdf
+  interval: 5m
+  install:
+    createNamespace: false
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  chart:
+    spec:
+      chart: pdf-generator
+      version: '1.9.0'
+      sourceRef:
+        kind: HelmRepository
+        name: altinn-charts
+        namespace: default
+  values:
+    environment: ${ENVIRONMENT}

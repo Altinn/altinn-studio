@@ -12,6 +12,7 @@ import type { ResponseFuzzing, Size, SnapshotOptions, SnapshotViewport } from 't
 import { breakpoints } from 'src/hooks/useDeviceWidths';
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 import type { LayoutContextValue } from 'src/features/form/layout/LayoutsContext';
+import type { IFeatureToggles } from 'src/features/toggles';
 import type { ILayoutFile } from 'src/layout/common.generated';
 import JQueryWithSelector = Cypress.JQueryWithSelector;
 
@@ -631,14 +632,23 @@ function buildPdfUrl(href: string): string {
 
 Cypress.Commands.add(
   'testPdf',
-  ({
+  function ({
     snapshotName = false,
     beforeReload,
     callback,
+    freeze = true,
     returnToForm = false,
     enableResponseFuzzing = false,
     buildUrl = buildPdfUrl,
-  }) => {
+  }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((this as any).test._retries).to.eq(
+      0,
+      'This test should not be retried, as the real PDF generator needs everything to be working every time. Cypress ' +
+        'automatic retrying should be disabled for this test to make sure we catch bugs instead of silently working ' +
+        'around flaky tests.',
+    );
+
     // Store initial viewport size for later
     cy.getCurrentViewportSize().as('testPdfViewportSize');
 
@@ -685,19 +695,24 @@ Cypress.Commands.add(
         cy.viewport(794, 1123);
         cy.get('body').invoke('css', 'margin', '0.75in');
 
-        // Stops timers which helps in 'freezing' the page in its current state, makes it easier to see when data is missing
-        cy.clock();
+        if (freeze) {
+          // Stops timers which helps in 'freezing' the page in its current state, makes it easier to see when data is missing
+          cy.clock();
 
-        cy.then(() => {
-          const timeout = setTimeout(() => {
-            throw 'PDF callback failed, print was not ready when #readyForPrint appeared';
-          }, 0);
-          // Verify that generic elements that should be hidden are not present
+          cy.then(() => {
+            const timeout = setTimeout(() => {
+              throw 'PDF callback failed, print was not ready when #readyForPrint appeared';
+            }, 0);
+            // Verify that generic elements that should be hidden are not present
+            cy.findAllByRole('button').should('not.exist');
+            // Run tests from callback
+            callback();
+            cy.then(() => clearTimeout(timeout));
+          });
+        } else {
           cy.findAllByRole('button').should('not.exist');
-          // Run tests from callback
           callback();
-          cy.then(() => clearTimeout(timeout));
-        });
+        }
 
         // Disable response fuzzing and re-enable caching
         cy.get<ResponseFuzzing>('@responseFuzzing').invoke('disable');
@@ -986,4 +1001,21 @@ Cypress.Commands.add('openNavGroup', (groupName, pageName, subformName) => {
       }
     });
   }
+});
+
+Cypress.Commands.add('expectPageBreaks', (expectedCount: number) => {
+  cy.window().should((win) => {
+    if (!win.matchMedia('print').matches) {
+      throw new Error('expectPageBreaks can only be called when media is in print mode');
+    }
+    const allElements = Array.from(win.document.querySelectorAll('*'));
+    const breakBeforeCount = allElements.filter((e) => win.getComputedStyle(e).breakBefore === 'page').length;
+    const breakAfterCount = allElements.filter((e) => win.getComputedStyle(e).breakAfter === 'page').length;
+    const pageCount = breakBeforeCount + breakAfterCount;
+    expect(pageCount).to.equal(expectedCount);
+  });
+});
+
+Cypress.Commands.add('setFeatureToggle', (toggleName: IFeatureToggles, value: boolean) => {
+  cy.setCookie(`FEATURE_${toggleName}`, value.toString());
 });

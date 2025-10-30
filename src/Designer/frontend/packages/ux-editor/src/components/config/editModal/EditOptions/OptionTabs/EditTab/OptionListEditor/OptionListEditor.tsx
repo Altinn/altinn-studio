@@ -1,7 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner, StudioErrorMessage } from '@studio/components-legacy';
-import { StudioDeleteButton } from '@studio/components';
+import { StudioDeleteButton, StudioSpinner, StudioValidationMessage } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
@@ -69,14 +68,17 @@ function OptionListResolver({
   switch (status) {
     case 'pending':
       return (
-        <StudioSpinner spinnerTitle={t('ux_editor.modal_properties_code_list_spinner_title')} />
+        <StudioSpinner
+          aria-hidden
+          spinnerTitle={t('ux_editor.modal_properties_code_list_spinner_title')}
+        />
       );
     case 'error':
       return (
         <>
-          <StudioErrorMessage>
+          <StudioValidationMessage>
             {t('ux_editor.modal_properties_fetch_option_list_error_message')}
-          </StudioErrorMessage>
+          </StudioValidationMessage>
           <StudioDeleteButton
             className={classes.deleteButton}
             onDelete={onDeleteButtonClick}

@@ -1,6 +1,7 @@
 import React, { type ReactElement } from 'react';
 import classes from './DeployDropdown.module.css';
-import { StudioCombobox, StudioError, StudioSpinner } from '@studio/components-legacy';
+import { StudioCombobox } from '@studio/components-legacy';
+import { StudioSpinner, StudioError } from '@studio/components';
 import type { ImageOption } from '../../ImageOption';
 import { useTranslation } from 'react-i18next';
 import { useAppReleasesQuery } from 'app-development/hooks/queries';
@@ -36,9 +37,7 @@ export const DeployDropdown = ({
   } = useAppReleasesQuery(org, app, { hideDefaultError: true });
 
   if (isPendingReleases)
-    return (
-      <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('app_deployment.releases_loading')} />
-    );
+    return <StudioSpinner aria-hidden spinnerTitle={t('app_deployment.releases_loading')} />;
 
   if (hasReleasesError) return <StudioError>{t('app_deployment.releases_error')}</StudioError>;
 

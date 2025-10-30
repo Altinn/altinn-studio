@@ -1,9 +1,7 @@
-import type { ChangeEvent, ReactElement } from 'react';
-import React, { useCallback, useState } from 'react';
-import { isFeatureActivatedByLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
-import { StudioSwitch } from '@studio/components-legacy';
-import { StudioCodeFragment, StudioHeading } from '@studio/components';
-import { setFeatureFlagInLocalStorage } from './setFeatureFlagInLocalStorage';
+import type { ChangeEventHandler, ReactElement } from 'react';
+import React, { useCallback } from 'react';
+import { FeatureFlag, useFeatureToggle } from '@studio/feature-flags';
+import { StudioSwitch, StudioHeading } from '@studio/components';
 import classes from './FlagsPage.module.css';
 import { useTranslation } from 'react-i18next';
 
@@ -33,20 +31,12 @@ type FeatureFlagProps = {
 };
 
 function Flag({ flagName }: FeatureFlagProps): ReactElement {
-  const [enabled, setEnabled] = useState<boolean>(isFeatureActivatedByLocalStorage(flagName));
+  const { isEnabled, toggle } = useFeatureToggle(flagName);
 
-  const handleToggle = useCallback(
-    (e: ChangeEvent<HTMLInputElement>): void => {
-      const { checked } = e.target;
-      setFeatureFlagInLocalStorage(flagName, checked);
-      setEnabled(checked);
-    },
-    [flagName, setEnabled],
+  const handleToggle: ChangeEventHandler<HTMLInputElement> = useCallback(
+    (e) => toggle(e.target.checked),
+    [toggle],
   );
 
-  return (
-    <StudioSwitch checked={enabled} onChange={handleToggle}>
-      <StudioCodeFragment>{flagName}</StudioCodeFragment>
-    </StudioSwitch>
-  );
+  return <StudioSwitch checked={isEnabled} onChange={handleToggle} label={flagName} />;
 }

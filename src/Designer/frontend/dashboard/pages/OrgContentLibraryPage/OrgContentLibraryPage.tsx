@@ -4,11 +4,18 @@ import { ResourceContentLibraryImpl } from '@studio/content-library';
 import type {
   CodeListData,
   CodeListWithMetadata,
+  PagesConfig,
   TextResourceWithLanguage,
 } from '@studio/content-library';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
-import { StudioPageError, StudioPageSpinner, StudioSpinner } from '@studio/components-legacy';
-import { StudioAlert, StudioParagraph, StudioCenter } from '@studio/components';
+import {
+  StudioAlert,
+  StudioParagraph,
+  StudioCenter,
+  StudioSpinner,
+  StudioPageError,
+  StudioPageSpinner,
+} from '@studio/components';
 import { useUpdateOrgCodeListMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListMutation';
 import { useTranslation } from 'react-i18next';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
@@ -35,6 +42,7 @@ import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useUpdateOrgTextResourcesMutation } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
 import { useUpdateOrgCodeListIdMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListIdMutation';
 import { FeedbackForm } from './FeedbackForm';
+import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -56,7 +64,7 @@ function OrgContentLibrary({ orgName }: OrgContentLibraryProps): ReactElement {
   const { data: repoStatus, isLoading } = useRepoStatusQuery(orgName, orgRepoName);
   useListenToMergeConflictInRepo(orgName, orgRepoName);
 
-  if (isLoading) return <StudioSpinner spinnerTitle={t('general.loading')} />;
+  if (isLoading) return <StudioSpinner aria-hidden spinnerTitle={t('general.loading')} />;
 
   if (repoStatus?.hasMergeConflict) {
     return <MergeConflictWarning owner={orgName} repoName={orgRepoName} />;
@@ -112,6 +120,7 @@ function OrgContentLibraryWithContextAndData({
   const { mutate: updateCodeListId } = useUpdateOrgCodeListIdMutation(orgName);
   const { mutate: updateTextResources } = useUpdateOrgTextResourcesMutation(orgName);
   const { t } = useTranslation();
+  const displayNewCodeListPage = useFeatureFlag(FeatureFlag.NewCodeLists);
 
   const handleUpload = useUploadCodeList(orgName);
 
@@ -142,7 +151,7 @@ function OrgContentLibraryWithContextAndData({
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
     heading: t('org_content_library.library_heading'),
     pages: {
-      codeList: {
+      codeListsWithTextResources: {
         props: {
           codeListDataList,
           onCreateCodeList: handleCreate,
@@ -155,6 +164,7 @@ function OrgContentLibraryWithContextAndData({
           textResources,
         },
       },
+      ...pagesFromFeatureFlags(displayNewCodeListPage),
     },
   });
 
@@ -164,6 +174,14 @@ function OrgContentLibraryWithContextAndData({
       <FeedbackForm />
     </div>
   );
+}
+
+function pagesFromFeatureFlags(displayNewCodeListPage: boolean): Partial<PagesConfig> {
+  if (displayNewCodeListPage) {
+    return { codeLists: { props: {} } };
+  } else {
+    return {};
+  }
 }
 
 function ContextWithoutLibraryAccess(): ReactElement {

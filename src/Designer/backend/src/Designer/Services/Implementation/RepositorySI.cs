@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Altinn.Authorization.ABAC.Utils;
@@ -414,24 +415,30 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return contents;
         }
 
-        public List<ServiceResource> GetServiceResources(string org, string repository, string path = "")
+        public async Task<List<ServiceResource>> GetServiceResources(string org, string repository, string path = "", CancellationToken cancellationToken = default)
         {
             List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository, Path.Combine(path));
-            List<ServiceResource> serviceResourceList = new List<ServiceResource>();
             string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
-            foreach (FileSystemObject resourceFile in resourceFiles)
-            {
-                string jsonString = File.ReadAllText($"{repopath}/{resourceFile.Path}");
-                ServiceResource serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(jsonString, _serializerOptions);
+            using SemaphoreSlim semaphore = new(50); // Limit to 50 concurrent tasks
 
-                if (serviceResource != null)
+            async Task<ServiceResource> ReadResourceAsync(FileSystemObject resourceFile)
+            {
+                await semaphore.WaitAsync(cancellationToken);
+                try
                 {
-                    serviceResourceList.Add(serviceResource);
+                    string fullPath = Path.Combine(repopath, resourceFile.Path);
+                    using var stream = File.OpenRead(fullPath);
+                    return await System.Text.Json.JsonSerializer.DeserializeAsync<ServiceResource>(stream, _serializerOptions, cancellationToken);
+                }
+                finally
+                {
+                    semaphore.Release();
                 }
             }
-
-            return serviceResourceList;
+            IEnumerable<Task<ServiceResource>> tasks = resourceFiles.Select(resourceFile => ReadResourceAsync(resourceFile));
+            var serviceResourceList = await Task.WhenAll(tasks);
+            return serviceResourceList.Where(r => r != null).ToList();
         }
 
         public ActionResult UpdateServiceResource(string org, string id, ServiceResource updatedResource)
@@ -498,15 +505,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return resourceFiles.Any(resourceFile => resourceFile.Name.ToLower().Equals(GetResourceFileName(identifier).ToLower()));
         }
 
-        public ServiceResource GetServiceResourceById(string org, string repository, string identifier)
+        public async Task<ServiceResource> GetServiceResourceById(string org, string repository, string identifier, CancellationToken cancellationToken = default)
         {
-            List<ServiceResource> resourcesInRepo = GetServiceResources(org, repository, identifier);
+            List<ServiceResource> resourcesInRepo = await GetServiceResources(org, repository, identifier, cancellationToken);
             return resourcesInRepo.Where(r => r.Identifier == identifier).FirstOrDefault();
         }
 
         public async Task<ActionResult> PublishResource(string org, string repository, string id, string env, string policy = null)
         {
-            ServiceResource resource = GetServiceResourceById(org, repository, id);
+            ServiceResource resource = await GetServiceResourceById(org, repository, id);
             if (resource.HasCompetentAuthority == null || resource.HasCompetentAuthority.Orgcode != org)
             {
                 _logger.LogWarning("Org mismatch for resource");

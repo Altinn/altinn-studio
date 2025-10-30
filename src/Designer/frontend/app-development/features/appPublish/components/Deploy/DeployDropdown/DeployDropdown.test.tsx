@@ -67,7 +67,7 @@ describe('DeployDropdown', () => {
   it('renders a spinner while loading data', () => {
     renderDeployDropdown();
 
-    expect(screen.getByTitle(textMock('app_deployment.releases_loading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_deployment.releases_loading'))).toBeInTheDocument();
   });
 
   it('renders an error message if an error occurs while loading data', async () => {
@@ -78,7 +78,7 @@ describe('DeployDropdown', () => {
       },
     );
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.releases_loading')),
+      screen.queryByText(textMock('app_deployment.releases_loading')),
     );
 
     expect(screen.getByText(textMock('app_deployment.releases_error'))).toBeInTheDocument();
@@ -146,7 +146,7 @@ describe('DeployDropdown', () => {
     renderDeployDropdown({ isPending: true });
     await waitForSpinnerToBeRemoved();
 
-    expect(screen.getByTitle(textMock('app_deployment.deploy_loading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_deployment.deploy_loading'))).toBeInTheDocument();
   });
 
   it('disables both dropdown and button when deploy is not possible', async () => {
@@ -182,7 +182,7 @@ describe('DeployDropdown', () => {
 
 const waitForSpinnerToBeRemoved = async () => {
   await waitForElementToBeRemoved(() =>
-    screen.queryByTitle(textMock('app_deployment.releases_loading')),
+    screen.queryByText(textMock('app_deployment.releases_loading')),
   );
 };
 

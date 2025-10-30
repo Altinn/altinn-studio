@@ -6,7 +6,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { toast } from 'react-toastify';
 import { Alert, Link } from '@digdir/designsystemet-react';
 import { useDeployPermissionsQuery } from 'app-development/hooks/queries';
-import { StudioError, StudioSpinner } from '@studio/components-legacy';
+import { StudioSpinner, StudioError } from '@studio/components';
 
 export interface DeployProps {
   appDeployedVersion: string;
@@ -37,12 +37,7 @@ export const Deploy = ({
   });
 
   if (permissionsIsPending) {
-    return (
-      <StudioSpinner
-        showSpinnerTitle={false}
-        spinnerTitle={t('app_deployment.permission_checking')}
-      />
-    );
+    return <StudioSpinner aria-hidden spinnerTitle={t('app_deployment.permission_checking')} />;
   }
 
   if (permissionsIsError) return <StudioError>{t('app_deployment.permission_error')}</StudioError>;
@@ -68,16 +63,18 @@ export const Deploy = ({
       {
         onError: (): void => {
           toast.error(() => (
-            <Trans
-              i18nKey={'app_deployment.technical_error_1'}
-              components={{
-                a: (
-                  <Link href='/info/contact' inverted={true}>
-                    {' '}
-                  </Link>
-                ),
-              }}
-            />
+            <div>
+              <Trans
+                i18nKey={'app_deployment.technical_error_1'}
+                components={{
+                  a: (
+                    <Link href='/info/contact' inverted={true}>
+                      {' '}
+                    </Link>
+                  ),
+                }}
+              />
+            </div>
           ));
         },
       },

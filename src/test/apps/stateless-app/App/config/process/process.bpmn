@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<bpmn:definitions id="Altinn_SingleDataTask_Process_Definition" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+    <bpmn:process id="SingleDataTask" isExecutable="false">
+
+        <bpmn:startEvent id="StartEvent_1">
+            <bpmn:outgoing>SequenceFlow_start_to_task1</bpmn:outgoing>
+        </bpmn:startEvent>
+
+        <bpmn:task id="Task_1" name="Utfylling">
+            <bpmn:incoming>SequenceFlow_start_to_task1</bpmn:incoming>
+            <bpmn:outgoing>SequenceFlow_task1_to_task2</bpmn:outgoing>
+            <bpmn:extensionElements>
+                <altinn:taskExtension>
+                    <altinn:taskType>data</altinn:taskType>
+                </altinn:taskExtension>
+            </bpmn:extensionElements>
+        </bpmn:task>
+
+        <bpmn:task id="Task_2" name="Utfylling">
+            <bpmn:incoming>SequenceFlow_task1_to_task2</bpmn:incoming>
+            <bpmn:outgoing>SequenceFlow_task2_to_task3</bpmn:outgoing>
+            <bpmn:extensionElements>
+                <altinn:taskExtension>
+                    <altinn:taskType>data</altinn:taskType>
+                </altinn:taskExtension>
+            </bpmn:extensionElements>
+        </bpmn:task>
+
+        <bpmn:task id="Task_3" name="Tilbakemelding">
+            <bpmn:incoming>SequenceFlow_task2_to_task3</bpmn:incoming>
+            <bpmn:outgoing>SequenceFlow_postFeedback</bpmn:outgoing>
+            <bpmn:extensionElements>
+                <altinn:taskExtension>
+                    <altinn:taskType>feedback</altinn:taskType>
+                </altinn:taskExtension>
+            </bpmn:extensionElements>
+        </bpmn:task>
+
+        <bpmn:task id="Task_4" name="Error">
+            <bpmn:incoming>SequenceFlow_error</bpmn:incoming>
+            <bpmn:outgoing>SequenceFlow_retry</bpmn:outgoing>
+            <bpmn:extensionElements>
+                <altinn:taskExtension>
+                    <altinn:taskType>data</altinn:taskType>
+                </altinn:taskExtension>
+            </bpmn:extensionElements>
+        </bpmn:task>
+
+        <bpmn:exclusiveGateway id="Gateway_1">
+            <bpmn:incoming>SequenceFlow_postFeedback</bpmn:incoming>
+            <bpmn:outgoing>SequenceFlow_end</bpmn:outgoing>
+            <bpmn:outgoing>SequenceFlow_error</bpmn:outgoing>
+        </bpmn:exclusiveGateway>
+
+        <bpmn:endEvent id="EndEvent_1">
+            <bpmn:incoming>SequenceFlow_end</bpmn:incoming>
+        </bpmn:endEvent>
+
+        <bpmn:sequenceFlow id="SequenceFlow_start_to_task1" sourceRef="StartEvent_1" targetRef="Task_1"/>
+        <bpmn:sequenceFlow id="SequenceFlow_task1_to_task2" sourceRef="Task_1" targetRef="Task_2"/>
+        <bpmn:sequenceFlow id="SequenceFlow_task2_to_task3" sourceRef="Task_2" targetRef="Task_3"/>
+
+        <bpmn:sequenceFlow id="SequenceFlow_postFeedback" sourceRef="Task_3" targetRef="Gateway_1" />
+        <bpmn:sequenceFlow id="SequenceFlow_retry" sourceRef="Task_4" targetRef="Task_2" />
+
+        <bpmn:sequenceFlow id="SequenceFlow_end" sourceRef="Gateway_1" targetRef="EndEvent_1">
+            <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">
+                ["notEquals", ["dataModel", "gatewayShouldFail", "task2"], true]
+            </bpmn:conditionExpression>
+        </bpmn:sequenceFlow>
+        <bpmn:sequenceFlow id="SequenceFlow_error" sourceRef="Gateway_1" targetRef="Task_4">
+            <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">
+                ["equals", ["dataModel", "gatewayShouldFail", "task2"], true]
+            </bpmn:conditionExpression>
+        </bpmn:sequenceFlow>
+
+    </bpmn:process>
+</bpmn:definitions>

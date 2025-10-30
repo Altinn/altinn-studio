@@ -1,12 +1,12 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioTabs } from '@studio/components-legacy';
 import {
   StudioDeleteButton,
   StudioCard,
   StudioButton,
   StudioParagraph,
   StudioProperty,
+  StudioTabs,
 } from '@studio/components';
 import { XMarkIcon } from '@studio/icons';
 import { CustomActions } from './CustomActions';
@@ -105,7 +105,11 @@ const ActionEditable = ({
         </StudioParagraph>
       </div>
       <StudioCard.Block className={classes.cardContent}>
-        <StudioTabs defaultValue={isCustomAction ? TabIds.Custom : TabIds.Predefined} size='small'>
+        <StudioTabs
+          defaultValue={isCustomAction ? TabIds.Custom : TabIds.Predefined}
+          data-size='sm'
+          data-color='accent'
+        >
           <StudioTabs.List>
             <StudioTabs.Tab value={TabIds.Predefined}>
               {t('process_editor.configuration_panel_actions_action_tab_predefined')}
@@ -114,12 +118,12 @@ const ActionEditable = ({
               {t('process_editor.configuration_panel_actions_action_card_custom')}
             </StudioTabs.Tab>
           </StudioTabs.List>
-          <StudioTabs.Content value={TabIds.Predefined} className={classes.tabsContent}>
+          <StudioTabs.Panel value={TabIds.Predefined} className={classes.tabsContent}>
             <PredefinedActions actionElement={actionElement} />
-          </StudioTabs.Content>
-          <StudioTabs.Content value={TabIds.Custom} className={classes.tabsContent}>
+          </StudioTabs.Panel>
+          <StudioTabs.Panel value={TabIds.Custom} className={classes.tabsContent}>
             <CustomActions actionElement={actionElement} />
-          </StudioTabs.Content>
+          </StudioTabs.Panel>
         </StudioTabs>
       </StudioCard.Block>
       <div className={classes.cardFooter}>

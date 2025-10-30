@@ -4,10 +4,10 @@ import { useSearchParams } from 'react-router-dom';
 import { Tabs as DesignsystemetTabs } from '@digdir/designsystemet-react';
 
 import { Flex } from 'src/app-components/Flex/Flex';
+import { SearchParams } from 'src/core/routing/types';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { SearchParams } from 'src/hooks/navigation';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Tabs/Tabs.module.css';
@@ -71,27 +71,35 @@ export const Tabs = ({ baseComponentId }: PropsFromGenericComponent<'Tabs'>) => 
             />
           ))}
         </DesignsystemetTabs.List>
-        {tabs.map((tab) => (
-          <DesignsystemetTabs.Panel
-            key={tab.id}
-            value={tab.id}
-            role='tabpanel'
-            className={classes.tabContent}
-          >
-            <Flex
-              container
-              spacing={6}
-              alignItems='flex-start'
+        {tabs.map((tab) => {
+          if (tab.id !== activeTab) {
+            // Behavior changed to always render tab panels, so we override to conditionally render on our side. Since
+            // we override styles, all hidden tabs were displayed after this change.
+            // @see https://github.com/digdir/designsystemet/pull/3936
+            return null;
+          }
+
+          return (
+            <DesignsystemetTabs.Panel
+              key={tab.id}
+              value={tab.id}
+              role='tabpanel'
             >
-              {tab.children.filter(typedBoolean).map((baseId) => (
-                <GenericComponent
-                  key={baseId}
-                  baseComponentId={baseId}
-                />
-              ))}
-            </Flex>
-          </DesignsystemetTabs.Panel>
-        ))}
+              <Flex
+                container
+                spacing={6}
+                alignItems='flex-start'
+              >
+                {tab.children.filter(typedBoolean).map((baseId) => (
+                  <GenericComponent
+                    key={baseId}
+                    baseComponentId={baseId}
+                  />
+                ))}
+              </Flex>
+            </DesignsystemetTabs.Panel>
+          );
+        })}
       </DesignsystemetTabs>
     </ComponentStructureWrapper>
   );

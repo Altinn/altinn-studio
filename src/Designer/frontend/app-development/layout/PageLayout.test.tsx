@@ -26,14 +26,14 @@ describe('PageLayout', () => {
   it('initially displays the spinner when loading data', () => {
     render();
 
-    expect(screen.getByTitle(textMock('repo_status.loading'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('repo_status.loading'))).toBeInTheDocument();
   });
 
   it('renders "StudioNotFoundPage" when repoStatus has error', async () => {
     render({
       getRepoStatus: () => Promise.reject(createApiErrorMock(ServerCodes.NotFound)),
     });
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('repo_status.loading')));
+    await waitForElementToBeRemoved(() => screen.queryByLabelText(textMock('repo_status.loading')));
 
     expect(
       screen.getByRole('heading', { name: textMock('not_found_page.heading'), level: 1 }),
@@ -44,7 +44,7 @@ describe('PageLayout', () => {
     render({
       getRepoStatus: () => Promise.resolve({ ...repoStatus, hasMergeConflict: true }),
     });
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('repo_status.loading')));
+    await waitForElementToBeRemoved(() => screen.queryByLabelText(textMock('repo_status.loading')));
 
     expect(
       screen.getByRole('heading', { name: textMock('merge_conflict.headline'), level: 1 }),
@@ -56,7 +56,7 @@ describe('PageLayout', () => {
     render({
       getAppVersion: () => Promise.resolve({ frontendVersion: '2', backendVersion: '6' }),
     });
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('repo_status.loading')));
+    await waitForElementToBeRemoved(() => screen.queryByLabelText(textMock('repo_status.loading')));
 
     expect(
       screen.getByRole('heading', {
@@ -71,7 +71,7 @@ describe('PageLayout', () => {
     render({
       getAppVersion: () => Promise.resolve({ frontendVersion: '3', backendVersion: '7' }),
     });
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('repo_status.loading')));
+    await waitForElementToBeRemoved(() => screen.queryByLabelText(textMock('repo_status.loading')));
 
     expect(
       screen.getByRole('heading', {
@@ -188,7 +188,7 @@ describe('PageLayout', () => {
 
 const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesContextProps> = {}) => {
   render(queries);
-  await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('repo_status.loading')));
+  await waitForElementToBeRemoved(() => screen.queryByLabelText(textMock('repo_status.loading')));
 };
 
 const render = async (queries: Partial<ServicesContextProps> = {}) => {

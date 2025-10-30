@@ -1,6 +1,6 @@
 import React from 'react';
 import { ExpressionContent } from '../../config/ExpressionContent';
-import type { Expression } from '@studio/components-legacy';
+import type { Expression } from '@studio/components';
 import type { IInternalLayout } from '../../../types/global';
 import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutMutation } from '../../../hooks/mutations/useFormLayoutMutation';
@@ -10,17 +10,14 @@ import { Trans } from 'react-i18next';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { useDebounce } from '@studio/hooks';
 import classes from './HiddenExpressionOnLayout.module.css';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export const HiddenExpressionOnLayout = () => {
   const { app, org } = useStudioEnvironmentParams();
   const { layout, layoutName } = useSelectedFormLayoutWithName();
-  const { selectedFormLayoutSetName, updateLayoutsForPreview } = useAppContext();
-  const { mutate: saveLayout } = useFormLayoutMutation(
-    org,
-    app,
-    layoutName,
-    selectedFormLayoutSetName,
-  );
+  const { updateLayoutsForPreview } = useAppContext();
+  const { layoutSet } = useUxEditorParams();
+  const { mutate: saveLayout } = useFormLayoutMutation(org, app, layoutName, layoutSet);
   const { debounce } = useDebounce({ debounceTimeInMs: AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS });
 
   const handleChangeHiddenExpressionOnLayout = (expression: Expression) => {
@@ -30,7 +27,7 @@ export const HiddenExpressionOnLayout = () => {
         { internalLayout: { ...updatedLayout, hidden: expression } },
         {
           onSuccess: async () => {
-            await updateLayoutsForPreview(selectedFormLayoutSetName);
+            await updateLayoutsForPreview(layoutSet);
           },
         },
       ),

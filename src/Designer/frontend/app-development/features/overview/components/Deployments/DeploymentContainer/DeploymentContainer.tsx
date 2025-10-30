@@ -9,7 +9,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useTranslation } from 'react-i18next';
 import { DeploymentStatusList } from './DeploymentStatusList';
 import { DeploymentLogList } from './DeploymentLogList';
-import { StudioError, StudioSpinner } from '@studio/components-legacy';
+import { StudioSpinner, StudioError } from '@studio/components';
 import type { Environment } from 'app-shared/types/Environment';
 
 type DeploymentContainerProps = Pick<HTMLAttributes<HTMLDivElement>, 'className'>;
@@ -35,9 +35,7 @@ export const DeploymentContainer = ({ className }: DeploymentContainerProps) => 
   } = useAppDeploymentsQuery(org, app, { hideDefaultError: true });
 
   if (environmentListIsPending || orgsIsPending || appDeploymentIsPending)
-    return (
-      <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.deployments_loading')} />
-    );
+    return <StudioSpinner aria-hidden spinnerTitle={t('overview.deployments_loading')} />;
 
   if (environmentListIsError || orgsIsError || appDeploymentIsError)
     return <StudioError>{t('overview.deployments_error')}</StudioError>;

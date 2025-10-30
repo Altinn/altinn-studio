@@ -1,54 +1,29 @@
 import React from 'react';
 import classes from './LibraryBody.module.css';
 import { PagesRouter } from './PagesRouter';
-import type { PagePropsMap, PagesConfig } from '../../types/PagesProps';
 import type { PageName } from '../../types/PageName';
-import type { PageComponent } from '../../utils/router/RouterRouteMapper';
+import type { ContentLibraryConfig } from '../../types/ContentLibraryConfig';
+import type { Page } from '../../pages/Page';
 
 type LibraryBodyProps<T extends PageName> = {
-  Component: PageComponent<PagePropsMap<T>>;
-  pages: PagesConfig;
-  currentPage: T;
+  config: ContentLibraryConfig;
+  page: Page<T>;
 };
 
-export function LibraryBody<T extends PageName>({
-  Component,
-  pages,
-  currentPage,
-}: LibraryBodyProps<T>) {
-  const componentProps: PagePropsMap<T> = getComponentProps(pages, currentPage);
-
+export function LibraryBody<T extends PageName>({ config, page }: LibraryBodyProps<T>) {
   return (
     <div className={classes.libraryContent}>
-      <PagesRouter pageNames={getAllPageNamesFromPagesConfig(pages)} />
-      <Page<T> Component={Component} componentProps={componentProps} currentPage={currentPage} />
+      <PagesRouter config={config} />
+      <PageView<T> config={config} page={page} />
     </div>
   );
 }
 
-type PageProps<T extends PageName> = {
-  Component: PageComponent<PagePropsMap<T>>;
-  componentProps: PagePropsMap<T>;
-  currentPage: T;
+type PageViewProps<T extends PageName> = {
+  config: ContentLibraryConfig;
+  page: Page<T>;
 };
 
-function Page<T extends PageName>({ Component, componentProps, currentPage }: PageProps<T>) {
-  return (
-    <div className={classes.component}>
-      <Component {...componentProps} />
-    </div>
-  );
+function PageView<T extends PageName>({ config, page }: PageViewProps<T>) {
+  return <div className={classes.component}>{page.renderPage(config)}</div>;
 }
-
-const getComponentProps = <T extends PageName>(
-  pages: PagesConfig,
-  currentPage: T,
-): PagePropsMap<T> => {
-  if (currentPage === 'landingPage') return {} as PagePropsMap<T>;
-  return pages[currentPage].props;
-};
-
-const getAllPageNamesFromPagesConfig = (pages: PagesConfig): PageName[] => {
-  const customPages = Object.keys(pages) as PageName[];
-  return ['landingPage', ...customPages];
-};

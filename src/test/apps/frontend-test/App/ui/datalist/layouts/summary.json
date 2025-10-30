@@ -1,0 +1,60 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "send-in-text",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "summaryTitle"
+        }
+      },
+      {
+        "id": "summary-list",
+        "type": "Summary",
+        "componentRef": "listComponent"
+      },
+      {
+        "id": "useCustomConfirm",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Skal vi vise en egendefinert bekreftelsesside i neste steg, eller den innebyggede?"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "UseCustomConfirm"
+        },
+        "options": [
+          {
+            "value": "true",
+            "label": "Ja, bruk egendefinert"
+          },
+          {
+            "value": "false",
+            "label": "Nei, bruk innebygget"
+          }
+        ]
+      },
+      {
+        "id": "btn-group",
+        "type": "ButtonGroup",
+        "children": ["toList", "sendInButton"]
+      },
+      {
+        "id": "toList",
+        "type": "NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {
+          "next": "Neste",
+          "back": "Forrige"
+        }
+      },
+      {
+        "id": "sendInButton",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Send inn"
+        }
+      }
+    ]
+  }
+}

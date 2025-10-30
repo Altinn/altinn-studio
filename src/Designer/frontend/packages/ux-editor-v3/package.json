@@ -11,8 +11,8 @@
     "react-dom": "18.3.1",
     "react-redux": "9.2.0",
     "redux": "5.0.1",
-    "typescript": "5.9.2",
-    "uuid": "10.0.0"
+    "typescript": "5.9.3",
+    "uuid": "13.0.0"
   },
   "devDependencies": {
     "jest": "29.7.0",

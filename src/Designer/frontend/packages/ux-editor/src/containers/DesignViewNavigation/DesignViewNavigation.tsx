@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { StudioButton } from '@studio/components-legacy';
 import classes from './DesignViewNavigation.module.css';
 import { EyeClosedIcon, EyeIcon, MenuElipsisVerticalIcon } from '@studio/icons';
 import { DropdownMenu } from '@digdir/designsystemet-react';
@@ -7,27 +6,20 @@ import { useTranslation } from 'react-i18next';
 import { useConvertToPageOrder } from '../../hooks/mutations/useConvertToPageOrder';
 import { useConvertToPageGroups } from '../../hooks/mutations/useConvertToPageGroups';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useAppContext } from '../../hooks';
 import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
-import { StudioSpinner, StudioSectionHeader } from '@studio/components';
+import { StudioSpinner, StudioSectionHeader, StudioButton } from '@studio/components';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export const DesignViewNavigation = () => {
   const { t } = useTranslation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName } = useAppContext();
-  const { mutate: convertToPageOrder } = useConvertToPageOrder(org, app, selectedFormLayoutSetName);
-  const { mutate: convertToPageGroups } = useConvertToPageGroups(
-    org,
-    app,
-    selectedFormLayoutSetName,
-  );
-  const { data: pagesModel, isPending: pagesQueryPending } = usePagesQuery(
-    org,
-    app,
-    selectedFormLayoutSetName,
-  );
+  const { layoutSet } = useUxEditorParams();
+
+  const { mutate: convertToPageOrder } = useConvertToPageOrder(org, app, layoutSet);
+  const { mutate: convertToPageGroups } = useConvertToPageGroups(org, app, layoutSet);
+  const { data: pagesModel, isPending: pagesQueryPending } = usePagesQuery(org, app, layoutSet);
 
   if (pagesQueryPending) return <StudioSpinner aria-label={t('general.loading')} />;
 
