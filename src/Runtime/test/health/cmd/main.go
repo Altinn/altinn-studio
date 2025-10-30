@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+	"time"
 
 	"altinn.studio/runtime-health/internal/azure"
 	"altinn.studio/runtime-health/internal/kubernetes"
@@ -29,6 +30,7 @@ Available commands:
   status          Check status of resources across clusters
   set-weight      Update HTTPRoute weights
   exec            Execute kubectl/helm/flux commands across clusters
+  logs            Aggregate deployment logs from multiple clusters
 
 Examples:
   # Discover clusters and fetch credentials (single or multiple environments)
@@ -51,6 +53,11 @@ Examples:
   go run cmd/main.go exec tt02 kubectl get pods -n default
   go run cmd/main.go exec at22,at24 flux get kustomizations -A
   go run cmd/main.go exec -s ttd prod,tt02 helm list -A
+
+  # Aggregate logs from deployments across clusters
+  go run cmd/main.go logs --since=1h tt02 runtime-pdf3/pdf3-worker .logs/logs.txt
+  go run cmd/main.go logs --since=30m at22,at24 runtime-pdf3/pdf3-worker .logs/logs.txt
+  go run cmd/main.go logs -f --since=10m -s ttd prod runtime-pdf3/pdf3-worker .logs/logs.txt
 
 Run 'go run cmd/main.go <command> -h' for more information on a specific command.`
 }
@@ -75,6 +82,8 @@ func run() error {
 		return runSetWeight()
 	case "exec":
 		return runExec()
+	case "logs":
+		return runLogs()
 	default:
 		return fmt.Errorf("unknown command: %s\n\n%s", command, printUsage())
 	}
@@ -855,5 +864,129 @@ func runInit() error {
 	fmt.Printf("  Cache file: .cache/clusters.json\n")
 
 	fmt.Println("\n✓ Initialization complete")
+	return nil
+}
+
+func runLogs() error {
+	logsCmd := flag.NewFlagSet("logs", flag.ExitOnError)
+	serviceowner := logsCmd.String("service-owner", "", "Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
+	logsCmd.StringVar(serviceowner, "s", "", "Optional: specific serviceowner ID (shorthand)")
+	since := logsCmd.String("since", "", "Time range for logs (e.g., 1h, 30m, 2h)")
+	tail := logsCmd.Int("tail", -1, "Number of lines to show from end of each pod's logs")
+	logsCmd.IntVar(tail, "t", -1, "Number of lines to show from end of each pod's logs (shorthand)")
+	follow := logsCmd.Bool("follow", false, "Stream logs in real-time")
+	logsCmd.BoolVar(follow, "f", false, "Stream logs in real-time (shorthand)")
+	timestamps := logsCmd.Bool("timestamps", false, "Include kubectl timestamps in output")
+	logsCmd.BoolVar(timestamps, "ts", false, "Include kubectl timestamps in output (shorthand)")
+
+	logsCmd.Parse(os.Args[2:])
+	args := logsCmd.Args()
+
+	if len(args) != 3 {
+		return fmt.Errorf("usage: go run cmd/main.go logs [flags] <environments> <namespace/name> <output-file>\n\n" +
+			"Arguments:\n" +
+			"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n" +
+			"  namespace/name  Deployment location (e.g., runtime-pdf3/pdf3-app)\n" +
+			"  output-file     Path to output file for aggregated logs\n\n" +
+			"Flags:\n" +
+			"  -s, --service-owner string\n" +
+			"                  Optional: specific serviceowner ID (e.g., ttd, brg, skd)\n" +
+			"  --since string\n" +
+			"                  Time range for logs. Examples: 30m, 2h, 1h30m\n" +
+			"  -t, --tail int\n" +
+			"                  Number of lines from end of each pod's logs\n" +
+			"  -f, --follow\n" +
+			"                  Stream logs in real-time from all clusters\n" +
+			"  -ts, --timestamps\n" +
+			"                  Include kubectl timestamps in output (default: false)\n\n" +
+			"Note:\n" +
+			"  At least one of --since or -t/--tail must be specified.\n\n" +
+			"Description:\n" +
+			"  Aggregates logs from all pods of a deployment across multiple clusters.\n" +
+			"  Logs are sorted by timestamp and written to the output file.\n" +
+			"  Uses a time buffer to ensure proper ordering in follow mode.\n" +
+			"  Kubectl is always called with --timestamps for sorting, but the flag\n" +
+			"  controls whether timestamps appear in the output file.")
+	}
+
+	// Validate that at least one of --since or --tail is specified
+	if *since == "" && *tail == -1 {
+		return fmt.Errorf("at least one of --since or --tail must be specified")
+	}
+
+	environments, err := validateEnvironments(args[0])
+	if err != nil {
+		return err
+	}
+
+	namespaceAndName := args[1]
+	outputFile := args[2]
+
+	namespace, name, err := kubernetes.ParseNamespaceAndName(namespaceAndName)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Validating prerequisites...")
+
+	if err := kubernetes.ValidateKubectl(); err != nil {
+		return err
+	}
+
+	envStr := strings.Join(environments, ", ")
+	fmt.Printf("Finding clusters for environment(s): %s", envStr)
+	if *serviceowner != "" {
+		fmt.Printf(" (serviceowner: %s)", *serviceowner)
+	}
+	fmt.Println()
+
+	// Get all kubectl contexts and filter by environments and serviceowner
+	contexts, err := kubernetes.GetAllContextDetails()
+	if err != nil {
+		return err
+	}
+
+	clusterNames := kubernetes.FilterContextsByEnvironment(contexts, environments, *serviceowner)
+
+	if len(clusterNames) == 0 {
+		return fmt.Errorf("no matching clusters found\n\n"+
+			"Run 'go run cmd/main.go init %s%s' to discover and configure clusters",
+			args[0],
+			func() string {
+				if *serviceowner != "" {
+					return fmt.Sprintf(" -s %s", *serviceowner)
+				}
+				return ""
+			}())
+	}
+
+	fmt.Printf("Found %d cluster(s)\n", len(clusterNames))
+
+	if *follow {
+		fmt.Printf("Streaming logs from %s/%s across %d cluster(s) to %s (Ctrl+C to stop)...\n",
+			namespace, name, len(clusterNames), outputFile)
+	} else {
+		fmt.Printf("Fetching logs from %s/%s across %d cluster(s) to %s...\n",
+			namespace, name, len(clusterNames), outputFile)
+	}
+
+	// Build cluster info with serviceowner and environment extracted from cluster names
+	var clusters []kubernetes.ClusterInfo
+	for _, clusterName := range clusterNames {
+		svcOwner, env := kubernetes.ExtractServiceOwnerAndEnvironment(clusterName)
+		clusters = append(clusters, kubernetes.ClusterInfo{
+			Name:         clusterName,
+			ServiceOwner: svcOwner,
+			Environment:  env,
+		})
+	}
+
+	// Aggregate logs with time buffer
+	bufferDuration := 10 * time.Second
+	if err := kubernetes.AggregateLogsWithBuffer(clusters, namespace, name, outputFile, since, tail, *follow, *timestamps, bufferDuration); err != nil {
+		return err
+	}
+
+	fmt.Printf("\n✓ Logs written to %s\n", outputFile)
 	return nil
 }
