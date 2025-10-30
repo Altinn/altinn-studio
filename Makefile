@@ -48,7 +48,8 @@ create-pr: ## Push changes and create pull request for sync job
 		echo "Pushing changes to remote..."; \
 		git push -u origin $$current_branch && \
 		echo "Creating pull request..." && \
-		gh pr create --title "chore: syncing $$subtree_name" --body "@coderabbitai ignore" --label "skip-manual-testing,skip-releasenotes" --base $(DEFAULT_BRANCH) --head $$current_branch || \
+		pr_body="⚠️ **DO NOT SQUASH MERGE THIS PR** ⚠️"$$'\n\n'"This is a subtree sync PR. All commits must be preserved to maintain proper git subtree history."$$'\n\n'"**Required merge method:** Merge commit (NOT squash merge)"$$'\n\n'"@coderabbitai ignore"; \
+		gh pr create --title "chore: syncing $$subtree_name" --body "$$pr_body" --label "skip-manual-testing,skip-releasenotes" --base $(DEFAULT_BRANCH) --head $$current_branch || \
 		echo "WARNING: Failed to create PR. You may need to create it manually."; \
 	else \
 		echo "WARNING: gh command not found. Skipping automatic PR creation."; \
@@ -177,4 +178,4 @@ sync-test-apps: ## Sync all test app subtrees
 		fi;)
 	@echo ""
 	@echo "All test apps synced successfully!"
-	@$(MAKE) -f Makefile2 create-pr SUBTREE_NAME=test-apps
+	@$(MAKE) create-pr SUBTREE_NAME=test-apps
