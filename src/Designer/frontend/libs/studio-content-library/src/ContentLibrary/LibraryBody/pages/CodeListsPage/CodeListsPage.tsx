@@ -61,11 +61,11 @@ export function CodeListsPage(_props: CodeListsPageProps): ReactElement {
   );
 }
 
-type ListOfCodeListsProps = {
+type ListOfCodeListsProps = Readonly<{
   codeListMap: CodeListMap;
   onDeleteCodeList: (key: string) => void;
   onUpdateCodeListData: (key: string, newData: CodeListData) => void;
-};
+}>;
 
 function ListOfCodeLists({
   codeListMap,
