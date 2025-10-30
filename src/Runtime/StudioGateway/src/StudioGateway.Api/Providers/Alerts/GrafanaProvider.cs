@@ -1,11 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using StudioGateway.Api.Configuration;
-using StudioGateway.Api.Models;
-using StudioGateway.Api.Services.Alerts;
+using StudioGateway.Api.Models.Alerts;
 using StudioGateway.Api.TypedHttpClients.Grafana;
 
 namespace StudioGateway.Api.Providers.Alerts;
@@ -18,15 +13,11 @@ public class GrafanaProvider(
     private readonly GrafanaSettings _grafanaSettings = grafanaSettings.Value;
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Alert>> GetFiringAlertsAsync(
-        string org,
-        string env,
-        CancellationToken cancellationToken
-    )
+    public async Task<IEnumerable<Alert>> GetFiringAlertsAsync(CancellationToken cancellationToken)
     {
-        string baseUrl = _grafanaSettings.GetBaseUri(org);
+        string baseUrl = _grafanaSettings.BaseUri;
 
-        IEnumerable<GrafanaAlert> alerts = await grafanaClient.GetFiringAlertsAsync(org, env, cancellationToken);
+        IEnumerable<GrafanaAlert> alerts = await grafanaClient.GetFiringAlertsAsync(cancellationToken);
 
         return alerts.Select(alert =>
         {

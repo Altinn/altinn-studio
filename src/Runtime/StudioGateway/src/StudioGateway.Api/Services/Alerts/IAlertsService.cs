@@ -1,15 +1,8 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using StudioGateway.Api.Models;
+using StudioGateway.Api.Models.Alerts;
 
 namespace StudioGateway.Api.Services.Alerts;
 
 public interface IAlertsService
 {
-    public Task<IEnumerable<Alert>> GetFiringAlertsAsync(
-        string org,
-        string env,
-        CancellationToken cancellationToken = default
-    );
+    public Task<IEnumerable<Alert>> GetFiringAlertsAsync(CancellationToken cancellationToken = default);
 }
