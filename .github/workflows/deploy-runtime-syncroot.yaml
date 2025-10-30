@@ -108,20 +108,41 @@ jobs:
               -f environment="$environment" \
               -f short-sha="$short_sha"
 
-            # Wait a moment for the workflow run to be created
-            sleep 3
+            # Wait for the workflow run to be created and become visible
+            sleep 5
 
             # Construct the expected run name to filter by
             expected_run_name="Tag syncroot - $ring_name ($environment) - $short_sha"
 
-            # Get the workflow run ID by filtering for the specific run name
-            run_id=$(gh run list \
-              --workflow=runtime-tag-syncroot.yaml \
-              --branch=${{ github.ref_name }} \
-              --limit=10 \
-              --json databaseId,displayTitle \
-              --jq ".[] | select(.displayTitle == \"$expected_run_name\") | .databaseId" \
-              | head -n 1)
+            # Retry logic to find the workflow run
+            run_id=""
+            for i in {1..5}; do
+              # Debug: Show what runs are found (first attempt only)
+              if [ $i -eq 1 ]; then
+                echo "  Looking for: $expected_run_name"
+                echo "  Recent runs:"
+                gh run list \
+                  --workflow=runtime-tag-syncroot.yaml \
+                  --branch=${{ github.ref_name }} \
+                  --limit=5 \
+                  --json displayTitle,name \
+                  --jq '.[] | "    - displayTitle: \(.displayTitle), name: \(.name)"'
+              fi
+
+              run_id=$(gh run list \
+                --workflow=runtime-tag-syncroot.yaml \
+                --branch=${{ github.ref_name }} \
+                --limit=20 \
+                --json databaseId,displayTitle,name \
+                --jq ".[] | select(.displayTitle == \"$expected_run_name\" or .name == \"$expected_run_name\") | .databaseId" \
+                | head -n 1)
+
+              if [ -n "$run_id" ]; then
+                break
+              fi
+
+              sleep 2
+            done
 
             if [ -n "$run_id" ]; then
               echo "✅ $ring_name ($environment): https://github.com/${{ github.repository }}/actions/runs/$run_id"
