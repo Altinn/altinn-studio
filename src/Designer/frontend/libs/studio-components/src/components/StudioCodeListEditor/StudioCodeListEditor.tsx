@@ -24,8 +24,10 @@ import { usePropState } from '@studio/hooks';
 import { StudioParagraph } from '../StudioParagraph';
 import classes from './StudioCodeListEditor.module.css';
 import { StudioValidationMessage } from '../StudioValidationMessage';
+import cn from 'classnames';
 
 export type StudioCodeListEditorProps = {
+  className?: string;
   codeList: CodeList;
   language: string;
   onInvalid?: () => void;
@@ -48,6 +50,7 @@ export function StudioCodeListEditor({
 type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'language' | 'texts'>;
 
 function StatefulCodeListEditor({
+  className,
   codeList: givenCodeList,
   onInvalid,
   onUpdateCodeList,
@@ -66,7 +69,13 @@ function StatefulCodeListEditor({
     [onUpdateCodeList, onInvalid, setCodeList],
   );
 
-  return <ControlledCodeListEditor codeList={codeList} onChangeCodeList={handleChangeCodeList} />;
+  return (
+    <ControlledCodeListEditor
+      className={className}
+      codeList={codeList}
+      onChangeCodeList={handleChangeCodeList}
+    />
+  );
 }
 
 type ControlledCodeListEditorProps = Omit<
@@ -77,6 +86,7 @@ type ControlledCodeListEditorProps = Omit<
 };
 
 function ControlledCodeListEditor({
+  className: givenClass,
   codeList,
   onChangeCodeList,
 }: ControlledCodeListEditorProps): ReactElement {
@@ -89,8 +99,10 @@ function ControlledCodeListEditor({
     onChangeCodeList(updatedCodeList);
   }, [codeList, onChangeCodeList]);
 
+  const className = cn(classes.codeListEditor, givenClass);
+
   return (
-    <StudioFieldset legend={texts.codeList} className={classes.codeListEditor} ref={fieldsetRef}>
+    <StudioFieldset legend={texts.codeList} className={className} ref={fieldsetRef}>
       <CodeListTable codeList={codeList} errorMap={errorMap} onChangeCodeList={onChangeCodeList} />
       <AddButton onClick={handleAddButtonClick} />
       <Errors errorMap={errorMap} />

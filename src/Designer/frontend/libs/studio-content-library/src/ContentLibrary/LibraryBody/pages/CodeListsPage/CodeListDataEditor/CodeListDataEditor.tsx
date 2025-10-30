@@ -11,6 +11,7 @@ import type { CodeList } from '../types/CodeList';
 import type { CodeListData } from '../types/CodeListData';
 import { updateCodes, updateName } from './utils';
 import { useTranslation } from 'react-i18next';
+import classes from './CodeListDataEditor.module.css';
 
 export type CodeListDataEditorProps = Readonly<{
   data: CodeListData;
@@ -46,14 +47,18 @@ export function CodeListDataEditor({
   return (
     <StudioDetails>
       <StudioDetails.Summary>{data.name}</StudioDetails.Summary>
-      <StudioDetails.Content>
+      <StudioDetails.Content className={classes.content}>
         <StudioTextfield
+          className={classes.nameField}
           label={t('app_content_library.code_lists.name')}
-          value={data.name}
           onChange={handleNameChange}
+          value={data.name}
         />
-        <StudioDeleteButton onDelete={onDelete}>{t('general.delete')}</StudioDeleteButton>
+        <StudioDeleteButton className={classes.deleteButton} onDelete={onDelete}>
+          {t('general.delete')}
+        </StudioDeleteButton>
         <StudioCodeListEditor
+          className={classes.codes}
           codeList={data.codes}
           language={DEFAULT_LANGUAGE}
           onUpdateCodeList={handleCodeListUpdate}
