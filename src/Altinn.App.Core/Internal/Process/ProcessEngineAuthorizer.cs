@@ -106,7 +106,7 @@ internal sealed class ProcessEngineAuthorizer : IProcessEngineAuthorizer
     {
         return taskType switch
         {
-            "data" or "feedback" => ["write"],
+            "data" or "feedback" or "pdf" or "eFormidling" => ["write"],
             "payment" => ["pay", "write"],
             "confirmation" => ["confirm"],
             "signing" => ["sign", "write"],

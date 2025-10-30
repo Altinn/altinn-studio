@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
+using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.EFormidlingClient;
@@ -34,6 +35,7 @@ public class DefaultEFormidlingService : IEFormidlingService
     private readonly IDataClient _dataClient;
     private readonly IEventsClient _eventClient;
     private readonly AppImplementationFactory _appImplementationFactory;
+    private readonly IEFormidlingLegacyConfigurationProvider _configurationProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultEFormidlingService"/> class.
@@ -45,6 +47,7 @@ public class DefaultEFormidlingService : IEFormidlingService
         IDataClient dataClient,
         IEventsClient eventClient,
         IServiceProvider sp,
+        IEFormidlingLegacyConfigurationProvider configurationProvider,
         IOptions<AppSettings>? appSettings = null,
         IOptions<PlatformSettings>? platformSettings = null,
         IEFormidlingClient? eFormidlingClient = null,
@@ -61,10 +64,22 @@ public class DefaultEFormidlingService : IEFormidlingService
         _dataClient = dataClient;
         _eventClient = eventClient;
         _appImplementationFactory = sp.GetRequiredService<AppImplementationFactory>();
+        _configurationProvider = configurationProvider;
     }
 
     /// <inheritdoc />
     public async Task SendEFormidlingShipment(Instance instance)
+    {
+        await SendEFormidlingShipmentInternal(instance, await _configurationProvider.GetLegacyConfiguration());
+    }
+
+    /// <inheritdoc />
+    public async Task SendEFormidlingShipment(Instance instance, ValidAltinnEFormidlingConfiguration configuration)
+    {
+        await SendEFormidlingShipmentInternal(instance, configuration);
+    }
+
+    private async Task SendEFormidlingShipmentInternal(Instance instance, ValidAltinnEFormidlingConfiguration config)
     {
         var metadata = _appImplementationFactory.Get<IEFormidlingMetadata>();
         if (
@@ -83,32 +98,32 @@ public class DefaultEFormidlingService : IEFormidlingService
 
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
 
-        string accessToken = _tokenGenerator.GenerateAccessToken(
+        string userToken = _userTokenProvider.GetUserToken();
+        string platformAccessToken = _tokenGenerator.GenerateAccessToken(
             applicationMetadata.Org,
             applicationMetadata.AppIdentifier.App
         );
-        string authzToken = _userTokenProvider.GetUserToken();
 
         var requestHeaders = new Dictionary<string, string>
         {
-            { "Authorization", $"{AuthorizationSchemes.Bearer} {authzToken}" },
-            { General.EFormidlingAccessTokenHeaderName, accessToken },
+            { "Authorization", $"{AuthorizationSchemes.Bearer} {userToken}" },
+            { General.EFormidlingAccessTokenHeaderName, platformAccessToken },
             { General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey },
         };
 
         string instanceGuid = instance.Id.Split("/")[1];
 
-        StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(instanceGuid, instance);
+        StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(instanceGuid, instance, config);
         await _eFormidlingClient.CreateMessage(sbd, requestHeaders);
 
         (string metadataFilename, Stream stream) = await metadata.GenerateEFormidlingMetadata(instance);
 
-        using (stream)
+        await using (stream)
         {
             await _eFormidlingClient.UploadAttachment(stream, instanceGuid, metadataFilename, requestHeaders);
         }
 
-        await SendInstanceData(instance, requestHeaders, metadataFilename);
+        await SendInstanceData(instance, requestHeaders, metadataFilename, config);
 
         try
         {
@@ -124,7 +139,8 @@ public class DefaultEFormidlingService : IEFormidlingService
 
     private async Task<StandardBusinessDocument> ConstructStandardBusinessDocument(
         string instanceGuid,
-        Instance instance
+        Instance instance,
+        ValidAltinnEFormidlingConfiguration config
     )
     {
         if (_appSettings is null)
@@ -145,12 +161,11 @@ public class DefaultEFormidlingService : IEFormidlingService
         };
 
         var eFormidlingReceivers = _appImplementationFactory.GetRequired<IEFormidlingReceivers>();
-        List<Receiver> receivers = await eFormidlingReceivers.GetEFormidlingReceivers(instance);
-        ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
+        List<Receiver> receivers = await eFormidlingReceivers.GetEFormidlingReceivers(instance, config.Receiver);
 
         Scope scope = new Scope
         {
-            Identifier = appMetadata.EFormidling.Process,
+            Identifier = config.Process,
             InstanceIdentifier = Guid.NewGuid().ToString(),
             Type = "ConversationId",
             ScopeInformation = new List<ScopeInformation>
@@ -164,10 +179,10 @@ public class DefaultEFormidlingService : IEFormidlingService
         DocumentIdentification documentIdentification = new DocumentIdentification
         {
             InstanceIdentifier = instanceGuid,
-            Standard = appMetadata.EFormidling.Standard,
-            TypeVersion = appMetadata.EFormidling.TypeVersion,
+            Standard = config.Standard,
+            TypeVersion = config.TypeVersion,
             CreationDateAndTime = completedTime,
-            Type = appMetadata.EFormidling.Type,
+            Type = config.Type,
         };
 
         StandardBusinessDocumentHeader sbdHeader = new StandardBusinessDocumentHeader
@@ -182,12 +197,12 @@ public class DefaultEFormidlingService : IEFormidlingService
         StandardBusinessDocument sbd = new StandardBusinessDocument
         {
             StandardBusinessDocumentHeader = sbdHeader,
-            Arkivmelding = new Arkivmelding { Sikkerhetsnivaa = appMetadata.EFormidling.SecurityLevel },
+            Arkivmelding = new Arkivmelding { Sikkerhetsnivaa = config.SecurityLevel },
         };
 
-        if (!string.IsNullOrEmpty(appMetadata.EFormidling.DPFShipmentType))
+        if (!string.IsNullOrEmpty(config.DpfShipmentType))
         {
-            sbd.Arkivmelding.DPF = new() { ForsendelsesType = appMetadata.EFormidling.DPFShipmentType };
+            sbd.Arkivmelding.DPF = new() { ForsendelsesType = config.DpfShipmentType };
         }
 
         return sbd;
@@ -196,7 +211,8 @@ public class DefaultEFormidlingService : IEFormidlingService
     private async Task SendInstanceData(
         Instance instance,
         Dictionary<string, string> requestHeaders,
-        string eformidlingMetadataFilename
+        string eformidlingMetadataFilename,
+        ValidAltinnEFormidlingConfiguration config
     )
     {
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
@@ -211,7 +227,7 @@ public class DefaultEFormidlingService : IEFormidlingService
 
         foreach (DataElement dataElement in instance.Data.OrderBy(x => x.Created))
         {
-            if (!applicationMetadata.EFormidling.DataTypes.Contains(dataElement.DataType))
+            if (!config.DataTypes.Contains(dataElement.DataType))
             {
                 continue;
             }

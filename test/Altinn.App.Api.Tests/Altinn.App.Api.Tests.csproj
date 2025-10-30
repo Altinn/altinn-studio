@@ -32,13 +32,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Altinn.App.Tests.Common" />
-    <Using Include="Altinn.App.Tests.Common.Auth" />
+    <Using Include="Altinn.App.Tests.Common"/>
+    <Using Include="Altinn.App.Tests.Common.Auth"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/Altinn.App.Api/Altinn.App.Api.csproj" />
-    <ProjectReference Include="../Altinn.App.Tests.Common/Altinn.App.Tests.Common.csproj" />
+    <ProjectReference Include="../../src/Altinn.App.Api/Altinn.App.Api.csproj"/>
+    <ProjectReference Include="../Altinn.App.Tests.Common/Altinn.App.Tests.Common.csproj"/>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Data\apps\ttd\"/>
+    <Folder Include="Data\Instances\ttd\"/>
+  </ItemGroup>
 </Project>

@@ -20,4 +20,10 @@ public class AppProcessTaskTypeInfo
     /// </summary>
     [JsonPropertyName(name: "elementId")]
     public string? ElementId { get; set; }
+
+    /// <summary>
+    /// The BPMN element type.
+    /// </summary>
+    [JsonPropertyName(name: "elementType")]
+    public string? ElementType { get; set; }
 }

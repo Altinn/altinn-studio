@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Altinn.App.Core.Models.Validation;
 
 namespace Altinn.App.Core.Models.Process;
 
@@ -15,9 +16,19 @@ public class ProcessChangeResult
     public bool Success { get; init; }
 
     /// <summary>
+    /// Gets or sets the error title if the process change was not successful
+    /// </summary>
+    public string? ErrorTitle { get; set; }
+
+    /// <summary>
     /// Gets or sets the error message if the process change was not successful
     /// </summary>
     public string? ErrorMessage { get; init; }
+
+    /// <summary>
+    /// Validation issues that occurred during the process change
+    /// </summary>
+    public List<ValidationIssueWithSource>? ValidationIssues { get; set; }
 
     /// <summary>
     /// Gets or sets the error type if the process change was not successful

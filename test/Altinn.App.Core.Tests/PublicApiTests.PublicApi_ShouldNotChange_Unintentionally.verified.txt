@@ -146,11 +146,13 @@ namespace Altinn.App.Core.EFormidling.Implementation
     {
         public DefaultEFormidlingReceivers(Altinn.App.Core.Internal.App.IAppMetadata appMetadata) { }
         public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Common.EFormidlingClient.Models.SBD.Receiver>> GetEFormidlingReceivers(Altinn.Platform.Storage.Interface.Models.Instance instance) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Common.EFormidlingClient.Models.SBD.Receiver>> GetEFormidlingReceivers(Altinn.Platform.Storage.Interface.Models.Instance instance, string? receiverFromConfig) { }
     }
     public class DefaultEFormidlingService : Altinn.App.Core.EFormidling.Interface.IEFormidlingService
     {
-        public DefaultEFormidlingService(Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.EFormidling.Implementation.DefaultEFormidlingService> logger, Altinn.App.Core.Internal.Auth.IUserTokenProvider userTokenProvider, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Internal.Data.IDataClient dataClient, Altinn.App.Core.Internal.Events.IEventsClient eventClient, System.IServiceProvider sp, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings>? appSettings = null, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings>? platformSettings = null, Altinn.Common.EFormidlingClient.IEFormidlingClient? eFormidlingClient = null, Altinn.Common.AccessTokenClient.Services.IAccessTokenGenerator? tokenGenerator = null) { }
+        public DefaultEFormidlingService(Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.EFormidling.Implementation.DefaultEFormidlingService> logger, Altinn.App.Core.Internal.Auth.IUserTokenProvider userTokenProvider, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Internal.Data.IDataClient dataClient, Altinn.App.Core.Internal.Events.IEventsClient eventClient, System.IServiceProvider sp, Altinn.App.Core.EFormidling.Implementation.IEFormidlingLegacyConfigurationProvider configurationProvider, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings>? appSettings = null, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings>? platformSettings = null, Altinn.Common.EFormidlingClient.IEFormidlingClient? eFormidlingClient = null, Altinn.Common.AccessTokenClient.Services.IAccessTokenGenerator? tokenGenerator = null) { }
         public System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.Platform.Storage.Interface.Models.Instance instance) { }
+        public System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration) { }
     }
     public class EformidlingDeliveryException : Altinn.App.Core.Exceptions.AltinnException
     {
@@ -171,6 +173,10 @@ namespace Altinn.App.Core.EFormidling.Implementation
         public string EventType { get; }
         public System.Threading.Tasks.Task<bool> ProcessEvent(Altinn.App.Core.Models.CloudEvent cloudEvent) { }
     }
+    public interface IEFormidlingLegacyConfigurationProvider
+    {
+        System.Threading.Tasks.Task<Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration> GetLegacyConfiguration();
+    }
 }
 namespace Altinn.App.Core.EFormidling.Interface
 {
@@ -184,10 +190,12 @@ namespace Altinn.App.Core.EFormidling.Interface
     public interface IEFormidlingReceivers
     {
         System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Common.EFormidlingClient.Models.SBD.Receiver>> GetEFormidlingReceivers(Altinn.Platform.Storage.Interface.Models.Instance instance);
+        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Common.EFormidlingClient.Models.SBD.Receiver>> GetEFormidlingReceivers(Altinn.Platform.Storage.Interface.Models.Instance instance, string? receiverFromConfig);
     }
     public interface IEFormidlingService
     {
         System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.Platform.Storage.Interface.Models.Instance instance);
+        System.Threading.Tasks.Task SendEFormidlingShipment(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration configuration);
     }
 }
 namespace Altinn.App.Core.Exceptions
@@ -3171,6 +3179,7 @@ namespace Altinn.App.Core.Internal.Pdf
     public interface IPdfService
     {
         System.Threading.Tasks.Task GenerateAndStorePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, System.Threading.CancellationToken ct);
+        System.Threading.Tasks.Task GenerateAndStorePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, string? customFileNameTextResourceKey, System.Collections.Generic.List<string>? autoGeneratePdfForTaskIds = null, System.Threading.CancellationToken ct = default);
         System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, System.Threading.CancellationToken ct);
         System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, bool isPreview, System.Threading.CancellationToken ct);
     }
@@ -3192,6 +3201,7 @@ namespace Altinn.App.Core.Internal.Pdf
     {
         public PdfService(Altinn.App.Core.Internal.Data.IDataClient dataClient, Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor, Altinn.App.Core.Internal.Pdf.IPdfGeneratorClient pdfGeneratorClient, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Internal.Pdf.PdfGeneratorSettings> pdfGeneratorSettings, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.GeneralSettings> generalSettings, Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Internal.Pdf.PdfService> logger, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, Altinn.App.Core.Internal.Texts.ITranslationService translationService, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
         public System.Threading.Tasks.Task GenerateAndStorePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, System.Threading.CancellationToken ct) { }
+        public System.Threading.Tasks.Task GenerateAndStorePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, string? customFileNameTextResourceKey, System.Collections.Generic.List<string>? autoGeneratePdfForTaskIds = null, System.Threading.CancellationToken ct = default) { }
         public System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, System.Threading.CancellationToken ct) { }
         public System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, bool isPreview, System.Threading.CancellationToken ct) { }
     }
@@ -3250,6 +3260,36 @@ namespace Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties
         [System.Xml.Serialization.XmlText]
         public string Value { get; set; }
     }
+    public sealed class AltinnEFormidlingConfiguration
+    {
+        public AltinnEFormidlingConfiguration() { }
+        [System.Xml.Serialization.XmlElement(ElementName="dataTypes", Namespace="http://altinn.no/process")]
+        public System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.AltinnEFormidlingDataTypesConfig> DataTypes { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="disabled", Namespace="http://altinn.no/process")]
+        public System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.AltinnEnvironmentConfig> Disabled { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="dpfShipmentType", Namespace="http://altinn.no/process")]
+        public System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.AltinnEnvironmentConfig> DpfShipmentType { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="process", Namespace="http://altinn.no/process")]
+        public System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.AltinnEnvironmentConfig> Process { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="receiver", Namespace="http://altinn.no/process")]
+        public System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.AltinnEnvironmentConfig> Receiver { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="securityLevel", Namespace="http://altinn.no/process")]
+        public System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.AltinnEnvironmentConfig> SecurityLevel { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="standard", Namespace="http://altinn.no/process")]
+        public System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.AltinnEnvironmentConfig> Standard { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="type", Namespace="http://altinn.no/process")]
+        public System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.AltinnEnvironmentConfig> Type { get; set; }
+        [System.Xml.Serialization.XmlElement(ElementName="typeVersion", Namespace="http://altinn.no/process")]
+        public System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.AltinnEnvironmentConfig> TypeVersion { get; set; }
+    }
+    public class AltinnEFormidlingDataTypesConfig
+    {
+        public AltinnEFormidlingDataTypesConfig() { }
+        [System.Xml.Serialization.XmlElement(ElementName="dataType", Namespace="http://altinn.no/process")]
+        public System.Collections.Generic.List<string> DataTypeIds { get; set; }
+        [System.Xml.Serialization.XmlAttribute("env")]
+        public string? Environment { get; set; }
+    }
     public sealed class AltinnEnvironmentConfig
     {
         public AltinnEnvironmentConfig() { }
@@ -3271,6 +3311,15 @@ namespace Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties
         public string? PaymentDataType { get; set; }
         [System.Xml.Serialization.XmlElement("paymentReceiptPdfDataType", Namespace="http://altinn.no/process")]
         public string? PaymentReceiptPdfDataType { get; set; }
+    }
+    public sealed class AltinnPdfConfiguration
+    {
+        public AltinnPdfConfiguration() { }
+        [System.Xml.Serialization.XmlArray(ElementName="autoPdfTaskIds", IsNullable=true, Namespace="http://altinn.no/process")]
+        [System.Xml.Serialization.XmlArrayItem(ElementName="taskId", Namespace="http://altinn.no/process")]
+        public System.Collections.Generic.List<string>? AutoPdfTaskIds { get; set; }
+        [System.Xml.Serialization.XmlElement("filename", Namespace="http://altinn.no/process")]
+        public string? Filename { get; set; }
     }
     public class AltinnSignatureConfiguration
     {
@@ -3300,12 +3349,29 @@ namespace Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties
         [System.Xml.Serialization.XmlArray(ElementName="actions", IsNullable=true, Namespace="http://altinn.no/process")]
         [System.Xml.Serialization.XmlArrayItem(ElementName="action", Namespace="http://altinn.no/process")]
         public System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.AltinnAction>? AltinnActions { get; set; }
+        [System.Xml.Serialization.XmlElement("eFormidlingConfig", Namespace="http://altinn.no/process")]
+        public Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.AltinnEFormidlingConfiguration? EFormidlingConfiguration { get; set; }
         [System.Xml.Serialization.XmlElement("paymentConfig", Namespace="http://altinn.no/process")]
         public Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.AltinnPaymentConfiguration? PaymentConfiguration { get; set; }
+        [System.Xml.Serialization.XmlElement("pdfConfig", Namespace="http://altinn.no/process")]
+        public Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.AltinnPdfConfiguration? PdfConfiguration { get; set; }
         [System.Xml.Serialization.XmlElement("signatureConfig", Namespace="http://altinn.no/process")]
         public Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.AltinnSignatureConfiguration? SignatureConfiguration { get; set; }
         [System.Xml.Serialization.XmlElement("taskType", Namespace="http://altinn.no/process")]
         public string? TaskType { get; set; }
+    }
+    public readonly struct ValidAltinnEFormidlingConfiguration : System.IEquatable<Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.ValidAltinnEFormidlingConfiguration>
+    {
+        public ValidAltinnEFormidlingConfiguration(bool Disabled, string? Receiver, string Process, string Standard, string TypeVersion, string Type, int SecurityLevel, string? DpfShipmentType, System.Collections.Generic.List<string> DataTypes) { }
+        public System.Collections.Generic.List<string> DataTypes { get; init; }
+        public bool Disabled { get; init; }
+        public string? DpfShipmentType { get; init; }
+        public string Process { get; init; }
+        public string? Receiver { get; init; }
+        public int SecurityLevel { get; init; }
+        public string Standard { get; init; }
+        public string Type { get; init; }
+        public string TypeVersion { get; init; }
     }
 }
 namespace Altinn.App.Core.Internal.Process.Elements
@@ -3316,6 +3382,8 @@ namespace Altinn.App.Core.Internal.Process.Elements
         public AppProcessElementInfo(Altinn.Platform.Storage.Interface.Models.ProcessElementInfo processElementInfo) { }
         [System.Text.Json.Serialization.JsonPropertyName("actions")]
         public System.Collections.Generic.Dictionary<string, bool>? Actions { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("elementType")]
+        public string? ElementType { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("read")]
         public bool HasReadAccess { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("write")]
@@ -3337,6 +3405,8 @@ namespace Altinn.App.Core.Internal.Process.Elements
         public string? AltinnTaskType { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("elementId")]
         public string? ElementId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("elementType")]
+        public string? ElementType { get; set; }
     }
     [System.Xml.Serialization.XmlRoot("definitions", Namespace="http://www.omg.org/spec/BPMN/20100524/MODEL")]
     [System.Xml.Serialization.XmlType(Namespace="http://www.omg.org/spec/BPMN/20100524/MODEL")]
@@ -3385,6 +3455,8 @@ namespace Altinn.App.Core.Internal.Process.Elements
         public bool IsExecutable { get; set; }
         [System.Xml.Serialization.XmlElement("sequenceFlow")]
         public System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.SequenceFlow> SequenceFlow { get; set; }
+        [System.Xml.Serialization.XmlElement("serviceTask")]
+        public System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.ServiceTask> ServiceTasks { get; set; }
         [System.Xml.Serialization.XmlElement("startEvent")]
         public System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.StartEvent> StartEvents { get; set; }
         [System.Xml.Serialization.XmlElement("task")]
@@ -3410,6 +3482,11 @@ namespace Altinn.App.Core.Internal.Process.Elements
         public string SourceRef { get; set; }
         [System.Xml.Serialization.XmlAttribute("targetRef")]
         public string TargetRef { get; set; }
+    }
+    public class ServiceTask : Altinn.App.Core.Internal.Process.Elements.ProcessTask
+    {
+        public ServiceTask() { }
+        public override string ElementType() { }
     }
     public class StartEvent : Altinn.App.Core.Internal.Process.Elements.Base.ProcessElement
     {
@@ -3507,10 +3584,10 @@ namespace Altinn.App.Core.Internal.Process
     }
     public interface IProcessEngine
     {
+        Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.IServiceTask? CheckIfServiceTask(string? altinnTaskType);
         System.Threading.Tasks.Task<Altinn.App.Core.Models.Process.ProcessChangeResult> GenerateProcessStartEvents(Altinn.App.Core.Models.Process.ProcessStartRequest processStartRequest);
         System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.Instance> HandleEventsAndUpdateStorage(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Collections.Generic.Dictionary<string, string>? prefill, System.Collections.Generic.List<Altinn.Platform.Storage.Interface.Models.InstanceEvent>? events);
-        System.Threading.Tasks.Task<Altinn.App.Core.Models.UserAction.UserActionResult> HandleUserAction(Altinn.App.Core.Models.Process.ProcessNextRequest request, System.Threading.CancellationToken ct);
-        System.Threading.Tasks.Task<Altinn.App.Core.Models.Process.ProcessChangeResult> Next(Altinn.App.Core.Models.Process.ProcessNextRequest request);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.Process.ProcessChangeResult> Next(Altinn.App.Core.Models.Process.ProcessNextRequest request, System.Threading.CancellationToken ct = default);
     }
     public interface IProcessEngineAuthorizer
     {
@@ -3552,11 +3629,11 @@ namespace Altinn.App.Core.Internal.Process
     }
     public class ProcessEngine : Altinn.App.Core.Internal.Process.IProcessEngine
     {
-        public ProcessEngine(Altinn.App.Core.Internal.Process.IProcessReader processReader, Altinn.App.Core.Internal.Process.IProcessNavigator processNavigator, Altinn.App.Core.Internal.Process.IProcessEventHandlerDelegator processEventsDelegator, Altinn.App.Core.Internal.Process.IProcessEventDispatcher processEventDispatcher, Altinn.App.Core.Features.Action.UserActionService userActionService, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, System.IServiceProvider serviceProvider, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
+        public ProcessEngine(Altinn.App.Core.Internal.Process.IProcessReader processReader, Altinn.App.Core.Internal.Process.IProcessNavigator processNavigator, Altinn.App.Core.Internal.Process.IProcessEventHandlerDelegator processEventsDelegator, Altinn.App.Core.Internal.Process.IProcessEventDispatcher processEventDispatcher, Altinn.App.Core.Features.Action.UserActionService userActionService, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, System.IServiceProvider serviceProvider, Altinn.App.Core.Internal.Process.IProcessEngineAuthorizer processEngineAuthorizer, Altinn.App.Core.Internal.Validation.IValidationService validationService, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Internal.Process.ProcessEngine> logger, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
+        public Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.IServiceTask? CheckIfServiceTask(string? altinnTaskType) { }
         public System.Threading.Tasks.Task<Altinn.App.Core.Models.Process.ProcessChangeResult> GenerateProcessStartEvents(Altinn.App.Core.Models.Process.ProcessStartRequest processStartRequest) { }
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.Instance> HandleEventsAndUpdateStorage(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Collections.Generic.Dictionary<string, string>? prefill, System.Collections.Generic.List<Altinn.Platform.Storage.Interface.Models.InstanceEvent>? events) { }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Models.UserAction.UserActionResult> HandleUserAction(Altinn.App.Core.Models.Process.ProcessNextRequest request, System.Threading.CancellationToken ct) { }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Models.Process.ProcessChangeResult> Next(Altinn.App.Core.Models.Process.ProcessNextRequest request) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Models.Process.ProcessChangeResult> Next(Altinn.App.Core.Models.Process.ProcessNextRequest request, System.Threading.CancellationToken ct = default) { }
     }
     public class ProcessEventDispatcher : Altinn.App.Core.Internal.Process.IProcessEventDispatcher
     {
@@ -3683,21 +3760,33 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
         public System.Threading.Tasks.Task Initialize(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance, System.Collections.Generic.Dictionary<string, string>? prefill) { }
     }
 }
-namespace Altinn.App.Core.Internal.Process.ServiceTasks
+namespace Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks
 {
-    public class EformidlingServiceTask : Altinn.App.Core.Internal.Process.ServiceTasks.IServiceTask
+    public interface IServiceTask : Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
     {
-        public EformidlingServiceTask(Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Internal.Process.ServiceTasks.EformidlingServiceTask> logger, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.EFormidling.Interface.IEFormidlingService? eFormidlingService = null, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings>? appSettings = null) { }
-        public System.Threading.Tasks.Task Execute(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance) { }
+        System.Threading.Tasks.Task<Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskResult> Execute(Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskContext context);
     }
-    public interface IServiceTask
+    public sealed class ServiceTaskContext : System.IEquatable<Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskContext>
     {
-        System.Threading.Tasks.Task Execute(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance);
+        public ServiceTaskContext() { }
+        public System.Threading.CancellationToken CancellationToken { get; init; }
+        public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
     }
-    public class PdfServiceTask : Altinn.App.Core.Internal.Process.ServiceTasks.IServiceTask
+    public sealed class ServiceTaskFailedResult : Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskFailedResult>
     {
-        public PdfServiceTask(Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Internal.Pdf.IPdfService pdfService) { }
-        public System.Threading.Tasks.Task Execute(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance) { }
+        public ServiceTaskFailedResult(bool? autoMoveNext = default, string? autoMoveNextAction = null) { }
+    }
+    public abstract class ServiceTaskResult : System.IEquatable<Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskResult>
+    {
+        protected ServiceTaskResult() { }
+        public bool? AutoMoveNext { get; init; }
+        public string? AutoMoveNextAction { get; init; }
+        public static Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskFailedResult Failed(bool? autoMoveNext = false, string? autoMoveNextAction = "reject") { }
+        public static Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskSuccessResult Success(bool? autoMoveNext = true, string? autoMoveNextAction = null) { }
+    }
+    public sealed class ServiceTaskSuccessResult : Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskSuccessResult>
+    {
+        public ServiceTaskSuccessResult(bool? autoMoveNext = default, string? autoMoveNextAction = null) { }
     }
 }
 namespace Altinn.App.Core.Internal.Profile
@@ -4622,6 +4711,7 @@ namespace Altinn.App.Core.Models.Process
     {
         public ProcessChangeResult() { }
         public string? ErrorMessage { get; init; }
+        public string? ErrorTitle { get; set; }
         public Altinn.App.Core.Models.Process.ProcessErrorType? ErrorType { get; init; }
         public Altinn.App.Core.Models.Process.ProcessStateChange? ProcessStateChange { get; init; }
         [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(false, new string?[]?[] {
@@ -4637,6 +4727,7 @@ namespace Altinn.App.Core.Models.Process
                 "ErrorType"})]
         [set: System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, "ProcessStateChange")]
         public bool Success { get; init; }
+        public System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>? ValidationIssues { get; set; }
     }
     public enum ProcessErrorType
     {
@@ -4651,7 +4742,7 @@ namespace Altinn.App.Core.Models.Process
         public string? Action { get; set; }
         public string? DataTypeId { get; set; }
     }
-    public class ProcessNextRequest
+    public sealed class ProcessNextRequest : System.IEquatable<Altinn.App.Core.Models.Process.ProcessNextRequest>
     {
         public ProcessNextRequest() { }
         public required string? Action { get; init; }

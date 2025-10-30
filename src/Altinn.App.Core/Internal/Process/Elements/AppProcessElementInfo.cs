@@ -60,4 +60,10 @@ public class AppProcessElementInfo : ProcessElementInfo
     /// </summary>
     [JsonPropertyName(name: "write")]
     public bool HasWriteAccess { get; set; }
+
+    /// <summary>
+    /// Specifies the type of BPMN element.
+    /// </summary>
+    [JsonPropertyName(name: "elementType")]
+    public string? ElementType { get; set; }
 }

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": false,
+    "layout": [
+      {
+        "dataModelBindings": {
+          "simpleBinding": "Navn"
+        },
+        "id": "Navn-input",
+        "type": "Input",
+        "required": true,
+        "textResourceBindings": {
+          "title": "name"
+        }
+      },
+      {
+        "id": "next-button",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "submit"
+        }
+      }
+    ]
+  }
+}

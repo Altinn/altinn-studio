@@ -2,6 +2,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Process.EventHandlers;
 using Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
+using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -111,6 +112,14 @@ public class ProcessEventHandlingDelegator : IProcessEventHandlerDelegator
         if (string.IsNullOrEmpty(altinnTaskType))
         {
             altinnTaskType = "NullType";
+        }
+
+        IEnumerable<IServiceTask> serviceTasks = _appImplementationFactory.GetAll<IServiceTask>();
+        IServiceTask? serviceTask = serviceTasks.FirstOrDefault(pt => pt.Type == altinnTaskType);
+
+        if (serviceTask is not null)
+        {
+            return serviceTask;
         }
 
         var tasks = _appImplementationFactory.GetAll<IProcessTask>();

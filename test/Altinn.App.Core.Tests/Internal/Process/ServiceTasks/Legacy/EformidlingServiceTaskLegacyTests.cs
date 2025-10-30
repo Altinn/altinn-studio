@@ -2,7 +2,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
-using Altinn.App.Core.Internal.Process.ServiceTasks;
+using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.Legacy;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
@@ -10,22 +10,14 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 
-namespace Altinn.App.Core.Tests.Internal.Process.ServiceTasks;
+namespace Altinn.App.Core.Tests.Internal.Process.ServiceTasks.Legacy;
 
-public class EformidlingServiceTaskTests
+public class EformidlingServiceTaskLegacyTests
 {
-    private readonly ILogger<EformidlingServiceTask> _logger;
-    private readonly Mock<IAppMetadata> _appMetadata;
-    private readonly Mock<IInstanceClient> _instanceClient;
-    private readonly Mock<IEFormidlingService> _eFormidlingService;
-
-    public EformidlingServiceTaskTests()
-    {
-        _logger = NullLogger<EformidlingServiceTask>.Instance;
-        _appMetadata = new Mock<IAppMetadata>();
-        _instanceClient = new Mock<IInstanceClient>();
-        _eFormidlingService = new Mock<IEFormidlingService>();
-    }
+    private readonly ILogger<EformidlingServiceTaskLegacy> _logger = NullLogger<EformidlingServiceTaskLegacy>.Instance;
+    private readonly Mock<IAppMetadata> _appMetadata = new();
+    private readonly Mock<IInstanceClient> _instanceClient = new();
+    private readonly Mock<IEFormidlingService> _eFormidlingService = new();
 
     [Fact]
     public async Task Execute_EFormidlingIsEnabledAndSendAfterTaskIdMatchesCurrentTask_EFormidlingShipment_is_sent()
@@ -123,12 +115,12 @@ public class EformidlingServiceTaskTests
         _eFormidlingService.VerifyNoOtherCalls();
     }
 
-    public EformidlingServiceTask GetEformidlingServiceTask(
+    private EformidlingServiceTaskLegacy GetEformidlingServiceTask(
         AppSettings? appSettings,
         IEFormidlingService? eFormidlingService = null
     )
     {
-        return new EformidlingServiceTask(
+        return new EformidlingServiceTaskLegacy(
             _logger,
             _appMetadata.Object,
             _instanceClient.Object,

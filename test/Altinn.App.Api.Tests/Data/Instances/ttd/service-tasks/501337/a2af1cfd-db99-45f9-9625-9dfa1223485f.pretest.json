@@ -1,0 +1,41 @@
+{
+    "id": "501337/a2af1cfd-db99-45f9-9625-9dfa1223485f",
+    "instanceOwner": {
+        "partyId": "501337",
+        "personNumber": "01039012345"
+    },
+    "appId": "ttd/service-tasks",
+    "org": "ttd",
+    "visibleAfter": "2024-08-28T05:10:09.8629034Z",
+    "process": {
+        "started": "2024-08-28T05:10:09.8564665Z",
+        "startEvent": "StartEvent_1",
+        "currentTask": {
+            "flow": 2,
+            "started": "2024-08-28T05:23:48.7768741Z",
+            "elementId": "Task_1",
+            "name": "Utfylling",
+            "altinnTaskType": "data",
+            "flowType": "CompleteCurrentMoveToNext"
+        }
+    },
+    "status": {
+        "isArchived": false,
+        "isSoftDeleted": false,
+        "isHardDeleted": false,
+        "readStatus": "Read"
+    },
+    "data": [
+        {
+            "id": "fd4c42a4-a6a0-4aec-b8e9-9f5d34c445ca",
+            "dataType": "Model",
+            "contentType": "application/xml",
+            "size": 173,
+            "locked": false
+        }
+    ],
+    "created": "2024-08-28T05:10:09.8629034Z",
+    "createdBy": "1337",
+    "lastChanged": "2024-08-28T05:10:22.1350004Z",
+    "lastChangedBy": "1337"
+}

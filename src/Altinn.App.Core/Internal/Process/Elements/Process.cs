@@ -36,6 +36,12 @@ public class Process
     public List<ProcessTask> Tasks { get; set; }
 
     /// <summary>
+    /// Gets or sets the list of service tasks for the process of a workflow
+    /// </summary>
+    [XmlElement("serviceTask")]
+    public List<ServiceTask> ServiceTasks { get; set; } = [];
+
+    /// <summary>
     /// Gets or sets the end event of the process of a workflow
     /// </summary>
     [XmlElement("endEvent")]

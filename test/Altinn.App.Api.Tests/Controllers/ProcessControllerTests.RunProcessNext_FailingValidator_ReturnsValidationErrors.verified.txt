@@ -175,6 +175,20 @@
       HasParent: false
     },
     {
+      Name: Process.Next,
+      IdFormat: W3C,
+      Status: Error,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        },
+        {
+          process.error.type: Conflict
+        }
+      ],
+      HasParent: true
+    },
+    {
       Name: ProcessClient.GetProcessDefinition,
       IdFormat: W3C,
       HasParent: true

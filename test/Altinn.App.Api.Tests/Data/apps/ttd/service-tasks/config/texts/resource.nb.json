@@ -1,0 +1,17 @@
+{
+    "language": "nb",
+    "resources": [
+        {
+            "id": "appName",
+            "value": "service-tasks"
+        },
+        {
+            "id": "name",
+            "value": "Navn"
+        },
+        {
+            "id": "submit",
+            "value": "Send inn"
+        }
+    ]
+}
