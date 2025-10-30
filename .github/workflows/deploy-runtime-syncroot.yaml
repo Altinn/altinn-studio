@@ -93,13 +93,13 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           rings='${{ needs.construct-rings-array.outputs.ringsjson }}'
-          echo "Dispatching tag workflows for rings: $rings"
+          echo ""
+          echo "🚀 Dispatched tag workflows:"
+          echo ""
 
           echo "$rings" | jq -c '.[]' | while read -r ring; do
             ring_name=$(echo "$ring" | jq -r '.ring')
             environment=$(echo "$ring" | jq -r '.environment')
-
-            echo "Dispatching workflow for ring: $ring_name, environment: $environment"
 
             gh workflow run runtime-tag-syncroot.yaml \
               --ref ${{ github.ref_name }} \
@@ -107,5 +107,9 @@ jobs:
               -f environment="$environment" \
               -f short-sha="${{ needs.push-syncroot-artifact.outputs.short-sha }}"
 
-            echo "Dispatched workflow for $ring_name"
+            echo "✅ $ring_name ($environment)"
           done
+
+          echo ""
+          echo "View all dispatched workflows:"
+          echo "https://github.com/${{ github.repository }}/actions/workflows/runtime-tag-syncroot.yaml?query=branch%3A${{ github.ref_name }}"
