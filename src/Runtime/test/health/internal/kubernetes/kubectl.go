@@ -52,6 +52,11 @@ type Pod struct {
 	Metadata struct {
 		CreationTimestamp time.Time `json:"creationTimestamp"`
 	} `json:"metadata"`
+	Status struct {
+		ContainerStatuses []struct {
+			RestartCount int `json:"restartCount"`
+		} `json:"containerStatuses"`
+	} `json:"status"`
 }
 
 // PodList represents a list of Kubernetes Pods
@@ -59,8 +64,11 @@ type PodList struct {
 	Items []Pod `json:"items"`
 }
 
-// GetNewestPodAge queries pods for a deployment and returns the age of the newest pod
-func GetNewestPodAge(ctx context.Context, clusterName string, namespace string, matchLabels map[string]string) string {
+// GetPodInfo queries pods for a deployment and returns age and restart information
+// Returns (age, restarts) where:
+// - age is the age of the newest pod (e.g., "5m", "2h")
+// - restarts is slash-separated restart counts for all pods (e.g., "0/2/1" for 3 pods)
+func GetPodInfo(ctx context.Context, clusterName string, namespace string, matchLabels map[string]string) (string, string) {
 	var labelSelectors []string
 	for key, value := range matchLabels {
 		labelSelectors = append(labelSelectors, fmt.Sprintf("%s=%s", key, value))
@@ -77,18 +85,21 @@ func GetNewestPodAge(ctx context.Context, clusterName string, namespace string, 
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Sprintf("ERROR: %v", err)
+		errMsg := fmt.Sprintf("ERROR: %v", err)
+		return errMsg, errMsg
 	}
 
 	var podList PodList
 	if err := json.Unmarshal(output, &podList); err != nil {
-		return fmt.Sprintf("PARSE ERROR: %v", err)
+		errMsg := fmt.Sprintf("PARSE ERROR: %v", err)
+		return errMsg, errMsg
 	}
 
 	if len(podList.Items) == 0 {
-		return "NO PODS"
+		return "NO PODS", "NO PODS"
 	}
 
+	// Find newest pod for age calculation
 	newestPod := podList.Items[0]
 	for _, pod := range podList.Items[1:] {
 		if pod.Metadata.CreationTimestamp.After(newestPod.Metadata.CreationTimestamp) {
@@ -97,7 +108,20 @@ func GetNewestPodAge(ctx context.Context, clusterName string, namespace string, 
 	}
 
 	age := time.Since(newestPod.Metadata.CreationTimestamp)
-	return formatAge(age)
+	ageStr := formatAge(age)
+
+	// Calculate restart counts for all pods
+	var restartCounts []string
+	for _, pod := range podList.Items {
+		totalRestarts := 0
+		for _, container := range pod.Status.ContainerStatuses {
+			totalRestarts += container.RestartCount
+		}
+		restartCounts = append(restartCounts, fmt.Sprintf("%d", totalRestarts))
+	}
+	restartsStr := strings.Join(restartCounts, "/")
+
+	return ageStr, restartsStr
 }
 
 // ResourceType represents the type of Kubernetes resource
@@ -116,6 +140,7 @@ type QueryResult struct {
 	Name        string
 	Conditions  []flux.Condition
 	PodAge      *string // Only populated for Deployment resources
+	PodRestarts *string // Only populated for Deployment resources
 	Error       error
 }
 
@@ -174,8 +199,9 @@ func GetResourceStatus(ctx context.Context, clusterName string, resourceType Res
 		}
 		result.Conditions = flux.GetLatestCondition(dep.Status.Conditions)
 
-		podAge := GetNewestPodAge(ctx, clusterName, namespace, dep.Spec.Selector.MatchLabels)
+		podAge, podRestarts := GetPodInfo(ctx, clusterName, namespace, dep.Spec.Selector.MatchLabels)
 		result.PodAge = &podAge
+		result.PodRestarts = &podRestarts
 	}
 
 	if len(result.Conditions) == 0 {

@@ -15,6 +15,7 @@ type Cluster struct {
 	ResourceGroup  string `json:"resourceGroup"`
 	Location       string `json:"location"`
 	SubscriptionID string `json:"subscriptionId,omitempty"` // Not from Azure API, added by us
+	Environment    string `json:"environment,omitempty"`    // Extracted from cluster name pattern
 }
 
 // ResourceGraphResponse represents the response from Azure Resource Graph query
@@ -63,18 +64,34 @@ func ListAllClustersViaResourceGraph() ([]Cluster, error) {
 	return allClusters, nil
 }
 
-// FilterClusters filters clusters by environment and optional serviceowner
+// FilterClusters filters clusters by environments and optional serviceowner
 // Cluster naming pattern: <serviceowner>-<environment>-aks
 // Serviceowner must be 2-8 lowercase ASCII letters
-func FilterClusters(clusters []Cluster, environment string, serviceowner string) []Cluster {
+// Excludes clusters with serviceowner "studio"
+func FilterClusters(clusters []Cluster, environments []string, serviceowner string) []Cluster {
 	var filtered []Cluster
 
+	// Create a map for quick environment lookup
+	envMap := make(map[string]bool)
+	for _, env := range environments {
+		envMap[env] = true
+	}
+
 	for _, cluster := range clusters {
-		if !strings.HasSuffix(cluster.Name, "-"+environment+"-aks") {
+		// Try to match against any of the provided environments
+		var matchedEnv string
+		for env := range envMap {
+			if strings.HasSuffix(cluster.Name, "-"+env+"-aks") {
+				matchedEnv = env
+				break
+			}
+		}
+
+		if matchedEnv == "" {
 			continue
 		}
 
-		expectedSuffix := "-" + environment + "-aks"
+		expectedSuffix := "-" + matchedEnv + "-aks"
 		clusterServiceowner := strings.TrimSuffix(cluster.Name, expectedSuffix)
 
 		if len(clusterServiceowner) < 2 || len(clusterServiceowner) > 8 {
@@ -91,12 +108,19 @@ func FilterClusters(clusters []Cluster, environment string, serviceowner string)
 			continue
 		}
 
+		// Explicitly exclude "studio" clusters
+		if clusterServiceowner == "studio" {
+			continue
+		}
+
 		if serviceowner != "" {
 			if clusterServiceowner != serviceowner {
 				continue
 			}
 		}
 
+		// Set the environment field
+		cluster.Environment = matchedEnv
 		filtered = append(filtered, cluster)
 	}
 
@@ -104,10 +128,10 @@ func FilterClusters(clusters []Cluster, environment string, serviceowner string)
 }
 
 // GetClusters is a convenience function that lists and filters clusters with caching
-func GetClusters(environment string, serviceowner string, forceUseCache bool) ([]Cluster, error) {
+func GetClusters(environments []string, serviceowner string, forceUseCache bool) ([]Cluster, error) {
 	var allClusters []Cluster
 
-	cacheKey := fmt.Sprintf("clusters-%s", environment)
+	cacheKey := "clusters"
 
 	if forceUseCache {
 		cached, err := cache.GetStale(cacheKey, &allClusters)
@@ -115,7 +139,7 @@ func GetClusters(environment string, serviceowner string, forceUseCache bool) ([
 			return nil, fmt.Errorf("cache error: %w", err)
 		}
 		if !cached {
-			return nil, fmt.Errorf("no cached data available for environment: %s (use without --use-cache to fetch from Azure)", environment)
+			return nil, fmt.Errorf("no cached data available (use without --use-cache to fetch from Azure)")
 		}
 		fmt.Println("Using cached cluster data")
 	} else {
@@ -126,7 +150,7 @@ func GetClusters(environment string, serviceowner string, forceUseCache bool) ([
 
 		if !cached {
 			fmt.Println("Querying all AKS clusters via Azure Resource Graph...")
-			allClusters, err = ListAllClustersViaResourceGraph()
+			freshClusters, err := ListAllClustersViaResourceGraph()
 			if err != nil {
 				if isRateLimitError(err) {
 					fmt.Println("WARNING: Azure rate limit exceeded, attempting to use stale cache...")
@@ -144,8 +168,11 @@ func GetClusters(environment string, serviceowner string, forceUseCache bool) ([
 					return nil, fmt.Errorf("failed to query clusters: %w", err)
 				}
 			} else {
-				allClusters = FilterClusters(allClusters, environment, "")
-				fmt.Printf("Found %d cluster(s) for environment %s\n", len(allClusters), environment)
+				// Filter and set environment field for all clusters
+				allClusters = FilterClusters(freshClusters, environments, "")
+
+				envStr := strings.Join(environments, ", ")
+				fmt.Printf("Found %d cluster(s) for environment(s): %s\n", len(allClusters), envStr)
 
 				if err := cache.Set(cacheKey, allClusters); err != nil {
 					fmt.Printf("Warning: failed to cache clusters: %v\n", err)
@@ -154,16 +181,15 @@ func GetClusters(environment string, serviceowner string, forceUseCache bool) ([
 		}
 	}
 
-	filtered := allClusters
-	if serviceowner != "" {
-		filtered = FilterClusters(allClusters, environment, serviceowner)
-	}
+	// Filter by environments
+	filtered := FilterClusters(allClusters, environments, serviceowner)
 
 	if len(filtered) == 0 {
+		envStr := strings.Join(environments, ", ")
 		if serviceowner != "" {
-			return nil, fmt.Errorf("no AKS cluster found matching pattern: %s-%s-aks", serviceowner, environment)
+			return nil, fmt.Errorf("no AKS cluster found matching pattern: %s-{%s}-aks", serviceowner, envStr)
 		}
-		return nil, fmt.Errorf("no AKS clusters found for environment: %s", environment)
+		return nil, fmt.Errorf("no AKS clusters found for environment(s): %s", envStr)
 	}
 
 	return filtered, nil
@@ -176,4 +202,31 @@ func isRateLimitError(err error) bool {
 	}
 	errStr := err.Error()
 	return strings.Contains(errStr, "RateLimiting") || strings.Contains(errStr, "throttled")
+}
+
+// SaveClustersToCache saves a list of clusters to the merged cache file
+// This merges the provided clusters with existing cached clusters, deduplicating by name
+func SaveClustersToCache(clusters []Cluster) error {
+	cacheKey := "clusters"
+
+	// Load existing cache
+	var existingClusters []Cluster
+	_, _ = cache.GetStale(cacheKey, &existingClusters)
+
+	// Merge clusters (deduplicate by name)
+	clusterMap := make(map[string]Cluster)
+	for _, cluster := range existingClusters {
+		clusterMap[cluster.Name] = cluster
+	}
+	for _, cluster := range clusters {
+		clusterMap[cluster.Name] = cluster
+	}
+
+	// Convert map back to slice
+	allClusters := make([]Cluster, 0, len(clusterMap))
+	for _, cluster := range clusterMap {
+		allClusters = append(allClusters, cluster)
+	}
+
+	return cache.Set(cacheKey, allClusters)
 }

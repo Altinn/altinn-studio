@@ -21,12 +21,38 @@ func main() {
 }
 
 func printUsage() string {
-	return `usage: runtime-health <command> [arguments]
+	return `usage: go run cmd/main.go <command> [arguments]
 
 Available commands:
-  status	Check status of resources across clusters
-  set-weight	Update HTTPRoute weights
-  exec		Execute kubectl/helm/flux commands across clusters`
+  help            Print CLI usage
+  init            Discover clusters and configure credentials
+  status          Check status of resources across clusters
+  set-weight      Update HTTPRoute weights
+  exec            Execute kubectl/helm/flux commands across clusters
+
+Examples:
+  # Discover clusters and fetch credentials (single or multiple environments)
+  go run cmd/main.go init tt02
+  go run cmd/main.go init at22,at24
+  go run cmd/main.go init -s ttd tt02,prod
+
+  # Check resource status
+  go run cmd/main.go status tt02 hr traefik/altinn-traefik
+  go run cmd/main.go status tt02 ks runtime-pdf3/pdf3-app
+  go run cmd/main.go status at22,at24 dep runtime-pdf3/pdf3-proxy
+  go run cmd/main.go status -s ttd tt02,prod ks runtime-pdf3/pdf3-app
+
+  # Update HTTPRoute weights
+  go run cmd/main.go set-weight tt02 pdf/pdf3-migration 50 50
+  go run cmd/main.go set-weight at22,at24 pdf/pdf3-migration 0 100
+  go run cmd/main.go set-weight --dry-run tt02,prod pdf/pdf3-migration 0 100
+
+  # Execute commands across clusters
+  go run cmd/main.go exec tt02 kubectl get pods -n default
+  go run cmd/main.go exec at22,at24 flux get kustomizations -A
+  go run cmd/main.go exec -s ttd prod,tt02 helm list -A
+
+Run 'go run cmd/main.go <command> -h' for more information on a specific command.`
 }
 
 func run() error {
@@ -37,6 +63,12 @@ func run() error {
 	command := os.Args[1]
 
 	switch command {
+	case "help":
+		fmt.Println(printUsage())
+		os.Exit(0)
+		return nil
+	case "init":
+		return runInit()
 	case "status":
 		return runStatus()
 	case "set-weight":
@@ -48,51 +80,78 @@ func run() error {
 	}
 }
 
-func validateEnvironment(environment string) error {
-	if environment != "at22" && environment != "at24" && environment != "tt02" && environment != "prod" {
-		return fmt.Errorf("invalid environment: %s (expected: at22, at24, tt02, or prod)", environment)
+func validateEnvironments(environmentsStr string) ([]string, error) {
+	validEnvs := map[string]bool{
+		"at22": true,
+		"at23": true,
+		"at24": true,
+		"yt01": true,
+		"tt02": true,
+		"prod": true,
 	}
-	return nil
+
+	environments := strings.Split(environmentsStr, ",")
+	var validated []string
+
+	for _, env := range environments {
+		env = strings.TrimSpace(env)
+		if env == "" {
+			continue
+		}
+		if !validEnvs[env] {
+			return nil, fmt.Errorf("invalid environment: %s (expected: at22, at23, at24, yt01, tt02, prod)", env)
+		}
+		validated = append(validated, env)
+	}
+
+	if len(validated) == 0 {
+		return nil, fmt.Errorf("no valid environments provided")
+	}
+
+	return validated, nil
 }
 
 func runSetWeight() error {
 	setWeightCmd := flag.NewFlagSet("set-weight", flag.ExitOnError)
-	serviceowner := setWeightCmd.String("serviceowner", "", "Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
-	useCache := setWeightCmd.Bool("use-cache", false, "Use cached data without refreshing from Azure")
-	setWeightCmd.BoolVar(useCache, "uc", false, "Use cached data without refreshing from Azure (shorthand)")
+	serviceowner := setWeightCmd.String("service-owner", "", "Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
+	setWeightCmd.StringVar(serviceowner, "s", "", "Optional: specific serviceowner ID (shorthand)")
 	dryRun := setWeightCmd.Bool("dry-run", false, "Show what would change without applying")
 
 	setWeightCmd.Parse(os.Args[2:])
 	args := setWeightCmd.Args()
 
-	if len(args) != 5 {
-		return fmt.Errorf("usage: runtime-health set-weight [flags] <environment> <namespace> <name> <weight1> <weight2>\n\n" +
+	if len(args) != 4 {
+		return fmt.Errorf("usage: go run cmd/main.go set-weight [flags] <environments> <namespace/name> <weight1> <weight2>\n\n" +
 			"Arguments:\n" +
-			"  environment     at22, at24, tt02, or prod\n" +
-			"  namespace       HTTPRoute namespace\n" +
-			"  name            HTTPRoute name\n" +
+			"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n" +
+			"  namespace/name  HTTPRoute location (e.g., pdf/pdf3-migration)\n" +
 			"  weight1         Weight for first backendRef (0-100)\n" +
 			"  weight2         Weight for second backendRef (0-100)\n\n" +
 			"Flags:\n" +
-			"  -serviceowner string\n" +
+			"  -s, --service-owner string\n" +
 			"                  Optional: specific serviceowner ID (e.g., ttd, brg, skd)\n" +
-			"  -use-cache, -uc\n" +
-			"                  Use cached data without refreshing from Azure\n" +
 			"  --dry-run\n" +
 			"                  Show what would change without applying")
 	}
 
-	environment := args[0]
-	namespace := args[1]
-	name := args[2]
+	environments, err := validateEnvironments(args[0])
+	if err != nil {
+		return err
+	}
+
+	namespaceAndName := args[1]
+	namespace, name, err := kubernetes.ParseNamespaceAndName(namespaceAndName)
+	if err != nil {
+		return err
+	}
 
 	// Parse and validate weights
 	var weight1, weight2 int
-	if _, err := fmt.Sscanf(args[3], "%d", &weight1); err != nil {
-		return fmt.Errorf("invalid weight1: %s (must be an integer)", args[3])
+	if _, err := fmt.Sscanf(args[2], "%d", &weight1); err != nil {
+		return fmt.Errorf("invalid weight1: %s (must be an integer)", args[2])
 	}
-	if _, err := fmt.Sscanf(args[4], "%d", &weight2); err != nil {
-		return fmt.Errorf("invalid weight2: %s (must be an integer)", args[4])
+	if _, err := fmt.Sscanf(args[3], "%d", &weight2); err != nil {
+		return fmt.Errorf("invalid weight2: %s (must be an integer)", args[3])
 	}
 
 	if weight1 < 0 || weight2 < 0 {
@@ -103,73 +162,80 @@ func runSetWeight() error {
 		return fmt.Errorf("weights must sum to 100 (got weight1=%d + weight2=%d = %d)", weight1, weight2, weight1+weight2)
 	}
 
-	if err := validateEnvironment(environment); err != nil {
-		return err
-	}
-
 	fmt.Println("Validating prerequisites...")
-
-	if err := azure.ValidateAzCLI(); err != nil {
-		return err
-	}
 
 	if err := kubernetes.ValidateKubectl(); err != nil {
 		return err
 	}
 
-	if err := azure.ValidateUserLogin(); err != nil {
-		return err
-	}
-
-	fmt.Printf("Discovering AKS clusters for environment: %s", environment)
+	envStr := strings.Join(environments, ", ")
+	fmt.Printf("Finding clusters for environment(s): %s", envStr)
 	if *serviceowner != "" {
 		fmt.Printf(" (serviceowner: %s)", *serviceowner)
 	}
 	fmt.Println()
 
-	clusters, err := azure.GetClusters(environment, *serviceowner, *useCache)
+	// Get all kubectl contexts and filter by environments and serviceowner
+	contexts, err := kubernetes.GetAllContextDetails()
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Found %d cluster(s)\n", len(clusters))
+	clusterNames := kubernetes.FilterContextsByEnvironment(contexts, environments, *serviceowner)
 
-	fmt.Println("Ensuring cluster credentials...")
-	if err := azure.EnsureAllCredentials(clusters); err != nil {
-		return err
+	if len(clusterNames) == 0 {
+		return fmt.Errorf("no matching clusters found\n\n"+
+			"Run 'go run cmd/main.go init %s%s' to discover and configure clusters",
+			args[0],
+			func() string {
+				if *serviceowner != "" {
+					return fmt.Sprintf(" -s %s", *serviceowner)
+				}
+				return ""
+			}())
 	}
 
-	clusterNames := make([]string, len(clusters))
-	for i, cluster := range clusters {
-		clusterNames[i] = cluster.Name
-	}
+	fmt.Printf("Found %d cluster(s)\n", len(clusterNames))
 
-	fmt.Printf("Fetching current HTTPRoute %s/%s from %d cluster(s)...\n", namespace, name, len(clusters))
+	fmt.Printf("Fetching current HTTPRoute %s/%s from %d cluster(s)...\n", namespace, name, len(clusterNames))
 
 	maxWorkers := 16
 	results := kubernetes.GetAllHTTPRoutes(clusterNames, namespace, name, maxWorkers)
 
-	// Check for errors and identify clusters that need changes
-	var hasErrors bool
+	// Check for errors and identify clusters that need changes, grouped by environment
 	var routesToUpdate []kubernetes.HTTPRouteResult
-	fmt.Println("\nCurrent state:")
-	for _, result := range results {
-		if result.Error != nil {
-			fmt.Printf("  ✗ %s: ERROR - %v\n", result.ClusterName, result.Error)
-			hasErrors = true
-		} else {
-			needsUpdate := result.CurrentWeight1 != weight1 || result.CurrentWeight2 != weight2
-			if needsUpdate {
-				fmt.Printf("  → %s: weight1=%d, weight2=%d (will change)\n", result.ClusterName, result.CurrentWeight1, result.CurrentWeight2)
-				routesToUpdate = append(routesToUpdate, result)
-			} else {
-				fmt.Printf("  ✓ %s: weight1=%d, weight2=%d (already correct)\n", result.ClusterName, result.CurrentWeight1, result.CurrentWeight2)
+	for i, environment := range environments {
+		if i > 0 {
+			fmt.Println()
+		}
+
+		// Filter results for this environment
+		var envResults []kubernetes.HTTPRouteResult
+		for _, result := range results {
+			if strings.HasSuffix(result.ClusterName, "-"+environment+"-aks") {
+				envResults = append(envResults, result)
 			}
 		}
-	}
 
-	if hasErrors {
-		return fmt.Errorf("errors occurred while fetching HTTPRoutes from some clusters")
+		if len(envResults) == 0 {
+			continue
+		}
+
+		fmt.Printf("\n=== Environment: %s ===\n", environment)
+		fmt.Println("Current state:")
+		for _, result := range envResults {
+			if result.Error != nil {
+				fmt.Printf("  ✗ %s: ERROR - %v\n", result.ClusterName, result.Error)
+			} else {
+				needsUpdate := result.CurrentWeight1 != weight1 || result.CurrentWeight2 != weight2
+				if needsUpdate {
+					fmt.Printf("  → %s: weight1=%d, weight2=%d (will change)\n", result.ClusterName, result.CurrentWeight1, result.CurrentWeight2)
+					routesToUpdate = append(routesToUpdate, result)
+				} else {
+					fmt.Printf("  ✓ %s: weight1=%d, weight2=%d (already correct)\n", result.ClusterName, result.CurrentWeight1, result.CurrentWeight2)
+				}
+			}
+		}
 	}
 
 	if len(routesToUpdate) == 0 {
@@ -204,14 +270,34 @@ func runSetWeight() error {
 	fmt.Println("\nApplying weight changes...")
 	updateResults := kubernetes.UpdateAllHTTPRoutes(routesToUpdate, weight1, weight2, maxWorkers)
 
+	// Group results by environment
 	fmt.Println("\nResults:")
 	var updateErrors bool
-	for _, result := range updateResults {
-		if result.Error != nil {
-			fmt.Printf("  ✗ %s: FAILED - %v\n", result.ClusterName, result.Error)
-			updateErrors = true
-		} else {
-			fmt.Printf("  ✓ %s: Successfully updated to weight1=%d, weight2=%d\n", result.ClusterName, result.CurrentWeight1, result.CurrentWeight2)
+	for i, environment := range environments {
+		if i > 0 {
+			fmt.Println()
+		}
+
+		// Filter results for this environment
+		var envResults []kubernetes.HTTPRouteResult
+		for _, result := range updateResults {
+			if strings.HasSuffix(result.ClusterName, "-"+environment+"-aks") {
+				envResults = append(envResults, result)
+			}
+		}
+
+		if len(envResults) == 0 {
+			continue
+		}
+
+		fmt.Printf("=== Environment: %s ===\n", environment)
+		for _, result := range envResults {
+			if result.Error != nil {
+				fmt.Printf("  ✗ %s: FAILED - %v\n", result.ClusterName, result.Error)
+				updateErrors = true
+			} else {
+				fmt.Printf("  ✓ %s: Successfully updated to weight1=%d, weight2=%d\n", result.ClusterName, result.CurrentWeight1, result.CurrentWeight2)
+			}
 		}
 	}
 
@@ -225,33 +311,30 @@ func runSetWeight() error {
 
 func runStatus() error {
 	statusCmd := flag.NewFlagSet("status", flag.ExitOnError)
-	serviceowner := statusCmd.String("serviceowner", "", "Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
-	useCache := statusCmd.Bool("use-cache", false, "Use cached data without refreshing from Azure")
-	statusCmd.BoolVar(useCache, "uc", false, "Use cached data without refreshing from Azure (shorthand)")
+	serviceowner := statusCmd.String("service-owner", "", "Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
+	statusCmd.StringVar(serviceowner, "s", "", "Optional: specific serviceowner ID (shorthand)")
 
 	statusCmd.Parse(os.Args[2:])
 
 	args := statusCmd.Args()
 	if len(args) != 3 {
-		return fmt.Errorf("usage: runtime-health status [flags] <environment> <resource-type> <namespace/name>\n\n" +
+		return fmt.Errorf("usage: go run cmd/main.go status [flags] <environments> <resource-type> <namespace/name>\n\n" +
 			"Arguments:\n" +
-			"  environment     at22, tt02, or prod\n" +
+			"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n" +
 			"  resource-type   hr (helmrelease) or ks (kustomization) or dep (deployment)\n" +
 			"  namespace/name  Resource location (e.g., default/my-app)\n\n" +
 			"Flags:\n" +
-			"  -serviceowner string\n" +
-			"                  Optional: specific serviceowner ID (e.g., ttd, brg, skd)\n" +
-			"  -use-cache, -uc\n" +
-			"                  Use cached data without refreshing from Azure")
+			"  -s, --service-owner string\n" +
+			"                  Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
 	}
 
-	environment := args[0]
-	resourceTypeStr := args[1]
-	namespaceAndName := args[2]
-
-	if err := validateEnvironment(environment); err != nil {
+	environments, err := validateEnvironments(args[0])
+	if err != nil {
 		return err
 	}
+
+	resourceTypeStr := args[1]
+	namespaceAndName := args[2]
 
 	resourceType, err := kubernetes.ParseResourceType(resourceTypeStr)
 	if err != nil {
@@ -265,49 +348,66 @@ func runStatus() error {
 
 	fmt.Println("Validating prerequisites...")
 
-	if err := azure.ValidateAzCLI(); err != nil {
-		return err
-	}
-
 	if err := kubernetes.ValidateKubectl(); err != nil {
 		return err
 	}
 
-	if err := azure.ValidateUserLogin(); err != nil {
-		return err
-	}
-
-	fmt.Printf("Discovering AKS clusters for environment: %s", environment)
+	envStr := strings.Join(environments, ", ")
+	fmt.Printf("Finding clusters for environment(s): %s", envStr)
 	if *serviceowner != "" {
 		fmt.Printf(" (serviceowner: %s)", *serviceowner)
 	}
 	fmt.Println()
 
-	clusters, err := azure.GetClusters(environment, *serviceowner, *useCache)
+	// Get all kubectl contexts and filter by environments and serviceowner
+	contexts, err := kubernetes.GetAllContextDetails()
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Found %d cluster(s)\n", len(clusters))
+	clusterNames := kubernetes.FilterContextsByEnvironment(contexts, environments, *serviceowner)
 
-	fmt.Println("Ensuring cluster credentials...")
-	if err := azure.EnsureAllCredentials(clusters); err != nil {
-		return err
+	if len(clusterNames) == 0 {
+		return fmt.Errorf("no matching clusters found\n\n"+
+			"Run 'go run cmd/main.go init %s%s' to discover and configure clusters",
+			args[0],
+			func() string {
+				if *serviceowner != "" {
+					return fmt.Sprintf(" -s %s", *serviceowner)
+				}
+				return ""
+			}())
 	}
 
-	clusterNames := make([]string, len(clusters))
-	for i, cluster := range clusters {
-		clusterNames[i] = cluster.Name
-	}
+	fmt.Printf("Found %d cluster(s)\n", len(clusterNames))
 
 	fmt.Printf("Querying %s %s/%s across %d cluster(s)...\n",
-		resourceType, namespace, name, len(clusters))
+		resourceType, namespace, name, len(clusterNames))
 
 	maxWorkers := 16
 	results := kubernetes.QueryAllClusters(clusterNames, resourceType, namespace, name, maxWorkers)
 
+	// Group results by environment
 	fmt.Println()
-	output.PrintResults(os.Stdout, results)
+	for i, environment := range environments {
+		if i > 0 {
+			fmt.Println()
+		}
+
+		// Filter results for this environment
+		var envResults []kubernetes.QueryResult
+		for _, result := range results {
+			// Check if cluster name ends with -<environment>-aks
+			if strings.HasSuffix(result.ClusterName, "-"+environment+"-aks") {
+				envResults = append(envResults, result)
+			}
+		}
+
+		if len(envResults) > 0 {
+			fmt.Printf("=== Environment: %s ===\n", environment)
+			output.PrintResults(os.Stdout, envResults)
+		}
+	}
 
 	return nil
 }
@@ -338,41 +438,37 @@ func getContextFlag(command string) (string, error) {
 
 func runExec() error {
 	execCmd := flag.NewFlagSet("exec", flag.ExitOnError)
-	serviceowner := execCmd.String("serviceowner", "", "Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
-	useCache := execCmd.Bool("use-cache", false, "Use cached data without refreshing from Azure")
-	execCmd.BoolVar(useCache, "uc", false, "Use cached data without refreshing from Azure (shorthand)")
+	serviceowner := execCmd.String("service-owner", "", "Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
+	execCmd.StringVar(serviceowner, "s", "", "Optional: specific serviceowner ID (shorthand)")
 	dryRun := execCmd.Bool("dry-run", false, "Show what would be executed without running")
 
 	execCmd.Parse(os.Args[2:])
 	args := execCmd.Args()
 
 	if len(args) < 2 {
-		return fmt.Errorf("usage: runtime-health exec [flags] <environment> <command> [args...]\n\n" +
+		return fmt.Errorf("usage: go run cmd/main.go exec [flags] <environments> <command> [args...]\n\n" +
 			"Arguments:\n" +
-			"  environment     at22, at24, tt02, or prod\n" +
+			"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n" +
 			"  command         kubectl, flux, or helm\n" +
 			"  args...         Arguments to pass to the command\n\n" +
 			"Flags:\n" +
-			"  -serviceowner string\n" +
+			"  -s, --service-owner string\n" +
 			"                  Optional: specific serviceowner ID (e.g., ttd, brg, skd)\n" +
-			"  -use-cache, -uc\n" +
-			"                  Use cached data without refreshing from Azure\n" +
-			"  -dry-run\n" +
+			"  --dry-run\n" +
 			"                  Show what would be executed without running\n\n" +
 			"Examples:\n" +
-			"  runtime-health exec tt02 kubectl get pods -n default\n" +
-			"  runtime-health exec prod flux get kustomizations -A\n" +
-			"  runtime-health exec -serviceowner ttd at22 helm list -A")
+			"  go run cmd/main.go exec tt02 kubectl get pods -n default\n" +
+			"  go run cmd/main.go exec at22,at24 flux get kustomizations -A\n" +
+			"  go run cmd/main.go exec -s ttd prod helm list -A")
 	}
 
-	environment := args[0]
-	command := args[1]
-	commandArgs := args[2:]
-
-	// Validate environment
-	if err := validateEnvironment(environment); err != nil {
+	environments, err := validateEnvironments(args[0])
+	if err != nil {
 		return err
 	}
+
+	command := args[1]
+	commandArgs := args[2:]
 
 	// Validate command and get context flag
 	contextFlag, err := getContextFlag(command)
@@ -387,44 +483,38 @@ func runExec() error {
 
 	fmt.Println("Validating prerequisites...")
 
-	if err := azure.ValidateAzCLI(); err != nil {
-		return err
-	}
-
 	if err := kubernetes.ValidateKubectl(); err != nil {
 		return err
 	}
 
-	if err := azure.ValidateUserLogin(); err != nil {
-		return err
-	}
-
-	fmt.Printf("Discovering AKS clusters for environment: %s", environment)
+	envStr := strings.Join(environments, ", ")
+	fmt.Printf("Finding clusters for environment(s): %s", envStr)
 	if *serviceowner != "" {
 		fmt.Printf(" (serviceowner: %s)", *serviceowner)
 	}
 	fmt.Println()
 
-	clusters, err := azure.GetClusters(environment, *serviceowner, *useCache)
+	// Get all kubectl contexts and filter by environments and serviceowner
+	contexts, err := kubernetes.GetAllContextDetails()
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Found %d cluster(s)\n", len(clusters))
+	clusterNames := kubernetes.FilterContextsByEnvironment(contexts, environments, *serviceowner)
 
-	if len(clusters) == 0 {
-		return fmt.Errorf("no clusters found")
+	if len(clusterNames) == 0 {
+		return fmt.Errorf("no matching clusters found\n\n"+
+			"Run 'go run cmd/main.go init %s%s' to discover and configure clusters",
+			args[0],
+			func() string {
+				if *serviceowner != "" {
+					return fmt.Sprintf(" -s %s", *serviceowner)
+				}
+				return ""
+			}())
 	}
 
-	fmt.Println("Ensuring cluster credentials...")
-	if err := azure.EnsureAllCredentials(clusters); err != nil {
-		return err
-	}
-
-	clusterNames := make([]string, len(clusters))
-	for i, cluster := range clusters {
-		clusterNames[i] = cluster.Name
-	}
+	fmt.Printf("Found %d cluster(s)\n", len(clusterNames))
 
 	// Build the base command for display
 	baseCommand := command
@@ -462,10 +552,7 @@ func runExec() error {
 	fmt.Printf("\nExecuting command on %d cluster(s)...\n", len(clusterNames))
 
 	// Execute commands in parallel using worker pool
-	maxWorkers := 16
-	if len(clusterNames) < maxWorkers {
-		maxWorkers = len(clusterNames)
-	}
+	maxWorkers := min(16, len(clusterNames))
 
 	jobs := make(chan string, len(clusterNames))
 	results := make(chan ExecResult, len(clusterNames))
@@ -500,43 +587,69 @@ func runExec() error {
 		allResults = append(allResults, result)
 	}
 
-	// Display summary table
+	// Group results by environment
 	fmt.Println("\nResults:")
-	fmt.Println(strings.Repeat("-", 80))
-	fmt.Printf("%-40s %-10s %-10s %s\n", "CLUSTER", "STATUS", "EXIT CODE", "ERROR")
-	fmt.Println(strings.Repeat("-", 80))
+	var totalSuccessCount, totalFailureCount int
+	var allFailedResults []ExecResult
 
-	var successCount, failureCount int
-	var failedResults []ExecResult
-
-	for _, result := range allResults {
-		if result.Error != nil || result.ExitCode != 0 {
-			failureCount++
-			failedResults = append(failedResults, result)
-			errMsg := ""
-			if result.Error != nil {
-				errMsg = result.Error.Error()
-			} else if result.Stderr != "" {
-				// Truncate stderr for table display
-				errMsg = strings.Split(result.Stderr, "\n")[0]
-				if len(errMsg) > 40 {
-					errMsg = errMsg[:37] + "..."
-				}
-			}
-			fmt.Printf("%-40s %-10s %-10d %s\n", result.ClusterName, "✗ FAILED", result.ExitCode, errMsg)
-		} else {
-			successCount++
-			fmt.Printf("%-40s %-10s %-10d\n", result.ClusterName, "✓ SUCCESS", result.ExitCode)
+	for i, environment := range environments {
+		if i > 0 {
+			fmt.Println()
 		}
+
+		// Filter results for this environment
+		var envResults []ExecResult
+		for _, result := range allResults {
+			if strings.HasSuffix(result.ClusterName, "-"+environment+"-aks") {
+				envResults = append(envResults, result)
+			}
+		}
+
+		if len(envResults) == 0 {
+			continue
+		}
+
+		fmt.Printf("=== Environment: %s ===\n", environment)
+		fmt.Println(strings.Repeat("-", 80))
+		fmt.Printf("%-40s %-10s %-10s %s\n", "CLUSTER", "STATUS", "EXIT CODE", "ERROR")
+		fmt.Println(strings.Repeat("-", 80))
+
+		var successCount, failureCount int
+		var failedResults []ExecResult
+
+		for _, result := range envResults {
+			if result.Error != nil || result.ExitCode != 0 {
+				failureCount++
+				failedResults = append(failedResults, result)
+				allFailedResults = append(allFailedResults, result)
+				errMsg := ""
+				if result.Error != nil {
+					errMsg = result.Error.Error()
+				} else if result.Stderr != "" {
+					// Truncate stderr for table display
+					errMsg = strings.Split(result.Stderr, "\n")[0]
+					if len(errMsg) > 40 {
+						errMsg = errMsg[:37] + "..."
+					}
+				}
+				fmt.Printf("%-40s %-10s %-10d %s\n", result.ClusterName, "✗ FAILED", result.ExitCode, errMsg)
+			} else {
+				successCount++
+				fmt.Printf("%-40s %-10s %-10d\n", result.ClusterName, "✓ SUCCESS", result.ExitCode)
+			}
+		}
+
+		fmt.Println(strings.Repeat("-", 80))
+		fmt.Printf("Summary: %d succeeded, %d failed\n", successCount, failureCount)
+
+		totalSuccessCount += successCount
+		totalFailureCount += failureCount
 	}
 
-	fmt.Println(strings.Repeat("-", 80))
-	fmt.Printf("Summary: %d succeeded, %d failed\n", successCount, failureCount)
-
 	// Show detailed output for failed clusters
-	if len(failedResults) > 0 {
+	if len(allFailedResults) > 0 {
 		fmt.Println("\n--- Detailed output for failed clusters ---")
-		for _, result := range failedResults {
+		for _, result := range allFailedResults {
 			fmt.Printf("\n[%s] Exit code: %d\n", result.ClusterName, result.ExitCode)
 			if result.Error != nil {
 				fmt.Printf("Error: %v\n", result.Error)
@@ -550,8 +663,8 @@ func runExec() error {
 		}
 	}
 
-	if failureCount > 0 {
-		return fmt.Errorf("command failed on %d/%d clusters", failureCount, len(clusterNames))
+	if totalFailureCount > 0 {
+		return fmt.Errorf("command failed on %d/%d clusters", totalFailureCount, len(clusterNames))
 	}
 
 	fmt.Println("\n✓ Command executed successfully on all clusters")
@@ -591,4 +704,156 @@ func executeCommand(command string, args []string, contextFlag string, clusterNa
 		Stderr:      string(stderr),
 		Error:       nil,
 	}
+}
+
+func runInit() error {
+	initCmd := flag.NewFlagSet("init", flag.ExitOnError)
+	serviceowner := initCmd.String("service-owner", "", "Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
+	initCmd.StringVar(serviceowner, "s", "", "Optional: specific serviceowner ID (shorthand)")
+
+	initCmd.Parse(os.Args[2:])
+	args := initCmd.Args()
+
+	if len(args) != 1 {
+		return fmt.Errorf("usage: go run cmd/main.go init [flags] <environments>\n\n" +
+			"Arguments:\n" +
+			"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n\n" +
+			"Flags:\n" +
+			"  -s, --service-owner string\n" +
+			"                  Optional: specific serviceowner ID (e.g., ttd, brg, skd)\n\n" +
+			"Description:\n" +
+			"  Discovers AKS clusters for the specified environment(s) and ensures\n" +
+			"  kubectl credentials are configured. Maintains a cache of discovered\n" +
+			"  clusters in .cache/clusters.json")
+	}
+
+	environments, err := validateEnvironments(args[0])
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Validating prerequisites...")
+
+	if err := azure.ValidateAzCLI(); err != nil {
+		return err
+	}
+
+	if err := kubernetes.ValidateKubectl(); err != nil {
+		return err
+	}
+
+	if err := azure.ValidateUserLogin(); err != nil {
+		return err
+	}
+
+	// Get all kubectl contexts once
+	fmt.Println("Checking kubectl contexts...")
+	contexts, err := azure.GetAllContexts()
+	if err != nil {
+		return err
+	}
+
+	// Query Azure once for all clusters
+	fmt.Println("Querying all AKS clusters via Azure Resource Graph...")
+	allAzureClusters, err := azure.ListAllClustersViaResourceGraph()
+	if err != nil {
+		return err
+	}
+
+	// Process each environment separately with separate prompts
+	var allDiscoveredClusters []azure.Cluster
+	totalNewClusters := 0
+	totalCredentialsFetched := 0
+
+	for i, environment := range environments {
+		if i > 0 {
+			fmt.Println()
+		}
+
+		fmt.Printf("=== Environment: %s ===\n", environment)
+		if *serviceowner != "" {
+			fmt.Printf("Service owner filter: %s\n", *serviceowner)
+		}
+
+		// Filter by this environment (FilterClusters already excludes "studio" clusters)
+		envClusters := azure.FilterClusters(allAzureClusters, []string{environment}, *serviceowner)
+
+		if len(envClusters) == 0 {
+			fmt.Println("No clusters found matching the specified criteria")
+			continue
+		}
+
+		fmt.Printf("Found %d cluster(s) in Azure\n", len(envClusters))
+
+		// Categorize clusters
+		var existingContexts []string
+		var missingClusters []azure.Cluster
+
+		for _, cluster := range envClusters {
+			if azure.CheckContextExists(cluster.Name, contexts) {
+				existingContexts = append(existingContexts, cluster.Name)
+			} else {
+				missingClusters = append(missingClusters, cluster)
+			}
+		}
+
+		// Display status
+		fmt.Println("\nCluster status:")
+		for _, name := range existingContexts {
+			fmt.Printf("  ✓ %s (credentials already configured)\n", name)
+		}
+		for _, cluster := range missingClusters {
+			fmt.Printf("  → %s (needs credentials)\n", cluster.Name)
+		}
+
+		// Fetch missing credentials if needed
+		if len(missingClusters) > 0 {
+			fmt.Printf("\n%d cluster(s) need credentials\n", len(missingClusters))
+			confirmed, err := azure.PromptConfirmation(fmt.Sprintf("Fetch credentials for %s clusters?", environment))
+			if err != nil {
+				return err
+			}
+
+			if confirmed {
+				fmt.Println("\nFetching credentials...")
+				for _, cluster := range missingClusters {
+					fmt.Printf("  Fetching credentials for %s...\n", cluster.Name)
+					if err := azure.EnsureCredentials(cluster); err != nil {
+						fmt.Printf("  ✗ Failed: %v\n", err)
+						return fmt.Errorf("failed to fetch credentials for %s: %w", cluster.Name, err)
+					}
+					fmt.Printf("  ✓ Success\n")
+					totalCredentialsFetched++
+				}
+			} else {
+				fmt.Println("Skipped credential fetching")
+			}
+		} else {
+			fmt.Println("\nAll clusters already have configured credentials")
+		}
+
+		allDiscoveredClusters = append(allDiscoveredClusters, envClusters...)
+		totalNewClusters += len(envClusters)
+	}
+
+	// Save all discovered clusters to merged cache
+	if len(allDiscoveredClusters) > 0 {
+		fmt.Println("\n=== Updating cache ===")
+		if err := azure.SaveClustersToCache(allDiscoveredClusters); err != nil {
+			return fmt.Errorf("failed to save cache: %w", err)
+		}
+		fmt.Println("Cache updated successfully")
+	}
+
+	// Display summary
+	fmt.Println("\n=== Summary ===")
+	fmt.Printf("  Environments processed: %s\n", strings.Join(environments, ", "))
+	fmt.Printf("  Total clusters discovered: %d\n", totalNewClusters)
+	if totalCredentialsFetched > 0 {
+		fmt.Printf("  Credentials fetched: %d\n", totalCredentialsFetched)
+	}
+	fmt.Printf("  Cache file: .cache/clusters.json\n")
+
+	fmt.Println("\n✓ Initialization complete")
+	return nil
 }
