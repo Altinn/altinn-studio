@@ -93,6 +93,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           rings='${{ needs.construct-rings-array.outputs.ringsjson }}'
+          short_sha="${{ needs.push-syncroot-artifact.outputs.short-sha }}"
           echo ""
           echo "🚀 Dispatched tag workflows:"
           echo ""
@@ -105,9 +106,28 @@ jobs:
               --ref ${{ github.ref_name }} \
               -f ring="$ring_name" \
               -f environment="$environment" \
-              -f short-sha="${{ needs.push-syncroot-artifact.outputs.short-sha }}"
+              -f short-sha="$short_sha"
 
-            echo "✅ $ring_name ($environment)"
+            # Wait a moment for the workflow run to be created
+            sleep 3
+
+            # Construct the expected run name to filter by
+            expected_run_name="Tag syncroot - $ring_name ($environment) - $short_sha"
+
+            # Get the workflow run ID by filtering for the specific run name
+            run_id=$(gh run list \
+              --workflow=runtime-tag-syncroot.yaml \
+              --branch=${{ github.ref_name }} \
+              --limit=10 \
+              --json databaseId,displayTitle \
+              --jq ".[] | select(.displayTitle == \"$expected_run_name\") | .databaseId" \
+              | head -n 1)
+
+            if [ -n "$run_id" ]; then
+              echo "✅ $ring_name ($environment): https://github.com/${{ github.repository }}/actions/runs/$run_id"
+            else
+              echo "✅ $ring_name ($environment): dispatched (run not yet visible)"
+            fi
           done
 
           echo ""
