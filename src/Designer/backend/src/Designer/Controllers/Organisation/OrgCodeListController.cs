@@ -118,6 +118,12 @@ public class OrgCodeListController : ControllerBase
 
     }
 
+    /// <summary>
+    /// Publishes a code list to shared storage.
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation.</param>
+    /// <param name="requestBody">The publish request containing the code list title and data.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
