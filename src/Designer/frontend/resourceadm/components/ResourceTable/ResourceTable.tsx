@@ -82,7 +82,9 @@ export const ResourceTable = ({
 
   const orgEnvs = [
     { id: 'gitea', label: 'dashboard.resource_table_row_in_gitea' },
-    ...getAvailableEnvironments(org),
+    ...getAvailableEnvironments(org).map((env) => {
+      return { ...env, label: env.id.toUpperCase() };
+    }),
   ];
   const {
     getCheckboxProps,

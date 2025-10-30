@@ -192,7 +192,7 @@ describe('ResourceTable', () => {
     render(<ResourceTable {...defaultProps} />);
 
     const envFilterButton = screen.getByRole('checkbox', {
-      name: textMock('resourceadm.deploy_at22_env'),
+      name: 'AT22',
     });
     await user.click(envFilterButton);
 
@@ -207,7 +207,7 @@ describe('ResourceTable', () => {
     render(<ResourceTable {...defaultProps} />);
 
     const envFilterButton = screen.getByRole('checkbox', {
-      name: textMock('resourceadm.deploy_at22_env'),
+      name: 'AT22',
     });
     await user.click(envFilterButton);
 
