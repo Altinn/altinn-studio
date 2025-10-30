@@ -58,3 +58,8 @@ div[class*='bpmn-icon-payment-task'] {
   -webkit-mask: url('../../../img/PaymentTask.svg') var(--mask-icon-size);
   mask: url('../../../img/PaymentTask.svg') var(--mask-icon-size);
 }
+
+div[class*='bpmn-icon-pdf-task'] {
+  -webkit-mask: url('../../../img/PdfTask.svg') var(--mask-icon-size);
+  mask: url('../../../img/PdfTask.svg') var(--mask-icon-size);
+}

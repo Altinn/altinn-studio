@@ -8,6 +8,7 @@ import {
   FeedbackTaskIcon,
   EndEventIcon,
   PaymentTaskIcon,
+  PdfTaskIcon,
   SignTaskIcon,
 } from '@studio/icons';
 import { BpmnTypeEnum } from '@altinn/process-editor/enum/BpmnTypeEnum';
@@ -30,6 +31,8 @@ export const ConfigIcon = ({ taskType, type }: ConfigIconProps): React.ReactElem
       return <SignTaskIcon className={classes.icon} />;
     case 'payment':
       return <PaymentTaskIcon className={classes.icon} />;
+    case 'pdf':
+      return <PdfTaskIcon className={classes.icon} />;
     case BpmnTypeEnum.EndEvent.toString():
       return <EndEventIcon className={classes.icon} />;
     case BpmnTypeEnum.SequenceFlow.toString():
