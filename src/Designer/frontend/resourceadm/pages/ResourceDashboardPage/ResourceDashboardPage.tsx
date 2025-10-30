@@ -49,7 +49,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
     data: resourceListData,
     isPending: resourceListPending,
     isRefetching: refetchingList,
-  } = useGetResourceListQuery(org);
+  } = useGetResourceListQuery(org, true);
 
   const filteredResourceList = filterTableData(searchValue, resourceListData ?? []);
 
@@ -110,6 +110,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
             onClickEditResource={handleNavigateToResource}
             onClickImportResource={onClickImportResource}
             importResourceId={isImportingResource ? importData?.resourceId : ''}
+            includeGiteaColums
           />
         </>
       );

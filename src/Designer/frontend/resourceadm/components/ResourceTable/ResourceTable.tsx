@@ -55,6 +55,10 @@ export type ResourceTableProps = {
    * Id of the resource being imported. Only one resource can be imported at the same time
    */
   importResourceId?: string;
+  /**
+   * Include created by and last modified columns
+   */
+  includeGiteaColums?: boolean;
 };
 
 /**
@@ -72,6 +76,7 @@ export const ResourceTable = ({
   onClickEditResource,
   onClickImportResource,
   importResourceId,
+  includeGiteaColums,
 }: ResourceTableProps): React.JSX.Element => {
   const { t, i18n } = useTranslation();
 
@@ -164,28 +169,7 @@ export const ResourceTable = ({
       };
     });
 
-  const columns: Columns = [
-    {
-      accessor: 'title',
-      heading: t('dashboard.resource_table_header_name'),
-      headerCellClass: classes.headerCell,
-      sortable: true,
-    },
-    {
-      accessor: 'identifier',
-      heading: t('dashboard.resource_table_header_resourceid'),
-      headerCellClass: classes.headerCell,
-      sortable: true,
-    },
-    {
-      accessor: 'resourceType',
-      heading: 'Ressurstype',
-      headerCellClass: classes.headerCell,
-      sortable: true,
-      bodyCellFormatter: (value: string) => {
-        return t(resourceTypeMap[value]);
-      },
-    },
+  const giteaColumns = [
     {
       accessor: 'createdBy',
       heading: t('dashboard.resource_table_header_createdby'),
@@ -212,6 +196,31 @@ export const ResourceTable = ({
         });
       },
     },
+  ];
+
+  const columns: Columns = [
+    {
+      accessor: 'title',
+      heading: t('dashboard.resource_table_header_name'),
+      headerCellClass: classes.headerCell,
+      sortable: true,
+    },
+    {
+      accessor: 'identifier',
+      heading: t('dashboard.resource_table_header_resourceid'),
+      headerCellClass: classes.headerCell,
+      sortable: true,
+    },
+    {
+      accessor: 'resourceType',
+      heading: 'Ressurstype',
+      headerCellClass: classes.headerCell,
+      sortable: true,
+      bodyCellFormatter: (value: string) => {
+        return t(resourceTypeMap[value]);
+      },
+    },
+    ...(includeGiteaColums ? giteaColumns : []),
     {
       accessor: 'environments',
       heading: (
