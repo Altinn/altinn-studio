@@ -22,8 +22,8 @@ export const useGetResourceListQuery = (
   const { getResourceList } = useServicesContext();
 
   return useQuery<ResourceListItem[]>({
-    queryKey: [QueryKey.ResourceList, org],
-    queryFn: () => getResourceList(org, includeGiteaFields),
+    queryKey: [QueryKey.ResourceList, org, includeGiteaFields],
+    queryFn: () => getResourceList(org, !includeGiteaFields),
     select: (resourceListItems: ResourceListItem[]) =>
       resourceListItems && setLastChangedAndSortResourceListByDate(resourceListItems),
     enabled: !disabled,

@@ -58,7 +58,7 @@ export type ResourceTableProps = {
   /**
    * Include created by and last modified columns
    */
-  includeGiteaColums?: boolean;
+  includeGiteaColumns?: boolean;
 };
 
 /**
@@ -76,7 +76,7 @@ export const ResourceTable = ({
   onClickEditResource,
   onClickImportResource,
   importResourceId,
-  includeGiteaColums,
+  includeGiteaColumns,
 }: ResourceTableProps): React.JSX.Element => {
   const { t, i18n } = useTranslation();
 
@@ -213,14 +213,14 @@ export const ResourceTable = ({
     },
     {
       accessor: 'resourceType',
-      heading: 'Ressurstype',
+      heading: t('dashboard.resource_table_header_resource_type'),
       headerCellClass: classes.headerCell,
       sortable: true,
       bodyCellFormatter: (value: string) => {
         return t(resourceTypeMap[value]);
       },
     },
-    ...(includeGiteaColums ? giteaColumns : []),
+    ...(includeGiteaColumns ? giteaColumns : []),
     {
       accessor: 'environments',
       heading: (

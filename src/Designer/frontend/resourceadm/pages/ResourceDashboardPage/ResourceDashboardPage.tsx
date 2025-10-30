@@ -110,7 +110,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
             onClickEditResource={handleNavigateToResource}
             onClickImportResource={onClickImportResource}
             importResourceId={isImportingResource ? importData?.resourceId : ''}
-            includeGiteaColums
+            includeGiteaColumns
           />
         </>
       );

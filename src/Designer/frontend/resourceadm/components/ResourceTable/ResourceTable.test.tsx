@@ -55,6 +55,7 @@ describe('ResourceTable', () => {
     list: mockResourceList,
     onClickEditResource: mockOnClickEditResource,
     onClickImportResource: mockOnClickImportResource,
+    includeGiteaColumns: true,
   };
 
   it('toggles sort order when header is clicked', async () => {

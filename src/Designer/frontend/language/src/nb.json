@@ -414,6 +414,7 @@
   "dashboard.resource_table_header_environment": "Miljø",
   "dashboard.resource_table_header_last_changed": "Siste delte endringer",
   "dashboard.resource_table_header_name": "Navn",
+  "dashboard.resource_table_header_resource_type": "Ressurstype",
   "dashboard.resource_table_header_resourceid": "Ressurs-id",
   "dashboard.resource_table_no_resources_result": "Ingen ressurser funnet",
   "dashboard.resource_table_row_edit": "Rediger ressurs {{resourceName}}",
