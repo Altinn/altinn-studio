@@ -6,7 +6,6 @@
 !yarn.lock
 !.yarn*
 !src/App/template/src
-# Designer needs a wider context since it's using an app-template outside of the Designer folder.
 
 # Test-apps are built in its own container, so they need to be included
 !src/App/backend
