@@ -3,10 +3,8 @@ package kubernetes
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"regexp"
@@ -15,6 +13,13 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/util/homedir"
 )
 
 // ClusterInfo contains information about a cluster
@@ -22,6 +27,7 @@ type ClusterInfo struct {
 	Name         string
 	ServiceOwner string
 	Environment  string
+	client       *kubernetes.Clientset
 }
 
 // LogLine represents a single log line with metadata
@@ -48,76 +54,63 @@ func ExtractServiceOwnerAndEnvironment(clusterName string) (string, string) {
 	return "unknown", "unknown"
 }
 
-// GetPodsForDeployment retrieves all pod names for a deployment
-func GetPodsForDeployment(ctx context.Context, clusterName, namespace, deploymentName string) ([]string, error) {
-	// First, get the deployment to find its label selector
-	cmd := exec.CommandContext(ctx,
-		"kubectl", "get", "deployment", deploymentName,
-		"-n", namespace,
-		"--context", clusterName,
-		"-o", "json",
-	)
+// getK8sClientForContext creates a Kubernetes client for a specific context
+func getK8sClientForContext(contextName string) (*kubernetes.Clientset, error) {
+	home := homedir.HomeDir()
+	if home == "" {
+		return nil, fmt.Errorf("failed to get home dir")
+	}
 
-	output, err := cmd.Output()
+	kubeconfig := filepath.Join(home, ".kube", "config")
+
+	// Load config with specific context
+	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfig},
+		&clientcmd.ConfigOverrides{CurrentContext: contextName},
+	).ClientConfig()
+	if err != nil {
+		return nil, fmt.Errorf("failed to build config for context %s: %w", contextName, err)
+	}
+
+	// create the clientset
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create clientset: %w", err)
+	}
+
+	return clientset, nil
+}
+
+// GetPodsForDeployment retrieves all pod names for a deployment
+func GetPodsForDeployment(ctx context.Context, clientset *kubernetes.Clientset, namespace, deploymentName string) ([]string, error) {
+	// Get the deployment to find its label selector
+	deployment, err := clientset.AppsV1().Deployments(namespace).Get(ctx, deploymentName, metav1.GetOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get deployment: %w", err)
 	}
 
-	// Parse deployment to get label selector
-	var deployment struct {
-		Spec struct {
-			Selector struct {
-				MatchLabels map[string]string `json:"matchLabels"`
-			} `json:"selector"`
-		} `json:"spec"`
-	}
-
-	if err := json.Unmarshal(output, &deployment); err != nil {
-		return nil, fmt.Errorf("failed to parse deployment: %w", err)
-	}
-
-	// Build label selector string from matchLabels
-	var labelSelectors []string
-	for key, value := range deployment.Spec.Selector.MatchLabels {
-		labelSelectors = append(labelSelectors, fmt.Sprintf("%s=%s", key, value))
-	}
-
-	if len(labelSelectors) == 0 {
+	// Get matchLabels from deployment
+	matchLabels := deployment.Spec.Selector.MatchLabels
+	if len(matchLabels) == 0 {
 		return nil, fmt.Errorf("deployment %s has no label selectors", deploymentName)
 	}
 
-	labelSelector := strings.Join(labelSelectors, ",")
+	// Build label selector
+	labelSelector := labels.FormatLabels(matchLabels)
 
-	// Now get pods using the deployment's label selector
-	cmd = exec.CommandContext(ctx,
-		"kubectl", "get", "pods",
-		"-n", namespace,
-		"-l", labelSelector,
-		"--context", clusterName,
-		"-o", "json",
-	)
-
-	output, err = cmd.Output()
+	// Get pods using the deployment's label selector
+	listOptions := metav1.ListOptions{
+		LabelSelector: labelSelector,
+	}
+	podList, err := clientset.CoreV1().Pods(namespace).List(ctx, listOptions)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get pods: %w", err)
 	}
 
-	// Parse JSON response
-	var result struct {
-		Items []struct {
-			Metadata struct {
-				Name string `json:"name"`
-			} `json:"metadata"`
-		} `json:"items"`
-	}
-
-	if err := json.Unmarshal(output, &result); err != nil {
-		return nil, fmt.Errorf("failed to parse pod list: %w", err)
-	}
-
+	// Extract pod names
 	var podNames []string
-	for _, item := range result.Items {
-		podNames = append(podNames, item.Metadata.Name)
+	for _, pod := range podList.Items {
+		podNames = append(podNames, pod.Name)
 	}
 
 	if len(podNames) == 0 {
@@ -130,7 +123,7 @@ func GetPodsForDeployment(ctx context.Context, clusterName, namespace, deploymen
 // streamLogsFromCluster streams logs from all pods in a cluster to a channel
 func streamLogsFromCluster(ctx context.Context, cluster ClusterInfo, namespace, deploymentName string, logsChan chan<- LogLine, since *string, tail *int, follow bool, errorsChan chan<- error) {
 	// Get pods for the deployment
-	pods, err := GetPodsForDeployment(ctx, cluster.Name, namespace, deploymentName)
+	pods, err := GetPodsForDeployment(ctx, cluster.client, namespace, deploymentName)
 	if err != nil {
 		errorsChan <- fmt.Errorf("[%s] %w", cluster.Name, err)
 		return
@@ -149,44 +142,51 @@ func streamLogsFromCluster(ctx context.Context, cluster ClusterInfo, namespace, 
 	wg.Wait()
 }
 
+// parseSinceDuration parses a kubectl-style duration string (e.g., "5m", "1h") to seconds
+func parseSinceDuration(since string) (*int64, error) {
+	duration, err := time.ParseDuration(since)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse duration: %w", err)
+	}
+	seconds := int64(duration.Seconds())
+	return &seconds, nil
+}
+
 // streamPodLogs streams logs from a single pod
 func streamPodLogs(ctx context.Context, cluster ClusterInfo, namespace, podName string, logsChan chan<- LogLine, since *string, tail *int, follow bool, errorsChan chan<- error) {
-	args := []string{
-		"logs", podName,
-		"-n", namespace,
-		"--context", cluster.Name,
-		"--timestamps",
+	// Build pod log options
+	logOptions := &corev1.PodLogOptions{
+		Follow:     follow,
+		Timestamps: true,
 	}
 
-	// Only add --since if specified
+	// Only add SinceSeconds if specified
 	if since != nil && *since != "" {
-		args = append(args, "--since", *since)
+		sinceSeconds, err := parseSinceDuration(*since)
+		if err != nil {
+			errorsChan <- fmt.Errorf("[%s/%s] failed to parse since duration: %w", cluster.Name, podName, err)
+			return
+		}
+		logOptions.SinceSeconds = sinceSeconds
 	}
 
-	// Only add --tail if specified (and valid)
+	// Only add TailLines if specified (and valid)
 	if tail != nil && *tail >= 0 {
-		args = append(args, "--tail", fmt.Sprintf("%d", *tail))
+		tailLines := int64(*tail)
+		logOptions.TailLines = &tailLines
 	}
 
-	if follow {
-		args = append(args, "--follow")
-	}
-
-	cmd := exec.CommandContext(ctx, "kubectl", args...)
-
-	stdout, err := cmd.StdoutPipe()
+	// Get log stream
+	req := cluster.client.CoreV1().Pods(namespace).GetLogs(podName, logOptions)
+	stream, err := req.Stream(ctx)
 	if err != nil {
-		errorsChan <- fmt.Errorf("[%s/%s] failed to create stdout pipe: %w", cluster.Name, podName, err)
+		errorsChan <- fmt.Errorf("[%s/%s] failed to open log stream: %w", cluster.Name, podName, err)
 		return
 	}
-
-	if err := cmd.Start(); err != nil {
-		errorsChan <- fmt.Errorf("[%s/%s] failed to start kubectl: %w", cluster.Name, podName, err)
-		return
-	}
+	defer stream.Close()
 
 	// Parse log lines as they come
-	scanner := bufio.NewScanner(stdout)
+	scanner := bufio.NewScanner(stream)
 	timestampRegex := regexp.MustCompile(`^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z)\s+(.*)$`)
 
 	for scanner.Scan() {
@@ -226,13 +226,6 @@ func streamPodLogs(ctx context.Context, cluster ClusterInfo, namespace, podName 
 	if err := scanner.Err(); err != nil && ctx.Err() == nil {
 		errorsChan <- fmt.Errorf("[%s/%s] scanner error: %w", cluster.Name, podName, err)
 	}
-
-	if err := cmd.Wait(); err != nil && ctx.Err() == nil {
-		// Only report error if context wasn't cancelled
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			errorsChan <- fmt.Errorf("[%s/%s] kubectl exited with code %d", cluster.Name, podName, exitErr.ExitCode())
-		}
-	}
 }
 
 // AggregateLogsWithBuffer aggregates logs from multiple clusters with time buffering
@@ -260,6 +253,15 @@ func AggregateLogsWithBuffer(clusters []ClusterInfo, namespace, deploymentName, 
 		return fmt.Errorf("failed to create output file: %w", err)
 	}
 	defer file.Close()
+
+	// Initialize Kubernetes clients for all clusters
+	for i := range clusters {
+		client, err := getK8sClientForContext(clusters[i].Name)
+		if err != nil {
+			return fmt.Errorf("failed to create k8s client for cluster %s: %w", clusters[i].Name, err)
+		}
+		clusters[i].client = client
+	}
 
 	logsChan := make(chan LogLine, 1024*4)
 	errorsChan := make(chan error, 512)
@@ -295,8 +297,12 @@ func AggregateLogsWithBuffer(clusters []ClusterInfo, namespace, deploymentName, 
 	done := false
 	writer := bufio.NewWriter(file)
 
-	flush := func() error {
-		sequencer.resequence()
+	flush := func(final bool) error {
+		if final {
+			sequencer.resequenceIgnoreDuration()
+		} else {
+			sequencer.resequence()
+		}
 		next := sequencer.next()
 		if len(next) > 0 {
 			for _, line := range next {
@@ -336,7 +342,7 @@ func AggregateLogsWithBuffer(clusters []ClusterInfo, namespace, deploymentName, 
 			sequencer.append(&logLine)
 
 		case <-ticker.C:
-			err := flush()
+			err := flush(false)
 			if err != nil {
 				return err
 			}
@@ -346,7 +352,7 @@ func AggregateLogsWithBuffer(clusters []ClusterInfo, namespace, deploymentName, 
 		}
 	}
 
-	if err := flush(); err != nil {
+	if err := flush(true); err != nil {
 		return fmt.Errorf("failed to flush on completion: %w", err)
 	}
 
@@ -399,6 +405,18 @@ func (r *reSequencer) resequence() {
 	})
 
 	r.availablePos = i
+}
+
+func (r *reSequencer) resequenceIgnoreDuration() {
+	if r.availablePos == r.writerPos {
+		return
+	}
+
+	slices.SortFunc(r.buffer[r.availablePos:r.writerPos], func(a LogLine, b LogLine) int {
+		return a.Timestamp.Compare(b.Timestamp)
+	})
+
+	r.availablePos = r.writerPos
 }
 
 func (r *reSequencer) next() []LogLine {
