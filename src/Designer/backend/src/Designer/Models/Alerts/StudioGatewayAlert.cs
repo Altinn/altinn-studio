@@ -1,9 +1,8 @@
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace Altinn.Studio.Designer.Models;
+namespace Altinn.Studio.Designer.Models.Alerts;
 
-public class Alert
+public class StudioGatewayAlert
 {
     [JsonPropertyName("alertId")]
     public required string AlertId { get; set; }
@@ -20,9 +19,3 @@ public class Alert
     [JsonPropertyName("url")]
     public required string Url { get; set; }
 }
-
-public record GrafanaAlert(
-    Dictionary<string, string> Labels,
-    Dictionary<string, string> Annotations,
-    string GeneratorURL,
-    string Fingerprint);

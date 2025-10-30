@@ -4,14 +4,14 @@ using Altinn.Studio.Designer.Configuration.Marker;
 namespace Altinn.Studio.Designer.Configuration
 {
     /// <summary>
-    /// Grafana settings
+    /// Studio gateway settings
     /// </summary>
-    public class GrafanaSettings : ISettingsMarker
+    public class StudioGatewaySettings : ISettingsMarker
     {
-        public GrafanaEnvSettings Test { get; set; }
-        public GrafanaEnvSettings Prod { get; set; }
+        public StudioGatewayEnvSettings Test { get; set; }
+        public StudioGatewayEnvSettings Prod { get; set; }
 
-        public GrafanaEnvSettings GetSettings(string env)
+        public StudioGatewayEnvSettings GetSettings(string env)
         {
             return string.Equals(env, "prod", StringComparison.OrdinalIgnoreCase) ? Prod : Test;
         }

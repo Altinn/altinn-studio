@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Alerts;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;

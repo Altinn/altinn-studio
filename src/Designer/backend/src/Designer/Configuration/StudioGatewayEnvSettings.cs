@@ -1,9 +1,9 @@
 namespace Altinn.Studio.Designer.Configuration
 {
     /// <summary>
-    /// Grafana env settings
+    /// Studio gateway env settings
     /// </summary>
-    public class GrafanaEnvSettings
+    public class StudioGatewayEnvSettings
     {
         public string BaseUri { get; set; }
         public string Token { get; set; }

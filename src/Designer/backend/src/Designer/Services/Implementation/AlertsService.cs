@@ -1,15 +1,15 @@
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Alerts;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
+using Altinn.Studio.Designer.TypedHttpClient.StudioGateway;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class AlertsService(
-    IServiceProvider serviceProvider
+    IStudioGatewayClient studioGatewayClient
     ) : IAlertsService
 {
     /// <inheritdoc />
@@ -19,10 +19,15 @@ public class AlertsService(
         CancellationToken cancellationToken = default
     )
     {
-        IAlertProvider service = serviceProvider.GetRequiredKeyedService<IAlertProvider>("Grafana");
+        IEnumerable<StudioGatewayAlert> alerts = await studioGatewayClient.GetFiringAlertsAsync(org, env, cancellationToken);
 
-        IEnumerable<Alert> alerts = await service.GetFiringAlertsAsync(org, env, cancellationToken);
-
-        return alerts;
+        return alerts.Select(alert => new Alert
+        {
+            AlertId = alert.AlertId,
+            AlertRuleId = alert.AlertRuleId,
+            Type = alert.Type,
+            App = alert.App,
+            Url = alert.Url
+        });
     }
 }
