@@ -39,7 +39,7 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
   const [selectedTaskIds, setSelectedTaskIds] = useState(currentTaskIds);
   const [taskIdsSelectVisible, setTaskIdsSelectVisible] = useState(!selectedTaskIds.length);
 
-  const selectedTasks = availableTasks?.filter((task) => selectedTaskIds.includes(task.id)) || [];
+  const selectedTasks = availableTasks.filter((task) => selectedTaskIds.includes(task.id));
 
   const handleFilenameBlur = () => {
     if (filename === pdfConfig.filename?.value) {
