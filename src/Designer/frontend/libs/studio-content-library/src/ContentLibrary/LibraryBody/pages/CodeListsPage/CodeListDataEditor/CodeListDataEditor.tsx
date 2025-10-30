@@ -73,7 +73,7 @@ export function CodeListDataEditor({
 
 const DEFAULT_LANGUAGE = 'nb';
 
-function Name({ name }: { name: string }): ReactNode {
+function Name({ name }: Readonly<{ name: string }>): ReactNode {
   const { t } = useTranslation();
   if (name) return name;
   else
