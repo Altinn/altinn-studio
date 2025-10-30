@@ -102,6 +102,7 @@ jobs:
             echo "Dispatching workflow for ring: $ring_name, environment: $environment"
 
             gh workflow run runtime-tag-syncroot.yaml \
+              --ref ${{ github.ref_name }} \
               -f ring="$ring_name" \
               -f environment="$environment" \
               -f short-sha="${{ needs.push-syncroot-artifact.outputs.short-sha }}"
