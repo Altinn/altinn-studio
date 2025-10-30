@@ -1,5 +1,7 @@
 name: Runtime - Tag syncroot artifact
 
+run-name: Tag syncroot - ${{ inputs.ring }} (${{ inputs.environment }}) - ${{ inputs.short-sha }}
+
 on:
   workflow_dispatch:
     inputs:
