@@ -38,6 +38,12 @@ describe('CodeListsPage', () => {
     await user.click(deleteButton);
     expect(queryCodeListHeading(nameOfNewList)).not.toBeInTheDocument();
   });
+
+  it('Displays a placeholder when the list of code lists is empty', () => {
+    renderCodeListPage();
+    const placeholderText = textMock('app_content_library.code_lists.empty');
+    expect(screen.getByText(placeholderText)).toBeInTheDocument();
+  });
 });
 
 function renderCodeListPage(): RenderResult {
