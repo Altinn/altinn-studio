@@ -5,9 +5,7 @@
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../../../App/backend/src/Altinn.App.Api/Altinn.App.Api.csproj">
-      <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
-    </ProjectReference>
+    <ProjectReference Include="../../../../App/backend/src/Altinn.App.Api/Altinn.App.Api.csproj" />
     <ProjectReference Include="../../../../App/backend/src/Altinn.App.Core/Altinn.App.Core.csproj" />
     <ProjectReference Include="../../../../App/codelists/src/Altinn.Codelists/Altinn.Codelists.csproj" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0" />

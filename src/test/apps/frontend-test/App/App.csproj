@@ -6,9 +6,7 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../../../App/backend/src/Altinn.App.Api/Altinn.App.Api.csproj">
-      <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
-    </ProjectReference>
+    <ProjectReference Include="../../../../App/backend/src/Altinn.App.Api/Altinn.App.Api.csproj" />
     <ProjectReference Include="../../../../App/backend/src/Altinn.App.Core/Altinn.App.Core.csproj" />
     <ProjectReference Include="../../../../App/codelists/src/Altinn.Codelists/Altinn.Codelists.csproj" />
     <ProjectReference Include="../../../../App/fileanalyzers/src/Altinn.FileAnalyzers/Altinn.FileAnalyzers.csproj" />
