@@ -26,7 +26,11 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
         title={t('sync_header.gitea_menu')}
         variant='tertiary'
       />
-      <StudioPopover data-color-scheme='light' className={classes.popover}>
+      <StudioPopover
+        data-color-scheme='light'
+        className={classes.popover}
+        onClose={() => setClonePopoverOpen(false)}
+      >
         <ul className={classes.menuItems}>
           {isClonePossible && (
             <li>

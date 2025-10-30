@@ -100,7 +100,10 @@ export const InputPopover = ({
               <StudioButton
                 color='first'
                 variant='primary'
-                onClick={() => saveNewName(newName)}
+                onClick={() => {
+                  saveNewName(newName);
+                  handleClose();
+                }}
                 disabled={!shouldSavingBeEnabled}
               >
                 {t('ux_editor.input_popover_save_button')}
