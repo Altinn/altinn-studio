@@ -16,7 +16,7 @@ public class PdfServiceTaskTests
     private readonly Mock<IProcessReader> _processReaderMock = new();
     private readonly PdfServiceTask _serviceTask;
 
-    private const string FileName = "My file name";
+    private const string FileName = "customFilenameTextResourceKey";
 
     public PdfServiceTaskTests()
     {
@@ -26,7 +26,7 @@ public class PdfServiceTaskTests
                 new AltinnTaskExtension
                 {
                     TaskType = "pdf",
-                    PdfConfiguration = new AltinnPdfConfiguration { Filename = FileName },
+                    PdfConfiguration = new AltinnPdfConfiguration { FilenameTextResourceKey = FileName },
                 }
             );
 
@@ -76,7 +76,11 @@ public class PdfServiceTaskTests
                 new AltinnTaskExtension
                 {
                     TaskType = "pdf",
-                    PdfConfiguration = new AltinnPdfConfiguration { Filename = "test.pdf", AutoPdfTaskIds = taskIds },
+                    PdfConfiguration = new AltinnPdfConfiguration
+                    {
+                        FilenameTextResourceKey = "customFilenameTextResourceKey",
+                        AutoPdfTaskIds = taskIds,
+                    },
                 }
             );
 
@@ -97,7 +101,14 @@ public class PdfServiceTaskTests
 
         // Assert
         _pdfServiceMock.Verify(
-            x => x.GenerateAndStorePdf(instance, "pdfTask", "test.pdf", taskIds, It.IsAny<CancellationToken>()),
+            x =>
+                x.GenerateAndStorePdf(
+                    instance,
+                    "pdfTask",
+                    "customFilenameTextResourceKey",
+                    taskIds,
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
     }

@@ -3318,8 +3318,8 @@ namespace Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties
         [System.Xml.Serialization.XmlArray(ElementName="autoPdfTaskIds", IsNullable=true, Namespace="http://altinn.no/process")]
         [System.Xml.Serialization.XmlArrayItem(ElementName="taskId", Namespace="http://altinn.no/process")]
         public System.Collections.Generic.List<string>? AutoPdfTaskIds { get; set; }
-        [System.Xml.Serialization.XmlElement("filename", Namespace="http://altinn.no/process")]
-        public string? Filename { get; set; }
+        [System.Xml.Serialization.XmlElement("filenameTextResourceKey", Namespace="http://altinn.no/process")]
+        public string? FilenameTextResourceKey { get; set; }
     }
     public class AltinnSignatureConfiguration
     {
