@@ -162,6 +162,19 @@ describe('Preview', () => {
 
     expect(screen.getByText(/ux_editor.preview.subform_unsupported_warning/i)).toBeInTheDocument();
   });
+
+  it('should show error message when preview instance creation fails', async () => {
+    render({
+      queries: {
+        createPreviewInstance: jest.fn().mockImplementation(() => Promise.reject('Error')),
+      },
+    });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('preview.loading_preview_controller')),
+    );
+
+    expect(screen.getByText(textMock('general.page_error_title'))).toBeInTheDocument();
+  });
 });
 
 const collapseToggle = jest.fn();
