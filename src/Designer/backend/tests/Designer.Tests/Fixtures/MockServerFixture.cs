@@ -1,3 +1,4 @@
+#nullable disable
 using System.Threading.Tasks;
 using WireMock.Server;
 using Xunit;

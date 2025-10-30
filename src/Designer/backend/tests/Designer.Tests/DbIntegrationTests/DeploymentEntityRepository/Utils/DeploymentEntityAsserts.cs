@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Text.Json;
 using Altinn.AccessManagement.Tests.Utils;

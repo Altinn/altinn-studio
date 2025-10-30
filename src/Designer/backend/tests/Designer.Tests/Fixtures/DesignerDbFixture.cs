@@ -1,3 +1,4 @@
+#nullable disable
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using DotNet.Testcontainers.Images;

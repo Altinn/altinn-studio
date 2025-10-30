@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable disable
+using System;
 using System.IO;
 using Altinn.AccessManagement.Tests.Utils;
 using Altinn.Authorization.ABAC.Xacml;

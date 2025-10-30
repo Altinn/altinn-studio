@@ -1,3 +1,4 @@
+#nullable disable
 using System.Net.Http;
 
 namespace Designer.Tests.Fixtures;
