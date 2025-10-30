@@ -117,18 +117,6 @@ jobs:
             # Retry logic to find the workflow run
             run_id=""
             for i in {1..5}; do
-              # Debug: Show what runs are found (first attempt only)
-              if [ $i -eq 1 ]; then
-                echo "  Looking for: $expected_run_name"
-                echo "  Recent runs:"
-                gh run list \
-                  --workflow=runtime-tag-syncroot.yaml \
-                  --branch=${{ github.ref_name }} \
-                  --limit=5 \
-                  --json displayTitle,name \
-                  --jq '.[] | "    - displayTitle: \(.displayTitle), name: \(.name)"'
-              fi
-
               run_id=$(gh run list \
                 --workflow=runtime-tag-syncroot.yaml \
                 --branch=${{ github.ref_name }} \
@@ -141,6 +129,7 @@ jobs:
                 break
               fi
 
+              # Try again after a short wait
               sleep 2
             done
 
