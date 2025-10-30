@@ -1,7 +1,6 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -56,7 +55,7 @@ public class AzureSharedContentClient : ISharedContentClient
 
         if (string.IsNullOrWhiteSpace(storageAccountUrl) || string.IsNullOrWhiteSpace(storageContainerName))
         {
-            throw new ConfigurationErrorsException("StorageAccountUrl and StorageContainerName are required");
+            throw new ArgumentException("StorageAccountUrl and StorageContainerName are required");
         }
         _sharedContentBaseUri = CombineWithDelimiter(storageAccountUrl, storageContainerName);
     }

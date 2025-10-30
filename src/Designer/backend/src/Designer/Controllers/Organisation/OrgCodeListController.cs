@@ -1,7 +1,6 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -133,7 +132,7 @@ public class OrgCodeListController : ControllerBase
             await _orgCodeListService.PublishCodeList(org, requestBody, cancellationToken);
             return Ok();
         }
-        catch (Exception ex) when (ex is ConfigurationErrorsException or IllegalFileNameException or ArgumentNullException)
+        catch (Exception ex) when (ex is ArgumentException or IllegalFileNameException or ArgumentNullException)
         {
             _logger.LogError(ex, "Invalid request to publish codelist for org {Org}.", org);
             return BadRequest(new ProblemDetails
