@@ -2,50 +2,77 @@
 
 - Status: Draft
 - Deciders: Team Altinn Studio/Digdir R&D lab
-- Date: 27.10.2025
+- Date: 30.10.2025
 
 ## Result
-
-Which alternative was chosen. Do not include any reasoning here.
 
 ## Problem context
 
 The new AI assistant in Studio is dependent on both an agent service and an MCP service. There is a need to deploy these services, so that the AI assistant in Studio can run entirely online, without having to run the services locally.
 
-When the user enters a prompt in Designer frontend, it goes via Designer backend, to the agent server, which plans, executes changes, and verifies the app according to the given prompt. The agent gathers context by calling on many different tools in the MCP server (e.g `layout_tool`, `datamodel_tool` and `schema_validation_tool`). The changes are then saved into a new branch in Gitea by the agent.
+When a prompt is entered in Designer frontend, it goes via Designer backend, to the agent server. Then, the agent gathers context by calling on tools from the MCP server. Lastly, the agent saves its work into a new branch in Gitea.
 
-The agent server and the MCP servers are separated because we want to allow users of tools like Claude Code and Windsurf to use the MCP as a separate service for developing apps locally.
+The agent and the MCP are separated because we want to allow users of tools like Claude Code and Windsurf to use the MCP as a separate service for developing apps locally.
 
-We will limit the access to the agent and MCP to registered service owners, in order to reduce token usage and possible abuses of the services by third paries. Authorization will be done via a Gitea PAT token.
+We will limit the access to the agent and MCP to registered service owners, in order to reduce token usage and possible abuses of the services by third parties. Authorization will be done via a Gitea PAT token.
+
+Both services will have their own API key to connect to the Azure AI service, in order to track API usage for each service. The API requests should include metadata in order to track the usage for each service owner. The API requests will also be rate limited, to prevent excessive usage.
 
 ## Decision drivers
 
-A list of decision drivers. These are points which can differ in importance. If a point is "nice to have" rather than
-"need to have", then prefix the description.
-
-Examples
-
-- B1: The solution make it easier for app developers to develop an app.
-- B2: Nice to have: The solution should be simple to implement for out team.
+- D1: Services must be accessible online for Studio Designer frontend
+- D2: MCP service must be usable independently by local development tools
+- D3: Services must not leak access into other parts of the cluster
+- D4: Must support authorization via Gitea PAT tokens to permit access to registered service owners only
+- D5: Operational costs must be manageable and monitorable
+- D6: Services must be scalable to handle growing usage
 
 ## Alternatives considered
 
-List the alternatives that were considered as a solution to the problem context.
-
-- A1: A solution to the problem.
-- A2: Another solution to the problem
+- A1: Deploy agent service and MCP service as separate containerized applications in the existing Altinn Studio infrastructure. Use namespaces for isolation and implement Gitea PAT token authorization at the service level.
 
 ## Pros and cons
 
-List the pros and cons with the alternatives. This should be in regards to the decision drivers.
-
 ### A1
 
-- Good, because this alternative adheres to B1.
-  - Optional explanation as to how.
-- Bad, because it does not fullfill the B2 decision driver.
+- Good, because it fulfills D1 by deploying both services as accessible endpoints within the Studio infrastructure
+- Good, because it fulfills D2 by deploying MCP as a separate, independently accessible service that local development tools can connect to
+- Good, because it fulfills D3 by using Kubernetes namespaces to isolate the services and prevent unauthorized access to other parts of the cluster
+- Good, because it fulfills D4 by allowing implementation of Gitea PAT token authorization
+- Good, because it fulfills D5 by tracking usage for each service and service owner
+- Good, because it fulfills D6 by having separate services that allow independent scaling
 
-### A2
+## Architecture Overview
 
-- Good, because this alternative adheres to B2.
-- Bad, because it does not fullfill the B1 decision driver.
+```mermaid
+graph TB
+  User[Studio User] --> Frontend[Designer Frontend]
+  Frontend --> Backend[Designer Backend]
+  Backend --> Agent[Agent Service]
+  Agent --> MCP[MCP Service]
+
+  LocalDev[Local Development Tools] --> MCP
+
+  Agent --> AzureAI[Azure AI Service]
+  MCP --> AzureAI
+
+  subgraph K8s["Kubernetes Cluster"]
+    subgraph AgentNS["Agent Namespace"]
+      Agent
+    end
+    subgraph MCPNS["MCP Namespace"]
+      MCP
+    end
+  end
+
+  subgraph Auth["Authorization"]
+    PAT[Gitea PAT] --> Agent
+    PAT --> MCP
+  end
+
+  subgraph GitSub["Git"]
+    Gitea[Gitea Repository]
+  end
+
+  Gitea --> Agent
+```
