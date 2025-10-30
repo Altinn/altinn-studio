@@ -65,7 +65,7 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
             uri = QueryHelpers.AddQueryString(
                 uri,
                 "process.isComplete",
-                processIsCompleteFilter.Value.ToString()
+                processIsCompleteFilter.Value.ToString().ToLowerInvariant()
             );
         }
 
