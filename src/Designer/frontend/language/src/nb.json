@@ -25,6 +25,7 @@
   "api_errors.UploadedImageNotValid": "Det opplastede bildet er ikke en gyldig filtype",
   "app_content_library.code_lists.name": "Navn",
   "app_content_library.code_lists.page_name": "Kodelister (ny)",
+  "app_content_library.code_lists.unnamed": "Uten navn",
   "app_content_library.code_lists_with_text_resources.add_new_code_list": "Legg til kodeliste",
   "app_content_library.code_lists_with_text_resources.code_list_delete": "Slett kodeliste",
   "app_content_library.code_lists_with_text_resources.code_list_delete_confirm": "Er du sikker på at du vil slette kodelisten {{codeListTitle}}? Alt innholdet i kodelisten vil bli fjernet.",

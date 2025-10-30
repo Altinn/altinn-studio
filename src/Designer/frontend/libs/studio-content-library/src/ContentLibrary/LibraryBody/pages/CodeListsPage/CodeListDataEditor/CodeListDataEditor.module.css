@@ -20,3 +20,7 @@
 .codes {
   grid-area: codes;
 }
+
+.unnamed {
+  font-style: italic;
+}

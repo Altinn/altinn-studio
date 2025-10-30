@@ -56,6 +56,18 @@ describe('CodeListDataEditor', () => {
     await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
     expect(onDelete).toHaveBeenCalledTimes(1);
   });
+
+  it('Renders with placeholder when name is empty', () => {
+    renderCodeListDataEditor({ data: { ...data, name: '' } });
+    const placeholderText = textMock('app_content_library.code_lists.unnamed');
+    expect(screen.getByText(placeholderText)).toBeInTheDocument();
+  });
+
+  it('Does not render the placeholder when name is provided', () => {
+    renderCodeListDataEditor();
+    const placeholderText = textMock('app_content_library.code_lists.unnamed');
+    expect(screen.queryByText(placeholderText)).not.toBeInTheDocument();
+  });
 });
 
 function renderCodeListDataEditor(props: Partial<CodeListDataEditorProps> = {}): RenderResult {
