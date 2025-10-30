@@ -6,10 +6,12 @@
     <UserSecretsId>833f0be1-8b48-403d-8631-c14e0da2ef0a</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api" Version="8.8.2" />
-    <PackageReference Include="Altinn.App.Core" Version="8.8.2" />
+    <ProjectReference Include="../../../../App/backend/src/Altinn.App.Api/Altinn.App.Api.csproj">
+      <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="../../../../App/backend/src/Altinn.App.Core/Altinn.App.Core.csproj" />
+    <ProjectReference Include="../../../../App/codelists/src/Altinn.Codelists/Altinn.Codelists.csproj" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0" />
-    <PackageReference Include="Altinn.Codelists" Version="8.0.2" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\css\" />
