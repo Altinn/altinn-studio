@@ -19,4 +19,6 @@
 
 .content {
   word-break: break-all;
+  margin-top: var(--ds-size-4);
+  margin-left: 0;
 }

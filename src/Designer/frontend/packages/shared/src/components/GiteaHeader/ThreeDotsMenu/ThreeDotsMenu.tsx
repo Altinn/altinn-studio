@@ -3,8 +3,7 @@ import classes from './ThreeDotsMenu.module.css';
 import { TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
-import { StudioPageHeader, StudioPopover } from '@studio/components-legacy';
-import { StudioLinkButton } from '@studio/components';
+import { StudioLinkButton, StudioPopover } from '@studio/components';
 import { LocalChangesModal } from './LocalChangesModal';
 import { ClonePopoverContent } from './ClonePopoverContent';
 import { useGiteaHeaderContext } from '../context/GiteaHeaderContext';
@@ -21,32 +20,33 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
   const toggleClonePopoverOpen = () => setClonePopoverOpen((oldValue) => !oldValue);
 
   return (
-    <StudioPopover>
-      <StudioPageHeader.PopoverTrigger
+    <StudioPopover.TriggerContext>
+      <StudioPopover.Trigger
         icon={<MenuElipsisVerticalIcon />}
         title={t('sync_header.gitea_menu')}
-        color='light'
-        variant='regular'
+        variant='tertiary'
       />
-      <StudioPopover.Content data-color-scheme='light' className={classes.popover}>
+      <StudioPopover data-color-scheme='light' className={classes.popover}>
         <ul className={classes.menuItems}>
           {isClonePossible && (
             <li>
-              <StudioPopover open={clonePopoverOpen} onClose={toggleClonePopoverOpen}>
+              <StudioPopover.TriggerContext>
                 <StudioPopover.Trigger
-                  fullWidth
                   onClick={toggleClonePopoverOpen}
                   variant='tertiary'
                   className={classes.menuButton}
-                  size='small'
+                  icon={<TabsIcon />}
                 >
-                  <TabsIcon />
                   {t('sync_header.clone')}
                 </StudioPopover.Trigger>
-                <StudioPopover.Content className={classes.popoverContent}>
-                  <ClonePopoverContent />
-                </StudioPopover.Content>
-              </StudioPopover>
+                <StudioPopover open={clonePopoverOpen} onClose={() => setClonePopoverOpen(false)}>
+                  {clonePopoverOpen && (
+                    <div className={classes.popoverContent}>
+                      <ClonePopoverContent />
+                    </div>
+                  )}
+                </StudioPopover>
+              </StudioPopover.TriggerContext>
             </li>
           )}
           <li>
@@ -66,7 +66,7 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
             <LocalChangesModal triggerClassName={classes.menuButton} />
           </li>
         </ul>
-      </StudioPopover.Content>
-    </StudioPopover>
+      </StudioPopover>
+    </StudioPopover.TriggerContext>
   );
 };

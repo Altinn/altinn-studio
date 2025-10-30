@@ -1,6 +1,7 @@
 .popoverContent {
   width: 445px;
   max-width: 100%;
+  z-index: 9999;
 }
 
 .popoverContentCenter {
@@ -11,4 +12,15 @@
   gap: var(--fds-spacing-5);
   width: 445px;
   max-width: 100%;
+}
+
+/* Styles for .pushchButton maybe will be temporary until we migrate StudioPageHeader */
+.pushButton {
+  color: var(--ds-base-contrast-default);
+  font-family: var(--studio-font-family);
+  font-size: var(--ds--body-xs-font-size);
+}
+
+.pushButton:hover {
+  background-color: var(--studio-header-button-hover-background);
 }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StudioPageHeader, StudioPopover, useMediaQuery } from '@studio/components-legacy';
+import { useMediaQuery } from '@studio/components-legacy';
+import { StudioPopover } from '@studio/components';
 import { UploadIcon } from '@studio/icons';
 import classes from './ShareChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
@@ -35,7 +36,8 @@ export const ShareChangesPopover = () => {
 
   const handleClosePopover = () => setPopoverOpen(false);
 
-  const handleOpenPopover = async () => {
+  const handleOpenPopover = async (event?: React.MouseEvent) => {
+    event?.stopPropagation();
     setPopoverOpen(true);
     setIsLoading(true);
 
@@ -59,32 +61,42 @@ export const ShareChangesPopover = () => {
   };
 
   return (
-    <StudioPopover open={popoverOpen} onClose={handleClosePopover} placement='bottom-end'>
-      <StudioPageHeader.PopoverTrigger
+    <StudioPopover.TriggerContext>
+      {/* Used StudioPopover insted of StudioPageHeader because StudioPageHeader has not replaced with v1 yet,
+       and the component maybe needs some style before migration to v1.
+       */}
+      <StudioPopover.Trigger
+        className={classes.pushButton}
         onClick={handleOpenPopover}
         disabled={!hasPushRights || hasMergeConflict}
         title={renderCorrectTitle()}
         icon={<UploadIcon />}
-        color='light'
-        variant='regular'
+        variant='tertiary'
         aria-label={t('sync_header.changes_to_share')}
       >
         {shouldDisplayText && t('sync_header.changes_to_share')}
         {displayNotification && <Notification />}
-      </StudioPageHeader.PopoverTrigger>
-      <StudioPopover.Content
+      </StudioPopover.Trigger>
+      <StudioPopover
+        open={popoverOpen}
+        onClose={handleClosePopover}
+        placement='bottom-end'
         data-color-scheme='light'
         className={fetchCompleted ? classes.popoverContentCenter : classes.popoverContent}
       >
-        {isLoading && (
-          <SyncLoadingIndicator heading={t('sync_header.controlling_service_status')} />
+        {popoverOpen && (
+          <>
+            {isLoading && (
+              <SyncLoadingIndicator heading={t('sync_header.controlling_service_status')} />
+            )}
+            {!isLoading && hasChangesToPush && fileChanges && (
+              <CommitAndPushContent onClosePopover={handleClosePopover} fileChanges={fileChanges} />
+            )}
+            {fetchCompleted && <GiteaFetchCompleted heading={t('sync_header.nothing_to_push')} />}
+          </>
         )}
-        {!isLoading && hasChangesToPush && (
-          <CommitAndPushContent onClosePopover={handleClosePopover} fileChanges={fileChanges} />
-        )}
-        {fetchCompleted && <GiteaFetchCompleted heading={t('sync_header.nothing_to_push')} />}
-      </StudioPopover.Content>
-    </StudioPopover>
+      </StudioPopover>
+    </StudioPopover.TriggerContext>
   );
 };
 

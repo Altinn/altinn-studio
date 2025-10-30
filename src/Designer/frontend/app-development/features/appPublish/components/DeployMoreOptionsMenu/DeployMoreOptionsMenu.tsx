@@ -1,6 +1,5 @@
 import React, { type ReactElement } from 'react';
-import { StudioPopover } from '@studio/components-legacy';
-import { StudioLink } from '@studio/components';
+import { StudioPopover, StudioLink, StudioList } from '@studio/components';
 import { ExternalLinkIcon, MenuElipsisVerticalIcon } from '@studio/icons';
 import { UndeployConsequenceDialog } from '../UndeployConsequenceDialog/UndeployConsequenceDialog';
 import classes from './DeployMoreOptionsMenu.module.css';
@@ -17,32 +16,30 @@ export const DeployMoreOptionsMenu = ({
 }: DeployMoreOptionsMenuProps): ReactElement => {
   const { t } = useTranslation();
   return (
-    <StudioPopover>
+    <StudioPopover.TriggerContext>
       <StudioPopover.Trigger
-        size='sm'
         variant='secondary'
         className={classes.trigger}
         aria-label={t('app_deployment.deploy_more_options_menu_label')}
-      >
-        <MenuElipsisVerticalIcon />
-      </StudioPopover.Trigger>
-      <StudioPopover.Content className={classes.content}>
-        <ul className={classes.listContainer}>
-          <li>
+        icon={<MenuElipsisVerticalIcon />}
+      />
+      <StudioPopover className={classes.content}>
+        <StudioList.Root className={classes.listContainer}>
+          <StudioList.Item>
             <UndeployConsequenceDialog environment={environment} />
-          </li>
-          <li>
+          </StudioList.Item>
+          <StudioList.Item>
             <StudioLink
-              className={classes.itemButton}
+              className={classes.linkButton}
               href={linkToEnv}
               icon={<ExternalLinkIcon />}
               rel='noopener noreferrer'
             >
               {t('app_deployment.more_options_menu')}
             </StudioLink>
-          </li>
-        </ul>
-      </StudioPopover.Content>
-    </StudioPopover>
+          </StudioList.Item>
+        </StudioList.Root>
+      </StudioPopover>
+    </StudioPopover.TriggerContext>
   );
 };

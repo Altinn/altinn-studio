@@ -7,8 +7,7 @@ import { CreateRelease } from '../components/CreateRelease';
 import { Release } from '../components/Release';
 import { UploadIcon, CheckmarkIcon } from '@studio/icons';
 import { gitCommitPath } from 'app-shared/api/paths';
-import { StudioPopover } from '@studio/components-legacy';
-import { StudioParagraph, StudioSpinner, StudioError } from '@studio/components';
+import { StudioPopover, StudioParagraph, StudioSpinner, StudioError } from '@studio/components';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -192,7 +191,7 @@ export function ReleaseContainer() {
       </div>
       <div className={classes.versionSubHeader}>
         <div className={classes.appCreateReleaseTitle}>{renderCreateReleaseTitle()}</div>
-        <StudioPopover open={popoverOpenClick || popoverOpenHover}>
+        <StudioPopover.TriggerContext>
           <StudioPopover.Trigger
             title={t('app_create_release.status_popover')}
             className={classes.appCreateReleaseStatusButton}
@@ -202,11 +201,12 @@ export function ReleaseContainer() {
             tabIndex={0}
             onKeyUp={handlePopoverKeyPress}
             variant='tertiary'
-          >
-            {renderStatusIcon()}
-          </StudioPopover.Trigger>
-          <StudioPopover.Content>{renderStatusMessage()}</StudioPopover.Content>
-        </StudioPopover>
+            icon={renderStatusIcon()}
+          />
+          <StudioPopover open={popoverOpenClick || popoverOpenHover} onClose={handlePopoverClose}>
+            {renderStatusMessage()}
+          </StudioPopover>
+        </StudioPopover.TriggerContext>
       </div>
       <div className={classes.appReleaseCreateRelease}>{renderCreateRelease()}</div>
       <div className={classes.appReleaseHistoryTitle}>{t('app_release.earlier_releases')}</div>

@@ -7,8 +7,7 @@ import {
   getComponentTitleByComponentType,
 } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
-import { StudioPopover } from '@studio/components-legacy';
-import { StudioLabelAsParagraph } from '@studio/components';
+import { StudioPopover, StudioLabelAsParagraph } from '@studio/components';
 import { InformationIcon } from '@studio/icons';
 import { Paragraph } from '@digdir/designsystemet-react';
 
@@ -27,11 +26,9 @@ export const InformationPanelComponent = ({
 }: InformationPanelProvidedProps) => {
   const { t } = useTranslation();
   return (
-    <StudioPopover open={isOpen} onClose={onClose} placement='right'>
-      <StudioPopover.Trigger size='small' onClick={onOpen} variant='tertiary'>
-        <InformationIcon />
-      </StudioPopover.Trigger>
-      <StudioPopover.Content>
+    <StudioPopover.TriggerContext>
+      <StudioPopover.Trigger onClick={onOpen} variant='tertiary' icon={<InformationIcon />} />
+      <StudioPopover open={isOpen} onClose={onClose} placement='right'>
         <div className={classNames(classes.informationPanelHeader)}>
           <StudioLabelAsParagraph>
             {getComponentTitleByComponentType(selectedComponent, t)}
@@ -42,7 +39,7 @@ export const InformationPanelComponent = ({
             {getComponentHelperTextByComponentType(selectedComponent, t)}
           </Paragraph>
         </div>
-      </StudioPopover.Content>
-    </StudioPopover>
+      </StudioPopover>
+    </StudioPopover.TriggerContext>
   );
 };

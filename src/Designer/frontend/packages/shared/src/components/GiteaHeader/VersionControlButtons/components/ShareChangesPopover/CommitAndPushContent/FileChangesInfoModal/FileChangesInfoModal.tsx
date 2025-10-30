@@ -62,7 +62,7 @@ export const FileChangesInfoModal = ({
               </Table.Row>
             </Table.Head>
             <Table.Body>
-              {fileChanges.map((fileChange) => (
+              {fileChanges?.map((fileChange) => (
                 <FileChangeTableRow
                   key={fileChange.filePath}
                   fileChange={fileChange}
