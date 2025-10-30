@@ -6,18 +6,20 @@ import type { IAppLanguage, IApplicationSettings, IInstance, IProcess, IProfile 
 
 export {};
 
+export type AltinnAppData = {
+  instance: IInstance;
+  processState: IProcess;
+  userProfile: IProfile;
+  layoutSets: ILayoutSets;
+  applicationMetadata: IncomingApplicationMetadata;
+  footerLayout: IFooterLayout | null;
+  appLanguages: IAppLanguage[];
+  textResources: ITextResourceResult | null;
+  frontendSettings: IApplicationSettings;
+};
+
 declare global {
   interface Window {
-    AltinnAppData: {
-      instance: IInstance;
-      processState: IProcess;
-      userProfile: IProfile;
-      layoutSets: ILayoutSets;
-      applicationMetadata: IncomingApplicationMetadata;
-      footerLayout: IFooterLayout | null;
-      appLanguages: IAppLanguage[];
-      textResources: ITextResourceResult | null;
-      frontendSettings: IApplicationSettings;
-    };
+    AltinnAppData: AltinnAppData;
   }
 }

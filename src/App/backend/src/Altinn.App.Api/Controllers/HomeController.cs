@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -16,7 +17,7 @@ using Microsoft.Extensions.Primitives;
 
 namespace Altinn.App.Api.Controllers;
 
-/// <summary>
+/// <summary>A
 /// Provides access to the default home view.
 /// </summary>
 public class HomeController : Controller
@@ -374,7 +375,153 @@ public class HomeController : Controller
             return NotFound("no initial page id");
         }
 
+        // Preserve query parameters (e.g., pdf, lang) in the redirect
+        if (Request.QueryString.HasValue)
+        {
+            redirectUrl += Request.QueryString.Value;
+        }
+
         return Redirect(redirectUrl);
+    }
+
+    /// <summary>
+    /// Renders the receipt page when the process has ended.
+    /// </summary>
+    /// <param name="org">The application owner short name.</param>
+    /// <param name="app">The name of the app</param>
+    /// <param name="partyId">The party identifier.</param>
+    /// <param name="instanceGuid">The instance GUID.</param>
+    [HttpGet]
+    [Route("{org}/{app}/instance/{partyId}/{instanceGuid}/ProcessEnd")]
+    public async Task<IActionResult> ProcessEnd(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int partyId,
+        [FromRoute] Guid instanceGuid
+    )
+    {
+        if (!await UserCanSeeStatelessApp())
+        {
+            return Unauthorized();
+        }
+
+        // Generate and set XSRF token cookie for frontend
+        var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
+        if (tokens.RequestToken != null)
+        {
+            HttpContext.Response.Cookies.Append(
+                "XSRF-TOKEN",
+                tokens.RequestToken,
+                new CookieOptions
+                {
+                    HttpOnly = false, // Make this cookie readable by Javascript.
+                }
+            );
+        }
+
+        string instanceId = $"{partyId}/{instanceGuid}";
+        Instance instance = await _instanceClient.GetInstance(app, org, partyId, instanceGuid);
+
+        // Verify process actually ended (optional safety check)
+        if (instance.Process?.Ended.HasValue != true)
+        {
+            _logger.LogWarning("ProcessEnd route accessed but process not ended for instance {InstanceId}", instanceId);
+        }
+
+        var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
+        var initialData = await _initialDataService.GetInitialData(org, app, instanceId, partyId, language);
+
+        var html = GenerateHtml(org, app, initialData);
+        return Content(html, "text/html; charset=utf-8");
+    }
+
+    /// <summary>
+    /// Resolves instance with specific task. Redirects to first page if task is current,
+    /// otherwise renders app with full data (frontend will show "not available" UI).
+    /// </summary>
+    /// <param name="org">The application owner short name.</param>
+    /// <param name="app">The name of the app</param>
+    /// <param name="partyId">The party identifier.</param>
+    /// <param name="instanceGuid">The instance GUID.</param>
+    /// <param name="taskId">The task identifier.</param>
+    [HttpGet]
+    [Route("{org}/{app}/instance/{partyId}/{instanceGuid}/{taskId}")]
+    public async Task<IActionResult> InstanceByTask(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int partyId,
+        [FromRoute] Guid instanceGuid,
+        [FromRoute] string taskId
+    )
+    {
+        // Check authentication before proceeding
+        if (!await UserCanSeeStatelessApp())
+        {
+            return Unauthorized();
+        }
+
+        // Generate and set XSRF token cookie for frontend
+        var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
+        if (tokens.RequestToken != null)
+        {
+            HttpContext.Response.Cookies.Append(
+                "XSRF-TOKEN",
+                tokens.RequestToken,
+                new CookieOptions
+                {
+                    HttpOnly = false, // Make this cookie readable by Javascript.
+                }
+            );
+        }
+
+        Instance instance = await _instanceClient.GetInstance(app, org, partyId, instanceGuid);
+
+        string? currentTaskId = instance.Process?.CurrentTask?.ElementId;
+
+        if (currentTaskId == null)
+        {
+            return BadRequest("Instance has no active task");
+        }
+
+        // If requested task IS the current task → redirect to first page
+        if (taskId == currentTaskId)
+        {
+            var layoutSet = _appResources.GetLayoutSetForTask(currentTaskId);
+            string? firstPageId = null;
+
+            if (layoutSet != null)
+            {
+                var layoutSettings = _appResources.GetLayoutSettingsForSet(layoutSet.Id);
+                if (layoutSettings?.Pages?.Order != null && layoutSettings.Pages.Order.Count > 0)
+                {
+                    firstPageId = layoutSettings.Pages.Order[0];
+                }
+            }
+
+            if (!string.IsNullOrEmpty(firstPageId))
+            {
+                string redirectUrl = $"/{org}/{app}/instance/{partyId}/{instanceGuid}/{currentTaskId}/{firstPageId}";
+
+                // Preserve query parameters (e.g., lang)
+                if (Request.QueryString.HasValue)
+                {
+                    redirectUrl += Request.QueryString.Value;
+                }
+
+                return Redirect(redirectUrl);
+            }
+
+            // No first page found - fall through to render HTML with full data
+        }
+
+        // If requested task is NOT current OR no first page found → render app with full initial data
+        // Frontend will handle navigation appropriately
+        string instanceId = $"{partyId}/{instanceGuid}";
+        var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
+        var initialData = await _initialDataService.GetInitialData(org, app, instanceId, partyId, language);
+
+        var html = GenerateHtml(org, app, initialData);
+        return Content(html, "text/html; charset=utf-8");
     }
 
     /// <summary>

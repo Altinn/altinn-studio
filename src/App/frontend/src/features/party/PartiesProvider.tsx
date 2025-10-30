@@ -1,5 +1,6 @@
 import type { PropsWithChildren } from 'react';
 
+import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import type { IParty } from 'src/types/shared';
 
 /**
@@ -52,7 +53,8 @@ export const useSetHasSelectedParty = () => (_hasSelected: boolean) => {
  * Returns the instance owner party from window data
  */
 export function useInstanceOwnerParty(): IParty | null {
-  const instance = window.AltinnAppData?.instance;
+  const instance = useInstanceDataQuery().data;
+
   const instanceOwner = instance?.instanceOwner;
 
   if (!instanceOwner) {

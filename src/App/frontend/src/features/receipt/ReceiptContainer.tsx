@@ -142,7 +142,7 @@ export const ReceiptContainer = () => {
     if (!lastChangedDateTime) {
       return 'lastChangedDateTime';
     }
-    if (!instanceOwnerParty) {
+    if (!instanceOwner) {
       return 'instanceOwnerParty';
     }
     return undefined;

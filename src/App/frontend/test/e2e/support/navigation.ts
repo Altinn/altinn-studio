@@ -48,6 +48,11 @@ const gotoFunctions: { [key in FrontendTestTask]: (extra?: Extras, startOptions?
     cy.startAppInstance(appFrontend.apps.frontendTest, {
       ...startOptions,
     });
+
+    cy.get('#custom-button-taskChooserButton').should('exist').click();
+    // Click the radio button for "Endring av navn (Task_2)"
+    cy.findByRole('radio', { name: 'Repeterende grupper (Task_3)' }).should('exist').click();
+    cy.get('#sendInButtonOnTaskChooser').should('exist').click();
   },
   likert: (extra?: Extras, startOptions?: StartAppInstanceOptions) => {
     if (extra) {

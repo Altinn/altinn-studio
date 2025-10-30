@@ -5,13 +5,13 @@ import { customReceiptPageAnother, customReceiptPageReceipt } from 'test/e2e/sup
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { IInstance } from 'src/types/shared';
+import type { AltinnAppData } from 'src/types/window';
 
 const appFrontend = new AppFrontend();
 
 describe('All process steps', () => {
   it('Should be possible to fill out all steps from beginning to end', () => {
     cy.goto('message');
-
     // Later in this test we will make sure PDFs are created, so we need to set the cookie to
     // convince the backend to create them
     cy.setCookie('createPdf', 'true');
@@ -28,20 +28,22 @@ describe('All process steps', () => {
 
     cy.fillOut('datalist');
     testAllSummary2();
-    cy.get(appFrontend.sendinButton).clickAndGone();
 
+    cy.get(appFrontend.sendinButton).clickAndGone();
     testConfirmationPage();
 
     interceptAndAddInstanceSubstatus();
     cy.get(appFrontend.confirm.sendIn).click();
     testReceipt();
 
+    interceptAndAddInstanceSubstatus();
     interceptAndAddCustomReceipt();
-    cy.reloadAndWait();
+
     testCustomReceiptPage();
 
     // When the instance has been sent in, we'll test that the data models submitted are correct, and what we expect
     // according to what we filled out during all the previous steps.
+    // cy.pause();
     testInstanceData();
   });
 });
@@ -128,18 +130,43 @@ function testReceiptSubStatus() {
 }
 
 function interceptAndAddCustomReceipt() {
-  cy.intercept('**/layoutsets', (req) => {
-    req.on('response', (res) => {
-      const layoutSets = JSON.parse(res.body);
-      layoutSets.sets.push({
-        id: 'custom-receipt',
-        dataType: 'likert',
-        tasks: ['CustomReceipt'],
-      });
-      res.body = JSON.stringify(layoutSets);
-    });
-  }).as('LayoutSets');
+  // Intercept the HTML response from the backend and modify window.AltinnAppData
+  cy.intercept('GET', '**/ProcessEnd', (req) => {
+    req.continue((res) => {
+      if (res.body && typeof res.body === 'string') {
+        // Find and modify the window.AltinnAppData assignment in the HTML
+        // Look for the pattern: window.AltinnAppData = {...}; followed by window.org
+        const startMarker = 'window.AltinnAppData = ';
+        const endMarker = ';\n      window.org';
 
+        const startIndex = res.body.indexOf(startMarker);
+        const endIndex = res.body.indexOf(endMarker, startIndex);
+
+        if (startIndex !== -1 && endIndex !== -1) {
+          try {
+            const jsonStart = startIndex + startMarker.length;
+            const jsonData = res.body.substring(jsonStart, endIndex);
+            const data = JSON.parse(jsonData);
+
+            if (data.layoutSets?.sets) {
+              data.layoutSets.sets.push({
+                id: 'custom-receipt',
+                dataType: 'likert',
+                tasks: ['CustomReceipt'],
+              });
+            }
+
+            const modifiedJson = JSON.stringify(data);
+            res.body = res.body.substring(0, jsonStart) + modifiedJson + res.body.substring(endIndex);
+          } catch (e) {
+            console.error('Failed to modify AltinnAppData:', e);
+          }
+        }
+      }
+    });
+  }).as('ProcessEndHTML');
+
+  // Layout settings and layouts are still fetched by the frontend, so intercept those
   cy.intercept('**/layoutsettings/custom-receipt**', { pages: { order: ['receipt', 'another'] } }).as('LayoutSettings');
 
   cy.intercept('**/layouts/custom-receipt', (req) => {
@@ -154,10 +181,60 @@ function interceptAndAddCustomReceipt() {
 }
 
 export function testCustomReceiptPage() {
+  cy.waitUntilSaved();
+  cy.url().then((url) => {
+    cy.visit(url, {
+      onBeforeLoad(win: Window & { AltinnAppData?: AltinnAppData }) {
+        const patch = (v: AltinnAppData) => ({
+          ...v,
+          layoutSets: {
+            ...v?.layoutSets,
+            sets: [
+              ...(v?.layoutSets?.sets ?? []),
+              { id: 'custom-receipt', dataType: 'likert', tasks: ['CustomReceipt'] },
+            ],
+          },
+          instance: {
+            ...v.instance,
+            status: {
+              substatus: {
+                label: 'substatus.label',
+                description: 'substatus.description',
+              },
+            },
+          },
+        });
+
+        // Closure-backed storage to avoid recursive reads
+        let backing = {}; // safe default in case something reads before the app assigns
+
+        Object.defineProperty(win, 'AltinnAppData', {
+          configurable: true,
+          enumerable: true,
+          get() {
+            return backing;
+          },
+          set(v) {
+            // capture the app's inline assignment and patch it
+            backing = patch(v ?? {});
+          },
+        });
+
+        // Optional debug without triggering recursion
+        win.addEventListener('DOMContentLoaded', () => {
+          console.log('AltinnAppData after inline assignment:', backing);
+        });
+      },
+    });
+  });
+
+  cy.get('#finishedLoading').should('exist');
+  cy.findByRole('progressbar').should('not.exist');
+  cy.injectAxe();
+
   cy.get(appFrontend.receipt.container).should('not.exist');
   cy.findByText('Custom kvittering').should('be.visible');
   cy.findByText('Takk for din innsending, dette er en veldig fin custom kvittering.').should('be.visible');
-
   testReceiptSubStatus();
 
   const checkAttachmentSection = (sectionId: string, title: string, attachmentCount: number) => {
@@ -167,12 +244,10 @@ export function testCustomReceiptPage() {
       .children()
       .should('have.length', attachmentCount);
   };
-
   checkAttachmentSection('r-attachments-one', 'Vedlegg fra første side', 1);
   checkAttachmentSection('r-attachments-other', 'Andre vedlegg', 5);
   checkAttachmentSection('r-attachments-pdf', 'Bare PDF-er', 5);
   checkAttachmentSection('r-attachments-all', 'Alle vedlegg inkludert PDF', 10);
-
   // Assert that receipts now support multiple pages
   cy.findByRole('button', { name: /Neste/ }).click();
   cy.findByText('Dette er neste side').should('exist');
@@ -186,9 +261,8 @@ function testInstanceData() {
     const urlParsed = new URL(url);
     const maybeInstanceId = getInstanceIdRegExp().exec(url);
     const instanceId = maybeInstanceId ? maybeInstanceId[1] : 'instance-id-not-found';
-
     const host = Cypress.env('type') === 'localtest' ? urlParsed.origin : 'https://ttd.apps.tt02.altinn.no';
-    const instanceUrl = [host, urlParsed.pathname, `/instances/`, instanceId].join('');
+    const instanceUrl = `${host}/ttd/frontend-test/instances/${instanceId}`;
 
     cy.request({ url: instanceUrl }).then((response) => {
       const instanceData = response.body as IInstance;

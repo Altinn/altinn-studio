@@ -12,7 +12,7 @@ public class PdfGeneratorSettings
     /// {instanceid} will be on the form {instanceownerId}/{instanceGuid}
     /// eg: 123456/e7e56353-a935-443d-b2dd-7d41739e7d1c
     /// </remarks>
-    public string AppPdfPagePathTemplate { get; set; } = "#/instance/{instanceId}?pdf=1";
+    public string AppPdfPagePathTemplate { get; set; } = "/instance/{instanceId}?pdf=1";
 
     /// <summary>
     /// The name of a DOM element to wait for before triggering PDF-generator.
