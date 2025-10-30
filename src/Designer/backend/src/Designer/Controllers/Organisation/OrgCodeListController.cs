@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.CodeList;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
@@ -122,6 +123,7 @@ public class OrgCodeListController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Route("new/publish")]
+    [Authorize(Policy = AltinnPolicy.MustBelongToOrganization)]
     public async Task<ActionResult> PublishCodeList(string org, [FromBody] PublishCodeListRequest requestBody, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
