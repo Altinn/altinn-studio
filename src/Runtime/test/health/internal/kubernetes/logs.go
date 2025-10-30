@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"regexp"
 	"slices"
 	"strings"
 	"sync"
@@ -187,39 +186,39 @@ func streamPodLogs(ctx context.Context, cluster ClusterInfo, namespace, podName 
 
 	// Parse log lines as they come
 	scanner := bufio.NewScanner(stream)
-	timestampRegex := regexp.MustCompile(`^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z)\s+(.*)$`)
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		matches := timestampRegex.FindStringSubmatch(line)
 
-		if len(matches) == 3 {
-			timestamp, err := time.Parse(time.RFC3339Nano, matches[1])
+		timestampStr, message, found := strings.Cut(line, " ")
+		if !found {
+			errorsChan <- fmt.Errorf("[%s/%s] invalid log line (no space): %s", cluster.Name, podName, line)
+			continue
+		}
+
+		timestamp, err := time.Parse(time.RFC3339Nano, timestampStr)
+		if err != nil {
+			// Try without nanoseconds
+			timestamp, err = time.Parse(time.RFC3339, timestampStr)
 			if err != nil {
-				// Try without nanoseconds
-				timestamp, err = time.Parse(time.RFC3339, matches[1])
-				if err != nil {
-					errorsChan <- fmt.Errorf("[%s/%s] couldn't parse timestamp in line: %s", cluster.Name, podName, line)
-					continue
-				}
+				errorsChan <- fmt.Errorf("[%s/%s] couldn't parse timestamp in line: %s", cluster.Name, podName, line)
+				continue
 			}
+		}
 
-			logLine := LogLine{
-				Timestamp:    timestamp.UTC(),
-				ClusterName:  cluster.Name,
-				ServiceOwner: cluster.ServiceOwner,
-				Environment:  cluster.Environment,
-				PodName:      podName,
-				Message:      matches[2],
-			}
+		logLine := LogLine{
+			Timestamp:    timestamp.UTC(),
+			ClusterName:  cluster.Name,
+			ServiceOwner: cluster.ServiceOwner,
+			Environment:  cluster.Environment,
+			PodName:      podName,
+			Message:      message,
+		}
 
-			select {
-			case logsChan <- logLine:
-			case <-ctx.Done():
-				return
-			}
-		} else {
-			errorsChan <- fmt.Errorf("[%s/%s] invalid log line: %s", cluster.Name, podName, line)
+		select {
+		case logsChan <- logLine:
+		case <-ctx.Done():
+			return
 		}
 	}
 
