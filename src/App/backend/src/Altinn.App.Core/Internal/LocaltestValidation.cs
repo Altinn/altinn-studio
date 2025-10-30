@@ -308,7 +308,7 @@ internal sealed class LocaltestValidation : BackgroundService
                 {
                     _registeredAppId = appId;
                     _logger.LogInformation(
-                        "Successfully registered app {AppId} on {Hostname}:{Port} with localtest",
+                        "Successfully registered {AppId} with localtest on {Hostname}:{Port}",
                         appId,
                         hostname ?? "host.docker.internal",
                         port

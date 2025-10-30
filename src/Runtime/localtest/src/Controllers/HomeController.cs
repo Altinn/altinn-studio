@@ -71,7 +71,7 @@ namespace LocalTest.Controllers
         {
             StartAppModel model = new StartAppModel()
             {
-                AppModeIsHttp = _localPlatformSettings.LocalAppMode == "http",
+                AppMode = _localPlatformSettings.LocalAppMode,
                 AppPath = _localPlatformSettings.AppRepositoryBasePath,
                 StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath,
                 LocalAppUrl = _localPlatformSettings.LocalAppUrl,
@@ -81,14 +81,14 @@ namespace LocalTest.Controllers
             try
             {
                 model.TestApps = await GetAppsList();
-                if (model.AppModeIsHttp)
+                if (model.AppMode == "http")
                 {
                     model.Org = model.TestApps[0].Value?.Split("/").FirstOrDefault();
                     model.App = model.TestApps[0].Value?.Split("/").LastOrDefault();
                 }
                 model.TestUsers = await GetTestUsersAndPartiesSelectList();
                 model.UserSelect = Request.Cookies["Localtest_User.Party_Select"];
-                var defaultAuthLevel = await GetAppAuthLevel(model.AppModeIsHttp, model.TestApps);
+                var defaultAuthLevel = await GetAppAuthLevel(model.AppMode == "http", model.TestApps);
                 model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
             }
             catch (HttpRequestException e)
