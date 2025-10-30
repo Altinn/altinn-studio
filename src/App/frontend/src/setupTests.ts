@@ -16,8 +16,10 @@ import type { AxiosResponse } from 'axios';
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 // Importing CSS for jest-preview to look nicer
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
+import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import type {
   doProcessNext,
   fetchApplicationMetadata,
@@ -82,6 +84,32 @@ window.logInfoOnce = window.logError;
 
 window.scrollTo = () => {};
 document.getAnimations = () => [];
+
+// Initialize window.AltinnAppData with default mock data
+// Use IDs that match the test router expectations (see renderWithProviders.tsx)
+const exampleGuid = '75154373-aed4-41f7-95b4-e5b5115c2edc';
+const examplePartyId = 512345;
+window.AltinnAppData = {
+  instance: getInstanceDataMock((instance) => {
+    instance.id = `${examplePartyId}/${exampleGuid}`;
+    instance.data[0].instanceGuid = exampleGuid;
+  }, examplePartyId),
+  processState: getProcessDataMock(),
+  userProfile: getProfileMock(),
+  layoutSets: getLayoutSetsMock(),
+  applicationMetadata: getIncomingApplicationMetadataMock(),
+  footerLayout: null,
+  appLanguages: [
+    { language: 'nb' },
+    { language: 'nn' },
+    { language: 'en' },
+  ],
+  textResources: {
+    language: 'nb',
+    resources: getTextResourcesMock(),
+  },
+  frontendSettings: {},
+};
 
 jest.setTimeout(env.parsed?.JEST_TIMEOUT ? parseInt(env.parsed.JEST_TIMEOUT, 10) : 20000);
 

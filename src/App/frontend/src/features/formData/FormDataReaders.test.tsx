@@ -50,13 +50,13 @@ async function render(props: TestProps) {
   });
   const instanceId = instanceData.id;
 
-  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
+  jest.mocked(fetchApplicationMetadata).mockImplementation(async () =>
     getIncomingApplicationMetadataMock((a) => {
       a.dataTypes = a.dataTypes.filter((dt) => !dt.appLogic?.classRef);
       a.dataTypes.push(...generateDataTypes());
     }),
   );
-  jest.mocked(fetchInstanceData).mockImplementationOnce(async () => instanceData);
+  jest.mocked(fetchInstanceData).mockImplementation(async () => instanceData);
 
   function generateDataElements(instanceId: string): IData[] {
     return dataModelNames.map((name) => {
@@ -143,19 +143,37 @@ async function render(props: TestProps) {
 }
 
 describe('FormDataReaders', () => {
+  let windowLogWarnOnceSpy: jest.SpiedFunction<typeof window.logWarnOnce>;
+  let windowLogErrorSpy: jest.SpiedFunction<typeof window.logError>;
+  let windowLogErrorOnceSpy: jest.SpiedFunction<typeof window.logErrorOnce>;
+
   beforeAll(() => {
-    jest
+    windowLogWarnOnceSpy = jest
       .spyOn(window, 'logWarnOnce')
       .mockImplementation(() => {})
       .mockName('window.logWarnOnce');
-    jest
+    windowLogErrorSpy = jest
       .spyOn(window, 'logError')
       .mockImplementation(() => {})
       .mockName('window.logError');
-    jest
+    windowLogErrorOnceSpy = jest
       .spyOn(window, 'logErrorOnce')
       .mockImplementation(() => {})
       .mockName('window.logErrorOnce');
+  });
+
+  afterAll(() => {
+    windowLogWarnOnceSpy.mockRestore();
+    windowLogErrorSpy.mockRestore();
+    windowLogErrorOnceSpy.mockRestore();
+  });
+
+  afterEach(() => {
+    jest.mocked(fetchApplicationMetadata).mockReset();
+    jest.mocked(fetchInstanceData).mockReset();
+    windowLogWarnOnceSpy.mockClear();
+    windowLogErrorSpy.mockClear();
+    windowLogErrorOnceSpy.mockClear();
   });
 
   it.each<string>(['someModel', 'someModel1.0'])(

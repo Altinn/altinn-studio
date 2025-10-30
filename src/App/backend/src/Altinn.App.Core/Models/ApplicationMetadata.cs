@@ -83,4 +83,11 @@ public class ApplicationMetadata : Application
     /// </summary>
     [JsonProperty(PropertyName = "externalApiIds")]
     public string[]? ExternalApiIds { get; set; }
+
+    /// <summary>
+    /// Frontend sometimes need to have knowledge of the nuget package version for backwards compatibility.
+    /// The string is of the format `major.minor.patch.build`.
+    /// </summary>
+    [JsonProperty(PropertyName = "promptForParty")]
+    public string? PromptForParty { get; set; }
 }

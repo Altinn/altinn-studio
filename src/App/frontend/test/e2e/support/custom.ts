@@ -353,6 +353,7 @@ Cypress.Commands.add('visualTesting', (name, _options) => {
 
 Cypress.Commands.add('testWcag', () => {
   cy.log('Testing WCAG');
+  cy.injectAxe();
   const spec = Cypress.spec.absolute.replace(/.*\/integration\//g, '');
   const axeOptions: AxeOptions = {
     includedImpacts: ['critical', 'serious', 'moderate'],

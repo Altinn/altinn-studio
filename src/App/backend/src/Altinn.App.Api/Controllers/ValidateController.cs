@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
@@ -72,6 +73,7 @@ public class ValidateController : ControllerBase
         }
 
         string? taskId = instance.Process?.CurrentTask?.ElementId;
+        Debugger.Break();
         if (taskId == null)
         {
             throw new ValidationException("Unable to validate instance without a started process.");

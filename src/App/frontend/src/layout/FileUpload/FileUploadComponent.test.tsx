@@ -501,6 +501,9 @@ describe('File uploading components', () => {
     attachments: attachmentsGenerator = (dataType) => getDataElements({ dataType }),
     queries,
   }: Props<T>) {
+    const id = uuidv4();
+    const attachments = attachmentsGenerator(id);
+
     jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
       getIncomingApplicationMetadataMock((a) => {
         a.dataTypes.push({
@@ -516,9 +519,6 @@ describe('File uploading components', () => {
         i.data.push(...attachments);
       }),
     );
-
-    const id = uuidv4();
-    const attachments = attachmentsGenerator(id);
 
     const textResourceBindings = {
       title: 'attachment-title',

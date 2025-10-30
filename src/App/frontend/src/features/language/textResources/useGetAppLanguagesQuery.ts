@@ -1,26 +1,28 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
-
-import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import type { IAppLanguage } from 'src/types/shared';
 
-export function useGetAppLanguageQuery(enabled: boolean) {
-  const { fetchAppLanguages } = useAppQueries();
-  const utils = useQuery({
-    queryKey: ['fetchAppLanguages'],
-    queryFn: () => fetchAppLanguages(),
-    enabled,
-    select,
-  });
+export function useGetAppLanguageQuery() {
+  const appLanguages = window.AltinnAppData?.appLanguages;
+
+  const data = useMemo(() => {
+    if (!appLanguages) {
+      return undefined;
+    }
+    return select(appLanguages);
+  }, [appLanguages]);
 
   useEffect(() => {
-    if (utils.data && new Set(utils.data).size < utils.data.length) {
-      window.logError(`Found multiple text resource files with the same 'language', languages found:\n`, utils.data);
+    if (data && new Set(data).size < data.length) {
+      window.logError(`Found multiple text resource files with the same 'language', languages found:\n`, data);
     }
-  }, [utils.data]);
+  }, [data]);
 
-  return utils;
+  return {
+    data,
+    error: null,
+    isFetching: false,
+  };
 }
 
 function select(appLanguages: IAppLanguage[]) {
