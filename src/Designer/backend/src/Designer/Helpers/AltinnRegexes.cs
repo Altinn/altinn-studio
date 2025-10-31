@@ -1,3 +1,4 @@
+#nullable disable
 using System.Text.RegularExpressions;
 
 namespace Altinn.Studio.Designer.Helpers;
