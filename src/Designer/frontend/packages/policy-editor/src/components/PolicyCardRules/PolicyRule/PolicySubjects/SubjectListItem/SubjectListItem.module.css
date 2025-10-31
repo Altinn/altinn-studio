@@ -1,0 +1,34 @@
+.subjectItem {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-3);
+  box-shadow: var(--ds-shadow-sm);
+  padding: var(--ds-size-3);
+}
+.subjectItem.selectedSubject {
+  background-color: var(--ds-color-surface-tinted);
+  padding: var(--ds-size-1);
+}
+
+.subjectTitle {
+  font-weight: var(--ds-font-weight-medium);
+  flex: 1;
+}
+
+.subjectCheckbox {
+  margin: 0 var(--ds-size-2);
+}
+
+.iconContainer {
+  font-size: var(--ds-font-size-7);
+  background-color: var(--ds-color-surface-tinted);
+  border-radius: var(--ds-border-radius-sm);
+  padding: var(--ds-size-1);
+}
+
+.subjectSubTitle {
+  color: var(--ds-color-text-subtle);
+  font-size: var(--ds-font-size-1);
+  font-weight: var(--ds-font-weight-regular);
+  line-height: normal;
+}

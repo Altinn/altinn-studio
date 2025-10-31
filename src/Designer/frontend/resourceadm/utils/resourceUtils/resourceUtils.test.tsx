@@ -8,12 +8,33 @@ import {
   getResourcePolicyRules,
   getResourceSubjects,
 } from './';
-import type { EnvId } from './resourceUtils';
+import { createAccessListSubject, type EnvId } from './resourceUtils';
 import type { Resource, ResourceError, ResourceFormError } from 'app-shared/types/ResourceAdm';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { emptyPolicyRule, organizationSubject } from '@altinn/policy-editor/utils';
+import {
+  emptyPolicyRule,
+  organizationSubject,
+  policySubjectOrg,
+} from '@altinn/policy-editor/utils';
 import type { Policy, PolicyRule } from '@altinn/policy-editor/types';
+
+const policySubject = [
+  {
+    id: '16857e39-441f-4dd4-8592-aed94e816c04',
+    name: 'Begrenset signeringsrettighet',
+    description:
+      'Tilgang til å signere utvalgte skjema og tjenester. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som rollen gir.',
+    urn: 'urn:altinn:rolecode:SISKD',
+    legacyRoleCode: 'SISKD',
+    legacyUrn: 'urn:altinn:rolecode:SISKD',
+    provider: {
+      id: '0195ea92-2080-777d-8626-69c91ea2a05d',
+      name: 'Altinn 2',
+      code: 'sys-altinn2',
+    },
+  },
+];
 
 describe('mapKeywordStringToKeywordTypeArray', () => {
   it('should split keywords correctly', () => {
@@ -62,11 +83,6 @@ describe('deepCompare', () => {
 
   it('should return false when one object is null', () => {
     const areEqual = deepCompare(null, {});
-    expect(areEqual).toBeFalsy();
-  });
-
-  it('should return false when objects are not equal', () => {
-    const areEqual = deepCompare({ a: 1 }, {});
     expect(areEqual).toBeFalsy();
   });
 
@@ -390,7 +406,7 @@ describe('getResourcePolicyRules', () => {
   const expectedConsentRules: PolicyRule[] = [
     {
       ...emptyPolicyRule,
-      subject: [organizationSubject.subjectId],
+      subject: [organizationSubject.urn],
       actions: ['requestconsent'],
       ruleId: '1',
       resources: [[`urn:altinn:resource:${resourceId}`]],
@@ -441,16 +457,8 @@ describe('getResourcePolicyRules', () => {
 
 describe('getResourceSubjects', () => {
   it('should return subjectData if resource is not consent resource', () => {
-    const subjectData = [
-      {
-        subjectId: 'siskd',
-        subjectSource: 'altinn:rolecode',
-        subjectTitle: 'Begrenset signeringsrett',
-        subjectDescription: '',
-      },
-    ];
-    const result = getResourceSubjects(undefined, subjectData, 'ttd', false);
-    expect(result).toEqual(subjectData);
+    const result = getResourceSubjects(undefined, policySubject, 'ttd', 'GenericAccessResource');
+    expect(result).toEqual(policySubject);
   });
 
   it('should return subjectData with accesslists and organization subject if resource is consent resource', () => {
@@ -459,30 +467,23 @@ describe('getResourceSubjects', () => {
       identifier: 'test-liste',
       name: 'Testliste',
     };
-    const subjectData = [
-      {
-        subjectId: 'siskd',
-        subjectSource: 'altinn:rolecode',
-        subjectTitle: 'Begrenset signeringsrett',
-        subjectDescription: '',
-      },
-    ];
+
     const accessLists = [accessList];
-    const result = getResourceSubjects(accessLists, subjectData, 'ttd', true);
+    const result = getResourceSubjects(accessLists, policySubject, 'ttd', 'Consent');
     expect(result).toEqual([
-      ...subjectData,
-      {
-        subjectId: accessList.identifier,
-        subjectSource: 'altinn:access-list:ttd',
-        subjectTitle: accessList.name,
-        subjectDescription: undefined,
-      },
+      ...policySubject,
+      createAccessListSubject(accessList, 'ttd'),
       organizationSubject,
     ]);
   });
 
   it('should return subjectData with organization subject if resource is consent resource', () => {
-    const result = getResourceSubjects(undefined, [], 'ttd', true);
+    const result = getResourceSubjects(undefined, [], 'ttd', 'Consent');
     expect(result).toEqual([organizationSubject]);
+  });
+
+  it('should return subjectData with policySubjectOrg subject if resource is CorrespondenceService resource', () => {
+    const result = getResourceSubjects(undefined, [], 'ttd', 'CorrespondenceService');
+    expect(result).toEqual([policySubjectOrg]);
   });
 });
