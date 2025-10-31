@@ -6,4 +6,16 @@
   gap: var(--fds-spacing-5);
   width: 445px;
   max-width: 100%;
+  z-index: 9999;
+}
+
+/* Styles for .fetchButton maybe will be temporary until we migrate StudioPageHeader */
+.fetchButton {
+  color: var(--ds-base-contrast-default);
+  font-family: var(--studio-font-family);
+  font-size: var(--ds--body-xs-font-size);
+}
+
+.fetchButton:hover {
+  background-color: var(--studio-header-button-hover-background);
 }
