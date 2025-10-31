@@ -171,9 +171,9 @@ const getAddColumnButton = () =>
     name: textMock('ux_editor.properties_panel.subform_table_columns.add_column'),
   });
 const getComponentSelector = () =>
-  screen.getByRole('combobox', {
-    name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
-  });
+  screen.getByLabelText(
+    textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+  );
 
 const getUpdatedTableColumns = (mockFn: jest.Mock) => mockFn.mock.calls[0][0].tableColumns;
 

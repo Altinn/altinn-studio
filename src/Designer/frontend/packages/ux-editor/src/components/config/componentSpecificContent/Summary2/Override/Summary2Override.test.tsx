@@ -111,12 +111,18 @@ describe('Summary2Override', () => {
     render({ component });
     const componentId = component1IdMock;
     await user.click(overrideCollapsedButton(1));
-    await user.click(overrideComponentSelect());
-    await user.click(
-      screen.getByRole('option', {
+    const combobox = overrideComponentSelect();
+    await user.clear(combobox);
+    await user.type(combobox, componentId);
+    const option = await screen.findByRole(
+      'option',
+      {
         name: (content, _) => content.startsWith(componentId),
-      }),
+        hidden: true,
+      },
+      { timeout: 3000 },
     );
+    await user.click(option);
     await waitFor(() =>
       expect(defaultProps.onChange).toHaveBeenCalledWith(
         expect.objectContaining({ overrides: [{ componentId }] }),
@@ -310,12 +316,18 @@ describe('Summary2Override', () => {
     render({ component });
 
     await user.click(overrideCollapsedButton(1));
-    await user.click(overrideComponentSelect());
-    await user.click(
-      screen.getByRole('option', {
+    const combobox = overrideComponentSelect();
+    await user.clear(combobox);
+    await user.type(combobox, args.componentId);
+    const option = await screen.findByRole(
+      'option',
+      {
         name: new RegExp(args.componentId),
-      }),
+        hidden: true,
+      },
+      { timeout: 3000 },
     );
+    await user.click(option);
 
     await waitFor(() =>
       expect(defaultProps.onChange).toHaveBeenCalledWith(

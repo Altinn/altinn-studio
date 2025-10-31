@@ -114,8 +114,14 @@ describe('DeployDropdown', () => {
     const select = screen.getByLabelText(textMock('app_deployment.choose_version'));
     await user.click(select);
 
-    expect(screen.getByRole('option', { name: imageOptions[0].label })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: imageOptions[1].label })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.getByRole('option', { name: imageOptions[0].label, hidden: true }),
+      ).toBeInTheDocument();
+    });
+    expect(
+      screen.getByRole('option', { name: imageOptions[1].label, hidden: true }),
+    ).toBeInTheDocument();
   });
 
   it('selects default image option', async () => {
@@ -132,9 +138,8 @@ describe('DeployDropdown', () => {
     await waitForSpinnerToBeRemoved();
 
     const select = screen.getByLabelText(textMock('app_deployment.choose_version'));
-    await user.click(select);
-
-    const option = screen.getByRole('option', { name: imageOptions[1].label });
+    await user.type(select, 'test2');
+    const option = await screen.findByRole('option', { name: imageOptions[1].label, hidden: true });
     await user.click(option);
 
     await waitFor(() => {
@@ -150,10 +155,15 @@ describe('DeployDropdown', () => {
   });
 
   it('disables both dropdown and button when deploy is not possible', async () => {
-    renderDeployDropdown({ disabled: true });
+    const user = userEvent.setup();
+    renderDeployDropdown({ disabled: true, selectedImageTag: imageOptions[0].value });
     await waitForSpinnerToBeRemoved();
 
-    expect(screen.getByLabelText(textMock('app_deployment.choose_version'))).toBeDisabled();
+    const select = screen.getByLabelText(textMock('app_deployment.choose_version'));
+    await user.click(select);
+    const option = await screen.findByRole('option', { name: imageOptions[1].label, hidden: true });
+    await user.click(option);
+    expect(defaultProps.setSelectedImageTag).not.toHaveBeenCalled();
 
     const deployButton = screen.getByRole('button', {
       name: textMock('app_deployment.btn_deploy_new_version'),

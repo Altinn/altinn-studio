@@ -35,12 +35,15 @@ describe('SelectCustomReceiptDataModelId', () => {
       allDataModelIds: mockAllDataModelIds,
     });
 
-    const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
-    });
-    await user.click(combobox);
+    const combobox = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
+    );
+    await user.type(combobox, mockAllDataModelIds[0]);
 
-    const optionElement = screen.getByRole('option', { name: mockAllDataModelIds[0] });
+    const optionElement = await screen.findByRole('option', {
+      name: mockAllDataModelIds[0],
+      hidden: true,
+    });
     await user.click(optionElement);
 
     await waitFor(() => expect(mockOnChange).toHaveBeenCalledTimes(1));
@@ -52,9 +55,9 @@ describe('SelectCustomReceiptDataModelId', () => {
       allDataModelIds: [],
     });
 
-    const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
-    });
+    const combobox = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
+    );
 
     await user.click(combobox);
     expect(combobox).not.toHaveValue();

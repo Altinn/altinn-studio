@@ -107,9 +107,9 @@ describe('CustomReceipt', () => {
     const combobox = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_data_model_label'),
     });
-    await user.click(combobox);
     const newOption: string = mockAllDataModelIds[1];
-    const option = screen.getByRole('option', { name: newOption });
+    await user.type(combobox, newOption);
+    const option = await screen.findByRole('option', { name: newOption, hidden: true });
     await user.click(option);
 
     expect(mockBpmnApiContextValue.mutateDataTypes).toHaveBeenCalledTimes(1);

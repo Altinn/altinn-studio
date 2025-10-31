@@ -43,12 +43,15 @@ describe('CreateCustomReceiptForm', () => {
     const newId: string = 'newLayoutSetId';
     await user.type(layoutSetInput, newId);
 
-    const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
-    });
-    await user.click(combobox);
+    const combobox = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
+    );
+    await user.type(combobox, mockAllDataModelIds[0]);
 
-    const optionElement = screen.getByRole('option', { name: mockAllDataModelIds[0] });
+    const optionElement = await screen.findByRole('option', {
+      name: mockAllDataModelIds[0],
+      hidden: true,
+    });
     await user.click(optionElement);
 
     const createButton = await screen.findByRole('button', {
@@ -77,12 +80,15 @@ describe('CreateCustomReceiptForm', () => {
     const user = userEvent.setup();
     renderCreateCustomReceiptForm();
 
-    const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
-    });
-    await user.click(combobox);
+    const combobox = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
+    );
+    await user.type(combobox, mockAllDataModelIds[0]);
 
-    const optionElement = screen.getByRole('option', { name: mockAllDataModelIds[0] });
+    const optionElement = await screen.findByRole('option', {
+      name: mockAllDataModelIds[0],
+      hidden: true,
+    });
     await user.click(optionElement);
 
     const createButton = await screen.findByRole('button', {
@@ -109,12 +115,15 @@ describe('CreateCustomReceiptForm', () => {
     );
     await user.type(layoutSetInput, 'a');
 
-    const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
-    });
-    await user.click(combobox);
+    const combobox = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
+    );
+    await user.type(combobox, mockAllDataModelIds[0]);
 
-    const optionElement = screen.getByRole('option', { name: mockAllDataModelIds[0] });
+    const optionElement = await screen.findByRole('option', {
+      name: mockAllDataModelIds[0],
+      hidden: true,
+    });
     await user.click(optionElement);
 
     const createButton = await screen.findByRole('button', {

@@ -18,3 +18,7 @@
   display: flex;
   gap: var(--fds-spacing-2);
 }
+
+.optionDescription {
+  color: var(--ds-color-neutral-text-subtle);
+}

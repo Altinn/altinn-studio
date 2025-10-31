@@ -100,9 +100,11 @@ describe('EditDataTypes', () => {
     });
     await user.click(combobox);
 
-    expect(screen.getByRole('option', { name: existingDataType })).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', { name: existingDataType, hidden: true }),
+    ).toBeInTheDocument();
     availableDataModelIds.forEach((dataType) =>
-      expect(screen.getByRole('option', { name: dataType })).toBeInTheDocument(),
+      expect(screen.getByRole('option', { name: dataType, hidden: true })).toBeInTheDocument(),
     );
   });
 
