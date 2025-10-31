@@ -91,7 +91,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Lists the ServiceResource files in a repository
         /// </summary>
-        Task<List<ServiceResource>> GetServiceResources(string org, string repository, string path = "", CancellationToken cancellationToken = default);
+        Task<List<ListviewServiceResource>> GetServiceResources(string org, string repository, string path = "", CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets a specific ServiceResource based on the identifier

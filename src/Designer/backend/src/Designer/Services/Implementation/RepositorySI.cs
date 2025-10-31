@@ -415,28 +415,28 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return contents;
         }
 
-        public async Task<List<ServiceResource>> GetServiceResources(string org, string repository, string path = "", CancellationToken cancellationToken = default)
+        public async Task<List<ListviewServiceResource>> GetServiceResources(string org, string repository, string path = "", CancellationToken cancellationToken = default)
         {
             List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository, Path.Combine(path));
             string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
             using SemaphoreSlim semaphore = new(50); // Limit to 50 concurrent tasks
 
-            async Task<ServiceResource> ReadResourceAsync(FileSystemObject resourceFile)
+            async Task<ListviewServiceResource> ReadResourceAsync(FileSystemObject resourceFile)
             {
                 await semaphore.WaitAsync(cancellationToken);
                 try
                 {
                     string fullPath = Path.Combine(repopath, resourceFile.Path);
                     using var stream = File.OpenRead(fullPath);
-                    return await System.Text.Json.JsonSerializer.DeserializeAsync<ServiceResource>(stream, _serializerOptions, cancellationToken);
+                    return await System.Text.Json.JsonSerializer.DeserializeAsync<ListviewServiceResource>(stream, _serializerOptions, cancellationToken);
                 }
                 finally
                 {
                     semaphore.Release();
                 }
             }
-            IEnumerable<Task<ServiceResource>> tasks = resourceFiles.Select(resourceFile => ReadResourceAsync(resourceFile));
+            IEnumerable<Task<ListviewServiceResource>> tasks = resourceFiles.Select(resourceFile => ReadResourceAsync(resourceFile));
             var serviceResourceList = await Task.WhenAll(tasks);
             return serviceResourceList.Where(r => r != null).ToList();
         }
@@ -507,8 +507,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         public async Task<ServiceResource> GetServiceResourceById(string org, string repository, string identifier, CancellationToken cancellationToken = default)
         {
-            List<ServiceResource> resourcesInRepo = await GetServiceResources(org, repository, identifier, cancellationToken);
-            return resourcesInRepo.Where(r => r.Identifier == identifier).FirstOrDefault();
+            List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository, Path.Combine(identifier));
+            string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+
+            using var stream = File.OpenRead($"{repopath}/{resourceFiles[0].Path}");
+            ServiceResource serviceResource = await System.Text.Json.JsonSerializer.DeserializeAsync<ServiceResource>(stream, _serializerOptions);
+
+            return serviceResource;
         }
 
         public async Task<ActionResult> PublishResource(string org, string repository, string id, string env, string policy = null)
