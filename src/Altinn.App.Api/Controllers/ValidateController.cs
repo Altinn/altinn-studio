@@ -53,8 +53,10 @@ public class ValidateController : ControllerBase
     [HttpGet]
     [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/validate")]
     [ProducesResponseType(typeof(List<ValidationIssueWithSource>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ValidateInstance(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -65,23 +67,25 @@ public class ValidateController : ControllerBase
         [FromQuery] string? language = null
     )
     {
-        Instance? instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-        if (instance == null)
-        {
-            return NotFound();
-        }
-
-        string? taskId = instance.Process?.CurrentTask?.ElementId;
-        if (taskId == null)
-        {
-            throw new ValidationException("Unable to validate instance without a started process.");
-        }
-
         try
         {
+            Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+
+            string? taskId = instance.Process?.CurrentTask?.ElementId;
+            if (taskId == null)
+            {
+                return Problem(
+                    statusCode: StatusCodes.Status409Conflict,
+                    title: "Validation error",
+                    detail: "Unable to validate instance without a started process."
+                );
+            }
+
             var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
 
-            var ignoredSources = ignoredValidators?.Split(',').ToList();
+            var ignoredSources = ignoredValidators
+                ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToList();
             List<ValidationIssueWithSource> messages = await _validationService.ValidateInstanceAtTask(
                 dataAccessor,
                 taskId,
@@ -93,17 +97,17 @@ public class ValidateController : ControllerBase
         }
         catch (PlatformHttpException exception)
         {
-            if (exception.Response.StatusCode == System.Net.HttpStatusCode.Forbidden)
-            {
-                return StatusCode(403);
-            }
-
-            throw;
+            return Problem(
+                statusCode: (int)exception.Response.StatusCode,
+                title: "Something went wrong.",
+                detail: exception.Message
+            );
         }
     }
 
     /// <summary>
-    /// Validate an app instance. This will validate a single data element
+    /// Validate a single data element (deprecated).
+    /// Use `/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/validate` with filters as needed.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organisation</param>

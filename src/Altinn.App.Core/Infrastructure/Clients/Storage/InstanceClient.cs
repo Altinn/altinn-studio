@@ -67,9 +67,7 @@ public class InstanceClient : IInstanceClient
         HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            string instanceData = await response.Content.ReadAsStringAsync();
-            // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-            Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData)!;
+            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content);
             return instance;
         }
         else
@@ -121,10 +119,9 @@ public class InstanceClient : IInstanceClient
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            string responseString = await response.Content.ReadAsStringAsync();
-            QueryResponse<Instance> queryResponse =
-                JsonConvert.DeserializeObject<QueryResponse<Instance>>(responseString)
-                ?? throw new JsonException("Could not deserialize Instance query response");
+            QueryResponse<Instance> queryResponse = await JsonSerializerPermissive.DeserializeAsync<
+                QueryResponse<Instance>
+            >(response.Content);
             return queryResponse;
         }
         else
@@ -150,9 +147,7 @@ public class InstanceClient : IInstanceClient
         HttpResponseMessage response = await _client.PutAsync(token, apiUrl, httpContent);
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            string instanceData = await response.Content.ReadAsStringAsync();
-            // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-            Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(instanceData)!;
+            Instance updatedInstance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content);
             return updatedInstance;
         }
         else
@@ -182,10 +177,7 @@ public class InstanceClient : IInstanceClient
         HttpResponseMessage response = await _client.PutAsync(token, apiUrl, httpContent);
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            string instanceData = await response.Content.ReadAsStringAsync();
-            Instance updatedInstance =
-                JsonConvert.DeserializeObject<Instance>(instanceData)
-                ?? throw new Exception("Could not deserialize instance");
+            Instance updatedInstance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content);
             return updatedInstance;
         }
         else
@@ -207,10 +199,7 @@ public class InstanceClient : IInstanceClient
 
         if (response.IsSuccessStatusCode)
         {
-            // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-            Instance createdInstance = JsonConvert.DeserializeObject<Instance>(
-                await response.Content.ReadAsStringAsync()
-            )!;
+            Instance createdInstance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content);
             _telemetry?.InstanceCreated(createdInstance);
             return createdInstance;
         }
@@ -232,9 +221,7 @@ public class InstanceClient : IInstanceClient
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            string instanceData = await response.Content.ReadAsStringAsync();
-            // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-            Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData)!;
+            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content);
             _telemetry?.InstanceCompleted(instance);
             return instance;
         }
@@ -253,9 +240,7 @@ public class InstanceClient : IInstanceClient
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            string instanceData = await response.Content.ReadAsStringAsync();
-            // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-            Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData)!;
+            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content);
             return instance;
         }
 
@@ -282,9 +267,7 @@ public class InstanceClient : IInstanceClient
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            string instanceData = await response.Content.ReadAsStringAsync();
-            // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-            Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData)!;
+            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content);
             return instance;
         }
 
@@ -310,9 +293,7 @@ public class InstanceClient : IInstanceClient
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            string instanceData = await response.Content.ReadAsStringAsync();
-            // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-            Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData)!;
+            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content);
             return instance;
         }
 
@@ -334,9 +315,7 @@ public class InstanceClient : IInstanceClient
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            string instanceData = await response.Content.ReadAsStringAsync();
-            // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-            Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData)!;
+            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content);
             return instance;
         }
 
@@ -354,9 +333,7 @@ public class InstanceClient : IInstanceClient
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            string instanceData = await response.Content.ReadAsStringAsync();
-            // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-            Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData)!;
+            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content);
             _telemetry?.InstanceDeleted(instance);
             return instance;
         }
