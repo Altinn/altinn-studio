@@ -26,14 +26,14 @@ import classes from './StudioCodeListEditor.module.css';
 import { StudioValidationMessage } from '../StudioValidationMessage';
 import cn from 'classnames';
 
-export type StudioCodeListEditorProps = {
+export type StudioCodeListEditorProps = Readonly<{
   className?: string;
   codeList: CodeList;
   language: string;
   onInvalid?: () => void;
   onUpdateCodeList: (codeList: CodeList) => void;
   texts: CodeListEditorTexts;
-};
+}>;
 
 export function StudioCodeListEditor({
   language,
@@ -82,7 +82,7 @@ type ControlledCodeListEditorProps = Omit<
   StatefulCodeListEditorProps,
   'onInvalid' | 'onUpdateCodeList'
 > & {
-  onChangeCodeList: (codeList: CodeList) => void;
+  readonly onChangeCodeList: (codeList: CodeList) => void;
 };
 
 function ControlledCodeListEditor({
@@ -190,7 +190,7 @@ function TableBody({
 }
 
 type ErrorsProps = {
-  errorMap: ValueErrorMap;
+  readonly errorMap: ValueErrorMap;
 };
 
 function Errors({ errorMap }: ErrorsProps): ReactNode {
@@ -205,7 +205,7 @@ function Errors({ errorMap }: ErrorsProps): ReactNode {
 }
 
 type AddButtonProps = {
-  onClick: () => void;
+  readonly onClick: () => void;
 };
 
 function AddButton({ onClick }: AddButtonProps): ReactElement {

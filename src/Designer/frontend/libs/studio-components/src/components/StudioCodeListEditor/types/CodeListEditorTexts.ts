@@ -1,6 +1,6 @@
 import type { ValueError } from './ValueError';
 
-export type CodeListEditorTexts = {
+export type CodeListEditorTexts = Readonly<{
   add: string;
   codeList: string;
   delete: string;
@@ -16,6 +16,6 @@ export type CodeListEditorTexts = {
   label: string;
   value: string;
   valueErrors: ValueErrorMessages;
-};
+}>;
 
 export type ValueErrorMessages = Record<ValueError, string>;
