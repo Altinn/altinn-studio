@@ -3772,21 +3772,33 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
     }
+    public sealed class ServiceTaskErrorHandling : System.IEquatable<Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskErrorHandling>
+    {
+        public ServiceTaskErrorHandling(Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskErrorStrategy Strategy, string? Action = "reject") { }
+        public string? Action { get; init; }
+        public Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskErrorStrategy Strategy { get; init; }
+    }
+    public enum ServiceTaskErrorStrategy
+    {
+        AbortProcessNext = 0,
+        ContinueProcessNext = 1,
+    }
     public sealed class ServiceTaskFailedResult : Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskFailedResult>
     {
-        public ServiceTaskFailedResult(bool? autoMoveNext = default, string? autoMoveNextAction = null) { }
+        public ServiceTaskFailedResult(Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskErrorHandling errorHandling) { }
+        public Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskErrorHandling ErrorHandling { get; init; }
     }
     public abstract class ServiceTaskResult : System.IEquatable<Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskResult>
     {
         protected ServiceTaskResult() { }
-        public bool? AutoMoveNext { get; init; }
-        public string? AutoMoveNextAction { get; init; }
-        public static Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskFailedResult Failed(bool? autoMoveNext = false, string? autoMoveNextAction = "reject") { }
-        public static Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskSuccessResult Success(bool? autoMoveNext = true, string? autoMoveNextAction = null) { }
+        public static Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskFailedResult Failed(Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskErrorHandling errorHandling) { }
+        public static Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskFailedResult FailedAbortProcessNext() { }
+        public static Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskFailedResult FailedContinueProcessNext(string? action = "reject") { }
+        public static Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskSuccessResult Success() { }
     }
     public sealed class ServiceTaskSuccessResult : Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskSuccessResult>
     {
-        public ServiceTaskSuccessResult(bool? autoMoveNext = default, string? autoMoveNextAction = null) { }
+        public ServiceTaskSuccessResult() { }
     }
 }
 namespace Altinn.App.Core.Internal.Profile

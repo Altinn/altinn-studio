@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Altinn.App.Core.Models.Validation;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Models.Process;
 
@@ -39,6 +40,24 @@ public class ProcessChangeResult
     /// Gets or sets the process state change if the process change was successful
     /// </summary>
     public ProcessStateChange? ProcessStateChange { get; init; }
+
+    /// <summary>
+    /// Initializes a new <see cref="ProcessChangeResult"/> instance.
+    /// </summary>
+    public ProcessChangeResult() { }
+
+    /// <summary>
+    /// The mutated instance after the process change, if applicable
+    /// </summary>
+    internal Instance? MutatedInstance { get; init; }
+
+    /// <summary>
+    /// Initializes a new <see cref="ProcessChangeResult"/> instance with a mutated instance.
+    /// </summary>
+    internal ProcessChangeResult(Instance mutatedInstance)
+    {
+        MutatedInstance = mutatedInstance;
+    }
 }
 
 /// <summary>

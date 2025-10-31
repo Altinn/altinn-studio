@@ -203,8 +203,14 @@ public class ProcessEngine : IProcessEngine
                 return result;
             }
 
-            // NOTE: `instance` has now been mutated by ProcessNext
-            moveToNextTaskAutomatically = IsServiceTask(instance);
+            if (result.MutatedInstance is null)
+            {
+                throw new ProcessException(
+                    "ProcessNext returned successfully, but ProcessChangeResult.MutatedInstance is null. Conundrum."
+                );
+            }
+
+            moveToNextTaskAutomatically = IsServiceTask(result.MutatedInstance);
             firstIteration = false;
             iterationCount++;
         } while (moveToNextTaskAutomatically);
@@ -254,9 +260,8 @@ public class ProcessEngine : IProcessEngine
         );
 
         string checkedAction = request.Action ?? ConvertTaskTypeToAction(altinnTaskType);
-        var isServiceTask = false;
-        ProcessChangeResult? serviceTaskProcessChangeResult = null;
-        ServiceTaskResult? serviceTaskResult = null;
+        bool isServiceTask = false;
+        string? processNextAction = request.Action;
 
         // If the action is 'reject', we should not run any service task and there is no need to check for a user action handler, since 'reject' doesn't have one.
         if (request.Action is not "reject")
@@ -265,7 +270,7 @@ public class ProcessEngine : IProcessEngine
             if (serviceTask is not null)
             {
                 isServiceTask = true;
-                (serviceTaskProcessChangeResult, serviceTaskResult) = await HandleServiceTask(
+                var (serviceTaskProcessChangeResult, serviceTaskResult) = await HandleServiceTask(
                     instance,
                     serviceTask,
                     request with
@@ -275,10 +280,20 @@ public class ProcessEngine : IProcessEngine
                     ct
                 );
 
-                if (serviceTaskResult?.AutoMoveNext is not true)
+                var serviceTaskRequiresContinue =
+                    serviceTaskResult
+                        is ServiceTaskFailedResult
+                        {
+                            ErrorHandling.Strategy: ServiceTaskErrorStrategy.ContinueProcessNext
+                        };
+
+                if (!serviceTaskProcessChangeResult.Success && !serviceTaskRequiresContinue)
                 {
                     return serviceTaskProcessChangeResult;
                 }
+
+                // `processNextAction` should be null at this loop iteration, but regardless, the service task result takes precedence (which may very well evaluate to null).
+                processNextAction = (serviceTaskResult as ServiceTaskFailedResult)?.ErrorHandling.Action;
             }
             else
             {
@@ -341,9 +356,7 @@ public class ProcessEngine : IProcessEngine
             }
         }
 
-        MoveToNextResult moveToNextResult = serviceTaskResult is not null
-            ? await HandleMoveToNext(instance, serviceTaskResult.AutoMoveNextAction)
-            : await HandleMoveToNext(instance, request.Action);
+        MoveToNextResult moveToNextResult = await HandleMoveToNext(instance, processNextAction);
 
         if (moveToNextResult.IsEndEvent)
         {
@@ -351,7 +364,11 @@ public class ProcessEngine : IProcessEngine
             await RunAppDefinedProcessEndHandlers(instance, moveToNextResult.ProcessStateChange?.Events);
         }
 
-        return new ProcessChangeResult { Success = true, ProcessStateChange = moveToNextResult.ProcessStateChange };
+        return new ProcessChangeResult(mutatedInstance: instance)
+        {
+            Success = true,
+            ProcessStateChange = moveToNextResult.ProcessStateChange,
+        };
     }
 
     /// <summary>
