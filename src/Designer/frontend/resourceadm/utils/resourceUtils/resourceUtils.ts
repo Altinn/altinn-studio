@@ -21,12 +21,12 @@ import type { TFunction } from 'i18next';
  * The map of resource type
  */
 export const resourceTypeMap: Record<ResourceTypeOption, string> = {
-  GenericAccessResource: 'resourceadm.about_resource_resource_type_generic_access_resource',
-  Systemresource: 'resourceadm.about_resource_resource_type_system_resource',
-  MaskinportenSchema: 'resourceadm.about_resource_resource_type_maskinporten',
-  BrokerService: 'resourceadm.about_resource_resource_type_brokerservice',
-  CorrespondenceService: 'resourceadm.about_resource_resource_type_correspondenceservice',
-  Consent: 'resourceadm.about_resource_resource_type_consentresource',
+  GenericAccessResource: 'dashboard.resource_type_generic_access_resource',
+  Systemresource: 'dashboard.resource_type_system_resource',
+  MaskinportenSchema: 'dashboard.resource_type_maskinporten',
+  BrokerService: 'dashboard.resource_type_brokerservice',
+  CorrespondenceService: 'dashboard.resource_type_correspondenceservice',
+  Consent: 'dashboard.resource_type_consentresource',
 };
 
 /**

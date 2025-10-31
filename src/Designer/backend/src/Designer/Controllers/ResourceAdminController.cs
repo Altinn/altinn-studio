@@ -226,23 +226,13 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult<List<ListviewServiceResource>>> GetRepositoryResourceList(string org, [FromQuery] bool includeEnvResources = false, [FromQuery] bool skipGiteaFields = false, CancellationToken cancellationToken = default)
         {
             string repository = GetRepositoryName(org);
-            List<ServiceResource> repositoryResourceList = await _repository.GetServiceResources(org, repository, "", cancellationToken);
-            List<ListviewServiceResource> listviewServiceResources = new List<ListviewServiceResource>();
+            List<ListviewServiceResource> repositoryResourceList = await _repository.GetServiceResources(org, repository, "", cancellationToken);
 
-            IEnumerable<ListviewServiceResource> resources;
-            if (skipGiteaFields)
-            {
-                resources = repositoryResourceList.Select(resource => new ListviewServiceResource
-                {
-                    Identifier = resource.Identifier,
-                    Title = resource.Title,
-                });
-            }
-            else
+            if (skipGiteaFields != true)
             {
                 using SemaphoreSlim semaphore = new(25); // Limit to 25 concurrent requests
 
-                async Task<ListviewServiceResource> ProcessResourceAsync(ServiceResource resource)
+                async Task<ListviewServiceResource> ProcessResourceAsync(ListviewServiceResource resource)
                 {
                     await semaphore.WaitAsync(cancellationToken);
                     try
@@ -255,14 +245,13 @@ namespace Altinn.Studio.Designer.Controllers
                     }
                 }
                 IEnumerable<Task<ListviewServiceResource>> tasks = repositoryResourceList.Select(resource => ProcessResourceAsync(resource));
-                resources = await Task.WhenAll(tasks);
+                await Task.WhenAll(tasks);
             }
 
-            foreach (ListviewServiceResource listviewResource in resources)
+            foreach (ListviewServiceResource listviewResource in repositoryResourceList)
             {
                 listviewResource.HasPolicy = true;
                 listviewResource.Environments = ["gitea"];
-                listviewServiceResources.Add(listviewResource);
             }
 
             if (includeEnvResources)
@@ -295,7 +284,7 @@ namespace Altinn.Studio.Designer.Controllers
 
                     foreach (ServiceResource resource in environmentResourcesForOrg)
                     {
-                        ListviewServiceResource listResource = listviewServiceResources.FirstOrDefault(x => x.Identifier == resource.Identifier);
+                        ListviewServiceResource listResource = repositoryResourceList.FirstOrDefault(x => x.Identifier == resource.Identifier);
                         if (listResource == null)
                         {
                             listResource = new ListviewServiceResource
@@ -303,17 +292,18 @@ namespace Altinn.Studio.Designer.Controllers
                                 Identifier = resource.Identifier,
                                 Title = resource.Title,
                                 CreatedBy = "",
+                                ResourceType = resource.ResourceType,
                                 LastChanged = null,
                                 Environments = []
                             };
-                            listviewServiceResources.Add(listResource);
+                            repositoryResourceList.Add(listResource);
                         }
                         listResource.Environments.Add(environment);
                     }
                 }
             }
 
-            return listviewServiceResources;
+            return repositoryResourceList;
         }
 
         [HttpGet]

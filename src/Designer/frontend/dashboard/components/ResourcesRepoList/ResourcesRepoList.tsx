@@ -43,7 +43,7 @@ export const ResourcesRepoList = ({
     data: resourceListData,
     isLoading: isLoadingResourceList,
     isError: isResourceListError,
-  } = useGetResourceListQuery(selectedContext, !resourcesRepos?.data.length);
+  } = useGetResourceListQuery(selectedContext, false, !resourcesRepos?.data.length);
 
   if (!resourcesRepos?.data.length) {
     return null;
@@ -71,6 +71,7 @@ export const ResourcesRepoList = ({
       ) : (
         <div data-testid='resource-table-wrapper'>
           <ResourceTable
+            org={selectedContext}
             list={resourceListData}
             onClickEditResource={(id: string) => {
               // we have to do a hard navigation (without react-router) to load the correct script files
