@@ -51,12 +51,12 @@ public abstract record ServiceTaskResult
     /// Creates a service task result representing failed execution with instruction to abort the process next request.
     /// </summary>
     public static ServiceTaskFailedResult FailedAbortProcessNext() =>
-        new(new ServiceTaskErrorHandling(ServiceTaskErrorStrategy.AbortProcessNext));
+        new(new ServiceTaskErrorHandling(ServiceTaskErrorStrategy.AbortProcessNext, null));
 
     /// <summary>
     /// Creates a service task result representing failed execution with instruction to continue to the next element in the process.
     /// </summary>
-    /// <param name="action">A optional action can be supplied for the process next</param>
+    /// <param name="action">An optional action can be supplied for the process next call</param>
     public static ServiceTaskFailedResult FailedContinueProcessNext(string? action = "reject") =>
         new(new ServiceTaskErrorHandling(ServiceTaskErrorStrategy.ContinueProcessNext, action));
 }
