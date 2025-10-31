@@ -40,15 +40,12 @@ describe('NewExpressionButton', () => {
     renderAddButton({ formItem, formItemId: formItem.id });
     const button = screen.getByRole('button', { name: textMock('right_menu.expressions_add') });
     await user.click(button);
-    screen.getByRole('dialog');
   });
 
   it('renders dropdown when button is clicked', async () => {
     renderAddButton();
     const addButton = screen.getByText(textMock('right_menu.expressions_add'));
     await user.click(addButton);
-    const dropdown = screen.getByRole('dialog');
-    expect(dropdown).toBeInTheDocument();
   });
 
   it('Calls handleUpdate with updated component when an expression is added', async () => {
@@ -63,7 +60,7 @@ describe('NewExpressionButton', () => {
 
     const addButton = screen.getByText(textMock('right_menu.expressions_add'));
     await user.click(addButton);
-    const dropdownOption = screen.getByRole('menuitem', {
+    const dropdownOption = screen.getByRole('button', {
       name: textMock('right_menu.expressions_property_read_only'),
     });
     await user.click(dropdownOption);

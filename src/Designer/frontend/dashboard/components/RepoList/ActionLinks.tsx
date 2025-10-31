@@ -1,6 +1,4 @@
-import { StudioDropdownMenu } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
-import type { StudioButtonProps } from '@studio/components-legacy';
+import { StudioDropdown, StudioButton } from '@studio/components';
 import React, { useRef, useState } from 'react';
 import classes from './ActionLinks.module.css';
 import {
@@ -49,14 +47,6 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
     </a>
   );
 
-  const dropdownAnchorButtonProps: StudioButtonProps = {
-    variant: 'tertiary',
-    icon: <MenuElipsisVerticalIcon className={classes.akselIcon} />,
-    title: t('dashboard.app_dropdown', {
-      appName: repoName,
-    }),
-  };
-
   return (
     <div className={classes.actionLinksContainer}>
       <StudioButton
@@ -75,20 +65,30 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
         className={classes.editButton}
         icon={editIconWithLink}
       />
-      <StudioDropdownMenu size='small' anchorButtonProps={dropdownAnchorButtonProps}>
-        <StudioDropdownMenu.Item
-          onClick={() => handleOpenCopyModal(repoFullName)}
-          icon={<FilesIcon />}
-        >
-          {t('dashboard.make_copy')}
-        </StudioDropdownMenu.Item>
-        <StudioDropdownMenu.Item
-          onClick={() => window.open(editUrl, '_blank')}
-          icon={<ExternalLinkIcon />}
-        >
-          {t('dashboard.open_in_new')}
-        </StudioDropdownMenu.Item>
-      </StudioDropdownMenu>
+      <StudioDropdown
+        triggerButtonVariant='tertiary'
+        icon={<MenuElipsisVerticalIcon />}
+        triggerButtonAriaLabel={t('dashboard.app_dropdown', { appName: repoName })}
+      >
+        <StudioDropdown.List>
+          <StudioDropdown.Item>
+            <StudioDropdown.Button
+              icon={<FilesIcon />}
+              onClick={() => handleOpenCopyModal(repoFullName)}
+            >
+              {t('dashboard.make_copy')}
+            </StudioDropdown.Button>
+          </StudioDropdown.Item>
+          <StudioDropdown.Item>
+            <StudioDropdown.Button
+              icon={<ExternalLinkIcon />}
+              onClick={() => window.open(editUrl, '_blank')}
+            >
+              {t('dashboard.open_in_new')}
+            </StudioDropdown.Button>
+          </StudioDropdown.Item>
+        </StudioDropdown.List>
+      </StudioDropdown>
       <MakeCopyModal
         onClose={handleCloseCopyModal}
         ref={copyModalRef}

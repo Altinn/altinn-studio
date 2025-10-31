@@ -53,7 +53,7 @@ describe('ActionLinks', () => {
 
   const getMakeCopyOption = () => getMenuitem(makeCopyOptionName);
   const getOpenInNewOption = () => getMenuitem(openInNewOptionName);
-  const getMenuitem = (name: string) => screen.getByRole('menuitem', { name });
+  const getMenuitem = (name: string) => screen.getByRole('button', { name });
 
   const getCopyModalHeading = () => getHeading(copyModalHeading);
   const getHeading = (name: string) => screen.getByRole('heading', { name });
