@@ -1,0 +1,26 @@
+.content {
+  display: grid;
+  gap: var(--ds-size-6);
+  grid-template-areas:
+    'name-field delete-button'
+    'codes codes';
+  grid-template-columns: 1fr auto;
+}
+
+.nameField {
+  grid-area: name-field;
+}
+
+.deleteButton {
+  align-self: end;
+  grid-area: delete-button;
+  justify-self: end;
+}
+
+.codes {
+  grid-area: codes;
+}
+
+.unnamed {
+  font-style: italic;
+}

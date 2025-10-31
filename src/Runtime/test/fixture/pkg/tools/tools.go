@@ -35,6 +35,8 @@ func (i *Installer) install(ctx context.Context, name, version, checksumURL stri
 		return i.installKubectl(ctx, version, checksumURL)
 	case "flux":
 		return i.installFlux(ctx, version, checksumURL)
+	case "k6":
+		return i.installK6(ctx, version, checksumURL)
 	default:
 		return fmt.Errorf("unknown tool: %s", name)
 	}
@@ -56,6 +58,8 @@ func (i *Installer) getVersion(name string) string {
 		cmd = exec.Command(binaryPath, "version", "--client")
 	case "flux":
 		cmd = exec.Command(binaryPath, "version", "--client")
+	case "k6":
+		cmd = exec.Command(binaryPath, "version")
 	default:
 		return ""
 	}
@@ -110,6 +114,13 @@ func parseVersion(name, output string) string {
 		// "flux: v2.7.2"
 		parts := strings.Fields(output)
 		if len(parts) >= 2 && parts[0] == "flux:" {
+			return strings.TrimPrefix(parts[1], "v")
+		}
+
+	case "k6":
+		// "k6 v1.3.0 (commit/hash)"
+		parts := strings.Fields(output)
+		if len(parts) >= 2 {
 			return strings.TrimPrefix(parts[1], "v")
 		}
 	}
@@ -380,6 +391,65 @@ func (i *Installer) extractFluxBinary(tarGzPath, destPath string) error {
 	// The flux binary is directly in the archive root
 	fluxSrc := filepath.Join(tmpDir, "flux")
 	if err := copyFile(fluxSrc, destPath); err != nil {
+		return err
+	}
+
+	return os.Chmod(destPath, 0755)
+}
+
+// installK6 installs k6 by downloading and extracting from tar.gz
+func (i *Installer) installK6(ctx context.Context, version, checksumURL string) error {
+	// Build download URL
+	// Format: https://github.com/grafana/k6/releases/download/{version}/k6-{version}-{os}-{arch}.tar.gz
+	filename := fmt.Sprintf("k6-%s-%s-%s.tar.gz", version, runtime.GOOS, runtime.GOARCH)
+	url := fmt.Sprintf("https://github.com/grafana/k6/releases/download/%s/%s", version, filename)
+
+	// Fetch checksum
+	checksumURLExpanded := expandURLTemplate(checksumURL, runtime.GOOS, runtime.GOARCH, version)
+	expectedChecksum, err := i.fetchChecksum(checksumURLExpanded, filename)
+	if err != nil {
+		return fmt.Errorf("failed to fetch checksum: %w", err)
+	}
+
+	// Download tar.gz to temporary file
+	tmpFile := filepath.Join(i.installDir, filename)
+	defer func() {
+		_ = os.Remove(tmpFile)
+	}()
+
+	if err := i.downloadBinary(url, tmpFile, expectedChecksum); err != nil {
+		return err
+	}
+
+	// Extract the binary from tar.gz
+	return i.extractK6Binary(tmpFile, filepath.Join(i.installDir, "k6"))
+}
+
+// extractK6Binary extracts the k6 binary from a tar.gz archive
+func (i *Installer) extractK6Binary(tarGzPath, destPath string) error {
+	tmpDir := filepath.Dir(destPath) + "/k6-tmp"
+	defer func() {
+		_ = os.RemoveAll(tmpDir)
+	}()
+
+	if err := os.MkdirAll(tmpDir, 0755); err != nil {
+		return err
+	}
+
+	// Extract tar.gz using Go stdlib
+	if err := extractTarGz(tarGzPath, tmpDir); err != nil {
+		return fmt.Errorf("failed to extract k6: %w", err)
+	}
+
+	// Find and copy binary
+	// The archive contains: k6-{version}-{os}-{arch}/k6
+	pattern := filepath.Join(tmpDir, "k6-*", "k6")
+	matches, err := filepath.Glob(pattern)
+	if err != nil || len(matches) == 0 {
+		return fmt.Errorf("binary not found in archive")
+	}
+
+	if err := copyFile(matches[0], destPath); err != nil {
 		return err
 	}
 

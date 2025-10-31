@@ -66,6 +66,11 @@ public class Dummy
     [JsonProperty("SF_test")]
     [JsonPropertyName("SF_test")]
     public string? SF_test { get; set; }
+
+    [XmlElement("hiddenNotRemove", Order = 10)]
+    [JsonProperty("hiddenNotRemove")]
+    [JsonPropertyName("hiddenNotRemove")]
+    public string? HiddenNotRemove { get; set; }
 }
 
 public class TagWithAttribute

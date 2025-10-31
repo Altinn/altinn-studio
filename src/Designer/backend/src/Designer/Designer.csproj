@@ -11,6 +11,7 @@
     <UserSecretsId>c958e7e5-da9b-411d-8ee0-70bcfe1f64ed</UserSecretsId>
     <RootNamespace>Altinn.Studio.Designer</RootNamespace>
     <InvariantGlobalization>false</InvariantGlobalization>
+    <Nullable>enable</Nullable>
     <Configurations>Release;Debug</Configurations>
   </PropertyGroup>
 

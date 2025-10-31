@@ -18,8 +18,8 @@ public class RepeatingGroupsHidden
         var jsonData = $$"""
             {
                 "some": {
-                    "hidePage1": {{hidePage1.ToString().ToLowerInvariant()}},
-                    "hidePage2": {{hidePage2.ToString().ToLowerInvariant()}},
+                    "hidePage1": {{(hidePage1 ? "true" : "false")}},
+                    "hidePage2": {{(hidePage2 ? "true" : "false")}},
                     "hideGroup1": true,
                     "data": [
                         {

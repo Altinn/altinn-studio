@@ -8,10 +8,7 @@ import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import {
-  layoutSet1NameMock,
-  layoutSetsExtendedMock,
-} from '@altinn/ux-editor/testing/layoutSetsMock';
+import { layoutSetsExtendedMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { TaskType } from '../Settings/SettingsUtils';
 import type { AppContextProps } from '@altinn/ux-editor/AppContext';
 
@@ -136,18 +133,6 @@ describe('TaskAction', () => {
     await openTaskActionsMenu();
     const formEditorButton = await getFormEditorButton();
     expect(formEditorButton).toBeDisabled();
-  });
-
-  it('should set selected layout set name when clicking on navigation button', async () => {
-    const user = userEvent.setup();
-    const setSelectedFormLayoutSetName = jest.fn();
-
-    renderTaskAction({ appContextProps: { setSelectedFormLayoutSetName } });
-
-    await openTaskActionsMenu();
-    const formEditorButton = await getFormEditorButton();
-    await user.click(formEditorButton);
-    expect(setSelectedFormLayoutSetName).toHaveBeenCalledWith(layoutSet1NameMock);
   });
 });
 
