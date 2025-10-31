@@ -113,7 +113,7 @@ describe('CookieStorage', () => {
   });
 
   describe('removeItem', () => {
-    test('removeItem should delete cookie when it exists', () => {
+    test('should delete cookie when it exists', () => {
       CookieStorage.setItem('removeKey', 'value');
       expect(CookieStorage.getItem<string>('removeKey')).toBe('value');
 
@@ -212,7 +212,11 @@ describe('CookieStorage', () => {
     test('setItem should throw TypeError and log error when value contains circular reference', () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      const circular: any = { a: 1 };
+      interface CircularObject {
+        a: number;
+        self?: CircularObject;
+      }
+      const circular: CircularObject = { a: 1 };
       circular.self = circular;
 
       expect(() => CookieStorage.setItem('circularKey', circular)).toThrow(TypeError);
