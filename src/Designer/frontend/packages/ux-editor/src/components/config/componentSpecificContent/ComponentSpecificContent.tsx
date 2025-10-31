@@ -61,6 +61,15 @@ export function ComponentSpecificContent({
         />
       );
     }
+    // case ComponentType.Text: {
+    //   return (
+    //     <TextComponent
+    //       component={component}
+    //       handleComponentChange={handleComponentChange}
+    //       className={classes.containerWrapper}
+    //     />
+    //   );
+    // }
 
     default: {
       return null;
