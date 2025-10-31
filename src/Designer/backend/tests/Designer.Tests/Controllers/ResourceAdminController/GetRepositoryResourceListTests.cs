@@ -25,23 +25,12 @@ namespace Designer.Tests.Controllers.ResourceAdminController
 
             RepositoryMock
                 .Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<System.Threading.CancellationToken>()))
-                .Returns(Task.FromResult(new List<ServiceResource>
+                .Returns(Task.FromResult(new List<ListviewServiceResource>
                 {
-                    new ServiceResource
+                    new ListviewServiceResource
                     {
                         Identifier = "testresource",
                         Title = new Dictionary<string, string>(),
-                        Description = new Dictionary<string, string>(),
-                        RightDescription = new Dictionary<string, string>(),
-                        Homepage = "test.no",
-                        Status = string.Empty,
-                        IsPartOf = string.Empty,
-                        ThematicArea = string.Empty,
-                        ResourceReferences = GetTestResourceReferences(),
-                        Delegable = true,
-                        Visible = true,
-                        HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
-                        Keywords = GetTestKeywords(),
                         ResourceType = ResourceType.Default,
                     }
                 }));
@@ -64,7 +53,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
 
             RepositoryMock
                 .Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<System.Threading.CancellationToken>()))
-                .Returns(Task.FromResult(new List<ServiceResource>()));
+                .Returns(Task.FromResult(new List<ListviewServiceResource>()));
 
             // Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
