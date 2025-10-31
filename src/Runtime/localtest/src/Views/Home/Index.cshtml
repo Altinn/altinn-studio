@@ -63,28 +63,52 @@
     <h1 class="display-4">Welcome to Altinn App Local Testing</h1>
     <p>Learn about <a href="https://docs.altinn.studio" target="_blank">building and testing Altinn Apps</a>.</p>
 
+    @if(Model.AppMode == "auto" && (Model.TestApps == null || !Model.TestApps.Any()))
+    {
+      <div class="alert alert-warning" role="alert">
+        <strong>No apps are currently running</strong>
+        <p>
+          LocalTest is running in "auto" mode, but no apps have registered yet.
+          To use LocalTest, you need to start an Altinn app with a recent version of app-lib-dotnet that supports automatic registration.
+        </p>
+        <p>
+          Run <code>dotnet run</code> in your app directory to start an app and observe the output to make sure it
+          logs <code>Successfully registered org/app with localtest on hostname:port</code>
+        </p>
+      </div>
+    }
 
-    <h2>Testing app:  @Model.Org/@Model.App</h2>
+    @if(Model.AppMode == "http")
+    {
+      <h2>Testing app:  @Model.Org/@Model.App</h2>
+    }
 
     @using (Html.BeginForm("LogInTestUser", "Home", FormMethod.Post, new { Class = "form-signin", enctype = "multipart/form-data" }))
     {
       @Html.AntiForgeryToken();
-      <div class="form-group">
-        <label for="UserSelect">Select test users</label>
-        @Html.DropDownListFor(model => model.UserSelect, Model.TestUsers, new { Class = "form-control" })
-      </div>
-      @if(!Model.AppModeIsHttp)
+      @if(Model.AppMode != "http")
       {
         <div class="form-group">
-          <label for="exampleInputEmail1">Select app to test found in @Model.AppPath</label>
-          @Html.DropDownListFor(model => model.AppPathSelection, Model.TestApps, new { Class = "form-control" })
+          @if(Model.AppMode == "auto")
+          {
+            <label for="AppPathSelection">Select app to test</label>
+          }
+          else
+          {
+            <label for="AppPathSelection">Select app to test found in @Model.AppPath</label>
+          }
+          @Html.DropDownListFor(model => model.AppPathSelection, Model.TestApps, new { Class = "form-control", id = "AppPathSelection" })
         </div>
       }
+      <div class="form-group">
+        <label for="UserSelect">Select test users</label>
+        @Html.DropDownListFor(model => model.UserSelect, Model.TestUsers, new { Class = "form-control", id = "UserSelect" })
+      </div>
       <div class="form-group">
         <label for="AuthenticationLevel">Select your authentication level</label>
         @Html.DropDownListFor(model => model.AuthenticationLevel, Model.AuthenticationLevels, new { Class = "form-control" })
       </div>
-      @if(Model.AppModeIsHttp)
+      @if(Model.AppMode == "http")
       {
         <div class="form-group">
           <label for="prefill">

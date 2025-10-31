@@ -101,8 +101,8 @@ namespace LocalTest.Models
         public IEnumerable<SelectListItem> AuthenticationLevels { get; set; }
 
         /// <summary>
-        /// Modify site conditionally on the app mode
+        /// The current app mode (e.g., "http", "file", "auto")
         /// </summary>
-        public bool AppModeIsHttp { get; set; }
+        public string AppMode { get; set; }
     }
 }

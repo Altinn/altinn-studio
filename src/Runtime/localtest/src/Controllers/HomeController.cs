@@ -17,6 +17,7 @@ using LocalTest.Models;
 using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.LocalApp.Interface;
+using LocalTest.Services.AppRegistry;
 
 using Microsoft.AspNetCore.Authentication.Cookies;
 using LocalTest.Services.TestData;
@@ -35,6 +36,8 @@ namespace LocalTest.Controllers
 
         private readonly ILocalApp _localApp;
         private readonly TestDataService _testDataService;
+        private readonly AppRegistryService? _appRegistryService;
+        private readonly ILogger<HomeController> _logger;
 
         public HomeController(
             IOptions<GeneralSettings> generalSettings,
@@ -44,7 +47,9 @@ namespace LocalTest.Controllers
             IApplicationRepository applicationRepository,
             IParties partiesService,
             ILocalApp localApp,
-            TestDataService testDataService)
+            TestDataService testDataService,
+            ILogger<HomeController> logger,
+            AppRegistryService? appRegistryService = null)
         {
             _generalSettings = generalSettings.Value;
             _localPlatformSettings = localPlatformSettings.Value;
@@ -54,6 +59,8 @@ namespace LocalTest.Controllers
             _partiesService = partiesService;
             _localApp = localApp;
             _testDataService = testDataService;
+            _appRegistryService = appRegistryService;
+            _logger = logger;
         }
 
         [AllowAnonymous]
@@ -64,7 +71,7 @@ namespace LocalTest.Controllers
         {
             StartAppModel model = new StartAppModel()
             {
-                AppModeIsHttp = _localPlatformSettings.LocalAppMode == "http",
+                AppMode = _localPlatformSettings.LocalAppMode,
                 AppPath = _localPlatformSettings.AppRepositoryBasePath,
                 StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath,
                 LocalAppUrl = _localPlatformSettings.LocalAppUrl,
@@ -74,14 +81,14 @@ namespace LocalTest.Controllers
             try
             {
                 model.TestApps = await GetAppsList();
-                if (model.AppModeIsHttp)
+                if (model.AppMode == "http")
                 {
                     model.Org = model.TestApps[0].Value?.Split("/").FirstOrDefault();
                     model.App = model.TestApps[0].Value?.Split("/").LastOrDefault();
                 }
                 model.TestUsers = await GetTestUsersAndPartiesSelectList();
                 model.UserSelect = Request.Cookies["Localtest_User.Party_Select"];
-                var defaultAuthLevel = await GetAppAuthLevel(model.AppModeIsHttp, model.TestApps);
+                var defaultAuthLevel = await GetAppAuthLevel(model.AppMode == "http", model.TestApps);
                 model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
             }
             catch (HttpRequestException e)
@@ -90,7 +97,8 @@ namespace LocalTest.Controllers
             }
 
 
-            if (!model.TestApps?.Any() ?? true)
+            // In auto mode, apps register themselves, so empty list is OK
+            if (_localPlatformSettings.LocalAppMode != "auto" && (!model.TestApps?.Any() ?? true))
             {
                 model.InvalidAppPath = true;
             }
@@ -107,7 +115,79 @@ namespace LocalTest.Controllers
         [HttpGet("/Home/Localtest/Version")]
         public IActionResult Version()
         {
-            return Ok("2");
+            // Return version 3 only in auto mode, otherwise version 2
+            var version = _localPlatformSettings.LocalAppMode?.Equals("auto", StringComparison.InvariantCultureIgnoreCase) == true ? "3" : "2";
+            return Ok(version);
+        }
+
+        /// <summary>
+        /// Register an app running on a dynamic port
+        /// </summary>
+        [AllowAnonymous]
+        [HttpPost("/Home/Localtest/Register")]
+        public IActionResult RegisterApp([FromBody] AppRegistrationRequest request)
+        {
+            if (_appRegistryService == null)
+            {
+                return BadRequest("App registration is only available in 'auto' mode");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.AppId))
+            {
+                return BadRequest("AppId is required");
+            }
+
+            if (request.Port <= 0 || request.Port > 65535)
+            {
+                return BadRequest("Invalid port number");
+            }
+
+            try
+            {
+                _appRegistryService.Register(request.AppId, request.Port, request.Hostname, request.TestData);
+                return Ok(new { message = "App registered successfully", appId = request.AppId, port = request.Port, hostname = request.Hostname });
+            }
+            catch (InvalidOperationException ex)
+            {
+                // This happens when trying to register conflicting user IDs
+                return BadRequest(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Unregister an app
+        /// </summary>
+        [AllowAnonymous]
+        [HttpDelete("/Home/Localtest/Register/{appId}")]
+        public IActionResult UnregisterApp(string appId)
+        {
+            if (_appRegistryService == null)
+            {
+                return BadRequest("App registration is only available in 'auto' mode");
+            }
+
+            var removed = _appRegistryService.Unregister(appId);
+            if (removed)
+            {
+                return Ok(new { message = "App unregistered successfully", appId });
+            }
+            return NotFound(new { message = "App not found", appId });
+        }
+
+        /// <summary>
+        /// Get all registered apps
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet("/Home/Localtest/Register")]
+        public IActionResult GetRegisteredApps()
+        {
+            if (_appRegistryService == null)
+            {
+                return BadRequest("App registration is only available in 'auto' mode");
+            }
+
+            var apps = _appRegistryService.GetAll();
+            return Ok(apps);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -127,7 +207,13 @@ namespace LocalTest.Controllers
         {
             if (startAppModel.AuthenticationLevel != "-1")
             {
-                UserProfile profile = await _userProfileService.GetUser(startAppModel.UserId);
+                UserProfile? profile = await _userProfileService.GetUser(startAppModel.UserId);
+
+                if (profile == null)
+                {
+                    return BadRequest("User not found");
+                }
+
                 int authenticationLevel = Convert.ToInt32(startAppModel.AuthenticationLevel);
 
                 string token = await _authenticationService.GenerateTokenForProfile(profile, authenticationLevel);
@@ -226,7 +312,7 @@ namespace LocalTest.Controllers
         [HttpGet("/Home/GetTestOrgToken/{org?}")]
         public async Task<ActionResult> GetTestOrgToken(string org, [FromQuery] string orgNumber = null, [FromQuery] string scopes = null, [FromQuery] int? authenticationLevel = 3)
         {
-            
+
             // Create a test token with long duration
             string token = await _authenticationService.GenerateTokenForOrg(org, orgNumber, scopes, authenticationLevel);
 
@@ -244,10 +330,10 @@ namespace LocalTest.Controllers
         /// <returns></returns>
         [HttpGet("/Home/GetTestSystemUserToken")]
         public async Task<ActionResult> GetTestSystemUserToken(
-            [FromQuery] string systemId, 
-            [FromQuery] string systemUserId, 
-            [FromQuery] string systemUserOrgNumber, 
-            [FromQuery] string supplierOrgNumber, 
+            [FromQuery] string systemId,
+            [FromQuery] string systemUserId,
+            [FromQuery] string systemUserOrgNumber,
+            [FromQuery] string supplierOrgNumber,
             [FromQuery] string scope
         )
         {
@@ -266,10 +352,10 @@ namespace LocalTest.Controllers
                 supplierOrgNumber = system.Id.Split('_')[0];
             }
             string token = await _authenticationService.GenerateTokenForSystemUser(
-                systemId, 
-                systemUserId, 
-                systemUserOrgNumber, 
-                supplierOrgNumber, 
+                systemId,
+                systemUserId,
+                systemUserOrgNumber,
+                supplierOrgNumber,
                 scope
             );
 
@@ -284,6 +370,11 @@ namespace LocalTest.Controllers
             foreach (UserProfile profile in data.Profile.User.Values)
             {
                 var properProfile = await _userProfileService.GetUser(profile.UserId);
+
+                if (properProfile == null)
+                {
+                    continue;
+                }
 
                 var userParties = await _partiesService.GetParties(properProfile.UserId);
 
@@ -429,7 +520,10 @@ namespace LocalTest.Controllers
 
         private static SelectListItem GetSelectItem(Application app, string path)
         {
-            SelectListItem item = new SelectListItem() { Value = path, Text = app.Title.GetValueOrDefault("nb") };
+            var displayText = string.IsNullOrEmpty(app.Id)
+                ? app.Title.GetValueOrDefault("nb")
+                : app.Id;
+            SelectListItem item = new SelectListItem() { Value = path, Text = displayText };
             return item;
         }
 

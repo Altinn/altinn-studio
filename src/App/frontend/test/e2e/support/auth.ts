@@ -110,14 +110,15 @@ Cypress.Commands.add('interceptPermissions', () => {
 type CyUserLoginParams = {
   cyUser: CyUser;
   authenticationLevel: string;
+  appName: string;
 };
 
-export function cyUserLogin({ cyUser, authenticationLevel }: CyUserLoginParams) {
+export function cyUserLogin({ cyUser, authenticationLevel, appName }: CyUserLoginParams) {
   cy.log(`Logging in as user: ${cyUser}`);
   const user = cyUserCredentials[cyUser];
 
   if (Cypress.env('type') === 'localtest') {
-    return localLogin({ partyId: user.localPartyId, authenticationLevel });
+    return localLogin({ partyId: user.localPartyId, authenticationLevel, appName });
   }
 
   const { userName, userPassword } = user;
@@ -132,13 +133,15 @@ type LocalLoginParams =
   | {
       partyId: string;
       authenticationLevel: string;
+      appName: string;
     }
   | {
       displayName: string;
       authenticationLevel: string;
+      appName: string;
     };
 
-function localLogin({ authenticationLevel, ...rest }: LocalLoginParams) {
+function localLogin({ authenticationLevel, appName, ...rest }: LocalLoginParams) {
   cy.visit(`${Cypress.config('baseUrl')}`);
 
   if ('partyId' in rest) {
@@ -157,6 +160,9 @@ function localLogin({ authenticationLevel, ...rest }: LocalLoginParams) {
         cy.get('select#UserSelect').should('have.value', $option.val() as string);
       });
   }
+
+  cy.findByRole('combobox', { name: /select registered app to test/i })
+    .select(`ttd/${appName}`);
 
   cy.findByRole('combobox', { name: /authentication level/i })
     .should('exist')
