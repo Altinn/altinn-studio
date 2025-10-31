@@ -130,8 +130,6 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
         dataClientMock
             .Setup(x =>
                 x.GetDataBytes(
-                    It.Is<string>(org => org == applicationMetadata.AppIdentifier.Org),
-                    It.Is<string>(app => app == applicationMetadata.AppIdentifier.App),
                     It.Is<int>(party => party == instanceIdentifier.InstanceOwnerPartyId),
                     It.Is<Guid>(guid => guid == instanceIdentifier.InstanceGuid),
                     It.Is<Guid>(id => id == Guid.Parse(signedElement.Id)),
@@ -410,8 +408,6 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
         dataClientMock
             .Setup(x =>
                 x.GetDataBytes(
-                    It.Is<string>(org => org == appMetadata.AppIdentifier.Org),
-                    It.Is<string>(app => app == appMetadata.AppIdentifier.App),
                     It.Is<int>(party => party == instanceIdentifier.InstanceOwnerPartyId),
                     It.Is<Guid>(guid => guid == instanceIdentifier.InstanceGuid),
                     It.Is<Guid>(id => id == Guid.Parse(signedElement.Id)),

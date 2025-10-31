@@ -135,6 +135,9 @@ dotnet_diagnostic.CA2254.severity = none
 # CA1822: Mark members as static
 dotnet_diagnostic.CA1822.severity = warning
 
+# CA1725: Parameter names should match base declaration
+dotnet_diagnostic.CA1725.severity = warning
+
 # IDE0080: Remove unnecessary suppression operator
 dotnet_diagnostic.IDE0080.severity = error
 

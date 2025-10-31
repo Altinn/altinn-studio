@@ -75,11 +75,7 @@ public class UniqueSignatureAuthorizer : IUserActionAuthorizer
             var signatureDataElements = instance.Data.Where(d => dataTypes.Contains(d.DataType)).ToList();
             foreach (var signatureDataElement in signatureDataElements)
             {
-                var signee = await GetSigneeFromSignDocument(
-                    appMetadata.AppIdentifier,
-                    context.InstanceIdentifier,
-                    signatureDataElement
-                );
+                var signee = await GetSigneeFromSignDocument(context.InstanceIdentifier, signatureDataElement);
                 bool unauthorized = context.Authentication switch
                 {
                     Authenticated.User a => a.UserId.ToString(CultureInfo.InvariantCulture) == signee?.UserId,
@@ -97,14 +93,11 @@ public class UniqueSignatureAuthorizer : IUserActionAuthorizer
     }
 
     private async Task<Signee?> GetSigneeFromSignDocument(
-        AppIdentifier appIdentifier,
         InstanceIdentifier instanceIdentifier,
         DataElement dataElement
     )
     {
         await using var data = await _dataClient.GetBinaryData(
-            appIdentifier.Org,
-            appIdentifier.App,
             instanceIdentifier.InstanceOwnerPartyId,
             instanceIdentifier.InstanceGuid,
             Guid.Parse(dataElement.Id)

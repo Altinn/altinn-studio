@@ -20,7 +20,7 @@ public class DataServiceTests
     {
         _mockDataClient = new Mock<IDataClient>();
         _mockAppMetadata = new Mock<IAppMetadata>();
-        _dataService = new DataService(_mockDataClient.Object, _mockAppMetadata.Object);
+        _dataService = new DataService(_mockDataClient.Object);
     }
 
     [Fact]
@@ -42,8 +42,6 @@ public class DataServiceTests
         _mockDataClient
             .Setup(dc =>
                 dc.GetBinaryData(
-                    applicationMetadata.AppIdentifier.Org,
-                    applicationMetadata.AppIdentifier.App,
                     instanceIdentifier.InstanceOwnerPartyId,
                     instanceIdentifier.InstanceGuid,
                     new Guid(instance.Data.First().Id),
@@ -99,8 +97,6 @@ public class DataServiceTests
         _mockDataClient
             .Setup(dc =>
                 dc.GetBinaryData(
-                    applicationMetadata.AppIdentifier.Org,
-                    applicationMetadata.AppIdentifier.App,
                     instanceIdentifier.InstanceOwnerPartyId,
                     instanceIdentifier.InstanceGuid,
                     expectedDataId,

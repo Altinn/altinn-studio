@@ -131,9 +131,10 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                     );
                 }
                 var binaryData = await GetBinaryData(dataElementIdentifier);
+                var dataElement = GetDataElement(dataElementIdentifier);
 
                 return FormDataWrapperFactory.Create(
-                    _modelSerializationService.DeserializeFromStorage(binaryData.Span, dataType)
+                    _modelSerializationService.DeserializeFromStorage(binaryData.Span, dataType, dataElement)
                 );
             }
         );
@@ -214,8 +215,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             dataElementIdentifier,
             async () =>
                 await _dataClient.GetDataBytes(
-                    _appMetadata.AppIdentifier.Org,
-                    _appMetadata.AppIdentifier.App,
                     _instanceOwnerPartyId,
                     _instanceGuid,
                     dataElementIdentifier.Guid,
@@ -259,7 +258,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
 
         ObjectUtils.InitializeAltinnRowId(model);
-        var (bytes, contentType) = _modelSerializationService.SerializeToStorage(model, dataType);
+        var (bytes, contentType) = _modelSerializationService.SerializeToStorage(model, dataType, null);
 
         FormDataChange change = new FormDataChange(
             type: ChangeType.Created,
@@ -426,7 +425,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
             var (currentBinary, _) = _modelSerializationService.SerializeToStorage(
                 dataWrapper.BackingData<object>(),
-                dataType
+                dataType,
+                dataElement
             );
 
             if (!currentBinary.Span.SequenceEqual(cachedBinary.Span))
@@ -441,7 +441,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                         // For patch requests we could get the previous data from the patch, but it's not available here
                         // and deserializing twice is not a big deal
                         previousFormDataWrapper: FormDataWrapperFactory.Create(
-                            _modelSerializationService.DeserializeFromStorage(cachedBinary.Span, dataType)
+                            _modelSerializationService.DeserializeFromStorage(cachedBinary.Span, dataType, dataElement)
                         ),
                         currentBinaryData: currentBinary,
                         previousBinaryData: cachedBinary
@@ -537,8 +537,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             async Task DeleteData()
             {
                 await _dataClient.DeleteData(
-                    _appMetadata.AppIdentifier.Org,
-                    _appMetadata.AppIdentifier.App,
                     _instanceOwnerPartyId,
                     _instanceGuid,
                     change.DataElementIdentifier.Guid,

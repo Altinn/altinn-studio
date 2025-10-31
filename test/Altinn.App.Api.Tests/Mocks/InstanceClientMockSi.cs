@@ -10,7 +10,7 @@ using Microsoft.Extensions.Primitives;
 
 namespace Altinn.App.Api.Tests.Mocks;
 
-public class InstanceClientMockSi : IInstanceClient
+public sealed class InstanceClientMockSi : IInstanceClient
 {
     private readonly ILogger _logger;
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -33,21 +33,21 @@ public class InstanceClientMockSi : IInstanceClient
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<Instance> CreateInstance(string org, string app, Instance instance)
+    public async Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate)
     {
-        string partyId = instance.InstanceOwner.PartyId;
+        string partyId = instanceTemplate.InstanceOwner.PartyId;
         Guid instanceGuid = Guid.NewGuid();
-        instance.Id = $"{partyId}/{instanceGuid}";
-        instance.AppId = $"{org}/{app}";
-        instance.Org = org;
-        instance.Data = new List<DataElement>();
+        instanceTemplate.Id = $"{partyId}/{instanceGuid}";
+        instanceTemplate.AppId = $"{org}/{app}";
+        instanceTemplate.Org = org;
+        instanceTemplate.Data = new List<DataElement>();
 
         string instancePath = GetInstancePath(app, org, int.Parse(partyId), instanceGuid);
         string directory =
             Path.GetDirectoryName(instancePath)
             ?? throw new IOException($"Could not get directory name of specified path {instancePath}");
         _ = Directory.CreateDirectory(directory);
-        await WriteJsonFile(instancePath, instance);
+        await WriteJsonFile(instancePath, instanceTemplate);
 
         _logger.LogInformation(
             "Created instance for app {org}/{app}. writing to path: {instancePath}",
@@ -56,7 +56,7 @@ public class InstanceClientMockSi : IInstanceClient
             instancePath
         );
 
-        return instance;
+        return instanceTemplate;
     }
 
     /// <inheritdoc />
@@ -220,10 +220,7 @@ public class InstanceClientMockSi : IInstanceClient
                 break;
         }
 
-        instance.CompleteConfirmations = new List<CompleteConfirmation>
-        {
-            new CompleteConfirmation { StakeholderId = org },
-        };
+        instance.CompleteConfirmations = [new CompleteConfirmation { StakeholderId = org }];
 
         return instance;
     }
@@ -397,8 +394,8 @@ public class InstanceClientMockSi : IInstanceClient
     /// </summary>
     public async Task<List<Instance>> GetInstances(Dictionary<string, StringValues> queryParams)
     {
-        List<string> validQueryParams = new()
-        {
+        List<string> validQueryParams =
+        [
             "org",
             "appId",
             "process.currentTask",
@@ -420,7 +417,7 @@ public class InstanceClientMockSi : IInstanceClient
             "status.isActiveorSoftDeleted",
             "sortBy",
             "archiveReference",
-        };
+        ];
 
         string invalidKey = queryParams.FirstOrDefault(q => !validQueryParams.Contains(q.Key)).Key;
         if (!string.IsNullOrEmpty(invalidKey))
@@ -489,9 +486,9 @@ public class InstanceClientMockSi : IInstanceClient
             instances.RemoveAll(i => !i.AppId.Equals(appId, StringComparison.OrdinalIgnoreCase));
         }
 
-        if (queryParams.ContainsKey("instanceOwner.partyId"))
+        if (queryParams.TryGetValue("instanceOwner.partyId", out var instanceOwnerPartyIdParam))
         {
-            instances.RemoveAll(i => !queryParams["instanceOwner.partyId"].Contains(i.InstanceOwner.PartyId));
+            instances.RemoveAll(i => !instanceOwnerPartyIdParam.Contains(i.InstanceOwner.PartyId));
         }
 
         if (queryParams.ContainsKey("archiveReference"))
@@ -500,11 +497,9 @@ public class InstanceClientMockSi : IInstanceClient
             instances.RemoveAll(i => !i.Id.EndsWith(archiveRef.ToLower()));
         }
 
-        bool match;
-
         if (
             queryParams.ContainsKey("status.isArchived")
-            && bool.TryParse(queryParams.GetValueOrDefault("status.isArchived"), out match)
+            && bool.TryParse(queryParams.GetValueOrDefault("status.isArchived"), out var match)
         )
         {
             instances.RemoveAll(i => i.Status.IsArchived != match);
@@ -551,16 +546,14 @@ public class InstanceClientMockSi : IInstanceClient
         }
 
         lastChanged = instance.LastChanged;
-        newerDataElements.ForEach(
-            (DataElement dataElement) =>
+        newerDataElements.ForEach(dataElement =>
+        {
+            if (dataElement.LastChanged > lastChanged)
             {
-                if (dataElement.LastChanged > lastChanged)
-                {
-                    lastChangedBy = dataElement.LastChangedBy;
-                    lastChanged = (DateTime)dataElement.LastChanged;
-                }
+                lastChangedBy = dataElement.LastChangedBy;
+                lastChanged = (DateTime)dataElement.LastChanged;
             }
-        );
+        });
 
         return (lastChangedBy, lastChanged);
     }

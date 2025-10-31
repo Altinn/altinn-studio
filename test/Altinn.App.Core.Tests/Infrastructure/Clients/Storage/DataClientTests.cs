@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -14,6 +15,7 @@ using Altinn.App.Core.Internal;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Tests.Infrastructure.Clients.Storage.TestData;
 using Altinn.App.PlatformServices.Tests.Data;
@@ -34,7 +36,7 @@ public class DataClientTests
     public DataClientTests() { }
 
     private const string ApiStorageEndpoint = "https://local.platform.altinn.no/api/storage/";
-    private static readonly ApplicationMetadata _appMetadata = new("test-org/test-app");
+    private static readonly ApplicationMetadata _appMetadata = new("test-org/test-app") { DataTypes = [] };
     private static readonly Authenticated _defaultAuth = TestAuthentication.GetUserAuthentication();
 
     private static readonly TestTokens _testTokens = new(
@@ -93,7 +95,6 @@ public class DataClientTests
 
         // Assert
         Assert.NotNull(actual);
-        Assert.NotNull(platformRequest);
         AssertHttpRequest(
             platformRequest,
             expectedUri,
@@ -151,7 +152,6 @@ public class DataClientTests
 
         // Assert
         Assert.NotNull(actual);
-        Assert.NotNull(platformRequest);
         AssertHttpRequest(
             platformRequest,
             expectedUri,
@@ -216,10 +216,9 @@ public class DataClientTests
         // Assert
         var actual = response as SkjemaWithNamespace;
         Assert.NotNull(actual);
-        Assert.NotNull(actual!.Foretakgrp8820);
-        Assert.NotNull(actual!.Foretakgrp8820.EnhetNavnEndringdatadef31);
+        Assert.NotNull(actual.Foretakgrp8820);
+        Assert.NotNull(actual.Foretakgrp8820.EnhetNavnEndringdatadef31);
 
-        Assert.NotNull(platformRequest);
         AssertHttpRequest(platformRequest, expectedUri, HttpMethod.Get, expectedAuth: testCase?.ExpectedToken);
     }
 
@@ -296,9 +295,8 @@ public class DataClientTests
             authenticationMethod: testCase?.AuthenticationMethod
         );
         invocations.Should().Be(1);
-        platformRequest?.Should().NotBeNull();
         AssertHttpRequest(
-            platformRequest!,
+            platformRequest,
             expectedUri,
             HttpMethod.Put,
             "test.json",
@@ -395,16 +393,13 @@ public class DataClientTests
             UriKind.RelativeOrAbsolute
         );
         var response = await fixture.DataClient.GetBinaryData(
-            "ttd",
-            "app",
             instanceIdentifier.InstanceOwnerPartyId,
             instanceIdentifier.InstanceGuid,
             dataGuid,
             authenticationMethod: testCase?.AuthenticationMethod
         );
         invocations.Should().Be(1);
-        platformRequest?.Should().NotBeNull();
-        AssertHttpRequest(platformRequest!, expectedUri, HttpMethod.Get, expectedAuth: testCase?.ExpectedToken);
+        AssertHttpRequest(platformRequest, expectedUri, HttpMethod.Get, expectedAuth: testCase?.ExpectedToken);
         using StreamReader streamReader = new StreamReader(response);
         var responseString = await streamReader.ReadToEndAsync();
 
@@ -436,8 +431,6 @@ public class DataClientTests
             UriKind.RelativeOrAbsolute
         );
         var response = await fixture.DataClient.GetBinaryData(
-            "ttd",
-            "app",
             instanceIdentifier.InstanceOwnerPartyId,
             instanceIdentifier.InstanceGuid,
             dataGuid,
@@ -445,8 +438,7 @@ public class DataClientTests
         );
         response.Should().BeNull();
         invocations.Should().Be(1);
-        platformRequest?.Should().NotBeNull();
-        AssertHttpRequest(platformRequest!, expectedUri, HttpMethod.Get, expectedAuth: testCase?.ExpectedToken);
+        AssertHttpRequest(platformRequest, expectedUri, HttpMethod.Get, expectedAuth: testCase?.ExpectedToken);
     }
 
     [Fact]
@@ -468,8 +460,6 @@ public class DataClientTests
 
         var actual = await Assert.ThrowsAsync<PlatformHttpException>(async () =>
             await fixture.DataClient.GetBinaryData(
-                "ttd",
-                "app",
                 instanceIdentifier.InstanceOwnerPartyId,
                 instanceIdentifier.InstanceGuid,
                 dataGuid
@@ -631,8 +621,7 @@ public class DataClientTests
             authenticationMethod: testCase?.AuthenticationMethod
         );
         invocations.Should().Be(1);
-        platformRequest?.Should().NotBeNull();
-        AssertHttpRequest(platformRequest!, expectedUri, HttpMethod.Get, expectedAuth: testCase?.ExpectedToken);
+        AssertHttpRequest(platformRequest, expectedUri, HttpMethod.Get, expectedAuth: testCase?.ExpectedToken);
 
         var expectedList = new List<AttachmentList>()
         {
@@ -716,16 +705,14 @@ public class DataClientTests
             $"{ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}?delay=False",
             UriKind.RelativeOrAbsolute
         );
-        var result = await fixture.DataClient.DeleteBinaryData(
-            "ttd",
-            "app",
+        var result = await fixture.DataClient.DeleteData(
             instanceIdentifier.InstanceOwnerPartyId,
             instanceIdentifier.InstanceGuid,
-            dataGuid
+            dataGuid,
+            delay: false
         );
         invocations.Should().Be(1);
-        platformRequest?.Should().NotBeNull();
-        AssertHttpRequest(platformRequest!, expectedUri, HttpMethod.Delete);
+        AssertHttpRequest(platformRequest, expectedUri, HttpMethod.Delete);
         result.Should().BeTrue();
     }
 
@@ -753,16 +740,15 @@ public class DataClientTests
             UriKind.RelativeOrAbsolute
         );
         var actual = await Assert.ThrowsAsync<PlatformHttpException>(async () =>
-            await fixture.DataClient.DeleteBinaryData(
-                "ttd",
-                "app",
+            await fixture.DataClient.DeleteData(
                 instanceIdentifier.InstanceOwnerPartyId,
                 instanceIdentifier.InstanceGuid,
-                dataGuid
+                dataGuid,
+                delay: false
             )
         );
         invocations.Should().Be(1);
-        AssertHttpRequest(platformRequest!, expectedUri, HttpMethod.Delete);
+        AssertHttpRequest(platformRequest, expectedUri, HttpMethod.Delete);
         actual.Response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -800,8 +786,7 @@ public class DataClientTests
             authenticationMethod: testCase?.AuthenticationMethod
         );
         invocations.Should().Be(1);
-        platformRequest?.Should().NotBeNull();
-        AssertHttpRequest(platformRequest!, expectedUri, HttpMethod.Delete, expectedAuth: testCase?.ExpectedToken);
+        AssertHttpRequest(platformRequest, expectedUri, HttpMethod.Delete, expectedAuth: testCase?.ExpectedToken);
         result.Should().BeTrue();
     }
 
@@ -840,9 +825,8 @@ public class DataClientTests
             authenticationMethod: testCase?.AuthenticationMethod
         );
         invocations.Should().Be(1);
-        platformRequest?.Should().NotBeNull();
         AssertHttpRequest(
-            platformRequest!,
+            platformRequest,
             expectedUri,
             HttpMethod.Put,
             null,
@@ -877,7 +861,7 @@ public class DataClientTests
             await fixture.DataClient.UpdateData(
                 exampleModel,
                 instanceIdentifier.InstanceGuid,
-                typeof(DataElement),
+                exampleModel.GetType(),
                 "ttd",
                 "app",
                 instanceIdentifier.InstanceOwnerPartyId,
@@ -926,9 +910,8 @@ public class DataClientTests
             )
         );
         invocations.Should().Be(1);
-        platformRequest?.Should().NotBeNull();
         AssertHttpRequest(
-            platformRequest!,
+            platformRequest,
             expectedUri,
             HttpMethod.Put,
             null,
@@ -974,9 +957,8 @@ public class DataClientTests
             authenticationMethod: testCase?.AuthenticationMethod
         );
         invocations.Should().Be(1);
-        platformRequest?.Should().NotBeNull();
         response.Should().BeEquivalentTo(dataElement);
-        AssertHttpRequest(platformRequest!, expectedUri, HttpMethod.Put, expectedAuth: testCase?.ExpectedToken);
+        AssertHttpRequest(platformRequest, expectedUri, HttpMethod.Put, expectedAuth: testCase?.ExpectedToken);
     }
 
     [Theory]
@@ -1012,7 +994,7 @@ public class DataClientTests
             )
         );
         invocations.Should().Be(1);
-        AssertHttpRequest(platformRequest!, expectedUri, HttpMethod.Put, expectedAuth: testCase?.ExpectedToken);
+        AssertHttpRequest(platformRequest, expectedUri, HttpMethod.Put, expectedAuth: testCase?.ExpectedToken);
         result.Response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
     }
 
@@ -1052,9 +1034,8 @@ public class DataClientTests
             authenticationMethod: testCase?.AuthenticationMethod
         );
         invocations.Should().Be(1);
-        platformRequest?.Should().NotBeNull();
         response.Should().BeEquivalentTo(dataElement);
-        AssertHttpRequest(platformRequest!, expectedUri, HttpMethod.Delete, expectedAuth: testCase?.ExpectedToken);
+        AssertHttpRequest(platformRequest, expectedUri, HttpMethod.Delete, expectedAuth: testCase?.ExpectedToken);
     }
 
     [Theory]
@@ -1090,12 +1071,12 @@ public class DataClientTests
             )
         );
         invocations.Should().Be(1);
-        AssertHttpRequest(platformRequest!, expectedUri, HttpMethod.Delete, expectedAuth: testCase?.ExpectedToken);
+        AssertHttpRequest(platformRequest, expectedUri, HttpMethod.Delete, expectedAuth: testCase?.ExpectedToken);
         result.Response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
     }
 
     private static void AssertHttpRequest(
-        HttpRequestMessage actual,
+        [NotNull] HttpRequestMessage? actual,
         Uri expectedUri,
         HttpMethod method,
         string? expectedFilename = null,
@@ -1103,12 +1084,13 @@ public class DataClientTests
         JwtToken? expectedAuth = null
     )
     {
+        Assert.NotNull(actual);
         Assert.Equal(method, actual.Method);
 
         var authHeader = actual.Headers.Authorization;
         Assert.NotNull(authHeader);
         Assert.Equal("Bearer", authHeader.Scheme);
-        Assert.Equal(authHeader.Parameter, expectedAuth ?? _defaultAuth.Token);
+        Assert.Equal(expectedAuth ?? _defaultAuth.Token, authHeader.Parameter);
 
         const int uriComparisonIdentical = 0;
         Assert.Equivalent(expectedUri, actual.RequestUri);
@@ -1143,7 +1125,7 @@ public class DataClientTests
 
     private sealed record Fixture : IAsyncDisposable
     {
-        public required DataClient DataClient { get; init; }
+        public required IDataClient DataClient { get; init; }
         public required ServiceProvider ServiceProvider { get; init; }
         public required FixtureMocks Mocks { get; init; }
         public required HttpClient BaseHttpClient { get; init; }

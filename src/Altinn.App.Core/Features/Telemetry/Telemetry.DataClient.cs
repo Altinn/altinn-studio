@@ -13,19 +13,19 @@ partial class Telemetry
         return activity;
     }
 
-    internal Activity? StartInsertFormDataActivity(Guid? instanceId, int? partyId)
-    {
-        var activity = ActivitySource.StartActivity($"{Prefix}.InsertFormData");
-        activity?.SetInstanceId(instanceId);
-        activity?.SetInstanceOwnerPartyId(partyId);
-        return activity;
-    }
-
     internal Activity? StartUpdateDataActivity(Guid instanceId, Guid dataElementId)
     {
         var activity = ActivitySource.StartActivity($"{Prefix}.UpdateData");
         activity?.SetInstanceId(instanceId);
         activity?.SetDataElementId(dataElementId);
+        return activity;
+    }
+
+    internal Activity? StartUpdateDataActivity(Instance instance, DataElement dataElement)
+    {
+        var activity = ActivitySource.StartActivity($"{Prefix}.UpdateData");
+        activity?.SetInstanceId(instance);
+        activity?.SetDataElementId(dataElement);
         return activity;
     }
 
@@ -40,14 +40,6 @@ partial class Telemetry
     internal Activity? StartGetBinaryDataListActivity(Guid? instanceId, int? partyId)
     {
         var activity = ActivitySource.StartActivity($"{Prefix}.GetBinaryDataList");
-        activity?.SetInstanceId(instanceId);
-        activity?.SetInstanceOwnerPartyId(partyId);
-        return activity;
-    }
-
-    internal Activity? StartDeleteBinaryDataActivity(Guid? instanceId, int? partyId)
-    {
-        var activity = ActivitySource.StartActivity($"{Prefix}.DeleteBinaryData");
         activity?.SetInstanceId(instanceId);
         activity?.SetInstanceOwnerPartyId(partyId);
         return activity;
@@ -103,6 +95,13 @@ partial class Telemetry
         var activity = ActivitySource.StartActivity($"{Prefix}.GetFormData");
         activity?.SetInstanceId(instanceId);
         activity?.SetInstanceOwnerPartyId(partyId);
+        return activity;
+    }
+
+    internal Activity? StartGetFormDataActivity(Instance? instance)
+    {
+        var activity = ActivitySource.StartActivity($"{Prefix}.GetFormData");
+        activity?.SetInstanceId(instance);
         return activity;
     }
 

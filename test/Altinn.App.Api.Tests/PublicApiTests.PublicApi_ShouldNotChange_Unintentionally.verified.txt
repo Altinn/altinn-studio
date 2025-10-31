@@ -275,7 +275,6 @@ namespace Altinn.App.Api.Controllers
                     Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient,
                     Altinn.App.Core.Internal.Data.IDataClient dataClient,
                     Altinn.App.Core.Internal.App.IAppMetadata appMetadata,
-                    Altinn.App.Core.Internal.AppModel.IAppModel appModel,
                     Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext,
                     Altinn.Common.PEP.Interfaces.IPDP pdp,
                     Altinn.App.Core.Internal.Events.IEventsClient eventsClient,

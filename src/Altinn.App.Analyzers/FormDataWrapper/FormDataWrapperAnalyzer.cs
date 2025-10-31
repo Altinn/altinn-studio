@@ -6,12 +6,12 @@ public class FormDataWrapperAnalyzer : DiagnosticAnalyzer
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
         [Diagnostics.FormDataWrapperGenerator.AppMetadataError];
 
-    public override void Initialize(AnalysisContext analysisContext)
+    public override void Initialize(AnalysisContext context)
     {
-        analysisContext.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        analysisContext.EnableConcurrentExecution();
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+        context.EnableConcurrentExecution();
 
-        analysisContext.RegisterCompilationAction(CompilationAnalysisAction);
+        context.RegisterCompilationAction(CompilationAnalysisAction);
     }
 
     private void CompilationAnalysisAction(CompilationAnalysisContext compilationContext)

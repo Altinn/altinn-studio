@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -11,17 +10,13 @@ internal class DataService : IDataService
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
 
     private readonly IDataClient _dataClient;
-    private readonly IAppMetadata _appMetadata;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataService"/> class.
     /// </summary>
-    /// <param name="dataClient"></param>
-    /// <param name="appMetadata"></param>
-    public DataService(IDataClient dataClient, IAppMetadata appMetadata)
+    public DataService(IDataClient dataClient)
     {
         _dataClient = dataClient;
-        _appMetadata = appMetadata;
     }
 
     /// <inheritdoc/>
@@ -94,11 +89,7 @@ internal class DataService : IDataService
     /// <inheritdoc/>
     public async Task<bool> DeleteById(InstanceIdentifier instanceIdentifier, Guid dataElementId)
     {
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
-
         return await _dataClient.DeleteData(
-            applicationMetadata.AppIdentifier.Org,
-            applicationMetadata.AppIdentifier.App,
             instanceIdentifier.InstanceOwnerPartyId,
             instanceIdentifier.InstanceGuid,
             dataElementId,
@@ -108,11 +99,7 @@ internal class DataService : IDataService
 
     private async Task<T> GetDataForDataElement<T>(InstanceIdentifier instanceIdentifier, DataElement dataElement)
     {
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
-
         Stream dataStream = await _dataClient.GetBinaryData(
-            applicationMetadata.AppIdentifier.Org,
-            applicationMetadata.AppIdentifier.App,
             instanceIdentifier.InstanceOwnerPartyId,
             instanceIdentifier.InstanceGuid,
             new Guid(dataElement.Id)
