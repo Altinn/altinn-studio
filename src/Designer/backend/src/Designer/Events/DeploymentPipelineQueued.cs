@@ -1,3 +1,4 @@
+#nullable enable
 using Altinn.Studio.Designer.Models;
 using MediatR;
 

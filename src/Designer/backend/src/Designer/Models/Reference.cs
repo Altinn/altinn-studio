@@ -1,4 +1,4 @@
-
+#nullable disable
 using Altinn.Studio.Designer.Enums;
 
 namespace Altinn.Studio.Designer.Models

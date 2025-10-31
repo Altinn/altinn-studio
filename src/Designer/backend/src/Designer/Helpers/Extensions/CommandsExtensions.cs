@@ -1,3 +1,4 @@
+#nullable disable
 using LibGit2Sharp;
 
 namespace Altinn.Studio.Designer.Helpers.Extensions;

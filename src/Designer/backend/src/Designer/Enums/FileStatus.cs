@@ -3,7 +3,7 @@ using System;
 namespace Altinn.Studio.Designer.Enums
 {
     /// <summary>
-    /// Enums with the different file status 
+    /// Enums with the different file status
     /// </summary>
     [Flags]
     public enum FileStatus
