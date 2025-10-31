@@ -5,6 +5,7 @@
   },
   "include": [
     "libs/studio-assistant",
+    "libs/studio-browser-storage",
     "libs/studio-components",
     "libs/studio-content-library/src/ContentLibrary/LibraryBody/pages/CodeListsPage",
     "libs/studio-feature-flags",
