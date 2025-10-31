@@ -13,9 +13,9 @@ public interface IAlertsService
         CancellationToken cancellationToken = default
     );
 
-    public Task UpsertFiringAlerts(
+    public Task UpsertFiringAlertsAsync(
         string org,
         string env,
-        CancellationToken ct
+        CancellationToken cancellationToken = default
     );
 }
