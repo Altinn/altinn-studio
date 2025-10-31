@@ -2,6 +2,32 @@
   "language": "nb-NO",
   "resources": [
     {
+      "id": "backend.validation_errors.required",
+      "value": "{0} is required in component with id {1}.{2}.{3} for binding {4}",
+      "variables": [
+        {
+          "key": "field",
+          "dataSource": "customTextParameters"
+        },
+        {
+          "key": "layoutId",
+          "dataSource": "customTextParameters"
+        },
+        {
+          "key": "pageId",
+          "dataSource": "customTextParameters"
+        },
+        {
+          "key": "componentId",
+          "dataSource": "customTextParameters"
+        },
+        {
+          "key": "bindingName",
+          "dataSource": "customTextParameters"
+        }
+      ]
+    },
+    {
       "id": "Radioknapp.Label",
       "value": "Radioknapp komponent for automatisert testing"
     },

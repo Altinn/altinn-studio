@@ -1,0 +1,67 @@
+{
+  "name": "Simple cards layout with two components",
+  "layouts": {
+    "Page1": {
+      "data": {
+        "layout": [
+          {
+            "id": "comp1",
+            "type": "Header"
+          },
+          {
+            "id": "cards1",
+            "type": "Cards",
+            "cards": [
+              {
+                "children": ["comp3"]
+              },
+              {
+                "children": ["comp4"]
+              }
+            ]
+          },
+          {
+            "id": "comp3",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "gruppe1.comp3binding"
+            }
+          },
+          {
+            "id": "comp4",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "gruppe1.comp4binding"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "expectedContexts": [
+    {
+      "component": "Page1",
+      "currentLayout": "Page1",
+      "children": [
+        {
+          "component": "comp1",
+          "currentLayout": "Page1"
+        },
+        {
+          "component": "cards1",
+          "currentLayout": "Page1",
+          "children": [
+            {
+              "component": "comp3",
+              "currentLayout": "Page1"
+            },
+            {
+              "component": "comp4",
+              "currentLayout": "Page1"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

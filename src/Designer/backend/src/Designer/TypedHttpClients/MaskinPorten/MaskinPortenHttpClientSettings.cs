@@ -1,4 +1,5 @@
-﻿using Altinn.Studio.Designer.Configuration.Marker;
+﻿#nullable disable
+using Altinn.Studio.Designer.Configuration.Marker;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
 

@@ -82,6 +82,7 @@ public interface IAppResources
     /// Gets the layouts for the app.
     /// </summary>
     /// <returns>A dictionary of FormLayout objects serialized to JSON</returns>
+    [Obsolete("Use GetLayoutsForSet or GetLayoutModelForTask instead")]
     string GetLayouts();
 
     /// <summary>

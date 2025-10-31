@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable disable
+using System;
 using System.Linq;
 
 namespace Altinn.Studio.Designer.Helpers.Extensions

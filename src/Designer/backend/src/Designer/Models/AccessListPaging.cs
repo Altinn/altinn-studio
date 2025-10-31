@@ -1,4 +1,4 @@
-
+#nullable disable
 namespace Altinn.Studio.Designer.Models
 {
     public class AccessListPaging

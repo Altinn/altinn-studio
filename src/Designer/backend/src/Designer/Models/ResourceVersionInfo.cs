@@ -1,4 +1,5 @@
-﻿namespace Altinn.Studio.Designer.Models
+﻿#nullable disable
+namespace Altinn.Studio.Designer.Models
 {
     public class ResourceVersionInfo
     {
