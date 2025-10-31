@@ -58,10 +58,28 @@ describe('CookieSerializer', () => {
       expect(result).toContain('samesite=Lax');
     });
 
-    test('should return cookie string with samesite=None when sameSite is None', () => {
+    test('buildCookieString should return cookie string with samesite=None and secure when sameSite is None with secure flag', () => {
+      const result = CookieSerializer.buildCookieString('key', 'value', {
+        sameSite: 'None',
+        secure: true,
+      });
+
+      expect(result).toContain('samesite=None');
+      expect(result).toContain('; secure');
+    });
+
+    test('buildCookieString should automatically set secure flag and log warning when sameSite is None without secure', () => {
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
       const result = CookieSerializer.buildCookieString('key', 'value', { sameSite: 'None' });
 
       expect(result).toContain('samesite=None');
+      expect(result).toContain('; secure');
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'Cookies with SameSite=None require Secure flag. Automatically setting secure=true.',
+      );
+
+      consoleWarnSpy.mockRestore();
     });
 
     test('should return cookie string with all attributes combined when all options provided', () => {

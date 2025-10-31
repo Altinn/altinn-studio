@@ -34,6 +34,14 @@ export class CookieSerializer {
     encodedValue: string,
     options: CookieOptions,
   ): string {
+    // Enforce secure flag when sameSite is None (browser requirement)
+    if (options.sameSite === 'None' && !options.secure) {
+      console.warn(
+        'Cookies with SameSite=None require Secure flag. Automatically setting secure=true.',
+      );
+      options = { ...options, secure: true };
+    }
+
     return [
       `${encodedKey}=${encodedValue}`,
       CookieSerializer.serializeExpires(options.expires),
