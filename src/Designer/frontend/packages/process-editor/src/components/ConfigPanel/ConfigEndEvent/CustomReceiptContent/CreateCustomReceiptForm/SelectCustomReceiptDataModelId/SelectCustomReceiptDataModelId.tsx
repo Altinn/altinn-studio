@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../../../contexts/BpmnApiContext';
 import { getDataTypeFromLayoutSetsWithExistingId } from '../../../../../../utils/configPanelUtils';
-import { StudioCombobox } from '@studio/components-legacy';
+import { StudioSuggestion } from '@studio/components';
 
 export type SelectCustomReceiptDataModelIdProps = {
   error: string;
@@ -21,24 +21,37 @@ export const SelectCustomReceiptDataModelId = ({
     existingCustomReceiptLayoutSetId,
   );
 
+  const [selectedValue, setSelectedValue] = useState<string>(existingDataModelId || '');
+
+  useEffect(() => {
+    if (existingDataModelId) {
+      setSelectedValue(existingDataModelId);
+    }
+  }, [existingDataModelId]);
+
+  const selectedItems = selectedValue ? [{ value: selectedValue, label: selectedValue }] : [];
+
+  const handleSelectedChange = (items: { value: string }[]) => {
+    const newValue = items[0]?.value || '';
+    setSelectedValue(newValue);
+    onChange();
+  };
+
   return (
-    <StudioCombobox
+    <StudioSuggestion
       label={t('process_editor.configuration_panel_custom_receipt_select_data_model_label')}
-      size='small'
+      emptyText={t('process_editor.configuration_panel_no_data_model_to_select')}
       name='customReceiptDataModel'
       id='customReceiptDataModelSelect'
       error={error}
-      value={existingDataModelId && [existingDataModelId]}
-      onValueChange={() => onChange()}
+      selected={selectedItems}
+      onSelectedChange={handleSelectedChange}
     >
-      <StudioCombobox.Empty>
-        {t('process_editor.configuration_panel_no_data_model_to_select')}
-      </StudioCombobox.Empty>
       {allDataModelIds.map((option) => (
-        <StudioCombobox.Option value={option} key={option}>
+        <StudioSuggestion.Option value={option} key={option}>
           {option}
-        </StudioCombobox.Option>
+        </StudioSuggestion.Option>
       ))}
-    </StudioCombobox>
+    </StudioSuggestion>
   );
 };

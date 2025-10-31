@@ -1,6 +1,5 @@
 import React from 'react';
-import { StudioCombobox } from '@studio/components-legacy';
-import { StudioDeleteButton, StudioButton } from '@studio/components';
+import { StudioSuggestion, StudioDeleteButton, StudioButton } from '@studio/components';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
@@ -24,7 +23,6 @@ export const SelectDataTypes = ({
 }: SelectDataTypesProps): React.ReactElement => {
   const { t } = useTranslation();
   const { mutateDataTypes } = useBpmnApiContext();
-  const currentValue = existingDataType ? [existingDataType] : [];
 
   const handleChangeDataModel = (newDataModelIds?: string[]) => {
     const newDataModelId = newDataModelIds ? newDataModelIds[0] : undefined;
@@ -38,6 +36,11 @@ export const SelectDataTypes = ({
     onClose();
   };
 
+  const handleSelectedChange = (items: { value: string }[]) => {
+    const selectedValues = items.map((item) => item.value);
+    handleChangeDataModel(selectedValues);
+  };
+
   const dataModelOptionsToDisplay: string[] = existingDataType
     ? [...new Set([...dataModelIds, existingDataType])]
     : dataModelIds;
@@ -46,33 +49,28 @@ export const SelectDataTypes = ({
     ? t('process_editor.configuration_panel_data_model_selection_description_existing_model')
     : t('process_editor.configuration_panel_data_model_selection_description');
 
-  const value =
+  const selectedItems =
     existingDataType && dataModelOptionsToDisplay.includes(existingDataType)
-      ? currentValue
-      : undefined;
+      ? [{ value: existingDataType, label: existingDataType }]
+      : [];
 
   return (
     <div className={classes.dataTypeSelectAndButtons}>
-      <StudioCombobox
+      <StudioSuggestion
         label={t('process_editor.configuration_panel_set_data_model_label')}
-        value={value}
         description={descriptionText}
-        size='small'
+        selected={selectedItems}
+        emptyText={t('process_editor.configuration_panel_no_data_model_to_select')}
         className={classes.dataTypeSelect}
+        filter={() => true}
+        onSelectedChange={handleSelectedChange}
       >
-        <StudioCombobox.Empty>
-          {t('process_editor.configuration_panel_no_data_model_to_select')}
-        </StudioCombobox.Empty>
         {dataModelOptionsToDisplay.map((option) => (
-          <StudioCombobox.Option
-            value={option}
-            key={option}
-            onClick={() => handleChangeDataModel([option])}
-          >
+          <StudioSuggestion.Option value={option} key={option} label={option}>
             {option}
-          </StudioCombobox.Option>
+          </StudioSuggestion.Option>
         ))}
-      </StudioCombobox>
+      </StudioSuggestion>
       <div className={classes.buttons}>
         <StudioButton
           icon={<XMarkIcon />}

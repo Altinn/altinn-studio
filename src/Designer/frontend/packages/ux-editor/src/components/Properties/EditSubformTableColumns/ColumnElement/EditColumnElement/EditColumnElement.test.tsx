@@ -48,9 +48,9 @@ describe('EditColumnElementComponentSelect', () => {
     const user = userEvent.setup();
     renderEditColumnElement({}, null);
 
-    const componentSelect = screen.getByRole('combobox', {
-      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
-    });
+    const componentSelect = screen.getByLabelText(
+      textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    );
 
     expect(componentSelect).toBeInTheDocument();
     await user.click(componentSelect);
@@ -66,9 +66,9 @@ describe('EditColumnElementComponentSelect', () => {
   it('should not render availability components message when components are available', async () => {
     const user = userEvent.setup();
     renderEditColumnElement();
-    const componentSelect = screen.getByRole('combobox', {
-      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
-    });
+    const componentSelect = screen.getByLabelText(
+      textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    );
 
     expect(componentSelect).toBeInTheDocument();
     await user.click(componentSelect);
@@ -84,15 +84,16 @@ describe('EditColumnElementComponentSelect', () => {
   it('should render just components with labels and data model bindings', async () => {
     const user = userEvent.setup();
     renderEditColumnElement();
-    const componentSelect = screen.getByRole('combobox', {
-      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
-    });
+    const componentSelect = screen.getByLabelText(
+      textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    );
 
     expect(componentSelect).toBeInTheDocument();
     await user.click(componentSelect);
     expect(
       screen.getByRole('option', {
         name: new RegExp(`${subformLayoutMock.component1Id}`),
+        hidden: true,
       }),
     ).toBeInTheDocument();
     expect(
@@ -110,13 +111,14 @@ describe('EditColumnElementComponentSelect', () => {
   it('should not render multiple data model bindings label when there are not multiple data model bindings', async () => {
     const user = userEvent.setup();
     renderEditColumnElement();
-    const componentSelect = screen.getByRole('combobox', {
-      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
-    });
+    const componentSelect = screen.getByLabelText(
+      textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    );
     expect(componentSelect).toBeInTheDocument();
     await user.click(componentSelect);
     const componentWithSingleBinding = screen.getByRole('option', {
       name: new RegExp(`${subformLayoutMock.component1Id}`),
+      hidden: true,
     });
     await user.click(componentWithSingleBinding);
     expect(
@@ -136,13 +138,14 @@ describe('EditColumnElementComponentSelect', () => {
         cellContent: { query: addressDataField },
       },
     });
-    const componentSelect = screen.getByRole('combobox', {
-      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
-    });
+    const componentSelect = screen.getByLabelText(
+      textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    );
     expect(componentSelect).toBeInTheDocument();
     await user.click(componentSelect);
     const componentWithMultipleBindings = screen.getByRole('option', {
       name: new RegExp(`${subformLayoutMock.component4Id}`),
+      hidden: true,
     });
     await user.click(componentWithMultipleBindings);
     expect(
@@ -162,14 +165,15 @@ describe('EditColumnElementComponentSelect', () => {
         cellContent: { query: addressDataField },
       },
     });
-    const componentSelect = screen.getByRole('combobox', {
-      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
-    });
+    const componentSelect = screen.getByLabelText(
+      textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    );
     expect(componentSelect).toBeInTheDocument();
     await user.click(componentSelect);
 
     const componentWitMultipleBindings = screen.getByRole('option', {
       name: new RegExp(`${subformLayoutMock.component4Id}`),
+      hidden: true,
     });
     await user.click(componentWitMultipleBindings);
 
@@ -184,16 +188,19 @@ describe('EditColumnElementComponentSelect', () => {
     expect(
       screen.getByRole('option', {
         name: `${textMock('ux_editor.modal_properties_data_model_label.address')} ${subformLayoutMock.component4.dataModelBindings.address.field}`,
+        hidden: true,
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('option', {
         name: `${textMock('ux_editor.modal_properties_data_model_label.postPlace')} ${subformLayoutMock.component4.dataModelBindings.postPlace.field}`,
+        hidden: true,
       }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole('option', {
         name: `${textMock('ux_editor.modal_properties_data_model_label.zipCode')} ${subformLayoutMock.component4.dataModelBindings.zipCode.field}`,
+        hidden: true,
       }),
     ).not.toBeInTheDocument();
   });
@@ -244,13 +251,16 @@ describe('EditColumnElementComponentSelect', () => {
       onChange: onChangeMock,
     });
 
-    const componentSelect = screen.getByRole('combobox', {
-      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
-    });
+    const componentSelect = screen.getByLabelText(
+      textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    );
 
     await user.click(componentSelect);
     await user.click(
-      screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component1Id}`) }),
+      screen.getByRole('option', {
+        name: new RegExp(`${subformLayoutMock.component1Id}`),
+        hidden: true,
+      }),
     );
 
     const saveButton = await screen.findByRole('button', { name: textMock('general.save') });
@@ -273,12 +283,15 @@ describe('EditColumnElementComponentSelect', () => {
       },
       onChange: onChangeMock,
     });
-    const componentSelect = screen.getByRole('combobox', {
-      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
-    });
+    const componentSelect = screen.getByLabelText(
+      textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    );
     await user.click(componentSelect);
     await user.click(
-      screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component4Id}`) }),
+      screen.getByRole('option', {
+        name: new RegExp(`${subformLayoutMock.component4Id}`),
+        hidden: true,
+      }),
     );
     const dataModelBindingsSelect = await screen.findByRole('combobox', {
       name: textMock(

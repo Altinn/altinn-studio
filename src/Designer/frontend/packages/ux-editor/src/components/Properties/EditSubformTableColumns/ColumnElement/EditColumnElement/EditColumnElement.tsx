@@ -2,8 +2,8 @@ import React, { useState, type ReactElement } from 'react';
 import classes from './EditColumnElement.module.css';
 import type { TableColumn } from '../../types/TableColumn';
 import { useTranslation } from 'react-i18next';
-import { StudioCombobox } from '@studio/components-legacy';
 import {
+  StudioSuggestion,
   StudioActionCloseButton,
   StudioCard,
   StudioHeading,
@@ -139,31 +139,44 @@ const EditColumnElementHeader = ({ columnNumber }: EditColumnElementHeaderProps)
 export type EditColumnElementComponentSelectProps = {
   components: FormItem[];
   onSelectComponent: (values: string[]) => void;
+  selectedId?: string;
 };
 export const EditColumnElementComponentSelect = ({
   components,
   onSelectComponent,
+  selectedId,
 }: EditColumnElementComponentSelectProps) => {
   const { t } = useTranslation();
 
+  const handleSelectedChange = (items: { value: string }[]) => {
+    const selectedValues = items.map((item) => item.value);
+    onSelectComponent(selectedValues);
+  };
+
+  const selectedItems = selectedId ? [{ value: selectedId, label: selectedId }] : [];
+
   return (
-    <StudioCombobox
+    <StudioSuggestion
       label={t('ux_editor.properties_panel.subform_table_columns.choose_component')}
       description={t(
         'ux_editor.properties_panel.subform_table_columns.choose_component_description',
       )}
-      size='sm'
-      onValueChange={onSelectComponent}
+      emptyText={t(
+        'ux_editor.properties_panel.subform_table_columns.no_components_available_message',
+      )}
+      filter={() => true}
+      selected={selectedItems}
+      onSelectedChange={handleSelectedChange}
       id='columncomponentselect'
     >
       {components.map((comp: FormItem) => (
-        <StudioCombobox.Option key={comp.id} value={comp.id} description={comp.type}>
-          {comp.id}
-        </StudioCombobox.Option>
+        <StudioSuggestion.Option key={comp.id} value={comp.id}>
+          <div>
+            <div>{comp.id}</div>
+            <div className={classes.optionDescription}>{comp.type}</div>
+          </div>
+        </StudioSuggestion.Option>
       ))}
-      <StudioCombobox.Empty key={'noComponentsWithLabel'}>
-        {t('ux_editor.properties_panel.subform_table_columns.no_components_available_message')}
-      </StudioCombobox.Empty>
-    </StudioCombobox>
+    </StudioSuggestion>
   );
 };
