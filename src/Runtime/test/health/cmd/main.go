@@ -31,6 +31,7 @@ Available commands:
   set-weight      Update HTTPRoute weights
   exec            Execute kubectl/helm/flux commands across clusters
   logs            Aggregate deployment logs from multiple clusters
+  nodes           Check node resource utilization
 
 Examples:
   # Discover clusters and fetch credentials (single or multiple environments)
@@ -59,6 +60,11 @@ Examples:
   go run cmd/main.go logs --since=30m at22,at24 runtime-pdf3/pdf3-worker .logs/logs.txt
   go run cmd/main.go logs -f --since=10m -s ttd prod runtime-pdf3/pdf3-worker .logs/logs.txt
 
+  # Check node resource utilization
+  go run cmd/main.go nodes at22
+  go run cmd/main.go nodes at22,at24
+  go run cmd/main.go nodes -s ttd tt02
+
 Run 'go run cmd/main.go <command> -h' for more information on a specific command.`
 }
 
@@ -84,6 +90,8 @@ func run() error {
 		return runExec()
 	case "logs":
 		return runLogs()
+	case "nodes":
+		return runNodes()
 	default:
 		return fmt.Errorf("unknown command: %s\n\n%s", command, printUsage())
 	}
@@ -988,5 +996,100 @@ func runLogs() error {
 	}
 
 	fmt.Printf("\n✓ Logs written to %s\n", outputFile)
+	return nil
+}
+
+func runNodes() error {
+	nodesCmd := flag.NewFlagSet("nodes", flag.ExitOnError)
+	serviceowner := nodesCmd.String("service-owner", "", "Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
+	nodesCmd.StringVar(serviceowner, "s", "", "Optional: specific serviceowner ID (shorthand)")
+	labelSelector := nodesCmd.String("label-selector", "agentpool=workpool", "Label selector for filtering nodes")
+	nodesCmd.StringVar(labelSelector, "l", "agentpool=workpool", "Label selector for filtering nodes (shorthand)")
+
+	nodesCmd.Parse(os.Args[2:])
+	args := nodesCmd.Args()
+
+	if len(args) != 1 {
+		return fmt.Errorf("usage: go run cmd/main.go nodes [flags] <environments>\n\n" +
+			"Arguments:\n" +
+			"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n\n" +
+			"Flags:\n" +
+			"  -s, --service-owner string\n" +
+			"                  Optional: specific serviceowner ID (e.g., ttd, brg, skd)\n" +
+			"  -l, --label-selector string\n" +
+			"                  Label selector for filtering nodes (default: agentpool=workpool)\n\n" +
+			"Description:\n" +
+			"  Queries node resource utilization from workpool nodes across clusters.\n" +
+			"  Shows K8s version, node count, pod count, CPU/memory availability and usage.")
+	}
+
+	environments, err := validateEnvironments(args[0])
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Validating prerequisites...")
+
+	if err := kubernetes.ValidateKubectl(); err != nil {
+		return err
+	}
+
+	envStr := strings.Join(environments, ", ")
+	fmt.Printf("Finding clusters for environment(s): %s", envStr)
+	if *serviceowner != "" {
+		fmt.Printf(" (serviceowner: %s)", *serviceowner)
+	}
+	fmt.Println()
+
+	// Get all kubectl contexts and filter by environments and serviceowner
+	contexts, err := kubernetes.GetAllContextDetails()
+	if err != nil {
+		return err
+	}
+
+	clusterNames := kubernetes.FilterContextsByEnvironment(contexts, environments, *serviceowner)
+
+	if len(clusterNames) == 0 {
+		return fmt.Errorf("no matching clusters found\n\n"+
+			"Run 'go run cmd/main.go init %s%s' to discover and configure clusters",
+			args[0],
+			func() string {
+				if *serviceowner != "" {
+					return fmt.Sprintf(" -s %s", *serviceowner)
+				}
+				return ""
+			}())
+	}
+
+	fmt.Printf("Found %d cluster(s)\n", len(clusterNames))
+
+	fmt.Printf("Querying nodes (label selector: %s) across %d cluster(s)...\n",
+		*labelSelector, len(clusterNames))
+
+	maxWorkers := 16
+	results := kubernetes.QueryAllClustersForNodes(clusterNames, *labelSelector, maxWorkers)
+
+	// Group results by environment
+	fmt.Println()
+	for i, environment := range environments {
+		if i > 0 {
+			fmt.Println()
+		}
+
+		// Filter results for this environment
+		var envResults []kubernetes.NodeResult
+		for _, result := range results {
+			// Check if cluster name ends with -<environment>-aks
+			if strings.HasSuffix(result.ClusterName, "-"+environment+"-aks") {
+				envResults = append(envResults, result)
+			}
+		}
+
+		if len(envResults) > 0 {
+			fmt.Printf("=== Environment: %s ===\n", environment)
+			output.PrintNodeResults(os.Stdout, envResults)
+		}
+	}
+
 	return nil
 }
