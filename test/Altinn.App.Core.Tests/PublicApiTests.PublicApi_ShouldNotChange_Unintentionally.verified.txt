@@ -3118,7 +3118,8 @@ namespace Altinn.App.Core.Internal.Expressions
         public LayoutEvaluatorState(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Models.Layout.LayoutModel? componentModel, Altinn.App.Core.Internal.Texts.ITranslationService translationService, Altinn.App.Core.Configuration.FrontEndSettings frontEndSettings, string? gatewayAction = null, string? language = null, System.TimeZoneInfo? timeZone = null) { }
         public Altinn.Platform.Storage.Interface.Models.Instance Instance { get; }
         public System.Threading.Tasks.Task<Altinn.App.Core.Models.Layout.DataReference> AddInidicies(Altinn.App.Core.Models.Layout.ModelBinding binding, Altinn.App.Core.Models.Expressions.ComponentContext context) { }
-        [System.Obsolete("This method is deprecated and will be removed in a future version.")]
+        [System.Obsolete("This method is deprecated and will be removed in a future version in favor of Add" +
+            "Inidicies(ModelBinding, ComponentContext).")]
         public System.Threading.Tasks.Task<Altinn.App.Core.Models.Layout.DataReference> AddInidicies(Altinn.App.Core.Models.Layout.ModelBinding binding, Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, int[]? indexes) { }
         public int CountDataElements(string dataTypeId) { }
         [System.Obsolete("You need to get a context, not a component", true)]
@@ -4523,6 +4524,7 @@ namespace Altinn.App.Core.Models.Layout.Components.Base
         public required string Type { get; init; }
         public abstract void ClaimChildren(System.Collections.Generic.Dictionary<string, Altinn.App.Core.Models.Layout.Components.Base.BaseComponent> unclaimedComponents, System.Collections.Generic.Dictionary<string, string> claimedComponents);
         public abstract System.Threading.Tasks.Task<Altinn.App.Core.Models.Expressions.ComponentContext> GetContext(Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state, Altinn.App.Core.Models.DataElementIdentifier defaultDataElementIdentifier, int[]? rowIndexes, System.Collections.Generic.Dictionary<string, Altinn.App.Core.Models.Layout.LayoutSetComponent> layoutsLookup);
+        public virtual System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.Layout.DataReference>> GetDataReferencesToRemoveWhenHidden(Altinn.App.Core.Models.Expressions.ComponentContext context) { }
         protected static System.Collections.Generic.List<string> ParseChildReferences(System.Text.Json.JsonElement componentElement, string layoutId, string pageId) { }
         protected static System.Collections.Generic.IReadOnlyDictionary<string, Altinn.App.Core.Models.Layout.ModelBinding> ParseDataModelBindings(System.Text.Json.JsonElement element) { }
         protected static Altinn.App.Core.Models.Expressions.Expression ParseExpression(System.Text.Json.JsonElement componentElement, string property) { }
@@ -4597,6 +4599,12 @@ namespace Altinn.App.Core.Models.Layout.Components
             [System.Text.Json.Serialization.JsonPropertyName("cells")]
             public required System.Collections.Generic.List<Altinn.App.Core.Models.Layout.Components.GridComponent.GridCellConfig?> Cells { get; set; }
         }
+    }
+    public sealed class LikertComponent : Altinn.App.Core.Models.Layout.Components.Base.NoReferenceComponent
+    {
+        public LikertComponent() { }
+        public override System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.Layout.DataReference>> GetDataReferencesToRemoveWhenHidden(Altinn.App.Core.Models.Expressions.ComponentContext context) { }
+        public static Altinn.App.Core.Models.Layout.Components.LikertComponent Parse(System.Text.Json.JsonElement componentElement, string pageId, string layoutId) { }
     }
     public sealed class NonRepeatingGroupComponent : Altinn.App.Core.Models.Layout.Components.Base.SimpleReferenceComponent
     {

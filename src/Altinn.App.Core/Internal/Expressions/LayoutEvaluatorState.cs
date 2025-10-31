@@ -324,7 +324,9 @@ public class LayoutEvaluatorState
     /// <summary>
     /// Return a full dataModelBinding from a context aware binding by adding indexes
     /// </summary>
-    [Obsolete("This method is deprecated and will be removed in a future version.")]
+    [Obsolete(
+        "This method is deprecated and will be removed in a future version in favor of AddInidicies(ModelBinding, ComponentContext)."
+    )]
     public async Task<DataReference> AddInidicies(
         ModelBinding binding,
         DataElementIdentifier dataElementIdentifier,

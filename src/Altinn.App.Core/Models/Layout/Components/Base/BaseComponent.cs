@@ -74,6 +74,23 @@ public abstract class BaseComponent
     );
 
     /// <summary>
+    /// Get the data model bindings that should be removed when the component is hidden,
+    /// or should be kept when the component is not hidden.
+    /// </summary>
+    /// <returns>List of data references (with indexes) to remove when hidden, or keep when not hidden</returns>
+    public virtual async Task<IEnumerable<DataReference>> GetDataReferencesToRemoveWhenHidden(ComponentContext context)
+    {
+        var references = new List<DataReference>();
+
+        foreach (var binding in DataModelBindings.Values)
+        {
+            references.Add(await context.AddIndexes(binding));
+        }
+
+        return references;
+    }
+
+    /// <summary>
     /// Claims child components based on the provided references and updates the lookup dictionaries.
     /// </summary>
     /// <param name="unclaimedComponents">

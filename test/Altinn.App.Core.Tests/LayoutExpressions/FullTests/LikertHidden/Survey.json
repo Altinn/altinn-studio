@@ -1,0 +1,72 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "likert-row1to3",
+        "type": "Likert",
+        "textResourceBindings": {
+          "title": "Visible Likert (filter 1-3)",
+          "questions": "likert-row-title"
+        },
+        "dataModelBindings": {
+          "questions": "root.questions",
+          "answer": "root.questions.Answer"
+        },
+        "filter": [
+          {
+            "key": "start",
+            "value": "1"
+          },
+          {
+            "key": "stop",
+            "value": "3"
+          }
+        ],
+        "options": [
+          {
+            "label": "Agree",
+            "value": "Agree"
+          },
+          {
+            "label": "Disagree",
+            "value": "Disagree"
+          }
+        ]
+      },
+      {
+        "id": "likert-row0to2",
+        "type": "Likert",
+        "hidden": ["not", ["dataModel", "root.showLikert"]],
+        "textResourceBindings": {
+          "title": "Hidden Likert (filter 0-2)",
+          "questions": "likert-row-title"
+        },
+        "dataModelBindings": {
+          "questions": "root.questions",
+          "answer": "root.questions.Answer"
+        },
+        "filter": [
+          {
+            "key": "start",
+            "value": "0"
+          },
+          {
+            "key": "stop",
+            "value": "2"
+          }
+        ],
+        "options": [
+          {
+            "label": "Agree",
+            "value": "Agree"
+          },
+          {
+            "label": "Disagree",
+            "value": "Disagree"
+          }
+        ]
+      }
+    ]
+  }
+}
