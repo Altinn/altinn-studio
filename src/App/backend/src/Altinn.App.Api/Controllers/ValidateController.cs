@@ -73,7 +73,6 @@ public class ValidateController : ControllerBase
         }
 
         string? taskId = instance.Process?.CurrentTask?.ElementId;
-        Debugger.Break();
         if (taskId == null)
         {
             throw new ValidationException("Unable to validate instance without a started process.");

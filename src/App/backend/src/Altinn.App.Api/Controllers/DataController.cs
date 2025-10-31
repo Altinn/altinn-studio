@@ -657,15 +657,6 @@ public class DataController : ControllerBase
         [FromQuery] string? language = null
     )
     {
-        _logger.LogInformation(
-            "PatchFormData called: org={Org}, app={App}, partyId={PartyId}, instanceGuid={InstanceGuid}, dataGuid={DataGuid}",
-            org,
-            app,
-            instanceOwnerPartyId,
-            instanceGuid,
-            dataGuid
-        );
-
         // Validation valid request is performed in the PatchFormDataMultiple method
         var request = new DataPatchRequestMultiple()
         {
