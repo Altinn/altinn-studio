@@ -6,7 +6,7 @@ import { StudioSuggestion } from '@studio/components';
 
 export type SelectCustomReceiptDataModelIdProps = {
   error: string;
-  onChange: () => void;
+  onChange: (value: string) => void;
 };
 
 export const SelectCustomReceiptDataModelId = ({
@@ -34,7 +34,7 @@ export const SelectCustomReceiptDataModelId = ({
   const handleSelectedChange = (items: { value: string }[]) => {
     const newValue = items[0]?.value || '';
     setSelectedValue(newValue);
-    onChange();
+    onChange(newValue);
   };
 
   return (

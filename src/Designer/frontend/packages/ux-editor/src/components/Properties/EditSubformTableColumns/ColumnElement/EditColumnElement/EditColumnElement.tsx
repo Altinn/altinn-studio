@@ -90,6 +90,7 @@ export const EditColumnElement = ({
       <EditColumnElementComponentSelect
         components={availableComponents}
         onSelectComponent={selectComponent}
+        selectedId={selectedComponentId}
       />
       {hasMultipleDataModelBindings && (
         <DataModelBindingsCombobox

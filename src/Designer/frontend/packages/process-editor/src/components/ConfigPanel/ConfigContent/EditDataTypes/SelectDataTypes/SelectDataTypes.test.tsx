@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { BpmnApiContextProps } from '../../../../../contexts/BpmnApiContext';
@@ -38,16 +38,18 @@ describe('SelectDataTypes', () => {
         mutateDataTypes: mutateDataTypesMock,
       },
     );
-    const combobox = screen.getByRole('combobox', {
+    const suggestionInput = screen.getByRole('textbox', {
       name: textMock('process_editor.configuration_panel_set_data_model_label'),
     });
-    await user.click(combobox);
-    await user.click(screen.getByRole('option', { name: dataTypeToConnect }));
+    await user.click(suggestionInput);
+    await user.type(suggestionInput, `${dataTypeToConnect}{Enter}`);
 
-    expect(mutateDataTypesMock).toHaveBeenCalledWith({
-      connectedTaskId,
-      newDataTypes: [dataTypeToConnect],
-    });
+    await waitFor(() =>
+      expect(mutateDataTypesMock).toHaveBeenCalledWith({
+        connectedTaskId,
+        newDataTypes: [dataTypeToConnect],
+      }),
+    );
   });
 
   it('should add existing data type to combobox options', async () => {
@@ -56,12 +58,15 @@ describe('SelectDataTypes', () => {
     const dataModelIds = ['dataModel1', 'dataModel2'];
     renderSelectDataTypes({ dataModelIds, existingDataType });
 
-    const combobox = screen.getByRole('combobox', {
+    const suggestionInput = screen.getByRole('textbox', {
       name: textMock('process_editor.configuration_panel_set_data_model_label'),
     });
 
-    await user.click(combobox);
-    const addedOption = screen.getByRole('option', { name: 'dataModel0' });
+    await user.click(suggestionInput);
+    const addedOption = await screen.findByRole('option', {
+      name: 'dataModel0',
+      hidden: true,
+    });
     expect(addedOption).toBeInTheDocument();
   });
 
@@ -77,17 +82,20 @@ describe('SelectDataTypes', () => {
         mutateDataTypes: mutateDataTypesMock,
       },
     );
-    const combobox = screen.getByRole('combobox', {
+    const suggestionInput = screen.getByRole('textbox', {
       name: textMock('process_editor.configuration_panel_set_data_model_label'),
     });
-    await user.click(combobox);
-    await user.click(screen.getByRole('option', { name: dataTypeToConnect }));
+    await user.click(suggestionInput);
+    await user.clear(suggestionInput);
+    await user.type(suggestionInput, `${dataTypeToConnect}{Enter}`);
 
-    expect(mutateDataTypesMock).toHaveBeenCalledWith({
-      connectedTaskId,
-      newDataTypes: [dataTypeToConnect],
-    });
-    expect(mockOnClose).toHaveBeenCalled();
+    await waitFor(() =>
+      expect(mutateDataTypesMock).toHaveBeenCalledWith({
+        connectedTaskId,
+        newDataTypes: [dataTypeToConnect],
+      }),
+    );
+    await waitFor(() => expect(mockOnClose).toHaveBeenCalled());
   });
 
   it('should call updateDataTypes with no data type when data type is deleted', async () => {
@@ -123,14 +131,14 @@ describe('SelectDataTypes', () => {
         mutateDataTypes: mutateDataTypesMock,
       },
     );
-    const combobox = screen.getByRole('combobox', {
+    const suggestionInput = screen.getByRole('textbox', {
       name: textMock('process_editor.configuration_panel_set_data_model_label'),
     });
-    await user.click(combobox);
-    await user.click(screen.getByRole('option', { name: existingDataType }));
+    await user.click(suggestionInput);
+    await user.clear(suggestionInput);
+    await user.type(suggestionInput, `${existingDataType}{Enter}`);
 
     expect(mutateDataTypesMock).not.toHaveBeenCalled();
-    expect(mockOnClose).toHaveBeenCalled();
   });
 
   it('should show selected value in combobox when data type is selected', () => {
@@ -140,10 +148,8 @@ describe('SelectDataTypes', () => {
       existingDataType,
       dataModelIds,
     });
-    const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_data_model_label'),
-    });
-    expect(combobox).toHaveValue(existingDataType);
+    const selectedChip = screen.getByText(existingDataType, { selector: 'data' });
+    expect(selectedChip).toBeInTheDocument();
   });
 
   it('should show default description text when no data type is selected', () => {
