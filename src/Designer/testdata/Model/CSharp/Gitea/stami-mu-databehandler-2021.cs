@@ -22,26 +22,31 @@ namespace Altinn.App.Models
     [XmlElement("signatorNavn", Order = 2)]
     [JsonProperty("signatorNavn")]
     [JsonPropertyName("signatorNavn")]
+    [Required]
     public string signatorNavn { get; set; }
 
     [XmlElement("organisasjonsnummer", Order = 3)]
     [JsonProperty("organisasjonsnummer")]
     [JsonPropertyName("organisasjonsnummer")]
+    [Required]
     public string organisasjonsnummer { get; set; }
 
     [XmlElement("organisasjonsnavn", Order = 4)]
     [JsonProperty("organisasjonsnavn")]
     [JsonPropertyName("organisasjonsnavn")]
+    [Required]
     public string organisasjonsnavn { get; set; }
 
     [XmlElement("agreementCheckbox", Order = 5)]
     [JsonProperty("agreementCheckbox")]
     [JsonPropertyName("agreementCheckbox")]
+    [Required]
     public string agreementCheckbox { get; set; }
 
     [XmlElement("authorizedCheckbox", Order = 6)]
     [JsonProperty("authorizedCheckbox")]
     [JsonPropertyName("authorizedCheckbox")]
+    [Required]
     public string authorizedCheckbox { get; set; }
 
     [XmlElement("contactEmail", Order = 7)]

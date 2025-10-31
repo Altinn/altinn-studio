@@ -16,6 +16,7 @@ namespace Altinn.App.Models
     [XmlElement("inntektsaar", Order = 1)]
     [JsonProperty("inntektsaar")]
     [JsonPropertyName("inntektsaar")]
+    [Required]
     public string inntektsaar { get; set; }
 
   }
