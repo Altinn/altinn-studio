@@ -91,8 +91,8 @@ describe('CookieSerializer', () => {
         sameSite: 'Strict',
       });
 
-      expect(result).toEqual(
-        /^key=value; expires=.+; path=\/admin; domain=\.altinn\.no; secure; sameSite=Strict$/,
+      expect(result).toMatch(
+        /^key=value; expires=.+; path=\/admin; domain=\.altinn\.no; secure; samesite=Strict$/,
       );
     });
   });
