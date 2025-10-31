@@ -265,22 +265,15 @@ internal sealed class LocaltestValidation : BackgroundService
 
         // Try to load testData.json from wwwroot
         System.Text.Json.JsonElement? testData = null;
-        try
+        var testDataPath = Path.Join(
+            _webHostEnvironment.WebRootPath ?? _webHostEnvironment.ContentRootPath,
+            "testData.json"
+        );
+        if (File.Exists(testDataPath))
         {
-            var testDataPath = Path.Combine(
-                _webHostEnvironment.WebRootPath ?? _webHostEnvironment.ContentRootPath,
-                "testData.json"
-            );
-            if (File.Exists(testDataPath))
-            {
-                var testDataJson = await File.ReadAllTextAsync(testDataPath, stoppingToken);
-                testData = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(testDataJson);
-                _logger.LogInformation("Loaded testData.json for app {AppId} from {Path}", appId, testDataPath);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Could not load testData.json for app {AppId}", appId);
+            var testDataJson = await File.ReadAllTextAsync(testDataPath, stoppingToken);
+            testData = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(testDataJson);
+            _logger.LogInformation("Loaded testData.json for app {AppId} from {Path}", appId, testDataPath);
         }
 
         var registrationRequest = new
@@ -368,30 +361,23 @@ internal sealed class LocaltestValidation : BackgroundService
         if (_registeredAppId == null)
             return;
 
-        try
+        using var client = _httpClientFactory.CreateClient();
+        var url = $"{baseUrl}/Home/Localtest/Register/{Uri.EscapeDataString(_registeredAppId)}";
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var response = await client.DeleteAsync(url, cts.Token);
+
+        if (response.IsSuccessStatusCode)
         {
-            using var client = _httpClientFactory.CreateClient();
-            var url = $"{baseUrl}/Home/Localtest/Register/{Uri.EscapeDataString(_registeredAppId)}";
-
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-            var response = await client.DeleteAsync(url, cts.Token);
-
-            if (response.IsSuccessStatusCode)
-            {
-                _logger.LogInformation("Successfully unregistered app {AppId} from localtest", _registeredAppId);
-            }
-            else
-            {
-                _logger.LogWarning(
-                    "Failed to unregister app {AppId} from localtest. Status: {StatusCode}",
-                    _registeredAppId,
-                    response.StatusCode
-                );
-            }
+            _logger.LogInformation("Successfully unregistered app {AppId} from localtest", _registeredAppId);
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogWarning(ex, "Error while unregistering app {AppId} from localtest", _registeredAppId);
+            _logger.LogWarning(
+                "Failed to unregister app {AppId} from localtest. Status: {StatusCode}",
+                _registeredAppId,
+                response.StatusCode
+            );
         }
     }
 }
