@@ -1,4 +1,4 @@
-#nullable enable
+#nullable disable
 namespace Altinn.Studio.Designer.Models.Dto;
 /// <summary>
 /// File operation types

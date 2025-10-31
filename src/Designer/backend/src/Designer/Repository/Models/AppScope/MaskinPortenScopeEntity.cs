@@ -1,3 +1,4 @@
+#nullable disable
 namespace Altinn.Studio.Designer.Repository.Models.AppScope;
 
 public record MaskinPortenScopeEntity
