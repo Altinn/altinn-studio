@@ -8,7 +8,6 @@ import {
   FolderIcon,
 } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useAppContext } from '../../../../hooks';
 import { StudioDropdown } from '@studio/components';
 import { usePagesQuery } from '../../../../hooks/queries/usePagesQuery';
 import { useChangePageOrderMutation } from '../../../../hooks/mutations/useChangePageOrderMutation';
@@ -17,6 +16,7 @@ import type { GroupModel } from 'app-shared/types/api/dto/PageModel';
 import { PageGroupMoveToExistingGroupDialog } from '@altinn/ux-editor/components/Pages/PageGroupMoveDialog';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
 import classes from './NavigationMenu.module.css';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export type NavigationMenuProps = {
   pageName: string;
@@ -33,15 +33,11 @@ export type NavigationMenuProps = {
 export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName } = useAppContext();
-  const { data: pagesModel } = usePagesQuery(org, app, selectedFormLayoutSetName);
-  const { mutate: changePageOrder } = useChangePageOrderMutation(
-    org,
-    app,
-    selectedFormLayoutSetName,
-  );
+  const { layoutSet } = useUxEditorParams();
+  const { data: pagesModel } = usePagesQuery(org, app, layoutSet);
+  const { mutate: changePageOrder } = useChangePageOrderMutation(org, app, layoutSet);
   const [isMoveToGroupDialogOpen, setIsMoveToGroupDialogOpen] = React.useState(false);
-  const { mutate: changePageGroups } = useChangePageGroupOrder(org, app, selectedFormLayoutSetName);
+  const { mutate: changePageGroups } = useChangePageGroupOrder(org, app, layoutSet);
 
   const isUsingGroups = isPagesModelWithGroups(pagesModel);
   const groupModel =

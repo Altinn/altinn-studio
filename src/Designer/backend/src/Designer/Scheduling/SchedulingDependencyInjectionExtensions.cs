@@ -1,3 +1,4 @@
+#nullable disable
 using Altinn.Studio.Designer.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

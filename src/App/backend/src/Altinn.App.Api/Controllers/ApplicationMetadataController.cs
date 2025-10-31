@@ -28,7 +28,7 @@ public class ApplicationMetadataController : ControllerBase
     }
 
     /// <summary>
-    /// Get the application metadata https://altinncdn.no/schemas/json/application/application-metadata.schema.v1.json
+    /// Get the application metadata "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/application/application-metadata.schema.v1.json"
     ///
     /// If org and app does not match, this returns a 409 Conflict response
     /// </summary>

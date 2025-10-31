@@ -9,30 +9,47 @@ on:
       - .github/workflows/deploy-runtime-syncroot.yaml
   workflow_dispatch:
     inputs:
-      ring:
-        description: |
-          Ring (upgrade channel) to tag the artifact with.
-          Defaults to 'at_ring1'.
-          'xx_ring1' means ttd clusters,
-          while 'xx_ring2' are non-ttd clusters (all serviceowners)
+      rings:
+        description: 'Rings to tag the artifact with. Format of the input object is [{"ring": "at_ring1", "environment": "dev"}].'
         required: false
-        default: 'at_ring1'
-        type: choice
-        options:
-          - 'at_ring1'
-          - 'at_ring2'
-          - 'tt_ring1'
-          - 'tt_ring2'
-          - 'prod_ring1'
-          - 'prod_ring2'
+        default: '[{"ring": "at_ring1", "environment": "dev"}]'
+
+permissions:
+  id-token: write
+  contents: read
+  actions: write
 
 jobs:
+  get-short-sha:
+    uses: ./.github/workflows/template-short-sha.yaml
+
+  construct-rings-array:
+    runs-on: ubuntu-latest
+    env:
+      default-rings: >-
+        [{"ring": "at_ring1", "environment": "dev"},{"ring": "at_ring2", "environment": "prod"},{"ring": "tt_ring1", "environment": "prod"},{"ring": "tt_ring2", "environment": "prod"},{"ring": "prod_ring1", "environment": "prod"},{"ring": "prod_ring2", "environment": "prod"}]
+    outputs:
+      ringsjson: ${{ steps.construct-rings.outputs.ringsjson }}
+    steps:
+      - name: Construct rings array
+        id: construct-rings
+        run: |
+          rings='${{ github.event.inputs.rings }}'
+          if [ -z "$rings" ]; then
+            rings='${{ env.default-rings }}'
+          fi
+          echo "Raw rings input: $rings"
+          echo "ringsjson=${rings}" >> $GITHUB_OUTPUT
+
   push-syncroot-artifact:
     name: Push syncroot as OCI artifact
+    needs: get-short-sha
     runs-on: ubuntu-latest
-    environment: ${{ inputs.ring == '' && 'dev' || startsWith(inputs.ring, 'at_') && 'dev' || startsWith(inputs.ring, 'tt_') && 'staging' || 'prod' }}
+    environment: dev
     permissions:
       id-token: write # Require write permission to Fetch an OIDC token.
+    outputs:
+      short-sha: ${{ needs.get-short-sha.outputs.short-sha }}
     defaults:
       run:
         working-directory: ./infra/runtime
@@ -57,13 +74,72 @@ jobs:
       - name: push artifact
         run: |
           cd syncroot/
-          flux push artifact oci://altinncr.azurecr.io/studio-apps/syncroot:$(git rev-parse --short HEAD) \
+          flux push artifact oci://altinncr.azurecr.io/studio-apps/syncroot:${{ needs.get-short-sha.outputs.short-sha }} \
             --provider=generic \
             --reproducible \
             --path="." \
             --source="$(git config --get remote.origin.url)" \
             --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
 
-      - name: tag artifact
+  dispatch-tag-workflows:
+    name: Dispatch tag workflows
+    needs: [push-syncroot-artifact, construct-rings-array]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Dispatch tag workflow for each ring
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          flux tag artifact oci://altinncr.azurecr.io/studio-apps/syncroot:$(git rev-parse --short HEAD) --tag ${{ inputs.ring || 'at_ring1' }}
+          rings='${{ needs.construct-rings-array.outputs.ringsjson }}'
+          short_sha="${{ needs.push-syncroot-artifact.outputs.short-sha }}"
+          echo ""
+          echo "🚀 Dispatched tag workflows:"
+          echo ""
+
+          echo "$rings" | jq -c '.[]' | while read -r ring; do
+            ring_name=$(echo "$ring" | jq -r '.ring')
+            environment=$(echo "$ring" | jq -r '.environment')
+
+            gh workflow run runtime-tag-syncroot.yaml \
+              --ref ${{ github.ref_name }} \
+              -f ring="$ring_name" \
+              -f environment="$environment" \
+              -f short-sha="$short_sha"
+
+            # Wait for the workflow run to be created and become visible
+            sleep 5
+
+            # Construct the expected run name to filter by
+            expected_run_name="Tag syncroot - $ring_name ($environment) - $short_sha"
+
+            # Retry logic to find the workflow run
+            run_id=""
+            for i in {1..5}; do
+              run_id=$(gh run list \
+                --workflow=runtime-tag-syncroot.yaml \
+                --branch=${{ github.ref_name }} \
+                --limit=20 \
+                --json databaseId,displayTitle,name \
+                --jq ".[] | select(.displayTitle == \"$expected_run_name\" or .name == \"$expected_run_name\") | .databaseId" \
+                | head -n 1)
+
+              if [ -n "$run_id" ]; then
+                break
+              fi
+
+              # Try again after a short wait
+              sleep 2
+            done
+
+            if [ -n "$run_id" ]; then
+              echo "✅ $ring_name ($environment): https://github.com/${{ github.repository }}/actions/runs/$run_id"
+            else
+              echo "✅ $ring_name ($environment): dispatched (run not yet visible)"
+            fi
+          done
+
+          echo ""
+          echo "View all dispatched workflows:"
+          echo "https://github.com/${{ github.repository }}/actions/workflows/runtime-tag-syncroot.yaml?query=branch%3A${{ github.ref_name }}"

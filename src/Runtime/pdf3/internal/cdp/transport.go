@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/concurrent"
+	"altinn.studio/pdf3/internal/log"
 	"altinn.studio/pdf3/internal/types"
 	"github.com/gorilla/websocket"
 )
@@ -45,6 +46,8 @@ type EventHandler func(method string, params any)
 // Connect establishes a connection to a Chrome DevTools Protocol endpoint
 // Returns: Connection, targetID, error
 func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler EventHandler) (Connection, string, error) {
+	logger := log.NewComponent("cdp").With("id", id)
+
 	// List available targets (should find the about:blank page we created)
 	listURL := fmt.Sprintf("%s/json", debugBaseURL)
 
@@ -63,7 +66,11 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 		if err == nil {
 			_ = resp.Body.Close()
 		}
-		time.Sleep(50 * time.Millisecond)
+		select {
+		case <-time.After(50 * time.Millisecond):
+		case <-ctx.Done():
+			return nil, "", ctx.Err()
+		}
 	}
 
 	if err != nil {
@@ -72,7 +79,7 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 	defer func() {
 		// Closing HTTP response body - failure indicates connection pool leak
 		if err = resp.Body.Close(); err != nil {
-			log.Printf("Worker %d: Failed to close HTTP response body: %v\n", id, err)
+			logger.Warn("Failed to close HTTP response body", "error", err)
 		}
 	}()
 
@@ -86,12 +93,12 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 	}
 
 	// Chrome should always return at least one target (the page we created)
-	assert.AssertWithMessage(len(targets) > 0, "Chrome returned zero targets - browser in invalid state")
+	assert.AssertWithMessage(len(targets) > 0, "Chrome returned zero targets - browser in invalid state", "id", id)
 
 	// Debug: print available targets
-	log.Printf("Worker %d: Found %d targets\n", id, len(targets))
+	logger.Debug("Found targets", "count", len(targets))
 	for i, t := range targets {
-		log.Printf("Worker %d: Target %d - Type: %s, ID: %s, URL: %s\n", id, i, t.Type, t.ID, t.URL)
+		logger.Debug("Target info", "index", i, "target_type", t.Type, "target_id", t.ID, "url", t.URL)
 	}
 
 	// Find the page target (should be about:blank)
@@ -102,7 +109,7 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 			break
 		}
 	}
-	assert.AssertWithMessage(target != nil, "no page target found")
+	assert.AssertWithMessage(target != nil, "no page target found", "id", id)
 	targetID := target.ID
 
 	// Connect to the page's WebSocket
@@ -111,10 +118,10 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 		return nil, "", fmt.Errorf("no webSocketDebuggerUrl in response")
 	}
 	// Chrome page targets must have a WebSocket URL - this is a protocol invariant
-	assert.AssertWithMessage(wsURL != "", "Page target missing WebSocketDebuggerURL - protocol violation")
+	assert.AssertWithMessage(wsURL != "", "Page target missing WebSocketDebuggerURL - protocol violation", "id", id)
 
 	// Add debugging to understand what URL we're trying to connect to
-	log.Printf("Worker %d: Attempting to connect to WebSocket URL: %s\n", id, wsURL)
+	logger.Info("Attempting to connect to WebSocket", "url", wsURL)
 
 	// Wait a moment to ensure the target is ready and retry connection
 	var wsConn *websocket.Conn
@@ -133,16 +140,12 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 		wsConn, _, err = dialer.Dial(wsURL, nil)
 		if err == nil {
 			wsConn.SetCloseHandler(func(code int, text string) error {
-				message := fmt.Sprintf(
-					"Websocket connection closed while process is running. Code: %d, text: %s",
-					code,
-					text,
-				)
 				assert.AssertWithMessage(
 					// We check ctx here as it is tied to host shutdown.
 					// It's OK to close if the host is shutting down, but NOT OK otherwise
 					ctx.Err() != nil,
-					message,
+					"Websocket connection closed while process is running",
+					"id", id, "code", code, "text", text,
 				)
 				return nil
 			})
@@ -151,18 +154,23 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 			break
 		}
 
-		time.Sleep(50 * time.Millisecond)
+		select {
+		case <-time.After(50 * time.Millisecond):
+		case <-ctx.Done():
+			return nil, "", ctx.Err()
+		}
 	}
 
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to dial WebSocket: %w", err)
 	}
 	// Successful dial must return a valid connection
-	assert.AssertWithMessage(wsConn != nil, "WebSocket dial succeeded but returned nil connection")
+	assert.AssertWithMessage(wsConn != nil, "WebSocket dial succeeded but returned nil connection", "id", id)
 
 	// Create connection wrapper
 	conn := &connection{
 		id:     id,
+		logger: logger,
 		wsConn: wsConn,
 
 		nextCommandID:  1,
@@ -183,20 +191,38 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 	return conn, targetID, nil
 }
 
+func (c *connection) assert(condition bool, message string) {
+	assert.AssertWithMessage(condition, message, "id", c.id)
+}
+
+func (c *connection) assertA(condition bool, message string, userArgs ...any) {
+	args := make([]any, 0, 2+len(userArgs))
+	args = append(args, "id", c.id)
+	args = append(args, userArgs...)
+	assert.AssertWithMessage(condition, message, args...)
+}
+
 func (c *connection) watchdog() {
-	ticker := time.NewTicker(30 * time.Second)
+	defer func() {
+		c.assert(
+			c.ctx.Err() != nil,
+			"Exited CDP watchdog loop, but connection context isn't cancelled",
+		)
+	}()
+
+	ticker := time.NewTicker(60 * time.Second)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
-			log.Println("CDP connection watchdog tick")
+			c.logger.Info("CDP connection watchdog tick")
 			const treshold int = 32
-			assert.AssertWithMessage(c.cmdIDToBatchID.Len() <= treshold, "CDP connection batch datastructure overflowing")
-			assert.AssertWithMessage(c.pendingBatches.Len() <= treshold, "CDP connection batch datastructure overflowing")
-			assert.AssertWithMessage(c.pendingCmds.Len() <= treshold, "CDP connection cmd datastructure overflowing")
+			c.assert(c.cmdIDToBatchID.Len() <= treshold, "CDP connection batch datastructure overflowing")
+			c.assert(c.pendingBatches.Len() <= treshold, "CDP connection batch datastructure overflowing")
+			c.assert(c.pendingCmds.Len() <= treshold, "CDP connection cmd datastructure overflowing")
 		case <-c.ctx.Done():
-			log.Println("CDP connection watchdog shutting down")
+			c.logger.Info("CDP connection watchdog shutting down")
 			return
 		}
 	}
@@ -239,6 +265,7 @@ type batchState struct {
 // connection implements the Connection interface
 type connection struct {
 	id     int
+	logger *slog.Logger
 	wsConn *websocket.Conn
 
 	nextCommandID  int64
@@ -256,8 +283,8 @@ type connection struct {
 // SendCommand sends a CDP command and waits for the response
 func (c *connection) SendCommand(ctx context.Context, method string, params any) (*CDPResponse, error) {
 	// Connection must be valid when sending commands
-	assert.AssertWithMessage(c.wsConn != nil, "Attempted to send command on nil WebSocket connection")
-	assert.AssertWithMessage(c.pendingCmds != nil, "Attempted to send command with nil pendingCmds map")
+	c.assert(c.wsConn != nil, "Attempted to send command on nil WebSocket connection")
+	c.assert(c.pendingCmds != nil, "Attempted to send command with nil pendingCmds map")
 
 	cmdID := c.nextCommandID
 	c.nextCommandID++
@@ -289,15 +316,16 @@ func (c *connection) SendCommand(ctx context.Context, method string, params any)
 		return nil, ctx.Err()
 	case <-c.ctx.Done():
 		return nil, fmt.Errorf("connection closed")
-	case <-time.After(20 * time.Second):
-		return nil, fmt.Errorf("timeout waiting for response to command %s", method)
+	case <-time.After(types.RequestTimeout()):
+		c.assert(false, "browser failed to respond to request, something must be stuck")
+		return nil, fmt.Errorf("cdp command timeout after %s", types.RequestTimeout())
 	}
 }
 
 func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*CommandResponse {
 	// Connection must be valid when sending commands
-	assert.AssertWithMessage(c.wsConn != nil, "Attempted to send command on nil WebSocket connection")
-	assert.AssertWithMessage(c.pendingBatches != nil, "Attempted to send command with nil pendingCmds map")
+	c.assert(c.wsConn != nil, "Attempted to send command on nil WebSocket connection")
+	c.assert(c.pendingBatches != nil, "Attempted to send command with nil pendingCmds map")
 
 	batchID := c.nextBatchID
 	c.nextBatchID++
@@ -351,7 +379,7 @@ func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*C
 				nonNilResponses++
 			}
 		}
-		assert.AssertWithMessage(nonNilResponses == len(batch), "We should have a response for every cmd")
+		c.assert(nonNilResponses == len(batch), "We should have a response for every cmd")
 		return state.responses
 	case <-ctx.Done():
 		for i, resp := range state.responses {
@@ -377,15 +405,16 @@ func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*C
 			}
 		}
 		return state.responses
-	case <-time.After(20 * time.Second):
+	case <-time.After(types.RequestTimeout()):
+		c.assert(false, "browser failed to respond to request, something must be stuck")
 		for i, resp := range state.responses {
 			if resp == nil {
 				state.responses[i] = &CommandResponse{
 					Resp: nil,
-					Err:  fmt.Errorf("timeout waiting for response to command %s", outbox[i].Method),
+					Err:  fmt.Errorf("cdp batch timeout after %s", types.RequestTimeout()),
 				}
-			} else {
-				resp.Err = fmt.Errorf("timeout waiting for response to command %s", outbox[i].Method)
+			} else if resp.Err == nil {
+				resp.Err = fmt.Errorf("cdp batch timeout after %s", types.RequestTimeout())
 			}
 		}
 		return state.responses
@@ -395,14 +424,14 @@ func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*C
 // Close closes the connection and cleans up resources
 func (c *connection) Close() error {
 	// Connection should always be valid when Close is called
-	assert.AssertWithMessage(c.wsConn != nil, "Attempted to close connection with nil WebSocket")
-	assert.AssertWithMessage(c.pendingCmds != nil, "Attempted to close connection with nil pendingCmds map")
+	c.assert(c.wsConn != nil, "Attempted to close connection with nil WebSocket")
+	c.assert(c.pendingCmds != nil, "Attempted to close connection with nil pendingCmds map")
 
 	// Connection should only be closed after HTTP server has drained all requests.
 	// If there are pending commands, it means we're closing while requests are in-flight,
 	// which indicates a bug in graceful shutdown coordination.
 	pendingCount := c.pendingCmds.Len()
-	assert.AssertWithMessage(pendingCount == 0, fmt.Sprintf("Connection closed with %d pending commands - graceful shutdown not properly coordinated", pendingCount))
+	c.assertA(pendingCount == 0, "Connection closed with pending commands", "pendingCommands", pendingCount)
 
 	c.cancel()
 
@@ -411,9 +440,13 @@ func (c *connection) Close() error {
 
 // handleMessages reads messages from the WebSocket and routes them
 func (c *connection) handleMessages() {
+	defer func() {
+		c.assert(c.ctx.Err() != nil, "Exited CDP message handler loop, but connection context isn't cancelled")
+	}()
+
 	// Connection must be fully initialized before handling messages
-	assert.AssertWithMessage(c.wsConn != nil, "Message handler started with nil WebSocket connection")
-	assert.AssertWithMessage(c.pendingCmds != nil, "Message handler started with nil pendingCmds map")
+	c.assert(c.wsConn != nil, "Message handler started with nil WebSocket connection")
+	c.assert(c.pendingCmds != nil, "Message handler started with nil pendingCmds map")
 
 	// Create a channel for read results
 	type readResult struct {
@@ -424,15 +457,18 @@ func (c *connection) handleMessages() {
 
 	// Start a goroutine to read from WebSocket
 	go func() {
+		defer func() {
+			c.assert(c.ctx.Err() != nil, "Exited WebSocket reader loop, but connection context isn't cancelled")
+		}()
+
 		for {
 			_, payload, err := c.wsConn.ReadMessage()
 			select {
 			case <-c.ctx.Done():
-				log.Printf("Worker %d: wsconn reader shutting down (context cancelled)\n", c.id)
+				c.logger.Info("WebSocket reader shutting down (context cancelled)")
 				return
 			case readCh <- readResult{payload: payload, err: err}:
 				if err != nil {
-					assert.AssertWithMessage(c.ctx.Err() != nil, "Got ws read error not due to shutdown")
 					return
 				}
 			}
@@ -442,11 +478,11 @@ func (c *connection) handleMessages() {
 	for {
 		select {
 		case <-c.ctx.Done():
-			log.Printf("Worker %d: WebSocket message handler shutting down (context cancelled)\n", c.id)
+			c.logger.Info("WebSocket message handler shutting down (context cancelled)")
 			return
 		case result := <-readCh:
 			if result.err != nil {
-				log.Printf("Worker %d: WebSocket read error: %v\n", c.id, result.err)
+				c.logger.Error("WebSocket read error", "error", result.err)
 				return
 			}
 
@@ -455,18 +491,28 @@ func (c *connection) handleMessages() {
 			var msg CDPMessage
 			if err := json.Unmarshal(result.payload, &msg); err != nil {
 				// Chrome should never send invalid JSON - this indicates protocol corruption
-				assert.AssertWithMessage(false, fmt.Sprintf("Chrome sent malformed JSON: %v (payload: %s)", err, string(result.payload)))
+				c.assertA(false, "Chrome sent malformed JSON", "error", err, "payload", string(result.payload))
 				continue
 			}
 
 			if msg.ID != nil {
 				batchID, batchOK := c.cmdIDToBatchID.GetAndDelete(*msg.ID)
 				responseCh, cmdOK := c.pendingCmds.GetAndDelete(*msg.ID)
-				// If we actually can't correlate this back to the request, it is likely timed out
-				assert.AssertWithMessage((batchOK || cmdOK) && batchOK != cmdOK, fmt.Sprintf("Invalid state for %d: %s", *msg.ID, msg.Method))
+
+				if !batchOK && !cmdOK {
+					// There are two potential reasons for this:
+					// - Client dropped the outer request, and removed the pending command in the SendCommand defer block after exiting
+					// - Chrome sent response after RequestTimeout
+					// we can't really differentiate between this atm, so let's just log it
+					c.logger.Warn("Received late response for command (likely timed out) - ignoring", "command_id", *msg.ID)
+					continue
+				}
+
+				// Exactly one must be true - commands can't be in both states
+				c.assertA(batchOK != cmdOK, "Command exists in both batch and single command state", "command_id", *msg.ID)
 
 				if cmdOK {
-					assert.AssertWithMessage(responseCh != nil, fmt.Sprintf("Response channel for command ID %d is nil", *msg.ID))
+					c.assertA(responseCh != nil, "Response channel for command is nil", "command_id", *msg.ID)
 					responseCh <- CDPResponse{
 						ID:     msg.ID,
 						Result: msg.Result,
@@ -474,7 +520,7 @@ func (c *connection) handleMessages() {
 					}
 				} else if batchOK {
 					state, ok := c.pendingBatches.Get(batchID)
-					assert.AssertWithMessage(ok, "Should always be able to get batch")
+					c.assertA(ok, "Should always be able to get batch", "command_id", *msg.ID)
 					index := -1
 					for i, potentialCmdID := range state.cmdIds {
 						if potentialCmdID == *msg.ID {
@@ -482,7 +528,7 @@ func (c *connection) handleMessages() {
 							break
 						}
 					}
-					assert.AssertWithMessage(index != -1, "Should always be able to find cmd in batch state")
+					c.assertA(index != -1, "Should always be able to find cmd in batch state", "command_id", *msg.ID)
 					state.responses[index] = &CommandResponse{
 						Resp: &CDPResponse{
 							ID:     msg.ID,

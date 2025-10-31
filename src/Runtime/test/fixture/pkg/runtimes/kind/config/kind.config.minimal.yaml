@@ -7,7 +7,7 @@ containerdConfigPatches:
     config_path = "/etc/containerd/certs.d"
 nodes:
 - role: control-plane
-  image: kindest/node:v1.30.0@sha256:51a1434a5397193442f0be2a297b488b6c919ce8a3931be0ce822606ea5ca245
+  image: kindest/node:v1.33.4@sha256:25a6018e48dfcaee478f4a59af81157a437f15e6e140bf103f85a2e7cd0cbbf2
   kubeadmConfigPatches:
   - |
     kind: InitConfiguration
@@ -22,4 +22,6 @@ nodes:
   - containerPort: 30002
     hostPort: 8020
 - role: worker
-  image: kindest/node:v1.30.0@sha256:51a1434a5397193442f0be2a297b488b6c919ce8a3931be0ce822606ea5ca245
+  image: kindest/node:v1.33.4@sha256:25a6018e48dfcaee478f4a59af81157a437f15e6e140bf103f85a2e7cd0cbbf2
+  labels:
+    topology.kubernetes.io/zone: 'zone-1'

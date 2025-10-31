@@ -1,5 +1,5 @@
 import { renderWithProviders } from '../../../../test/renderWithProviders';
-import { StudioDragAndDropTree } from '@studio/components-legacy';
+import { StudioDragAndDropTree } from '@studio/components';
 import { SchemaNode } from './SchemaNode';
 import { userEvent } from '@testing-library/user-event';
 import type { FieldNode } from '@altinn/schema-model';

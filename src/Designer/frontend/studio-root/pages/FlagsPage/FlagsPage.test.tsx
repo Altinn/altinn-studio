@@ -18,42 +18,42 @@ const removeFlag = jest.fn();
 describe('FlagsPage', () => {
   beforeEach(jest.clearAllMocks);
 
-  it('Renders a checkbox for each flag', () => {
+  it('Renders a switch for each flag', () => {
     renderFlagsPage();
     allFlags.forEach((flag) => {
-      expect(screen.getByRole('checkbox', { name: flag })).toBeInTheDocument();
+      expect(screen.getByRole('switch', { name: flag })).toBeInTheDocument();
     });
   });
 
-  it('Renders the checkboxes as unchecked by default', () => {
+  it('Renders the switches as unchecked by default', () => {
     renderFlagsPage();
     allFlags.forEach((flag) => {
-      expect(screen.getByRole('checkbox', { name: flag })).not.toBeChecked();
+      expect(screen.getByRole('switch', { name: flag })).not.toBeChecked();
     });
   });
 
-  it('Renders the checkbox as checked when the corresponding flag is enabled', () => {
+  it('Renders the switch as checked when the corresponding flag is enabled', () => {
     const enabledFlag = allFlags[0];
     renderFlagsPage([enabledFlag]);
-    expect(screen.getByRole('checkbox', { name: enabledFlag })).toBeChecked();
+    expect(screen.getByRole('switch', { name: enabledFlag })).toBeChecked();
   });
 
-  it('Calls the addFlag callback with the correct flag when the user checks the checkbox', async () => {
+  it('Calls the addFlag callback with the correct flag when the user checks the switch', async () => {
     const user = userEvent.setup();
     renderFlagsPage();
     const flagToEnable = allFlags[0];
-    const checkbox = screen.getByRole('checkbox', { name: flagToEnable });
-    await user.click(checkbox);
+    const switchElement = screen.getByRole('switch', { name: flagToEnable });
+    await user.click(switchElement);
     expect(addFlag).toHaveBeenCalledTimes(1);
     expect(addFlag).toHaveBeenCalledWith(flagToEnable);
   });
 
-  it('Calls the removeFlag callback with the correct flag when the user unchecks the checkbox', async () => {
+  it('Calls the removeFlag callback with the correct flag when the user unchecks the switch', async () => {
     const user = userEvent.setup();
     const enabledFlag = allFlags[0];
     renderFlagsPage([enabledFlag]);
-    const checkbox = screen.getByRole('checkbox', { name: enabledFlag });
-    await user.click(checkbox);
+    const switchElement = screen.getByRole('switch', { name: enabledFlag });
+    await user.click(switchElement);
     expect(removeFlag).toHaveBeenCalledTimes(1);
     expect(removeFlag).toHaveBeenCalledWith(enabledFlag);
   });
