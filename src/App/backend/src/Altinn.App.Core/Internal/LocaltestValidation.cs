@@ -1,7 +1,12 @@
 using System.Globalization;
 using System.Net;
+using System.Net.Http.Json;
 using System.Threading.Channels;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Internal.App;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -27,6 +32,10 @@ internal sealed class LocaltestValidation : BackgroundService
     private readonly IHostApplicationLifetime _lifetime;
     private readonly TimeProvider _timeProvider;
     private readonly Channel<VersionResult> _resultChannel;
+    private readonly IServer _server;
+    private readonly IAppMetadata _appMetadata;
+    private readonly IWebHostEnvironment _webHostEnvironment;
+    private string? _registeredAppId = null;
 
     internal IAsyncEnumerable<VersionResult> Results => _resultChannel.Reader.ReadAllAsync();
 
@@ -36,6 +45,9 @@ internal sealed class LocaltestValidation : BackgroundService
         IOptionsMonitor<GeneralSettings> generalSettings,
         RuntimeEnvironment runtimeEnvironment,
         IHostApplicationLifetime lifetime,
+        IServer server,
+        IAppMetadata appMetadata,
+        IWebHostEnvironment webHostEnvironment,
         TimeProvider? timeProvider = null
     )
     {
@@ -44,6 +56,9 @@ internal sealed class LocaltestValidation : BackgroundService
         _generalSettings = generalSettings;
         _runtimeEnvironment = runtimeEnvironment;
         _lifetime = lifetime;
+        _server = server;
+        _appMetadata = appMetadata;
+        _webHostEnvironment = webHostEnvironment;
         _timeProvider = timeProvider ?? TimeProvider.System;
         _resultChannel = Channel.CreateBounded<VersionResult>(
             new BoundedChannelOptions(10) { FullMode = BoundedChannelFullMode.DropWrite }
@@ -54,6 +69,7 @@ internal sealed class LocaltestValidation : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        string? baseUrl = null;
         try
         {
             var settings = _generalSettings.CurrentValue;
@@ -63,7 +79,7 @@ internal sealed class LocaltestValidation : BackgroundService
             if (!_runtimeEnvironment.IsLocaltestPlatform())
                 return;
 
-            var baseUrl = _runtimeEnvironment.GetPlatformBaseUrl();
+            baseUrl = _runtimeEnvironment.GetPlatformBaseUrl();
             while (!stoppingToken.IsCancellationRequested)
             {
                 var result = await Version();
@@ -74,6 +90,14 @@ internal sealed class LocaltestValidation : BackgroundService
                         case VersionResult.Ok { Version: var version }:
                         {
                             _logger.LogInformation("Localtest version: {Version}", version);
+                            if (version >= 3)
+                            {
+                                // Version 3+ supports app registration
+                                await RegisterWithLocaltest(baseUrl, stoppingToken);
+                                // Wait for app shutdown before unregistering
+                                await Task.Delay(Timeout.InfiniteTimeSpan, stoppingToken);
+                                return;
+                            }
                             if (version >= 2)
                                 return;
                             _logger.LogError(
@@ -124,6 +148,12 @@ internal sealed class LocaltestValidation : BackgroundService
         catch (OperationCanceledException) { }
         finally
         {
+            // Unregister app if it was registered
+            if (_registeredAppId != null && baseUrl != null)
+            {
+                await UnregisterFromLocaltest(baseUrl);
+            }
+
             if (!_resultChannel.Writer.TryComplete())
                 _logger.LogWarning("Couldn't close result channel");
         }
@@ -200,6 +230,168 @@ internal sealed class LocaltestValidation : BackgroundService
         catch (Exception ex)
         {
             return new VersionResult.UnknownError(ex);
+        }
+    }
+
+    private async Task RegisterWithLocaltest(string baseUrl, CancellationToken stoppingToken)
+    {
+        // Wait for server to be fully started and have addresses bound
+        await Task.Delay(1000, stoppingToken);
+
+        var addressesFeature = _server.Features.Get<IServerAddressesFeature>();
+        if (addressesFeature?.Addresses == null || addressesFeature.Addresses.Count == 0)
+        {
+            _logger.LogWarning("Could not get server addresses for app registration");
+            return;
+        }
+
+        var address = addressesFeature.Addresses.First();
+        var uri = new Uri(address);
+        var port = uri.Port;
+
+        // Get app ID from ApplicationMetadata
+        var applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        var appId = applicationMetadata.Id; // Should be in format "org/app"
+
+        // Determine hostname: if running in Docker container, use container hostname
+        // Otherwise use host.docker.internal (default) to reach host from localtest container
+        string? hostname = null;
+        if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
+        {
+            // Running inside a container - use container's hostname
+            hostname = Environment.GetEnvironmentVariable("HOSTNAME");
+        }
+        // If hostname is null, localtest will default to "host.docker.internal"
+
+        // Try to load testData.json from wwwroot
+        System.Text.Json.JsonElement? testData = null;
+        try
+        {
+            var testDataPath = Path.Combine(
+                _webHostEnvironment.WebRootPath ?? _webHostEnvironment.ContentRootPath,
+                "testData.json"
+            );
+            if (File.Exists(testDataPath))
+            {
+                var testDataJson = await File.ReadAllTextAsync(testDataPath, stoppingToken);
+                testData = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(testDataJson);
+                _logger.LogInformation("Loaded testData.json for app {AppId} from {Path}", appId, testDataPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not load testData.json for app {AppId}", appId);
+        }
+
+        var registrationRequest = new
+        {
+            appId = appId,
+            port = port,
+            hostname = hostname,
+            testData = testData,
+        };
+
+        var url = $"{baseUrl}/Home/Localtest/Register";
+
+        // Retry registration with exponential backoff
+        int maxRetries = 10;
+        int retryCount = 0;
+
+        while (retryCount < maxRetries && !stoppingToken.IsCancellationRequested)
+        {
+            try
+            {
+                using var client = _httpClientFactory.CreateClient();
+                var response = await client.PostAsJsonAsync(url, registrationRequest, stoppingToken);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    _registeredAppId = appId;
+                    _logger.LogInformation(
+                        "Successfully registered {AppId} with localtest on {Hostname}:{Port}",
+                        appId,
+                        hostname ?? "host.docker.internal",
+                        port
+                    );
+                    return;
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync(stoppingToken);
+                    _logger.LogWarning(
+                        "Failed to register app with localtest (attempt {Attempt}/{MaxAttempts}). Status: {StatusCode}, Error: {Error}",
+                        retryCount + 1,
+                        maxRetries,
+                        response.StatusCode,
+                        errorContent
+                    );
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Could not connect to localtest for app registration (attempt {Attempt}/{MaxAttempts}). Retrying in 5 seconds...",
+                    retryCount + 1,
+                    maxRetries
+                );
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error while registering app with localtest (attempt {Attempt}/{MaxAttempts})",
+                    retryCount + 1,
+                    maxRetries
+                );
+            }
+
+            retryCount++;
+            if (retryCount < maxRetries)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(5), _timeProvider, stoppingToken);
+            }
+        }
+
+        if (!stoppingToken.IsCancellationRequested)
+        {
+            _logger.LogError(
+                "Failed to register app {AppId} with localtest after {MaxAttempts} attempts",
+                appId,
+                maxRetries
+            );
+        }
+    }
+
+    private async Task UnregisterFromLocaltest(string baseUrl)
+    {
+        if (_registeredAppId == null)
+            return;
+
+        try
+        {
+            using var client = _httpClientFactory.CreateClient();
+            var url = $"{baseUrl}/Home/Localtest/Register/{Uri.EscapeDataString(_registeredAppId)}";
+
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            var response = await client.DeleteAsync(url, cts.Token);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Successfully unregistered app {AppId} from localtest", _registeredAppId);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Failed to unregister app {AppId} from localtest. Status: {StatusCode}",
+                    _registeredAppId,
+                    response.StatusCode
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error while unregistering app {AppId} from localtest", _registeredAppId);
         }
     }
 }

@@ -148,5 +148,11 @@ namespace LocalTest.Services.LocalApp.Implementation
             // Not implemented, but empty result is vald, so better than NotImplementedException
             return Task.FromResult<AppTestDataModel?>(null);
         }
+
+        public Task<AppTestDataModel?> GetTestData(string appId)
+        {
+            // Not implemented, but empty result is vald, so better than NotImplementedException
+            return Task.FromResult<AppTestDataModel?>(null);
+        }
     }
 }

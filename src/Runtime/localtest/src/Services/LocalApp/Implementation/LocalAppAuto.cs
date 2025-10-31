@@ -10,11 +10,15 @@ using Altinn.Platform.Storage.Interface.Models;
 using LocalTest.Configuration;
 using LocalTest.Services.LocalApp.Interface;
 using LocalTest.Services.TestData;
+using LocalTest.Services.AppRegistry;
 using LocalTest.Helpers;
 
 namespace LocalTest.Services.LocalApp.Implementation
 {
-    public class LocalAppHttp : ILocalApp
+    /// <summary>
+    /// ILocalApp implementation for auto mode with dynamic app registration
+    /// </summary>
+    public class LocalAppAuto : ILocalApp
     {
         public static readonly JsonSerializerOptions JSON_OPTIONS = new JsonSerializerOptions(JsonSerializerDefaults.Web)
         {
@@ -27,37 +31,73 @@ namespace LocalTest.Services.LocalApp.Implementation
         public const string APPLICATION_METADATA_CACHE_KEY = "/api/v1/applicationmetadata?checkOrgApp=false";
         public const string TEXT_RESOURCE_CACE_KEY = "/api/v1/texts";
         public const string TEST_DATA_CACHE_KEY = "TEST_DATA_CACHE_KEY";
-        private readonly GeneralSettings _generalSettings;
-        private readonly HttpClient _httpClient;
-        private readonly IMemoryCache _cache;
-        private readonly ILogger<LocalAppHttp> _logger;
 
-        public LocalAppHttp(IOptions<GeneralSettings> generalSettings, IHttpClientFactory httpClientFactory, IOptions<LocalPlatformSettings> localPlatformSettings, IMemoryCache cache, ILogger<LocalAppHttp> logger)
+        private readonly GeneralSettings _generalSettings;
+        private readonly LocalPlatformSettings _localPlatformSettings;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IMemoryCache _cache;
+        private readonly ILogger<LocalAppAuto> _logger;
+        private readonly AppRegistryService _appRegistryService;
+
+        public LocalAppAuto(
+            IOptions<GeneralSettings> generalSettings,
+            IOptions<LocalPlatformSettings> localPlatformSettings,
+            IHttpClientFactory httpClientFactory,
+            IMemoryCache cache,
+            ILogger<LocalAppAuto> logger,
+            AppRegistryService appRegistryService)
         {
             _generalSettings = generalSettings.Value;
-            _httpClient = httpClientFactory.CreateClient();
-            _httpClient.BaseAddress = new Uri(localPlatformSettings.Value.LocalAppUrl);
-            _httpClient.Timeout = TimeSpan.FromHours(1);
+            _localPlatformSettings = localPlatformSettings.Value;
+            _httpClientFactory = httpClientFactory;
             _cache = cache;
             _logger = logger;
+            _appRegistryService = appRegistryService;
         }
+
+        private HttpClient CreateClientForApp(string appId)
+        {
+            var registration = _appRegistryService.GetRegistration(appId);
+            if (registration == null)
+            {
+                throw new InvalidOperationException($"App {appId} is not registered");
+            }
+
+            var client = _httpClientFactory.CreateClient();
+            // Use the registered hostname (defaults to host.docker.internal for apps running on host)
+            client.BaseAddress = new Uri($"http://{registration.Hostname}:{registration.Port}");
+            client.Timeout = TimeSpan.FromHours(1);
+            return client;
+        }
+
         public async Task<string?> GetXACMLPolicy(string appId)
         {
             return await _cache.GetOrCreateAsync(XACML_CACHE_KEY + appId, async cacheEntry =>
             {
-                // Cache with very short duration to not slow down page load, where this file can be accessed many many times
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
-                return await _httpClient.GetStringAsync($"{appId}/api/v1/meta/authorizationpolicy");
+                using var client = CreateClientForApp(appId);
+                return await client.GetStringAsync($"{appId}/api/v1/meta/authorizationpolicy");
             });
         }
+
         public async Task<Application?> GetApplicationMetadata(string? appId)
         {
-            appId = appId ?? "dummyOrg/dummyApp";
+            if (appId == null)
+            {
+                // Return first registered app if no appId specified
+                var registrations = _appRegistryService.GetAll();
+                if (registrations.Count == 0)
+                {
+                    return null;
+                }
+                appId = registrations.First().Key;
+            }
+
             var content = await _cache.GetOrCreateAsync(APPLICATION_METADATA_CACHE_KEY + appId, async cacheEntry =>
             {
-                // Cache with very short duration to not slow down page load, where this file can be accessed many many times
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
-                return await _httpClient.GetStringAsync($"{appId}/api/v1/applicationmetadata?checkOrgApp=false");
+                using var client = CreateClientForApp(appId);
+                return await client.GetStringAsync($"{appId}/api/v1/applicationmetadata?checkOrgApp=false");
             });
 
             return JsonSerializer.Deserialize<Application>(content!, JSON_OPTIONS);
@@ -65,10 +105,12 @@ namespace LocalTest.Services.LocalApp.Implementation
 
         public async Task<TextResource?> GetTextResource(string org, string app, string language)
         {
+            var appId = $"{org}/{app}";
             var content = await _cache.GetOrCreateAsync(TEXT_RESOURCE_CACE_KEY + org + app + language, async cacheEntry =>
             {
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
-                return await _httpClient.GetStringAsync($"{org}/{app}/api/v1/texts/{language}");
+                using var client = CreateClientForApp(appId);
+                return await client.GetStringAsync($"{org}/{app}/api/v1/texts/{language}");
             });
 
             var textResource = JsonSerializer.Deserialize<TextResource>(content!, JSON_OPTIONS);
@@ -86,11 +128,22 @@ namespace LocalTest.Services.LocalApp.Implementation
         public async Task<Dictionary<string, Application>> GetApplications()
         {
             var ret = new Dictionary<string, Application>();
-            // Return a single element as only one app can run on port 5005
-            var app = await GetApplicationMetadata(null);
-            if (app != null)
+            var registrations = _appRegistryService.GetAll();
+
+            foreach (var registration in registrations.Values)
             {
-                ret.Add(app.Id, app);
+                try
+                {
+                    var app = await GetApplicationMetadata(registration.AppId);
+                    if (app != null)
+                    {
+                        ret.Add(app.Id, app);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to get application metadata for {AppId}", registration.AppId);
+                }
             }
 
             return ret;
@@ -98,6 +151,7 @@ namespace LocalTest.Services.LocalApp.Implementation
 
         public async Task<Instance?> Instantiate(string appId, Instance instance, string xmlPrefill, string xmlDataId, string token)
         {
+            using var client = CreateClientForApp(appId);
             var requestUri = $"{appId}/instances";
             var serializedInstance = JsonSerializer.Serialize(instance, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault });
 
@@ -111,7 +165,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             using var message = new HttpRequestMessage(HttpMethod.Post, requestUri);
             message.Content = content;
             message.Headers.Authorization = new ("Bearer", token);
-            var response = await _httpClient.SendAsync(message);
+            var response = await client.SendAsync(message);
             var stringResponse = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode)
             {
@@ -135,7 +189,8 @@ namespace LocalTest.Services.LocalApp.Implementation
                         return null;
                     }
 
-                    var response = await _httpClient.GetAsync($"{applicationmetadata.Id}/testData.json");
+                    using var client = CreateClientForApp(applicationmetadata.Id);
+                    var response = await client.GetAsync($"{applicationmetadata.Id}/testData.json");
                     if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                     {
                         _logger.LogInformation("No custom www/testData.json found. Using default test users");
@@ -163,7 +218,8 @@ namespace LocalTest.Services.LocalApp.Implementation
 
                 try
                 {
-                    var response = await _httpClient.GetAsync($"{appId}/testData.json");
+                    using var client = CreateClientForApp(appId);
+                    var response = await client.GetAsync($"{appId}/testData.json");
                     if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                     {
                         _logger.LogInformation("No custom www/testData.json found for {AppId}. Using default test users", appId);
