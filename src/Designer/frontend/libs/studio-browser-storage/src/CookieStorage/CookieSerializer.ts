@@ -29,26 +29,34 @@ export class CookieSerializer {
     return `; samesite=${sameSite}`;
   }
 
+  private static shouldEnforceSecure(options: CookieOptions): boolean {
+    return options.sameSite === 'None' && !options.secure;
+  }
+
+  private static enforceSecureForSameSiteNone(options: CookieOptions): CookieOptions {
+    if (CookieSerializer.shouldEnforceSecure(options)) {
+      console.warn(
+        'Cookies with SameSite=None require Secure flag. Automatically setting secure=true.',
+      );
+      return { ...options, secure: true };
+    }
+    return options;
+  }
+
   public static buildCookieString(
     encodedKey: string,
     encodedValue: string,
     options: CookieOptions,
   ): string {
-    // Enforce secure flag when sameSite is None (browser requirement)
-    if (options.sameSite === 'None' && !options.secure) {
-      console.warn(
-        'Cookies with SameSite=None require Secure flag. Automatically setting secure=true.',
-      );
-      options = { ...options, secure: true };
-    }
+    const normalizedOptions = CookieSerializer.enforceSecureForSameSiteNone(options);
 
     return [
       `${encodedKey}=${encodedValue}`,
-      CookieSerializer.serializeExpires(options.expires),
-      CookieSerializer.serializePath(options.path),
-      CookieSerializer.serializeDomain(options.domain),
-      CookieSerializer.serializeSecure(options.secure),
-      CookieSerializer.serializeSameSite(options.sameSite),
+      CookieSerializer.serializeExpires(normalizedOptions.expires),
+      CookieSerializer.serializePath(normalizedOptions.path),
+      CookieSerializer.serializeDomain(normalizedOptions.domain),
+      CookieSerializer.serializeSecure(normalizedOptions.secure),
+      CookieSerializer.serializeSameSite(normalizedOptions.sameSite),
     ]
       .filter(Boolean)
       .join('');
