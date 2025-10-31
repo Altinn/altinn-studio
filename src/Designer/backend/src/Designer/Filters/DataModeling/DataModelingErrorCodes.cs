@@ -1,4 +1,5 @@
-﻿namespace Altinn.Studio.Designer.Filters.DataModeling
+﻿#nullable disable
+namespace Altinn.Studio.Designer.Filters.DataModeling
 {
     public static class DataModelingErrorCodes
     {

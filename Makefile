@@ -8,18 +8,34 @@ SUBTREES := localtest:src/Runtime/localtest:../app-localtest:Altinn/app-localtes
            fileanalyzers:src/App/fileanalyzers:../fileanalyzers-lib-dotnet:Altinn/fileanalyzers-lib-dotnet \
            codelists:src/App/codelists:../codelists-lib-dotnet:Altinn/codelists-lib-dotnet
 
+# Test apps configuration for subtree syncing (these all live in src/test/apps)
+# Format: app-name:repo-url:branch
+TEST_APPS := anonymous-stateless-app:https://dev.altinn.studio/repos/ttd/anonymous-stateless-app.git:master \
+            component-library:https://altinn.studio/repos/ttd/component-library.git:master \
+            expression-validation-test:https://dev.altinn.studio/repos/ttd/expression-validation-test.git:master \
+            frontend-test:https://dev.altinn.studio/repos/ttd/frontend-test.git:next-app-lib \
+            multiple-datamodels-test:https://dev.altinn.studio/repos/ttd/multiple-datamodels-test.git:master \
+            navigation-test-subform:https://dev.altinn.studio/repos/ttd/navigation-test-subform.git:master \
+            payment-test:https://dev.altinn.studio/repos/ttd/payment-test.git:master \
+            service-task:https://altinn.studio/repos/ttd/service-task.git:master \
+            signering-brukerstyrt:https://altinn.studio/repos/ttd/signering-brukerstyrt.git:master \
+            signing-test:https://dev.altinn.studio/repos/ttd/signing-test.git:master \
+            stateless-app:https://dev.altinn.studio/repos/ttd/stateless-app.git:master \
+            subform-test:https://dev.altinn.studio/repos/ttd/subform-test.git:master
+
 # Default branch
 DEFAULT_BRANCH = main
 
 # Extract target names for .PHONY
 SUBTREE_TARGETS := $(foreach subtree,$(SUBTREES),sync-$(word 1,$(subst :, ,$(subtree))))
 
-.PHONY: $(SUBTREE_TARGETS) help create-pr
+.PHONY: $(SUBTREE_TARGETS) help create-pr sync-test-apps
 
 help: ## Show this help message
 	@echo "Available targets:"
 	@$(foreach subtree,$(SUBTREES), \
 		echo "  sync-$(word 1,$(subst :, ,$(subtree))) - Sync $(word 1,$(subst :, ,$(subtree))) subtree from $(word 3,$(subst :, ,$(subtree)))";)
+	@echo "  sync-test-apps - Sync all test app subtrees in src/test/apps"
 	@echo "  help - Show this help message"
 
 create-pr: ## Push changes and create pull request for sync job
@@ -32,7 +48,8 @@ create-pr: ## Push changes and create pull request for sync job
 		echo "Pushing changes to remote..."; \
 		git push -u origin $$current_branch && \
 		echo "Creating pull request..." && \
-		gh pr create --title "chore: syncing $$subtree_name" --body "@coderabbitai ignore" --base $(DEFAULT_BRANCH) --head $$current_branch || \
+		pr_body="⚠️ **DO NOT SQUASH MERGE THIS PR** ⚠️"$$'\n\n'"This is a subtree sync PR. All commits must be preserved to maintain proper git subtree history."$$'\n\n'"**Required merge method:** Merge commit (NOT squash merge)"$$'\n\n'"@coderabbitai ignore"; \
+		gh pr create --title "chore: syncing $$subtree_name" --body "$$pr_body" --label "skip-manual-testing,skip-releasenotes" --base $(DEFAULT_BRANCH) --head $$current_branch || \
 		echo "WARNING: Failed to create PR. You may need to create it manually."; \
 	else \
 		echo "WARNING: gh command not found. Skipping automatic PR creation."; \
@@ -108,3 +125,57 @@ endef
 $(foreach subtree,$(SUBTREES), \
 	$(eval sync-$(word 1,$(subst :, ,$(subtree))): ## Sync $(word 1,$(subst :, ,$(subtree))) subtree) \
 	$(eval sync-$(word 1,$(subst :, ,$(subtree))): ; $$(call sync-subtree,$(word 1,$(subst :, ,$(subtree))),$(word 2,$(subst :, ,$(subtree))),$(word 3,$(subst :, ,$(subtree))),$(word 4,$(subst :, ,$(subtree))))))
+
+# Sync all test apps
+sync-test-apps: ## Sync all test app subtrees
+	@echo "Syncing all test apps..."
+	@# Check for uncommitted changes
+	@if ! git diff-index --quiet HEAD --; then \
+		echo "ERROR: You have uncommitted changes in your working directory"; \
+		echo "Please commit or stash your changes before syncing:"; \
+		echo "  git add ."; \
+		echo "  git commit -m 'your message'"; \
+		echo "  OR"; \
+		echo "  git stash"; \
+		exit 1; \
+	fi
+	@current_branch=$$(git rev-parse --abbrev-ref HEAD); \
+	if [ "$$current_branch" != "$(DEFAULT_BRANCH)" ]; then \
+		echo "ERROR: You must be on the $(DEFAULT_BRANCH) branch to start a sync"; \
+		echo "Current branch: $$current_branch"; \
+		echo "Please checkout $(DEFAULT_BRANCH) first: git checkout $(DEFAULT_BRANCH)"; \
+		exit 1; \
+	fi
+	@branch_name="chore/subtree-sync-test-apps"; \
+	if git show-ref --verify --quiet refs/heads/$$branch_name; then \
+		echo "ERROR: Branch $$branch_name already exists"; \
+		echo "Please merge/close that PR and delete your remote and local branch before attempting another sync"; \
+		exit 1; \
+	fi; \
+	echo "Creating branch $$branch_name..."; \
+	git checkout -b $$branch_name
+	@$(foreach app,$(TEST_APPS), \
+		app_name=$$(echo "$(app)" | cut -d: -f1); \
+		repo_url=$$(echo "$(app)" | cut -d: -f2-3); \
+		branch=$$(echo "$(app)" | cut -d: -f4); \
+		echo ""; \
+		echo "Syncing $$app_name from $$repo_url ($$branch)..."; \
+		git fetch $$repo_url $$branch && \
+		if GIT_MERGE_AUTOEDIT=no git subtree pull --prefix=src/test/apps/$$app_name $$repo_url $$branch; then \
+			echo "OK: $$app_name synced successfully"; \
+		else \
+			echo ""; \
+			echo "==============================================="; \
+			echo "Merge conflicts detected for $$app_name!"; \
+			echo "==============================================="; \
+			echo ""; \
+			echo "Please resolve conflicts in the affected files,"; \
+			echo "then stage and commit your changes:"; \
+			echo "  git add ."; \
+			echo "  git commit --no-edit"; \
+			echo ""; \
+			read -p "Press Enter after resolving conflicts to continue..." dummy; \
+		fi;)
+	@echo ""
+	@echo "All test apps synced successfully!"
+	@$(MAKE) create-pr SUBTREE_NAME=test-apps
