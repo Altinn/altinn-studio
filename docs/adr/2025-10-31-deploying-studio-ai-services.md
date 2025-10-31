@@ -14,7 +14,7 @@ The new AI assistant in Studio is dependent on both an agent service and an MCP 
 
 When a prompt is entered in Designer frontend, it goes via Designer backend, to the agent server. Then, the agent gathers context by calling on tools from the MCP server. Lastly, the agent saves its work into a new branch in Gitea.
 
-The agent and the MCP are separated because we also want to allow developers to use the MCP when developing apps locally.
+The agent and the MCP are separated because we also want to allow developers to use the MCP when developing apps locally, and allow independent scaling.
 
 We will limit the access to the agent and MCP to Testdepartementet and registered service owners, in order to reduce token usage and abuse by malicious actors.
 
