@@ -4,10 +4,12 @@ using StudioGateway.Api.Configuration;
 using StudioGateway.Api.Providers.Alerts;
 using StudioGateway.Api.Services.Alerts;
 using StudioGateway.Api.TypedHttpClients.Grafana;
+using StudioGateway.Api.TypedHttpClients.Studio;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<GrafanaSettings>(builder.Configuration.GetSection("GrafanaSettings"));
+builder.Services.Configure<StudioSettings>(builder.Configuration.GetSection("StudioSettings"));
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -17,6 +19,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 });
 
 builder.Services.AddHttpClient<IGrafanaClient, GrafanaClient>();
+builder.Services.AddHttpClient<IStudioClient, StudioClient>();
 builder.Services.AddKeyedTransient<IAlertsProvider, GrafanaProvider>("Grafana");
 builder.Services.AddTransient<IAlertsService, AlertsService>();
 builder.Services.AddControllers();
