@@ -1,0 +1,8 @@
+﻿{
+  ttd/_index.json:
+{
+  "prefixes": [
+    "ttd/code_lists"
+  ]
+}
+}

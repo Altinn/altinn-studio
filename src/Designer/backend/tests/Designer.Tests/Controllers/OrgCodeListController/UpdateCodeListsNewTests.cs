@@ -48,11 +48,11 @@ public class UpdateCodeListsNewTests : DesignerEndpointsTestsBase<UpdateCodeList
         List<Code> codes =
         [
             new(
-                value: "no",
-                label: new Dictionary<string, string> { { "nb", "Norge" } },
-                description: new Dictionary<string, string> { { "nb", "Et land i nord europa." } },
-                helpText: new Dictionary<string, string> { { "nb", "En hjelpe tekst." } },
-                tags: ["tag"]
+                Value: "no",
+                Label: new Dictionary<string, string> { { "nb", "Norge" } },
+                Description: new Dictionary<string, string> { { "nb", "Et land i nord europa." } },
+                HelpText: new Dictionary<string, string> { { "nb", "En hjelpe tekst." } },
+                Tags: ["tag"]
             )
         ];
         CodeList newCodeList = new(

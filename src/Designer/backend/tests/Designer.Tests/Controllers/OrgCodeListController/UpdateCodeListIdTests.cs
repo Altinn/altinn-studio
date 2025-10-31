@@ -4,18 +4,30 @@ using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Helpers;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Controllers.OrgCodeListController;
 
 public class UpdateCodeListIdTests : DesignerEndpointsTestsBase<UpdateCodeListIdTests>, IClassFixture<WebApplicationFactory<Program>>
 {
+    private readonly Mock<ISharedContentClient> _contentClientMock;
+
     public UpdateCodeListIdTests(WebApplicationFactory<Program> factory) : base(factory)
     {
+        _contentClientMock = new Mock<ISharedContentClient>();
+    }
+
+    protected override void ConfigureTestServices(IServiceCollection services)
+    {
+        base.ConfigureTestServices(services);
+        services.AddSingleton(_contentClientMock.Object);
     }
 
     private const string Org = "ttd";
