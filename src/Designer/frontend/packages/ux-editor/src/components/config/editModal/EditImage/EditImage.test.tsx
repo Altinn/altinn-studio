@@ -229,6 +229,7 @@ const renderEditImage = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
+  queryClient.setQueryData([QueryKey.ImageFileNames, org, app], []);
   renderWithProviders(
     <EditImage component={imageComponent} handleComponentChange={handleComponentChangeMock} />,
     { ...queriesMock, ...queries, queryClient },

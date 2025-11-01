@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import React, { useRef } from 'react';
-import { StudioModal } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioDialog, StudioHeading } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { LocalChanges } from './LocalChanges/LocalChanges';
 import { MonitorIcon } from '@studio/icons';
@@ -26,13 +25,14 @@ export const LocalChangesModal = ({ triggerClassName }: LocalChangesModalProps):
       >
         {t('sync_header.local_changes')}
       </StudioButton>
-      <StudioModal.Dialog
-        closeButtonTitle={t('sync_header.close_local_changes_button')}
-        heading={t('sync_header.local_changes')}
-        ref={dialogRef}
-      >
-        <LocalChanges />
-      </StudioModal.Dialog>
+      <StudioDialog ref={dialogRef}>
+        <StudioDialog.Block>
+          <StudioHeading level={2}>{t('sync_header.local_changes')}</StudioHeading>
+        </StudioDialog.Block>
+        <StudioDialog.Block>
+          <LocalChanges />
+        </StudioDialog.Block>
+      </StudioDialog>
     </>
   );
 };

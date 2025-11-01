@@ -6,6 +6,9 @@ import type { FormItem } from '../../../../types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
 
 const imageComponent: FormItem<ComponentType.Image> = {
   id: '0',
@@ -56,7 +59,12 @@ const render = (
   component: FormItem<ComponentType.Image>,
   handleComponentChange: (component: FormItem<ComponentType.Image>) => void = jest.fn(),
 ) => {
+  const queryClient = createQueryClientMock();
+  // Mock image file names data for Image component (StudioDialog renders immediately now)
+  queryClient.setQueryData([QueryKey.ImageFileNames, org, app], []);
+
   renderWithProviders(
     <ImageMainConfig component={component} handleComponentChange={handleComponentChange} />,
+    { queryClient },
   );
 };

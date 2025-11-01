@@ -77,11 +77,17 @@ function getClickableActionBar(): HTMLButtonElement {
 }
 
 function getAddItemInlineHeading(): HTMLHeadingElement {
-  return screen.getByText(textMock('ux_editor.add_item.select_component_header'));
+  return screen.getByRole('heading', {
+    level: 4,
+    name: textMock('ux_editor.add_item.select_component_header'),
+  });
 }
 
 function queryAddItemInlineHeading(): HTMLHeadingElement | null {
-  return screen.queryByText(textMock('ux_editor.add_item.select_component_header'));
+  return screen.queryByRole('heading', {
+    level: 4,
+    name: textMock('ux_editor.add_item.select_component_header'),
+  });
 }
 
 function getCloseButton(): HTMLButtonElement {

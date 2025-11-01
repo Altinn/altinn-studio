@@ -26,9 +26,7 @@ describe('LocalImage', () => {
 
   it('renders library modal when clicking on "add from library" button', async () => {
     const user = userEvent.setup();
-    const queryClientMock = createQueryClientMock();
-    queryClientMock.setQueryData([QueryKey.ImageFileNames, org, app], []);
-    renderLocalImage({}, queryClientMock);
+    renderLocalImage();
     const addImageButton = getAddImageButton();
     await user.click(addImageButton);
     const libraryModalHeading = getLibraryModalHeading();
@@ -70,5 +68,6 @@ const renderLocalImage = (
   props: Partial<LocalImageProps> = {},
   queryClient = createQueryClientMock(),
 ) => {
+  queryClient.setQueryData([QueryKey.ImageFileNames, org, app], []);
   renderWithProviders(<LocalImage {...defaultProps} {...props} />, { queryClient });
 };

@@ -133,7 +133,7 @@ const renderComponentMainConfig = (component: FormItem, setSchemaData: boolean =
   const handleComponentChange = jest.fn();
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
-
+  queryClient.setQueryData([QueryKey.ImageFileNames, org, app], []);
   if (setSchemaData) {
     queryClient.setQueryData(
       [QueryKey.FormComponent, component.type],

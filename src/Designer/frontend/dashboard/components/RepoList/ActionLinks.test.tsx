@@ -6,6 +6,8 @@ import { repository } from 'app-shared/mocks/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../testing/mocks';
 import type { Repository } from 'app-shared/types/Repository';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 const repoName = 'test-repo';
 const repoFullName = 'test-org/test-repo';
@@ -21,7 +23,9 @@ const repo: Repository = {
 
 describe('ActionLinks', () => {
   it('should render the three buttons', () => {
-    renderWithProviders(<ActionLinks repo={repo} />);
+    const queryClient = createQueryClientMock();
+    mockUserAndOrganizationsQueries(queryClient);
+    renderWithProviders(<ActionLinks repo={repo} />, { queryClient });
     expect(getGiteaButton()).toBeInTheDocument();
     expect(getEditButton()).toBeInTheDocument();
     expect(getDropdownButton()).toBeInTheDocument();
@@ -29,7 +33,9 @@ describe('ActionLinks', () => {
 
   it('should open MakeCopyModal when clicking "Make copy" in the dropdown menu', async () => {
     const user = userEvent.setup();
-    renderWithProviders(<ActionLinks repo={repo} />);
+    const queryClient = createQueryClientMock();
+    mockUserAndOrganizationsQueries(queryClient);
+    renderWithProviders(<ActionLinks repo={repo} />, { queryClient });
     await user.click(getDropdownButton());
     expect(queryCopyModalHeading()).not.toBeInTheDocument();
     await user.click(getMakeCopyOption());
@@ -39,7 +45,9 @@ describe('ActionLinks', () => {
   it('should open a new tab when clicking "Open in new tab" in the dropdown menu', async () => {
     const user = userEvent.setup();
     window.open = jest.fn();
-    renderWithProviders(<ActionLinks repo={repo} />);
+    const queryClient = createQueryClientMock();
+    mockUserAndOrganizationsQueries(queryClient);
+    renderWithProviders(<ActionLinks repo={repo} />, { queryClient });
     await user.click(getDropdownButton());
     await user.click(getOpenInNewOption());
     expect(window.open).toHaveBeenCalledWith(editUrl, '_blank');
@@ -68,3 +76,21 @@ describe('ActionLinks', () => {
   const openInNewOptionName = textMock('dashboard.open_in_new');
   const copyModalHeading = textMock('dashboard.copy_application');
 });
+
+function mockUserAndOrganizationsQueries(queryClient: ReturnType<typeof createQueryClientMock>) {
+  queryClient.setQueryData([QueryKey.CurrentUser], {
+    id: 1,
+    login: 'testuser',
+    full_name: 'Test User',
+  });
+  queryClient.setQueryData(
+    [QueryKey.Organizations],
+    [
+      {
+        id: 1,
+        username: 'testorg',
+        full_name: 'Test Organization',
+      },
+    ],
+  );
+}

@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { StudioModal } from '@studio/components-legacy';
+import { StudioDialog, StudioHeading } from '@studio/components';
 import { useForwardedRef } from '@studio/hooks';
 import { OverrideCurrentPdfByConversionChoices } from './OverrideCurrentPdfByConversionChoices';
 import { useTranslation } from 'react-i18next';
@@ -40,16 +40,19 @@ export const ConvertChoicesModal = forwardRef<HTMLDialogElement, ConvertChoicesM
     };
 
     return (
-      <StudioModal.Dialog
-        closeButtonTitle={t('ux_editor.page_config_pdf_abort_converting_page_to_pdf')}
-        heading={t('ux_editor.page_config_pdf_convert_page_to_pdf')}
-        ref={dialogRef}
-      >
-        <OverrideCurrentPdfByConversionChoices
-          onConvertPageToPdfAndConvertCurrent={handleConvertPageToPdfAndConvertCurrent}
-          onConvertPageToPdfAndDeleteCurrent={handleConvertPageToPdfAndDeleteCurrent}
-        />
-      </StudioModal.Dialog>
+      <StudioDialog ref={dialogRef}>
+        <StudioDialog.Block>
+          <StudioHeading level={2}>
+            {t('ux_editor.page_config_pdf_convert_page_to_pdf')}
+          </StudioHeading>
+        </StudioDialog.Block>
+        <StudioDialog.Block>
+          <OverrideCurrentPdfByConversionChoices
+            onConvertPageToPdfAndConvertCurrent={handleConvertPageToPdfAndConvertCurrent}
+            onConvertPageToPdfAndDeleteCurrent={handleConvertPageToPdfAndDeleteCurrent}
+          />
+        </StudioDialog.Block>
+      </StudioDialog>
     );
   },
 );

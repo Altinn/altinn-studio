@@ -71,5 +71,8 @@ function getAddComponentButton(): HTMLButtonElement {
 }
 
 function getSelectComponentHeader(): HTMLHeadingElement {
-  return screen.getByText(textMock('ux_editor.add_item.select_component_header'));
+  return screen.getByRole('heading', {
+    level: 4,
+    name: textMock('ux_editor.add_item.select_component_header'),
+  });
 }
