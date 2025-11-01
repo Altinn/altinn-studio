@@ -26,7 +26,7 @@ export const PdfLayoutAccordion = ({
   return (
     <Accordion>
       <PageAccordion
-        pageName={pdfLayoutData.page}
+        pageId={pdfLayoutData.page}
         isOpen={pdfLayoutData.page === selectedFormLayoutName}
         onClick={onAccordionClick}
         isInvalid={duplicatedIdsExistsInLayout(pdfLayoutData.data)}
