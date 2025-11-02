@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-alias": "^5.1.1",
-    "@swc/core": "^1.14.0",
+    "@swc/core": "1.13.21",
     "@swc/jest": "0.2.39",
     "@testing-library/dom": "10.4.1",
     "@testing-library/jest-dom": "6.6.4",
