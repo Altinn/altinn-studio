@@ -2,8 +2,7 @@ import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './SecurityLevelSelect.module.css';
 import { Heading, Label, Paragraph, Link } from '@digdir/designsystemet-react';
-import { StudioNativeSelect } from '@studio/components-legacy';
-import { StudioHelpText } from '@studio/components';
+import { StudioHelpText, StudioSelect } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { RequiredAuthLevel } from '../../types';
 
@@ -40,7 +39,6 @@ export const SecurityLevelSelect = ({
       </Paragraph>
       <div>
         <div className={classes.labelAndHelpTextWrapper}>
-          {/* This is added because the 'label' in the Select component is not bold */}
           <Label size='small' htmlFor={SELECT_AUTH_LEVEL_ID}>
             {t('policy_editor.select_auth_level_label')}
           </Label>
@@ -55,7 +53,8 @@ export const SecurityLevelSelect = ({
             </Link>
           </StudioHelpText>
         </div>
-        <StudioNativeSelect
+        <StudioSelect
+          label={''}
           onChange={(event) => {
             onSave(event.target.value as RequiredAuthLevel);
           }}
@@ -67,7 +66,7 @@ export const SecurityLevelSelect = ({
               {t(option.label)}
             </option>
           ))}
-        </StudioNativeSelect>
+        </StudioSelect>
       </div>
     </div>
   );

@@ -5,7 +5,8 @@ import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components-legacy';
+import { StudioSelect } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import cn from 'classnames';
 
@@ -84,11 +85,10 @@ export const ImageComponent = ({
           value={selectedPlacement?.[0]?.value}
           propertyPath={`${component.propertyPath}/properties/image/properties/align`}
           renderField={({ fieldProps }) => (
-            <StudioNativeSelect
+            <StudioSelect
               label={fieldProps.label}
               onChange={(e) => fieldProps.onChange(e.target.value)}
               value={fieldProps.value}
-              size='sm'
               id={placementSelectId}
             >
               {alignOptions.map((option) => (
@@ -96,7 +96,7 @@ export const ImageComponent = ({
                   {option.label}
                 </option>
               ))}
-            </StudioNativeSelect>
+            </StudioSelect>
           )}
         />
       </div>

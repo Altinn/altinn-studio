@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import classes from './PolicySubjects.module.css';
-import { Label, ErrorMessage, Paragraph, Chip } from '@digdir/designsystemet-react';
+import { Chip } from '@digdir/designsystemet-react';
 import type { PolicySubject } from '../../../../types';
 import { findSubjectByPolicyRuleSubject } from '../../../../utils';
 import { getSubjectOptions, getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { useTranslation } from 'react-i18next';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
-import { StudioNativeSelect } from '@studio/components-legacy';
+import { StudioSelect } from '@studio/components';
 
 export const PolicySubjects = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -76,25 +76,28 @@ export const PolicySubjects = (): React.ReactElement => {
     );
   });
 
+  const description =
+    subjectOptions.length === 0
+      ? t('policy_editor.rule_card_subjects_select_all_selected')
+      : t('policy_editor.rule_card_subjects_select_add');
+
+  const error =
+    showAllErrors && policyError.subjectsError
+      ? t('policy_editor.rule_card_subjects_error')
+      : false;
+
   return (
     <>
-      <Label className={classes.label} size='small' htmlFor={`selectSubject-${uniqueId}`}>
-        {t('policy_editor.rule_card_subjects_title')}
-      </Label>
-      <Paragraph size='small' className={classes.inputParagraph}>
-        {subjectOptions.length === 0
-          ? t('policy_editor.rule_card_subjects_select_all_selected')
-          : t('policy_editor.rule_card_subjects_select_add')}
-      </Paragraph>
       <div className={classes.dropdownWrapper}>
-        <StudioNativeSelect
+        <StudioSelect
+          description={description}
+          label={t('policy_editor.rule_card_subjects_title')}
           onChange={(event) =>
             event.target.value !== null && handleClickSubjectInList(event.target.value)
           }
           disabled={subjectOptions.length === 0}
-          error={showAllErrors && policyError.subjectsError}
+          error={error}
           id={`selectSubject-${uniqueId}`}
-          size='sm'
           defaultValue=''
         >
           <option hidden value=''></option>
@@ -103,12 +106,9 @@ export const PolicySubjects = (): React.ReactElement => {
               {option.label}
             </option>
           ))}
-        </StudioNativeSelect>
+        </StudioSelect>
       </div>
       <div className={classes.chipWrapper}>{displaySubjects}</div>
-      {showAllErrors && policyError.subjectsError && (
-        <ErrorMessage size='small'>{t('policy_editor.rule_card_subjects_error')}</ErrorMessage>
-      )}
     </>
   );
 };

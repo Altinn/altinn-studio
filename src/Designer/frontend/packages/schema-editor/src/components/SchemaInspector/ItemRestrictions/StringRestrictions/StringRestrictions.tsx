@@ -8,7 +8,8 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { makeDomFriendlyID } from '../../../../utils/ui-schema-utils';
 import { useTranslation } from 'react-i18next';
-import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components-legacy';
+import { StudioSelect } from '@studio/components';
 import { ItemWrapper } from '../ItemWrapper';
 import {
   isDateOrTimeFormat,
@@ -77,12 +78,12 @@ export function StringRestrictions({
 
   return (
     <ItemWrapper>
-      <StudioNativeSelect
+      <StudioSelect
         id='format-select-input'
         label={t('format')}
         onChange={(event) => setRestriction(StrRestrictionKey.format, event.target.value)}
         value={restrictions[StrRestrictionKey.format] || ''}
-        size='sm'
+        data-size='sm'
       >
         <option value=''>{t('format_none')}</option>
         {formatOptions.map((f) => (
@@ -90,7 +91,7 @@ export function StringRestrictions({
             {f.label}
           </option>
         ))}
-      </StudioNativeSelect>
+      </StudioSelect>
       {isDateOrTimeFormat(restrictions) && (
         <DateOrTimeFormatRestrictions
           formatState={dateTimeFormatState}

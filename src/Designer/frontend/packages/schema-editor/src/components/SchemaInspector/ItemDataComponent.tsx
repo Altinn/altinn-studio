@@ -30,8 +30,8 @@ import { useTranslation } from 'react-i18next';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
 import { NameField } from './NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
-import { StudioTextarea } from '@studio/components';
+import { StudioTextfield } from '@studio/components-legacy';
+import { StudioTextarea, StudioSelect } from '@studio/components';
 
 export type IItemDataComponentProps = {
   schemaNode: UiSchemaNode;
@@ -149,18 +149,18 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
             </Switch>
           )}
           {isCombination(schemaNode) && (
-            <StudioNativeSelect
+            <StudioSelect
               label={t('schema_editor.type')}
               onChange={(event) => onChangeCombinationType(event.target.value as CombinationKind)}
               value={schemaNode.combinationType}
-              size='sm'
+              data-size='sm'
             >
               {getCombinationOptions(t).map((option) => (
                 <option key={option.value} value={option.value}>
                   {t(option.label)}
                 </option>
               ))}
-            </StudioNativeSelect>
+            </StudioSelect>
           )}
           {isCombination(schemaNode) && (
             <Switch

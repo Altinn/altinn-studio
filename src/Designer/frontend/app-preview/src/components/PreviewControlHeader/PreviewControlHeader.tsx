@@ -3,8 +3,7 @@ import classes from './PreviewControlHeader.module.css';
 import { useTranslation } from 'react-i18next';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioNativeSelect } from '@studio/components-legacy';
-import { StudioSpinner } from '@studio/components';
+import { StudioSpinner, StudioSelect } from '@studio/components';
 import { ToggleGroup } from '@digdir/designsystemet-react';
 
 export type PreviewControlHeaderProps = {
@@ -42,13 +41,13 @@ export const PreviewControlHeader = ({
       </div>
       {layoutSets && (
         <div className={classes.layoutSetSelector}>
-          <StudioNativeSelect onChange={handleLayoutSetChange} value={selectedLayoutSet}>
+          <StudioSelect label={''} onChange={handleLayoutSetChange} value={selectedLayoutSet}>
             {layoutSets.sets.map((layoutSet) => (
               <option key={layoutSet.id} value={layoutSet.id}>
                 {layoutSet.id}
               </option>
             ))}
-          </StudioNativeSelect>
+          </StudioSelect>
         </div>
       )}
     </div>

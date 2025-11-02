@@ -4,8 +4,8 @@ import { getActionOptions, getUpdatedRules } from '../../../../utils/PolicyRuleU
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import { useTranslation } from 'react-i18next';
-import { Label, ErrorMessage, Paragraph, Chip } from '@digdir/designsystemet-react';
-import { StudioNativeSelect } from '@studio/components-legacy';
+import { Chip } from '@digdir/designsystemet-react';
+import { StudioSelect } from '@studio/components';
 
 const wellKnownActionsIds: string[] = [
   'complete',
@@ -78,25 +78,26 @@ export const PolicyActions = (): React.ReactElement => {
     );
   });
 
+  const description =
+    actionOptions.length === 0
+      ? t('policy_editor.rule_card_actions_select_all_selected')
+      : t('policy_editor.rule_card_actions_select_add');
+
+  const error =
+    showAllErrors && policyError.actionsError ? t('policy_editor.rule_card_actions_error') : false;
+
   return (
     <>
-      <Label className={classes.label} size='small' htmlFor={`selectAction-${uniqueId}`}>
-        {t('policy_editor.rule_card_actions_title')}
-      </Label>
-      <Paragraph size='small' className={classes.inputParagraph}>
-        {actionOptions.length === 0
-          ? t('policy_editor.rule_card_actions_select_all_selected')
-          : t('policy_editor.rule_card_actions_select_add')}
-      </Paragraph>
       <div className={classes.dropdownWrapper}>
-        <StudioNativeSelect
+        <StudioSelect
+          label={t('policy_editor.rule_card_actions_title')}
+          description={description}
           onChange={(event) =>
             event.target.value !== null && handleClickActionInList(event.target.value)
           }
           disabled={actionOptions.length === 0}
-          error={showAllErrors && policyError.actionsError}
+          error={error}
           id={`selectAction-${uniqueId}`}
-          size='sm'
           defaultValue=''
         >
           <option value='' hidden></option>
@@ -105,12 +106,9 @@ export const PolicyActions = (): React.ReactElement => {
               {getTranslationByActionId(option.label)}
             </option>
           ))}
-        </StudioNativeSelect>
+        </StudioSelect>
       </div>
       <div className={classes.chipWrapper}>{displayActions}</div>
-      {showAllErrors && policyError.actionsError && (
-        <ErrorMessage size='small'>{t('policy_editor.rule_card_actions_error')}</ErrorMessage>
-      )}
     </>
   );
 };
