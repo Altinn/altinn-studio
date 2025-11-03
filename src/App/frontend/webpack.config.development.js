@@ -11,11 +11,7 @@ const { EsbuildPlugin } = require('esbuild-loader');
 const common = require('./webpack.common');
 
 const enableNotifier = !('WEBPACK_SILENT' in env) || env.WEBPACK_SILENT === 'false';
-const plugins = [
-  ...common.plugins,
-  new ReactRefreshWebpackPlugin(),
-  new CodegenWatchPlugin(),
-];
+const plugins = [...common.plugins, new ReactRefreshWebpackPlugin(), new CodegenWatchPlugin()];
 
 if (enableNotifier) {
   plugins.push(new ForkTsCheckerNotifierWebpackPlugin());
@@ -82,6 +78,10 @@ module.exports = {
         errors: enableErrorsOverlay,
         warnings: false,
       },
+    },
+    onListening: function (devServer) {
+      const port = devServer.server.address().port;
+      console.log(`\n🎉Webpack dev server is ready on port ${port}!\n`);
     },
     static: [
       {
