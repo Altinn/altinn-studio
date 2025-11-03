@@ -12,7 +12,7 @@ import {
 import { useComponentPropertyLabel } from '@altinn/ux-editor/hooks';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
-import classes from './TextMainConfig.module.css';
+import classes from './TextComponent.module.css';
 import { useExpressionTexts } from 'app-shared/hooks/useExpressionTexts';
 
 type TextProperties = keyof typeof properties;
@@ -71,7 +71,7 @@ export const TextComponent = ({
         primary={{
           label: t('general.save'),
           onClick: saveValue,
-          disabled: !isDisabled,
+          disabled: isDisabled,
         }}
         secondary={{
           label: t('general.cancel'),
