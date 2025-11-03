@@ -10,7 +10,7 @@ import { codeLists } from './test-data/codeLists';
 
 describe('CodeListsPage utils', () => {
   describe('createCodeListMap', () => {
-    it('Returns an map with the input code lists', () => {
+    it('Returns a map with the input code lists', () => {
       const result = createCodeListMap(codeLists);
       expect([...result.values()]).toEqual(codeLists);
     });
