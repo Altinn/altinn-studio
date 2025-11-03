@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { StudioTextfield, StudioNativeSelect } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components-legacy';
 import {
   StudioButton,
   StudioParagraph,
   StudioCard,
   StudioSpinner,
   StudioTabs,
+  StudioSelect,
 } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './CreateSubformMode.module.css';
@@ -125,13 +126,12 @@ export const CreateSubformMode = ({
           <StudioTabs.Tab value={Tabs.Create}>{t('general.create_new')}</StudioTabs.Tab>
         </StudioTabs.List>
         <StudioTabs.Panel value={Tabs.Choose} className={classes.tabContent}>
-          <StudioNativeSelect
+          <StudioSelect
             label={t('ux_editor.task_card.select_data_model')}
-            size='sm'
             onChange={(e) => handleDataModelName(e.target.value)}
           >
             {RenderDataModelOptions(dataModelIds)}
-          </StudioNativeSelect>
+          </StudioSelect>
         </StudioTabs.Panel>
         <StudioTabs.Panel value={Tabs.Create} className={classes.tabContent}>
           <StudioTextfield

@@ -20,8 +20,7 @@ import { FormField } from './FormField';
 import { AltinnConfirmDialog } from 'app-shared/components/AltinnConfirmDialog';
 import { useTranslation } from 'react-i18next';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
-import { StudioNativeSelect } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioSelect } from '@studio/components';
 
 export interface TextResourceProps {
   description?: string;
@@ -102,7 +101,7 @@ export const TextResource = ({
       {isSearchMode && (
         <span className={classes.searchContainer}>
           <span className={classes.select}>
-            <StudioNativeSelect
+            <StudioSelect
               id='text-resource-search-select'
               label={t('ux_editor.search_text_resources_label')}
               onChange={(event) =>
@@ -116,7 +115,7 @@ export const TextResource = ({
                   <TextResourceOption textResource={option} />
                 </option>
               ))}
-            </StudioNativeSelect>
+            </StudioSelect>
           </span>
           <StudioButton
             aria-label={t('ux_editor.search_text_resources_close')}

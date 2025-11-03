@@ -2,7 +2,7 @@ import React from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { FormField } from '../../FormField';
-import { StudioNativeSelect } from '@studio/components-legacy';
+import { StudioSelect } from '@studio/components';
 
 enum HeaderSize {
   S = 'h4',
@@ -40,13 +40,13 @@ export const EditHeaderSize = ({ handleComponentChange, component }: IGenericEdi
         }
         propertyPath={`${component.propertyPath}/properties/size`}
         renderField={({ fieldProps }) => (
-          <StudioNativeSelect id={component.id} {...fieldProps}>
+          <StudioSelect id={component.id} {...fieldProps}>
             {sizes.map((size) => (
               <option key={size.value} value={size.value}>
                 {size.label}
               </option>
             ))}
-          </StudioNativeSelect>
+          </StudioSelect>
         )}
       />
     </div>

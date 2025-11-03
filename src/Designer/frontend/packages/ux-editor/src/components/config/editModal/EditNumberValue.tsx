@@ -2,7 +2,6 @@ import React from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { FormField } from '../../FormField';
 import { setComponentProperty } from '@altinn/ux-editor/utils/component';
-import { StudioNativeSelect } from '@studio/components-legacy';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../../types/FormItem';
 import type { FilterKeysOfType } from 'app-shared/types/FilterKeysOfType';
@@ -13,7 +12,7 @@ import {
 } from '../../../hooks';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { useTranslation } from 'react-i18next';
-import { StudioDecimalInput } from '@studio/components';
+import { StudioDecimalInput, StudioSelect } from '@studio/components';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 type NumberKeys<ObjectType extends KeyValuePairs> = FilterKeysOfType<ObjectType, number>;
@@ -58,19 +57,18 @@ export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<Fo
       helpText={componentPropertyHelpText(String(propertyKey))}
       renderField={({ fieldProps }) =>
         enumValues ? (
-          <StudioNativeSelect
+          <StudioSelect
             label={fieldProps.label}
             value={fieldProps.value}
             onChange={(e) => fieldProps.onChange(Number(e.target.value))}
             id={`component-${String(propertyKey)}-select${component.id}`}
-            size='sm'
           >
             {enumValues.map((value: number) => (
               <option key={value} value={value}>
                 {value}
               </option>
             ))}
-          </StudioNativeSelect>
+          </StudioSelect>
         ) : (
           <StudioDecimalInput
             label={fieldProps.label}

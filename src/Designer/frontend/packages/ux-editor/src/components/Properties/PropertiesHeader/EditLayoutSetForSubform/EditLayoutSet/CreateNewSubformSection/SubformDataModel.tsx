@@ -1,6 +1,6 @@
 import React from 'react';
-import { StudioTextfield, StudioNativeSelect } from '@studio/components-legacy';
-import { StudioProperty } from '@studio/components';
+import { StudioTextfield } from '@studio/components-legacy';
+import { StudioProperty, StudioSelect } from '@studio/components';
 import { LinkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './SubformDataModel.module.css';
@@ -37,10 +37,9 @@ export const SubformDataModel = ({
 
   return (
     <>
-      <StudioNativeSelect
+      <StudioSelect
         label={t('ux_editor.component_properties.subform.data_model_binding_label')}
         onChange={(e) => setSelectedDataModel(e.target.value)}
-        size='small'
         disabled={displayDataModelInput}
         name='subformDataModel'
       >
@@ -56,7 +55,7 @@ export const SubformDataModel = ({
             {t('ux_editor.component_properties.subform.data_model_empty_messsage')}
           </option>
         )}
-      </StudioNativeSelect>
+      </StudioSelect>
       {displayDataModelInput ? (
         <StudioTextfield
           name='newSubformDataModel'

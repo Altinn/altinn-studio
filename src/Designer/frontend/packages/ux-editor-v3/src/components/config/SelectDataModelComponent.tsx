@@ -4,7 +4,7 @@ import { FormField } from '../FormField';
 import type { Option } from '@altinn/text-editor/types';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks/useAppContext';
-import { StudioNativeSelect } from '@studio/components-legacy';
+import { StudioSelect } from '@studio/components';
 
 export interface ISelectDataModelProps {
   inputId?: string;
@@ -64,14 +64,14 @@ export const SelectDataModelComponent = ({
       helpText={helpText}
       label={label}
       renderField={({ fieldProps }) => (
-        <StudioNativeSelect {...fieldProps} onChange={(e: any) => fieldProps.onChange(e)}>
+        <StudioSelect {...fieldProps} onChange={(e: any) => fieldProps.onChange(e)}>
           <option value=''></option>
           {dataModelElementNames.map((element) => (
             <option key={element.value} value={element.value}>
               {element.label}
             </option>
           ))}
-        </StudioNativeSelect>
+        </StudioSelect>
       )}
     />
   );

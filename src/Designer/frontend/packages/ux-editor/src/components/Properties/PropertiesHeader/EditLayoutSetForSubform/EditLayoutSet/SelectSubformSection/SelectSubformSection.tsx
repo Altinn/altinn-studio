@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
-import { StudioNativeSelect } from '@studio/components-legacy';
 import { CheckmarkIcon, PlusIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './SelectSubformSection.module.css';
-import { StudioButton, StudioProperty, StudioRecommendedNextAction } from '@studio/components';
+import {
+  StudioButton,
+  StudioProperty,
+  StudioRecommendedNextAction,
+  StudioSelect,
+} from '@studio/components';
 
 type SelectSubformSectionProps = {
   setShowCreateSubformCard: (showCreateSubformCard: boolean) => void;
@@ -39,10 +43,9 @@ export const SelectSubformSection = ({
       hideSkipButton={true}
       onSave={handleSelectSubformSubmit}
     >
-      <StudioNativeSelect
+      <StudioSelect
         name='subform'
         className={classes.layoutSetsOption}
-        size='small'
         onChange={(e) => setSelectedSubform(e.target.value)}
         label={t('ux_editor.component_properties.subform.choose_layout_set_label')}
         value={selectedSubform}
@@ -53,7 +56,7 @@ export const SelectSubformSection = ({
             {option}
           </option>
         ))}
-      </StudioNativeSelect>
+      </StudioSelect>
       <StudioProperty.Button
         className={classes.createSubformLinkButton}
         property={t('ux_editor.component_properties.subform.create_layout_set_button')}

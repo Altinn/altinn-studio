@@ -2,8 +2,7 @@ import type { ChangeEvent, ReactElement } from 'react';
 import React, { useCallback } from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
-import type { StudioNativeSelectProps } from '@studio/components-legacy';
-import { StudioNativeSelect } from '@studio/components-legacy';
+import { StudioSelect, type StudioSelectProps } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { updateAutocomplete } from './updateAutocomplete';
 import { autocompleteOptions } from './autocompleteOptions';
@@ -42,7 +41,7 @@ export function EditAutocomplete({
 
 type AutocompleteFieldProps = {
   onChange: (value: string) => void;
-} & Omit<StudioNativeSelectProps, 'onChange'>;
+} & Omit<StudioSelectProps, 'onChange'>;
 
 function AutocompleteField({ onChange, ...rest }: AutocompleteFieldProps): ReactElement {
   const handleChange = useCallback(
@@ -53,10 +52,10 @@ function AutocompleteField({ onChange, ...rest }: AutocompleteFieldProps): React
   );
 
   return (
-    <StudioNativeSelect onChange={handleChange} {...rest}>
+    <StudioSelect {...rest} onChange={handleChange}>
       <EmptyOption />
       <AutocompleteOptions />
-    </StudioNativeSelect>
+    </StudioSelect>
   );
 }
 

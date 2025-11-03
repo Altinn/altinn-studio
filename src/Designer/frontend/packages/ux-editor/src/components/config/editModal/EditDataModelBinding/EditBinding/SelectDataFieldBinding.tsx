@@ -5,7 +5,7 @@ import {
 } from '@altinn/ux-editor/utils/dataModelUtils';
 import { useTranslation } from 'react-i18next';
 import { FormField } from 'app-shared/components/FormField';
-import { StudioNativeSelect } from '@studio/components-legacy';
+import { StudioSelect } from '@studio/components';
 import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import classes from './SelectDataFieldBinding.module.css';
@@ -63,20 +63,19 @@ export const SelectDataFieldBinding = ({
       helpText={componentPropertyHelpText(`data_model_bindings.${bindingKey}`)}
       label={t('ux_editor.modal_properties_data_model_field_binding')}
       renderField={({ fieldProps }) => (
-        <StudioNativeSelect
+        <StudioSelect
           className={classes.selectedDatafieldBinding}
           {...fieldProps}
           id={`selectDataModelField-${bindingKey}`}
           onChange={(e) => fieldProps.onChange(e.target.value)}
           error={isBindingError && t('ux_editor.modal_properties_data_model_field_update')}
-          size='small'
         >
           {dataModelFieldsWithDefaultOption.map((element) => (
             <option key={element.value} value={element.value}>
               {element.label}
             </option>
           ))}
-        </StudioNativeSelect>
+        </StudioSelect>
       )}
     />
   );

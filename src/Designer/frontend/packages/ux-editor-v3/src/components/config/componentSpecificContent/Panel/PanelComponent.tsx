@@ -5,7 +5,7 @@ import { useText } from '../../../../hooks';
 import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 import { FormField } from '../../../FormField';
-import { StudioNativeSelect } from '@studio/components-legacy';
+import { StudioSelect } from '@studio/components';
 
 export const PanelComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const t = useText();
@@ -51,13 +51,13 @@ export const PanelComponent = ({ component, handleComponentChange }: IGenericEdi
         onChange={(value) => handleVariantClick(value as FormPanelVariant)}
         propertyPath={`${component.propertyPath}/properties/variant`}
         renderField={({ fieldProps }) => (
-          <StudioNativeSelect id={component.id} {...fieldProps}>
+          <StudioSelect id={component.id} {...fieldProps}>
             {Object.values(FormPanelVariant).map((value: FormPanelVariant) => (
               <option key={value} value={value}>
                 {t(`ux_editor.${value}`)}
               </option>
             ))}
-          </StudioNativeSelect>
+          </StudioSelect>
         )}
       />
     </>

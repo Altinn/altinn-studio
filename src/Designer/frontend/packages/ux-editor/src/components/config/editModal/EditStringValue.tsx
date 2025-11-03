@@ -5,7 +5,8 @@ import { FormField } from '../../FormField';
 import { Combobox } from '@digdir/designsystemet-react';
 import { useComponentPropertyLabel } from '../../../hooks/useComponentPropertyLabel';
 import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks/useComponentPropertyEnumValue';
-import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components-legacy';
+import { StudioSelect } from '@studio/components';
 import { useComponentPropertyHelpText } from '../../../hooks';
 
 const NO_VALUE_SELECTED_IN_NATIVE_SELECT: string = 'NO_VALUE';
@@ -69,7 +70,7 @@ export const EditStringValue = ({
               ))}
             </Combobox>
           ) : (
-            <StudioNativeSelect
+            <StudioSelect
               label={fieldProps.label}
               value={fieldProps?.value ?? NO_VALUE_SELECTED_IN_NATIVE_SELECT}
               onChange={(e) => {
@@ -79,13 +80,12 @@ export const EditStringValue = ({
                 );
               }}
               id={`component-${propertyKey}-select${component.id}`}
-              size='sm'
             >
               <NoValueSelectOption
                 disabled={fieldProps?.value !== NO_VALUE_SELECTED_IN_NATIVE_SELECT}
               />
               <SelectOptions enumOptionsList={enumValues} componentEnumValue={componentEnumValue} />
-            </StudioNativeSelect>
+            </StudioSelect>
           )
         ) : (
           <StudioTextfield

@@ -1,4 +1,5 @@
-import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components-legacy';
+import { StudioSelect } from '@studio/components';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { getComponentPropertyLabel } from '../../../utils/language';
@@ -44,10 +45,9 @@ export const EditStringValue = ({
       }}
       renderField={({ fieldProps }) =>
         enumValues ? (
-          <StudioNativeSelect
+          <StudioSelect
             {...fieldProps}
             onChange={(e: any) => fieldProps.onChange(e)}
-            multiple={multiple}
             id={`component-${propertyKey}-select${component.id}`}
           >
             {enumValues.map((value) => (
@@ -55,7 +55,7 @@ export const EditStringValue = ({
                 {value}
               </option>
             ))}
-          </StudioNativeSelect>
+          </StudioSelect>
         ) : (
           <StudioTextfield
             {...fieldProps}

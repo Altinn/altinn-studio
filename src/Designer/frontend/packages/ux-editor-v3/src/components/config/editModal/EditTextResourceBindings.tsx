@@ -5,7 +5,7 @@ import { EditTextResourceBinding } from './EditTextResourceBinding';
 import classes from './EditTextResourceBindings.module.css';
 import type { TranslationKey } from 'language/type';
 import { useTranslation } from 'react-i18next';
-import { StudioNativeSelect } from '@studio/components-legacy';
+import { StudioSelect } from '@studio/components';
 
 export type TextResourceBindingKey = 'description' | 'title' | 'help' | 'body';
 
@@ -59,7 +59,7 @@ export const EditTextResourceBindings = ({
       ))}
       {keysToAdd.length > 0 && (
         <div className={classes.addContainer}>
-          <StudioNativeSelect
+          <StudioSelect
             id={component.id}
             onChange={handleAddKey}
             label={t('ux_editor.text_resource_bindings.add_label')}
@@ -70,7 +70,7 @@ export const EditTextResourceBindings = ({
                 {t(`ux_editor.modal_properties_textResourceBindings_${key}`)}
               </option>
             ))}
-          </StudioNativeSelect>
+          </StudioSelect>
         </div>
       )}
     </div>

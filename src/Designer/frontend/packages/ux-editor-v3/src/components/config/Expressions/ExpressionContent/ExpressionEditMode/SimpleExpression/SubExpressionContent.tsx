@@ -15,8 +15,7 @@ import {
   addFunctionToSubExpression,
 } from '../../../../../../utils/expressionsUtils';
 import { useText } from '../../../../../../hooks';
-import { StudioNativeSelect } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioSelect } from '@studio/components';
 
 export interface SubExpressionContentProps {
   subExpression: SubExpression;
@@ -65,7 +64,7 @@ export const SubExpressionContent = (
           icon={<TrashIcon />}
         />
       </div>
-      <StudioNativeSelect // TODO: Consider only representing the function selection between the data source dropdowns - where it is actually used. Issue: #10858
+      <StudioSelect // TODO: Consider only representing the function selection between the data source dropdowns - where it is actually used. Issue: #10858
         label={t('right_menu.expressions_function')}
         onChange={(event: ChangeEvent<HTMLSelectElement>) => addFunction(event.target.value)}
         value={subExpression.function || 'default'}
@@ -76,10 +75,10 @@ export const SubExpressionContent = (
             {expressionFunctionTexts(t)[func]}
           </option>
         ))}
-      </StudioNativeSelect>
+      </StudioSelect>
       {allowToSpecifyExpression && (
         <div className={classes.subExpression}>
-          <StudioNativeSelect
+          <StudioSelect
             label={t('right_menu.expressions_data_source')}
             onChange={(event: ChangeEvent<HTMLSelectElement>) =>
               addDataSource(event.target.value, false)
@@ -92,7 +91,7 @@ export const SubExpressionContent = (
                 {expressionDataSourceTexts(t)[ds]}
               </option>
             ))}
-          </StudioNativeSelect>
+          </StudioSelect>
           {subExpression.dataSource && (
             <DataSourceValue
               subExpression={subExpression}
@@ -106,7 +105,7 @@ export const SubExpressionContent = (
           <p className={classes.expressionFunction}>
             {expressionFunctionTexts(t)[subExpression.function]}
           </p>
-          <StudioNativeSelect
+          <StudioSelect
             label={t('right_menu.expressions_comparable_data_source')}
             onChange={(event: ChangeEvent<HTMLSelectElement>) =>
               addDataSource(event.target.value, true)
@@ -119,7 +118,7 @@ export const SubExpressionContent = (
                 {expressionDataSourceTexts(t)[cds]}
               </option>
             ))}
-          </StudioNativeSelect>
+          </StudioSelect>
           {subExpression.comparableDataSource && (
             <DataSourceValue
               subExpression={subExpression}
