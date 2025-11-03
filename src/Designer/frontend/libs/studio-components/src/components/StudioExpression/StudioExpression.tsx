@@ -1,9 +1,9 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { BooleanExpression } from './types/Expression';
 import { isExpressionValid } from './validators/isExpressionValid';
 import { Tabs } from '@digdir/designsystemet-react';
 import { SimplifiedEditor } from './SimplifiedEditor';
-import { ManualEditor } from './ManualEditor';
+import { StudioManualExpression } from '../StudioManualExpression';
 import { isExpressionSimple } from './validators/isExpressionSimple';
 import {
   StudioExpressionContextProvider,
@@ -15,7 +15,6 @@ import type { ExpressionTexts } from './types/ExpressionTexts';
 import { StudioError } from '../StudioError';
 import { SimpleSubexpressionValueType } from './enums/SimpleSubexpressionValueType';
 import { DataLookupFuncName } from './enums/DataLookupFuncName';
-
 export type StudioExpressionProps = {
   expression: BooleanExpression;
   types?: SimpleSubexpressionValueType[];
@@ -24,12 +23,10 @@ export type StudioExpressionProps = {
   dataLookupOptions: Partial<DataLookupOptions>;
   showAddSubexpression?: boolean;
 };
-
 enum TabId {
   Simplified = 'simplified',
   Manual = 'manual',
 }
-
 export const StudioExpression = ({
   expression,
   types = Object.values(SimpleSubexpressionValueType),
@@ -46,11 +43,9 @@ export const StudioExpression = ({
     }),
     [partialDataLookupOptions],
   );
-
   if (!isExpressionValid(expression)) {
     return <StudioError>{texts.invalidExpression}</StudioError>;
   }
-
   return (
     <StudioExpressionContextProvider value={{ dataLookupOptions, texts, types }}>
       <ValidExpression
@@ -61,12 +56,10 @@ export const StudioExpression = ({
     </StudioExpressionContextProvider>
   );
 };
-
 type ValidExpressionProps = Pick<
   StudioExpressionProps,
   'expression' | 'onChange' | 'showAddSubexpression'
 >;
-
 const ValidExpression = ({
   expression,
   showAddSubexpression,
@@ -76,19 +69,18 @@ const ValidExpression = ({
   const isSimplified = useMemo(() => isExpressionSimple(expression), [expression]);
   const initialTab = isSimplified ? TabId.Simplified : TabId.Manual;
   const [selectedTab, setSelectedTab] = useState<TabId>(initialTab);
-  const isManualExpressionValidRef = useRef<boolean>(true);
+  const [isValid, setIsValid] = useState<boolean>(true);
 
   const handleChangeTab = (tab: TabId): void => {
-    if (!isManualExpressionValidRef.current) {
+    if (!isValid) {
       if (confirm(texts.changeToSimplifiedWarning)) {
-        isManualExpressionValidRef.current = true;
+        setIsValid(true);
         setSelectedTab(tab);
       }
     } else {
       setSelectedTab(tab);
     }
   };
-
   return (
     <Tabs className={classes.validExpression} onChange={handleChangeTab} value={selectedTab}>
       <Tabs.List>
@@ -103,10 +95,11 @@ const ValidExpression = ({
         />
       </Tabs.Panel>
       <Tabs.Panel value={TabId.Manual} className={classes.tabContent}>
-        <ManualEditor
+        <StudioManualExpression
           expression={expression}
-          onChange={onChange}
-          isManualExpressionValidRef={isManualExpressionValidRef}
+          onValidExpressionChange={onChange}
+          onValidityChange={setIsValid}
+          texts={texts}
         />
       </Tabs.Panel>
     </Tabs>

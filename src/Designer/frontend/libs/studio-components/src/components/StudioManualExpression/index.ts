@@ -1,2 +1,2 @@
-export { ManualEditor } from './ManualEditor';
-export type { ManualEditorProps } from './ManualEditor';
+export { StudioManualExpression } from './StudioManualExpression';
+export type { StudioManualExpressionProps } from './StudioManualExpression';
