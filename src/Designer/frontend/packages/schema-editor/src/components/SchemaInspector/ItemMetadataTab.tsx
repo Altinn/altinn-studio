@@ -1,5 +1,10 @@
-import { StudioErrorMessage, StudioTextfield } from '@studio/components-legacy';
-import { StudioSpinner, StudioFieldset, StudioSwitch } from '@studio/components';
+import { StudioTextfield } from '@studio/components-legacy';
+import {
+  StudioSpinner,
+  StudioFieldset,
+  StudioSwitch,
+  StudioValidationMessage,
+} from '@studio/components';
 import { useDataTypeQuery } from 'app-shared/hooks/queries/useDataTypeQuery';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -34,7 +39,9 @@ export const ItemMetadataTab = () => {
   }
 
   if (!dataType) {
-    return <StudioErrorMessage>{t('schema_editor.metadata.not_found')}</StudioErrorMessage>;
+    return (
+      <StudioValidationMessage>{t('schema_editor.metadata.not_found')}</StudioValidationMessage>
+    );
   }
 
   const hasMaxCountError =

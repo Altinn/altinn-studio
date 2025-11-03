@@ -1,3 +1,4 @@
+#nullable disable
 using System.Collections.Generic;
 using System.Text.Json;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
