@@ -1,7 +1,7 @@
 name: Build project and run Lighthouse CI
 on: [push]
 jobs:
-  lhci:
+  lighthouse:
     name: Lighthouse CI
     runs-on: ubuntu-latest
     steps:
@@ -36,15 +36,24 @@ jobs:
       - name: Build and start component-library test app
         working-directory: src/test/apps/component-library/App
         run: |
-          # Restore and build the app
           dotnet restore
           dotnet build --no-restore
 
           # Start the app in background
           nohup dotnet run --no-build > app.log 2>&1 &
+          APP_PID=$!
 
-          # Wait for the app to start
-          timeout 60 bash -c 'until curl -f http://localhost:5005/ > /dev/null 2>&1; do sleep 2; done'
+          # Then do the health check with more attempts
+          echo "Waiting for app to start listening on port 5005..."
+          if timeout 120 bash -c 'until grep -q "Now listening on: http://\[::]:5005" app.log 2>/dev/null; do sleep 1; done'; then
+            echo "✅ App is ready!"
+          else
+            echo "❌ App failed to start within 2 minutes"
+            echo "=== App log ==="
+            cat app.log
+            kill $APP_PID 2>/dev/null || true
+            exit 1
+          fi
 
       - name: Install frontend dependencies
         working-directory: src/App/frontend
