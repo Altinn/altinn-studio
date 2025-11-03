@@ -1,3 +1,4 @@
+#nullable disable
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;

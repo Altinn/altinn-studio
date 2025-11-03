@@ -22,6 +22,9 @@ export const mockPagesConfig: PagesConfig = {
       textResources,
     },
   },
+  codeLists: {
+    props: {},
+  },
   images: {
     props: {
       images: [{ title: 'image', imageSrc: 'www.external-image-url.com' }],

@@ -1,3 +1,4 @@
+#nullable disable
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Studio.DataModeling.Converter.Csharp;
 using Altinn.Studio.DataModeling.Converter.Interfaces;

@@ -65,7 +65,7 @@ public class DataProcessor : IDataWriteProcessor
             string dateAsJson = System.Text.Json.JsonSerializer.Serialize(date);
             string dateAsString = System.Text.Json.JsonSerializer.Deserialize<string>(dateAsJson);
 
-            LayoutEvaluatorState state = new LayoutEvaluatorState(mutator, null!, null!, null!, "nb", TimeZoneInfo.Local);
+            LayoutEvaluatorState state = new LayoutEvaluatorState(mutator, null!, null!, null!, null, "nb", TimeZoneInfo.Local);
             List<Expression> args = new List<Expression> { new (dateAsString), new ("dd.MM.yyyy HH:mm:ss") };
             Expression expr = new Expression(ExpressionFunction.formatDate, args);
             var result = await ExpressionEvaluator.EvaluateExpression(state, expr, null!);

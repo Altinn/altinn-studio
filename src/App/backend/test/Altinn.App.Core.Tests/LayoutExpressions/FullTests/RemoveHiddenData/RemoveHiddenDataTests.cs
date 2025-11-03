@@ -11,7 +11,8 @@ public class RemoveHiddenDataTests
     [Fact]
     public async Task TestRemoveHiddenData()
     {
-        var jsonData = """
+        using var jsonDoc = JsonDocument.Parse(
+            """
             {
                 "root": {
                     "fornavn": null,
@@ -107,8 +108,8 @@ public class RemoveHiddenDataTests
                     "vedlegg": []
                 }
             }
-            """;
-        using var jsonDoc = JsonDocument.Parse(jsonData);
+            """
+        );
         IInstanceDataAccessor dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(
             new Instance(),
             jsonDoc.RootElement

@@ -6,24 +6,23 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
 	"strings"
-	"sync/atomic"
 	"time"
 	"unicode/utf8"
 
 	"altinn.studio/pdf3/internal/assert"
-	ilog "altinn.studio/pdf3/internal/log"
+	"altinn.studio/pdf3/internal/log"
 	"altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
 )
 
 func main() {
-	ilog.Setup()
+	logger := log.NewComponent("proxy")
 
 	host := runtime.NewHost(
 		5*time.Second,
@@ -42,24 +41,17 @@ func main() {
 		Timeout: types.RequestTimeout(),
 	}
 
-	connectivity := NewConnectivityChecker(httpClient, workerHTTPAddr)
-
 	// Setup HTTP server
 	http.HandleFunc("/health/startup", func(w http.ResponseWriter, r *http.Request) {
 		if host.IsShuttingDown() {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			if _, err := w.Write([]byte("Shutting down")); err != nil {
-				log.Printf("Failed to write health check response: %v\n", err)
-			}
-		} else if connectivity.GetState() != WorkerConnectivityStateHealthy {
-			w.WriteHeader(http.StatusServiceUnavailable)
-			if _, err := w.Write([]byte("No connectivity")); err != nil {
-				log.Printf("Failed to write health check response: %v\n", err)
+				logger.Error("Failed to write health check response", "error", err)
 			}
 		} else {
 			w.WriteHeader(http.StatusOK)
 			if _, err := w.Write([]byte("OK")); err != nil {
-				log.Printf("Failed to write health check response: %v\n", err)
+				logger.Error("Failed to write health check response", "error", err)
 			}
 		}
 	})
@@ -67,32 +59,27 @@ func main() {
 		if host.IsShuttingDown() {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			if _, err := w.Write([]byte("Shutting down")); err != nil {
-				log.Printf("Failed to write health check response: %v\n", err)
-			}
-		} else if connectivity.GetState() != WorkerConnectivityStateHealthy {
-			w.WriteHeader(http.StatusServiceUnavailable)
-			if _, err := w.Write([]byte("No connectivity")); err != nil {
-				log.Printf("Failed to write health check response: %v\n", err)
+				logger.Error("Failed to write health check response", "error", err)
 			}
 		} else {
 			w.WriteHeader(http.StatusOK)
 			if _, err := w.Write([]byte("OK")); err != nil {
-				log.Printf("Failed to write health check response: %v\n", err)
+				logger.Error("Failed to write health check response", "error", err)
 			}
 		}
 	})
 	http.HandleFunc("/health/live", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		if _, err := w.Write([]byte("OK")); err != nil {
-			log.Printf("Failed to write health check response: %v\n", err)
+			logger.Error("Failed to write health check response", "error", err)
 		}
 	})
 
-	http.HandleFunc("/pdf", generatePdf(httpClient, workerHTTPAddr))
+	http.HandleFunc("/pdf", generatePdf(logger, httpClient, workerHTTPAddr))
 
 	// Only register test output endpoint in test internals mode
 	if runtime.IsTestInternalsMode {
-		http.HandleFunc("/testoutput/", forwardTestOutputRequest(httpClient))
+		http.HandleFunc("/testoutput/", forwardTestOutputRequest(logger, httpClient))
 	}
 
 	server := &http.Server{
@@ -103,32 +90,33 @@ func main() {
 	}
 
 	go func() {
-		log.Printf("Starting proxy HTTP server on %s, connecting to worker at %s\n", server.Addr, workerHTTPAddr)
+		logger.Info("Starting proxy HTTP server", "addr", server.Addr, "worker_addr", workerHTTPAddr)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("HTTP server crashed: %v", err)
+			logger.Error("HTTP server crashed", "error", err)
+			os.Exit(1)
 		}
 	}()
 
 	host.WaitForShutdownSignal()
 	host.WaitForReadinessDrain()
 
-	log.Println("Shutting down HTTP server..")
+	logger.Info("Shutting down HTTP server")
 	err := server.Shutdown(host.ServerContext())
 	if err != nil {
-		log.Println("Failed to wait for ongoing requests to finish, waiting for forced cancellation.")
+		logger.Warn("Failed to wait for ongoing requests to finish, waiting for forced cancellation")
 		host.WaitForHardShutdown()
 	} else {
-		log.Println("Gracefully shut down HTTP server")
+		logger.Info("Gracefully shut down HTTP server")
 	}
 
-	log.Println("Server shut down gracefully")
+	logger.Info("Server shut down gracefully")
 }
 
-func generatePdf(client *http.Client, workerAddr string) func(http.ResponseWriter, *http.Request) {
+func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		if r.Method != http.MethodPost {
-			writeProblemDetails(w, http.StatusMethodNotAllowed, ProblemDetails{
+			writeProblemDetails(logger, w, http.StatusMethodNotAllowed, ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.5",
 				Title:  "Method Not Allowed",
 				Status: http.StatusMethodNotAllowed,
@@ -138,7 +126,7 @@ func generatePdf(client *http.Client, workerAddr string) func(http.ResponseWrite
 		}
 		ct := strings.ToLower(r.Header.Get("Content-Type"))
 		if !strings.HasPrefix(ct, "application/json") {
-			writeProblemDetails(w, http.StatusUnsupportedMediaType, ProblemDetails{
+			writeProblemDetails(logger, w, http.StatusUnsupportedMediaType, ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.13",
 				Title:  "Unsupported Media Type",
 				Status: http.StatusUnsupportedMediaType,
@@ -148,7 +136,7 @@ func generatePdf(client *http.Client, workerAddr string) func(http.ResponseWrite
 		}
 		const maxBodySize = 1024 * 64 // 64K should be plenty for the JSON request
 		if r.ContentLength > maxBodySize {
-			writeProblemDetails(w, http.StatusRequestEntityTooLarge, ProblemDetails{
+			writeProblemDetails(logger, w, http.StatusRequestEntityTooLarge, ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.11",
 				Title:  "Request Entity Too Large",
 				Status: http.StatusRequestEntityTooLarge,
@@ -157,7 +145,7 @@ func generatePdf(client *http.Client, workerAddr string) func(http.ResponseWrite
 			return
 		}
 		if !runtime.IsTestInternalsMode && r.Header.Get(testing.TestInputHeaderName) != "" {
-			writeProblemDetails(w, http.StatusBadRequest, ProblemDetails{
+			writeProblemDetails(logger, w, http.StatusBadRequest, ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
 				Title:  "Bad Request",
 				Status: http.StatusBadRequest,
@@ -171,7 +159,7 @@ func generatePdf(client *http.Client, workerAddr string) func(http.ResponseWrite
 
 		var req types.PdfRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			writeProblemDetails(w, http.StatusBadRequest, ProblemDetails{
+			writeProblemDetails(logger, w, http.StatusBadRequest, ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
 				Title:  "Bad Request",
 				Status: http.StatusBadRequest,
@@ -182,7 +170,7 @@ func generatePdf(client *http.Client, workerAddr string) func(http.ResponseWrite
 
 		// Validate request
 		if err := req.Validate(); err != nil {
-			writeProblemDetails(w, http.StatusBadRequest, ProblemDetails{
+			writeProblemDetails(logger, w, http.StatusBadRequest, ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
 				Title:  "Bad Request",
 				Status: http.StatusBadRequest,
@@ -198,12 +186,13 @@ func generatePdf(client *http.Client, workerAddr string) func(http.ResponseWrite
 		//   means we might try to allocate a worker for 10 seconds before giving up.
 		//   If the cluster has available capacity a pod can boot in 2-10 seconds
 		const maxRetries = 40
-		log.Printf("[%s, %d/%d, %s] generating PDF..\n", req.URL, 0, maxRetries, time.Since(start))
+		reqLogger := logger.With("url", req.URL, "max_retries", maxRetries)
+		reqLogger.Info("Generating PDF", "attempt", 0, "elapsed", time.Since(start))
 
 		// Prepare request body
 		reqBody, err := json.Marshal(req)
 		if err != nil {
-			writeProblemDetails(w, http.StatusInternalServerError, ProblemDetails{
+			writeProblemDetails(reqLogger, w, http.StatusInternalServerError, ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.6.1",
 				Title:  "Internal Server Error",
 				Status: http.StatusInternalServerError,
@@ -219,6 +208,7 @@ func generatePdf(client *http.Client, workerAddr string) func(http.ResponseWrite
 			assert.AssertWithMessage(attempt <= maxRetries, "Overflowed retry attempts")
 
 			ret := callWorker(
+				reqLogger,
 				r.Context(),
 				client,
 				workerEndpoint,
@@ -245,6 +235,7 @@ func generatePdf(client *http.Client, workerAddr string) func(http.ResponseWrite
 }
 
 func callWorker(
+	logger *slog.Logger,
 	ctx context.Context,
 	client *http.Client,
 	workerEndpoint string,
@@ -259,7 +250,7 @@ func callWorker(
 	// Call worker via HTTP
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, workerEndpoint, bytes.NewReader(reqBody))
 	if err != nil {
-		writeProblemDetails(w, http.StatusInternalServerError, ProblemDetails{
+		writeProblemDetails(logger, w, http.StatusInternalServerError, ProblemDetails{
 			Type:   "https://tools.ietf.org/html/rfc7231#section-6.6.1",
 			Title:  "Internal Server Error",
 			Status: http.StatusInternalServerError,
@@ -278,18 +269,23 @@ func callWorker(
 	if resp != nil {
 		workerId = resp.Header.Get("X-Worker-Id")
 		workerIP = resp.Header.Get("X-Worker-IP")
+		logger = logger.With(
+			"worker_id", workerId,
+			"attempt", attempt,
+		)
+	} else {
+		logger = logger.With(
+			"attempt", attempt,
+		)
 	}
 	if err != nil {
 		if attempt < maxRetries && ctx.Err() == nil {
 			// This is an error condition that may hit if the worker
 			// crashes or similar. Worthwhile to retry here
-			log.Printf(
-				"[%s, %d/%d, %s] worker request failed, will retry: %v\n",
-				req.URL,
-				attempt,
-				maxRetries,
-				time.Since(start),
-				err,
+			logger.Warn(
+				"Worker request failed, will retry",
+				"elapsed", time.Since(start),
+				"error", err,
 			)
 			select {
 			case <-time.After(250 * time.Millisecond):
@@ -297,20 +293,16 @@ func callWorker(
 			}
 			return false
 		}
-		writeProblemDetails(w, http.StatusInternalServerError, ProblemDetails{
+		writeProblemDetails(logger, w, http.StatusInternalServerError, ProblemDetails{
 			Type:   "https://tools.ietf.org/html/rfc7231#section-6.6.1",
 			Title:  "Internal Server Error",
 			Status: http.StatusInternalServerError,
 			Detail: fmt.Sprintf("Failed to communicate with PDF worker: %v", err),
 		})
-		log.Printf(
-			"[%s, %d/%d, %s] error calling PDF worker: %s: %v\n",
-			req.URL,
-			attempt,
-			maxRetries,
-			time.Since(start),
-			workerId,
-			err,
+		logger.Error(
+			"Error calling PDF worker",
+			"elapsed", time.Since(start),
+			"error", err,
 		)
 		return true
 	}
@@ -324,7 +316,7 @@ func callWorker(
 			assert.AssertWithMessage(workerIP != "", "Worker IP should always be set in test internals mode")
 			w.Header().Set("X-Worker-IP", workerIP)
 			w.Header().Set("X-Worker-Id", workerId)
-			log.Printf("[TEST] Returning worker info: IP %s, ID %s\n", workerIP, workerId)
+			logger.Debug("Returning worker info", "worker_ip", workerIP)
 		}
 
 		// Success - return PDF data
@@ -332,28 +324,19 @@ func callWorker(
 
 		w.WriteHeader(http.StatusOK)
 		if _, err := io.Copy(w, resp.Body); err != nil {
-			log.Printf("[%s] Failed to write PDF response data: %s, %v\n", req.URL, workerId, err)
+			logger.Error("Failed to write PDF response data", "error", err)
 		}
-		log.Printf(
-			"[%s, %d/%d, %s] successfully generated PDF: %s\n",
-			req.URL,
-			attempt,
-			maxRetries,
-			time.Since(start),
-			workerId,
+		logger.Info("Successfully generated PDF",
+			"elapsed", time.Since(start),
 		)
 		return true
 	}
 
 	// Check if this is a retryable error (429 - queue full)
 	if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
-		log.Printf(
-			"[%s, %d/%d, %s] worker queue full for %s retrying...\n",
-			req.URL,
-			attempt,
-			maxRetries,
-			time.Since(start),
-			workerId,
+		logger.Warn(
+			"Worker queue full, retrying",
+			"elapsed", time.Since(start),
 		)
 		select {
 		case <-time.After(250 * time.Millisecond):
@@ -367,10 +350,10 @@ func callWorker(
 	errorDetailBytes, err := io.ReadAll(resp.Body)
 	errorDetail := ""
 	if err != nil {
-		log.Printf("Error reading PDF worker response body: %s, %v\n", workerId, err)
+		logger.Error("Error reading PDF worker response body", "error", err)
 	}
 	if !utf8.Valid(errorDetailBytes) {
-		log.Printf("Worker didn't return valid response body: %s\n", workerId)
+		logger.Warn("Worker didn't return valid response body")
 	} else {
 		errorDetail = string(errorDetailBytes)
 	}
@@ -393,98 +376,19 @@ func callWorker(
 		w.Header().Set("X-Worker-Id", workerId)
 	}
 
-	writeProblemDetails(w, statusCode, ProblemDetails{
+	writeProblemDetails(logger, w, statusCode, ProblemDetails{
 		Type:   problemType,
 		Title:  problemTitle,
 		Status: statusCode,
 		Detail: string(errorDetail),
 	})
-	log.Printf(
-		"[%s, %d/%d, %s] error during generation. Worker: %s, Code: %d, detail: %s\n",
-		req.URL,
-		attempt,
-		maxRetries,
-		time.Since(start),
-		workerId,
-		statusCode,
-		errorDetail,
+	logger.Error(
+		"Error during generation",
+		"elapsed", time.Since(start),
+		"status_code", statusCode,
+		"detail", errorDetail,
 	)
 	return true
-}
-
-type WorkerConnectivityState uint32
-
-const (
-	WorkerConnectivityStateNone WorkerConnectivityState = iota
-	WorkerConnectivityStateHealthy
-	WorkerConnectivityStateBroken
-)
-
-type workerConnectivity struct {
-	state atomic.Uint32
-}
-
-func NewConnectivityChecker(client *http.Client, workerAddr string) *workerConnectivity {
-	self := &workerConnectivity{
-		state: atomic.Uint32{},
-	}
-
-	go func() {
-		for {
-			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-			req, err := http.NewRequestWithContext(ctx, http.MethodGet, workerAddr+"/health/ready", nil)
-			if err != nil {
-				cancel()
-				log.Printf("Failed to create health check request: %v\n", err)
-				time.Sleep(5 * time.Second)
-				continue
-			}
-
-			resp, err := client.Do(req)
-			cancel()
-
-			gotValidResponse := err == nil && resp != nil && resp.StatusCode == http.StatusOK
-			if resp != nil {
-				_ = resp.Body.Close()
-			}
-
-			var sleepDuration time.Duration
-			if gotValidResponse {
-				previousState := WorkerConnectivityState(self.state.Swap(uint32(WorkerConnectivityStateHealthy)))
-				switch previousState {
-				case WorkerConnectivityStateNone:
-					log.Println("Initialized connectivity to worker")
-				case WorkerConnectivityStateHealthy:
-					break
-				case WorkerConnectivityStateBroken:
-					log.Println("Regained connectivity to worker")
-				}
-
-				sleepDuration = 10 * time.Second
-			} else {
-				previousState := WorkerConnectivityState(self.state.Swap(uint32(WorkerConnectivityStateBroken)))
-				switch previousState {
-				case WorkerConnectivityStateNone:
-					log.Printf("Could not initialize connection to worker. Error: %v\n", err)
-				case WorkerConnectivityStateHealthy:
-					log.Printf("Failed first try at regaining connection to worker. Error: %v\n", err)
-				case WorkerConnectivityStateBroken:
-					log.Printf("Failed retry to gain connection to worker. Error: %v\n", err)
-				}
-
-				sleepDuration = 5 * time.Second
-			}
-
-			time.Sleep(sleepDuration)
-		}
-	}()
-
-	return self
-}
-
-func (w *workerConnectivity) GetState() WorkerConnectivityState {
-	state := w.state.Load()
-	return WorkerConnectivityState(state)
 }
 
 type ProblemDetails struct {
@@ -496,17 +400,17 @@ type ProblemDetails struct {
 	Extensions map[string]any `json:"extensions,omitempty"`
 }
 
-func writeProblemDetails(w http.ResponseWriter, statusCode int, problem ProblemDetails) {
+func writeProblemDetails(logger *slog.Logger, w http.ResponseWriter, statusCode int, problem ProblemDetails) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	encoder := json.NewEncoder(w)
 	encoder.SetEscapeHTML(false) // Don't escape <, >, & for cleaner error messages
 	if err := encoder.Encode(problem); err != nil {
-		log.Printf("Warning: failed to encode error response: %v\n", err)
+		logger.Error("Failed to encode error response", "error", err)
 	}
 }
 
-func forwardTestOutputRequest(client *http.Client) func(http.ResponseWriter, *http.Request) {
+func forwardTestOutputRequest(logger *slog.Logger, client *http.Client) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		assert.AssertWithMessage(runtime.IsTestInternalsMode, "Test output endpoint should only be registered in test internals mode")
 
@@ -519,13 +423,13 @@ func forwardTestOutputRequest(client *http.Client) func(http.ResponseWriter, *ht
 
 		// Route directly to the specified worker pod IP
 		workerEndpoint := fmt.Sprintf("http://%s:5031%s", targetWorkerIP, r.URL.Path)
-		log.Printf("[TEST] Routing test output request for %s to worker IP %s\n", testID, targetWorkerIP)
+		logger.Debug("Routing test output request", "test_id", testID, "worker_ip", targetWorkerIP)
 
 		httpReq, err := http.NewRequestWithContext(r.Context(), r.Method, workerEndpoint, nil)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			if _, err := w.Write([]byte("Failed to create worker request")); err != nil {
-				log.Printf("Failed to write error response: %v\n", err)
+				logger.Error("Failed to write error response", "error", err)
 			}
 			return
 		}
@@ -534,7 +438,7 @@ func forwardTestOutputRequest(client *http.Client) func(http.ResponseWriter, *ht
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			if _, err := fmt.Fprintf(w, "Failed to communicate with worker: %v", err); err != nil {
-				log.Printf("Failed to write error response: %v\n", err)
+				logger.Error("Failed to write error response", "error", err)
 			}
 			return
 		}
@@ -550,7 +454,7 @@ func forwardTestOutputRequest(client *http.Client) func(http.ResponseWriter, *ht
 
 		// Copy response body
 		if _, err := io.Copy(w, resp.Body); err != nil {
-			log.Printf("Failed to write test output response: %v\n", err)
+			logger.Error("Failed to write test output response", "error", err)
 		}
 	}
 }

@@ -56,7 +56,7 @@ describe('AccessControlTab', () => {
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute(
       'href',
-      altinnDocsUrl({ relativeUrl: 'altinn-studio/reference/logic/instantiation' }),
+      altinnDocsUrl({ relativeUrl: 'altinn-studio/v8/reference/logic/instantiation' }),
     );
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
