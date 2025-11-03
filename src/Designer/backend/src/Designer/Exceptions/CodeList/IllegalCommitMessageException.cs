@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 
 namespace Altinn.Studio.Designer.Exceptions.CodeList;
