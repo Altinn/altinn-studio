@@ -1,6 +1,6 @@
 import { stringToExpression } from './stringToExpression';
-import { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
-import { DataLookupFuncName } from '../enums/DataLookupFuncName';
+import { GeneralRelationOperator } from '../../StudioExpression/enums/GeneralRelationOperator';
+import { DataLookupFuncName } from '../../StudioExpression/enums/DataLookupFuncName';
 
 describe('stringToExpression', () => {
   it('Converts a string to an expression', () => {

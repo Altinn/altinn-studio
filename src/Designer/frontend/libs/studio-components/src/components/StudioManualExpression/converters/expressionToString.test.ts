@@ -1,7 +1,7 @@
 import { expressionToString } from './expressionToString';
-import type { Expression } from '../types/Expression';
-import { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
-import { DataLookupFuncName } from '../enums/DataLookupFuncName';
+import type { Expression } from '../../StudioExpression/types/Expression';
+import { GeneralRelationOperator } from '../../StudioExpression/enums/GeneralRelationOperator';
+import { DataLookupFuncName } from '../../StudioExpression/enums/DataLookupFuncName';
 
 describe('expressionToString', () => {
   it('Converts an expression object to a string', () => {
