@@ -24,7 +24,7 @@ jobs:
       - name: Start LocalTest, component-library and install frontend deps
         run: |
           # Start LocalTest backend build in background
-          (cd src/Runtime/localtest && docker compose up -d --build > /dev/null 2>&1) & DOCKER_PID=$!
+          (cd src/Runtime/localtest && docker compose up -d --build) & DOCKER_PID=$!
 
           # Start frontend deps install in background
           (cd src/App/frontend && yarn install) & YARN_PID=$!
