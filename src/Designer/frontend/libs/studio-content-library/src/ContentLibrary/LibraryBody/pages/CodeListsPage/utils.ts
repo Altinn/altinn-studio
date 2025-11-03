@@ -3,8 +3,9 @@ import type { CodeListMap } from './types/CodeListMap';
 import type { CodeListData } from './types/CodeListData';
 import { v4 as uuid } from 'uuid';
 
-export function createCodeListMap(): CodeListMap {
-  return new Map<string, CodeListData>([]);
+export function createCodeListMap(codeLists: CodeListData[]): CodeListMap {
+  const entries: [string, CodeListData][] = codeLists.map((codeList) => [uuid(), codeList]);
+  return new Map<string, CodeListData>(entries);
 }
 
 export function updateCodeListDataInMap(

@@ -1,5 +1,4 @@
-import type { PagesConfig } from '../src/types/PagesProps';
-import type { CodeListData } from '../src';
+import type { PagesConfig, CodeListData } from '../src';
 import { textResources } from '../src/test-data/textResources';
 
 export const codeListData: CodeListData = {
@@ -23,7 +22,9 @@ export const mockPagesConfig: PagesConfig = {
     },
   },
   codeLists: {
-    props: {},
+    props: {
+      codeLists: [],
+    },
   },
   images: {
     props: {

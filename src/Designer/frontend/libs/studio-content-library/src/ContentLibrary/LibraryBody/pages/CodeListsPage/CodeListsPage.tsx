@@ -14,11 +14,13 @@ import type { CodeListData } from './types/CodeListData';
 import classes from './CodeListsPage.module.css';
 import { PlusIcon } from '@studio/icons';
 
-export type CodeListsPageProps = {};
+export type CodeListsPageProps = {
+  codeLists: CodeListData[];
+};
 
-export function CodeListsPage(_props: CodeListsPageProps): ReactElement {
+export function CodeListsPage({ codeLists }: CodeListsPageProps): ReactElement {
   const { t } = useTranslation();
-  const [codeListMap, setCodeListMap] = useState<CodeListMap>(createCodeListMap());
+  const [codeListMap, setCodeListMap] = useState<CodeListMap>(createCodeListMap(codeLists));
 
   const handleUpdateCodeListData = useCallback(
     (key: string, newData: CodeListData): void => {

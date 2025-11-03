@@ -1,4 +1,4 @@
-import { fruitsData } from '../test-data/codeListMap';
+import { fruitsData } from '../test-data/codeLists';
 import { CodeListDataEditor } from './CodeListDataEditor';
 import type { CodeListDataEditorProps } from './CodeListDataEditor';
 import { render, screen } from '@testing-library/react';

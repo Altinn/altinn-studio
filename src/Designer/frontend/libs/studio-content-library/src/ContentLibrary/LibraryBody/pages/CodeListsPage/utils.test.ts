@@ -6,12 +6,13 @@ import {
 } from './utils';
 import { codeListMap, coloursKey } from './test-data/codeListMap';
 import type { CodeListData } from './types/CodeListData';
+import { codeLists } from './test-data/codeLists';
 
 describe('CodeListsPage utils', () => {
   describe('createCodeListMap', () => {
-    it('Returns an empty map', () => {
-      const result = createCodeListMap();
-      expect(result.size).toBe(0);
+    it('Returns an map with the input code lists', () => {
+      const result = createCodeListMap(codeLists);
+      expect([...result.values()]).toEqual(codeLists);
     });
   });
 
