@@ -84,3 +84,7 @@ backend:
 frontend:
 - changed-files:
   - any-glob-to-any-file: 'src/Designer/frontend/**/*'
+
+skip-second-approval:
+- changed-files:
+  - all-globs-to-all-files: ['!src/Designer/**/*']
