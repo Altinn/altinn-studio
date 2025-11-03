@@ -18,7 +18,7 @@ export function BackendValidation() {
   const lastSaveValidations = FD.useLastSaveValidationIssues();
   const enabled = useShouldValidateInitial();
   const { data: initialValidations, isFetching: isFetchingInitial } = useBackendValidationQuery({ enabled });
-  const updateIncrementalValidations = useUpdateIncrementalValidations();
+  const updateIncrementalValidations = useUpdateIncrementalValidations(false);
 
   // Initial validation
   useEffect(() => {

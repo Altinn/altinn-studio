@@ -208,6 +208,7 @@ export interface FormDataMethods {
   lock: (request: LockRequest) => void;
   nextLock: () => void;
   unlock: (key: string, uuid: string, saveResult?: FDActionResult) => void;
+  setLastValidationIssues: (issues: BackendValidationIssueGroups | undefined) => void;
 }
 
 export type FormDataContext = FormDataState & FormDataMethods;
@@ -604,6 +605,10 @@ function makeActions(
          * @see FormDataEffects
          */
         state.lockedBy = undefined;
+      }),
+    setLastValidationIssues: (issues) =>
+      set((state) => {
+        state.validationIssues = issues;
       }),
   };
 }

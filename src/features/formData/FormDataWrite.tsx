@@ -1160,6 +1160,8 @@ export const FD = {
    */
   useLastSaveValidationIssues: () => useSelector((s) => s.validationIssues),
 
+  useSetLastValidationIssues: () => useStaticSelector((s) => s.setLastValidationIssues),
+
   useRemoveIndexFromList: () => useStaticSelector((s) => s.removeIndexFromList),
 
   useGetDataTypeForElementId: () => {

@@ -197,6 +197,7 @@ export const makeFormDataMethodProxies = (
     lock: makeProxy('lock', ref),
     nextLock: makeProxy('nextLock', ref),
     requestManualSave: makeProxy('requestManualSave', ref),
+    setLastValidationIssues: makeProxy('setLastValidationIssues', ref),
   };
 
   const proxies: FormDataWriteProxies = Object.fromEntries(
