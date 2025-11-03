@@ -1,0 +1,11 @@
+metadata:
+  name: altinn-studio-sa
+  namespace: runtime-gateway
+spec:
+  name: "altinn-studio-sa"
+  role: Editor # Role is the Grafana role for the service account (Viewer, Editor, Admin)
+  isDisabled: false
+  instanceName: "external-grafana"
+  tokens:
+    - name: "studio-gateway"
+      secretName: studio-gateway-grafana-token
