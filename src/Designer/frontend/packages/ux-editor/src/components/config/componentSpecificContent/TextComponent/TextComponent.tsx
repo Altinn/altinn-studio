@@ -3,7 +3,7 @@ import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { properties } from '../../../../testing/schemas/json/component/Text.schema.v1.json';
 import {
-  type Expression,
+  type StringExpression,
   StudioCard,
   StudioFormActions,
   StudioManualExpression,
@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import classes from './TextComponent.module.css';
 import { useExpressionTexts } from 'app-shared/hooks/useExpressionTexts';
+import { getDisplayValues } from './TextComponentUtils';
 
 type TextProperties = keyof typeof properties;
 const textSpecificProperty: TextProperties = 'value';
@@ -30,7 +31,7 @@ export const TextComponent = ({
   className,
 }: TextComponentProps): JSX.Element => {
   const componentPropertyLabel = useComponentPropertyLabel();
-  const [value, setValue] = useState<Expression>(JSON.stringify(component?.value) ?? '');
+  const [value, setValue] = useState<StringExpression>(JSON.stringify(component?.value) ?? '');
   const [isEditMode, setIsEditMode] = React.useState<boolean>(false);
   const [isValid, setIsValid] = useState(false);
   const texts = useExpressionTexts();
@@ -41,13 +42,13 @@ export const TextComponent = ({
     return (
       <StudioProperty.Button
         property={componentPropertyLabel(textSpecificProperty)}
-        value={component?.value}
+        value={getDisplayValues(component?.value)}
         onClick={() => setIsEditMode(true)}
       />
     );
   }
 
-  const handleValidChange = (newExpression: Expression) => {
+  const handleValidChange = (newExpression: StringExpression) => {
     setValue(newExpression);
   };
 

@@ -295,6 +295,9 @@
         },
         {
           "$ref": "#/definitions/string"
+        },
+        {
+          "$ref": "#/definitions/string"
         }
       ],
       "additionalItems": false
