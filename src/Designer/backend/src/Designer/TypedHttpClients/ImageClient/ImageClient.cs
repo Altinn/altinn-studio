@@ -1,3 +1,4 @@
+#nullable disable
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;

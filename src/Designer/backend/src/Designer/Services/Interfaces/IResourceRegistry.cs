@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable disable
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
@@ -19,7 +20,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<ActionResult> PublishServiceResource(ServiceResource serviceResource, string env, string policyPath = null);
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="id"></param>
         /// <param name="env"></param>
