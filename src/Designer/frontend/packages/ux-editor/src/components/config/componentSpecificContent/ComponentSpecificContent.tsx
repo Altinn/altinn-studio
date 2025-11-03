@@ -7,6 +7,7 @@ import { AttachmentListComponent } from './AttachmentList';
 import { Summary2Component } from './Summary2';
 import classes from './ComponentSpecificContent.module.css';
 import { ImageUploadComponent } from './ImageUpload';
+import { TextComponent } from './TextComponent';
 
 export function ComponentSpecificContent({
   component,
@@ -55,6 +56,16 @@ export function ComponentSpecificContent({
     case ComponentType.ImageUpload: {
       return (
         <ImageUploadComponent
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.containerWrapper}
+        />
+      );
+    }
+
+    case ComponentType.Text: {
+      return (
+        <TextComponent
           component={component}
           handleComponentChange={handleComponentChange}
           className={classes.containerWrapper}
