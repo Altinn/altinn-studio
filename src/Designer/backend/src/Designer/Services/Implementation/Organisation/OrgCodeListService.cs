@@ -97,10 +97,8 @@ public class OrgCodeListService : IOrgCodeListService
         Guard.AssertValidateOrganization(org);
 
         string repository = GetStaticContentRepo(org);
-#nullable disable
         List<FileSystemObject> files = await _gitea.GetCodeListDirectoryContentAsync(org, repository, reference, cancellationToken);
         string latestCommitSha = await _gitea.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
-#nullable enable
 
         List<CodeListWrapper> codeListWrappers = [];
         foreach (FileSystemObject file in files)
