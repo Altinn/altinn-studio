@@ -44,12 +44,21 @@
           }
         },
         "hiddenRow": [
-          "lessThan",
+          "or",
           [
-            "dataModel",
-            "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+            "lessThan",
+            [
+              "dataModel",
+              "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+            ],
+            ["dataModel", "hideRowValue"]
           ],
-          ["dataModel", "hideRowValue"]
+          [
+            // This expression is silly, but it would make a component in rowsAfter fail if suddenly placed in a repeating context (which used to be a bug)
+            "equals",
+            ["dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"],
+            null
+          ]
         ],
         "edit": {
           "mode": "onlyTable",
