@@ -4,6 +4,7 @@ resources:
 #  - alert-rules
 #  - contact-points
   - dashboards
+  - folders
 #  - notifcation-policies
 #  - notifcation-templates
 #  - service-accounts
