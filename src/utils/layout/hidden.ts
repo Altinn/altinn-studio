@@ -282,7 +282,11 @@ function findHiddenSources(
       const callback = () => parentDef.isChildHidden(tmpParentId, tmpChildId, layoutLookups);
       out.push({ type: 'callback', callback, id: parent.id });
     }
-    if (parentComponent.type === 'RepeatingGroup' && parentComponent.hiddenRow !== undefined) {
+    if (
+      parentComponent.type === 'RepeatingGroup' &&
+      parentComponent.hiddenRow !== undefined &&
+      parentComponent.children.includes(childId)
+    ) {
       out.push({ type: 'hiddenRow', expr: parentComponent.hiddenRow, id: parent.id });
     }
     if (parentComponent.hidden !== undefined) {
