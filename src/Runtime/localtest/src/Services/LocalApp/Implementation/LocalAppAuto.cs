@@ -106,7 +106,7 @@ namespace LocalTest.Services.LocalApp.Implementation
         public async Task<TextResource?> GetTextResource(string org, string app, string language)
         {
             var appId = $"{org}/{app}";
-            var content = await _cache.GetOrCreateAsync(TEXT_RESOURCE_CACE_KEY + org + app + language, async cacheEntry =>
+            var content = await _cache.GetOrCreateAsync(TEXT_RESOURCE_CACE_KEY + $"{org}:{app}:{language}", async cacheEntry =>
             {
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
                 using var client = CreateClientForApp(appId);

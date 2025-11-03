@@ -32,14 +32,47 @@ namespace LocalTest.Services.AppRegistry
         {
             hostname ??= "host.docker.internal";
             var registration = new AppRegistration(appId, port, hostname, DateTime.UtcNow, testData);
-            _registrations.AddOrUpdate(appId, registration, (_, _) => registration);
-            _logger.LogInformation("Registered app {AppId} on {Hostname}:{Port}", appId, hostname, port);
+            AppRegistration? previous = null;
+            var replacedExisting = false;
 
-            // Rebuild merged test data and invalidate cache
-            if (testData != null)
+            _registrations.AddOrUpdate(
+                appId,
+                _ => registration,
+                (_, existing) =>
+                {
+                    previous = existing;
+                    replacedExisting = true;
+                    return registration;
+                });
+
+            try
             {
-                RebuildMergedTestData();
-                InvalidateTestDataCache();
+                if (testData != null || previous?.TestData != null)
+                {
+                    RebuildMergedTestData();
+                    InvalidateTestDataCache();
+                }
+
+                _logger.LogInformation("Registered app {AppId} on {Hostname}:{Port}", appId, hostname, port);
+            }
+            catch
+            {
+                if (replacedExisting && previous != null)
+                {
+                    _registrations[appId] = previous;
+                }
+                else
+                {
+                    _registrations.TryRemove(appId, out _);
+                }
+
+                if (previous?.TestData != null)
+                {
+                    RebuildMergedTestData();
+                    InvalidateTestDataCache();
+                }
+
+                throw;
             }
         }
 
@@ -141,9 +174,11 @@ namespace LocalTest.Services.AppRegistry
 
         private void InvalidateTestDataCache()
         {
-            // Invalidate the TEST_DATA cache so TestDataService will rebuild with updated app registry data
             _cache.Remove("TEST_DATA");
-            _logger.LogDebug("Invalidated TEST_DATA cache due to app registry change");
+            foreach (var appId in _registrations.Keys)
+            {
+                _cache.Remove("TEST_DATA_" + appId);
+            }
         }
     }
 
