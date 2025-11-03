@@ -1,4 +1,4 @@
-name: Build project and run Lighthouse CI
+name: App Frontend - Lighthouse CI
 on: [push]
 jobs:
   lighthouse:
@@ -20,11 +20,14 @@ jobs:
       - name: Setup hosts for local.altinn.cloud
         run: |
           echo "127.0.0.1 local.altinn.cloud" | sudo tee -a /etc/hosts
+          # Verify host resolution
+          getent hosts local.altinn.cloud
 
       - name: Start LocalTest, component-library and install frontend deps
         run: |
           # Start LocalTest backend build in background
           (cd src/Runtime/localtest && docker compose up -d --build) & DOCKER_PID=$!
+          echo "Waiting for backend at http://local.altinn.cloud:80/"
 
           # Start frontend deps install in background
           (cd src/App/frontend && yarn install) & YARN_PID=$!
@@ -61,5 +64,11 @@ jobs:
 
       - name: Run Lighthouse CI with authentication
         working-directory: src/App/frontend
-        run: |
-          node lighthouse-auth.mjs || echo "LHCI failed!"
+        run: node lighthouse-auth.mjs
+      - name: Upload Lighthouse results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-results
+          path: src/App/frontend/.lighthouseci/
+          retention-days: 30

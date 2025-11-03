@@ -63,7 +63,6 @@ async function loginAndRunLighthouse() {
           url: ['http://local.altinn.cloud/ttd/component-library/#/'],
           startServerReadyTimeout: 20000,
           settings: {
-            chromeFlags: ['--ignore-certificate-errors', '--allow-running-insecure-content', '--disable-web-security'],
             extraHeaders: {
               Cookie: cookieHeader,
             },
@@ -81,7 +80,7 @@ async function loginAndRunLighthouse() {
     console.log('🚀 Running Lighthouse CI with authentication...');
 
     // Step 5: Run Lighthouse CI with the temporary config
-    execSync(`npx lhci autorun --config="${tempConfigPath}"`, { stdio: 'inherit' });
+    execSync(`npx @lhci/cli@latest autorun --config="${tempConfigPath}"`, { stdio: 'inherit' });
 
     console.log('✅ Lighthouse run completed!');
   } catch (error) {
