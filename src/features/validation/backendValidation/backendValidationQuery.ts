@@ -9,7 +9,6 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useCurrentDataModelDataElementId } from 'src/features/datamodel/useBindingSchema';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
-import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { fetchBackendValidationsForDataElement } from 'src/queries/queries';
@@ -21,9 +20,7 @@ import type { fetchBackendValidations } from 'src/queries/queries';
  */
 function useBackendValidationQueryKey() {
   const instanceId = useLaxInstanceId();
-  const currentProcessTaskId = useProcessQuery().data?.currentTask?.elementId;
-
-  return useMemo(() => ['validation', instanceId, currentProcessTaskId], [currentProcessTaskId, instanceId]);
+  return useMemo(() => ['validation', instanceId], [instanceId]);
 }
 
 export function useGetCachedInitialValidations() {
