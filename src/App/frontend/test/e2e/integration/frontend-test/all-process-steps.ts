@@ -1,6 +1,7 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { customReceiptPageAnother, customReceiptPageReceipt } from 'test/e2e/support/customReceipt';
+import { interceptInitialAppData } from 'test/e2e/support/utils';
 
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 import type { ILayoutCollection } from 'src/layout/layout';
@@ -131,40 +132,24 @@ function testReceiptSubStatus() {
 
 function interceptAndAddCustomReceipt() {
   // Intercept the HTML response from the backend and modify window.AltinnAppData
-  cy.intercept('GET', '**/ProcessEnd', (req) => {
-    req.continue((res) => {
-      if (res.body && typeof res.body === 'string') {
-        // Find and modify the window.AltinnAppData assignment in the HTML
-        // Look for the pattern: window.AltinnAppData = {...}; followed by window.org
-        const startMarker = 'window.AltinnAppData = ';
-        const endMarker = ';\n      window.org';
-
-        const startIndex = res.body.indexOf(startMarker);
-        const endIndex = res.body.indexOf(endMarker, startIndex);
-
-        if (startIndex !== -1 && endIndex !== -1) {
-          try {
-            const jsonStart = startIndex + startMarker.length;
-            const jsonData = res.body.substring(jsonStart, endIndex);
-            const data = JSON.parse(jsonData);
-
-            if (data.layoutSets?.sets) {
-              data.layoutSets.sets.push({
-                id: 'custom-receipt',
-                dataType: 'likert',
-                tasks: ['CustomReceipt'],
-              });
-            }
-
-            const modifiedJson = JSON.stringify(data);
-            res.body = res.body.substring(0, jsonStart) + modifiedJson + res.body.substring(endIndex);
-          } catch (e) {
-            console.error('Failed to modify AltinnAppData:', e);
-          }
-        }
-      }
-    });
-  }).as('ProcessEndHTML');
+  interceptInitialAppData(
+    '**/ProcessEnd',
+    (data) => ({
+      ...data,
+      layoutSets: {
+        ...data.layoutSets,
+        sets: [
+          ...(data.layoutSets?.sets ?? []),
+          {
+            id: 'custom-receipt',
+            dataType: 'likert',
+            tasks: ['CustomReceipt'],
+          },
+        ],
+      },
+    }),
+    'ProcessEndHTML',
+  );
 
   // Layout settings and layouts are still fetched by the frontend, so intercept those
   cy.intercept('**/layoutsettings/custom-receipt**', { pages: { order: ['receipt', 'another'] } }).as('LayoutSettings');

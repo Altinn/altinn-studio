@@ -17,9 +17,9 @@ export type AltinnAppData = {
   textResources: ITextResourceResult | null;
   frontendSettings: IApplicationSettings;
 };
-
 declare global {
   interface Window {
     AltinnAppData: AltinnAppData;
+    CreateInstance?: boolean;
   }
 }
