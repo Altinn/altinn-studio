@@ -51,6 +51,7 @@ describe('Subform test', () => {
       },
     });
 
+    cy.findAllByRole('button', { name: /endre/i }).should('have.length', 2);
     cy.findAllByRole('button', { name: /endre/i }).first().clickAndGone();
     cy.findByRole('textbox', { name: /registreringsnummer/i }).should('have.value', 'ABC123');
 
