@@ -15,6 +15,7 @@ import type { ExpressionTexts } from './types/ExpressionTexts';
 import { StudioError } from '../StudioError';
 import { SimpleSubexpressionValueType } from './enums/SimpleSubexpressionValueType';
 import { DataLookupFuncName } from './enums/DataLookupFuncName';
+
 export type StudioExpressionProps = {
   expression: BooleanExpression;
   types?: SimpleSubexpressionValueType[];
@@ -23,10 +24,12 @@ export type StudioExpressionProps = {
   dataLookupOptions: Partial<DataLookupOptions>;
   showAddSubexpression?: boolean;
 };
+
 enum TabId {
   Simplified = 'simplified',
   Manual = 'manual',
 }
+
 export const StudioExpression = ({
   expression,
   types = Object.values(SimpleSubexpressionValueType),
@@ -43,9 +46,11 @@ export const StudioExpression = ({
     }),
     [partialDataLookupOptions],
   );
+
   if (!isExpressionValid(expression)) {
     return <StudioError>{texts.invalidExpression}</StudioError>;
   }
+
   return (
     <StudioExpressionContextProvider value={{ dataLookupOptions, texts, types }}>
       <ValidExpression
@@ -56,10 +61,12 @@ export const StudioExpression = ({
     </StudioExpressionContextProvider>
   );
 };
+
 type ValidExpressionProps = Pick<
   StudioExpressionProps,
   'expression' | 'onChange' | 'showAddSubexpression'
 >;
+
 const ValidExpression = ({
   expression,
   showAddSubexpression,
@@ -81,6 +88,7 @@ const ValidExpression = ({
       setSelectedTab(tab);
     }
   };
+
   return (
     <Tabs className={classes.validExpression} onChange={handleChangeTab} value={selectedTab}>
       <Tabs.List>

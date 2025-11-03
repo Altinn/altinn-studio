@@ -6,7 +6,7 @@ import { StudioManualExpression } from './StudioManualExpression';
 type Story = StoryFn<typeof StudioManualExpression>;
 
 const meta: Meta = {
-  title: 'Components/StudioExpression',
+  title: 'Components/StudioManualExpression',
   component: StudioManualExpression,
 };
 export const Preview: Story = (args): React.ReactElement => <StudioManualExpression {...args} />;
