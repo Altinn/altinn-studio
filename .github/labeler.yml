@@ -24,6 +24,10 @@ area/authorization:
 - changed-files:
   - any-glob-to-any-file: ['src/Designer/frontend/packages/policy-editor/**/*']
 
+area/content-library:
+- changed-files:
+  - any-glob-to-any-file: ['src/Designer/frontend/libs/content-library/**/*']
+
 area/dashboard:
 - changed-files:
   - any-glob-to-any-file: ['src/Designer/frontend/dashboard/**/*']
