@@ -63,5 +63,4 @@ jobs:
       - name: Run Lighthouse CI with authentication
         working-directory: src/App/frontend
         run: |
-          yarn install -g @lhci/cli@0.12.x
           node lighthouse-auth.mjs || echo "LHCI failed!"
