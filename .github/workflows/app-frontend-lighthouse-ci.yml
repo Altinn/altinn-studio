@@ -25,7 +25,7 @@ jobs:
         working-directory: src/Runtime/localtest
         run: |
           # Build and start localtest in background
-          docker compose up -d --build
+          docker compose up -d --build > /dev/null 2>&1
 
           # Wait for localtest to be ready
           timeout 120 bash -c 'until curl -f http://local.altinn.cloud/ > /dev/null 2>&1; do sleep 2; done'
