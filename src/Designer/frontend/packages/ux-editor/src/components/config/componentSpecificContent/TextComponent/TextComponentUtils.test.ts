@@ -1,5 +1,5 @@
 import { getDisplayValues } from './TextComponentUtils';
-import { DataLookupFuncName } from '@studio/components';
+import { DataLookupFuncName, StringExpression } from '@studio/components';
 
 describe('getDisplayValues', () => {
   it('should return an empty string when value is undefined', () => {
@@ -13,11 +13,7 @@ describe('getDisplayValues', () => {
   });
 
   it('should return a comma-separated string when value is an array of strings', () => {
-    const value: [DataLookupFuncName.DataModel, string, string?] = [
-      DataLookupFuncName.DataModel,
-      'hello',
-      'world',
-    ];
+    const value: StringExpression = [DataLookupFuncName.DataModel, 'hello', 'world'];
     expect(getDisplayValues(value)).toBe('dataModel, hello, world');
   });
 });
