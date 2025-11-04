@@ -16,6 +16,7 @@ import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSour
 import type { EvalExprOptions } from 'src/features/expressions';
 import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
+import type { CompExternal } from 'src/layout/layout';
 import type { IHiddenLayoutsExternal } from 'src/types';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
@@ -285,7 +286,7 @@ function findHiddenSources(
     if (
       parentComponent.type === 'RepeatingGroup' &&
       parentComponent.hiddenRow !== undefined &&
-      parentComponent.children.includes(childId)
+      isInRepGroupChildren(parentComponent, childId)
     ) {
       out.push({ type: 'hiddenRow', expr: parentComponent.hiddenRow, id: parent.id });
     }
@@ -303,6 +304,24 @@ function findHiddenSources(
   }
 
   return out;
+}
+
+/**
+ * Checks if a baseComponentId is in the repeating group children (returns false if the baseComponentId is included
+ * via rowsBefore/rowsAfter).
+ */
+function isInRepGroupChildren(parent: CompExternal<'RepeatingGroup'>, baseComponentId: string) {
+  const multiPage = parent.edit?.multiPage ?? false;
+  if (!multiPage) {
+    return parent.children.includes(baseComponentId);
+  }
+  for (const childId of parent.children) {
+    const [, id] = childId.split(':', 2);
+    if (id === baseComponentId) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function useIsForcedVisibleByDevTools() {
