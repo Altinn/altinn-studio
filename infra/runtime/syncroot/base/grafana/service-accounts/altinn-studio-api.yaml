@@ -3,7 +3,7 @@ metadata:
   namespace: runtime-gateway
 spec:
   name: "altinn-studio-sa"
-  role: Editor # Role is the Grafana role for the service account (Viewer, Editor, Admin)
+  role: Editor
   isDisabled: false
   instanceName: "external-grafana"
   tokens:
