@@ -6,5 +6,5 @@ metadata:
 spec:
   instanceSelector:
     matchLabels:
-      dashboards: "external-grafana"
+      dashboards: 'external-grafana'
   title: Altinn Studio

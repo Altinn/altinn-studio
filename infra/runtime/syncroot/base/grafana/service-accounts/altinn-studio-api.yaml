@@ -2,10 +2,10 @@ metadata:
   name: altinn-studio-sa
   namespace: runtime-gateway
 spec:
-  name: "altinn-studio-sa"
+  name: 'altinn-studio-sa'
   role: Editor
   isDisabled: false
-  instanceName: "external-grafana"
+  instanceName: 'external-grafana'
   tokens:
-    - name: "studio-gateway"
+    - name: 'studio-gateway'
       secretName: studio-gateway-grafana-token

@@ -8,4 +8,4 @@ spec:
   instanceSelector:
     matchLabels:
       dashboards: 'external-grafana'
-  url: 'https://raw.githubusercontent.com/Altinn/altinn-studio/feat/admin-alerts-grafana-manifests/src/Runtime/grafana/dashboards/altinn-studio-overview.json'
+  url: 'https://raw.githubusercontent.com/Altinn/altinn-studio/main/src/Runtime/grafana/dashboards/altinn-studio-overview.json'
