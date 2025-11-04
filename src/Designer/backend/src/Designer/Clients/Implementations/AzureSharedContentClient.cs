@@ -72,7 +72,7 @@ public class AzureSharedContentClient : ISharedContentClient
         Task organisationIndexTask = PrepareOrganisationIndexFile(orgName, cancellationToken);
         Task resourceTypeTask = PrepareResourceTypeIndexFile(resourceTypeIndexPrefix, CodeListsSegment, cancellationToken);
         Task resourceTask = PrepareResourceIndexFile(resourceIndexPrefix, codeListId, cancellationToken);
-        Task versionTask =  PrepareVersionIndexFile(versionIndexPrefix, cancellationToken);
+        Task versionTask = PrepareVersionIndexFile(versionIndexPrefix, cancellationToken);
         await Task.WhenAll(organisationIndexTask, resourceTypeTask, resourceTask, versionTask);
 
         string codeListFolderPath = CombineWithDelimiter(orgName, CodeListsSegment, codeListId);
