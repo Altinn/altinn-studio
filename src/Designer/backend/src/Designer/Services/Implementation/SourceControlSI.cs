@@ -105,7 +105,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     Tree head = repo.Head.Tip.Tree;
                     MergeResult mergeResult = Commands.Pull(
                         repo,
-                        new LibGit2Sharp.Signature("my name", "my email", DateTimeOffset.Now), // I dont want to provide these
+                        GetDeveloperSignature(),
                         pullOptions);
 
                     TreeChanges treeChanges = repo.Diff.Compare<TreeChanges>(head, mergeResult.Commit?.Tree);
