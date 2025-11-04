@@ -69,10 +69,11 @@ public class AzureSharedContentClient : ISharedContentClient
         string resourceIndexPrefix = CombineWithDelimiter(orgName, CodeListsSegment);
         string versionIndexPrefix = CombineWithDelimiter(orgName, CodeListsSegment, codeListId);
 
-        await HandleOrganizationIndex(orgName, cancellationToken);
-        await HandleResourceTypeIndex(resourceTypeIndexPrefix, CodeListsSegment, cancellationToken);
-        await HandleResourceIndex(resourceIndexPrefix, codeListId, cancellationToken);
-        await HandleVersionIndex(versionIndexPrefix, cancellationToken);
+        Task organisationIndexTask = PrepareOrganisationIndexFile(orgName, cancellationToken);
+        Task resourceTypeTask = PrepareResourceTypeIndexFile(resourceTypeIndexPrefix, CodeListsSegment, cancellationToken);
+        Task resourceTask = PrepareResourceIndexFile(resourceIndexPrefix, codeListId, cancellationToken);
+        Task versionTask =  PrepareVersionIndexFile(versionIndexPrefix, cancellationToken);
+        await Task.WhenAll(organisationIndexTask, resourceTypeTask, resourceTask, versionTask);
 
         string codeListFolderPath = CombineWithDelimiter(orgName, CodeListsSegment, codeListId);
         CreateCodeListFiles(codeList, codeListFolderPath, versionIndexPrefix);
@@ -80,7 +81,7 @@ public class AzureSharedContentClient : ISharedContentClient
         await UploadBlobs(containerClient, cancellationToken);
     }
 
-    internal async Task HandleOrganizationIndex(string orgName, CancellationToken cancellationToken = default)
+    internal async Task PrepareOrganisationIndexFile(string orgName, CancellationToken cancellationToken = default)
     {
         string url = CombineWithDelimiter(_sharedContentBaseUri, IndexFileName);
         string path = IndexFileName; // No prefix since it's on root.
@@ -89,7 +90,7 @@ public class AzureSharedContentClient : ISharedContentClient
         await HandleResponse(response, orgName, path, cancellationToken);
     }
 
-    internal async Task HandleResourceTypeIndex(string resourceTypeIndexPrefix, string resourceType, CancellationToken cancellationToken = default)
+    internal async Task PrepareResourceTypeIndexFile(string resourceTypeIndexPrefix, string resourceType, CancellationToken cancellationToken = default)
     {
         string path = CombineWithDelimiter(resourceTypeIndexPrefix, IndexFileName);
         string url = CombineWithDelimiter(_sharedContentBaseUri, path);
@@ -99,7 +100,7 @@ public class AzureSharedContentClient : ISharedContentClient
         await HandleResponse(response, content, path, cancellationToken);
     }
 
-    internal async Task HandleResourceIndex(string resourceIndexPrefix, string resourceId, CancellationToken cancellationToken = default)
+    internal async Task PrepareResourceIndexFile(string resourceIndexPrefix, string resourceId, CancellationToken cancellationToken = default)
     {
         string path = CombineWithDelimiter(resourceIndexPrefix, IndexFileName);
         string url = CombineWithDelimiter(_sharedContentBaseUri, path);
@@ -109,7 +110,7 @@ public class AzureSharedContentClient : ISharedContentClient
         await HandleResponse(response, content, path, cancellationToken);
     }
 
-    internal async Task HandleVersionIndex(string versionIndexPrefix, CancellationToken cancellationToken = default)
+    internal async Task PrepareVersionIndexFile(string versionIndexPrefix, CancellationToken cancellationToken = default)
     {
         string path = CombineWithDelimiter(versionIndexPrefix, IndexFileName);
         string uri = CombineWithDelimiter(_sharedContentBaseUri, path);
@@ -136,7 +137,7 @@ public class AzureSharedContentClient : ISharedContentClient
         switch (response.StatusCode)
         {
             case HttpStatusCode.OK:
-                await HandleIndexSuccess(response, content, path, cancellationToken);
+                await UpdateIndexFileFromResponse(response, content, path, cancellationToken);
                 break;
             case HttpStatusCode.NotFound:
                 AddIndexFile(path, [content]);
@@ -147,7 +148,7 @@ public class AzureSharedContentClient : ISharedContentClient
         }
     }
 
-    private async Task HandleIndexSuccess(
+    private async Task UpdateIndexFileFromResponse(
         HttpResponseMessage response,
         string content,
         string indexFilePath,

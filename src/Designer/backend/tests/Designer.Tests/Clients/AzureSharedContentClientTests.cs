@@ -13,9 +13,7 @@ using Altinn.Studio.Designer.Clients.Implementations;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.SharedContent;
-using Azure;
 using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
@@ -213,7 +211,7 @@ public class AzureSharedContentClientTests
     }
 
     [Fact]
-    public async Task HandleVersionIndex()
+    public async Task PrepareVersionIndexFile()
     {
         // Arrange
         string prefix = "ttd/code_lists/countries";
@@ -237,7 +235,7 @@ public class AzureSharedContentClientTests
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
         // Act
-        await client.HandleVersionIndex(prefix);
+        await client.PrepareVersionIndexFile(prefix);
 
         // Assert
         Assert.Single(client.FileNamesAndContent);
@@ -246,7 +244,7 @@ public class AzureSharedContentClientTests
     }
 
     [Fact]
-    public async Task HandleVersionIndex_NoExistingVersions()
+    public async Task PrepareVersionIndexFile_NoExistingVersions()
     {
         // Arrange
         string prefix = "ttd/code_lists/countries";
@@ -268,7 +266,7 @@ public class AzureSharedContentClientTests
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
         // Act
-        await client.HandleVersionIndex(prefix);
+        await client.PrepareVersionIndexFile(prefix);
 
         // Assert
         Assert.Single(client.FileNamesAndContent);
@@ -277,7 +275,7 @@ public class AzureSharedContentClientTests
     }
 
     [Fact]
-    public async Task HandleVersionIndex_NotFoundResponse()
+    public async Task PrepareVersionIndexFile_NotFoundResponse()
     {
         // Arrange
         string prefix = "ttd/code_lists/countries";
@@ -298,7 +296,7 @@ public class AzureSharedContentClientTests
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
         // Act
-        await client.HandleVersionIndex(prefix);
+        await client.PrepareVersionIndexFile(prefix);
 
         // Assert
         Assert.Single(client.FileNamesAndContent);
@@ -307,7 +305,7 @@ public class AzureSharedContentClientTests
     }
 
     [Fact]
-    public async Task HandleVersionIndex_OtherResponse()
+    public async Task PrepareVersionIndexFile_OtherResponse()
     {
         // Arrange
         string prefix = "ttd/code_lists/countries";
@@ -329,13 +327,13 @@ public class AzureSharedContentClientTests
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
         // Act & Assert
-        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await client.HandleVersionIndex(prefix));
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await client.PrepareVersionIndexFile(prefix));
         Assert.Equal($"Request failed, class: {nameof(AzureSharedContentClient)}", exception.Message);
         mockHandler.VerifyAll();
     }
 
     [Fact]
-    public async Task HandleResourceIndex()
+    public async Task PrepareResourceIndexFile()
     {
         // Arrange
         string prefix = "ttd/code_lists";
@@ -362,7 +360,7 @@ public class AzureSharedContentClientTests
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
         // Act
-        await client.HandleResourceIndex(prefix, resourceId);
+        await client.PrepareResourceIndexFile(prefix, resourceId);
 
         // Assert
         string path = $"{prefix}/_index.json";
@@ -372,7 +370,7 @@ public class AzureSharedContentClientTests
     }
 
     [Fact]
-    public async Task HandleResourceIndex_NotFoundResponse()
+    public async Task PrepareResourceIndexFile_NotFoundResponse()
     {
         // Arrange
         string prefix = "ttd/code_lists";
@@ -396,7 +394,7 @@ public class AzureSharedContentClientTests
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
         // Act
-        await client.HandleResourceIndex(prefix, resourceId);
+        await client.PrepareResourceIndexFile(prefix, resourceId);
 
         // Assert
         string path = $"{prefix}/_index.json";
@@ -406,7 +404,7 @@ public class AzureSharedContentClientTests
     }
 
     [Fact]
-    public async Task HandleResourceIndex_OtherResponse()
+    public async Task PrepareResourceIndexFile_OtherResponse()
     {
         // Arrange
         string prefix = "ttd/code_lists";
@@ -428,13 +426,13 @@ public class AzureSharedContentClientTests
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
         // Act & Assert
-        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await client.HandleResourceIndex(prefix, resourceId));
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await client.PrepareResourceIndexFile(prefix, resourceId));
         Assert.Equal($"Request failed, class: {nameof(AzureSharedContentClient)}", exception.Message);
         mockHandler.VerifyAll();
     }
 
     [Fact]
-    public async Task HandleResourceTypeIndex()
+    public async Task PrepareResourceTypeIndexFile()
     {
         // Arrange
         string prefix = "ttd";
@@ -461,7 +459,7 @@ public class AzureSharedContentClientTests
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
         // Act
-        await client.HandleResourceTypeIndex(prefix, resourceType);
+        await client.PrepareResourceTypeIndexFile(prefix, resourceType);
 
         // Assert
         string path = $"{prefix}/_index.json";
@@ -471,7 +469,7 @@ public class AzureSharedContentClientTests
     }
 
     [Fact]
-    public async Task HandleResourceTypeIndex_NotFoundResponse()
+    public async Task PrepareResourceTypeIndexFile_NotFoundResponse()
     {
         // Arrange
         string prefix = "ttd/code_lists";
@@ -495,7 +493,7 @@ public class AzureSharedContentClientTests
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
         // Act
-        await client.HandleResourceTypeIndex(prefix, resourceType);
+        await client.PrepareResourceTypeIndexFile(prefix, resourceType);
 
         // Assert
         string path = $"{prefix}/_index.json";
@@ -505,7 +503,7 @@ public class AzureSharedContentClientTests
     }
 
     [Fact]
-    public async Task HandleResourceTypeIndex_OtherResponse()
+    public async Task PrepareResourceTypeIndexFile_OtherResponse()
     {
         // Arrange
         string prefix = "ttd";
@@ -527,13 +525,13 @@ public class AzureSharedContentClientTests
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
         // Act & Assert
-        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await client.HandleResourceTypeIndex(prefix, resourceType));
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await client.PrepareResourceTypeIndexFile(prefix, resourceType));
         Assert.Equal($"Request failed, class: {nameof(AzureSharedContentClient)}", exception.Message);
         mockHandler.VerifyAll();
     }
 
     [Fact]
-    public async Task HandleOrganizationIndex()
+    public async Task PrepareOrganisationIndexFile()
     {
         // Arrange
         string organization = "new_organization";
@@ -559,7 +557,7 @@ public class AzureSharedContentClientTests
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
         // Act
-        await client.HandleOrganizationIndex(organization);
+        await client.PrepareOrganisationIndexFile(organization);
 
         // Assert
         string path = "_index.json";
@@ -569,7 +567,7 @@ public class AzureSharedContentClientTests
     }
 
     [Fact]
-    public async Task HandleOrganizationIndex_NotFoundResponse()
+    public async Task PrepareOrganisationIndexFile_NotFoundResponse()
     {
         // Arrange
         string organization = "new_organization";
@@ -592,7 +590,7 @@ public class AzureSharedContentClientTests
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
         // Act
-        await client.HandleOrganizationIndex(organization);
+        await client.PrepareOrganisationIndexFile(organization);
 
         // Assert
         string path = "_index.json";
@@ -602,7 +600,7 @@ public class AzureSharedContentClientTests
     }
 
     [Fact]
-    public async Task HandleOrganizationIndex_OtherResponse()
+    public async Task PrepareOrganisationIndexFile_OtherResponse()
     {
         // Arrange
         string organizationName = "ttd";
@@ -623,7 +621,7 @@ public class AzureSharedContentClientTests
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
         // Act & Assert
-        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await client.HandleOrganizationIndex(organizationName));
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await client.PrepareOrganisationIndexFile(organizationName));
         Assert.Equal($"Request failed, class: {nameof(AzureSharedContentClient)}", exception.Message);
         mockHandler.VerifyAll();
     }
