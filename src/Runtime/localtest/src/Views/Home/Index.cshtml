@@ -4,7 +4,20 @@
 }
 
 @{
-  if (Model.HttpException != null)
+  if (Model.IsAccessedViaLoadBalancer && Model.HasRegisteredApps)
+  {
+    <div class="alert alert-danger" role="alert">
+      <h4>⚠️ Invalid Access Method</h4>
+      <p>
+        You are accessing LocalTest through the loadbalancer, but you have registered apps running in auto mode.
+        This configuration is not supported.
+      </p>
+      <p>
+        Please access LocalTest directly at: <strong><a href="http://local.altinn.cloud:5101">http://local.altinn.cloud:5101</a></strong>
+      </p>
+    </div>
+  }
+  else if (Model.HttpException != null)
   {
     <div class="alert alert-dark" role="alert">
       An exception occurred while fetching applicationData

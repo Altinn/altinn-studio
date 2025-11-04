@@ -80,6 +80,8 @@ namespace LocalTest.Controllers
                 AppMode = appMode,
                 StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath,
                 LocalFrontendUrl = HttpContext.Request.Cookies[FrontendVersionController.FRONTEND_URL_COOKIE_NAME],
+                IsAccessedViaLoadBalancer = HttpContext.Request.Headers["X-Forwarded-By"] == "localtest-loadbalancer",
+                HasRegisteredApps = _appRegistryService.GetAll().Any(),
             };
 
             try
