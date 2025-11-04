@@ -6,6 +6,7 @@ import type { KeyLookupFuncName } from '../enums/KeyLookupFuncName';
 import type { InstanceContext } from '../enums/InstanceContext';
 
 export type Expression =
+  | undefined
   | null
   | StrictStringExpression
   | StrictBooleanExpression
@@ -69,11 +70,7 @@ export type NumberExpression = null | StrictNumberExpression | FuncIf | StrictSt
 
 type StrictNumberExpression = number | FuncStringLength;
 
-type GenericDataLookupFunc<N extends DataLookupFuncName> = [
-  N,
-  StringExpression,
-  StringExpression | null,
-];
+type GenericDataLookupFunc<N extends DataLookupFuncName> = [N, StringExpression, StringExpression?];
 export type DataLookupFunc<N extends DataLookupFuncName = DataLookupFuncName> = {
   [K in N]: GenericDataLookupFunc<K>;
 }[N];
