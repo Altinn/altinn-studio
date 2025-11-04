@@ -7,7 +7,7 @@
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.9.1"/>
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0"/>
     <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.14.0"/>
-    <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1"/>
+    <PackageVersion Include="System.CommandLine" Version="2.0.0-rc.2.25502.107"/>
     <PackageVersion Include="MinVer" Version="6.0.0" />
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" />
 
