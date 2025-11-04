@@ -129,10 +129,10 @@ namespace LocalTest
             services.AddTransient<IAuthorizationHandler, ClaimAccessHandler>();
 
             // Notifications services
-            
+
             GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
             services.AddNotificationServices(generalSettings.BaseUrl, Configuration);
-            
+
             // Storage services
             services.AddSingleton<IClaimsPrincipalProvider, ClaimsPrincipalProvider>();
             services.AddTransient<IAuthorization, AuthorizationService>();
@@ -196,11 +196,11 @@ namespace LocalTest
 
             services.AddDirectoryBrowser();
 
+            services.AddSingleton<AppRegistryService>();
+
             // Access local app details depending on LocalAppMode ("file" or "http")
-            // AppRegistryService is always registered for http mode to support dynamic port registration
             if ("http".Equals(Configuration["LocalPlatformSettings:LocalAppMode"], StringComparison.InvariantCultureIgnoreCase))
             {
-                services.AddSingleton<AppRegistryService>();
                 services.AddTransient<ILocalApp, LocalAppHttp>();
             }
             else
@@ -237,11 +237,11 @@ namespace LocalTest
 
             app.UseHealthChecks("/health");
             app.UseMiddleware<ProxyMiddleware>();
-            
+
             var storagePath = new DirectoryInfo(localPlatformSettings.Value.LocalTestingStorageBasePath);
             if (!storagePath.Exists)
                 storagePath.Create();
-            
+
             app.UseStaticFiles(new StaticFileOptions
             {
                 FileProvider = new PhysicalFileProvider(storagePath.FullName),

@@ -33,9 +33,9 @@ namespace LocalTest.Services.LocalApp.Implementation
         private readonly string _defaultAppUrl;
         private readonly IMemoryCache _cache;
         private readonly ILogger<LocalAppHttp> _logger;
-        private readonly AppRegistryService? _appRegistryService;
+        private readonly AppRegistryService _appRegistryService;
 
-        public LocalAppHttp(IOptions<GeneralSettings> generalSettings, IHttpClientFactory httpClientFactory, IOptions<LocalPlatformSettings> localPlatformSettings, IMemoryCache cache, ILogger<LocalAppHttp> logger, AppRegistryService? appRegistryService = null)
+        public LocalAppHttp(IOptions<GeneralSettings> generalSettings, IHttpClientFactory httpClientFactory, IOptions<LocalPlatformSettings> localPlatformSettings, IMemoryCache cache, ILogger<LocalAppHttp> logger, AppRegistryService appRegistryService)
         {
             _generalSettings = generalSettings.Value;
             _httpClientFactory = httpClientFactory;
@@ -50,7 +50,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             var client = _httpClientFactory.CreateClient();
 
             // Try to get registered app first
-            if (appId != null && _appRegistryService != null)
+            if (appId != null)
             {
                 var registration = _appRegistryService.GetRegistration(appId);
                 if (registration != null)
@@ -117,32 +117,12 @@ namespace LocalTest.Services.LocalApp.Implementation
             var ret = new Dictionary<string, Application>();
 
             // Get all registered apps
-            if (_appRegistryService != null)
-            {
-                var registrations = _appRegistryService.GetAll();
-                foreach (var registration in registrations.Values)
-                {
-                    try
-                    {
-                        var app = await GetApplicationMetadata(registration.AppId);
-                        if (app != null)
-                        {
-                            ret.Add(app.Id, app);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Failed to get metadata for registered app {AppId}", registration.AppId);
-                    }
-                }
-            }
-
-            // Fallback: try to get app from default port 5005 if no apps registered
-            if (ret.Count == 0)
+            var registrations = _appRegistryService.GetAll();
+            foreach (var registration in registrations.Values)
             {
                 try
                 {
-                    var app = await GetApplicationMetadata(null);
+                    var app = await GetApplicationMetadata(registration.AppId);
                     if (app != null)
                     {
                         ret.Add(app.Id, app);
@@ -150,8 +130,23 @@ namespace LocalTest.Services.LocalApp.Implementation
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogDebug(ex, "No app found on default port 5005");
+                    _logger.LogWarning(ex, "Failed to get metadata for registered app {AppId}", registration.AppId);
                 }
+            }
+
+            // Always try to get app from default port 5005
+            // This allows both registered apps and the default app to coexist
+            try
+            {
+                var app = await GetApplicationMetadata(null);
+                if (app != null && !ret.ContainsKey(app.Id))
+                {
+                    ret.Add(app.Id, app);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "No app found on default port 5005");
             }
 
             return ret;

@@ -14,7 +14,7 @@ public class ProxyMiddleware
     private readonly RequestDelegate _nextMiddleware;
     private readonly IOptions<LocalPlatformSettings> localPlatformSettings;
     private readonly IHttpForwarder _forwarder;
-    private readonly AppRegistryService? _appRegistryService;
+    private readonly AppRegistryService _appRegistryService;
     private readonly ILogger<ProxyMiddleware> _logger;
 
     public ProxyMiddleware(
@@ -22,7 +22,7 @@ public class ProxyMiddleware
         IOptions<LocalPlatformSettings> localPlatformSettings,
         IHttpForwarder forwarder,
         ILogger<ProxyMiddleware> logger,
-        AppRegistryService? appRegistryService = null
+        AppRegistryService appRegistryService
     )
     {
         _nextMiddleware = nextMiddleware;
@@ -67,35 +67,22 @@ public class ProxyMiddleware
             }
         }
 
-        // In auto mode, extract appId and route to registered app
-        if (_appRegistryService != null)
+        // Try to route to registered app first
+        var appId = ExtractAppIdFromPath(path);
+        if (appId != null)
         {
-            var appId = ExtractAppIdFromPath(path);
-            if (appId != null)
+            var registration = _appRegistryService.GetRegistration(appId);
+            if (registration != null)
             {
-                var registration = _appRegistryService.GetRegistration(appId);
-                if (registration != null)
-                {
-                    var targetUrl = $"http://{registration.Hostname}:{registration.Port}";
-                    _logger.LogDebug("Proxying request for {AppId} to {TargetUrl}", appId, targetUrl);
-                    await ProxyRequest(context, targetUrl);
-                    return;
-                }
-                else
-                {
-                    _logger.LogWarning("App {AppId} not registered, cannot proxy request", appId);
-                    context.Response.StatusCode = 404;
-                    await context.Response.WriteAsJsonAsync(new { error = $"App {appId} is not registered" });
-                    return;
-                }
+                // App is registered on a specific port - route there
+                var targetUrl = $"http://{registration.Hostname}:{registration.Port}";
+                _logger.LogDebug("Proxying request for registered app {AppId} to {TargetUrl}", appId, targetUrl);
+                await ProxyRequest(context, targetUrl);
+                return;
             }
-
-            // In auto mode, if path doesn't match an app pattern, don't proxy - let next middleware handle it
-            await _nextMiddleware(context);
-            return;
         }
 
-        // Fallback to LocalAppUrl for backward compatibility (only in http mode, when not in auto mode)
+        // App not registered - fallback to LocalAppUrl (port 5005)
         if (!string.IsNullOrEmpty(localPlatformSettings.Value.LocalAppUrl))
         {
             await ProxyRequest(context, localPlatformSettings.Value.LocalAppUrl);

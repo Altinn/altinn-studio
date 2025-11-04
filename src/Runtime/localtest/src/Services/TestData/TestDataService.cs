@@ -14,9 +14,9 @@ public class TestDataService
     private readonly IMemoryCache _cache;
     private readonly LocalPlatformSettings _settings;
     private readonly ILogger<TestDataService> _logger;
-    private readonly AppRegistryService? _appRegistryService;
+    private readonly AppRegistryService _appRegistryService;
 
-    public TestDataService(ILocalApp localApp, TenorDataRepository tenorDataRepository, IOptions<LocalPlatformSettings> settings, IMemoryCache memoryCache, ILogger<TestDataService> logger, AppRegistryService? appRegistryService = null)
+    public TestDataService(ILocalApp localApp, TenorDataRepository tenorDataRepository, IOptions<LocalPlatformSettings> settings, IMemoryCache memoryCache, ILogger<TestDataService> logger, AppRegistryService appRegistryService)
     {
         _localApp = localApp;
         _tenorDataRepository = tenorDataRepository;
@@ -43,42 +43,39 @@ public class TestDataService
                 }
 
                 // Try to get and merge test data from all registered apps
-                if (_appRegistryService != null)
+                var registrations = _appRegistryService.GetAll();
+                if (registrations.Count > 0)
                 {
-                    var registrations = _appRegistryService.GetAll();
-                    if (registrations.Count > 0)
-                    {
-                        var merged = new TestDataModel();
-                        PopulateDefaults(merged);
-                        bool hasData = false;
+                    var merged = new TestDataModel();
+                    PopulateDefaults(merged);
+                    bool hasData = false;
 
-                        foreach (var registration in registrations.Values)
+                    foreach (var registration in registrations.Values)
+                    {
+                        try
                         {
-                            try
+                            var apps = await _localApp.GetApplications();
+                            if (apps.TryGetValue(registration.AppId, out var app))
                             {
-                                var apps = await _localApp.GetApplications();
-                                if (apps.TryGetValue(registration.AppId, out var app))
+                                var appData = await _localApp.GetTestData();
+                                if (appData != null)
                                 {
-                                    var appData = await _localApp.GetTestData();
-                                    if (appData != null)
-                                    {
-                                        var appModel = appData.GetTestDataModel();
-                                        TestDataMerger.MergeTestData(appModel, merged);
-                                        hasData = true;
-                                        _logger.LogInformation("Merged test data from {AppId}", registration.AppId);
-                                    }
+                                    var appModel = appData.GetTestDataModel();
+                                    TestDataMerger.MergeTestData(appModel, merged);
+                                    hasData = true;
+                                    _logger.LogInformation("Merged test data from {AppId}", registration.AppId);
                                 }
                             }
-                            catch (Exception ex)
-                            {
-                                _logger.LogWarning(ex, "Failed to get test data from registered app {AppId}", registration.AppId);
-                            }
                         }
-
-                        if (hasData)
+                        catch (Exception ex)
                         {
-                            return merged;
+                            _logger.LogWarning(ex, "Failed to get test data from registered app {AppId}", registration.AppId);
                         }
+                    }
+
+                    if (hasData)
+                    {
+                        return merged;
                     }
                 }
 

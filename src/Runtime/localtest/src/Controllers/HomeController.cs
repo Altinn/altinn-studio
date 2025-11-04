@@ -36,7 +36,7 @@ namespace LocalTest.Controllers
 
         private readonly ILocalApp _localApp;
         private readonly TestDataService _testDataService;
-        private readonly AppRegistryService? _appRegistryService;
+        private readonly AppRegistryService _appRegistryService;
         private readonly ILogger<HomeController> _logger;
 
         public HomeController(
@@ -49,7 +49,7 @@ namespace LocalTest.Controllers
             ILocalApp localApp,
             TestDataService testDataService,
             ILogger<HomeController> logger,
-            AppRegistryService? appRegistryService = null)
+            AppRegistryService appRegistryService)
         {
             _generalSettings = generalSettings.Value;
             _localPlatformSettings = localPlatformSettings.Value;
@@ -71,8 +71,8 @@ namespace LocalTest.Controllers
         {
             AppMode appMode = _localPlatformSettings.LocalAppMode switch
             {
-                "file" => AppMode.File,
-                _ => AppMode.Http
+                "http" => AppMode.Http,
+                _ => AppMode.File
             };
 
             StartAppModel model = new StartAppModel()
@@ -123,7 +123,6 @@ namespace LocalTest.Controllers
         [HttpGet("/Home/Localtest/Version")]
         public IActionResult Version()
         {
-            // Always return version 2 - registration endpoint is always available
             return Ok("2");
         }
 
@@ -134,11 +133,6 @@ namespace LocalTest.Controllers
         [HttpPost("/Home/Localtest/Register")]
         public IActionResult RegisterApp([FromBody] AppRegistrationRequest request)
         {
-            if (_appRegistryService == null)
-            {
-                return BadRequest("App registration requires AppRegistryService to be configured");
-            }
-
             if (string.IsNullOrWhiteSpace(request.AppId))
             {
                 return BadRequest("AppId is required");
@@ -160,11 +154,6 @@ namespace LocalTest.Controllers
         [HttpDelete("/Home/Localtest/Register/{appId}")]
         public IActionResult UnregisterApp(string appId)
         {
-            if (_appRegistryService == null)
-            {
-                return BadRequest("App registration requires AppRegistryService to be configured");
-            }
-
             var removed = _appRegistryService.Unregister(appId);
             if (removed)
             {
@@ -180,11 +169,6 @@ namespace LocalTest.Controllers
         [HttpGet("/Home/Localtest/Register")]
         public IActionResult GetRegisteredApps()
         {
-            if (_appRegistryService == null)
-            {
-                return BadRequest("App registration is only available in 'auto' mode");
-            }
-
             var apps = _appRegistryService.GetAll();
             return Ok(apps);
         }
@@ -207,7 +191,6 @@ namespace LocalTest.Controllers
             if (startAppModel.AuthenticationLevel != "-1")
             {
                 UserProfile? profile = await _userProfileService.GetUser(startAppModel.UserId);
-
                 if (profile == null)
                 {
                     return BadRequest("User not found");
@@ -311,7 +294,6 @@ namespace LocalTest.Controllers
         [HttpGet("/Home/GetTestOrgToken/{org?}")]
         public async Task<ActionResult> GetTestOrgToken(string org, [FromQuery] string orgNumber = null, [FromQuery] string scopes = null, [FromQuery] int? authenticationLevel = 3)
         {
-
             // Create a test token with long duration
             string token = await _authenticationService.GenerateTokenForOrg(org, orgNumber, scopes, authenticationLevel);
 
