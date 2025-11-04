@@ -63,7 +63,7 @@
     <h1 class="display-4">Welcome to Altinn App Local Testing</h1>
     <p>Learn about <a href="https://docs.altinn.studio" target="_blank">building and testing Altinn Apps</a>.</p>
 
-    @if(Model.AppMode == "auto" && (Model.TestApps == null || !Model.TestApps.Any()))
+    @if(Model.AppMode == AppMode.Auto && (Model.TestApps == null || !Model.TestApps.Any()))
     {
       <div class="alert alert-warning" role="alert">
         <strong>No apps are currently running</strong>
@@ -78,7 +78,7 @@
       </div>
     }
 
-    @if(Model.AppMode == "http")
+    @if(Model.AppMode == AppMode.Http)
     {
       <h2>Testing app:  @Model.Org/@Model.App</h2>
     }
@@ -86,10 +86,10 @@
     @using (Html.BeginForm("LogInTestUser", "Home", FormMethod.Post, new { Class = "form-signin", enctype = "multipart/form-data" }))
     {
       @Html.AntiForgeryToken();
-      @if(Model.AppMode != "http")
+      @if(Model.AppMode != AppMode.Http)
       {
         <div class="form-group">
-          @if(Model.AppMode == "auto")
+          @if(Model.AppMode == AppMode.Auto)
           {
             <label for="AppPathSelection">Select app to test</label>
           }
@@ -108,7 +108,7 @@
         <label for="AuthenticationLevel">Select your authentication level</label>
         @Html.DropDownListFor(model => model.AuthenticationLevel, Model.AuthenticationLevels, new { Class = "form-control" })
       </div>
-      @if(Model.AppMode == "http")
+      @if(Model.AppMode == AppMode.Http)
       {
         <div class="form-group">
           <label for="prefill">

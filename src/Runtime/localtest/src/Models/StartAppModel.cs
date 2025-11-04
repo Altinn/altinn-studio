@@ -7,6 +7,13 @@ using System.Threading.Tasks;
 
 namespace LocalTest.Models
 {
+    public enum AppMode
+    {
+        Http,
+        File,
+        Auto
+    }
+
     public class StartAppModel
     {
         /// <summary>
@@ -101,8 +108,8 @@ namespace LocalTest.Models
         public IEnumerable<SelectListItem> AuthenticationLevels { get; set; }
 
         /// <summary>
-        /// The current app mode (e.g., "http", "file", "auto")
+        /// The current app mode
         /// </summary>
-        public string AppMode { get; set; }
+        public AppMode AppMode { get; set; }
     }
 }

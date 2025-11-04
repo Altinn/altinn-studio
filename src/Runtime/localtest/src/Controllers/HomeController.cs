@@ -69,9 +69,16 @@ namespace LocalTest.Controllers
         [HttpGet("/Home/Index")]
         public async Task<IActionResult> Index()
         {
+            AppMode appMode = _localPlatformSettings.LocalAppMode switch
+            {
+                "auto" => AppMode.Auto,
+                "file" => AppMode.File,
+                _ => AppMode.Http
+            };
+
             StartAppModel model = new StartAppModel()
             {
-                AppMode = _localPlatformSettings.LocalAppMode,
+                AppMode = appMode,
                 AppPath = _localPlatformSettings.AppRepositoryBasePath,
                 StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath,
                 LocalAppUrl = _localPlatformSettings.LocalAppUrl,
@@ -81,14 +88,14 @@ namespace LocalTest.Controllers
             try
             {
                 model.TestApps = await GetAppsList();
-                if (model.AppMode == "http")
+                if (model.AppMode == AppMode.Http)
                 {
                     model.Org = model.TestApps[0].Value?.Split("/").FirstOrDefault();
                     model.App = model.TestApps[0].Value?.Split("/").LastOrDefault();
                 }
                 model.TestUsers = await GetTestUsersAndPartiesSelectList();
                 model.UserSelect = Request.Cookies["Localtest_User.Party_Select"];
-                var defaultAuthLevel = await GetAppAuthLevel(model.AppMode == "http", model.TestApps);
+                var defaultAuthLevel = await GetAppAuthLevel(model.AppMode == AppMode.Http, model.TestApps);
                 model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
             }
             catch (HttpRequestException e)
@@ -98,7 +105,7 @@ namespace LocalTest.Controllers
 
 
             // In auto mode, apps register themselves, so empty list is OK
-            if (_localPlatformSettings.LocalAppMode != "auto" && (!model.TestApps?.Any() ?? true))
+            if (appMode != AppMode.Auto && (!model.TestApps?.Any() ?? true))
             {
                 model.InvalidAppPath = true;
             }
