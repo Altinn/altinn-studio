@@ -16,24 +16,9 @@ namespace LocalTest.Models
     public class StartAppModel
     {
         /// <summary>
-        /// The name of the app
-        /// </summary>
-        public string App { get; set; }
-
-        /// <summary>
-        /// The name of the org
-        /// </summary>
-        public string Org { get; set; }
-
-        /// <summary>
         /// Defines if a app has defined invalid path
         /// </summary>
         public bool InvalidAppPath { get; set; }
-
-        /// <summary>
-        /// Title of the app
-        /// </summary>
-        public string AppTitle { get; set; }
 
         /// <summary>
         /// _localPlatformSettings.AppRepositoryBasePath

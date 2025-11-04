@@ -65,7 +65,7 @@
 
     @if(Model.TestApps != null && Model.TestApps.Count() == 1)
     {
-      <h2>Testing app:  @Model.Org/@Model.App</h2>
+      <h2>Testing app:  @Model.TestApps.First().Text</h2>
     }
 
     @using (Html.BeginForm("LogInTestUser", "Home", FormMethod.Post, new { Class = "form-signin", enctype = "multipart/form-data" }))
@@ -86,16 +86,13 @@
         <label for="AuthenticationLevel">Select your authentication level</label>
         @Html.DropDownListFor(model => model.AuthenticationLevel, Model.AuthenticationLevels, new { Class = "form-control" })
       </div>
-      @if(Model.TestApps != null && Model.TestApps.Count() == 1)
-      {
-        <div class="form-group">
-          <label for="prefill">
-            Prefill xml (use this to copy all the values from a <a href="/LocalPlatformStorage/blobs/@(Model.Org)/@(Model.App)">previous instance</a>)<br />
-            A token autenticated as <strong>@Model.Org</strong> will be used for for instantiation
-          </label>
-          <input class="form-control" type="file" id="prefill" name="prefill" accept=".xml"/>
-        </div>
-      }
+      <div class="form-group">
+        <label for="prefill">
+          Prefill xml (use this to copy all the values from a <a id="prefillLink" href="/LocalPlatformStorage/blobs/@(Model.TestApps?.First().Text ?? "")">previous instance</a>)<br />
+          A token autenticated as <strong id="prefillOrg">@(Model.TestApps?.First().Text?.Split("/").FirstOrDefault() ?? "")</strong> will be used for for instantiation
+        </label>
+        <input class="form-control" type="file" id="prefill" name="prefill" accept=".xml"/>
+      </div>
       <div class="form-group">
         <button type="submit" class="btn btn-light" name="action" value="reauthenticate">Refresh authentication</button>
         <button type="submit" class="btn btn-primary" name="action" value="start">Proceed to app</button>
@@ -111,3 +108,20 @@
   </div>
   }
 }
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var appSelect = document.getElementById('AppPathSelection');
+    var prefillLink = document.getElementById('prefillLink');
+    var prefillOrg = document.getElementById('prefillOrg');
+
+    if (appSelect && prefillLink && prefillOrg) {
+      appSelect.addEventListener('change', function() {
+        var selectedApp = appSelect.options[appSelect.selectedIndex].text;
+        prefillLink.href = '/LocalPlatformStorage/blobs/' + selectedApp;
+        var org = selectedApp.split('/')[0];
+        prefillOrg.textContent = org;
+      });
+    }
+  });
+</script>

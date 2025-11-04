@@ -69,7 +69,7 @@ public class TestDataService
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogWarning(ex, "Failed to get test data from registered app {AppId}", registration.AppId);
+                            _logger.LogInformation(ex, "Failed to get test data from registered app {AppId}", registration.AppId);
                         }
                     }
 

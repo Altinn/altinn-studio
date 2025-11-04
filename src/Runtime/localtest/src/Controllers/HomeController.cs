@@ -78,24 +78,16 @@ namespace LocalTest.Controllers
             StartAppModel model = new StartAppModel()
             {
                 AppMode = appMode,
-                AppPath = _localPlatformSettings.AppRepositoryBasePath,
                 StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath,
-                LocalAppUrl = _localPlatformSettings.LocalAppUrl,
                 LocalFrontendUrl = HttpContext.Request.Cookies[FrontendVersionController.FRONTEND_URL_COOKIE_NAME],
             };
 
             try
             {
                 model.TestApps = await GetAppsList();
-                // Set org/app if exactly one app is available (single-app scenario)
-                if (model.AppMode == AppMode.Http && model.TestApps?.Count == 1)
-                {
-                    model.Org = model.TestApps[0].Value?.Split("/").FirstOrDefault();
-                    model.App = model.TestApps[0].Value?.Split("/").LastOrDefault();
-                }
                 model.TestUsers = await GetTestUsersAndPartiesSelectList();
                 model.UserSelect = Request.Cookies["Localtest_User.Party_Select"];
-                var defaultAuthLevel = await GetAppAuthLevel(model.AppMode == AppMode.Http && model.TestApps?.Count == 1, model.TestApps);
+                var defaultAuthLevel = await GetAppAuthLevel(model.AppMode == AppMode.Http, model.TestApps);
                 model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
             }
             catch (HttpRequestException e)
@@ -501,10 +493,7 @@ namespace LocalTest.Controllers
 
         private static SelectListItem GetSelectItem(Application app, string path)
         {
-            var displayText = string.IsNullOrEmpty(app.Id)
-                ? app.Title.GetValueOrDefault("nb")
-                : app.Id;
-            SelectListItem item = new SelectListItem() { Value = path, Text = displayText };
+            SelectListItem item = new SelectListItem() { Value = path, Text = app.Id };
             return item;
         }
 
