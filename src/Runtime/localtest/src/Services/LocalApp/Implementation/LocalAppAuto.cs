@@ -209,34 +209,5 @@ namespace LocalTest.Services.LocalApp.Implementation
 
             });
         }
-
-        public async Task<AppTestDataModel?> GetTestData(string appId)
-        {
-            return await _cache.GetOrCreateAsync(TEST_DATA_CACHE_KEY + appId, async (cacheEntry) =>
-            {
-                cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
-
-                try
-                {
-                    using var client = CreateClientForApp(appId);
-                    var response = await client.GetAsync($"{appId}/testData.json");
-                    if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                    {
-                        _logger.LogInformation("No custom www/testData.json found for {AppId}. Using default test users", appId);
-                        return null;
-                    }
-
-                    response.EnsureSuccessStatusCode();
-                    var data = await response.Content.ReadAsByteArrayAsync();
-                    return JsonSerializer.Deserialize<AppTestDataModel>(data.RemoveBom(), JSON_OPTIONS);
-                }
-                catch (HttpRequestException e)
-                {
-                    _logger.LogWarning(e, "Failed to get Test data for {AppId}", appId);
-                    return null;
-                }
-
-            });
-        }
     }
 }

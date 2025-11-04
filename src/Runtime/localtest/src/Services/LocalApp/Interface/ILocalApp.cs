@@ -20,7 +20,5 @@ namespace LocalTest.Services.LocalApp.Interface
         Task<Instance?> Instantiate(string appId, Instance instance, string xmlPrefill, string xmlDataId, string token);
 
         Task<AppTestDataModel?> GetTestData();
-
-        Task<AppTestDataModel?> GetTestData(string appId);
     }
 }

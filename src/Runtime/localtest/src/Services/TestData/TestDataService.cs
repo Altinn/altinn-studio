@@ -89,49 +89,4 @@ public class TestDataService
 
         TestDataMerger.MergeTestData(mergedAppData, baseModel);
     }
-
-    public async Task<TestDataModel> GetTestData(string appId)
-    {
-        return (await _cache.GetOrCreateAsync("TEST_DATA_" + appId,
-            async (entry) =>
-            {
-                entry.SlidingExpiration = TimeSpan.FromSeconds(5);
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30);
-
-                var diskModel = await TestDataDiskReader.ReadFromDisk(_settings.LocalTestingStaticTestDataPath);
-                void PopulateDefaults(TestDataModel model)
-                {
-                    // TODO: this is weird
-                    model.Authorization.Systems = diskModel.Authorization.Systems;
-                    model.Authorization.SystemUsers = diskModel.Authorization.SystemUsers;
-                }
-
-                try
-                {
-                    var appData = await _localApp.GetTestData(appId);
-
-                    if (appData is not null)
-                    {
-                        var model = appData.GetTestDataModel();
-                        return model;
-                    }
-                }
-                catch (HttpRequestException e)
-                {
-                    _logger.LogInformation(e, "Fetching Test data from app {AppId} failed.", appId);
-                }
-
-                var tenorUsers = await _tenorDataRepository.GetAppTestDataModel();
-                if (tenorUsers is not null && !tenorUsers.IsEmpty())
-                {
-                    // Use tenor users if they exist
-                    var model = tenorUsers.GetTestDataModel();
-                    PopulateDefaults(model);
-                    return model;
-                }
-
-                //Fallback to Ola Nordmann, Sofie Salt ... if no other users are availible
-                return diskModel;
-            }))!;
-    }
 }
