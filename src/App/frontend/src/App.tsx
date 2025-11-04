@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 
+import { ErrorPageContent } from 'src/components/ErrorPageContent';
 import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ComponentRouting, NavigateToStartUrl, ProcessWrapper } from 'src/components/wrappers/ProcessWrapper';
@@ -14,6 +15,14 @@ import { TaskKeys } from 'src/hooks/useNavigatePage';
 
 export const App = () => (
   <Routes>
+    <Route
+      path='/error'
+      element={
+        <PresentationComponent>
+          <ErrorPageContent />
+        </PresentationComponent>
+      }
+    />
     <Route element={<Entrypoint />}>
       <Route
         path=':pageKey'

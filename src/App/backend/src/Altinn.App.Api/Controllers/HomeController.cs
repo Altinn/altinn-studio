@@ -78,18 +78,35 @@ public class HomeController : Controller
         _logger = logger;
     }
 
+    [HttpGet]
+    [Route("{org}/{app}/error")]
+    public async Task<IActionResult> ErrorPage(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromQuery] bool skipPartySelection = false
+    )
+    {
+        var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
+        var initialData = await _initialDataService.GetInitialData(org, app, null, null, language);
+
+        var html = GenerateHtml(org, app, initialData);
+        return Content(html, "text/html; charset=utf-8");
+    }
+
     /// <summary>
     /// Main entry point for the application. Handles authentication, party selection, and routing to appropriate views.
     /// </summary>
     /// <param name="org">The application owner short name.</param>
     /// <param name="app">The name of the app</param>
     /// <param name="skipPartySelection">If true, skips party selection prompt even when PromptForParty is 'always'.</param>
+    /// <param name="forceNew">If true, forces creation of a new instance even when existing instances are found.</param>
     [HttpGet]
     [Route("{org}/{app}/")]
     public async Task<IActionResult> Index(
         [FromRoute] string org,
         [FromRoute] string app,
-        [FromQuery] bool skipPartySelection = false
+        [FromQuery] bool skipPartySelection = false,
+        [FromQuery] bool forceNew = false
     )
     {
         ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
@@ -163,7 +180,7 @@ public class HomeController : Controller
 
         Instance? mostRecentInstance = instances.OrderByDescending(i => i.LastChanged).FirstOrDefault();
 
-        if (mostRecentInstance == null)
+        if (mostRecentInstance == null || forceNew)
         {
             // Get layoutSets for instance creation
             string layoutSetsString = _appResources.GetLayoutSets();
@@ -880,6 +897,13 @@ public class HomeController : Controller
 
     private string GenerateInstanceCreationHtml(string org, string app, int partyId, string layoutSetsJson)
     {
+        _logger.LogInformation(
+            "Generating instance creation page for {Org}/{App} with partyId {PartyId}",
+            org,
+            app,
+            partyId
+        );
+
         string nonce = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(16));
 
         var htmlContent = $$"""
@@ -923,7 +947,12 @@ public class HomeController : Controller
                         console.log('XSRF Token found:', xsrfToken ? 'yes' : 'no');
 
                         if (!xsrfToken) {
-                          throw new Error('XSRF token not found in cookies');
+                          const errorParams = new URLSearchParams({
+                            errorType: 'xsrf_token_missing',
+                            statusCode: '403'
+                          });
+                          window.location.href = '/{{org}}/{{app}}/error?' + errorParams.toString();
+                          return;
                         }
 
                         console.log('Attempting to create instance...');
@@ -945,7 +974,14 @@ public class HomeController : Controller
                             errorDetail = await response.text();
                             console.error('Error response (text):', errorDetail);
                           }
-                          throw new Error(`Failed to create instance: ${response.status} - ${JSON.stringify(errorDetail)}`);
+
+                          const errorParams = new URLSearchParams({
+                            errorType: response.status >= 500 ? 'server_error' : 'instance_creation_failed',
+                            statusCode: response.status.toString(),
+                            showContactInfo: 'true'
+                          });
+                          window.location.href = '/{{org}}/{{app}}/error?' + errorParams.toString();
+                          return;
                         }
 
                         const instance = await response.json();
@@ -972,15 +1008,11 @@ public class HomeController : Controller
                         window.location.href = redirectUrl;
                       } catch (error) {
                         console.error('Error creating instance:', error);
-                        document.getElementById('root').innerHTML = `
-                          <div class="container">
-                            <div class="content">
-                              <h1>Failed to create instance</h1>
-                              <p class="error">${error.message}</p>
-                              <p>Please try again or contact support if the problem persists.</p>
-                            </div>
-                          </div>
-                        `;
+                        const errorParams = new URLSearchParams({
+                          errorType: 'network_error',
+                          showContactInfo: 'false'
+                        });
+                        window.location.href = '/{{org}}/{{app}}/error?' + errorParams.toString();
                       }
                     })();
                 </script>
