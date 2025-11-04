@@ -2613,6 +2613,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@posthog/react@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "@posthog/react@npm:1.3.0"
+  peerDependencies:
+    "@types/react": ">=16.8.0"
+    posthog-js: ">=1.257.2"
+    react: ">=16.8.0"
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 10/82e102d9aa11c454435923a9fcabaa5ce183d6edc8cd785d5b036c12570cf4c4f19642956fd2d6508d2ab8cf9f9891341c631bcda23cb7c3c6d60b2ee433fe31
+  languageName: node
+  linkType: hard
+
 "@radix-ui/react-compose-refs@npm:1.1.2":
   version: 1.1.2
   resolution: "@radix-ui/react-compose-refs@npm:1.1.2"
@@ -3043,7 +3057,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@studio/browser-storage@workspace:src/Designer/frontend/libs/studio-browser-storage":
+"@studio/browser-storage@workspace:^, @studio/browser-storage@workspace:src/Designer/frontend/libs/studio-browser-storage":
   version: 0.0.0-use.local
   resolution: "@studio/browser-storage@workspace:src/Designer/frontend/libs/studio-browser-storage"
   dependencies:
@@ -4717,7 +4731,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:src/Designer/frontend/app-development"
   dependencies:
+    "@posthog/react": "npm:^1.3.0"
     "@studio/assistant": "workspace:^"
+    "@studio/browser-storage": "workspace:^"
     "@studio/content-library": "workspace:^"
     "@studio/feedback-form": "workspace:^"
     "@studio/hooks": "workspace:^"
@@ -4727,6 +4743,7 @@ __metadata:
     classnames: "npm:2.5.1"
     i18next: "npm:23.16.8"
     jest: "npm:29.7.0"
+    posthog-js: "npm:1.257.2"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     react-i18next: "npm:15.6.1"
@@ -5971,6 +5988,13 @@ __metadata:
   dependencies:
     is-what: "npm:^3.14.1"
   checksum: 10/3b41be8f6322c2c13e93cde62a64d532f138f31d44ab85a3405d88601134afccc068be06534c162ed5c06b209788c423d7aaa50f1c34a92db81a1f8560d199eb
+  languageName: node
+  linkType: hard
+
+"core-js@npm:^3.38.1":
+  version: 3.46.0
+  resolution: "core-js@npm:3.46.0"
+  checksum: 10/82993ca487c6cbbf8bbf00e45eeb9705eb63dc2f9c90d7f35696733efbc3f4b52426e1f8dbef0f0b68ea16caa21e4f44cc5490e08120e1cad4a72b031ed8adaa
   languageName: node
   linkType: hard
 
@@ -7908,6 +7932,13 @@ __metadata:
     set-cookie-parser: "npm:^2.4.8"
     tough-cookie: "npm:^4.0.0"
   checksum: 10/7f992bf4e15a48d6523f7e2b19d4574fc60bc767036a9662bd915716e2f0d8decdfb7c2e860842280d6fa80e73aba2a90431f08496d0ed2a5e3ae011b410a13b
+  languageName: node
+  linkType: hard
+
+"fflate@npm:^0.4.8":
+  version: 0.4.8
+  resolution: "fflate@npm:0.4.8"
+  checksum: 10/c0c75029bcbefd0b47cede4ad2a3698f571e38d3d93dfbb96d744c655ec3bf5e31111044c2c01fa3965109874f5be8b5a6b3686b958392693689665cbabf3ece
   languageName: node
   linkType: hard
 
@@ -12291,10 +12322,37 @@ __metadata:
   languageName: node
   linkType: hard
 
+"posthog-js@npm:1.257.2":
+  version: 1.257.2
+  resolution: "posthog-js@npm:1.257.2"
+  dependencies:
+    core-js: "npm:^3.38.1"
+    fflate: "npm:^0.4.8"
+    preact: "npm:^10.19.3"
+    web-vitals: "npm:^4.2.4"
+  peerDependencies:
+    "@rrweb/types": 2.0.0-alpha.17
+    rrweb-snapshot: 2.0.0-alpha.17
+  peerDependenciesMeta:
+    "@rrweb/types":
+      optional: true
+    rrweb-snapshot:
+      optional: true
+  checksum: 10/aa2dd4e1dd1dc06129345d4982ea8965bf79b53783a122ec39673b45aea68a60d200b4d7b267c487068c6f6dbe2da512887b2778ec43d5550f2b7ec22732cf75
+  languageName: node
+  linkType: hard
+
 "preact@npm:^10.11.2":
   version: 10.17.1
   resolution: "preact@npm:10.17.1"
   checksum: 10/e2554baee22324806eb3f0c88057ba178f08cfd93d8b9407e3a81c7011bfdc58a839327407515f6a6c58e2c0465666336283392860244925dace8a79c6ad0c4a
+  languageName: node
+  linkType: hard
+
+"preact@npm:^10.19.3":
+  version: 10.27.2
+  resolution: "preact@npm:10.27.2"
+  checksum: 10/e568fb968579e73921119232fcdfa6a5b6a57632742b905ec5127b8ef77abee3a8040d8342022af7845e3b43e97ca06faafbf734aa234dd95c0d62474cd0d03f
   languageName: node
   linkType: hard
 
@@ -15206,6 +15264,13 @@ __metadata:
   dependencies:
     makeerror: "npm:1.0.12"
   checksum: 10/ad7a257ea1e662e57ef2e018f97b3c02a7240ad5093c392186ce0bcf1f1a60bbadd520d073b9beb921ed99f64f065efb63dfc8eec689a80e569f93c1c5d5e16c
+  languageName: node
+  linkType: hard
+
+"web-vitals@npm:^4.2.4":
+  version: 4.2.4
+  resolution: "web-vitals@npm:4.2.4"
+  checksum: 10/68cd1c2625a04b26e7eab67110623396afc6c9ef8c3a76f4e780aefe5b7d4ca1691737a0b99119e1d1ca9a463c4d468c0f0090b1875b6d784589d3a4a8503313
   languageName: node
   linkType: hard
 
