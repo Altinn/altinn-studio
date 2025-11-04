@@ -4,13 +4,12 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from textwrap import dedent
 from typing import Dict, List, Optional
 
 import mlflow
 
 from agents.services.llm import LLMClient
-from agents.workflows.shared.utils import load_system_prompt
+from agents.prompts import get_prompt_content, render_template
 from shared.utils.logging_utils import get_logger
 from shared.models import AgentAttachment
 
@@ -41,17 +40,8 @@ def run_intake_pipeline(
     
     # Don't scan here - let the scan node handle repository discovery
     context = RepositoryContext()  # Use defaults
-    system_prompt = load_system_prompt("intake_prompt")
-
-    user_prompt = dedent(
-        f"""
-        GOAL: {user_goal}
-
-        Create a high-level plan without repository details. Focus on understanding user intent.
-        
-        Keep it simple - repository scanning and detailed planning come later.
-        """
-    ).strip()
+    system_prompt = get_prompt_content("intake_planning")
+    user_prompt = render_template("intake_planning_user", user_goal=user_goal)
 
     client = LLMClient(role="planner")
     with mlflow.start_span(name="intake_planning_llm", span_type="LLM") as span:

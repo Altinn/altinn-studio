@@ -12,20 +12,20 @@ async def intake(state: AgentState) -> AgentState:
     return await intake_handle(state)
 
 
-def scan_repository(state: AgentState) -> AgentState:
-    return intake_scan(state)
+async def scan_repository(state: AgentState) -> AgentState:
+    return await intake_scan(state)
 
 
 async def planner(state: AgentState) -> AgentState:
     return await planner_handle(state)
 
 
-def actor(state: AgentState) -> AgentState:
-    return actor_handle(state)
+async def actor(state: AgentState) -> AgentState:
+    return await actor_handle(state)
 
 
-def verifier(state: AgentState) -> AgentState:
-    return verifier_handle(state)
+async def verifier(state: AgentState) -> AgentState:
+    return await verifier_handle(state)
 
 
 async def reviewer(state: AgentState) -> AgentState:

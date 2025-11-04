@@ -49,7 +49,7 @@ class BaseConfig:
     # LLM configuration - Azure OpenAI preferred
     AZURE_API_KEY = os.getenv("AZURE_API_KEY")
     AZURE_ENDPOINT = os.getenv("AZURE_ENDPOINT", "https://rndlabaidemoss0618689180.openai.azure.com/")
-    AZURE_API_VERSION = os.getenv("AZURE_API_VERSION", "2024-12-01-preview")
+    AZURE_API_VERSION = os.getenv("AZURE_API_VERSION", "2025-03-01-preview")
     AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-4o-mini-2M-tps")
 
     # Fallback to OpenAI if Azure not configured
@@ -60,21 +60,30 @@ class BaseConfig:
     # Multi-model configuration for different agent roles
     # Use powerful models for complex reasoning, cheap models for simple tasks
     LLM_MODEL_PLANNER = os.getenv("LLM_MODEL_PLANNER", os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-4o-mini-2M-tps"))
+    LLM_MODEL_TOOL_PLANNER = os.getenv("LLM_MODEL_TOOL_PLANNER", LLM_MODEL_PLANNER)
     LLM_MODEL_ACTOR = os.getenv("LLM_MODEL_ACTOR", os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-4o-mini-2M-tps"))
     LLM_MODEL_REVIEWER = os.getenv("LLM_MODEL_REVIEWER", "gpt-4o-mini-2M-tps")
     LLM_MODEL_VERIFIER = os.getenv("LLM_MODEL_VERIFIER", "gpt-4o-mini-2M-tps")
+    LLM_MODEL_ASSISTANT = os.getenv("LLM_MODEL_ASSISTANT", "gpt-4o-mini-2M-tps")
     
     # Model versions per role (optional, for Azure deployments with specific versions)
     LLM_VERSION_PLANNER = os.getenv("LLM_VERSION_PLANNER")
+    LLM_VERSION_TOOL_PLANNER = os.getenv("LLM_VERSION_TOOL_PLANNER")
     LLM_VERSION_ACTOR = os.getenv("LLM_VERSION_ACTOR")
     LLM_VERSION_REVIEWER = os.getenv("LLM_VERSION_REVIEWER")
     LLM_VERSION_VERIFIER = os.getenv("LLM_VERSION_VERIFIER")
+    LLM_VERSION_ASSISTANT = os.getenv("LLM_VERSION_ASSISTANT")
     
     # Temperature settings per role
     LLM_TEMPERATURE_PLANNER = os.getenv("LLM_TEMPERATURE_PLANNER")  # Higher for creativity
+    LLM_TEMPERATURE_TOOL_PLANNER = os.getenv("LLM_TEMPERATURE_TOOL_PLANNER")
     LLM_TEMPERATURE_ACTOR = float(os.getenv("LLM_TEMPERATURE_ACTOR", "0.1"))  # Lower for precision
     LLM_TEMPERATURE_REVIEWER = float(os.getenv("LLM_TEMPERATURE_REVIEWER", "0.2"))
     LLM_TEMPERATURE_VERIFIER = float(os.getenv("LLM_TEMPERATURE_VERIFIER", "0.0"))  # Deterministic
+    LLM_TEMPERATURE_ASSISTANT = os.getenv("LLM_TEMPERATURE_ASSISTANT")  # Optional - some models don't support custom temperature
+
+    LLM_TOOL_PLANNER_USE_COMPLETIONS = os.getenv("LLM_TOOL_PLANNER_USE_COMPLETIONS", "false").lower() == "true"
+    LLM_TOOL_PLANNER_USE_RESPONSES = os.getenv("LLM_TOOL_PLANNER_USE_RESPONSES", "false").lower() == "true"
 
     # Attachment storage
     _DEFAULT_ATTACHMENTS_PATH = Path(tempfile.gettempdir()) / "altinity_agent_attachments"

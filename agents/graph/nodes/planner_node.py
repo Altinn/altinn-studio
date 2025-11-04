@@ -12,9 +12,12 @@ log = get_logger(__name__)
 
 
 async def handle(state: AgentState) -> AgentState:
-    """Create a detailed plan using repository facts and MCP tooling."""
-
+    """Create a detailed plan using repository facts, planning guidance, and MCP tooling."""
+    
+    import time
+    log.info(f"⏱️ [PLANNER NODE] Starting at {time.time()}")
     log.info("🎯 Planner node executing")
+    log.info(f"📥 Planner received state.planning_guidance: {'SET (%d chars)' % len(state.planning_guidance) if state.planning_guidance else 'NOT SET (None or empty)'}")
     try:
         from agents.services.mcp import get_mcp_client
 
@@ -24,9 +27,13 @@ async def handle(state: AgentState) -> AgentState:
             planning_span.set_attributes({
                 "implementation_plan_length": len(state.implementation_plan) if state.implementation_plan else 0,
                 "repo_facts_count": len(state.repo_facts.get("files", [])) if state.repo_facts else 0,
+                "has_planning_guidance": bool(state.planning_guidance),
+                "has_attachments": bool(state.attachments),
+                "attachment_count": len(state.attachments) if state.attachments else 0,
             })
             planning_span.set_inputs({
                 "implementation_plan": state.implementation_plan,
+                "planning_guidance_length": len(state.planning_guidance) if state.planning_guidance else 0,
                 "repo_facts_summary": {
                     "file_count": len(state.repo_facts.get("files", [])) if state.repo_facts else 0,
                     "directory_count": len(state.repo_facts.get("directories", [])) if state.repo_facts else 0,
@@ -35,9 +42,21 @@ async def handle(state: AgentState) -> AgentState:
                 else None,
             })
 
+            # Build task context with planning guidance if available
+            task_context = f"{state.user_goal}\n\nHIGH-LEVEL PLAN:\n{state.step_plan}"
+            if state.planning_guidance:
+                log.info(f"✅ Planner using planning guidance from planning_tool_node ({len(state.planning_guidance)} chars)")
+                task_context += f"\n\nPLANNING GUIDANCE:\n{state.planning_guidance}"
+            else:
+                log.info("⚠️ No planning guidance in state - MCP client will call planning_tool")
+
+            if state.attachments:
+                log.info(f"📎 Planner passing {len(state.attachments)} attachment(s) to patch generation")
+            
             patch_data = await client.create_patch_async(
-                task_context=f"{state.user_goal}\n\nHIGH-LEVEL PLAN:\n{state.step_plan}",
+                task_context=task_context,
                 repository_path=state.repo_path,
+                attachments=state.attachments,
             )
 
             log.info(f"📋 Planner created patch_data with {len(patch_data.get('changes', []))} changes")

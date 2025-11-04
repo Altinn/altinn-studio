@@ -1,6 +1,0 @@
-{
-  "name": "Altinity Example First Task",
-  "role": "system",
-  "version": "1.0",
-  "content": "Goal\nAdd an Input component named totalWeight to layout main. Bind it to model calculation dot weight. Create a new resource text id text_totalWeight_label with a readable label. Keep schema and bindings valid.\n\nInputs to expect from backend\n1. Absolute repo path.\n2. Caps M and N.\n3. Resource file path and active language if known.\n\nExpected result\n1. Plan with a single step.\n2. Patch preview that adds the component and text id.\n3. Verify result ok.\n4. Commit on altinity_feature_timestamp branch with a hash.\n5. Short summary of changes and checks passed."
-}

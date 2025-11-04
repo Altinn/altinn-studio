@@ -12,6 +12,11 @@ from agents.workflows.intake.pipeline import run_intake_pipeline
 
 async def handle(state: AgentState) -> AgentState:
     """Generate an initial plan and repository context."""
+    
+    import time
+    from shared.utils.logging_utils import get_logger
+    log = get_logger(__name__)
+    log.info(f"⏱️ [INTAKE NODE] Starting at {time.time()}")
 
     try:
         result: Dict[str, Any] = run_intake_pipeline(
@@ -57,30 +62,31 @@ async def handle(state: AgentState) -> AgentState:
     return state
 
 
-def scan_repository(state: AgentState) -> AgentState:
+async def scan_repository(state: AgentState) -> AgentState:
     """Scan repository to gather facts if not already available."""
+    
+    import time
+    from shared.utils.logging_utils import get_logger
+    log = get_logger(__name__)
+    log.info(f"⏱️ [SCAN NODE] Starting at {time.time()}")
 
     try:
         # Use the same scanning logic as the MCP client for consistency
-        import asyncio
         from agents.services.mcp import get_mcp_client
         from agents.services.repo import discover_repository_context
         
-        async def _scan():
-            mcp_client = get_mcp_client()
-            context = discover_repository_context(state.repo_path)
-            # Convert PlanContext to dict format for compatibility
-            facts = {
-                'layouts': context.layout_pages,
-                'models': context.model_files,
-                'resources': context.resource_files,
-                'app_type': 'altinn',
-                'available_locales': context.available_locales,
-                'source_of_truth': context.source_of_truth
-            }
-            return facts
+        mcp_client = get_mcp_client()
+        context = discover_repository_context(state.repo_path)
+        # Convert PlanContext to dict format for compatibility
+        facts = {
+            'layouts': context.layout_pages,
+            'models': context.model_files,
+            'resources': context.resource_files,
+            'app_type': 'altinn',
+            'available_locales': context.available_locales,
+            'source_of_truth': context.source_of_truth
+        }
         
-        facts = asyncio.run(_scan())
         state.repo_facts = facts
         state.next_action = "plan"
 
@@ -95,16 +101,24 @@ def scan_repository(state: AgentState) -> AgentState:
 
         sink.send(
             AgentEvent(
-                type="repository_scanned",
+                type="status",
                 session_id=state.session_id,
                 data={
+                    "message": "Repository scan complete",
                     "file_count": len(facts.get("layouts", [])) + len(facts.get("models", [])) + len(facts.get("resources", [])),
                     "directory_count": existing_dirs,  # Actually count existing Altinn directories
                 },
             )
         )
+        
+        from shared.utils.logging_utils import get_logger
+        log = get_logger(__name__)
+        log.info(f"✅ Scan complete, returning state with next_action={state.next_action}")
 
     except Exception as exc:
+        from shared.utils.logging_utils import get_logger
+        log = get_logger(__name__)
+        log.error(f"❌ Scan failed: {exc}", exc_info=True)
         sink.send(
             AgentEvent(
                 type="error",

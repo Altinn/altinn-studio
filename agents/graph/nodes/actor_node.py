@@ -91,28 +91,28 @@ async def handle(state: AgentState) -> AgentState:
                 
                 # Normalize component properties for layout files
                 if is_layout_file and isinstance(item, dict):
-                    # Fix component ID to match Altinn pattern
+                    # Fix component ID to match Altinn pattern (lowercase, hyphen-separated)
                     if "id" in item:
                         original_id = item["id"]
                         item["id"] = normalize_component_id(original_id)
                     
-                    # Update text resource binding to match new ID
-                    if "textResourceBindings" in item and "title" in item["textResourceBindings"]:
-                        item["textResourceBindings"]["title"] = f"{item['id']}.title"
+                    # DO NOT auto-normalize text resource bindings - they follow different pattern
+                    # Text resources use app.field.{camelCase} format, not component-id.title
+                    # Let the LLM generate correct text resource IDs based on dataModelBindings
+                    
+                    # CRITICAL: Normalize children references to match component IDs
+                    if "children" in item and isinstance(item["children"], list):
+                        item["children"] = [normalize_component_id(child) for child in item["children"]]
                     
                     # BE CONSERVATIVE: Only remove properties we know are invalid
                     # Don't add properties since schema loading is broken
                     # Let the validation phase catch any remaining issues
                         
-                # Also normalize text resource insertions
+                # Text resource IDs should follow app.field.{camelCase} pattern
+                # DO NOT normalize them - they have their own convention separate from component IDs
                 elif is_resource_file and isinstance(item, dict) and "id" in item:
-                    # Update text resource ID to match component
-                    original_resource_id = item["id"]
-                    if ".title" in original_resource_id:
-                        # Extract base ID and normalize it
-                        base_id = original_resource_id.replace(".title", "")
-                        normalized_base = normalize_component_id(base_id)
-                        item["id"] = f"{normalized_base}.title"
+                    # Keep text resource IDs as-is - they follow app.field.{camelCase} convention
+                    pass
                         
                 normalized_change["item"] = item
             normalized_patch_data["changes"].append(normalized_change)
@@ -211,8 +211,8 @@ async def handle(state: AgentState) -> AgentState:
         # Always check git status after applying changes to see what actually changed
         try:
             import subprocess
-            result = subprocess.run(["git", "status", "--porcelain"], cwd=state.repo_path, capture_output=True, text=True)
-            actual_changed_files = [line.split()[-1] for line in result.stdout.strip().split('\n') if line.strip()]
+            git_status = subprocess.run(["git", "status", "--porcelain"], cwd=state.repo_path, capture_output=True, text=True)
+            actual_changed_files = [line.split()[-1] for line in git_status.stdout.strip().split('\n') if line.strip()]
             
             if not actual_changed_files:
                 log.warning("⚠️ Git status shows no actual changes after patch application")
