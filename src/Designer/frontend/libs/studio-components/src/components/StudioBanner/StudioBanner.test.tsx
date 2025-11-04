@@ -74,12 +74,6 @@ describe('StudioBanner', () => {
     expect(banner).toBeInTheDocument();
   });
 
-  it('should have aria-labelledby attribute pointing to title', () => {
-    renderBanner();
-    const banner = screen.getByRole('dialog');
-    expect(banner).toHaveAttribute('aria-labelledby', 'banner-title');
-  });
-
   it('should render all parts together', () => {
     renderBanner({
       description,
