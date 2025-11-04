@@ -10,8 +10,7 @@ namespace LocalTest.Models
     public enum AppMode
     {
         Http,
-        File,
-        Auto
+        File
     }
 
     public class StartAppModel

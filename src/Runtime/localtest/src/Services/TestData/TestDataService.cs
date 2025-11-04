@@ -42,6 +42,47 @@ public class TestDataService
                     model.Authorization.SystemUsers = diskModel.Authorization.SystemUsers;
                 }
 
+                // Try to get and merge test data from all registered apps
+                if (_appRegistryService != null)
+                {
+                    var registrations = _appRegistryService.GetAll();
+                    if (registrations.Count > 0)
+                    {
+                        var merged = new TestDataModel();
+                        PopulateDefaults(merged);
+                        bool hasData = false;
+
+                        foreach (var registration in registrations.Values)
+                        {
+                            try
+                            {
+                                var apps = await _localApp.GetApplications();
+                                if (apps.TryGetValue(registration.AppId, out var app))
+                                {
+                                    var appData = await _localApp.GetTestData();
+                                    if (appData != null)
+                                    {
+                                        var appModel = appData.GetTestDataModel();
+                                        TestDataMerger.MergeTestData(appModel, merged);
+                                        hasData = true;
+                                        _logger.LogInformation("Merged test data from {AppId}", registration.AppId);
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogWarning(ex, "Failed to get test data from registered app {AppId}", registration.AppId);
+                            }
+                        }
+
+                        if (hasData)
+                        {
+                            return merged;
+                        }
+                    }
+                }
+
+                // Fallback to old behavior: try to get from default app
                 try
                 {
                     var appData = await _localApp.GetTestData();
@@ -49,6 +90,7 @@ public class TestDataService
                     if (appData is not null)
                     {
                         var model = appData.GetTestDataModel();
+                        PopulateDefaults(model);
                         return model;
                     }
                 }
@@ -63,30 +105,11 @@ public class TestDataService
                     // Use tenor users if they exist
                     var model = tenorUsers.GetTestDataModel();
                     PopulateDefaults(model);
-
-                    // In auto mode, merge app-specific users from registry
-                    MergeAppRegistryUsers(model);
-
                     return model;
                 }
 
                 //Fallback to Ola Nordmann, Sofie Salt ... if no other users are availible
-                // In auto mode, merge app-specific users from registry
-                MergeAppRegistryUsers(diskModel);
-
                 return diskModel;
             }))!;
-    }
-
-    private void MergeAppRegistryUsers(TestDataModel baseModel)
-    {
-        if (_appRegistryService == null)
-            return;
-
-        var mergedAppData = _appRegistryService.GetMergedTestData();
-        if (mergedAppData == null)
-            return;
-
-        TestDataMerger.MergeTestData(mergedAppData, baseModel);
     }
 }

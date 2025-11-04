@@ -196,14 +196,11 @@ namespace LocalTest
 
             services.AddDirectoryBrowser();
 
-            // Access local app details depending on LocalAppMode ("file", "http", or "auto")
-            if ("auto".Equals(Configuration["LocalPlatformSettings:LocalAppMode"], StringComparison.InvariantCultureIgnoreCase))
+            // Access local app details depending on LocalAppMode ("file" or "http")
+            // AppRegistryService is always registered for http mode to support dynamic port registration
+            if ("http".Equals(Configuration["LocalPlatformSettings:LocalAppMode"], StringComparison.InvariantCultureIgnoreCase))
             {
                 services.AddSingleton<AppRegistryService>();
-                services.AddTransient<ILocalApp, LocalAppAuto>();
-            }
-            else if ("http".Equals(Configuration["LocalPlatformSettings:LocalAppMode"], StringComparison.InvariantCultureIgnoreCase))
-            {
                 services.AddTransient<ILocalApp, LocalAppHttp>();
             }
             else

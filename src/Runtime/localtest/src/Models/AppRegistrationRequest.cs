@@ -1,5 +1,4 @@
 #nullable enable
-using LocalTest.Services.TestData;
 
 namespace LocalTest.Models;
 
@@ -23,9 +22,4 @@ public class AppRegistrationRequest
     /// If not provided, defaults to "host.docker.internal" for apps running on the host machine.
     /// </summary>
     public string? Hostname { get; set; }
-
-    /// <summary>
-    /// Optional test data for this app (custom users, organizations, etc.)
-    /// </summary>
-    public AppTestDataModel? TestData { get; set; }
 }

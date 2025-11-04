@@ -71,7 +71,6 @@ namespace LocalTest.Controllers
         {
             AppMode appMode = _localPlatformSettings.LocalAppMode switch
             {
-                "auto" => AppMode.Auto,
                 "file" => AppMode.File,
                 _ => AppMode.Http
             };
@@ -88,14 +87,15 @@ namespace LocalTest.Controllers
             try
             {
                 model.TestApps = await GetAppsList();
-                if (model.AppMode == AppMode.Http)
+                // Set org/app if exactly one app is available (single-app scenario)
+                if (model.AppMode == AppMode.Http && model.TestApps?.Count == 1)
                 {
                     model.Org = model.TestApps[0].Value?.Split("/").FirstOrDefault();
                     model.App = model.TestApps[0].Value?.Split("/").LastOrDefault();
                 }
                 model.TestUsers = await GetTestUsersAndPartiesSelectList();
                 model.UserSelect = Request.Cookies["Localtest_User.Party_Select"];
-                var defaultAuthLevel = await GetAppAuthLevel(model.AppMode == AppMode.Http, model.TestApps);
+                var defaultAuthLevel = await GetAppAuthLevel(model.AppMode == AppMode.Http && model.TestApps?.Count == 1, model.TestApps);
                 model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
             }
             catch (HttpRequestException e)
@@ -104,8 +104,9 @@ namespace LocalTest.Controllers
             }
 
 
-            // In auto mode, apps register themselves, so empty list is OK
-            if (appMode != AppMode.Auto && (!model.TestApps?.Any() ?? true))
+            // In http mode, apps can register themselves, so empty list is OK
+            // Only show invalid path error in file mode
+            if (appMode == AppMode.File && (!model.TestApps?.Any() ?? true))
             {
                 model.InvalidAppPath = true;
             }
@@ -122,9 +123,8 @@ namespace LocalTest.Controllers
         [HttpGet("/Home/Localtest/Version")]
         public IActionResult Version()
         {
-            // Return version 3 only in auto mode, otherwise version 2
-            var version = _localPlatformSettings.LocalAppMode?.Equals("auto", StringComparison.InvariantCultureIgnoreCase) == true ? "3" : "2";
-            return Ok(version);
+            // Always return version 2 - registration endpoint is always available
+            return Ok("2");
         }
 
         /// <summary>
@@ -136,7 +136,7 @@ namespace LocalTest.Controllers
         {
             if (_appRegistryService == null)
             {
-                return BadRequest("App registration is only available in 'auto' mode");
+                return BadRequest("App registration requires AppRegistryService to be configured");
             }
 
             if (string.IsNullOrWhiteSpace(request.AppId))
@@ -149,16 +149,8 @@ namespace LocalTest.Controllers
                 return BadRequest("Invalid port number");
             }
 
-            try
-            {
-                _appRegistryService.Register(request.AppId, request.Port, request.Hostname, request.TestData);
-                return Ok(new { message = "App registered successfully", appId = request.AppId, port = request.Port, hostname = request.Hostname });
-            }
-            catch (InvalidOperationException ex)
-            {
-                // This happens when trying to register conflicting user IDs
-                return BadRequest(ex.Message);
-            }
+            _appRegistryService.Register(request.AppId, request.Port, request.Hostname);
+            return Ok(new { message = "App registered successfully", appId = request.AppId, port = request.Port, hostname = request.Hostname ?? "host.docker.internal" });
         }
 
         /// <summary>
@@ -170,7 +162,7 @@ namespace LocalTest.Controllers
         {
             if (_appRegistryService == null)
             {
-                return BadRequest("App registration is only available in 'auto' mode");
+                return BadRequest("App registration requires AppRegistryService to be configured");
             }
 
             var removed = _appRegistryService.Unregister(appId);
