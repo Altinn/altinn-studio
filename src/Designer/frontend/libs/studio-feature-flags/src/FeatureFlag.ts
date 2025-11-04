@@ -4,6 +4,5 @@ export enum FeatureFlag {
   Maskinporten = 'maskinporten',
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
   AppMetadata = 'appMetadata',
-  ImageUpload = 'imageUpload',
   NewCodeLists = 'newCodeLists',
 }
