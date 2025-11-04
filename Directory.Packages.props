@@ -14,7 +14,7 @@
     <PackageVersion Include="MinVer" Version="6.0.0" />
     <PackageVersion Include="Nullable.Extended.Analyzer" Version="1.15.6581" />
     <PackageVersion Include="PublicApiGenerator" Version="11.5.0" />
-    <PackageVersion Include="Verify.Xunit" Version="30.20.1" />
+    <PackageVersion Include="Verify.Xunit" Version="31.4.0" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.15.0.120848" />
     <PackageVersion Include="WireMock.Net" Version="1.15.0" />
   </ItemGroup>
