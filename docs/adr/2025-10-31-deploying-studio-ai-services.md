@@ -60,12 +60,12 @@ Both services will have their own API key to connect to the Azure AI service, in
 
 ```mermaid
 graph TB
-  User[Studio User] --- Frontend[Designer Frontend]
-  LocalDev[Local Development Tools] --- MCP
+  User[Studio User] --> Frontend[Designer Frontend]
+  LocalDev[Local Development Tools] --> MCP
   subgraph K8s["Kubernetes Cluster"]
-    Frontend --- Backend[Designer Backend]
-    Backend --- Agent[Agent]
-    Agent --- MCP[MCP]
+    Frontend --> Backend[Designer Backend]
+    Backend --> Agent[Agent]
+    Agent --> MCP[MCP]
     subgraph AgentNS["Agent Namespace"]
       Agent
     end
@@ -77,11 +77,11 @@ graph TB
       StudioCookies[Cookie Auth]
       GiteaRepo[Repository]
     end
-    Agent --- StudioCookies
-    MCP --- PAT
-    MCP --- StudioCookies
-    Agent --- GiteaRepo
+    Agent --> StudioCookies
+    MCP --> PAT
+    MCP --> StudioCookies
+    Agent --> GiteaRepo
   end
-  Agent --- AzureAI[Azure AI Foundry]
-  MCP --- AzureAI
+  Agent --> AzureAI[Azure AI Foundry]
+  MCP --> AzureAI
 ```
