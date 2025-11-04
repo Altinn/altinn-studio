@@ -422,13 +422,13 @@ namespace LocalTest.Controllers
 
         private async Task<int> GetAppAuthLevel(bool isHttp, IEnumerable<SelectListItem> testApps)
         {
-            if (!isHttp)
+            if (!isHttp || testApps.Count() > 1)
             {
                 return 2;
             }
             try
             {
-                var appId = testApps.Single().Value;
+                var appId = testApps.FirstOrDefault().Value;
                 var policyString = await _localApp.GetXACMLPolicy(appId);
                 var document = new XmlDocument();
                 document.LoadXml(policyString);

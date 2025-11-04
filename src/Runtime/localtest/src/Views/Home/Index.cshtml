@@ -57,6 +57,13 @@
       }
     </div>
   }
+  else if (Model.TestApps == null || Model.TestApps.Any() == false)
+  {
+    <div class="alert alert-dark" role="alert">
+      <p>No apps are currently running. This is typically done by running the following command in an app directory:</p>
+      <pre>dotnet run</pre>
+    </div>
+  }
   else if (Model.InvalidAppPath)
   {
     <div class="alert alert-dark" role="alert">
@@ -81,35 +88,38 @@
       <h2>Testing app:  @Model.TestApps.First().Text</h2>
     }
 
-    @using (Html.BeginForm("LogInTestUser", "Home", FormMethod.Post, new { Class = "form-signin", enctype = "multipart/form-data" }))
+    @if(Model.TestApps != null && Model.TestApps.Any())
     {
-      @Html.AntiForgeryToken();
-      @if(Model.TestApps != null && Model.TestApps.Count() > 1)
+      @using (Html.BeginForm("LogInTestUser", "Home", FormMethod.Post, new { Class = "form-signin", enctype = "multipart/form-data" }))
       {
+        @Html.AntiForgeryToken();
+        @if(Model.TestApps != null && Model.TestApps.Count() > 1)
+        {
+          <div class="form-group">
+            <label for="AppPathSelection">Select app to test</label>
+            @Html.DropDownListFor(model => model.AppPathSelection, Model.TestApps, new { Class = "form-control", id = "AppPathSelection" })
+          </div>
+        }
         <div class="form-group">
-          <label for="AppPathSelection">Select app to test</label>
-          @Html.DropDownListFor(model => model.AppPathSelection, Model.TestApps, new { Class = "form-control", id = "AppPathSelection" })
+          <label for="UserSelect">Select test users</label>
+          @Html.DropDownListFor(model => model.UserSelect, Model.TestUsers, new { Class = "form-control", id = "UserSelect" })
+        </div>
+        <div class="form-group">
+          <label for="AuthenticationLevel">Select your authentication level</label>
+          @Html.DropDownListFor(model => model.AuthenticationLevel, Model.AuthenticationLevels, new { Class = "form-control" })
+        </div>
+        <div class="form-group">
+          <label for="prefill">
+            Prefill xml (use this to copy all the values from a <a id="prefillLink" href="/LocalPlatformStorage/blobs/@(Model.TestApps?.FirstOrDefault()?.Text ?? "")">previous instance</a>)<br />
+            A token autenticated as <strong id="prefillOrg">@(Model.TestApps?.FirstOrDefault()?.Text?.Split("/").FirstOrDefault() ?? "")</strong> will be used for for instantiation
+          </label>
+          <input class="form-control" type="file" id="prefill" name="prefill" accept=".xml"/>
+        </div>
+        <div class="form-group">
+          <button type="submit" class="btn btn-light" name="action" value="reauthenticate">Refresh authentication</button>
+          <button type="submit" class="btn btn-primary" name="action" value="start">Proceed to app</button>
         </div>
       }
-      <div class="form-group">
-        <label for="UserSelect">Select test users</label>
-        @Html.DropDownListFor(model => model.UserSelect, Model.TestUsers, new { Class = "form-control", id = "UserSelect" })
-      </div>
-      <div class="form-group">
-        <label for="AuthenticationLevel">Select your authentication level</label>
-        @Html.DropDownListFor(model => model.AuthenticationLevel, Model.AuthenticationLevels, new { Class = "form-control" })
-      </div>
-      <div class="form-group">
-        <label for="prefill">
-          Prefill xml (use this to copy all the values from a <a id="prefillLink" href="/LocalPlatformStorage/blobs/@(Model.TestApps?.First().Text ?? "")">previous instance</a>)<br />
-          A token autenticated as <strong id="prefillOrg">@(Model.TestApps?.First().Text?.Split("/").FirstOrDefault() ?? "")</strong> will be used for for instantiation
-        </label>
-        <input class="form-control" type="file" id="prefill" name="prefill" accept=".xml"/>
-      </div>
-      <div class="form-group">
-        <button type="submit" class="btn btn-light" name="action" value="reauthenticate">Refresh authentication</button>
-        <button type="submit" class="btn btn-primary" name="action" value="start">Proceed to app</button>
-      </div>
     }
 
     @if(!string.IsNullOrWhiteSpace(Model.LocalFrontendUrl))
