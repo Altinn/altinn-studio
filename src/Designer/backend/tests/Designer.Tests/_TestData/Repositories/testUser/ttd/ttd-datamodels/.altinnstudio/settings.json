@@ -1,4 +1,5 @@
 {
-  "repotype": "datamodels",
-  "datamodelling.preference": "jsonSchema"
+  "repoType": "Datamodels",
+  "imports": null,
+  "useNullableReferenceTypes": false
 }

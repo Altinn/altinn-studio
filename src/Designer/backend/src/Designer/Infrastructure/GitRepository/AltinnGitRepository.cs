@@ -1,5 +1,8 @@
 #nullable disable
+using System;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -146,6 +149,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 ? new AltinnStudioSettings { RepoType = AltinnRepositoryType.Datamodels }
                 : new AltinnStudioSettings { RepoType = AltinnRepositoryType.App };
 
+            settings.UseNullableReferenceTypes = false;
+
             await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, settings, true);
 
             return settings;
@@ -156,8 +161,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string altinnStudioSettingsJson = await ReadTextByRelativePathAsync(STUDIO_SETTINGS_FILEPATH);
             AltinnStudioSettings altinnStudioSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(altinnStudioSettingsJson, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });
 
-            bool needsSaving = false;
-
+            bool needsSaving = !IsAllPropertiesInJson(altinnStudioSettingsJson, altinnStudioSettings);
             if (altinnStudioSettings.RepoType == AltinnRepositoryType.Unknown)
             {
                 altinnStudioSettings.RepoType = IsDatamodelsRepo() ? AltinnRepositoryType.Datamodels : AltinnRepositoryType.App;
@@ -165,6 +169,22 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
 
             return (altinnStudioSettings, needsSaving);
+        }
+
+        private static bool IsAllPropertiesInJson(string altinnStudioSettingsJson, AltinnStudioSettings altinnStudioSettings)
+        {
+            PropertyInfo[] properties = altinnStudioSettings.GetType().GetProperties();
+            using JsonDocument jsonDocument = JsonDocument.Parse(altinnStudioSettingsJson);
+            JsonElement root = jsonDocument.RootElement;
+            var elements = root.EnumerateObject();
+            foreach (var property in properties)
+            {
+                if (!elements.Any(x => string.Equals(x.Name, property.Name, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         /// <summary>
