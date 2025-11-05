@@ -211,7 +211,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             }
         }
 
-        private void ParseGroupProperty(ElementMetadata element, StringBuilder classBuilder, ModelMetadata serviceMetadata, List<ElementMetadata> referredTypes, ref int elementOrder, bool useNullableReferenceTypes)
+        private void ParseGroupProperty(ElementMetadata element, StringBuilder classBuilder, ModelMetadata modelMetadata, List<ElementMetadata> referredTypes, ref int elementOrder, bool useNullableReferenceTypes)
         {
             var nullableReference = useNullableReferenceTypes ? "?" : string.Empty;
             WriteRestrictionAnnotations(classBuilder, element);
@@ -248,7 +248,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
                 if (_generationSettings.AddShouldSerializeForTagContent)
                 {
-                    AddShouldSerializeForTagContent(element, classBuilder, serviceMetadata);
+                    AddShouldSerializeForTagContent(element, classBuilder, modelMetadata);
                 }
             }
 
