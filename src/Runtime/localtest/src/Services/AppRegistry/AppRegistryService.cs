@@ -10,10 +10,19 @@ namespace LocalTest.Services.AppRegistry
     {
         private readonly ConcurrentDictionary<string, AppRegistration> _registrations = new();
         private readonly ILogger<AppRegistryService> _logger;
+        private readonly List<Action> _cacheInvalidationCallbacks = new();
 
         public AppRegistryService(ILogger<AppRegistryService> logger)
         {
             _logger = logger;
+        }
+
+        /// <summary>
+        /// Register a callback to be invoked when apps register/unregister
+        /// </summary>
+        public void RegisterCacheInvalidationCallback(Action callback)
+        {
+            _cacheInvalidationCallbacks.Add(callback);
         }
 
         /// <summary>
@@ -31,6 +40,9 @@ namespace LocalTest.Services.AppRegistry
                 appId,
                 _ => registration,
                 (_, _) => registration);
+
+            // Invalidate testData cache since app list changed
+            InvalidateTestDataCache();
 
             _logger.LogInformation("Registered app {AppId} on {Hostname}:{Port}", appId, hostname, port);
         }
@@ -59,9 +71,22 @@ namespace LocalTest.Services.AppRegistry
             var removed = _registrations.TryRemove(appId, out _);
             if (removed)
             {
+                // Invalidate testData cache since app list changed
+                InvalidateTestDataCache();
                 _logger.LogInformation("Unregistered app {AppId}", appId);
             }
             return removed;
+        }
+
+        /// <summary>
+        /// Invalidates cached testData to force re-fetching from apps
+        /// </summary>
+        private void InvalidateTestDataCache()
+        {
+            foreach (var callback in _cacheInvalidationCallbacks)
+            {
+                callback();
+            }
         }
     }
 

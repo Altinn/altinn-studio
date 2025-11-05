@@ -1,5 +1,7 @@
 #nullable enable
 
+using System.Text.Json;
+
 namespace LocalTest.Services.TestData;
 
 /// <summary>
@@ -7,15 +9,19 @@ namespace LocalTest.Services.TestData;
 /// </summary>
 public static class TestDataMerger
 {
+    private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions();
     /// <summary>
     /// Merges source test data into target test data.
     /// Only adds items that don't already exist in target (no overwrites).
     /// </summary>
     /// <param name="source">Source test data to merge from</param>
     /// <param name="target">Target test data to merge into</param>
-    public static void MergeTestData(TestDataModel source, TestDataModel target)
+    /// <param name="sourceIdentifier">Optional identifier for the source (e.g., app ID) used in error messages</param>
+    /// <exception cref="InvalidOperationException">Thrown if there are conflicting identifiers between source and target</exception>
+    public static void MergeTestData(TestDataModel source, TestDataModel target, string? sourceIdentifier = null)
     {
-        // Merge users from app registry
+        var conflicts = new List<string>();
+
         if (source.Profile?.User != null)
         {
             foreach (var (userId, user) in source.Profile.User)
@@ -24,10 +30,14 @@ public static class TestDataMerger
                 {
                     target.Profile.User[userId] = user;
                 }
+                else if (!AreEqual(user, target.Profile.User[userId]))
+                {
+                    conflicts.Add($"User ID {userId}");
+                }
+                // else: identical user already exists, no conflict
             }
         }
 
-        // Merge parties
         if (source.Register?.Party != null)
         {
             foreach (var (partyId, party) in source.Register.Party)
@@ -36,10 +46,13 @@ public static class TestDataMerger
                 {
                     target.Register.Party[partyId] = party;
                 }
+                else if (!AreEqual(party, target.Register.Party[partyId]))
+                {
+                    conflicts.Add($"Party ID {partyId}");
+                }
             }
         }
 
-        // Merge persons
         if (source.Register?.Person != null)
         {
             foreach (var (ssn, person) in source.Register.Person)
@@ -48,10 +61,13 @@ public static class TestDataMerger
                 {
                     target.Register.Person[ssn] = person;
                 }
+                else if (!AreEqual(person, target.Register.Person[ssn]))
+                {
+                    conflicts.Add($"Person SSN {ssn}");
+                }
             }
         }
 
-        // Merge orgs
         if (source.Register?.Org != null)
         {
             foreach (var (orgNumber, org) in source.Register.Org)
@@ -60,10 +76,13 @@ public static class TestDataMerger
                 {
                     target.Register.Org[orgNumber] = org;
                 }
+                else if (!AreEqual(org, target.Register.Org[orgNumber]))
+                {
+                    conflicts.Add($"Organization number {orgNumber}");
+                }
             }
         }
 
-        // Merge party lists
         if (source.Authorization?.PartyList != null)
         {
             foreach (var (userId, parties) in source.Authorization.PartyList)
@@ -75,7 +94,6 @@ public static class TestDataMerger
             }
         }
 
-        // Merge roles
         if (source.Authorization?.Roles != null)
         {
             foreach (var (userId, roles) in source.Authorization.Roles)
@@ -86,5 +104,27 @@ public static class TestDataMerger
                 }
             }
         }
+
+        if (conflicts.Count > 0)
+        {
+            var sourceName = sourceIdentifier ?? "source";
+            var message = $"Test data conflict detected in {sourceName}. The following identifiers have conflicts: {string.Join(", ", conflicts)}. Each app must use unique user IDs, party IDs, SSNs, and organization numbers OR use the same identifiers with the exact same values.";
+            throw new InvalidOperationException(message);
+        }
+    }
+
+    /// <summary>
+    /// Performs a deep equality comparison by serializing both objects to JSON and comparing.
+    /// This ensures all properties are compared, including nested objects and collections.
+    /// </summary>
+    private static bool AreEqual<T>(T obj1, T obj2)
+    {
+        if (ReferenceEquals(obj1, obj2)) return true;
+        if (obj1 == null || obj2 == null) return false;
+
+        var json1 = JsonSerializer.Serialize(obj1, _jsonOptions);
+        var json2 = JsonSerializer.Serialize(obj2, _jsonOptions);
+
+        return json1 == json2;
     }
 }

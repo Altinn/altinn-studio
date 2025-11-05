@@ -178,39 +178,130 @@ namespace LocalTest.Services.LocalApp.Implementation
             return JsonSerializer.Deserialize<Instance>(stringResponse, new JsonSerializerOptions{PropertyNameCaseInsensitive = true});
         }
 
+        public record TestDataResult(AppTestDataModel? Data, bool AllAppsHaveData);
+
+        private record FetchResult(AppTestDataModel? MergedData, bool AppWasReachable, bool AppHadData);
+
         public async Task<AppTestDataModel?> GetTestData()
         {
-            return await _cache.GetOrCreateAsync(TEST_DATA_CACHE_KEY, async (cacheEntry) =>
+            var result = await GetTestDataWithMetadata();
+            return result.Data;
+        }
+
+        public async Task<TestDataResult> GetTestDataWithMetadata()
+        {
+            var result = await _cache.GetOrCreateAsync(TEST_DATA_CACHE_KEY, async (cacheEntry) =>
             {
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
+                AppTestDataModel? merged = null;
+                int reachableApps = 0;
+                int appsWithData = 0;
 
+                var registrations = _appRegistryService.GetAll();
+                foreach (var registration in registrations.Values)
+                {
+                    try
+                    {
+                        var result = await FetchAndMergeTestData(registration.AppId, $"{registration.AppId}/testData.json", merged);
+                        if (result.AppWasReachable)
+                        {
+                            reachableApps++;
+                            if (result.AppHadData)
+                            {
+                                appsWithData++;
+                            }
+                            merged = result.MergedData;
+                        }
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        _logger.LogCritical(ex, "Test data conflict detected when loading from app {AppId}", registration.AppId);
+                        throw;
+                    }
+                }
+
+                // Also try default app (port 5005) as fallback
                 try
                 {
-                    var applicationmetadata = await GetApplicationMetadata(null);
-                    if (applicationmetadata is null)
+                    var defaultAppMetadata = await GetApplicationMetadata(null);
+                    if (defaultAppMetadata != null)
                     {
-                        return null;
-                    }
+                        var defaultResult = await FetchAndMergeTestData(defaultAppMetadata.Id, $"{defaultAppMetadata.Id}/testData.json", merged);
 
-                    using var client = CreateClient(applicationmetadata.Id);
-                    var response = await client.GetAsync($"{applicationmetadata.Id}/testData.json");
-                    if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                    {
-                        _logger.LogInformation("No custom www/testData.json found. Using default test users");
-                        return null;
+                        if (defaultResult.AppWasReachable)
+                        {
+                            reachableApps++;
+                            if (defaultResult.AppHadData)
+                            {
+                                appsWithData++;
+                            }
+                            merged = defaultResult.MergedData;
+                        }
                     }
-
-                    response.EnsureSuccessStatusCode();
-                    var data = await response.Content.ReadAsByteArrayAsync();
-                    return JsonSerializer.Deserialize<AppTestDataModel>(data.RemoveBom(), JSON_OPTIONS);
                 }
-                catch (HttpRequestException e)
+                catch (InvalidOperationException ex)
                 {
-                    _logger.LogCritical(e, "Failed to get Test data");
-                    return null;
+                    _logger.LogCritical(ex, "Test data conflict detected when loading from default app");
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "No default app found on port 5005");
                 }
 
+                var allHaveData = merged != null && reachableApps > 0 && appsWithData == reachableApps;
+                _logger.LogInformation("GetTestDataWithMetadata: reachableApps={ReachableApps}, appsWithData={AppsWithData}, allHaveData={AllHaveData}",
+                    reachableApps, appsWithData, allHaveData);
+
+                return new TestDataResult(merged, allHaveData);
             });
+
+            return result ?? new TestDataResult(null, false);
+        }
+
+        private async Task<FetchResult> FetchAndMergeTestData(string? appId, string requestUri, AppTestDataModel? merged)
+        {
+            try
+            {
+                using var client = CreateClient(appId);
+                var response = await client.GetAsync(requestUri);
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new FetchResult(merged, AppWasReachable: true, AppHadData: false);
+                }
+
+                response.EnsureSuccessStatusCode();
+                var data = await response.Content.ReadAsByteArrayAsync();
+                var appData = JsonSerializer.Deserialize<AppTestDataModel>(data.RemoveBom(), JSON_OPTIONS);
+
+                if (appData != null)
+                {
+                    if (merged == null)
+                    {
+                        return new FetchResult(appData, AppWasReachable: true, AppHadData: true);
+                    }
+
+                    var sourceModel = appData.GetTestDataModel();
+                    var targetModel = merged.GetTestDataModel();
+
+                    // MergeTestData will detect conflicts and throw if any already exist
+                    TestDataMerger.MergeTestData(sourceModel, targetModel, appId ?? "default app");
+                    merged = AppTestDataModel.FromTestDataModel(targetModel);
+                    return new FetchResult(merged, AppWasReachable: true, AppHadData: true);
+                }
+
+                return new FetchResult(merged, AppWasReachable: true, AppHadData: false);
+            }
+            catch (HttpRequestException e)
+            {
+                _logger.LogWarning(e, "Failed to get test data from app {AppId} - app appears to be offline", appId);
+                return new FetchResult(merged, AppWasReachable: false, AppHadData: false);
+            }
+        }
+
+        public void InvalidateTestDataCache()
+        {
+            _cache.Remove(TEST_DATA_CACHE_KEY);
         }
     }
 }

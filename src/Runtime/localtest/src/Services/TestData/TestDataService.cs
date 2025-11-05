@@ -35,60 +35,25 @@ public class TestDataService
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30);
 
                 var diskModel = await TestDataDiskReader.ReadFromDisk(_settings.LocalTestingStaticTestDataPath);
-                void PopulateDefaults(TestDataModel model)
-                {
-                    // TODO: this is weird
-                    model.Authorization.Systems = diskModel.Authorization.Systems;
-                    model.Authorization.SystemUsers = diskModel.Authorization.SystemUsers;
-                }
 
-                // Try to get and merge test data from all registered apps
-                var registrations = _appRegistryService.GetAll();
-                if (registrations.Count > 0)
-                {
-                    var merged = new TestDataModel();
-                    PopulateDefaults(merged);
-                    bool hasData = false;
-
-                    foreach (var registration in registrations.Values)
-                    {
-                        try
-                        {
-                            var apps = await _localApp.GetApplications();
-                            if (apps.TryGetValue(registration.AppId, out var app))
-                            {
-                                var appData = await _localApp.GetTestData();
-                                if (appData != null)
-                                {
-                                    var appModel = appData.GetTestDataModel();
-                                    TestDataMerger.MergeTestData(appModel, merged);
-                                    hasData = true;
-                                    _logger.LogInformation("Merged test data from {AppId}", registration.AppId);
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogInformation(ex, "Failed to get test data from registered app {AppId}", registration.AppId);
-                        }
-                    }
-
-                    if (hasData)
-                    {
-                        return merged;
-                    }
-                }
-
-                // Fallback to old behavior: try to get from default app
                 try
                 {
-                    var appData = await _localApp.GetTestData();
-
-                    if (appData is not null)
+                    var appResult = await _localApp.GetTestDataWithMetadata();
+                    if (appResult.Data is not null)
                     {
-                        var model = appData.GetTestDataModel();
-                        PopulateDefaults(model);
-                        return model;
+                        var appModel = appResult.Data.GetTestDataModel();
+
+                        // If ALL apps provided testData, use ONLY that testData (no built-in users)
+                        // If ANY app lacks testData, merge app data INTO disk data (built-in users included)
+                        if (appResult.AllAppsHaveData)
+                        {
+                            _logger.LogInformation("Using only app-provided test data (no built-in users)");
+                            return appModel;
+                        }
+
+                        _logger.LogInformation("Merging app test data with built-in users");
+                        TestDataMerger.MergeTestData(appModel, diskModel, "app testData");
+                        return diskModel;
                     }
                 }
                 catch (HttpRequestException e)
@@ -99,14 +64,19 @@ public class TestDataService
                 var tenorUsers = await _tenorDataRepository.GetAppTestDataModel();
                 if (tenorUsers is not null && !tenorUsers.IsEmpty())
                 {
-                    // Use tenor users if they exist
-                    var model = tenorUsers.GetTestDataModel();
-                    PopulateDefaults(model);
-                    return model;
+                    // Merge tenor users INTO disk data
+                    var tenorModel = tenorUsers.GetTestDataModel();
+                    TestDataMerger.MergeTestData(tenorModel, diskModel, "Tenor users");
+                    return diskModel;
                 }
 
-                //Fallback to Ola Nordmann, Sofie Salt ... if no other users are availible
+                // Return built-in users (Ola Nordmann, Sofie Salt, etc.) if no other users are available
                 return diskModel;
             }))!;
+    }
+
+    public void InvalidateCache()
+    {
+        _cache.Remove("TEST_DATA");
     }
 }

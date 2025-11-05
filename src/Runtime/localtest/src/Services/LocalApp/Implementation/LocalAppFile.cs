@@ -148,5 +148,16 @@ namespace LocalTest.Services.LocalApp.Implementation
             // Not implemented, but empty result is vald, so better than NotImplementedException
             return Task.FromResult<AppTestDataModel?>(null);
         }
+
+        public Task<LocalAppHttp.TestDataResult> GetTestDataWithMetadata()
+        {
+            // LocalAppFile doesn't fetch testData
+            return Task.FromResult(new LocalAppHttp.TestDataResult(null, false));
+        }
+
+        public void InvalidateTestDataCache()
+        {
+            // LocalAppFile doesn't use cache, so nothing to invalidate
+        }
     }
 }

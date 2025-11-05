@@ -28,6 +28,9 @@ using LocalTest.Clients.CdnAltinnOrgs;
 using LocalTest.Configuration;
 using LocalTest.Filters;
 using LocalTest.Helpers;
+using LocalTest.Services.AppRegistry;
+using LocalTest.Services.LocalApp.Interface;
+using LocalTest.Services.TestData;
 using LocalTest.Notifications.LocalTestNotifications;
 using LocalTest.Services.AccessManagement;
 using LocalTest.Services.Authentication.Implementation;
@@ -36,7 +39,6 @@ using LocalTest.Services.Authorization.Implementation;
 using LocalTest.Services.Authorization.Interface;
 using LocalTest.Services.Events.Implementation;
 using LocalTest.Services.LocalApp.Implementation;
-using LocalTest.Services.LocalApp.Interface;
 using LocalTest.Services.LocalFrontend;
 using LocalTest.Services.LocalFrontend.Interface;
 using LocalTest.Services.Profile.Implementation;
@@ -44,8 +46,6 @@ using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.Register.Implementation;
 using LocalTest.Services.Register.Interface;
 using LocalTest.Services.Storage.Implementation;
-using LocalTest.Services.TestData;
-using LocalTest.Services.AppRegistry;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.FileProviders;
@@ -219,8 +219,15 @@ namespace LocalTest
         public void Configure(
             IApplicationBuilder app,
             IWebHostEnvironment env,
-            IOptions<LocalPlatformSettings> localPlatformSettings)
+            IOptions<LocalPlatformSettings> localPlatformSettings,
+            AppRegistryService appRegistry,
+            ILocalApp localApp,
+            TestDataService testDataService)
         {
+            // Register cache invalidation callbacks
+            appRegistry.RegisterCacheInvalidationCallback(() => localApp.InvalidateTestDataCache());
+            appRegistry.RegisterCacheInvalidationCallback(() => testDataService.InvalidateCache());
+
             if (env.IsDevelopment() || env.IsEnvironment("docker") || env.IsEnvironment("podman"))
             {
                 app.UseDeveloperExceptionPage();
