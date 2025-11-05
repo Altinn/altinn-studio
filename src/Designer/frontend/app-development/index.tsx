@@ -7,10 +7,14 @@ import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewCo
 import 'app-shared/design-tokens';
 import type { LoggerConfig } from 'app-shared/contexts/LoggerContext';
 import { LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
+import { PostHogContextProvider } from 'app-shared/contexts/PostHogContext';
+import { EnvironmentConfigProvider } from 'app-shared/contexts/EnvironmentConfigContext';
 import type { QueryClientConfig } from '@tanstack/react-query';
 import { PageRoutes } from './router/PageRoutes';
 import { AppDevelopmentContextProvider } from './contexts/AppDevelopmentContext';
 import { FeatureFlagsProvider } from '@studio/feature-flags';
+import { ConsentProvider } from './utils/consent';
+import { ConsentBanner } from './components/ConsentBanner';
 
 const loggerConfig: LoggerConfig = {
   enableUnhandledPromiseRejectionTracking: true,
@@ -30,15 +34,22 @@ const queryClientConfig: QueryClientConfig = {
 };
 
 root.render(
-  <LoggerContextProvider config={loggerConfig}>
-    <FeatureFlagsProvider>
-      <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
-        <PreviewConnectionContextProvider>
-          <AppDevelopmentContextProvider>
-            <PageRoutes />
-          </AppDevelopmentContextProvider>
-        </PreviewConnectionContextProvider>
-      </ServicesContextProvider>
-    </FeatureFlagsProvider>
-  </LoggerContextProvider>,
+  <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
+    <EnvironmentConfigProvider>
+      <LoggerContextProvider config={loggerConfig}>
+        <FeatureFlagsProvider>
+          <PostHogContextProvider>
+            <ConsentProvider>
+              <PreviewConnectionContextProvider>
+                <AppDevelopmentContextProvider>
+                  <PageRoutes />
+                  <ConsentBanner />
+                </AppDevelopmentContextProvider>
+              </PreviewConnectionContextProvider>
+            </ConsentProvider>
+          </PostHogContextProvider>
+        </FeatureFlagsProvider>
+      </LoggerContextProvider>
+    </EnvironmentConfigProvider>
+  </ServicesContextProvider>,
 );
