@@ -16,6 +16,8 @@ module.exports = {
       puppeteerLaunchOptions: {
         headless: true,
       },
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      chromePath: require('puppeteer').executablePath(),
     },
     upload: {
       target: 'temporary-public-storage',

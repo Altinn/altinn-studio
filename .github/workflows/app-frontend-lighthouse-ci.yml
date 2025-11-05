@@ -61,9 +61,6 @@ jobs:
         env:
           TEST_DOMAIN: local.altinn.cloud
           ALTINN3LOCAL_PORT: 80
-
-      - name: Install puppeteer globally
-        run: npm i -g puppeteer
       - name: Run Lighthouse CI with authentication
         working-directory: src/App/frontend
         run: yarn run lhci
