@@ -34,14 +34,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             CreateModelFromMetadataRecursive(classes, rootElementType, serviceMetadata, serviceMetadata.TargetNamespace, useNullableReferenceTypes);
 
             StringBuilder writer = new StringBuilder();
-            if (useNullableReferenceTypes)
-            {
-                writer.AppendLine("#nullable enable");
-            }
-            else
-            {
-                writer.AppendLine("#nullable disable");
-            }
+            writer.AppendLine(useNullableReferenceTypes ? "#nullable enable" : "#nullable disable");
             writer.AppendLine("using System;")
                 .AppendLine("using System.Collections.Generic;")
                 .AppendLine("using System.ComponentModel.DataAnnotations;")
@@ -69,7 +62,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
         /// <param name="parentElement">The parent Element</param>
         /// <param name="serviceMetadata">Model metadata</param>
         /// <param name="targetNamespace">Target namespace in xsd schema.</param>
-        /// <param name="useNullableReferenceTypes">wheter to add nullable? to reference types</param>
+        /// <param name="useNullableReferenceTypes">Whether to add nullable? to reference types</param>
         private void CreateModelFromMetadataRecursive(Dictionary<string, string> classes, ElementMetadata parentElement, ModelMetadata serviceMetadata, string targetNamespace, bool useNullableReferenceTypes)
         {
             List<ElementMetadata> referredTypes = new List<ElementMetadata>();
@@ -218,7 +211,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             }
         }
 
-        private void ParseGroupProperty(ElementMetadata element, StringBuilder classBuilder, ModelMetadata modelMetadata, List<ElementMetadata> referredTypes, ref int elementOrder, bool useNullableReferenceTypes)
+        private void ParseGroupProperty(ElementMetadata element, StringBuilder classBuilder, ModelMetadata serviceMetadata, List<ElementMetadata> referredTypes, ref int elementOrder, bool useNullableReferenceTypes)
         {
             var nullableReference = useNullableReferenceTypes ? "?" : string.Empty;
             WriteRestrictionAnnotations(classBuilder, element);
@@ -255,7 +248,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
                 if (_generationSettings.AddShouldSerializeForTagContent)
                 {
-                    AddShouldSerializeForTagContent(element, classBuilder, modelMetadata);
+                    AddShouldSerializeForTagContent(element, classBuilder, serviceMetadata);
                 }
             }
 
