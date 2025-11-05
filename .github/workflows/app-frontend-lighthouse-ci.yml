@@ -64,7 +64,7 @@ jobs:
 
       - name: Run Lighthouse CI with authentication
         working-directory: src/App/frontend
-        run: node lighthouse-auth.mjs
+        run: yarn run lhci
       - name: Upload Lighthouse results
         if: always()
         uses: actions/upload-artifact@v4

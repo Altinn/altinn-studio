@@ -28,7 +28,8 @@
     "tsc:watch": "yarn gen && tsc --watch",
     "tsc:watch:cypress": "yarn gen && tsc --watch --project test/tsconfig.json",
     "lint": "yarn gen && eslint .",
-    "bench": "tsx --expose_gc --tsconfig benchmarks/tsconfig.json benchmarks/${0}"
+    "bench": "tsx --expose_gc --tsconfig benchmarks/tsconfig.json benchmarks/${0}",
+    "lhci": "npx @lhci/cli autorun"
   },
   "devDependencies": {
     "@babel/core": "7.28.5",
@@ -111,6 +112,7 @@
     "mime": "4.1.0",
     "mini-css-extract-plugin": "2.9.4",
     "prettier": "3.6.2",
+    "puppeteer": "^24.29.0",
     "react-refresh": "0.18.0",
     "resize-observer-polyfill": "1.5.1",
     "source-map-loader": "5.0.0",
