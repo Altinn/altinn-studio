@@ -11,6 +11,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.UserAction;
@@ -1207,6 +1208,7 @@ public sealed class ProcessEngineTest
             Mock<IAppModel> appModelMock = new(MockBehavior.Strict);
             Mock<IAppMetadata> appMetadataMock = new(MockBehavior.Strict);
             Mock<IAppResources> appResourcesMock = new(MockBehavior.Strict);
+            Mock<ITranslationService> translationServiceMock = new(MockBehavior.Strict);
             var appMetadata = new ApplicationMetadata("org/app");
             appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
 
@@ -1270,6 +1272,7 @@ public sealed class ProcessEngineTest
             services.TryAddTransient<IAppModel>(_ => appModelMock.Object);
             services.TryAddTransient<IAppMetadata>(_ => appMetadataMock.Object);
             services.TryAddTransient<IAppResources>(_ => appResourcesMock.Object);
+            services.TryAddTransient<ITranslationService>(_ => translationServiceMock.Object);
             services.TryAddTransient<InstanceDataUnitOfWorkInitializer>();
 
             if (registerProcessEnd)

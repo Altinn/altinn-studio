@@ -17,8 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-		<!-- This defines the minimum required version of Altinn.App.Core and should not be bumped unless new features require it. -->
-    <PackageReference Include="Altinn.App.Core" VersionOverride="8.0.0" />
+    <ProjectReference Include="../../../backend/src/Altinn.App.Core/Altinn.App.Core.csproj" />
   </ItemGroup>
 
   <Target Name="GenerateDependencyAssemblyAttributes" BeforeTargets="GetAssemblyAttributes">

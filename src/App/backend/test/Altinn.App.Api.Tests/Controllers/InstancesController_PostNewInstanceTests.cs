@@ -15,6 +15,8 @@ using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
 using Json.Patch;
 using Json.Pointer;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -135,7 +137,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         };
 
         using HttpClient client = GetRootedClient(org, app, includeTraceContext: true);
-        var telemetry = this.Services.GetRequiredService<TelemetrySink>();
 
         var (createResponseParsed, _) = await InstancesControllerFixture.CreateInstanceSimplified(
             org,
@@ -156,8 +157,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         readDataElementResponseParsed.Melding.Should().BeNull(); // No content yet
         TestData.DeleteInstanceAndData(org, app, instanceId);
 
-        await telemetry.WaitForServerTelemetry(n: 2); // Two requests: create instance and read data element
-        await Verify(telemetry.GetSnapshot())
+        await Verify(await GetTelemetrySnapshot(numberOfActivities: 2, numberOfMetrics: 2))
             .ScrubInstance<KeyValuePair<string, object?>>(kvp => kvp.Key == "url.path")
             .UseTextForParameters(token.Type.ToString());
     }
@@ -195,21 +195,44 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         TestData.DeleteInstanceAndData(org, app, instanceId);
     }
 
-    [Fact]
-    public async Task PostNewInstanceWithInvalidData_EnsureInvalidResponse()
+    [Theory]
+    [InlineData(
+        "INVALID XML",
+        "There is an error in XML document (1, 1). Data at the root level is invalid. Line 1, position 1."
+    )]
+    [InlineData(
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?><Skjema><melding><name>Test</name></melding>",
+        "There is an error in XML document (1, 83). Unexpected end of file has occurred. The following elements are not closed: Skjema. Line 1, position 83."
+    )]
+    [InlineData(
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?><WrongRoot><melding><name>Test</name></melding></WrongRoot>",
+        "There is an error in XML document (1, 40). <WrongRoot xmlns=''> was not expected."
+    )] // Wrong root element
+    [InlineData(
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?><Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"><melding><name>Per Olsen</name><random>afdetsd</random><tags>ddd</tags><toggle>invalid boolean</toggle></melding></Skjema>",
+        "There is an error in XML document (1, 251). The string 'invalid boolean' is not a valid Boolean value."
+    )] // Invalid value for boolean
+    public async Task PostNewInstanceWithInvalidData_EnsureInvalidResponse(
+        string invalidXml,
+        string expectedDescription
+    )
     {
-        // Should probably be BadRequest, but this is what the current implementation returns
         // Setup test data
         string org = "tdd";
         string app = "contributer-restriction";
         int instanceOwnerPartyId = 501337;
+
+        OverrideServicesForThisTest = services =>
+        {
+            services.AddTelemetrySink(additionalActivitySources: source => source.Name == "Microsoft.AspNetCore");
+        };
         HttpClient client = GetRootedClient(org, app);
         string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
 
         // Create instance data
         using var content = new MultipartFormDataContent();
-        content.Add(new StringContent("INVALID XML", System.Text.Encoding.UTF8, "application/xml"), "default");
+        content.Add(new StringContent(invalidXml, System.Text.Encoding.UTF8, "application/xml"), "default");
 
         // Create instance
         var createResponse = await client.PostAsync(
@@ -217,8 +240,26 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             content
         );
         var createResponseContent = await createResponse.Content.ReadAsStringAsync();
-        createResponse.StatusCode.Should().Be(HttpStatusCode.InternalServerError, createResponseContent);
-        createResponseContent.Should().Contain("Instantiation of data elements failed");
+        OutputHelper.WriteLine(createResponseContent);
+
+        createResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+        createResponseContent.Should().Contain("Failed to deserialize XML");
+        var responseObject = System.Text.Json.JsonSerializer.Deserialize<ProblemDetails>(createResponseContent);
+        Assert.Equal("Failed to deserialize XML", responseObject?.Title);
+        Assert.Equal(expectedDescription, responseObject?.Detail);
+        Assert.Equal(StatusCodes.Status400BadRequest, responseObject?.Status);
+
+        var telemetrySnapshot = await GetTelemetrySnapshot(numberOfActivities: 1, numberOfMetrics: 0);
+
+        telemetrySnapshot
+            .Activities.Should()
+            .ContainSingle(a => a.Name == "SerializationService.DeserializeXml")
+            .Which.Events.Should()
+            .ContainSingle(e => e.Name == "exception")
+            .Which.Tags.Should()
+            .ContainSingle(t => t.Key == "exception.type")
+            .Which.Value.Should()
+            .Be("System.InvalidOperationException");
     }
 
     [Fact]
@@ -416,7 +457,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     }
 
     [Fact]
-    public async Task InstationAllowedByOrg_Returns_Ok_For_User_When_Copying_SimplifiedEndpoint()
+    public async Task InstantiationAllowedByOrg_Returns_Ok_For_User_When_Copying_SimplifiedEndpoint()
     {
         var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
         using var pdfReturnStream = new MemoryStream();

@@ -61,9 +61,10 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     public DataControllerPatchTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
         : base(factory, outputHelper)
     {
+        _formDataValidatorMock.SetupGet(v => v.NoIncrementalValidation).Returns(false);
+        _formDataValidatorMock.SetupGet(v => v.ShouldRunAfterRemovingHiddenData).Returns(false);
         _formDataValidatorMock.Setup(v => v.DataType).Returns("9edd53de-f46f-40a1-bb4d-3efb93dc113d");
         _formDataValidatorMock.Setup(v => v.ValidationSource).Returns("Not a valid validation source");
-        _formDataValidatorMock.SetupGet(v => v.NoIncrementalValidation).Returns(false);
         OverrideServicesForAllTests = (services) =>
         {
             services.AddSingleton(_dataProcessorMock.Object);
@@ -90,12 +91,6 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             url += $"?language={language}";
         }
         OutputHelper.WriteLine($"Calling PATCH {url}");
-        using var httpClient = GetRootedClient(Org, App);
-        string token = TestAuthentication.GetUserToken(userId: 1337);
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            AuthorizationSchemes.Bearer,
-            token
-        );
         var serializedPatch = JsonSerializer.Serialize(
             new DataPatchRequest() { Patch = patch, IgnoredValidators = ignoredValidators },
             _jsonSerializerOptions
@@ -364,14 +359,12 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         );
 
         var (_, _, parsedResponse) = await CallPatchApi<ProblemDetails>(patch, null, HttpStatusCode.Conflict);
-        var telemetry = this.Services.GetRequiredService<TelemetrySink>();
 
         parsedResponse.Detail.Should().Be("Path `/melding/name` is not equal to the indicated value.");
 
         _dataProcessorMock.VerifyNoOtherCalls();
 
-        await telemetry.WaitForServerTelemetry();
-        await Verify(telemetry.GetSnapshot());
+        await Verify(await GetTelemetrySnapshot(numberOfActivities: 1, numberOfMetrics: 1));
     }
 
     [Fact]

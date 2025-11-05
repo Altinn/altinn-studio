@@ -4,7 +4,6 @@ using System.Text.Json.Serialization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Validation.Default;
-using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;

@@ -1,3 +1,4 @@
+#nullable disable
 namespace Altinn.Studio.Designer.EventHandlers.DeploymentPipelineCompleted;
 
 public class StudioStatisticsEvent

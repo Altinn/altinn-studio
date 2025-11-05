@@ -3,13 +3,16 @@ package browser
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"os/exec"
 	"sort"
 	"strings"
 
 	"altinn.studio/pdf3/internal/assert"
+	"altinn.studio/pdf3/internal/log"
 )
+
+const browserPath string = "/headless-shell/headless-shell"
 
 // Process represents a running browser process with its connection details
 type Process struct {
@@ -22,6 +25,7 @@ type Process struct {
 // Start creates and starts a new Chrome/Chromium headless browser process
 // id: identifier for this browser instance (-1 for temporary/init processes)
 func Start(id int) (*Process, error) {
+	logger := log.NewComponent("browser").With("id", id)
 	args := createBrowserArgs()
 
 	// Override user data directory for this worker and set specific port
@@ -29,6 +33,8 @@ func Start(id int) (*Process, error) {
 	if id == -1 {
 		debugPort = 5049 // Special case for init worker
 	}
+
+	logger.Info("Starting browser", "path", browserPath, "port", debugPort)
 
 	var dataDir string
 	for i, arg := range args {
@@ -45,17 +51,17 @@ func Start(id int) (*Process, error) {
 			args[i] = fmt.Sprintf("--remote-debugging-port=%d", debugPort)
 		}
 	}
-	assert.AssertWithMessage(dataDir != "", "Should always initialize dataDir")
+	assert.AssertWithMessage(dataDir != "", "Should always initialize dataDir", "id", id)
 
 	// Add about:blank argument to create default page target
 	args = append(args, "about:blank")
 
 	// Only log args for the init worker (id == -1)
 	if id == -1 {
-		logArgs(args)
+		logArgs(logger, id, args)
 	}
 
-	cmd := exec.Command("/headless-shell/headless-shell", args...)
+	cmd := exec.Command(browserPath, args...)
 	debugPortStr := fmt.Sprintf("%d", debugPort)
 	debugBaseURL := fmt.Sprintf("http://127.0.0.1:%d", debugPort)
 
@@ -123,13 +129,11 @@ func createBrowserArgs() []string {
 }
 
 // logArgs logs browser arguments in a sorted, JSON format
-func logArgs(args []string) {
+func logArgs(logger *slog.Logger, id int, args []string) {
 	sortedArgs := make([]string, len(args))
 	copy(sortedArgs, args)
 	sort.Strings(sortedArgs)
 	argsAsJson, err := json.MarshalIndent(sortedArgs, "", "  ")
-	if err != nil {
-		log.Fatalf("Failed to marshal browser args to JSON: %v", err)
-	}
-	log.Printf("Browser args: %v\n", string(argsAsJson))
+	assert.AssertWithMessage(err == nil, "Failed to marshal browser args to JSON", "id", id, "error", err)
+	logger.Info("Browser args", "args", string(argsAsJson))
 }

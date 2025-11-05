@@ -6,6 +6,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Internal.Validation;
@@ -30,6 +31,7 @@ public class ValidatorFactory : IValidatorFactory
     private readonly IAppMetadata _appMetadata;
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IDataElementAccessChecker _dataElementAccessChecker;
+    private readonly IHostEnvironment _hostEnvironment;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ValidatorFactory"/> class.
@@ -37,13 +39,15 @@ public class ValidatorFactory : IValidatorFactory
     public ValidatorFactory(
         IOptions<GeneralSettings> generalSettings,
         IAppMetadata appMetadata,
-        IServiceProvider serviceProvider
+        IServiceProvider serviceProvider,
+        IHostEnvironment hostEnvironment
     )
     {
         _generalSettings = generalSettings;
         _appMetadata = appMetadata;
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
         _dataElementAccessChecker = serviceProvider.GetRequiredService<IDataElementAccessChecker>();
+        _hostEnvironment = hostEnvironment;
     }
 
     private IEnumerable<IValidator> GetIValidators(string taskId)
@@ -142,6 +146,33 @@ public class ValidatorFactory : IValidatorFactory
             validators.Add(new LegacyIInstanceValidatorFormDataValidator(_generalSettings, instanceValidator));
         }
 
+        ThrowIfDuplicateValidators(validators, taskId);
+
         return validators;
+    }
+
+    private void ThrowIfDuplicateValidators(List<IValidator> validators, string taskId)
+    {
+        // Only run verification in development
+        if (!_hostEnvironment.IsDevelopment())
+        {
+            return;
+        }
+
+        HashSet<string> uniqueSources = new(StringComparer.OrdinalIgnoreCase);
+        if (validators.All(v => uniqueSources.Add(v.ValidationSource)))
+        {
+            return;
+        }
+
+        var duplicates = validators
+            .GroupBy(v => v.ValidationSource, StringComparer.OrdinalIgnoreCase)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key);
+
+        var sources = string.Join('\n', validators.Select(v => $"{v.ValidationSource} {v.GetType().FullName}"));
+        throw new InvalidOperationException(
+            $"Duplicate validators found for task {taskId}. Ensure that each validator has a unique ValidationSource.\n\nDuplicates: {string.Join(", ", duplicates)}\n\nAll sources:\n{sources}"
+        );
     }
 }
