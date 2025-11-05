@@ -81,9 +81,9 @@ export const InputPopover = ({
       </DropdownMenu.Item>
       {isEditDialogOpen && (
         <StudioPopover.TriggerContext>
-          <Popover.Trigger asChild>
+          <StudioPopover.Trigger>
             <div ref={newNameRef} style={{ display: 'none' }} />
-          </Popover.Trigger>
+          </StudioPopover.Trigger>
           <StudioPopover open={isEditDialogOpen} onClose={handleClose}>
             <StudioTextfield
               label={t('ux_editor.input_popover_label')}
@@ -93,9 +93,11 @@ export const InputPopover = ({
               error={errorMessage !== null}
               autoFocus
             />
-            <ErrorMessage className={classes.errorMessage} size='small'>
-              {errorMessage}
-            </ErrorMessage>
+            {errorMessage && (
+              <ErrorMessage className={classes.errorMessage} size='small'>
+                {errorMessage}
+              </ErrorMessage>
+            )}
             <div className={classes.buttonContainer}>
               <StudioButton
                 color='first'
