@@ -7,6 +7,7 @@ import {
   StudioCard,
   StudioFormActions,
   StudioManualExpression,
+  StudioParagraph,
   StudioProperty,
 } from '@studio/components';
 import { useComponentPropertyLabel } from '@altinn/ux-editor/hooks';
@@ -62,6 +63,7 @@ export const TextComponent = ({
 
   return (
     <StudioCard className={cn(className, classes.wrapper)}>
+      <StudioParagraph>{componentPropertyLabel(textSpecificProperty)}</StudioParagraph>
       <StudioManualExpression
         expression={component.value}
         onValidExpressionChange={handleValidChange}
