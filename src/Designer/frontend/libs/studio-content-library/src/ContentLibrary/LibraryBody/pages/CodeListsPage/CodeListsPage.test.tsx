@@ -1,11 +1,23 @@
 import { render, screen, within } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { CodeListsPage } from './CodeListsPage';
+import type { CodeListsPageProps } from './CodeListsPage';
 import React from 'react';
 import { userEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { codeLists } from './test-data/codeLists';
+
+// Test data:
+const defaultProps: CodeListsPageProps = { codeLists };
 
 describe('CodeListsPage', () => {
+  it('Renders with the given code lists', () => {
+    renderCodeListPage();
+    codeLists.forEach((codeList) => {
+      expect(getCodeListHeading(codeList.name)).toBeInTheDocument();
+    });
+  });
+
   it('Adds a new code list when the add button is clicked', async () => {
     const user = userEvent.setup();
     renderCodeListPage();
@@ -40,14 +52,14 @@ describe('CodeListsPage', () => {
   });
 
   it('Displays a placeholder when the list of code lists is empty', () => {
-    renderCodeListPage();
+    renderCodeListPage({ codeLists: [] });
     const placeholderText = textMock('app_content_library.code_lists.empty');
     expect(screen.getByText(placeholderText)).toBeInTheDocument();
   });
 });
 
-function renderCodeListPage(): RenderResult {
-  return render(<CodeListsPage />);
+function renderCodeListPage(props?: CodeListsPageProps): RenderResult {
+  return render(<CodeListsPage {...defaultProps} {...props} />);
 }
 
 function getCodeListDetails(name: string): HTMLElement {
