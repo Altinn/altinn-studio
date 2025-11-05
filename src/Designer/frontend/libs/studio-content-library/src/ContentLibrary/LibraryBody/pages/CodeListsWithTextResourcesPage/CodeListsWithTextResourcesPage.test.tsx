@@ -1,10 +1,8 @@
 import React from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen, within } from '@testing-library/react';
-import type {
-  CodeListData,
-  CodeListsWithTextResourcesPageProps,
-} from './CodeListsWithTextResourcesPage';
+import type { CodeListsWithTextResourcesPageProps } from './CodeListsWithTextResourcesPage';
+import type { CodeListDataWithTextResources } from '../../../../types/CodeListDataWithTextResources';
 import { CodeListsWithTextResourcesPage } from './CodeListsWithTextResourcesPage';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
@@ -104,11 +102,11 @@ describe('CodeListsWithTextResourcesPage', () => {
   it('opens the new code list details when the user has uploaded a code list', async () => {
     const user = userEvent.setup();
     const { rerender } = renderCodeListsWithTextResourcesPage();
-    const newCodeListData: CodeListData = {
+    const newCodeListData: CodeListDataWithTextResources = {
       title: 'newCodeList',
       data: [{ value: 'value', label: 'label' }],
     };
-    const newCodeListDataList: CodeListData[] = [
+    const newCodeListDataList: CodeListDataWithTextResources[] = [
       ...defaultCodeListPageProps.codeListDataList,
       newCodeListData,
     ];

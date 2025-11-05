@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from '../../contexts/ServicesContext';
 import { QueryKey } from '../../types/QueryKey';
-import type { CodeListData } from '../../types/CodeListData';
+import type { CodeListDataWithTextResources } from '../../types/CodeListDataWithTextResources';
 import type { CodeListsResponse } from '../../types/api/CodeListsResponse';
 
-type UpdateOrgCodeListMutationArgs = Pick<CodeListData, 'title' | 'data'>;
+type UpdateOrgCodeListMutationArgs = Pick<CodeListDataWithTextResources, 'title' | 'data'>;
 
 export const useUpdateOrgCodeListMutation = (org: string) => {
   const queryClient = useQueryClient();

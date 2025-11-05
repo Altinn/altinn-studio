@@ -1,5 +1,5 @@
-import type { CodeListData } from '../types/CodeListData';
-import type { CodeList } from '../types/CodeList';
+import type { CodeListData } from '../../../../../types/CodeListData';
+import type { CodeList } from '../../../../../types/CodeList';
 
 export const colours: CodeList = [
   { value: 'red', label: { nb: 'Rød', en: 'Red' } },

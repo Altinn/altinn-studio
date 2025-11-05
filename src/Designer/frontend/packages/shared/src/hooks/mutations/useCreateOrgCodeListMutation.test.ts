@@ -3,7 +3,7 @@ import { org } from '@studio/testing/testids';
 import { queriesMock } from '../../mocks/queriesMock';
 import { useCreateOrgCodeListMutation } from './useCreateOrgCodeListMutation';
 import type { CodeListWithTextResources } from '../../types/CodeListWithTextResources';
-import type { CodeListData } from '../../types/CodeListData';
+import type { CodeListDataWithTextResources } from '../../types/CodeListDataWithTextResources';
 import { createQueryClientMock } from '../../mocks/queryClientMock';
 import { QueryKey } from '../../types/QueryKey';
 import type { CodeListsResponse } from '../../types/api/CodeListsResponse';
@@ -16,12 +16,12 @@ const codeList: CodeListWithTextResources = [
   },
 ];
 
-const newCodeList: CodeListData = {
+const newCodeList: CodeListDataWithTextResources = {
   title: 'new-title',
   data: codeList,
 };
 
-const existingCodeList: CodeListData = {
+const existingCodeList: CodeListDataWithTextResources = {
   title: 'existing-title',
   data: codeList,
 };

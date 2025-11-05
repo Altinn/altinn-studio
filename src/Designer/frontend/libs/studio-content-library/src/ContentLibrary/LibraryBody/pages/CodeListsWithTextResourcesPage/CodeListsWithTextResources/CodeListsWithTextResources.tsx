@@ -1,5 +1,5 @@
 import React from 'react';
-import type { CodeListData } from '../CodeListsWithTextResourcesPage';
+import type { CodeListDataWithTextResources } from '../../../../../types/CodeListDataWithTextResources';
 import type { CodeListWithMetadata } from '../types/CodeListWithMetadata';
 import { EditCodeList } from './EditCodeList/EditCodeList';
 import { Trans, useTranslation } from 'react-i18next';
@@ -10,7 +10,7 @@ import type { TextResource } from '@studio/components-legacy';
 import { StudioDetails, StudioCard, StudioAlert } from '@studio/components';
 
 export type CodeListsWithTextResourcesProps = {
-  codeListDataList: CodeListData[];
+  codeListDataList: CodeListDataWithTextResources[];
   onCreateTextResource?: (textResource: TextResource) => void;
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
@@ -44,7 +44,7 @@ type CodeListProps = Omit<
   CodeListsWithTextResourcesProps,
   'codeListDataList' | 'codeListsUsages'
 > & {
-  codeListData: CodeListData;
+  codeListData: CodeListDataWithTextResources;
   codeListSources: CodeListIdSource[];
 };
 

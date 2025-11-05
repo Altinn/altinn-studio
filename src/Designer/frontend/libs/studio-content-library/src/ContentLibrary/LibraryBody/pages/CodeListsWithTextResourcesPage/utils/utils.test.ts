@@ -7,7 +7,7 @@ import {
   getUsageTaskTypeTextKey,
   getTextResourcesForLanguage,
 } from './';
-import type { CodeListData } from '../CodeListsWithTextResourcesPage';
+import type { CodeListDataWithTextResources } from '../../../../../types/CodeListDataWithTextResources';
 import {
   label1ResourceNb,
   textResources,
@@ -133,7 +133,7 @@ describe('utils', () => {
   });
 
   describe('filterCodeLists', () => {
-    const codeLists: CodeListData[] = [
+    const codeLists: CodeListDataWithTextResources[] = [
       { title: 'Fruits' },
       { title: 'Vegetables' },
       { title: 'Dairy Products' },
@@ -171,7 +171,7 @@ describe('utils', () => {
     });
 
     it('should support special characters in search strings', () => {
-      const specialCharacterCodeLists: CodeListData[] = [
+      const specialCharacterCodeLists: CodeListDataWithTextResources[] = [
         { title: 'Cakes & Cookies' },
         { title: 'Ice-Cream' },
       ];

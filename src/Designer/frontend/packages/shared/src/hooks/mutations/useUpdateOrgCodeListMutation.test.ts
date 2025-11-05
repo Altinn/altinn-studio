@@ -6,7 +6,7 @@ import { useUpdateOrgCodeListMutation } from './useUpdateOrgCodeListMutation';
 import { createQueryClientMock } from '../../mocks/queryClientMock';
 import { QueryKey } from '../../types/QueryKey';
 import type { CodeListsResponse } from '../../types/api/CodeListsResponse';
-import type { CodeListData } from '../../types/CodeListData';
+import type { CodeListDataWithTextResources } from '../../types/CodeListDataWithTextResources';
 
 // Test data:
 const codeList: CodeListWithTextResources = [
@@ -16,12 +16,12 @@ const codeList: CodeListWithTextResources = [
   },
 ];
 
-const oldCodeList: CodeListData = {
+const oldCodeList: CodeListDataWithTextResources = {
   title: 'old-title',
   data: codeList,
 };
 
-const updatedCodeList: CodeListData = {
+const updatedCodeList: CodeListDataWithTextResources = {
   title: 'updated-title',
   data: codeList,
 };

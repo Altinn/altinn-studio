@@ -1,5 +1,5 @@
 import type { CodeListWithTextResources } from 'app-shared/types/CodeListWithTextResources';
-import type { CodeListData } from 'app-shared/types/CodeListData';
+import type { CodeListDataWithTextResources } from 'app-shared/types/CodeListDataWithTextResources';
 import {
   label1ResourceNb,
   label2ResourceNb,
@@ -18,7 +18,7 @@ const codeList1: CodeListWithTextResources = [
   },
 ];
 const codeList1Name = 'codeList1';
-export const codeList1Data: CodeListData = {
+export const codeList1Data: CodeListDataWithTextResources = {
   title: codeList1Name,
   data: codeList1,
 };
@@ -34,7 +34,7 @@ const codeList2: CodeListWithTextResources = [
   },
 ];
 const codeList2Name = 'codeList2';
-export const codeList2Data: CodeListData = {
+export const codeList2Data: CodeListDataWithTextResources = {
   title: codeList2Name,
   data: codeList2,
 };

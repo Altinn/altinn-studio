@@ -1,10 +1,13 @@
 import type { OptionListData } from 'app-shared/types/OptionList';
-import type { CodeListData } from '@studio/content-library';
+import type { CodeListDataWithTextResources } from '@studio/content-library';
 
-export const mapToCodeListDataList = (optionListDataList: OptionListData[]): CodeListData[] =>
-  optionListDataList.map(convertOptionListDataToCodeListData);
+export const mapToCodeListDataList = (
+  optionListDataList: OptionListData[],
+): CodeListDataWithTextResources[] => optionListDataList.map(convertOptionListDataToCodeListData);
 
-const convertOptionListDataToCodeListData = (optionListData: OptionListData): CodeListData => ({
+const convertOptionListDataToCodeListData = (
+  optionListData: OptionListData,
+): CodeListDataWithTextResources => ({
   title: optionListData.title,
   data: optionListData.data,
   hasError: optionListData.hasError,

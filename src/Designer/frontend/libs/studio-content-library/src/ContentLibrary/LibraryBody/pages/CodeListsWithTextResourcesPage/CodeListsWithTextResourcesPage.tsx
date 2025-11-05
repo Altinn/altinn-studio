@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import type { CodeListWithTextResources, TextResource } from '@studio/components-legacy';
+import type { TextResource } from '@studio/components-legacy';
 import { StudioHeading } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { CodeListsActionsBar } from './CodeListsActionsBar';
@@ -19,15 +19,10 @@ import type { CodeListWithMetadata } from './types/CodeListWithMetadata';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { InfoBox } from '../../InfoBox';
 import { PageName } from '../../../../types/PageName';
-
-export type CodeListData = {
-  title: string;
-  data?: CodeListWithTextResources;
-  hasError?: boolean;
-};
+import type { CodeListDataWithTextResources } from '../../../../types/CodeListDataWithTextResources';
 
 export type CodeListsWithTextResourcesPageProps = {
-  codeListDataList: CodeListData[];
+  codeListDataList: CodeListDataWithTextResources[];
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
   onCreateTextResource?: (textResource: TextResourceWithLanguage) => void;
   onDeleteCodeList: (codeListId: string) => void;
@@ -61,7 +56,7 @@ export function CodeListsWithTextResourcesPage({
 
   const codeListIsEmpty: boolean = codeListDataList.length === 0;
 
-  const filteredCodeLists: CodeListData[] = useMemo(
+  const filteredCodeLists: CodeListDataWithTextResources[] = useMemo(
     () => filterCodeLists(codeListDataList, searchString),
     [codeListDataList, searchString],
   );
@@ -87,7 +82,10 @@ export function CodeListsWithTextResourcesPage({
     [onUpdateTextResource],
   );
 
-  const codeListTitles = ArrayUtils.mapByKey<CodeListData, 'title'>(codeListDataList, 'title');
+  const codeListTitles = ArrayUtils.mapByKey<CodeListDataWithTextResources, 'title'>(
+    codeListDataList,
+    'title',
+  );
 
   const handleUploadCodeList = (uploadedCodeList: File) => {
     setCodeListInEditMode(FileNameUtils.removeExtension(uploadedCodeList.name));

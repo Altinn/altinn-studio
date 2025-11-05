@@ -1,5 +1,5 @@
 import type { CodeListWithTextResources } from '../types/CodeListWithTextResources';
-import type { CodeListData } from '../types/CodeListData';
+import type { CodeListDataWithTextResources } from '../types/CodeListDataWithTextResources';
 import {
   description1ResourceNb,
   description2ResourceNb,
@@ -34,7 +34,7 @@ const codeList1: CodeListWithTextResources = [
   },
 ];
 const codeList1Name = 'codeList1';
-export const codeList1Data: CodeListData = {
+export const codeList1Data: CodeListDataWithTextResources = {
   title: codeList1Name,
   data: codeList1,
 };
@@ -50,7 +50,7 @@ const codeList2: CodeListWithTextResources = [
   },
 ];
 const codeList2Name = 'codeList2';
-export const codeList2Data: CodeListData = {
+export const codeList2Data: CodeListDataWithTextResources = {
   title: codeList2Name,
   data: codeList2,
 };

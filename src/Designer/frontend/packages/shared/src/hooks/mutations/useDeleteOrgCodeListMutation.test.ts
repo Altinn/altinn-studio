@@ -5,7 +5,7 @@ import { useDeleteOrgCodeListMutation } from '../../hooks/mutations/useDeleteOrg
 import { createQueryClientMock } from '../../mocks/queryClientMock';
 import { QueryKey } from '../../types/QueryKey';
 import type { CodeListsResponse } from '../../types/api/CodeListsResponse';
-import type { CodeListData } from '../../types/CodeListData';
+import type { CodeListDataWithTextResources } from '../../types/CodeListDataWithTextResources';
 import type { CodeListWithTextResources } from '../../types/CodeListWithTextResources';
 
 // Test data:
@@ -18,12 +18,12 @@ const codeList: CodeListWithTextResources = [
   },
 ];
 
-const codeListToDelete: CodeListData = {
+const codeListToDelete: CodeListDataWithTextResources = {
   title: 'deleted-title',
   data: codeList,
 };
 
-const otherCodeList: CodeListData = {
+const otherCodeList: CodeListDataWithTextResources = {
   title: 'other-title',
   data: codeList,
 };

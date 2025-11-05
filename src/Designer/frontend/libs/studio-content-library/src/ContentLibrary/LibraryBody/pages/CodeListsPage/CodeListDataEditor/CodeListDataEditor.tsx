@@ -7,8 +7,8 @@ import {
   StudioDetails,
   StudioTextfield,
 } from '@studio/components';
-import type { CodeList } from '../types/CodeList';
-import type { CodeListData } from '../types/CodeListData';
+import type { CodeList } from '../../../../../types/CodeList';
+import type { CodeListData } from '../../../../../types/CodeListData';
 import { updateCodes, updateName } from './utils';
 import { useTranslation } from 'react-i18next';
 import classes from './CodeListDataEditor.module.css';

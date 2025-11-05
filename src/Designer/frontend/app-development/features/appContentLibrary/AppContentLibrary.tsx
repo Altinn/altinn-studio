@@ -1,5 +1,5 @@
 import type {
-  CodeListData,
+  CodeListDataWithTextResources,
   CodeListReference,
   CodeListWithMetadata,
   TextResourceWithLanguage,
@@ -100,7 +100,8 @@ function AppContentLibraryWithData({
 
   const handleUpload = useUploadOptionList(org, app);
 
-  const codeListDataList: CodeListData[] = mapToCodeListDataList(optionListDataList);
+  const codeListDataList: CodeListDataWithTextResources[] =
+    mapToCodeListDataList(optionListDataList);
 
   const codeListsUsages: CodeListReference[] = mapToCodeListUsages(optionListUsages);
 

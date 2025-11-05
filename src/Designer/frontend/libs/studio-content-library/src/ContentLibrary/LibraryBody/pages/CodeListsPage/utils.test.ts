@@ -5,7 +5,7 @@ import {
   updateCodeListDataInMap,
 } from './utils';
 import { codeListMap, coloursKey } from './test-data/codeListMap';
-import type { CodeListData } from './types/CodeListData';
+import type { CodeListData } from '../../../../types/CodeListData';
 import { codeLists } from './test-data/codeLists';
 
 describe('CodeListsPage utils', () => {

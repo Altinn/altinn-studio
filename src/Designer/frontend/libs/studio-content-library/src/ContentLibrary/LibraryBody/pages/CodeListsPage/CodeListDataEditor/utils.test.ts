@@ -1,6 +1,6 @@
 import { updateCodes, updateName } from './utils';
 import { fruitsData } from '../test-data/codeLists';
-import type { CodeList } from '../types/CodeList';
+import type { CodeList } from '../../../../../types/CodeList';
 
 describe('CodeListDataEditor utils', () => {
   describe('updateName', () => {
