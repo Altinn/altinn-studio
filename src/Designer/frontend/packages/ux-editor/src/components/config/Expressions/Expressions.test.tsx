@@ -74,10 +74,10 @@ describe('Expressions', () => {
       readOnly: parsableLogicalExpression,
     };
     renderExpressions({ formItem: componentWithMultipleExpressions });
-    const addButton = screen.getByRole('button', { name: textMock('right_menu.expressions_add') });
+    const addButton = screen.getByRole('button', {
+      name: textMock('right_menu.expressions_expressions_limit_reached_alert'),
+    });
     expect(addButton).toBeDisabled();
-    const expressionLimitAlert = textMock('right_menu.expressions_expressions_limit_reached_alert');
-    expect(addButton).toHaveAccessibleDescription(expressionLimitAlert);
   });
 
   it('Disables the add button when all supported expression properties are set on a repeating group', () => {
@@ -98,7 +98,9 @@ describe('Expressions', () => {
         },
       };
     renderExpressions({ formItem: groupComponentWithAllBooleanFieldsAsExpressions });
-    const addButton = screen.getByRole('button', { name: textMock('right_menu.expressions_add') });
+    const addButton = screen.getByRole('button', {
+      name: textMock('right_menu.expressions_expressions_limit_reached_alert'),
+    });
     expect(addButton).toBeDisabled();
   });
 
@@ -108,9 +110,9 @@ describe('Expressions', () => {
     renderExpressions({ handleUpdate });
     const addButton = screen.getByRole('button', { name: textMock('right_menu.expressions_add') });
     await user.click(addButton);
-    const menuitemName = textMock('right_menu.expressions_property_read_only');
-    const menuitem = screen.getByRole('menuitem', { name: menuitemName });
-    await user.click(menuitem);
+    const buttonName = textMock('right_menu.expressions_property_read_only');
+    const button = screen.getByRole('button', { name: buttonName });
+    await user.click(button);
     expect(handleUpdate).toHaveBeenCalledTimes(1);
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentWithExpression,

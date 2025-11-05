@@ -1,7 +1,7 @@
 import React from 'react';
 import { PlusIcon } from '@studio/icons';
 import { useText } from '../../../../hooks';
-import { StudioDropdownMenu } from '@studio/components-legacy';
+import { StudioDropdown } from '@studio/components';
 import { useFormItemContext } from '../../../../containers/FormItemContext';
 import { addExpressionToFormItem, getUndefinedExpressionProperties } from '../utils';
 import type { FormItemProperty } from '../../../../types/FormItemProperty';
@@ -19,21 +19,18 @@ export const NewExpressionButton = () => {
     : t('right_menu.expressions_expressions_limit_reached_alert');
 
   return (
-    <StudioDropdownMenu
-      anchorButtonProps={{
-        children: t('right_menu.expressions_add'),
-        color: 'first',
-        disabled: !areThereRemainingProperties,
-        icon: <PlusIcon />,
-        title,
-        variant: 'secondary',
-      }}
-      size='small'
+    <StudioDropdown
+      icon={<PlusIcon />}
+      triggerButtonText={title}
+      triggerButtonVariant='secondary'
+      triggerButtonDisabled={!areThereRemainingProperties}
     >
-      {remainingProperties.map((property) => (
-        <MenuItem property={property} key={JSON.stringify(property)} />
-      ))}
-    </StudioDropdownMenu>
+      <StudioDropdown.List>
+        {remainingProperties.map((property) => (
+          <MenuItem property={property} key={JSON.stringify(property)} />
+        ))}
+      </StudioDropdown.List>
+    </StudioDropdown>
   );
 };
 
@@ -47,7 +44,11 @@ const MenuItem = ({ property }: { property: FormItemProperty }) => {
     await debounceSave(); // Todo: handleSave does not work here. Will probably be fixed by https://github.com/Altinn/altinn-studio/issues/12383.
   };
 
-  return <StudioDropdownMenu.Item onClick={handleAddExpression}>{text}</StudioDropdownMenu.Item>;
+  return (
+    <StudioDropdown.Item>
+      <StudioDropdown.Button onClick={handleAddExpression}>{text}</StudioDropdown.Button>
+    </StudioDropdown.Item>
+  );
 };
 
 const useAddExpressionText = (property: FormItemProperty) => {

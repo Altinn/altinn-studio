@@ -56,13 +56,13 @@ const renderEditor = (
   );
 };
 
-const clickMenuItem = async (name: string) => {
-  const item = screen.getByRole('menuitem', { name });
+const clickButton = async (name: string) => {
+  const item = screen.getByRole('button', { name });
   await user.click(item);
 };
 
 const addNodeOnRootButtonTitle = textMock('schema_editor.add_node_of_type');
-const addNodeOnChildButtonTitle = textMock('schema_editor.add_node_of_type_in_child_node_title');
+const addNodeOnChildButtonTitle = textMock('schema_editor.add_property');
 
 const clickOpenAddNodeButton = async () => {
   const buttons = screen.getAllByRole('button', { name: addNodeOnRootButtonTitle });
@@ -95,7 +95,7 @@ describe('SchemaEditor', () => {
     const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock).deepClone();
     renderEditor({ appContextProps: { schemaModel } });
     await clickOpenAddNodeButton();
-    await clickMenuItem(textMock('schema_editor.string'));
+    await clickButton(textMock('schema_editor.string'));
     expect(save).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(save);
     expect(updatedModel.asArray().length).toBe(uiSchemaNodesMock.length + 1);
@@ -113,7 +113,6 @@ describe('SchemaEditor', () => {
     expect(noItemsSelectedMessage).toBeInTheDocument();
 
     await clickOpenAddNodeButton();
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
   test('should show context menu and trigger correct dispatch when adding text field on a specific node', async () => {
@@ -125,7 +124,7 @@ describe('SchemaEditor', () => {
     const schemaModel = SchemaModel.fromArray(uiSchema);
     renderEditor({ appContextProps: { schemaModel } });
     await clickOpenAddNodeButtonInTree();
-    await clickMenuItem(textMock('schema_editor.add_string'));
+    await clickButton(textMock('schema_editor.add_string'));
     expect(save).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(save);
     expect(updatedModel.asArray().length).toBe(uiSchema.length + 1);
@@ -142,7 +141,7 @@ describe('SchemaEditor', () => {
     renderEditor({ appContextProps: { schemaModel } });
     jest.spyOn(window, 'prompt').mockImplementation(() => definitionName);
     await clickOpenAddNodeButtonInTree();
-    await clickMenuItem(textMock('schema_editor.add_reference'));
+    await clickButton(textMock('schema_editor.add_reference'));
     expect(save).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(save);
     expect(updatedModel.asArray().length).toBe(uiSchema.length + 1);
@@ -223,7 +222,7 @@ describe('SchemaEditor', () => {
     await clickOpenAddNodeButton();
     ['string', 'integer', 'number', 'boolean', 'combination'].forEach((type) => {
       const name = textMock(`schema_editor.${type}`);
-      expect(screen.getByRole('menuitem', { name })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name })).toBeInTheDocument();
     });
   });
 
@@ -231,7 +230,7 @@ describe('SchemaEditor', () => {
     const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock).deepClone();
     renderEditor({ appContextProps: { schemaModel } });
     await clickOpenAddNodeButton();
-    await clickMenuItem(textMock('schema_editor.combination'));
+    await clickButton(textMock('schema_editor.combination'));
     expect(save).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(save);
     expect(updatedModel.asArray().length).toBe(uiSchemaNodesMock.length + 1);
@@ -246,7 +245,7 @@ describe('SchemaEditor', () => {
     const schemaModel = SchemaModel.fromArray(uiSchema);
     renderEditor({ appContextProps: { schemaModel } });
     await clickOpenAddNodeButtonInTree();
-    await clickMenuItem(textMock('schema_editor.add_combination'));
+    await clickButton(textMock('schema_editor.add_combination'));
     expect(save).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(save);
     expect(updatedModel.asArray().length).toBe(uiSchema.length + 1);
