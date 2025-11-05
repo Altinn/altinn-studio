@@ -123,6 +123,7 @@ namespace Designer.Tests.Services
                 await repositoryService.CreateService(org, new ServiceConfiguration() { RepositoryName = repositoryName, ServiceName = repositoryName });
                 var altinnStudioSettings = await new AltinnGitRepositoryFactory(repositoriesRootDirectory).GetAltinnGitRepository(org, repositoryName, developer).GetAltinnStudioSettings();
                 Assert.Equal(AltinnRepositoryType.App, altinnStudioSettings.RepoType);
+                Assert.False(altinnStudioSettings.UseNullableReferenceTypes);
             }
             finally
             {
