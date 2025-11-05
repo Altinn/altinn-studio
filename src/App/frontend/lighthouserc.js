@@ -15,6 +15,7 @@ module.exports = {
       puppeteerScript: './puppeteer-script.js',
       puppeteerLaunchOptions: {
         headless: true,
+        args: ['--disable-features=HttpsFirstBalancedModeAutoEnable'],
       },
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       chromePath: require('puppeteer').executablePath(),
