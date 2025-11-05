@@ -6,3 +6,4 @@ resources:
   - studio-gateway.yaml
   - flux-notifications.yaml
   - altinn-charts.yaml
+  - grafana
