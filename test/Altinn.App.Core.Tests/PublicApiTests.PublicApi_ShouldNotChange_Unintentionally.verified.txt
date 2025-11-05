@@ -4428,22 +4428,20 @@ namespace Altinn.App.Core.Models.Expressions
         [System.Obsolete("Use the constructor with ExpressionValue instead")]
         public Expression(object? value) { }
         public Expression(Altinn.App.Core.Models.Expressions.ExpressionFunction function, Altinn.App.Core.Models.Expressions.Expression arg1) { }
-        public Expression(Altinn.App.Core.Models.Expressions.ExpressionFunction function, System.Collections.Generic.List<Altinn.App.Core.Models.Expressions.Expression>? args) { }
+        public Expression(Altinn.App.Core.Models.Expressions.ExpressionFunction function, Altinn.App.Core.Models.Expressions.Expression[] args) { }
+        [System.Obsolete("Use the constructor with Expression[] instead")]
+        public Expression(Altinn.App.Core.Models.Expressions.ExpressionFunction function, System.Collections.Generic.List<Altinn.App.Core.Models.Expressions.Expression> args) { }
         public Expression(Altinn.App.Core.Models.Expressions.ExpressionFunction function, Altinn.App.Core.Models.Expressions.Expression arg1, Altinn.App.Core.Models.Expressions.Expression arg2) { }
-        public System.Collections.Generic.List<Altinn.App.Core.Models.Expressions.Expression>? Args { get; }
+        public Altinn.App.Core.Models.Expressions.Expression[]? Args { get; }
         public Altinn.App.Core.Models.Expressions.ExpressionFunction Function { get; }
-        [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(false, "Value")]
-        [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(false, "ValueUnion")]
-        [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, new string?[]?[] {
-                "Function",
-                "Args"})]
-        [get: System.Diagnostics.CodeAnalysis.MemberNotNullWhen(false, "Value")]
-        [get: System.Diagnostics.CodeAnalysis.MemberNotNullWhen(false, "ValueUnion")]
-        [get: System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, new string?[]?[] {
-                "Function",
-                "Args"})]
+        [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, "Args")]
+        [System.Obsolete("Use !IsLiteralValue instead")]
+        [get: System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, "Args")]
         public bool IsFunctionExpression { get; }
         public bool IsLiteralString { get; }
+        [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(false, "Args")]
+        [get: System.Diagnostics.CodeAnalysis.MemberNotNullWhen(false, "Args")]
+        public bool IsLiteralValue { get; }
         [System.Obsolete("Use ValueUnion instead")]
         public object? Value { get; }
         public Altinn.App.Core.Internal.Expressions.ExpressionValue ValueUnion { get; }
@@ -4468,6 +4466,7 @@ namespace Altinn.App.Core.Models.Expressions
     [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
     public enum ExpressionFunction
     {
+        LITERAL_VALUE = -1,
         INVALID = 0,
         dataModel = 1,
         component = 2,

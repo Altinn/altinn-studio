@@ -270,7 +270,7 @@ public class LayoutEvaluatorState
                 $"Failed to add indexes to path {binding.Field} with indexes "
                     + $"{(context.RowIndices is null ? "null" : string.Join(", ", context.RowIndices))} on {dataElementId}"
             );
-        ;
+
         return new DataReference() { Field = field, DataElementIdentifier = dataElementId };
     }
 
@@ -401,7 +401,7 @@ public class LayoutEvaluatorState
 
     // private void GetModelErrorsForExpression(Expression expr, BaseComponent component, List<string> errors)
     // {
-    //     if (!expr.IsFunctionExpression)
+    //     if (expr.IsLiteralValue)
     //     {
     //         return;
     //     }

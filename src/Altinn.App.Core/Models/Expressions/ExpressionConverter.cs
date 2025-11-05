@@ -69,16 +69,21 @@ public class ExpressionConverter : JsonConverter<Expression>
         {
             throw new JsonException("Function name in expression must be string");
         }
-
-        var functionEnum = ExpressionFunction(enumerator.Current.GetString());
-
         var args = new List<Expression>();
+        var functionString = enumerator.Current.GetString();
+
+        var functionEnum = ExpressionFunction(functionString);
+        if (functionEnum == Expressions.ExpressionFunction.INVALID)
+        {
+            args.Add(new Expression(functionString));
+        }
+
         while (enumerator.MoveNext())
         {
             args.Add(ReadStatic(enumerator.Current));
         }
 
-        return new Expression(functionEnum, args);
+        return new Expression(functionEnum, args.ToArray());
     }
 
     private static Expression ReadArray(ref Utf8JsonReader reader, JsonSerializerOptions options)
@@ -93,24 +98,29 @@ public class ExpressionConverter : JsonConverter<Expression>
         {
             throw new JsonException("Function name in expression should be string");
         }
-
-        var functionEnum = ExpressionFunction(reader.GetString());
-
         var args = new List<Expression>();
+
+        var functionString = reader.GetString();
+        var functionEnum = ExpressionFunction(functionString);
+
+        if (functionEnum == Expressions.ExpressionFunction.INVALID)
+        {
+            args.Add(new Expression(functionString));
+        }
 
         while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
         {
             args.Add(ReadStatic(ref reader, options));
         }
 
-        return new Expression(functionEnum, args);
+        return new Expression(functionEnum, args.ToArray());
     }
 
     private static ExpressionFunction ExpressionFunction(string? stringFunction)
     {
         if (!Enum.TryParse<ExpressionFunction>(stringFunction, ignoreCase: false, out var functionEnum))
         {
-            throw new JsonException($"Function \"{stringFunction}\" not implemented");
+            return Expressions.ExpressionFunction.INVALID;
         }
 
         return functionEnum;
@@ -119,21 +129,24 @@ public class ExpressionConverter : JsonConverter<Expression>
     /// <inheritdoc />
     public override void Write(Utf8JsonWriter writer, Expression value, JsonSerializerOptions options)
     {
-        if (value.IsFunctionExpression)
+        if (value.IsLiteralValue)
+        {
+            // Just serialize the literal value
+            JsonSerializer.Serialize(writer, value.ValueUnion.ToObject(), options);
+        }
+        else
         {
             // Serialize with as an array expression ["functionName", arg1, arg2, ...]
             writer.WriteStartArray();
-            writer.WriteStringValue(value.Function.ToString());
+            if (value.Function != Expressions.ExpressionFunction.INVALID)
+            {
+                writer.WriteStringValue(value.Function.ToString());
+            }
             foreach (var arg in value.Args)
             {
                 JsonSerializer.Serialize(writer, arg, options);
             }
             writer.WriteEndArray();
-        }
-        else
-        {
-            // Just serialize the literal value
-            JsonSerializer.Serialize(writer, value.ValueUnion.ToObject(), options);
         }
     }
 }

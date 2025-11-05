@@ -55,7 +55,7 @@ public class TestInvalid
 
             await ExpressionEvaluator.EvaluateExpression(state, test.Expression, await test.GetContextOrNull(state));
         };
-        (await act.Should().ThrowAsync<Exception>()).WithMessage(testCase.ExpectsFailure);
+        (await act.Should().ThrowAsync<Exception>()).WithMessage(testCase.ExpectsFailure + "*");
     }
 
     private static async Task<InvalidTestCase> LoadData(string testName, string folder)

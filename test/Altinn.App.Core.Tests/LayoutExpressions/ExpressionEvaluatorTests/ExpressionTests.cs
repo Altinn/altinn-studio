@@ -61,14 +61,14 @@ public class ExpressionTests
     {
         var trueExpression = Expression.True;
         Assert.True(trueExpression.ValueUnion.Bool);
-        Assert.False(trueExpression.IsFunctionExpression);
+        Assert.True(trueExpression.IsLiteralValue);
 
         var falseExpression = Expression.False;
         Assert.False(falseExpression.ValueUnion.Bool);
-        Assert.False(falseExpression.IsFunctionExpression);
+        Assert.True(falseExpression.IsLiteralValue);
 
         var nullExpression = Expression.Null;
         Assert.Equal(JsonValueKind.Null, nullExpression.ValueUnion.ValueKind);
-        Assert.False(nullExpression.IsFunctionExpression);
+        Assert.True(nullExpression.IsLiteralValue);
     }
 }
