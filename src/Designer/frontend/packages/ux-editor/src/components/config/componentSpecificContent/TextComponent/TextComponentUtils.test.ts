@@ -1,5 +1,6 @@
 import { getDisplayValues } from './TextComponentUtils';
-import { DataLookupFuncName, StringExpression } from '@studio/components';
+import type { StringExpression } from '@studio/components';
+import { DataLookupFuncName } from '@studio/components';
 
 describe('getDisplayValues', () => {
   it('should return an empty string when value is undefined', () => {
