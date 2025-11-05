@@ -177,7 +177,6 @@ test('That it is possible to push the changes to Gitea and verify that the chang
   await giteaPage.verifyThatComponentIdIsVisible(COMPONENT_ID);
   await giteaPage.verifyThatTextResourceBindingsTitleIsVisible(UPDATED_TEXT_KEY);
 
-  await giteaPage.goBackNPages(4); // ui -> layoutSet -> layouts -> page1.json
   await giteaPage.clickOnConfigFilesButton();
   await giteaPage.clickOnTextFilesButton();
   await giteaPage.verifyThatResourceJsonFileIsVisible(LanguageCode.Nb);
@@ -189,7 +188,6 @@ test('That it is possible to push the changes to Gitea and verify that the chang
   await giteaPage.verifyTextIdAndValue(UPDATED_TEXT_KEY, INPUT_COMPONENT_LABEL);
   await giteaPage.verifyTextIdAndValue('appName', testAppName);
 
-  await giteaPage.goBackNPages(1); // Back to texts overview
   await giteaPage.clickOnResourceJsonFile(LanguageCode.En);
   await giteaPage.verifyLanguageFile(LanguageCode.En);
   await giteaPage.verifyTextIdAndValue(TEXT_KEY_FIELD_2, TEXT_VALUE_IN_TEXTAREA);

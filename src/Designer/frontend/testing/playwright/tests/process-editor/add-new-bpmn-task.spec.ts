@@ -121,8 +121,6 @@ test('that the changes made to the bpmn process are uploaded to Gitea', async ({
   await giteaPage.verifyThatTheNewTaskIsVisible(randomGeneratedId, dataTask);
 
   await giteaPage.verifySequenceFlowDirection(randomGeneratedId, initialId);
-  const numblerBackToConfig: number = 2;
-  await giteaPage.goBackNPages(numblerBackToConfig);
   await giteaPage.clickOnApplicationMetadataFile();
   await giteaPage.verifyIdInDataModel(randomGeneratedId, newDataModel);
 });
