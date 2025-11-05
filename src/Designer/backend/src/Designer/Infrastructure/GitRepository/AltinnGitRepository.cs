@@ -64,7 +64,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         public string Developer { get; private set; }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Gets the repository type.
+        /// </summary>
+        /// <returns>The repository type, see <see cref="AltinnRepositoryType"/></returns>
         public async Task<AltinnRepositoryType> GetRepositoryType()
         {
             var settings = await GetAltinnStudioSettings();
