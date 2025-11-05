@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿#nullable disable
+using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.RepositoryClient.Model

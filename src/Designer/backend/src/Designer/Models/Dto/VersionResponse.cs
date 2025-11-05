@@ -1,4 +1,5 @@
-﻿using NuGet.Versioning;
+﻿#nullable disable
+using NuGet.Versioning;
 
 namespace Altinn.Studio.Designer.Models.Dto
 {

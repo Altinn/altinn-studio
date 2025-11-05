@@ -1,3 +1,4 @@
+#nullable disable
 using System.IO;
 using Altinn.Studio.Designer.Configuration.Marker;
 using Altinn.Studio.Designer.Helpers.Extensions;
