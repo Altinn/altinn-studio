@@ -1,3 +1,4 @@
+#nullable disable
 using System.ComponentModel.DataAnnotations;
 using Altinn.Studio.Designer.ViewModels.Request.Enums;
 using Microsoft.AspNetCore.Mvc;

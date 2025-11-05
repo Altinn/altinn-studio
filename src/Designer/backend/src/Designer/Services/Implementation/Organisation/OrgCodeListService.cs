@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
@@ -87,13 +86,14 @@ public class OrgCodeListService : IOrgCodeListService
 
         return codeLists;
     }
-
     /// <inheritdoc />
     public async Task<GetCodeListResponse> GetCodeListsNew(string org, string? reference = null, CancellationToken cancellationToken = default)
     {
         string repository = GetStaticContentRepo(org);
+#nullable disable
         List<FileSystemObject> files = await _gitea.GetCodeListDirectoryContentAsync(org, repository, reference, cancellationToken);
         string latestCommitSha = await _gitea.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
+#nullable enable
 
         List<CodeListWrapper> codeListWrappers = [];
         foreach (FileSystemObject file in files)
@@ -109,7 +109,6 @@ public class OrgCodeListService : IOrgCodeListService
         GetCodeListResponse response = new(codeListWrappers, latestCommitSha);
         return response;
     }
-
     /// <inheritdoc />
     public async Task<List<OptionListData>> CreateCodeList(string org, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
     {

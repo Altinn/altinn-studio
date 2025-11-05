@@ -1,3 +1,4 @@
+#nullable disable
 using System.Threading.Tasks;
 
 namespace Altinn.Studio.Designer.Services.Interfaces;

@@ -95,6 +95,17 @@ type FileUploadComponentBase = {
   alertOnDelete?: BooleanExpression;
 };
 
+type CricleCropProps = {
+  shape: 'circle';
+  diameter?: number;
+};
+
+type RectangleCropProps = {
+  shape: 'rectangle';
+  width?: number;
+  height?: number;
+};
+
 type FormComponentProps = {
   readOnly?: BooleanExpression;
   required?: BooleanExpression;
@@ -246,9 +257,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     };
   };
   [ComponentType.ImageUpload]: {
-    cropShape?: 'circle' | 'square';
-    cropWidth?: number;
-    cropHeight?: number;
+    crop?: CricleCropProps | RectangleCropProps;
   };
   [ComponentType.Input]: FormComponentProps &
     SummarizableComponentProps &

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable disable
+using System;
 using System.Net;
 
 namespace Altinn.Studio.Designer.Exceptions
