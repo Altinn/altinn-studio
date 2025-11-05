@@ -77,6 +77,7 @@ import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { emptyTextResourceListMock } from 'app-shared/mocks/emptyTextResourceListMock';
 import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
+import type { CodeListsNewResponse } from 'app-shared/types/api/CodeListsNewResponse';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -124,6 +125,12 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<OptionListReferences>([])),
   getOrganizations: jest.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
   getOrgCodeLists: jest.fn().mockImplementation(() => Promise.resolve<CodeListsResponse>([])),
+  getOrgCodeListsNew: jest.fn().mockImplementation(() =>
+    Promise.resolve<CodeListsNewResponse>({
+      codeListWrappers: [],
+      commitSha: '',
+    }),
+  ),
   getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
   getOrgTextLanguages: jest.fn().mockImplementation(() => Promise.resolve<string[] | null>([])),
   getOrgTextResources: jest
