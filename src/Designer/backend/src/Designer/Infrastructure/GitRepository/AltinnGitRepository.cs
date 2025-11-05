@@ -176,7 +176,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             PropertyInfo[] properties = altinnStudioSettings.GetType().GetProperties();
             using JsonDocument jsonDocument = JsonDocument.Parse(altinnStudioSettingsJson);
             JsonElement root = jsonDocument.RootElement;
-            var elements = root.EnumerateObject();
+            JsonElement.ObjectEnumerator elements = root.EnumerateObject();
             foreach (var property in properties)
             {
                 if (!elements.Any(x => string.Equals(x.Name, property.Name, StringComparison.OrdinalIgnoreCase)))
