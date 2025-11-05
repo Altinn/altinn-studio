@@ -1,0 +1,12 @@
+.canvas {
+  display: block;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: grab;
+  touch-action: none;
+}
+
+.canvas:active {
+  cursor: grabbing;
+}

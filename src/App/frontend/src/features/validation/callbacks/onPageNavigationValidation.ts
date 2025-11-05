@@ -3,8 +3,8 @@ import { useCallback } from 'react';
 import { useRefetchInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { getVisibilityMask } from 'src/features/validation/utils';
 import { Validation } from 'src/features/validation/validationContext';
-import { useEffectEvent } from 'src/hooks/useEffectEvent';
 import { usePageOrder } from 'src/hooks/useNavigatePage';
+import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { PageValidation } from 'src/layout/common.generated';
 
@@ -22,7 +22,7 @@ export function useOnPageNavigationValidation() {
   const refetchInitialValidations = useRefetchInitialValidations();
 
   /* Ensures the callback will have the latest state */
-  const callback = useEffectEvent(async (currentPage: string, config: PageValidation): Promise<boolean> => {
+  const callback = useOurEffectEvent(async (currentPage: string, config: PageValidation): Promise<boolean> => {
     const pageConfig = config.page ?? 'current';
     const masks = config.show;
     const mask = getVisibilityMask(masks);

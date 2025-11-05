@@ -9,6 +9,9 @@
             validation.issue_count: 1
           },
           {
+            validator.remove_hidden_data: false
+          },
+          {
             validator.source: Altinn.App.Core.Tests.Features.Validators.ValidationServiceTests+GenericValidatorFake-default
           },
           {

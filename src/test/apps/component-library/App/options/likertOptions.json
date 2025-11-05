@@ -1,0 +1,22 @@
+[
+  {
+    "label": "Alltid",
+    "value": "1"
+  },
+  {
+    "label": "Nesten alltid",
+    "value": "2"
+  },
+  {
+    "label": "Ofte",
+    "value": "3"
+  },
+  {
+    "label": "Noen ganger",
+    "value": "4"
+  },
+  {
+    "label": "Sjelden",
+    "value": "5"
+  }
+]

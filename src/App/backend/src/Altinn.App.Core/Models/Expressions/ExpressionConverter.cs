@@ -19,6 +19,22 @@ public class ExpressionConverter : JsonConverter<Expression>
     }
 
     /// <summary>
+    /// Reads a JSON element and converts it to an <see cref="Expression"/>.
+    /// </summary>
+    public static Expression ReadStatic(JsonElement element) =>
+        element.ValueKind switch
+        {
+            JsonValueKind.True => new Expression(true),
+            JsonValueKind.False => new Expression(false),
+            JsonValueKind.String => new Expression(element.GetString()),
+            JsonValueKind.Number => new Expression(element.GetDouble()),
+            JsonValueKind.Null => new Expression(ExpressionValue.Null),
+            JsonValueKind.Array => ReadArray(element),
+            JsonValueKind.Object => throw new JsonException("Invalid type \"object\""),
+            _ => throw new JsonException(),
+        };
+
+    /// <summary>
     /// Same as <see cref="Read" />, but without the nullable return type required by the interface. Throw an exeption instead.
     /// </summary>
     public static Expression ReadStatic(ref Utf8JsonReader reader, JsonSerializerOptions options)
@@ -36,6 +52,35 @@ public class ExpressionConverter : JsonConverter<Expression>
         };
     }
 
+    private static Expression ReadArray(JsonElement element)
+    {
+        if (element.GetArrayLength() == 0)
+        {
+            throw new JsonException("Missing function name in expression");
+        }
+
+        using var enumerator = element.EnumerateArray();
+        if (!enumerator.MoveNext())
+        {
+            throw new JsonException("Missing function name in expression");
+        }
+
+        if (enumerator.Current.ValueKind != JsonValueKind.String)
+        {
+            throw new JsonException("Function name in expression must be string");
+        }
+
+        var functionEnum = ExpressionFunction(enumerator.Current.GetString());
+
+        var args = new List<Expression>();
+        while (enumerator.MoveNext())
+        {
+            args.Add(ReadStatic(enumerator.Current));
+        }
+
+        return new Expression(functionEnum, args);
+    }
+
     private static Expression ReadArray(ref Utf8JsonReader reader, JsonSerializerOptions options)
     {
         reader.Read();
@@ -49,11 +94,7 @@ public class ExpressionConverter : JsonConverter<Expression>
             throw new JsonException("Function name in expression should be string");
         }
 
-        var stringFunction = reader.GetString();
-        if (!Enum.TryParse<ExpressionFunction>(stringFunction, ignoreCase: false, out var functionEnum))
-        {
-            throw new JsonException($"Function \"{stringFunction}\" not implemented");
-        }
+        var functionEnum = ExpressionFunction(reader.GetString());
 
         var args = new List<Expression>();
 
@@ -63,6 +104,16 @@ public class ExpressionConverter : JsonConverter<Expression>
         }
 
         return new Expression(functionEnum, args);
+    }
+
+    private static ExpressionFunction ExpressionFunction(string? stringFunction)
+    {
+        if (!Enum.TryParse<ExpressionFunction>(stringFunction, ignoreCase: false, out var functionEnum))
+        {
+            throw new JsonException($"Function \"{stringFunction}\" not implemented");
+        }
+
+        return functionEnum;
     }
 
     /// <inheritdoc />

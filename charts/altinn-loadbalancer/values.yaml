@@ -4,7 +4,7 @@ environment: development
 
 image:
   repository: nginx
-  tag: 1.29.1-alpine
+  tag: 1.29.2-alpine
   pullPolicy: IfNotPresent
   containerPorts:
     http: 80

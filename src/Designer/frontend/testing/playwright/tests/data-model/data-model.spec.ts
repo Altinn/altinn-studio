@@ -37,7 +37,7 @@ test('Allows to add a data model, include an object with properties and a combin
 
   // Add object
   await dataModelPage.clickOnAddPropertyButton();
-  await dataModelPage.clickOnAddObjectPropertyMenuItem();
+  await dataModelPage.clickOnAddObjectPropertyButton();
 
   const name0: string = 'name0';
 
@@ -84,7 +84,7 @@ test('Allows to add a data model, include an object with properties and a combin
 
   // Add 'combo' combination property to the object
   await dataModelPage.clickOnAddPropertyButton();
-  await dataModelPage.clickOnCombinationPropertyMenuItem();
+  await dataModelPage.clickOnCombinationPropertyButton();
   await dataModelPage.checkThatTypeComboboxVisible();
   await dataModelPage.clickOnTypeCombobox();
   const typeValue = await dataModelPage.getTypeComboboxValue();
@@ -136,7 +136,7 @@ test('Adding a type and dragging it into an object', async ({ page, testAppName 
 
   // Add an object
   await dataModelPage.clickOnAddPropertyButton();
-  await dataModelPage.clickOnAddObjectPropertyMenuItem();
+  await dataModelPage.clickOnAddObjectPropertyButton();
   const expectedObjectName = 'name1';
   await dataModelPage.checkThatTreeItemPropertyExistsOnScreen(expectedObjectName);
 

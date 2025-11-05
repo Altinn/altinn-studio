@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Altinn.App.Core.Models.Layout.Components;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -6,7 +7,7 @@ namespace Altinn.App.Core.Models.Layout;
 /// <summary>
 /// Wrapper class for a single layout set
 /// </summary>
-public record LayoutSetComponent
+public sealed class LayoutSetComponent
 {
     private readonly Dictionary<string, PageComponent> _pagesLookup;
     private readonly List<PageComponent> _pages;
@@ -19,6 +20,18 @@ public record LayoutSetComponent
         _pages = pages;
         _pagesLookup = pages.ToDictionary(p => p.PageId);
         Id = id;
+        DefaultDataType = defaultDataType;
+    }
+
+    internal LayoutSetComponent(
+        IReadOnlyDictionary<string, JsonElement> layouts,
+        string layoutSetId,
+        DataType defaultDataType
+    )
+    {
+        _pages = layouts.Select(kvp => PageComponent.Parse(kvp.Value, kvp.Key, layoutSetId)).ToList();
+        _pagesLookup = _pages.ToDictionary(p => p.PageId);
+        Id = layoutSetId;
         DefaultDataType = defaultDataType;
     }
 

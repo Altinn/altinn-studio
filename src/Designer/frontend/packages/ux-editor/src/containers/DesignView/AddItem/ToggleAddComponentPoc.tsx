@@ -1,8 +1,7 @@
 import React, { useCallback } from 'react';
 import type { ChangeEventHandler } from 'react';
 import { FeedbackForm } from './FeedbackForm';
-import { StudioSwitch } from '@studio/components-legacy';
-import { StudioHelpText, StudioParagraph } from '@studio/components';
+import { StudioSwitch, StudioHelpText, StudioParagraph } from '@studio/components';
 import { FeatureFlag, useFeatureToggle } from '@studio/feature-flags';
 import classes from './ToggleAddComponentPoc.module.css';
 
@@ -25,9 +24,7 @@ export function ToggleAddComponentPoc(): React.ReactElement {
   return (
     <>
       <div className={classes.switchWrapper}>
-        <StudioSwitch checked={isEnabled} onChange={handleToggle} size='sm'>
-          Prøv nytt design
-        </StudioSwitch>
+        <StudioSwitch checked={isEnabled} onChange={handleToggle} label='Prøv nytt design' />
         <StudioHelpText
           aria-label='Prøv vårt nye design for å legge til komponenter'
           placement='bottom'

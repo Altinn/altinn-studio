@@ -1,3 +1,4 @@
+#nullable disable
 namespace Altinn.Studio.Designer.Services.Implementation.GitOps;
 
 public static class ManifestsPathHelper

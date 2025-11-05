@@ -1,0 +1,63 @@
+﻿{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "header",
+        "type": "Header",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Dette er det andre prosess-steget i den tilstandsbevarende prosessen (tredje steget totalt)"
+        }
+      },
+      {
+        "id": "firmanavn",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Firmanavn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "property1"
+        },
+        "required": false,
+        "readOnly": false
+      },
+      {
+        "id": "orgnr",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Organisasjonsnummer",
+          "description": "11 siffer"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "property2"
+        },
+        "required": false,
+        "readOnly": false
+      },
+      {
+        "id": "gatewayShouldFail",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Skal gatewayen feile?",
+          "description": "Hvis denne feiler får du opp en feilmelding etter feedback-steget og du får muligheten til å komme tilbake hit og prøve på nytt."
+        },
+        "dataModelBindings": {
+          "simpleBinding": "gatewayShouldFail"
+        },
+        "preselectedOptionIndex": 1,
+        "options": [
+          { "value": "true", "label": "Ja" },
+          { "value": "false", "label": "Nei" }
+        ]
+      },
+      {
+        "id": "sendInButton",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Send inn"
+        }       
+      }
+    ]
+  }
+}

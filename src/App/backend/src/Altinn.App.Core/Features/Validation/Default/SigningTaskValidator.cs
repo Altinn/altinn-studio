@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
@@ -114,7 +115,12 @@ internal sealed class SigningTaskValidator : IValidator
             {
                 Code = ValidationIssueCodes.DataElementCodes.MissingSignatures,
                 Severity = ValidationIssueSeverity.Error,
-                Description = ValidationIssueCodes.DataElementCodes.MissingSignatures,
+                Description = language switch
+                {
+                    LanguageConst.Nb or null => "Det mangler påkrevde signaturer.",
+                    LanguageConst.Nn => "Det manglar påkravde signaturar.",
+                    _ => "Required signatures are missing.",
+                },
             },
         ];
     }

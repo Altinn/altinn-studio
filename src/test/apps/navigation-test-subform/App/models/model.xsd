@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xs:annotation>
+    <xs:documentation>
+      <xsd:attribute name="rootNode" fixed="" />
+    </xs:documentation>
+  </xs:annotation>
+  <xs:simpleType name="age">
+    <xs:restriction base="xs:string" />
+  </xs:simpleType>
+  <xs:element name="model">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="firstname" type="xs:string" />
+        <xs:element name="lastname" type="xs:string" />
+        <xs:element name="age" type="xs:long" />
+        <xs:element name="birthday" type="xs:date" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="emails">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="email" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="extra" type="xs:string" />
+        <xs:element minOccurs="0" name="feedback" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xsd:schema>

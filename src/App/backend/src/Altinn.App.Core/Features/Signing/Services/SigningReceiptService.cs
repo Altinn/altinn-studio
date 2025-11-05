@@ -153,12 +153,10 @@ internal sealed class SigningReceiptService(
 
         try
         {
-            AppIdentifier appIdentifier = new(context.Instance);
-
             title = await translationService.TranslateTextKey("signing.correspondence_receipt_title", language);
             summary = await translationService.TranslateTextKey("signing.correspondence_receipt_summary", language);
             body = await translationService.TranslateTextKey("signing.correspondence_receipt_body", language);
-            appName = await translationService.TranslateFirstMatchingTextKey(language, "appName", "ServiceName");
+            appName = await translationService.TranslateTextKey("appName", language);
         }
         catch (Exception e)
         {

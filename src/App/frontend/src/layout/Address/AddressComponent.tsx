@@ -15,7 +15,7 @@ import { useBindingValidationsFor } from 'src/features/validation/selectors/bind
 import { useComponentValidationsFor } from 'src/features/validation/selectors/componentValidationsForNode';
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { usePostPlaceQuery } from 'src/hooks/queries/usePostPlaceQuery';
-import { useEffectEvent } from 'src/hooks/useEffectEvent';
+import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
 import classes from 'src/layout/Address/AddressComponent.module.css';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -48,7 +48,7 @@ export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<
   const debounce = FD.useDebounceImmediately();
   const { address, careOf, postPlace, zipCode, houseNumber } = formData;
 
-  const updatePostPlace = useEffectEvent((newPostPlace) => {
+  const updatePostPlace = useOurEffectEvent((newPostPlace) => {
     if (newPostPlace != null && newPostPlace != postPlace) {
       setValue('postPlace', newPostPlace);
     }

@@ -6,6 +6,8 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { RouterContext } from '../../../contexts/RouterContext';
 import { PageName } from '../../../types/PageName';
 import { renderWithProviders } from '../../../../test-utils/renderWithProviders';
+import type { ContentLibraryConfig } from '../../../types/ContentLibraryConfig';
+import { mockPagesConfig } from '../../../../mocks/mockPagesConfig';
 
 const navigateMock = jest.fn();
 
@@ -35,13 +37,16 @@ describe('PagesRouter', () => {
 });
 
 const renderPagesRouter = (
-  pageNames: PageName[] = [PageName.CodeListsWithTextResources, PageName.Images],
+  config: ContentLibraryConfig = {
+    heading: 'Test library',
+    pages: mockPagesConfig,
+  },
 ) => {
   renderWithProviders(
     <RouterContext.Provider
       value={{ currentPage: PageName.CodeListsWithTextResources, navigate: navigateMock }}
     >
-      <PagesRouter pageNames={pageNames} />
+      <PagesRouter config={config} />
     </RouterContext.Provider>,
   );
 };

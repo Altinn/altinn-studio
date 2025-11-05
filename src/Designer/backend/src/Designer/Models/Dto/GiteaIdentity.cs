@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace Altinn.Studio.Designer.Models.Dto;
 
 /// <summary>

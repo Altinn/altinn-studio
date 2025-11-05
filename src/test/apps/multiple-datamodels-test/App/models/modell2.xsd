@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xs:annotation>
+    <xs:documentation>
+      <xsd:attribute name="rootNode" fixed="" />
+    </xs:documentation>
+  </xs:annotation>
+  <xs:element name="modell2">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="tekstfelt" type="xs:string" />
+        <xs:element name="postnummer" type="xs:string" />
+        <xs:element minOccurs="0" name="sektor" type="xs:string" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="personer">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="fornavn" type="xs:string" />
+              <xs:element minOccurs="0" name="etternavn" type="xs:string" />
+              <xs:element minOccurs="0" name="alder" type="xs:long" />
+              <xs:element minOccurs="0" name="fødselsdato" type="xs:date" />
+              <xs:element minOccurs="0" name="legitimasjon" type="xs:string" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="vedlegg" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="questions">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="Id" type="xs:string" />
+              <xs:element minOccurs="0" name="Answer" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="randomchar" type="xs:string" />
+        <xs:element minOccurs="0" name="shouldsucceed" type="xs:string" />
+        <xs:element minOccurs="0" name="selectedperson">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="age" type="xs:string" />
+              <xs:element minOccurs="0" name="profession" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xsd:schema>

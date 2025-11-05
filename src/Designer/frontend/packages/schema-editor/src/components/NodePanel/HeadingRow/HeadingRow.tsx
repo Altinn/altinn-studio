@@ -13,8 +13,7 @@ import {
   SchemaModel,
 } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
-import { StudioDropdownMenu } from '@studio/components-legacy';
-import { StudioDeleteButton, StudioButton } from '@studio/components';
+import { StudioDeleteButton, StudioButton, StudioDropdown } from '@studio/components';
 
 import {
   BooleanIcon,
@@ -76,18 +75,17 @@ const AddNodeMenu = ({ schemaPointer }: AddNodeMenuProps) => {
   const addNodeMenuItems = useAddNodeMenuItems(schemaPointer);
 
   return (
-    <StudioDropdownMenu
-      size='small'
-      anchorButtonProps={{
-        icon: <PlusIcon />,
-        variant: 'secondary',
-        children: t('schema_editor.add_node_of_type'),
-      }}
+    <StudioDropdown
+      icon={<PlusIcon />}
+      triggerButtonVariant='secondary'
+      triggerButtonText={t('schema_editor.add_node_of_type')}
     >
-      {addNodeMenuItems.map((item) => (
-        <AddNodeMenuItem key={item.titleKey} {...item} />
-      ))}
-    </StudioDropdownMenu>
+      <StudioDropdown.List>
+        {addNodeMenuItems.map((item) => (
+          <AddNodeMenuItem key={item.titleKey} {...item} />
+        ))}
+      </StudioDropdown.List>
+    </StudioDropdown>
   );
 };
 
@@ -140,9 +138,11 @@ const useAddNodeMenuItems = (schemaPointer: string): AddNodeMenuItemProps[] => {
 const AddNodeMenuItem = ({ titleKey, icon, action }: AddNodeMenuItemProps) => {
   const { t } = useTranslation();
   return (
-    <StudioDropdownMenu.Item key={titleKey} icon={icon} onClick={action}>
-      {t(titleKey)}
-    </StudioDropdownMenu.Item>
+    <StudioDropdown.Item key={titleKey}>
+      <StudioDropdown.Button icon={icon} onClick={action}>
+        {t(titleKey)}
+      </StudioDropdown.Button>
+    </StudioDropdown.Item>
   );
 };
 

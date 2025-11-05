@@ -63,7 +63,7 @@ function AccessControlDocumentation(): ReactElement {
         {t('app_settings.access_control_tab_option_access_control_docs_link_text')}
       </StudioParagraph>
       <StudioLink
-        href={altinnDocsUrl({ relativeUrl: 'altinn-studio/reference/logic/instantiation' })}
+        href={altinnDocsUrl({ relativeUrl: 'altinn-studio/v8/reference/logic/instantiation' })}
         target='_blank'
         rel='noopener noreferrer'
       >

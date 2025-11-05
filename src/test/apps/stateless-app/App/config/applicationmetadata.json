@@ -1,0 +1,106 @@
+{
+  "id": "ttd/stateless-app",
+  "onEntry": {
+    "show": "stateless"
+  },
+  "org": "ttd",
+  "title": {
+    "nb": "stateless-app"
+  },
+  "dataTypes": [
+    {
+      "id": "ref-data-as-pdf",
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
+      "maxCount": 0,
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "stateless",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.Skjema",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false,
+        "allowUserCreate": false,
+        "allowUserDelete": false,
+        "allowInSubform": false
+      },
+      "maxCount": 0,
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "message",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.MessageV1",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false,
+        "allowUserCreate": false,
+        "allowUserDelete": false,
+        "allowInSubform": false
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "task2",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.task2",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false,
+        "allowUserCreate": false,
+        "allowUserDelete": false,
+        "allowInSubform": false
+      },
+      "taskId": "Task_2",
+      "maxCount": 1,
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": false,
+    "subUnit": false
+  },
+  "autoDeleteOnProcessEnd": true,
+  "disallowUserInstantiation": false,
+  "created": "2021-05-11T08:57:08.4231228Z",
+  "createdBy": "jeeva",
+  "lastChanged": "2021-05-11T08:57:08.4232208Z",
+  "lastChangedBy": "jeeva",
+  "$schema": "https://altinncdn.no/schemas/json/application/application-metadata.schema.v1.json"
+}

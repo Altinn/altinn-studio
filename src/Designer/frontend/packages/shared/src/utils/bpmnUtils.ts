@@ -1,18 +1,32 @@
-import type { Definitions, FlowElement, ModdleElement } from 'bpmn-moddle';
+import type BpmnModdle from 'bpmn-moddle';
+
+type Definitions = BpmnModdle.Definitions;
+type Process = BpmnModdle.Process;
+type FlowElement = BpmnModdle.FlowElement;
+type BaseElement = BpmnModdle.BaseElement;
+
+// Adds custom properties that fall outside the BPMN specification.
+type ExtensionElement = BaseElement & {
+  $children?: ExtensionElement[];
+  $body?: string;
+};
 
 const updateDataTypesToSign = (
   definitions: Definitions,
-  callback: (element: ModdleElement) => void,
+  callback: (element: ExtensionElement) => void,
 ) => {
-  definitions.rootElements[0].flowElements
+  (definitions.rootElements[0] as Process).flowElements
     .filter((flowElement: FlowElement) => flowElement.$type === 'bpmn:Task')
     .forEach((flowElement: FlowElement) => {
-      flowElement.extensionElements.values[0].$children
-        .filter((child: ModdleElement) => child.$type === 'altinn:signatureConfig')
-        .forEach((child: ModdleElement) => {
+      (flowElement.extensionElements.values[0] as ExtensionElement).$children
+        ?.filter((child: ExtensionElement) => (child.$type as string) === 'altinn:signatureConfig')
+        .forEach((child: ExtensionElement) => {
           child.$children
-            ?.filter((subChild: ModdleElement) => subChild.$type === 'altinn:dataTypesToSign')
-            .forEach((subChild: ModdleElement) => {
+            ?.filter(
+              (subChild: ExtensionElement) =>
+                (subChild.$type as string) === 'altinn:dataTypesToSign',
+            )
+            .forEach((subChild: ExtensionElement) => {
               callback(subChild);
             });
         });
@@ -23,9 +37,9 @@ export const removeDataTypeIdsToSign = (dataTypeIds: string[]) => {
   return (definitions: Definitions) => {
     let hasChanged = false;
 
-    updateDataTypesToSign(definitions, (dataTypeToSign: ModdleElement) => {
+    updateDataTypesToSign(definitions, (dataTypeToSign: ExtensionElement) => {
       const filteredChildren = dataTypeToSign.$children?.filter(
-        (item: ModdleElement) => !dataTypeIds.includes(item.$body),
+        (item: ExtensionElement) => !dataTypeIds.includes(item.$body ?? ''),
       );
       if (filteredChildren?.length !== dataTypeToSign.$children?.length) {
         hasChanged = true;
@@ -46,13 +60,13 @@ export const updateDataTypeIdsToSign = (
   return (definitions: Definitions) => {
     let hasChanged = false;
 
-    updateDataTypesToSign(definitions, (dataTypeToSign: ModdleElement) => {
-      const filteredChildren = dataTypeToSign.$children?.filter((item: ModdleElement) =>
+    updateDataTypesToSign(definitions, (dataTypeToSign: ExtensionElement) => {
+      const filteredChildren = dataTypeToSign.$children?.filter((item: ExtensionElement) =>
         dataTypeIds.some((dataTypeId) => dataTypeId.oldId === item.$body),
       );
       if (filteredChildren?.length > 0) {
         hasChanged = true;
-        dataTypeToSign.$children = dataTypeToSign.$children?.map((item: ModdleElement) => {
+        dataTypeToSign.$children = dataTypeToSign.$children?.map((item: ExtensionElement) => {
           const dataTypeId = dataTypeIds.find((dataTypeId) => dataTypeId.oldId === item.$body);
           if (dataTypeId) {
             hasChanged = true;

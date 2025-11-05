@@ -1,0 +1,35 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": false,
+    "layout": [
+      {
+        "id": "Summary2-alt",
+        "type": "Summary2",
+        "target": {
+          "type": "layoutSet",
+          "taskId": "Task_1"
+        }
+      },
+      {
+        "id": "summary2-backButton",
+        "type": "CustomButton",
+        "textResourceBindings": {
+          "title": "general.back"
+        },
+        "actions": [
+          {
+            "type": "ClientAction",
+            "id": "navigateToPage",
+            "metadata": {
+              "page": "oppsummering"
+            }
+          }
+        ],
+        "buttonStyle": "secondary",
+        "buttonColor": "second",
+        "buttonSize": "sm"
+      }
+    ]
+  }
+}

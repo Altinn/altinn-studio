@@ -110,6 +110,11 @@ public readonly struct Expression : IEquatable<Expression>
     public static Expression Null => new(ExpressionValue.Null);
 
     /// <summary>
+    /// Returns true if this expression is a literal string value
+    /// </summary>
+    public bool IsLiteralString => ValueUnion.ValueKind == JsonValueKind.String;
+
+    /// <summary>
     /// Overridden for better debugging experience
     /// </summary>
     public override string ToString()

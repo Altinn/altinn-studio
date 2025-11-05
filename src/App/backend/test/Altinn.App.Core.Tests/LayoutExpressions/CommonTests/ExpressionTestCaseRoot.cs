@@ -1,11 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Expressions;
-using Altinn.App.Core.Models.Layout;
-using Altinn.App.Core.Models.Layout.Components;
+using Altinn.App.Core.Models.Layout.Components.Base;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
@@ -58,8 +56,7 @@ public class ExpressionTestCaseRoot
     public List<TestCaseItem>? TestCases { get; set; }
 
     [JsonPropertyName("layouts")]
-    [JsonConverter(typeof(LayoutModelConverterFromObject))]
-    public IReadOnlyDictionary<string, PageComponent>? Layouts { get; set; }
+    public IReadOnlyDictionary<string, JsonElement>? Layouts { get; set; }
 
     [JsonPropertyName("dataModel")]
     public JsonElement? DataModel { get; set; }
@@ -89,6 +86,23 @@ public class ExpressionTestCaseRoot
     {
         return $"{Filename}: {Name}";
     }
+
+    public async Task<ComponentContext> GetContextOrNull(LayoutEvaluatorState state)
+    {
+        ComponentContext? context = null;
+        if (Context is not null)
+        {
+            //! Some tests do not need context, but it is not nullable in expression evaluator
+            context = await state.GetComponentContext(
+                Context.CurrentPageName,
+                Context.ComponentId,
+                Context.RowIndices
+            )!;
+        }
+
+        //! Some tests do not need context, but it is not nullable in expression evaluator
+        return context!;
+    }
 }
 
 public class DataModelAndElement
@@ -109,29 +123,16 @@ public class ProfileSettings
 public class ComponentContextForTestSpec
 {
     [JsonPropertyName("component")]
-    public string ComponentId { get; set; } = default!;
+    public required string ComponentId { get; init; }
 
     [JsonPropertyName("rowIndices")]
-    public int[]? RowIndices { get; set; }
+    public int[]? RowIndices { get; init; }
 
     [JsonPropertyName("currentLayout")]
-    public string CurrentPageName { get; set; } = default!;
+    public required string CurrentPageName { get; init; }
 
     [JsonPropertyName("children")]
-    public IEnumerable<ComponentContextForTestSpec> ChildContexts { get; set; } =
-        Enumerable.Empty<ComponentContextForTestSpec>();
-
-    public ComponentContext ToContext(LayoutModel? model, LayoutEvaluatorState state)
-    {
-        var component = model?.GetComponent(CurrentPageName, ComponentId);
-        return new ComponentContext(
-            component,
-            RowIndices,
-            // TODO: get from data model, but currently not important for tests
-            state.GetDefaultDataElementId(),
-            ChildContexts.Select(c => c.ToContext(model, state)).ToList()
-        );
-    }
+    public List<ComponentContextForTestSpec> ChildContexts { get; init; } = [];
 
     public static ComponentContextForTestSpec FromContext(ComponentContext context)
     {
@@ -140,17 +141,16 @@ public class ComponentContextForTestSpec
         ArgumentNullException.ThrowIfNull(context.Component.PageId);
         var id = context.Component.Id;
 
-        // Remove guid from the end of the id
-        if (Regex.IsMatch(id, @".*_[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}"))
-        {
-            id = id.Substring(0, id.LastIndexOf('_'));
-        }
+        List<ComponentContextForTestSpec> childContexts = context
+            .ChildContexts.SelectMany(c => c.Component is RepeatingGroupRowComponent ? c.ChildContexts : [c]) // Flatten out the synthetic Row components that are not used in test spec
+            .Select(FromContext)
+            .ToList();
 
         return new ComponentContextForTestSpec
         {
             ComponentId = id,
             CurrentPageName = context.Component.PageId,
-            ChildContexts = context.ChildContexts?.Select(FromContext) ?? [],
+            ChildContexts = childContexts,
             RowIndices = context.RowIndices,
         };
     }

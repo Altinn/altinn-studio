@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xs:annotation>
+    <xs:documentation>
+      <xsd:attribute name="rootNode" fixed="" />
+    </xs:documentation>
+  </xs:annotation>
+  <xs:complexType name="Aksjetegning">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="AntallAksjer" type="xs:double" />
+      <xs:element minOccurs="0" name="Aksjepris" type="xs:double" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Fullmektig">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Etternavn" type="xs:string" />
+      <xs:element minOccurs="0" name="Foedselsnummer" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Adresse">
+    <xs:sequence>
+      <xs:element name="Adresselinje" type="xs:string" />
+      <xs:element name="Postnummer" type="xs:string" />
+      <xs:element name="Sted" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="Skjemadata">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Selskapsnavn" type="xs:string" />
+        <xs:element name="SelskapetsFormaal" type="xs:string" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="StifterPerson">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="Fornavn" type="xs:string" />
+              <xs:element minOccurs="0" name="Mellomnavn" type="xs:string" />
+              <xs:element name="Etternavn" type="xs:string" />
+              <xs:element name="Adresse" type="Adresse" />
+              <xs:element minOccurs="0" name="Aksjetegning" type="Aksjetegning" />
+              <xs:element minOccurs="0" name="HarFullmektig" type="xs:string" />
+              <xs:element minOccurs="0" name="Fullmektig" type="Fullmektig" />
+              <xs:element minOccurs="0" name="Foedselsnummer" type="xs:string" />
+              <xs:element minOccurs="0" name="Epost" type="xs:string" />
+              <xs:element minOccurs="0" name="Mobiltelefon" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="StifterVirksomhet">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="Navn" type="xs:string" />
+              <xs:element minOccurs="0" name="Adresse" type="Adresse" />
+              <xs:element minOccurs="0" name="Organisasjonsnummer" type="xs:string" />
+              <xs:element minOccurs="0" name="Epost" type="xs:string" />
+              <xs:element minOccurs="0" name="Mobiltelefon" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="Aksjekapital">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="AksjekapitalSum" type="xs:double" />
+              <xs:element minOccurs="0" name="Paalydende" type="xs:double" />
+              <xs:element name="FristForInnbetaling" type="xs:date" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="Styre">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Styreleder">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Etternavn" type="xs:string" />
+                    <xs:element minOccurs="0" name="Foedselsnummer" type="xs:string" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element minOccurs="0" name="HarNestleder" type="xs:string" />
+              <xs:element minOccurs="0" name="Nestleder">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Etternavn" type="xs:string" />
+                    <xs:element minOccurs="0" name="Foedselsnummer" type="xs:string" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="Styremedlem">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Etternavn" type="xs:string" />
+                    <xs:element minOccurs="0" name="Foedselsnummer" type="xs:string" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="Revisor">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="HarRevisor" type="xs:string" />
+              <xs:element name="Navn" type="xs:string" />
+              <xs:element name="Adresse" type="Adresse" />
+              <xs:element minOccurs="0" name="Organisasjonsnummer" type="xs:string" />
+              <xs:element minOccurs="0" name="Epost" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" maxOccurs="10" name="Stiftelsesdokumenter" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xsd:schema>

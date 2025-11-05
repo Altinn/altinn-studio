@@ -4,6 +4,7 @@ import type { JSX } from 'react';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { MapDef } from 'src/layout/Map/config.def.generated';
+import { useValidateGeometriesBindings } from 'src/layout/Map/features/geometries/useValidateGeometriesBindings';
 import { MapComponent } from 'src/layout/Map/MapComponent';
 import { MapComponentSummary } from 'src/layout/Map/MapComponentSummary';
 import { MapSummary } from 'src/layout/Map/Summary2/MapSummary';
@@ -52,30 +53,8 @@ export class Map extends MapDef {
     );
     simpleBindingErrors && errors.push(...simpleBindingErrors);
 
-    const [geometriesErrors, geometriesResult] = validateDataModelBindingsAny(
-      baseComponentId,
-      bindings,
-      lookupBinding,
-      layoutLookups,
-      'geometries',
-      ['array'],
-      false,
-    );
-    geometriesErrors && errors.push(...geometriesErrors);
-
-    if (
-      geometriesResult &&
-      (!geometriesResult.items ||
-        typeof geometriesResult.items !== 'object' ||
-        Array.isArray(geometriesResult.items) ||
-        geometriesResult.items?.type !== 'object' ||
-        typeof geometriesResult.items.properties?.data !== 'object' ||
-        geometriesResult.items.properties?.data?.type !== 'string' ||
-        typeof geometriesResult.items.properties?.label !== 'object' ||
-        geometriesResult.items.properties?.label?.type !== 'string')
-    ) {
-      errors.push(`geometry-datamodellbindingen peker mot en ukjent type i datamodellen`);
-    }
+    const geometriesBindingErrors = useValidateGeometriesBindings(baseComponentId, bindings);
+    errors.push(...geometriesBindingErrors);
 
     return errors;
   }

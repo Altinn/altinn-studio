@@ -24,14 +24,16 @@ import { usePropState } from '@studio/hooks';
 import { StudioParagraph } from '../StudioParagraph';
 import classes from './StudioCodeListEditor.module.css';
 import { StudioValidationMessage } from '../StudioValidationMessage';
+import cn from 'classnames';
 
-export type StudioCodeListEditorProps = {
+export type StudioCodeListEditorProps = Readonly<{
+  className?: string;
   codeList: CodeList;
   language: string;
   onInvalid?: () => void;
   onUpdateCodeList: (codeList: CodeList) => void;
   texts: CodeListEditorTexts;
-};
+}>;
 
 export function StudioCodeListEditor({
   language,
@@ -48,6 +50,7 @@ export function StudioCodeListEditor({
 type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'language' | 'texts'>;
 
 function StatefulCodeListEditor({
+  className,
   codeList: givenCodeList,
   onInvalid,
   onUpdateCodeList,
@@ -66,17 +69,24 @@ function StatefulCodeListEditor({
     [onUpdateCodeList, onInvalid, setCodeList],
   );
 
-  return <ControlledCodeListEditor codeList={codeList} onChangeCodeList={handleChangeCodeList} />;
+  return (
+    <ControlledCodeListEditor
+      className={className}
+      codeList={codeList}
+      onChangeCodeList={handleChangeCodeList}
+    />
+  );
 }
 
 type ControlledCodeListEditorProps = Omit<
   StatefulCodeListEditorProps,
   'onInvalid' | 'onUpdateCodeList'
 > & {
-  onChangeCodeList: (codeList: CodeList) => void;
+  readonly onChangeCodeList: (codeList: CodeList) => void;
 };
 
 function ControlledCodeListEditor({
+  className: givenClass,
   codeList,
   onChangeCodeList,
 }: ControlledCodeListEditorProps): ReactElement {
@@ -89,8 +99,10 @@ function ControlledCodeListEditor({
     onChangeCodeList(updatedCodeList);
   }, [codeList, onChangeCodeList]);
 
+  const className = cn(classes.codeListEditor, givenClass);
+
   return (
-    <StudioFieldset legend={texts.codeList} className={classes.codeListEditor} ref={fieldsetRef}>
+    <StudioFieldset legend={texts.codeList} className={className} ref={fieldsetRef}>
       <CodeListTable codeList={codeList} errorMap={errorMap} onChangeCodeList={onChangeCodeList} />
       <AddButton onClick={handleAddButtonClick} />
       <Errors errorMap={errorMap} />
@@ -178,7 +190,7 @@ function TableBody({
 }
 
 type ErrorsProps = {
-  errorMap: ValueErrorMap;
+  readonly errorMap: ValueErrorMap;
 };
 
 function Errors({ errorMap }: ErrorsProps): ReactNode {
@@ -193,7 +205,7 @@ function Errors({ errorMap }: ErrorsProps): ReactNode {
 }
 
 type AddButtonProps = {
-  onClick: () => void;
+  readonly onClick: () => void;
 };
 
 function AddButton({ onClick }: AddButtonProps): ReactElement {

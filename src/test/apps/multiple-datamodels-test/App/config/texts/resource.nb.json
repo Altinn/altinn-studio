@@ -1,0 +1,149 @@
+{
+  "language": "nb",
+  "resources": [
+    {
+      "id": "Side1.Checkboxes-dxp6Rr.title",
+      "value": "Bransje"
+    },
+    {
+      "id": "Side1.RadioButtons-t8YpJA.title",
+      "value": "Sektor"
+    },
+    {
+      "id": "Side1.RepeatingGroup-ptGWlM.title",
+      "value": "Personer"
+    },
+    {
+      "id": "Side1.Input-EVYFwx.title",
+      "value": "Tekstfelt 2"
+    },
+    {
+      "id": "Side1.Input-zRQ9nX.title",
+      "value": "Tekstfelt 1"
+    },
+    {
+      "id": "Side1.Button-Sjnxbg.title",
+      "value": "Send inn"
+    },
+    {
+      "id": "Side1.Header-tNYPtf.title",
+      "value": "Fra forrige steg"
+    },
+    {
+      "id": "Side1.Input-GhRioy.title",
+      "value": "Mobilnummer"
+    },
+    {
+      "id": "Side1.Input-FNCGd0.title",
+      "value": "E-post"
+    },
+    {
+      "id": "Side1.RepeatingGroup-6svZ9g.title",
+      "value": "Kontaktinfo"
+    },
+    {
+      "id": "Side1.Input-ERdCEy.title",
+      "value": "Tekstfelt 3"
+    },
+    {
+      "id": "Side2.Address-xdZ7PE.title",
+      "value": "Adresse"
+    },
+    {
+      "id": "Side1.Input-aWlSF3.title",
+      "value": "Tekstfelt 2"
+    },
+    {
+      "id": "Side1.Input-bhWSyO.title",
+      "value": "Tekstfelt 1"
+    },
+    {
+      "id": "Side1.Header-vzkx0K.title",
+      "value": "Datamodell 2"
+    },
+    {
+      "id": "Side1.Header-GPW9rL.title",
+      "value": "Datamodell 1"
+    },
+    {
+      "id": "Side1.Group-ckaPcK.title",
+      "value": "Datamodell 2"
+    },
+    {
+      "id": "Side1.Group-WMXCGL.title",
+      "value": "Datamodell 1"
+    },
+    {
+      "id": "appName",
+      "value": "multiple-datamodels-test"
+    },
+    {
+      "id": "equalParagraph",
+      "value": "#### Variabler i tekst-ressurs\n\nBegge feltene er __helt like!__"
+    },
+    {
+      "id": "variableParagraph",
+      "value": "#### Variabler i tekst-ressurs\n\nI første felt står det __{0}__, og i det andre feltet står det __{1}__.",
+      "variables": [
+        {
+          "key": "tekstfelt",
+          "dataSource": "dataModel.modell1",
+          "defaultValue": "ingenting"
+        },
+        {
+          "key": "tekstfelt",
+          "dataSource": "dataModel.modell2",
+          "defaultValue": "ikke noe"
+        }
+      ]
+    },
+    {
+      "id": "repeatingParagraph",
+      "value": "{0} {1} er født {2} og er dermed {3} år gammel.",
+      "variables": [
+        {
+          "key": "personer.fornavn",
+          "dataSource": "dataModel.modell2",
+          "defaultValue": "_fornavn_"
+        },
+        {
+          "key": "personer.etternavn",
+          "dataSource": "dataModel.modell2",
+          "defaultValue": "_etternavn_"
+        },
+        {
+          "key": "personer.fødselsdato",
+          "dataSource": "dataModel.modell2",
+          "defaultValue": "_dato_"
+        },
+        {
+          "key": "personer.alder",
+          "dataSource": "dataModel.modell2",
+          "defaultValue": "_alder_"
+        }
+      ]
+    },
+    {
+      "id": "question-1",
+      "value": "Gjør du leksene dine?"
+    },
+    {
+      "id": "question-2",
+      "value": "Fungerer kalkulatoren din?"
+    },
+    {
+      "id": "question-3",
+      "value": "Er pulten din ryddig?"
+    },
+    {
+      "id": "likert-row-title",
+      "value": "{0}",
+      "variables": [
+        {
+          "key": "questions[{0}].Id",
+          "dataSource": "dataModel.modell2"
+        }
+      ]
+    }
+  ]
+}

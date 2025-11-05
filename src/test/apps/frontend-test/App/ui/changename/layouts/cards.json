@@ -1,0 +1,421 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": [
+      "not",
+      ["commaContains", ["dataModel", "ChooseExtraPages"], "cards"]
+    ],
+    "layout": [
+      {
+        "id": "cardsNavBar",
+        "type": "NavigationBar"
+      },
+      {
+        "type": "Cards",
+        "id": "patent-cards",
+        "color": "subtle",
+        "cards": [
+          {
+            "title": "Varemerke",
+            "description": "Dette er et eksempel på hvordan et varemerke kan se ut. Dette kan være en logo, et navn, en farge eller en kombinasjon av disse.",
+            "media": "patentstyret-varemerke"
+          },
+          {
+            "title": "Lydmerke",
+            "description": "Et lydmerke kan være en jingle, en melodi eller en annen lyd. Et opptak av at noen brøler firmanavnet ditt godtar vi ikke.",
+            "media": "patentstyret-lydmerke"
+          },
+          {
+            "title": "Videomerke",
+            "description": "Videomerker er en kombinasjon bilde og av og til lyd. Dette kan være en reklamefilm, en animasjon eller en annen type video.",
+            "media": "patentstyret-videomerke"
+          },
+          {
+            "title": "Andre",
+            "description": "Vi kan registrere alt mulig rart som et kjennemerke. Hvis du vil registere gode kaker, kryss av her så tar vi kontakt for prøvesmaking.",
+            "children": ["cardsCheckboxes"]
+          }
+        ]
+      },
+      {
+        "id": "patentstyret-varemerke",
+        "type": "Image",
+        "textResourceBindings": {
+          "altTextImg": "Varemerke-alt-text"
+        },
+        "image": {
+          "align": "center",
+          "width": "100%",
+          "src": {
+            "nb": "assets/patentstyret-varemerke.jpg"
+          }
+        }
+      },
+      {
+        "id": "patentstyret-lydmerke",
+        "type": "Audio",
+        "textResourceBindings": {
+          "altText": "Lydmerke-alt-text"
+        },
+        "audio": {
+          "src": {
+            "nb": "assets/patentstyret-lydmerke.mp3"
+          }
+        }
+      },
+      {
+        "id": "patentstyret-videomerke",
+        "type": "Video",
+        "textResourceBindings": {
+          "altText": "Videomerke-alt-text"
+        },
+        "video": {
+          "src": {
+            "nb": "assets/patentstyret-videomerke.mp4"
+          }
+        }
+      },
+      {
+        "id": "cardsCheckboxes",
+        "type": "Checkboxes",
+        "dataModelBindings": {
+          "simpleBinding": "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraAksept-datadef-34754.value"
+        },
+        "options": [
+          {
+            "label": "Jeg inviterer Patentstyret til å smake på kaker",
+            "value": "J"
+          }
+        ]
+      },
+      {
+        "id": "number1",
+        "type": "Number",
+        "textResourceBindings": {
+          "title": "Total gjeld"
+        },
+        "value": ["dataModel","GridData.TotalGjeld"],
+        "direction": "horizontal",
+        "formatting": {
+          "currency": "NOK",
+          "position": "suffix",
+          "number": {
+            "thousandSeparator": " "
+          }
+        },
+        "grid": {
+          "xs": 12
+        }
+      },
+      {
+        "id": "number2",
+        "type": "Number",
+        "textResourceBindings": {
+          "title": "Statisk verdi som tall"
+        },
+        "value": 2000,
+        "direction": "horizontal",
+        "formatting": {
+          "currency": "NOK",
+          "position": "suffix",
+          "number": {
+            "thousandSeparator": " "
+          }
+        },
+        "grid": {
+          "xs": 12
+        }
+      },
+      {
+        "id": "number3",
+        "type": "Number",
+        "textResourceBindings": {
+          "title": "Kredittkort prosent"
+        },
+        "value": ["dataModel","GridData.Kredittkort.Prosent"],
+        "direction": "horizontal",
+        "formatting": {
+          "unit": "percent",
+          "position": "suffix",
+          "number": {
+            "thousandSeparator": " "
+          }
+        },
+        "grid": {
+          "xs": 12
+        }
+      },
+      {
+        "id": "number4",
+        "type": "Number",
+        "textResourceBindings": {
+          "title": "Statisk verdi med desimal",
+          "description": "Dette er en beskrivelse",
+          "help":"Dette er en helptext"
+        },
+        "value": 20000.20,
+        "direction": "horizontal",
+        "formatting": {
+          "currency": "NOK",
+          "position": "suffix",
+          "number": {
+            "thousandSeparator": " "
+          }
+        },
+        "grid": {
+          "xs": 12
+        }
+      },
+      {
+        "type": "Cards",
+        "id": "number-Card",
+        "color": "subtle",
+        "cards": [
+          {
+            "title": "Tall",
+            "description": "",
+            "children": ["number1", "number2", "number3", "number4"]
+          }
+        ]
+      },
+      {
+        "id": "date1",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Dato"
+        },
+        "value": "2022-09-27 18:00:00.000",
+        "format": "dd.MM.yyyy",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "date2",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Dato med tid"
+        },
+        "value": "2022-09-27 18:00:00.000",
+        "format": "dd.MM.yyyy hh:mm:ss",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "date3",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Dato med annet format"
+        },
+        "value": "2022-09-27",
+        "format": "dd/MM/yyyy",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "date4",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Dato med tid på annet format"
+        },
+        "value": "2022-09-27 18:00:00.000",
+        "format": "dd/MM/yyyy hh:mm:ss",
+        "direction": "vertical",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "type": "Cards",
+        "id": "date-Card",
+        "color": "subtle",
+        "cards": [
+          {
+            "title": "Dato",
+            "description": "",
+            "children": ["date1", "date2", "date3", "date4"]
+          }
+        ]
+      },
+      {
+        "id": "text1",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Fornavn"
+        },
+        "value": ["dataModel","GridData.TotalGjeld"],
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "text2",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Etternavn"
+        },
+        "value": "Mitt etternavn",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "text3",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Adresse"
+        },
+        "value": "Min adresse",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "text4",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Tekst"
+        },
+        "value": "Test",
+        "direction": "vertical",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "text5",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Språk"
+        },
+        "value": ["language"],
+        "direction": "vertical",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "type": "Cards",
+        "id": "text-Card",
+        "color": "subtle",
+        "cards": [
+          {
+            "title": "Tekst",
+            "description": "",
+            "children": ["text1", "text2", "text3", "text4", "text5"]
+          }
+        ]
+      },
+      {
+        "id": "option-Card",
+        "type": "Cards",
+        "color": "subtle",
+        "cards": [
+          {
+            "title": "Option",
+            "description": "",
+            "children": ["option-test1", "option-test2", "option-test3", "option-test4"]
+          }
+        ]
+      },
+      {
+        "id": "option-test1",
+        "type": "Option",
+        "textResourceBindings": {
+          "title": "Dyr med hjelpetekst og beskrivelse",
+          "description": "Et dyr som bjeffer"
+        },
+        "value": "Dog",
+        "optionsId": "pet-species",
+        "grid": { "xs": 6 }
+      },
+      {
+        "id": "option-test2",
+        "type": "Option",
+        "textResourceBindings": {
+          "title": "Dyr med beskrivelse",
+          "description": "Et dyr som gnager"
+        },
+        "value": "Hamster",
+        "optionsId": "pet-species",
+        "grid": { "xs": 6 }
+      },
+      {
+        "id": "option-test3",
+        "type": "Option",
+        "textResourceBindings": {
+          "title": "Dyr med hjelpetekst",
+          "help": "Dette er en hjelpetekst"
+        },
+        "value": "Fish",
+        "optionsId": "pet-species",
+        "grid": { "xs": 6 }
+      },
+      {
+        "id": "option-test4",
+        "type": "Option",
+        "textResourceBindings": {
+          "title": "Bare tekst",
+          "description": "Ingenting spesielt å se her"
+        },
+        "value": "hello-world",
+        "options": [{
+          "label": "Hello World",
+          "value": "hello-world"
+        }],
+        "grid": { "xs": 6 }
+      },
+      {
+        "id": "cards-group",
+        "type": "Group",
+        "children": ["number-Card", "date-Card", "text-Card", "option-Card"]
+      },
+      {
+        // This does not work a the moment, but leaving the config here for the future when it starts working
+        "id": "cards-group-summary",
+        "type": "Summary2",
+        "target": { "id": "cards-group" }
+      },
+      {
+        "id": "summaries-header",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Oppsummeringer av utvalgte felt"
+        },
+        "size": "L"
+      },
+      {
+        "id": "single-number-summary",
+        "type": "Summary2",
+        "target": { "id": "number4" }
+      },
+      {
+        "id": "single-date-summary",
+        "type": "Summary2",
+        "target": { "id": "date4" }
+      },
+      {
+        "id": "single-text-summary",
+        "type": "Summary2",
+        "target": { "id": "text2" }
+      },
+      {
+        "id": "single-option-summary",
+        "type": "Summary2",
+        "target": { "id": "option-test1" }
+      },
+      {
+        "id": "cardsNavigate",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "back": "Tilbake",
+          "next": "Neste"
+        },
+        "showBackButton": true
+      }
+    ]
+  }
+}
+

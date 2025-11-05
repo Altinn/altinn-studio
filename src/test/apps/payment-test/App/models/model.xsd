@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="form" type="Form" />
+  <xs:complexType name="Form">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ContactInformation" type="ContactInformation" />
+      <xs:element minOccurs="0" name="AgentPerson" type="xs:string" />
+      <xs:element minOccurs="0" name="AgentCompany" type="CompanyProperties" />
+      <xs:element minOccurs="0" name="Company" type="Company" />
+      <xs:element minOccurs="0" name="Trademark" type="Trademark" />
+      <xs:element minOccurs="0" name="GoodsAndServicesProperties" type="GoodsAndServicesProperties" />
+      <xs:element minOccurs="0" name="PreInvestigation" type="PreInvestigation" />
+      <xs:element minOccurs="0" name="SimilarTrademarks" type="SimilarTrademarks" />
+      <xs:element minOccurs="0" name="HF_HaveReadAndUnderstood" type="xs:boolean" />
+      <xs:element minOccurs="0" name="HideFirstPaymentDetails" type="xs:boolean" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ContactInformation">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="FullName" type="xs:string" />
+      <xs:element minOccurs="0" name="PhoneNumber" type="xs:string" />
+      <xs:element minOccurs="0" name="Email" type="xs:string" />
+      <xs:element minOccurs="0" name="Reference" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Company">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="100" name="CompanyProperties" type="CompanyProperties" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="CompanyProperties">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="CompanyNumber" type="xs:string" />
+      <xs:element minOccurs="0" name="CompanyName" type="xs:string" />
+      <xs:element minOccurs="0" name="FirstName" type="xs:string" />
+      <xs:element minOccurs="0" name="LastName" type="xs:string" />
+      <xs:element minOccurs="0" name="StreetAddress" type="xs:string" />
+      <xs:element minOccurs="0" name="ZipCode" type="xs:string" />
+      <xs:element minOccurs="0" name="City" type="xs:string" />
+      <xs:element minOccurs="0" name="Country" type="xs:string" />
+      <xs:element minOccurs="0" name="ClientNumber" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Trademark">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="TrademarkType" type="xs:string" />
+      <xs:element minOccurs="0" name="TrademarkText" type="xs:string" />
+      <xs:element minOccurs="0" name="TrademarkDetails" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="GoodsAndServicesProperties">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Inventory" type="Inventory" />
+      <xs:element minOccurs="0" name="Details" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Inventory">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="100" name="InventoryProperties" type="InventoryProperties" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="InventoryProperties">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="NiceClassification" type="xs:string" />
+      <xs:element minOccurs="0" name="GoodsAndServices" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PreInvestigation">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="HF_HasPriority" type="xs:boolean" />
+      <xs:element minOccurs="0" name="HF_HasEarlierInvestigation" type="xs:boolean" />
+      <xs:element minOccurs="0" name="Year" type="xs:string" />
+      <xs:element minOccurs="0" name="Number" type="xs:string" />
+      <xs:element minOccurs="0" name="Priority" type="Priority" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Priority">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="PriorityReason" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="100" name="PriorityProperties" type="PriorityProperties" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PriorityProperties">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="PriorityDate" type="xs:string" />
+      <xs:element minOccurs="0" name="CaseDate" type="xs:string" />
+      <xs:element minOccurs="0" name="CaseName" type="xs:string" />
+      <xs:element minOccurs="0" name="InternationalDischargeDate" type="xs:string" />
+      <xs:element minOccurs="0" name="InternationalRegistrationNumber" type="xs:string" />
+      <xs:element minOccurs="0" name="CountryCode" type="xs:string" />
+      <xs:element minOccurs="0" name="RegistrationNumber" type="xs:string" />
+      <xs:element minOccurs="0" name="NiceClassification" type="xs:string" />
+      <xs:element minOccurs="0" name="Reference" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="SimilarTrademarks">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="100" name="SearchResult" type="SearchResult" />
+      <xs:element minOccurs="0" name="SearchServiceLink" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="SearchResult">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="TrademarkText" type="xs:string" />
+      <xs:element minOccurs="0" name="ApplicationNumber" type="xs:string" />
+      <xs:element minOccurs="0" name="GoodsAndServicesClassNumber" type="xs:string" />
+      <xs:element minOccurs="0" name="Status" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+</xsd:schema>

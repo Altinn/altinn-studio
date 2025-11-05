@@ -9,7 +9,7 @@ import { BpmnConfigPanelFormContextProvider } from '../../contexts/BpmnConfigPan
 import type Modeler from 'bpmn-js/lib/Modeler';
 import { BpmnApiContextProvider } from '../../contexts/BpmnApiContext';
 import { mockBpmnDetails } from '../../../test/mocks/bpmnDetailsMock';
-import { StudioRecommendedNextActionContextProvider } from '@studio/components-legacy';
+import { StudioRecommendedNextActionContextProvider } from '@studio/components';
 
 jest.mock('./ConfigSequenceFlow', () => ({
   ConfigSequenceFlow: () => <h1>ConfigSequenceFlow Mocked Component</h1>,

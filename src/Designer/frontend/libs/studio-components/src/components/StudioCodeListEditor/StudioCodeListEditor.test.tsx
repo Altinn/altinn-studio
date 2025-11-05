@@ -8,6 +8,7 @@ import userEvent from '@testing-library/user-event';
 import { texts } from './test-data/texts';
 import { codeList } from './test-data/codeList';
 import { CodeListItemTextProperty } from './enums/CodeListItemTextProperty';
+import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 
 // Test data:
 const onInvalid = jest.fn();
@@ -242,6 +243,10 @@ describe('StudioCodeListEditor', () => {
   it('Renders the empty text when the code list is empty', () => {
     renderCodeListEditor({ codeList: [] });
     expect(screen.getByText(texts.emptyCodeList)).toBeInTheDocument();
+  });
+
+  it('Appends the class to the root element when given', () => {
+    testRootClassNameAppending((className) => renderCodeListEditor({ className }));
   });
 });
 

@@ -1,0 +1,117 @@
+{
+  "id": "ttd/multiple-datamodels-test",
+  "org": "ttd",
+  "title": {
+    "nb": "multiple-datamodels-test"
+  },
+  "dataTypes": [
+    {
+      "id": "ref-data-as-pdf",
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
+      "maxCount": 0,
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "modell1",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.modell1.modell1",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "modell2",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.modell2.modell2",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1,
+      "enablePdfCreation": false,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "fileUploadSingle",
+      "taskId": "Task_1",
+      "maxSize": 20,
+      "maxCount": 0,
+      "minCount": 0,
+      "enablePdfCreation": false,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "fileUploadMulti",
+      "taskId": "Task_1",
+      "maxSize": 20,
+      "maxCount": 0,
+      "minCount": 0,
+      "enablePdfCreation": false,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "modell3",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.modell3.modell3",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
+      },
+      "taskId": "Task_2",
+      "maxCount": 1,
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": false,
+    "subUnit": false
+  },
+  "autoDeleteOnProcessEnd": false,
+  "created": "2024-03-12T12:56:51.2047426Z",
+  "createdBy": "bjosttveit",
+  "lastChanged": "2024-03-12T12:56:51.2047435Z",
+  "lastChangedBy": "bjosttveit"
+}

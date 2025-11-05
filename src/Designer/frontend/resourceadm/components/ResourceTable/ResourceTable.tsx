@@ -1,8 +1,13 @@
 import React from 'react';
 import classes from './ResourceTable.module.css';
 import { PencilIcon, FileImportIcon } from '@studio/icons';
-import { StudioButton, StudioSpinner, StudioTag } from '@studio/components';
-import { StudioTableLocalPagination } from '@studio/components-legacy';
+import {
+  StudioButton,
+  StudioSpinner,
+  StudioTag,
+  StudioTableLocalPagination,
+} from '@studio/components';
+
 import type { Columns } from '@studio/components-legacy';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';

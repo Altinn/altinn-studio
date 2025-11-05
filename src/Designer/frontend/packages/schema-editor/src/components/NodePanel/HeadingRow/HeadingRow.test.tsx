@@ -265,7 +265,7 @@ describe('HeadingRow', () => {
   const addButtonTitle = textMock('schema_editor.add_node_of_type');
   const getAddButton = () => screen.getByRole('button', { name: addButtonTitle });
   const getAddMenuitem = (type: string) =>
-    screen.getByRole('menuitem', { name: textMock('schema_editor.' + type) });
+    screen.getByRole('button', { name: textMock('schema_editor.' + type) });
   const getDeleteButton = () => screen.getByRole('button', { name: textMock('general.delete') });
 });
 

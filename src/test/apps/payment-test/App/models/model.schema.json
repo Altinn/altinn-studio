@@ -1,0 +1,374 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema.json",
+  "@xsdNamespaces": {
+    "seres": "http://seres.no/xsd/forvaltningsdata",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xs": "http://www.w3.org/2001/XMLSchema"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "@xsdRootElement": "form",
+  "object": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    {
+      "type": "string"
+    }
+  ],
+  "type": "object",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/Form"
+    }
+  ],
+  "$defs": {
+    "Form": {
+      "properties": {
+        "ContactInformation": {
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/ContactInformation"
+        },
+        "AgentPerson": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "AgentCompany": {
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/CompanyProperties"
+        },
+        "Company": {
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/Company"
+        },
+        "Trademark": {
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/Trademark"
+        },
+        "GoodsAndServicesProperties": {
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/GoodsAndServicesProperties"
+        },
+        "PreInvestigation": {
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/PreInvestigation"
+        },
+        "SimilarTrademarks": {
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/SimilarTrademarks"
+        },
+        "HF_HaveReadAndUnderstood": {
+          "@xsdType": "boolean",
+          "@xsdMinOccurs": 0,
+          "type": "boolean"
+        },
+        "HideFirstPaymentDetails": {
+          "@xsdType": "boolean",
+          "@xsdMinOccurs": 0,
+          "type": "boolean"
+        }
+      }
+    },
+    "ContactInformation": {
+      "properties": {
+        "FullName": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "PhoneNumber": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "Email": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "Reference": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        }
+      }
+    },
+    "Company": {
+      "properties": {
+        "CompanyProperties": {
+          "type": "array",
+          "maxItems": 100,
+          "@xsdMinOccurs": 0,
+          "@xsdMaxOccurs": "100",
+          "items": {
+            "$ref": "#/$defs/CompanyProperties"
+          }
+        }
+      }
+    },
+    "CompanyProperties": {
+      "properties": {
+        "CompanyNumber": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "CompanyName": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "FirstName": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "LastName": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "StreetAddress": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "ZipCode": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "City": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "Country": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "ClientNumber": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        }
+      }
+    },
+    "Trademark": {
+      "properties": {
+        "TrademarkType": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "TrademarkText": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "TrademarkDetails": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        }
+      }
+    },
+    "GoodsAndServicesProperties": {
+      "properties": {
+        "Inventory": {
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/Inventory"
+        },
+        "Details": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        }
+      }
+    },
+    "Inventory": {
+      "properties": {
+        "InventoryProperties": {
+          "type": "array",
+          "maxItems": 100,
+          "@xsdMinOccurs": 0,
+          "@xsdMaxOccurs": "100",
+          "items": {
+            "$ref": "#/$defs/InventoryProperties"
+          }
+        }
+      }
+    },
+    "InventoryProperties": {
+      "properties": {
+        "NiceClassification": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "@xsdMaxOccurs": "1",
+          "type": "string"
+        },
+        "GoodsAndServices": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        }
+      }
+    },
+    "PreInvestigation": {
+      "properties": {
+        "HF_HasPriority": {
+          "@xsdType": "boolean",
+          "@xsdMinOccurs": 0,
+          "type": "boolean"
+        },
+        "HF_HasEarlierInvestigation": {
+          "@xsdType": "boolean",
+          "@xsdMinOccurs": 0,
+          "type": "boolean"
+        },
+        "Year": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "Number": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "Priority": {
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/Priority"
+        }
+      }
+    },
+    "Priority": {
+      "properties": {
+        "PriorityReason": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "PriorityProperties": {
+          "type": "array",
+          "maxItems": 100,
+          "@xsdMinOccurs": 0,
+          "@xsdMaxOccurs": "100",
+          "items": {
+            "$ref": "#/$defs/PriorityProperties"
+          }
+        }
+      }
+    },
+    "PriorityProperties": {
+      "properties": {
+        "PriorityDate": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "CaseDate": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "CaseName": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "InternationalDischargeDate": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "InternationalRegistrationNumber": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "CountryCode": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "RegistrationNumber": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "NiceClassification": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "Reference": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        }
+      }
+    },
+    "SimilarTrademarks": {
+      "properties": {
+        "SearchResult": {
+          "type": "array",
+          "maxItems": 100,
+          "@xsdMinOccurs": 0,
+          "@xsdMaxOccurs": "100",
+          "items": {
+            "$ref": "#/$defs/SearchResult"
+          }
+        },
+        "SearchServiceLink": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        }
+      }
+    },
+    "SearchResult": {
+      "properties": {
+        "TrademarkText": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "ApplicationNumber": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "GoodsAndServicesClassNumber": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        },
+        "Status": {
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0,
+          "type": "string"
+        }
+      }
+    }
+  }
+}

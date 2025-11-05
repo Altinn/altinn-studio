@@ -1,0 +1,29 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "PrevTask-NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "size": "M",
+        "id": "page3summarytask",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Her skal vi rendre hele Task_1:"
+        }
+      },
+      {
+        "id": "Summary2-previous-process",
+        "type": "Summary2",
+        "hidden": false,
+        "target": {
+          "taskId": "Task_1",
+          "type": "layoutSet"
+        },
+        "showPageInAccordion": false
+      }
+    ]
+  }
+}

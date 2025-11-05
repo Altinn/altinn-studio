@@ -1,3 +1,4 @@
+#nullable disable
 namespace Altinn.Studio.Designer.Filters.AppDevelopment
 {
     public class AppDevelopmentErrorCodes

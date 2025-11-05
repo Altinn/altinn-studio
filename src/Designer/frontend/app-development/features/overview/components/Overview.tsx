@@ -7,7 +7,7 @@ import { Navigation } from './Navigation';
 import { News } from './News';
 import { Deployments } from './Deployments';
 import { Header } from './Header';
-import { StudioPageImageBackgroundContainer } from '@studio/components-legacy';
+import { StudioPageImageBackgroundContainer } from '@studio/components';
 
 export const Overview = () => {
   const { t } = useTranslation();

@@ -6,8 +6,8 @@ import { Link, Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { useDataModelsXsdQuery } from 'app-shared/hooks/queries';
 import { InformationSquareFillIcon } from '@studio/icons';
-import { StudioLabelAsParagraph, StudioTextfield } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioTextfield } from '@studio/components-legacy';
+import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useGiteaHeaderContext } from '../../context/GiteaHeaderContext';
 
@@ -23,7 +23,7 @@ export const ClonePopoverContent = () => {
 
   return (
     <div className={classes.modalContainer}>
-      <StudioLabelAsParagraph size='small' spacing>
+      <StudioLabelAsParagraph data-size='sm'>
         {t('sync_header.favourite_tool')}
       </StudioLabelAsParagraph>
       <Paragraph asChild size='small'>

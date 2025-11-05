@@ -1,3 +1,4 @@
+#nullable disable
 using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Scheduling;

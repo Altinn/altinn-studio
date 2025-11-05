@@ -1,4 +1,5 @@
-﻿namespace Altinn.Studio.Designer;
+﻿#nullable disable
+namespace Altinn.Studio.Designer;
 
 public class AnsattPortenConstants
 {

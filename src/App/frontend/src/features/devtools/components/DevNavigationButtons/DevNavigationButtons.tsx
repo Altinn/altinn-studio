@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Chip, Combobox, Fieldset } from '@digdir/designsystemet-react';
+import { Chip, EXPERIMENTAL_Suggestion as Suggestion, Fieldset } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/DevNavigationButtons/DevNavigationButtons.module.css';
@@ -11,6 +11,7 @@ import { useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import comboboxClasses from 'src/styles/combobox.module.css';
 import { useHiddenPages } from 'src/utils/layout/hidden';
+import { optionFilter } from 'src/utils/options';
 
 export function DevNavigationButtons() {
   const isInForm = useIsInFormContext();
@@ -92,27 +93,34 @@ const InnerDevNavigationButtons = () => {
         ))}
       </div>
       <div className={cn(classes.dropdown, { [classes.responsiveDropdown]: !compactView })}>
-        <Combobox
-          size='sm'
-          value={pageKey ? [pageKey] : []}
-          onValueChange={handleChange}
+        <Suggestion
+          multiple={false}
+          filter={optionFilter}
+          data-size='sm'
+          selected={pageKey ? { value: pageKey, label: pageKey } : undefined}
           className={comboboxClasses.container}
+          style={{ width: '100%' }}
         >
-          {rawOrder.map((page) => (
-            <Combobox.Option
-              key={page}
-              value={page}
-              displayValue={page}
-            >
-              <span
-                className={isHidden(page) ? classes.hiddenPage : undefined}
-                title={hiddenText(page)}
+          <Suggestion.Input aria-label='Velg side' />
+          <Suggestion.List>
+            <Suggestion.Empty>Ingen sider funnet</Suggestion.Empty>
+            {rawOrder.map((page) => (
+              <Suggestion.Option
+                key={page}
+                value={page}
+                label={page}
+                onClick={() => handleChange([page])}
               >
-                {page}
-              </span>
-            </Combobox.Option>
-          ))}
-        </Combobox>
+                <span
+                  className={isHidden(page) ? classes.hiddenPage : undefined}
+                  title={hiddenText(page)}
+                >
+                  {page}
+                </span>
+              </Suggestion.Option>
+            ))}
+          </Suggestion.List>
+        </Suggestion>
       </div>
     </Fieldset>
   );

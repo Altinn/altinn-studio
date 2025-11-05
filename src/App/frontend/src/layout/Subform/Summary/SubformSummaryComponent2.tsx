@@ -4,6 +4,7 @@ import { Heading, Paragraph } from '@digdir/designsystemet-react';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Label, LabelInner } from 'src/components/label/Label';
+import { BlockPrint } from 'src/components/ReadyForPrint';
 import { TaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { FormProvider } from 'src/features/form/FormContext';
@@ -92,7 +93,7 @@ const DoSummaryWrapper = ({
   const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData, entryDisplayName);
 
   if (isSubformDataFetching) {
-    return null;
+    return <BlockPrint />;
   }
 
   const subformEntryName =

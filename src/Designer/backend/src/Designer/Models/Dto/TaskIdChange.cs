@@ -1,3 +1,4 @@
+#nullable disable
 namespace Altinn.Studio.Designer.Models.Dto;
 
 public class TaskIdChange

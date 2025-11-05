@@ -1,5 +1,5 @@
 import { BpmnGuard, GuardErrorMessage } from './BpmnGuard';
-import type { Element } from 'bpmn-moddle';
+import type { Element } from 'bpmn-js/lib/model/Types';
 
 describe('BpmnGuard', () => {
   describe('ensureExtensionElementBusinessObject', () => {

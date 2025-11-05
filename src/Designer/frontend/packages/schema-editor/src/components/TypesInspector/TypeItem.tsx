@@ -5,7 +5,7 @@ import { CogIcon, FileJsonIcon } from '@studio/icons';
 import classes from './TypeItem.module.css';
 import classNames from 'classnames';
 import { typeItemId } from '@studio/testing/testids';
-import { StudioDragAndDropTree } from '@studio/components-legacy';
+import { StudioDragAndDropTree } from '@studio/components';
 
 export interface TypeItemProps {
   uiSchemaNode: UiSchemaNode;

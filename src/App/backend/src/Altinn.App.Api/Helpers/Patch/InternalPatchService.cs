@@ -117,20 +117,19 @@ public class InternalPatchService
 
             var newModel = newModelResult.Ok;
             // Reset dataAccessor to provide the patched model.
-            dataAccessor.SetFormData(dataElement, newModel);
+            dataAccessor.SetFormData(dataElementIdentifier, FormDataWrapperFactory.Create(newModel));
 
             changesAfterPatch.Add(
-                new FormDataChange
-                {
-                    Type = ChangeType.Updated,
-                    DataElement = dataElement,
-                    ContentType = dataElement.ContentType,
-                    DataType = dataAccessor.GetDataType(dataElementIdentifier),
-                    PreviousFormData = oldModel,
-                    CurrentFormData = newModel,
-                    PreviousBinaryData = await dataAccessor.GetBinaryData(dataElementIdentifier),
-                    CurrentBinaryData = null, // Set this after DataProcessors have run
-                }
+                new FormDataChange(
+                    type: ChangeType.Updated,
+                    dataElement: dataElement,
+                    contentType: dataElement.ContentType,
+                    dataType: dataAccessor.GetDataType(dataElementIdentifier),
+                    previousFormDataWrapper: FormDataWrapperFactory.Create(oldModel),
+                    currentFormDataWrapper: FormDataWrapperFactory.Create(newModel),
+                    previousBinaryData: await dataAccessor.GetBinaryData(dataElementIdentifier),
+                    currentBinaryData: null // Set this after DataProcessors have run
+                )
             );
         }
 
@@ -185,17 +184,16 @@ public class InternalPatchService
                 {
                     // Create a change with the current data of the unchanged element
                     formDataChanges.Add(
-                        new FormDataChange
-                        {
-                            Type = ChangeType.Updated,
-                            DataElement = dataElement,
-                            ContentType = dataElement.ContentType,
-                            DataType = dataAccessor.GetDataType(dataElement),
-                            PreviousFormData = await dataAccessor.GetFormData(dataElement),
-                            CurrentFormData = await dataAccessor.GetFormData(dataElement),
-                            PreviousBinaryData = await dataAccessor.GetBinaryData(dataElement),
-                            CurrentBinaryData = await dataAccessor.GetBinaryData(dataElement),
-                        }
+                        new FormDataChange(
+                            type: ChangeType.Updated,
+                            dataElement: dataElement,
+                            contentType: dataElement.ContentType,
+                            dataType: dataAccessor.GetDataType(dataElement),
+                            previousFormDataWrapper: await dataAccessor.GetFormDataWrapper(dataElement),
+                            currentFormDataWrapper: await dataAccessor.GetFormDataWrapper(dataElement),
+                            previousBinaryData: await dataAccessor.GetBinaryData(dataElement),
+                            currentBinaryData: await dataAccessor.GetBinaryData(dataElement)
+                        )
                     );
                 }
             }

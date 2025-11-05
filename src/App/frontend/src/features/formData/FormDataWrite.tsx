@@ -803,6 +803,15 @@ export const FD = {
   },
 
   /**
+   * This behaves the same as useDebouncedPick(), but selects from the current data
+   */
+  useCurrentPick(reference: IDataModelReference | undefined): FDValue {
+    return useSelector((v) =>
+      reference ? dot.pick(reference.field, v.dataModels[reference.dataType]?.currentData) : undefined,
+    );
+  },
+
+  /**
    * This will pick a value from the form data, and return it. The path is expected to be a dot-separated path, and
    * the value will be returned as-is. If the value is not found, undefined is returned. Null may also be returned if
    * the value is explicitly set to null.

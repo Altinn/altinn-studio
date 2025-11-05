@@ -1,0 +1,14 @@
+[
+  { "label": "Species.Dog", "value": "Dog", "description": "Species.Dog.Desc", "helpText": "Species.Dog.Help" },
+  { "label": "Species.Cat", "value": "Cat", "description": "Species.Cat.Desc", "helpText": "Species.Cat.Help" },
+  { "label": "Species.Fish", "value": "Fish", "helpText": "Species.Fish.Help" },
+  { "label": "Species.Bird", "value": "Bird", "description": "Species.Bird.Desc", "helpText": "Species.Bird.Help" },
+  { "label": "Species.Rabbit", "value": "Rabbit", "description": "Species.Rabbit.Desc", "helpText": "Species.Rabbit.Help" },
+  { "label": "Species.Hamster", "value": "Hamster", "description": "Species.Hamster.Desc" },
+  { "label": "Species.Sheep", "value": "Sheep", "description": "Species.Sheep.Desc", "helpText": "Species.Sheep.Help" },
+  { "label": "Species.Cow", "value": "Cow", "description": "Species.Cow.Desc", "helpText": "Species.Cow.Help" },
+  { "label": "Species.Snake", "value": "Snake", "description": "Species.Snake.Desc", "helpText": "Species.Snake.Help" },
+  { "label": "Species.Spider", "value": "Spider", "description": "Species.Spider.Desc", "helpText": "Species.Spider.Help" },
+  { "label": "Species.TyrannosaurusRex", "value": "TyrannosaurusRex", "description": "Species.TyrannosaurusRex.Desc", "helpText": "Species.TyrannosaurusRex.Help" },
+  { "label": "Species.Other", "value": "Other", "description": "Species.Other.Desc", "helpText": "Species.Other.Help" }
+]

@@ -385,7 +385,12 @@ namespace Designer.Tests.Services
                 AppLocation = @"../../../../../../../App/template/src/App"
             };
 
-            EnvironmentsService environmentsService = new(new HttpClient(), generalSettings, new Mock<IMemoryCache>().Object, new Mock<ILogger<EnvironmentsService>>().Object);
+            PlatformSettings platformSettings = new()
+            {
+                AppClusterUrlPattern = "https://{org}.{appPrefix}.{hostName}",
+            };
+
+            EnvironmentsService environmentsService = new(new HttpClient(), generalSettings, platformSettings, new Mock<IMemoryCache>().Object, new Mock<ILogger<EnvironmentsService>>().Object);
 
             AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new(new HttpClient(), environmentsService, new PlatformSettings(), new Mock<ILogger<AltinnStorageAppMetadataClient>>().Object);
 
@@ -394,7 +399,8 @@ namespace Designer.Tests.Services
 
             ISchemaModelService schemaModelServiceMock = new Mock<ISchemaModelService>().Object;
             AppDevelopmentService appDevelopmentService = new(altinnGitRepositoryFactory, schemaModelServiceMock);
-            IOptionsService optionsService = new OptionsService(altinnGitRepositoryFactory, new GiteaContentLibraryService(giteaMock));
+            Mock<ILogger<GiteaContentLibraryService>> loggerMock = new();
+            IOptionsService optionsService = new OptionsService(altinnGitRepositoryFactory, new GiteaContentLibraryService(giteaMock, loggerMock.Object));
 
             TextsService textsService = new(altinnGitRepositoryFactory, applicationInformationService, optionsService);
 

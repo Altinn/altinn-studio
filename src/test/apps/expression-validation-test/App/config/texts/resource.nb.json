@@ -1,0 +1,161 @@
+{
+  "language": "nb",
+  "resources": [
+    {
+      "id": "appName",
+      "value": "Expression validation test"
+    },
+    {
+      "id": "appOwner",
+      "value": "Altinn Testavdeling"
+    },
+    {
+      "id": "CV.fornavn.title",
+      "value": "Fornavn"
+    },
+    {
+      "id": "CV.etternav.title",
+      "value": "Etternavn"
+    },
+    {
+      "id": "CV.alder.title",
+      "value": "Alder"
+    },
+    {
+      "id": "CV.e-post.title",
+      "value": "E-post"
+    },
+    {
+      "id": "CV.telefon.title",
+      "value": "Telefonnummer"
+    },
+    {
+      "id": "CV.bosted.title",
+      "value": "Bosted"
+    },
+    {
+      "id": "CV.kj.title",
+      "value": "Kjønn"
+    },
+    {
+      "id": "arbeidserfaring.add_button",
+      "value": "arbeidserfaring"
+    },
+    {
+      "id": "CV.arbeidsgiver.title",
+      "value": "Arbeidsgiver"
+    },
+    {
+      "id": "CV.dato-fra.title",
+      "value": "Fra"
+    },
+    {
+      "id": "CV.dato-til.title",
+      "value": "Til"
+    },
+    {
+      "id": "CV.stilling.title",
+      "value": "Stilling"
+    },
+    {
+      "id": "CV.erfaring-beskrivelse.title",
+      "value": "Beskrivelse"
+    },
+    {
+      "id": "tsnLc5YNPHLJ",
+      "value": "prosjekt"
+    },
+    {
+      "id": "CV.prosjekt-tittel.title",
+      "value": "Tittel"
+    },
+    {
+      "id": "CV.prosjekt-beskrivelse.title",
+      "value": "Beskrivelse"
+    },
+    {
+      "id": "CV.Button-U7p0KF.title",
+      "value": "Send inn"
+    },
+    {
+      "id": "CV.tittel.title",
+      "value": "CV for Altinn"
+    },
+    {
+      "id": "Skjul_felter.tittel.title",
+      "value": "Skjul felter"
+    },
+    {
+      "id": "Skjul_felter.send-inn2.title",
+      "value": "Send inn"
+    },
+    {
+      "id": "Skjul_felter.skjul-felter.title",
+      "value": "Skjul enkelt-felter"
+    },
+    {
+      "id": "Skjul_felter.skjul-arbeid.title",
+      "value": "Skjul rad basert på stilling"
+    },
+    {
+      "id": "Skjul_felter.skjul-prosjekt.title",
+      "value": "Skjul nøstet rad basert på prosjekt-tittel"
+    },
+    {
+      "id": "CV.nav.next",
+      "value": "Neste (valider)"
+    },
+    {
+      "id": "CV.nav.back",
+      "value": "Forrige"
+    },
+    {
+      "id": "Skjul_felter.nav2.next",
+      "value": "Neste"
+    },
+    {
+      "id": "Skjul_felter.nav2.back",
+      "value": "Forrige"
+    },
+    {
+      "id": "CV.Vedlegg.title",
+      "value": "Vedlegg"
+    },
+    {
+      "id": "CV.Vedlegg.description",
+      "value": "Last opp sertifiseringer og kursbevis du har tatt iløpet av ansettelsestiden"
+    },
+    {
+      "id": "CV.Vedlegg.tagTitle",
+      "value": "Dokumenttype"
+    },
+    {
+      "id": "CV.vedlegg-cv.title",
+      "value": "Vedlegg"
+    },
+    {
+      "id": "CV.vedlegg-cv.description",
+      "value": "Last opp søknadsbrev, motivasjonsbrev, og vitnemål"
+    },
+    {
+      "id": "CV.vedlegg-cv.tagTitle",
+      "value": "Dokumenttype"
+    },
+    {
+      "id": "test1",
+      "value": "Telefonnummer må starte med "
+    },
+    {
+      "id": "test2",
+      "value": "'9'"
+    },
+    {
+      "id": "validation-from",
+      "value": "Startdatoen må være før sluttdato"
+    },
+    {
+      "id": "validation-to",
+      "value": "Sluttdato må være etter startdato"
+    }
+  ]
+}

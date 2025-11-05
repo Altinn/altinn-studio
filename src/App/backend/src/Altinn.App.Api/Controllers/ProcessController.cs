@@ -680,6 +680,19 @@ public class ProcessController : ControllerBase
     {
         _logger.LogError(exception, message);
 
+        if (exception is PlatformHttpResponseSnapshotException phse)
+        {
+            return StatusCode(
+                phse.StatusCode,
+                new ProblemDetails()
+                {
+                    Detail = phse.Message,
+                    Status = phse.StatusCode,
+                    Title = message,
+                }
+            );
+        }
+
         if (exception is PlatformHttpException phe)
         {
             return StatusCode(

@@ -1,0 +1,226 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "Tabs-NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "size": "h2",
+        "id": "TabsHeader",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "TabsPage"
+        }
+      },
+      {
+        "id": "TabsPageHeaderComponent",
+        "type": "Header",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Header.Component"
+        }
+      },
+      {
+        "id": "TabsPageTabsComponent",
+        "type": "Tabs",
+        "defaultTab": "tab2",
+        "tabs": [
+          {
+            "id": "tab1",
+            "title": "Tab uten ikon",
+            "children": [
+              "TabsPageParagraphComponent1", "TabsPage-Address", "TabsPage-Dropdown"
+            ]
+          },
+          {
+            "id": "tab2",
+            "title": "Default tab",
+            "children": [
+              "TabsPageParagraphComponent2", "TabsPage-RadioButtons", "TabsPage-Textarea"
+            ]
+          },
+          {
+            "id": "tab3",
+            "title": "Tab med ikon",
+            "icon": "https://dev.w3.org/SVG/tools/svgweb/samples/svg-files/svg.svg",
+            "children": [
+              "TabsPageParagraphComponent3", "TabsPage-Input",  "TabsPage-Input2"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "TabsPageParagraphComponent1",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Dette er en lorem ipsum tekst"
+        }
+      },
+      {
+        "id": "TabsPage-Address",
+        "type": "Address",
+        "required": true,
+        "dataModelBindings": {
+          "address": "street",
+          "zipCode": "postnr",
+          "postPlace": "city",
+          "careOf": "co",
+          "houseNumber": "streetnr"
+        },
+        "simplified": false,
+        "saveWhileTyping": 400
+      },
+      {
+        "id": "TabsPage-Dropdown",
+        "type": "Dropdown",
+        "dataModelBindings": {
+          "simpleBinding": "dropdown"
+        },
+        "textResourceBindings": {
+          "title": "DropdownPage.Dropdown.title"
+        },
+        "options": [
+          {
+            "label": "Bil",
+            "value": "bil"
+          },
+          {
+            "label": "Moped",
+            "value": "moped"
+          },
+          {
+            "label": "Traktor",
+            "value": "traktor"
+          },
+          {
+            "label": "Båt",
+            "value": "baat"
+          }
+        ]
+      },
+      {
+        "id": "TabsPageParagraphComponent2",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Dette er en lorem ipsum tekst 123"
+        }
+      },
+      {
+        "id": "TabsPage-RadioButtons",
+        "dataModelBindings": {
+          "simpleBinding": "radioButtonInput"
+        },
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "RadioButtonsPage.RadioButtons.title"
+        },
+        "options": [
+          {
+            "label": "Bil",
+            "value": "bil"
+          },
+          {
+            "label": "Moped",
+            "value": "moped"
+          },
+          {
+            "label": "Traktor",
+            "value": "traktor"
+          },
+          {
+            "label": "Båt",
+            "value": "baat"
+          }
+        ]
+      },
+      {
+        "id": "TabsPage-Textarea",
+        "dataModelBindings": {
+          "simpleBinding": "longAnswerInput"
+        },
+        "type": "TextArea",
+        "textResourceBindings": {
+          "title": "TextareaPage.Textarea.title"
+        }
+      },
+      {
+        "id": "TabsPageParagraphComponent3",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Dette er en lorem ipsum tekst"
+        }
+      },
+      {
+        "id": "TabsPage-Input",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "InputPage.Input.title"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "shortAnswerInput"
+        },
+        "showValidations": [
+          "All"
+        ],
+        "grid": {
+          "xs": 12,
+          "md": 6
+        }
+      },
+      {
+        "id": "TabsPage-Input2",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "InputPage.Input.title"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "shortAnswerInput"
+        },
+        "showValidations": [
+          "All"
+        ],
+        "grid": {
+          "xs": 12,
+          "md": 6
+        }
+      },
+      {
+        "id": "TabsPage-Header-Summary",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Summary"
+        },
+        "size": "h3"
+      },
+      {
+        "id": "TabsPage-Summary",
+        "componentRef": "TabsPageTabsComponent",
+        "type": "Summary"
+      },
+      {
+        "id": "TabsPage-Header-Summary2",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Summary2"
+        },
+        "size": "h3"
+      },
+      {
+        "id": "TabsPage-Summary2",
+        "type": "Summary2",
+        "target": {
+          "type": "component",
+          "id": "TabsPageTabsComponent"
+        }
+      },
+      {
+        "id": "TabsPage-NavigationButtons",
+        "type": "NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {}
+      }
+    ]
+  }
+}

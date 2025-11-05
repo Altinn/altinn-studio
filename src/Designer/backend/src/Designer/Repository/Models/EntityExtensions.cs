@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;

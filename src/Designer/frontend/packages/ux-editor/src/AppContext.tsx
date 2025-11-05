@@ -2,13 +2,13 @@ import type { MutableRefObject, ReactElement, ReactNode } from 'react';
 import React, { createContext, useCallback, useMemo, useRef, useState } from 'react';
 import type { QueryClient, QueryKey } from '@tanstack/react-query';
 import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayoutName';
-import { useSelectedFormLayoutSetName } from 'app-shared/hooks/useSelectedFormLayoutSetName';
 import { AppsQueryKey } from 'app-shared/types/AppsQueryKey';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioPageSpinner } from '@studio/components-legacy';
+import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { ItemType } from './components/Properties/ItemType';
+import useUxEditorParams from './hooks/useUxEditorParams';
 
 export interface WindowWithQueryClient extends Window {
   queryClient?: QueryClient;
@@ -30,9 +30,6 @@ export type SelectedItem =
 
 export interface AppContextProps {
   previewIframeRef: MutableRefObject<HTMLIFrameElement>;
-  selectedFormLayoutSetName: string;
-  setSelectedFormLayoutSetName: (selectedFormLayoutSetName: string) => void;
-  removeSelectedFormLayoutSetName: () => void;
   selectedFormLayoutName: string;
   setSelectedFormLayoutName: (selectedFormLayoutName: string) => void;
   updateLayoutsForPreview: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
@@ -64,16 +61,11 @@ export const AppContextProvider = ({
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
   const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
   const { org, app } = useStudioEnvironmentParams();
-  const { data: layoutSets, isPending: pendingLayoutsets } = useLayoutSetsQuery(org, app);
-
-  const {
-    selectedFormLayoutSetName,
-    setSelectedFormLayoutSetName,
-    removeSelectedFormLayoutSetName,
-  } = useSelectedFormLayoutSetName(layoutSets);
+  const { layoutSet } = useUxEditorParams();
+  const { isPending: pendingLayoutsets } = useLayoutSetsQuery(org, app);
 
   const { selectedFormLayoutName, setSelectedFormLayoutName } =
-    useSelectedFormLayoutName(selectedFormLayoutSetName);
+    useSelectedFormLayoutName(layoutSet);
 
   const refetch = useCallback(
     async (queryKey: QueryKey, resetQueries: boolean = false): Promise<void> => {
@@ -121,9 +113,6 @@ export const AppContextProvider = ({
   const value = useMemo(
     () => ({
       previewIframeRef,
-      selectedFormLayoutSetName,
-      setSelectedFormLayoutSetName,
-      removeSelectedFormLayoutSetName,
       selectedFormLayoutName,
       setSelectedFormLayoutName,
       updateLayoutsForPreview,
@@ -137,11 +126,8 @@ export const AppContextProvider = ({
       setSelectedItem,
     }),
     [
-      selectedFormLayoutSetName,
-      setSelectedFormLayoutSetName,
       selectedFormLayoutName,
       setSelectedFormLayoutName,
-      removeSelectedFormLayoutSetName,
       updateLayoutsForPreview,
       updateLayoutSetsForPreview,
       updateLayoutSettingsForPreview,

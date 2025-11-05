@@ -7,6 +7,8 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -218,7 +220,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         var readDataElementResponseParsed = await VerifyStatusAndDeserialize<Skjema>(
             readDataElementResponse,
             HttpStatusCode.OK
-        )!;
+        );
         readDataElementResponseParsed.Melding!.Name.Should().Be("Ola Olsen");
         readDataElementResponseParsed.Melding.Toggle.Should().BeTrue();
 
@@ -226,5 +228,68 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
 
         _dataProcessor.Verify();
         _dataWriteProcessor.Verify();
+    }
+
+    [Theory]
+    [InlineData(
+        """{"melding":{"name": 123}}""",
+        "The JSON value could not be converted to System.String. Path: $.melding.name | LineNumber: 0 | BytePositionInLine: 23."
+    )]
+    [InlineData(
+        """ d{"melding":{}}""",
+        "'d' is an invalid start of a value. Path: $ | LineNumber: 0 | BytePositionInLine: 1."
+    )]
+    [InlineData(
+        """{"melding":{"name": "Ola Olsen", "not-found": [}}""",
+        "'}' is an invalid start of a value. Path: $.melding.not-found | LineNumber: 0 | BytePositionInLine: 47."
+    )]
+    public async Task PutDataElement_InvalidData_ReturnsBadRequest(string json, string expectedDescription)
+    {
+        // Setup test data
+        string org = "tdd";
+        string app = "contributer-restriction";
+        var instanceOwnerPartyId = 500600;
+        var instanceId = Guid.Parse("00000000-DEAD-0000-BABE-000000000999");
+        var dataGuid = Guid.Parse("cd691c32-0000-4555-8aee-0b7054a413e4");
+        TestData.PrepareInstance(org, app, instanceOwnerPartyId, instanceId);
+
+        OverrideServicesForThisTest = services =>
+        {
+            services.AddTelemetrySink(additionalActivitySources: source => source.Name == "Microsoft.AspNetCore");
+        };
+
+        var client = GetRootedUserClient(org, app, 1337, instanceOwnerPartyId);
+
+        // Update data element
+        using var updateDataElementContent = new StringContent(
+            json, // Name should be a string, not a number
+            System.Text.Encoding.UTF8,
+            "application/json"
+        );
+        var response = await client.PutAsync(
+            $"/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceId}/data/{dataGuid}",
+            updateDataElementContent
+        );
+
+        var responseText = await response.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(responseText);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var telemetrySnapshot = await GetTelemetrySnapshot(numberOfActivities: 1, numberOfMetrics: 0);
+        var responseObject = System.Text.Json.JsonSerializer.Deserialize<ProblemDetails>(responseText);
+        Assert.Equal("Failed to deserialize JSON", responseObject?.Title);
+        Assert.Equal(expectedDescription, responseObject?.Detail);
+        Assert.Equal(StatusCodes.Status400BadRequest, responseObject?.Status);
+
+        telemetrySnapshot
+            .Activities.Should()
+            .ContainSingle(a => a.Name == "SerializationService.DeserializeJson")
+            .Which.Events.Should()
+            .ContainSingle(e => e.Name == "exception")
+            .Which.Tags.Should()
+            .ContainSingle(t => t.Key == "exception.type")
+            .Which.Value.Should()
+            .Be("System.Text.Json.JsonException");
+
+        TestData.DeleteInstanceAndData(org, app, instanceOwnerPartyId, instanceId);
     }
 }

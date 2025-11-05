@@ -292,7 +292,7 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
 
         var service = SetupService(translationServiceOverride: translationService);
 
-        Instance instance = new() { Id = "org/app" };
+        Instance instance = new() { AppId = "org/app" };
 
         Mock<IInstanceDataMutator> instanceDataMutatorMock = new();
         instanceDataMutatorMock.Setup(x => x.Instance).Returns(instance);
@@ -318,12 +318,9 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
         CorrespondenceContent result = await service.GetContent(context, appMetadata, senderDetails);
 
         // Assert
-        Assert.Equal("Fallback App Name: Signeringen er bekreftet", result.Title);
-        Assert.Equal("Du har signert for Fallback App Name.", result.Summary);
-        Assert.Equal(
-            "Dokumentene du har signert er vedlagt. Disse kan lastes ned om ønskelig. <br /><br />Hvis du lurer på noe, kan du kontakte Sender NB.",
-            result.Body
-        );
+        Assert.Equal("Custom receipt title", result.Title);
+        Assert.Equal("Custom receipt summary", result.Summary);
+        Assert.Equal("Custom receipt body", result.Body);
         Assert.Equal(LanguageCode<Iso6391>.Parse(LanguageConst.Nb), result.Language);
     }
 

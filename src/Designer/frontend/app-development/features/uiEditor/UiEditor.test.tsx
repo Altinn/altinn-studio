@@ -68,7 +68,7 @@ describe('UiEditor', () => {
 
   it('renders a loading spinner while fetching frontend version', () => {
     renderUiEditor();
-    expect(screen.getByText(textMock('ux_editor.loading_page'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('ux_editor.loading_page'))).toBeInTheDocument();
   });
 });
 

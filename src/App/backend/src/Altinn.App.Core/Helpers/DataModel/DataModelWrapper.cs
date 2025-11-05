@@ -7,12 +7,13 @@ namespace Altinn.App.Core.Helpers.DataModel;
 /// <summary>
 /// Get data fields from a model, using string keys (like "Bedrifter[1].Ansatte[1].Alder")
 /// </summary>
+[Obsolete("Will be removed in v9 use Altinn.App.Core.Helpers.DataModel.FormDataWrapperFactory instead")]
 public class DataModelWrapper
 {
     private readonly object _dataModel;
 
     /// <summary>
-    /// Constructor that wraps a PCOC data model, and gives extra tool for working with the data in an object using json like keys and reflection
+    /// Constructor that wraps a POCO data model, and gives extra tools for working with the data in an object using json like keys and reflection
     /// </summary>
     public DataModelWrapper(object dataModel)
     {
@@ -20,7 +21,7 @@ public class DataModelWrapper
     }
 
     /// <summary>
-    /// Get model data based on key and optionally indicies
+    /// Get model data based on key and optionally indexes
     /// </summary>
     /// <remarks>
     /// Inline indexes in the key "Bedrifter[1].Ansatte[1].Alder" will override
@@ -221,7 +222,7 @@ public class DataModelWrapper
     private static readonly Regex _keyPartRegex = new(
         @"^([^\s\[\]\.]+)\[(\d+)\]?$",
         RegexOptions.Compiled,
-        TimeSpan.FromMicroseconds(10)
+        TimeSpan.FromMilliseconds(2)
     );
 
     private static (string key, int? index) ParseKeyPart(string keyPart)
@@ -296,11 +297,11 @@ public class DataModelWrapper
     }
 
     /// <summary>
-    /// Return a full dataModelBiding from a context aware binding by adding indicies
+    /// Return a full dataModelBinding from a context aware binding by adding indexes
     /// </summary>
     /// <example>
     /// key = "bedrift.ansatte.navn"
-    /// indicies = [1,2]
+    /// indexes = [1,2]
     /// => "bedrift[1].ansatte[2].navn"
     /// </example>
     public string AddIndicies(string field, ReadOnlySpan<int> rowIndexes = default)
@@ -411,55 +412,4 @@ public class DataModelWrapper
             property.SetValue(containingObject, nullValue);
         }
     }
-
-    // /// <summary>
-    // /// Verify that a key is valid for the model
-    // /// </summary>
-    // public bool VerifyKey(string field)
-    // {
-    //     return VerifyKeyRecursive(field.Split('.'), 0, _dataModel.GetType());
-    // }
-
-    // private bool VerifyKeyRecursive(string[] keys, int index, Type currentModel)
-    // {
-    //     if (index == keys.Length)
-    //     {
-    //         return true;
-    //     }
-    //     if (keys[index].Length == 0)
-    //     {
-    //         return false; // invalid key part
-    //     }
-
-    //     var (key, groupIndex) = ParseKeyPart(keys[index]);
-    //     var prop = currentModel.GetProperties().FirstOrDefault(p => IsPropertyWithJsonName(p, key));
-    //     if (prop is null)
-    //     {
-    //         return false;
-    //     }
-
-    //     var childType = prop.PropertyType;
-
-    //     // Strings are enumerable in C#
-    //     // Other enumerable types is treated as an collection
-    //     if (childType != typeof(string) && childType.IsAssignableTo(typeof(System.Collections.IEnumerable)))
-    //     {
-    //         var childTypeEnumerableParameter = childType
-    //             .GetInterfaces()
-    //             .Where(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-    //             .Select(t => t.GetGenericArguments()[0])
-    //             .FirstOrDefault();
-
-    //         if (childTypeEnumerableParameter is not null)
-    //         {
-    //             return VerifyKeyRecursive(keys, index + 1, childTypeEnumerableParameter);
-    //         }
-    //     }
-    //     else if (groupIndex is not null)
-    //     {
-    //         return false; // Key parts with group index must be IEnumerable
-    //     }
-
-    //     return VerifyKeyRecursive(keys, index + 1, childType);
-    // }
 }

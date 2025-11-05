@@ -134,7 +134,7 @@ export const ImageComponent = ({
           <a
             target='_blank'
             rel='noopener noreferrer'
-            href={altinnDocsUrl({ relativeUrl: 'altinn-studio/reference/ux/components/image/' })}
+            href={altinnDocsUrl({ relativeUrl: 'altinn-studio/v8/reference/ux/components/image/' })}
           >
             {t('ux_editor.modal_properties_image_read_more')}
           </a>

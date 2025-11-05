@@ -1,0 +1,12 @@
+[
+  { "label": "colors.purple", "value": "1" },
+  { "label": "colors.blue", "value": "2" },
+  { "label": "colors.green", "value": "3" },
+  { "label": "colors.red", "value": "4" },
+  { "label": "colors.yellow", "value": "5" },
+  { "label": "colors.orange", "value": "6" },
+  { "label": "colors.cyan", "value": "7" },
+  { "label": "colors.magenta", "value": "8" },
+  { "label": "colors.teal", "value": "9" },
+  { "label": "colors.pink", "value": "10" }
+]

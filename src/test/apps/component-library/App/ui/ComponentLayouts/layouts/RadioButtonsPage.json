@@ -1,0 +1,94 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": false,
+    "layout": [
+      {
+        "id": "RadioButtonsPage-NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "size": "h2",
+        "id": "RadioButtonsPage-Header",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "RadioButtonsPage"
+        }
+      },
+      {
+        "size": "h3",
+        "id": "RadioButtonsPage-Header-Component",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Component"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "radioButtonInput"
+        },
+        "id": "RadioButtonsPage-RadioButtons",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "RadioButtonsPage.RadioButtons.title"
+        },
+        "options": [
+          {
+            "label": "Bil",
+            "value": "bil"
+          },
+          {
+            "label": "Moped",
+            "value": "moped"
+          },
+          {
+            "label": "Traktor",
+            "value": "traktor"
+          },
+          {
+            "label": "Båt",
+            "value": "baat"
+          }
+        ],
+        "required": false
+      },
+      {
+        "size": "h3",
+        "id": "RadioButtonsPage-Header-Summary",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Summary"
+        }
+      },
+      {
+        "componentRef": "RadioButtonsPage-RadioButtons",
+        "id": "RadioButtonsPage-Summary",
+        "type": "Summary",
+        "largeGroup": false
+      },
+      {
+        "size": "h3",
+        "id": "RadioButtonsPage-Header-Summary2",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Summary2"
+        }
+      },
+      {
+        "id": "RadioButtonsPage-Summary2",
+        "type": "Summary2",
+        "hidden": false,
+        "target": {
+          "type": "component",
+          "id": "RadioButtonsPage-RadioButtons"
+        }
+      },
+      {
+        "id": "RadioButtonsPage-NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      }
+    ]
+  }
+}

@@ -1,0 +1,40 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: pdf3-proxy-allow-ingress-from-apps
+spec:
+  # Allow ingress traffic to proxy pods only from default namespace on port 80/TCP
+  podSelector:
+    matchLabels:
+      app: pdf3-proxy
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: default
+    ports:
+    - protocol: TCP
+      port: 5030  # Container port that maps to service port 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: pdf3-worker-allow-ingress-from-proxy
+spec:
+  # Allow ingress to worker pods only from proxy pods
+  # Workers should only be accessed by the proxy, not from external sources
+  podSelector:
+    matchLabels:
+      app: pdf3-worker
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: pdf3-proxy
+    ports:
+    - protocol: TCP
+      port: 5031  # HTTP port

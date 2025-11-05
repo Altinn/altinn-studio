@@ -1,6 +1,5 @@
-import type { Element } from 'bpmn-moddle';
+import type { Element, Moddle } from 'bpmn-js/lib/model/Types';
 import type Modeler from 'bpmn-js/lib/Modeler';
-import { type Moddle } from 'bpmn-js/lib/model/Types';
 import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type ElementRegistry from 'diagram-js/lib/core/ElementRegistry';
@@ -86,7 +85,7 @@ export class StudioModeler {
   }
 
   public getElement(id?: string): Element {
-    return this.elementRegistry.get(id || this.getElementId());
+    return this.elementRegistry.get(id || this.getElementId()) as Element;
   }
 
   public get getCurrentTaskType(): BpmnTaskType {
@@ -108,7 +107,7 @@ export class StudioModeler {
   }
 
   public getAllTasksByType(elementType: string): Element[] {
-    return this.elementRegistry.filter((element) => element.type === elementType);
+    return this.elementRegistry.filter((element) => element.type === elementType) as Element[];
   }
 
   public getReceiptPdfDataTypeIdFromBusinessObject(

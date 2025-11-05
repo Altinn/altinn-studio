@@ -228,5 +228,7 @@ namespace Designer.Tests.Mocks
         {
             return Task.FromResult(true);
         }
+
+        public Task<string> GetLatestCommitOnBranch(string org, string repository, string branchName = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 }

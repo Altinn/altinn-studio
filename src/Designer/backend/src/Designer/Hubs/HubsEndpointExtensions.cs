@@ -1,3 +1,4 @@
+#nullable disable
 using Altinn.Studio.Designer.Hubs.EntityUpdate;
 using Altinn.Studio.Designer.Hubs.Preview;
 using Microsoft.AspNetCore.Builder;

@@ -1,0 +1,2821 @@
+﻿{
+  "$schema": "http://json-schema.org/schema#",
+  "$id": "schema.json",
+  "type": "object",
+  "properties": {
+    "Skjema": {
+      "$ref": "#/definitions/Skjema"
+    },
+    "Radioknapp": {
+      "type": "string"
+    },
+    "Colors": {
+      "type": "string"
+    },
+    "Food": {
+      "type": "string"
+    },
+    "FoodLabel": {
+      "type": "string"
+    },
+    "ColorsLabels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ColorsLabelsVerify": {
+      "type": "string"
+    },
+    "BegrunnelseFrivillig": {
+      "type": "string"
+    },
+    "Innledning-grp-9309": {
+      "$ref": "#/definitions/Innledning-grp-9309"
+    },
+    "NavneendringenGjelderFor-grp-9310": {
+      "$ref": "#/definitions/NavneendringenGjelderFor-grp-9310"
+    },
+    "MeldingMeldingsmottakerFodselsnummer-datadef-33548": {
+      "$ref": "#/definitions/MeldingMeldingsmottakerFodselsnummer-datadef-33548"
+    },
+    "SubjektFodselsnummer-datadef-34727": {
+      "$ref": "#/definitions/SubjektFodselsnummer-datadef-34727"
+    },
+    "SubjektFornavnFolkeregistrert-datadef-34730": {
+      "$ref": "#/definitions/SubjektFornavnFolkeregistrert-datadef-34730"
+    },
+    "SubjektMellomnavnFolkeregistrert-datadef-34731": {
+      "$ref": "#/definitions/SubjektMellomnavnFolkeregistrert-datadef-34731"
+    },
+    "SubjektEtternavnFolkeregistrert-datadef-34729": {
+      "$ref": "#/definitions/SubjektEtternavnFolkeregistrert-datadef-34729"
+    },
+    "Signerer-grp-9320": {
+      "$ref": "#/definitions/Signerer-grp-9320"
+    },
+    "SignererEkstraFodselsnummer-datadef-34744": {
+      "$ref": "#/definitions/SignererEkstraFodselsnummer-datadef-34744"
+    },
+    "SignererEkstraEtternavn-datadef-34745": {
+      "$ref": "#/definitions/SignererEkstraEtternavn-datadef-34745"
+    },
+    "SignererEkstraFornavn-datadef-34746": {
+      "$ref": "#/definitions/SignererEkstraFornavn-datadef-34746"
+    },
+    "SignererEkstraMellomnavn-datadef-34747": {
+      "$ref": "#/definitions/SignererEkstraMellomnavn-datadef-34747"
+    },
+    "SignererEkstraEpost-datadef-34749": {
+      "$ref": "#/definitions/SignererEkstraEpost-datadef-34749"
+    },
+    "SignererEkstraMobiltelefonsnummer-datadef-34750": {
+      "$ref": "#/definitions/SignererEkstraMobiltelefonsnummer-datadef-34750"
+    },
+    "SignererEkstraReferanseAltinn-datadef-34751": {
+      "$ref": "#/definitions/SignererEkstraReferanseAltinn-datadef-34751"
+    },
+    "SignererEkstraArkivDato-datadef-34752": {
+      "$ref": "#/definitions/SignererEkstraArkivDato-datadef-34752"
+    },
+    "SignererEkstraTidspunkt-datadef-34753": {
+      "$ref": "#/definitions/SignererEkstraTidspunkt-datadef-34753"
+    },
+    "SignererEkstraAksept-datadef-34754": {
+      "$ref": "#/definitions/SignererEkstraAksept-datadef-34754"
+    },
+    "SignererEkstraMalform-datadef-34895": {
+      "$ref": "#/definitions/SignererEkstraMalform-datadef-34895"
+    },
+    "TredjeSignerer-grp-9349": {
+      "$ref": "#/definitions/TredjeSignerer-grp-9349"
+    },
+    "SignererTredjeFodselsnummer-datadef-34884": {
+      "$ref": "#/definitions/SignererTredjeFodselsnummer-datadef-34884"
+    },
+    "SignererTredjeEtternavn-datadef-34885": {
+      "$ref": "#/definitions/SignererTredjeEtternavn-datadef-34885"
+    },
+    "SignererTredjeFornavn-datadef-34886": {
+      "$ref": "#/definitions/SignererTredjeFornavn-datadef-34886"
+    },
+    "SignererTredjeMellomnavn-datadef-34887": {
+      "$ref": "#/definitions/SignererTredjeMellomnavn-datadef-34887"
+    },
+    "SignererTredjeEpost-datadef-34889": {
+      "$ref": "#/definitions/SignererTredjeEpost-datadef-34889"
+    },
+    "SignererTredjeMobiltelefonnummer-datadef-34890": {
+      "$ref": "#/definitions/SignererTredjeMobiltelefonnummer-datadef-34890"
+    },
+    "SignererTredjeReferanseAltinn-datadef-34891": {
+      "$ref": "#/definitions/SignererTredjeReferanseAltinn-datadef-34891"
+    },
+    "SignererTredjeArkivDato-datadef-34892": {
+      "$ref": "#/definitions/SignererTredjeArkivDato-datadef-34892"
+    },
+    "SignererTredjeTidspunkt-datadef-34893": {
+      "$ref": "#/definitions/SignererTredjeTidspunkt-datadef-34893"
+    },
+    "SignererTredjeAksept-datadef-34894": {
+      "$ref": "#/definitions/SignererTredjeAksept-datadef-34894"
+    },
+    "SignererTredjeMalform-datadef-34883": {
+      "$ref": "#/definitions/SignererTredjeMalform-datadef-34883"
+    },
+    "Kontaktinformasjon-grp-9311": {
+      "$ref": "#/definitions/Kontaktinformasjon-grp-9311"
+    },
+    "MeldingFodselsnummer-datadef-34734": {
+      "$ref": "#/definitions/MeldingFodselsnummer-datadef-34734"
+    },
+    "MelderFornavn-datadef-34736": {
+      "$ref": "#/definitions/MelderFornavn-datadef-34736"
+    },
+    "MelderMellomnavn-datadef-34737": {
+      "$ref": "#/definitions/MelderMellomnavn-datadef-34737"
+    },
+    "MelderEtternavn-datadef-34735": {
+      "$ref": "#/definitions/MelderEtternavn-datadef-34735"
+    },
+    "MelderFultnavn": {
+      "$ref": "#/definitions/MelderFultnavn"
+    },
+    "MelderEpost-datadef-34739": {
+      "$ref": "#/definitions/MelderEpost-datadef-34739"
+    },
+    "MelderMobiltelefonnummer-datadef-34740": {
+      "$ref": "#/definitions/MelderMobiltelefonnummer-datadef-34740"
+    },
+    "MelderArkivDato-datadef-34741": {
+      "$ref": "#/definitions/MelderArkivDato-datadef-34741"
+    },
+    "MelderArkivTidspunkt-datadef-34742": {
+      "$ref": "#/definitions/MelderArkivTidspunkt-datadef-34742"
+    },
+    "MelderReferanseAltinn-datadef-34743": {
+      "$ref": "#/definitions/MelderReferanseAltinn-datadef-34743"
+    },
+    "MelderMalform-datadef-34882": {
+      "$ref": "#/definitions/MelderMalform-datadef-34882"
+    },
+    "SamtykkeTilElektroniskKommunikasjon-grp-9312": {
+      "$ref": "#/definitions/SamtykkeTilElektroniskKommunikasjon-grp-9312"
+    },
+    "AvgiverSkattSamtykke-datadef-34755": {
+      "$ref": "#/definitions/AvgiverSkattSamtykke-datadef-34755"
+    },
+    "AvgiverFolkeregisterSamtykke-datadef-34756": {
+      "$ref": "#/definitions/AvgiverFolkeregisterSamtykke-datadef-34756"
+    },
+    "NyttNavn-grp-9313": {
+      "$ref": "#/definitions/NyttNavn-grp-9313"
+    },
+    "NyttNavn-grp-9314": {
+      "$ref": "#/definitions/NyttNavn-grp-9314"
+    },
+    "PersonEtternavnNytt-datadef-34757": {
+      "$ref": "#/definitions/PersonEtternavnNytt-datadef-34757"
+    },
+    "PersonFornavnNytt-datadef-34758": {
+      "$ref": "#/definitions/PersonFornavnNytt-datadef-34758"
+    },
+    "PersonMellomnavnNytt-datadef-34759": {
+      "$ref": "#/definitions/PersonMellomnavnNytt-datadef-34759"
+    },
+    "PersonBekrefterNyttNavn": {
+      "$ref": "#/definitions/PersonBekrefterNyttNavn"
+    },
+    "Tilknytning-grp-9315": {
+      "$ref": "#/definitions/Tilknytning-grp-9315"
+    },
+    "TilknytningTilNavnet-grp-9316": {
+      "$ref": "#/definitions/TilknytningTilNavnet-grp-9316"
+    },
+    "TilknytningEtternavn1-grp-9350": {
+      "$ref": "#/definitions/TilknytningEtternavn1-grp-9350"
+    },
+    "PersonEtternavnForste-datadef-34896": {
+      "$ref": "#/definitions/PersonEtternavnForste-datadef-34896"
+    },
+    "PersonEtternavnForsteTilknytningstype-datadef-34897": {
+      "$ref": "#/definitions/PersonEtternavnForsteTilknytningstype-datadef-34897"
+    },
+    "PersonEtternavnForsteTilknytningBeskrivelse-datadef-34898": {
+      "$ref": "#/definitions/PersonEtternavnForsteTilknytningBeskrivelse-datadef-34898"
+    },
+    "PersonEtternavnForsteTilknyttetPersonsFodselsnummer-datadef-34899": {
+      "$ref": "#/definitions/PersonEtternavnForsteTilknyttetPersonsFodselsnummer-datadef-34899"
+    },
+    "PersonEtternavnForsteTilknyttetPersonsEtternavn-datadef-34900": {
+      "$ref": "#/definitions/PersonEtternavnForsteTilknyttetPersonsEtternavn-datadef-34900"
+    },
+    "PersonEtternavnForsteTilknyttetGardNavn-datadef-34901": {
+      "$ref": "#/definitions/PersonEtternavnForsteTilknyttetGardNavn-datadef-34901"
+    },
+    "PersonEtternavnForsteTilknyttetGardKommunenummer-datadef-34902": {
+      "$ref": "#/definitions/PersonEtternavnForsteTilknyttetGardKommunenummer-datadef-34902"
+    },
+    "PersonEtternavnForsteTilknyttetGardGardsnummer-datadef-34903": {
+      "$ref": "#/definitions/PersonEtternavnForsteTilknyttetGardGardsnummer-datadef-34903"
+    },
+    "PersonEtternavnForsteTilknyttetGardBruksnummer-datadef-34904": {
+      "$ref": "#/definitions/PersonEtternavnForsteTilknyttetGardBruksnummer-datadef-34904"
+    },
+    "PersonEtternavnForsteTilknyttetGardFesteavgift-datadef-34905": {
+      "$ref": "#/definitions/PersonEtternavnForsteTilknyttetGardFesteavgift-datadef-34905"
+    },
+    "TilknytningEtternavn2-grp-9351": {
+      "$ref": "#/definitions/TilknytningEtternavn2-grp-9351"
+    },
+    "PersonEtternavnAndre-datadef-34906": {
+      "$ref": "#/definitions/PersonEtternavnAndre-datadef-34906"
+    },
+    "PersonEtternavnAndreTilknytningstype-datadef-34907": {
+      "$ref": "#/definitions/PersonEtternavnAndreTilknytningstype-datadef-34907"
+    },
+    "PersonEtternavnAndreTilknytningBeskrivelse-datadef-34908": {
+      "$ref": "#/definitions/PersonEtternavnAndreTilknytningBeskrivelse-datadef-34908"
+    },
+    "PersonEtternavnAndreTilknyttetPersonsFodselsnummer-datadef-34909": {
+      "$ref": "#/definitions/PersonEtternavnAndreTilknyttetPersonsFodselsnummer-datadef-34909"
+    },
+    "PersonEtternavnAndreTilknyttetPersonsEtternavn-datadef-34910": {
+      "$ref": "#/definitions/PersonEtternavnAndreTilknyttetPersonsEtternavn-datadef-34910"
+    },
+    "PersonEtternavnAndreTilknyttetGardNavn-datadef-34911": {
+      "$ref": "#/definitions/PersonEtternavnAndreTilknyttetGardNavn-datadef-34911"
+    },
+    "PersonEtternavnAndreTilknyttetGardKommunenummer-datadef-34912": {
+      "$ref": "#/definitions/PersonEtternavnAndreTilknyttetGardKommunenummer-datadef-34912"
+    },
+    "PersonEtternavnAndreTilknyttetGardGardsnummer-datadef-34913": {
+      "$ref": "#/definitions/PersonEtternavnAndreTilknyttetGardGardsnummer-datadef-34913"
+    },
+    "PersonEtternavnAndreTilknyttetGardBruksnummer-datadef-34914": {
+      "$ref": "#/definitions/PersonEtternavnAndreTilknyttetGardBruksnummer-datadef-34914"
+    },
+    "PersonEtternavnAndreTilknyttetGardFesteavgift-datadef-34915": {
+      "$ref": "#/definitions/PersonEtternavnAndreTilknyttetGardFesteavgift-datadef-34915"
+    },
+    "TilknytningMellomnavn1-grp-9352": {
+      "$ref": "#/definitions/TilknytningMellomnavn1-grp-9352"
+    },
+    "PersonMellomnavnForste-datadef-34916": {
+      "$ref": "#/definitions/PersonMellomnavnForste-datadef-34916"
+    },
+    "PersonMellomnavnForsteTilknytningstype-datadef-34917": {
+      "$ref": "#/definitions/PersonMellomnavnForsteTilknytningstype-datadef-34917"
+    },
+    "PersonMellomnavnForsteTilknytningBeskrivelse-datadef-34918": {
+      "$ref": "#/definitions/PersonMellomnavnForsteTilknytningBeskrivelse-datadef-34918"
+    },
+    "PersonMellomnavnForsteTilknyttetPersonsFodselsnummer-datadef-34919": {
+      "$ref": "#/definitions/PersonMellomnavnForsteTilknyttetPersonsFodselsnummer-datadef-34919"
+    },
+    "PersonMellomnavnForsteTilknyttetPersonsEtternavn-datadef-34920": {
+      "$ref": "#/definitions/PersonMellomnavnForsteTilknyttetPersonsEtternavn-datadef-34920"
+    },
+    "PersonMellomnavnForsteTilknyttetGardNavn-datadef-34921": {
+      "$ref": "#/definitions/PersonMellomnavnForsteTilknyttetGardNavn-datadef-34921"
+    },
+    "PersonMellomnavnForsteTilknyttetGardKommunenummer-datadef-34922": {
+      "$ref": "#/definitions/PersonMellomnavnForsteTilknyttetGardKommunenummer-datadef-34922"
+    },
+    "PersonMellomnavnForsteTilknyttetGardGardsnummer-datadef-34923": {
+      "$ref": "#/definitions/PersonMellomnavnForsteTilknyttetGardGardsnummer-datadef-34923"
+    },
+    "PersonMellomnavnForsteTilknyttetGardBruksnummer-datadef-34924": {
+      "$ref": "#/definitions/PersonMellomnavnForsteTilknyttetGardBruksnummer-datadef-34924"
+    },
+    "PersonMellomnavnForsteTilknyttetGardFestenummer-datadef-34925": {
+      "$ref": "#/definitions/PersonMellomnavnForsteTilknyttetGardFestenummer-datadef-34925"
+    },
+    "TilknytningMellomnavn2-grp-9353": {
+      "$ref": "#/definitions/TilknytningMellomnavn2-grp-9353"
+    },
+    "PersonMellomnavnAndre-datadef-34926": {
+      "$ref": "#/definitions/PersonMellomnavnAndre-datadef-34926"
+    },
+    "PersonMellomnavnAndreTilknytningstype-datadef-34927": {
+      "$ref": "#/definitions/PersonMellomnavnAndreTilknytningstype-datadef-34927"
+    },
+    "PersonMellomnavnAndreTilknytningBeskrivelse-datadef-34928": {
+      "$ref": "#/definitions/PersonMellomnavnAndreTilknytningBeskrivelse-datadef-34928"
+    },
+    "PersonMellomnavnAndreTilknyttetPersonsFodselsnummer-datadef-34929": {
+      "$ref": "#/definitions/PersonMellomnavnAndreTilknyttetPersonsFodselsnummer-datadef-34929"
+    },
+    "PersonMellomnavnAndreTilknyttetPersonsEtternavn-datadef-34930": {
+      "$ref": "#/definitions/PersonMellomnavnAndreTilknyttetPersonsEtternavn-datadef-34930"
+    },
+    "PersonMellomnavnAndreTilknyttetGardNavn-datadef-34931": {
+      "$ref": "#/definitions/PersonMellomnavnAndreTilknyttetGardNavn-datadef-34931"
+    },
+    "PersonMellomnavnAndreTilknyttetGardKommunenummer-datadef-34932": {
+      "$ref": "#/definitions/PersonMellomnavnAndreTilknyttetGardKommunenummer-datadef-34932"
+    },
+    "PersonMellomnavnAndreTilknyttetGardGardsnummer-datadef-34933": {
+      "$ref": "#/definitions/PersonMellomnavnAndreTilknyttetGardGardsnummer-datadef-34933"
+    },
+    "PersonMellomnavnAndreTilknyttetGardBruksnummer-datadef-34934": {
+      "$ref": "#/definitions/PersonMellomnavnAndreTilknyttetGardBruksnummer-datadef-34934"
+    },
+    "PersonMellomnavnAndreTilknyttetGardFestenummer-datadef-34935": {
+      "$ref": "#/definitions/PersonMellomnavnAndreTilknyttetGardFestenummer-datadef-34935"
+    },
+    "TilknytningMellomnavn3-grp-9354": {
+      "$ref": "#/definitions/TilknytningMellomnavn3-grp-9354"
+    },
+    "PersonMellomnavnTredje-datadef-34936": {
+      "$ref": "#/definitions/PersonMellomnavnTredje-datadef-34936"
+    },
+    "PersonMellomnavnTredjeTilknytningstype-datadef-34937": {
+      "$ref": "#/definitions/PersonMellomnavnTredjeTilknytningstype-datadef-34937"
+    },
+    "PersonMellomnavnTredjeTilknytningBeskrivelse-datadef-34938": {
+      "$ref": "#/definitions/PersonMellomnavnTredjeTilknytningBeskrivelse-datadef-34938"
+    },
+    "PersonMellomnavnTredjeTilknyttetPersonsFodselsnummer-datadef-34939": {
+      "$ref": "#/definitions/PersonMellomnavnTredjeTilknyttetPersonsFodselsnummer-datadef-34939"
+    },
+    "PersonMellomnavnTredjeTilknyttetPersonsEtternavn-datadef-34940": {
+      "$ref": "#/definitions/PersonMellomnavnTredjeTilknyttetPersonsEtternavn-datadef-34940"
+    },
+    "PersonMellomnavnTredjeTilknyttetGardNavn-datadef-34941": {
+      "$ref": "#/definitions/PersonMellomnavnTredjeTilknyttetGardNavn-datadef-34941"
+    },
+    "PersonMellomnavnTredjeTilknyttetGardKommunenummer-datadef-34942": {
+      "$ref": "#/definitions/PersonMellomnavnTredjeTilknyttetGardKommunenummer-datadef-34942"
+    },
+    "PersonMellomnavnTredjeTilknyttetGardGardsnummer-datadef-34943": {
+      "$ref": "#/definitions/PersonMellomnavnTredjeTilknyttetGardGardsnummer-datadef-34943"
+    },
+    "PersonMellomnavnTredjeTilknyttetGardBruksnummer-datadef-34944": {
+      "$ref": "#/definitions/PersonMellomnavnTredjeTilknyttetGardBruksnummer-datadef-34944"
+    },
+    "PersonMellomnavnTredjeTilknyttetGardFestenummer-datadef-34945": {
+      "$ref": "#/definitions/PersonMellomnavnTredjeTilknyttetGardFestenummer-datadef-34945"
+    },
+    "TilknytningMellomnavnEkstra-grp-9355": {
+      "$ref": "#/definitions/TilknytningMellomnavnEkstra-grp-9355"
+    },
+    "PersonMellomnavnBeskrivelse-datadef-34946": {
+      "$ref": "#/definitions/PersonMellomnavnBeskrivelse-datadef-34946"
+    },
+    "Begrunnelse-grp-9317": {
+      "$ref": "#/definitions/Begrunnelse-grp-9317"
+    },
+    "BegrunnelseForNyttNavn-grp-9318": {
+      "$ref": "#/definitions/BegrunnelseForNyttNavn-grp-9318"
+    },
+    "PersonForrigeFornavnValgt-datadef-34947": {
+      "$ref": "#/definitions/PersonForrigeFornavnValgt-datadef-34947"
+    },
+    "PersonFornavnAnnetBegrunnelse-datadef-34948": {
+      "$ref": "#/definitions/PersonFornavnAnnetBegrunnelse-datadef-34948"
+    },
+    "TestCustomButtonInput": {
+      "type": "string"
+    },
+    "TestCustomButtonReadOnlyInput": {
+      "type": "string"
+    }
+  },
+  "definitions": {
+    "Skjema": {
+      "properties": {
+        "skjemanummer": {
+          "const": "1533",
+          "type": "integer",
+          "@xsdType": "XmlAttribute"
+        },
+        "spesifikasjonsnummer": {
+          "const": "11172",
+          "type": "integer",
+          "@xsdType": "XmlAttribute"
+        },
+        "blankettnummer": {
+          "const": "RF-1453",
+          "type": "string",
+          "@xsdType": "XmlAttribute"
+        },
+        "tittel": {
+          "const": "Endring av navn",
+          "type": "string",
+          "@xsdType": "XmlAttribute"
+        },
+        "gruppeid": {
+          "const": "9308",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "etatid": {
+          "enum": ["974761076"],
+          "type": "string",
+          "@xsdType": "XmlAttribute"
+        },
+        "Innledning-grp-9309": {
+          "$ref": "#/definitions/Innledning-grp-9309"
+        },
+        "NyttNavn-grp-9313": {
+          "$ref": "#/definitions/NyttNavn-grp-9313"
+        },
+        "Tilknytning-grp-9315": {
+          "$ref": "#/definitions/Tilknytning-grp-9315"
+        },
+        "Begrunnelse-grp-9317": {
+          "$ref": "#/definitions/Begrunnelse-grp-9317"
+        },
+        "Food": {
+          "type": "string"
+        },
+        "FoodLabel": {
+          "type": "string"
+        },
+        "ColorsLabelsVerify": {
+          "type": "string"
+        },
+        "Colors": {
+          "type": "string"
+        },
+        "ColorsLabels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "Radioknapp": {
+          "texts": {
+            "LEDE": {
+              "EN": "Radiobutton component for automated test",
+              "NOB": "Radioknapp komponent for automatisert testing"
+            }
+          },
+          "type": "string"
+        },
+        "BegrunnelseFrivillig": {
+          "texts": {
+            "LEDE": {
+              "EN": "Radiobutton component for automated test",
+              "NOB": "Radioknapp komponent for automatisert testing"
+            }
+          },
+          "type": "string"
+        },
+        "Adresse": {
+          "properties": {
+            "Gateadresse_æøå": {
+              "type": "string"
+            },
+            "Postnr": {
+              "type": "string"
+            },
+            "CareOf": {
+              "type": "string"
+            },
+            "Poststed": {
+              "type": "string"
+            },
+            "Kommune": {
+              "type": "string"
+            },
+            "KommunerMetadata": {
+              "type": "string"
+            },
+            "HouseNumber": {
+              "type": "string"
+            }
+          },
+          "required": ["Gateadresse_æøå", "Postnr", "Poststed"]
+        },
+        "GridData": {
+          "type": "object",
+          "properties": {
+            "TotalGjeld": { "type": "integer" },
+            "Bolig": { "$ref": "#/definitions/GjeldsFordeling" },
+            "Studie": { "$ref": "#/definitions/GjeldsFordeling" },
+            "Kredittkort": { "$ref": "#/definitions/GjeldsFordeling" },
+            "TotalProsent": { "type": "integer" },
+            "ShowAll": { "type": "string" },
+            "Examples": { "$ref": "#/definitions/GridExamples" }
+          }
+        },
+        "TestCustomButtonInput": {
+          "type": "string"
+        },
+        "TestCustomButtonReadOnlyInput": {
+          "type": "string"
+        },
+        "neverValidatedInput": {
+          "type": "string"
+        },
+        "ChooseExtraPages": {
+          "type": "string"
+        },
+        "Numeric": {
+          "type": "object",
+          "properties": {
+            "Decimal": { "type": "number" },
+            "Int32": { "type": "integer", "@xsdType": "int" },
+            "Int64": { "type": "integer", "@xsdType": "long" },
+            "Int16": { "type": "integer", "@xsdType": "short" }
+          }
+        },
+        "MapData": {
+          "type": "object",
+          "properties": {
+            "Location": { "type": "string" },
+            "Geometries": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "data": { "type": "string" },
+                  "label": { "type": "string" }
+                }
+              }
+            },
+            "Selected": { "type": "string" }
+          }
+        },
+        "ConflictingOptions": { "$ref": "#/definitions/ConflictingOptions" },
+        "ShiftingOptions": { "$ref": "#/definitions/ShiftingOptions" },
+        "FilteredOptions": { "$ref": "#/definitions/FilteredOptions" },
+        "LinkedHidden": { "$ref": "#/definitions/LinkedHidden" }
+      },
+      "required": ["skjemanummer", "spesifikasjonsnummer"],
+      "@xsdAnyAttribute": true
+    },
+    "GridExamples": {
+      "type": "object",
+      "properties": {
+        "ExampleDate": { "type": "string" },
+        "ExampleDropdown": { "type": "string" },
+        "ExampleMultiSelect": { "type": "string" },
+        "ExampleTextArea": { "type": "string" }
+      }
+    },
+    "GjeldsFordeling": {
+      "type": "object",
+      "properties": {
+        "Prosent": { "type": "integer" },
+        "Belop": { "type": "integer" },
+        "Verifisert": { "type": "string" },
+        "IBruk": { "type": "string" }
+      }
+    },
+    "Innledning-grp-9309": {
+      "properties": {
+        "gruppeid": {
+          "const": "9309",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "NavneendringenGjelderFor-grp-9310": {
+          "$ref": "#/definitions/NavneendringenGjelderFor-grp-9310"
+        },
+        "Signerer-grp-9320": {
+          "$ref": "#/definitions/Signerer-grp-9320"
+        },
+        "TredjeSignerer-grp-9349": {
+          "$ref": "#/definitions/TredjeSignerer-grp-9349"
+        },
+        "Kontaktinformasjon-grp-9311": {
+          "$ref": "#/definitions/Kontaktinformasjon-grp-9311"
+        },
+        "SamtykkeTilElektroniskKommunikasjon-grp-9312": {
+          "$ref": "#/definitions/SamtykkeTilElektroniskKommunikasjon-grp-9312"
+        }
+      },
+      "required": ["gruppeid"]
+    },
+    "NavneendringenGjelderFor-grp-9310": {
+      "properties": {
+        "gruppeid": {
+          "const": "9310",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "MeldingMeldingsmottakerFodselsnummer-datadef-33548": {
+          "$ref": "#/definitions/MeldingMeldingsmottakerFodselsnummer-datadef-33548"
+        },
+        "SubjektFodselsnummer-datadef-34727": {
+          "$ref": "#/definitions/SubjektFodselsnummer-datadef-34727"
+        },
+        "SubjektFornavnFolkeregistrert-datadef-34730": {
+          "$ref": "#/definitions/SubjektFornavnFolkeregistrert-datadef-34730"
+        },
+        "SubjektMellomnavnFolkeregistrert-datadef-34731": {
+          "$ref": "#/definitions/SubjektMellomnavnFolkeregistrert-datadef-34731"
+        },
+        "SubjektEtternavnFolkeregistrert-datadef-34729": {
+          "$ref": "#/definitions/SubjektEtternavnFolkeregistrert-datadef-34729"
+        }
+      },
+      "required": ["gruppeid"]
+    },
+    "MeldingMeldingsmottakerFodselsnummer-datadef-33548": {
+      "properties": {
+        "orid": {
+          "const": "33548",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst1111Modulus11-repformat-18",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "Tekst1111Modulus11-repformat-18": {
+      "texts": {
+        "FEIL": {
+          "NOB": "Ugyldig fï¿½dselsnummer",
+          "NON": "Ugyldig fï¿½dselsnummer"
+        }
+      },
+      "minLength": 11,
+      "maxLength": 11,
+      "type": "string"
+    },
+    "SubjektFodselsnummer-datadef-34727": {
+      "properties": {
+        "orid": {
+          "const": "34727",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst1111Modulus11-repformat-18",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "SubjektFornavnFolkeregistrert-datadef-34730": {
+      "properties": {
+        "orid": {
+          "const": "34730",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst60-repformat-407",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "Tekst60-repformat-407": {
+      "minLength": 1,
+      "maxLength": 60,
+      "type": "string"
+    },
+    "SubjektMellomnavnFolkeregistrert-datadef-34731": {
+      "properties": {
+        "orid": {
+          "const": "34731",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst60-repformat-407",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "SubjektEtternavnFolkeregistrert-datadef-34729": {
+      "properties": {
+        "orid": {
+          "const": "34729",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst60-repformat-407",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "Signerer-grp-9320": {
+      "properties": {
+        "gruppeid": {
+          "const": "9320",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "SignererEkstraFodselsnummer-datadef-34744": {
+          "$ref": "#/definitions/SignererEkstraFodselsnummer-datadef-34744"
+        },
+        "SignererEkstraEtternavn-datadef-34745": {
+          "$ref": "#/definitions/SignererEkstraEtternavn-datadef-34745"
+        },
+        "SignererEkstraFornavn-datadef-34746": {
+          "$ref": "#/definitions/SignererEkstraFornavn-datadef-34746"
+        },
+        "SignererEkstraMellomnavn-datadef-34747": {
+          "$ref": "#/definitions/SignererEkstraMellomnavn-datadef-34747"
+        },
+        "SignererEkstraEpost-datadef-34749": {
+          "$ref": "#/definitions/SignererEkstraEpost-datadef-34749"
+        },
+        "SignererEkstraMobiltelefonsnummer-datadef-34750": {
+          "$ref": "#/definitions/SignererEkstraMobiltelefonsnummer-datadef-34750"
+        },
+        "SignererEkstraReferanseAltinn-datadef-34751": {
+          "$ref": "#/definitions/SignererEkstraReferanseAltinn-datadef-34751"
+        },
+        "SignererEkstraArkivDato-datadef-34752": {
+          "$ref": "#/definitions/SignererEkstraArkivDato-datadef-34752"
+        },
+        "SignererEkstraTidspunkt-datadef-34753": {
+          "$ref": "#/definitions/SignererEkstraTidspunkt-datadef-34753"
+        },
+        "SignererEkstraAksept-datadef-34754": {
+          "$ref": "#/definitions/SignererEkstraAksept-datadef-34754"
+        },
+        "SignererEkstraMalform-datadef-34895": {
+          "$ref": "#/definitions/SignererEkstraMalform-datadef-34895"
+        }
+      },
+      "required": ["gruppeid"]
+    },
+    "SignererEkstraFodselsnummer-datadef-34744": {
+      "properties": {
+        "orid": {
+          "const": "34744",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst1111Modulus11-repformat-18",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "SignererEkstraEtternavn-datadef-34745": {
+      "properties": {
+        "orid": {
+          "const": "34745",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst60-repformat-407",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "SignererEkstraFornavn-datadef-34746": {
+      "properties": {
+        "orid": {
+          "const": "34746",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst60-repformat-407",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "SignererEkstraMellomnavn-datadef-34747": {
+      "properties": {
+        "orid": {
+          "const": "34747",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst60-repformat-407",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "SignererEkstraEpost-datadef-34749": {
+      "properties": {
+        "orid": {
+          "const": "34749",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "Tekst50-repformat-70": {
+      "minLength": 1,
+      "maxLength": 50,
+      "type": "string",
+      "pattern": "^((?!client).)*$",
+      "errorMessage": "client side validering"
+    },
+    "SignererEkstraMobiltelefonsnummer-datadef-34750": {
+      "properties": {
+        "orid": {
+          "const": "34750",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst15-repformat-61",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "Tekst15-repformat-61": {
+      "minLength": 1,
+      "maxLength": 15,
+      "type": "string"
+    },
+    "SignererEkstraReferanseAltinn-datadef-34751": {
+      "properties": {
+        "orid": {
+          "const": "34751",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst10-repformat-45",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "Tekst10-repformat-45": {
+      "minLength": 1,
+      "maxLength": 10,
+      "type": "string"
+    },
+    "SignererEkstraArkivDato-datadef-34752": {
+      "properties": {
+        "orid": {
+          "const": "34752",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Dato-repformat-5",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "Dato-repformat-5": {
+      "type": "string",
+      "format": "date"
+    },
+    "SignererEkstraTidspunkt-datadef-34753": {
+      "properties": {
+        "orid": {
+          "const": "34753",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Time-repformat-223",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "Time-repformat-223": {
+      "type": "string",
+      "format": "time"
+    },
+    "SignererEkstraAksept-datadef-34754": {
+      "properties": {
+        "orid": {
+          "const": "34754",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst1JN-repformat-1142",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "Tekst1JN-repformat-1142": {
+      "minLength": 1,
+      "maxLength": 1,
+      "pattern": "(J|N)",
+      "type": "string"
+    },
+    "SignererEkstraMalform-datadef-34895": {
+      "properties": {
+        "orid": {
+          "const": "34895",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst10-repformat-45",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "TredjeSignerer-grp-9349": {
+      "properties": {
+        "gruppeid": {
+          "const": "9349",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "SignererTredjeFodselsnummer-datadef-34884": {
+          "texts": {
+            "LEDE": {
+              "NOB": "Fï¿½dselsnummer",
+              "NON": "Fï¿½dselsnummer"
+            }
+          },
+          "$ref": "#/definitions/SignererTredjeFodselsnummer-datadef-34884"
+        },
+        "SignererTredjeEtternavn-datadef-34885": {
+          "texts": {
+            "LEDE": {
+              "NOB": "Etternavn",
+              "NON": "Etternamn"
+            }
+          },
+          "$ref": "#/definitions/SignererTredjeEtternavn-datadef-34885"
+        },
+        "SignererTredjeFornavn-datadef-34886": {
+          "texts": {
+            "LEDE": {
+              "NOB": "Fornavn",
+              "NON": "Fornamn"
+            }
+          },
+          "$ref": "#/definitions/SignererTredjeFornavn-datadef-34886"
+        },
+        "SignererTredjeMellomnavn-datadef-34887": {
+          "texts": {
+            "LEDE": {
+              "NOB": "Mellomnavn",
+              "NON": "Mellomnamn"
+            }
+          },
+          "$ref": "#/definitions/SignererTredjeMellomnavn-datadef-34887"
+        },
+        "SignererTredjeEpost-datadef-34889": {
+          "texts": {
+            "LEDE": {
+              "NOB": "epost",
+              "NON": "epost"
+            }
+          },
+          "$ref": "#/definitions/SignererTredjeEpost-datadef-34889"
+        },
+        "SignererTredjeMobiltelefonnummer-datadef-34890": {
+          "texts": {
+            "LEDE": {
+              "NOB": "Mobiltelefonnummer",
+              "NON": "Mobiltelefonnummer"
+            }
+          },
+          "$ref": "#/definitions/SignererTredjeMobiltelefonnummer-datadef-34890"
+        },
+        "SignererTredjeReferanseAltinn-datadef-34891": {
+          "texts": {
+            "LEDE": {
+              "NOB": "Referansenummer Altinn",
+              "NON": "Referansenummer Altinn"
+            }
+          },
+          "$ref": "#/definitions/SignererTredjeReferanseAltinn-datadef-34891"
+        },
+        "SignererTredjeArkivDato-datadef-34892": {
+          "$ref": "#/definitions/SignererTredjeArkivDato-datadef-34892"
+        },
+        "SignererTredjeTidspunkt-datadef-34893": {
+          "$ref": "#/definitions/SignererTredjeTidspunkt-datadef-34893"
+        },
+        "SignererTredjeAksept-datadef-34894": {
+          "$ref": "#/definitions/SignererTredjeAksept-datadef-34894"
+        },
+        "SignererTredjeMalform-datadef-34883": {
+          "texts": {
+            "LEDE": {
+              "NOB": "Mï¿½lform",
+              "NON": "Mï¿½lform"
+            }
+          },
+          "$ref": "#/definitions/SignererTredjeMalform-datadef-34883"
+        }
+      },
+      "required": ["gruppeid"]
+    },
+    "SignererTredjeFodselsnummer-datadef-34884": {
+      "properties": {
+        "orid": {
+          "const": "34884",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst1111Modulus11-repformat-18",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "SignererTredjeEtternavn-datadef-34885": {
+      "properties": {
+        "orid": {
+          "const": "34885",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst60-repformat-407",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "SignererTredjeFornavn-datadef-34886": {
+      "properties": {
+        "orid": {
+          "const": "34886",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst60-repformat-407",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "SignererTredjeMellomnavn-datadef-34887": {
+      "properties": {
+        "orid": {
+          "const": "34887",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst60-repformat-407",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "SignererTredjeEpost-datadef-34889": {
+      "properties": {
+        "orid": {
+          "const": "34889",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "SignererTredjeMobiltelefonnummer-datadef-34890": {
+      "properties": {
+        "orid": {
+          "const": "34890",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst15-repformat-61",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "SignererTredjeReferanseAltinn-datadef-34891": {
+      "properties": {
+        "orid": {
+          "const": "34891",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst10-repformat-45",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "SignererTredjeArkivDato-datadef-34892": {
+      "properties": {
+        "orid": {
+          "const": "34892",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Dato-repformat-5",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "SignererTredjeTidspunkt-datadef-34893": {
+      "properties": {
+        "orid": {
+          "const": "34893",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Time-repformat-223",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "SignererTredjeAksept-datadef-34894": {
+      "properties": {
+        "orid": {
+          "const": "34894",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst1JN-repformat-1142",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "SignererTredjeMalform-datadef-34883": {
+      "properties": {
+        "orid": {
+          "const": "34883",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst10-repformat-45",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "Kontaktinformasjon-grp-9311": {
+      "properties": {
+        "gruppeid": {
+          "const": "9311",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "MeldingFodselsnummer-datadef-34734": {
+          "$ref": "#/definitions/MeldingFodselsnummer-datadef-34734"
+        },
+        "MelderFornavn-datadef-34736": {
+          "$ref": "#/definitions/MelderFornavn-datadef-34736"
+        },
+        "MelderMellomnavn-datadef-34737": {
+          "$ref": "#/definitions/MelderMellomnavn-datadef-34737"
+        },
+        "MelderEtternavn-datadef-34735": {
+          "$ref": "#/definitions/MelderEtternavn-datadef-34735"
+        },
+        "MelderFultnavn": {
+          "$ref": "#/definitions/MelderFultnavn"
+        },
+        "MelderEpost-datadef-34739": {
+          "$ref": "#/definitions/MelderEpost-datadef-34739"
+        },
+        "MelderMobiltelefonnummer-datadef-34740": {
+          "$ref": "#/definitions/MelderMobiltelefonnummer-datadef-34740"
+        },
+        "MelderArkivDato-datadef-34741": {
+          "$ref": "#/definitions/MelderArkivDato-datadef-34741"
+        },
+        "MelderArkivTidspunkt-datadef-34742": {
+          "$ref": "#/definitions/MelderArkivTidspunkt-datadef-34742"
+        },
+        "MelderReferanseAltinn-datadef-34743": {
+          "$ref": "#/definitions/MelderReferanseAltinn-datadef-34743"
+        },
+        "MelderMalform-datadef-34882": {
+          "texts": {
+            "LEDE": {
+              "NOB": "Mï¿½lform",
+              "NON": "Mï¿½lform"
+            }
+          },
+          "$ref": "#/definitions/MelderMalform-datadef-34882"
+        }
+      },
+      "required": ["gruppeid"]
+    },
+    "MeldingFodselsnummer-datadef-34734": {
+      "properties": {
+        "orid": {
+          "const": "34734",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst1111Modulus11-repformat-18",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "MelderFornavn-datadef-34736": {
+      "properties": {
+        "orid": {
+          "const": "34736",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst60-repformat-407",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "MelderMellomnavn-datadef-34737": {
+      "properties": {
+        "orid": {
+          "const": "34737",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst60-repformat-407",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "MelderEtternavn-datadef-34735": {
+      "properties": {
+        "orid": {
+          "const": "34735",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst60-repformat-407",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "MelderFultnavn": {
+      "properties": {
+        "orid": {
+          "const": "34735",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst60-repformat-407",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "MelderEpost-datadef-34739": {
+      "properties": {
+        "orid": {
+          "const": "34739",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "MelderMobiltelefonnummer-datadef-34740": {
+      "properties": {
+        "orid": {
+          "const": "34740",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst15-repformat-61",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "MelderArkivDato-datadef-34741": {
+      "properties": {
+        "orid": {
+          "const": "34741",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Dato-repformat-5",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "MelderArkivTidspunkt-datadef-34742": {
+      "properties": {
+        "orid": {
+          "const": "34742",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Time-repformat-223",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "MelderReferanseAltinn-datadef-34743": {
+      "properties": {
+        "orid": {
+          "const": "34743",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst10-repformat-45",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "MelderMalform-datadef-34882": {
+      "properties": {
+        "orid": {
+          "const": "34882",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst10-repformat-45",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "SamtykkeTilElektroniskKommunikasjon-grp-9312": {
+      "properties": {
+        "gruppeid": {
+          "const": "9312",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "AvgiverSkattSamtykke-datadef-34755": {
+          "$ref": "#/definitions/AvgiverSkattSamtykke-datadef-34755"
+        },
+        "AvgiverFolkeregisterSamtykke-datadef-34756": {
+          "$ref": "#/definitions/AvgiverFolkeregisterSamtykke-datadef-34756"
+        }
+      },
+      "required": ["gruppeid"]
+    },
+    "AvgiverSkattSamtykke-datadef-34755": {
+      "properties": {
+        "orid": {
+          "const": "34755",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst1JND-repformat-1162",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "Tekst1JND-repformat-1162": {
+      "minLength": 1,
+      "maxLength": 1,
+      "pattern": "(J|N|D)",
+      "type": "string"
+    },
+    "AvgiverFolkeregisterSamtykke-datadef-34756": {
+      "properties": {
+        "orid": {
+          "const": "34756",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst1JND-repformat-1162",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "NyttNavn-grp-9313": {
+      "properties": {
+        "gruppeid": {
+          "const": "9313",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "NyttNavn-grp-9314": {
+          "$ref": "#/definitions/NyttNavn-grp-9314"
+        }
+      },
+      "required": ["gruppeid"]
+    },
+    "NyttNavn-grp-9314": {
+      "properties": {
+        "gruppeid": {
+          "const": "9314",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "PersonEtternavnNytt-datadef-34757": {
+          "$ref": "#/definitions/PersonEtternavnNytt-datadef-34757"
+        },
+        "PersonFornavnNytt-datadef-34758": {
+          "$ref": "#/definitions/PersonFornavnNytt-datadef-34758"
+        },
+        "PersonMellomnavnNytt-datadef-34759": {
+          "$ref": "#/definitions/PersonMellomnavnNytt-datadef-34759"
+        },
+        "PersonBekrefterNyttNavn": {
+          "$ref": "#/definitions/PersonBekrefterNyttNavn"
+        }
+      },
+      "required": ["gruppeid"]
+    },
+    "PersonEtternavnNytt-datadef-34757": {
+      "properties": {
+        "orid": {
+          "const": "34757",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonFornavnNytt-datadef-34758": {
+      "properties": {
+        "orid": {
+          "const": "34758",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension",
+          "maxLength": 4
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnNytt-datadef-34759": {
+      "properties": {
+        "orid": {
+          "const": "34759",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonBekrefterNyttNavn": {
+      "properties": {
+        "orid": {
+          "const": "34760",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "Tilknytning-grp-9315": {
+      "properties": {
+        "gruppeid": {
+          "const": "9315",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "TilknytningTilNavnet-grp-9316": {
+          "$ref": "#/definitions/TilknytningTilNavnet-grp-9316"
+        }
+      },
+      "required": ["gruppeid"]
+    },
+    "TilknytningTilNavnet-grp-9316": {
+      "properties": {
+        "gruppeid": {
+          "const": "9316",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "TilknytningEtternavn1-grp-9350": {
+          "$ref": "#/definitions/TilknytningEtternavn1-grp-9350"
+        },
+        "TilknytningEtternavn2-grp-9351": {
+          "$ref": "#/definitions/TilknytningEtternavn2-grp-9351"
+        },
+        "TilknytningMellomnavn1-grp-9352": {
+          "$ref": "#/definitions/TilknytningMellomnavn1-grp-9352"
+        },
+        "TilknytningMellomnavn2-grp-9353": {
+          "$ref": "#/definitions/TilknytningMellomnavn2-grp-9353"
+        },
+        "TilknytningMellomnavn3-grp-9354": {
+          "$ref": "#/definitions/TilknytningMellomnavn3-grp-9354"
+        },
+        "TilknytningMellomnavnEkstra-grp-9355": {
+          "$ref": "#/definitions/TilknytningMellomnavnEkstra-grp-9355"
+        }
+      },
+      "required": ["gruppeid"]
+    },
+    "TilknytningEtternavn1-grp-9350": {
+      "properties": {
+        "gruppeid": {
+          "const": "9350",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "PersonEtternavnForste-datadef-34896": {
+          "$ref": "#/definitions/PersonEtternavnForste-datadef-34896"
+        },
+        "PersonEtternavnForsteTilknytningstype-datadef-34897": {
+          "$ref": "#/definitions/PersonEtternavnForsteTilknytningstype-datadef-34897"
+        },
+        "PersonEtternavnForsteTilknytningBeskrivelse-datadef-34898": {
+          "$ref": "#/definitions/PersonEtternavnForsteTilknytningBeskrivelse-datadef-34898"
+        },
+        "PersonEtternavnForsteTilknyttetPersonsFodselsnummer-datadef-34899": {
+          "$ref": "#/definitions/PersonEtternavnForsteTilknyttetPersonsFodselsnummer-datadef-34899"
+        },
+        "PersonEtternavnForsteTilknyttetPersonsEtternavn-datadef-34900": {
+          "$ref": "#/definitions/PersonEtternavnForsteTilknyttetPersonsEtternavn-datadef-34900"
+        },
+        "PersonEtternavnForsteTilknyttetGardNavn-datadef-34901": {
+          "$ref": "#/definitions/PersonEtternavnForsteTilknyttetGardNavn-datadef-34901"
+        },
+        "PersonEtternavnForsteTilknyttetGardKommunenummer-datadef-34902": {
+          "$ref": "#/definitions/PersonEtternavnForsteTilknyttetGardKommunenummer-datadef-34902"
+        },
+        "PersonEtternavnForsteTilknyttetGardGardsnummer-datadef-34903": {
+          "$ref": "#/definitions/PersonEtternavnForsteTilknyttetGardGardsnummer-datadef-34903"
+        },
+        "PersonEtternavnForsteTilknyttetGardBruksnummer-datadef-34904": {
+          "$ref": "#/definitions/PersonEtternavnForsteTilknyttetGardBruksnummer-datadef-34904"
+        },
+        "PersonEtternavnForsteTilknyttetGardFesteavgift-datadef-34905": {
+          "$ref": "#/definitions/PersonEtternavnForsteTilknyttetGardFesteavgift-datadef-34905"
+        }
+      },
+      "required": ["gruppeid"]
+    },
+    "PersonEtternavnForste-datadef-34896": {
+      "properties": {
+        "orid": {
+          "const": "34896",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonEtternavnForsteTilknytningstype-datadef-34897": {
+      "properties": {
+        "orid": {
+          "const": "34897",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/KodelisteEttValg9Navnetilknytning-repformat-1156",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "KodelisteEttValg9Navnetilknytning-repformat-1156": {
+      "minLength": 1,
+      "maxLength": 2,
+      "enum": ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
+      "type": "string"
+    },
+    "PersonEtternavnForsteTilknytningBeskrivelse-datadef-34898": {
+      "properties": {
+        "orid": {
+          "const": "34898",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst500-repformat-166",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "Tekst500-repformat-166": {
+      "minLength": 1,
+      "maxLength": 500,
+      "type": "string"
+    },
+    "PersonEtternavnForsteTilknyttetPersonsFodselsnummer-datadef-34899": {
+      "properties": {
+        "orid": {
+          "const": "34899",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst1111Modulus11-repformat-18",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonEtternavnForsteTilknyttetPersonsEtternavn-datadef-34900": {
+      "properties": {
+        "orid": {
+          "const": "34900",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonEtternavnForsteTilknyttetGardNavn-datadef-34901": {
+      "properties": {
+        "orid": {
+          "const": "34901",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonEtternavnForsteTilknyttetGardKommunenummer-datadef-34902": {
+      "properties": {
+        "orid": {
+          "const": "34902",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst44BareTall-repformat-10",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "Tekst44BareTall-repformat-10": {
+      "texts": {
+        "FEIL": {
+          "EN": "Enter positive integer with four digits",
+          "NOB": "Feltet krever positivt heltall med fire siffer",
+          "NON": "Feltet krev positivt heiltal med fire siffer"
+        }
+      },
+      "minLength": 4,
+      "maxLength": 4,
+      "pattern": "[0-9]{4}",
+      "type": "string"
+    },
+    "PersonEtternavnForsteTilknyttetGardGardsnummer-datadef-34903": {
+      "properties": {
+        "orid": {
+          "const": "34903",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst5-repformat-238",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "Tekst5-repformat-238": {
+      "minLength": 1,
+      "maxLength": 5,
+      "type": "string"
+    },
+    "PersonEtternavnForsteTilknyttetGardBruksnummer-datadef-34904": {
+      "properties": {
+        "orid": {
+          "const": "34904",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst4-repformat-28",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "Tekst4-repformat-28": {
+      "minLength": 1,
+      "maxLength": 4,
+      "type": "string"
+    },
+    "PersonEtternavnForsteTilknyttetGardFesteavgift-datadef-34905": {
+      "properties": {
+        "orid": {
+          "const": "34905",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst4-repformat-28",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "TilknytningEtternavn2-grp-9351": {
+      "properties": {
+        "gruppeid": {
+          "const": "9351",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "PersonEtternavnAndre-datadef-34906": {
+          "$ref": "#/definitions/PersonEtternavnAndre-datadef-34906"
+        },
+        "PersonEtternavnAndreTilknytningstype-datadef-34907": {
+          "$ref": "#/definitions/PersonEtternavnAndreTilknytningstype-datadef-34907"
+        },
+        "PersonEtternavnAndreTilknytningBeskrivelse-datadef-34908": {
+          "$ref": "#/definitions/PersonEtternavnAndreTilknytningBeskrivelse-datadef-34908"
+        },
+        "PersonEtternavnAndreTilknyttetPersonsFodselsnummer-datadef-34909": {
+          "$ref": "#/definitions/PersonEtternavnAndreTilknyttetPersonsFodselsnummer-datadef-34909"
+        },
+        "PersonEtternavnAndreTilknyttetPersonsEtternavn-datadef-34910": {
+          "$ref": "#/definitions/PersonEtternavnAndreTilknyttetPersonsEtternavn-datadef-34910"
+        },
+        "PersonEtternavnAndreTilknyttetGardNavn-datadef-34911": {
+          "$ref": "#/definitions/PersonEtternavnAndreTilknyttetGardNavn-datadef-34911"
+        },
+        "PersonEtternavnAndreTilknyttetGardKommunenummer-datadef-34912": {
+          "$ref": "#/definitions/PersonEtternavnAndreTilknyttetGardKommunenummer-datadef-34912"
+        },
+        "PersonEtternavnAndreTilknyttetGardGardsnummer-datadef-34913": {
+          "$ref": "#/definitions/PersonEtternavnAndreTilknyttetGardGardsnummer-datadef-34913"
+        },
+        "PersonEtternavnAndreTilknyttetGardBruksnummer-datadef-34914": {
+          "$ref": "#/definitions/PersonEtternavnAndreTilknyttetGardBruksnummer-datadef-34914"
+        },
+        "PersonEtternavnAndreTilknyttetGardFesteavgift-datadef-34915": {
+          "$ref": "#/definitions/PersonEtternavnAndreTilknyttetGardFesteavgift-datadef-34915"
+        }
+      },
+      "required": ["gruppeid"]
+    },
+    "PersonEtternavnAndre-datadef-34906": {
+      "properties": {
+        "orid": {
+          "const": "34906",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonEtternavnAndreTilknytningstype-datadef-34907": {
+      "properties": {
+        "orid": {
+          "const": "34907",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/KodelisteEttValg9Navnetilknytning-repformat-1156",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonEtternavnAndreTilknytningBeskrivelse-datadef-34908": {
+      "properties": {
+        "orid": {
+          "const": "34908",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst500-repformat-166",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonEtternavnAndreTilknyttetPersonsFodselsnummer-datadef-34909": {
+      "properties": {
+        "orid": {
+          "const": "34909",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst1111Modulus11-repformat-18",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonEtternavnAndreTilknyttetPersonsEtternavn-datadef-34910": {
+      "properties": {
+        "orid": {
+          "const": "34910",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonEtternavnAndreTilknyttetGardNavn-datadef-34911": {
+      "properties": {
+        "orid": {
+          "const": "34911",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonEtternavnAndreTilknyttetGardKommunenummer-datadef-34912": {
+      "properties": {
+        "orid": {
+          "const": "34912",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst44BareTall-repformat-10",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonEtternavnAndreTilknyttetGardGardsnummer-datadef-34913": {
+      "properties": {
+        "orid": {
+          "const": "34913",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst5-repformat-238",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonEtternavnAndreTilknyttetGardBruksnummer-datadef-34914": {
+      "properties": {
+        "orid": {
+          "const": "34914",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst4-repformat-28",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonEtternavnAndreTilknyttetGardFesteavgift-datadef-34915": {
+      "properties": {
+        "orid": {
+          "const": "34915",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst4-repformat-28",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "TilknytningMellomnavn1-grp-9352": {
+      "properties": {
+        "gruppeid": {
+          "const": "9352",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "PersonMellomnavnForste-datadef-34916": {
+          "$ref": "#/definitions/PersonMellomnavnForste-datadef-34916"
+        },
+        "PersonMellomnavnForsteTilknytningstype-datadef-34917": {
+          "$ref": "#/definitions/PersonMellomnavnForsteTilknytningstype-datadef-34917"
+        },
+        "PersonMellomnavnForsteTilknytningBeskrivelse-datadef-34918": {
+          "$ref": "#/definitions/PersonMellomnavnForsteTilknytningBeskrivelse-datadef-34918"
+        },
+        "PersonMellomnavnForsteTilknyttetPersonsFodselsnummer-datadef-34919": {
+          "$ref": "#/definitions/PersonMellomnavnForsteTilknyttetPersonsFodselsnummer-datadef-34919"
+        },
+        "PersonMellomnavnForsteTilknyttetPersonsEtternavn-datadef-34920": {
+          "$ref": "#/definitions/PersonMellomnavnForsteTilknyttetPersonsEtternavn-datadef-34920"
+        },
+        "PersonMellomnavnForsteTilknyttetGardNavn-datadef-34921": {
+          "$ref": "#/definitions/PersonMellomnavnForsteTilknyttetGardNavn-datadef-34921"
+        },
+        "PersonMellomnavnForsteTilknyttetGardKommunenummer-datadef-34922": {
+          "$ref": "#/definitions/PersonMellomnavnForsteTilknyttetGardKommunenummer-datadef-34922"
+        },
+        "PersonMellomnavnForsteTilknyttetGardGardsnummer-datadef-34923": {
+          "$ref": "#/definitions/PersonMellomnavnForsteTilknyttetGardGardsnummer-datadef-34923"
+        },
+        "PersonMellomnavnForsteTilknyttetGardBruksnummer-datadef-34924": {
+          "$ref": "#/definitions/PersonMellomnavnForsteTilknyttetGardBruksnummer-datadef-34924"
+        },
+        "PersonMellomnavnForsteTilknyttetGardFestenummer-datadef-34925": {
+          "$ref": "#/definitions/PersonMellomnavnForsteTilknyttetGardFestenummer-datadef-34925"
+        }
+      },
+      "required": ["gruppeid"]
+    },
+    "PersonMellomnavnForste-datadef-34916": {
+      "properties": {
+        "orid": {
+          "const": "34916",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnForsteTilknytningstype-datadef-34917": {
+      "properties": {
+        "orid": {
+          "const": "34917",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/KodelisteEttValg9Navnetilknytning-repformat-1156",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnForsteTilknytningBeskrivelse-datadef-34918": {
+      "properties": {
+        "orid": {
+          "const": "34918",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst500-repformat-166",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnForsteTilknyttetPersonsFodselsnummer-datadef-34919": {
+      "properties": {
+        "orid": {
+          "const": "34919",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst1111Modulus11-repformat-18",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnForsteTilknyttetPersonsEtternavn-datadef-34920": {
+      "properties": {
+        "orid": {
+          "const": "34920",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnForsteTilknyttetGardNavn-datadef-34921": {
+      "properties": {
+        "orid": {
+          "const": "34921",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnForsteTilknyttetGardKommunenummer-datadef-34922": {
+      "properties": {
+        "orid": {
+          "const": "34922",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst44BareTall-repformat-10",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnForsteTilknyttetGardGardsnummer-datadef-34923": {
+      "properties": {
+        "orid": {
+          "const": "34923",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst5-repformat-238",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnForsteTilknyttetGardBruksnummer-datadef-34924": {
+      "properties": {
+        "orid": {
+          "const": "34924",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst4-repformat-28",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnForsteTilknyttetGardFestenummer-datadef-34925": {
+      "properties": {
+        "orid": {
+          "const": "34925",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst4-repformat-28",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "TilknytningMellomnavn2-grp-9353": {
+      "properties": {
+        "gruppeid": {
+          "const": "9353",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "PersonMellomnavnAndre-datadef-34926": {
+          "$ref": "#/definitions/PersonMellomnavnAndre-datadef-34926"
+        },
+        "PersonMellomnavnAndreTilknytningstype-datadef-34927": {
+          "$ref": "#/definitions/PersonMellomnavnAndreTilknytningstype-datadef-34927"
+        },
+        "PersonMellomnavnAndreTilknytningBeskrivelse-datadef-34928": {
+          "$ref": "#/definitions/PersonMellomnavnAndreTilknytningBeskrivelse-datadef-34928"
+        },
+        "PersonMellomnavnAndreTilknyttetPersonsFodselsnummer-datadef-34929": {
+          "$ref": "#/definitions/PersonMellomnavnAndreTilknyttetPersonsFodselsnummer-datadef-34929"
+        },
+        "PersonMellomnavnAndreTilknyttetPersonsEtternavn-datadef-34930": {
+          "$ref": "#/definitions/PersonMellomnavnAndreTilknyttetPersonsEtternavn-datadef-34930"
+        },
+        "PersonMellomnavnAndreTilknyttetGardNavn-datadef-34931": {
+          "$ref": "#/definitions/PersonMellomnavnAndreTilknyttetGardNavn-datadef-34931"
+        },
+        "PersonMellomnavnAndreTilknyttetGardKommunenummer-datadef-34932": {
+          "$ref": "#/definitions/PersonMellomnavnAndreTilknyttetGardKommunenummer-datadef-34932"
+        },
+        "PersonMellomnavnAndreTilknyttetGardGardsnummer-datadef-34933": {
+          "$ref": "#/definitions/PersonMellomnavnAndreTilknyttetGardGardsnummer-datadef-34933"
+        },
+        "PersonMellomnavnAndreTilknyttetGardBruksnummer-datadef-34934": {
+          "$ref": "#/definitions/PersonMellomnavnAndreTilknyttetGardBruksnummer-datadef-34934"
+        },
+        "PersonMellomnavnAndreTilknyttetGardFestenummer-datadef-34935": {
+          "$ref": "#/definitions/PersonMellomnavnAndreTilknyttetGardFestenummer-datadef-34935"
+        }
+      },
+      "required": ["gruppeid"]
+    },
+    "PersonMellomnavnAndre-datadef-34926": {
+      "properties": {
+        "orid": {
+          "const": "34926",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnAndreTilknytningstype-datadef-34927": {
+      "properties": {
+        "orid": {
+          "const": "34927",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/KodelisteEttValg9Navnetilknytning-repformat-1156",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnAndreTilknytningBeskrivelse-datadef-34928": {
+      "properties": {
+        "orid": {
+          "const": "34928",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst500-repformat-166",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnAndreTilknyttetPersonsFodselsnummer-datadef-34929": {
+      "properties": {
+        "orid": {
+          "const": "34929",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst1111Modulus11-repformat-18",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnAndreTilknyttetPersonsEtternavn-datadef-34930": {
+      "properties": {
+        "orid": {
+          "const": "34930",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnAndreTilknyttetGardNavn-datadef-34931": {
+      "properties": {
+        "orid": {
+          "const": "34931",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnAndreTilknyttetGardKommunenummer-datadef-34932": {
+      "properties": {
+        "orid": {
+          "const": "34932",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst44BareTall-repformat-10",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnAndreTilknyttetGardGardsnummer-datadef-34933": {
+      "properties": {
+        "orid": {
+          "const": "34933",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst5-repformat-238",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnAndreTilknyttetGardBruksnummer-datadef-34934": {
+      "properties": {
+        "orid": {
+          "const": "34934",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst4-repformat-28",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnAndreTilknyttetGardFestenummer-datadef-34935": {
+      "properties": {
+        "orid": {
+          "const": "34935",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst4-repformat-28",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "TilknytningMellomnavn3-grp-9354": {
+      "properties": {
+        "gruppeid": {
+          "const": "9354",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "PersonMellomnavnTredje-datadef-34936": {
+          "$ref": "#/definitions/PersonMellomnavnTredje-datadef-34936"
+        },
+        "PersonMellomnavnTredjeTilknytningstype-datadef-34937": {
+          "$ref": "#/definitions/PersonMellomnavnTredjeTilknytningstype-datadef-34937"
+        },
+        "PersonMellomnavnTredjeTilknytningBeskrivelse-datadef-34938": {
+          "$ref": "#/definitions/PersonMellomnavnTredjeTilknytningBeskrivelse-datadef-34938"
+        },
+        "PersonMellomnavnTredjeTilknyttetPersonsFodselsnummer-datadef-34939": {
+          "$ref": "#/definitions/PersonMellomnavnTredjeTilknyttetPersonsFodselsnummer-datadef-34939"
+        },
+        "PersonMellomnavnTredjeTilknyttetPersonsEtternavn-datadef-34940": {
+          "$ref": "#/definitions/PersonMellomnavnTredjeTilknyttetPersonsEtternavn-datadef-34940"
+        },
+        "PersonMellomnavnTredjeTilknyttetGardNavn-datadef-34941": {
+          "$ref": "#/definitions/PersonMellomnavnTredjeTilknyttetGardNavn-datadef-34941"
+        },
+        "PersonMellomnavnTredjeTilknyttetGardKommunenummer-datadef-34942": {
+          "$ref": "#/definitions/PersonMellomnavnTredjeTilknyttetGardKommunenummer-datadef-34942"
+        },
+        "PersonMellomnavnTredjeTilknyttetGardGardsnummer-datadef-34943": {
+          "$ref": "#/definitions/PersonMellomnavnTredjeTilknyttetGardGardsnummer-datadef-34943"
+        },
+        "PersonMellomnavnTredjeTilknyttetGardBruksnummer-datadef-34944": {
+          "$ref": "#/definitions/PersonMellomnavnTredjeTilknyttetGardBruksnummer-datadef-34944"
+        },
+        "PersonMellomnavnTredjeTilknyttetGardFestenummer-datadef-34945": {
+          "$ref": "#/definitions/PersonMellomnavnTredjeTilknyttetGardFestenummer-datadef-34945"
+        }
+      },
+      "required": ["gruppeid"]
+    },
+    "PersonMellomnavnTredje-datadef-34936": {
+      "properties": {
+        "orid": {
+          "const": "34936",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnTredjeTilknytningstype-datadef-34937": {
+      "properties": {
+        "orid": {
+          "const": "34937",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/KodelisteEttValg9Navnetilknytning-repformat-1156",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnTredjeTilknytningBeskrivelse-datadef-34938": {
+      "properties": {
+        "orid": {
+          "const": "34938",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst500-repformat-166",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnTredjeTilknyttetPersonsFodselsnummer-datadef-34939": {
+      "properties": {
+        "orid": {
+          "const": "34939",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst1111Modulus11-repformat-18",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnTredjeTilknyttetPersonsEtternavn-datadef-34940": {
+      "properties": {
+        "orid": {
+          "const": "34940",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnTredjeTilknyttetGardNavn-datadef-34941": {
+      "properties": {
+        "orid": {
+          "const": "34941",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst50-repformat-70",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnTredjeTilknyttetGardKommunenummer-datadef-34942": {
+      "properties": {
+        "orid": {
+          "const": "34942",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst44BareTall-repformat-10",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnTredjeTilknyttetGardGardsnummer-datadef-34943": {
+      "properties": {
+        "orid": {
+          "const": "34943",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst5-repformat-238",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnTredjeTilknyttetGardBruksnummer-datadef-34944": {
+      "properties": {
+        "orid": {
+          "const": "34944",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst4-repformat-28",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "PersonMellomnavnTredjeTilknyttetGardFestenummer-datadef-34945": {
+      "properties": {
+        "orid": {
+          "const": "34945",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst4-repformat-28",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "TilknytningMellomnavnEkstra-grp-9355": {
+      "properties": {
+        "gruppeid": {
+          "const": "9355",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "PersonMellomnavnBeskrivelse-datadef-34946": {
+          "$ref": "#/definitions/PersonMellomnavnBeskrivelse-datadef-34946"
+        }
+      },
+      "required": ["gruppeid"]
+    },
+    "PersonMellomnavnBeskrivelse-datadef-34946": {
+      "properties": {
+        "orid": {
+          "const": "34946",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst500-repformat-166",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "Begrunnelse-grp-9317": {
+      "properties": {
+        "gruppeid": {
+          "const": "9317",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "BegrunnelseForNyttNavn-grp-9318": {
+          "$ref": "#/definitions/BegrunnelseForNyttNavn-grp-9318"
+        }
+      },
+      "required": ["gruppeid"]
+    },
+    "BegrunnelseForNyttNavn-grp-9318": {
+      "properties": {
+        "gruppeid": {
+          "const": "9318",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "PersonForrigeFornavnValgt-datadef-34947": {
+          "$ref": "#/definitions/PersonForrigeFornavnValgt-datadef-34947"
+        },
+        "PersonFornavnAnnetBegrunnelse-datadef-34948": {
+          "$ref": "#/definitions/PersonFornavnAnnetBegrunnelse-datadef-34948"
+        }
+      },
+      "required": ["gruppeid"]
+    },
+    "PersonForrigeFornavnValgt-datadef-34947": {
+      "properties": {
+        "orid": {
+          "const": "34947",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst101-repformat-1141",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "Tekst101-repformat-1141": {
+      "minLength": 1,
+      "maxLength": 1,
+      "pattern": "(0|1)",
+      "type": "string"
+    },
+    "PersonFornavnAnnetBegrunnelse-datadef-34948": {
+      "properties": {
+        "orid": {
+          "const": "34948",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst500-repformat-166",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": ["orid", "value"]
+    },
+    "ConflictingOptions": {
+      "type": "object",
+      "required": [
+        "IsForeign"
+      ],
+      "properties": {
+        "IsForeign": {
+          "type": "boolean"
+        },
+        "Animals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "Name": {
+                "type": "string"
+              },
+              "NumLegs": {
+                "type": "integer"
+              },
+              "Color": {
+                "type": "string"
+              },
+              "Colors": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "Comments": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "Type": {
+                      "type": "string"
+                    },
+                    "TypeLabel": {
+                      "type": "string"
+                    },
+                    "Text": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "CommentLabels": {
+                "type": "string"
+              }
+            },
+            "required": ["Name"]
+          }
+        }
+      }
+    },
+    "ShiftingOptions": {
+      "type": "object",
+      "properties": {
+        "GlobalCounter": {
+          "type": "number"
+        },
+        "Balloons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "Num": {
+                "type": "number"
+              },
+              "Color": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "FilteredOptions": {
+      "type": "object",
+      "properties": {
+        "UsedTypes": {
+          "type": "string"
+        },
+        "Dislikes": {
+          "type": "string"
+        },
+        "Ingredients": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "Type": {
+                "type": "number"
+              },
+              "Amount": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "LinkedHidden": {
+        "type": "object",
+        "properties": {
+          "Value1": { "type": "string" },
+          "Value2": { "type": "string" },
+          "Value3": { "type": "string" },
+          "Value4": { "type": "string" },
+          "Value5": { "type": "string" },
+          "Value6": { "type": "string" },
+          "Value7": { "type": "string" },
+          "Value8": { "type": "string" },
+          "Value9": { "type": "string" },
+          "Value10": { "type": "string" }
+        }
+    }
+  }
+}

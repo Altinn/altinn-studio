@@ -9,6 +9,7 @@ using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
@@ -31,17 +32,17 @@ public class TestScenariosData : IEnumerable<object[]>
             ReceivedInstance = null,
             ExpectedResult = typeof(NotFoundResult),
         },
-        new("thows_ValidationException_when_instance_process_is_null")
+        new("throws_ValidationException_when_instance_process_is_null")
         {
             ReceivedInstance = new Instance { Process = null },
             ExpectedExceptionMessage = "Unable to validate instance without a started process.",
         },
-        new("thows_ValidationException_when_Instance_Process_CurrentTask_is_null")
+        new("throws_ValidationException_when_Instance_Process_CurrentTask_is_null")
         {
             ReceivedInstance = new Instance { Process = new ProcessState { CurrentTask = null } },
             ExpectedExceptionMessage = "Unable to validate instance without a started process.",
         },
-        new("thows_ValidationException_when_Instance_Data_is_empty")
+        new("throws_ValidationException_when_Instance_Data_is_empty")
         {
             ReceivedInstance = new Instance
             {
@@ -50,7 +51,7 @@ public class TestScenariosData : IEnumerable<object[]>
             },
             ExpectedExceptionMessage = "Unable to validate data element.",
         },
-        new("thows_ValidationException_when_Application_DataTypes_is_empty")
+        new("throws_ValidationException_when_Application_DataTypes_is_empty")
         {
             DataGuid = _dataGuid,
             ReceivedInstance = new Instance
@@ -194,6 +195,7 @@ public class ValidationControllerValidateDataTests
     private readonly Mock<IValidationService> _validationMock = new(MockBehavior.Strict);
     private readonly Mock<IDataClient> _dataClientMock = new(MockBehavior.Strict);
     private readonly Mock<IAppModel> _appModelMock = new(MockBehavior.Strict);
+    private readonly Mock<ITranslationService> _translationServiceMock = new(MockBehavior.Strict);
     private readonly Mock<IAppResources> _appResourcesMock = new(MockBehavior.Strict);
     private readonly ServiceCollection _services = new();
 
@@ -262,6 +264,7 @@ public class ValidationControllerValidateDataTests
         _services.AddSingleton(_validationMock.Object);
         _services.AddSingleton(_dataClientMock.Object);
         _services.AddSingleton(_appModelMock.Object);
+        _services.AddSingleton(_translationServiceMock.Object);
         _services.AddSingleton(_appResourcesMock.Object);
         _services.AddSingleton(Options.Create(new FrontEndSettings()));
         _services.AddTransient<InstanceDataUnitOfWorkInitializer>();

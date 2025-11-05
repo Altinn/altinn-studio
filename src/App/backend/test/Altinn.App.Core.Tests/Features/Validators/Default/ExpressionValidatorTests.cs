@@ -9,9 +9,7 @@ using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
-using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Models.Validation;
-using Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
 using Altinn.Platform.Storage.Interface.Models;
@@ -92,7 +90,7 @@ public class ExpressionValidatorTests
 
         var dataModel = DynamicClassBuilder.DataAccessorFromJsonDocument(instance, testCase.FormData, dataElement);
 
-        var layout = new LayoutSetComponent(testCase.Layouts.Values.ToList(), "layout", dataType);
+        var layout = new LayoutSetComponent(testCase.Layouts, "layout", dataType);
         var componentModel = new LayoutModel([layout], null);
         var translationService = new TranslationService(
             new AppIdentifier("org", "app"),
@@ -162,8 +160,7 @@ public record ExpressionValidationTestModel
     public required JsonElement FormData { get; set; }
 
     [JsonPropertyName("layouts")]
-    [JsonConverter(typeof(LayoutModelConverterFromObject))]
-    public required IReadOnlyDictionary<string, PageComponent> Layouts { get; set; }
+    public required IReadOnlyDictionary<string, JsonElement> Layouts { get; set; }
 
     [JsonPropertyName("textResources")]
     public List<TextResourceElement>? TextResources { get; set; }
@@ -179,8 +176,5 @@ public record ExpressionValidationTestModel
 
         [JsonPropertyName("field")]
         public required string Field { get; set; }
-
-        [JsonPropertyName("componentId")]
-        public required string ComponentId { get; set; }
     }
 }

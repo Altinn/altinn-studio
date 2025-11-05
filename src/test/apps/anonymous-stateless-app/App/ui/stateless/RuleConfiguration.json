@@ -1,0 +1,18 @@
+﻿{
+  "data": {
+    "ruleConnection": {     
+    },
+    "conditionalRendering": {      
+      "84479c90-6230-11eb-b7d8-a16416c6b8c4": {
+        "selectedFunction": "lengthBiggerThan4",
+        "inputParams": {
+          "value": "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.AnsattNavn-datadef-1223.value"
+        },
+        "selectedAction": "Show",
+        "selectedFields": {
+          "84477580-6230-11eb-b7d8-a16416c6b8c4": "idnummer2"
+        }
+      }
+    }
+  }
+}

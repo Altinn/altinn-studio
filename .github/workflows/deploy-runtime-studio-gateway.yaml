@@ -8,29 +8,55 @@ on:
       - src/Runtime/StudioGateway/**
       - .github/workflows/deploy-runtime-studio-gateway.yaml
   workflow_dispatch:
+    inputs:
+      rings:
+        description: 'Rings to tag the artifact with. Format of the input object is [{"ring": "at_ring1", "environment": "dev"}].'
+        required: false
+        default: '[{"ring": "at_ring1", "environment": "runtime_at_ring1"}]'
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
+
+  get-short-sha:
+    uses: ./.github/workflows/template-short-sha.yaml
+
+  construct-rings-array:
+    runs-on: ubuntu-latest
+    env:
+      default-rings: >-
+        [{"ring": "at_ring1", "environment": "runtime_at_ring1"},{"ring": "at_ring2", "environment": "runtime_at_ring2"},{"ring": "tt_ring1", "environment": "runtime_tt_ring1"},{"ring": "tt_ring2", "environment": "runtime_tt_ring2"},{"ring": "prod_ring1", "environment": "runtime_prod_ring1"},{"ring": "prod_ring2", "environment": "runtime_prod_ring2"}]
+    outputs:
+      ringsjson: ${{ steps.construct-rings.outputs.ringsjson }}
+    steps:
+      - name: Construct rings array
+        id: construct-rings
+        run: |
+          rings='${{ github.event.inputs.rings }}'
+          if [ -z "$rings" ]; then
+            rings='${{ env.default-rings }}'
+          fi
+          echo "Raw rings input: $rings"
+          echo "ringsjson=${rings}" >> $GITHUB_OUTPUT
+
   push-studio-gateway-artifact:
     name: Push studio-gateway as OCI artifact
+    needs: get-short-sha
     runs-on: ubuntu-latest
     environment: dev
-    permissions:
-      id-token: write # Require write permission to Fetch an OIDC token.
+    env:
+      REGISTRY_NAME: altinncr
+      IMAGE_REPO: altinncr.azurecr.io/studio-apps/runtime-gateway:${{ needs.get-short-sha.outputs.short-sha }}
+      CONFIG_REPO: altinncr.azurecr.io/studio-apps/runtime-gateway-repo:${{ needs.get-short-sha.outputs.short-sha }}
+    outputs:
+      config-repo: altinncr.azurecr.io/studio-apps/runtime-gateway-repo:${{ needs.get-short-sha.outputs.short-sha }}
     defaults:
       run:
         working-directory: src/Runtime/StudioGateway
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
-        with:
-          fetch-depth: 0 # Shallow clone
-
-      - name: set vars
-        id: vars
-        run: |
-          echo "registry_name=altinncr" >> $GITHUB_OUTPUT
-          echo "image_repo=altinncr.azurecr.io/studio-apps/runtime-gateway:$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "config_repo=altinncr.azurecr.io/studio-apps/runtime-gateway-repo:$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "tag=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: az login
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
@@ -40,18 +66,18 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
       - name: az acr login
-        run: az acr login --name ${{ steps.vars.outputs.registry_name }}
+        run: az acr login --name ${{ env.REGISTRY_NAME }}
 
       - name: flux install
         uses: fluxcd/flux2/action@6bf37f6a560fd84982d67f853162e4b3c2235edb # v2.6.4
 
       - name: docker build
-        run: docker build -t ${{ steps.vars.outputs.image_repo }} -f Dockerfile .
+        run: docker build -t ${{ env.IMAGE_REPO }} -f Dockerfile .
 
       - name: scan image
         uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # 0.33.1
         with:
-          image-ref: '${{ steps.vars.outputs.image_repo }}'
+          image-ref: '${{ env.IMAGE_REPO }}'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
@@ -59,36 +85,50 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
       - name: push image
-        run: docker push ${{ steps.vars.outputs.image_repo }}
+        run: docker push ${{ env.IMAGE_REPO }}
 
-      - name: get image digest
-        id: digest
-        run: |
-          IMAGE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${{ steps.vars.outputs.image_repo }})
-          echo "image_digest=${IMAGE_DIGEST}" >> $GITHUB_OUTPUT
-
-      - name: yq install
-        uses: mikefarah/yq@6251e95af8df3505def48c71f3119836701495d6 # v4.47.2
-
-      - name: patch base with image digest
+      - name: patch base with image tag
         working-directory: src/Runtime/StudioGateway/infra/kustomize
         run: |
-          export IMAGE_DIGEST="${{ steps.digest.outputs.image_digest }}"
-          export IMAGE_TAG="${{ steps.vars.outputs.tag }}"
-          yq -i '.spec.template.spec.containers[0].image = env(IMAGE_DIGEST)' deployment.yaml
-          yq -i '.metadata.annotations["altinn.studio/image"] = env(IMAGE_DIGEST)' deployment.yaml
+          export IMAGE="${{ env.IMAGE_REPO }}"
+          export IMAGE_TAG="${{ needs.get-short-sha.outputs.short-sha }}"
+          yq -i '.metadata.annotations["altinn.studio/image"] = env(IMAGE)' deployment.yaml
           yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' deployment.yaml
 
       - name: push artifact
         working-directory: src/Runtime/StudioGateway/infra/kustomize
         run: |
-          flux push artifact oci://${{ steps.vars.outputs.config_repo }} \
+          flux push artifact oci://${{ env.CONFIG_REPO }} \
             --provider=azure \
             --reproducible \
             --path="." \
             --source="$(git config --get remote.origin.url)" \
             --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
 
-      - name: tag artifact at_ring1 (ttd/at22)
+  tag-gateway:
+    name: Tag gateway
+    needs: [push-studio-gateway-artifact, construct-rings-array]
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.construct-rings-array.outputs.ringsjson) }}
+    steps:
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name altinncr
+
+      - name: flux install
+        uses: fluxcd/flux2/action@6bf37f6a560fd84982d67f853162e4b3c2235edb # v2.6.4
+
+      - name: tag artifact
         run: |
-          flux tag artifact oci://${{ steps.vars.outputs.config_repo }} --tag at_ring1
+          flux tag artifact oci://${{ needs.push-studio-gateway-artifact.outputs.config-repo }} \
+            --tag ${{ matrix.ring }}
+

@@ -1,0 +1,2 @@
+Proxy:  9 MiB
+Worker: 306 MiB

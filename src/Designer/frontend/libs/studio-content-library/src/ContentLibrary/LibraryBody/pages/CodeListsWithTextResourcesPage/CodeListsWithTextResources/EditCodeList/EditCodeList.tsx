@@ -5,11 +5,10 @@ import type {
 } from '@studio/components-legacy';
 import {
   StudioModal,
-  StudioDisplayTile,
   StudioCodeListEditor,
   StudioToggleableTextfield,
 } from '@studio/components-legacy';
-import { StudioDeleteButton } from '@studio/components';
+import { StudioDeleteButton, StudioDisplayTile } from '@studio/components';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../../types/CodeListWithMetadata';

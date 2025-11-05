@@ -3,7 +3,7 @@ import {
   StudioIconTextfield,
   StudioRecommendedNextAction,
   useStudioRecommendedNextActionContext,
-} from '@studio/components-legacy';
+} from '@studio/components';
 import { KeyVerticalIcon } from '@studio/icons';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';

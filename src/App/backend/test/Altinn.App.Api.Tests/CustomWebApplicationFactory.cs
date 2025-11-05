@@ -252,6 +252,17 @@ public class ApiTestBase
         ));
     }
 
+    protected async Task<TelemetrySnapshot> GetTelemetrySnapshot(int numberOfActivities, int numberOfMetrics)
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(10_000));
+        var telemetry = Services.GetRequiredService<TelemetrySink>();
+        var activitiesTask = telemetry.WaitForServerActivity(numberOfActivities, cts.Token);
+        var metricsTask = telemetry.WaitForServerMetric(numberOfMetrics, cts.Token);
+        await Task.WhenAll(activitiesTask, metricsTask);
+
+        return telemetry.GetSnapshot();
+    }
+
     /// <summary>
     /// Helper to quickly verify the status code and deserialize the content of a response.
     /// and print the content to output helper

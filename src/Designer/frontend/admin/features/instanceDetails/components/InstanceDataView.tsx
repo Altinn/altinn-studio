@@ -7,8 +7,9 @@ import {
   StudioDetails,
   StudioTag,
   StudioLink,
+  StudioError,
+  StudioTabs,
 } from '@studio/components';
-import { StudioError, StudioTabs } from '@studio/components-legacy';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
@@ -70,7 +71,7 @@ const InstanceDataViewWithData = ({
         <StudioTabs.Tab value={InstanceDataViewTabs.Events}>{t('Events')}</StudioTabs.Tab>
         <StudioTabs.Tab value={InstanceDataViewTabs.Logs}>{t('Logger')}</StudioTabs.Tab>
       </StudioTabs.List>
-      <StudioTabs.Content value={InstanceDataViewTabs.Info}>
+      <StudioTabs.Panel value={InstanceDataViewTabs.Info}>
         <LabelValue label={t('Instans ID')} value={instance.id} />
         <LabelValue label={t('Opprettet')} value={formatDateAndTime(instance.created)} />
         <LabelValue label={t('Opprettet av')} value={instance.createdBy} />
@@ -82,8 +83,8 @@ const InstanceDataViewWithData = ({
         {instance.instanceOwner.personNumber && (
           <LabelValue label={t('Person')} value={instance.instanceOwner.personNumber} />
         )}
-      </StudioTabs.Content>
-      <StudioTabs.Content value={InstanceDataViewTabs.DataModel}>
+      </StudioTabs.Panel>
+      <StudioTabs.Panel value={InstanceDataViewTabs.DataModel}>
         {instance.data.map((dataElement) => (
           <StudioDetails key={dataElement.id}>
             <StudioDetails.Summary>
@@ -128,14 +129,14 @@ const InstanceDataViewWithData = ({
             </StudioDetails.Content>
           </StudioDetails>
         ))}
-      </StudioTabs.Content>
-      <StudioTabs.Content value={InstanceDataViewTabs.Process}>
+      </StudioTabs.Panel>
+      <StudioTabs.Panel value={InstanceDataViewTabs.Process}>
         <ProcessHistory org={org} env={env} app={app} instanceId={id} />
-      </StudioTabs.Content>
-      <StudioTabs.Content value={InstanceDataViewTabs.Events}>
+      </StudioTabs.Panel>
+      <StudioTabs.Panel value={InstanceDataViewTabs.Events}>
         <InstanceEvents org={org} env={env} app={app} instanceId={id} />
-      </StudioTabs.Content>
-      <StudioTabs.Content value={InstanceDataViewTabs.Logs}></StudioTabs.Content>
+      </StudioTabs.Panel>
+      <StudioTabs.Panel value={InstanceDataViewTabs.Logs}></StudioTabs.Panel>
     </StudioTabs>
   );
 };

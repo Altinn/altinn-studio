@@ -1,3 +1,4 @@
+#nullable disable
 using System.Collections.Generic;
 using Altinn.Studio.Designer.Enums;
 using Newtonsoft.Json;
@@ -11,7 +12,7 @@ namespace Altinn.Studio.Designer.Models
     public class RepoStatus
     {
         /// <summary>
-        /// The number of commits behind the 
+        /// The number of commits behind the
         /// </summary>
         public int? BehindBy { get; set; }
 

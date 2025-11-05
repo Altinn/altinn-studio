@@ -1,0 +1,209 @@
+{
+    "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+    "data": {
+      "hidden": false,
+      "layout": [
+        {
+          "id": "ListPage-NavigationBar",
+          "type": "NavigationBar"
+        },
+        {
+          "id": "ListPage-Header",
+          "type": "Header",
+          "size": "h2",
+          "textResourceBindings": {
+            "title": "ListPage"
+          }
+        },
+        {
+          "id": "ListPage-Header-Component1",
+          "type": "Header",
+          "size": "h3",
+          "textResourceBindings": {
+            "title": "Komponent med radioknapper"
+          }
+        },
+        {
+          "id": "ListPage-ListComponent",
+          "type": "List",
+          "dataModelBindings": {
+            "name": "list"
+          },
+          "textResourceBindings": {
+            "title": "ListPage.List.title"
+          },
+          "bindingToShowInSummary": "list",
+          "dataListId": "people",
+          "tableHeaders": {
+            "name": "Navn",
+            "age": "Alder",
+            "profession": "Yrke"
+          },
+          "sortableColumns": ["age"],
+          "pagination": {
+            "alternatives": [5, 10],
+            "default": 5
+          },
+          "mapping": {
+            "Search": "search"
+          }
+        },
+        {
+          "id": "ListPage-Header-Summary",
+          "type": "Header",
+          "size": "h3",
+          "textResourceBindings": {
+            "title": "Header.Summary"
+          }
+        },
+        {
+          "id": "ListPage-Summary",
+          "type": "Summary",
+          "componentRef": "ListPage-ListComponent"
+        },
+        {
+          "id": "ListPage-Header-Summary2",
+          "type": "Header",
+          "size": "h3",
+          "textResourceBindings": {
+            "title": "Header.Summary2"
+          }
+        },
+        {
+          "id": "ListPage-Summary2",
+          "type": "Summary2",
+          "target": {
+            "type": "component",
+            "id": "ListPage-ListComponent"
+          }
+        },
+        {
+          "id": "ListPage-Header-Component2",
+          "type": "Header",
+          "size": "h3",
+          "textResourceBindings": {
+            "title": "Komponent med sjekkbokser"
+          }
+        },
+        {
+          "id": "ListPage-ListWithCheckboxesComponent",
+          "type": "List",
+          "dataModelBindings": {
+            "group": "ListGroupExample",
+            "name": "ListGroupExample.Name.firstname",
+            "age": "ListGroupExample.age",
+            "profession": "ListGroupExample.profession",
+            "checked": "ListGroupExample.Internal.isChecked"
+          },
+          "deletionStrategy": "soft",
+          "textResourceBindings": {
+            "title": "ListPage.List2.title"
+          },
+          "summaryBinding": "name",
+          "dataListId": "people",
+          "tableHeaders": {
+            "name": "Navn",
+            "age": "Alder",
+            "profession": "Yrke"
+          },
+          "sortableColumns": ["age"],
+          "pagination": {
+            "alternatives": [5, 10],
+            "default": 5
+          }
+        },
+        {
+          "id": "RepeatingGroupListWithCheckboxes",
+          "type": "RepeatingGroup",
+          "textResourceBindings": {
+            "title": "Repeterende Gruppe"
+          },
+          "dataModelBindings": {
+            "group": "ListGroupExample"
+          },
+          "hiddenRow": ["equals",["dataModel", "ListGroupExample.Internal.isChecked"], false],
+          "hidden": false,
+          "children": [
+            "RepeatingGroupListWithCheckboxesAge",
+            "RepeatingGroupListWithCheckboxesName",
+            "RepeatingGroupListWithCheckboxesProfession",
+            "RepeatingGroupListWithCheckboxesSurname"
+          ]
+        },
+        {
+          "id": "RepeatingGroupListWithCheckboxesAge",
+          "type": "Text",
+          "textResourceBindings": {
+            "title":"Age"
+          },
+          "value": ["dataModel","ListGroupExample.age"]
+        },
+        {
+          "id": "RepeatingGroupListWithCheckboxesName",
+          "type": "Text",
+          "textResourceBindings": {
+            "title":"Name"
+          },
+          "value": ["dataModel","ListGroupExample.Name.firstname"]
+        },
+        {
+          "id": "RepeatingGroupListWithCheckboxesProfession",
+          "type": "Text",
+          "textResourceBindings": {
+            "title":"Profession"
+          },
+          "value": ["dataModel","ListGroupExample.profession"]
+        },
+        {
+          "id": "RepeatingGroupListWithCheckboxesSurname",
+          "type": "Input",
+          "textResourceBindings": {
+            "title": "Surname"
+          },
+          "dataModelBindings": {
+            "simpleBinding": "ListGroupExample.surname"
+          }
+        },
+        {
+          "id": "ListPage-Header-Summary-Component2",
+          "type": "Header",
+          "size": "h3",
+          "textResourceBindings": {
+            "title": "Header.Summary"
+          }
+        },
+        {
+          "id": "ListPage-Summary-Component2",
+          "type": "Summary",
+          "componentRef": "ListPage-ListWithCheckboxesComponent"
+        },
+        {
+          "id": "ListPage-Header-Summary2-Component2",
+          "type": "Header",
+          "size": "h3",
+          "textResourceBindings": {
+            "title": "Header.Summary2"
+          }
+        },
+        {
+          "id": "ListPage-Summary2WithCheckboxes",
+          "type": "Summary2",
+          "isCompact": true,
+          "target": {
+            "type": "component",
+            "id": "ListPage-ListWithCheckboxesComponent"
+          }
+        },
+        {
+          "id": "ListPage-NavigationButtons",
+          "showBackButton": true,
+          "textResourceBindings": {},
+          "type": "NavigationButtons",
+          "validateOnNext": {
+            "page": "current",
+            "show": ["All"]
+          }
+        }
+      ]
+    }
+  }

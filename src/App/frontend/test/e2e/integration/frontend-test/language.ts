@@ -1,3 +1,5 @@
+import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+
 const profileResponse = {
   body: {
     userId: 10000,
@@ -47,6 +49,8 @@ const profileResponse = {
   },
 };
 
+const appFrontend = new AppFrontend();
+
 describe('Language', () => {
   it('should not crash if language is not specified', () => {
     cy.intercept('GET', '**/profile/user', profileResponse).as('profile');
@@ -74,5 +78,20 @@ describe('Language', () => {
 
     cy.waitForLoad();
     cy.findByRole('heading', { name: 'Ukjent feil' }).should('not.exist');
+  });
+
+  it('should be possible to change language with arrow keys and space', () => {
+    cy.intercept('GET', '**/texts/en').as('texts');
+
+    cy.goto('changename');
+    cy.get(appFrontend.languageSelector).click();
+    cy.press('Tab');
+    cy.focused().should('contain.text', 'Norsk bokmål');
+    cy.press('ArrowUp');
+    cy.focused().should('contain.text', 'Engelsk');
+    cy.press('Space');
+
+    cy.waitForLoad();
+    cy.wait('@texts');
   });
 });

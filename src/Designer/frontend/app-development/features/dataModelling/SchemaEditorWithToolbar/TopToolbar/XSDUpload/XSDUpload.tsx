@@ -1,6 +1,5 @@
 import React from 'react';
-import { StudioFileUploader } from '@studio/components-legacy';
-import { StudioSpinner, type StudioButtonProps } from '@studio/components';
+import { StudioSpinner, StudioFileUploader, type StudioButtonProps } from '@studio/components';
 import type { FileNameErrorResult } from '@studio/pure-functions';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';

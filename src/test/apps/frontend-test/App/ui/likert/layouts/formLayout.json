@@ -1,0 +1,72 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "likert-group",
+        "type": "Likert",
+        "textResourceBindings": {
+          "title": "Skolearbeid (Frivillig)",
+          "description": "På de neste spørsmålene skal du svare i kontekst av klasserommet.",
+          "leftColumnHeader": "Spørsmål",
+          "questions": "likert-row-title"
+        },
+        "dataModelBindings": {
+          "questions": "Questions",
+          "answer": "Questions.Answer"
+        },
+        "filter": [
+          {
+            "key": "start",
+            "value": "0"
+          },
+          {
+            "key": "stop",
+            "value": "3"
+          }
+        ],
+        "optionsId": "likertOptions",
+        "required": false,
+        "readOnly": false
+      },
+      {
+        "id": "likert-group-required",
+        "type": "Likert",
+        "textResourceBindings": {
+          "title": "Medvirkning",
+          "questions": "likert-row-title"
+        },
+        "dataModelBindings": {
+          "answer": "Questions.Answer",
+          "questions": "Questions"
+        },
+        "optionsId": "likertOptions",
+        "filter": [
+          {
+            "key": "start",
+            "value": "3"
+          },
+          {
+            "key": "stop",
+            "value": "6"
+          }
+        ],
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "summary1",
+        "type": "Summary",
+        "componentRef": "likert-group"
+      },
+      {
+        "id": "sendInButton",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Send inn"
+        }
+      }
+    ]
+  }
+}
+

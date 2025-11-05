@@ -4,7 +4,7 @@ import { ValidationMask } from '..';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { Validation } from 'src/features/validation/validationContext';
-import { useEffectEvent } from 'src/hooks/useEffectEvent';
+import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 
 /**
@@ -20,7 +20,7 @@ export function useOnFormSubmitValidation() {
   const setNodeVisibility = NodesInternal.useLaxSetNodeVisibility();
   const getNodesWithErrors = NodesInternal.useGetNodesWithErrors();
 
-  const callback = useEffectEvent((includeNonIncrementalValidations: boolean): boolean => {
+  const callback = useOurEffectEvent((includeNonIncrementalValidations: boolean): boolean => {
     if (validation.current === ContextNotProvided || setNodeVisibility === ContextNotProvided) {
       // If the validation context or nodes context is not provided, we cannot validate
       return false;

@@ -29,7 +29,7 @@ describe('Subform test', () => {
     cy.startAppInstance(appFrontend.apps.subformTest, { authenticationLevel: '1' });
   });
 
-  it('PDF should include subforms + single-subform PDFs should work', () => {
+  it('PDF should include subforms + single-subform PDFs should work', { retries: 0 }, () => {
     fillTwoSubforms();
     cy.testPdf({
       snapshotName: 'subform',
@@ -99,7 +99,7 @@ describe('Subform test', () => {
     });
   });
 
-  it('should render PDF with summary2 layoutset with subform and subform table', () => {
+  it('should render PDF with summary2 layoutset with subform and subform table', { retries: 0 }, () => {
     const pdfLayoutName = 'CustomPDF';
     cy.intercept('GET', '**/layoutsettings/**', (req) =>
       req.on('response', (res) => {

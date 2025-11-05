@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://altinn-repositories:3000/ttd/signering-brukerstyrt/App/models/Skjemadata.schema.json",
+  "info": {
+    "rootNode": ""
+  },
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "seres": "http://seres.no/xsd/forvaltningsdata"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "@xsdRootElement": "Skjemadata",
+  "type": "object",
+  "required": ["Selskapsnavn", "SelskapetsFormaal"],
+  "$defs": {
+    "Aksjetegning": {
+      "type": "object",
+      "properties": {
+        "AntallAksjer": {
+          "type": "number"
+        },
+        "Aksjepris": {
+          "type": "number"
+        }
+      }
+    },
+    "Fullmektig": {
+      "type": "object",
+      "properties": {
+        "Etternavn": {
+          "type": "string"
+        },
+        "Foedselsnummer": {
+          "type": "string"
+        }
+      }
+    },
+    "Adresse": {
+      "type": "object",
+      "properties": {
+        "Adresselinje": {
+          "type": "string"
+        },
+        "Postnummer": {
+          "type": "string"
+        },
+        "Sted": {
+          "type": "string"
+        }
+      },
+      "required": ["Adresselinje", "Postnummer", "Sted"]
+    }
+  },
+  "properties": {
+    "Selskapsnavn": {
+      "type": "string",
+      "title": ""
+    },
+    "SelskapetsFormaal": {
+      "type": "string"
+    },
+    "StifterPerson": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "type": "object",
+        "title": "",
+        "properties": {
+          "Fornavn": {
+            "type": "string"
+          },
+          "Mellomnavn": {
+            "type": "string"
+          },
+          "Etternavn": {
+            "type": "string"
+          },
+          "Adresse": {
+            "$ref": "#/$defs/Adresse"
+          },
+          "Aksjetegning": {
+            "$ref": "#/$defs/Aksjetegning"
+          },
+          "HarFullmektig": {
+            "type": "string"
+          },
+          "Fullmektig": {
+            "$ref": "#/$defs/Fullmektig"
+          },
+          "Foedselsnummer": {
+            "type": "string"
+          },
+          "Epost": {
+            "type": "string",
+            "format": "email"
+          },
+          "Mobiltelefon": {
+            "type": "string",
+            "title": ""
+          }
+        },
+        "required": ["Etternavn", "Adresse"]
+      }
+    },
+    "StifterVirksomhet": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "type": "object",
+        "properties": {
+          "Navn": {
+            "type": "string"
+          },
+          "Adresse": {
+            "$ref": "#/$defs/Adresse"
+          },
+          "Organisasjonsnummer": {
+            "type": "string"
+          },
+          "Epost": {
+            "type": "string",
+            "format": "email"
+          },
+          "Mobiltelefon": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "Aksjekapital": {
+      "type": "object",
+      "properties": {
+        "AksjekapitalSum": {
+          "type": "number"
+        },
+        "Paalydende": {
+          "type": "number"
+        },
+        "FristForInnbetaling": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "required": ["AksjekapitalSum", "FristForInnbetaling"]
+    },
+    "Styre": {
+      "type": "object",
+      "properties": {
+        "Styreleder": {
+          "type": "object",
+          "properties": {
+            "Etternavn": {
+              "type": "string"
+            },
+            "Foedselsnummer": {
+              "type": "string"
+            }
+          },
+          "required": ["Etternavn"]
+        },
+        "HarNestleder": {
+          "type": "string"
+        },
+        "Nestleder": {
+          "type": "object",
+          "properties": {
+            "Etternavn": {
+              "type": "string"
+            },
+            "Foedselsnummer": {
+              "type": "string"
+            }
+          },
+          "required": ["Etternavn"]
+        },
+        "Styremedlem": {
+          "type": "array",
+          "uniqueItems": false,
+          "items": {
+            "type": "object",
+            "properties": {
+              "Etternavn": {
+                "type": "string"
+              },
+              "Foedselsnummer": {
+                "type": "string"
+              }
+            },
+            "required": ["Etternavn"]
+          }
+        }
+      },
+      "required": ["Styreleder"]
+    },
+    "Revisor": {
+      "type": "object",
+      "properties": {
+        "HarRevisor": {
+          "type": "string"
+        },
+        "Navn": {
+          "type": "string"
+        },
+        "Adresse": {
+          "$ref": "#/$defs/Adresse"
+        },
+        "Organisasjonsnummer": {
+          "type": "string"
+        },
+        "Epost": {
+          "type": "string",
+          "format": "email"
+        }
+      },
+      "required": ["HarRevisor", "Navn", "Adresse"]
+    },
+    "Stiftelsesdokumenter": {
+      "type": "array",
+      "maxItems": 10,
+      "minItems": 0,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "title": ""
+      }
+    }
+  }
+}

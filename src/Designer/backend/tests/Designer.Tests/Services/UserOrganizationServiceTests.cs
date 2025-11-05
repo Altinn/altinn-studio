@@ -37,4 +37,46 @@ public class UserOrganizationServiceTests
 
         Assert.False(isMember);
     }
+
+    [Fact]
+    public async Task UserIsMemberOfOrganization_ShouldReturnTrue_WhenMember()
+    {
+        var giteaMock = new Mock<IGitea>();
+        giteaMock.Setup(g => g.GetUserOrganizations())
+            .ReturnsAsync(new List<Organization> { new Organization { Username = "ttd" } });
+
+        var service = new UserOrganizationService(giteaMock.Object);
+
+        bool isMember = await service.UserIsMemberOfOrganization("ttd");
+
+        Assert.True(isMember);
+    }
+
+    [Fact]
+    public async Task UserIsMemberOfOrganization_ShouldReturnFalse_WhenNotMember()
+    {
+        var giteaMock = new Mock<IGitea>();
+        giteaMock.Setup(g => g.GetUserOrganizations())
+            .ReturnsAsync(new List<Organization> { new Organization { Username = "ttd" } });
+
+        var service = new UserOrganizationService(giteaMock.Object);
+
+        bool isMember = await service.UserIsMemberOfOrganization("digdir");
+
+        Assert.False(isMember);
+    }
+
+    [Fact]
+    public async Task UserIsMemberOfOrganization_ShouldReturnFalse_WhenNoOrganizationsExist()
+    {
+        var giteaMock = new Mock<IGitea>();
+        giteaMock.Setup(g => g.GetUserOrganizations())
+            .ReturnsAsync(new List<Organization>());
+
+        var service = new UserOrganizationService(giteaMock.Object);
+
+        bool isMember = await service.UserIsMemberOfOrganization("ttd");
+
+        Assert.False(isMember);
+    }
 }

@@ -1,3 +1,4 @@
+#nullable disable
 using Altinn.Studio.Designer.Filters.AppDevelopment;
 using Altinn.Studio.Designer.Filters.DataModeling;
 using Altinn.Studio.Designer.Filters.Git;

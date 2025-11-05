@@ -1,0 +1,638 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:brreg="http://www.brreg.no/or" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="Skjema">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="OpplysningerOmArbeidstakeren-grp-8819" type="OpplysningerOmArbeidstakeren-grp-8819" />
+        <xs:element minOccurs="0" name="StillingsbrokGrad-grp-8821" type="StillingsbrokGrad-grp-8821" />
+        <xs:element minOccurs="0" name="Permisjonsopplysninger-grp-8822" type="Permisjonsopplysninger-grp-8822" />
+        <xs:element minOccurs="0" name="Foretak-grp-8820" type="Foretak-grp-8820" />
+      </xs:sequence>
+      <xs:attribute fixed="1472" name="skjemanummer" type="xs:integer" use="required" />
+      <xs:attribute fixed="9812" name="spesifikasjonsnummer" type="xs:integer" use="required" />
+      <xs:attribute fixed="AFP-01" name="blankettnummer" type="xs:string" />
+      <xs:attribute fixed="Arbeidsgiverskjema AFP" name="tittel" type="xs:string" />
+      <xs:attribute fixed="8818" name="gruppeid" type="xs:positiveInteger" />
+      <xs:attribute name="etatid">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="987414502" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:anyAttribute namespace="##any" />
+    </xs:complexType>
+  </xs:element>
+  <xs:complexType name="OpplysningerOmArbeidstakeren-grp-8819">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Skjemainstans-grp-8854" type="Skjemainstans-grp-8854" />
+      <xs:element minOccurs="0" name="OpplysningerOmArbeidstakeren-grp-8855" type="OpplysningerOmArbeidstakeren-grp-8855" />
+      <xs:element minOccurs="0" name="Arbeidsforhold-grp-8856" type="Arbeidsforhold-grp-8856" />
+    </xs:sequence>
+    <xs:attribute fixed="8819" name="gruppeid" type="xs:positiveInteger" use="required" />
+  </xs:complexType>
+  <xs:complexType name="Skjemainstans-grp-8854">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Journalnummer-datadef-33316" type="Journalnummer-datadef-33316" />
+      <xs:element minOccurs="0" name="IdentifikasjonsnummerKrav-datadef-33317" type="IdentifikasjonsnummerKrav-datadef-33317" />
+    </xs:sequence>
+    <xs:attribute fixed="8854" name="gruppeid" type="xs:positiveInteger" use="required" />
+  </xs:complexType>
+  <xs:complexType name="Journalnummer-datadef-33316">
+    <xs:simpleContent>
+      <xs:extension base="Heltall20-repformat-696">
+        <xs:attribute fixed="33316" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="Heltall20-repformat-696">
+    <xs:restriction base="xs:integer">
+      <xs:totalDigits value="20" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="IdentifikasjonsnummerKrav-datadef-33317">
+    <xs:simpleContent>
+      <xs:extension base="Tekst20-repformat-85">
+        <xs:attribute fixed="33317" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="Tekst20-repformat-85">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="20" />
+      <xs:minLength value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="OpplysningerOmArbeidstakeren-grp-8855">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="AnsattNavn-datadef-1223" type="AnsattNavn-datadef-1223" />
+      <xs:element minOccurs="0" name="AnsattFodselsnummer-datadef-1224" type="AnsattFodselsnummer-datadef-1224" />
+      <xs:element minOccurs="0" name="OppgavegiverTelefonnummer-datadef-27335" type="OppgavegiverTelefonnummer-datadef-27335" />
+      <xs:element minOccurs="0" name="OppgavegiverEPost-datadef-27334" type="OppgavegiverEPost-datadef-27334" />
+      <xs:element minOccurs="0" name="AnsattSoknadAFPDato-datadef-33282" type="AnsattSoknadAFPDato-datadef-33282" />
+      <xs:element minOccurs="0" name="AnsattKjonn">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="value" type="xs:string" />
+            <xs:element name="orid" type="xs:long" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute fixed="8855" name="gruppeid" type="xs:positiveInteger" use="required" />
+  </xs:complexType>
+  <xs:complexType name="AnsattNavn-datadef-1223">
+    <xs:simpleContent>
+      <xs:extension base="Tekst35-repformat-3">
+        <xs:attribute fixed="1223" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="Tekst35-repformat-3">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="35" />
+      <xs:minLength value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="AnsattFodselsnummer-datadef-1224">
+    <xs:simpleContent>
+      <xs:extension base="Tekst1111Modulus11-repformat-18">
+        <xs:attribute fixed="1224" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="Tekst1111Modulus11-repformat-18">
+    <xs:restriction base="xs:string">
+      <xs:length value="11" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="OppgavegiverTelefonnummer-datadef-27335">
+    <xs:simpleContent>
+      <xs:extension base="Tekst11-repformat-489">
+        <xs:attribute fixed="27335" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="Tekst11-repformat-489">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="11" />
+      <xs:minLength value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="OppgavegiverEPost-datadef-27334">
+    <xs:simpleContent>
+      <xs:extension base="Tekst50-repformat-70">
+        <xs:attribute fixed="27334" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="Tekst50-repformat-70">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="50" />
+      <xs:minLength value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="AnsattSoknadAFPDato-datadef-33282">
+    <xs:simpleContent>
+      <xs:extension base="Dato-repformat-5">
+        <xs:attribute fixed="33282" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="Dato-repformat-5">
+    <xs:restriction base="xs:date" />
+  </xs:simpleType>
+  <xs:complexType name="Arbeidsforhold-grp-8856">
+    <xs:sequence>
+      <xs:element name="AnsattTiltredelseDato-datadef-1387" type="AnsattTiltredelseDato-datadef-1387" />
+      <xs:element name="AnsattSammenhengendeAnsattAnsettelse-datadef-33267" type="AnsattSammenhengendeAnsattAnsettelse-datadef-33267" />
+      <xs:element minOccurs="0" name="AnsattArbeidsforholdPabegynt-datadef-33268" type="AnsattArbeidsforholdPabegynt-datadef-33268" />
+      <xs:element name="AnsattArbeidsforholdOpphort-datadef-33269" type="AnsattArbeidsforholdOpphort-datadef-33269" />
+      <xs:element minOccurs="0" name="AnsattArbeidsforholdOpphortDato-datadef-33261" type="AnsattArbeidsforholdOpphortDato-datadef-33261" />
+      <xs:element minOccurs="0" name="AnsattLonnUtbetaltDato-datadef-33262" type="AnsattLonnUtbetaltDato-datadef-33262" />
+      <xs:element minOccurs="0" name="AnsattArbeidsforholdOpphortDato-datadef-33270" type="AnsattArbeidsforholdOpphortDato-datadef-33270" />
+      <xs:element minOccurs="0" name="AnsattArbeidsforholdOpphortArsak-datadef-33271" type="AnsattArbeidsforholdOpphortArsak-datadef-33271" />
+      <xs:element name="AnsattLonnSpesifisertManed-datadef-33263" type="AnsattLonnSpesifisertManed-datadef-33263" />
+      <xs:element name="AnsattLonnBelopPeriode-datadef-33264" type="AnsattLonnBelopPeriode-datadef-33264" />
+    </xs:sequence>
+    <xs:attribute fixed="8856" name="gruppeid" type="xs:positiveInteger" use="required" />
+  </xs:complexType>
+  <xs:complexType name="AnsattTiltredelseDato-datadef-1387">
+    <xs:simpleContent>
+      <xs:extension base="Dato-repformat-5">
+        <xs:attribute fixed="1387" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="AnsattSammenhengendeAnsattAnsettelse-datadef-33267">
+    <xs:simpleContent>
+      <xs:extension base="KodelisteEttValg2JaNei-repformat-4">
+        <xs:attribute fixed="33267" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="KodelisteEttValg2JaNei-repformat-4">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Ja" />
+      <xs:enumeration value="Nei" />
+      <xs:maxLength value="3" />
+      <xs:minLength value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="AnsattArbeidsforholdPabegynt-datadef-33268">
+    <xs:simpleContent>
+      <xs:extension base="Dato-repformat-5">
+        <xs:attribute fixed="33268" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="AnsattArbeidsforholdOpphort-datadef-33269">
+    <xs:simpleContent>
+      <xs:extension base="KodelisteEttValg2JaNei-repformat-4">
+        <xs:attribute fixed="33269" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="AnsattArbeidsforholdOpphortDato-datadef-33261">
+    <xs:simpleContent>
+      <xs:extension base="Dato-repformat-5">
+        <xs:attribute fixed="33261" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="AnsattLonnUtbetaltDato-datadef-33262">
+    <xs:simpleContent>
+      <xs:extension base="Dato-repformat-5">
+        <xs:attribute fixed="33262" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="AnsattArbeidsforholdOpphortDato-datadef-33270">
+    <xs:simpleContent>
+      <xs:extension base="Dato-repformat-5">
+        <xs:attribute fixed="33270" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="AnsattArbeidsforholdOpphortArsak-datadef-33271">
+    <xs:simpleContent>
+      <xs:extension base="Kodeliste4EttValgAvslutningsarsak-repformat-1038">
+        <xs:attribute fixed="33271" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="Kodeliste4EttValgAvslutningsarsak-repformat-1038">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Oppsigelse" />
+      <xs:enumeration value="Avskjed" />
+      <xs:enumeration value="Pensjonert" />
+      <xs:enumeration value="Annet" />
+      <xs:maxLength value="10" />
+      <xs:minLength value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="AnsattLonnSpesifisertManed-datadef-33263">
+    <xs:simpleContent>
+      <xs:extension base="Heltall11-repformat-754">
+        <xs:attribute fixed="33263" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="Heltall11-repformat-754">
+    <xs:restriction base="xs:integer">
+      <xs:totalDigits value="11" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="AnsattLonnBelopPeriode-datadef-33264">
+    <xs:simpleContent>
+      <xs:extension base="Heltall11-repformat-754">
+        <xs:attribute fixed="33264" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="StillingsbrokGrad-grp-8821">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="NavarendeStillingsbrokGrad-grp-8857" type="NavarendeStillingsbrokGrad-grp-8857" />
+      <xs:element minOccurs="0" name="ForhenvarendeStillingsbrokGrad-grp-8858" type="ForhenvarendeStillingsbrokGrad-grp-8858" />
+    </xs:sequence>
+    <xs:attribute fixed="8821" name="gruppeid" type="xs:positiveInteger" use="required" />
+  </xs:complexType>
+  <xs:complexType name="NavarendeStillingsbrokGrad-grp-8857">
+    <xs:sequence>
+      <xs:element name="AnsattHeltidDeltidSesong-datadef-33273" type="AnsattHeltidDeltidSesong-datadef-33273" />
+      <xs:element minOccurs="0" name="AnsattStillingsprosent-datadef-31808" type="AnsattStillingsprosent-datadef-31808" />
+      <xs:element minOccurs="0" name="NarBegynteArbeidstakerenINavarendeStillingsbrokGrad-grp-8860" type="NarBegynteArbeidstakerenINavarendeStillingsbrokGrad-grp-8860" />
+    </xs:sequence>
+    <xs:attribute fixed="8857" name="gruppeid" type="xs:positiveInteger" use="required" />
+  </xs:complexType>
+  <xs:complexType name="AnsattHeltidDeltidSesong-datadef-33273">
+    <xs:simpleContent>
+      <xs:extension base="Kodeliste3EttValgAnsettelsesforhold-repformat-1039">
+        <xs:attribute fixed="33273" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="Kodeliste3EttValgAnsettelsesforhold-repformat-1039">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Heltidsansatt" />
+      <xs:enumeration value="Deltidsansatt" />
+      <xs:enumeration value="Sesongarbeider" />
+      <xs:maxLength value="20" />
+      <xs:minLength value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="AnsattStillingsprosent-datadef-31808">
+    <xs:simpleContent>
+      <xs:extension base="PosHeltall3-repformat-126">
+        <xs:attribute fixed="31808" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="PosHeltall3-repformat-126">
+    <xs:restriction base="xs:positiveInteger">
+      <xs:totalDigits value="3" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="NarBegynteArbeidstakerenINavarendeStillingsbrokGrad-grp-8860">
+    <xs:sequence>
+      <xs:element name="AnsattPabegyntStillingDato-datadef-33272" type="AnsattPabegyntStillingDato-datadef-33272" />
+    </xs:sequence>
+    <xs:attribute fixed="8860" name="gruppeid" type="xs:positiveInteger" use="required" />
+  </xs:complexType>
+  <xs:complexType name="AnsattPabegyntStillingDato-datadef-33272">
+    <xs:simpleContent>
+      <xs:extension base="Dato-repformat-5">
+        <xs:attribute fixed="33272" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="ForhenvarendeStillingsbrokGrad-grp-8858">
+    <xs:sequence>
+      <xs:element name="AnsattHeltidDeltidSesongArbeidetIkkeIForetaketTidligere-datadef-33274" type="AnsattHeltidDeltidSesongArbeidetIkkeIForetaketTidligere-datadef-33274" />
+      <xs:element minOccurs="0" name="AnsattStillingsbrokTidligereProsent-datadef-33277" type="AnsattStillingsbrokTidligereProsent-datadef-33277" />
+      <xs:element minOccurs="0" name="TidsromForDenneStillingsbrokenGraden-grp-8859" type="TidsromForDenneStillingsbrokenGraden-grp-8859" />
+    </xs:sequence>
+    <xs:attribute fixed="8858" name="gruppeid" type="xs:positiveInteger" use="required" />
+  </xs:complexType>
+  <xs:complexType name="AnsattHeltidDeltidSesongArbeidetIkkeIForetaketTidligere-datadef-33274">
+    <xs:simpleContent>
+      <xs:extension base="KodelisteEttValg4-repformat-1040">
+        <xs:attribute fixed="33274" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="KodelisteEttValg4-repformat-1040">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Heltidsansatt" />
+      <xs:enumeration value="Deltidsansatt" />
+      <xs:enumeration value="Sesongarbeider" />
+      <xs:enumeration value="Arbeidet ikke i foretaket" />
+      <xs:maxLength value="30" />
+      <xs:minLength value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="AnsattStillingsbrokTidligereProsent-datadef-33277">
+    <xs:simpleContent>
+      <xs:extension base="PosHeltall3-repformat-126">
+        <xs:attribute fixed="33277" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="TidsromForDenneStillingsbrokenGraden-grp-8859">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="AnsattStillingTidligereFra-datadef-33275" type="AnsattStillingTidligereFra-datadef-33275" />
+      <xs:element minOccurs="0" name="AnsattStillingTidligereTil-datadef-33276" type="AnsattStillingTidligereTil-datadef-33276" />
+    </xs:sequence>
+    <xs:attribute fixed="8859" name="gruppeid" type="xs:positiveInteger" use="required" />
+  </xs:complexType>
+  <xs:complexType name="AnsattStillingTidligereFra-datadef-33275">
+    <xs:simpleContent>
+      <xs:extension base="Dato-repformat-5">
+        <xs:attribute fixed="33275" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="AnsattStillingTidligereTil-datadef-33276">
+    <xs:simpleContent>
+      <xs:extension base="Dato-repformat-5">
+        <xs:attribute fixed="33276" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="Permisjonsopplysninger-grp-8822">
+    <xs:sequence>
+      <xs:element name="AnsattSykemeldt-datadef-33265" type="AnsattSykemeldt-datadef-33265" />
+      <xs:element name="AnsattPermittert-datadef-33278" type="AnsattPermittert-datadef-33278" />
+      <xs:element minOccurs="0" name="AnsattPermittertPermiteringsgrad-datadef-33279" type="AnsattPermittertPermiteringsgrad-datadef-33279" />
+      <xs:element minOccurs="0" name="AnsattPermittertDato-datadef-33283" type="AnsattPermittertDato-datadef-33283" />
+      <xs:element name="AnsattPermisjon-datadef-33280" type="AnsattPermisjon-datadef-33280" />
+      <xs:element minOccurs="0" name="AnsattPermisjonType-datadef-33281" type="AnsattPermisjonType-datadef-33281" />
+      <xs:element name="AnsattYtelserMottattUtenArbeidsplikt-datadef-33293" type="AnsattYtelserMottattUtenArbeidsplikt-datadef-33293" />
+      <xs:element name="AnsattEierandel20EllerMer-datadef-33294" type="AnsattEierandel20EllerMer-datadef-33294" />
+      <xs:element name="AnsattIForetaketHovedbeskjeftigelse-datadef-33284" type="AnsattIForetaketHovedbeskjeftigelse-datadef-33284" />
+      <xs:element name="AnsattStillingsbrokUnder20-datadef-33285" type="AnsattStillingsbrokUnder20-datadef-33285" />
+    </xs:sequence>
+    <xs:attribute fixed="8822" name="gruppeid" type="xs:positiveInteger" use="required" />
+  </xs:complexType>
+  <xs:complexType name="AnsattSykemeldt-datadef-33265">
+    <xs:simpleContent>
+      <xs:extension base="KodelisteEttValg2JaNei-repformat-4">
+        <xs:attribute fixed="33265" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="AnsattPermittert-datadef-33278">
+    <xs:simpleContent>
+      <xs:extension base="KodelisteEttValg2JaNei-repformat-4">
+        <xs:attribute fixed="33278" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="AnsattPermittertPermiteringsgrad-datadef-33279">
+    <xs:simpleContent>
+      <xs:extension base="PosHeltall3-repformat-126">
+        <xs:attribute fixed="33279" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="AnsattPermittertDato-datadef-33283">
+    <xs:simpleContent>
+      <xs:extension base="Dato-repformat-5">
+        <xs:attribute fixed="33283" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="AnsattPermisjon-datadef-33280">
+    <xs:simpleContent>
+      <xs:extension base="KodelisteEttValg2JaNei-repformat-4">
+        <xs:attribute fixed="33280" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="AnsattPermisjonType-datadef-33281">
+    <xs:simpleContent>
+      <xs:extension base="Tekst100-repformat-48">
+        <xs:attribute fixed="33281" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="Tekst100-repformat-48">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="100" />
+      <xs:minLength value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="AnsattYtelserMottattUtenArbeidsplikt-datadef-33293">
+    <xs:simpleContent>
+      <xs:extension base="KodelisteEttValg2JaNei-repformat-4">
+        <xs:attribute fixed="33293" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="AnsattEierandel20EllerMer-datadef-33294">
+    <xs:simpleContent>
+      <xs:extension base="KodelisteEttValg3JaNeiVetIkke-repformat-887">
+        <xs:attribute fixed="33294" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="KodelisteEttValg3JaNeiVetIkke-repformat-887">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="5" />
+      <xs:enumeration value="10" />
+      <xs:enumeration value="15" />
+      <xs:maxLength value="2" />
+      <xs:minLength value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="AnsattIForetaketHovedbeskjeftigelse-datadef-33284">
+    <xs:simpleContent>
+      <xs:extension base="KodelisteEttValg3JaNeiVetIkke-repformat-887">
+        <xs:attribute fixed="33284" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="AnsattStillingsbrokUnder20-datadef-33285">
+    <xs:simpleContent>
+      <xs:extension base="KodelisteEttValg2JaNei-repformat-4">
+        <xs:attribute fixed="33285" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="Foretak-grp-8820">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="InnsenderNavn-datadef-3443" type="InnsenderNavn-datadef-3443" />
+      <xs:element minOccurs="0" name="EnhetNavnEndring-datadef-33286" type="EnhetNavnEndring-datadef-33286" />
+      <xs:element minOccurs="0" name="InnsenderAdresse-datadef-3445" type="InnsenderAdresse-datadef-3445" />
+      <xs:element minOccurs="0" name="InnsenderPostnummer-datadef-11339" type="InnsenderPostnummer-datadef-11339" />
+      <xs:element minOccurs="0" name="InnsenderPoststed-datadef-11340" type="InnsenderPoststed-datadef-11340" />
+      <xs:element minOccurs="0" name="EnhetTelefonnummer-datadef-755" type="EnhetTelefonnummer-datadef-755" />
+      <xs:element minOccurs="0" name="EnhetTelefaksnummer-datadef-1816" type="EnhetTelefaksnummer-datadef-1816" />
+      <xs:element minOccurs="0" name="EnhetEPost-datadef-21591" type="EnhetEPost-datadef-21591" />
+      <xs:element minOccurs="0" name="ForetakOrganisasjonsnummer-datadef-33552" type="ForetakOrganisasjonsnummer-datadef-33552" />
+      <xs:element minOccurs="0" name="EnhetOrganisasjonsnummerNy-datadef-22684" type="EnhetOrganisasjonsnummerNy-datadef-22684" />
+      <xs:element minOccurs="0" name="EnhetOrganisasjonsnummerEndringArsak-datadef-33287" type="EnhetOrganisasjonsnummerEndringArsak-datadef-33287" />
+      <xs:element minOccurs="0" name="BedriftOrganisasjonsnummer-datadef-19" type="BedriftOrganisasjonsnummer-datadef-19" />
+      <xs:element minOccurs="0" name="BedriftOrganisasjonsnummerNy-datadef-33292" type="BedriftOrganisasjonsnummerNy-datadef-33292" />
+      <xs:element minOccurs="0" name="BedriftOrganisasjonsnummerEndringArsak-datadef-33288" type="BedriftOrganisasjonsnummerEndringArsak-datadef-33288" />
+      <xs:element minOccurs="0" name="AnsattAnsettelsePgaFusjonFisjonOverdragelse-datadef-33289" type="AnsattAnsettelsePgaFusjonFisjonOverdragelse-datadef-33289" />
+      <xs:element minOccurs="0" name="EnhetNavnEndring-datadef-31" type="EnhetNavnEndring-datadef-31" />
+      <xs:element minOccurs="0" name="Merknad-datadef-33290" type="Merknad-datadef-33290" />
+    </xs:sequence>
+    <xs:attribute fixed="8820" name="gruppeid" type="xs:positiveInteger" use="required" />
+  </xs:complexType>
+  <xs:complexType name="InnsenderNavn-datadef-3443">
+    <xs:simpleContent>
+      <xs:extension base="Tekst175-repformat-8">
+        <xs:attribute fixed="3443" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="Tekst175-repformat-8">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="175" />
+      <xs:minLength value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="EnhetNavnEndring-datadef-33286">
+    <xs:simpleContent>
+      <xs:extension base="Tekst175-repformat-8">
+        <xs:attribute fixed="33286" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="InnsenderAdresse-datadef-3445">
+    <xs:simpleContent>
+      <xs:extension base="Tekst105-repformat-9">
+        <xs:attribute fixed="3445" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="Tekst105-repformat-9">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="105" />
+      <xs:minLength value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="InnsenderPostnummer-datadef-11339">
+    <xs:simpleContent>
+      <xs:extension base="Tekst44BareTall-repformat-10">
+        <xs:attribute fixed="11339" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="Tekst44BareTall-repformat-10">
+    <xs:restriction base="xs:string">
+      <xs:length value="4" />
+      <xs:pattern value="[0-9]{4}" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="InnsenderPoststed-datadef-11340">
+    <xs:simpleContent>
+      <xs:extension base="Tekst35-repformat-3">
+        <xs:attribute fixed="11340" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="EnhetTelefonnummer-datadef-755">
+    <xs:simpleContent>
+      <xs:extension base="Tekst13-repformat-12">
+        <xs:attribute fixed="755" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="Tekst13-repformat-12">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="13" />
+      <xs:minLength value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="EnhetTelefaksnummer-datadef-1816">
+    <xs:simpleContent>
+      <xs:extension base="Tekst13-repformat-12">
+        <xs:attribute fixed="1816" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="EnhetEPost-datadef-21591">
+    <xs:simpleContent>
+      <xs:extension base="Tekst100-repformat-48">
+        <xs:attribute fixed="21591" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="ForetakOrganisasjonsnummer-datadef-33552">
+    <xs:simpleContent>
+      <xs:extension base="Tekst99Modulus11-repformat-1">
+        <xs:attribute fixed="33552" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="Tekst99Modulus11-repformat-1">
+    <xs:restriction base="xs:string">
+      <xs:length value="9" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="EnhetOrganisasjonsnummerNy-datadef-22684">
+    <xs:simpleContent>
+      <xs:extension base="Tekst99Modulus11-repformat-1">
+        <xs:attribute fixed="22684" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="EnhetOrganisasjonsnummerEndringArsak-datadef-33287">
+    <xs:simpleContent>
+      <xs:extension base="Tekst500-repformat-166">
+        <xs:attribute fixed="33287" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="Tekst500-repformat-166">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="500" />
+      <xs:minLength value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="BedriftOrganisasjonsnummer-datadef-19">
+    <xs:simpleContent>
+      <xs:extension base="Tekst99Modulus11-repformat-1">
+        <xs:attribute fixed="19" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="BedriftOrganisasjonsnummerNy-datadef-33292">
+    <xs:simpleContent>
+      <xs:extension base="Tekst99Modulus11-repformat-1">
+        <xs:attribute fixed="33292" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="BedriftOrganisasjonsnummerEndringArsak-datadef-33288">
+    <xs:simpleContent>
+      <xs:extension base="Tekst500-repformat-166">
+        <xs:attribute fixed="33288" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="AnsattAnsettelsePgaFusjonFisjonOverdragelse-datadef-33289">
+    <xs:simpleContent>
+      <xs:extension base="KodelisteEttValg2JaNei-repformat-4">
+        <xs:attribute fixed="33289" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="EnhetNavnEndring-datadef-31">
+    <xs:simpleContent>
+      <xs:extension base="Tekst175-repformat-8">
+        <xs:attribute fixed="31" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="Merknad-datadef-33290">
+    <xs:simpleContent>
+      <xs:extension base="Tekst500-repformat-166">
+        <xs:attribute fixed="33290" name="orid" type="xs:positiveInteger" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+</xs:schema>

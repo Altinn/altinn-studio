@@ -1,0 +1,518 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "page3-navbar",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "gjeld",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "GridData.TotalGjeld"
+        },
+        "textResourceBindings": {
+          "title": "Hvor mye gjeld har du?"
+        },
+        "formatting": {
+          "number": {
+            "suffix": " kr",
+            "thousandSeparator": " ",
+            "allowNegative": false
+          },
+          "align": "right"
+        },
+        "grid": {
+          "md": 8
+        }
+      },
+      {
+        "id": "has-credit-card",
+        "type": "RadioButtons",
+        "dataModelBindings": {
+          "simpleBinding": "GridData.Kredittkort.IBruk"
+        },
+        "textResourceBindings": {
+          "title": "Har du kredittkort?"
+        },
+        "options": [
+          { "label": "Ja", "value": "ja" },
+          { "label": "Nei", "value": "nei" }
+        ],
+        "grid": {
+          "md": 4
+        }
+      },
+      {
+        "id": "page3-grid",
+        "type": "Grid",
+        "textResourceBindings": {
+          "title": "Totalfordeling av gjeld",
+          "description": "Her skal du fylle ut fordelingen av all din gjeld, og hvilke typer den gjelder."
+        },
+        "rows": [
+          {
+            "header": true,
+            "cells": [
+              {
+                "columnOptions": {
+                  "width": "20%",
+                  "alignText": "left",
+                  "textOverflow": {
+                    "lineWrap": true,
+                    "maxHeight": 1
+                  }
+                },
+                "text": "Kolonne 1"
+              },
+              {
+                "text": "Kolonne 2"
+              },
+              {
+                "text": "Kolonne 3"
+              },
+              {
+                "text": "Kolonne 4"
+              }
+            ]
+          },
+          {
+            "header": false,
+            "cells": [
+              {
+                "text": "Tekst 1"
+              },
+              {
+                "text": "Tekst 2"
+              },
+              {
+                "text": "Tekst 3"
+              },
+              {
+                "text": "Tekst 4"
+              }
+            ]
+          },
+          {
+            "header": true,
+            "cells": [
+              null,
+              {
+                "text": "Fordeling"
+              },
+              {
+                "text": "Beløp",
+                "columnOptions": {
+                  "width": "25%"
+                }
+              },
+              { "text": "Innhentet og verifisert" }
+            ]
+          },
+          {
+            "cells": [
+              { "text": "laan-bolig" },
+              { "component": "fordeling-bolig" },
+              { "component": "belop-bolig" },
+              { "component": "innhentet-bolig" }
+            ]
+          },
+          {
+            "cells": [
+              { "text": "laan-studie" },
+              { "component": "fordeling-studie" },
+              { "component": "belop-studie" },
+              { "component": "innhentet-studie" }
+            ]
+          },
+          {
+            "cells": [
+              { "text": "laan-kredittkort" },
+              { "component": "fordeling-kredittkort" },
+              { "component": "belop-kredittkort" },
+              { "component": "innhentet-kredittkort" }
+            ]
+          },
+          {
+            "readOnly": true,
+            "cells": [
+              {
+                "text": "SUM",
+                "alignText": "right"
+              },
+              { "component": "fordeling-total" },
+              {},
+              {}
+            ]
+          }
+        ]
+      },
+      {
+        "id": "fordeling-bolig",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "GridData.Bolig.Prosent"
+        },
+        "textResourceBindings": {
+          "title": "Prosentandel av gjeld i boliglån"
+        },
+        "formatting": {
+          "number": {
+            "suffix": " %",
+            "allowNegative": false
+          },
+          "align": "right"
+        }
+      },
+      {
+        "id": "fordeling-studie",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "GridData.Studie.Prosent"
+        },
+        "textResourceBindings": {
+          "title": "Prosentandel av gjeld i studielån"
+        },
+        "formatting": {
+          "number": {
+            "suffix": " %",
+            "allowNegative": false
+          },
+          "align": "right"
+        }
+      },
+      {
+        "id": "fordeling-kredittkort",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "GridData.Kredittkort.Prosent"
+        },
+        "textResourceBindings": {
+          "title": "Prosentandel av gjeld i kredittkort"
+        },
+        "formatting": {
+          "number": {
+            "suffix": " %",
+            "allowNegative": false
+          },
+          "align": "right"
+        },
+        "hidden": ["equals", ["component", "has-credit-card"], "nei"]
+      },
+      {
+        "id": "belop-bolig",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "GridData.Bolig.Belop"
+        },
+        "textResourceBindings": {
+          "title": "Gjeld i boliglån"
+        },
+        "formatting": {
+          "number": {
+            "suffix": " kr",
+            "thousandSeparator": " ",
+            "allowNegative": false
+          },
+          "align": "right"
+        },
+        "readOnly": true
+      },
+      {
+        "id": "belop-studie",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "GridData.Studie.Belop"
+        },
+        "textResourceBindings": {
+          "title": "Gjeld i studielån"
+        },
+        "formatting": {
+          "number": {
+            "suffix": " kr",
+            "thousandSeparator": " ",
+            "allowNegative": false
+          },
+          "align": "right"
+        },
+        "readOnly": true
+      },
+      {
+        "id": "belop-kredittkort",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "GridData.Kredittkort.Belop"
+        },
+        "textResourceBindings": {
+          "title": "Gjeld i kredittkort"
+        },
+        "formatting": {
+          "number": {
+            "suffix": " kr",
+            "thousandSeparator": " ",
+            "allowNegative": false
+          },
+          "align": "right"
+        },
+        "readOnly": true,
+        "hidden": ["equals", ["component", "has-credit-card"], "nei"]
+      },
+      {
+        "id": "innhentet-bolig",
+        "type": "RadioButtons",
+        "dataModelBindings": {
+          "simpleBinding": "GridData.Bolig.Verifisert"
+        },
+        "textResourceBindings": {
+          "title": "Er fordelingen av boliglånsgjeld verifisert?"
+        },
+        "options": [{ "label": "Ja", "value": "ja" }]
+      },
+      {
+        "id": "innhentet-studie",
+        "type": "Checkboxes",
+        "dataModelBindings": {
+          "simpleBinding": "GridData.Studie.Verifisert"
+        },
+        "textResourceBindings": {
+          "title": "Er fordelingen av studielånsgjeld verifisert?"
+        },
+        "options": [
+          { "label": "Ja", "value": "ja" },
+          { "label": "Nei", "value": "nei" },
+          { "label": "Kanskje", "value": "kanskje" }
+        ]
+      },
+      {
+        "id": "innhentet-kredittkort",
+        "type": "Checkboxes",
+        "dataModelBindings": {
+          "simpleBinding": "GridData.Kredittkort.Verifisert"
+        },
+        "textResourceBindings": {
+          "title": "Er fordelingen av kredittkortgjeld verifisert?"
+        },
+        "options": [{ "label": "Ja", "value": "ja" }],
+        "hidden": ["equals", ["component", "has-credit-card"], "nei"]
+      },
+      {
+        "id": "fordeling-total",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "GridData.TotalProsent"
+        },
+        "showValidations": [],
+        "textResourceBindings": {
+          "title": "Utregnet totalprosent"
+        },
+        "readOnly": true,
+        "formatting": {
+          "number": {
+            "suffix": " %",
+            "allowNegative": false
+          },
+          "align": "right"
+        }
+      },
+      {
+        "id": "show-all-components",
+        "type": "RadioButtons",
+        "dataModelBindings": {
+          "simpleBinding": "GridData.ShowAll"
+        },
+        "textResourceBindings": {
+          "title": "Vis alle komponentene i Grid?"
+        },
+        "options": [
+          { "label": "Ja", "value": "ja" },
+          { "label": "Nei", "value": "nei" }
+        ]
+      },
+      {
+        "id": "all-grid-components",
+        "type": "Grid",
+        "hidden": ["equals", ["component", "show-all-components"], "nei"],
+        "rows": [
+          {
+            "header": true,
+            "cells": [{ "text": "Komponenttype" }, { "text": "Eksempel" }]
+          },
+          {
+            "cells": [
+              { "text": "Button" },
+              { "component": "grid-example-button" }
+            ]
+          },
+          {
+            "cells": [
+              { "text": "PrintButton" },
+              { "component": "grid-example-print-button" }
+            ]
+          },
+          {
+            "cells": [
+              { "text": "InstantiationButton" },
+              { "component": "grid-example-instantiation-button" }
+            ]
+          },
+          {
+            "cells": [
+              { "text": "Header" },
+              { "component": "grid-example-header" }
+            ]
+          },
+          {
+            "cells": [
+              { "text": "Paragraph" },
+              { "component": "grid-example-paragraph" }
+            ]
+          },
+          {
+            "cells": [
+              { "text": "Image" },
+              { "component": "grid-example-image" }
+            ]
+          },
+          {
+            "cells": [
+              { "text": "Datepicker" },
+              { "component": "grid-example-datepicker" }
+            ]
+          },
+          {
+            "cells": [
+              { "text": "Dropdown" },
+              { "component": "grid-example-dropdown" }
+            ]
+          },
+          {
+            "cells": [
+              { "text": "MultipleSelect" },
+              { "component": "grid-example-multiple-select" }
+            ]
+          },
+          {
+            "cells": [
+              { "text": "TextArea" },
+              { "component": "grid-example-text-area" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "grid-example-button",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "A button example"
+        }
+      },
+      {
+        "id": "grid-example-print-button",
+        "type": "PrintButton",
+        "textResourceBindings": {
+          "title": "Print button example"
+        }
+      },
+      {
+        "id": "grid-example-instantiation-button",
+        "type": "InstantiationButton",
+        "textResourceBindings": {
+          "title": "Instantiation button example"
+        }
+      },
+      {
+        "id": "grid-example-datepicker",
+        "type": "Datepicker",
+        "textResourceBindings": {
+          "title": "Datepicker example"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "GridData.Examples.ExampleDate"
+        }
+      },
+      {
+        "id": "grid-example-dropdown",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Dropdown example"
+        },
+        "optionsId": "reasons",
+        "dataModelBindings": {
+          "simpleBinding": "GridData.Examples.ExampleDropdown"
+        }
+      },
+      {
+        "id": "grid-example-header",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header example"
+        },
+        "size": "h2"
+      },
+      {
+        "id": "grid-example-image",
+        "type": "Image",
+        "textResourceBindings": {
+          "altTextImg": "Altinn logo"
+        },
+        "image": {
+          "src": {
+            "nb": "/ttd/frontend-test/images/altinn-logo.svg"
+          },
+          "width": "100%",
+          "align": "flex-start"
+        }
+      },
+      {
+        "id": "grid-example-multiple-select",
+        "type": "MultipleSelect",
+        "textResourceBindings": {
+          "title": "Multiple select example"
+        },
+        "optionsId": "reasons",
+        "dataModelBindings": {
+          "simpleBinding": "GridData.Examples.ExampleMultiSelect"
+        }
+      },
+      {
+        "id": "grid-example-paragraph",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Paragraph example"
+        }
+      },
+      {
+        "id": "grid-example-text-area",
+        "type": "TextArea",
+        "textResourceBindings": {
+          "title": "Text area example"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "GridData.Examples.ExampleTextArea"
+        }
+      },
+      {
+        "id": "btn-group",
+        "type": "ButtonGroup",
+        "children": ["page3-navbtns", "sendInButton"]
+      },
+      {
+        "id": "page3-navbtns",
+        "type": "NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {
+          "next": "Neste",
+          "back": "Forrige"
+        }
+      },
+      {
+        "id": "sendInButton",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Send inn"
+        }
+      }
+    ]
+  }
+}

@@ -72,6 +72,7 @@ import {
   allAccessListsPath,
   orgTextLanguagesPath,
   canUseFeaturePath,
+  orgCodeListsNewPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -116,6 +117,7 @@ import type { LibraryContentType } from 'app-shared/enums/LibraryContentType';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 import type { FeatureName } from 'app-shared/enums/CanUseFeature';
+import type { CodeListsNewResponse } from 'app-shared/types/api/CodeListsNewResponse';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -204,5 +206,6 @@ export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());
 
 // Organisation library
 export const getOrgCodeLists = (org: string) => get<CodeListsResponse>(orgCodeListsPath(org));
+export const getOrgCodeListsNew = (org: string) => get<CodeListsNewResponse>(orgCodeListsNewPath(org));
 export const getOrgTextLanguages = (org: string): Promise<string[] | null> => get<string[] | null>(orgTextLanguagesPath(org));
 export const getOrgTextResources = (org: string, language: string): Promise<ITextResourcesWithLanguage | null> => get<ITextResourcesWithLanguage | null>(orgTextResourcesPath(org, language));

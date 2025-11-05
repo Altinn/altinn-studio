@@ -33,7 +33,7 @@ public static partial class ObjectUtils
 
         foreach (var prop in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
         {
-            if (PropertyIsAltinRowGuid(prop))
+            if (PropertyIsAltinnRowGuid(prop))
             {
                 var value = (Guid)(prop.GetValue(model) ?? Guid.Empty);
                 if (value == Guid.Empty)
@@ -222,7 +222,7 @@ public static partial class ObjectUtils
         foreach (var prop in type.GetProperties())
         {
             // Handle guid fields named "AltinnRowId"
-            if (PropertyIsAltinRowGuid(prop))
+            if (PropertyIsAltinnRowGuid(prop))
             {
                 isModified = true;
                 prop.SetValue(model, Guid.Empty);
@@ -259,7 +259,7 @@ public static partial class ObjectUtils
         return isModified;
     }
 
-    private static bool PropertyIsAltinRowGuid(PropertyInfo prop)
+    private static bool PropertyIsAltinnRowGuid(PropertyInfo prop)
     {
         return prop.PropertyType == typeof(Guid) && prop.Name == "AltinnRowId";
     }

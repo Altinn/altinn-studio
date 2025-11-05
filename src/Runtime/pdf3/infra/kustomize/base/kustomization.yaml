@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - proxy.yaml
+  - worker.yaml
+  - networkpolicy.yaml
+replacements:
+- source:
+    kind: Deployment
+    name: pdf3-proxy
+    fieldPath: metadata.annotations.[altinn.studio/image]
+  targets:
+  - select:
+      kind: Deployment
+      name: pdf3-proxy
+    fieldPaths:
+      - spec.template.spec.containers.[name=pdf3-proxy].image
+- source:
+    kind: Deployment
+    name: pdf3-worker
+    fieldPath: metadata.annotations.[altinn.studio/image]
+  targets:
+  - select:
+      kind: Deployment
+      name: pdf3-worker
+    fieldPaths:
+      - spec.template.spec.containers.[name=pdf3-worker].image

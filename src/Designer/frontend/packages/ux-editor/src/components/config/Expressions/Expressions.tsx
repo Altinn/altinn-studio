@@ -1,9 +1,8 @@
 import React, { useContext } from 'react';
-import { Paragraph, Link } from '@digdir/designsystemet-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { ExpressionContent } from '../ExpressionContent';
 import classes from './Expressions.module.css';
 import { FormItemContext } from '../../../containers/FormItemContext';
-import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { Trans } from 'react-i18next';
 import { NewExpressionButton } from './NewExpressionButton';
 import {
@@ -17,7 +16,6 @@ import { ExpressionHeading } from './ExpressionHeading';
 import type { FormItem } from '../../../types/FormItem';
 import type { BooleanExpression } from '@studio/components';
 import { StudioCodeFragment } from '@studio/components';
-import { useText } from '../../../hooks';
 
 export const Expressions = () => {
   const { formItem, handleUpdate, debounceSave } = useContext(FormItemContext);
@@ -41,7 +39,6 @@ export const Expressions = () => {
 
   return (
     <div className={classes.root}>
-      <ReadMoreLink />
       {!propertiesWithExpressions.length && <Placeholder componentName={formItem.id} />}
       {Object.values(propertiesWithExpressions).map((property) => (
         <ExpressionContent
@@ -54,15 +51,6 @@ export const Expressions = () => {
       ))}
       <NewExpressionButton />
     </div>
-  );
-};
-
-const ReadMoreLink = () => {
-  const t = useText();
-  return (
-    <Link href={altinnDocsUrl({ relativeUrl: 'altinn-studio/designer/build-app/expressions' })}>
-      {t('right_menu.read_more_about_expressions')}
-    </Link>
   );
 };
 

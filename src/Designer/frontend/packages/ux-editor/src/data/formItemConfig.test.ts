@@ -14,12 +14,7 @@ describe('formItemConfig', () => {
     confOnScreenComponents,
   ];
   const allAvailableComponents = allAvailableLists.flat();
-  const excludedComponents = [
-    ComponentType.Custom,
-    ComponentType.Payment,
-    ComponentType.Summary,
-    ComponentType.ImageUpload,
-  ];
+  const excludedComponents = [ComponentType.Custom, ComponentType.Payment, ComponentType.Summary];
 
   /**  Test that all components, except Custom, Payment, and Summary, are available in one of the visible lists */
   it.each(
@@ -32,9 +27,5 @@ describe('formItemConfig', () => {
 
   test('that payment component is not available in the visible lists', () => {
     expect(allAvailableComponents.map(({ name }) => name)).not.toContain(ComponentType.Payment);
-  });
-
-  it('should not include ImageUpload when feature flag is not enabled', () => {
-    expect(allAvailableComponents.map(({ name }) => name)).not.toContain(ComponentType.ImageUpload);
   });
 });

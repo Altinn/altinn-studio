@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -17,7 +18,7 @@ public interface IEnvironmentsService
 
     Task<Uri> CreatePlatformUri(string envName);
 
-    Task<string> GetHostNameByEnvName(string envName);
+    Task<Uri> GetAppClusterUri(string org, string envName);
 
-    Task<EnvironmentModel> GetEnvModelByName(string envName);
+    Task<string> GetHostNameByEnvName(string envName);
 }

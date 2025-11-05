@@ -14,7 +14,7 @@ import { PanelMainConfig } from './SpecificMainConfig/PanelMainConfig';
 import { TitleMainConfig } from './SpecificMainConfig/TitleMainConfig';
 import { CustomButtonMainConfig } from './SpecificMainConfig/CustomButtonMainConfig';
 import { TextMainConfig } from './SpecificMainConfig/TextMainConfig';
-import { ImageUploadMainConfig } from './SpecificMainConfig/ImageUploadMainConfig';
+import { ImageUploadComponent } from '../../config/componentSpecificContent/ImageUpload/ImageUploadComponent';
 
 export type ComponentMainConfigProps = {
   component: FormItem;
@@ -122,7 +122,7 @@ export const ComponentMainConfig = ({
 
     case ComponentType.ImageUpload:
       return (
-        <ImageUploadMainConfig
+        <ImageUploadComponent
           component={component}
           handleComponentChange={handleComponentChange}
           className={classes.mainConfigWrapper}

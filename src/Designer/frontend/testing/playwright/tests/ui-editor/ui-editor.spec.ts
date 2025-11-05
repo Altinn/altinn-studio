@@ -13,6 +13,7 @@ test.describe.configure({ mode: 'serial' });
 
 // Variables that are shared between tests
 const PAGE_1: string = 'Side1';
+const LAYOUT_SET: string = 'form';
 
 // Before the tests starts, we need to create the data model app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
@@ -69,13 +70,13 @@ test('That when adding more than one page, navigation buttons are added to the p
 
   await uiEditorPage.clickOnAddNewPage();
   await uiEditorPage.verifyThatNewPageIsVisible(page2);
-  await uiEditorPage.verifyUiEditorPage(page2);
+  await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, page2);
 
   await uiEditorPage.verifyThatPageEmptyMessageIsHidden();
   await uiEditorPage.verifyThatNavigationButtonsAreAddedToPage();
 
   await uiEditorPage.clickOnPageAccordion(PAGE_1);
-  await uiEditorPage.verifyUiEditorPage(PAGE_1);
+  await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, PAGE_1);
   await uiEditorPage.verifyThatPageEmptyMessageIsHidden();
   await uiEditorPage.verifyThatNavigationButtonsAreAddedToPage();
 });
@@ -106,7 +107,7 @@ const openPageAccordionAndVerifyUpdatedUrl = async (
   pageName: string,
 ): Promise<void> => {
   await uiEditorPage.clickOnPageAccordion(pageName);
-  await uiEditorPage.verifyUiEditorPage(pageName); // When clicking the page, the url is updated to include the layout
+  await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, pageName); // When clicking the page, the url is updated to include the layout
 };
 
 const addNewLabelToTreeItemComponent = async (

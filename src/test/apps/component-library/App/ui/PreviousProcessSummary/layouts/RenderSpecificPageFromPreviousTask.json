@@ -1,0 +1,29 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "PrevPage-NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "size": "M",
+        "id": "page2Task2",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Her skal vi rendre en enkelt side fra Task_1:"
+        }
+      },
+      {
+        "id": "Summary2-previous-page",
+        "type": "Summary2",
+        "hidden": false,
+        "target": {
+          "type": "page",
+          "taskId": "Task_1",
+          "id": "AddressPage"
+        }
+      }
+    ]
+  }
+}

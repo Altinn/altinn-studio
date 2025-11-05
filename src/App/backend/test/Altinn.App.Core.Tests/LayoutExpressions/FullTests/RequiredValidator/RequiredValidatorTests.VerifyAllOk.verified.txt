@@ -1,0 +1,10 @@
+﻿{
+  IncrementalIssues: [
+    {
+      Source: Required
+    },
+    {
+      Source: Altinn.App.Core.Tests.LayoutExpressions.FullTests.RequiredValidator.RequiredValidatorTests+TestValidator-Task_1-access
+    }
+  ]
+}

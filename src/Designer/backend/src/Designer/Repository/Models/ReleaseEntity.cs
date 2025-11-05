@@ -1,3 +1,4 @@
+#nullable disable
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Repository.Models

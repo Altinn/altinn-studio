@@ -24,7 +24,7 @@ export const NoEnvironmentsAlert = ({ ...rest }: NoEnvironmentsAlertProps) => {
       <Paragraph>
         <Trans i18nKey='app_deployment.no_env_2'>
           <a
-            href={altinnDocsUrl({ relativeUrl: 'altinn-studio/reference/testing/local/' })}
+            href={altinnDocsUrl({ relativeUrl: 'altinn-studio/v8/reference/testing/local/' })}
             target='_new'
             rel='noopener noreferrer'
           />

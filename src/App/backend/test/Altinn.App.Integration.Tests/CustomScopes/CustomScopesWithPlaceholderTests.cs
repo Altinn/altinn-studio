@@ -1,5 +1,4 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Net.Http.Headers;
 using Altinn.App.Api.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Xunit.Abstractions;

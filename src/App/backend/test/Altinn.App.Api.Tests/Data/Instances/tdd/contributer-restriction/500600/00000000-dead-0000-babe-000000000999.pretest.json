@@ -1,0 +1,30 @@
+{
+    "id": "500600/00000000-dead-0000-babe-000000000999",
+    "instanceOwner": {
+        "partyId": "500600",
+        "organisationNumber": "897069631"
+    },
+    "appId": "tdd/contributer-restriction",
+    "org": "tdd",
+    "process": {
+        "started": "2019-12-05T13:24:34.8412179Z",
+        "startEvent": "StartEvent_1",
+        "currentTask": {
+            "flow": 2,
+            "started": "2019-12-05T13:24:34.9196661Z",
+            "elementId": "Task_1",
+            "name": "Utfylling",
+            "altinnTaskType": "data",
+            "validated": {
+                "timestamp": "2020-02-07T10:46:36.985894Z",
+                "canCompleteTask": false
+            }
+        }
+    },
+    "status": {
+        "isArchived": false,
+        "isSoftDeleted": false,
+        "isHardDeleted": false,
+        "readStatus": "Read"
+    }
+}

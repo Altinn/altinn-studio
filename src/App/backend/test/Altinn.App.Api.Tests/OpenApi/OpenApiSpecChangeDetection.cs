@@ -1,3 +1,4 @@
+using System.Net;
 using Altinn.App.Api.Controllers;
 using Argon;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -35,7 +36,9 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
 
     private static async Task Snapshot(HttpResponseMessage response)
     {
-        response.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
+
         await using var stream = await response.Content.ReadAsStreamAsync();
         var reader = new OpenApiStreamReader();
         OpenApiDocument document = reader.Read(stream, out OpenApiDiagnostic diagnostic);

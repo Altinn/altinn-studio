@@ -1,3 +1,4 @@
+#nullable disable
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Services;
 using Altinn.Studio.Designer.Models;

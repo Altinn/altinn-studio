@@ -1,8 +1,6 @@
 import React from 'react';
 import type { RenderResult } from '@testing-library/react';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
-import type { MockServicesContextWrapperProps } from '../dashboardTestUtils';
-import { MockServicesContextWrapper } from '../dashboardTestUtils';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { App } from './App';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -13,7 +11,8 @@ import userEvent from '@testing-library/user-event';
 import type { Organization } from 'app-shared/types/Organization';
 import { APP_DASHBOARD_BASENAME } from 'app-shared/constants';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { renderWithProviders } from '../testing/mocks';
+import type { ProviderData } from '../testing/mocks';
 
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
@@ -29,8 +28,7 @@ const org: Organization = {
 };
 
 const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(repoStatus));
-const customServices: ServicesContextProps = {
-  ...queriesMock,
+const queries: Partial<ServicesContextProps> = {
   getRepoStatus: mockGetRepoStatus,
 };
 
@@ -39,11 +37,11 @@ describe('App', () => {
 
   it('should display spinner while loading', () => {
     renderApp();
-    expect(screen.getByText(textMock('dashboard.loading'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('dashboard.loading'))).toBeInTheDocument();
   });
 
   it('should display error when failing to fetch current user', async () => {
-    renderApp({ customServices: { getUser: () => Promise.reject() } });
+    renderApp({ queries: { getUser: () => Promise.reject() } });
     expect(
       await screen.findByRole('heading', {
         level: 1,
@@ -53,7 +51,7 @@ describe('App', () => {
   });
 
   it('should display error when failing to fetch organizations', async () => {
-    renderApp({ customServices: { getOrganizations: () => Promise.reject() } });
+    renderApp({ queries: { getOrganizations: () => Promise.reject() } });
     expect(
       await screen.findByRole('heading', {
         level: 1,
@@ -70,16 +68,16 @@ describe('App', () => {
   });
 
   it('should display the apps overview by default', async () => {
-    const client = createQueryClientWithUserAndOrg();
-    renderApp({ client, customServices });
+    const queryClient = createQueryClientWithUserAndOrg();
+    renderApp({ queryClient, queries });
     expect(getFavouriteAppListHeading()).toBeInTheDocument();
   });
 
   it('should display the library when the user clicks on the library link', async () => {
     const user = userEvent.setup();
-    const client = createQueryClientWithUserAndOrg();
+    const queryClient = createQueryClientWithUserAndOrg();
     const initialEntries = [`${APP_DASHBOARD_BASENAME}/${org.username}`];
-    renderApp({ client, customServices, initialEntries });
+    renderApp({ queryClient, queries, initialEntries });
 
     await user.click(screen.getByRole('link', { name: textMock('dashboard.header_item_library') }));
     expect(getLibraryHeading()).toBeInTheDocument();
@@ -87,9 +85,9 @@ describe('App', () => {
 
   it('should display the apps overview when the user is on the library page and clicks on the apps link', async () => {
     const user = userEvent.setup();
-    const client = createQueryClientWithUserAndOrg();
+    const queryClient = createQueryClientWithUserAndOrg();
     const initialEntries = [`${APP_DASHBOARD_BASENAME}/${org.username}`];
-    renderApp({ client, customServices, initialEntries });
+    renderApp({ queryClient, queries, initialEntries });
 
     await user.click(screen.getByRole('link', { name: textMock('dashboard.header_item_library') }));
     await user.click(
@@ -99,17 +97,12 @@ describe('App', () => {
   });
 });
 
-type RenderAppArgs = Omit<MockServicesContextWrapperProps, 'children'>;
-
-function renderApp(args: RenderAppArgs = {}): RenderResult {
-  return render(<App />, {
-    wrapper: ({ children }) => (
-      <MockServicesContextWrapper {...args}>{children}</MockServicesContextWrapper>
-    ),
-  });
+function renderApp(providerData: ProviderData = {}): RenderResult {
+  return renderWithProviders(<App />, providerData);
 }
 
-const querySpinner = (): HTMLElement | null => screen.queryByTitle(textMock('dashboard.loading'));
+const querySpinner = (): HTMLElement | null =>
+  screen.queryByLabelText(textMock('dashboard.loading'));
 
 const getFavouriteAppListHeading = (): HTMLElement =>
   screen.getByRole('heading', { name: textMock('dashboard.favourites') });

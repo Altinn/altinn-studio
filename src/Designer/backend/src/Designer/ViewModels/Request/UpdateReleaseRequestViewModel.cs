@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Newtonsoft.Json;

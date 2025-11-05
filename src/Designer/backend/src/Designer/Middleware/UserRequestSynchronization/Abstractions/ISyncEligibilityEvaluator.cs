@@ -1,3 +1,4 @@
+#nullable disable
 using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;

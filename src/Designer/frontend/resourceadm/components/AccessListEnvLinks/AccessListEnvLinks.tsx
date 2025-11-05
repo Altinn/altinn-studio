@@ -4,8 +4,7 @@ import { getResourcePageURL } from '../../utils/urlUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
 import { useResourcePolicyPublishStatusQuery } from '../../hooks/queries';
-import { StudioSpinner, StudioAlert, StudioParagraph } from '@studio/components';
-import { StudioList } from '@studio/components-legacy';
+import { StudioSpinner, StudioAlert, StudioParagraph, StudioList } from '@studio/components';
 import { ArrowForwardIcon } from '@studio/icons';
 import classes from './AccessListEnvLinks.module.css';
 import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink';
@@ -39,7 +38,7 @@ export const AccessListEnvLinks = (): React.JSX.Element => {
               <StudioParagraph spacing>
                 {t('resourceadm.about_resource_rrr_publish_warning')}
               </StudioParagraph>
-              <StudioList.Root size='sm'>
+              <StudioList.Root data-size='sm'>
                 <StudioList.Unordered>
                   {envPublishStatus
                     .filter((env) => !env.isResourcePublished)

@@ -20,7 +20,7 @@ data:
         }
       }
       format = "$remote_addr - $remote_user [$time_local] \"$request\" $status $body_bytes_sent \"$http_referer\" \"$http_user_agent\""
-    
+
       labels {
         app = "altinn-studio"
       }
@@ -57,6 +57,10 @@ data:
         match "^/designer.*" {
           replacement = "/designer"
         }
+
+        match "^/admin.*" {
+          replacement = "/admin"
+        }
       }
 
       relabel "status_code" {
@@ -72,5 +76,5 @@ data:
           replacement = "$0"
         }
       }
-      
+
     }

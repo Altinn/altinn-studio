@@ -1,3 +1,4 @@
+#nullable disable
 using System.IO;
 using System.Runtime.InteropServices;
 using Altinn.Common.AccessToken.Configuration;

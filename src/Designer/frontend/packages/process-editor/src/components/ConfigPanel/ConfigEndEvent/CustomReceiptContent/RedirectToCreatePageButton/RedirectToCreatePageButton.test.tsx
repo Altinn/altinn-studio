@@ -9,28 +9,39 @@ import {
   mockBpmnContextValue,
   mockBpmnApiContextValue,
 } from '../../../../../../test/mocks/bpmnContextMock';
+import { TestAppRouter } from '@studio/testing/testRoutingUtils';
 
 describe('RedirectToCreatePageButton', () => {
-  afterEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-  it('Checks that the button to go to "Utforming" page has the correct href', () => {
+  it('Renders link with correct href', async () => {
     renderRedirectToCreatePageButton();
 
     const navigationButton = screen.getByRole('link', {
       name: textMock('process_editor.configuration_panel_custom_receipt_navigate_to_design_link'),
     });
-    expect(navigationButton).toHaveAttribute('href', '/editor/testOrg/testApp/ui-editor');
+
+    expect(navigationButton).toHaveProperty(
+      'href',
+      'http://localhost/testOrg/testApp/ui-editor/layoutSet/testId',
+    );
   });
 });
 
 const renderRedirectToCreatePageButton = () => {
   return render(
-    <BpmnApiContext.Provider value={mockBpmnApiContextValue}>
-      <BpmnContext.Provider value={mockBpmnContextValue}>
-        <BpmnConfigPanelFormContextProvider>
-          <RedirectToCreatePageButton />
-        </BpmnConfigPanelFormContextProvider>
-      </BpmnContext.Provider>
-    </BpmnApiContext.Provider>,
+    <TestAppRouter>
+      <BpmnApiContext.Provider
+        value={{ ...mockBpmnApiContextValue, existingCustomReceiptLayoutSetId: 'testId' }}
+      >
+        <BpmnContext.Provider value={mockBpmnContextValue}>
+          <BpmnConfigPanelFormContextProvider>
+            <RedirectToCreatePageButton />
+          </BpmnConfigPanelFormContextProvider>
+        </BpmnContext.Provider>
+      </BpmnApiContext.Provider>
+    </TestAppRouter>,
   );
 };

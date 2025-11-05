@@ -1,0 +1,73 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "nav2",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "choose-sector",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Velg sektor"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell2",
+            "field": "sektor"
+          }
+        },
+        "preselectedOptionIndex": 0,
+        "options": [
+          {
+            "label": "Privat",
+            "value": "private"
+          },
+          {
+            "label": "Offentlig sektor",
+            "value": "public"
+          }
+        ]
+      },
+      {
+        "id": "choose-industry",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Velg bransje"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell1",
+            "field": "bransje"
+          }
+        },
+        "optionsId": "industry",
+        "queryParameters": {
+          "sector": ["component", "choose-sector"]
+        }
+      },
+      {
+        "id": "oil-is-bad",
+        "type": "Alert",
+        "textResourceBindings": {
+          "title": "Olje er ikke bra for planeten"
+        },
+        "severity": "danger",
+        "hidden": [
+          "not",
+          ["commaContains", ["component", "choose-industry"], "495"]
+        ]
+      },
+      {
+        "id": "navbuttons2",
+        "showBackButton": true,
+        "textResourceBindings": {
+          "next": "Neste",
+          "back": "Forrige"
+        },
+        "type": "NavigationButtons"
+      }
+    ]
+  }
+}

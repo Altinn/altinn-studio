@@ -14,7 +14,6 @@ import type { FormComponent } from '../../../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { parsableLogicalExpression } from '../../../testing/expressionMocks';
 import type { FormContainer } from '../../../types/FormContainer';
-import type { AppContextProps } from '../../../AppContext';
 import { ObjectUtils } from '@studio/pure-functions';
 import { LogicalTupleOperator } from '@studio/components';
 import { app, org } from '@studio/testing/testids';
@@ -75,10 +74,10 @@ describe('Expressions', () => {
       readOnly: parsableLogicalExpression,
     };
     renderExpressions({ formItem: componentWithMultipleExpressions });
-    const addButton = screen.getByRole('button', { name: textMock('right_menu.expressions_add') });
+    const addButton = screen.getByRole('button', {
+      name: textMock('right_menu.expressions_expressions_limit_reached_alert'),
+    });
     expect(addButton).toBeDisabled();
-    const expressionLimitAlert = textMock('right_menu.expressions_expressions_limit_reached_alert');
-    expect(addButton).toHaveAccessibleDescription(expressionLimitAlert);
   });
 
   it('Disables the add button when all supported expression properties are set on a repeating group', () => {
@@ -99,7 +98,9 @@ describe('Expressions', () => {
         },
       };
     renderExpressions({ formItem: groupComponentWithAllBooleanFieldsAsExpressions });
-    const addButton = screen.getByRole('button', { name: textMock('right_menu.expressions_add') });
+    const addButton = screen.getByRole('button', {
+      name: textMock('right_menu.expressions_expressions_limit_reached_alert'),
+    });
     expect(addButton).toBeDisabled();
   });
 
@@ -109,9 +110,9 @@ describe('Expressions', () => {
     renderExpressions({ handleUpdate });
     const addButton = screen.getByRole('button', { name: textMock('right_menu.expressions_add') });
     await user.click(addButton);
-    const menuitemName = textMock('right_menu.expressions_property_read_only');
-    const menuitem = screen.getByRole('menuitem', { name: menuitemName });
-    await user.click(menuitem);
+    const buttonName = textMock('right_menu.expressions_property_read_only');
+    const button = screen.getByRole('button', { name: buttonName });
+    await user.click(button);
     expect(handleUpdate).toHaveBeenCalledTimes(1);
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentWithExpression,
@@ -162,18 +163,12 @@ describe('Expressions', () => {
       },
     };
     renderExpressions({ formItem });
-    screen.getByText(textMock('right_menu.read_more_about_expressions'));
-  });
-
-  it('renders link to docs', () => {
-    renderExpressions();
-    screen.getByRole('link', { name: textMock('right_menu.read_more_about_expressions') });
+    const addExpressionBtn = screen.getByText(textMock('right_menu.expressions_add'));
+    expect(addExpressionBtn).toBeInTheDocument();
   });
 });
 
 const renderExpressions = (formItemContext: Partial<FormItemContext> = {}) => {
-  const appContextProps: Partial<AppContextProps> = { selectedFormLayoutSetName: layoutSetName };
-
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   queryClient.setQueryData(
@@ -185,6 +180,6 @@ const renderExpressions = (formItemContext: Partial<FormItemContext> = {}) => {
     <FormItemContext.Provider value={{ ...defaultFormItemContext, ...formItemContext }}>
       <Expressions />
     </FormItemContext.Provider>,
-    { queryClient, appContextProps },
+    { queryClient },
   );
 };

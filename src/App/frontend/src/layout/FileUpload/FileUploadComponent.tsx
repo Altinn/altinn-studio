@@ -7,6 +7,7 @@ import { CloudUpIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { Dropzone } from 'src/app-components/Dropzone/Dropzone';
+import { mapExtensionToAcceptMime } from 'src/app-components/Dropzone/mapExtensionToAcceptMime';
 import { getDescriptionId, getLabelId, Label } from 'src/components/label/Label';
 import { useAddRejectedAttachments, useAttachmentsFor, useAttachmentsUploader } from 'src/features/attachments/hooks';
 import { Lang } from 'src/features/language/Lang';
@@ -59,7 +60,8 @@ export function FileUploadComponent({
   const validations = useUnifiedValidationsForNode(baseComponentId).filter(
     (v) => !('attachmentId' in v) || !v.attachmentId,
   );
-
+  const filesToAccept =
+    hasCustomFileEndings && validFileEndings !== undefined ? mapExtensionToAcceptMime(validFileEndings) : undefined;
   const { options, isFetching } = useGetOptions(baseComponentId, 'single');
   const indexedId = useIndexedId(baseComponentId);
 
@@ -139,8 +141,7 @@ export function FileUploadComponent({
               onClick={(e) => e.preventDefault()}
               onDrop={handleDrop}
               hasValidationMessages={hasValidationErrors(validations)}
-              hasCustomFileEndings={hasCustomFileEndings}
-              validFileEndings={validFileEndings}
+              acceptedFiles={filesToAccept}
               labelId={textResourceBindings?.title ? getLabelId(id) : undefined}
               describedBy={ariaDescribedBy}
             >

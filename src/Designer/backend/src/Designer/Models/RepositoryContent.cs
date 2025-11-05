@@ -1,3 +1,4 @@
+#nullable disable
 using Altinn.Studio.Designer.Enums;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -10,7 +11,7 @@ namespace Altinn.Studio.Designer.Models
     public class RepositoryContent
     {
         /// <summary>
-        /// Gets or sets the path of the file 
+        /// Gets or sets the path of the file
         /// </summary>
         public string FilePath { get; set; }
 

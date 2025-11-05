@@ -1,0 +1,8 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/prefill/prefill.schema.v1.json",
+  "allowOverwrite": false,
+  "QueryParameters": {
+    "designer": "queryParams5",
+    "scrumMaster": "queryParams6"
+  }
+}

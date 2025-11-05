@@ -76,33 +76,19 @@
           "currentLayout": "Page1",
           "children": [
             {
-              "component": "group0",
+              "component": "group1",
               "currentLayout": "Page1",
               "rowIndices": [0],
               "children": [
                 {
-                  "component": "group1",
+                  "component": "comp3",
                   "currentLayout": "Page1",
-                  "rowIndices": [0],
-                  "children": [
-                    {
-                      "component": "group1",
-                      "currentLayout": "Page1",
-                      "rowIndices": [0, 0],
-                      "children": [
-                        {
-                          "component": "comp3",
-                          "currentLayout": "Page1",
-                          "rowIndices": [0, 0]
-                        },
-                        {
-                          "component": "comp4",
-                          "currentLayout": "Page1",
-                          "rowIndices": [0, 0]
-                        }
-                      ]
-                    }
-                  ]
+                  "rowIndices": [0, 0]
+                },
+                {
+                  "component": "comp4",
+                  "currentLayout": "Page1",
+                  "rowIndices": [0, 0]
                 }
               ]
             }

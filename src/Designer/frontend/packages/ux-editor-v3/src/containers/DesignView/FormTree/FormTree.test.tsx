@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { FormTree } from './FormTree';
-import { StudioDragAndDropTree } from '@studio/components-legacy';
+import { StudioDragAndDropTree } from '@studio/components';
 import { BASE_CONTAINER_ID, DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { renderWithMockStore } from '../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

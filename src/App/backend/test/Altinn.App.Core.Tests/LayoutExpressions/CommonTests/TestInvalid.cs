@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Altinn.App.Core.Internal.Expressions;
-using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
@@ -40,7 +39,7 @@ public class TestInvalid
             LayoutModel? componentModel = null;
             if (test.Layouts is not null)
             {
-                var layout = new LayoutSetComponent(test.Layouts.Values.ToList(), "layout", dataType);
+                var layout = new LayoutSetComponent(test.Layouts, "layout", dataType);
                 componentModel = new LayoutModel([layout], null);
             }
 
@@ -53,11 +52,8 @@ public class TestInvalid
                 null!,
                 test.FrontEndSettings ?? new()
             );
-            await ExpressionEvaluator.EvaluateExpression(
-                state,
-                test.Expression,
-                test.Context?.ToContext(componentModel, state) ?? null!
-            );
+
+            await ExpressionEvaluator.EvaluateExpression(state, test.Expression, await test.GetContextOrNull(state));
         };
         (await act.Should().ThrowAsync<Exception>()).WithMessage(testCase.ExpectsFailure);
     }

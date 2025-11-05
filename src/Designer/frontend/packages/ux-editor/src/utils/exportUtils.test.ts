@@ -308,4 +308,30 @@ describe('generateExportFormFormat', () => {
 
     expect(result.pages[0].components[0].texts).toEqual([]);
   });
+
+  it('should not crash when optionsId is missing from optionListsData (e.g. dynamic option lists)', () => {
+    const dropdownWithMissingOptions: FormComponent<ComponentType.Dropdown> = {
+      id: 'dropdown1',
+      itemType: 'COMPONENT',
+      type: ComponentType.Dropdown,
+      dataModelBindings: { simpleBinding: { field: 'field1', dataType: '' } },
+      textResourceBindings: { title: 'title1' },
+      optionsId: 'dynamicOptionList',
+    };
+
+    const generator = new ExportUtils(
+      settings.pages.order,
+      generateMockInternalFormLayouts([dropdownWithMissingOptions]),
+      selectedFormLayoutSetName,
+      app,
+      textResources,
+      optionListsData,
+      'nb',
+      false,
+    );
+
+    expect(() => generator.generateExportFormFormat()).not.toThrow();
+    const result = generator.generateExportFormFormat();
+    expect(result.pages[0].components[0].options).toBeUndefined();
+  });
 });

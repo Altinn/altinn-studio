@@ -42,6 +42,7 @@ public class UpdateCodeListsNewTests : DesignerEndpointsTestsBase<UpdateCodeList
         const string NewCodeListId = "countries";
         const string DeleteCodeListId = "municipalities";
         const string CommitMessage = "My commit message";
+        const string BaseCommitSha = "baseCommitSha";
         Dictionary<string, string> queryParameters = new() { { "key", "value" } };
         CodeListSource source = new(Name: "Klass", Version: "1.0", QueryParameters: queryParameters);
         List<Code> codes =
@@ -71,6 +72,7 @@ public class UpdateCodeListsNewTests : DesignerEndpointsTestsBase<UpdateCodeList
         ];
         UpdateCodeListRequest requestBody = new(
             CodeListWrappers: wrappers,
+            BaseCommitSha: BaseCommitSha,
             CommitMessage: CommitMessage
         );
 
@@ -83,7 +85,7 @@ public class UpdateCodeListsNewTests : DesignerEndpointsTestsBase<UpdateCodeList
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        _orgCodeListService.Verify(service => service.UpdateCodeListsNew(Org, Developer, It.IsAny<List<CodeListWrapper>>(), CommitMessage, null, It.IsAny<CancellationToken>()), Times.Once);
+        _orgCodeListService.Verify(service => service.UpdateCodeListsNew(Org, Developer, requestBody, It.IsAny<CancellationToken>()), Times.Once);
     }
     private static string ApiUrl() => $"designer/api/{Org}/code-lists/new/";
 }

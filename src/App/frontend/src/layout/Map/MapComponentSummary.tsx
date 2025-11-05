@@ -1,22 +1,19 @@
 import React from 'react';
 
-import { Paragraph } from '@digdir/designsystemet-react';
-
+import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
+import { MarkerLocationText } from 'src/layout/Map/features/singleMarker/MarkerLocationText';
 import { Map } from 'src/layout/Map/Map';
 import classes from 'src/layout/Map/MapComponent.module.css';
 import { isLocationValid, parseLocation } from 'src/layout/Map/utils';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useFormDataFor } from 'src/utils/layout/useNodeItem';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
-import type { RawGeometry } from 'src/layout/Map/types';
 
 export function MapComponentSummary({ targetBaseComponentId }: SummaryRendererProps) {
   const markerBinding = useDataModelBindingsFor(targetBaseComponentId, 'Map').simpleBinding;
-  const formData = useFormDataFor<'Map'>(targetBaseComponentId);
-  const markerLocation = parseLocation(formData.simpleBinding);
+  const formData = FD.useDebouncedPick(markerBinding);
+  const markerLocation = typeof formData === 'string' ? parseLocation(formData) : undefined;
   const markerLocationIsValid = isLocationValid(markerLocation);
-  const geometries = formData.geometries as RawGeometry[] | undefined;
 
   if (markerBinding && !markerLocationIsValid) {
     return (
@@ -30,18 +27,10 @@ export function MapComponentSummary({ targetBaseComponentId }: SummaryRendererPr
     <>
       <Map
         baseComponentId={targetBaseComponentId}
-        markerLocation={markerLocation}
-        geometries={geometries}
-        isSummary={true}
+        readOnly={true}
+        animate={false}
       />
-      {markerLocation && (
-        <Paragraph className={classes.footer}>
-          <Lang
-            id='map_component.selectedLocation'
-            params={[markerLocation.latitude, markerLocation.longitude]}
-          />
-        </Paragraph>
-      )}
+      {markerBinding && <MarkerLocationText baseComponentId={targetBaseComponentId} />}
     </>
   );
 }

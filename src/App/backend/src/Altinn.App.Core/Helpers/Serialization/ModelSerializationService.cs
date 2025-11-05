@@ -15,7 +15,7 @@ namespace Altinn.App.Core.Helpers.Serialization;
 /// <summary>
 /// DI registered service for centralizing (de)serialization logic for data models
 /// </summary>
-public class ModelSerializationService
+public sealed class ModelSerializationService
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
     private static readonly XmlSerializerCache _xmlSerializer = new();
@@ -131,12 +131,16 @@ public class ModelSerializationService
             {
                 model = DeserializeXml(segment, modelType);
             }
-            catch (XmlException e)
+            catch (Exception e)
             {
+                // XML deserialization can throw a variety of exceptions,
+                // all of which should result in a 400 response
+                // The actual exception is logged by the DeserializeXml method
+                var message = e.InnerException is null ? e.Message : $"{e.Message} {e.InnerException.Message}";
                 return new ProblemDetails()
                 {
                     Title = "Failed to deserialize XML",
-                    Detail = e.Message,
+                    Detail = message,
                     Status = StatusCodes.Status400BadRequest,
                 };
             }
@@ -181,8 +185,16 @@ public class ModelSerializationService
     public object DeserializeJson(ReadOnlySpan<byte> data, Type modelType)
     {
         using var activity = _telemetry?.StartDeserializeFromJsonActivity(modelType);
-        return JsonSerializer.Deserialize(data.RemoveBom(), modelType, _jsonSerializerOptions)
-            ?? throw new JsonException("Json deserialization returned null");
+        try
+        {
+            return JsonSerializer.Deserialize(data.RemoveBom(), modelType, _jsonSerializerOptions)
+                ?? throw new JsonException("Json deserialization returned null");
+        }
+        catch (Exception ex)
+        {
+            activity?.AddException(ex);
+            throw;
+        }
     }
 
     /// <summary>
@@ -191,28 +203,36 @@ public class ModelSerializationService
     public object DeserializeXml(ReadOnlySpan<byte> data, Type modelType)
     {
         using var activity = _telemetry?.StartDeserializeFromXmlActivity(modelType);
-        // convert to UTF16 string as it seems to be preferred by the XmlTextReader
-        // and aligns with previous implementation
-        string streamContent = Encoding.UTF8.GetString(data.RemoveBom());
-        if (string.IsNullOrWhiteSpace(streamContent))
-        {
-            throw new ArgumentException("No XML content read from stream");
-        }
         try
         {
-            using XmlTextReader xmlTextReader = new XmlTextReader(new StringReader(streamContent));
-            XmlSerializer serializer = _xmlSerializer.GetSerializer(modelType);
+            // convert to UTF16 string as it seems to be preferred by the XmlTextReader
+            // and aligns with previous implementation
+            string streamContent = Encoding.UTF8.GetString(data.RemoveBom());
+            if (string.IsNullOrWhiteSpace(streamContent))
+            {
+                throw new ArgumentException("No XML content read from stream");
+            }
+            try
+            {
+                using XmlTextReader xmlTextReader = new XmlTextReader(new StringReader(streamContent));
+                XmlSerializer serializer = _xmlSerializer.GetSerializer(modelType);
 
-            return serializer.Deserialize(xmlTextReader)
-                ?? throw new InvalidOperationException("Deserialization returned null");
+                return serializer.Deserialize(xmlTextReader)
+                    ?? throw new InvalidOperationException("Deserialization returned null");
+            }
+            catch (InvalidOperationException)
+            {
+                using XmlTextReader xmlTextReader = new XmlTextReader(new StringReader(streamContent));
+                XmlSerializer serializer = _xmlSerializer.GetSerializerIgnoreNamespace(modelType);
+
+                return serializer.Deserialize(xmlTextReader)
+                    ?? throw new InvalidOperationException("Deserialization returned null");
+            }
         }
-        catch (InvalidOperationException)
+        catch (Exception ex)
         {
-            using XmlTextReader xmlTextReader = new XmlTextReader(new StringReader(streamContent));
-            XmlSerializer serializer = _xmlSerializer.GetSerializerIgnoreNamespace(modelType);
-
-            return serializer.Deserialize(xmlTextReader)
-                ?? throw new InvalidOperationException("Deserialization returned null");
+            activity?.AddException(ex);
+            throw;
         }
     }
 

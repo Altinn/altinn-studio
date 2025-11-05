@@ -138,18 +138,6 @@ public static class TestData
         return Path.Join(testDataDirectory, "apps", org, app, "config", "authorization") + Path.DirectorySeparatorChar;
     }
 
-    public static string GetAltinnProfilePath()
-    {
-        string testDataDirectory = GetTestDataRootDirectory();
-        return Path.Join(testDataDirectory, "Register", "Party");
-    }
-
-    public static string GetRegisterProfilePath()
-    {
-        string testDataDirectory = GetTestDataRootDirectory();
-        return Path.Join(testDataDirectory, "Profile", "User");
-    }
-
     public static string GetInstancePath(string org, string app, int instanceOwnerId, Guid instanceGuid)
     {
         string instancesDirectory = GetInstancesDirectory();

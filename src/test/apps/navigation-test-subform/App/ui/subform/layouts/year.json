@@ -1,0 +1,50 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "dataModelBindings": {
+          "simpleBinding": "modelyear"
+        },
+        "id": "year",
+        "type": "Input",
+        "formatting": {
+          "number": {
+            "decimalScale": 0,
+            "allowNegative": false
+          }
+        },
+        "textResourceBindings": {
+          "title": "year.title"
+        },
+        "required": true
+      },
+      {
+        "id": "btn-group",
+        "type": "ButtonGroup",
+        "children": ["NavigationButtons-year", "subform-exitButton"]
+      },
+      {
+        "id": "NavigationButtons-year",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      },
+      {
+        "id": "subform-exitButton",
+        "type": "CustomButton",
+        "actions": [
+          {
+            "type": "ClientAction",
+            "id": "closeSubform",
+            "validation": {
+              "page": "all",
+              "show": ["All"]
+            }
+          }
+        ],
+        "buttonSize": "sm"
+      }
+    ]
+  }
+}

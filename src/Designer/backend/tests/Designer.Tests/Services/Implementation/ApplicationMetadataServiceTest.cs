@@ -39,7 +39,8 @@ public class ApplicationMetadataServiceTest
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>()
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(Base64FileSystemObjectFactory(appMetadata, jsonSerializerOptions));

@@ -1,0 +1,96 @@
+{
+  "$schema": "http://localhost:8080/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": [
+      "not",
+      ["commaContains", ["dataModel", "ChooseExtraPages"], "map"]
+    ],
+    "layout": [
+      {
+        "id": "mapNavBar",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "map-location",
+        "type": "Input",
+        "hidden": true,
+        "textResourceBindings": {
+          "title": "Eksakt lokasjon"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "MapData.Location"
+        }
+      },
+      {
+        "id": "map",
+        "type": "Map",
+        "textResourceBindings": {
+          "title": "Velg lokasjon",
+          "description": "Lokasjon for hvor du skal endre navn",
+          "help": "Trykk på kartet"
+        },
+        "centerLocation": {
+          "latitude": 59.93080398894555,
+          "longitude": 10.8012469132984
+        },
+        "zoom": 6,
+        "dataModelBindings": {
+          "simpleBinding": "MapData.Location",
+          "geometries": "MapData.Geometries"
+        },
+        "geometryType": "WKT",
+        "required": true
+      },
+      {
+        "id": "mapSummaryHeader",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Oppsummering"
+        },
+        "size": "h2"
+      },
+      {
+        "id": "mapSummary",
+        "type": "Summary",
+        "componentRef": "map"
+      },
+      {
+        "id": "mapValue",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": [
+            "concat",
+            "<b>Din valgte lokasjon</b>:\n\n",
+            ["displayValue", "map"]
+          ]
+        }
+      },
+      {
+        "id": "geometrySelector",
+        "type": "Checkboxes",
+        "dataModelBindings": {
+          "simpleBinding": "MapData.Selected"
+        },
+        "options": [
+          { "label": "Hankabakken 1", "value": "1" },
+          { "label": "Hankabakken 2", "value": "2" },
+          { "label": "Hankabakken 3", "value": "3" },
+          { "label": "Hankabakken 4", "value": "4" },
+          { "label": "Hankabakken 5", "value": "5" },
+          { "label": "Hankabakken 6", "value": "6" },
+          { "label": "Hankabakken 7", "value": "7" },
+          { "label": "Hankabakken 8", "value": "8" }
+        ]
+      },
+      {
+        "id": "mapNavigate",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "back": "Tilbake",
+          "next": "Neste"
+        },
+        "showBackButton": true
+      }
+    ]
+  }
+}

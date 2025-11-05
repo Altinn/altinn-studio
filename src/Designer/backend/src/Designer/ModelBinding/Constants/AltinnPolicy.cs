@@ -1,3 +1,4 @@
+#nullable disable
 namespace Altinn.Studio.Designer.ModelBinding.Constants
 {
     /// <summary>
@@ -29,5 +30,10 @@ namespace Altinn.Studio.Designer.ModelBinding.Constants
         /// MustBelongToOrganization
         /// </summary>
         public const string MustBelongToOrganization = "MustBelongToOrganization";
+
+        /// <summary>
+        /// MustHaveOrganizationPermission
+        /// </summary>
+        public const string MustHaveOrganizationPermission = "MustHaveOrganizationPermission";
     }
 }

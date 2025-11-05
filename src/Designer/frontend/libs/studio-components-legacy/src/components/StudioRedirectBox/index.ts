@@ -1,1 +1,0 @@
-export { StudioRedirectBox } from './StudioRedirectBox';
