@@ -1,5 +1,5 @@
 # Building studio frontend
-FROM node:lts-alpine@sha256:bd26af08779f746650d95a2e4d653b0fd3c8030c44284b6b98d701c9b5eb66b9 AS generate-studio-frontend
+FROM node:lts-alpine@sha256:f36fed0b2129a8492535e2853c64fbdbd2d29dc1219ee3217023ca48aebd3787 AS generate-studio-frontend
 WORKDIR /build
 
 COPY ./package.json yarn.lock ./
@@ -14,6 +14,7 @@ COPY src/Designer/frontend/dashboard/package.json ./src/Designer/frontend/dashbo
 COPY src/Designer/frontend/admin/package.json ./src/Designer/frontend/admin/
 COPY src/Designer/frontend/language/package.json ./src/Designer/frontend/language/
 COPY src/Designer/frontend/libs/studio-assistant/package.json ./src/Designer/frontend/libs/studio-assistant/
+COPY src/Designer/frontend/libs/studio-browser-storage/package.json ./src/Designer/frontend/libs/studio-browser-storage/
 COPY src/Designer/frontend/libs/studio-components/package.json ./src/Designer/frontend/libs/studio-components/
 COPY src/Designer/frontend/libs/studio-components-legacy/package.json ./src/Designer/frontend/libs/studio-components-legacy/
 COPY src/Designer/frontend/libs/studio-content-library/package.json ./src/Designer/frontend/libs/studio-content-library/

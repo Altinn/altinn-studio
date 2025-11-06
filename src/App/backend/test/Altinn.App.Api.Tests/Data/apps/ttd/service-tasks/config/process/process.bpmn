@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<bpmn:definitions id="Altinn_SingleDataTask_Process_Definition" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+    <bpmn:process id="SingleDataTask" isExecutable="false">
+        <bpmn:startEvent id="StartEvent_1">
+            <bpmn:outgoing>SequenceFlow_1n56yn5</bpmn:outgoing>
+        </bpmn:startEvent>
+        <bpmn:task id="Task_1" name="Utfylling">
+            <bpmn:incoming>SequenceFlow_1n56yn5</bpmn:incoming>
+            <bpmn:incoming>SequenceFlow_gateway1_task1</bpmn:incoming>
+            <bpmn:outgoing>SequenceFlow_1oot28q</bpmn:outgoing>
+            <bpmn:extensionElements>
+                <altinn:taskExtension>
+                    <altinn:taskType>data</altinn:taskType>
+                </altinn:taskExtension>
+            </bpmn:extensionElements>
+        </bpmn:task>
+        <bpmn:serviceTask id="Task_2" name="PDF">
+            <bpmn:incoming>SequenceFlow_1oot28q</bpmn:incoming>
+            <bpmn:outgoing>SequenceFlow_task2_gateway1</bpmn:outgoing>
+            <bpmn:extensionElements>
+                <altinn:taskExtension>
+                    <altinn:taskType>pdf</altinn:taskType>
+                    <altinn:pdfConfig>
+                        <altinn:tasksToIncludeInPdf>
+                            <altinn:task>Task_1</altinn:task>
+                        </altinn:tasksToIncludeInPdf>
+                    </altinn:pdfConfig>
+                </altinn:taskExtension>
+            </bpmn:extensionElements>
+        </bpmn:serviceTask>
+        <bpmn:exclusiveGateway id="Gateway_1">
+            <bpmn:incoming>SequenceFlow_task2_gateway1</bpmn:incoming>
+            <bpmn:outgoing>SequenceFlow_gateway1_task1</bpmn:outgoing>
+            <bpmn:outgoing>Flow_g1_task3</bpmn:outgoing>
+        </bpmn:exclusiveGateway>
+        <bpmn:serviceTask id="Task_3" name="eFormidling">
+            <bpmn:incoming>Flow_g1_task3</bpmn:incoming>
+            <bpmn:outgoing>SequenceFlow_5assd2s</bpmn:outgoing>
+            <bpmn:extensionElements>
+                <altinn:taskExtension>
+                    <altinn:taskType>eFormidling</altinn:taskType>
+                    <altinn:eFormidlingConfig>
+                        <altinn:enabled>true</altinn:enabled>
+                        <altinn:receiver>123456789</altinn:receiver>
+                        <altinn:process>urn:no:difi:profile:arkivmelding:administrasjon:ver1.0</altinn:process>
+                        <altinn:standard>urn:no:difi:arkivmelding:xsd::arkivmelding</altinn:standard>
+                        <altinn:typeVersion>2.0</altinn:typeVersion>
+                        <altinn:type>arkivmelding</altinn:type>
+                        <altinn:securityLevel>3</altinn:securityLevel>
+                        <altinn:dpfShipmentType>digital</altinn:dpfShipmentType>
+                        <altinn:dataTypes>
+                            <altinn:dataType>model</altinn:dataType>
+                            <altinn:dataType>ref-data-as-pdf</altinn:dataType>
+                        </altinn:dataTypes>
+                    </altinn:eFormidlingConfig>
+                </altinn:taskExtension>
+            </bpmn:extensionElements>
+        </bpmn:serviceTask>
+        <bpmn:endEvent id="EndEvent_1">
+            <bpmn:incoming>SequenceFlow_5assd2s</bpmn:incoming>
+        </bpmn:endEvent>
+        <bpmn:sequenceFlow id="SequenceFlow_1n56yn5" sourceRef="StartEvent_1" targetRef="Task_1"/>
+        <bpmn:sequenceFlow id="SequenceFlow_1oot28q" sourceRef="Task_1" targetRef="Task_2"/>
+        <bpmn:sequenceFlow id="SequenceFlow_task2_gateway1" sourceRef="Task_2" targetRef="Gateway_1"/>
+        <bpmn:sequenceFlow id="SequenceFlow_gateway1_task1" sourceRef="Gateway_1" targetRef="Task_1">
+            <bpmn:conditionExpression>["equals", ["gatewayAction"], "reject"]</bpmn:conditionExpression>
+        </bpmn:sequenceFlow>
+        <bpmn:sequenceFlow id="Flow_g1_task3" sourceRef="Gateway_1" targetRef="Task_3">
+            <bpmn:conditionExpression>["notEquals", ["gatewayAction"], "reject"]</bpmn:conditionExpression>
+        </bpmn:sequenceFlow>
+        <bpmn:sequenceFlow id="SequenceFlow_5assd2s" sourceRef="Task_3" targetRef="EndEvent_1"/>
+    </bpmn:process>
+</bpmn:definitions>

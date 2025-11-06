@@ -2,6 +2,11 @@
   "$schema": "news.schema.json",
   "news": [
     {
+      "date": "2025-11-05",
+      "title": "Ny komponent: Nå kan bruker laste opp og beskjære bilder i appen",
+      "content": "Nå kan de som bruker appen din laste opp bilder. Når du legger inn den nye bildeopplaster-komponenten i appen, kan brukerne laste opp og beskjære et bilde, for eksempel til et profilbilde."
+    },
+    {
       "date": "2025-08-22",
       "title": "Organisasjonsbiblioteket er nå tilgjengelig fra dashbordet",
       "content": "Nå har Studio fått et organisasjonsbibliotek! Det er et sted der dere kan  opprette kodelister og lagre andre felles ressurser for virksomheten. Vi kommer til å jobbe videre med dette, slik at dere etter hvert kan dele og bruke forskjellige typer ressurser, for eksempel tekster og bilder."
