@@ -29,9 +29,18 @@
   margin-bottom: var(--ds-size-12);
 }
 
+.pageBreak {
+  height: 0;
+  width: 0;
+}
+
 @media print {
   .hideInPrint {
     display: none;
+  }
+
+  .pageBreak {
+    page-break-before: always;
   }
 }
 

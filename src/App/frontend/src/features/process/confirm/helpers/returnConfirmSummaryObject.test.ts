@@ -1,5 +1,5 @@
 import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
-import { returnConfirmSummaryObject } from 'src/features/processEnd/confirm/helpers/returnConfirmSummaryObject';
+import { returnConfirmSummaryObject } from 'src/features/process/confirm/helpers/returnConfirmSummaryObject';
 import type { IParty } from 'src/types/shared';
 
 const langTools = staticUseLanguageForTests({ language: {} });

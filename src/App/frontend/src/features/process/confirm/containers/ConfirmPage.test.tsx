@@ -8,7 +8,7 @@ import { AxiosResponse } from 'axios';
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock, getPartyWithSubunitMock } from 'src/__mocks__/getPartyMock';
-import { ConfirmPage, type IConfirmPageProps } from 'src/features/processEnd/confirm/containers/ConfirmPage';
+import { ConfirmPage, type IConfirmPageProps } from 'src/features/process/confirm/containers/ConfirmPage';
 import { doProcessNext } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { IProcess } from 'src/types/shared';
