@@ -43,7 +43,7 @@ describe('SchemaNode', () => {
     render({ schemaModel, save, schemaPointer });
     await user.click(getAddNodeInChildButton());
     const addTextButtonName = textMock('schema_editor.add_string');
-    const addTextButton = screen.getByRole('menuitem', { name: addTextButtonName });
+    const addTextButton = screen.getByRole('button', { name: addTextButtonName });
     await user.click(addTextButton);
     expect(save).toHaveBeenCalledTimes(1);
     const savedModel = getSavedModel(save);
@@ -59,7 +59,7 @@ describe('SchemaNode', () => {
     render({ schemaModel, save, schemaPointer });
     await user.click(getAddNodeInChildButton());
     const addCombinationButtonName = textMock('schema_editor.add_combination');
-    const addCombinationButton = screen.getByRole('menuitem', { name: addCombinationButtonName });
+    const addCombinationButton = screen.getByRole('button', { name: addCombinationButtonName });
     await user.click(addCombinationButton);
     expect(save).toHaveBeenCalledTimes(1);
     const savedModel = getSavedModel(save);
@@ -78,7 +78,7 @@ describe('SchemaNode', () => {
     render({ schemaModel, save, schemaPointer });
     await user.click(getAddNodeInChildButton());
     const addReferenceButtonName = textMock('schema_editor.add_reference');
-    const addReferenceButton = screen.getByRole('menuitem', { name: addReferenceButtonName });
+    const addReferenceButton = screen.getByRole('button', { name: addReferenceButtonName });
     await user.click(addReferenceButton);
     expect(save).toHaveBeenCalledTimes(1);
     const savedModel = getSavedModel(save);
@@ -176,7 +176,7 @@ describe('SchemaNode', () => {
     render({ schemaModel, save, schemaPointer });
     await user.click(getAddNodeInChildButton());
     const addTextButtonName = textMock('schema_editor.add_string');
-    const addTextButton = screen.getByRole('menuitem', { name: addTextButtonName });
+    const addTextButton = screen.getByRole('button', { name: addTextButtonName });
     await user.click(addTextButton);
     const savedModel = getSavedModel(save);
     const updatedNode = savedModel.getNodeBySchemaPointer(schemaPointer) as FieldNode;
@@ -214,5 +214,5 @@ const render = ({
 
 const getAddNodeInChildButton = () =>
   screen.getByRole('button', {
-    name: textMock('schema_editor.add_node_of_type_in_child_node_title'),
+    name: textMock('schema_editor.add_property'),
   });

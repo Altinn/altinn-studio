@@ -1,4 +1,4 @@
-import type { Expression } from '../types/Expression';
+import type { Expression } from '../../StudioExpression/types/Expression';
 
 export const stringToExpression = (str: string): Expression => {
   const expression = JSON.parse(str);
