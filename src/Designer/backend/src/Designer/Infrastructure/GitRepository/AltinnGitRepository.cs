@@ -179,10 +179,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             PropertyInfo[] properties = altinnStudioSettings.GetType().GetProperties();
             using JsonDocument jsonDocument = JsonDocument.Parse(altinnStudioSettingsJson);
             JsonElement root = jsonDocument.RootElement;
-            JsonElement.ObjectEnumerator elements = root.EnumerateObject();
-            foreach (var property in properties)
+            foreach (PropertyInfo property in properties)
             {
-                if (!elements.Any(x => string.Equals(x.Name, property.Name, StringComparison.OrdinalIgnoreCase)))
+                string jsonName = property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name;
+                if (!root.TryGetProperty(jsonName, out _))
                 {
                     return false;
                 }
