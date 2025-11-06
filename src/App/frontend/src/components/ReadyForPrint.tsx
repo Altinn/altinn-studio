@@ -2,6 +2,7 @@ import React, { useEffect, useState, useTransition } from 'react';
 
 import { useIsFetching } from '@tanstack/react-query';
 
+import { useIsPdf } from 'src/hooks/useIsPdf';
 import { waitForAnimationFrames } from 'src/utils/waitForAnimationFrames';
 
 export const loadingClassName = 'loading';
@@ -26,6 +27,8 @@ export function ReadyForPrint({ type }: { type: ReadyType }) {
 
   const hasLoaders = useHasElementsByClass(loadingClassName);
 
+  const is = useIsPdf();
+
   React.useLayoutEffect(() => {
     if (assetsLoaded) {
       return;
@@ -40,6 +43,10 @@ export function ReadyForPrint({ type }: { type: ReadyType }) {
   }, [assetsLoaded]);
 
   if (!assetsLoaded || hasLoaders || isFetching || isPending) {
+    // if (is) {
+    //   debugger;
+    // }
+
     return null;
   }
 

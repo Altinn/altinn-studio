@@ -164,6 +164,8 @@ function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: IP
       >
         {children.map((baseComponentId) => {
           if (hidden[baseComponentId]) {
+            console.log('hidden: ', baseComponentId);
+
             return null;
           }
 

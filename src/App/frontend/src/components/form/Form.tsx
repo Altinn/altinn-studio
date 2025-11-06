@@ -250,8 +250,8 @@ function HandleNavigationFocusComponent() {
       if (exitSubform || validate) {
         const location = new URLSearchParams(searchStringRef.current);
         location.delete(SearchParams.ExitSubform);
-        const baseHash = window.location.hash.slice(1).split('?')[0];
-        const nextLocation = location.size > 0 ? `${baseHash}?${location.toString()}` : baseHash;
+        const basePath = window.location.pathname;
+        const nextLocation = location.size > 0 ? `${basePath}?${location.toString()}` : basePath;
         navigate(nextLocation, { replace: true });
       }
     })();

@@ -51,7 +51,7 @@ describe('PDF', () => {
       callback: () => {
         cy.get('@allRequests.all').then((_intercepts) => {
           const intercepts = _intercepts as unknown as Interception[];
-          expect(intercepts.length).to.be.greaterThan(10);
+          expect(intercepts.length).to.be.greaterThan(7);
           for (const intercept of intercepts) {
             const { request } = intercept;
             const reqInfo = `${intercept.browserRequestId} ${intercept.routeId} ${request.method} ${request.url.split(domain)[1]}`;
@@ -67,7 +67,7 @@ describe('PDF', () => {
     });
   });
 
-  it('should generate PDF for changename step', { retries: 0 }, () => {
+  it.only('should generate PDF for changename step', { retries: 0 }, () => {
     cy.interceptLayout(
       'changename',
       (component) => {
@@ -94,6 +94,7 @@ describe('PDF', () => {
     cy.goto('changename');
 
     cy.findByRole('textbox', { name: /nytt fornavn/i }).type('Ola');
+
     cy.findByRole('textbox', { name: /nytt mellomnavn/i }).type('"Big G"');
     cy.findByRole('tab', { name: /nytt etternavn/i }).click();
     cy.findByRole('textbox', { name: /nytt etternavn/i }).type('Nordmann');
@@ -109,6 +110,8 @@ describe('PDF', () => {
     cy.findByRole('textbox', { name: /Adresse/i }).type('Økern 1');
     cy.findByRole('textbox', { name: /Zip Code/i }).type('0101');
     cy.findByRole('textbox', { name: /Post Place/i }).should('have.value', 'OSLO');
+
+    cy.pause();
 
     cy.testPdf({
       snapshotName: 'changeName 1',

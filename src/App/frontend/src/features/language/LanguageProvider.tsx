@@ -11,7 +11,7 @@ import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
  * if this query param changes after initial load.
  */
 function getLanguageFromUrl() {
-  const params = new URLSearchParams(window.location.hash.split('?')[1]);
+  const params = new URLSearchParams(window.location.search);
   return params.get('lang');
 }
 
