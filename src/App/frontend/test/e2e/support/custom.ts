@@ -355,7 +355,6 @@ Cypress.Commands.add('visualTesting', (name, _options) => {
 
 Cypress.Commands.add('testWcag', () => {
   cy.log('Testing WCAG');
-  cy.injectAxe();
   const spec = Cypress.spec.absolute.replace(/.*\/integration\//g, '');
   const axeOptions: AxeOptions = {
     includedImpacts: ['critical', 'serious', 'moderate'],
@@ -656,7 +655,7 @@ Cypress.Commands.add(
     cy.getCurrentViewportSize().as('testPdfViewportSize');
 
     // Make sure instantiation is completed before we get the url
-    cy.location('pathname', { log: false }).should('contain', '/instance/');
+    cy.location('hash', { log: false }).should('contain', '#/instance/');
 
     // Make sure we blur any selected component before reload to trigger save
     cy.get('body').click({ log: false });
@@ -676,6 +675,7 @@ Cypress.Commands.add(
     // Build PDF url and visit
     cy.window({ log: false }).then((win) => {
       const visitUrl = buildUrl(win.location.href);
+
       // Visit this first so that we don't just re-route in the active react app
       win.location.href = 'about:blank';
 
@@ -702,14 +702,14 @@ Cypress.Commands.add(
           cy.clock();
 
           cy.then(() => {
-            // const timeout = setTimeout(() => {
-            //   throw 'PDF callback failed, print was not ready when #readyForPrint appeared';
-            // }, 0);
+            const timeout = setTimeout(() => {
+              throw 'PDF callback failed, print was not ready when #readyForPrint appeared';
+            }, 0);
             // Verify that generic elements that should be hidden are not present
             cy.findAllByRole('button').should('not.exist');
             // Run tests from callback
             callback();
-            // cy.then(() => clearTimeout(timeout));
+            cy.then(() => clearTimeout(timeout));
           });
         } else {
           cy.findAllByRole('button').should('not.exist');

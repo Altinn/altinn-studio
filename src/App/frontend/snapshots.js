@@ -164,7 +164,7 @@ module.exports = {
         "ChooseExtraPages": null,
         "Numeric": null,
         "MapData": {
-          "Location": "",
+          "Location": null,
           "Geometries": [
             {
               "data": "POLYGON ((16.1096835728424 67.1452365035596,16.1190491078039 67.1451712353654,16.118841539588 67.1406869499763,16.109477740932 67.1407522039498,16.1096835728424 67.1452365035596))",
@@ -212,16 +212,16 @@ module.exports = {
               "Comments": [
                 {
                   "Type": "CRITICISM",
-                  "TypeLabel": "",
+                  "TypeLabel": null,
                   "Text": "Her er en kritisk kommentar, for denne katten lukter vondt"
                 },
                 {
                   "Type": "PRAISE",
-                  "TypeLabel": "",
+                  "TypeLabel": null,
                   "Text": "Her er en skrytende kommentar, for denne katten er så søt"
                 }
               ],
-              "CommentLabels": ""
+              "CommentLabels": null
             },
             {
               "Name": "Tiger",
@@ -240,7 +240,7 @@ module.exports = {
                   "Text": "Her er en kommentar som er søppel, for KOM OG KJØP BILLIGE KLOMPELØVER"
                 }
               ],
-              "CommentLabels": ""
+              "CommentLabels": null
             }
           ]
         },
@@ -335,15 +335,15 @@ module.exports = {
         "Questions": [
           {
             "Id": "question-1",
-            "Answer": ""
+            "Answer": null
           },
           {
             "Id": "question-2",
-            "Answer": ""
+            "Answer": null
           },
           {
             "Id": "question-3",
-            "Answer": ""
+            "Answer": null
           },
           {
             "Id": "question-4",
@@ -367,5 +367,5 @@ module.exports = {
       }
     }
   },
-  "__version": "15.4.0"
+  "__version": "15.5.0"
 }

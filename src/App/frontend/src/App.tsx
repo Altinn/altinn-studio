@@ -8,7 +8,7 @@ import { ComponentRouting, NavigateToStartUrl, ProcessWrapper } from 'src/compon
 import { Entrypoint } from 'src/features/entrypoint/Entrypoint';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
-import { PDFWrapper } from 'src/features/pdf/PDFWrapper';
+import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
 import { FixWrongReceiptType } from 'src/features/receipt/FixWrongReceiptType';
 import { DefaultReceipt } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
@@ -23,6 +23,7 @@ export const App = () => (
         </PresentationComponent>
       }
     />
+
     <Route element={<Entrypoint />}>
       <Route
         path=':pageKey'
@@ -31,6 +32,10 @@ export const App = () => (
             <Form />
           </PresentationComponent>
         }
+      />
+      <Route
+        index
+        element={<NavigateToStartUrl forceCurrentTask={false} />}
       />
     </Route>
 
@@ -42,6 +47,11 @@ export const App = () => (
         </InstanceProvider>
       }
     >
+      <Route
+        index
+        element={<NavigateToStartUrl />}
+      />
+
       <Route
         path={TaskKeys.ProcessEnd}
         element={<DefaultReceipt />}
@@ -63,16 +73,15 @@ export const App = () => (
           index
           element={<NavigateToStartUrl forceCurrentTask={false} />}
         />
-
         <Route path=':pageKey'>
           <Route
             index
             element={
-              <PDFWrapper>
+              <PdfWrapper>
                 <PresentationComponent>
                   <Form />
                 </PresentationComponent>
-              </PDFWrapper>
+              </PdfWrapper>
             }
           />
           <Route path=':componentId'>
