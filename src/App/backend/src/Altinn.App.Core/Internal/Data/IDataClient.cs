@@ -23,6 +23,7 @@ public interface IDataClient
     /// <param name="dataType">The data type to create, must be a valid data type defined in application metadata</param>
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
     /// <param name="cancellationToken">An optional cancellation token</param>
+    [Obsolete("Use InsertFormData with Instance parameter instead")]
     Task<DataElement> InsertFormData<T>(
         T dataToSerialize,
         Guid instanceGuid,
@@ -47,6 +48,7 @@ public interface IDataClient
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
     /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns>The data element metadata</returns>
+    [Obsolete("Use the overload without Type parameter")]
     Task<DataElement> InsertFormData<T>(
         Instance instance,
         string dataTypeString,
@@ -55,7 +57,33 @@ public interface IDataClient
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
     )
-        where T : notnull;
+        where T : notnull
+    {
+        if (dataToSerialize.GetType() != type)
+        {
+            throw new ArgumentException(
+                $"The provided type {type.FullName} does not match the type of dataToSerialize {dataToSerialize.GetType().FullName}"
+            );
+        }
+        return InsertFormData(instance, dataTypeString, dataToSerialize, authenticationMethod, cancellationToken);
+    }
+
+    /// <summary>
+    /// Creates a new data element for the given instance and data model
+    /// </summary>
+    /// <param name="instance">The instance to add the element to</param>
+    /// <param name="dataTypeId">The id of the data type to add</param>
+    /// <param name="dataToSerialize">An instance of the class for the form data</param>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
+    /// <returns></returns>
+    Task<DataElement> InsertFormData(
+        Instance instance,
+        string dataTypeId,
+        object dataToSerialize,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// updates the form data
@@ -70,7 +98,7 @@ public interface IDataClient
     /// <param name="dataId">the data id</param>
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
     /// <param name="cancellationToken">An optional cancellation token</param>
-    //TODO: [Obsolete in v9 in favour of a version that gets the dataType so we can support json and xml]
+    [Obsolete("Use the UpdateFormData method with Instance parameter instead")]
     Task<DataElement> UpdateData<T>(
         T dataToSerialize,
         Guid instanceGuid,
@@ -85,6 +113,22 @@ public interface IDataClient
         where T : notnull;
 
     /// <summary>
+    /// updates the form data
+    /// </summary>
+    /// <param name="instance">The instance</param>
+    /// <param name="dataToSerialize">The form data to serialize</param>
+    /// <param name="dataElement">The data element</param>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
+    Task<DataElement> UpdateFormData(
+        Instance instance,
+        object dataToSerialize,
+        DataElement dataElement,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Gets the form data
     /// </summary>
     /// <param name="instanceGuid">The instance id</param>
@@ -95,6 +139,7 @@ public interface IDataClient
     /// <param name="dataId">the data id</param>
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
     /// <param name="cancellationToken">An optional cancellation token</param>
+    [Obsolete("Use the overload with Instance parameter instead")]
     Task<object> GetFormData(
         Guid instanceGuid,
         Type type,
@@ -102,6 +147,21 @@ public interface IDataClient
         string app,
         int instanceOwnerPartyId,
         Guid dataId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Gets the deserialized form data
+    /// </summary>
+    /// <param name="instance">The instance</param>
+    /// <param name="dataElement">The data element</param>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
+    /// <returns></returns>
+    Task<object> GetFormData(
+        Instance instance,
+        DataElement dataElement,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
     );
@@ -117,9 +177,26 @@ public interface IDataClient
     /// <param name="dataId">the data id</param>
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
     /// <param name="cancellationToken">An optional cancellation token</param>
+    [Obsolete("Org and App parameters are not used, use the overload without these parameters")]
     Task<Stream> GetBinaryData(
         string org,
         string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        Guid dataId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    ) => GetBinaryData(instanceOwnerPartyId, instanceGuid, dataId, authenticationMethod, cancellationToken);
+
+    /// <summary>
+    /// Gets the data as is.
+    /// </summary>
+    /// <param name="instanceOwnerPartyId">The instance owner id</param>
+    /// <param name="instanceGuid">The instance id</param>
+    /// <param name="dataId">the data id</param>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
+    Task<Stream> GetBinaryData(
         int instanceOwnerPartyId,
         Guid instanceGuid,
         Guid dataId,
@@ -148,7 +225,7 @@ public interface IDataClient
     );
 
     /// <summary>
-    /// Similar to GetBinaryData, but returns a HttpResponseMessage instead of a cached stream
+    /// Similar to GetBinaryData, but returns the raw bytes instead of a cached stream
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -158,9 +235,27 @@ public interface IDataClient
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
     /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns>The raw HttpResponseMessage from the call to platform</returns>
+    [Obsolete("Org and App parameters are not used, use the overload without these parameters")]
     Task<byte[]> GetDataBytes(
         string org,
         string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        Guid dataId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    ) => GetDataBytes(instanceOwnerPartyId, instanceGuid, dataId, authenticationMethod, cancellationToken);
+
+    /// <summary>
+    /// Similar to GetBinaryData, but returns the raw bytes instead of a cached stream
+    /// </summary>
+    /// <param name="instanceOwnerPartyId">The instance owner id</param>
+    /// <param name="instanceGuid">The instance id</param>
+    /// <param name="dataId">the data id</param>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
+    /// <returns>The raw bytes from storage</returns>
+    Task<byte[]> GetDataBytes(
         int instanceOwnerPartyId,
         Guid instanceGuid,
         Guid dataId,
@@ -178,9 +273,25 @@ public interface IDataClient
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
     /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns>A list with attachments metadata ordered by attachmentType</returns>
+    [Obsolete("Org and App parameters are not used, use the overload without these parameters")]
     Task<List<AttachmentList>> GetBinaryDataList(
         string org,
         string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    ) => GetBinaryDataList(instanceOwnerPartyId, instanceGuid, authenticationMethod, cancellationToken);
+
+    /// <summary>
+    /// Method that gets metadata on form attachments ordered by attachmentType
+    /// </summary>
+    /// <param name="instanceOwnerPartyId">The instance owner id</param>
+    /// <param name="instanceGuid">The instance id</param>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
+    /// <returns>A list with attachments metadata ordered by attachmentType</returns>
+    Task<List<AttachmentList>> GetBinaryDataList(
         int instanceOwnerPartyId,
         Guid instanceGuid,
         StorageAuthenticationMethod? authenticationMethod = null,
@@ -196,7 +307,8 @@ public interface IDataClient
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataGuid">The attachment id</param>
     [Obsolete("Use method DeleteData with delayed=false instead.", error: true)]
-    Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid);
+    Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid) =>
+        DeleteData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, false);
 
     /// <summary>
     /// Method that removes a data elemen from disk/storage immediatly or marks it as deleted.
@@ -209,9 +321,28 @@ public interface IDataClient
     /// <param name="delay">A boolean indicating whether or not the delete should be executed immediately or delayed</param>
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
     /// <param name="cancellationToken">An optional cancellation token</param>
+    [Obsolete("Use the overload without org and app parameters")]
     Task<bool> DeleteData(
         string org,
         string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        Guid dataGuid,
+        bool delay,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    ) => DeleteData(instanceOwnerPartyId, instanceGuid, dataGuid, delay, authenticationMethod, cancellationToken);
+
+    /// <summary>
+    /// Method that removes a data elemen from disk/storage immediatly or marks it as deleted.
+    /// </summary>
+    /// <param name="instanceOwnerPartyId">The instance owner id</param>
+    /// <param name="instanceGuid">The instance id</param>
+    /// <param name="dataGuid">The attachment id</param>
+    /// <param name="delay">A boolean indicating whether or not the delete should be executed immediately or delayed</param>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
+    Task<bool> DeleteData(
         int instanceOwnerPartyId,
         Guid instanceGuid,
         Guid dataGuid,
@@ -231,6 +362,7 @@ public interface IDataClient
     /// <param name="request">Http request containing the attachment to be saved</param>
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
     /// <param name="cancellationToken">An optional cancellation token</param>
+    [Obsolete("The overload that takes a HttpRequest is deprecated, use the overload that takes a Stream instead")]
     Task<DataElement> InsertBinaryData(
         string org,
         string app,
@@ -352,4 +484,39 @@ public interface IDataClient
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
     );
+}
+
+/// <summary>
+/// Extension methods for IDataClient
+/// </summary>
+public static class IDataClientExtensions
+{
+    /// <summary>
+    /// Gets the deserialized form data
+    /// </summary>
+    /// <typeparam name="T">The type</typeparam>
+    /// <param name="dataClient">The data client</param>
+    /// <param name="instance">The instance</param>
+    /// <param name="dataElement">The data element</param>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
+    public static async Task<T> GetFormData<T>(
+        this IDataClient dataClient,
+        Instance instance,
+        DataElement dataElement,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        object formData = await dataClient.GetFormData(instance, dataElement, authenticationMethod, cancellationToken);
+
+        if (formData is T typedFormData)
+        {
+            return typedFormData;
+        }
+
+        throw new InvalidCastException(
+            $"Failed to cast form data of type {formData?.GetType().FullName ?? "null"} to requested type {typeof(T).FullName}"
+        );
+    }
 }

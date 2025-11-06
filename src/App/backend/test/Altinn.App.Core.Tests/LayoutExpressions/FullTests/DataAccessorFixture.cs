@@ -217,14 +217,17 @@ public sealed class DataAccessorFixture
             throw new ArgumentException($"Data type {fullName} not found in ApplicationMetadata");
         }
         var dataGuid = Guid.NewGuid();
-        var dataElement = new DataElement() { Id = dataGuid.ToString(), DataType = dataType.Id };
+        var dataElement = new DataElement()
+        {
+            Id = dataGuid.ToString(),
+            DataType = dataType.Id,
+            ContentType = "application/xml",
+        };
         Instance.Data.Add(dataElement);
         var serializationService = new ModelSerializationService(AppModelMock.Object);
         DataClientMock
             .Setup(dc =>
                 dc.GetDataBytes(
-                    Org,
-                    App,
                     InstanceOwnerPartyId,
                     InstanceGuid,
                     dataGuid,
@@ -232,6 +235,6 @@ public sealed class DataAccessorFixture
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(serializationService.SerializeToStorage(data, dataType).data.ToArray());
+            .ReturnsAsync(serializationService.SerializeToStorage(data, dataType, dataElement).data.ToArray());
     }
 }

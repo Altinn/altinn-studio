@@ -17,15 +17,24 @@ public interface IProcessTask
     /// <summary>
     /// Any logic to be executed when a task is started should be put in this method.
     /// </summary>
-    Task Start(string taskId, Instance instance);
+    Task Start(string taskId, Instance instance)
+    {
+        return Task.CompletedTask;
+    }
 
     /// <summary>
     /// Any logic to be executed when a task is ended should be put in this method.
     /// </summary>
-    Task End(string taskId, Instance instance);
+    Task End(string taskId, Instance instance)
+    {
+        return Task.CompletedTask;
+    }
 
     /// <summary>
     /// Any logic to be executed when a task is abandoned should be put in this method.
     /// </summary>
-    Task Abandon(string taskId, Instance instance);
+    Task Abandon(string taskId, Instance instance)
+    {
+        return Task.CompletedTask;
+    }
 }

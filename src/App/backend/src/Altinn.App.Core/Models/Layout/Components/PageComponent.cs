@@ -69,6 +69,7 @@ public sealed class PageComponent : Base.BaseComponent
                 "subform" => SubFormComponent.Parse(componentElement, pageId, layoutId),
                 "tabs" => TabsComponent.Parse(componentElement, pageId, layoutId),
                 "cards" => CardsComponent.Parse(componentElement, pageId, layoutId),
+                "likert" => LikertComponent.Parse(componentElement, pageId, layoutId),
                 "checkboxes" => OptionsComponent.Parse(componentElement, pageId, layoutId),
                 "radiobuttons" => OptionsComponent.Parse(componentElement, pageId, layoutId),
                 "dropdown" => OptionsComponent.Parse(componentElement, pageId, layoutId),
