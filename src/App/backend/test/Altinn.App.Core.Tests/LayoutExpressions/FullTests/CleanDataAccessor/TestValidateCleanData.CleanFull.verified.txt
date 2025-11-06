@@ -42,18 +42,21 @@
               {
                 Id: Guid_1,
                 DataType: mainLayout_dataType,
+                ContentType: application/xml,
                 Locked: false,
                 IsRead: true
               },
               {
                 Id: Guid_2,
                 DataType: subLayout_dataType,
+                ContentType: application/xml,
                 Locked: false,
                 IsRead: true
               },
               {
                 Id: Guid_3,
                 DataType: subLayout_dataType,
+                ContentType: application/xml,
                 Locked: false,
                 IsRead: true
               }

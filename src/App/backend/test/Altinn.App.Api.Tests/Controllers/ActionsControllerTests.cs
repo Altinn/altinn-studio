@@ -690,23 +690,11 @@ public class FillAction : IUserAction
                 data.TestCustomButtonReadOnlyInput = "Her kommer det data fra backend";
                 break;
             case "updateObsolete":
-                var instanceId = context.Instance.Id;
-                var instanceGuid = Guid.Parse(instanceId.Split('/')[1]);
-                var instanceOwner = int.Parse(instanceId.Split('/')[0]);
-                var dataGuid = Guid.Parse(context.Instance.Data.Single().Id);
-
-                var obsoleteData = (Scheme)
-                    await _dataClient.GetFormData(
-                        instanceGuid,
-                        typeof(Scheme),
-                        context.Instance.Org,
-                        context.Instance.AppId.Split('/')[1],
-                        instanceOwner,
-                        dataGuid
-                    );
+                var dataElement = context.Instance.Data.Single();
+                var obsoleteData = await _dataClient.GetFormData<Scheme>(context.Instance, dataElement);
                 obsoleteData.description = "Obsolete data";
                 var result = UserActionResult.SuccessResult(new List<ClientAction>());
-                result.AddUpdatedDataModel(dataGuid.ToString(), obsoleteData);
+                result.AddUpdatedDataModel(dataElement.Id, obsoleteData);
                 return result;
             case "delete":
                 var elementToDelete = context.DataMutator.GetDataElementsForType("Scheme").First();
