@@ -1360,6 +1360,13 @@ namespace Altinn.App.Core.Features
         public static class Labels
         {
             public const string CorrespondenceId = "correspondence.id";
+            public const string FiksInReplyToMessage = "fiks.message.inReplyTo";
+            public const string FiksMessageCorrelationId = "fiks.message.correlationId";
+            public const string FiksMessageId = "fiks.message.id";
+            public const string FiksMessageRecipient = "fiks.message.recipient";
+            public const string FiksMessageSender = "fiks.message.sender";
+            public const string FiksMessageType = "fiks.message.type";
+            public const string FiksSendersReference = "fiks.message.sendersReference";
             public const string OrganisationName = "organisation.name";
             public const string OrganisationNumber = "organisation.number";
             public const string OrganisationSystemUserId = "organisation.systemuser.id";

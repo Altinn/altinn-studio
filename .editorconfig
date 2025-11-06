@@ -165,6 +165,9 @@ dotnet_diagnostic.CA1720.severity = suggestion
 # CA1816: Call GC.SuppressFinalize correctly
 dotnet_diagnostic.CA1816.severity = warning
 
+# CA1826: Use property instead of Linq Enumerable method
+dotnet_code_quality.CA1826.exclude_ordefault_methods = true
+
 [Program.cs]
 dotnet_diagnostic.CA1050.severity = none
 dotnet_diagnostic.S1118.severity = none
