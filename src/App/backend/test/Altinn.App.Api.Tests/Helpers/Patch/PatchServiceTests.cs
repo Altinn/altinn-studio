@@ -20,6 +20,7 @@ using Json.Pointer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using DataType = Altinn.Platform.Storage.Interface.Models.DataType;
@@ -43,13 +44,14 @@ public sealed class PatchServiceTests : IDisposable
 
     // Service mocks
     private readonly Mock<ILogger<ValidationService>> _vLoggerMock = new(MockBehavior.Loose);
-    private readonly Mock<ITranslationService> _translationService = new(MockBehavior.Strict);
     private readonly Mock<IDataClient> _dataClientMock = new(MockBehavior.Strict);
     private readonly Mock<IInstanceClient> _instanceClientMock = new(MockBehavior.Strict);
     private readonly Mock<IDataProcessor> _dataProcessorMock = new(MockBehavior.Strict);
     private readonly Mock<IAppModel> _appModelMock = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
+    private readonly Mock<ITranslationService> _translationServiceMock = new(MockBehavior.Strict);
     private readonly TelemetrySink _telemetrySink = new();
+    private readonly Mock<IHostEnvironment> _hostEnvironment = new(MockBehavior.Strict);
     private readonly Mock<IWebHostEnvironment> _webHostEnvironment = new(MockBehavior.Strict);
     private readonly Mock<IAppResources> _appResourcesMock = new(MockBehavior.Strict);
     private readonly Mock<IDataElementAccessChecker> _dataElementAccessCheckerMock = new(MockBehavior.Strict);
@@ -75,10 +77,11 @@ public sealed class PatchServiceTests : IDisposable
             .Setup(a => a.GetModelType("Altinn.App.Core.Tests.Internal.Patch.PatchServiceTests+MyModel"))
             .Returns(typeof(MyModel))
             .Verifiable();
+        _formDataValidator.SetupGet(v => v.NoIncrementalValidation).Returns(false);
+        _formDataValidator.SetupGet(v => v.ShouldRunAfterRemovingHiddenData).Returns(false);
         _formDataValidator.Setup(fdv => fdv.DataType).Returns(_dataType.Id);
         _formDataValidator.Setup(fdv => fdv.ValidationSource).Returns("formDataValidator");
         _formDataValidator.Setup(fdv => fdv.HasRelevantChanges(It.IsAny<object>(), It.IsAny<object>())).Returns(true);
-        _formDataValidator.SetupGet(fdv => fdv.NoIncrementalValidation).Returns(false);
         _dataElementValidator.Setup(dev => dev.DataType).Returns(_dataType.Id);
         _dataElementValidator.Setup(dev => dev.ValidationSource).Returns("dataElementValidator");
         _dataElementValidator.SetupGet(fdv => fdv.NoIncrementalValidation).Returns(true);
@@ -101,6 +104,7 @@ public sealed class PatchServiceTests : IDisposable
             .Setup(x => x.CanRead(It.IsAny<Instance>(), It.IsAny<DataType>()))
             .ReturnsAsync(true);
 
+        _hostEnvironment.SetupGet(h => h.EnvironmentName).Returns("Development");
         _webHostEnvironment.SetupGet(whe => whe.EnvironmentName).Returns("Development");
         var services = new ServiceCollection();
         services.AddAppImplementationFactory();
@@ -111,18 +115,20 @@ public sealed class PatchServiceTests : IDisposable
         services.AddSingleton(_appMetadataMock.Object);
         services.AddSingleton(_dataProcessorMock.Object);
         services.AddSingleton(_appResourcesMock.Object);
+        services.AddSingleton(_translationServiceMock.Object);
         services.AddSingleton(_dataClientMock.Object);
         services.AddSingleton(_instanceClientMock.Object);
         services.AddSingleton(_dataElementAccessCheckerMock.Object);
         _modelSerializationService = new ModelSerializationService(_appModelMock.Object);
         services.AddSingleton(_modelSerializationService);
         services.Configure<GeneralSettings>(_ => { });
+        services.AddSingleton(_hostEnvironment.Object);
 
         _serviceProvider = services.BuildStrictServiceProvider();
         var validatorFactory = _serviceProvider.GetRequiredService<IValidatorFactory>();
         var validationService = new ValidationService(
             validatorFactory,
-            _translationService.Object,
+            _translationServiceMock.Object,
             _vLoggerMock.Object
         );
 

@@ -1,21 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import classes from './Preview.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { useAppContext, useGetLayoutSetByName } from '../../hooks';
 import { useChecksum } from '../../hooks/useChecksum.ts';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/designsystemet-react';
-import { StudioErrorMessage } from '@studio/components-legacy';
-import { StudioButton, StudioCenter, StudioAlert, StudioSpinner } from '@studio/components';
-import type { SupportedView } from './ViewToggler/ViewToggler';
-import { ViewToggler } from './ViewToggler/ViewToggler';
-import { ShrinkIcon } from '@studio/icons';
+import { SidebarRightIcon, SidebarLeftIcon } from '@studio/icons';
+import {
+  StudioCenter,
+  StudioAlert,
+  StudioSpinner,
+  StudioValidationMessage,
+} from '@studio/components';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
 import { useUserQuery } from 'app-shared/hooks/queries';
+import { PreviewActions } from './PreviewActions/PreviewActions';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export type PreviewProps = {
@@ -31,22 +33,19 @@ export const Preview = ({ collapsed, onCollapseToggle, hidePreview }: PreviewPro
     selectedFormLayoutName === 'default' || selectedFormLayoutName === undefined;
 
   return collapsed ? (
-    <StudioButton
-      variant='secondary'
-      className={classes.openPreviewButton}
-      title={t('ux_editor.open_preview')}
-      onClick={onCollapseToggle}
-    >
-      {t('ux_editor.open_preview')}
-    </StudioButton>
+    <PreviewActions
+      toggleIcon={<SidebarRightIcon aria-hidden />}
+      toggleTitle={t('ux_editor.open_preview')}
+      className={classes.toolbarCollapsed}
+      onCollapseToggle={onCollapseToggle}
+    />
   ) : (
     <div className={classes.root}>
-      <StudioButton
-        variant='tertiary'
-        icon={<ShrinkIcon title='1' fontSize='1.5rem' />}
-        title={t('ux_editor.close_preview')}
-        className={classes.closePreviewButton}
-        onClick={onCollapseToggle}
+      <PreviewActions
+        toggleIcon={<SidebarLeftIcon aria-hidden />}
+        toggleTitle={t('ux_editor.close_preview')}
+        className={classes.toolbar}
+        onCollapseToggle={onCollapseToggle}
       />
       {noPageSelected ? (
         <NoSelectedPageMessage />
@@ -84,7 +83,6 @@ const NoSelectedPageMessage = () => {
 // The actual preview frame that displays the selected page
 const PreviewFrame = () => {
   const { org, app } = useStudioEnvironmentParams();
-  const [viewportToSimulate, setViewportToSimulate] = useState<SupportedView>('desktop');
   const { previewIframeRef, selectedFormLayoutName } = useAppContext();
   const { layoutSet } = useUxEditorParams();
   const taskId = useSelectedTaskId(layoutSet);
@@ -117,7 +115,7 @@ const PreviewFrame = () => {
     return (
       <StudioCenter>
         {createInstanceError ? (
-          <StudioErrorMessage>{t('general.page_error_title')}</StudioErrorMessage>
+          <StudioValidationMessage>{t('general.page_error_title')}</StudioValidationMessage>
         ) : (
           <StudioSpinner aria-hidden spinnerTitle={t('preview.loading_preview_controller')} />
         )}
@@ -128,7 +126,6 @@ const PreviewFrame = () => {
 
   return (
     <div className={classes.root}>
-      <ViewToggler onChange={setViewportToSimulate} />
       {isSubform ? (
         <StudioAlert className={classes.alert} data-color='warning'>
           {t('ux_editor.preview.subform_unsupported_warning')}
@@ -139,7 +136,7 @@ const PreviewFrame = () => {
             <iframe
               key={checksum}
               ref={previewIframeRef}
-              className={cn(classes.iframe, classes[viewportToSimulate])}
+              className={classes.iframe}
               title={t('ux_editor.preview')}
               src={previewURL}
               onLoad={previewHasLoaded}

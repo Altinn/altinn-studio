@@ -1,3 +1,4 @@
+#nullable disable
 namespace Altinn.Studio.Designer.ModelBinding
 {
     /// <summary>

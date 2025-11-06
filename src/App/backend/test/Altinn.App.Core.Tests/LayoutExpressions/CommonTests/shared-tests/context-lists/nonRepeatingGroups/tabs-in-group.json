@@ -1,0 +1,86 @@
+{
+  "name": "Tabs in repeating group with two rows",
+  "layouts": {
+    "Page1": {
+      "data": {
+        "layout": [
+          {
+            "id": "comp1",
+            "type": "Header"
+          },
+          {
+            "id": "group1",
+            "type": "RepeatingGroup",
+            "dataModelBindings": {
+              "group": "gruppe1"
+            },
+            "children": ["comp3"]
+          },
+          {
+            "id": "comp3",
+            "type": "Tabs",
+            "tabs": [{"id": "comp4", "children": ["comp4"]}],
+            "dataModelBindings": {
+              "simpleBinding": "gruppe1.comp3binding"
+            }
+          },
+          {
+            "id": "comp4",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "gruppe1.comp4binding"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "expectedContexts": [
+    {
+      "component": "Page1",
+      "currentLayout": "Page1",
+      "children": [
+        {
+          "component": "comp1",
+          "currentLayout": "Page1"
+        },
+        {
+          "component": "group1",
+          "currentLayout": "Page1",
+          "children": [
+            {
+              "component": "comp3",
+              "rowIndices": [0],
+              "currentLayout": "Page1",
+              "children":[
+                {
+                  "component": "comp4",
+                  "rowIndices": [0],
+                  "currentLayout": "Page1"
+                }
+              ]
+            },
+            {
+              "component": "comp3",
+              "rowIndices": [1],
+              "currentLayout": "Page1",
+              "children":[
+                {
+                  "component": "comp4",
+                  "rowIndices": [1],
+                  "currentLayout": "Page1"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "dataModel": {
+    "gruppe1": [
+      { "altinnRowId": "row1", "comp3binding": "123", "comp4binding": "dadda" },
+      { "altinnRowId": "row2", "comp3binding": "456", "comp4binding": "dodo" }
+    ]
+  }
+}

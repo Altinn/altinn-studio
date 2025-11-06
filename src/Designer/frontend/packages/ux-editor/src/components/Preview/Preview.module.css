@@ -4,15 +4,16 @@
   flex: var(--preview-width-fraction);
 }
 
-.openPreviewButton {
-  height: 100%;
-  writing-mode: vertical-lr;
-  text-transform: uppercase;
-  border-radius: 0;
+.toolbar {
+  display: flex;
+  border-bottom: 2px solid var(--ds-color-neutral-border-subtle);
 }
 
-.closePreviewButton {
-  position: absolute;
+.toolbarCollapsed {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: center;
 }
 
 .iframeContainer {
@@ -25,21 +26,13 @@
 .iframe {
   border: 0;
   margin: 0 auto;
+  width: 100%;
+  height: 100%;
 }
 
 .previewArea {
   display: flex;
   flex-direction: column;
-  height: 100%;
-}
-
-.iframe.mobile {
-  --phone-width: 390px;
-  width: var(--phone-width);
-}
-
-.iframe.desktop {
-  width: 100%;
   height: 100%;
 }
 

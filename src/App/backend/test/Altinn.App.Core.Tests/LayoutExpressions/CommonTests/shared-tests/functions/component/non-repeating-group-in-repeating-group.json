@@ -1,0 +1,213 @@
+{
+  "name": "Lookup inside nested repeating group",
+  "expression": ["component", "accordion-child"],
+  "expects": "Accordion child input 2,3",
+  "context": {
+    "component": "accordion",
+    "rowIndices": [2, 3],
+    "currentLayout": "Page1"
+  },
+  "testCases": [
+    {
+      "expression": ["component", "before"],
+      "expects": "Group before input 2,3"
+    },
+    {
+      "expression": ["component", "after"],
+      "expects": "Group after input 2,3"
+    },
+    {
+      "expression": ["component", "cards-child"],
+      "expects": "Cards child input 2,3"
+    },
+    {
+      "expression": ["component", "non-repeating-group-child"],
+      "expects": "Non-repeating group child input 2,3"
+    },
+    {
+      "expression": ["component", "tab1-child"],
+      "expects": "Tab 1 child input 2,3"
+    },
+    {
+      "expression": ["component", "grid-child"],
+      "expects": "Grid child input 2,3"
+    }
+  ],
+  "layouts": {
+    "Page1": {
+      "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "group1",
+            "type": "RepeatingGroup",
+            "dataModelBindings": {
+              "group": "group1"
+            },
+            "children": ["group2"]
+          },
+          {
+            "id": "group2",
+            "type": "RepeatingGroup",
+            "dataModelBindings": {
+              "group": "group1.group2"
+            },
+            "children": ["accordion", "cards", "non-repeating-group", "tabs", "grid"],
+            "rowsBefore": [
+              {
+                "cells":
+                [
+                  {
+                    "component": "before"
+                  }
+                ]
+              }
+            ],
+            "rowsAfter": [
+              {
+                "cells":
+                [
+                  {
+                    "component": "after"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "before",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "group1.group2.before"
+            }
+          },
+          {
+            "id": "accordion",
+            "type": "Accordion",
+            "children": ["accordion-child"]
+          },
+          {
+            "id": "accordion-child",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "group1.group2.accordionChild"
+            }
+          },
+          {
+            "id": "cards",
+            "type": "Cards",
+            "cards": [
+              {
+                "children": ["cards-child"]
+              }
+            ]
+          },
+          {
+            "id": "cards-child",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "group1.group2.cardsChild"
+            }
+          },
+          {
+            "id": "non-repeating-group",
+            "type": "Group",
+            "dataModelBindings": {
+              "group": "group1.group2.nonRepeatingGroup"
+            },
+            "children": ["non-repeating-group-child"]
+          },
+          {
+            "id": "non-repeating-group-child",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "group1.group2.nonRepeatingGroupChild"
+            }
+          },
+          {
+            "id": "tabs",
+            "type": "Tabs",
+            "tabs": [
+              {
+                "id": "tab1",
+                "children": ["tab1-child"]
+              }
+            ]
+          },
+          {
+            "id": "tab1-child",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "group1.group2.tab1Child"
+            }
+          },
+          {
+            "id": "grid",
+            "type": "Grid",
+            "rows": [
+              {
+                "cells": [{"component": "grid-child"}]
+              }
+            ]
+          },
+          {
+            "id": "grid-child",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "group1.group2.gridChild"
+            }
+          },
+          {
+            "id": "after",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "group1.group2.after"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "group1": [
+      {
+        "group2": [
+          {
+            "before": "FIRST UNUSED ROW",
+            "accordionChild": "FIRST UNUSED ROW",
+            "cardsChild": "FIRST UNUSED ROW",
+            "nonRepeatingGroupChild": "FIRST UNUSED ROW",
+            "tab1Child": "FIRST UNUSED ROW",
+            "gridChild": "FIRST UNUSED ROW",
+            "after": "FIRST UNUSED ROW"
+          }
+        ]
+      },
+      {},
+      {
+        "group2": [
+          {
+            "before": "FIRST UNUSED ROW",
+            "accordionChild": "FIRST UNUSED ROW",
+            "cardsChild": "FIRST UNUSED ROW",
+            "nonRepeatingGroupChild": "FIRST UNUSED ROW",
+            "tab1Child": "FIRST UNUSED ROW",
+            "gridChild": "FIRST UNUSED ROW",
+            "after": "FIRST UNUSED ROW"
+          },
+          {},
+          {},
+          {
+            "before": "Group before input 2,3",
+            "accordionChild": "Accordion child input 2,3",
+            "cardsChild": "Cards child input 2,3",
+            "nonRepeatingGroupChild": "Non-repeating group child input 2,3",
+            "tab1Child": "Tab 1 child input 2,3",
+            "gridChild": "Grid child input 2,3",
+            "after": "Group after input 2,3"
+          }
+        ]
+      }
+    ]
+  }
+}

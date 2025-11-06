@@ -1,4 +1,5 @@
-﻿namespace Altinn.Studio.Designer.Configuration
+﻿#nullable disable
+namespace Altinn.Studio.Designer.Configuration
 {
     /// <summary>
     /// Settings used for setting up Application Insights instrumentation key

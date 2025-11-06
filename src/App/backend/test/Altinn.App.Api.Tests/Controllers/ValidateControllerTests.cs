@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
@@ -32,6 +33,7 @@ public class ValidateControllerTests
     private readonly Mock<IValidationService> _validationMock = new(MockBehavior.Strict);
     private readonly Mock<IDataClient> _dataClientMock = new(MockBehavior.Strict);
     private readonly Mock<IAppModel> _appModelMock = new(MockBehavior.Strict);
+    private readonly Mock<ITranslationService> _translationServiceMock = new(MockBehavior.Strict);
     private readonly Mock<IAppResources> _appResourcesMock = new(MockBehavior.Strict);
     private readonly ServiceCollection _services = new();
 
@@ -46,6 +48,7 @@ public class ValidateControllerTests
         _services.AddSingleton(_validationMock.Object);
         _services.AddSingleton(_dataClientMock.Object);
         _services.AddSingleton(_appModelMock.Object);
+        _services.AddSingleton(_translationServiceMock.Object);
         _services.AddSingleton(_appResourcesMock.Object);
         _services.AddSingleton(Options.Create(new FrontEndSettings()));
         _services.AddTransient<InstanceDataUnitOfWorkInitializer>();
