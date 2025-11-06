@@ -62,9 +62,9 @@ export const SecurityLevelSelect = ({
           id={SELECT_AUTH_LEVEL_ID}
         >
           {authlevelOptions.map((option) => (
-            <option key={option.value} value={option.value}>
+            <StudioSelect.Option key={option.value} value={option.value}>
               {t(option.label)}
-            </option>
+            </StudioSelect.Option>
           ))}
         </StudioSelect>
       </div>

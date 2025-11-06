@@ -99,16 +99,18 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
         value={dataType}
         onChange={(event) => setDataType(event.target.value)}
       >
-        <option value='' disabled>
+        <StudioSelect.Option value='' disabled>
           {t('ux_editor.task_card.choose_datamodel')}
-        </option>
+        </StudioSelect.Option>
         {layoutSetModel.dataType && (
-          <option value={layoutSetModel.dataType}>{layoutSetModel.dataType}</option>
+          <StudioSelect.Option value={layoutSetModel.dataType}>
+            {layoutSetModel.dataType}
+          </StudioSelect.Option>
         )}
         {dataModels?.map((dataModel) => (
-          <option key={dataModel} value={dataModel}>
+          <StudioSelect.Option key={dataModel} value={dataModel}>
             {dataModel}
-          </option>
+          </StudioSelect.Option>
         ))}
       </StudioSelect>
       <div className={classes.btnGroup}>

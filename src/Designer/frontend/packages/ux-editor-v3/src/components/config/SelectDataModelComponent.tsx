@@ -65,11 +65,11 @@ export const SelectDataModelComponent = ({
       label={label}
       renderField={({ fieldProps }) => (
         <StudioSelect {...fieldProps} onChange={(e: any) => fieldProps.onChange(e)}>
-          <option value=''></option>
+          <StudioSelect.Option value=''></StudioSelect.Option>
           {dataModelElementNames.map((element) => (
-            <option key={element.value} value={element.value}>
+            <StudioSelect.Option key={element.value} value={element.value}>
               {element.label}
-            </option>
+            </StudioSelect.Option>
           ))}
         </StudioSelect>
       )}

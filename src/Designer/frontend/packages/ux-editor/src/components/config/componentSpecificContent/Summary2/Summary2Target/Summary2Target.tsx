@@ -80,9 +80,9 @@ export const Summary2Target = ({ target, onChange, className }: Summary2TargetPr
         onChange={(e) => handleLayoutSetChange(e.target.value)}
       >
         {layoutSetOptions.map((set) => (
-          <option key={set.id} value={set.id === layoutSet ? '' : set.task.id}>
+          <StudioSelect.Option key={set.id} value={set.id === layoutSet ? '' : set.task.id}>
             {set.id}
-          </option>
+          </StudioSelect.Option>
         ))}
       </StudioSelect>
       <StudioSelect
@@ -91,9 +91,9 @@ export const Summary2Target = ({ target, onChange, className }: Summary2TargetPr
         onChange={handleTypeChange}
       >
         {targetTypes.map((type) => (
-          <option key={type.value} value={type.value}>
+          <StudioSelect.Option key={type.value} value={type.value}>
             {type.label}
-          </option>
+          </StudioSelect.Option>
         ))}
       </StudioSelect>
       {target.type === 'page' && (

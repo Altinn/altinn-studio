@@ -60,6 +60,10 @@ export const DataSourceValue = ({
     }
   };
 
+  const label = isComparableValue
+    ? t('right_menu.expressions_data_source_comparable_value')
+    : t('right_menu.expressions_data_source_value');
+
   switch (currentDataSource) {
     case DataSource.Component:
     case DataSource.DataModel:
@@ -68,23 +72,19 @@ export const DataSourceValue = ({
       return (
         <StudioSelect
           id={`data-source-value-select${currentDataSource}`}
-          label={
-            isComparableValue
-              ? t('right_menu.expressions_data_source_comparable_value')
-              : t('right_menu.expressions_data_source_value')
-          }
+          label={label}
           onChange={(event: ChangeEvent<HTMLSelectElement>) =>
             specifyDataSourceValue(event.target.value, isComparableValue)
           }
           value={(currentValue as string) || 'default'}
         >
-          <option key={''} value={'default'}>
+          <StudioSelect.Option key={''} value={'default'}>
             {t('right_menu.expressions_data_source_select')}
-          </option>
+          </StudioSelect.Option>
           {getCorrespondingDataSourceValues(currentDataSource).map((option) => (
-            <option key={option.value} value={option.value}>
+            <StudioSelect.Option key={option.value} value={option.value}>
               {option.label}
-            </option>
+            </StudioSelect.Option>
           ))}
         </StudioSelect>
       );

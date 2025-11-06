@@ -37,9 +37,9 @@ export const Summary2OverrideDisplayType = ({
         onChange={(e) => handleCustomTypeChange(e.target.value as OverrideDisplayType)}
       >
         {customConfigTypes.map((type: CustomConfigType) => (
-          <option key={type.label} value={type.value}>
+          <StudioSelect.Option key={type.label} value={type.value}>
             {type.label}
-          </option>
+          </StudioSelect.Option>
         ))}
       </StudioSelect>
     </StudioCard>

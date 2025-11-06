@@ -41,11 +41,15 @@ export const PreviewControlHeader = ({
       </div>
       {layoutSets && (
         <div className={classes.layoutSetSelector}>
-          <StudioSelect label={''} onChange={handleLayoutSetChange} value={selectedLayoutSet}>
+          <StudioSelect
+            label={t('preview.select_task')}
+            onChange={handleLayoutSetChange}
+            value={selectedLayoutSet}
+          >
             {layoutSets.sets.map((layoutSet) => (
-              <option key={layoutSet.id} value={layoutSet.id}>
+              <StudioSelect.Option key={layoutSet.id} value={layoutSet.id}>
                 {layoutSet.id}
-              </option>
+              </StudioSelect.Option>
             ))}
           </StudioSelect>
         </div>

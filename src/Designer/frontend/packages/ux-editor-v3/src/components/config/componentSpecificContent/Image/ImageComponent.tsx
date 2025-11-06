@@ -122,9 +122,9 @@ export const ImageComponent = ({
           renderField={({ fieldProps }) => (
             <StudioSelect {...fieldProps} id={placementSelectId}>
               {alignOptions.map((option) => (
-                <option key={option.value} value={option.value}>
+                <StudioSelect.Option key={option.value} value={option.value}>
                   {option.label}
-                </option>
+                </StudioSelect.Option>
               ))}
             </StudioSelect>
           )}

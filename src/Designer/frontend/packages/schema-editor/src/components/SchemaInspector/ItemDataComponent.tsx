@@ -153,12 +153,11 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
               label={t('schema_editor.type')}
               onChange={(event) => onChangeCombinationType(event.target.value as CombinationKind)}
               value={schemaNode.combinationType}
-              data-size='sm'
             >
               {getCombinationOptions(t).map((option) => (
-                <option key={option.value} value={option.value}>
+                <StudioSelect.Option key={option.value} value={option.value}>
                   {t(option.label)}
-                </option>
+                </StudioSelect.Option>
               ))}
             </StudioSelect>
           )}

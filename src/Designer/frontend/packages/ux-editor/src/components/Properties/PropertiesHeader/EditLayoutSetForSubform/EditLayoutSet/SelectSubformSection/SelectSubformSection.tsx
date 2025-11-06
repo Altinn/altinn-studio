@@ -50,11 +50,13 @@ export const SelectSubformSection = ({
         label={t('ux_editor.component_properties.subform.choose_layout_set_label')}
         value={selectedSubform}
       >
-        <option value=''>{t('ux_editor.component_properties.subform.choose_layout_set')}</option>
+        <StudioSelect.Option value=''>
+          {t('ux_editor.component_properties.subform.choose_layout_set')}
+        </StudioSelect.Option>
         {subformLayoutSetsIds.map((option) => (
-          <option key={option} value={option}>
+          <StudioSelect.Option key={option} value={option}>
             {option}
-          </option>
+          </StudioSelect.Option>
         ))}
       </StudioSelect>
       <StudioProperty.Button

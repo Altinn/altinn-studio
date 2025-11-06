@@ -64,9 +64,9 @@ export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<Fo
             id={`component-${String(propertyKey)}-select${component.id}`}
           >
             {enumValues.map((value: number) => (
-              <option key={value} value={value}>
+              <StudioSelect.Option key={value} value={value}>
                 {value}
-              </option>
+              </StudioSelect.Option>
             ))}
           </StudioSelect>
         ) : (

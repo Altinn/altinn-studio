@@ -83,13 +83,12 @@ export function StringRestrictions({
         label={t('format')}
         onChange={(event) => setRestriction(StrRestrictionKey.format, event.target.value)}
         value={restrictions[StrRestrictionKey.format] || ''}
-        data-size='sm'
       >
-        <option value=''>{t('format_none')}</option>
+        <StudioSelect.Option value=''>{t('format_none')}</StudioSelect.Option>
         {formatOptions.map((f) => (
-          <option key={f.key} value={f.value}>
+          <StudioSelect.Option key={f.key} value={f.value}>
             {f.label}
-          </option>
+          </StudioSelect.Option>
         ))}
       </StudioSelect>
       {isDateOrTimeFormat(restrictions) && (

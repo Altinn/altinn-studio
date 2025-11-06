@@ -31,9 +31,9 @@ export const Summary2OverrideDisplaySelect = ({
       }}
     >
       {options.map((option) => (
-        <option key={option.value} value={option.value}>
+        <StudioSelect.Option key={option.value} value={option.value}>
           {option.text}
-        </option>
+        </StudioSelect.Option>
       ))}
     </StudioSelect>
   );

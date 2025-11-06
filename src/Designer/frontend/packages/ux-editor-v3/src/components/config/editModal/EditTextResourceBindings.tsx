@@ -64,11 +64,11 @@ export const EditTextResourceBindings = ({
             onChange={handleAddKey}
             label={t('ux_editor.text_resource_bindings.add_label')}
           >
-            <option value='' hidden></option>
+            <StudioSelect.Option value='' hidden></StudioSelect.Option>
             {keysToAdd.map((key) => (
-              <option key={key} value={key}>
+              <StudioSelect.Option key={key} value={key}>
                 {t(`ux_editor.modal_properties_textResourceBindings_${key}`)}
-              </option>
+              </StudioSelect.Option>
             ))}
           </StudioSelect>
         </div>

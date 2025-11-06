@@ -48,6 +48,7 @@ export const PolicyActions = (): React.ReactElement => {
   };
 
   const handleClickActionInList = (clickedOption: string) => {
+    if (!clickedOption) return;
     const index = actionOptions.findIndex((o) => o.value === clickedOption);
     const updatedOptions = [...actionOptions];
     updatedOptions.splice(index, 1);
@@ -92,19 +93,16 @@ export const PolicyActions = (): React.ReactElement => {
         <StudioSelect
           label={t('policy_editor.rule_card_actions_title')}
           description={description}
-          onChange={(event) =>
-            event.target.value !== null && handleClickActionInList(event.target.value)
-          }
+          onChange={(event) => handleClickActionInList(event.target.value)}
           disabled={actionOptions.length === 0}
           error={error}
           id={`selectAction-${uniqueId}`}
-          defaultValue=''
         >
-          <option value='' hidden></option>
+          <StudioSelect.Option value='' hidden></StudioSelect.Option>
           {actionOptions.map((option) => (
-            <option key={option.value} value={option.value}>
+            <StudioSelect.Option key={option.value} value={option.value}>
               {getTranslationByActionId(option.label)}
-            </option>
+            </StudioSelect.Option>
           ))}
         </StudioSelect>
       </div>

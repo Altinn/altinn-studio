@@ -42,9 +42,9 @@ export const EditHeaderSize = ({ handleComponentChange, component }: IGenericEdi
         renderField={({ fieldProps }) => (
           <StudioSelect id={component.id} {...fieldProps}>
             {sizes.map((size) => (
-              <option key={size.value} value={size.value}>
+              <StudioSelect.Option key={size.value} value={size.value}>
                 {size.label}
-              </option>
+              </StudioSelect.Option>
             ))}
           </StudioSelect>
         )}

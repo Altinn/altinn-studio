@@ -40,13 +40,12 @@ export const LangSelector = ({ onAddLang, options }: ILangSelectorProps) => {
           label={t('schema_editor.language_add_language')}
           onChange={handleSelectOnChange}
           value={selectedOption.value}
-          data-size='sm'
         >
-          <option value='' disabled hidden></option>
+          <StudioSelect.Option value='' disabled hidden></StudioSelect.Option>
           {options.map((option) => (
-            <option key={option.value} value={option.value}>
+            <StudioSelect.Option key={option.value} value={option.value}>
               {option.label}
-            </option>
+            </StudioSelect.Option>
           ))}
         </StudioSelect>
       </div>

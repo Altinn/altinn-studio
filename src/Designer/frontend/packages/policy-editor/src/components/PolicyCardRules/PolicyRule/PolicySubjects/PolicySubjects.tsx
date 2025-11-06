@@ -44,6 +44,7 @@ export const PolicySubjects = (): React.ReactElement => {
   };
 
   const handleClickSubjectInList = (clickedOption: string) => {
+    if (!clickedOption) return;
     // Remove from options list
     const index = subjectOptions.findIndex((o) => o.value === clickedOption);
     const updatedOptions = [...subjectOptions];
@@ -92,19 +93,16 @@ export const PolicySubjects = (): React.ReactElement => {
         <StudioSelect
           description={description}
           label={t('policy_editor.rule_card_subjects_title')}
-          onChange={(event) =>
-            event.target.value !== null && handleClickSubjectInList(event.target.value)
-          }
+          onChange={(event) => handleClickSubjectInList(event.target.value)}
           disabled={subjectOptions.length === 0}
           error={error}
           id={`selectSubject-${uniqueId}`}
-          defaultValue=''
         >
-          <option hidden value=''></option>
+          <StudioSelect.Option hidden value=''></StudioSelect.Option>
           {subjectOptions.map((option) => (
-            <option key={option.value} value={option.value}>
+            <StudioSelect.Option key={option.value} value={option.value}>
               {option.label}
-            </option>
+            </StudioSelect.Option>
           ))}
         </StudioSelect>
       </div>

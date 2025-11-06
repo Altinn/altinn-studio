@@ -57,9 +57,9 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
               renderField={({ fieldProps }) => (
                 <StudioSelect {...fieldProps}>
                   {optionListIds.map((option) => (
-                    <option key={option} value={option}>
+                    <StudioSelect.Option key={option} value={option}>
                       {option}
-                    </option>
+                    </StudioSelect.Option>
                   ))}
                 </StudioSelect>
               )}

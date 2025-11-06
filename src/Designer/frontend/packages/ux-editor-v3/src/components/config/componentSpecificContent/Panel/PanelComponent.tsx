@@ -53,9 +53,9 @@ export const PanelComponent = ({ component, handleComponentChange }: IGenericEdi
         renderField={({ fieldProps }) => (
           <StudioSelect id={component.id} {...fieldProps}>
             {Object.values(FormPanelVariant).map((value: FormPanelVariant) => (
-              <option key={value} value={value}>
+              <StudioSelect.Option key={value} value={value}>
                 {t(`ux_editor.${value}`)}
-              </option>
+              </StudioSelect.Option>
             ))}
           </StudioSelect>
         )}

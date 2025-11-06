@@ -41,9 +41,9 @@ export const PredefinedActions = ({
       <option disabled value=' ' />
       {availablePredefinedActions.map(
         (action: string): React.ReactElement => (
-          <option key={action} value={action} disabled={shouldDisableAction(action)}>
+          <StudioSelect.Option key={action} value={action} disabled={shouldDisableAction(action)}>
             {action}
-          </option>
+          </StudioSelect.Option>
         ),
       )}
     </StudioSelect>

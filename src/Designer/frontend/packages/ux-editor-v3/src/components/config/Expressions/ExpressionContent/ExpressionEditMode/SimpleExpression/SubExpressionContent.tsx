@@ -69,11 +69,13 @@ export const SubExpressionContent = (
         onChange={(event: ChangeEvent<HTMLSelectElement>) => addFunction(event.target.value)}
         value={subExpression.function || 'default'}
       >
-        <option value='default'>{t('right_menu.expressions_function_select')}</option>
+        <StudioSelect.Option value='default'>
+          {t('right_menu.expressions_function_select')}
+        </StudioSelect.Option>
         {Object.values(ExpressionFunction).map((func: string) => (
-          <option key={func} value={func}>
+          <StudioSelect.Option key={func} value={func}>
             {expressionFunctionTexts(t)[func]}
-          </option>
+          </StudioSelect.Option>
         ))}
       </StudioSelect>
       {allowToSpecifyExpression && (
@@ -85,11 +87,13 @@ export const SubExpressionContent = (
             }
             value={subExpression.dataSource || 'default'}
           >
-            <option value='default'>{t('right_menu.expressions_data_source_select')}</option>
+            <StudioSelect.Option value='default'>
+              {t('right_menu.expressions_data_source_select')}
+            </StudioSelect.Option>
             {Object.values(DataSource).map((ds: string) => (
-              <option key={ds} value={ds}>
+              <StudioSelect.Option key={ds} value={ds}>
                 {expressionDataSourceTexts(t)[ds]}
-              </option>
+              </StudioSelect.Option>
             ))}
           </StudioSelect>
           {subExpression.dataSource && (
@@ -112,11 +116,13 @@ export const SubExpressionContent = (
             }
             value={subExpression.comparableDataSource || 'default'}
           >
-            <option value='default'>{t('right_menu.expressions_data_source_select')}</option>
+            <StudioSelect.Option value='default'>
+              {t('right_menu.expressions_data_source_select')}
+            </StudioSelect.Option>
             {Object.values(DataSource).map((cds: string) => (
-              <option key={cds} value={cds}>
+              <StudioSelect.Option key={cds} value={cds}>
                 {expressionDataSourceTexts(t)[cds]}
-              </option>
+              </StudioSelect.Option>
             ))}
           </StudioSelect>
           {subExpression.comparableDataSource && (

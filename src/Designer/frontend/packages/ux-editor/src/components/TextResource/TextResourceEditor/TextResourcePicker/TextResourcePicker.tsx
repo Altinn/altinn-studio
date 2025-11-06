@@ -28,11 +28,13 @@ export const TextResourcePicker = ({
       }
       value={textResourceId}
     >
-      <option value=''>{t('ux_editor.search_text_resources_none')}</option>
+      <StudioSelect.Option value=''>
+        {t('ux_editor.search_text_resources_none')}
+      </StudioSelect.Option>
       {textResources.map((option) => (
-        <option title={option.value} key={option.id} value={option.id}>
+        <StudioSelect.Option title={option.value} key={option.id} value={option.id}>
           {option.id}
-        </option>
+        </StudioSelect.Option>
       ))}
     </StudioSelect>
   );

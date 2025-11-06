@@ -31,12 +31,11 @@ export function ReferenceSelectionComponent({
         label={label}
         onChange={(event) => onChangeRef(selectedNode.schemaPointer, event.target.value)}
         value={selectedNode.reference || ''}
-        data-size='sm'
       >
         {definitions.map(({ schemaPointer }) => (
-          <option key={schemaPointer} value={schemaPointer}>
+          <StudioSelect.Option key={schemaPointer} value={schemaPointer}>
             {schemaPointer.replace(`#/${Keyword.Definitions}/`, '')}
-          </option>
+          </StudioSelect.Option>
         ))}
       </StudioSelect>
       <button type='button' className={classes.navButton} onClick={onGoToDefButtonClick}>

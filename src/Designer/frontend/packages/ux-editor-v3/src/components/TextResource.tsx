@@ -109,11 +109,13 @@ export const TextResource = ({
               }
               value={textResource?.id ?? ''}
             >
-              <option value=''>{t('ux_editor.search_text_resources_none')}</option>
+              <StudioSelect.Option value=''>
+                {t('ux_editor.search_text_resources_none')}
+              </StudioSelect.Option>
               {textResources.map((option) => (
-                <option key={option.id} value={option.id}>
+                <StudioSelect.Option key={option.id} value={option.id}>
                   <TextResourceOption textResource={option} />
-                </option>
+                </StudioSelect.Option>
               ))}
             </StudioSelect>
           </span>

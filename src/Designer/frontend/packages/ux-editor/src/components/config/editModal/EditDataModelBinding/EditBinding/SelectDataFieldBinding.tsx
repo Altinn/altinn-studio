@@ -71,9 +71,9 @@ export const SelectDataFieldBinding = ({
           error={isBindingError && t('ux_editor.modal_properties_data_model_field_update')}
         >
           {dataModelFieldsWithDefaultOption.map((element) => (
-            <option key={element.value} value={element.value}>
+            <StudioSelect.Option key={element.value} value={element.value}>
               {element.label}
-            </option>
+            </StudioSelect.Option>
           ))}
         </StudioSelect>
       )}
