@@ -32,6 +32,12 @@ internal static class CopyGenerator
             // Ignore repeated types
             return;
         }
+
+        if (node.IsJsonValueType)
+        {
+            // Copy of value types is an assignment and is handled in the list copy method
+            return;
+        }
         builder.Append(
             $$"""
 
@@ -50,6 +56,7 @@ internal static class CopyGenerator
         );
         if (node.Properties.Count == 0)
         {
+            // A class with no properties prints prettier without an empty initializer list
             builder.Append("        return new();\r\n    }\r\n");
         }
         else
@@ -58,16 +65,21 @@ internal static class CopyGenerator
             foreach (var property in node.Properties)
             {
                 builder.Append(
-                    property.Properties.Count == 0
-                        ? $"            {property.CSharpName} = data.{property.CSharpName},\r\n"
-                        : $"            {property.CSharpName} = CopyRecursive(data.{property.CSharpName}),\r\n"
+                    property switch
+                    {
+                        { ListType: not null } =>
+                            $"            {property.CSharpName} = CopyRecursive(data.{property.CSharpName}),\r\n",
+                        { Properties.Count: 0 } =>
+                            $"            {property.CSharpName} = data.{property.CSharpName},\r\n",
+                        _ => $"            {property.CSharpName} = CopyRecursive(data.{property.CSharpName}),\r\n",
+                    }
                 );
             }
 
             builder.Append("        };\r\n    }\r\n");
         }
 
-        foreach (var recursiveChild in node.Properties.Where(c => c.Properties.Count != 0))
+        foreach (var recursiveChild in node.Properties.Where(c => c.ListType is not null || !c.IsJsonValueType))
         {
             GenerateCopyRecursive(builder, recursiveChild, classNames);
         }
@@ -91,7 +103,7 @@ internal static class CopyGenerator
                     {{node.ListType}} result = new(list.Count);
                     foreach (var item in list)
                     {
-                        result.Add(CopyRecursive(item));
+                        result.Add({{(node.IsJsonValueType ? "item" : "CopyRecursive(item)")}});
                     }
 
                     return result;

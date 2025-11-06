@@ -135,6 +135,8 @@ public sealed class ComponentContext
         return _removeWhenHidden.Value;
     }
 
+    internal async Task<DataReference> AddIndexes(ModelBinding binding) => await State.AddInidicies(binding, this);
+
     /// <summary>
     /// Indicates whether this context was initialized with child contexts
     /// </summary>
@@ -218,9 +220,9 @@ public sealed class ComponentContext
             public IEnumerable<DebuggerEvaluatedExpression>? Args =>
                 _expression.Args?.Select(e => new DebuggerEvaluatedExpression(e, _context));
             public Task<ExpressionValue> EvaluationResult =>
-                _expression.IsFunctionExpression
-                    ? ExpressionEvaluator.EvaluateExpression_internal(_context.State, _expression, _context, null)
-                    : Task.FromResult(_expression.ValueUnion);
+                _expression.IsLiteralValue
+                    ? Task.FromResult(_expression.ValueUnion)
+                    : ExpressionEvaluator.EvaluateExpression_internal(_context.State, _expression, _context, null);
 
             public override string ToString()
             {

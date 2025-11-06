@@ -1,7 +1,7 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
-using Altinn.App.Core.Internal.Process.ServiceTasks;
+using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.Legacy;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -37,16 +37,14 @@ public class EndTaskEventHandlerTests
 
             if (addPdfServiceTask)
             {
-                Mock<IPdfServiceTask> pdfServiceTask = new();
+                Mock<IPdfServiceTaskLegacy> pdfServiceTask = new();
                 services.AddTransient(_ => pdfServiceTask.Object);
-                services.AddTransient<IServiceTask>(_ => pdfServiceTask.Object);
             }
 
             if (addEformidlingServiceTask)
             {
-                Mock<IEformidlingServiceTask> eformidlingServiceTask = new();
+                Mock<IEFormidlingServiceTaskLegacy> eformidlingServiceTask = new();
                 services.AddTransient(_ => eformidlingServiceTask.Object);
-                services.AddTransient<IServiceTask>(_ => eformidlingServiceTask.Object);
             }
 
             services.AddTransient<IEndTaskEventHandler, EndTaskEventHandler>();
@@ -70,14 +68,14 @@ public class EndTaskEventHandlerTests
         await eteh.Execute(mockProcessTask.Object, "Task_1", instance);
         fixture.Mock<IProcessTaskDataLocker>().Verify(p => p.Lock("Task_1", instance));
         fixture.Mock<IProcessTaskFinalizer>().Verify(p => p.Finalize("Task_1", instance));
-        fixture.Mock<IPdfServiceTask>().Verify(p => p.Execute("Task_1", instance));
-        fixture.Mock<IEformidlingServiceTask>().Verify(p => p.Execute("Task_1", instance));
+        fixture.Mock<IPdfServiceTaskLegacy>().Verify(p => p.Execute("Task_1", instance));
+        fixture.Mock<IEFormidlingServiceTaskLegacy>().Verify(p => p.Execute("Task_1", instance));
         mockProcessTask.Verify(p => p.End("Task_1", instance));
 
         fixture.Mock<IProcessTaskDataLocker>().VerifyNoOtherCalls();
         fixture.Mock<IProcessTaskFinalizer>().VerifyNoOtherCalls();
-        fixture.Mock<IPdfServiceTask>().VerifyNoOtherCalls();
-        fixture.Mock<IEformidlingServiceTask>().VerifyNoOtherCalls();
+        fixture.Mock<IPdfServiceTaskLegacy>().VerifyNoOtherCalls();
+        fixture.Mock<IEFormidlingServiceTaskLegacy>().VerifyNoOtherCalls();
         mockProcessTask.VerifyNoOtherCalls();
     }
 
@@ -96,14 +94,14 @@ public class EndTaskEventHandlerTests
         endTwo.Verify(a => a.End("Task_1", instance));
         fixture.Mock<IProcessTaskDataLocker>().Verify(p => p.Lock("Task_1", instance));
         fixture.Mock<IProcessTaskFinalizer>().Verify(p => p.Finalize("Task_1", instance));
-        fixture.Mock<IPdfServiceTask>().Verify(p => p.Execute("Task_1", instance));
-        fixture.Mock<IEformidlingServiceTask>().Verify(p => p.Execute("Task_1", instance));
+        fixture.Mock<IPdfServiceTaskLegacy>().Verify(p => p.Execute("Task_1", instance));
+        fixture.Mock<IEFormidlingServiceTaskLegacy>().Verify(p => p.Execute("Task_1", instance));
         mockProcessTask.Verify(p => p.End("Task_1", instance));
 
         fixture.Mock<IProcessTaskDataLocker>().VerifyNoOtherCalls();
         fixture.Mock<IProcessTaskFinalizer>().VerifyNoOtherCalls();
-        fixture.Mock<IPdfServiceTask>().VerifyNoOtherCalls();
-        fixture.Mock<IEformidlingServiceTask>().VerifyNoOtherCalls();
+        fixture.Mock<IPdfServiceTaskLegacy>().VerifyNoOtherCalls();
+        fixture.Mock<IEFormidlingServiceTaskLegacy>().VerifyNoOtherCalls();
         mockProcessTask.VerifyNoOtherCalls();
         endOne.VerifyNoOtherCalls();
         endTwo.VerifyNoOtherCalls();
@@ -123,7 +121,7 @@ public class EndTaskEventHandlerTests
 
         // Make PDF service task throw exception to simulate a failure situation.
         fixture
-            .Mock<IPdfServiceTask>()
+            .Mock<IPdfServiceTaskLegacy>()
             .Setup(x => x.Execute(It.IsAny<string>(), instance))
             .ThrowsAsync(new Exception());
 
@@ -134,13 +132,13 @@ public class EndTaskEventHandlerTests
         fixture.Mock<IProcessTaskDataLocker>().Verify(p => p.Lock(taskId, instance));
         fixture.Mock<IProcessTaskFinalizer>().Verify(p => p.Finalize(taskId, instance));
         mockProcessTask.Verify(p => p.End(taskId, instance));
-        fixture.Mock<IPdfServiceTask>().Verify(p => p.Execute(taskId, instance));
+        fixture.Mock<IPdfServiceTaskLegacy>().Verify(p => p.Execute(taskId, instance));
 
         // Make sure unlock data is called
         fixture.Mock<IProcessTaskDataLocker>().Verify(p => p.Unlock(taskId, instance));
 
         // Make sure eFormidling service task is not called if PDF failed.
-        fixture.Mock<IEformidlingServiceTask>().Verify(p => p.Execute(taskId, instance), Times.Never);
+        fixture.Mock<IEFormidlingServiceTaskLegacy>().Verify(p => p.Execute(taskId, instance), Times.Never);
     }
 
     [Fact]
@@ -157,7 +155,7 @@ public class EndTaskEventHandlerTests
 
         // Make eFormidling service task throw exception to simulate a failure situation.
         fixture
-            .Mock<IEformidlingServiceTask>()
+            .Mock<IEFormidlingServiceTaskLegacy>()
             .Setup(x => x.Execute(It.IsAny<string>(), instance))
             .ThrowsAsync(new Exception());
 
@@ -168,45 +166,31 @@ public class EndTaskEventHandlerTests
         fixture.Mock<IProcessTaskDataLocker>().Verify(p => p.Lock(taskId, instance));
         fixture.Mock<IProcessTaskFinalizer>().Verify(p => p.Finalize(taskId, instance));
         mockProcessTask.Verify(p => p.End(taskId, instance));
-        fixture.Mock<IPdfServiceTask>().Verify(p => p.Execute(taskId, instance));
+        fixture.Mock<IPdfServiceTaskLegacy>().Verify(p => p.Execute(taskId, instance));
 
         // Make sure unlock data is called
         fixture.Mock<IProcessTaskDataLocker>().Verify(p => p.Unlock(taskId, instance));
     }
 
     [Fact]
-    public async Task Throws_If_Missing_Pdf_ServiceTask()
+    public void Throws_If_Missing_Pdf_ServiceTask()
     {
         using var fixture = Fixture.Create([], addPdfServiceTask: false);
 
-        var eteh = fixture.Handler;
-
-        var instance = new Instance() { Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d", AppId = "ttd/test" };
-
-        var taskId = "Task_1";
-        Mock<IProcessTask> mockProcessTask = new();
-
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await eteh.Execute(mockProcessTask.Object, taskId, instance)
-        );
-        Assert.Equal("PdfServiceTask not found in serviceTasks", ex.Message);
+        Assert.Throws<InvalidOperationException>(() =>
+        {
+            EndTaskEventHandler eteh = fixture.Handler;
+        });
     }
 
     [Fact]
-    public async Task Throws_If_Missing_Eformidling_ServiceTask()
+    public void Throws_If_Missing_Eformidling_ServiceTask()
     {
         using var fixture = Fixture.Create([], addEformidlingServiceTask: false);
 
-        var eteh = fixture.Handler;
-
-        var instance = new Instance() { Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d", AppId = "ttd/test" };
-
-        var taskId = "Task_1";
-        Mock<IProcessTask> mockProcessTask = new();
-
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await eteh.Execute(mockProcessTask.Object, taskId, instance)
-        );
-        Assert.Equal("EformidlingServiceTask not found in serviceTasks", ex.Message);
+        Assert.Throws<InvalidOperationException>(() =>
+        {
+            EndTaskEventHandler eteh = fixture.Handler;
+        });
     }
 }

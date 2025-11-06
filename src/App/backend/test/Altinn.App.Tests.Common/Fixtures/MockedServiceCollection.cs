@@ -1,16 +1,14 @@
 using System.Collections.Immutable;
-using System.Text;
 using System.Text.Json;
-using System.Xml;
-using System.Xml.Serialization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Serialization;
+using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.Language;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
@@ -39,14 +37,9 @@ public class MockedServiceCollection
     public AppSettings AppSettings { get; } = new AppSettings();
     public GeneralSettings GeneralSettings { get; } = new GeneralSettings();
 
-    public ApplicationMetadata AppMetadata { get; } =
-        new($"{Org}/{App}")
-        {
-            Title = new() { [LanguageConst.Nb] = "Testapplikasjon", [LanguageConst.En] = "Test Application" },
-            DataTypes = [],
-        };
+    public ApplicationMetadata AppMetadata => Storage.AppMetadata;
 
-    public StorageClientInterceptor Storage { get; } = new();
+    public StorageClientInterceptor Storage { get; }
 
     public Mock<IAppResources> AppResourcesMock { get; } = new(MockBehavior.Strict);
     public Mock<IAppMetadata> AppMetadataMock { get; } = new(MockBehavior.Strict);
@@ -60,6 +53,7 @@ public class MockedServiceCollection
 
     public MockedServiceCollection()
     {
+        Storage = new StorageClientInterceptor();
         _services.AddSingleton(this);
     }
 
@@ -70,42 +64,43 @@ public class MockedServiceCollection
 
     public void TryAddCommonServices()
     {
-        AppImplementationFactoryExtensions.AddAppImplementationFactory(_services);
+        _services.AddAppImplementationFactory();
 
         // Adding options
-        ServiceCollectionDescriptorExtensions.TryAddSingleton(_services, Options.Create(PlatformSettings));
-        ServiceCollectionDescriptorExtensions.TryAddSingleton(_services, Options.Create(AppSettings));
-        ServiceCollectionDescriptorExtensions.TryAddSingleton(_services, Options.Create(GeneralSettings));
+        _services.TryAddSingleton(Options.Create(PlatformSettings));
+        _services.TryAddSingleton(Options.Create(AppSettings));
+        _services.TryAddSingleton(Options.Create(GeneralSettings));
 
-        ServiceCollectionDescriptorExtensions.TryAddSingleton(_services, new AppIdentifier(Org, App));
+        _services.TryAddSingleton(new AppIdentifier(Org, App));
 
         // Adding Validation infrastructure
-        ServiceCollectionDescriptorExtensions.TryAddSingleton<IValidationService, ValidationService>(_services);
-        ServiceCollectionDescriptorExtensions.TryAddSingleton<IValidatorFactory, ValidatorFactory>(_services);
+        _services.TryAddSingleton<IValidationService, ValidationService>();
+        _services.TryAddSingleton<IValidatorFactory, ValidatorFactory>();
 
         // Adding Translation infrastructure
-        ServiceCollectionDescriptorExtensions.TryAddSingleton<ITranslationService, TranslationService>(_services);
+        _services.TryAddSingleton<ITranslationService, TranslationService>();
 
         // InstanceDataUnitOfWork
-        ServiceCollectionDescriptorExtensions.TryAddSingleton<InstanceDataUnitOfWorkInitializer>(_services);
-        ServiceCollectionDescriptorExtensions.TryAddSingleton<ModelSerializationService>(_services);
+        _services.TryAddSingleton<InstanceDataUnitOfWorkInitializer>();
+        _services.TryAddSingleton<ModelSerializationService>();
 
-        // Just add the httpClients without a branch
-        Storage.AddStorageClients(_services);
+        // There is no TryAddHttpClient, but these are the core of the mocked service collection
+        _services.AddHttpClient<IDataClient, DataClient>().ConfigurePrimaryHttpMessageHandler(() => Storage);
+        _services.AddHttpClient<IInstanceClient, InstanceClient>().ConfigurePrimaryHttpMessageHandler(() => Storage);
 
         // Ensure logging is present
-        var hasLogger = Enumerable.Any<ServiceDescriptor>(_services, s => s.ServiceType == typeof(ILoggerFactory));
+        var hasLogger = _services.Any(s => s.ServiceType == typeof(ILoggerFactory));
         if (!hasLogger)
         {
-            ServiceCollectionServiceExtensions.AddSingleton<ILoggerFactory>(_services, NullLoggerFactory.Instance);
+            _services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
         }
 
         // Add standard mocks
-        ServiceCollectionDescriptorExtensions.TryAddSingleton(_services, AppResourcesMock.Object);
-        ServiceCollectionDescriptorExtensions.TryAddSingleton(_services, AppMetadataMock.Object);
-        ServiceCollectionDescriptorExtensions.TryAddSingleton(_services, AppModelMock.Object);
-        ServiceCollectionDescriptorExtensions.TryAddSingleton(_services, AuthenticationTokenResolverMock.Object);
-        ServiceCollectionDescriptorExtensions.TryAddSingleton(_services, UserTokenProviderMock.Object);
+        _services.TryAddSingleton(AppResourcesMock.Object);
+        _services.TryAddSingleton(AppMetadataMock.Object);
+        _services.TryAddSingleton(AppModelMock.Object);
+        _services.TryAddSingleton(AuthenticationTokenResolverMock.Object);
+        _services.TryAddSingleton(UserTokenProviderMock.Object);
 
         // Setup default mock behaviours
         AppMetadataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(AppMetadata);
@@ -126,22 +121,6 @@ public class MockedServiceCollection
             );
     }
 
-    private static byte[] SerializeXml<T>(T model)
-        where T : class, new()
-    {
-        XmlWriterSettings xmlWriterSettings = new XmlWriterSettings()
-        {
-            Encoding = new UTF8Encoding(false),
-            NewLineHandling = NewLineHandling.None,
-        };
-        using var memoryStream = new MemoryStream();
-        using XmlWriter xmlWriter = XmlWriter.Create(memoryStream, xmlWriterSettings);
-
-        XmlSerializer serializer = new XmlSerializer(model.GetType());
-        serializer.Serialize(xmlWriter, model);
-        return memoryStream.ToArray();
-    }
-
     public void AddDataType(DataType dataType)
     {
         lock (AppMetadata.DataTypes)
@@ -150,20 +129,25 @@ public class MockedServiceCollection
         }
     }
 
-    public void AddDataType<T>(DataType dataType)
+    public DataType AddDataType<T>(string? dataTypeId = null, string[]? allowedContentTypes = null, int maxCount = 1)
         where T : class, new()
     {
         var classRef =
             typeof(T).FullName
             ?? throw new InvalidOperationException("DataType for formData does not have a ClassRef defined.");
-
-        dataType.AppLogic ??= new();
-        dataType.AppLogic.ClassRef = classRef;
+        var dataType = new DataType()
+        {
+            Id = dataTypeId ?? typeof(T).Name.ToLowerInvariant(),
+            AppLogic = new() { ClassRef = classRef },
+            MaxCount = maxCount,
+            AllowedContentTypes = allowedContentTypes?.ToList() ?? ["application/xml"],
+        };
 
         AppModelMock.Setup(a => a.GetModelType(classRef)).Returns(typeof(T));
-        AppModelMock.Setup(a => a.Create(classRef)).Returns(new T());
+        AppModelMock.Setup(a => a.Create(classRef)).Returns(() => new T());
 
         AddDataType(dataType);
+        return dataType;
     }
 
     private readonly Dictionary<string, TextResource> _textResources = new();
@@ -188,6 +172,14 @@ public class MockedServiceCollection
 
     public ServiceProvider BuildServiceProvider() =>
         ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(_services);
+
+    public void VerifyMocks()
+    {
+        AppMetadataMock.Verify();
+        AppModelMock.Verify();
+        AuthenticationTokenResolverMock.Verify();
+        AppResourcesMock.Verify();
+    }
 }
 
 public static class MockedServiceProviderExtensions
@@ -201,6 +193,7 @@ public static class MockedServiceProviderExtensions
         where T : class, new()
     {
         var appServices = serviceProvider.GetRequiredService<MockedServiceCollection>();
+        var serializer = serviceProvider.GetRequiredService<ModelSerializationService>();
         var instanceGuid = Guid.NewGuid();
         var dataGuid = Guid.NewGuid();
         var partyId = 123456;
@@ -224,14 +217,7 @@ public static class MockedServiceProviderExtensions
                 TextResourceBindings = ImmutableDictionary<string, Expression>.Empty,
             });
 
-        DataType defaultDataType = new()
-        {
-            Id = dataTypeId,
-            MaxCount = 1,
-            AllowedContentTypes = ["application/xml"],
-        };
-
-        appServices.AddDataType<T>(defaultDataType);
+        DataType defaultDataType = appServices.AddDataType<T>();
 
         var layoutModel = new LayoutModel(
             [new LayoutSetComponent(pages.ToList(), layoutSetName, defaultDataType)],
@@ -249,6 +235,7 @@ public static class MockedServiceProviderExtensions
             Id = dataGuid.ToString(),
             InstanceGuid = instanceGuid.ToString(),
             DataType = defaultDataType.Id,
+            ContentType = "application/xml",
         };
         var instance = new Instance()
         {
@@ -260,27 +247,14 @@ public static class MockedServiceProviderExtensions
         };
 
         appServices.Storage.AddInstance(instance);
-        appServices.Storage.AddData(dataGuid, SerializeXml(model));
+        appServices.Storage.AddDataRaw(
+            dataGuid,
+            serializer.SerializeToStorage(model, defaultDataType, data).data.ToArray()
+        );
 
         var instanceCopy = JsonSerializer.Deserialize<Instance>(JsonSerializer.SerializeToUtf8Bytes(instance))!;
 
         var initializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         return await initializer.Init(instanceCopy, taskId, language);
-    }
-
-    private static byte[] SerializeXml<T>(T model)
-        where T : class, new()
-    {
-        XmlWriterSettings xmlWriterSettings = new XmlWriterSettings()
-        {
-            Encoding = new UTF8Encoding(false),
-            NewLineHandling = NewLineHandling.None,
-        };
-        using var memoryStream = new MemoryStream();
-        using XmlWriter xmlWriter = XmlWriter.Create(memoryStream, xmlWriterSettings);
-
-        XmlSerializer serializer = new XmlSerializer(model.GetType());
-        serializer.Serialize(xmlWriter, model);
-        return memoryStream.ToArray();
     }
 }
