@@ -30,10 +30,9 @@ namespace LocalTest.Services.AppRegistry
         /// </summary>
         /// <param name="appId">Application ID (org/app format)</param>
         /// <param name="port">Port number the app is running on</param>
-        /// <param name="hostname">Hostname or IP address (defaults to host.docker.internal)</param>
-        public void Register(string appId, int port, string? hostname = null)
+        /// <param name="hostname">Hostname or IP address</param>
+        public void Register(string appId, int port, string hostname)
         {
-            hostname ??= "host.docker.internal";
             var registration = new AppRegistration(appId, port, hostname, DateTime.UtcNow);
 
             _registrations.AddOrUpdate(

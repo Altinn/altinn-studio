@@ -96,16 +96,22 @@ internal sealed class LocaltestValidation : BackgroundService
                                 if (addressesFeature?.Addresses != null && addressesFeature.Addresses.Count > 0)
                                 {
                                     var address = addressesFeature.Addresses.First();
-                                    var uri = new Uri(address);
-                                    var port = uri.Port;
 
-                                    if (port != 5005)
+                                    // Server addresses can contain wildcard bind addresses that aren't valid URIs
+                                    var portMatch = System.Text.RegularExpressions.Regex.Match(address, @":(\d+)$");
+                                    if (portMatch.Success && int.TryParse(portMatch.Groups[1].Value, out var port))
                                     {
-                                        // Not on default port - registration is required
-                                        await RegisterWithLocaltest(baseUrl, port, stoppingToken);
-                                        // Wait for app shutdown before unregistering
-                                        await Task.Delay(Timeout.InfiniteTimeSpan, stoppingToken);
-                                        return;
+                                        if (port != 5005)
+                                        {
+                                            // Not on default port - registration is required
+                                            await RegisterWithLocaltest(baseUrl, port, stoppingToken);
+                                            // Wait for app shutdown before unregistering
+                                            await Task.Delay(Timeout.InfiniteTimeSpan, stoppingToken);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        _logger.LogWarning("Could not extract port from server address: {Address}", address);
                                     }
                                 }
                                 // Running on port 5005 or couldn't determine port - no registration needed
@@ -260,7 +266,14 @@ internal sealed class LocaltestValidation : BackgroundService
         {
             if (addressesFeature.Addresses != null && addressesFeature.Addresses.Count > 0)
             {
-                return; // Addresses are now available
+                // Check if we have actual bound addresses (not configuration placeholders)
+                // Configuration addresses contain wildcards like "http://*:8080" or "http://*:0"
+                // Actual bound addresses look like "http://[::]:46519" or "http://0.0.0.0:5005"
+                var firstAddress = addressesFeature.Addresses.First();
+                if (!firstAddress.Contains("*"))
+                {
+                    return;
+                }
             }
             await Task.Delay(TimeSpan.FromMilliseconds(100), _timeProvider, stoppingToken);
             attempt++;
@@ -274,18 +287,10 @@ internal sealed class LocaltestValidation : BackgroundService
         var applicationMetadata = await _appMetadata.GetApplicationMetadata();
         var appId = applicationMetadata.Id;
 
-        string? hostname = null;
-        if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
-        {
-            // Running inside a container - use container's hostname
-            hostname = Environment.GetEnvironmentVariable("HOSTNAME");
-        }
-
         var registrationRequest = new
         {
             appId = appId,
             port = port,
-            hostname = hostname,
         };
 
         var url = $"{baseUrl}/Home/Localtest/Register";
@@ -304,9 +309,8 @@ internal sealed class LocaltestValidation : BackgroundService
                 {
                     _registeredAppId = appId;
                     _logger.LogInformation(
-                        "Successfully registered {AppId} with localtest on {Hostname}:{Port}",
+                        "Successfully registered {AppId} with localtest on port {Port}",
                         appId,
-                        hostname ?? "host.docker.internal",
                         port
                     );
                     return;

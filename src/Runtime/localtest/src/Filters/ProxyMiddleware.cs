@@ -74,8 +74,8 @@ public class ProxyMiddleware
             var registration = _appRegistryService.GetRegistration(appId);
             if (registration != null)
             {
-                // App is registered on a specific port - route there
-                var targetUrl = $"http://{registration.Hostname}:{registration.Port}";
+                var host = registration.Hostname.Contains(':') ? $"[{registration.Hostname}]" : registration.Hostname;
+                var targetUrl = $"http://{host}:{registration.Port}";
                 _logger.LogDebug("Proxying request for registered app {AppId} to {TargetUrl}", appId, targetUrl);
                 await ProxyRequest(context, targetUrl);
                 return;

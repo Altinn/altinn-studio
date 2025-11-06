@@ -55,7 +55,8 @@ namespace LocalTest.Services.LocalApp.Implementation
                 var registration = _appRegistryService.GetRegistration(appId);
                 if (registration != null)
                 {
-                    client.BaseAddress = new Uri($"http://{registration.Hostname}:{registration.Port}");
+                    var host = registration.Hostname.Contains(':') ? $"[{registration.Hostname}]" : registration.Hostname;
+                    client.BaseAddress = new Uri($"http://{host}:{registration.Port}");
                     client.Timeout = TimeSpan.FromHours(1);
                     return client;
                 }

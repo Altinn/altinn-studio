@@ -137,8 +137,14 @@ namespace LocalTest.Controllers
                 return BadRequest("Invalid port number");
             }
 
-            _appRegistryService.Register(request.AppId, request.Port, request.Hostname);
-            return Ok(new { message = "App registered successfully", appId = request.AppId, port = request.Port, hostname = request.Hostname ?? "host.docker.internal" });
+            var sourceIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+            if (string.IsNullOrWhiteSpace(sourceIp))
+            {
+                return BadRequest("Could not determine source IP address");
+            }
+
+            _appRegistryService.Register(request.AppId, request.Port, sourceIp);
+            return Ok(new { message = "App registered successfully", appId = request.AppId, port = request.Port, hostname = sourceIp });
         }
 
         /// <summary>
