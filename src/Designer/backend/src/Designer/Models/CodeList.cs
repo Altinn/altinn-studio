@@ -25,11 +25,6 @@ public sealed record CodeList(List<Code> Codes, CodeListSource? Source, List<str
 
         if (other.TagNames is null || TagNames is null)
         {
-            return false;
-        }
-
-        if (other.TagNames is null || TagNames is null)
-        {
             if (other.TagNames != TagNames)
             {
                 return false;
@@ -44,12 +39,9 @@ public sealed record CodeList(List<Code> Codes, CodeListSource? Source, List<str
     {
         var hash = new HashCode();
 
-        if (Codes is not null)
+        foreach (Code code in Codes)
         {
-            foreach (Code code in Codes)
-            {
-                hash.Add(code);
-            }
+            hash.Add(code);
         }
 
         hash.Add(Source);
@@ -58,7 +50,7 @@ public sealed record CodeList(List<Code> Codes, CodeListSource? Source, List<str
         {
             foreach (string name in TagNames)
             {
-                hash.Add(name);
+                hash.Add(name, StringComparer.Ordinal);
             }
         }
 
