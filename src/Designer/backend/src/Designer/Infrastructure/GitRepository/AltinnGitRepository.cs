@@ -163,6 +163,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             AltinnStudioSettings altinnStudioSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(altinnStudioSettingsJson, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });
 
             bool needsSaving = !IsAllPropertiesInJson(altinnStudioSettingsJson, altinnStudioSettings);
+
             if (altinnStudioSettings.RepoType == AltinnRepositoryType.Unknown)
             {
                 altinnStudioSettings.RepoType = IsDatamodelsRepo() ? AltinnRepositoryType.Datamodels : AltinnRepositoryType.App;
