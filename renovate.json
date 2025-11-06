@@ -66,16 +66,19 @@
         "Microsoft.CodeAnalysis.CSharp",
         "Microsoft.CodeAnalysis.Common"
       ]
+    },
+    {
+      "matchFileNames": [
+        "src/Altinn.Platform/**",
+        "src/test/**",
+        "src/Runtime/localtest/**",
+        "src/App/frontend/**",
+        "src/App/backend/**",
+        "src/App/fileanalyzers/**",
+        "src/App/codelists/**"
+      ],
+      "enabled": false
     }
-  ],
-  "ignorePaths": [
-    "src/Altinn.Platform/**",
-    "src/test/**",
-    "src/Runtime/localtest/**",
-    "src/App/frontend/**",
-    "src/App/backend/**",
-    "src/App/fileanalyzers/**",
-    "src/App/codelists/**"
   ],
   "customManagers": [
     {
