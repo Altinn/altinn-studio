@@ -35,14 +35,14 @@ jobs:
           fetch-depth: 0
 
       - name: 'Initialize CodeQL'
-        uses: github/codeql-action/init@d198d2fabf39a7f36b5ce57ce70d4942944f006e # v3
+        uses: github/codeql-action/init@5d5cd550d3e189c569da8f16ea8de2d821c9bf7a # v3
         with:
           languages: javascript
           queries: +security-and-quality
           config-file: .github/codeql/codeql-config.yml
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@d198d2fabf39a7f36b5ce57ce70d4942944f006e # v3
+        uses: github/codeql-action/analyze@5d5cd550d3e189c569da8f16ea8de2d821c9bf7a # v3
         with:
           category: '/language:javascript'
 
