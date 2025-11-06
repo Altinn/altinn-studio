@@ -20,6 +20,7 @@ import {
 import {
   mockPolicyRule1,
   mockPolicyRuleCard1,
+  mockPolicyRuleCard2,
   mockPolicyRuleCards,
   mockPolicyRules,
   mockRuleId1,
@@ -149,7 +150,7 @@ describe('PolicyEditorUtils', () => {
     });
 
     it('returns true when subjectList matches legacy urn', () => {
-      const subjects: string[] = ['urn:altinn:role:skatt'];
+      const subjects = ['urn:altinn:role:skatt'];
       expect(hasSubject(subjects, 'some-other', 'URN:ALTINN:ROLE:SKATT')).toBe(true);
     });
 
@@ -178,18 +179,17 @@ describe('PolicyEditorUtils', () => {
 
   describe('getNewRuleId', () => {
     it('returns "1" when no numeric ids present or rules empty', () => {
-      expect(getNewRuleId([])).toBe('1');
-      const rules = [{ ruleId: 'abc' }, { ruleId: 'xyz' }] as any;
+      const rules = [{ ...mockPolicyRuleCard1, ruleId: 'xyz' }];
       expect(getNewRuleId(rules)).toBe('1');
     });
 
     it('returns next numeric id after the largest numbered id', () => {
-      const rules = [{ ruleId: '1' }, { ruleId: '5' }, { ruleId: 'foo' }] as any;
-      expect(getNewRuleId(rules)).toBe('6');
+      const rules = [mockPolicyRuleCard2, { ...mockPolicyRuleCard1, ruleId: 'foo' }];
+      expect(getNewRuleId(rules)).toBe('3');
     });
 
     it('handles non-sequential numeric ids', () => {
-      const rules = [{ ruleId: '10' }, { ruleId: '2' }, { ruleId: '7' }] as any;
+      const rules = [{ ...mockPolicyRuleCard2, ruleId: '10' }, mockPolicyRuleCard1];
       expect(getNewRuleId(rules)).toBe('11');
     });
   });

@@ -7,12 +7,12 @@ import {
 } from './policySubResourceMocks';
 import { mockSubjectId1, mockSubjectId3 } from './policySubjectMocks';
 
-export const mockRuleId1: string = 'r1';
-export const mockRuleId2: string = 'r2';
-export const mockRuleId3: string = 'r3';
+export const mockRuleId1: string = 'urn:altinn:test-app:ruleid:1';
+export const mockRuleId2: string = 'urn:altinn:test-app:ruleid:2';
+export const mockRuleId3: string = 'urn:altinn:test-app:ruleid:3';
 
 export const mockPolicyRuleCard1: PolicyRuleCard = {
-  ruleId: mockRuleId1,
+  ruleId: mockRuleId1.split(':').pop(),
   description: '',
   subject: [mockSubjectId1, mockSubjectId3],
   actions: [mockAction1.actionId, mockAction2.actionId, mockAction4.actionId],
@@ -20,7 +20,7 @@ export const mockPolicyRuleCard1: PolicyRuleCard = {
   resources: mockPolicyRuleResources,
 };
 export const mockPolicyRuleCard2: PolicyRuleCard = {
-  ruleId: mockRuleId2,
+  ruleId: mockRuleId2.split(':').pop(),
   description: '',
   subject: [],
   actions: [],
@@ -28,7 +28,7 @@ export const mockPolicyRuleCard2: PolicyRuleCard = {
   resources: [[]],
 };
 export const mockPolicyRuleCardWithSingleNarrowingPolicy: PolicyRuleCard = {
-  ruleId: mockRuleId3,
+  ruleId: mockRuleId3.split(':').pop(),
   description: '',
   subject: [mockSubjectId1, mockSubjectId3],
   actions: [mockAction1.actionId, mockAction2.actionId, mockAction4.actionId],
