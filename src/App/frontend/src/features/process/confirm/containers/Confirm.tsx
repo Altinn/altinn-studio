@@ -6,7 +6,7 @@ import { useAppName } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useInstanceOwnerParty, usePartiesAllowedToInstantiate } from 'src/features/party/PartiesProvider';
-import { ConfirmPage } from 'src/features/processEnd/confirm/containers/ConfirmPage';
+import { ConfirmPage } from 'src/features/process/confirm/containers/ConfirmPage';
 
 export const Confirm = () => {
   const instance = useInstanceDataQuery().data;
