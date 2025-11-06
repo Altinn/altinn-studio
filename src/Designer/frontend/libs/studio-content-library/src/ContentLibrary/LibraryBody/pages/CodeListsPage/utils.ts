@@ -1,6 +1,6 @@
 import { ReadonlyMapUtils } from '@studio/pure-functions';
 import type { CodeListMap } from './types/CodeListMap';
-import type { CodeListData } from './types/CodeListData';
+import type { CodeListData } from '../../../../types/CodeListData';
 import { v4 as uuid } from 'uuid';
 
 export function createCodeListMap(codeLists: CodeListData[]): CodeListMap {

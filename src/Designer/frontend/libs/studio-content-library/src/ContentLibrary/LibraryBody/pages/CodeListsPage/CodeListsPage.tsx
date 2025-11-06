@@ -10,7 +10,7 @@ import {
 } from './utils';
 import { CodeListDataEditor } from './CodeListDataEditor';
 import type { CodeListMap } from './types/CodeListMap';
-import type { CodeListData } from './types/CodeListData';
+import type { CodeListData } from '../../../../types/CodeListData';
 import classes from './CodeListsPage.module.css';
 import { PlusIcon } from '@studio/icons';
 
