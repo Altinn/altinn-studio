@@ -156,5 +156,31 @@ services:
       - monitoring_tempo
       - monitoring_loki
 
+  altinn_test_apps:
+    container_name: altinn-test-apps
+    profiles: ["test-apps"]
+    build:
+      context: ../../..
+      dockerfile: src/test/apps/Dockerfile
+    restart: always
+    networks:
+      - altinntestlocal_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "${TEST_DOMAIN:-local.altinn.cloud}:host-gateway"
+    environment:
+      - TZ=Europe/Oslo
+      - ASPNETCORE_ENVIRONMENT=Development
+      - AppSettings__OpenIdWellKnownEndpoint=http://altinn_localtest:5101/authentication/api/v1/openid/
+      - PlatformSettings__ApiStorageEndpoint=http://altinn_localtest:5101/storage/api/v1/
+      - PlatformSettings__ApiRegisterEndpoint=http://altinn_localtest:5101/register/api/v1/
+      - PlatformSettings__ApiProfileEndpoint=http://altinn_localtest:5101/profile/api/v1/
+      - PlatformSettings__ApiAuthenticationEndpoint=http://altinn_localtest:5101/authentication/api/v1/
+      - PlatformSettings__ApiAuthorizationEndpoint=http://altinn_localtest:5101/authorization/api/v1/
+      - PlatformSettings__ApiAccessManagementEndpoint=http://altinn_localtest:5101/accessmanagement/api/v1/
+      - PlatformSettings__ApiPdf2Endpoint=http://host.docker.internal:5300/pdf
+    depends_on:
+      - altinn_localtest
+
 volumes:
   AltinnPlatformLocal:
