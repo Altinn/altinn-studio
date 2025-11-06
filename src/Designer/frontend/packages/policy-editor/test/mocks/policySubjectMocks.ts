@@ -11,7 +11,7 @@ export const mockSubject1: PolicySubject = {
   id: 'd41d67f2-15b0-4c82-95db-b8d5baaa14a4',
   name: mockSubjectTitle1,
   description: 'Fysisk- eller juridisk person som er stedfortreder for et styremedlem',
-  urn: mockSubjectId1,
+  urn: 'urn:altinn:external-role:ccr:sub1',
   legacyRoleCode: 'VARA',
   legacyUrn: mockSubjectId1,
   provider: {
@@ -24,7 +24,7 @@ export const mockSubject2: PolicySubject = {
   id: '1f8a2518-9494-468a-80a0-7405f0daf9e9',
   name: mockSubjectTitle2,
   description: 'Fysisk person som deltar i styremøter i en virksomhet, men uten stemmerett',
-  urn: mockSubjectId2,
+  urn: 'urn:altinn:external-role:ccr:sub2',
   legacyRoleCode: 'OBS',
   legacyUrn: mockSubjectId2,
   provider: {
@@ -37,7 +37,7 @@ export const mockSubject3: PolicySubject = {
   id: 'f045ffda-dbdc-41da-b674-b9b276ad5b01',
   name: mockSubjectTitle3,
   description: 'Fysisk- eller juridisk person som inngår i et styre',
-  urn: mockSubjectId3,
+  urn: 'urn:altinn:external-role:ccr:sub3',
   legacyRoleCode: 'MEDL',
   legacyUrn: mockSubjectId3,
   provider: {

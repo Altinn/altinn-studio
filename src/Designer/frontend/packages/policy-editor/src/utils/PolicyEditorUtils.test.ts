@@ -7,6 +7,9 @@ import {
   mergeSubjectsFromPolicyWithSubjectOptions,
   convertSubjectStringToSubjectId,
   createNewSubjectFromSubjectString,
+  getNewRuleId,
+  findSubject,
+  hasSubject,
 } from './index';
 import {
   mockAction1,
@@ -103,10 +106,10 @@ describe('PolicyEditorUtils', () => {
       );
 
       expect(mergedSubjects).toHaveLength(3);
-      expect(mergedSubjects.map((subject) => subject.urn)).toEqual([
-        mockSubject2.urn,
-        mockSubject1.urn,
-        mockSubject3.urn,
+      expect(mergedSubjects.map((subject) => subject.legacyUrn)).toEqual([
+        mockSubject2.legacyUrn,
+        mockSubject1.legacyUrn,
+        mockSubject3.legacyUrn,
       ]);
     });
   });
@@ -136,6 +139,58 @@ describe('PolicyEditorUtils', () => {
           name: '',
         },
       });
+    });
+  });
+
+  describe('hasSubject', () => {
+    it('returns true when subjectList contains exact urn (case-insensitive)', () => {
+      const subjects = ['urn:altinn:role:Revisor'];
+      expect(hasSubject(subjects, 'urn:altinn:role:revisor')).toBe(true);
+    });
+
+    it('returns true when subjectList matches legacy urn', () => {
+      const subjects: string[] = ['urn:altinn:role:skatt'];
+      expect(hasSubject(subjects, 'some-other', 'URN:ALTINN:ROLE:SKATT')).toBe(true);
+    });
+
+    it('returns false when not found', () => {
+      const subjects = ['urn:altinn:role:one'];
+      expect(hasSubject(subjects, 'urn:altinn:role:two')).toBe(false);
+    });
+  });
+
+  describe('findSubject', () => {
+    it('finds by urn (case-insensitive)', () => {
+      const found = findSubject([mockSubject1, mockSubject2], mockSubject1.urn.toUpperCase());
+      expect(found).toBe(mockSubject1);
+    });
+
+    it('finds by legacyUrn (case-insensitive)', () => {
+      const found = findSubject([mockSubject1, mockSubject2], mockSubject2.legacyUrn.toUpperCase());
+      expect(found).toBe(mockSubject2);
+    });
+
+    it('returns undefined when not present', () => {
+      const found = findSubject([mockSubject1], 'urn:altinn:role:missing');
+      expect(found).toBeUndefined();
+    });
+  });
+
+  describe('getNewRuleId', () => {
+    it('returns "1" when no numeric ids present or rules empty', () => {
+      expect(getNewRuleId([])).toBe('1');
+      const rules = [{ ruleId: 'abc' }, { ruleId: 'xyz' }] as any;
+      expect(getNewRuleId(rules)).toBe('1');
+    });
+
+    it('returns next numeric id after the largest numbered id', () => {
+      const rules = [{ ruleId: '1' }, { ruleId: '5' }, { ruleId: 'foo' }] as any;
+      expect(getNewRuleId(rules)).toBe('6');
+    });
+
+    it('handles non-sequential numeric ids', () => {
+      const rules = [{ ruleId: '10' }, { ruleId: '2' }, { ruleId: '7' }] as any;
+      expect(getNewRuleId(rules)).toBe('11');
     });
   });
 });
