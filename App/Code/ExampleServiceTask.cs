@@ -19,7 +19,7 @@ public class ExampleServiceTask : IServiceTask
             await context.InstanceDataMutator.GetFormData(new DataElementIdentifier(dataElement));
 
         if (formData.property1 != "true")
-            return ServiceTaskResult.Failed(new ServiceTaskErrorHandling(ServiceTaskErrorStrategy.AbortProcessNext));
+            return ServiceTaskResult.FailedAbortProcessNext();
 
         return ServiceTaskResult.Success();
     }
