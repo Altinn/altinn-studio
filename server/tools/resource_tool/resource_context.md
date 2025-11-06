@@ -7,7 +7,7 @@ When working with resources, all resource files must be updated. The resources e
 ### 1. RESOURCE FILE (resource.[language].json)
 
 **Structure:**
-- language: two letter string, represents language on the values
+- language: two letter string from ISO 639-1, represents language for the values
 - resources: array of objects with id and value
     - id: string, represents the id for the resource, must match 
     - value: string, represents the value for the resource
