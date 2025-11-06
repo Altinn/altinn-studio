@@ -17,7 +17,7 @@ Priority levels are 1,  2 and 3 (from high to low), and describe how important i
 | Feature | Priority | Notes |
 |---------|----------|--------|
 | Text resources | 1 | Covered by `resource_tool` and `resource_validator_tool` |
-| Translations | 1 | Covered by `resource_tool`, but should reference ISO 639-1 for context of which language codes to use |
+| Translations | 1 | Covered by `resource_tool` |
 | Variables | 2 | Covered by `resource_tool` |
 
 ## Data model
