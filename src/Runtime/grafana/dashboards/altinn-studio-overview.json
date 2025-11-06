@@ -24,7 +24,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 200,
+  "id": 383,
   "links": [],
   "panels": [
     {
@@ -38,7 +38,7 @@
         "x": 0,
         "y": 0
       },
-      "id": 8,
+      "id": 15,
       "options": {
         "code": {
           "language": "plaintext",
@@ -52,6 +52,357 @@
       "title": "",
       "transparent": true,
       "type": "text"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 2
+      },
+      "id": 17,
+      "panels": [],
+      "title": "Application metrics",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 3
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.6.3",
+      "targets": [
+        {
+          "azureMonitor": {
+            "aggregation": "Count",
+            "allowedTimeGrainsMs": [
+              60000,
+              300000,
+              900000,
+              1800000,
+              3600000,
+              21600000,
+              43200000,
+              86400000
+            ],
+            "customNamespace": "Azure.ApplicationInsights",
+            "dimensionFilters": [],
+            "metricName": "altinn_app_lib_instances_created",
+            "metricNamespace": "microsoft.insights/components",
+            "region": "norwayeast",
+            "resources": [
+              {
+                "metricNamespace": "microsoft.insights/components",
+                "region": "norwayeast",
+                "resourceGroup": "monitor-$org-$env-rg",
+                "resourceName": "$org-$env-ai",
+                "subscription": "$sub"
+              }
+            ],
+            "timeGrain": "auto"
+          },
+          "queryType": "Azure Monitor",
+          "refId": "A",
+          "subscription": "ca0666d3-b3c0-4159-93f1-b71777ed4338"
+        }
+      ],
+      "title": "Instances created",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 3
+      },
+      "id": 13,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.6.3",
+      "targets": [
+        {
+          "azureMonitor": {
+            "aggregation": "Count",
+            "allowedTimeGrainsMs": [],
+            "customNamespace": "Azure.ApplicationInsights",
+            "dimensionFilters": [],
+            "metricName": "altinn_app_lib_instances_completed",
+            "metricNamespace": "microsoft.insights/components",
+            "region": "norwayeast",
+            "resources": [
+              {
+                "metricNamespace": "microsoft.insights/components",
+                "region": "norwayeast",
+                "resourceGroup": "monitor-$org-$env-rg",
+                "resourceName": "$org-$env-ai",
+                "subscription": "$sub"
+              }
+            ],
+            "timeGrain": "auto"
+          },
+          "queryType": "Azure Monitor",
+          "refId": "A",
+          "subscription": "ca0666d3-b3c0-4159-93f1-b71777ed4338"
+        }
+      ],
+      "title": "Instances completed",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 11
+      },
+      "id": 14,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.6.3",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "query": "requests\n| where success == false\n| where client_Type != 'Browser'\n| where toint(resultCode) >= 500\n| where name has 'PUT Process/NextElement'\n| summarize Count = sum(itemCount) by cloud_RoleName, DateTimeOffset = bin(timestamp, 1h)\n| order by DateTimeOffset asc",
+            "resources": [
+              "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "timestamp"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Failed process/next requests",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 19
+      },
+      "id": 16,
+      "panels": [],
+      "title": "System metrics",
+      "type": "row"
     },
     {
       "datasource": {
@@ -116,12 +467,14 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 2
+        "y": 20
       },
       "id": 10,
       "options": {
         "legend": {
-          "calcs": ["sum"],
+          "calcs": [
+            "sum"
+          ],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -139,12 +492,21 @@
             "aggregation": "Count",
             "alias": "{{cloud/rolename}}",
             "allowedTimeGrainsMs": [
-              60000, 300000, 900000, 1800000, 3600000, 21600000, 43200000, 86400000
+              60000,
+              300000,
+              900000,
+              1800000,
+              3600000,
+              21600000,
+              43200000,
+              86400000
             ],
             "dimensionFilters": [
               {
                 "dimension": "cloud/roleName",
-                "filters": ["$app"],
+                "filters": [
+                  "$app"
+                ],
                 "operator": "eq"
               }
             ],
@@ -233,12 +595,14 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 2
+        "y": 20
       },
       "id": 3,
       "options": {
         "legend": {
-          "calcs": ["sum"],
+          "calcs": [
+            "sum"
+          ],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -256,12 +620,21 @@
             "aggregation": "Count",
             "alias": "{{cloud/rolename}}",
             "allowedTimeGrainsMs": [
-              60000, 300000, 900000, 1800000, 3600000, 21600000, 43200000, 86400000
+              60000,
+              300000,
+              900000,
+              1800000,
+              3600000,
+              21600000,
+              43200000,
+              86400000
             ],
             "dimensionFilters": [
               {
                 "dimension": "cloud/roleName",
-                "filters": ["$app"],
+                "filters": [
+                  "$app"
+                ],
                 "operator": "eq"
               },
               {
@@ -368,12 +741,14 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 11
+        "y": 29
       },
       "id": 2,
       "options": {
         "legend": {
-          "calcs": ["mean"],
+          "calcs": [
+            "mean"
+          ],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -391,12 +766,21 @@
             "aggregation": "Average",
             "alias": "{{cloud/rolename}}",
             "allowedTimeGrainsMs": [
-              60000, 300000, 900000, 1800000, 3600000, 21600000, 43200000, 86400000
+              60000,
+              300000,
+              900000,
+              1800000,
+              3600000,
+              21600000,
+              43200000,
+              86400000
             ],
             "dimensionFilters": [
               {
                 "dimension": "cloud/roleName",
-                "filters": ["$app"],
+                "filters": [
+                  "$app"
+                ],
                 "operator": "eq"
               }
             ],
@@ -485,12 +869,14 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 11
+        "y": 29
       },
       "id": 4,
       "options": {
         "legend": {
-          "calcs": ["sum"],
+          "calcs": [
+            "sum"
+          ],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -508,12 +894,21 @@
             "aggregation": "Count",
             "alias": "{{cloud/rolename}}",
             "allowedTimeGrainsMs": [
-              60000, 300000, 900000, 1800000, 3600000, 21600000, 43200000, 86400000
+              60000,
+              300000,
+              900000,
+              1800000,
+              3600000,
+              21600000,
+              43200000,
+              86400000
             ],
             "dimensionFilters": [
               {
                 "dimension": "cloud/roleName",
-                "filters": ["$app"],
+                "filters": [
+                  "$app"
+                ],
                 "operator": "eq"
               }
             ],
@@ -603,12 +998,14 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 19
+        "y": 37
       },
       "id": 5,
       "options": {
         "legend": {
-          "calcs": ["last"],
+          "calcs": [
+            "last"
+          ],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -700,12 +1097,14 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 19
+        "y": 37
       },
       "id": 11,
       "options": {
         "legend": {
-          "calcs": ["sum"],
+          "calcs": [
+            "sum"
+          ],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -723,7 +1122,14 @@
             "aggregation": "Count",
             "alias": "",
             "allowedTimeGrainsMs": [
-              60000, 300000, 900000, 1800000, 3600000, 21600000, 43200000, 86400000
+              60000,
+              300000,
+              900000,
+              1800000,
+              3600000,
+              21600000,
+              43200000,
+              86400000
             ],
             "dimensionFilters": [
               {
@@ -823,12 +1229,14 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 27
+        "y": 45
       },
       "id": 6,
       "options": {
         "legend": {
-          "calcs": ["last"],
+          "calcs": [
+            "last"
+          ],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -922,12 +1330,14 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 27
+        "y": 45
       },
       "id": 7,
       "options": {
         "legend": {
-          "calcs": ["last"],
+          "calcs": [
+            "last"
+          ],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -959,7 +1369,9 @@
   ],
   "preload": false,
   "schemaVersion": 41,
-  "tags": ["altinn"],
+  "tags": [
+    "altinn"
+  ],
   "templating": {
     "list": [
       {
