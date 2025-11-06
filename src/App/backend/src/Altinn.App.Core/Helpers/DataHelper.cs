@@ -121,12 +121,12 @@ public static class DataHelper
         Dictionary<string, string?> newDictionary
     )
     {
-        Dictionary<string, string?> updatedValues = new Dictionary<string, string?>();
-
         if (originalDictionary == null)
         {
             return newDictionary;
         }
+
+        Dictionary<string, string?> updatedValues = [];
 
         foreach (KeyValuePair<string, string?> entry in newDictionary)
         {

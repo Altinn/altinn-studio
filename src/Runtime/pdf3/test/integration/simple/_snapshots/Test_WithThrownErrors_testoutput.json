@@ -10,7 +10,10 @@
     {
       "state": "BeforeCleanup",
       "cookies": [
-        "AltinnStudioRuntime"
+        {
+          "name": "AltinnStudioRuntime",
+          "domain": "testserver.default.svc.cluster.local"
+        }
       ],
       "consoleErrorLogs": 1,
       "browserErrors": 0

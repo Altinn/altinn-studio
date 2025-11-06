@@ -1,22 +1,21 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { RoutePaths } from 'app-development/enums/RoutePaths';
 import classes from './BreadcrumbsTaskNavigation.module.css';
 import { StudioBreadcrumbs } from '@studio/components';
-import { useAppContext } from '@altinn/ux-editor/hooks';
 import { UrlUtils } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+
 export const BreadcrumbsTaskNavigation = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { selectedFormLayoutSetName, removeSelectedFormLayoutSetName } = useAppContext();
+  const { layoutSet } = useUxEditorParams();
   const location = useLocation();
   const currentRoutePath = UrlUtils.extractLastRouterParam(location.pathname);
   const isOnUIEditor = currentRoutePath === 'ui-editor';
 
   const handleClick = () => {
-    removeSelectedFormLayoutSetName();
-    navigate(`../${RoutePaths.UIEditor}`);
+    navigate(`../`);
   };
 
   return (
@@ -32,9 +31,7 @@ export const BreadcrumbsTaskNavigation = () => {
             </StudioBreadcrumbs.Link>
           </StudioBreadcrumbs.Item>
           <StudioBreadcrumbs.Item>
-            <div className={isOnUIEditor ? classes.layoutSet : undefined}>
-              {selectedFormLayoutSetName}
-            </div>
+            <div className={isOnUIEditor ? classes.layoutSet : undefined}>{layoutSet}</div>
           </StudioBreadcrumbs.Item>
         </StudioBreadcrumbs.List>
       </StudioBreadcrumbs>

@@ -14,9 +14,10 @@ import {
   layoutSet2NameMock,
   layoutSetsMock,
 } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
+import { app, org } from '@studio/testing/testids';
+
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
-import { app, org } from '@studio/testing/testids';
 
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;

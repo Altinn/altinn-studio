@@ -5,7 +5,7 @@
     "a.value",
     "non-existing"
   ],
-  "expectsFailure": "Data model with type non-existing not found",
+  "expectsFailure": "non-existing not found",
   "dataModels": [
     {
       "dataElement": {

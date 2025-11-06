@@ -65,7 +65,8 @@ type KindContainerRuntime struct {
 	KindClient       *kindcli.KindClient
 	KubernetesClient *kubernetes.KubernetesClient
 
-	RegistryStartedEvent chan<- struct{}
+	RegistryStartedEvent chan<- error
+	IngressReadyEvent    chan<- error
 }
 
 // logDuration logs the duration of an operation
@@ -124,6 +125,11 @@ func Load(variant KindContainerRuntimeVariant, cachePath string) (*KindContainer
 		return nil, err
 	}
 
+	// Set kubectl context to match the loaded cluster
+	if err := r.setKubectlContext(); err != nil {
+		return nil, fmt.Errorf("failed to set kubectl context: %w", err)
+	}
+
 	return r, nil
 }
 
@@ -154,6 +160,11 @@ func LoadCurrent(cachePath string) (*KindContainerRuntime, error) {
 		return nil, err
 	}
 
+	// Set kubectl context to match the loaded cluster
+	if err := r.setKubectlContext(); err != nil {
+		return nil, fmt.Errorf("failed to set kubectl context: %w", err)
+	}
+
 	return r, nil
 }
 
@@ -179,7 +190,8 @@ func initialize(cachePath string, isLoad bool) (*KindContainerRuntime, []string,
 		return nil, nil, err
 	}
 
-	if _, err := installer.Install(context.Background(), ""); err != nil {
+	// Install only the tools needed for KindContainerRuntime (not k6, which is only needed for loadtest)
+	if _, err := installer.Install(context.Background(), "kind,kubectl,helm,flux,golangci-lint"); err != nil {
 		return nil, nil, fmt.Errorf("failed to ensure CLIs: %w", err)
 	}
 
@@ -302,7 +314,9 @@ func (r *KindContainerRuntime) Run() error {
 
 	if r.RegistryStartedEvent != nil {
 		go func() {
-			timeout := 5 * time.Second
+			succeeded := false
+			defer func() { fmt.Printf("Done waiting for registry. Succeeded=%t\n", succeeded) }()
+			timeout := 30 * time.Second
 			deadline := time.Now().Add(timeout)
 
 			httpClient := &http.Client{
@@ -310,18 +324,21 @@ func (r *KindContainerRuntime) Run() error {
 			}
 
 			for !time.Now().After(deadline) {
-
 				resp, err := httpClient.Get("http://localhost:5001/v2/")
-				if err != nil {
-					continue
-				}
-				status := resp.StatusCode
-				_ = resp.Body.Close()
-				if status == http.StatusOK {
+				if err == nil && resp.StatusCode == http.StatusOK {
+					_ = resp.Body.Close()
+					succeeded = true
 					break
+				} else if resp != nil {
+					_ = resp.Body.Close()
 				}
+				time.Sleep(250 * time.Millisecond)
 			}
-			close(r.RegistryStartedEvent)
+			if succeeded {
+				r.RegistryStartedEvent <- nil
+			} else {
+				r.RegistryStartedEvent <- fmt.Errorf("timed out waiting for registry")
+			}
 		}()
 	}
 

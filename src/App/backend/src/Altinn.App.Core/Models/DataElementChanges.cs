@@ -1,3 +1,4 @@
+using Altinn.App.Core.Internal.Data;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Models;
@@ -33,15 +34,23 @@ public sealed class DataElementChanges
 /// </summary>
 public abstract class DataElementChange
 {
+    internal DataElementChange(ChangeType type, DataType dataType, string contentType, DataElement? dataElement = null)
+    {
+        Type = type;
+        DataElement = dataElement;
+        DataType = dataType;
+        ContentType = contentType;
+    }
+
     /// <summary>
     /// The type of update: Create, Update or Delete
     /// </summary>
-    public required ChangeType Type { get; init; }
+    public ChangeType Type { get; }
 
     /// <summary>
     /// The data element the change is related to (null if a new data element)
     /// </summary>
-    public required DataElement? DataElement { get; set; } // needs to be set after saving new elements to storage
+    public DataElement? DataElement { get; internal set; } // needs to be set after saving new elements to storage
 
     /// <summary>
     /// The data element identifier or an exception if accessed before it was set
@@ -52,12 +61,12 @@ public abstract class DataElementChange
     /// <summary>
     /// The data type of the data element
     /// </summary>
-    public required DataType DataType { get; init; }
+    public DataType DataType { get; }
 
     /// <summary>
-    /// The content type of element in storage
+    /// The contentType of an element in storage
     /// </summary>
-    public required string ContentType { get; init; }
+    public string ContentType { get; }
 }
 
 /// <summary>
@@ -86,15 +95,29 @@ public enum ChangeType
 /// </summary>
 public sealed class BinaryDataChange : DataElementChange
 {
+    internal BinaryDataChange(
+        ChangeType type,
+        DataType dataType,
+        string contentType,
+        DataElement? dataElement,
+        string? fileName,
+        ReadOnlyMemory<byte> currentBinaryData
+    )
+        : base(type, dataType, contentType, dataElement)
+    {
+        FileName = fileName;
+        CurrentBinaryData = currentBinaryData;
+    }
+
     /// <summary>
     /// The file name of the attachment file
     /// </summary>
-    public required string? FileName { get; init; }
+    public string? FileName { get; }
 
     /// <summary>
     /// The binary data
     /// </summary>
-    public required ReadOnlyMemory<byte> CurrentBinaryData { get; init; }
+    public ReadOnlyMemory<byte> CurrentBinaryData { get; }
 }
 
 /// <summary>
@@ -102,21 +125,49 @@ public sealed class BinaryDataChange : DataElementChange
 /// </summary>
 public sealed class FormDataChange : DataElementChange
 {
-    /// <summary>
-    /// The state of the data element before the change
-    /// </summary>
-    public required object PreviousFormData { get; init; }
+    internal FormDataChange(
+        ChangeType type,
+        DataType dataType,
+        string contentType,
+        IFormDataWrapper previousFormDataWrapper,
+        IFormDataWrapper currentFormDataWrapper,
+        ReadOnlyMemory<byte> previousBinaryData,
+        ReadOnlyMemory<byte>? currentBinaryData,
+        DataElement? dataElement
+    )
+        : base(type, dataType, contentType, dataElement)
+    {
+        PreviousFormDataWrapper = previousFormDataWrapper;
+        CurrentFormDataWrapper = currentFormDataWrapper;
+        PreviousBinaryData = previousBinaryData;
+        CurrentBinaryData = currentBinaryData;
+    }
 
     /// <summary>
-    /// The state of the data element after the change
+    /// A POCO object representing the state of the data element before the change
     /// </summary>
-    public required object CurrentFormData { get; init; }
+    public object PreviousFormData => PreviousFormDataWrapper.BackingData<object>();
+
+    /// <summary>
+    /// The previous form data wrapped in a <see cref="IFormDataWrapper"/>
+    /// </summary>
+    internal IFormDataWrapper PreviousFormDataWrapper { get; }
+
+    /// <summary>
+    /// A POCO object representing the state of the data element after the change
+    /// </summary>
+    public object CurrentFormData => CurrentFormDataWrapper.BackingData<object>();
+
+    /// <summary>
+    /// The data after the change wrapped in a <see cref="IFormDataWrapper"/>
+    /// </summary>
+    public IFormDataWrapper CurrentFormDataWrapper { get; }
 
     /// <summary>
     /// The binary representation (for storage) of the data element before changes
     /// </summary>
     /// <remarks>Empty memory for new data elements</remarks>
-    public required ReadOnlyMemory<byte> PreviousBinaryData { get; init; }
+    public ReadOnlyMemory<byte> PreviousBinaryData { get; }
 
     /// <summary>
     /// The binary representation (for storage) of the data element after changes
@@ -132,5 +183,5 @@ public sealed class FormDataChange : DataElementChange
     ///
     /// For deleted data elements this is set to <see cref="ReadOnlyMemory{T}.Empty"/>
     /// </remarks>
-    public required ReadOnlyMemory<byte>? CurrentBinaryData { get; init; }
+    public ReadOnlyMemory<byte>? CurrentBinaryData { get; }
 }

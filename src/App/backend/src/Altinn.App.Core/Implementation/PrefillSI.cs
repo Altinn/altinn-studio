@@ -7,6 +7,7 @@ using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 
@@ -17,7 +18,7 @@ public class PrefillSI : IPrefill
 {
     private readonly ILogger _logger;
     private readonly IAppResources _appResourcesService;
-    private readonly IAltinnPartyClient _altinnPartyClient;
+    private readonly IRegisterClient _registerClient;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly Telemetry? _telemetry;
     private static readonly string _erKey = "ER";
@@ -31,20 +32,20 @@ public class PrefillSI : IPrefill
     /// </summary>
     /// <param name="logger">The logger</param>
     /// <param name="appResourcesService">The app's resource service</param>
-    /// <param name="altinnPartyClient">The register client</param>
     /// <param name="authenticationContext">The authentication context</param>
+    /// <param name="serviceProvider">The service provider</param>
     /// <param name="telemetry">Telemetry for traces and metrics.</param>
     public PrefillSI(
         ILogger<PrefillSI> logger,
         IAppResources appResourcesService,
-        IAltinnPartyClient altinnPartyClient,
         IAuthenticationContext authenticationContext,
+        IServiceProvider serviceProvider,
         Telemetry? telemetry = null
     )
     {
         _logger = logger;
         _appResourcesService = appResourcesService;
-        _altinnPartyClient = altinnPartyClient;
+        _registerClient = serviceProvider.GetRequiredService<IRegisterClient>();
         _authenticationContext = authenticationContext;
         _telemetry = telemetry;
     }
@@ -96,7 +97,10 @@ public class PrefillSI : IPrefill
             Authenticated.SystemUser systemUser
                 when await systemUser.LoadDetails() is { } details && details.Party.PartyId == partyIdNum =>
                 details.Party,
-            _ => await _altinnPartyClient.GetParty(partyIdNum),
+            // We use the unchecked register client here,
+            // thinking that it is fine to do so because it is the calling code
+            // that is responsible for authorizing the overarching request
+            _ => await _registerClient.GetPartyUnchecked(partyIdNum, default),
         };
         if (party == null)
         {

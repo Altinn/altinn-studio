@@ -228,6 +228,7 @@ public sealed partial class Telemetry : IDisposable
         internal const string AuthorizerTaskId = "authorization.authorizer.task.id";
         internal const string ValidatorType = "validator.type";
         internal const string ValidatorSource = "validator.source";
+        internal const string ValidatorRemoveHiddenData = "validator.remove_hidden_data";
         internal const string ValidatorHasRelevantChanges = "validator.has_relevant_changes";
         internal const string ValidatorChangedElementsIds = "validator.changed_elements_ids";
         internal const string ValidatorIssueCount = "validation.issue_count";

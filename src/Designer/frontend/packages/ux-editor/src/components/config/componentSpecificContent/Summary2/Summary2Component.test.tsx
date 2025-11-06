@@ -200,7 +200,6 @@ const render = (props?: Partial<IGenericEditComponent<ComponentType.Summary2>>) 
   renderWithProviders(<Summary2Component {...defaultProps} {...props} />, {
     queryClient,
     appContextProps: {
-      selectedFormLayoutSetName: layoutSet1NameMock,
       selectedFormLayoutName: layout1NameMock,
     },
   });

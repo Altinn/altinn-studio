@@ -2,18 +2,22 @@ package runtime
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"sync/atomic"
 	"syscall"
 	"testing"
 	"time"
+
+	"altinn.studio/pdf3/internal/assert"
+	"altinn.studio/pdf3/internal/log"
 )
 
 var IsTestInternalsMode bool = os.Getenv("TEST_INTERNALS_MODE") == "true" || testing.Testing()
 
 type Host struct {
+	logger                     *slog.Logger
 	signalCtx                  context.Context
 	stopSignalCtx              context.CancelFunc
 	readinessDrainDelayCtx     context.Context
@@ -54,12 +58,14 @@ func NewHost(
 	shutdownPeriod time.Duration,
 	shutdownHardPeriod time.Duration,
 ) *Host {
+	logger := log.NewComponent("runtime")
 	signalCtx, stopSignalCtx := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	readinessDrainDelayCtx, stopReadinessDrainDelayCtx := context.WithCancel(context.Background())
 	serverCtx, stopServerCtx := context.WithCancel(context.Background())
 	hardShutdownCtx, stopHardShutdownCtx := context.WithCancel(context.Background())
 
 	host := &Host{
+		logger:                     logger,
 		signalCtx:                  signalCtx,
 		stopSignalCtx:              stopSignalCtx,
 		readinessDrainDelayCtx:     readinessDrainDelayCtx,
@@ -82,10 +88,15 @@ func NewHost(
 }
 
 func (h *Host) run() {
+	defer func() {
+		r := recover()
+		assert.AssertWithMessage(r == nil, "Runtime host shutdown coordinator panicked", "error", r)
+	}()
+
 	// We received SIGINT/SIGTERM
 	// 1. Log and notify
 	<-h.signalCtx.Done()
-	log.Println("Shutdown signal received")
+	h.logger.Info("Shutdown signal received")
 	h.stopSignalCtx()
 	h.isShuttingDown.Store(true)
 

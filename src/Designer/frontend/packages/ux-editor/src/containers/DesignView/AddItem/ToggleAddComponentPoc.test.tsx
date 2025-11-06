@@ -20,18 +20,18 @@ describe('ToggleAddComponentPoc', () => {
 
   it('Renders the switch in the disabled state when the flag is disabled', () => {
     renderToggleAddComponentPoc();
-    expect(screen.getByRole('checkbox')).not.toBeChecked();
+    expect(screen.getByRole('switch')).not.toBeChecked();
   });
 
   it('Renders the switch in the enabled state when the flag is enabled', () => {
     renderToggleAddComponentPoc([FeatureFlag.AddComponentModal]);
-    expect(screen.getByRole('checkbox')).toBeChecked();
+    expect(screen.getByRole('switch')).toBeChecked();
   });
 
   it('Calls addFlag with the correct flag when it is disabled and the switch is clicked', async () => {
     const user = userEvent.setup();
     renderToggleAddComponentPoc();
-    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('switch'));
     expect(addFlag).toHaveBeenCalledTimes(1);
     expect(addFlag).toHaveBeenCalledWith(FeatureFlag.AddComponentModal);
   });
@@ -39,7 +39,7 @@ describe('ToggleAddComponentPoc', () => {
   it('Calls removeFlag with the correct flag when it is enabled and the switch is clicked', async () => {
     const user = userEvent.setup();
     renderToggleAddComponentPoc([FeatureFlag.AddComponentModal]);
-    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('switch'));
     expect(removeFlag).toHaveBeenCalledTimes(1);
     expect(removeFlag).toHaveBeenCalledWith(FeatureFlag.AddComponentModal);
   });

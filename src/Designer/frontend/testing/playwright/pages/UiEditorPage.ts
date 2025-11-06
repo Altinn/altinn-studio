@@ -20,14 +20,14 @@ export class UiEditorPage extends BasePage {
     await this.page.goto(this.getRoute('editorUi'));
   }
 
-  public async verifyUiEditorPage(layout?: string | null): Promise<void> {
+  public async verifyUiEditorPage(layoutSet?: string, layout?: string | null): Promise<void> {
     const baseRoute = this.getRoute('editorUi');
-    if (layout === null || typeof layout === 'string') {
-      const layoutString = `?layout=${layout}`;
-      await this.page.waitForURL(`${baseRoute}${layoutString}`);
-    } else {
-      await this.page.waitForURL(baseRoute);
-    }
+    const pageUrl = new URL(
+      baseRoute + (layoutSet ? `/layoutSet/${layoutSet}` : ''),
+      this.page.url(),
+    );
+    if (layout) pageUrl.searchParams.append('layout', layout);
+    await this.page.waitForURL(pageUrl.toString());
   }
 
   public async clickOnPageAccordion(pageName: string): Promise<void> {

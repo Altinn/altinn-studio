@@ -8,33 +8,34 @@ import {
 } from 'app-shared/types/api/dto/PagesModel';
 
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { useAppContext } from '@altinn/ux-editor/hooks';
+import useUxEditorParams from '../useUxEditorParams';
 
 export const useAddGroupMutation = (org: string, app: string) => {
   const queryClient = useQueryClient();
   const { getPages, changePageGroups } = useServicesContext();
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { layoutSet } = useUxEditorParams();
+
   const { t } = useTranslation();
 
   return useMutation({
     mutationFn: async () => {
-      const updatedPages = await getPages(org, app, selectedFormLayoutSetName);
+      const updatedPages = await getPages(org, app, layoutSet);
       if (!isPagesModelWithGroups(updatedPages))
         throw new Error('Pages model does not contain groups');
       const nextPageNumber = getNextPageNumber(updatedPages.groups, t);
       const newGroup = createNewGroup(nextPageNumber, t);
       const finalPayload = addGroupsWithPages(updatedPages, newGroup);
-      return await changePageGroups(org, app, selectedFormLayoutSetName, finalPayload);
+      return await changePageGroups(org, app, layoutSet, finalPayload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: [QueryKey.Pages, org, app, selectedFormLayoutSetName],
+        queryKey: [QueryKey.Pages, org, app, layoutSet],
       });
       queryClient.invalidateQueries({
-        queryKey: [QueryKey.FormLayouts, org, app, selectedFormLayoutSetName],
+        queryKey: [QueryKey.FormLayouts, org, app, layoutSet],
       });
       queryClient.invalidateQueries({
-        queryKey: [QueryKey.FormLayoutSettings, org, app, selectedFormLayoutSetName],
+        queryKey: [QueryKey.FormLayoutSettings, org, app, layoutSet],
       });
     },
   });

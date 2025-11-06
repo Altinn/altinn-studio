@@ -266,7 +266,10 @@ public class SigningController : ControllerBase
 
         List<DataElement> dataElements =
         [
-            .. instance.Data.Where(x => signingConfiguration.DataTypesToSign.Contains(x.DataType)),
+            .. instance
+                .Data.Where(x => signingConfiguration.DataTypesToSign.Contains(x.DataType))
+                .OrderBy(x => signingConfiguration.DataTypesToSign.IndexOf(x.DataType))
+                .ThenBy(x => x.Created),
         ];
 
         foreach (DataElement dataElement in dataElements)

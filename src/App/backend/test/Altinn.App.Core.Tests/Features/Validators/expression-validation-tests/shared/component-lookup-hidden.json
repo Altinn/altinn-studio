@@ -1,0 +1,81 @@
+{
+  "name": "Should return null when looking up hidden component",
+  "expects": [
+    {
+      "message": "Navnet ditt kan ikke være feil.",
+      "severity": "error",
+      "field": "personer[0].navn",
+      "componentId": "person-navn"
+    }
+  ],
+  "validationConfig": {
+    "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/validation/validation.schema.v1.json",
+    "validations": {
+      "personer.navn": [
+        {
+          "message": "Navnet ditt kan ikke være feil.",
+          "severity": "error",
+          "condition": ["equals", ["component", "person-navn"], "feil"]
+        }
+      ]
+    }
+  },
+  "formData": {
+    "personer": [
+      {
+        "altinnRowId": "person0",
+        "navn": "feil",
+        "utenNavn": false
+      },
+      {
+        "altinnRowId": "person1",
+        "navn": "feil",
+        "utenNavn": true
+      },
+      {
+        "altinnRowId": "person2",
+        "navn": "riktig",
+        "utenNavn": false
+      }
+    ]
+  },
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "personer",
+            "type": "RepeatingGroup",
+            "dataModelBindings": {
+              "group": "personer"
+            },
+            "children": [
+              "person-navn",
+              "uten-navn"
+            ]
+          },
+          {
+            "id": "person-navn",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "personer.navn"
+            },
+            "hidden": ["equals", ["component", "uten-navn"], true]
+          },
+          {
+            "id": "uten-navn",
+            "type": "Checkboxes",
+            "dataModelBindings": {
+              "simpleBinding": "personer.utenNavn"
+            },
+            "options": [
+              { "label": "Ja", "value": true },
+              { "label": "Nei", "value": false }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

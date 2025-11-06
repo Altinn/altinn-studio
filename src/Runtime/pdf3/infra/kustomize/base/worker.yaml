@@ -157,7 +157,7 @@ spec:
       volumes:
       - emptyDir:
           medium: Memory
-          sizeLimit: 64Mi
+          sizeLimit: 512Mi
         name: tmpdisk
       securityContext:
         # Run as 'nobody'
@@ -228,7 +228,7 @@ spec:
               # can easily saturate a core (1000m). But it won't do that
               # all the time, so settling on 750m for reserving capacity
               cpu: 750m
-              memory: 512Mi
+              memory: 1Gi
           volumeMounts:
           - mountPath: /tmp
             name: tmpdisk

@@ -69,6 +69,12 @@ stop: ## Stop the runtime fixture/cluster
 logs: ## Stream logs from pdf3 components
 	stern -l component=pdf3 -n runtime-pdf3 -E linkerd-init -E linkerd-proxy --tail -1
 
-loadtest: ## Run k6 load tests
-	@go run ./cmd/tester loadtest
+loadtest-local: ## Run k6 load tests against local cluster (test-local.ts)
+	@go run ./cmd/tester loadtest-local
 
+loadtest-env: ## Run k6 browser tests against remote environment (test-env.js)
+	@go run ./cmd/tester loadtest-env
+
+browser:
+	mkdir -p .cache/
+	cd .cache/ && npx @puppeteer/browsers install chrome-headless-shell@stable

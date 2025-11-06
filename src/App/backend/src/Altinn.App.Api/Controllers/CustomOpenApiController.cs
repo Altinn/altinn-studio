@@ -130,7 +130,7 @@ public class CustomOpenApiController : Controller
         var walker = new OpenApiWalker(new SchemaPostVisitor());
         walker.Walk(document);
 
-        return Ok(document.Serialize(SpecVersion, SpecFormat));
+        return Content(document.Serialize(SpecVersion, SpecFormat), "application/json");
     }
 
     private string GetIntroDoc(ApplicationMetadata appMetadata)

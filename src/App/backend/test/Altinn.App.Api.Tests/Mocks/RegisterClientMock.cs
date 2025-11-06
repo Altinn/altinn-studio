@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Altinn.App.Api.Tests.Data;
 using Altinn.App.Core.Internal.Registers;
+using Altinn.App.Tests.Common.Data;
 using Altinn.Platform.Register.Models;
 
 namespace Altinn.App.Api.Tests.Mocks;
@@ -13,7 +13,7 @@ public class RegisterClientMock : IRegisterClient
         Converters = { new JsonStringEnumConverter() },
     };
 
-    private readonly string _partyFolder = TestData.GetAltinnProfilePath();
+    private readonly string _partyFolder = CommonTestData.GetAltinnProfilePath();
 
     public async Task<Party?> GetPartyUnchecked(int partyId, CancellationToken cancellationToken)
     {

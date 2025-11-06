@@ -5,17 +5,15 @@ import type { PagesModelWithPageGroups } from 'app-shared/types/api/dto/PagesMod
 import { useAppContext } from '../useAppContext';
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
 import { ItemType } from '@altinn/ux-editor/components/Properties/ItemType';
+import useUxEditorParams from '../useUxEditorParams';
 
 export const useAddPageToGroup = (pagesModel: PagesModelWithPageGroups) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const {
-    setSelectedItem,
-    selectedFormLayoutSetName,
-    setSelectedFormLayoutName,
-    updateLayoutsForPreview,
-  } = useAppContext();
-  const updateGroupsMutation = useUpdateGroupsMutation(org, app, selectedFormLayoutSetName);
+  const { setSelectedItem, setSelectedFormLayoutName, updateLayoutsForPreview } = useAppContext();
+  const { layoutSet } = useUxEditorParams();
+
+  const updateGroupsMutation = useUpdateGroupsMutation(org, app, layoutSet);
 
   const nextValidPageName = () => {
     const allPageNames = [
@@ -56,7 +54,7 @@ export const useAddPageToGroup = (pagesModel: PagesModelWithPageGroups) => {
         onSuccess: async () => {
           setSelectedFormLayoutName(newPage.id);
           setSelectedItem({ type: ItemType.Page, id: newPage.id });
-          await updateLayoutsForPreview(selectedFormLayoutSetName);
+          await updateLayoutsForPreview(layoutSet);
         },
       },
     );

@@ -43,7 +43,7 @@ public class LegacyIInstanceValidatorTaskValidator : IValidator
         {
             var type = _instanceValidator.GetType();
             Debug.Assert(type.FullName is not null, "FullName does not return null on class/struct types");
-            return type.FullName;
+            return type.FullName + "_Task";
         }
     }
 

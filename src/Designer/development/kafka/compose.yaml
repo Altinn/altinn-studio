@@ -56,7 +56,7 @@ services:
       "
 
   schemaregistry:
-    image: confluentinc/cp-schema-registry:7.9.3
+    image: confluentinc/cp-schema-registry:7.9.4
     restart: always
     hostname: schemaregistry
     container_name: schemaregistry

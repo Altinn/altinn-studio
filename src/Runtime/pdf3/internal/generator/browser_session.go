@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/url"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -21,22 +23,16 @@ import (
 	"altinn.studio/pdf3/internal/types"
 )
 
-// htmlIDSelectorPattern matches pure ID selectors like #myId, #my-id, #my_id
-// but rejects complex selectors like #id.class, #id[attr], #id > child, etc.
-// Allows any HTML5 ID characters except CSS selector metacharacters.
-var htmlIDSelectorPattern = regexp.MustCompile(`^#[^\s.:\[\]>+~,()]+$`)
-
 type browserSession struct {
 	id       int
+	logger   *slog.Logger
 	browser  *browser.Process
 	conn     cdp.Connection
 	targetID string
 
-	queue chan workerRequest
-	state atomic.Uint32
-
-	// Current request
-	currentUrl string
+	queue          chan workerRequest
+	state          atomic.Uint32
+	currentRequest *workerRequest
 
 	// Error tracking for current request
 	consoleErrors atomic.Int32
@@ -47,10 +43,13 @@ type browserSession struct {
 	cancel context.CancelFunc
 }
 
-func newBrowserSession(id int) (*browserSession, error) {
+func newBrowserSession(logger *slog.Logger, id int) (*browserSession, error) {
 	ctx, cancel := context.WithCancel(context.Background())
+	sessionLogger := logger.With("id", id)
+	sessionLogger.Info("Starting browser session")
 	w := &browserSession{
 		id:     id,
+		logger: sessionLogger,
 		queue:  make(chan workerRequest),
 		state:  atomic.Uint32{},
 		ctx:    ctx,
@@ -68,7 +67,7 @@ func newBrowserSession(id int) (*browserSession, error) {
 	w.conn, w.targetID, err = cdp.Connect(ctx, id, w.browser.DebugBaseURL, w.handleEvent)
 	if err != nil {
 		if closeErr := w.browser.Close(); closeErr != nil {
-			log.Printf("ERROR: Worker %d failed to connect AND failed to close browser: %v - process is lingering!\n", id, closeErr)
+			w.logger.Error("Failed to connect AND failed to close browser", "error", closeErr)
 		}
 		return nil, fmt.Errorf("failed to connect to browser: %w", err)
 	}
@@ -91,7 +90,7 @@ func newBrowserSession(id int) (*browserSession, error) {
 
 	go w.handleRequests()
 
-	log.Printf("Browser worker %d initialized successfully\n", id)
+	w.logger.Info("Browser worker initialized successfully")
 	return w, nil
 }
 
@@ -113,7 +112,7 @@ func (w *browserSession) handleEvent(method string, params any) {
 		if p, ok := params.(map[string]any); ok {
 			if apiType, ok := p["type"].(string); ok && apiType == "error" {
 				w.consoleErrors.Add(1)
-				log.Printf("[%d, %s] console error: %v\n", w.id, w.currentUrl, p)
+				w.logger.Warn("Console error", "details", p)
 			}
 		}
 	case "Log.entryAdded":
@@ -121,7 +120,7 @@ func (w *browserSession) handleEvent(method string, params any) {
 			if entry, ok := p["entry"].(map[string]any); ok {
 				if level, ok := entry["level"].(string); ok && level == "error" {
 					w.browserErrors.Add(1)
-					log.Printf("[%d, %s] log error: %v\n", w.id, w.currentUrl, entry)
+					w.logger.Warn("Log error", "details", entry)
 				}
 			}
 		}
@@ -130,17 +129,17 @@ func (w *browserSession) handleEvent(method string, params any) {
 
 func (w *browserSession) handleRequests() {
 	defer func() {
-		assert.AssertWithMessage(w.ctx.Err() != nil, "Exited worker loop, but process isn't shutting down")
+		w.assert(w.ctx.Err() != nil, "Exited worker loop, but process isn't shutting down")
 	}()
 
 	for {
 		select {
 		case <-w.ctx.Done():
-			log.Printf("Worker %d: request processing loop shutting down (context cancellation)\n", w.id)
+			w.logger.Info("Request processing loop shutting down (context cancellation)")
 			return
 		case req, ok := <-w.queue:
 			if !ok {
-				assert.AssertWithMessage(w.ctx.Err() != nil, "Queue channel closed, but process is not shutting down")
+				w.assert(w.ctx.Err() != nil, "Queue channel closed, but process is not shutting down")
 				return
 			}
 
@@ -149,13 +148,17 @@ func (w *browserSession) handleRequests() {
 			w.browserErrors.Store(0)
 			w.tryUpdateTestModeOutput(&req, "Before", false)
 
-			w.currentUrl = req.request.URL
+			w.currentRequest = &req
+			rootLogger := w.logger
+			w.logger = w.logger.With("url", req.request.URL)
 			w.handleRequest(&req)
-			w.currentUrl = ""
+			w.logger = rootLogger
+			w.currentRequest = nil
 
-			if !req.hasResponded() {
-				log.Fatalf("[%d, %s] did not respond to request\n", w.id, w.currentUrl)
-			}
+			w.assertA(
+				req.hasResponded(),
+				"Did not respond to request", "url", req.request.URL,
+			)
 
 			w.tryUpdateTestModeOutput(&req, "After", true)
 		}
@@ -163,17 +166,17 @@ func (w *browserSession) handleRequests() {
 }
 
 func (w *browserSession) handleRequest(req *workerRequest) {
-	log.Printf("[%d, %s] processing PDF request\n", w.id, w.currentUrl)
+	w.logger.Info("Processing PDF request")
 	start := time.Now()
 
 	defer func() {
 		if r := recover(); r != nil {
-			log.Printf("[%d, %s] recovered from panic: %v\n", w.id, w.currentUrl, r)
+			w.logger.Error("Recovered from panic", "error", r)
 			req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, req.request.URL, fmt.Errorf("%v", r)))
 		}
 
 		duration := time.Since(start)
-		log.Printf("[%d, %s] completed PDF request in %s\n", w.id, w.currentUrl, duration)
+		w.logger.Info("Completed PDF request", "duration", duration)
 	}()
 
 	if req.ctx.Err() != nil {
@@ -188,7 +191,6 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 	}
 
 	err := w.generatePdf(req)
-
 	if err != nil {
 		req.tryRespondError(mapCustomError(err))
 	}
@@ -196,6 +198,8 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 
 func (w *browserSession) generatePdf(req *workerRequest) error {
 	request := req.request
+
+	startedProcessing := false
 
 	// Ensure cleanup always runs
 	defer func() {
@@ -205,17 +209,33 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		// Capture browser state before cleanup (for test internals mode)
 		w.tryUpdateTestModeOutput(req, "BeforeCleanup", false)
 
-		// Navigate back to default
-		start := time.Now()
-		_, err := w.conn.SendCommand(w.ctx, "Page.navigate", map[string]any{
-			"url": "about:blank",
-		})
-		if err != nil {
-			log.Printf("[%d, %s] failed to navigate out of url: %v\n", w.id, w.currentUrl, err)
+		if !startedProcessing {
+			w.logger.Info("Never started processing, skipping cleanup")
+			req.cleanedUp = true
+			return
 		}
 
+		// Navigate back to default
+		start := time.Now()
+		var err error
+		for range 3 {
+			// Not using request context here, the client might have dropped out already and we should always complete cleanup
+			_, err = w.conn.SendCommand(w.ctx, "Page.navigate", map[string]any{
+				"url": "about:blank",
+			})
+			if err == nil {
+				break
+			}
+			w.logger.Warn("Failed to navigate back to about:blank, retrying")
+		}
+		w.assertA(
+			err == nil,
+			"failed to navigate back to about:blank during cleanup",
+			"error", err,
+		)
+
 		if testInput := req.tryGetTestModeInput(); testInput != nil && testInput.CleanupDelaySeconds > 0 {
-			log.Printf("[%d, %s] waiting for %d seconds\n", w.id, w.currentUrl, testInput.CleanupDelaySeconds)
+			w.logger.Info("Waiting for cleanup delay", "seconds", testInput.CleanupDelaySeconds)
 			time.Sleep(time.Duration(testInput.CleanupDelaySeconds) * time.Second)
 		}
 
@@ -224,7 +244,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 
 		// Retry cleanup if it failed
 		if !req.cleanedUp {
-			log.Printf("[%d, %s] failed to cleanup storage, retrying...\n", w.id, w.currentUrl)
+			w.logger.Warn("Failed to cleanup storage, retrying")
 			for range 3 {
 				w.cleanupBrowser(req)
 				if req.cleanedUp {
@@ -232,21 +252,22 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 				}
 			}
 
-			if !req.cleanedUp {
-				log.Fatalf("[%d, %s] failed to cleanup storage, we're in an unsafe state and can't proceed", w.id, w.currentUrl)
-			}
+			w.assert(
+				req.cleanedUp,
+				"Failed to cleanup storage, we're in an unsafe state and can't proceed",
+			)
 		}
 
 		duration := time.Since(start)
-		log.Printf("[%d, %s] cleanup completed in %s\n", w.id, w.currentUrl, duration)
+		w.logger.Info("Cleanup completed", "duration", duration)
 	}()
+
+	if req.ctx.Err() != nil {
+		return types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err())
+	}
 
 	// Set cookies
 	if len(request.Cookies) > 0 {
-		if req.ctx.Err() != nil {
-			return types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err())
-		}
-
 		// Build cookies array for Network.setCookies
 		cookies := make([]map[string]any, 0, len(request.Cookies))
 		for _, cookie := range request.Cookies {
@@ -281,12 +302,12 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			cookies = append(cookies, cookieValue)
 		}
 
-		// Set all cookies in a single batch call
-		_, err := w.conn.SendCommand(w.ctx, "Network.setCookies", map[string]any{
+		startedProcessing = true
+		_, err := w.conn.SendCommand(req.ctx, "Network.setCookies", map[string]any{
 			"cookies": cookies,
 		})
 		if err != nil {
-			req.tryRespondError(types.NewPDFError(types.ErrSetCookieFail, "", err))
+			req.tryRespondError(contextErrorToPDFError(err, types.ErrSetCookieFail, ""))
 			return nil
 		}
 	}
@@ -300,11 +321,12 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		return nil
 	}
 
-	_, err := w.conn.SendCommand(w.ctx, "Page.navigate", map[string]any{
+	startedProcessing = true
+	_, err := w.conn.SendCommand(req.ctx, "Page.navigate", map[string]any{
 		"url": request.URL,
 	})
 	if err != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
+		req.tryRespondError(contextErrorToPDFError(err, types.ErrGenerationFail, ""))
 		return nil
 	}
 
@@ -318,18 +340,24 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			return nil
 		}
 
+		const maxWaitMs int32 = types.MaxTimeoutMs
 		if selector, ok := request.WaitFor.AsString(); ok {
 			// Simple string selector - wait for element existence only
-			err := w.waitForElement(req, selector, 25000, false, false)
+			err := w.waitForElement(req, selector, maxWaitMs, false, false)
 			if err != nil {
 				return nil
 			}
 		} else if timeout, ok := request.WaitFor.AsTimeout(); ok {
 			// Simple timeout delay
-			time.Sleep(time.Duration(timeout) * time.Millisecond)
+			select {
+			case <-time.After(time.Duration(timeout) * time.Millisecond):
+			case <-req.ctx.Done():
+				req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
+				return nil
+			}
 		} else if opts, ok := request.WaitFor.AsOptions(); ok {
 			// Full options with selector, visible, hidden, timeout
-			timeoutMs := int32(25000) // default timeout
+			timeoutMs := maxWaitMs // default timeout
 			if opts.Timeout != nil {
 				timeoutMs = *opts.Timeout
 			}
@@ -376,7 +404,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			pdfParams["paperWidth"] = dimensions.width
 			pdfParams["paperHeight"] = dimensions.height
 		} else {
-			log.Printf("[%d, %s] unknown paper format %q, using default\n", w.id, w.currentUrl, request.Options.Format)
+			w.logger.Warn("Unknown paper format, using default", "format", request.Options.Format)
 		}
 	}
 
@@ -408,9 +436,9 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		pdfParams["marginLeft"] = convertMargin(request.Options.Margin.Left)
 	}
 
-	resp, err := w.conn.SendCommand(w.ctx, "Page.printToPDF", pdfParams)
+	resp, err := w.conn.SendCommand(req.ctx, "Page.printToPDF", pdfParams)
 	if err != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
+		req.tryRespondError(contextErrorToPDFError(err, types.ErrGenerationFail, ""))
 		return nil
 	}
 
@@ -450,7 +478,7 @@ func (w *browserSession) waitForElement(req *workerRequest, selector string, tim
 	needsVisibilityCheck := checkVisible || checkHidden
 
 	if needsVisibilityCheck {
-		assert.AssertWithMessage(
+		w.assert(
 			checkVisible != checkHidden,
 			// Is caught during validation
 			"Can't check for both hidden and visible at the same time",
@@ -462,14 +490,14 @@ func (w *browserSession) waitForElement(req *workerRequest, selector string, tim
 		expression = w.buildSimpleWaitExpression(selector, timeoutMs)
 	}
 
-	resp, err := w.conn.SendCommand(w.ctx, "Runtime.evaluate", map[string]any{
+	resp, err := w.conn.SendCommand(req.ctx, "Runtime.evaluate", map[string]any{
 		"expression":    expression,
 		"awaitPromise":  true,
 		"returnByValue": true,
 	})
 	if err != nil {
-		log.Printf("[%d, %s] failed to wait for element %q: %v\n", w.id, w.currentUrl, selector, err)
-		req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", selector), err))
+		w.logger.Warn("Failed to wait for element", "selector", selector, "error", err)
+		req.tryRespondError(contextErrorToPDFError(err, types.ErrElementNotReady, fmt.Sprintf("element %q", selector)))
 		return err
 	}
 
@@ -478,13 +506,13 @@ func (w *browserSession) waitForElement(req *workerRequest, selector string, tim
 		if resultObj, ok := result["result"].(map[string]any); ok {
 			if value, ok := resultObj["value"].(bool); ok {
 				if !value {
-					log.Printf("[%d, %s] failed to wait for element %q: timeout\n", w.id, w.currentUrl, selector)
+					w.logger.Warn("Failed to wait for element: timeout", "selector", selector)
 					err := fmt.Errorf("timeout")
 					req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", selector), err))
 					return err
 				}
 			} else {
-				log.Printf("[%d, %s] unexpected evaluation result type waiting for %q\n", w.id, w.currentUrl, selector)
+				w.logger.Warn("Unexpected evaluation result type waiting for element", "selector", selector)
 			}
 		}
 	}
@@ -634,9 +662,9 @@ func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutM
 }
 
 func (w *browserSession) getCookies() ([]map[string]any, error) {
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	w.assert(runtime.IsTestInternalsMode, "Should only run as part of testing")
 
-	resp, err := w.conn.SendCommand(w.ctx, "Network.getCookies", map[string]any{})
+	resp, err := w.conn.SendCommand(w.ctx, "Storage.getCookies", map[string]any{})
 	if err != nil {
 		return nil, err
 	}
@@ -662,28 +690,41 @@ func (w *browserSession) getCookies() ([]map[string]any, error) {
 }
 
 func (w *browserSession) getBrowserState(state string) testing.BrowserState {
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	w.assert(runtime.IsTestInternalsMode, "Should only run as part of testing")
 
 	cookies, err := w.getCookies()
 	if err != nil {
 		return testing.BrowserState{
 			State:            state,
-			Cookies:          []string{},
+			Cookies:          []testing.CookieInfo{},
 			ConsoleErrorLogs: int(w.consoleErrors.Load()),
 			BrowserErrors:    int(w.browserErrors.Load()),
 		}
 	}
 
-	cookieNames := make([]string, 0, len(cookies))
+	cookieInfos := make([]testing.CookieInfo, 0, len(cookies))
 	for _, cookie := range cookies {
-		if name, ok := cookie["name"].(string); ok {
-			cookieNames = append(cookieNames, name)
+		name, hasName := cookie["name"].(string)
+		domain, _ := cookie["domain"].(string)
+		if hasName {
+			cookieInfos = append(cookieInfos, testing.CookieInfo{
+				Name:   name,
+				Domain: domain,
+			})
 		}
 	}
 
+	// Sort for deterministic ordering (prevents snapshot flakiness)
+	sort.SliceStable(cookieInfos, func(i, j int) bool {
+		if cookieInfos[i].Name != cookieInfos[j].Name {
+			return cookieInfos[i].Name < cookieInfos[j].Name
+		}
+		return cookieInfos[i].Domain < cookieInfos[j].Domain
+	})
+
 	return testing.BrowserState{
 		State:            state,
-		Cookies:          cookieNames,
+		Cookies:          cookieInfos,
 		ConsoleErrorLogs: int(w.consoleErrors.Load()),
 		BrowserErrors:    int(w.browserErrors.Load()),
 	}
@@ -697,7 +738,7 @@ func (w *browserSession) tryUpdateTestModeOutput(req *workerRequest, state strin
 		return
 	}
 
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	w.assert(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	browserState := w.getBrowserState(state)
 	testing.UpdateTestOutput(testInput.ID, func(output *testing.PdfInternalsTestOutput) {
 		output.BrowserStates = append(output.BrowserStates, browserState)
@@ -713,19 +754,21 @@ func (w *browserSession) cleanupBrowser(req *workerRequest) {
 	}
 
 	u, err := url.ParseRequestURI(req.request.URL)
-	assert.AssertWithMessage(err == nil, "URL should be validated at API layer")
+	w.assert(err == nil, "URL should be validated at API layer")
 
 	now := time.Now()
-	log.Printf("Worker %d sending cleanup batch command...\n", w.id)
+	w.logger.Info("Sending cleanup batch command")
+	// Not using request context here, the client might have dropped out already and we should always complete cleanup
 	responses := w.conn.SendCommandBatch(w.ctx, []cdp.Command{
 		{Method: "Storage.clearDataForOrigin", Params: map[string]any{
 			"origin":       fmt.Sprintf("%s://%s", u.Scheme, u.Host),
 			"storageTypes": "all",
 		}},
+		{Method: "Storage.clearCookies", Params: nil},
 		{Method: "Network.clearBrowserCache", Params: nil},
 		{Method: "Page.resetNavigationHistory", Params: nil},
 	})
-	log.Printf("Worker %d cleanup batch command completed in %s\n", w.id, time.Since(now))
+	w.logger.Info("Cleanup batch command completed", "duration", time.Since(now))
 
 	var errors strings.Builder
 	for _, response := range responses {
@@ -741,14 +784,37 @@ func (w *browserSession) cleanupBrowser(req *workerRequest) {
 	}
 
 	if errors.Len() != 0 {
-		assert.AssertWithMessage(false, fmt.Sprintf("Errors from browser cleanup:\n%s", errors.String()))
+		w.assertA(false, "Errors from browser cleanup", "error", errors.String())
 	}
 
 	req.cleanedUp = true
 }
 
+func (w *browserSession) assert(condition bool, message string) {
+	if w.currentRequest != nil {
+		assert.AssertWithMessage(condition, message, "id", w.id, "url", w.currentRequest.request.URL)
+	} else {
+		assert.AssertWithMessage(condition, message, "id", w.id)
+	}
+}
+
+func (w *browserSession) assertA(condition bool, message string, userArgs ...any) {
+	if w.currentRequest != nil {
+		args := make([]any, 0, 2+2+len(userArgs))
+		args = append(args, "id", w.id)
+		args = append(args, "url", w.currentRequest.request.URL)
+		args = append(args, userArgs...)
+		assert.AssertWithMessage(condition, message, args...)
+	} else {
+		args := make([]any, 0, 2+len(userArgs))
+		args = append(args, "id", w.id)
+		args = append(args, userArgs...)
+		assert.AssertWithMessage(condition, message, args...)
+	}
+}
+
 func (w *browserSession) close() {
-	log.Printf("Worker %d closing...\n", w.id)
+	w.logger.Info("Closing worker")
 
 	if w.cancel != nil {
 		w.cancel()
@@ -759,17 +825,17 @@ func (w *browserSession) close() {
 
 	if w.conn != nil {
 		if err := w.conn.Close(); err != nil {
-			log.Printf("Worker %d: Failed to close connection: %v\n", w.id, err)
+			w.logger.Error("Failed to close connection", "error", err)
 		}
 	}
 
 	if w.browser != nil {
 		if err := w.browser.Close(); err != nil {
-			log.Printf("ERROR: Worker %d failed to close browser: %v\n", w.id, err)
+			w.logger.Error("Failed to close browser", "error", err)
 		}
 	}
 
-	log.Printf("Worker %d closed\n", w.id)
+	w.logger.Info("Worker closed")
 }
 
 // paperFormats defines standard paper sizes in inches (compatible with Puppeteer)
@@ -826,7 +892,6 @@ func convertMargin(margin string) float64 {
 	// Parse the numeric value
 	value, err := strconv.ParseFloat(strings.TrimSpace(valueStr), 64)
 	if err != nil {
-		log.Printf("Failed to parse margin value %q: %v, using 0\n", margin, err)
 		return 0.0
 	}
 
@@ -835,4 +900,30 @@ func convertMargin(margin string) float64 {
 
 	// Convert pixels to inches (96 pixels = 1 inch)
 	return pixels / 96.0
+}
+
+// htmlIDSelectorPattern matches pure ID selectors like #myId, #my-id, #my_id
+// but rejects complex selectors like #id.class, #id[attr], #id > child, etc.
+// Allows any HTML5 ID characters except CSS selector metacharacters.
+var htmlIDSelectorPattern = regexp.MustCompile(`^#[^\s.:\[\]>+~,()]+$`)
+
+// contextErrorToPDFError checks if an error is context-related and returns the appropriate PDFError.
+// If the error is context.Canceled, it returns ErrClientDropped.
+// If the error is context.DeadlineExceeded, it returns ErrTimeout.
+// Otherwise, it returns a PDFError with the fallback error type.
+func contextErrorToPDFError(err error, fallbackType error, detail string) *types.PDFError {
+	if err == nil {
+		return nil
+	}
+
+	// Check if the error is context-related
+	if errors.Is(err, context.Canceled) {
+		return types.NewPDFError(types.ErrClientDropped, detail, err)
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return types.NewPDFError(types.ErrTimeout, detail, err)
+	}
+
+	// Not a context error, use the fallback type
+	return types.NewPDFError(fallbackType, detail, err)
 }
