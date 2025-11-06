@@ -32,7 +32,7 @@ export const TextComponent = ({
   className,
 }: TextComponentProps): JSX.Element => {
   const componentPropertyLabel = useComponentPropertyLabel();
-  const [value, setValue] = useState<StringExpression>(JSON.stringify(component?.value) ?? '');
+  const [value, setValue] = useState<StringExpression>(component?.value || null);
   const [isEditMode, setIsEditMode] = React.useState<boolean>(false);
   const [isValid, setIsValid] = useState(false);
   const texts = useExpressionTexts();
