@@ -8,7 +8,7 @@ import { useFeatureFlag } from './useFeatureFlag';
 
 // Test data:
 const enabledFlag = FeatureFlag.Maskinporten;
-const disabledFlag = FeatureFlag.ImageUpload;
+const disabledFlag = FeatureFlag.NewCodeLists;
 const flags = [enabledFlag];
 const contextValue: FeatureFlagsContextValue = { flags };
 
