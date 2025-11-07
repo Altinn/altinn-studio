@@ -4,6 +4,7 @@ metadata:
   name: pdf3-dashboard
 spec:
   folder: "Altinn"
+  allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
       dashboards: "external-grafana"
