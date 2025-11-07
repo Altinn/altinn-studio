@@ -120,7 +120,7 @@ const TogglePanelButton = ({ onClick, isCollapsed }: TogglePanelButtonProps) => 
       onClick={onClick}
       title={title}
       icon={<SidebarLeftIcon />}
-      className={isCollapsed && classes.collapsedPanel}
+      className={isCollapsed ? classes.collapsedPanel : undefined}
     />
   );
 };
