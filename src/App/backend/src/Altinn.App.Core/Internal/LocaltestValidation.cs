@@ -88,7 +88,6 @@ internal sealed class LocaltestValidation : BackgroundService
                             _logger.LogInformation("Localtest version: {Version}", version);
                             if (version >= 2)
                             {
-                                // Wait for server to start and bind addresses
                                 await WaitForServerAddresses(stoppingToken);
 
                                 // Try to register with localtest if not on port 5005
@@ -111,7 +110,10 @@ internal sealed class LocaltestValidation : BackgroundService
                                     }
                                     else
                                     {
-                                        _logger.LogWarning("Could not extract port from server address: {Address}", address);
+                                        _logger.LogWarning(
+                                            "Could not extract port from server address: {Address}",
+                                            address
+                                        );
                                     }
                                 }
                                 // Running on port 5005 or couldn't determine port - no registration needed
@@ -286,12 +288,7 @@ internal sealed class LocaltestValidation : BackgroundService
     {
         var applicationMetadata = await _appMetadata.GetApplicationMetadata();
         var appId = applicationMetadata.Id;
-
-        var registrationRequest = new
-        {
-            appId = appId,
-            port = port,
-        };
+        var registrationRequest = new { appId, port };
 
         var url = $"{baseUrl}/Home/Localtest/Register";
 
@@ -315,40 +312,14 @@ internal sealed class LocaltestValidation : BackgroundService
                     );
                     return;
                 }
-                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    // 404 means localtest doesn't support registration endpoint
-                    _logger.LogError(
-                        "App is running on port {Port} (not 5005), but localtest doesn't support app registration. "
-                            + "Please upgrade your localtest installation (git pull) to support apps on custom ports.",
-                        port
-                    );
-                    Exit();
-                    return;
-                }
-                else
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync(stoppingToken);
-                    _logger.LogWarning(
-                        "Failed to register app with localtest (attempt {Attempt}/{MaxAttempts}). Status: {StatusCode}, Error: {Error}",
-                        retryCount + 1,
-                        maxRetries,
-                        response.StatusCode,
-                        errorContent
-                    );
-                }
-            }
-            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                // 404 means localtest doesn't support registration endpoint
-                _logger.LogError(
-                    ex,
-                    "App is running on port {Port} (not 5005), but localtest doesn't support app registration. "
-                        + "Please upgrade your localtest installation (git pull) to support apps on custom ports.",
-                    port
+                var errorContent = await response.Content.ReadAsStringAsync(stoppingToken);
+                _logger.LogWarning(
+                    "Failed to register app with localtest (attempt {Attempt}/{MaxAttempts}). Status: {StatusCode}, Error: {Error}",
+                    retryCount + 1,
+                    maxRetries,
+                    response.StatusCode,
+                    errorContent
                 );
-                Exit();
-                return;
             }
             catch (HttpRequestException ex)
             {
@@ -379,8 +350,7 @@ internal sealed class LocaltestValidation : BackgroundService
         if (!stoppingToken.IsCancellationRequested)
         {
             _logger.LogError(
-                "Failed to register app {AppId} with localtest after {MaxAttempts} attempts. "
-                    + "Ensure localtest is running and up to date.",
+                "Failed to register app {AppId} with localtest after {MaxAttempts} attempts",
                 appId,
                 maxRetries
             );
