@@ -7,12 +7,3 @@ services:
       - "8069:8069"
     env_file:
       - .env
-    restart: unless-stopped
-    
-  jaeger:
-    image: jaegertracing/jaeger:latest
-    container_name: jaeger
-    ports:
-      - "16686:16686" # Web UI
-      - "4318:4318"   # OTLP HTTP
-    restart: unless-stopped
