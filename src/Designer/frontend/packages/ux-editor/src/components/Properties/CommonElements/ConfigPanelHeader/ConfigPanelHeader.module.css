@@ -1,4 +1,5 @@
 .sectionHeader {
   background-color: var(--ds-color-surface-neutral);
-  padding: var(--ds-size-4) var(--ds-size-4);
+  padding-inline: var(--ds-size-4);
+  height: var(--ds-size-15);
 }
