@@ -16,18 +16,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
 )
-
-// ClusterInfo contains information about a cluster
-type ClusterInfo struct {
-	Name         string
-	ServiceOwner string
-	Environment  string
-	client       *kubernetes.Clientset
-}
 
 // LogLine represents a single log line with metadata
 type LogLine struct {
@@ -39,49 +28,13 @@ type LogLine struct {
 	Message      string
 }
 
-// ExtractServiceOwnerAndEnvironment extracts serviceowner and environment from cluster name
-// Expected format: <serviceowner>-<environment>-aks (e.g., ttd-tt02-aks)
-func ExtractServiceOwnerAndEnvironment(clusterName string) (string, string) {
-	// Pattern: <serviceowner>-<environment>-aks
-	parts := strings.Split(clusterName, "-")
-	if len(parts) >= 3 && parts[len(parts)-1] == "aks" {
-		environment := parts[len(parts)-2]
-		serviceowner := strings.Join(parts[:len(parts)-2], "-")
-		return serviceowner, environment
-	}
-	// Fallback if pattern doesn't match
-	return "unknown", "unknown"
-}
-
-// getK8sClientForContext creates a Kubernetes client for a specific context
-func getK8sClientForContext(contextName string) (*kubernetes.Clientset, error) {
-	home := homedir.HomeDir()
-	if home == "" {
-		return nil, fmt.Errorf("failed to get home dir")
-	}
-
-	kubeconfig := filepath.Join(home, ".kube", "config")
-
-	// Load config with specific context
-	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfig},
-		&clientcmd.ConfigOverrides{CurrentContext: contextName},
-	).ClientConfig()
-	if err != nil {
-		return nil, fmt.Errorf("failed to build config for context %s: %w", contextName, err)
-	}
-
-	// create the clientset
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create clientset: %w", err)
-	}
-
-	return clientset, nil
-}
-
 // GetPodsForDeployment retrieves all pod names for a deployment
-func GetPodsForDeployment(ctx context.Context, clientset *kubernetes.Clientset, namespace, deploymentName string) ([]string, error) {
+func GetPodsForDeployment(ctx context.Context, runtime KubernetesRuntime, namespace, deploymentName string) ([]string, error) {
+	client := runtime.GetKubernetesClient()
+	clientset, err := client.Clientset()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get clientset: %w", err)
+	}
 	// Get the deployment to find its label selector
 	deployment, err := clientset.AppsV1().Deployments(namespace).Get(ctx, deploymentName, metav1.GetOptions{})
 	if err != nil {
@@ -120,11 +73,11 @@ func GetPodsForDeployment(ctx context.Context, clientset *kubernetes.Clientset, 
 }
 
 // streamLogsFromCluster streams logs from all pods in a cluster to a channel
-func streamLogsFromCluster(ctx context.Context, cluster ClusterInfo, namespace, deploymentName string, logsChan chan<- LogLine, since *string, tail *int, follow bool, errorsChan chan<- error) {
+func streamLogsFromCluster(ctx context.Context, runtime KubernetesRuntime, namespace, deploymentName string, logsChan chan<- LogLine, since *string, tail *int, follow bool, errorsChan chan<- error) {
 	// Get pods for the deployment
-	pods, err := GetPodsForDeployment(ctx, cluster.client, namespace, deploymentName)
+	pods, err := GetPodsForDeployment(ctx, runtime, namespace, deploymentName)
 	if err != nil {
-		errorsChan <- fmt.Errorf("[%s] %w", cluster.Name, err)
+		errorsChan <- fmt.Errorf("[%s] %w", runtime.GetName(), err)
 		return
 	}
 
@@ -134,7 +87,7 @@ func streamLogsFromCluster(ctx context.Context, cluster ClusterInfo, namespace, 
 		wg.Add(1)
 		go func(pod string) {
 			defer wg.Done()
-			streamPodLogs(ctx, cluster, namespace, pod, logsChan, since, tail, follow, errorsChan)
+			streamPodLogs(ctx, runtime, namespace, pod, logsChan, since, tail, follow, errorsChan)
 		}(podName)
 	}
 
@@ -152,18 +105,20 @@ func parseSinceDuration(since string) (*int64, error) {
 }
 
 // streamPodLogs streams logs from a single pod
-func streamPodLogs(ctx context.Context, cluster ClusterInfo, namespace, podName string, logsChan chan<- LogLine, since *string, tail *int, follow bool, errorsChan chan<- error) {
+func streamPodLogs(ctx context.Context, runtime KubernetesRuntime, namespace, podName string, logsChan chan<- LogLine, since *string, tail *int, follow bool, errorsChan chan<- error) {
 	// Build pod log options
 	logOptions := &corev1.PodLogOptions{
 		Follow:     follow,
 		Timestamps: true,
 	}
 
+	client := runtime.GetKubernetesClient()
+
 	// Only add SinceSeconds if specified
 	if since != nil && *since != "" {
 		sinceSeconds, err := parseSinceDuration(*since)
 		if err != nil {
-			errorsChan <- fmt.Errorf("[%s/%s] failed to parse since duration: %w", cluster.Name, podName, err)
+			errorsChan <- fmt.Errorf("[%s/%s] failed to parse since duration: %w", runtime.GetName(), podName, err)
 			return
 		}
 		logOptions.SinceSeconds = sinceSeconds
@@ -176,10 +131,16 @@ func streamPodLogs(ctx context.Context, cluster ClusterInfo, namespace, podName 
 	}
 
 	// Get log stream
-	req := cluster.client.CoreV1().Pods(namespace).GetLogs(podName, logOptions)
+	clientset, err := client.Clientset()
+	if err != nil {
+		errorsChan <- fmt.Errorf("[%s/%s] failed to get clientset: %w", runtime.GetName(), podName, err)
+		return
+	}
+
+	req := clientset.CoreV1().Pods(namespace).GetLogs(podName, logOptions)
 	stream, err := req.Stream(ctx)
 	if err != nil {
-		errorsChan <- fmt.Errorf("[%s/%s] failed to open log stream: %w", cluster.Name, podName, err)
+		errorsChan <- fmt.Errorf("[%s/%s] failed to open log stream: %w", runtime.GetName(), podName, err)
 		return
 	}
 	defer stream.Close()
@@ -192,7 +153,7 @@ func streamPodLogs(ctx context.Context, cluster ClusterInfo, namespace, podName 
 
 		timestampStr, message, found := strings.Cut(line, " ")
 		if !found {
-			errorsChan <- fmt.Errorf("[%s/%s] invalid log line (no space): %s", cluster.Name, podName, line)
+			errorsChan <- fmt.Errorf("[%s/%s] invalid log line (no space): %s", runtime.GetName(), podName, line)
 			continue
 		}
 
@@ -201,16 +162,16 @@ func streamPodLogs(ctx context.Context, cluster ClusterInfo, namespace, podName 
 			// Try without nanoseconds
 			timestamp, err = time.Parse(time.RFC3339, timestampStr)
 			if err != nil {
-				errorsChan <- fmt.Errorf("[%s/%s] couldn't parse timestamp in line: %s", cluster.Name, podName, line)
+				errorsChan <- fmt.Errorf("[%s/%s] couldn't parse timestamp in line: %s", runtime.GetName(), podName, line)
 				continue
 			}
 		}
 
 		logLine := LogLine{
 			Timestamp:    timestamp.UTC(),
-			ClusterName:  cluster.Name,
-			ServiceOwner: cluster.ServiceOwner,
-			Environment:  cluster.Environment,
+			ClusterName:  runtime.GetName(),
+			ServiceOwner: runtime.GetServiceOwner(),
+			Environment:  runtime.GetEnvironment(),
 			PodName:      podName,
 			Message:      message,
 		}
@@ -223,12 +184,12 @@ func streamPodLogs(ctx context.Context, cluster ClusterInfo, namespace, podName 
 	}
 
 	if err := scanner.Err(); err != nil && ctx.Err() == nil {
-		errorsChan <- fmt.Errorf("[%s/%s] scanner error: %w", cluster.Name, podName, err)
+		errorsChan <- fmt.Errorf("[%s/%s] scanner error: %w", runtime.GetName(), podName, err)
 	}
 }
 
 // AggregateLogsWithBuffer aggregates logs from multiple clusters with time buffering
-func AggregateLogsWithBuffer(clusters []ClusterInfo, namespace, deploymentName, outputFile string, since *string, tail *int, follow bool, includeTimestamps bool, bufferDuration time.Duration) error {
+func AggregateLogsWithBuffer(runtimes []KubernetesRuntime, namespace, deploymentName, outputFile string, since *string, tail *int, follow bool, includeTimestamps bool, bufferDuration time.Duration) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -253,26 +214,19 @@ func AggregateLogsWithBuffer(clusters []ClusterInfo, namespace, deploymentName, 
 	}
 	defer file.Close()
 
-	// Initialize Kubernetes clients for all clusters
-	for i := range clusters {
-		client, err := getK8sClientForContext(clusters[i].Name)
-		if err != nil {
-			return fmt.Errorf("failed to create k8s client for cluster %s: %w", clusters[i].Name, err)
-		}
-		clusters[i].client = client
-	}
+	// Kubernetes clients are already initialized in the ClusterInfo.client field
 
 	logsChan := make(chan LogLine, 1024*4)
 	errorsChan := make(chan error, 512)
 
 	// Start log streaming from all clusters
 	var wg sync.WaitGroup
-	for _, cluster := range clusters {
+	for _, runtime := range runtimes {
 		wg.Add(1)
-		go func(c ClusterInfo) {
+		go func(runtime KubernetesRuntime) {
 			defer wg.Done()
-			streamLogsFromCluster(ctx, c, namespace, deploymentName, logsChan, since, tail, follow, errorsChan)
-		}(cluster)
+			streamLogsFromCluster(ctx, runtime, namespace, deploymentName, logsChan, since, tail, follow, errorsChan)
+		}(runtime)
 	}
 
 	// Close channels when all streams complete

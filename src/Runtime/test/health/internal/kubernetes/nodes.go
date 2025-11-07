@@ -3,7 +3,6 @@ package kubernetes
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 	"sort"
 	"sync"
 	"time"
@@ -11,10 +10,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
 	metricsv1beta1 "k8s.io/metrics/pkg/apis/metrics/v1beta1"
-	metricsclientset "k8s.io/metrics/pkg/client/clientset/versioned"
 )
 
 // NodeResult represents the result of querying node information from a cluster
@@ -37,46 +33,19 @@ type NodeResult struct {
 	Error                    error
 }
 
-// getMetricsClientForContext creates a Kubernetes metrics client for a specific context
-func getMetricsClientForContext(contextName string) (*metricsclientset.Clientset, error) {
-	home := homedir.HomeDir()
-	if home == "" {
-		return nil, fmt.Errorf("failed to get home dir")
-	}
-
-	kubeconfig := filepath.Join(home, ".kube", "config")
-
-	// Load config with specific context
-	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfig},
-		&clientcmd.ConfigOverrides{CurrentContext: contextName},
-	).ClientConfig()
-	if err != nil {
-		return nil, fmt.Errorf("failed to build config for context %s: %w", contextName, err)
-	}
-
-	// Create metrics clientset
-	metricsClient, err := metricsclientset.NewForConfig(config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create metrics clientset: %w", err)
-	}
-
-	return metricsClient, nil
-}
-
 // GetNodesInfo queries node information for a specific cluster using client-go
-func GetNodesInfo(ctx context.Context, clusterName string, labelSelector string) NodeResult {
+func GetNodesInfo(ctx context.Context, runtime KubernetesRuntime, labelSelector string) NodeResult {
 	result := NodeResult{
-		ClusterName: clusterName,
+		ClusterName:  runtime.GetName(),
+		ServiceOwner: runtime.GetServiceOwner(),
+		Environment:  runtime.GetEnvironment(),
 	}
 
-	// Extract serviceowner and environment from cluster name
-	result.ServiceOwner, result.Environment = ExtractServiceOwnerAndEnvironment(clusterName)
-
-	// Create Kubernetes client for this context
-	clientset, err := getK8sClientForContext(clusterName)
+	// Lazy-load the Kubernetes clientset
+	client := runtime.GetKubernetesClient()
+	clientset, err := client.Clientset()
 	if err != nil {
-		result.Error = fmt.Errorf("failed to create k8s client: %w", err)
+		result.Error = fmt.Errorf("failed to get clientset: %w", err)
 		return result
 	}
 
@@ -164,8 +133,8 @@ func GetNodesInfo(ctx context.Context, clusterName string, labelSelector string)
 		result.NewestNodeAge = formatAge(age)
 	}
 
-	// Get node metrics using metrics client-go
-	metricsClient, err := getMetricsClientForContext(clusterName)
+	// Get node metrics using metrics client-go (lazy-loaded)
+	metricsClient, err := client.MetricsClient()
 	if err != nil {
 		// Metrics-server might not be available, this is not a fatal error
 		result.CPUUsed = "N/A"
@@ -239,12 +208,12 @@ func GetNodesInfo(ctx context.Context, clusterName string, labelSelector string)
 }
 
 // QueryAllClustersForNodes queries node information from multiple clusters in parallel
-func QueryAllClustersForNodes(clusters []string, labelSelector string, maxWorkers int) []NodeResult {
+func QueryAllClustersForNodes(runtimes []KubernetesRuntime, labelSelector string, maxWorkers int) []NodeResult {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	jobs := make(chan string, len(clusters))
-	results := make(chan NodeResult, len(clusters))
+	jobs := make(chan KubernetesRuntime, len(runtimes))
+	results := make(chan NodeResult, len(runtimes))
 
 	var wg sync.WaitGroup
 
@@ -253,16 +222,16 @@ func QueryAllClustersForNodes(clusters []string, labelSelector string, maxWorker
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for clusterName := range jobs {
-				result := GetNodesInfo(ctx, clusterName, labelSelector)
+			for runtime := range jobs {
+				result := GetNodesInfo(ctx, runtime, labelSelector)
 				results <- result
 			}
 		}()
 	}
 
 	// Queue jobs
-	for _, cluster := range clusters {
-		jobs <- cluster
+	for _, runtime := range runtimes {
+		jobs <- runtime
 	}
 	close(jobs)
 

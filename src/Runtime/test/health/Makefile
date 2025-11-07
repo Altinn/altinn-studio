@@ -1,9 +1,6 @@
 .PHONY: help build
 .DEFAULT_GOAL := help
 
-CACHE_DIR := .cache
-BIN_DIR := .cache/bin
-
 help: ## Show this help message
 	@echo 'Usage: make [target]'
 	@echo ''

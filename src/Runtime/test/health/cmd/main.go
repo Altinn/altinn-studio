@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"os"
@@ -9,9 +10,10 @@ import (
 	"sync"
 	"time"
 
-	"altinn.studio/runtime-health/internal/azure"
+	"altinn.studio/runtime-health/internal/az"
 	"altinn.studio/runtime-health/internal/kubernetes"
 	"altinn.studio/runtime-health/internal/output"
+	"altinn.studio/runtime-health/internal/runtimes/dis"
 )
 
 func main() {
@@ -192,15 +194,13 @@ func runSetWeight() error {
 	}
 	fmt.Println()
 
-	// Get all kubectl contexts and filter by environments and serviceowner
-	contexts, err := kubernetes.GetAllContextDetails()
+	// Get all kubectl runtimes and filter by environments and serviceowner
+	runtimes, err := dis.ListFromContext(environments, *serviceowner)
 	if err != nil {
 		return err
 	}
 
-	clusterNames := kubernetes.FilterContextsByEnvironment(contexts, environments, *serviceowner)
-
-	if len(clusterNames) == 0 {
+	if len(runtimes) == 0 {
 		return fmt.Errorf("no matching clusters found\n\n"+
 			"Run 'go run cmd/main.go init %s%s' to discover and configure clusters",
 			args[0],
@@ -212,12 +212,18 @@ func runSetWeight() error {
 			}())
 	}
 
-	fmt.Printf("Found %d cluster(s)\n", len(clusterNames))
+	fmt.Printf("Found %d cluster(s)\n", len(runtimes))
 
-	fmt.Printf("Fetching current HTTPRoute %s/%s from %d cluster(s)...\n", namespace, name, len(clusterNames))
+	fmt.Printf("Fetching current HTTPRoute %s/%s from %d cluster(s)...\n", namespace, name, len(runtimes))
 
 	maxWorkers := 16
-	results := kubernetes.GetAllHTTPRoutes(clusterNames, namespace, name, maxWorkers)
+	results := kubernetes.GetAllHTTPRoutes(runtimes, namespace, name, maxWorkers)
+
+	// Create a map from cluster name to environment for filtering
+	clusterEnv := make(map[string]string, len(runtimes))
+	for _, runtime := range runtimes {
+		clusterEnv[runtime.GetName()] = runtime.GetEnvironment()
+	}
 
 	// Check for errors and identify clusters that need changes, grouped by environment
 	var routesToUpdate []kubernetes.HTTPRouteResult
@@ -229,7 +235,7 @@ func runSetWeight() error {
 		// Filter results for this environment
 		var envResults []kubernetes.HTTPRouteResult
 		for _, result := range results {
-			if strings.HasSuffix(result.ClusterName, "-"+environment+"-aks") {
+			if clusterEnv[result.ClusterName] == environment {
 				envResults = append(envResults, result)
 			}
 		}
@@ -263,7 +269,7 @@ func runSetWeight() error {
 	fmt.Printf("\nProposed changes:\n")
 	fmt.Printf("  New weight distribution: weight1=%d, weight2=%d\n", weight1, weight2)
 	fmt.Printf("  Annotation to add: kustomize.toolkit.fluxcd.io/reconcile=disabled\n")
-	fmt.Printf("  Clusters to update: %d/%d\n", len(routesToUpdate), len(clusterNames))
+	fmt.Printf("  Clusters to update: %d/%d\n", len(routesToUpdate), len(runtimes))
 	for _, result := range routesToUpdate {
 		fmt.Printf("    - %s\n", result.ClusterName)
 	}
@@ -274,7 +280,7 @@ func runSetWeight() error {
 	}
 
 	fmt.Println()
-	confirmed, err := azure.PromptConfirmation("Apply these changes to all clusters?")
+	confirmed, err := promptConfirmation("Apply these changes to all clusters?")
 	if err != nil {
 		return err
 	}
@@ -285,9 +291,9 @@ func runSetWeight() error {
 	}
 
 	fmt.Println("\nApplying weight changes...")
-	updateResults := kubernetes.UpdateAllHTTPRoutes(routesToUpdate, weight1, weight2, maxWorkers)
+	updateResults := kubernetes.UpdateAllHTTPRoutes(runtimes, routesToUpdate, weight1, weight2, maxWorkers)
 
-	// Group results by environment
+	// Group results by environment (reuse clusterEnv map from above)
 	fmt.Println("\nResults:")
 	var updateErrors bool
 	for i, environment := range environments {
@@ -298,7 +304,7 @@ func runSetWeight() error {
 		// Filter results for this environment
 		var envResults []kubernetes.HTTPRouteResult
 		for _, result := range updateResults {
-			if strings.HasSuffix(result.ClusterName, "-"+environment+"-aks") {
+			if clusterEnv[result.ClusterName] == environment {
 				envResults = append(envResults, result)
 			}
 		}
@@ -377,14 +383,12 @@ func runStatus() error {
 	fmt.Println()
 
 	// Get all kubectl contexts and filter by environments and serviceowner
-	contexts, err := kubernetes.GetAllContextDetails()
+	runtimes, err := dis.ListFromContext(environments, *serviceowner)
 	if err != nil {
 		return err
 	}
 
-	clusterNames := kubernetes.FilterContextsByEnvironment(contexts, environments, *serviceowner)
-
-	if len(clusterNames) == 0 {
+	if len(runtimes) == 0 {
 		return fmt.Errorf("no matching clusters found\n\n"+
 			"Run 'go run cmd/main.go init %s%s' to discover and configure clusters",
 			args[0],
@@ -396,13 +400,19 @@ func runStatus() error {
 			}())
 	}
 
-	fmt.Printf("Found %d cluster(s)\n", len(clusterNames))
+	fmt.Printf("Found %d cluster(s)\n", len(runtimes))
 
 	fmt.Printf("Querying %s %s/%s across %d cluster(s)...\n",
-		resourceType, namespace, name, len(clusterNames))
+		resourceType, namespace, name, len(runtimes))
 
 	maxWorkers := 16
-	results := kubernetes.QueryAllClusters(clusterNames, resourceType, namespace, name, maxWorkers)
+	results := kubernetes.QueryAllClusters(runtimes, resourceType, namespace, name, maxWorkers)
+
+	// Create a map from cluster name to environment for filtering
+	clusterEnv := make(map[string]string, len(runtimes))
+	for _, runtime := range runtimes {
+		clusterEnv[runtime.GetName()] = runtime.GetEnvironment()
+	}
 
 	// Group results by environment
 	fmt.Println()
@@ -414,8 +424,7 @@ func runStatus() error {
 		// Filter results for this environment
 		var envResults []kubernetes.QueryResult
 		for _, result := range results {
-			// Check if cluster name ends with -<environment>-aks
-			if strings.HasSuffix(result.ClusterName, "-"+environment+"-aks") {
+			if clusterEnv[result.ClusterName] == environment {
 				envResults = append(envResults, result)
 			}
 		}
@@ -512,14 +521,12 @@ func runExec() error {
 	fmt.Println()
 
 	// Get all kubectl contexts and filter by environments and serviceowner
-	contexts, err := kubernetes.GetAllContextDetails()
+	runtimes, err := dis.ListFromContext(environments, *serviceowner)
 	if err != nil {
 		return err
 	}
 
-	clusterNames := kubernetes.FilterContextsByEnvironment(contexts, environments, *serviceowner)
-
-	if len(clusterNames) == 0 {
+	if len(runtimes) == 0 {
 		return fmt.Errorf("no matching clusters found\n\n"+
 			"Run 'go run cmd/main.go init %s%s' to discover and configure clusters",
 			args[0],
@@ -531,7 +538,7 @@ func runExec() error {
 			}())
 	}
 
-	fmt.Printf("Found %d cluster(s)\n", len(clusterNames))
+	fmt.Printf("Found %d cluster(s)\n", len(runtimes))
 
 	// Build the base command for display
 	baseCommand := command
@@ -541,13 +548,13 @@ func runExec() error {
 
 	// Show confirmation prompt
 	fmt.Printf("\nCommand to execute: %s\n", baseCommand)
-	fmt.Printf("Clusters (%d):\n", len(clusterNames))
-	for _, name := range clusterNames {
-		fmt.Printf("  - %s\n", name)
+	fmt.Printf("Clusters (%d):\n", len(runtimes))
+	for _, runtime := range runtimes {
+		fmt.Printf("  - %s\n", runtime.GetName())
 	}
 	fmt.Printf("\nExample (first cluster):\n")
 	exampleCmd := append([]string{command}, commandArgs...)
-	exampleCmd = append(exampleCmd, contextFlag, clusterNames[0])
+	exampleCmd = append(exampleCmd, contextFlag, runtimes[0].GetName())
 	fmt.Printf("  %s\n", strings.Join(exampleCmd, " "))
 
 	if *dryRun {
@@ -556,7 +563,7 @@ func runExec() error {
 	}
 
 	fmt.Println()
-	confirmed, err := azure.PromptConfirmation(fmt.Sprintf("Execute this command on all %d clusters?", len(clusterNames)))
+	confirmed, err := promptConfirmation(fmt.Sprintf("Execute this command on all %d clusters?", len(runtimes)))
 	if err != nil {
 		return err
 	}
@@ -566,13 +573,13 @@ func runExec() error {
 		return nil
 	}
 
-	fmt.Printf("\nExecuting command on %d cluster(s)...\n", len(clusterNames))
+	fmt.Printf("\nExecuting command on %d cluster(s)...\n", len(runtimes))
 
 	// Execute commands in parallel using worker pool
-	maxWorkers := min(16, len(clusterNames))
+	maxWorkers := min(16, len(runtimes))
 
-	jobs := make(chan string, len(clusterNames))
-	results := make(chan ExecResult, len(clusterNames))
+	jobs := make(chan string, len(runtimes))
+	results := make(chan ExecResult, len(runtimes))
 
 	var wg sync.WaitGroup
 
@@ -589,8 +596,8 @@ func runExec() error {
 	}
 
 	// Send jobs
-	for _, clusterName := range clusterNames {
-		jobs <- clusterName
+	for _, runtime := range runtimes {
+		jobs <- runtime.GetName()
 	}
 	close(jobs)
 
@@ -602,6 +609,12 @@ func runExec() error {
 	var allResults []ExecResult
 	for result := range results {
 		allResults = append(allResults, result)
+	}
+
+	// Create a map from cluster name to environment for filtering
+	clusterEnv := make(map[string]string, len(runtimes))
+	for _, runtime := range runtimes {
+		clusterEnv[runtime.GetName()] = runtime.GetEnvironment()
 	}
 
 	// Group results by environment
@@ -617,7 +630,7 @@ func runExec() error {
 		// Filter results for this environment
 		var envResults []ExecResult
 		for _, result := range allResults {
-			if strings.HasSuffix(result.ClusterName, "-"+environment+"-aks") {
+			if clusterEnv[result.ClusterName] == environment {
 				envResults = append(envResults, result)
 			}
 		}
@@ -681,7 +694,7 @@ func runExec() error {
 	}
 
 	if totalFailureCount > 0 {
-		return fmt.Errorf("command failed on %d/%d clusters", totalFailureCount, len(clusterNames))
+		return fmt.Errorf("command failed on %d/%d clusters", totalFailureCount, len(runtimes))
 	}
 
 	fmt.Println("\n✓ Command executed successfully on all clusters")
@@ -740,8 +753,7 @@ func runInit() error {
 			"                  Optional: specific serviceowner ID (e.g., ttd, brg, skd)\n\n" +
 			"Description:\n" +
 			"  Discovers AKS clusters for the specified environment(s) and ensures\n" +
-			"  kubectl credentials are configured. Maintains a cache of discovered\n" +
-			"  clusters in .cache/clusters.json")
+			"  kubectl credentials are configured. Maintains a cache of discovered\n")
 	}
 
 	environments, err := validateEnvironments(args[0])
@@ -751,7 +763,11 @@ func runInit() error {
 
 	fmt.Println("Validating prerequisites...")
 
-	if err := azure.ValidateAzCLI(); err != nil {
+	if err := az.ValidateAzCLI(); err != nil {
+		return err
+	}
+
+	if err := az.ValidateUserLogin(); err != nil {
 		return err
 	}
 
@@ -759,27 +775,13 @@ func runInit() error {
 		return err
 	}
 
-	if err := azure.ValidateUserLogin(); err != nil {
-		return err
-	}
-
-	// Get all kubectl contexts once
-	fmt.Println("Checking kubectl contexts...")
-	contexts, err := azure.GetAllContexts()
+	fmt.Println("Querying all container runtimes and contexts")
+	runtimes, err := dis.ListFromAzure(environments, *serviceowner)
 	if err != nil {
 		return err
 	}
 
-	// Query Azure once for all clusters
-	fmt.Println("Querying all AKS clusters via Azure Resource Graph...")
-	allAzureClusters, err := azure.ListAllClustersViaResourceGraph()
-	if err != nil {
-		return err
-	}
-
-	// Process each environment separately with separate prompts
-	var allDiscoveredClusters []azure.Cluster
-	totalNewClusters := 0
+	totalRuntimes := 0
 	totalCredentialsFetched := 0
 
 	for i, environment := range environments {
@@ -792,52 +794,57 @@ func runInit() error {
 			fmt.Printf("Service owner filter: %s\n", *serviceowner)
 		}
 
-		// Filter by this environment (FilterClusters already excludes "studio" clusters)
-		envClusters := azure.FilterClusters(allAzureClusters, []string{environment}, *serviceowner)
+		// Filter runtimes for this environment and cast to concrete type for init operations
+		envRuntimes := make([]*dis.DisContainerRuntime, 0, len(runtimes))
+		for _, runtime := range runtimes {
+			if runtime.GetEnvironment() == environment {
+				// Type assertion since init operations need access to DIS-specific fields
+				if disRuntime, ok := runtime.(*dis.DisContainerRuntime); ok {
+					envRuntimes = append(envRuntimes, disRuntime)
+				}
+			}
+		}
 
-		if len(envClusters) == 0 {
+		if len(envRuntimes) == 0 {
 			fmt.Println("No clusters found matching the specified criteria")
 			continue
 		}
 
-		fmt.Printf("Found %d cluster(s) in Azure\n", len(envClusters))
+		fmt.Printf("Found %d cluster(s) in Azure\n", len(envRuntimes))
 
-		// Categorize clusters
-		var existingContexts []string
-		var missingClusters []azure.Cluster
+		var completeRuntimes []*dis.DisContainerRuntime
+		var runtimesMissingCredentials []*dis.DisContainerRuntime
 
-		for _, cluster := range envClusters {
-			if azure.CheckContextExists(cluster.Name, contexts) {
-				existingContexts = append(existingContexts, cluster.Name)
+		for _, runtime := range envRuntimes {
+			if runtime.Context != nil {
+				completeRuntimes = append(completeRuntimes, runtime)
 			} else {
-				missingClusters = append(missingClusters, cluster)
+				runtimesMissingCredentials = append(runtimesMissingCredentials, runtime)
 			}
 		}
 
-		// Display status
 		fmt.Println("\nCluster status:")
-		for _, name := range existingContexts {
-			fmt.Printf("  ✓ %s (credentials already configured)\n", name)
+		for _, runtime := range completeRuntimes {
+			fmt.Printf("  ✓ %s (credentials already configured)\n", runtime.ClusterName)
 		}
-		for _, cluster := range missingClusters {
-			fmt.Printf("  → %s (needs credentials)\n", cluster.Name)
+		for _, runtime := range runtimesMissingCredentials {
+			fmt.Printf("  → %s (needs credentials)\n", runtime.ClusterName)
 		}
 
-		// Fetch missing credentials if needed
-		if len(missingClusters) > 0 {
-			fmt.Printf("\n%d cluster(s) need credentials\n", len(missingClusters))
-			confirmed, err := azure.PromptConfirmation(fmt.Sprintf("Fetch credentials for %s clusters?", environment))
+		if len(runtimesMissingCredentials) > 0 {
+			fmt.Printf("\n%d cluster(s) need credentials\n", len(runtimesMissingCredentials))
+			confirmed, err := promptConfirmation(fmt.Sprintf("Fetch credentials for %s clusters?", environment))
 			if err != nil {
 				return err
 			}
 
 			if confirmed {
 				fmt.Println("\nFetching credentials...")
-				for _, cluster := range missingClusters {
-					fmt.Printf("  Fetching credentials for %s...\n", cluster.Name)
-					if err := azure.EnsureCredentials(cluster); err != nil {
+				for _, runtime := range runtimesMissingCredentials {
+					fmt.Printf("  Fetching credentials for %s...\n", runtime.ClusterName)
+					if err := az.EnsureCredentials(runtime.Cluster); err != nil {
 						fmt.Printf("  ✗ Failed: %v\n", err)
-						return fmt.Errorf("failed to fetch credentials for %s: %w", cluster.Name, err)
+						return fmt.Errorf("failed to fetch credentials for %s: %w", runtime.ClusterName, err)
 					}
 					fmt.Printf("  ✓ Success\n")
 					totalCredentialsFetched++
@@ -849,27 +856,15 @@ func runInit() error {
 			fmt.Println("\nAll clusters already have configured credentials")
 		}
 
-		allDiscoveredClusters = append(allDiscoveredClusters, envClusters...)
-		totalNewClusters += len(envClusters)
+		totalRuntimes += len(envRuntimes)
 	}
 
-	// Save all discovered clusters to merged cache
-	if len(allDiscoveredClusters) > 0 {
-		fmt.Println("\n=== Updating cache ===")
-		if err := azure.SaveClustersToCache(allDiscoveredClusters); err != nil {
-			return fmt.Errorf("failed to save cache: %w", err)
-		}
-		fmt.Println("Cache updated successfully")
-	}
-
-	// Display summary
 	fmt.Println("\n=== Summary ===")
 	fmt.Printf("  Environments processed: %s\n", strings.Join(environments, ", "))
-	fmt.Printf("  Total clusters discovered: %d\n", totalNewClusters)
+	fmt.Printf("  Total clusters discovered: %d\n", totalRuntimes)
 	if totalCredentialsFetched > 0 {
 		fmt.Printf("  Credentials fetched: %d\n", totalCredentialsFetched)
 	}
-	fmt.Printf("  Cache file: .cache/clusters.json\n")
 
 	fmt.Println("\n✓ Initialization complete")
 	return nil
@@ -937,10 +932,6 @@ func runLogs() error {
 
 	fmt.Println("Validating prerequisites...")
 
-	if err := kubernetes.ValidateKubectl(); err != nil {
-		return err
-	}
-
 	envStr := strings.Join(environments, ", ")
 	fmt.Printf("Finding clusters for environment(s): %s", envStr)
 	if *serviceowner != "" {
@@ -949,14 +940,12 @@ func runLogs() error {
 	fmt.Println()
 
 	// Get all kubectl contexts and filter by environments and serviceowner
-	contexts, err := kubernetes.GetAllContextDetails()
+	runtimes, err := dis.ListFromContext(environments, *serviceowner)
 	if err != nil {
 		return err
 	}
 
-	clusterNames := kubernetes.FilterContextsByEnvironment(contexts, environments, *serviceowner)
-
-	if len(clusterNames) == 0 {
+	if len(runtimes) == 0 {
 		return fmt.Errorf("no matching clusters found\n\n"+
 			"Run 'go run cmd/main.go init %s%s' to discover and configure clusters",
 			args[0],
@@ -968,30 +957,19 @@ func runLogs() error {
 			}())
 	}
 
-	fmt.Printf("Found %d cluster(s)\n", len(clusterNames))
+	fmt.Printf("Found %d cluster(s)\n", len(runtimes))
 
 	if *follow {
 		fmt.Printf("Streaming logs from %s/%s across %d cluster(s) to %s (Ctrl+C to stop)...\n",
-			namespace, name, len(clusterNames), outputFile)
+			namespace, name, len(runtimes), outputFile)
 	} else {
 		fmt.Printf("Fetching logs from %s/%s across %d cluster(s) to %s...\n",
-			namespace, name, len(clusterNames), outputFile)
-	}
-
-	// Build cluster info with serviceowner and environment extracted from cluster names
-	var clusters []kubernetes.ClusterInfo
-	for _, clusterName := range clusterNames {
-		svcOwner, env := kubernetes.ExtractServiceOwnerAndEnvironment(clusterName)
-		clusters = append(clusters, kubernetes.ClusterInfo{
-			Name:         clusterName,
-			ServiceOwner: svcOwner,
-			Environment:  env,
-		})
+			namespace, name, len(runtimes), outputFile)
 	}
 
 	// Aggregate logs with time buffer
 	bufferDuration := 10 * time.Second
-	if err := kubernetes.AggregateLogsWithBuffer(clusters, namespace, name, outputFile, since, tail, *follow, *timestamps, bufferDuration); err != nil {
+	if err := kubernetes.AggregateLogsWithBuffer(runtimes, namespace, name, outputFile, since, tail, *follow, *timestamps, bufferDuration); err != nil {
 		return err
 	}
 
@@ -1030,10 +1008,6 @@ func runNodes() error {
 
 	fmt.Println("Validating prerequisites...")
 
-	if err := kubernetes.ValidateKubectl(); err != nil {
-		return err
-	}
-
 	envStr := strings.Join(environments, ", ")
 	fmt.Printf("Finding clusters for environment(s): %s", envStr)
 	if *serviceowner != "" {
@@ -1042,14 +1016,12 @@ func runNodes() error {
 	fmt.Println()
 
 	// Get all kubectl contexts and filter by environments and serviceowner
-	contexts, err := kubernetes.GetAllContextDetails()
+	runtimes, err := dis.ListFromContext(environments, *serviceowner)
 	if err != nil {
 		return err
 	}
 
-	clusterNames := kubernetes.FilterContextsByEnvironment(contexts, environments, *serviceowner)
-
-	if len(clusterNames) == 0 {
+	if len(runtimes) == 0 {
 		return fmt.Errorf("no matching clusters found\n\n"+
 			"Run 'go run cmd/main.go init %s%s' to discover and configure clusters",
 			args[0],
@@ -1061,13 +1033,19 @@ func runNodes() error {
 			}())
 	}
 
-	fmt.Printf("Found %d cluster(s)\n", len(clusterNames))
+	fmt.Printf("Found %d cluster(s)\n", len(runtimes))
 
 	fmt.Printf("Querying nodes (label selector: %s) across %d cluster(s)...\n",
-		*labelSelector, len(clusterNames))
+		*labelSelector, len(runtimes))
 
 	maxWorkers := 16
-	results := kubernetes.QueryAllClustersForNodes(clusterNames, *labelSelector, maxWorkers)
+	results := kubernetes.QueryAllClustersForNodes(runtimes, *labelSelector, maxWorkers)
+
+	// Create a map from cluster name to environment for filtering
+	clusterEnv := make(map[string]string, len(runtimes))
+	for _, runtime := range runtimes {
+		clusterEnv[runtime.GetName()] = runtime.GetEnvironment()
+	}
 
 	// Group results by environment
 	fmt.Println()
@@ -1079,8 +1057,7 @@ func runNodes() error {
 		// Filter results for this environment
 		var envResults []kubernetes.NodeResult
 		for _, result := range results {
-			// Check if cluster name ends with -<environment>-aks
-			if strings.HasSuffix(result.ClusterName, "-"+environment+"-aks") {
+			if clusterEnv[result.ClusterName] == environment {
 				envResults = append(envResults, result)
 			}
 		}
@@ -1092,4 +1069,23 @@ func runNodes() error {
 	}
 
 	return nil
+}
+
+// promptConfirmation prompts the user for confirmation
+func promptConfirmation(message string) (bool, error) {
+	fmt.Printf("%s [Y/n]: ", message)
+
+	reader := bufio.NewReader(os.Stdin)
+	response, err := reader.ReadString('\n')
+	if err != nil {
+		return false, fmt.Errorf("failed to read user input: %w", err)
+	}
+
+	response = strings.ToLower(strings.TrimSpace(response))
+
+	if response == "" || response == "y" || response == "yes" {
+		return true, nil
+	}
+
+	return false, nil
 }
