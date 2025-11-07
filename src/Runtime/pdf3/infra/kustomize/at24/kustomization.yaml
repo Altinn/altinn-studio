@@ -9,3 +9,17 @@ patches:
       kind: GrafanaDashboard
       metadata:
         name: pdf3-dashboard
+  - target:
+      kind: ServiceMonitor
+      name: pdf3-proxy
+    patch: |-
+      - op: replace
+        path: /apiVersion
+        value: azmonitoring.coreos.com/v1
+  - target:
+      kind: ServiceMonitor
+      name: pdf3-worker
+    patch: |-
+      - op: replace
+        path: /apiVersion
+        value: azmonitoring.coreos.com/v1
