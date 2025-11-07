@@ -72,7 +72,7 @@ Run 'go run cmd/main.go <command> -h' for more information on a specific command
 
 func run() error {
 	if len(os.Args) < 2 {
-		return fmt.Errorf(printUsage())
+		return fmt.Errorf("%s", printUsage())
 	}
 
 	command := os.Args[1]

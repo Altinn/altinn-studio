@@ -373,9 +373,26 @@ func (r *reSequencer) resequenceIgnoreDuration() {
 }
 
 func (r *reSequencer) next() []LogLine {
-	if r.availablePos-r.readerPos == 0 {
+	readableCount := r.availablePos - r.readerPos
+	if readableCount == 0 {
 		return nil
 	}
+
+	// Do some compacting here on previously read data
+	// so that the buffer doens't grow forever
+	unreadCount := r.writerPos - r.readerPos
+	if unreadCount > 0 {
+		copy(r.buffer[0:unreadCount], r.buffer[r.readerPos:r.writerPos])
+		r.buffer = r.buffer[0:unreadCount]
+	} else {
+		// This should never happen given that readerPos < availablePos <= writerPos
+		panic("reSequencer: invalid state - unreadCount <= 0 when readableCount > 0")
+	}
+
+	r.writerPos = unreadCount
+	r.availablePos = readableCount
+	r.readerPos = 0
+
 	result := r.buffer[r.readerPos:r.availablePos]
 	r.readerPos = r.availablePos
 	return result
