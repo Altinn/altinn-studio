@@ -150,9 +150,14 @@ namespace LocalTest.Controllers
         /// Unregister an app
         /// </summary>
         [AllowAnonymous]
-        [HttpDelete("/Home/Localtest/Register/{appId}")]
-        public IActionResult UnregisterApp(string appId)
+        [HttpDelete("/Home/Localtest/Register")]
+        public IActionResult UnregisterApp([FromQuery] string appId)
         {
+            if (string.IsNullOrWhiteSpace(appId))
+            {
+                return BadRequest("AppId is required");
+            }
+
             var removed = _appRegistryService.Unregister(appId);
             if (removed)
             {

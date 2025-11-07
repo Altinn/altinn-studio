@@ -272,10 +272,7 @@ internal sealed class LocaltestValidation : BackgroundService
                     {
                         return port;
                     }
-                    _logger.LogWarning(
-                        "Could not extract port from server address: {Address}",
-                        firstAddress
-                    );
+                    _logger.LogWarning("Could not extract port from server address: {Address}", firstAddress);
                     return null;
                 }
             }
@@ -307,12 +304,8 @@ internal sealed class LocaltestValidation : BackgroundService
                 response.EnsureSuccessStatusCode();
 
                 _registeredAppId = appId;
-                _logger.LogInformation(
-                    "Successfully registered {AppId} with localtest on port {Port}",
-                    appId,
-                    port
-                );
-
+                _logger.LogInformation("Successfully registered {AppId} with localtest on port {Port}", appId, port);
+                return;
             }
             catch (HttpRequestException ex)
             {
@@ -357,7 +350,7 @@ internal sealed class LocaltestValidation : BackgroundService
             return;
 
         using var client = _httpClientFactory.CreateClient();
-        var url = $"{baseUrl}/Home/Localtest/Register/{Uri.EscapeDataString(_registeredAppId)}";
+        var url = $"{baseUrl}/Home/Localtest/Register?appId={Uri.EscapeDataString(_registeredAppId)}";
 
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         var response = await client.DeleteAsync(url, cts.Token);
