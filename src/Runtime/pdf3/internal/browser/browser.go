@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"os"
 	"os/exec"
 	"sort"
 	"strings"
@@ -81,12 +82,13 @@ func Start(id int) (*Process, error) {
 // Close terminates the browser process
 func (p *Process) Close() error {
 	if p.Cmd != nil && p.Cmd.Process != nil {
-		if err := p.Cmd.Process.Kill(); err != nil {
-			return fmt.Errorf("failed to kill browser process (PID %d): %w", p.Cmd.Process.Pid, err)
-		}
+		err := p.Cmd.Process.Kill()
+		assert.AssertWithMessage(err == nil, "couldn't kill browser process", "error", err)
 		// Wait() error is expected (killed processes return error), so we can ignore it
 		_ = p.Cmd.Wait()
 	}
+	err := os.RemoveAll(p.DataDir)
+	assert.AssertWithMessage(err == nil, "couldn't remove dataDir", "dataDir", p.DataDir, "error", err)
 	return nil
 }
 

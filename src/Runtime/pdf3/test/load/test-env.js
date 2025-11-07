@@ -38,12 +38,12 @@ const TEST_TOOLS_PASSWORD = __ENV.ALTINN_TESTTOOLS_PASSWORD;
 
 export const options = {
   scenarios: {
-    ui: {
+    pdf: {
       executor: 'constant-arrival-rate',
       rate: 3,
       timeUnit: '1s',
-      duration: '5m',
-      gracefulStop: '30s',
+      duration: '1h',
+      gracefulStop: '10s',
       preAllocatedVUs: 20,
       maxVUs: 50,
       // options: {
