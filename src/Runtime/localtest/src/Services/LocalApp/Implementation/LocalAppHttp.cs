@@ -183,12 +183,6 @@ namespace LocalTest.Services.LocalApp.Implementation
 
         private record FetchResult(AppTestDataModel? MergedData, bool AppWasReachable, bool AppHadData);
 
-        public async Task<AppTestDataModel?> GetTestData()
-        {
-            var result = await GetTestDataWithMetadata();
-            return result.Data;
-        }
-
         public async Task<TestDataResult> GetTestDataWithMetadata()
         {
             var result = await _cache.GetOrCreateAsync(TEST_DATA_CACHE_KEY, async (cacheEntry) =>

@@ -20,8 +20,6 @@ namespace LocalTest.Services.LocalApp.Interface
         /// </summary>
         Task<Instance?> Instantiate(string appId, Instance instance, string xmlPrefill, string xmlDataId, string token);
 
-        Task<AppTestDataModel?> GetTestData();
-
         /// <summary>
         /// Gets test data along with metadata about whether all apps provided data
         /// </summary>
