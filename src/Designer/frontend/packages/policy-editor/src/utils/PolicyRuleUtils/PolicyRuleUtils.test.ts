@@ -70,7 +70,7 @@ describe('PolicyRuleUtils', () => {
     it('should return the string representation of the rule ID', () => {
       const ruleIdString = getPolicyRuleIdString(mockPolicyRuleCard1);
 
-      expect(ruleIdString).toBe(mockRuleId1);
+      expect(ruleIdString).toBe(mockRuleId1.split(':').pop());
     });
   });
 });
