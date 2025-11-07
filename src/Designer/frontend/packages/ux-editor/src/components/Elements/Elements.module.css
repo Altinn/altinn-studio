@@ -3,15 +3,6 @@
   flex: var(--elements-width-fraction);
 }
 
-.pagesContent {
-  padding: var(--fds-spacing-2);
-}
-
-.pagesContent .addButton {
-  padding-bottom: var(--fds-spacing-3);
-  padding-top: var(--fds-spacing-2);
-}
-
 .componentsHeader {
   display: flex;
   align-items: center;
@@ -28,9 +19,10 @@
   width: 100%;
 }
 .noPageSelected {
-  padding-inline: var(--fds-spacing-3);
+  margin-top: var(--ds-size-5);
+  padding-left: var(--ds-size-5);
 }
 
 .errorMessage {
-  padding: var(--fds-spacing-3);
+  padding: var(--ds-size-4);
 }
