@@ -143,10 +143,10 @@ namespace LocalTest.Services.LocalApp.Implementation
             }
         }
 
-        public Task<LocalAppHttp.TestDataResult> GetTestDataWithMetadata()
+        public Task<ILocalApp.TestDataResult> GetTestDataWithMetadata()
         {
             // LocalAppFile doesn't fetch testData
-            return Task.FromResult(new LocalAppHttp.TestDataResult(null, false));
+            return Task.FromResult(new ILocalApp.TestDataResult(null, false));
         }
 
         public void InvalidateTestDataCache()

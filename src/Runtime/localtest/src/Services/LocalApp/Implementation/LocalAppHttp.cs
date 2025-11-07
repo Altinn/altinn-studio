@@ -179,11 +179,9 @@ namespace LocalTest.Services.LocalApp.Implementation
             return JsonSerializer.Deserialize<Instance>(stringResponse, new JsonSerializerOptions{PropertyNameCaseInsensitive = true});
         }
 
-        public record TestDataResult(AppTestDataModel? Data, bool AllAppsHaveData);
-
         private record FetchResult(AppTestDataModel? MergedData, bool AppWasReachable, bool AppHadData);
 
-        public async Task<TestDataResult> GetTestDataWithMetadata()
+        public async Task<ILocalApp.TestDataResult> GetTestDataWithMetadata()
         {
             var result = await _cache.GetOrCreateAsync(TEST_DATA_CACHE_KEY, async (cacheEntry) =>
             {
@@ -248,10 +246,10 @@ namespace LocalTest.Services.LocalApp.Implementation
                 _logger.LogInformation("GetTestDataWithMetadata: reachableApps={ReachableApps}, appsWithData={AppsWithData}, allHaveData={AllHaveData}",
                     reachableApps, appsWithData, allHaveData);
 
-                return new TestDataResult(merged, allHaveData);
+                return new ILocalApp.TestDataResult(merged, allHaveData);
             });
 
-            return result ?? new TestDataResult(null, false);
+            return result ?? new ILocalApp.TestDataResult(null, false);
         }
 
         private async Task<FetchResult> FetchAndMergeTestData(string? appId, string requestUri, AppTestDataModel? merged)
