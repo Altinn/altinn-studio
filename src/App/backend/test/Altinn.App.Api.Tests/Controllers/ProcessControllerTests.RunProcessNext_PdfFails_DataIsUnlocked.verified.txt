@@ -81,16 +81,6 @@
       HasParent: true
     },
     {
-      Name: ApplicationMetadata.Service.GetTexts,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
-      Name: ApplicationMetadata.Service.GetTexts,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
       Name: ApplicationMetadata.Service.GetValidationConfiguration,
       IdFormat: W3C,
       HasParent: true
@@ -131,6 +121,16 @@
         },
         {
           instance.owner.party.id: 500600
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: InstanceDataAccessor.SaveChanges,
+      IdFormat: W3C,
+      Tags: [
+        {
+          numberOfChangedDataElements: 1
         }
       ],
       HasParent: true
@@ -245,9 +245,6 @@
       Tags: [
         {
           instance.guid: Guid_1
-        },
-        {
-          process.action: write
         }
       ],
       HasParent: true
@@ -259,6 +256,11 @@
     },
     {
       Name: ProcessReader.GetAllFlowElements,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetAltinnTaskExtension,
       IdFormat: W3C,
       HasParent: true
     },
@@ -284,6 +286,11 @@
     },
     {
       Name: ProcessReader.GetExclusiveGateways,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetFlowElement,
       IdFormat: W3C,
       HasParent: true
     },
@@ -380,6 +387,9 @@
           validation.issue_count: 0
         },
         {
+          validator.remove_hidden_data: false
+        },
+        {
           validator.source: Required
         },
         {
@@ -394,6 +404,9 @@
       Tags: [
         {
           validation.issue_count: 0
+        },
+        {
+          validator.remove_hidden_data: false
         },
         {
           validator.source: Expression
@@ -412,6 +425,9 @@
           validation.issue_count: 0
         },
         {
+          validator.remove_hidden_data: false
+        },
+        {
           validator.source: Altinn.App.Core.Features.Validation.Default.DefaultTaskValidator-*
         },
         {
@@ -426,6 +442,9 @@
       Tags: [
         {
           validation.issue_count: 0
+        },
+        {
+          validator.remove_hidden_data: false
         },
         {
           validator.source: Altinn.App.Core.Features.Validation.Default.DefaultDataElementValidator-*
@@ -444,6 +463,9 @@
           validation.issue_count: 0
         },
         {
+          validator.remove_hidden_data: false
+        },
+        {
           validator.source: DataAnnotations
         },
         {
@@ -458,6 +480,9 @@
       Tags: [
         {
           validation.issue_count: 0
+        },
+        {
+          validator.remove_hidden_data: false
         },
         {
           validator.source: Not a valid validation source

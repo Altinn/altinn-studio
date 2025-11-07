@@ -1,7 +1,8 @@
-import type { Definitions } from 'bpmn-moddle';
 import BpmnModdle from 'bpmn-moddle';
 import { useBpmnQuery } from './queries/useBpmnQuery';
 import { useBpmnMutation } from './mutations/useBpmnMutation';
+
+type Definitions = BpmnModdle.Definitions;
 
 const updateBpmn = async (
   bpmnXml: string,
@@ -10,7 +11,8 @@ const updateBpmn = async (
 ) => {
   const moddle = new BpmnModdle();
 
-  const { rootElement: definitions } = await moddle.fromXML(bpmnXml);
+  const { rootElement } = await moddle.fromXML(bpmnXml);
+  const definitions = rootElement as Definitions;
 
   const hasChanged = updateCriteria(definitions);
   if (hasChanged) {

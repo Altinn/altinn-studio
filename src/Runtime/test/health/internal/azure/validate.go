@@ -25,7 +25,7 @@ func ValidateAzCLI() error {
 }
 
 // ValidateUserLogin validates that the user is logged in with the correct format
-// Expected format: ext-<username>-prod@ai-dev.no
+// Expected format: ext-<username> ai-dev account (prod or non-prod)
 func ValidateUserLogin() error {
 	cmd := exec.Command("az", "account", "show")
 	output, err := cmd.CombinedOutput()
@@ -40,9 +40,9 @@ func ValidateUserLogin() error {
 
 	username := strings.ToLower(account.User.Name)
 
-	pattern := regexp.MustCompile(`^ext-[a-z0-9]+-prod@ai-dev\.no$`)
+	pattern := regexp.MustCompile(`^ext-[a-z0-9]+(-prod)?@ai-dev\.no$`)
 	if !pattern.MatchString(username) {
-		return fmt.Errorf("invalid user format: %s (expected: ext-<username>-prod@ai-dev.no)", account.User.Name)
+		return fmt.Errorf("invalid user format: %s (expected: ext-<username>(-prod)?@ai-dev.no)", account.User.Name)
 	}
 
 	return nil

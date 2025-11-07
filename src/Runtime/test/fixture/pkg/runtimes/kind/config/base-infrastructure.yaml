@@ -10,11 +10,6 @@ metadata:
   name: traefik
 ---
 apiVersion: v1
-kind: Namespace
-metadata:
-  name: pdf
----
-apiVersion: v1
 kind: Secret
 metadata:
   name: linkerd-identity-issuer
@@ -107,7 +102,7 @@ spec:
   chart:
     spec:
       chart: traefik-crds
-      version: 1.11.1
+      version: 1.11.0
       sourceRef:
         kind: HelmRepository
         name: traefik-crds
@@ -116,56 +111,14 @@ spec:
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: traefik
-  namespace: traefik
-spec:
-  interval: 1h
-  dependsOn:
-    - name: traefik-crds
-  install:
-    disableWait: true
-  upgrade:
-    disableWait: true
-  chart:
-    spec:
-      chart: traefik
-      version: 37.1.1
-      sourceRef:
-        kind: HelmRepository
-        name: traefik
-        namespace: flux-system
-  values:
-    ports:
-      web:
-        nodePort: 30000
-        expose:
-          default: true
-      websecure:
-        nodePort: 30001
-        expose:
-          default: true
-      traefik:
-        nodePort: 30002
-        expose:
-          default: true
-    service:
-      type: NodePort
----
-apiVersion: helm.toolkit.fluxcd.io/v2
-kind: HelmRelease
-metadata:
   name: linkerd-crds
   namespace: linkerd
 spec:
   interval: 1h
-  install:
-    disableWait: true
-  upgrade:
-    disableWait: true
   chart:
     spec:
       chart: linkerd-crds
-      version: 2025.10.1
+      version: 2025.7.6
       sourceRef:
         kind: HelmRepository
         name: linkerd-edge
@@ -179,19 +132,33 @@ metadata:
 spec:
   interval: 1h
   install:
-    disableWait: true
+    crds: Skip
   upgrade:
-    disableWait: true
+    crds: Skip
   dependsOn:
     - name: linkerd-crds
+      namespace: linkerd
   chart:
     spec:
       chart: linkerd-control-plane
-      version: 2025.10.1
+      version: 2025.7.6
       sourceRef:
         kind: HelmRepository
         name: linkerd-edge
         namespace: flux-system
+  values:
+    policyController:
+      image:
+        name: ghcr.io/linkerd/policy-controller
+    proxy:
+      image:
+        name: ghcr.io/linkerd/proxy
+    proxyInit:
+      image:
+        name: ghcr.io/linkerd/proxy-init
+    debugContainer:
+      image:
+        name: ghcr.io/linkerd/debug
   valuesFrom:
     - kind: Secret
       name: linkerd-identity-issuer
@@ -209,23 +176,57 @@ spec:
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: pdf-generator
-  namespace: pdf
+  name: traefik
+  namespace: traefik
 spec:
   interval: 1h
+  dependsOn:
+    - name: traefik-crds
+      namespace: traefik
+    - name: linkerd-crds
+      namespace: linkerd
+    - name: linkerd-control-plane
+      namespace: linkerd
   install:
     disableWait: true
+    crds: Skip
   upgrade:
     disableWait: true
+    crds: Skip
   chart:
     spec:
-      chart: pdf-generator
-      version: '1.9.0'
+      chart: traefik
+      version: 37.1.1
       sourceRef:
         kind: HelmRepository
-        name: altinn-studio
+        name: traefik
         namespace: flux-system
   values:
-    image:
-      repository: browserless/chrome
-      tag: 1-puppeteer-21.4.1
+    global:
+      checkNewVersion: false
+      sendAnonymousUsage: false
+    deployment:
+      podAnnotations:
+        linkerd.io/inject: enabled
+    providers:
+      kubernetesCRD:
+        enabled: true
+      kubernetesGateway:
+        enabled: false
+      kubernetesIngress:
+        enabled: false
+    ports:
+      web:
+        nodePort: 30000
+        expose:
+          default: true
+      websecure:
+        nodePort: 30001
+        expose:
+          default: true
+      traefik:
+        nodePort: 30002
+        expose:
+          default: true
+    service:
+      type: NodePort

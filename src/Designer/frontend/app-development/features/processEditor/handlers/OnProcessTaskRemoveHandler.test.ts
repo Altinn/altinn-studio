@@ -9,6 +9,7 @@ import { app, org } from '@studio/testing/testids';
 import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
 import { getMockBpmnElementForTask } from '../../../../packages/process-editor/test/mocks/bpmnDetailsMock';
 import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
+import type { Element } from 'bpmn-js/lib/model/Types';
 
 jest.mock('@altinn/process-editor/utils/bpmnModeler/StudioModeler', () => {
   const actual = jest.requireActual('@altinn/process-editor/utils/bpmnModeler/StudioModeler');
@@ -255,7 +256,7 @@ describe('OnProcessTaskRemoveHandler', () => {
     const deletedSigningTask = createTaskMetadataMock('signing', signingTasks[0].businessObject);
 
     const onProcessTaskRemoveHandler = createOnRemoveProcessTaskHandler({});
-    const studioModeler = new StudioModeler(deletedSigningTask);
+    const studioModeler = new StudioModeler(deletedSigningTask as unknown as Element);
 
     expect(
       studioModeler.getAllTasksByType('bpmn:Task').find((item) => item.id === 'task_2')

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioTabs } from '@studio/components-legacy';
+import { StudioTabs } from '@studio/components';
 import { ReferenceTab } from './ReferenceTab/ReferenceTab';
 import { EditTab } from './EditTab';
 import { SelectedOptionsType } from '../EditOptions';
@@ -25,7 +25,7 @@ export function OptionTabs({ component, handleComponentChange, optionListIds }: 
   return (
     <StudioTabs
       value={selectedOptionsType}
-      size='small'
+      data-size='sm'
       onChange={(value) => {
         setSelectedOptionsType(value as SelectedOptionsType);
       }}
@@ -38,12 +38,12 @@ export function OptionTabs({ component, handleComponentChange, optionListIds }: 
           {t('ux_editor.options.tab_reference_id')}
         </StudioTabs.Tab>
       </StudioTabs.List>
-      <StudioTabs.Content className={classes.tabContent} value={SelectedOptionsType.CodeList}>
+      <StudioTabs.Panel className={classes.tabContent} value={SelectedOptionsType.CodeList}>
         <EditTab component={component} handleComponentChange={handleComponentChange} />
-      </StudioTabs.Content>
-      <StudioTabs.Content value={SelectedOptionsType.ReferenceId} className={classes.tabContent}>
+      </StudioTabs.Panel>
+      <StudioTabs.Panel value={SelectedOptionsType.ReferenceId} className={classes.tabContent}>
         <ReferenceTab component={component} handleComponentChange={handleComponentChange} />
-      </StudioTabs.Content>
+      </StudioTabs.Panel>
     </StudioTabs>
   );
 }

@@ -13,6 +13,7 @@ import { GiteaPage } from 'testing/playwright/pages/GiteaPage';
 
 // Variables and constants shared between tests
 const PAGE_1: string = 'Side1';
+const LAYOUT_SET: string = 'form';
 const COMPONENT_ID: string = 'myId';
 const INPUT_COMPONENT_LABEL: string = 'inputLabel';
 const TEXT_KEY_FIELD_2: string = 'textKeyField2';
@@ -215,5 +216,5 @@ const navigateToUiEditorAndVerifyPage = async (
   await uiEditorPage.verifyUiEditorPage();
   await uiEditorPage.clickOnUxEditorButton();
   await uiEditorPage.clickOnPageAccordion(PAGE_1);
-  await uiEditorPage.verifyUiEditorPage(PAGE_1);
+  await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, PAGE_1);
 };

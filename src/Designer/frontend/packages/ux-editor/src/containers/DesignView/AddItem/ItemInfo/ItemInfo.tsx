@@ -1,6 +1,10 @@
 import React from 'react';
-import { StudioRecommendedNextAction } from '@studio/components-legacy';
-import { StudioParagraph, StudioHeading, StudioIconTextfield } from '@studio/components';
+import {
+  StudioParagraph,
+  StudioHeading,
+  StudioIconTextfield,
+  StudioRecommendedNextAction,
+} from '@studio/components';
 import {
   getComponentHelperTextByComponentType,
   getTitleByComponentType,

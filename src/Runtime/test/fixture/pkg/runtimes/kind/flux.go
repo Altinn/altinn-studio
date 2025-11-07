@@ -111,40 +111,61 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 
 	if installed {
 		fmt.Println("Base infrastructure already running, skipping")
+		if r.IngressReadyEvent != nil {
+			r.IngressReadyEvent <- nil
+		}
 		return nil
 	}
 
-	fmt.Println("Reconciling traefik-crds (blocking)...")
-
-	// Reconcile traefik-crds synchronously (blocking) to ensure CRDs are installed
 	time.Sleep(1 * time.Second)
+	fmt.Println("Reconciling base infra (blocking)...")
+
+	asyncOpts := flux.DefaultReconcileOptions()
+	asyncOpts.ShouldWait = false
 	syncOpts := flux.DefaultReconcileOptions()
-	if err := r.FluxClient.ReconcileHelmRelease("traefik-crds", "traefik", true, syncOpts); err != nil {
-		return fmt.Errorf("failed to reconcile traefik-crds: %w", err)
-	}
 
-	fmt.Println("✓ Traefik CRDs reconciled")
-	fmt.Println("Reconciling other base infra (async)...")
-
-	// Reconcile traefik asynchronously (non-blocking) since it has disableWait: true in the manifest
-	asyncOpts := flux.ReconcileOptions{
-		ShouldWait: false,
-		Timeout:    0,
-	}
 	if err := r.FluxClient.ReconcileHelmRelease("linkerd-crds", "linkerd", true, asyncOpts); err != nil {
-		return fmt.Errorf("failed to trigger async linkerd-crds reconcile: %w", err)
+		return fmt.Errorf("failed to reconcile base infra: %w", err)
 	}
-	if err := r.FluxClient.ReconcileHelmRelease("linkerd-control-plane", "linkerd", true, asyncOpts); err != nil {
-		return fmt.Errorf("failed to trigger async linkerd-control-plane reconcile: %w", err)
+	if err := r.FluxClient.ReconcileHelmRelease("traefik-crds", "traefik", true, asyncOpts); err != nil {
+		return fmt.Errorf("failed to reconcile base infra: %w", err)
 	}
 	if err := r.FluxClient.ReconcileHelmRelease("traefik", "traefik", true, asyncOpts); err != nil {
-		return fmt.Errorf("failed to trigger async traefik reconcile: %w", err)
+		return fmt.Errorf("failed to reconcile base infra: %w", err)
 	}
-	if err := r.FluxClient.ReconcileHelmRelease("pdf-generator", "pdf", true, asyncOpts); err != nil {
-		return fmt.Errorf("failed to trigger async pdf/pdf-generator reconcile: %w", err)
+	if err := r.FluxClient.ReconcileHelmRelease("linkerd-control-plane", "linkerd", true, syncOpts); err != nil {
+		return fmt.Errorf("failed to reconcile base infra: %w", err)
 	}
 
-	fmt.Println("✓ Base infra reconciliation triggered (running in background)")
+	fmt.Println("✓ Base infra reconciled")
+
+	if r.IngressReadyEvent != nil {
+		go func() {
+			var err error
+			defer func() { fmt.Printf("Done waiting for ingress. Error=%v\n", err) }()
+			deadline := time.Now().Add(2 * time.Minute)
+
+			for !time.Now().After(deadline) {
+				err = r.KubernetesClient.Get("deployment", "traefik", "traefik")
+				if err == nil {
+					break
+				}
+				time.Sleep(250 * time.Millisecond)
+			}
+
+			if err != nil {
+				r.IngressReadyEvent <- fmt.Errorf("error waiting for ingress deployment: %v", err)
+				return
+			}
+
+			err = r.KubernetesClient.RolloutStatus("traefik", "traefik", 2*time.Minute)
+			if err == nil {
+				r.IngressReadyEvent <- nil
+			} else {
+				r.IngressReadyEvent <- fmt.Errorf("error waiting for ingress readiness: %v", err)
+			}
+		}()
+	}
 
 	return nil
 }

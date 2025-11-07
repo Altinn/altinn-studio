@@ -14,7 +14,7 @@ import {
   mockBpmnApiContextValue,
   mockBpmnContextValue,
 } from '../../../../test/mocks/bpmnContextMock';
-import { useStudioRecommendedNextActionContext } from '@studio/components-legacy';
+import { useStudioRecommendedNextActionContext } from '@studio/components';
 
 const tasks = [
   {
@@ -52,7 +52,7 @@ jest.mock('../../../utils/bpmnModeler/StudioModeler', () => {
 });
 
 jest.mock(
-  '@studio/components-legacy/src/components/StudioRecommendedNextAction/context/useStudioRecommendedNextActionContext.ts',
+  '@studio/components/src/components/StudioRecommendedNextAction/context/useStudioRecommendedNextActionContext.ts',
   () => ({
     useStudioRecommendedNextActionContext: jest.fn(),
   }),

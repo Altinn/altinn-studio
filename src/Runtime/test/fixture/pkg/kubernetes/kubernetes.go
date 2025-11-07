@@ -91,7 +91,20 @@ func (c *KubernetesClient) GetWithJSONPath(resource, name, namespace, jsonPath s
 }
 
 // ConfigUseContext sets the kubectl context
+// This function is idempotent - it checks the current context first and only changes it if needed
 func (c *KubernetesClient) ConfigUseContext(contextName string) error {
+	// Check current context first
+	currentCmd := exec.Command(c.kubectlBin, "config", "current-context")
+	currentOutput, err := currentCmd.Output()
+	if err == nil {
+		currentContext := strings.TrimSpace(string(currentOutput))
+		if currentContext == contextName {
+			// Context is already correct, no need to change
+			return nil
+		}
+	}
+
+	// Context is different or couldn't be determined, set it
 	cmd := exec.Command(c.kubectlBin, "config", "use-context", contextName)
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to set kubectl context: %w", err)
@@ -119,6 +132,24 @@ func (c *KubernetesClient) RolloutStatus(deployment, namespace string, timeout t
 	}
 
 	return nil
+}
+
+func (c *KubernetesClient) KustomizeRender(path string) (string, error) {
+	args := []string{
+		"kustomize",
+		".",
+		"--load-restrictor",
+		"LoadRestrictionsNone",
+	}
+
+	cmd := exec.Command(c.kubectlBin, args...)
+	cmd.Dir = path
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("failed rendering kustomization at %s: %w", path, err)
+	}
+
+	return string(output), nil
 }
 
 // LogOptions configures how logs should be collected

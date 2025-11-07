@@ -1,10 +1,10 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -13,7 +13,6 @@ using System.Web;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -457,20 +456,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string shortCommitId)
-        {
-            string path = $"repos/{org}/{app}/contents/{filePath}";
-            string url = AddRefIfExists(path, shortCommitId);
-            using HttpResponseMessage response = await _httpClient.GetAsync(url);
-            if (response.IsSuccessStatusCode)
-            {
-                return await response.Content.ReadAsAsync<FileSystemObject>();
-            }
-
-            return null;
-        }
-
-        public async Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken)
+        public async Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken = default)
         {
             string path = $"repos/{org}/{app}/contents/{filePath}";
             string url = AddRefIfExists(path, reference);
@@ -542,28 +528,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<bool> ModifyMultipleFiles(string org, string repository, GiteaMultipleFilesDto files, CancellationToken cancellationToken = default)
-        {
-            string content = JsonSerializer.Serialize(files, s_jsonOptions);
-            using HttpResponseMessage response = await _httpClient.PostAsync($"repos/{org}/{repository}/contents", new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json), cancellationToken);
-            if (!response.IsSuccessStatusCode)
-            {
-                string body = await response.Content.ReadAsStringAsync(cancellationToken);
-                GiteaBadRequestDto failureResponse = JsonSerializer.Deserialize<GiteaBadRequestDto>(body);
-                string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-                _logger.LogError("User {developer} - ModifyMultipleFiles failed with status code {statusCode} for {org}/{repository}. Url: {url}, Message: {message}",
-                    developer,
-                    response.StatusCode,
-                    org,
-                    repository,
-                    failureResponse?.Url,
-                    failureResponse?.Message ?? body
-                );
-            }
-            return response.IsSuccessStatusCode;
-        }
-
-        /// <inheritdoc/>
         public async Task<bool> CreatePullRequest(string org, string repository, CreatePullRequestOption createPullRequestOption)
         {
             string content = JsonSerializer.Serialize(createPullRequestOption);
@@ -577,6 +541,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             HttpResponseMessage response = await _httpClient.DeleteAsync($"repos/{org}/{repository}");
             return response.IsSuccessStatusCode;
+        }
+
+        /// <inheritdoc/>
+        public async Task<string> GetLatestCommitOnBranch(string org, string repository, string branchName = null, CancellationToken cancellationToken = default)
+        {
+            var url = new StringBuilder($"repos/{org}/{repository}/commits?limit=1&stat=false&verification=false&files=false");
+            if (!string.IsNullOrWhiteSpace(branchName))
+            {
+                url.Append($"&sha={HttpUtility.UrlEncode(branchName)}");
+            }
+            using HttpResponseMessage response = await _httpClient.GetAsync(url.ToString(), cancellationToken);
+            if (response.IsSuccessStatusCode)
+            {
+                List<GiteaCommit> commits = await response.Content.ReadAsAsync<List<GiteaCommit>>(cancellationToken);
+                return commits?.FirstOrDefault()?.Sha;
+            }
+
+            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetLatestCommitOnBranch response failed with statuscode " + response.StatusCode + " for " + org + " / " + repository + " branch: " + branchName);
+            return null;
         }
 
         private async Task<Organization> GetOrganization(string name)

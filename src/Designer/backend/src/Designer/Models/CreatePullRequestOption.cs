@@ -1,3 +1,4 @@
+#nullable disable
 namespace Altinn.Studio.Designer.Models
 {
     /// <summary>
@@ -11,7 +12,7 @@ namespace Altinn.Studio.Designer.Models
         public string Base { get; set; }
 
         /// <summary>
-        /// The name of the branch where your changes are implemented. 
+        /// The name of the branch where your changes are implemented.
         /// </summary>
         public string Head { get; set; }
 

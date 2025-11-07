@@ -1,3 +1,6 @@
+using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -14,11 +17,45 @@ public interface IInstanceDataAccessor
     Instance Instance { get; }
 
     /// <summary>
+    /// If available, the language currently preferred for the user.
+    /// </summary>
+    string? Language { get; }
+
+    /// <summary>
+    /// If available, the taskId context for which data is being accessed.
+    /// </summary>
+    string? TaskId { get; }
+
+    /// <summary>
+    /// Get the data types from application metadata.
+    /// </summary>
+    IReadOnlyCollection<DataType> DataTypes { get; }
+
+    /// <summary>
     /// Get the actual data represented in the data element.
     /// </summary>
     /// <returns>The deserialized data model for this data element</returns>
     /// <exception cref="InvalidOperationException">when identifier does not exist in instance.Data with an applogic data type</exception>
     Task<object> GetFormData(DataElementIdentifier dataElementIdentifier);
+
+    /// <summary>
+    /// Get the actual data represented in the data element wrapped in an <see cref="IFormDataWrapper"/>.
+    /// </summary>
+    /// <returns>The deserialized data model for this data element</returns>
+    /// <exception cref="InvalidOperationException">when identifier does not exist in instance.Data with an applogic data type</exception>
+    internal Task<IFormDataWrapper> GetFormDataWrapper(DataElementIdentifier dataElementIdentifier);
+
+    /// <summary>
+    /// Get a <see cref="IInstanceDataAccessor"/> that provides access to the cleaned data (where all fields marked as "hidden" are removed).
+    /// </summary>
+    /// <param name="rowRemovalOption">The strategy for "hiddenRow" on group components</param>
+    IInstanceDataAccessor GetCleanAccessor(RowRemovalOption rowRemovalOption = RowRemovalOption.SetToNull);
+
+    /// <summary>
+    /// Get a <see cref="IInstanceDataAccessor"/> that provides access to the
+    /// storage persisted before any in-memory changes in this request.
+    /// </summary>
+    internal IInstanceDataAccessor GetPreviousDataAccessor();
 
     /// <summary>
     /// Gets the raw binary data from a DataElement.
@@ -34,11 +71,11 @@ public interface IInstanceDataAccessor
     DataElement GetDataElement(DataElementIdentifier dataElementIdentifier);
 
     /// <summary>
-    /// Get the data type from application with the given type.
+    /// Currently marked internal, as we might want to deprecate <see cref="LayoutEvaluatorState"/> and use
+    /// <see cref="IInstanceDataAccessor"/> directly in the expression evaluator.
     /// </summary>
-    /// <param name="dataTypeId">DataType.Id (from applicationmetadata.json)</param>
-    /// <returns>The data type (or null if it does not exist)</returns>
-    DataType? GetDataType(string dataTypeId);
+    /// <returns></returns>
+    internal LayoutEvaluatorState? GetLayoutEvaluatorState();
 
     /// <summary>
     /// <para>Set the authentication method used when reading and writing data of the given data type.</para>
@@ -62,6 +99,20 @@ public interface IInstanceDataAccessor
 public static class IInstanceDataAccessorExtensions
 {
     /// <summary>
+    /// Get the data type from application with the given type.
+    /// </summary>
+    /// <returns>The data type (or null if it does not exist)</returns>
+    public static DataType GetDataType(this IInstanceDataAccessor dataAccessor, string dataTypeId)
+    {
+        return dataAccessor.DataTypes.FirstOrDefault(dataType =>
+                dataTypeId.Equals(dataType.Id, StringComparison.Ordinal)
+            )
+            ?? throw new InvalidOperationException(
+                $"Data type {dataTypeId} not found in applicationmetadata.json (found: {string.Join(", ", dataAccessor.DataTypes.Select(d => d.Id))})"
+            );
+    }
+
+    /// <summary>
     /// Get the dataType of a data element.
     /// </summary>
     /// <throws>Throws an InvalidOperationException if the data element is not found on the instance</throws>
@@ -70,16 +121,34 @@ public static class IInstanceDataAccessorExtensions
         DataElementIdentifier dataElementIdentifier
     )
     {
-        var dataElement = dataAccessor.GetDataElement(dataElementIdentifier);
-        var dataType = dataAccessor.GetDataType(dataElement.DataType);
-        if (dataType is null)
+        var dataType = dataElementIdentifier.DataTypeId ?? dataAccessor.GetDataElement(dataElementIdentifier).DataType;
+        return dataAccessor.GetDataType(dataType);
+    }
+
+    /// <summary>
+    /// Get the data type from a C# class reference.
+    ///
+    /// Note that this throws an error if multiple data types have a ClassRef that matches the given type.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">If multiple dataType have a ClassRef that matches the given type</exception>
+    public static DataType GetDataType<T>(this IInstanceDataAccessor accessor)
+    {
+        var dataTypes = accessor.DataTypes.Where(d => d.AppLogic?.ClassRef == typeof(T).FullName).ToArray();
+        if (dataTypes.Length == 1)
+        {
+            return dataTypes[0];
+        }
+
+        if (dataTypes.Length == 0)
         {
             throw new InvalidOperationException(
-                $"Data type {dataElement.DataType} not found in applicationmetadata.json"
+                $"Data type for {typeof(T).FullName} not found in applicationmetadata.json"
             );
         }
 
-        return dataType;
+        throw new InvalidOperationException(
+            $"Multiple data types found that references {typeof(T).FullName} found for multiple in applicationmetadata.json ({string.Join(", ", dataTypes.Select(d => d.Id))}). This means you can't access data just based on type parameter<T>."
+        );
     }
 
     /// <summary>
@@ -92,12 +161,66 @@ public static class IInstanceDataAccessorExtensions
     )
         where T : class
     {
-        object data = await accessor.GetFormData(dataElementIdentifier);
-        if (data is T t)
+        IFormDataWrapper data = await accessor.GetFormDataWrapper(dataElementIdentifier);
+        return data.BackingData<T>();
+    }
+
+    /// <summary>
+    /// Extension method to get formdata from a type parameter that must match dataType.AppLogic.ClassRef.
+    /// </summary>
+    /// <remarks>
+    /// This method only supports data types with MaxCount = 1.
+    /// </remarks>
+    public static async Task<T?> GetFormData<T>(this IInstanceDataAccessor accessor)
+        where T : class
+    {
+        var dataType = accessor.GetDataType<T>();
+        return await accessor.GetFormData<T>(dataType);
+    }
+
+    /// <summary>
+    /// Get form data from a specific data type. (The data type must have MaxCount = 1)
+    /// </summary>
+    public static async Task<T?> GetFormData<T>(this IInstanceDataAccessor accessor, DataType dataType)
+        where T : class
+    {
+        if (dataType.MaxCount != 1)
         {
-            return t;
+            throw new InvalidOperationException(
+                $"Data type {dataType.Id} is not a single instance data type, but has MaxCount = {dataType.MaxCount}"
+            );
         }
-        throw new InvalidOperationException($"Data element {dataElementIdentifier} is not of type {typeof(T)}");
+
+        var dataTypeId = dataType.Id;
+
+        var dataElement = accessor.Instance.Data.FirstOrDefault(dataElement =>
+            dataTypeId.Equals(dataElement.DataType, StringComparison.Ordinal)
+        );
+        if (dataElement is null)
+        {
+            return null;
+        }
+
+        return await accessor.GetFormData<T>(dataElement);
+    }
+
+    /// <summary>
+    /// Get an array of all the form data elements that has the given type as AppLogic.ClassRef.
+    /// </summary>
+    public static async Task<T[]> GetAllFormData<T>(this IInstanceDataAccessor accessor)
+        where T : class
+    {
+        var dataType = accessor.GetDataType<T>();
+        return await accessor.GetAllFormData<T>(dataType);
+    }
+
+    /// <summary>
+    /// Get an array of all the form data elements that has the given DataType
+    /// </summary>
+    public static async Task<T[]> GetAllFormData<T>(this IInstanceDataAccessor accessor, DataType dataType)
+        where T : class
+    {
+        return await Task.WhenAll(accessor.GetDataElementsForType(dataType).Select(e => accessor.GetFormData<T>(e)));
     }
 
     /// <summary>
@@ -119,8 +242,6 @@ public static class IInstanceDataAccessorExtensions
     /// <summary>
     /// Retrieves the data elements associated with a specific task.
     /// </summary>
-    /// <param name="accessor">The instance data accessor.</param>
-    /// <param name="taskId">The identifier of the task.</param>
     /// <returns>An enumerable collection of tuples containing the data type and data element associated with the specified task.</returns>
     public static IEnumerable<(DataType dataType, DataElement dataElement)> GetDataElementsForTask(
         this IInstanceDataAccessor accessor,
@@ -182,10 +303,7 @@ public static class IInstanceDataAccessorExtensions
         foreach (var dataElement in accessor.Instance.Data)
         {
             var dataType = accessor.GetDataType(dataElement.DataType);
-            if (dataType is not null)
-            {
-                yield return (dataType, dataElement);
-            }
+            yield return (dataType, dataElement);
         }
     }
 }

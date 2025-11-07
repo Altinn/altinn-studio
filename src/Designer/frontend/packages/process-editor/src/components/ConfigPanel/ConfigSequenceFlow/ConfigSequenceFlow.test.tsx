@@ -8,6 +8,7 @@ import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfig
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { mockBpmnDetails } from '../../../../test/mocks/bpmnDetailsMock';
 import { BpmnExpressionModeler } from '../../../utils/bpmnModeler/BpmnExpressionModeler';
+import type { Element } from 'bpmn-js/lib/model/Types';
 
 jest.mock('../../../utils/bpmnModeler/BpmnExpressionModeler');
 
@@ -16,7 +17,7 @@ describe('ConfigSequenceFlow', () => {
 
   it('should render title for sequence flow configuration', () => {
     renderConfigSequenceFlow({
-      bpmnDetails: { ...mockBpmnDetails, element: {} },
+      bpmnDetails: { ...mockBpmnDetails, element: {} as unknown as Element },
     });
 
     expect(
@@ -28,7 +29,7 @@ describe('ConfigSequenceFlow', () => {
     const user = userEvent.setup();
 
     renderConfigSequenceFlow({
-      bpmnDetails: { ...mockBpmnDetails, element: {} },
+      bpmnDetails: { ...mockBpmnDetails, element: {} as unknown as Element },
     });
 
     const addNewExpressionButton = screen.getByRole('button', {
@@ -43,7 +44,7 @@ describe('ConfigSequenceFlow', () => {
     const user = userEvent.setup();
 
     renderConfigSequenceFlow({
-      bpmnDetails: { ...mockBpmnDetails, element: {} },
+      bpmnDetails: { ...mockBpmnDetails, element: {} as unknown as Element },
     });
 
     const addNewExpressionButton = screen.getByRole('button', {
@@ -69,7 +70,7 @@ describe('ConfigSequenceFlow', () => {
     }));
 
     renderConfigSequenceFlow({
-      bpmnDetails: { ...mockBpmnDetails, element: {} },
+      bpmnDetails: { ...mockBpmnDetails, element: {} as unknown as Element },
     });
 
     const addNewExpressionButton = screen.getByRole('button', {
@@ -87,7 +88,7 @@ describe('ConfigSequenceFlow', () => {
   it('should save the expression when the save button is clicked', async () => {
     const user = userEvent.setup();
     renderConfigSequenceFlow({
-      bpmnDetails: { ...mockBpmnDetails, element: {} },
+      bpmnDetails: { ...mockBpmnDetails, element: {} as unknown as Element },
     });
 
     const addNewExpressionButton = screen.getByRole('button', {
@@ -121,7 +122,7 @@ describe('ConfigSequenceFlow', () => {
     const user = userEvent.setup();
 
     renderConfigSequenceFlow({
-      bpmnDetails: { ...mockBpmnDetails, element: {} },
+      bpmnDetails: { ...mockBpmnDetails, element: {} as unknown as Element },
     });
 
     const addNewExpressionButton = screen.getByRole('button', {

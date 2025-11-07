@@ -10,6 +10,8 @@ import { GiteaPage } from '../../pages/GiteaPage';
 import { Gitea } from '../../helpers/Gitea';
 import { ComponentType } from '../../enum/ComponentType';
 
+const LAYOUT_SET: string = 'form';
+
 // Before the tests starts, we need to create the data model app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
   // Create a new app
@@ -31,7 +33,7 @@ const setupAndVerifyUiEditorPage = async (
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
   await uiEditorPage.loadUiEditorPage();
   await uiEditorPage.clickOnUxEditorButton();
-  await uiEditorPage.verifyUiEditorPage();
+  await uiEditorPage.verifyUiEditorPage(LAYOUT_SET);
   return uiEditorPage;
 };
 
@@ -51,7 +53,7 @@ test('That new changes are pushed to gitea and are visible on Gitea after they h
 
   const nPagesInGitea: number = 5; // 4 because of: Gitea -> App -> ui -> layoutSets -> layouts
   await giteaPage.goBackNPages(nPagesInGitea);
-  await uiEditorPage.verifyUiEditorPage(newPageName);
+  await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, newPageName);
   await header.clickOnUploadLocalChangesButton();
   await header.clickOnValidateChanges();
   await header.checkThatUploadSuccessMessageIsVisible();

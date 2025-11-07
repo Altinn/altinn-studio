@@ -5,16 +5,18 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-const setSelectedFormLayoutName = jest.fn();
-const setSelectedFormLayoutSetName = jest.fn();
-jest.mock('@altinn/ux-editor/hooks', () => ({
-  useAppContext: () => ({
-    setSelectedFormLayoutName,
-    setSelectedFormLayoutSetName,
-  }),
+const mockNavigate = jest.fn();
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
 }));
 
 describe('SubformMissingContentWarning', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders without crashing', () => {
     renderWithProviders(<SubformMissingContentWarning subformLayoutSetName='' />);
     expect(
@@ -33,7 +35,8 @@ describe('SubformMissingContentWarning', () => {
       }),
     ).toBeInTheDocument();
   });
-  it('calls redirect/state change functions on redirect button click', async () => {
+
+  it('calls navigate when redirect button is clicked', async () => {
     const user = userEvent.setup();
     const subformLayoutSetName = 'test';
     renderWithProviders(
@@ -46,9 +49,7 @@ describe('SubformMissingContentWarning', () => {
       }),
     );
 
-    expect(setSelectedFormLayoutName).toHaveBeenCalledTimes(1);
-    expect(setSelectedFormLayoutName).toHaveBeenCalledWith(undefined);
-    expect(setSelectedFormLayoutSetName).toHaveBeenCalledTimes(1);
-    expect(setSelectedFormLayoutSetName).toHaveBeenCalledWith(subformLayoutSetName);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith('/testOrg/testApp/ui-editor/layoutSet/test');
   });
 });

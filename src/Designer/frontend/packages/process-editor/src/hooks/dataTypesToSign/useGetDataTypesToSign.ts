@@ -1,6 +1,6 @@
 import { useBpmnApiContext } from '@altinn/process-editor/contexts/BpmnApiContext';
 import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
-import type { ModdleElement } from 'bpmn-moddle';
+import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 
 export const useGetDataTypesToSign = () => {
   const { availableDataTypeIds } = useBpmnApiContext();

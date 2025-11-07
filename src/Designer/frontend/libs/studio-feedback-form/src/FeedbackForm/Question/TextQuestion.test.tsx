@@ -26,9 +26,9 @@ describe('TextQuestion', () => {
     const input = screen.getByRole('textbox');
     expect(onChange).not.toHaveBeenCalled();
 
-    await user.type(input, 'Answer');
+    await user.click(input);
+    await user.paste('Answer');
 
-    // Need to wait because save is done with 500ms debounce
     await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
     expect(onChange).toHaveBeenCalledWith('1', 'Answer');
   });

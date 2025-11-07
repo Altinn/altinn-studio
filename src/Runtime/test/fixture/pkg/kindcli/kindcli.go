@@ -29,6 +29,9 @@ func (c *KindClient) GetClusters() ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("kind get clusters failed: %s: %w", string(output), err)
 	}
+	if strings.Contains(string(output), "No kind clusters found") {
+		return []string{}, nil
+	}
 
 	clusters := strings.Split(strings.TrimSpace(string(output)), "\n")
 	var result []string

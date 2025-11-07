@@ -2,16 +2,15 @@
 
 Utility for running health checks across clusters (that the logged in user has access to).
 
-* Must have `az` CLI installed, logged into ai-dev account (that has access to relevant env)
-* Must have `kubectl` CLI installed (this tool will fetch creds for you if you don't have them)
-* Must have Go 1.25 installed
+- Must have `az` CLI installed, logged into ai-dev account (that has access to relevant env)
+- Must have `kubectl` CLI installed (this tool will fetch creds for you if you don't have them)
+- Must have Go 1.25 installed
 
 ```sh
 # Run this to trigger prompt for az cli extension installation
 # We use graph query to more efficiently query available clusters
 az graph query -h
 ```
-
 
 ### Usage
 

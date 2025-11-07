@@ -10,7 +10,7 @@ import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
 import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
 import { ErrorPage } from '../components/ErrorPage';
-import { StudioPageSpinner, StudioDragAndDropTree } from '@studio/components-legacy';
+import { StudioPageSpinner, StudioDragAndDropTree } from '@studio/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

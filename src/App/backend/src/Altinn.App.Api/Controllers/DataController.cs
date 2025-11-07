@@ -535,19 +535,17 @@ public class DataController : ControllerBase
             {
                 return await GetFormData(
                     org,
-                    app,
                     instanceOwnerPartyId,
                     instanceGuid,
                     instance,
                     dataGuid,
                     dataElement,
-                    dataTypeObject,
                     includeRowId,
                     language
                 );
             }
 
-            return await GetBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, dataElement);
+            return await GetBinaryData(org, instanceOwnerPartyId, instanceGuid, dataGuid, dataElement);
         }
         catch (PlatformHttpException e)
         {
@@ -898,14 +896,13 @@ public class DataController : ControllerBase
     /// <returns>The data element is returned in the body of the response</returns>
     private async Task<ActionResult> GetBinaryData(
         string org,
-        string app,
         int instanceOwnerPartyId,
         Guid instanceGuid,
         Guid dataGuid,
         DataElement dataElement
     )
     {
-        Stream dataStream = await _dataClient.GetBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
+        Stream dataStream = await _dataClient.GetBinaryData(instanceOwnerPartyId, instanceGuid, dataGuid);
 
         if (dataStream is not null)
         {
@@ -935,26 +932,17 @@ public class DataController : ControllerBase
     /// <returns>data element is returned in response body</returns>
     private async Task<ActionResult> GetFormData(
         string org,
-        string app,
         int instanceOwnerId,
         Guid instanceGuid,
         Instance instance,
         Guid dataGuid,
         DataElement dataElement,
-        DataType dataType,
         bool includeRowId,
         string? language
     )
     {
         // Get Form Data from data service. Assumes that the data element is form data.
-        object appModel = await _dataClient.GetFormData(
-            instanceGuid,
-            _appModel.GetModelType(dataType.AppLogic.ClassRef),
-            org,
-            app,
-            instanceOwnerId,
-            dataGuid
-        );
+        object appModel = await _dataClient.GetFormData(instance, dataElement);
 
         if (appModel is null)
         {
@@ -985,15 +973,7 @@ public class DataController : ControllerBase
         {
             try
             {
-                await _dataClient.UpdateData(
-                    appModel,
-                    instanceGuid,
-                    appModel.GetType(),
-                    org,
-                    app,
-                    instanceOwnerId,
-                    dataGuid
-                );
+                await _dataClient.UpdateFormData(instance, appModel, dataElement);
             }
             catch (PlatformHttpException e) when (e.Response.StatusCode is HttpStatusCode.Forbidden)
             {
@@ -1118,19 +1098,18 @@ public class DataController : ControllerBase
         // Get the previous service model for dataProcessing to work
         var oldServiceModel = await dataMutator.GetFormData(dataElement);
         // Set the new service model so that dataAccessors see the new state
-        dataMutator.SetFormData(dataElement, serviceModel);
+        dataMutator.SetFormData(dataElement, FormDataWrapperFactory.Create(serviceModel));
 
-        var requestedChange = new FormDataChange()
-        {
-            Type = ChangeType.Updated,
-            DataElement = dataElement,
-            ContentType = dataElement.ContentType,
-            DataType = dataType,
-            PreviousFormData = oldServiceModel,
-            CurrentFormData = serviceModel,
-            PreviousBinaryData = await dataMutator.GetBinaryData(dataElement),
-            CurrentBinaryData = null, // We don't serialize to xml before running data processors
-        };
+        var requestedChange = new FormDataChange(
+            type: ChangeType.Updated,
+            dataElement: dataElement,
+            contentType: dataElement.ContentType,
+            dataType: dataType,
+            previousFormDataWrapper: FormDataWrapperFactory.Create(oldServiceModel),
+            currentFormDataWrapper: FormDataWrapperFactory.Create(serviceModel),
+            previousBinaryData: await dataMutator.GetBinaryData(dataElement),
+            currentBinaryData: null // We don't serialize to xml before running data processors
+        );
 
         // Run data processors keeping track of changes for diff return
         var jsonBeforeDataProcessors = JsonSerializer.Serialize(serviceModel);

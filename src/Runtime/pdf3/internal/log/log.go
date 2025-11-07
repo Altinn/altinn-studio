@@ -1,7 +1,13 @@
 package log
 
-import "log"
+import (
+	"log/slog"
+	"os"
+)
 
-func Setup() {
-	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
+var logger *slog.Logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+// NewComponent creates a new logger with a component name.
+func NewComponent(name string) *slog.Logger {
+	return logger.With("component", name)
 }

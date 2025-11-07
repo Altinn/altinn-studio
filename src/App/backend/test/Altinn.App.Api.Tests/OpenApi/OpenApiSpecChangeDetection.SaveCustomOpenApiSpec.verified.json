@@ -2,7 +2,7 @@
   "openapi": "3.0.4",
   "info": {
     "title": "Altinn 3 App API for Endring av navn (RF-1453)",
-    "description": "App API description for both enduser and serviceowner users, as well as open metadata information<br><br>All operations* described within this document require authentication and authorization. Read more at <a href=\"https://docs.altinn.studio/authentication/guides\">https://docs.altinn.studio/authentication/guides</a><br><br><strong>All GET operations* and POST operations may return or contain, respectively, personal identifiable information (national identity numbers and names).</strong><br><br>For more information about this product, see <a href=\"https://docs.altinn.studio/api/apps\">https://docs.altinn.studio/api/apps</a><br><br><em>* Except the metadata APIs\n\nThis is the API for an Altinn 3 app. The API is based on the OpenAPI 3.0 specification.\nThis app has the following data types:\n| DataTypeId | Type | Allowed number | MimeTypes | TaskId |\n|------------|------|----------------|-----------|--------|\n|default|FormData (AutoCreate)|0-1|application/xml|Task_1|\n|customElement|Attachment|0-1|*|Task_1|\n|9edd53de-f46f-40a1-bb4d-3efb93dc113d|Attachment|0-1|*|Task_1|\n|specificFileType|Attachment|0-1|application/pdf, image/png, application/json|Task_1|\n|userInteractionUnspecified|FormData|0-10|application/xml|Task_1|\n|disallowUserCreate|FormData|0-10|application/xml|Task_1|\n|disallowUserDelete|FormData|0-10|application/xml|Task_1|\n|requiresActionToRead|FormData|0-10|application/xml|Task_1|\n|requiresActionToWrite|FormData|0-10|application/xml|Task_1|\n\n## This app has the following process tasks:\n| TaskId | Name | Type | Actions |\n|--------|------|------|---------|\n| Task_1 | Utfylling | data | reject, action_defined_in_bpmn_but_unauthorized |\n",
+    "description": "App API description for both end users and service owners, as well as open metadata information<br><br>All operations* described within this document require authentication and authorization. Read more at <a href=\"https://docs.altinn.studio/authentication/guides\">https://docs.altinn.studio/authentication/guides</a><br><br><strong>All GET operations* and POST operations may return or contain, respectively, personally identifiable information (PII; national identity numbers and names).</strong><br><br>For more information about this product, see <a href=\"https://docs.altinn.studio/api/apps\">https://docs.altinn.studio/api/apps</a><br><br><em>* Except the metadata APIs</em>\n\nThis is the API for an Altinn 3 app. The API is based on the OpenAPI 3.0 specification.\nThis app has the following data types:\n| DataTypeId | Type | Allowed number | MimeTypes | TaskId |\n|------------|------|----------------|-----------|--------|\n|default|FormData (AutoCreate)|0-1|application/xml|Task_1|\n|customElement|Attachment|0-1|*|Task_1|\n|9edd53de-f46f-40a1-bb4d-3efb93dc113d|Attachment|0-1|*|Task_1|\n|specificFileType|Attachment|0-1|application/pdf, image/png, application/json|Task_1|\n|userInteractionUnspecified|FormData|0-10|application/xml|Task_1|\n|disallowUserCreate|FormData|0-10|application/xml|Task_1|\n|disallowUserDelete|FormData|0-10|application/xml|Task_1|\n|requiresActionToRead|FormData|0-10|application/xml|Task_1|\n|requiresActionToWrite|FormData|0-10|application/xml|Task_1|\n\n## This app has the following process tasks:\n| TaskId | Name | Type | Actions |\n|--------|------|------|---------|\n| Task_1 | Utfylling | data | reject, action_defined_in_bpmn_but_unauthorized |\n",
     "contact": {
       "name": "Digitaliseringsdirektoratet (altinn)",
       "url": "https://altinn.slack.com"
@@ -527,9 +527,9 @@
             }
           },
           {
-            "name": "Autorization",
+            "name": "Authorization",
             "in": "header",
-            "description": "Bearer token from the selected token provider to exchange for an altinn token",
+            "description": "Bearer token from the selected token provider to exchange for an Altinn token",
             "required": true,
             "schema": {
               "type": "string"
@@ -626,6 +626,85 @@
           "url": "http://local.altinn.cloud"
         }
       ]
+    },
+    "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/validate": {
+      "summary": "Validate an app instance",
+      "get": {
+        "tags": [
+          "Validation"
+        ],
+        "summary": "Validate an app instance",
+        "description": "This will validate all individual data elements, both the binary elements and the elements bound to a model, and then finally the state of the instance.",
+        "operationId": "ValidateInstance",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/instanceOwnerPartyId"
+          },
+          {
+            "$ref": "#/components/parameters/instanceGuid"
+          },
+          {
+            "name": "ignoredValidators",
+            "in": "query",
+            "description": "Comma separated list of validators to ignore",
+            "schema": {
+              "type": "string",
+              "example": "DataAnnotations, Altinn.App.Models.model.ModelValidation_FormData"
+            }
+          },
+          {
+            "name": "onlyIncrementalValidators",
+            "in": "query",
+            "description": "When true, only run incremental validators (those that run on PATCH requests)",
+            "schema": {
+              "type": "boolean",
+              "example": false
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "description": "The currently used language by the user (or null if not available)",
+            "schema": {
+              "type": "string",
+              "example": "nb"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Validation result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ValidationIssueWithSource"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
+          }
+        }
+      }
     },
     "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/type/default": {
       "summary": "Operations for default",
@@ -2327,7 +2406,7 @@
         "title": "InstanceWrite",
         "properties": {
           "instanceOwner": {
-            "title": "Altnernate ways to spcecify the instance owner",
+            "title": "Alternate ways to specify the instance owner",
             "type": "object",
             "properties": {
               "partyId": {
@@ -2352,7 +2431,7 @@
               }
             },
             "additionalProperties": false,
-            "description": "Only one of these should be spcecified when creating a new inistance"
+            "description": "Only one of these should be specified when creating a new instance"
           },
           "dueBefore": {
             "type": "string",
@@ -3278,6 +3357,10 @@
           "SF_test": {
             "type": "string",
             "nullable": true
+          },
+          "hiddenNotRemove": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -3387,9 +3470,13 @@
                 "detail": {
                   "type": "string",
                   "nullable": true,
-                  "example": "Actually usefull description of the error"
+                  "example": "Actually useful description of the error"
                 },
                 "instance": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "traceId": {
                   "type": "string",
                   "nullable": true
                 }
@@ -3407,7 +3494,7 @@
       "instanceOwnerPartyId": {
         "name": "instanceOwnerPartyId",
         "in": "path",
-        "description": "PartyId for the owner of the instance, this is altinns internal id for the organisation, person or self registered user. Might be the current user, or ",
+        "description": "PartyId for the owner of the instance, this is Altinn's internal id for the organisation, person or self registered user. Might be the current user, or a party the user has rights to represent.",
         "required": true,
         "schema": {
           "type": "integer"
@@ -3447,7 +3534,7 @@
     "securitySchemes": {
       "AltinnToken": {
         "type": "http",
-        "description": "Get a token for [localtest](http://local.altinn.cloud/Home/Tokens)\nor by exchanging a maskinporten token with the [token exchange endpoint](https://docs.altinn.studio/api/authentication/spec/#/Authentication/get_exchange__tokenProvider_)",
+        "description": "Get a token for [localtest](http://local.altinn.cloud/Home/Tokens)\nor by exchanging a Maskinporten token with the [token exchange endpoint](https://docs.altinn.studio/api/authentication/spec/#/Authentication/get_exchange__tokenProvider_)",
         "scheme": "Bearer",
         "bearerFormat": "JWT"
       }

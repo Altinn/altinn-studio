@@ -1,4 +1,4 @@
-import type { Element } from 'bpmn-moddle';
+import type { Element } from 'bpmn-js/lib/model/Types';
 
 export enum GuardErrorMessage {
   MissingSignature = 'Missing signature config in BPMN extension element',

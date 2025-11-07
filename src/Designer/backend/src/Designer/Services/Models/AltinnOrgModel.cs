@@ -1,3 +1,4 @@
+#nullable disable
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -15,7 +16,7 @@ public class AltinnOrgModel
     public required string OrgNr { get; set; }
 
     [JsonPropertyName("homepage")]
-    public required string Homepage { get; set; }
+    public string Homepage { get; set; }
 
     [JsonPropertyName("environments")]
     public required List<string> Environments { get; set; }

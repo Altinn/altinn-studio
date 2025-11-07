@@ -223,5 +223,5 @@ spec:
             # For a 1 CPU core + 1 GB RAM VM, current configuration
             # would fit 3 replicas on one 1 node
             requests:
-              cpu: 100m
+              cpu: 50m
               memory: 128Mi

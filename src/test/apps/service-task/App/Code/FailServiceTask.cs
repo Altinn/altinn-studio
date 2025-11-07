@@ -32,7 +32,7 @@ public class FailServiceTask : IServiceTask
             && formDataModel2.fail.Value
         )
         {
-            return ServiceTaskResult.Failed();
+            return ServiceTaskResult.FailedAbortProcessNext();
         }
 
         return ServiceTaskResult.Success();

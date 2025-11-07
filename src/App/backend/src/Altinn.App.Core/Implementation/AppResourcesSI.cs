@@ -59,7 +59,7 @@ public class AppResourcesSI : IAppResources
     {
         using var activity = _telemetry?.StartGetTextActivity();
         return ReadFileContentsFromLegalPath(
-            _settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder,
+            Path.Join(_settings.AppBasePath, _settings.ConfigurationFolder, _settings.TextFolder),
             textResource
         );
     }
@@ -68,7 +68,7 @@ public class AppResourcesSI : IAppResources
     public async Task<TextResource?> GetTexts(string org, string app, string language)
     {
         using var activity = _telemetry?.StartGetTextsActivity();
-        string pathTextsFolder = _settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder;
+        string pathTextsFolder = Path.Join(_settings.AppBasePath, _settings.ConfigurationFolder, _settings.TextFolder);
         string fullFileName = Path.Join(pathTextsFolder, $"resource.{language}.json");
 
         PathHelper.EnsureLegalPath(pathTextsFolder, fullFileName);
@@ -144,8 +144,8 @@ public class AppResourcesSI : IAppResources
     public string GetModelJsonSchema(string modelId)
     {
         using var activity = _telemetry?.StartGetModelJsonSchemaActivity();
-        string legalPath = $"{_settings.AppBasePath}{_settings.ModelsFolder}";
-        string filename = $"{legalPath}{modelId}.{_settings.JsonSchemaFileName}";
+        string legalPath = Path.Join(_settings.AppBasePath, _settings.ModelsFolder);
+        string filename = Path.Join(legalPath, $"{modelId}.{_settings.JsonSchemaFileName}");
         PathHelper.EnsureLegalPath(legalPath, filename);
 
         string filedata = File.ReadAllText(filename, Encoding.UTF8);
@@ -157,8 +157,8 @@ public class AppResourcesSI : IAppResources
     public string? GetPrefillJson(string dataModelName = "ServiceModel")
     {
         using var activity = _telemetry?.StartGetPrefillJsonActivity();
-        string legalPath = _settings.AppBasePath + _settings.ModelsFolder;
-        string filename = legalPath + dataModelName + ".prefill.json";
+        string legalPath = Path.Join(_settings.AppBasePath, _settings.ModelsFolder);
+        string filename = Path.Join(legalPath, dataModelName + ".prefill.json");
         PathHelper.EnsureLegalPath(legalPath, filename);
 
         string? filedata = null;
@@ -218,13 +218,14 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
+    [Obsolete("Use GetLayoutsForSet or GetLayoutModelForTask instead")]
     public string GetLayouts()
     {
         using var activity = _telemetry?.StartGetLayoutsActivity();
         Dictionary<string, object> layouts = new Dictionary<string, object>();
 
         // Get FormLayout.json if it exists and return it (for backwards compatibility)
-        string fileName = _settings.AppBasePath + _settings.UiFolder + "FormLayout.json";
+        string fileName = Path.Join(_settings.AppBasePath, _settings.UiFolder, "FormLayout.json");
         if (File.Exists(fileName))
         {
             string fileData = File.ReadAllText(fileName, Encoding.UTF8);
@@ -233,13 +234,13 @@ public class AppResourcesSI : IAppResources
             return JsonConvert.SerializeObject(layouts);
         }
 
-        string layoutsPath = _settings.AppBasePath + _settings.UiFolder + "layouts/";
+        string layoutsPath = Path.Join(_settings.AppBasePath, _settings.UiFolder, "layouts");
         if (Directory.Exists(layoutsPath))
         {
             foreach (string file in Directory.GetFiles(layoutsPath))
             {
                 string data = File.ReadAllText(file, Encoding.UTF8);
-                string name = file.Replace(layoutsPath, string.Empty).Replace(".json", string.Empty);
+                string name = Path.GetFileNameWithoutExtension(file);
                 // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
                 layouts.Add(name, JsonConvert.DeserializeObject<object>(data)!);
             }
@@ -290,7 +291,7 @@ public class AppResourcesSI : IAppResources
         using var activity = _telemetry?.StartGetLayoutsForSetActivity();
         Dictionary<string, object> layouts = new Dictionary<string, object>();
 
-        string layoutsPath = _settings.AppBasePath + _settings.UiFolder + layoutSetId + "/layouts/";
+        string layoutsPath = Path.Join(_settings.AppBasePath, _settings.UiFolder, layoutSetId, "layouts");
 
         PathHelper.EnsureLegalPath(Path.Join(_settings.AppBasePath, _settings.UiFolder), layoutsPath);
 
@@ -299,7 +300,7 @@ public class AppResourcesSI : IAppResources
             foreach (string file in Directory.GetFiles(layoutsPath))
             {
                 string data = File.ReadAllText(file, Encoding.UTF8);
-                string name = file.Replace(layoutsPath, string.Empty).Replace(".json", string.Empty);
+                string name = Path.GetFileNameWithoutExtension(file);
                 // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
                 layouts.Add(name, JsonConvert.DeserializeObject<object>(data)!);
             }
@@ -372,16 +373,14 @@ public class AppResourcesSI : IAppResources
         string folder = Path.Join(_settings.AppBasePath, _settings.UiFolder, layoutSet.Id, "layouts");
         foreach (var page in order)
         {
-            var pageBytes = File.ReadAllBytes(Path.Join(folder, page + ".json"));
-            // Set the PageName using AsyncLocal before deserializing.
-            PageComponentConverter.SetAsyncLocalPageName(layoutSet.Id, page);
-            pages.Add(
-                System.Text.Json.JsonSerializer.Deserialize<PageComponent>(
-                    pageBytes.RemoveBom(),
-                    _jsonSerializerOptions
-                )
-                ?? throw new InvalidDataException(page + ".json is \"null\"")
+            var pagePath = Path.Join(folder, page + ".json");
+            PathHelper.EnsureLegalPath(folder, pagePath);
+            var pageBytes = File.ReadAllBytes(pagePath);
+            using var document = JsonDocument.Parse(
+                pageBytes,
+                new JsonDocumentOptions() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip }
             );
+            pages.Add(PageComponent.Parse(document.RootElement, page, layoutSet.Id));
         }
 
         // First look at the specified data type, but
@@ -478,7 +477,7 @@ public class AppResourcesSI : IAppResources
 
     private static byte[] ReadFileContentsFromLegalPath(string legalPath, string filePath)
     {
-        var fullFileName = legalPath + filePath;
+        var fullFileName = Path.Join(legalPath, filePath);
         if (!PathHelper.ValidateLegalFilePath(legalPath, fullFileName))
         {
             throw new ArgumentException("Invalid argument", nameof(filePath));
