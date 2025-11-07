@@ -111,7 +111,6 @@ type TogglePanelButtonProps = {
 
 const TogglePanelButton = ({ onClick, isCollapsed }: TogglePanelButtonProps) => {
   const { t } = useTranslation();
-  const icon = isCollapsed ? <SidebarRightIcon /> : <SidebarLeftIcon />;
   const title = isCollapsed ? t('left_menu.open_components') : t('left_menu.close_components');
 
   return (
@@ -120,7 +119,7 @@ const TogglePanelButton = ({ onClick, isCollapsed }: TogglePanelButtonProps) => 
       data-color='neutral'
       onClick={onClick}
       title={title}
-      icon={icon}
+      icon={<SidebarLeftIcon />}
       className={isCollapsed && classes.collapsedPanel}
     />
   );
