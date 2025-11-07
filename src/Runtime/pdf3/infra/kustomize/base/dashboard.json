@@ -551,7 +551,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(go_goroutines{job=\"pdf3-proxy\"}) by (job)",
+          "expr": "sum(go_goroutines{container=\"pdf3-proxy\"}) by (job)",
           "legendFormat": "Goroutines",
           "range": true,
           "refId": "A"
@@ -562,7 +562,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(go_threads{job=\"pdf3-proxy\"}) by (job)",
+          "expr": "sum(go_threads{container=\"pdf3-proxy\"}) by (job)",
           "hide": false,
           "instant": false,
           "legendFormat": "OS threads",
@@ -662,7 +662,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(go_goroutines{job=\"pdf3-worker\"}) by (job)",
+          "expr": "sum(go_goroutines{container=\"pdf3-worker\"}) by (job)",
           "legendFormat": "Goroutines",
           "range": true,
           "refId": "A"
@@ -673,7 +673,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(go_threads{job=\"pdf3-worker\"}) by (job)",
+          "expr": "sum(go_threads{container=\"pdf3-worker\"}) by (job)",
           "hide": false,
           "instant": false,
           "legendFormat": "OS threads",
@@ -783,7 +783,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(rate(go_memstats_alloc_bytes_total{job=\"pdf3-proxy\"}[$__rate_interval])) by (job)",
+          "expr": "sum(rate(go_memstats_alloc_bytes_total{container=\"pdf3-proxy\"}[$__rate_interval])) by (job)",
           "legendFormat": "Allocation rate",
           "range": true,
           "refId": "A"
@@ -794,7 +794,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avg(rate(go_gc_duration_seconds_sum{job=\"pdf3-proxy\"}[$__rate_interval])) by (job) * 100",
+          "expr": "avg(rate(go_gc_duration_seconds_sum{container=\"pdf3-proxy\"}[$__rate_interval])) by (job) * 100",
           "hide": false,
           "instant": false,
           "legendFormat": "Avg GC %",
@@ -904,7 +904,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(rate(go_memstats_alloc_bytes_total{job=\"pdf3-worker\"}[$__rate_interval])) by (job)",
+          "expr": "sum(rate(go_memstats_alloc_bytes_total{container=\"pdf3-worker\"}[$__rate_interval])) by (job)",
           "legendFormat": "Allocation rate",
           "range": true,
           "refId": "A"
@@ -915,7 +915,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "avg(rate(go_gc_duration_seconds_sum{job=\"pdf3-worker\"}[$__rate_interval])) by (job) * 100",
+          "expr": "avg(rate(go_gc_duration_seconds_sum{container=\"pdf3-worker\"}[$__rate_interval])) by (job) * 100",
           "hide": false,
           "instant": false,
           "legendFormat": "Avg GC %",
@@ -1005,7 +1005,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(increase({\"http.server.request.duration_seconds_bucket\", job=\"pdf3-proxy\"}[$__rate_interval])) by (le)",
+          "expr": "sum(increase({\"http.server.request.duration_seconds_bucket\", container=\"pdf3-proxy\"}[$__rate_interval])) by (le)",
           "format": "heatmap",
           "legendFormat": "__auto",
           "range": true,
