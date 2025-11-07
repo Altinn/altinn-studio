@@ -8,7 +8,7 @@ import classes from './Elements.module.css';
 
 import { StudioSpinner } from '@studio/components-legacy';
 import { StudioButton, StudioError, StudioHeading } from '@studio/components';
-import { SidebarLeftIcon, SidebarRightIcon } from '@studio/icons';
+import { SidebarLeftIcon } from '@studio/icons';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useTranslation } from 'react-i18next';
 import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
