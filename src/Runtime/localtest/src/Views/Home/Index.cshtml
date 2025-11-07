@@ -120,17 +120,30 @@
 }
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var appSelect = document.getElementById('AppPathSelection');
-    var prefillLink = document.getElementById('prefillLink');
-    var prefillOrg = document.getElementById('prefillOrg');
+  document.addEventListener('DOMContentLoaded', () => {
+    const appSelect = document.getElementById('AppPathSelection');
+    const prefillLink = document.getElementById('prefillLink');
+    const prefillOrg = document.getElementById('prefillOrg');
+    const authLevelSelect = document.querySelector('select[name="AuthenticationLevel"]');
+    let userHasManuallyChangedAuthLevel = false;
+    let currentRequestApp = null;
 
-    if (appSelect && prefillLink && prefillOrg) {
-      appSelect.addEventListener('change', function() {
-        var selectedApp = appSelect.options[appSelect.selectedIndex].text;
+    if (appSelect && prefillLink && prefillOrg && authLevelSelect) {
+      authLevelSelect.addEventListener('change', () => {
+        userHasManuallyChangedAuthLevel = true;
+      });
+
+      appSelect.addEventListener('change', async () => {
+        const selectedApp = appSelect.options[appSelect.selectedIndex].text;
         prefillLink.href = '/LocalPlatformStorage/blobs/' + selectedApp;
-        var org = selectedApp.split('/')[0];
-        prefillOrg.textContent = org;
+        prefillOrg.textContent = selectedApp.split('/')[0];
+        userHasManuallyChangedAuthLevel = false;
+        currentRequestApp = selectedApp;
+
+        const response = await fetch('/Home/GetAppAuthenticationLevel?appId=' + encodeURIComponent(selectedApp));
+        if (response.ok && selectedApp === currentRequestApp && !userHasManuallyChangedAuthLevel) {
+          authLevelSelect.value = await response.text();
+        }
       });
     }
   });

@@ -88,7 +88,8 @@ namespace LocalTest.Controllers
                 model.TestApps = await GetAppsList();
                 model.TestUsers = await GetTestUsersAndPartiesSelectList();
                 model.UserSelect = Request.Cookies["Localtest_User.Party_Select"];
-                var defaultAuthLevel = await GetAppAuthLevel(model.AppMode == AppMode.Http, model.TestApps);
+                var firstAppId = model.AppMode == AppMode.Http && model.TestApps.Count() == 1 ? model.TestApps.First().Value : null;
+                var defaultAuthLevel = await GetAppAuthLevel(model.AppMode == AppMode.Http, firstAppId);
                 model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
             }
             catch (HttpRequestException e)
@@ -430,15 +431,14 @@ namespace LocalTest.Controllers
             return testUsers;
         }
 
-        private async Task<int> GetAppAuthLevel(bool isHttp, IEnumerable<SelectListItem> testApps)
+        private async Task<int> GetAppAuthLevel(bool isHttp, string appId)
         {
-            if (!isHttp || testApps.Count() > 1)
+            if (!isHttp || string.IsNullOrWhiteSpace(appId))
             {
                 return 2;
             }
             try
             {
-                var appId = testApps.FirstOrDefault().Value;
                 var policyString = await _localApp.GetXACMLPolicy(appId);
                 var document = new XmlDocument();
                 document.LoadXml(policyString);
@@ -452,6 +452,24 @@ namespace LocalTest.Controllers
                 // Return default auth level if Single app auth level can't be found.
                 return 2;
             }
+        }
+
+        /// <summary>
+        /// Get the authentication level for a specific app
+        /// </summary>
+        /// <param name="appId">The app identifier (e.g., "org/app")</param>
+        /// <returns>The authentication level as an integer</returns>
+        [AllowAnonymous]
+        [HttpGet("/Home/GetAppAuthenticationLevel")]
+        public async Task<IActionResult> GetAppAuthenticationLevel([FromQuery] string appId)
+        {
+            if (string.IsNullOrWhiteSpace(appId))
+            {
+                return BadRequest("AppId is required");
+            }
+
+            var authLevel = await GetAppAuthLevel(_localPlatformSettings.LocalAppMode == "http", appId);
+            return Ok(authLevel);
         }
 
         private static List<SelectListItem> GetAuthenticationLevels(int defaultAuthLevel)
