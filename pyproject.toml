@@ -43,5 +43,8 @@ dependencies = [
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.packages.find]
+include = ["server*", "codegen*"]
+
 [project.scripts]
 altinity-mcp = "server.main:main"

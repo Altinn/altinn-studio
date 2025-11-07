@@ -98,7 +98,7 @@ Remember: This server specializes in Norwegian government applications using the
 mcp = FastMCP(
     name="altinity_mcp_server", 
     instructions=ALTINITY_INSTRUCTIONS,
-    host="127.0.0.1", 
+    host="0.0.0.0", 
     port=8069, 
     timeout=60
 )
