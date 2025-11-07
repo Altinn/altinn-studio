@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
   - ../base
 patches:
-  # Delete GrafanaDashboard CRD (not available in AT environments)
   - patch: |-
       $patch: delete
       apiVersion: grafana.integreatly.org/v1beta1

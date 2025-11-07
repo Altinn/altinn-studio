@@ -28,7 +28,7 @@ patches:
         name: pdf3-dashboard
   # - Add TEST_INTERNALS_MODE environment variable for local/test environment
   # - Set image and image pull policy
-  # - Set browser restart interval to 1 minute for local testing
+  # - Set browser restart interval for local testing
   - target:
       kind: Deployment
       name: pdf3-worker

@@ -29,7 +29,7 @@ patches:
   # - Add TEST_INTERNALS_MODE environment variable for local/test environment
   # - Set image and image pull policy
   # - Downscale replicas
-  # - Set browser restart interval to 1 minute for local testing
+  # - Set browser restart interval for local testing
   - target:
       kind: Deployment
       name: pdf3-worker
