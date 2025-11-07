@@ -88,32 +88,24 @@ internal sealed class LocaltestValidation : BackgroundService
                             _logger.LogInformation("Localtest version: {Version}", version);
                             if (version >= 2)
                             {
-                                await WaitForServerAddresses(stoppingToken);
-
-                                // Try to register with localtest if not on port 5005
-                                var addressesFeature = _server.Features.Get<IServerAddressesFeature>();
-                                if (addressesFeature?.Addresses != null && addressesFeature.Addresses.Count > 0)
+                                var port = await GetServerPort(stoppingToken);
+                                if (port.HasValue && port.Value != 5005)
                                 {
-                                    var address = addressesFeature.Addresses.First();
-
-                                    // Server addresses can contain wildcard bind addresses that aren't valid URIs
-                                    var portMatch = System.Text.RegularExpressions.Regex.Match(address, @":(\d+)$");
-                                    if (portMatch.Success && int.TryParse(portMatch.Groups[1].Value, out var port))
+                                    // Not on default port - registration requires version 3+
+                                    if (version >= 3)
                                     {
-                                        if (port != 5005)
-                                        {
-                                            // Not on default port - registration is required
-                                            await RegisterWithLocaltest(baseUrl, port, stoppingToken);
-                                            // Wait for app shutdown before unregistering
-                                            await Task.Delay(Timeout.InfiniteTimeSpan, stoppingToken);
-                                        }
+                                        await RegisterWithLocaltest(baseUrl, port.Value, stoppingToken);
+                                        // Wait for app shutdown before unregistering
+                                        await Task.Delay(Timeout.InfiniteTimeSpan, stoppingToken);
                                     }
                                     else
                                     {
-                                        _logger.LogWarning(
-                                            "Could not extract port from server address: {Address}",
-                                            address
+                                        _logger.LogError(
+                                            "Running on port {Port} requires localtest version 3 or higher. Current version: {Version}. Update your local copy of localtest (git pull). Shutting down..",
+                                            port.Value,
+                                            version
                                         );
+                                        Exit();
                                     }
                                 }
                                 // Running on port 5005 or couldn't determine port - no registration needed
@@ -252,14 +244,14 @@ internal sealed class LocaltestValidation : BackgroundService
         }
     }
 
-    private async Task WaitForServerAddresses(CancellationToken stoppingToken)
+    private async Task<int?> GetServerPort(CancellationToken stoppingToken)
     {
         // Wait for server to bind addresses (checked every 100ms, max 10 seconds)
         var addressesFeature = _server.Features.Get<IServerAddressesFeature>();
         if (addressesFeature == null)
         {
             _logger.LogWarning("Server does not support IServerAddressesFeature");
-            return;
+            return null;
         }
 
         var maxAttempts = 100; // 10 seconds total
@@ -272,9 +264,19 @@ internal sealed class LocaltestValidation : BackgroundService
                 // Configuration addresses contain wildcards like "http://*:8080" or "http://*:0"
                 // Actual bound addresses look like "http://[::]:46519" or "http://0.0.0.0:5005"
                 var firstAddress = addressesFeature.Addresses.First();
-                if (!firstAddress.Contains("*"))
+                if (!firstAddress.Contains('*'))
                 {
-                    return;
+                    // Server addresses can contain wildcard bind addresses that aren't valid URIs
+                    var portMatch = System.Text.RegularExpressions.Regex.Match(firstAddress, @":(\d+)$");
+                    if (portMatch.Success && int.TryParse(portMatch.Groups[1].Value, out var port))
+                    {
+                        return port;
+                    }
+                    _logger.LogWarning(
+                        "Could not extract port from server address: {Address}",
+                        firstAddress
+                    );
+                    return null;
                 }
             }
             await Task.Delay(TimeSpan.FromMilliseconds(100), _timeProvider, stoppingToken);
@@ -282,6 +284,7 @@ internal sealed class LocaltestValidation : BackgroundService
         }
 
         _logger.LogWarning("Server addresses not available after 10 seconds");
+        return null;
     }
 
     private async Task RegisterWithLocaltest(string baseUrl, int port, CancellationToken stoppingToken)
