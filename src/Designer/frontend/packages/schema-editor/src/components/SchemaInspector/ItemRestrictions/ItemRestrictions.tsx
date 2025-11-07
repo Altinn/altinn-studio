@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react';
-import React from 'react';
+import React, { useCallback } from 'react';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import {
   isField,
@@ -52,6 +52,13 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
   const onChangeRestrictions = (path: string, changedRestrictions: KeyValuePairs) =>
     save(setRestrictions(schemaModel, { path, restrictions: changedRestrictions }));
 
+  const handleChangeStringRestrictions = useCallback(
+    (path: string, newRestrictions: KeyValuePairs): void => {
+      save(schemaModel.setRestrictions(path, newRestrictions));
+    },
+    [schemaModel, save],
+  );
+
   const restrictionProps: RestrictionItemProps = {
     restrictions: restrictions ?? {},
     readonly: isReference(schemaNode),
@@ -76,7 +83,12 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
           [FieldType.Integer]: <NumberRestrictions {...restrictionProps} isInteger />,
           [FieldType.Number]: <NumberRestrictions {...restrictionProps} isInteger={false} />,
           [FieldType.Object]: <ObjectRestrictions {...restrictionProps} />,
-          [FieldType.String]: <StringRestrictions {...restrictionProps} />,
+          [FieldType.String]: (
+            <StringRestrictions
+              {...restrictionProps}
+              onChangeRestrictions={handleChangeStringRestrictions}
+            />
+          ),
         }[schemaNode.fieldType]}
       {isArray && <ArrayRestrictions {...restrictionProps} />}
       {isField(schemaNode) &&
