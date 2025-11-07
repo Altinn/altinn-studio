@@ -3,7 +3,7 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { ArrayUtils } from '@studio/pure-functions';
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
-import type { CodeListData } from '@studio/content-library';
+import type { CodeListDataWithTextResources } from '@studio/content-library';
 
 type UpdateOrgCodeListIdMutationArgs = { codeListId: string; newCodeListId: string };
 
@@ -26,13 +26,13 @@ export const useUpdateOrgCodeListIdMutation = (org: string) => {
 const updateId = (oldId: string, newId: string, oldData: CodeListsResponse): CodeListsResponse => {
   if (!oldData) return [];
 
-  const oldCodeList: CodeListData = oldData.find(
-    (codeList: CodeListData): boolean => codeList.title === oldId,
+  const oldCodeList: CodeListDataWithTextResources = oldData.find(
+    (codeList: CodeListDataWithTextResources): boolean => codeList.title === oldId,
   );
 
   return ArrayUtils.replaceByPredicate(
     oldData,
-    (codeList: CodeListData): boolean => codeList.title === oldId,
+    (codeList: CodeListDataWithTextResources): boolean => codeList.title === oldId,
     { ...oldCodeList, title: newId },
   );
 };

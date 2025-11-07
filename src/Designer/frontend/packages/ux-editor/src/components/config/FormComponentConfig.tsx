@@ -13,6 +13,7 @@ import {
 import type { FormItem } from '../../types/FormItem';
 import classes from './FormComponentConfig.module.css';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -41,6 +42,7 @@ export const FormComponentConfig = ({
     'target',
     'tableColumns',
     'overrides',
+    component.type === ComponentType.Text ? 'value' : '',
   ];
 
   const { booleanKeys, stringKeys, numberKeys, arrayKeys, objectKeys } = usePropertyTypes(

@@ -147,7 +147,12 @@ public sealed class PatchServiceTests : IDisposable
         TaskId = "Task_1",
     };
 
-    private static readonly DataElement _dataElement = new() { Id = _dataGuid.ToString(), DataType = _dataType.Id };
+    private static readonly DataElement _dataElement = new()
+    {
+        Id = _dataGuid.ToString(),
+        DataType = _dataType.Id,
+        ContentType = "application/xml",
+    };
 
     public class MyModel
     {
@@ -322,8 +327,6 @@ public sealed class PatchServiceTests : IDisposable
         _dataClientMock
             .Setup(d =>
                 d.GetDataBytes(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
                     It.IsAny<int>(),
                     It.IsAny<Guid>(),
                     It.IsAny<Guid>(),

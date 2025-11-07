@@ -1,1 +1,0 @@
-export { StudioCheckboxTableBody } from './StudioCheckboxTableBody';

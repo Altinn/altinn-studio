@@ -236,6 +236,7 @@ public sealed partial class Telemetry : IDisposable
 
         internal const string ProcessErrorType = "process.error.type";
         internal const string ProcessAction = "process.action";
+        internal const string ProcessServiceTaskType = "process.service.task.type";
 
         internal const string ProblemType = "problem.type";
         internal const string ProblemTitle = "problem.title";

@@ -7,6 +7,7 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.EventHandlers;
 using Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
+using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -78,6 +79,12 @@ public class ProcessEventHandlingTests
             return new Fixture(services.BuildStrictServiceProvider());
         }
     }
+
+    private readonly List<IServiceTask> _serviceTasks =
+    [
+        new Mock<IPdfServiceTask>().Object,
+        new Mock<IEFormidlingServiceTask>().Object,
+    ];
 
     [Fact]
     public async Task UpdateProcessAndDispatchEvents_StartEvent_instance_updated_and_events_sent_to_storage()
