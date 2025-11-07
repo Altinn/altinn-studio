@@ -132,7 +132,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(outbound_http_route_backend_response_statuses_total{backend_namespace=~\"pdf|runtime-pdf3\"}[$__rate_interval])) by(backend_namespace, http_status)",
+          "expr": "sum(rate(outbound_http_route_backend_response_statuses_total{backend_namespace=~\"pdf|runtime-pdf3\", backend_name=~\"pdf-migration|pdf3-proxy\"}[$__rate_interval])) by(backend_namespace, http_status)",
           "instant": false,
           "legendFormat": "{{ backend_namespace }} / {{ http_status }}",
           "range": true,
