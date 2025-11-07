@@ -6,7 +6,11 @@
 
 .toolbar {
   display: flex;
-  border-bottom: 2px solid var(--ds-color-neutral-border-subtle);
+  align-items: center;
+  height: var(--ds-size-15);
+  padding-inline: var(--ds-size-2);
+  border-bottom: 1px solid var(--ds-color-neutral-border-subtle);
+  box-sizing: border-box;
 }
 
 .toolbarCollapsed {
