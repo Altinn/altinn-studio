@@ -18,6 +18,28 @@ from server.tools.datamodel_sync_tool.datamodel_sync_tool import datamodel_sync 
 # Commented out due to dependency on codegen module
 # from server.tools.studio_examples_tool.studio_examples_tool import studio_examples_tool  # noqa: F401
 # from server.tools.app_lib_examples_tool.app_lib_examples_tool import app_lib_examples_tool  # noqa: F401
+def _initialize_documentation_search(verbose: bool = False):
+    """Pre-fetch and cache all documentation at server startup."""
+    import sys
+    from server.tools.planning_tool.planning_tool import initialize_documentation_search
+    
+    # Log to stderr to avoid interfering with stdio JSON-RPC
+    def log(msg: str):
+        if verbose:
+            print(msg, file=sys.stderr, flush=True)
+    
+    log("\n" + "=" * 80)
+    log("Initializing documentation search (fetching all docs)...")
+    log("This may take 30-60 seconds on first run, but uses cache on subsequent starts.")
+    log("=" * 80)
+    
+    initialize_documentation_search(verbose=verbose)
+    
+    log("=" * 80)
+    log("✅ Documentation search initialized and ready!")
+    log("=" * 80 + "\n")
+
+
 def main() -> None:
     """Start the Altinity MCP server.
 
@@ -35,6 +57,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Altinity MCP Server")
     parser.add_argument("--stdio", action="store_true", help="Use stdio transport instead of sse")
     parser.add_argument("--port", type=int, help="Custom port for sse transport (default: 8069)")
+    parser.add_argument("--skip-doc-init", action="store_true", help="Skip documentation initialization at startup")
     
     args = parser.parse_args()
 
@@ -47,13 +70,41 @@ def main() -> None:
     
     # Now register all the tools with the initialized MCP instance
     register_all_tools()
-
+    
     transport = "stdio" if args.stdio else "sse"
     
+    # Pre-fetch documentation unless skipped
+    if not args.skip_doc_init:
+        try:
+            # Only show verbose logs when not using stdio (to avoid JSON-RPC interference)
+            verbose = (transport != "stdio")
+            
+            # In stdio mode, suppress all stdout during initialization to prevent
+            # any library (requests, BeautifulSoup, etc.) from polluting JSON-RPC
+            if transport == "stdio":
+                import sys
+                import os
+                old_stdout = sys.stdout
+                sys.stdout = open(os.devnull, 'w')
+                try:
+                    _initialize_documentation_search(verbose=verbose)
+                finally:
+                    sys.stdout.close()
+                    sys.stdout = old_stdout
+            else:
+                _initialize_documentation_search(verbose=verbose)
+                
+        except Exception as e:
+            import sys
+            print(f"⚠️  Warning: Failed to initialize documentation search: {e}", file=sys.stderr)
+            print("Documentation search will initialize lazily on first use.", file=sys.stderr)
+    
+    # Log startup message to stderr in stdio mode to avoid JSON-RPC interference
+    import sys
     if transport == "stdio":
-        print("Starting Altinity MCP server using stdio transport")
+        print("Starting Altinity MCP server using stdio transport", file=sys.stderr, flush=True)
     else:
-        print(f"Starting Altinity MCP server on port {port} using transport {transport}")
+        print(f"Starting Altinity MCP server on port {port} using transport {transport}", file=sys.stderr, flush=True)
     
     mcp.run(transport=transport)
 

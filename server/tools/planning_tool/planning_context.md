@@ -1,4 +1,5 @@
 # Altinn App Development Instructions
+
 ### Core Components
 
 - **`App/Program.cs`**: Entry point using Altinn App Framework with custom service registrations for `IInstantiationProcessor` and `IInstanceValidator`
@@ -10,6 +11,7 @@
 ### Key Patterns
 
 **Service Registration**: Custom services are registered in `RegisterCustomAppServices()` method in Program.cs:
+
 ```csharp
 services.AddTransient<IInstantiationProcessor, InstantiationHandler>();
 services.AddTransient<IInstanceValidator, ValidationHandler>();
@@ -31,6 +33,7 @@ services.AddTransient<IInstanceValidator, ValidationHandler>();
 ## Form Layout System
 
 Forms use declarative JSON with component types like `Panel`, `Header`, `Input` with:
+
 - **Data binding**: `dataModelBindings.simpleBinding` to model properties
 - **Text resources**: `textResourceBindings.title` for i18n
 - **Grid system**: Bootstrap-style responsive grid (`labelGrid`, `innerGrid`)
@@ -38,9 +41,15 @@ Forms use declarative JSON with component types like `Panel`, `Header`, `Input` 
 
 Always reference existing layout files when adding new form components.
 
+### Important
+
+When adding a new page layout under App/ui/form/layouts, always remember to update App/ui/form/Settings.json to include the new page ID in the "pages.order" array.
+Otherwise, the page won’t appear in the app’s navigation.
+
 ## Planning Requirements for Development
 
 ### 1. Required Tool Usage Patterns
+
 - **UI components** → `layout_components_tool` to find appropriate Altinn components
 - **Data models** → `datamodel_tool` to create/update model.cs, model.xsd, model.schema.json
 - **Text content** → `resource_tool` to manage Norwegian text resources and translations
@@ -54,8 +63,8 @@ Always reference existing layout files when adding new form components.
 - **Studio Examples** → `studio_examples_tool` to get examples of C# logic from existing Altinn Studio apps. Very relevant for writing C# logic.
 - **AppLib Examples** → `app_lib_examples_tool` to get examples of for relevant C# code from the Altinn AppLib. Very relevant for writing C# logic.
 
-
 ### 2. Testing Requirements
+
 - Run app locally with `dotnet run --project App` before testing
   - If the app crashes, fix the issue before running playwright tests
 - Test with Playwright MCP until requirements are fulfilled
@@ -80,6 +89,7 @@ Always reference existing layout files when adding new form components.
 - **Remember to update service registration in Program.cs** when adding new services
 
 ## Common Mistakes to AVOID
+
 **DON'T**: Ask for React components or frontend code
 **DON'T**: Create files without thorough searching first  
 **DON'T**: Assume file locations without exploring
