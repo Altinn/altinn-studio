@@ -10,13 +10,14 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 	"unicode/utf8"
 
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/log"
-	"altinn.studio/pdf3/internal/runtime"
+	iruntime "altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
@@ -25,6 +26,8 @@ import (
 func main() {
 	logger := log.NewComponent("proxy")
 
+	logger.Info("Starting", "GOMAXPROCS", runtime.GOMAXPROCS(0), "NumCPU", runtime.NumCPU())
+
 	// Initialize telemetry with Prometheus exporter
 	tel, err := telemetry.New("pdf3-proxy")
 	if err != nil {
@@ -32,7 +35,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	host := runtime.NewHost(
+	host := iruntime.NewHost(
 		5*time.Second,
 		45*time.Second,
 		3*time.Second,
@@ -87,7 +90,7 @@ func main() {
 	http.Handle("/metrics", tel.Handler())
 
 	// Only register test output endpoint in test internals mode
-	if runtime.IsTestInternalsMode {
+	if iruntime.IsTestInternalsMode {
 		http.HandleFunc("/testoutput/", forwardTestOutputRequest(logger, httpClient))
 	}
 
@@ -161,7 +164,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 			})
 			return
 		}
-		if !runtime.IsTestInternalsMode && r.Header.Get(testing.TestInputHeaderName) != "" {
+		if !iruntime.IsTestInternalsMode && r.Header.Get(testing.TestInputHeaderName) != "" {
 			writeProblemDetails(logger, w, http.StatusBadRequest, ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
 				Title:  "Bad Request",
@@ -276,7 +279,7 @@ func callWorker(
 		return true
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
-	if runtime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
+	if iruntime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
 		testing.CopyTestInput(httpReq.Header, r.Header)
 	}
 
@@ -329,7 +332,7 @@ func callWorker(
 	if resp.StatusCode == http.StatusOK {
 		// In test internals mode, pass back the worker IP to the client
 		// so they can route test output requests to the correct worker pod
-		if runtime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
+		if iruntime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
 			assert.AssertWithMessage(workerIP != "", "Worker IP should always be set in test internals mode")
 			w.Header().Set("X-Worker-IP", workerIP)
 			w.Header().Set("X-Worker-Id", workerId)
@@ -387,7 +390,7 @@ func callWorker(
 
 	// In test internals mode, pass back the worker IP even on errors
 	// so tests can still fetch test output from the correct worker
-	if runtime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
+	if iruntime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
 		assert.Assert(workerIP != "")
 		w.Header().Set("X-Worker-IP", workerIP)
 		w.Header().Set("X-Worker-Id", workerId)
@@ -429,7 +432,7 @@ func writeProblemDetails(logger *slog.Logger, w http.ResponseWriter, statusCode 
 
 func forwardTestOutputRequest(logger *slog.Logger, client *http.Client) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		assert.AssertWithMessage(runtime.IsTestInternalsMode, "Test output endpoint should only be registered in test internals mode")
+		assert.AssertWithMessage(iruntime.IsTestInternalsMode, "Test output endpoint should only be registered in test internals mode")
 
 		// Extract test ID from URL path: /testoutput/{id}
 		testID := strings.TrimPrefix(r.URL.Path, "/testoutput/")
