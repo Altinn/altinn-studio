@@ -9,6 +9,5 @@
 }
 
 .chip {
-  margin: 0;
-  margin-inline: var(--ds-size-1);
+  margin: var(--ds-size-1) var(--ds-size-1) 0 0;
 }
