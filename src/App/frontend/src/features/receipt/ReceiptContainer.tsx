@@ -15,7 +15,7 @@ import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
-import { getInstanceSender } from 'src/features/processEnd/confirm/helpers/returnConfirmSummaryObject';
+import { getInstanceSender } from 'src/features/process/confirm/helpers/returnConfirmSummaryObject';
 import { FixWrongReceiptType } from 'src/features/receipt/FixWrongReceiptType';
 import { useNavigationParam } from 'src/hooks/navigation';
 import {
