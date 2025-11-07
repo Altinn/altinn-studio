@@ -263,6 +263,8 @@ spec:
     metadata:
       labels:
         app: testserver
+      annotations:
+        linkerd.io/inject: enabled
     spec:
       containers:
       - name: nginx
@@ -364,6 +366,8 @@ spec:
     metadata:
       labels:
         app: jumpbox
+      annotations:
+        linkerd.io/inject: enabled
     spec:
       affinity:
         podAntiAffinity:
@@ -415,3 +419,21 @@ spec:
         - name: jumpbox
           port: 80
           scheme: http
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  entryPoints:
+    - web
+    - traefik
+  routes:
+    - match: PathPrefix(`/grafana`)
+      kind: Rule
+      priority: 100
+      services:
+        - name: kube-prometheus-stack-grafana
+          port: 80
+          namespace: monitoring

@@ -17,6 +17,7 @@ import (
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/log"
 	"altinn.studio/pdf3/internal/runtime"
+	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
 )
@@ -24,9 +25,16 @@ import (
 func main() {
 	logger := log.NewComponent("proxy")
 
+	// Initialize telemetry with Prometheus exporter
+	tel, err := telemetry.New("pdf3-proxy")
+	if err != nil {
+		logger.Error("Failed to initialize telemetry", "error", err)
+		os.Exit(1)
+	}
+
 	host := runtime.NewHost(
 		5*time.Second,
-		50*time.Second,
+		45*time.Second,
 		3*time.Second,
 	)
 	defer host.Stop()
@@ -75,7 +83,8 @@ func main() {
 		}
 	})
 
-	http.HandleFunc("/pdf", generatePdf(logger, httpClient, workerHTTPAddr))
+	http.Handle("/pdf", tel.WrapHandler("POST /pdf", generatePdf(logger, httpClient, workerHTTPAddr)))
+	http.Handle("/metrics", tel.Handler())
 
 	// Only register test output endpoint in test internals mode
 	if runtime.IsTestInternalsMode {
@@ -101,12 +110,20 @@ func main() {
 	host.WaitForReadinessDrain()
 
 	logger.Info("Shutting down HTTP server")
-	err := server.Shutdown(host.ServerContext())
+	err = server.Shutdown(host.ServerContext())
 	if err != nil {
 		logger.Warn("Failed to wait for ongoing requests to finish, waiting for forced cancellation")
 		host.WaitForHardShutdown()
 	} else {
 		logger.Info("Gracefully shut down HTTP server")
+	}
+
+	// Shutdown telemetry to flush pending metrics
+	logger.Info("Shutting down telemetry")
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := tel.Close(shutdownCtx); err != nil {
+		logger.Warn("Failed to gracefully shut down telemetry", "error", err)
 	}
 
 	logger.Info("Server shut down gracefully")

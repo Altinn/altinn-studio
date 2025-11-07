@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-var logger *slog.Logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
+var logger *slog.Logger = slog.New(slog.NewTextHandler(os.Stderr, nil))
 
 // NewComponent creates a new logger with a component name.
 func NewComponent(name string) *slog.Logger {
