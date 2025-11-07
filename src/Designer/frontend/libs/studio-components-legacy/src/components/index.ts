@@ -1,5 +1,4 @@
 export * from './StudioAlert';
-export * from './StudioAnimateHeight';
 export * from './StudioAvatar';
 export * from './StudioButton';
 export * from './StudioCard';
