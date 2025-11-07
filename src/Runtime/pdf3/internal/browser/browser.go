@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"os"
 	"os/exec"
 	"sort"
 	"strings"
@@ -87,6 +88,8 @@ func (p *Process) Close() error {
 		// Wait() error is expected (killed processes return error), so we can ignore it
 		_ = p.Cmd.Wait()
 	}
+	err := os.RemoveAll(p.DataDir)
+	assert.AssertWithMessage(err == nil, "couldn't remove dataDir", "dataDir", p.DataDir, "error", err)
 	return nil
 }
 

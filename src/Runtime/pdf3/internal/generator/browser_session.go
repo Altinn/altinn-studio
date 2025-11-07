@@ -838,6 +838,25 @@ func (w *browserSession) close() {
 	w.logger.Info("Worker closed")
 }
 
+// isProcessing returns true if a request is currently being processed
+func (w *browserSession) isProcessing() bool {
+	return w.currentRequest != nil
+}
+
+// waitForDrain waits for active request to complete, up to timeout
+func (w *browserSession) waitForDrain(timeout time.Duration) {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		if !w.isProcessing() {
+			w.logger.Info("Session drained successfully")
+			return // Drained successfully
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	// Timeout - log warning but don't crash
+	w.logger.Warn("Session drain timeout, forcing close", "timeout", timeout)
+}
+
 // paperFormats defines standard paper sizes in inches (compatible with Puppeteer)
 // See source: https://github.com/puppeteer/puppeteer/blob/f5d922c19e61acb4205a86780967360f3531faef/packages/puppeteer-core/src/common/PDFOptions.ts#L30-L70
 var paperFormats = map[string]struct{ width, height float64 }{

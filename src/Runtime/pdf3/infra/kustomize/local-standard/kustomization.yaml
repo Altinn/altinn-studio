@@ -28,6 +28,7 @@ patches:
         name: pdf3-dashboard
   # - Add TEST_INTERNALS_MODE environment variable for local/test environment
   # - Set image and image pull policy
+  # - Set browser restart interval to 1 minute for local testing
   - target:
       kind: Deployment
       name: pdf3-worker
@@ -37,6 +38,11 @@ patches:
         value:
           name: TEST_INTERNALS_MODE
           value: "true"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: RUNTIME_PDF3_BROWSER_RESTART_INTERVAL
+          value: "2m"
       - op: replace
         path: /spec/template/spec/containers/0/image
         value: "localhost:5001/runtime-pdf3-worker:latest"
