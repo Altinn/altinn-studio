@@ -107,9 +107,9 @@ const NoValueSelectOption = ({ disabled }: NoValueSelectOptionProps): ReactEleme
   const { t } = useTranslation();
 
   return (
-    <option value={NO_VALUE_SELECTED_IN_NATIVE_SELECT} disabled={disabled}>
+    <StudioSelect.Option value={NO_VALUE_SELECTED_IN_NATIVE_SELECT} disabled={disabled}>
       {t('ux_editor.edit_component.select_value')}
-    </option>
+    </StudioSelect.Option>
   );
 };
 
@@ -122,8 +122,8 @@ const SelectOptions = ({
   componentEnumValue,
 }: SelectOptionsProps): ReactElement[] => {
   return enumOptionsList.map((value) => (
-    <option key={value} value={value}>
+    <StudioSelect.Option key={value} value={value}>
       {componentEnumValue(value)}
-    </option>
+    </StudioSelect.Option>
   ));
 };

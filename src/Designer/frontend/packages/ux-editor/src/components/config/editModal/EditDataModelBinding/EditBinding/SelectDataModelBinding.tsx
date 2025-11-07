@@ -52,14 +52,14 @@ export const SelectDataModelBinding = ({
           onChange={(e) => fieldProps.onChange(e.target.value)}
         >
           {defaultDataTypeName && (
-            <option key={defaultDataTypeName} value={defaultDataTypeName}>
+            <StudioSelect.Option key={defaultDataTypeName} value={defaultDataTypeName}>
               {defaultDataTypeName}
-            </option>
+            </StudioSelect.Option>
           )}
           {bindableDataTypes.map((dataType) => (
-            <option key={dataType.id} value={dataType.id}>
+            <StudioSelect.Option key={dataType.id} value={dataType.id}>
               {dataType.id}
-            </option>
+            </StudioSelect.Option>
           ))}
         </StudioSelect>
       )}

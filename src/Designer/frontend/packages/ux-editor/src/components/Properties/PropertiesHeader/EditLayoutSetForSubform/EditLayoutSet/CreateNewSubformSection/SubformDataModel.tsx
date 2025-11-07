@@ -43,17 +43,17 @@ export const SubformDataModel = ({
         disabled={displayDataModelInput}
         name='subformDataModel'
       >
-        <option value='' hidden />
+        <StudioSelect.Option value='' hidden />
         {dataModelIds ? (
           dataModelIds.map((dataModelId) => (
-            <option value={dataModelId} key={dataModelId}>
+            <StudioSelect.Option value={dataModelId} key={dataModelId}>
               {dataModelId}
-            </option>
+            </StudioSelect.Option>
           ))
         ) : (
-          <option value=''>
+          <StudioSelect.Option value=''>
             {t('ux_editor.component_properties.subform.data_model_empty_messsage')}
-          </option>
+          </StudioSelect.Option>
         )}
       </StudioSelect>
       {displayDataModelInput ? (
