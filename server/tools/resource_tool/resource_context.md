@@ -7,7 +7,7 @@ When working with resources, all resource files must be updated. The resources e
 ### 1. RESOURCE FILE (resource.[language].json)
 
 **Structure:**
-- language: two letter string, represents language on the values
+- language: two letter string, represents language for the values
 - resources: array of objects with id and value
     - id: string, represents the id for the resource, must match 
     - value: string, represents the value for the resource
@@ -71,6 +71,7 @@ Inputs relevant text from the datamodel
 
 ### 4. Adding a language
 - Add new resource file with filename resource.[language].json
+    - Use ISO 639-1 when assigning the language code
     - Generate all resources from the previous resource files into the new one
 - Important: When using multiple languages, add the field "showLanguageSelector" : true to ui/form/Settings.json, inside the pages property
 - in App/config/applicationmetadata.json, add the title in the new language
