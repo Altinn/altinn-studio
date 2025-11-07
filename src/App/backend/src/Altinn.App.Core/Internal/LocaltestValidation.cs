@@ -264,10 +264,9 @@ internal sealed class LocaltestValidation : BackgroundService
                 // Configuration addresses contain wildcards like "http://*:8080" or "http://*:0"
                 // Actual bound addresses look like "http://[::]:46519" or "http://0.0.0.0:5005"
                 var firstAddress = addressesFeature.Addresses.First();
-                if (!firstAddress.Contains('*'))
+                if (firstAddress.Contains("[::]:") || firstAddress.Contains("0.0.0.0:"))
                 {
-                    // Server addresses can contain wildcard bind addresses that aren't valid URIs
-                    var portMatch = System.Text.RegularExpressions.Regex.Match(firstAddress, @":(\d+)$");
+                    var portMatch = System.Text.RegularExpressions.Regex.Match(firstAddress, @":(\d+)");
                     if (portMatch.Success && int.TryParse(portMatch.Groups[1].Value, out var port))
                     {
                         return port;
