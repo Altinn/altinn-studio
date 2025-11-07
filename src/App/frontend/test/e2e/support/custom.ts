@@ -655,7 +655,7 @@ Cypress.Commands.add(
     cy.getCurrentViewportSize().as('testPdfViewportSize');
 
     // Make sure instantiation is completed before we get the url
-    cy.location('hash', { log: false }).should('contain', '#/instance/');
+    cy.location('pathname', { log: false }).should('contain', '/instance/');
 
     // Make sure we blur any selected component before reload to trigger save
     cy.get('body').click({ log: false });
