@@ -8,13 +8,14 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/generator"
 	"altinn.studio/pdf3/internal/log"
-	"altinn.studio/pdf3/internal/runtime"
+	iruntime "altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
@@ -28,6 +29,8 @@ var (
 func main() {
 	baseLogger := log.NewComponent("worker")
 
+	baseLogger.Info("Starting", "GOMAXPROCS", runtime.GOMAXPROCS(0), "NumCPU", runtime.NumCPU())
+
 	// Initialize telemetry with Prometheus exporter
 	tel, err := telemetry.New("pdf3-worker")
 	if err != nil {
@@ -35,7 +38,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	host := runtime.NewHost(
+	host := iruntime.NewHost(
 		5*time.Second,
 		45*time.Second,
 		3*time.Second,
@@ -101,7 +104,7 @@ func main() {
 	http.Handle("/metrics", tel.Handler())
 
 	// Only register test output endpoint in test internals mode
-	if runtime.IsTestInternalsMode {
+	if iruntime.IsTestInternalsMode {
 		http.HandleFunc("/testoutput/", getTestOutputHandler(logger))
 	}
 
@@ -164,7 +167,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 			}
 			return
 		}
-		if !runtime.IsTestInternalsMode && r.Header.Get(testing.TestInputHeaderName) != "" {
+		if !iruntime.IsTestInternalsMode && r.Header.Get(testing.TestInputHeaderName) != "" {
 			w.WriteHeader(http.StatusBadRequest)
 			if _, err := w.Write([]byte("Illegal internals test mode header")); err != nil {
 				logger.Error("Failed to write error response", "error", err)
@@ -186,7 +189,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 		logger = logger.With("url", req.URL)
 
 		requestContext := r.Context()
-		if runtime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
+		if iruntime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
 			testInput := &testing.PdfInternalsTestInput{}
 			testInput.Deserialize(r.Header)
 			testOutput := testing.NewTestOutput(testInput)
@@ -223,7 +226,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 
 func getTestOutputHandler(logger *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		assert.AssertWithMessage(runtime.IsTestInternalsMode, "Test output handler should only be registered in test internals mode")
+		assert.AssertWithMessage(iruntime.IsTestInternalsMode, "Test output handler should only be registered in test internals mode")
 
 		if r.Method != http.MethodGet {
 			w.WriteHeader(http.StatusMethodNotAllowed)
