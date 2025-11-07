@@ -1,12 +1,14 @@
 using System;
+using System.Collections.Generic;
 using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.SourceGenerator.Integration.Tests.Models;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Altinn.App.SourceGenerator.Integration.Tests.UnitTest;
 
-public class TestGeneratedGetter
+public class TestGeneratedGetter(ITestOutputHelper testOutputHelper)
 {
     /// <summary>
     /// Create a shared instance of Skjema for testing.
@@ -32,7 +34,12 @@ public class TestGeneratedGetter
                 TidligereAdresse =
                 [
                     new() { Gate = "gate1", Postnummer = 1235 },
-                    new() { Gate = "gate2", Postnummer = 1236 },
+                    new()
+                    {
+                        Gate = "gate2",
+                        Postnummer = 1236,
+                        Tags = ["tag1", "tag2"],
+                    },
                 ],
             },
         ],
@@ -84,7 +91,9 @@ public class TestGeneratedGetter
     [InlineData("skjemainnhold[1].adresse.gate", "gate")]
     [InlineData("skjemainnhold[1].adresse.postnummer", 1234)]
     [InlineData("skjemainnhold[1].tidligere-adresse[1].postnummer", 1236)]
-    public void TestGetRaw(string path, object expected)
+    [InlineData("skjemainnhold[1].tidligere-adresse[1].tags[0]", "tag1")]
+    [InlineData("skjemainnhold[1].tidligere-adresse[1].tags[99000]", null)]
+    public void TestGetRaw(string path, object? expected)
     {
         IFormDataWrapper dataWrapper = new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(
             _skjema
@@ -124,6 +133,7 @@ public class TestGeneratedGetter
     [InlineData("skjemainnhold[0].navn.not-exists")]
     [InlineData("skjemainnhold[1].tidligere-adresse[99].postnummer")]
     [InlineData("skjemainnhold[0].adresse.gate")]
+    [InlineData("skjemainnhold[1].adresse.")]
     [InlineData("skjemainnhold[1].adresse[0]")]
     [InlineData("skjemainnhold[1].")]
     public void TestGetRawErrorReturnNull(string? path)
@@ -142,16 +152,47 @@ public class TestGeneratedGetter
     [InlineData("skjemainnhold[-1]")]
     [InlineData("skjemainnhold[a]")]
     [InlineData("skjemainnhold[1].tidligere-adresse[-1]")]
+    [InlineData("skjemainnhold[1]tidligere-adresse[-1]")]
     public void TestGetRawErrorReturnException(string? path)
     {
         // These might all throw exceptions when we have better validation of data model bindings at startup
         IFormDataWrapper dataWrapper = new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(
             _skjema
         );
-        Assert.Throws<DataModelException>(() => dataWrapper.Get(path));
+        testOutputHelper.WriteLine(Assert.Throws<DataModelException>(() => dataWrapper.Get(path)).ToString());
 
         var reflector = new ReflectionFormDataWrapper(_skjema);
-        Assert.Throws<DataModelException>(() => reflector.Get(path));
+        testOutputHelper.WriteLine(Assert.Throws<DataModelException>(() => reflector.Get(path)).ToString());
+    }
+
+    [Fact]
+    public void TestGetListRaw()
+    {
+        var path = "skjemainnhold[1].tidligere-adresse[1].tags";
+        var expected = _skjema.Skjemainnhold?[1]?.TidligereAdresse?[1]?.Tags;
+        Assert.NotNull(expected);
+        IFormDataWrapper dataWrapper = new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(
+            _skjema
+        );
+        Assert.Equivalent(expected, dataWrapper.Get(path));
+
+        var reflector = new ReflectionFormDataWrapper(_skjema);
+        Assert.Equivalent(expected, reflector.Get(path));
+    }
+
+    [Fact]
+    public void GetObjectRaw()
+    {
+        var path = "skjemainnhold[1].adresse";
+        var expected = _skjema.Skjemainnhold?[1]?.Adresse;
+        Assert.NotNull(expected);
+        IFormDataWrapper dataWrapper = new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(
+            _skjema
+        );
+        Assert.Equal(expected, dataWrapper.Get(path));
+
+        var reflector = new ReflectionFormDataWrapper(_skjema);
+        Assert.Equal(expected, reflector.Get(path));
     }
 
     [Fact]
@@ -176,13 +217,17 @@ public class TestGeneratedGetter
         Assert.Equal("navn", segment);
         Assert.Equal(-1, nextOffset);
         Assert.Equal(-1, literalIndex);
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
-            Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper.ParseSegment(
-                path,
-                nextOffset,
-                out nextOffset,
-                out literalIndex
-            )
+        testOutputHelper.WriteLine(
+            Assert
+                .Throws<ArgumentOutOfRangeException>(() =>
+                    Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper.ParseSegment(
+                        path,
+                        nextOffset,
+                        out nextOffset,
+                        out literalIndex
+                    )
+                )
+                .ToString()
         );
     }
 

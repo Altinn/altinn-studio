@@ -13,9 +13,10 @@ type ImageDropzoneProps = {
   baseComponentId: string;
   hasErrors: boolean;
   readOnly: boolean;
+  dropzoneInputRef?: React.RefObject<HTMLInputElement | null>;
 } & Pick<IDropzoneProps, 'onDrop'>;
 
-export function ImageDropzone({ baseComponentId, hasErrors, readOnly, onDrop }: ImageDropzoneProps) {
+export function ImageDropzone({ baseComponentId, hasErrors, readOnly, onDrop, dropzoneInputRef }: ImageDropzoneProps) {
   const [dragActive, setDragActive] = React.useState(false);
   const isMobile = useIsMobileOrTablet();
   const descriptionId = getDescriptionId(baseComponentId);
@@ -34,6 +35,7 @@ export function ImageDropzone({ baseComponentId, hasErrors, readOnly, onDrop }: 
       data-color='neutral'
       className={cn(classes.placeholder, { [classes.dragActive]: dragActive })}
       describedBy={ariaDescribedBy}
+      inputRef={dropzoneInputRef}
     >
       <div className={classes.dropZone}>
         <b id={dragLabelId}>
