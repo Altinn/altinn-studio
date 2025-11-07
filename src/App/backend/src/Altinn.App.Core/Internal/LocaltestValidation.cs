@@ -301,25 +301,15 @@ internal sealed class LocaltestValidation : BackgroundService
             {
                 using var client = _httpClientFactory.CreateClient();
                 var response = await client.PostAsJsonAsync(url, registrationRequest, stoppingToken);
+                response.EnsureSuccessStatusCode();
 
-                if (response.IsSuccessStatusCode)
-                {
-                    _registeredAppId = appId;
-                    _logger.LogInformation(
-                        "Successfully registered {AppId} with localtest on port {Port}",
-                        appId,
-                        port
-                    );
-                    return;
-                }
-                var errorContent = await response.Content.ReadAsStringAsync(stoppingToken);
-                _logger.LogWarning(
-                    "Failed to register app with localtest (attempt {Attempt}/{MaxAttempts}). Status: {StatusCode}, Error: {Error}",
-                    retryCount + 1,
-                    maxRetries,
-                    response.StatusCode,
-                    errorContent
+                _registeredAppId = appId;
+                _logger.LogInformation(
+                    "Successfully registered {AppId} with localtest on port {Port}",
+                    appId,
+                    port
                 );
+
             }
             catch (HttpRequestException ex)
             {
