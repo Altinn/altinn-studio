@@ -97,11 +97,6 @@ namespace LocalTest.Models
         public AppMode AppMode { get; set; }
 
         /// <summary>
-        /// Whether the request came through the loadbalancer
-        /// </summary>
-        public bool IsAccessedViaLoadBalancer { get; set; }
-
-        /// <summary>
         /// Whether there are any registered apps
         /// </summary>
         public bool HasRegisteredApps { get; set; }
