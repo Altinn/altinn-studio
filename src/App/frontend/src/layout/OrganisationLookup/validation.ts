@@ -42,12 +42,19 @@ export function checkValidOrgnNr(orgNr: string): boolean {
 
   const [w1, w2, w3, w4, w5, w6, w7, w8] = [3, 2, 7, 6, 5, 4, 3, 2];
   const sum = a1 * w1 + a2 * w2 + a3 * w3 + a4 * w4 + a5 * w5 + a6 * w6 + a7 * w7 + a8 * w8;
-  const calculatedCheckDigit = 11 - (sum % 11);
+
+  let calculatedCheckDigit = mod11(sum);
+
+  if (calculatedCheckDigit === 11) {
+    calculatedCheckDigit = 0;
+  }
 
   return calculatedCheckDigit === allegedCheckDigit;
 }
 
 export const validateOrgnr = ajv.compile(orgNrSchema);
+
+const mod11 = (value: number): number => 11 - (value % 11);
 
 const organisationLookupResponseSchema: JSONSchemaType<OrganisationLookupResponse> = {
   type: 'object',
