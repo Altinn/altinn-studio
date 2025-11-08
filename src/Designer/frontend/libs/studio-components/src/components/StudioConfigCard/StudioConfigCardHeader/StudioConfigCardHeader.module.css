@@ -1,7 +1,6 @@
 .cardHeading {
   display: flex;
   justify-content: space-between;
-  object-fit: contain;
   align-items: center;
   padding-inline: var(--ds-size-6);
 }

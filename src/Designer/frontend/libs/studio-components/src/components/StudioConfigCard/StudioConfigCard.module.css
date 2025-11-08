@@ -1,4 +1,3 @@
 .wrapper {
-  margin-inline: var(--ds-size-6);
-  gap: var(--ds-size-4);
+  margin-inline: var(--ds-size-5);
 }
