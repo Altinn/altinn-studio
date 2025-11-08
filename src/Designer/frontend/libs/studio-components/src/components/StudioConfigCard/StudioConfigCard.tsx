@@ -3,7 +3,7 @@ import { StudioCard } from '../StudioCard';
 import classes from './StudioConfigCard.module.css';
 import cn from 'classnames';
 
-type StudioConfigCardProps = {
+export type StudioConfigCardProps = {
   children: React.ReactNode;
   className?: string;
 };
