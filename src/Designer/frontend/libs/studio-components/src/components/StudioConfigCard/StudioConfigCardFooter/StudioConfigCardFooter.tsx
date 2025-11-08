@@ -17,7 +17,7 @@ export function StudioConfigCardFooter({
   onSave,
   onCancel,
   isDisabled,
-  isLoading,
+  isLoading = false,
 }: StudioConfigCardFooterProps): ReactElement {
   return (
     <StudioFormActions
