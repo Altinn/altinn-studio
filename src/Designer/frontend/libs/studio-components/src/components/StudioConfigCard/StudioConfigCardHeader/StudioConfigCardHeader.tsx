@@ -3,7 +3,7 @@ import { StudioDeleteButton } from '../../StudioDeleteButton';
 import { StudioParagraph } from '../../StudioParagraph';
 import classes from './StudioConfigCardHeader.module.css';
 
-type StudioConfigCardHeaderProps = {
+export type StudioConfigCardHeaderProps = {
   cardLabel: string;
   isDeleteDisabled?: boolean;
   deleteAriaLabel: string;

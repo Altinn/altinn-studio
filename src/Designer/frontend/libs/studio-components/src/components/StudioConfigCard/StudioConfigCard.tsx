@@ -1,3 +1,4 @@
+import React from 'react';
 import { StudioCard } from '../StudioCard';
 import classes from './StudioConfigCard.module.css';
 
