@@ -582,7 +582,6 @@ export const getResourceSubjects = (
     return [...subjectData, ...accessListSubjects, organizationSubject];
   }
   if (resourceType === 'CorrespondenceService') {
-    // TODO: bør denne være å alle? Den er mulig å velge på alle apps
     return [...subjectData, policySubjectOrg];
   }
   return subjectData;
