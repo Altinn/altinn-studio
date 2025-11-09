@@ -1,13 +1,12 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaServiceAccount
 metadata:
-  name: altinn-studio-gateway-sa
-  namespace: runtime-gateway
+  name: external-grafana-altinn-studio-gateway-sa
+  namespace: grafana
 spec:
-  name: 'altinn-studio-gateway-sa'
+  instanceName: external-grafana
+  name: altinn-studio-gateway-sa
   role: Editor
-  isDisabled: false
-  instanceName: 'external-grafana'
   tokens:
-    - name: 'studio-gateway'
-      secretName: studio-gateway-grafana-token
+    - name: studio-gateway
+      secretName: external-grafana-altinn-studio-gateway-token

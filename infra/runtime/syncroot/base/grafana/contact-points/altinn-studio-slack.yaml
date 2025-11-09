@@ -1,21 +1,21 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaContactPoint
 metadata:
-  name: altinn-studio-slack
+  name: external-grafana-altinn-studio-slack
   namespace: grafana
 spec:
-  name: Altinn Studio Slack
+  name: altinn-studio-slack
   type: slack
   instanceSelector:
     matchLabels:
-      dashboards: 'external-grafana'
+      dashboards: external-grafana
   settings:
-    text: '{{ template "slack.message" . }}'
-    title: '{{ template "slack.default.title" . }}'
+    text: "{{ template 'slack.message' . }}"
+    title: "{{ template 'slack.default.title' . }}"
     disableResolveMessage: true
   valuesFrom:
-    - targetPath: 'settings.webhookUrl'
+    - targetPath: url
       valueFrom:
         secretKeyRef:
-          name: slack-webhook
+          name: external-grafana-altinn-studio-slack-webhook
           key: url

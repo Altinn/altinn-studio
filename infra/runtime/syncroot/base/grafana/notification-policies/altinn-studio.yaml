@@ -1,0 +1,27 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaNotificationPolicy
+metadata:
+  name: external-grafana-altinn-studio
+  namespace: grafana
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: external-grafana
+  route:
+    receiver: grafana-default-email
+    group_by:
+      - grafana_folder
+      - alertname
+    routes:
+      - receiver: altinn-studio-gateway
+        object_matchers:
+          - - Type
+            - =
+            - Altinn
+        repeat_interval: 5m
+      - receiver: altinn-studio-slack
+        object_matchers:
+          - - Type
+            - =
+            - Altinn
+        repeat_interval: 5m

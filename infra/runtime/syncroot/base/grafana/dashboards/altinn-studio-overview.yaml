@@ -7,7 +7,7 @@ spec:
   folderRef: external-grafana-altinn-studio
   instanceSelector:
     matchLabels:
-      dashboards: 'external-grafana'
+      dashboards: external-grafana
   json: >
     {
       "annotations": {
