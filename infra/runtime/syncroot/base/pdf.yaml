@@ -82,3 +82,6 @@ spec:
         namespace: default
   values:
     environment: ${ENVIRONMENT}
+    replicaCount: 0
+    autoscaling:
+      enabled: false
