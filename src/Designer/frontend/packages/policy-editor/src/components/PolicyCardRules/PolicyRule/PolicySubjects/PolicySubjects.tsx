@@ -79,16 +79,6 @@ export const PolicySubjects = () => {
     };
   };
 
-  const description =
-    subjectOptions.length === 0
-      ? t('policy_editor.rule_card_subjects_select_all_selected')
-      : t('policy_editor.rule_card_subjects_select_add');
-
-  const error =
-    showAllErrors && policyError.subjectsError
-      ? t('policy_editor.rule_card_subjects_error')
-      : false;
-
   return (
     <div>
       <div className={classes.subjectHeader}>{t('policy_editor.rule_card_subjects_title')}</div>
