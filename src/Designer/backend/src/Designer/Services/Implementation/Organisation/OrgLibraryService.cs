@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Constants;
@@ -25,38 +24,71 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
         cancellationToken.ThrowIfCancellationRequested();
 
         string repository = GetStaticContentRepo(org);
-        List<FileSystemObject> files = [];
+        List<FileSystemObject> jsonFiles = [];
         List<FileSystemObject> directoryContent = await GetDirectoryContent(org, path, reference, cancellationToken);
 
-        IEnumerable<string> filePaths = directoryContent
-            .Where(f => string.Equals(Path.GetExtension(f.Name), ".json"))
-            .Select(f => f.Path);
+        List<string> jsonFilePaths = [];
+        List<FileSystemObject> otherFiles = [];
+        foreach (FileSystemObject fileSystemObject in directoryContent)
+        {
+            string? fileExtension = Path.GetExtension(fileSystemObject.Name);
+            switch (fileExtension)
+            {
+                case ".json":
+                    jsonFilePaths.Add(fileSystemObject.Path);
+                    break;
+                default:
+                    otherFiles.Add(fileSystemObject);
+                    break;
+            }
+        }
 
         ParallelOptions options = new() { MaxDegreeOfParallelism = 25, CancellationToken = cancellationToken };
-        await Parallel.ForEachAsync(filePaths, options, async (filePath, token) =>
-        {
-            FileSystemObject file = await gitea.GetFileAsync(org, repository, filePath, reference, token);
-            files.Add(file);
-        });
+        await Parallel.ForEachAsync(jsonFilePaths, options,
+            async (string filePath, CancellationToken token) =>
+            {
+                FileSystemObject file = await gitea.GetFileAsync(org, repository, filePath, reference, token);
+                jsonFiles.Add(file);
+            }
+        );
 
-        List<LibraryFile> listOfLibraryFiles = [];
-        foreach (FileSystemObject file in files)
+        List<LibraryFile> libraryFiles = [];
+        AddJsonFiles(jsonFiles, libraryFiles);
+        AddOtherFiles(otherFiles, libraryFiles);
+
+        string baseCommitSha = await gitea.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
+
+        return new GetSharedResourcesResponse(Files: libraryFiles, CommitSha: baseCommitSha);
+    }
+
+    private static void AddJsonFiles(List<FileSystemObject> jsonFiles, List<LibraryFile> libraryFiles)
+    {
+        foreach (FileSystemObject jsonFile in jsonFiles)
+        {
+            string contentType = Path.GetExtension(jsonFile.Name);
+            LibraryFile libraryFile = new(
+                Path: jsonFile.Path,
+                ContentType: contentType,
+                Content: jsonFile.Content,
+                Url: null
+            );
+            libraryFiles.Add(libraryFile);
+        }
+    }
+
+    private static void AddOtherFiles(List<FileSystemObject> otherFiles, List<LibraryFile> libraryFiles)
+    {
+        foreach (FileSystemObject file in otherFiles)
         {
             string contentType = Path.GetExtension(file.Name);
             LibraryFile libraryFile = new(
                 Path: file.Path,
                 ContentType: contentType,
-                Content: file.Content,
-                Url: null
+                Content: null,
+                Url: file.HtmlUrl
             );
-            listOfLibraryFiles.Add(libraryFile);
+            libraryFiles.Add(libraryFile);
         }
-
-        // Missing handling of non-json files. They should return the url.
-
-        string baseCommitSha = await gitea.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
-
-        return new GetSharedResourcesResponse(Files: listOfLibraryFiles, CommitSha: baseCommitSha);
     }
 
     private async Task<List<FileSystemObject>> GetDirectoryContent(string org, string? path = null, string? reference = null, CancellationToken cancellationToken = default)
