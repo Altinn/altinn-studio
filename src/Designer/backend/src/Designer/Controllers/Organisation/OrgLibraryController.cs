@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Exceptions.CodeList;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
