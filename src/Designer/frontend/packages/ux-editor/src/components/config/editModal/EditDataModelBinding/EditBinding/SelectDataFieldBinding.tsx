@@ -27,26 +27,25 @@ export const SelectDataFieldBinding = ({
 }: SelectDataFieldProps): React.JSX.Element => {
   const { t } = useTranslation();
   const propertyPath = `definitions/component/properties/dataModelBindings/properties/${bindingKey}`;
-
   const { dataType: currentDataModel, field: currentDataModelField } = internalBindingFormat || {
     dataType: '',
     field: '',
   };
   const { dataModelMetadata, isDataModelValid, selectedDataModel } =
     useValidDataModels(currentDataModel);
-
   const dataModelFields = getDataModelFields({ componentType, bindingKey, dataModelMetadata });
   const isDataModelFieldValid = validateSelectedDataField(currentDataModelField, dataModelFields);
+  const [isBindingError, setIsBindingError] = React.useState(
+    !isDataModelFieldValid || !isDataModelValid,
+  );
   const componentPropertyHelpText = useComponentPropertyHelpText();
-
-  // Validate datamodel as well: fallbacks to default if invalid, then user must update datafield
-  const isBindingError = !isDataModelFieldValid || !isDataModelValid;
 
   const handleDataModelFieldChange = (updatedDataModelField: string) => {
     const updatedDataModelBinding = {
       field: updatedDataModelField,
       dataType: selectedDataModel,
     };
+    setIsBindingError(false);
     handleBindingChange(updatedDataModelBinding);
   };
 
@@ -54,6 +53,7 @@ export const SelectDataFieldBinding = ({
     { value: '', label: t('ux_editor.modal_properties_data_model_field_choose') },
     ...dataModelFields,
   ];
+
   return (
     <FormField
       id={`selectDataModelField-${bindingKey}`}
