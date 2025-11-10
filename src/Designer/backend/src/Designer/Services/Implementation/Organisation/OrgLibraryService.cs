@@ -139,11 +139,9 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
     {
         ParallelOptions options = new() { MaxDegreeOfParallelism = 25, CancellationToken = cancellationToken };
         await Parallel.ForEachAsync(request.Files, options,
-            async (KeyValuePair<string, string> kv, CancellationToken token) =>
+            async (FileMetadata fileMetadata, CancellationToken token) =>
             {
-                string path = kv.Key;
-                string content = kv.Value;
-                await UpdateFile(editingContext.Org, editingContext.Developer, path, content, cancellationToken);
+                await UpdateFile(editingContext.Org, editingContext.Developer, fileMetadata.Path, fileMetadata.Content, cancellationToken);
             }
         );
     }

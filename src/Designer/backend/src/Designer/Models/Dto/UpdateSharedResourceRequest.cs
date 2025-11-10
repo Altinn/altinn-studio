@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Altinn.Studio.Designer.Helpers.Extensions;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
@@ -11,7 +10,7 @@ namespace Altinn.Studio.Designer.Models.Dto;
 /// <param name="Files">Key is file path, Value is file content.</param>
 /// <param name="BaseCommitSha">The commit sha the user was checkout on.</param>
 /// <param name="CommitMessage">The commit message.</param>
-public sealed record UpdateSharedResourceRequest(Dictionary<string, string> Files, string BaseCommitSha, string? CommitMessage = null)
+public sealed record UpdateSharedResourceRequest(List<FileMetadata> Files, string BaseCommitSha, string? CommitMessage = null)
 {
     public bool Equals(UpdateSharedResourceRequest? other)
     {
@@ -30,7 +29,7 @@ public sealed record UpdateSharedResourceRequest(Dictionary<string, string> File
             return false;
         }
 
-        if (Files.IsEqualTo(other.Files) is false)
+        if (Files.SequenceEqual(other.Files) is false)
         {
             return false;
         }
@@ -43,10 +42,9 @@ public sealed record UpdateSharedResourceRequest(Dictionary<string, string> File
         hash.Add(BaseCommitSha, StringComparer.Ordinal);
         hash.Add(CommitMessage, StringComparer.Ordinal);
 
-        foreach (KeyValuePair<string, string> kvp in Files.OrderBy(k => k.Key, StringComparer.Ordinal))
+        foreach (FileMetadata fileMetadata in Files)
         {
-            hash.Add(kvp.Key, StringComparer.Ordinal);
-            hash.Add(kvp.Value, StringComparer.Ordinal);
+            hash.Add(fileMetadata);
         }
 
         return hash.ToHashCode();
