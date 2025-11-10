@@ -5,6 +5,7 @@ import { ArrowUndoIcon, TrashIcon, UploadIcon } from '@navikt/aksel-icons';
 
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useFocusWhenUploaded } from 'src/layout/ImageUpload/hooks/useFocusWhenUploaded';
 import classes from 'src/layout/ImageUpload/ImageControllers.module.css';
 import { isAnimationFile, logToNormalZoom, normalToLogZoom } from 'src/layout/ImageUpload/imageUploadUtils';
 import type { UploadedAttachment } from 'src/features/attachments';
@@ -41,6 +42,10 @@ export function ImageControllers({
   const zoomId = `${uid}-zoom`;
   const inputId = `${uid}-image-upload`;
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const deleteButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Focus delete button when image is successfully uploaded
+  useFocusWhenUploaded(storedImage, deleteButtonRef);
 
   const handleSliderZoom = (e: React.ChangeEvent<HTMLInputElement>) => {
     const logarithmicZoomValue = normalToLogZoom({
@@ -59,9 +64,14 @@ export function ImageControllers({
     }
   };
 
+  const handleFileSelectClick = (): void => {
+    fileInputRef?.current?.click();
+  };
+
   if (storedImage) {
     return (
       <Button
+        ref={deleteButtonRef}
         data-size='sm'
         variant='secondary'
         data-color='danger'
@@ -73,13 +83,6 @@ export function ImageControllers({
       </Button>
     );
   }
-
-  const handleFileSelectKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      fileInputRef?.current?.click();
-    }
-  };
 
   return (
     <div className={classes.controlsContainer}>
@@ -130,20 +133,17 @@ export function ImageControllers({
           accept='image/*'
           onChange={handleImageChange}
           hidden
+          aria-label={langAsString('image_upload_component.button_change')}
         />
 
         <Button
-          asChild
           data-size='sm'
           variant='secondary'
           data-color='accent'
-          tabIndex={0}
-          onKeyDown={(e) => handleFileSelectKeyDown(e)}
+          onClick={handleFileSelectClick}
         >
-          <Label htmlFor={inputId}>
-            <UploadIcon />
-            <Lang id='image_upload_component.button_change' />
-          </Label>
+          <UploadIcon aria-hidden />
+          <Lang id='image_upload_component.button_change' />
         </Button>
         <Button
           data-size='sm'

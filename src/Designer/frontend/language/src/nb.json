@@ -927,6 +927,7 @@
   "preview.limitations_info": "Forhåndsvisningen til Altinn Studio lar deg se en forenklet visning av skjemasidene. Visningen tar ikke hensyn til forhåndsutfylling og egendefinerte funksjoner. Du får derfor ikke testet hele flyten i appen her.",
   "preview.loading_page": "Laster inn forhåndsvisning",
   "preview.loading_preview_controller": "Laster inn",
+  "preview.select_task": "Velg oppgave",
   "preview.subheader.restart": "Start på nytt",
   "preview.subheader.sharelink": "Del lenke",
   "preview.subheader.showas": "Vis som",

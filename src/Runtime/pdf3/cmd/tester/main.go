@@ -653,7 +653,7 @@ func runLoadtestLocal() {
 	}
 
 	// Read k6 test script
-	testScriptPath := filepath.Join(projectRoot, "test", "load", "test-local.ts")
+	testScriptPath := filepath.Join(projectRoot, "test", "load", "test-local.js")
 	testScript, err := os.Open(testScriptPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to read test script: %v\n", err)

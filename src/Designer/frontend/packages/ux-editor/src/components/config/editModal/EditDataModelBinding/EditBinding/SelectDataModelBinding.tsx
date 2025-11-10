@@ -1,7 +1,7 @@
 import React, { useId } from 'react';
 import classes from './SelectDataModelBinding.module.css';
 import { FormField } from 'app-shared/components/FormField';
-import { StudioNativeSelect } from '@studio/components-legacy';
+import { StudioSelect } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useGetBindableDataTypes } from '../../../../../hooks/useGetBindableDataTypes';
@@ -44,25 +44,24 @@ export const SelectDataModelBinding = ({
       propertyPath={propertyPath}
       label={t('ux_editor.modal_properties_data_model_binding')}
       renderField={({ fieldProps }) => (
-        <StudioNativeSelect
+        <StudioSelect
           className={classes.selectDataModel}
           {...fieldProps}
           label={t('ux_editor.modal_properties_data_model_binding')}
           id={id}
           onChange={(e) => fieldProps.onChange(e.target.value)}
-          size='small'
         >
           {defaultDataTypeName && (
-            <option key={defaultDataTypeName} value={defaultDataTypeName}>
+            <StudioSelect.Option key={defaultDataTypeName} value={defaultDataTypeName}>
               {defaultDataTypeName}
-            </option>
+            </StudioSelect.Option>
           )}
           {bindableDataTypes.map((dataType) => (
-            <option key={dataType.id} value={dataType.id}>
+            <StudioSelect.Option key={dataType.id} value={dataType.id}>
               {dataType.id}
-            </option>
+            </StudioSelect.Option>
           ))}
-        </StudioNativeSelect>
+        </StudioSelect>
       )}
     />
   );

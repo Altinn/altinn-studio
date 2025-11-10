@@ -49,6 +49,7 @@ export * from './StudioLabelAsParagraph';
 export * from './StudioLink';
 export * from './StudioLinkButton';
 export * from './StudioList';
+export * from './StudioManualExpression';
 export * from './StudioNotFoundPage';
 export * from './StudioPaginatedContent';
 export * from './StudioPageError';

@@ -206,8 +206,6 @@ internal sealed class SigningReceiptService(
                     .WithSendersReference(element.Id)
                     .WithData(
                         await dataClient.GetDataBytes(
-                            appMetadata.AppIdentifier.Org,
-                            appMetadata.AppIdentifier.App,
                             instanceIdentifier.InstanceOwnerPartyId,
                             instanceIdentifier.InstanceGuid,
                             Guid.Parse(element.Id)

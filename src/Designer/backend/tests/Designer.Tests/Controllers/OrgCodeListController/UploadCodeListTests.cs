@@ -5,19 +5,31 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Controllers.OrgCodeListController;
 
 public class UploadCodeListTests : DesignerEndpointsTestsBase<UploadCodeListTests>, IClassFixture<WebApplicationFactory<Program>>
 {
+    private readonly Mock<ISharedContentClient> _contentClientMock;
     public UploadCodeListTests(WebApplicationFactory<Program> factory) : base(factory)
     {
+        _contentClientMock = new Mock<ISharedContentClient>();
     }
+
+    protected override void ConfigureTestServices(IServiceCollection services)
+    {
+        base.ConfigureTestServices(services);
+        services.AddSingleton(_contentClientMock.Object);
+    }
+
 
     private const string Org = "ttd";
     private const string Repo = "org-content-empty";
