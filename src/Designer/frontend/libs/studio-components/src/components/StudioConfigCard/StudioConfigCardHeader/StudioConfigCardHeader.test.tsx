@@ -29,7 +29,7 @@ const renderStudioConfigCardHeader = (
   const defaultProps: StudioConfigCardHeaderProps = {
     cardLabel: 'Card Title',
     deleteAriaLabel: 'Delete Card',
-    confirmMessage: 'Are you sure you want to delete this card?',
+    confirmDeleteMessage: 'Are you sure you want to delete this card?',
     onDelete: jest.fn(),
   };
 

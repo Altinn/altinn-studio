@@ -7,7 +7,7 @@ export type StudioConfigCardHeaderProps = {
   cardLabel: string;
   isDeleteDisabled?: boolean;
   deleteAriaLabel: string;
-  confirmMessage: string;
+  confirmDeleteMessage: string;
   onDelete: () => void;
 };
 
@@ -15,7 +15,7 @@ export function StudioConfigCardHeader({
   cardLabel,
   isDeleteDisabled,
   deleteAriaLabel,
-  confirmMessage,
+  confirmDeleteMessage,
   onDelete,
 }: StudioConfigCardHeaderProps): ReactElement {
   return (
@@ -23,7 +23,7 @@ export function StudioConfigCardHeader({
       <StudioParagraph className={classes.cardTitle}>{cardLabel}</StudioParagraph>
       <StudioDeleteButton
         disabled={isDeleteDisabled}
-        confirmMessage={confirmMessage}
+        confirmMessage={confirmDeleteMessage}
         onDelete={onDelete}
         aria-label={deleteAriaLabel}
         variant='tertiary'
