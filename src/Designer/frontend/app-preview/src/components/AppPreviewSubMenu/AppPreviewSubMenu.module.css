@@ -5,6 +5,11 @@
   padding-inline: var(--fds-spacing-4);
 }
 
+.link {
+  color: var(--ds-color-neutral-background-default);
+}
+
 .icon {
   font-size: var(--fds-sizing-6);
+  color: var(--ds-color-neutral-background-default);
 }

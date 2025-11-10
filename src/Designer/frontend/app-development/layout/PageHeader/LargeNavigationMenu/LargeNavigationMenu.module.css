@@ -1,7 +1,6 @@
 .wrapper {
   display: flex;
   align-items: center;
-  gap: var(--ds-size-8);
 }
 
 .menu {
@@ -10,9 +9,6 @@
   justify-content: flex-start;
   list-style-type: none;
   flex: 2;
-  padding: 0 var(--ds-size-4);
-  gap: var(--ds-size-8);
-  font-size: var(--ds-font-size-5);
 }
 
 .active {

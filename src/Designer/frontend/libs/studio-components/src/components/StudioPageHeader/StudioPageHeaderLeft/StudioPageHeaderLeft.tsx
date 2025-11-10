@@ -14,5 +14,5 @@ export const StudioPageHeaderLeft = ({
     return <div>{children}</div>;
   }
 
-  return <DigdirLogoLink title={title || 'Altinn'} showTitle={showTitle} />;
+  return <DigdirLogoLink title={title} showTitle={showTitle} />;
 };
