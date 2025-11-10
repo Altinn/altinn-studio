@@ -41,6 +41,20 @@ jobs:
           if-no-files-found: error
           path: src/App/frontend/dist
 
+      - name: Build docker images
+        working-directory: src/Runtime/localtest
+        run: docker compose --profile test-apps build
+
+      - name: Save docker images
+        run: docker save localtest-loadbalancer:latest localtest:latest localtest-altinn_test_apps -o /tmp/localtest-images.tar
+
+      - name: Upload docker images
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: localtest-docker-images
+          path: /tmp/localtest-images.tar
+          retention-days: 1
+
   cypress-run-internal:
     name: Cypress Run Internal
     if: |
@@ -68,6 +82,19 @@ jobs:
         with:
           name: app-frontend-dist
           path: src/App/frontend/dist
+
+      - name: Download docker images
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: localtest-docker-images
+          path: /tmp
+
+      - name: Load docker images
+        run: docker load -i /tmp/localtest-images.tar
+
+      - name: Start localtest
+        working-directory: src/Runtime/localtest
+        run: docker compose --profile test-apps up -d
 
       - name: Set Percy command based on PR draft status or main branch
         shell: bash
@@ -101,13 +128,18 @@ jobs:
           browser: chrome
           ci-build-id: ${{ github.run_id }}-${{ github.run_attempt }}
           spec: test/e2e/integration
-          env: environment=tt02
+          env: environment=docker
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()
         with:
           name: app-frontend-logs
           path: src/App/frontend/test/logs/*
+
+      - name: Stop localtest
+        if: always()
+        working-directory: src/Runtime/localtest
+        run: docker compose down
 
   cypress-run-external:
     name: Cypress Run External
@@ -133,6 +165,19 @@ jobs:
           name: app-frontend-dist
           path: src/App/frontend/dist
 
+      - name: Download docker images
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: localtest-docker-images
+          path: /tmp
+
+      - name: Load docker images
+        run: docker load -i /tmp/localtest-images.tar
+
+      - name: Start localtest
+        working-directory: src/Runtime/localtest
+        run: docker compose --profile test-apps up -d
+
       - name: Cypress run
         uses: cypress-io/github-action@v6
         with:
@@ -140,7 +185,7 @@ jobs:
           start: 'npx http-server dist --cors="*" -p 8080'
           browser: chrome
           spec: test/e2e/integration
-          env: environment=tt02
+          env: environment=docker
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()
@@ -150,3 +195,8 @@ jobs:
             src/App/frontend/test/logs/*
             src/App/frontend/test/screenshots/*
             src/App/frontend/test/videos/*
+
+      - name: Stop localtest
+        if: always()
+        working-directory: src/Runtime/localtest
+        run: docker compose down
