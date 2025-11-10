@@ -1,0 +1,1843 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema.json",
+  "@xsdNamespaces": {
+    "brreg": "http://www.brreg.no/or",
+    "xs": "http://www.w3.org/2001/XMLSchema"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "@xsdRootElement": "Skjema",
+  "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EArbeidsgiverskjema AFP\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+  "@xsdAnyAttribute": {
+    "Namespace": "##any",
+    "ProcessContent": "None"
+  },
+  "type": "object",
+  "allOf": [
+    {
+      "properties": {
+        "skjemanummer": {
+          "@xsdType": "integer",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "1472"
+        },
+        "spesifikasjonsnummer": {
+          "@xsdType": "integer",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "9812"
+        },
+        "blankettnummer": {
+          "@xsdType": "string",
+          "@xsdAttribute": true,
+          "type": "string",
+          "const": "AFP-01"
+        },
+        "tittel": {
+          "@xsdType": "string",
+          "@xsdAttribute": true,
+          "type": "string",
+          "const": "Arbeidsgiverskjema AFP"
+        },
+        "gruppeid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "8818"
+        },
+        "etatid": {
+          "@xsdType": "string",
+          "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+          "@xsdAttribute": true,
+          "type": "string",
+          "enum": [
+            "987414502"
+          ]
+        }
+      },
+      "required": [
+        "skjemanummer",
+        "spesifikasjonsnummer"
+      ]
+    },
+    {
+      "properties": {
+        "OpplysningerOmArbeidstakeren-grp-8819": {
+          "@xsdType": "#ref",
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/OpplysningerOmArbeidstakeren-grp-8819"
+        },
+        "StillingsbrokGrad-grp-8821": {
+          "@xsdType": "#ref",
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/StillingsbrokGrad-grp-8821"
+        },
+        "Permisjonsopplysninger-grp-8822": {
+          "@xsdType": "#ref",
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/Permisjonsopplysninger-grp-8822"
+        },
+        "Foretak-grp-8820": {
+          "@xsdType": "#ref",
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/Foretak-grp-8820"
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "OpplysningerOmArbeidstakeren-grp-8819": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EArbeidsforhold\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+      "allOf": [
+        {
+          "properties": {
+            "gruppeid": {
+              "@xsdType": "positiveInteger",
+              "@xsdAttribute": true,
+              "type": "integer",
+              "const": "8819"
+            }
+          },
+          "required": [
+            "gruppeid"
+          ]
+        },
+        {
+          "properties": {
+            "Skjemainstans-grp-8854": {
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/Skjemainstans-grp-8854"
+            },
+            "OpplysningerOmArbeidstakeren-grp-8855": {
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/OpplysningerOmArbeidstakeren-grp-8855"
+            },
+            "Arbeidsforhold-grp-8856": {
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/Arbeidsforhold-grp-8856"
+            }
+          }
+        }
+      ]
+    },
+    "Skjemainstans-grp-8854": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003ESkjemainstans\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+      "allOf": [
+        {
+          "properties": {
+            "gruppeid": {
+              "@xsdType": "positiveInteger",
+              "@xsdAttribute": true,
+              "type": "integer",
+              "const": "8854"
+            }
+          },
+          "required": [
+            "gruppeid"
+          ]
+        },
+        {
+          "properties": {
+            "Journalnummer-datadef-33316": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EJournalnummer\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/Journalnummer-datadef-33316"
+            },
+            "IdentifikasjonsnummerKrav-datadef-33317": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EKravID\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/IdentifikasjonsnummerKrav-datadef-33317"
+            }
+          }
+        }
+      ]
+    },
+    "Journalnummer-datadef-33316": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EJournalnummer\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E1\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Heltall20-repformat-696"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33316"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "Heltall20-repformat-696": {
+      "@xsdType": "integer",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+      "totalDigits": 20,
+      "type": "integer"
+    },
+    "IdentifikasjonsnummerKrav-datadef-33317": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EIdentifikasjonsnummer på kravet.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E2\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst20-repformat-85"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33317"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "Tekst20-repformat-85": {
+      "@xsdType": "string",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+      "type": "string",
+      "maxLength": 20,
+      "minLength": 1
+    },
+    "OpplysningerOmArbeidstakeren-grp-8855": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EOpplysninger om arbeidstakeren\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+      "allOf": [
+        {
+          "properties": {
+            "gruppeid": {
+              "@xsdType": "positiveInteger",
+              "@xsdAttribute": true,
+              "type": "integer",
+              "const": "8855"
+            }
+          },
+          "required": [
+            "gruppeid"
+          ]
+        },
+        {
+          "properties": {
+            "AnsattNavn-datadef-1223": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003ENavn\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/AnsattNavn-datadef-1223"
+            },
+            "AnsattFodselsnummer-datadef-1224": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EFødselsnummer\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/AnsattFodselsnummer-datadef-1224"
+            },
+            "OppgavegiverTelefonnummer-datadef-27335": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003ETelefonnummer\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/OppgavegiverTelefonnummer-datadef-27335"
+            },
+            "OppgavegiverEPost-datadef-27334": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EE-post\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/OppgavegiverEPost-datadef-27334"
+            },
+            "AnsattSoknadAFPDato-datadef-33282": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003ETidspunkt AFP søkes fra\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/AnsattSoknadAFPDato-datadef-33282"
+            },
+            "AnsattKjonn": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string"
+                },
+                "orid": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "value",
+                "orid"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "AnsattNavn-datadef-1223": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E3\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst35-repformat-3"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "1223"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "Tekst35-repformat-3": {
+      "@xsdType": "string",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+      "type": "string",
+      "maxLength": 35,
+      "minLength": 1
+    },
+    "AnsattFodselsnummer-datadef-1224": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E4\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst1111Modulus11-repformat-18"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "1224"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "Tekst1111Modulus11-repformat-18": {
+      "@xsdType": "string",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+      "type": "string",
+      "maxLength": 11,
+      "minLength": 11
+    },
+    "OppgavegiverTelefonnummer-datadef-27335": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E5\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst11-repformat-489"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "27335"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "Tekst11-repformat-489": {
+      "@xsdType": "string",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+      "type": "string",
+      "maxLength": 11,
+      "minLength": 1
+    },
+    "OppgavegiverEPost-datadef-27334": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E6\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst50-repformat-70"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "27334"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "Tekst50-repformat-70": {
+      "@xsdType": "string",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+      "type": "string",
+      "maxLength": 50,
+      "minLength": 1
+    },
+    "AnsattSoknadAFPDato-datadef-33282": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHvilken dato arbeidstaker søker AFP fra.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E7\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Dato-repformat-5"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33282"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "Dato-repformat-5": {
+      "@xsdType": "date",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+      "type": "string",
+      "format": "date"
+    },
+    "Arbeidsforhold-grp-8856": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EArbeidsforhold\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+      "allOf": [
+        {
+          "properties": {
+            "gruppeid": {
+              "@xsdType": "positiveInteger",
+              "@xsdAttribute": true,
+              "type": "integer",
+              "const": "8856"
+            }
+          },
+          "required": [
+            "gruppeid"
+          ]
+        },
+        {
+          "properties": {
+            "AnsattTiltredelseDato-datadef-1387": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003ENår ble arbeidstakeren ansatt?\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "$ref": "#/$defs/AnsattTiltredelseDato-datadef-1387"
+            },
+            "AnsattSammenhengendeAnsattAnsettelse-datadef-33267": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHar arbeidstakeren vært sammenhengende ansatt fra denne dato?\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "$ref": "#/$defs/AnsattSammenhengendeAnsattAnsettelse-datadef-33267"
+            },
+            "AnsattArbeidsforholdPabegynt-datadef-33268": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EOppgi når nåværende arbeidsforhold begynte\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/AnsattArbeidsforholdPabegynt-datadef-33268"
+            },
+            "AnsattArbeidsforholdOpphort-datadef-33269": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EEr det bestemt når arbeidsforholdet skal opphøre?\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "$ref": "#/$defs/AnsattArbeidsforholdOpphort-datadef-33269"
+            },
+            "AnsattArbeidsforholdOpphortDato-datadef-33261": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EOppgi opphørsdato\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/AnsattArbeidsforholdOpphortDato-datadef-33261"
+            },
+            "AnsattLonnUtbetaltDato-datadef-33262": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EOppgi siste dag arbeidstakeren mottar lønn\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/AnsattLonnUtbetaltDato-datadef-33262"
+            },
+            "AnsattArbeidsforholdOpphortDato-datadef-33270": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHvis arbeidsforholdet allerede er avsluttet, oppgi siste arbeidsdag\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/AnsattArbeidsforholdOpphortDato-datadef-33270"
+            },
+            "AnsattArbeidsforholdOpphortArsak-datadef-33271": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHva var grunnen til at arbeidsforholdet ble avsluttet?\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/AnsattArbeidsforholdOpphortArsak-datadef-33271"
+            },
+            "AnsattLonnSpesifisertManed-datadef-33263": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EOppgi arbeidstakerens nåværende pensjonsgivende inntekt pr. måned\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "$ref": "#/$defs/AnsattLonnSpesifisertManed-datadef-33263"
+            },
+            "AnsattLonnBelopPeriode-datadef-33264": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EOppgi samlet pensjonsgivende inntekt (kode 111-A SKD) arbeidstaker har  mottatt siste 15 måneder\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "$ref": "#/$defs/AnsattLonnBelopPeriode-datadef-33264"
+            }
+          },
+          "required": [
+            "AnsattTiltredelseDato-datadef-1387",
+            "AnsattSammenhengendeAnsattAnsettelse-datadef-33267",
+            "AnsattArbeidsforholdOpphort-datadef-33269",
+            "AnsattLonnSpesifisertManed-datadef-33263",
+            "AnsattLonnBelopPeriode-datadef-33264"
+          ]
+        }
+      ]
+    },
+    "AnsattTiltredelseDato-datadef-1387": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E8\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Dato-repformat-5"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "1387"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "AnsattSammenhengendeAnsattAnsettelse-datadef-33267": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E9\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/KodelisteEttValg2JaNei-repformat-4"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33267"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "KodelisteEttValg2JaNei-repformat-4": {
+      "@xsdType": "string",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+      "type": "string",
+      "enum": [
+        "Ja",
+        "Nei"
+      ],
+      "maxLength": 3,
+      "minLength": 1
+    },
+    "AnsattArbeidsforholdPabegynt-datadef-33268": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EOppgi når nåværende arbeidsforhold ble påbegynt.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E10\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Dato-repformat-5"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33268"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "AnsattArbeidsforholdOpphort-datadef-33269": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EEr det bestemt når arbeidsforhold skal opphøre.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E11\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/KodelisteEttValg2JaNei-repformat-4"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33269"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "AnsattArbeidsforholdOpphortDato-datadef-33261": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EOpphørsdato dersom arbeidsforholdet har opphørt.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E12\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Dato-repformat-5"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33261"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "AnsattLonnUtbetaltDato-datadef-33262": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EDato for siste lønnsutbetalingsdato når arbeidsforholdet er opphørt.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E13\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Dato-repformat-5"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33262"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "AnsattArbeidsforholdOpphortDato-datadef-33270": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EDato for siste arbeidsdag når arbeidsforholdet allerede er avsluttet.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E14\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Dato-repformat-5"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33270"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "AnsattArbeidsforholdOpphortArsak-datadef-33271": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EÅrsaken til at arbeidsforholdet ble avsluttet.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E15\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Kodeliste4EttValgAvslutningsarsak-repformat-1038"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33271"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "Kodeliste4EttValgAvslutningsarsak-repformat-1038": {
+      "@xsdType": "string",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+      "type": "string",
+      "enum": [
+        "Oppsigelse",
+        "Avskjed",
+        "Pensjonert",
+        "Annet"
+      ],
+      "maxLength": 10,
+      "minLength": 1
+    },
+    "AnsattLonnSpesifisertManed-datadef-33263": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EArbeidstakers nåværende lønn pr måned.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E16\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Heltall11-repformat-754"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33263"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "Heltall11-repformat-754": {
+      "@xsdType": "integer",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+      "totalDigits": 11,
+      "type": "integer"
+    },
+    "AnsattLonnBelopPeriode-datadef-33264": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EArbeidstakers samlede lønn siste 15 måneder.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E17\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Heltall11-repformat-754"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33264"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "StillingsbrokGrad-grp-8821": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EStillingsbrøk/-grad\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+      "allOf": [
+        {
+          "properties": {
+            "gruppeid": {
+              "@xsdType": "positiveInteger",
+              "@xsdAttribute": true,
+              "type": "integer",
+              "const": "8821"
+            }
+          },
+          "required": [
+            "gruppeid"
+          ]
+        },
+        {
+          "properties": {
+            "NavarendeStillingsbrokGrad-grp-8857": {
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/NavarendeStillingsbrokGrad-grp-8857"
+            },
+            "ForhenvarendeStillingsbrokGrad-grp-8858": {
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/ForhenvarendeStillingsbrokGrad-grp-8858"
+            }
+          }
+        }
+      ]
+    },
+    "NavarendeStillingsbrokGrad-grp-8857": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003ENåværende stillingsbrøk/-grad\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+      "allOf": [
+        {
+          "properties": {
+            "gruppeid": {
+              "@xsdType": "positiveInteger",
+              "@xsdAttribute": true,
+              "type": "integer",
+              "const": "8857"
+            }
+          },
+          "required": [
+            "gruppeid"
+          ]
+        },
+        {
+          "properties": {
+            "AnsattHeltidDeltidSesong-datadef-33273": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EEr arbeidstaker heltidsansatt, deltidsansatt eller sesongarbeidstaker?\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "$ref": "#/$defs/AnsattHeltidDeltidSesong-datadef-33273"
+            },
+            "AnsattStillingsprosent-datadef-31808": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EOppgi stillingsbrøk/-grad\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/AnsattStillingsprosent-datadef-31808"
+            },
+            "NarBegynteArbeidstakerenINavarendeStillingsbrokGrad-grp-8860": {
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/NarBegynteArbeidstakerenINavarendeStillingsbrokGrad-grp-8860"
+            }
+          },
+          "required": [
+            "AnsattHeltidDeltidSesong-datadef-33273"
+          ]
+        }
+      ]
+    },
+    "AnsattHeltidDeltidSesong-datadef-33273": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EEr arbeidstaker heltidsansatt, deltidsansatt eller sesongarbeider.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E18\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Kodeliste3EttValgAnsettelsesforhold-repformat-1039"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33273"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "Kodeliste3EttValgAnsettelsesforhold-repformat-1039": {
+      "@xsdType": "string",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+      "type": "string",
+      "enum": [
+        "Heltidsansatt",
+        "Deltidsansatt",
+        "Sesongarbeider"
+      ],
+      "maxLength": 20,
+      "minLength": 1
+    },
+    "AnsattStillingsprosent-datadef-31808": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NON\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EStillingsprosent til den ansatte i HUK-området.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E20\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/PosHeltall3-repformat-126"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "31808"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "PosHeltall3-repformat-126": {
+      "@xsdType": "positiveInteger",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+      "totalDigits": 3,
+      "type": "integer"
+    },
+    "NarBegynteArbeidstakerenINavarendeStillingsbrokGrad-grp-8860": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003ENår begynte arbeidstakeren i nåværende stillingsbrøk/-grad?\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+      "allOf": [
+        {
+          "properties": {
+            "gruppeid": {
+              "@xsdType": "positiveInteger",
+              "@xsdAttribute": true,
+              "type": "integer",
+              "const": "8860"
+            }
+          },
+          "required": [
+            "gruppeid"
+          ]
+        },
+        {
+          "properties": {
+            "AnsattPabegyntStillingDato-datadef-33272": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EFra dato\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "$ref": "#/$defs/AnsattPabegyntStillingDato-datadef-33272"
+            }
+          },
+          "required": [
+            "AnsattPabegyntStillingDato-datadef-33272"
+          ]
+        }
+      ]
+    },
+    "AnsattPabegyntStillingDato-datadef-33272": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EDato arbeidstaker begynte i nåværende stilling.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E19\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Dato-repformat-5"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33272"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "ForhenvarendeStillingsbrokGrad-grp-8858": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EStillingsbrøk/-grad før nåværende stilling\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+      "allOf": [
+        {
+          "properties": {
+            "gruppeid": {
+              "@xsdType": "positiveInteger",
+              "@xsdAttribute": true,
+              "type": "integer",
+              "const": "8858"
+            }
+          },
+          "required": [
+            "gruppeid"
+          ]
+        },
+        {
+          "properties": {
+            "AnsattHeltidDeltidSesongArbeidetIkkeIForetaketTidligere-datadef-33274": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EArbeidstakers tidligere stilling\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "$ref": "#/$defs/AnsattHeltidDeltidSesongArbeidetIkkeIForetaketTidligere-datadef-33274"
+            },
+            "AnsattStillingsbrokTidligereProsent-datadef-33277": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EOppgi stillingsbrøk/-grad\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/AnsattStillingsbrokTidligereProsent-datadef-33277"
+            },
+            "TidsromForDenneStillingsbrokenGraden-grp-8859": {
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/TidsromForDenneStillingsbrokenGraden-grp-8859"
+            }
+          },
+          "required": [
+            "AnsattHeltidDeltidSesongArbeidetIkkeIForetaketTidligere-datadef-33274"
+          ]
+        }
+      ]
+    },
+    "AnsattHeltidDeltidSesongArbeidetIkkeIForetaketTidligere-datadef-33274": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E21\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/KodelisteEttValg4-repformat-1040"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33274"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "KodelisteEttValg4-repformat-1040": {
+      "@xsdType": "string",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+      "type": "string",
+      "enum": [
+        "Heltidsansatt",
+        "Deltidsansatt",
+        "Sesongarbeider",
+        "Arbeidet ikke i foretaket"
+      ],
+      "maxLength": 30,
+      "minLength": 1
+    },
+    "AnsattStillingsbrokTidligereProsent-datadef-33277": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EStillingsbrøk av deltidsansettelse.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E24\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/PosHeltall3-repformat-126"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33277"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "TidsromForDenneStillingsbrokenGraden-grp-8859": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003ETidsrom for denne stillingsbrøken/-graden\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+      "allOf": [
+        {
+          "properties": {
+            "gruppeid": {
+              "@xsdType": "positiveInteger",
+              "@xsdAttribute": true,
+              "type": "integer",
+              "const": "8859"
+            }
+          },
+          "required": [
+            "gruppeid"
+          ]
+        },
+        {
+          "properties": {
+            "AnsattStillingTidligereFra-datadef-33275": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EFra dato\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/AnsattStillingTidligereFra-datadef-33275"
+            },
+            "AnsattStillingTidligereTil-datadef-33276": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003ETil dato\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/AnsattStillingTidligereTil-datadef-33276"
+            }
+          }
+        }
+      ]
+    },
+    "AnsattStillingTidligereFra-datadef-33275": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E22\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Dato-repformat-5"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33275"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "AnsattStillingTidligereTil-datadef-33276": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E23\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Dato-repformat-5"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33276"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "Permisjonsopplysninger-grp-8822": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EPermisjonsopplysninger\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+      "allOf": [
+        {
+          "properties": {
+            "gruppeid": {
+              "@xsdType": "positiveInteger",
+              "@xsdAttribute": true,
+              "type": "integer",
+              "const": "8822"
+            }
+          },
+          "required": [
+            "gruppeid"
+          ]
+        },
+        {
+          "properties": {
+            "AnsattSykemeldt-datadef-33265": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHar arbeidstakeren i løpet av de siste tre år til sammen vært  sykemeldt mer enn 26 uker?\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022HJELP\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHvis arbeidstakeren ikke har vært ansatt i bedriften i hele  treårsperioden, er spørsmålet om arbeidstaker har vært sykemeldt mer  enn 52 uker siden vedkommende begynte i foretaket.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "$ref": "#/$defs/AnsattSykemeldt-datadef-33265"
+            },
+            "AnsattPermittert-datadef-33278": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHar arbeidstakeren i løpet av de siste tre år vært permittert?\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022HJELP\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHvis arbeidstakeren ikke har vært ansatt i bedriften i hele  treårsperioden, er spørsmålet om arbeidstaker har vært permittert  siden vedkommende begynte i foretaket.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "$ref": "#/$defs/AnsattPermittert-datadef-33278"
+            },
+            "AnsattPermittertPermiteringsgrad-datadef-33279": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EPermitteringsgrad\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/AnsattPermittertPermiteringsgrad-datadef-33279"
+            },
+            "AnsattPermittertDato-datadef-33283": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EFra dato\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/AnsattPermittertDato-datadef-33283"
+            },
+            "AnsattPermisjon-datadef-33280": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHar arbeidstakeren i løpet av de siste tre år til sammen hatt  permisjon i mer enn 26 uker?\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022HJELP\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHvis arbeidstakeren ikke har vært ansatt i bedriften i hele  treårsperioden, er spørsmålet om arbeidstaker har hatt permisjon mer  enn 26 uker siden vedkommende begynte i foretaket\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "$ref": "#/$defs/AnsattPermisjon-datadef-33280"
+            },
+            "AnsattPermisjonType-datadef-33281": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EOppgi type permisjon\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/AnsattPermisjonType-datadef-33281"
+            },
+            "AnsattYtelserMottattUtenArbeidsplikt-datadef-33293": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHar arbeidstakeren i løpet av de siste tre år fått utbetalt pensjon,  ventelønn eller annen ytelse uten motsvarende arbeidsplikt, fra  nåværende eller tidligere arbeidsforhold?\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022HJELP\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003ESvar ja også dersom arbeidstakeren har mottatt pensjon eller fått  redusert stillingsbrøken/-graden, men opprettholdt tidligere lønn.  Hvis arbeidstakeren ikke har vært ansatt i bedriften i hele  treårsperioden, er\r\n                                    spørsmålet om arbeidstakeren har mottatt ytelser  uten motsvarende arbeidsplikt siden vedkommende begynte i foretaket.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "$ref": "#/$defs/AnsattYtelserMottattUtenArbeidsplikt-datadef-33293"
+            },
+            "AnsattEierandel20EllerMer-datadef-33294": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHar arbeidstakeren etter fylte 53 år hatt en eierandel på 20 % eller  mer i foretaket eller i annet selskap i samme konsern?\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "$ref": "#/$defs/AnsattEierandel20EllerMer-datadef-33294"
+            },
+            "AnsattIForetaketHovedbeskjeftigelse-datadef-33284": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHar arbeidstakeren hatt arbeidet i foretaket som sin  hovedbeskjeftigelse?\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022HJELP\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003ESvar nei dersom arbeidsgiver kjenner til at arbeidstaker har brukt mer  enn halvparten av arbeidstiden i annet foretak.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "$ref": "#/$defs/AnsattIForetaketHovedbeskjeftigelse-datadef-33284"
+            },
+            "AnsattStillingsbrokUnder20-datadef-33285": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHar arbeidstakeren etter fylte 53 år hatt stillingsbrøk/-grad på under  20 %?\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "$ref": "#/$defs/AnsattStillingsbrokUnder20-datadef-33285"
+            }
+          },
+          "required": [
+            "AnsattSykemeldt-datadef-33265",
+            "AnsattPermittert-datadef-33278",
+            "AnsattPermisjon-datadef-33280",
+            "AnsattYtelserMottattUtenArbeidsplikt-datadef-33293",
+            "AnsattEierandel20EllerMer-datadef-33294",
+            "AnsattIForetaketHovedbeskjeftigelse-datadef-33284",
+            "AnsattStillingsbrokUnder20-datadef-33285"
+          ]
+        }
+      ]
+    },
+    "AnsattSykemeldt-datadef-33265": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHar arbeidstaker til sammen vært sykemeldt mer enn 52 uker i løpet av de tre siste årene.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E25\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/KodelisteEttValg2JaNei-repformat-4"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33265"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "AnsattPermittert-datadef-33278": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHar ansatte vært permittert i løpet av siste tre år.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E26\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/KodelisteEttValg2JaNei-repformat-4"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33278"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "AnsattPermittertPermiteringsgrad-datadef-33279": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EPermitteringsgrad.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E27\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/PosHeltall3-repformat-126"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33279"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "AnsattPermittertDato-datadef-33283": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EPermitteringsdato.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E28\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Dato-repformat-5"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33283"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "AnsattPermisjon-datadef-33280": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHar arbeidstaker i løpet av siste tre år hatt permisjon i mer enn 26 uker.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E29\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/KodelisteEttValg2JaNei-repformat-4"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33280"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "AnsattPermisjonType-datadef-33281": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EPermisjonstype.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E30\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst100-repformat-48"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33281"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "Tekst100-repformat-48": {
+      "@xsdType": "string",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1
+    },
+    "AnsattYtelserMottattUtenArbeidsplikt-datadef-33293": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHar arbeidstakeren i løpet av siste tre år mottatt ytelser uten motsvarende arbeidsplikt.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E31\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/KodelisteEttValg2JaNei-repformat-4"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33293"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "AnsattEierandel20EllerMer-datadef-33294": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHar arbeidstaker etter tylte 53 år hatt en eierandel på 20% eller mer i foretaket eller i annet selskap i samme konsern.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E32\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/KodelisteEttValg3JaNeiVetIkke-repformat-887"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33294"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "KodelisteEttValg3JaNeiVetIkke-repformat-887": {
+      "@xsdType": "string",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+      "type": "string",
+      "enum": [
+        "5",
+        "10",
+        "15"
+      ],
+      "maxLength": 2,
+      "minLength": 1
+    },
+    "AnsattIForetaketHovedbeskjeftigelse-datadef-33284": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHar arbeidstakeren hatt arbeidet i foretaket som sin hovedbeskjeftigelse.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E33\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/KodelisteEttValg3JaNeiVetIkke-repformat-887"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33284"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "AnsattStillingsbrokUnder20-datadef-33285": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHar arbeidstakeren etter fylte 53 år hatt stillingsbrøk på under 20%.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E34\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/KodelisteEttValg2JaNei-repformat-4"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33285"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "Foretak-grp-8820": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EForetak\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+      "allOf": [
+        {
+          "properties": {
+            "gruppeid": {
+              "@xsdType": "positiveInteger",
+              "@xsdAttribute": true,
+              "type": "integer",
+              "const": "8820"
+            }
+          },
+          "required": [
+            "gruppeid"
+          ]
+        },
+        {
+          "properties": {
+            "InnsenderNavn-datadef-3443": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EEnhetens navn\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/InnsenderNavn-datadef-3443"
+            },
+            "EnhetNavnEndring-datadef-33286": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EOppgi tidligere navn på foretaket dersom det har skiftet navn de siste  10 år\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/EnhetNavnEndring-datadef-33286"
+            },
+            "InnsenderAdresse-datadef-3445": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EPostadresse\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/InnsenderAdresse-datadef-3445"
+            },
+            "InnsenderPostnummer-datadef-11339": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EPostnummer\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/InnsenderPostnummer-datadef-11339"
+            },
+            "InnsenderPoststed-datadef-11340": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EPoststed\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/InnsenderPoststed-datadef-11340"
+            },
+            "EnhetTelefonnummer-datadef-755": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003ETelefon\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/EnhetTelefonnummer-datadef-755"
+            },
+            "EnhetTelefaksnummer-datadef-1816": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003ETelefaks\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/EnhetTelefaksnummer-datadef-1816"
+            },
+            "EnhetEPost-datadef-21591": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EE-post\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/EnhetEPost-datadef-21591"
+            },
+            "ForetakOrganisasjonsnummer-datadef-33552": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EOrganisasjonsnummer\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/ForetakOrganisasjonsnummer-datadef-33552"
+            },
+            "EnhetOrganisasjonsnummerNy-datadef-22684": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHvis ovennevnte organisasjonsnummer ikke stemmer, fyll ut riktig  nummer\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/EnhetOrganisasjonsnummerNy-datadef-22684"
+            },
+            "EnhetOrganisasjonsnummerEndringArsak-datadef-33287": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EOppgi grunn til endring av organisasjonsnummer\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/EnhetOrganisasjonsnummerEndringArsak-datadef-33287"
+            },
+            "BedriftOrganisasjonsnummer-datadef-19": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EUndernummer hvor arbeidstakeren er registrert i Arbeidsgiver- og  arbeidstakerregisteret\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/BedriftOrganisasjonsnummer-datadef-19"
+            },
+            "BedriftOrganisasjonsnummerNy-datadef-33292": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHvis ovennevnte undernummer ikke stemmer, fyll ut riktig nummer\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/BedriftOrganisasjonsnummerNy-datadef-33292"
+            },
+            "BedriftOrganisasjonsnummerEndringArsak-datadef-33288": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EOppgi grunn til endring av undernummer\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/BedriftOrganisasjonsnummerEndringArsak-datadef-33288"
+            },
+            "AnsattAnsettelsePgaFusjonFisjonOverdragelse-datadef-33289": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EHar arbeidstakeren blitt ansatt i foretaket i forbindelse med  sammenslåing (fusjon), deling (fisjon) eller overdragelse av  virksomhet?\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/AnsattAnsettelsePgaFusjonFisjonOverdragelse-datadef-33289"
+            },
+            "EnhetNavnEndring-datadef-31": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003ENavn på foretaket som har vært omfattet av foretaksendringen\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/EnhetNavnEndring-datadef-31"
+            },
+            "Merknad-datadef-33290": {
+              "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022LEDE\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EMerknad\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E",
+              "@xsdType": "#ref",
+              "@xsdMinOccurs": 0,
+              "$ref": "#/$defs/Merknad-datadef-33290"
+            }
+          }
+        }
+      ]
+    },
+    "InnsenderNavn-datadef-3443": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E35\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst175-repformat-8"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "3443"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "Tekst175-repformat-8": {
+      "@xsdType": "string",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+      "type": "string",
+      "maxLength": 175,
+      "minLength": 1
+    },
+    "EnhetNavnEndring-datadef-33286": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003ETidligere navn på enhet (siste 10 år).\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E36\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst175-repformat-8"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33286"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "InnsenderAdresse-datadef-3445": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E37\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst105-repformat-9"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "3445"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "Tekst105-repformat-9": {
+      "@xsdType": "string",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+      "type": "string",
+      "maxLength": 105,
+      "minLength": 1
+    },
+    "InnsenderPostnummer-datadef-11339": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E38\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst44BareTall-repformat-10"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "11339"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "Tekst44BareTall-repformat-10": {
+      "@xsdType": "string",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+      "type": "string",
+      "maxLength": 4,
+      "minLength": 4,
+      "pattern": "[0-9]{4}"
+    },
+    "InnsenderPoststed-datadef-11340": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E39\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst35-repformat-3"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "11340"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "EnhetTelefonnummer-datadef-755": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003ETelefonnummer til juridisk enhet\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E40\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst13-repformat-12"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "755"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "Tekst13-repformat-12": {
+      "@xsdType": "string",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+      "type": "string",
+      "maxLength": 13,
+      "minLength": 1
+    },
+    "EnhetTelefaksnummer-datadef-1816": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003ETelefaksnummer til juridisk enhet\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E41\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst13-repformat-12"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "1816"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "EnhetEPost-datadef-21591": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E42\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst100-repformat-48"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "21591"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "ForetakOrganisasjonsnummer-datadef-33552": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E43\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst99Modulus11-repformat-1"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33552"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "Tekst99Modulus11-repformat-1": {
+      "@xsdType": "string",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+      "type": "string",
+      "maxLength": 9,
+      "minLength": 9
+    },
+    "EnhetOrganisasjonsnummerNy-datadef-22684": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EDen aktuelle enhets nye organisasjonsnummer ved overdragelse eller fradeling til ny  enhet\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NON\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EDen aktuelle einings nye organisasjonsnummer ved overdragelse eller fradeling til ny eining\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E44\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst99Modulus11-repformat-1"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "22684"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "EnhetOrganisasjonsnummerEndringArsak-datadef-33287": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EÅrsak til endring av organisasjonsnummer.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E47\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst500-repformat-166"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33287"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "Tekst500-repformat-166": {
+      "@xsdType": "string",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
+      "type": "string",
+      "maxLength": 500,
+      "minLength": 1
+    },
+    "BedriftOrganisasjonsnummer-datadef-19": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E45\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst99Modulus11-repformat-1"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "19"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "BedriftOrganisasjonsnummerNy-datadef-33292": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E46\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst99Modulus11-repformat-1"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33292"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "BedriftOrganisasjonsnummerEndringArsak-datadef-33288": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EÅrsak til endring av bedriftsnummer.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E48\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst500-repformat-166"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33288"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "AnsattAnsettelsePgaFusjonFisjonOverdragelse-datadef-33289": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:tekst brreg:lang=\u0022NOB\u0022 brreg:teksttype=\u0022DEF\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E\u003Cp\u003EEr ansatte blitt ansatt i foretaket i forbindelse med sammenslåing (fusjon), deling (fisjon) eller overdragelse av virksomhet.\u003C/p\u003E\u003C/brreg:tekst\u003E\u003C/documentation\u003E\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E49\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/KodelisteEttValg2JaNei-repformat-4"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33289"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "EnhetNavnEndring-datadef-31": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E50\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst175-repformat-8"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "31"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    },
+    "Merknad-datadef-33290": {
+      "$comment": "\u003Cdocumentation\u003E\u003Cbrreg:info brreg:type=\u0022plassering\u0022 xmlns:brreg=\u0022http://www.brreg.no/or\u0022\u003E51\u003C/brreg:info\u003E\u003C/documentation\u003E",
+      "properties": {
+        "value": {
+          "@xsdText": true,
+          "$ref": "#/$defs/Tekst500-repformat-166"
+        },
+        "orid": {
+          "@xsdType": "positiveInteger",
+          "@xsdAttribute": true,
+          "type": "integer",
+          "const": "33290"
+        }
+      },
+      "required": [
+        "value",
+        "orid"
+      ]
+    }
+  }
+}

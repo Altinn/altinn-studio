@@ -4,52 +4,43 @@ import { LandingPage } from './LandingPage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { userEvent } from '@testing-library/user-event';
 import { useMediaQuery } from '@studio/components-legacy/src/hooks/useMediaQuery';
-import { renderWithProviders } from 'app-development/test/mocks';
-import { app, org } from '@studio/testing/testids';
+import { renderWithProviders } from '../../test/mocks';
+import { app, layoutSet, org } from '@studio/testing/testids';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { userMock } from 'app-development/test/userMock';
-import { typedLocalStorage } from '@studio/pure-functions';
 import { layoutSet3SubformNameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { useParams } from 'react-router-dom';
 
 jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
-
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
-  useParams: () => ({
+  useParams: jest.fn(() => ({
     org,
     app,
-  }),
+    layoutSet,
+  })),
 }));
-
 jest.mock('app-shared/api/mutations', () => ({
   createPreviewInstance: jest.fn().mockReturnValue(Promise.resolve({ id: 1 })),
 }));
 
-const mockGetItem = jest.fn();
-
-Object.defineProperty(window, 'localStorage', {
-  value: {
-    getItem: (...args: string[]) => mockGetItem(...args),
-  },
-});
-
 describe('LandingPage', () => {
   afterEach(() => {
+    jest.restoreAllMocks();
     jest.clearAllMocks();
-    typedLocalStorage.removeItem('layoutSet/' + app);
   });
 
   it('should display a spinner initially when loading user', () => {
     renderLandingPage();
 
-    expect(screen.getByTitle(textMock('preview.loading_page'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('preview.loading_page'))).toBeInTheDocument();
   });
 
   it('should render the app title if on a large screen', async () => {
     (useMediaQuery as jest.Mock).mockReturnValue(false);
     renderLandingPage();
 
-    await waitForElementToBeRemoved(screen.queryByTitle(textMock('preview.loading_page')));
+    await waitForElementToBeRemoved(screen.queryByLabelText(textMock('preview.loading_page')));
 
     expect(screen.getByText('testApp')).toBeInTheDocument();
   });
@@ -58,7 +49,7 @@ describe('LandingPage', () => {
     (useMediaQuery as jest.Mock).mockReturnValue(true);
     renderLandingPage();
 
-    await waitForElementToBeRemoved(screen.queryByTitle(textMock('preview.loading_page')));
+    await waitForElementToBeRemoved(screen.queryByLabelText(textMock('preview.loading_page')));
 
     expect(screen.queryByText('testApp')).not.toBeInTheDocument();
   });
@@ -70,7 +61,7 @@ describe('LandingPage', () => {
       getUser: jest.fn().mockImplementation(() => Promise.resolve(userMock)),
     });
 
-    await waitForElementToBeRemoved(screen.queryByTitle(textMock('preview.loading_page')));
+    await waitForElementToBeRemoved(screen.queryByLabelText(textMock('preview.loading_page')));
 
     await user.click(
       screen.getByRole('button', {
@@ -89,26 +80,30 @@ describe('LandingPage', () => {
   it('should display the iframe with the correct src', async () => {
     renderLandingPage();
 
-    await waitForElementToBeRemoved(screen.queryByTitle(textMock('preview.loading_page')));
+    await waitForElementToBeRemoved(screen.queryByLabelText(textMock('preview.loading_page')));
 
     const iframe = screen.getByTitle(textMock('preview.title'));
     expect(iframe).toHaveAttribute(
       'src',
-      expect.stringContaining(`/app-specific-preview/${org}/${app}?#/instance/`),
+      expect.stringContaining(
+        `/app-specific-preview/${org}/${app}?selectedLayoutSet=${layoutSet}#/instance/`,
+      ),
     );
   });
 
   it('should display a warning message when previewing a subform', async () => {
-    typedLocalStorage.setItem('layoutSet/' + app, layoutSet3SubformNameMock);
-    renderLandingPage({
-      getLayoutSets: jest
-        .fn()
-        .mockImplementation(() =>
-          Promise.resolve({ sets: [{ id: layoutSet3SubformNameMock, type: 'subform' }] }),
-        ),
-    });
+    renderLandingPage(
+      {
+        getLayoutSets: jest
+          .fn()
+          .mockImplementation(() =>
+            Promise.resolve({ sets: [{ id: layoutSet3SubformNameMock, type: 'subform' }] }),
+          ),
+      },
+      layoutSet3SubformNameMock,
+    );
 
-    await waitForElementToBeRemoved(screen.queryByTitle(textMock('preview.loading_page')));
+    await waitForElementToBeRemoved(screen.queryByLabelText(textMock('preview.loading_page')));
 
     expect(
       screen.getByText(textMock('ux_editor.preview.subform_unsupported_warning')),
@@ -116,6 +111,14 @@ describe('LandingPage', () => {
   });
 });
 
-const renderLandingPage = async (queries: Partial<ServicesContextProps> = {}) => {
+const renderLandingPage = async (
+  queries: Partial<ServicesContextProps> = {},
+  previewLayoutSet = layoutSet,
+) => {
+  jest.mocked(useParams).mockReturnValue({
+    org,
+    app,
+    layoutSet: previewLayoutSet,
+  });
   return renderWithProviders(queries)(<LandingPage />);
 };

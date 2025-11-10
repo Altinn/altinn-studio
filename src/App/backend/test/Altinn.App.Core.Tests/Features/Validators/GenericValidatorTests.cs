@@ -25,6 +25,8 @@ public class GenericValidatorTests
         public TestValidator()
             : base("MyType") { }
 
+        public override bool ShouldRunAfterRemovingHiddenData => true;
+
         protected override bool HasRelevantChanges(MyModel current, MyModel previous)
         {
             throw new NotImplementedException();

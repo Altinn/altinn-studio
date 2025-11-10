@@ -151,8 +151,8 @@ describe('OnProcessTaskAddHandler', () => {
     const onProcessTaskAddHandler = createOnProcessTaskHandler();
 
     const taskMetadata: OnProcessTaskEvent = {
-      taskType: 'userControlledSigning',
-      taskEvent: createTaskEvent(getMockBpmnElementForTask('userControlledSigning').businessObject),
+      taskType: 'signing',
+      taskEvent: createTaskEvent(getMockBpmnElementForTask('signing').businessObject),
     };
 
     onProcessTaskAddHandler.handleOnProcessTaskAdd(taskMetadata);
@@ -163,12 +163,12 @@ describe('OnProcessTaskAddHandler', () => {
         tasks: ['testElementId'],
       },
       layoutSetIdToUpdate: 'testElementId',
-      taskType: 'userControlledSigning',
+      taskType: 'signing',
     });
 
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
       allowedContributers: [AllowedContributor.AppOwned],
-      dataTypeId: 'userControlledSigningInformation-1234',
+      dataTypeId: 'signatureInformation-1234',
       taskId: 'testElementId',
     });
 

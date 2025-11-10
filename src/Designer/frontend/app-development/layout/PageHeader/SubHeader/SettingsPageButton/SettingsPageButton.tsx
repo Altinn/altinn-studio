@@ -61,7 +61,7 @@ function getButtonTextKey(isSettingsPage: boolean, from?: string): string {
   return 'sync_header.settings';
 }
 function splitKeyFromFullPath(fullPath: string): string {
-  const parts: string[] = fullPath.split('?');
+  const parts: string[] = fullPath.split('?')[0].split('/');
   return parts[0];
 }
 

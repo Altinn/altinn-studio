@@ -1,10 +1,6 @@
-import { type GeoJSON } from 'geojson';
-import { geoJson, LatLngBounds } from 'leaflet';
-import WKT from 'terraformer-wkt-parser';
-import type { LatLngExpression, PointExpression } from 'leaflet';
+import type { LatLngBounds, LatLngExpression, PointExpression } from 'leaflet';
 
-import type { IGeometryType, Location, MapLayer } from 'src/layout/Map/config.generated';
-import type { Geometry, RawGeometry } from 'src/layout/Map/types';
+import type { Location, MapLayer } from 'src/layout/Map/config.generated';
 
 // Default is center of Norway
 export const DefaultCenterLocation: Location = {
@@ -74,80 +70,26 @@ export function getMapStartingView(
   zoom: number | undefined;
   bounds: LatLngBounds | undefined;
 } {
-  const markerLocationValid = isLocationValid(markerLocation);
-  const centerLocationValid = isLocationValid(customCenterLocation);
-
-  if (markerLocationValid) {
+  if (isLocationValid(markerLocation)) {
     return {
       center: locationToTuple(markerLocation),
       zoom: 16,
       bounds: undefined,
     };
-  } else if (geometryBounds) {
+  }
+  if (geometryBounds) {
     return {
       center: undefined,
       zoom: undefined,
       bounds: geometryBounds,
     };
-  } else {
-    return {
-      center: centerLocationValid ? locationToTuple(customCenterLocation) : locationToTuple(DefaultCenterLocation),
-      zoom: customZoom ?? DefaultZoom,
-      bounds: undefined,
-    };
-  }
-}
-
-export function parseGeometries(
-  geometries: RawGeometry[] | undefined,
-  geometryType?: IGeometryType,
-): Geometry[] | null {
-  if (!geometries) {
-    return null;
   }
 
-  const out: Geometry[] = [];
-
-  for (const { altinnRowId, data: rawData, label } of geometries) {
-    if (geometryType === 'WKT') {
-      const data = WKT.parse(rawData);
-      out.push({
-        altinnRowId,
-        data,
-        label,
-      });
-    } else {
-      const data = JSON.parse(rawData) as GeoJSON;
-      out.push({
-        altinnRowId,
-        data,
-        label,
-      });
-    }
-  }
-
-  return out;
-}
-
-export function calculateBounds(geometries: Geometry[] | null): LatLngBounds | undefined {
-  if (!geometries?.length) {
-    return undefined;
-  }
-
-  const bounds: [[number, number], [number, number]] = geometries.reduce(
-    (currentBounds, { data }) => {
-      const bounds = geoJson(data).getBounds();
-      currentBounds[0][0] = Math.min(bounds.getSouth(), currentBounds[0][0]);
-      currentBounds[0][1] = Math.min(bounds.getWest(), currentBounds[0][1]);
-      currentBounds[1][0] = Math.max(bounds.getNorth(), currentBounds[1][0]);
-      currentBounds[1][1] = Math.max(bounds.getEast(), currentBounds[1][1]);
-      return currentBounds;
-    },
-    [
-      [90, 180],
-      [-90, -180],
-    ],
-  );
-
-  return new LatLngBounds(bounds);
+  return {
+    center: isLocationValid(customCenterLocation)
+      ? locationToTuple(customCenterLocation)
+      : locationToTuple(DefaultCenterLocation),
+    zoom: customZoom ?? DefaultZoom,
+    bounds: undefined,
+  };
 }

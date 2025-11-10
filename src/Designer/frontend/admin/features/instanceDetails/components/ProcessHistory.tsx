@@ -1,7 +1,6 @@
 import { useProcessHistoryQuery } from 'admin/hooks/queries/useProcessHistoryQuery';
-import { StudioSpinner } from '@studio/components';
+import { StudioSpinner, StudioError } from '@studio/components';
 import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
-import { StudioError } from '@studio/components-legacy';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { type ProcessHistoryItem } from 'admin/types/ProcessHistory';

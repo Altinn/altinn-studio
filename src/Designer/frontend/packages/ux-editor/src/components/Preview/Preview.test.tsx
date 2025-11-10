@@ -8,10 +8,18 @@ import userEvent from '@testing-library/user-event';
 import { appContextMock } from '../../testing/appContextMock';
 import { previewPage } from 'app-shared/api/paths';
 import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
-import { app, org } from '@studio/testing/testids';
-import { subformLayoutMock } from '../../testing/subformLayoutMock';
+import { app, layoutSet, org } from '@studio/testing/testids';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 describe('Preview', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('Renders an iframe with the ref from AppContext', async () => {
     render();
     await waitForElementToBeRemoved(() =>
@@ -20,23 +28,6 @@ describe('Preview', () => {
     expect(screen.getByTitle(textMock('ux_editor.preview'))).toBe(
       appContextMock.previewIframeRef.current,
     );
-  });
-
-  it('should be able to toggle between mobile and desktop view', async () => {
-    const user = userEvent.setup();
-    render();
-    await waitForElementToBeRemoved(() =>
-      screen.queryByText(textMock('preview.loading_preview_controller')),
-    );
-
-    const switchButton = screen.getByRole('checkbox', {
-      name: textMock('ux_editor.mobilePreview'),
-    });
-
-    expect(switchButton).not.toBeChecked();
-
-    await user.click(switchButton);
-    expect(switchButton).toBeChecked();
   });
 
   it('should render a message when no page is selected', async () => {
@@ -107,7 +98,7 @@ describe('Preview', () => {
         previewPage(
           org,
           app,
-          appContextMock.selectedFormLayoutSetName,
+          layoutSet,
           TASKID_FOR_STATELESS_APPS,
           appContextMock.selectedFormLayoutName,
           mockInstanceId,
@@ -126,7 +117,7 @@ describe('Preview', () => {
         previewPage(
           org,
           app,
-          appContextMock.selectedFormLayoutSetName,
+          layoutSet,
           TASKID_FOR_STATELESS_APPS,
           newSelectedFormLayoutName,
           mockInstanceId,
@@ -135,13 +126,37 @@ describe('Preview', () => {
   });
 
   it('should show a warning that subform is unsupported in preview', async () => {
-    appContextMock.selectedFormLayoutSetName = subformLayoutMock.layoutSetName;
-    render();
+    render({
+      queries: {
+        getLayoutSets: jest
+          .fn()
+          .mockImplementation(() =>
+            Promise.resolve({ sets: [{ id: layoutSet, type: 'subform' }] }),
+          ),
+        createPreviewInstance: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve({ id: mockInstanceId })),
+      },
+      queryClient: createQueryClientMock(),
+    });
     await waitForElementToBeRemoved(() =>
       screen.queryByText(textMock('preview.loading_preview_controller')),
     );
 
     expect(screen.getByText(/ux_editor.preview.subform_unsupported_warning/i)).toBeInTheDocument();
+  });
+
+  it('should show error message when preview instance creation fails', async () => {
+    render({
+      queries: {
+        createPreviewInstance: jest.fn().mockImplementation(() => Promise.reject('Error')),
+      },
+    });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('preview.loading_preview_controller')),
+    );
+
+    expect(screen.getByText(textMock('general.page_error_title'))).toBeInTheDocument();
   });
 });
 
@@ -149,17 +164,17 @@ const collapseToggle = jest.fn();
 const mockInstanceId = '1';
 
 export const render = (options: Partial<ExtendedRenderOptions> = {}) => {
+  const defaultQueries = {
+    createPreviewInstance: jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ id: mockInstanceId })),
+  };
+
   options = {
     ...options,
     queries: {
-      getLayoutSets: jest
-        .fn()
-        .mockImplementation(() =>
-          Promise.resolve({ sets: [{ id: subformLayoutMock.layoutSetName, type: 'subform' }] }),
-        ),
-      createPreviewInstance: jest
-        .fn()
-        .mockImplementation(() => Promise.resolve({ id: mockInstanceId })),
+      ...defaultQueries,
+      ...options.queries,
     },
   };
   return renderWithProviders(

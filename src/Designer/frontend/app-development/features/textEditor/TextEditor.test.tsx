@@ -50,7 +50,9 @@ describe('TextEditor', () => {
 
   it('renders the component', async () => {
     renderTextEditor();
-    await waitForElementToBeRemoved(() => screen.queryByText(textMock('text_editor.loading_page')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByLabelText(textMock('text_editor.loading_page')),
+    );
     expect(screen.getByText(testTextResourceKey)).toBeInTheDocument();
     expect(screen.getByText(testTextResourceValue)).toBeInTheDocument();
   });
@@ -185,7 +187,7 @@ describe('TextEditor', () => {
     renderWithProviders(<TextEditor />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
     });
-    expect(screen.getByText(textMock('text_editor.loading_page'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('text_editor.loading_page'))).toBeInTheDocument();
   });
 });
 

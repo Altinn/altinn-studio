@@ -1,0 +1,233 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": false,
+    "layout": [
+      {
+        "id": "CheckboxesPage-NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "size": "h2",
+        "id": "CheckboxesPage-Header",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "CheckboxesPage"
+        }
+      },
+      {
+        "size": "h3",
+        "id": "CheckboxesPage-Header-Component",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Component"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "checkboxesInput"
+        },
+        "id": "CheckboxesPage-Checkboxes",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "CheckboxesPage.Checkboxes.title"
+        },
+        "options": [
+          {
+            "label": "Kjøre til hytta på fjellet",
+            "value": "kjoreTilHyttaPaaFjellet"
+          },
+          {
+            "label": "Kjøring i skogen",
+            "value": "kjoringISkogen"
+          },
+          {
+            "label": "Korte strekninger med bykjøring, eller annen moro",
+            "value": "korteStrekningerMedBykjoring"
+          },
+          {
+            "label": "Lange strekninger på større veier i Norge",
+            "value": "langeStrekningerPaStorreVeierINorge"
+          }
+        ]
+      },
+      {
+        "size": "h3",
+        "id": "CheckboxesPage-Header-Summary",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Summary"
+        }
+      },
+      {
+        "componentRef": "CheckboxesPage-Checkboxes",
+        "id": "CheckboxesPage-Summary",
+        "type": "Summary",
+        "largeGroup": false
+      },
+      {
+        "size": "h3",
+        "id": "CheckboxesPage-Header-Summary2",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Summary2"
+        }
+      },
+      {
+        "size": "h4",
+        "id": "CheckboxesPage-Header-Summary2-Display-Auto",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "displayType: NULL (Auto)"
+        }
+      },
+      {
+        "id": "CheckboxesPage-Summary2-Display-Auto",
+        "type": "Summary2",
+        "hidden": false,
+        "target": {
+          "type": "component",
+          "id": "CheckboxesPage-Checkboxes"
+        }
+      },
+      {
+        "size": "h4",
+        "id": "CheckboxesPage-Header-Summary2-Display-String",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "displayType: String"
+        }
+      },
+      {
+        "id": "CheckboxesPage-Summary2-Display-String",
+        "type": "Summary2",
+        "hidden": false,
+        "target": {
+          "type": "component",
+          "id": "CheckboxesPage-Checkboxes"
+        },
+        "overrides": [
+          {
+            "componentId": "CheckboxesPage-Checkboxes",
+            "displayType": "string"
+          }
+        ]
+      },
+      {
+        "size": "h4",
+        "id": "CheckboxesPage-Header-Summary2-Display-List",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "displayType: List"
+        }
+      },
+      {
+        "id": "CheckboxesPage-Summary2-Display-List",
+        "type": "Summary2",
+        "hidden": false,
+        "target": {
+          "type": "component",
+          "id": "CheckboxesPage-Checkboxes"
+        },
+        "overrides": [
+          {
+            "componentId": "CheckboxesPage-Checkboxes",
+            "displayType": "list"
+          }
+        ]
+      },
+      {
+        "size": "h2",
+        "id": "CheckboxesPage-Header2",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Avkryssningsbokser mot datamodell"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "group": "CheckboxesGroupExample",
+          "simpleBinding": "CheckboxesGroupExample.Name.firstname",
+          "checked": "CheckboxesGroupExample.Internal.isChecked"
+        },
+        "deletionStrategy":"soft",
+        "id": "CheckboxesPage-Checkboxes2",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "CheckboxesPage.Checkboxes.title"
+        },
+        "optionsId": "persons"
+      },
+      {
+        "id": "CheckboxesPage-RepeatingGroup",
+        "type": "RepeatingGroup",
+        "textResourceBindings": {
+          "title": "Repeterende Gruppe"
+        },
+        "dataModelBindings": {
+          "group": "CheckboxesGroupExample"
+        },
+        "hidden": false,
+        "hiddenRow": ["equals",["dataModel", "CheckboxesGroupExample.Internal.isChecked"], false],
+        "children": [
+          "CheckboxesPage-RepeatingGroupName",
+          "CheckboxesPage-RepeatingGroupAge"
+        ]
+      },
+      {
+        "id": "CheckboxesPage-RepeatingGroupName",
+        "type": "Text",
+        "textResourceBindings": {
+          "title":"Name"
+        },
+        "value": ["dataModel","CheckboxesGroupExample.Name.firstname"]
+      },
+      {
+        "id": "CheckboxesPage-RepeatingGroupAge",
+        "type": "Input",
+        "textResourceBindings": {
+          "title":"Age"
+        },
+        "dataModelBindings": {
+          "simpleBinding":"CheckboxesGroupExample.age"
+        }
+      },
+      {
+        "id": "CheckboxesPage-Header-Summary-Component2",
+        "type": "Header",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Header.Summary"
+        }
+      },
+      {
+        "id": "CheckboxesPage-Summary-Component2",
+        "type": "Summary",
+        "componentRef": "CheckboxesPage-Checkboxes2"
+      },
+      {
+        "id": "CheckboxesPage-Header-Summary2-Component2",
+        "type": "Header",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Header.Summary2"
+        }
+      },
+      {
+        "id": "CheckboxesPage-Summary2-Component2",
+        "type": "Summary2",
+        "isCompact": true,
+        "target": {
+          "type": "component",
+          "id": "CheckboxesPage-Checkboxes2"
+        }
+      },
+      {
+        "id": "CheckboxesPage-NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      }
+    ]
+  }
+}

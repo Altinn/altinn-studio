@@ -1,9 +1,0 @@
-.wrapper {
-  background-color: var(--fds-semantic-surface-neutral-subtle);
-  border-radius: var(--fds-border_radius-medium);
-  padding: var(--fds-spacing-5);
-}
-
-.children {
-  margin-top: var(--fds-spacing-2);
-}

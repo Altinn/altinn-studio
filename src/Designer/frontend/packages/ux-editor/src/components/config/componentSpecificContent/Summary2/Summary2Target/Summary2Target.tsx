@@ -1,6 +1,6 @@
 import { Summary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
-import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
-import { StudioParagraph, StudioHeading } from '@studio/components';
+import { StudioTextfield } from '@studio/components-legacy';
+import { StudioParagraph, StudioHeading, StudioSelect } from '@studio/components';
 import React from 'react';
 import classes from './Summary2Target.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -20,6 +20,7 @@ import {
 } from './targetUtils';
 import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
 import cn from 'classnames';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 type Summary2TargetProps = {
   target: Summary2TargetConfig;
@@ -30,12 +31,13 @@ type Summary2TargetProps = {
 export const Summary2Target = ({ target, onChange, className }: Summary2TargetProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
+  const { selectedFormLayoutName } = useAppContext();
+  const { layoutSet } = useUxEditorParams();
   const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
   const selectedLayoutSetTargetName = getTargetLayoutSetName({
     target,
     layoutSets,
-    selectedFormLayoutSetName,
+    selectedFormLayoutSetName: layoutSet,
   });
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedLayoutSetTargetName);
   const getComponentTitle = useComponentTitle();
@@ -46,13 +48,13 @@ export const Summary2Target = ({ target, onChange, className }: Summary2TargetPr
   const componentOptions = getComponentOptions({ formLayoutsData, getComponentTitle });
 
   const handleLayoutSetChange = (taskId: string) => {
-    const updatedTarget = { ...target, id: '', taskId };
+    const updatedTarget = { ...target, taskId, id: undefined };
     onChange(updatedTarget);
   };
 
   const handleTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newType = event.target.value as SummaryTargetType;
-    const updatedTarget = { ...target, type: newType, id: '' };
+    const updatedTarget = { ...target, type: newType, id: undefined };
     // set default value for page
     if (newType === 'page' && pageOptions.some((page) => page.id === selectedFormLayoutName)) {
       updatedTarget.id = selectedFormLayoutName;
@@ -72,33 +74,28 @@ export const Summary2Target = ({ target, onChange, className }: Summary2TargetPr
       <StudioParagraph spacing>
         {t('ux_editor.component_properties.target_description')}
       </StudioParagraph>
-      <StudioNativeSelect
-        size='sm'
+      <StudioSelect
         label={t('ux_editor.component_properties.target_layoutSet_id')}
         value={target.taskId}
         onChange={(e) => handleLayoutSetChange(e.target.value)}
       >
-        {layoutSetOptions.map((layoutSet) => (
-          <option
-            key={layoutSet.id}
-            value={layoutSet.id === selectedFormLayoutSetName ? '' : layoutSet.task.id}
-          >
-            {layoutSet.id}
-          </option>
+        {layoutSetOptions.map((set) => (
+          <StudioSelect.Option key={set.id} value={set.id === layoutSet ? '' : set.task.id}>
+            {set.id}
+          </StudioSelect.Option>
         ))}
-      </StudioNativeSelect>
-      <StudioNativeSelect
-        size='sm'
+      </StudioSelect>
+      <StudioSelect
         label={t('ux_editor.component_properties.target_type')}
         value={target.type}
         onChange={handleTypeChange}
       >
         {targetTypes.map((type) => (
-          <option key={type.value} value={type.value}>
+          <StudioSelect.Option key={type.value} value={type.value}>
             {type.label}
-          </option>
+          </StudioSelect.Option>
         ))}
-      </StudioNativeSelect>
+      </StudioSelect>
       {target.type === 'page' && (
         <Summary2ComponentReferenceSelector
           key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed

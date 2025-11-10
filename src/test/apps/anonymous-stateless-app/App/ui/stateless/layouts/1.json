@@ -1,0 +1,138 @@
+﻿{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "altinnLogo",
+        "type": "Image",
+        "textResourceBindings": {
+          "altTextImg": "Altinn Logo",
+          "help": "Altinn logo"
+        },
+        "image": {
+          "src": {
+            "nb": "wwwroot/images/altinn-logo.svg",
+            "en": "https://raw.githubusercontent.com/Altinn/altinn-cdn/master/img/Altinn-logo-black.svg"
+          },
+          "width": "70%",
+          "align": "flex-start"
+        },
+        "grid": {
+          "xs": 3,
+          "md": 6,
+          "xl": 12
+        }
+      },
+      {
+        "id": "info",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "text"
+        }
+      },
+      {
+        "id": "name",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "1223.AnsattNavndatadef1223.Label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.AnsattNavn-datadef-1223.value"
+        },
+        "required": true,
+        "readOnly": false,
+        "labelSettings": { "optionalIndicator": false }
+      },
+      {
+        "id": "number",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "33316.Journalnummerdatadef33316.Label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.Journalnummer-datadef-33316.value"
+        },
+        "required": false,
+        "readOnly": false,
+        "labelSettings": { "optionalIndicator": false }
+      },
+      {
+        "id": "idnummer",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "idnummer"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.IdentifikasjonsnummerKrav-datadef-33317.value"
+        },
+        "required": false,
+        "readOnly": false,
+        "labelSettings": { "optionalIndicator": false }
+      },
+      {
+        "id": "idnummer2",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "nummer 2"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.IdentifikasjonsnummerKrav-datadef-33317.value"
+        },
+        "required": false,
+        "readOnly": false,
+        "labelSettings": { "optionalIndicator": false }
+      },
+      {
+        "id": "idnummer3",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Velg kjønn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.AnsattKjonn.value"
+        },
+        "options": [
+          {
+            "label": "mann",
+            "value": "mann"
+          },
+          {
+            "label": "kvinne",
+            "value": "kvinne"
+          },
+          {
+            "label": "annet",
+            "value": "annet"
+          }
+        ],
+        "required": false
+      },
+      {
+        "id": "options",
+        "type": "Dropdown",
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.OppgavegiverEPost-datadef-27334.value"
+        },
+        "textResourceBindings": {
+          "title": "Velg epost"
+        },
+        "optionsId": "epostOptions"
+      },
+      {
+        "id": "simpleIFrame",
+        "type": "IFrame",
+        "textResourceBindings": {
+          "title": "simpleFrame"
+        }
+      },
+      {
+        "id": "pageNext",
+        "type": "NavigationButtons",
+        "validateOnNext": {
+          "page": "current",
+          "show": ["All"]
+        }
+      }
+    ]
+  }
+}

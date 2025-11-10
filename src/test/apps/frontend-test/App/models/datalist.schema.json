@@ -1,0 +1,35 @@
+﻿{
+  "$schema": "http://json-schema.org/schema#",
+  "$id": "schema.json",
+  "type": "object",
+  "properties": {
+    "melding": {
+      "$ref": "#/definitions/Datalist"
+    }
+  },
+  "definitions": {
+    "Datalist": {
+      "properties": {
+        "SelectedItem": {
+          "$ref": "#/definitions/Text"
+        },
+        "SelectedItemProfession": {
+          "$ref": "#/definitions/Text"
+        },
+        "Search": {
+          "$ref": "#/definitions/Text"
+        },
+        "UseCustomConfirm": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "SelectedItem"
+      ],
+      "@xsdAnyAttribute": true
+    },
+    "Text": {
+      "type": "string"
+    }
+  }
+}

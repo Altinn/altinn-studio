@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://altinn-repositories:3000/ttd/navigation-test/App/models/subform.schema.json",
+  "info": {
+    "rootNode": ""
+  },
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "seres": "http://seres.no/xsd/forvaltningsdata"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "@xsdRootElement": "subform",
+  "type": "object",
+  "required": [
+    "registrationnumber",
+    "modelyear",
+    "brand"
+  ],
+  "properties": {
+    "registrationnumber": {
+      "type": "string"
+    },
+    "modelyear": {
+      "type": "string"
+    },
+    "brand": {
+      "type": "string"
+    }
+  }
+}

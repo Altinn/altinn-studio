@@ -29,7 +29,7 @@ describe('Subform test', () => {
     cy.startAppInstance(appFrontend.apps.subformTest, { authenticationLevel: '1' });
   });
 
-  it('PDF should include subforms + single-subform PDFs should work', () => {
+  it('PDF should include subforms + single-subform PDFs should work', { retries: 0 }, () => {
     fillTwoSubforms();
     cy.testPdf({
       snapshotName: 'subform',
@@ -51,6 +51,7 @@ describe('Subform test', () => {
       },
     });
 
+    cy.findAllByRole('button', { name: /endre/i }).should('have.length', 2);
     cy.findAllByRole('button', { name: /endre/i }).first().clickAndGone();
     cy.findByRole('textbox', { name: /registreringsnummer/i }).should('have.value', 'ABC123');
 
@@ -99,7 +100,7 @@ describe('Subform test', () => {
     });
   });
 
-  it('should render PDF with summary2 layoutset with subform and subform table', () => {
+  it('should render PDF with summary2 layoutset with subform and subform table', { retries: 0 }, () => {
     const pdfLayoutName = 'CustomPDF';
     cy.intercept('GET', '**/layoutsettings/**', (req) =>
       req.on('response', (res) => {

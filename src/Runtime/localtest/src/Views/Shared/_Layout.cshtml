@@ -56,18 +56,27 @@
         window.onload = evt => {
             const el = document.querySelector('nav .grafana-item');
             if (!el) throw new Error('Navbar grafana-item not found');
-            
+
+            const controller = new AbortController();
+            window.addEventListener('beforeunload', () => {
+                controller.abort();
+            });
+
+
             const updateGrafanaItem = () => {
-                fetch('/Home/Infra/Grafana')
+                fetch('/Home/Infra/Grafana', { signal: controller.signal })
                     .then(res => {
-                        if (res.ok)
+                        if (res.status === 200) 
                             el.classList.remove('d-none');
-                        else
+                         else 
                             el.classList.add('d-none');
                     })
                     .catch(err => {
-                        console.error('Failed to fetch Grafana status', err);
-                        el.classList.add('d-none');
+                        if (err.name === 'AbortError')
+                            console.log('Aborted grafana request because navigated away');
+                        else
+                            console.error('Failed to fetch Grafana status', err);
+                            el.classList.add('d-none');
                     });
             };
 

@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import type { FileStatus, RepoContentStatus } from 'app-shared/types/RepoStatus';
-import { StudioError, StudioModal, StudioSpinner } from '@studio/components-legacy';
+import { StudioModal, StudioSpinner } from '@studio/components-legacy';
+import { StudioError } from '@studio/components';
 import { Table, Tag } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './FileChangesInfoModal.module.css';
@@ -96,7 +97,7 @@ const DiffStatus = ({ status }: DiffStatusProps) => {
       );
     case 'error':
       return (
-        <StudioError size='small'>
+        <StudioError data-size='small'>
           {t('sync_header.show_changes_modal.repo_diff_error_title')}
         </StudioError>
       );

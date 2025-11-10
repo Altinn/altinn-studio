@@ -1,14 +1,14 @@
-﻿#nullable enable
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Exceptions.CodeList;
 using Altinn.Studio.Designer.Exceptions.Options;
 using Altinn.Studio.Designer.Helpers;
@@ -26,7 +26,10 @@ public class OrgCodeListService : IOrgCodeListService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IGitea _gitea;
+    private readonly ISourceControl _sourceControl;
+    private readonly ISharedContentClient _sharedContentClient;
 
+    private const string DefaultCommitMessage = "Update code lists.";
     private const string Repo = "content";
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
@@ -43,10 +46,14 @@ public class OrgCodeListService : IOrgCodeListService
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
     /// <param name="gitea">IGitea</param>
-    public OrgCodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IGitea gitea)
+    /// <param name="sourceControl">the source control</param>
+    /// <param name="sharedContentClient">the shared content client</param>
+    public OrgCodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IGitea gitea, ISourceControl sourceControl, ISharedContentClient sharedContentClient)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _gitea = gitea;
+        _sourceControl = sourceControl;
+        _sharedContentClient = sharedContentClient;
     }
 
     /// <inheritdoc />
@@ -83,12 +90,15 @@ public class OrgCodeListService : IOrgCodeListService
 
         return codeLists;
     }
-
     /// <inheritdoc />
-    public async Task<List<CodeListWrapper>> GetCodeListsNew(string org, string? reference = null, CancellationToken cancellationToken = default)
+    public async Task<GetCodeListResponse> GetCodeListsNew(string org, string? reference = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        Guard.AssertValidateOrganization(org);
+
         string repository = GetStaticContentRepo(org);
         List<FileSystemObject> files = await _gitea.GetCodeListDirectoryContentAsync(org, repository, reference, cancellationToken);
+        string latestCommitSha = await _gitea.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
 
         List<CodeListWrapper> codeListWrappers = [];
         foreach (FileSystemObject file in files)
@@ -101,9 +111,9 @@ public class OrgCodeListService : IOrgCodeListService
             }
             codeListWrappers.Add(WrapCodeList(codeList, title, hasError: true));
         }
-        return codeListWrappers;
+        GetCodeListResponse response = new(codeListWrappers, latestCommitSha);
+        return response;
     }
-
     /// <inheritdoc />
     public async Task<List<OptionListData>> CreateCodeList(string org, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
     {
@@ -131,29 +141,93 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task UpdateCodeListsNew(string org, string developer, List<CodeListWrapper> codeListWrappers, string? commitMessage = null, string? reference = null, CancellationToken cancellationToken = default)
+    public async Task UpdateCodeListsNew(string org, string developer, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
     {
-        ValidateCodeListTitles(codeListWrappers);
-        ValidateCommitMessage(commitMessage);
+        cancellationToken.ThrowIfCancellationRequested();
+        Guard.AssertValidateOrganization(org);
 
-        string repository = GetStaticContentRepo(org);
+        ValidateCodeListTitles(request.CodeListWrappers);
+        ValidateCommitMessage(request.CommitMessage);
+        string repositoryName = GetStaticContentRepo(org);
 
-        List<FileSystemObject> files = await _gitea.GetCodeListDirectoryContentAsync(org, repository, reference, cancellationToken);
-        List<FileOperationContext> fileOperationContexts = CreateFileOperationContexts(codeListWrappers, files);
-        GiteaMultipleFilesDto dto = CreateGiteaMultipleFilesDto(developer, fileOperationContexts, commitMessage);
+        await _sourceControl.CloneIfNotExists(org, repositoryName);
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repositoryName, developer);
 
-        bool r = await _gitea.ModifyMultipleFiles(org, repository, dto, cancellationToken);
-        if (r is false)
+        string latestCommitSha = await _gitea.GetLatestCommitOnBranch(org, repositoryName, General.DefaultBranch, cancellationToken);
+        if (latestCommitSha == request.BaseCommitSha)
         {
-            throw new InvalidOperationException("Failed to update code lists in Gitea.");
+            await HandleCommit(editingContext, request, cancellationToken);
         }
+        else
+        {
+            await HandleDivergentCommit(editingContext, request, cancellationToken);
+        }
+        bool pushOk = await _sourceControl.Push(org, repositoryName);
+        if (!pushOk)
+        {
+            throw new InvalidOperationException($"Push failed for {org}/{repositoryName}. Remote rejected the update.");
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task PublishCodeList(string org, PublishCodeListRequest request, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Guard.AssertValidateOrganization(org);
+
+        string codeListId = request.Title;
+        CodeList codeList = request.CodeList;
+        if (InputValidator.IsInvalidCodeListTitle(codeListId))
+        {
+            throw new IllegalFileNameException("The code list title contains invalid characters.");
+        }
+
+        await _sharedContentClient.PublishCodeList(org, codeListId, codeList, cancellationToken);
+    }
+
+    internal async Task HandleCommit(AltinnRepoEditingContext editingContext, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
+    {
+        _sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
+        foreach (CodeListWrapper wrapper in request.CodeListWrappers)
+        {
+            await UpdateCodeListFile(editingContext.Org, editingContext.Developer, wrapper.Title, wrapper.CodeList, cancellationToken);
+        }
+        _sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? DefaultCommitMessage);
+    }
+
+    internal async Task HandleDivergentCommit(AltinnRepoEditingContext editingContext, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
+    {
+        string branchName = editingContext.Developer;
+        _sourceControl.DeleteLocalBranchIfExists(editingContext, branchName);
+        _sourceControl.CreateLocalBranch(editingContext, branchName, request.BaseCommitSha);
+        _sourceControl.CheckoutRepoOnBranch(editingContext, branchName);
+
+        foreach (CodeListWrapper wrapper in request.CodeListWrappers)
+        {
+            await UpdateCodeListFile(editingContext.Org, editingContext.Developer, wrapper.Title, wrapper.CodeList, cancellationToken);
+        }
+
+        _sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? DefaultCommitMessage);
+        _sourceControl.RebaseOntoDefaultBranch(editingContext);
+        _sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
+        _sourceControl.MergeBranchIntoHead(editingContext, branchName);
+        _sourceControl.DeleteLocalBranchIfExists(editingContext, branchName);
+    }
+
+    internal async Task UpdateCodeListFile(string org, string developer, string codeListId, CodeList? codeList, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string repo = GetStaticContentRepo(org);
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+
+        await altinnOrgGitRepository.UpdateCodeListNew(codeListId, codeList, cancellationToken);
     }
 
     internal static void ValidateCodeListTitles(List<CodeListWrapper> codeListWrappers)
     {
         if (codeListWrappers.Exists(clw => InputValidator.IsInvalidCodeListTitle(clw.Title)))
         {
-            throw new IllegalFileNameException("One or more of the code list titles contains invalid characters. Latin characters, numbers and underscores are allowed.");
+            throw new IllegalFileNameException("One or more code list titles contains invalid characters.");
         }
     }
 
@@ -169,60 +243,6 @@ public class OrgCodeListService : IOrgCodeListService
         }
     }
 
-    internal static List<FileOperationContext> CreateFileOperationContexts(List<CodeListWrapper> localWrappers, List<FileSystemObject> remoteFiles)
-    {
-        (List<CodeListWrapper> remoteWrappers, Dictionary<string, string> fileMetadata) = ExtractContentFromFiles(remoteFiles);
-        return GenerateFileOperationContexts(remoteWrappers, localWrappers, fileMetadata);
-    }
-
-    internal static (List<CodeListWrapper> remoteCodeListWrappers, Dictionary<string, string> fileMetadata) ExtractContentFromFiles(List<FileSystemObject> remoteFiles)
-    {
-        List<CodeListWrapper> remoteCodeListWrappers = [];
-        Dictionary<string, string> fileMetadata = [];
-        foreach (FileSystemObject file in remoteFiles)
-        {
-            string title = Path.GetFileNameWithoutExtension(file.Name);
-            if (TryParseFile(file.Content, out CodeList? codeList))
-            {
-                remoteCodeListWrappers.Add(WrapCodeList(codeList, title, hasError: false));
-            }
-            else
-            {
-                remoteCodeListWrappers.Add(WrapCodeList(codeList, title, hasError: true));
-            }
-            fileMetadata[title] = file.Sha;
-        }
-
-        return (remoteCodeListWrappers, fileMetadata);
-    }
-
-    internal static FileOperationContext PrepareFile(string operation, CodeListWrapper codeListWrapper, string? sha = null)
-    {
-        switch (operation)
-        {
-            case FileOperation.Create when sha is not null:
-                throw new ArgumentException("Create file operation requires sha to be null as file should not exist in Gitea.");
-            case FileOperation.Update when sha is null:
-                throw new ArgumentException("Update file operation requires sha.");
-            case FileOperation.Delete when sha is null || codeListWrapper.CodeList is not null:
-                throw new ArgumentException("Delete file operation requires sha, and empty code list.");
-        }
-
-        string? encodedContent = null;
-        if (codeListWrapper.CodeList is not null)
-        {
-            string content = JsonSerializer.Serialize(codeListWrapper.CodeList, s_jsonOptions);
-            encodedContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(content));
-        }
-
-        return new FileOperationContext(
-            Content: encodedContent,
-            Operation: operation,
-            Path: CodeListUtils.FilePath(codeListWrapper.Title),
-            Sha: sha
-        );
-    }
-
     /// <inheritdoc />
     public async Task<List<OptionListData>> UploadCodeList(string org, string developer, IFormFile payload, CancellationToken cancellationToken = default)
     {
@@ -233,7 +253,7 @@ public class OrgCodeListService : IOrgCodeListService
         List<Option>? deserializedCodeList = await JsonSerializer.DeserializeAsync<List<Option>>(payload.OpenReadStream(), s_jsonOptions, cancellationToken);
 
         bool codeListHasInvalidNullFields = deserializedCodeList is not null && deserializedCodeList.Exists(item => item.Value == null || item.Label == null);
-        if (codeListHasInvalidNullFields)
+        if (deserializedCodeList is null || codeListHasInvalidNullFields)
         {
             throw new InvalidOptionsFormatException("Uploaded file is missing one of the following attributes for an option: value or label.");
         }
@@ -274,6 +294,7 @@ public class OrgCodeListService : IOrgCodeListService
         }
     }
 
+    /// <inheritdoc />
     public List<string> GetCodeListIds(string org, string developer, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -284,6 +305,7 @@ public class OrgCodeListService : IOrgCodeListService
         return codeListIds;
     }
 
+    /// <inheritdoc />
     public void UpdateCodeListId(string org, string developer, string codeListId, string newCodeListId)
     {
         string repo = GetStaticContentRepo(org);
@@ -319,10 +341,10 @@ public class OrgCodeListService : IOrgCodeListService
     /// <summary>
     /// Converts a <see cref="CodeList"/> to a <see cref="CodeListWrapper"/>
     /// </summary>
-    /// <param name="codeList"></param>
-    /// <param name="title"></param>
-    /// <param name="hasError"></param>
-    /// <returns><see cref="CodeListWrapper"/> </returns>
+    /// <param name="codeList">The code list</param>
+    /// <param name="title">The title of the code list</param>
+    /// <param name="hasError">Has error</param>
+    /// <returns><see cref="CodeListWrapper"/></returns>
     private static CodeListWrapper WrapCodeList(CodeList? codeList, string title, bool hasError)
     {
         return new CodeListWrapper(
@@ -330,52 +352,6 @@ public class OrgCodeListService : IOrgCodeListService
             CodeList: codeList,
             HasError: hasError
         );
-    }
-
-    private static GiteaMultipleFilesDto CreateGiteaMultipleFilesDto(string developer, List<FileOperationContext> fileOperationContexts, string? commitMessage, string? reference = null)
-    {
-        return new GiteaMultipleFilesDto(
-            Author: new GiteaIdentity(Name: developer),
-            Branch: string.IsNullOrWhiteSpace(reference) ? null : reference,
-            Committer: new GiteaIdentity(Name: developer),
-            Files: fileOperationContexts,
-            Message: string.IsNullOrWhiteSpace(commitMessage) ? null : commitMessage
-        );
-
-    }
-
-    private static List<FileOperationContext> GenerateFileOperationContexts(List<CodeListWrapper> remoteWrappers, List<CodeListWrapper> localWrappers, Dictionary<string, string> fileMetadata)
-    {
-        List<FileOperationContext> fileOperationContexts = [];
-
-        HashSet<string> remoteWrapperTitles = remoteWrappers.Select(wrapper => wrapper.Title).ToHashSet();
-
-        foreach (CodeListWrapper localWrapper in localWrappers)
-        {
-            if (remoteWrapperTitles.Contains(localWrapper.Title) is false)
-            {
-                fileOperationContexts.Add(PrepareFile(FileOperation.Create, localWrapper));
-                continue;
-            }
-
-            foreach (CodeListWrapper remoteWrapper in remoteWrappers.Where(remoteWrapper => localWrapper.Title == remoteWrapper.Title))
-            {
-                string sha = fileMetadata[remoteWrapper.Title];
-                if (localWrapper.CodeList is null)
-                {
-                    fileOperationContexts.Add(PrepareFile(FileOperation.Delete, localWrapper, sha));
-                    break;
-                }
-
-                if (localWrapper.CodeList.Equals(remoteWrapper.CodeList) is false)
-                {
-                    fileOperationContexts.Add(PrepareFile(FileOperation.Update, localWrapper, sha));
-                    break;
-                }
-            }
-        }
-
-        return fileOperationContexts;
     }
 
     /// <summary>

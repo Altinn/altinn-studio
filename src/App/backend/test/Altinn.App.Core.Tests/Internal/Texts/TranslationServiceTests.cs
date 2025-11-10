@@ -79,7 +79,7 @@ public class TranslationServiceTests
     {
         await using var provider = _services.BuildServiceProvider();
         var translationService = provider.GetRequiredService<ITranslationService>();
-        var result = await translationService.TranslateTextKey("text", null);
+        var result = await translationService.TranslateTextKey("text", language: null);
         Assert.Equal("bokmål", result);
     }
 
@@ -180,5 +180,30 @@ public class TranslationServiceTests
             new() { ["second"] = "222" }
         );
         Assert.Equal("første er first og andre er 222", result);
+    }
+
+    [Fact]
+    public async Task TranslateTextKey_BackendFallback()
+    {
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+
+        var resultNn = await translationService.TranslateTextKey(
+            "backend.validation_errors.required",
+            LanguageConst.Nn
+        );
+        Assert.Equal("Feltet er påkravd", resultNn);
+
+        var resultEn = await translationService.TranslateTextKey(
+            "backend.validation_errors.required",
+            LanguageConst.En
+        );
+        Assert.Equal("Field is required", resultEn);
+
+        var resultNb = await translationService.TranslateTextKey(
+            "backend.validation_errors.required",
+            LanguageConst.Nb
+        );
+        Assert.Equal("Feltet er påkrevd", resultNb);
     }
 }

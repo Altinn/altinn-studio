@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:altinn="http://altinn.no/process"
+  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+  xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Altinn_SingleDataTask_Process_Definition" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="SingleDataTask" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>SequenceFlow_1n56yn5</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_1" name="Utfylling">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>data</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1n56yn5</bpmn:incoming>
+      <bpmn:incoming>Flow_0wscak8</bpmn:incoming>
+      <bpmn:incoming>Flow_050c8r7</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1oot28q</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_1">
+      <bpmn:incoming>Flow_1p7jwuf</bpmn:incoming>
+      <bpmn:incoming>Flow_013o2w9</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_1n56yn5" sourceRef="StartEvent_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="SequenceFlow_1oot28q" sourceRef="Task_1" targetRef="SigningTask_Founders" />
+    <bpmn:task id="SigningTask_Founders" name="Signering stiftere">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>signing</altinn:taskType>
+          <altinn:actions>
+            <altinn:action>sign</altinn:action>
+            <altinn:action>reject</altinn:action>
+          </altinn:actions>
+          <altinn:signatureConfig>
+            <altinn:dataTypesToSign>
+              <altinn:dataType>ref-data-as-pdf</altinn:dataType>
+              <altinn:dataType>Stiftelsesdokumenter</altinn:dataType>
+            </altinn:dataTypesToSign>
+            <altinn:signatureDataType>signatures-founders</altinn:signatureDataType>
+            <altinn:signeeStatesDataTypeId>signeeStates-founders</altinn:signeeStatesDataTypeId>
+            <altinn:signeeProviderId>founders</altinn:signeeProviderId>
+            <altinn:signingPdfDataType>signatures-founders-pdf</altinn:signingPdfDataType>
+            <altinn:correspondenceResource>apps-correspondence-integrasjon2</altinn:correspondenceResource>
+            <altinn:runDefaultValidator>true</altinn:runDefaultValidator>
+          </altinn:signatureConfig>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1oot28q</bpmn:incoming>
+      <bpmn:outgoing>Flow_1if1sh9</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_1if1sh9" sourceRef="SigningTask_Founders" targetRef="Gateway_SigningTask_Founders_Reject" />
+    <bpmn:exclusiveGateway id="Gateway_SigningTask_Founders_Reject">
+      <bpmn:incoming>Flow_1if1sh9</bpmn:incoming>
+      <bpmn:outgoing>Flow_1jkygts</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0wscak8</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_1jkygts" sourceRef="Gateway_SigningTask_Founders_Reject" targetRef="Gateway_HasAuditor">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0wscak8" sourceRef="Gateway_SigningTask_Founders_Reject" targetRef="Task_1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:task id="SigningTask_Auditor" name="Signering revisor">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>signing</altinn:taskType>
+          <altinn:actions>
+            <altinn:action>sign</altinn:action>
+            <altinn:action>reject</altinn:action>
+          </altinn:actions>
+          <altinn:signatureConfig>
+            <altinn:dataTypesToSign>
+              <altinn:dataType>ref-data-as-pdf</altinn:dataType>
+            </altinn:dataTypesToSign>
+            <altinn:signeeStatesDataTypeId>signatures-auditor</altinn:signeeStatesDataTypeId>
+            <altinn:signatureDataType>signeeStates-auditor</altinn:signatureDataType>
+            <altinn:signeeProviderId>auditor</altinn:signeeProviderId>
+            <altinn:signingPdfDataType>signatures-founders-pdf</altinn:signingPdfDataType>
+            <altinn:correspondenceResource>apps-correspondence-integrasjon2</altinn:correspondenceResource>
+          </altinn:signatureConfig>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0mj904m</bpmn:incoming>
+      <bpmn:outgoing>Flow_1miwjt2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_1miwjt2" sourceRef="SigningTask_Auditor" targetRef="Gateway_SigningTask_Auditor_Reject" />
+    <bpmn:exclusiveGateway id="Gateway_SigningTask_Auditor_Reject">
+      <bpmn:incoming>Flow_1miwjt2</bpmn:incoming>
+      <bpmn:outgoing>Flow_1p7jwuf</bpmn:outgoing>
+      <bpmn:outgoing>Flow_050c8r7</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_1p7jwuf" sourceRef="Gateway_SigningTask_Auditor_Reject" targetRef="EndEvent_1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_050c8r7" sourceRef="Gateway_SigningTask_Auditor_Reject" targetRef="Task_1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:exclusiveGateway id="Gateway_HasAuditor">
+      <bpmn:incoming>Flow_1jkygts</bpmn:incoming>
+      <bpmn:outgoing>Flow_0mj904m</bpmn:outgoing>
+      <bpmn:outgoing>Flow_013o2w9</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_0mj904m" sourceRef="Gateway_HasAuditor" targetRef="SigningTask_Auditor" />
+    <bpmn:sequenceFlow id="Flow_013o2w9" sourceRef="Gateway_HasAuditor" targetRef="EndEvent_1" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="SingleDataTask">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="156" y="81" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_1_di" bpmnElement="Task_1">
+        <dc:Bounds x="300" y="59" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
+        <dc:Bounds x="1382" y="81" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SigningTask_Founders_di" bpmnElement="SigningTask_Founders">
+        <dc:Bounds x="610" y="59" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Founders_Reject_di" bpmnElement="Gateway_SigningTask_Founders_Reject" isMarkerVisible="true">
+        <dc:Bounds x="775" y="74" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SigningTask_Auditor_di" bpmnElement="SigningTask_Auditor">
+        <dc:Bounds x="1020" y="59" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_SigningTask_Auditor_Reject_di" bpmnElement="Gateway_SigningTask_Auditor_Reject" isMarkerVisible="true">
+        <dc:Bounds x="1185" y="74" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1vg1e33_di" bpmnElement="Gateway_HasAuditor" isMarkerVisible="true">
+        <dc:Bounds x="905" y="74" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1n56yn5_di" bpmnElement="SequenceFlow_1n56yn5">
+        <di:waypoint x="192" y="99" />
+        <di:waypoint x="300" y="99" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1oot28q_di" bpmnElement="SequenceFlow_1oot28q">
+        <di:waypoint x="400" y="99" />
+        <di:waypoint x="610" y="99" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1if1sh9_di" bpmnElement="Flow_1if1sh9">
+        <di:waypoint x="710" y="99" />
+        <di:waypoint x="775" y="99" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1jkygts_di" bpmnElement="Flow_1jkygts">
+        <di:waypoint x="825" y="99" />
+        <di:waypoint x="905" y="99" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0wscak8_di" bpmnElement="Flow_0wscak8">
+        <di:waypoint x="800" y="124" />
+        <di:waypoint x="800" y="190" />
+        <di:waypoint x="370" y="190" />
+        <di:waypoint x="370" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1miwjt2_di" bpmnElement="Flow_1miwjt2">
+        <di:waypoint x="1120" y="99" />
+        <di:waypoint x="1185" y="99" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1p7jwuf_di" bpmnElement="Flow_1p7jwuf">
+        <di:waypoint x="1235" y="99" />
+        <di:waypoint x="1382" y="99" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_050c8r7_di" bpmnElement="Flow_050c8r7">
+        <di:waypoint x="1210" y="124" />
+        <di:waypoint x="1210" y="230" />
+        <di:waypoint x="330" y="230" />
+        <di:waypoint x="330" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0mj904m_di" bpmnElement="Flow_0mj904m">
+        <di:waypoint x="955" y="99" />
+        <di:waypoint x="1020" y="99" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_013o2w9_di" bpmnElement="Flow_013o2w9">
+        <di:waypoint x="930" y="74" />
+        <di:waypoint x="930" y="0" />
+        <di:waypoint x="1400" y="0" />
+        <di:waypoint x="1400" y="81" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

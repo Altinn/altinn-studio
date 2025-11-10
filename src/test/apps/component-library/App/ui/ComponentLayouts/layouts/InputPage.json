@@ -1,0 +1,162 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": false,
+    "layout": [
+      {
+        "id": "InputPage-NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "InputPage-Header",
+        "type": "Header",
+        "size": "h2",
+        "textResourceBindings": {
+          "title": "InputPage"
+        }
+      },
+      {
+        "id": "InputPage-Header-Component",
+        "type": "Header",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Header.Component"
+        }
+      },
+      {
+        "id": "InputPage-Input",
+        "required": false,
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "InputPage.Input.title"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "shortAnswerInput"
+        },
+        "showValidations": [
+          "All"
+        ]
+      },
+      {
+        "id": "InputPage-Input-grid1",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "InputPage.Input.Grid.title-1"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "shortAnswerInput"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 6
+        }
+      },
+      {
+        "id": "InputPage-Input-grid2",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "InputPage.Input.Grid.title-2"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "shortAnswerInput"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 6
+        }
+      },
+      {
+        "id": "InputPage-Input-long",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "InputPage.Input.Grid.title.long"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "shortAnswerInput"
+        },
+        "required": false,
+        "grid": {
+          "innerGrid": {
+            "xs": 12,
+            "md": 6
+          }
+        }
+      },
+      {
+        "id": "InputPage-Header-Summary",
+        "type": "Header",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Header.Summary"
+        }
+      },
+      {
+        "id": "InputPage-Summary",
+        "type": "Summary",
+        "componentRef": "InputPage-Input"
+      },
+      {
+        "id": "InputPage-Summary-grid1",
+        "type": "Summary",
+        "componentRef": "InputPage-Input-grid1"
+      },
+      {
+        "id": "InputPage-Summary-grid2",
+        "type": "Summary",
+        "componentRef": "InputPage-Input-grid2"
+      },
+      {
+        "id": "InputPage-Summary-long",
+        "type": "Summary",
+        "componentRef": "InputPage-Input-long"
+      },
+      {
+        "id": "InputPage-Header-Summary2",
+        "type": "Header",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Header.Summary2"
+        }
+      },
+      {
+        "id": "InputPage-Summary2",
+        "type": "Summary2",
+        "target": {
+          "type": "component",
+          "id": "InputPage-Input"
+        }
+      },
+      {
+        "id": "InputPage-Summary2-grid1",
+        "type": "Summary2",
+        "target": {
+          "type": "component",
+          "id": "InputPage-Input-grid1"
+        }
+      },
+      {
+        "id": "InputPage-Summary2-grid2",
+        "type": "Summary2",
+        "target": {
+          "type": "component",
+          "id": "InputPage-Input-grid2"
+        }
+      },
+      {
+        "id": "InputPage-Summary2-grid-long",
+        "type": "Summary2",
+        "hideEmptyFields": true,
+        "target": {
+          "type": "component",
+          "id": "InputPage-Input-long"
+        }
+      },
+      {
+        "id": "InputPage-NavigationButtons",
+        "type": "NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {}
+      }
+    ]
+  }
+}

@@ -5,4 +5,5 @@
 
 .alert {
   margin: var(--fds-spacing-6);
+  height: max-content;
 }

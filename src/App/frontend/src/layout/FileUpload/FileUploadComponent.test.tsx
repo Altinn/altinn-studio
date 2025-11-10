@@ -473,7 +473,7 @@ describe('File uploading components', () => {
         });
 
         expect(screen.getByRole('presentation', { name: /attachment-title/i }).textContent).toMatch(
-          'Dra og slipp eller let etter filTillatte filformater er: alle',
+          'Dra og slipp eller finn filTillatte filformater er: alle',
         );
       });
 

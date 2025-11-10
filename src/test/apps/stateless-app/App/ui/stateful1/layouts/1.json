@@ -1,0 +1,59 @@
+﻿{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "header",
+        "type": "Header",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Dette er den statefulle appen, her ser du igjen data som har blitt brukt som prefill fra det tilstandsløse steget."
+        }
+      },
+      {
+        "id": "name",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Navn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Sender"
+        },
+        "required": false,
+        "readOnly": false
+      },
+      {
+        "id": "idnummer",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "ID"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Reference"
+        },
+        "required": false,
+        "readOnly": false
+      },
+      {
+        "id": "prefilledJobTitle",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Prefilled Job Title"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "JobTitle"
+        },
+        "required": false,
+        "readOnly": false,
+        "hidden":  ["lessThan",  ["stringLength", ["dataModel", "PrefilledJobTitle"]], 1]
+      },
+      {
+        "id": "sendInButton",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Send inn"
+        }       
+      }
+    ]
+  }
+}

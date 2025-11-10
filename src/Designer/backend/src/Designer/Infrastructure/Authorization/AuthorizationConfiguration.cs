@@ -1,3 +1,4 @@
+#nullable disable
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,11 +50,19 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                         policy.Requirements.Add(new GiteaResourceAccessListPermissionRequirement());
                     });
 
-                options.AddPolicy(AltinnPolicy.MustBelongToOrganization, policy =>
-                {
-                    policy.RequireAuthenticatedUser();
-                    policy.Requirements.Add(new BelongsToOrganizationRequirement());
-                });
+                options.AddPolicy(AltinnPolicy.MustBelongToOrganization,
+                    policy =>
+                    {
+                        policy.RequireAuthenticatedUser();
+                        policy.Requirements.Add(new BelongsToOrganizationRequirement());
+                    });
+
+                options.AddPolicy(AltinnPolicy.MustHaveOrganizationPermission,
+                    policy =>
+                    {
+                        policy.RequireAuthenticatedUser();
+                        policy.Requirements.Add(new OrganizationPermissionRequirement());
+                    });
             });
 
             services.AddScoped<IAuthorizationHandler, GiteaPushPermissionHandler>();
@@ -61,6 +70,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             services.AddScoped<IAuthorizationHandler, GiteaPublishResourcePermissionHandler>();
             services.AddScoped<IAuthorizationHandler, GiteaResourceAccessListPermissionHandler>();
             services.AddScoped<IAuthorizationHandler, BelongsToOrganizationHandler>();
+            services.AddScoped<IAuthorizationHandler, OrganizationPermissionHandler>();
 
             return services;
         }

@@ -1,0 +1,14 @@
+[
+  {
+      "value": "address",
+      "label": "Adresse"
+  },
+  {
+      "value": "id",
+      "label": "Legitimasjon"
+  },     
+  {
+      "value": "other",
+      "label": "Annet"
+  }
+]

@@ -15,7 +15,6 @@ import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useFormDataFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { RawGeometry } from 'src/layout/Map/types';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export function MapSummary({ targetBaseComponentId }: Summary2Props) {
@@ -26,7 +25,6 @@ export function MapSummary({ targetBaseComponentId }: Summary2Props) {
   const formData = useFormDataFor<'Map'>(targetBaseComponentId);
   const markerLocation = parseLocation(formData.simpleBinding);
   const markerLocationIsValid = isLocationValid(markerLocation);
-  const geometries = formData.geometries as RawGeometry[] | undefined;
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
   const title = textResourceBindings?.title;
@@ -76,9 +74,8 @@ export function MapSummary({ targetBaseComponentId }: Summary2Props) {
         </div>
         <Map
           baseComponentId={targetBaseComponentId}
-          markerLocation={markerLocation}
-          geometries={geometries}
-          isSummary={true}
+          readOnly={true}
+          animate={false}
         />
         {markerLocation && (
           <Paragraph className={cn(classes.footer, classes.summaryValue, { [classes.error]: errors.length > 0 })}>

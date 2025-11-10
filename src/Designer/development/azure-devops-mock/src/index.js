@@ -5,6 +5,7 @@ import { buildRoute, buildsRoute, kubernetesWrapperRoute } from './routes/builds
 import { authenticationRoute } from './routes/authentication.js';
 import { storageApplicationMetadataRoute, storageTextsRoute } from './routes/storage.js';
 import { environmentsRoute } from './routes/environments.js';
+import { appProcessRoute } from './routes/apps.js';
 
 const app = express();
 
@@ -17,7 +18,8 @@ app.get('/_apis/build/builds/', buildsRoute);
 app.get('/_apis/build/builds/:BuildNumber', buildRoute);
 app.get('/authentication/api/v1/exchange/:service', authenticationRoute);
 app.get('/environments.json', environmentsRoute);
-app.get('/kuberneteswrapper/api/v1/deployments', kubernetesWrapperRoute);
+app.get('/apps/:org/:env/kuberneteswrapper/api/v1/deployments', kubernetesWrapperRoute);
+app.get('/apps/:org/:env/:org/:app/api/v1/meta/process', appProcessRoute);
 app.get('/storage/api/v1/applications/:org/:app', storageApplicationMetadataRoute);
 app.get('/storage/api/v1/applications/:org/:app/texts/:lang', storageTextsRoute);
 app.post('/_apis/build/builds/', buildsRoute);

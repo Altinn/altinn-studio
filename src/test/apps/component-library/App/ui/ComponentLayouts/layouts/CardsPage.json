@@ -1,0 +1,317 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "CardsPage-NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "CardsPage-Header",
+        "type": "Header",
+        "textResourceBindings": {
+            "title": "CardsPage"
+        },
+        "size": "h2"
+      },
+      {
+        "id": "CardsPage-Cards",
+        "type": "Cards",
+        "color": "subtle",
+        "cards": [
+          {
+            "title": "Varemerke",
+            "description": "Dette er et eksempel på hvordan et varemerke kan se ut. Dette kan være en logo, et navn, en farge eller en kombinasjon av disse.",
+            "media": "CardsPage-Image"
+          },
+          {
+            "title": "Lydmerke",
+            "description": "Et lydmerke kan være en jingle, en melodi eller en annen lyd. Et opptak av at noen brøler firmanavnet ditt godtar vi ikke.",
+            "media": "CardsPage-Audio"
+          },
+          {
+            "title": "Videomerke",
+            "description": "Videomerker er en kombinasjon bilde og av og til lyd. Dette kan være en reklamefilm, en animasjon eller en annen type video.",
+            "media": "CardsPage-Video"
+          },
+          {
+            "title": "Andre",
+            "description": "Vi kan registrere alt mulig rart som et kjennemerke. Hvis du vil registere gode kaker, kryss av her så tar vi kontakt for prøvesmaking.",
+            "children": ["CardsPage-Cards-Checkboxes"]
+          }
+        ]
+      },
+      {
+        "id": "CardsPage-Image",
+        "type": "Image",
+        "textResourceBindings": {
+          "altTextImg": "CardsPage-image-alt-text"
+        },
+        "image": {
+          "align": "center",
+          "width": "100%",
+          "src": {
+            "nb": "assets/kitten.jpg",
+            "en": "assets/kitten.jpg",
+            "nn": "assets/kitten.jpg"
+          }
+        }
+      },
+      {
+        "id": "CardsPage-Audio",
+        "type": "Audio",
+        "textResourceBindings": {
+          "altText": "CardsPage-Lydmerke-alt-text"
+        },
+        "audio": {
+          "src": {
+            "nb": "assets/xylophone_melody_sample.wav",
+            "en": "assets/xylophone_melody_sample.wav",
+            "nn": "assets/xylophone_melody_sample.wav"
+          }
+        }
+      },
+      {
+        "id": "CardsPage-Video",
+        "type": "Video",
+        "textResourceBindings": {
+          "altText": "CardsPage-Videomerke-alt-text"
+        },
+        "video": {
+          "src": {
+            "nb": "assets/samplevideo.mov",
+            "en": "assets/samplevideo.mov",
+            "nn": "assets/samplevideo.mov"
+          }
+        }
+      },
+      {
+        "id": "CardsPage-Cards-Checkboxes",
+        "type": "Checkboxes",
+        "dataModelBindings": {
+          "simpleBinding": "checkboxForCard"
+        },
+        "options": [
+          {
+            "label": "Jeg inviterer Patentstyret til å smake på kaker",
+            "value": true
+          }
+        ]
+      },
+      {
+        "id": "CardsPage-Number-Input",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "CardsPage-Number-Input"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "anyNumber"
+        },
+        "grid": {
+          "md": 6
+        }
+      },     
+      {
+        "id": "CardsPage-Percentage-Input",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "CardsPage-Percentage-Input"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "numberPercentage"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "CardsPage-number1",
+        "type": "Number",
+        "textResourceBindings": {
+          "title": "Total gjeld"
+        },
+        "value": ["dataModel","anyNumber"],
+        "direction": "horizontal",
+        "formatting": {
+          "currency": "NOK",
+          "position": "suffix",
+          "number": {
+            "thousandSeparator": " "
+          }
+        },
+        "grid": {
+          "xs": 12
+        }
+      },
+      {
+        "id": "CardsPage-number2",
+        "type": "Number",
+        "textResourceBindings": {
+          "title": "Statisk verdi som tall"
+        },
+        "value": 2000,
+        "direction": "horizontal",
+        "formatting": {
+          "currency": "NOK",
+          "position": "suffix",
+          "number": {
+            "thousandSeparator": " "
+          }
+        },
+        "grid": {
+          "xs": 12
+        }
+      },
+      {
+        "id": "CardsPage-number3",
+        "type": "Number",
+        "textResourceBindings": {
+          "title": "Kredittkort prosent",
+          "description": ""
+        },
+        "value": ["dataModel","numberPercentage"],
+        "direction": "horizontal",
+        "formatting": {
+          "unit": "percent",
+          "position": "suffix",
+          "number": {
+            "thousandSeparator": " "
+          }
+        },
+        "grid": {
+          "xs": 12
+        }
+      },
+      {
+        "id": "CardsPage-number4",
+        "type": "Number",
+        "textResourceBindings": {
+          "title": "Statisk verdi med desimal",
+          "description": "Dette er en beskrivelse",
+          "help":"Dette er en helptext"
+        },
+        "value": 20000.20,
+        "direction": "horizontal",
+        "formatting": {
+          "currency": "NOK",
+          "position": "suffix",
+          "number": {
+            "thousandSeparator": " "
+          }
+        },
+        "grid": {
+          "xs": 12
+        }
+      },
+      {
+        "id": "CardsPage-number-Card",
+        "type": "Cards",
+        "color": "subtle",
+        "cards": [
+          {
+            "title": "Nummerkort",
+            "description": "",
+            "children": ["CardsPage-number1", "CardsPage-number2", "CardsPage-number3", "CardsPage-number4"]
+          }
+        ]
+      },
+      {
+        "id": "CardsPage-text1",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Fornavn"
+        },
+        "value": ["dataModel","shortAnswerInput"],
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "CardsPage-text2",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Etternavn"
+        },
+        "value": "Mitt etternavn",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "CardsPage-text3",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Adresse"
+        },
+        "value": "Min adresse",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "CardsPage-text4",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Tekst"
+        },
+        "value": "Test",
+        "direction": "vertical",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "CardsPage-text5",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Språk"
+        },
+        "value": ["language"],
+        "direction": "vertical",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "CardsPage-text-Input",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "CardsPage-text-Input"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "shortAnswerInput"
+        }
+      },
+      {
+        "id": "CardsPage-text-Card",
+        "type": "Cards",
+        "color": "subtle",
+        "cards": [
+          {
+            "title": "Tekstkort",
+            "description": "",
+            "children": ["CardsPage-text1", "CardsPage-text2", "CardsPage-text3", "CardsPage-text4", "CardsPage-text5"]
+          }
+        ]
+      },
+      {
+        "id": "CardsPage-Summary-Header",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Summary 2"
+        },
+        "size": "h3"
+      },
+      {
+        "id": "CardsPage-Summary2",
+        "type": "Summary2",
+        "hideEmptyFields": true,
+        "target": {
+          "type": "component",
+          "id": "CardsPage-Cards"
+        }
+      }
+    ]
+  }
+}
+

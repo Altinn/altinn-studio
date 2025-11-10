@@ -10,6 +10,7 @@ using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Moq;
 using Xunit.Abstractions;
 using Exception = System.Exception;
@@ -34,6 +35,7 @@ public class ValidationServiceTests : IAsyncLifetime
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
     private readonly Mock<ITranslationService> _translationServiceMock = new(MockBehavior.Loose);
     private readonly Mock<IDataElementAccessChecker> _dataElementAccessCheckerMock = new(MockBehavior.Strict);
+    private readonly Mock<IHostEnvironment> _hostEnvironmentMock = new(MockBehavior.Strict);
     private readonly InstanceDataAccessorFake _instanceDataAccessor;
     private readonly IServiceCollection _services = new ServiceCollection();
     private readonly Lazy<ServiceProvider> _serviceProvider;
@@ -43,9 +45,11 @@ public class ValidationServiceTests : IAsyncLifetime
         _dataElementAccessCheckerMock
             .Setup(x => x.CanRead(It.IsAny<Instance>(), It.IsAny<DataType>()))
             .ReturnsAsync(true);
+        _hostEnvironmentMock.SetupGet(h => h.EnvironmentName).Returns(Environments.Development);
 
         _instanceDataAccessor = new InstanceDataAccessorFake(_instance, _appMetadata, TaskId);
         _services.AddTransient<IValidationService, ValidationService>();
+        _services.AddSingleton(_hostEnvironmentMock.Object);
         _services.AddTelemetrySink();
         _services.AddFakeLoggingWithXunit(output);
         _services.AddTransient<IValidatorFactory, ValidatorFactory>();
@@ -87,6 +91,7 @@ public class ValidationServiceTests : IAsyncLifetime
         }
 
         mock.SetupGet(v => v.NoIncrementalValidation).Returns(noIncrementalValidation);
+        mock.SetupGet(v => v.ShouldRunAfterRemovingHiddenData).Returns(false);
 
         _services.AddSingleton(mock.Object);
         return mock;
@@ -315,6 +320,8 @@ public class ValidationServiceTests : IAsyncLifetime
         {
             Name = "FormDataValidatorNoAppLogic",
         };
+        formDataValidatorNoAppLogicMock.SetupGet(v => v.NoIncrementalValidation).Returns(false);
+        formDataValidatorNoAppLogicMock.SetupGet(v => v.ShouldRunAfterRemovingHiddenData).Returns(false);
         formDataValidatorNoAppLogicMock
             .SetupGet(v => v.DataType)
             .Returns("dataTypeNoAppLogic")
@@ -323,7 +330,6 @@ public class ValidationServiceTests : IAsyncLifetime
             .SetupGet(v => v.ValidationSource)
             .Returns("FormDataValidatorNoAppLogic")
             .Verifiable(Times.AtLeastOnce);
-        formDataValidatorNoAppLogicMock.SetupGet(v => v.NoIncrementalValidation).Returns(false);
         _services.AddSingleton(formDataValidatorNoAppLogicMock.Object);
         _appMetadata.DataTypes.Add(new DataType { Id = "dataTypeNoAppLogic", TaskId = TaskId });
 
@@ -331,6 +337,8 @@ public class ValidationServiceTests : IAsyncLifetime
         {
             Name = "FormDataValidatorWrongTask",
         };
+        formDataValidatorWrongTaskMock.SetupGet(v => v.NoIncrementalValidation).Returns(false);
+        formDataValidatorWrongTaskMock.SetupGet(v => v.ShouldRunAfterRemovingHiddenData).Returns(false);
         formDataValidatorWrongTaskMock
             .SetupGet(v => v.DataType)
             .Returns("dataTypeWrongTask")
@@ -339,7 +347,6 @@ public class ValidationServiceTests : IAsyncLifetime
             .SetupGet(v => v.ValidationSource)
             .Returns("FormDataValidatorWrongTask")
             .Verifiable(Times.AtLeastOnce);
-        formDataValidatorWrongTaskMock.SetupGet(v => v.NoIncrementalValidation).Returns(false);
         _services.AddSingleton(formDataValidatorWrongTaskMock.Object);
         _appMetadata.DataTypes.Add(
             new DataType
@@ -351,6 +358,8 @@ public class ValidationServiceTests : IAsyncLifetime
         );
 
         var formDataValidatorMock = new Mock<IFormDataValidator>(MockBehavior.Strict) { Name = "FormDataValidator" };
+        formDataValidatorMock.SetupGet(v => v.NoIncrementalValidation).Returns(false);
+        formDataValidatorMock.SetupGet(v => v.ShouldRunAfterRemovingHiddenData).Returns(false);
         formDataValidatorMock.SetupGet(v => v.DataType).Returns("dataType").Verifiable(Times.AtLeastOnce);
         formDataValidatorMock
             .SetupGet(v => v.ValidationSource)
@@ -369,7 +378,6 @@ public class ValidationServiceTests : IAsyncLifetime
                     },
                 }
             );
-        formDataValidatorMock.SetupGet(v => v.NoIncrementalValidation).Returns(false);
         _services.AddSingleton(formDataValidatorMock.Object);
         _appMetadata.DataTypes.Add(
             new DataType
@@ -435,28 +443,26 @@ public class ValidationServiceTests : IAsyncLifetime
 
         var changes = new DataElementChanges(
             [
-                new FormDataChange()
-                {
-                    Type = ChangeType.Updated,
-                    DataElement = dataElement,
-                    DataType = _instanceDataAccessor.GetDataType(dataElement),
-                    ContentType = "text/plain",
-                    CurrentFormData = "currentValue",
-                    PreviousFormData = "previousValue",
-                    CurrentBinaryData = default,
-                    PreviousBinaryData = default,
-                },
-                new FormDataChange()
-                {
-                    Type = ChangeType.Updated,
-                    DataElement = dataElementNoValidation,
-                    DataType = _instanceDataAccessor.GetDataType(dataElement),
-                    ContentType = "text/plain",
-                    CurrentFormData = "currentValue",
-                    PreviousFormData = "previousValue",
-                    CurrentBinaryData = null,
-                    PreviousBinaryData = null,
-                },
+                new FormDataChange(
+                    type: ChangeType.Updated,
+                    dataElement: dataElement,
+                    dataType: _instanceDataAccessor.GetDataType(dataElement),
+                    contentType: "text/plain",
+                    currentFormDataWrapper: FormDataWrapperFactory.Create("currentValue"),
+                    previousFormDataWrapper: FormDataWrapperFactory.Create("previousValue"),
+                    currentBinaryData: null,
+                    previousBinaryData: default
+                ),
+                new FormDataChange(
+                    type: ChangeType.Updated,
+                    dataElement: dataElementNoValidation,
+                    dataType: _instanceDataAccessor.GetDataType(dataElement),
+                    contentType: "text/plain",
+                    currentFormDataWrapper: FormDataWrapperFactory.Create("currentValue"),
+                    previousFormDataWrapper: FormDataWrapperFactory.Create("previousValue"),
+                    currentBinaryData: null,
+                    previousBinaryData: null
+                ),
             ]
         );
 

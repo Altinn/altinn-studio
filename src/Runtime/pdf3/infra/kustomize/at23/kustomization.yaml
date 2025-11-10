@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../base
+patches:
+  - patch: |-
+      $patch: delete
+      apiVersion: grafana.integreatly.org/v1beta1
+      kind: GrafanaDashboard
+      metadata:
+        name: pdf3-dashboard
+  - target:
+      kind: ServiceMonitor
+      name: pdf3-proxy
+    patch: |-
+      - op: replace
+        path: /apiVersion
+        value: azmonitoring.coreos.com/v1
+  - target:
+      kind: ServiceMonitor
+      name: pdf3-worker
+    patch: |-
+      - op: replace
+        path: /apiVersion
+        value: azmonitoring.coreos.com/v1

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pagination } from '@digdir/designsystemet-react';
+import { getVisiblePages } from './StudioPaginationUtils';
 
 export type StudioPaginationProps = {
   currentPage: number;
@@ -20,6 +21,7 @@ export function StudioPagination({
 }: StudioPaginationProps): React.ReactElement {
   const safeCurrent = currentPage || 1;
   const safeTotal = totalPages || 1;
+  const visiblePages = getVisiblePages(safeCurrent, safeTotal);
 
   return (
     <Pagination aria-label='Pagination'>
@@ -28,27 +30,29 @@ export function StudioPagination({
           <Pagination.Button
             aria-label={previousButtonAriaLabel ?? 'Previous'}
             variant='tertiary'
-            onClick={() => onChange(Math.max(1, safeCurrent - 1))}
-          ></Pagination.Button>
+            onClick={() => onChange(safeCurrent - 1)}
+          />
         </Pagination.Item>
-        {Array.from({ length: safeTotal }, (_, index) => index + 1).map((pageNumber) => (
-          <Pagination.Item key={pageNumber}>
-            <Pagination.Button
-              aria-label={numberButtonAriaLabel?.(pageNumber)}
-              aria-current={pageNumber === safeCurrent ? 'page' : undefined}
-              variant={pageNumber === safeCurrent ? undefined : 'tertiary'}
-              onClick={() => onChange(pageNumber)}
-            >
-              {pageNumber}
-            </Pagination.Button>
+        {visiblePages.map((pageNumber, index) => (
+          <Pagination.Item key={`${pageNumber}-${index}`}>
+            {pageNumber && (
+              <Pagination.Button
+                aria-label={numberButtonAriaLabel?.(pageNumber)}
+                aria-current={pageNumber === safeCurrent ? 'page' : undefined}
+                variant={pageNumber === safeCurrent ? undefined : 'tertiary'}
+                onClick={() => onChange(pageNumber)}
+              >
+                {pageNumber}
+              </Pagination.Button>
+            )}
           </Pagination.Item>
         ))}
         <Pagination.Item hidden={safeCurrent >= safeTotal}>
           <Pagination.Button
             aria-label={nextButtonAriaLabel ?? 'Next'}
             variant='tertiary'
-            onClick={() => onChange(Math.min(safeTotal, safeCurrent + 1))}
-          ></Pagination.Button>
+            onClick={() => onChange(safeCurrent + 1)}
+          />
         </Pagination.Item>
       </Pagination.List>
     </Pagination>

@@ -34,7 +34,7 @@ describe('Dashboard', () => {
       getStarredRepos: jest.fn().mockResolvedValue([{ ...repository, hasStarred: true }]),
     });
 
-    await waitForElementToBeRemoved(() => screen.queryAllByText(textMock('general.loading')));
+    await waitForElementToBeRemoved(() => screen.queryAllByLabelText(textMock('general.loading')));
 
     const starredHeading = screen.getByRole('heading', {
       name: textMock('dashboard.favourites'),
@@ -56,7 +56,7 @@ describe('Dashboard', () => {
       }),
     });
 
-    await waitForElementToBeRemoved(() => screen.queryAllByText(textMock('general.loading')));
+    await waitForElementToBeRemoved(() => screen.queryAllByLabelText(textMock('general.loading')));
 
     const appsHeading = screen.getByRole('heading', { name: /apps/ });
     //eslint-disable-next-line testing-library/no-node-access
@@ -83,7 +83,7 @@ describe('Dashboard', () => {
       }),
     });
 
-    await waitForElementToBeRemoved(() => screen.queryAllByText(textMock('general.loading')));
+    await waitForElementToBeRemoved(() => screen.queryAllByLabelText(textMock('general.loading')));
 
     const dataModelHeading = screen.getByRole('heading', {
       name: textMock('dashboard.my_data_models'),

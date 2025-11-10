@@ -1,0 +1,13 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/prefill/prefill.schema.v1.json",
+  "allowOverwrite": false,
+  "ER": {},
+  "DSF": {
+    "FirstName": "opplysningerOmArbeidstakerengrp8819.opplysningerOmArbeidstakerengrp8855.ansattNavndatadef1223.value"
+  },
+  "UserProfile": {},
+  "QueryParameters": {
+    "jobTitle": "JobTitle",
+    "programmer": "queryParam2"
+  }
+}

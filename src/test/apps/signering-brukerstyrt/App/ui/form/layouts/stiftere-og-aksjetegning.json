@@ -1,0 +1,254 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "size": "L",
+        "id": "Header-LSgLyT",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.Header-LSgLyT.title"
+        }
+      },
+      {
+        "id": "Paragraph-vF8Zjw",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.Paragraph-vF8Zjw.title"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "group": "StifterPerson"
+        },
+        "id": "stifter-personer-repeating-group",
+        "type": "RepeatingGroup",
+        "maxCount": 99999,
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.RepeatingGroup-hkXdP3.title",
+          "add_button_full": "stiftere-og-aksjetegning.stifter-personer-repeating-group.add_button_full"
+        },
+
+        "children": [
+          "personLookup",
+          "Address-ORk7vt",
+          "Input-person-epost",
+          "Input-person-sms",
+          "Aksjetegning-heading",
+          "StifterPerson-Aksjetegning-AntallAksjer",
+          "StifterPerson-Aksjetegning-Aksjepris",
+          "fullmektig-heading",
+          "fullmektig-checkbox",
+          "StifterPerson-Fullmektig"
+        ],
+        "tableHeaders": [
+          "personLookup",
+          "Input-person-epost",
+          "Input-person-sms",
+          "fullmektig-checkbox"
+        ]
+      },
+      {
+        "dataModelBindings": {
+          "group": "StifterVirksomhet"
+        },
+        "id": "stiftere-virksomheter",
+        "type": "RepeatingGroup",
+        "maxCount": 99999,
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.stiftere-virksomheter.title",
+          "summaryTitle": "stiftere-og-aksjetegning.stiftere-virksomheter.title",
+          "add_button_full": "stiftere-og-aksjetegning.stiftere-virksomheter.add_button_full"
+        },
+        "children": [
+          "organisationLookup",
+          "Input-virksomhet-epost",
+          "Input-virksomhet-sms"
+        ]
+      },
+      {
+        "id": "NavigationButtons-A564Nt",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      },
+      {
+        "id": "organisationLookup",
+        "type": "OrganisationLookup",
+        "dataModelBindings": {
+          "organisation_lookup_orgnr": "StifterVirksomhet.Organisasjonsnummer",
+          "organisation_lookup_name": "StifterVirksomhet.Navn"
+        },
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.organisasjonsnummer.title",
+          "description": "Her legger du inn organisasjonsnummer",
+          "help": "Du kan finne organisasjonsnummeret ved å søke i Brønnøysundregistrene"
+        },
+        "required": true
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "StifterVirksomhet.Epost",
+            "dataType": "Skjemadata"
+          }
+        },
+        "id": "Input-virksomhet-epost",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.Input-HB2jK2.title",
+          "summaryTitle": "E-post",
+          "tableTitle": "E-post"
+        },
+        "grid": {
+          "lg": 12,
+          "innerGrid": { "lg": 6 }
+        }
+      },
+      {
+        "id": "Input-virksomhet-sms",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "StifterVirksomhet.Mobiltelefon"
+        },
+        "textResourceBindings": {
+          "title": "Mobiltelefon (for varsel om signering)",
+          "summaryTitle": "Mobiltelefon",
+          "tableTitle": "Mobiltelefon"
+        },
+        "grid": { "lg": 6 }
+      },
+      {
+        "id": "personLookup",
+        "type": "PersonLookup",
+        "dataModelBindings": {
+          "person_lookup_ssn": "StifterPerson.Foedselsnummer",
+          "person_lookup_name": "StifterPerson.Etternavn"
+        },
+        "textResourceBindings": {
+          "title": "Stifter",
+          "description": "Her legger du inn etternavn og fødselsnummer",
+          "help": "For å kunne søke i registeret må du ha fødselsnummeret til personen"
+        },
+        "required": true
+      },
+      {
+        "dataModelBindings": {
+          "address": "StifterPerson.Adresse.Adresselinje",
+          "zipCode": "StifterPerson.Adresse.Postnummer",
+          "postPlace": "StifterPerson.Adresse.Sted"
+        },
+        "textResourceBindings": {
+          "title": "Adresse"
+        },
+        "simplified": true,
+        "saveWhileTyping": 400,
+        "id": "Address-ORk7vt",
+        "type": "Address",
+        "required": true,
+        "grid": {
+          "md": 12
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "StifterPerson.Epost",
+            "dataType": "Skjemadata"
+          }
+        },
+        "id": "Input-person-epost",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.Input-cgGsVM.title",
+          "tableTitle": "E-post",
+          "summaryTitle": "E-post"
+        },
+        "grid": {
+          "lg": 6
+        }
+      },
+      {
+        "id": "Input-person-sms",
+        "type": "Input",
+        "dataModelBindings": { "simpleBinding": "StifterPerson.Mobiltelefon" },
+        "textResourceBindings": {
+          "title": "Mobiltelefon (for varsel om signering)",
+          "summaryTitle": "Mobiltelefon",
+          "tableTitle": "Mobiltelefon"
+        },
+        "grid": { "lg": 6 }
+      },
+      {
+        "id": "Aksjetegning-heading",
+        "type": "Header",
+        "textResourceBindings": { "title": "Aksjetegning" },
+        "size": "S"
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "StifterPerson.Aksjetegning.AntallAksjer"
+        },
+        "id": "StifterPerson-Aksjetegning-AntallAksjer",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.Input-Vq1fOU.title"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "StifterPerson.Aksjetegning.Aksjepris"
+        },
+        "id": "StifterPerson-Aksjetegning-Aksjepris",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.Input-f5s6V5.title"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "fullmektig-heading",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Fullmektig"
+        },
+        "size": "S"
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "StifterPerson.HarFullmektig"
+        },
+        "id": "fullmektig-checkbox",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Stifteren er representert ved fullmektig",
+          "summaryTitle": "stiftere-og-aksjetegning.Group-xCsfYx.title",
+          "tableTitle": "stiftere-og-aksjetegning.Group-xCsfYx.title"
+        },
+        "options": [
+          {
+            "label": "di8UgmCpnzKG",
+            "value": "Ja"
+          }
+        ]
+      },
+      {
+        "id": "StifterPerson-Fullmektig",
+        "hidden": ["notEquals", ["component", "fullmektig-checkbox"], "Ja"],
+        "type": "PersonLookup",
+        "dataModelBindings": {
+          "person_lookup_ssn": "StifterPerson.Fullmektig.Foedselsnummer",
+          "person_lookup_name": "StifterPerson.Fullmektig.Etternavn"
+        },
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.Group-xCsfYx.title"
+        }
+      }
+    ]
+  }
+}

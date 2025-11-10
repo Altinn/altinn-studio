@@ -1,0 +1,23 @@
+{
+  "sets": [
+    {
+      "id": "stateless",
+      "dataType": "stateless"
+    },
+    {
+      "id": "stateful1",
+      "dataType": "message",
+      "tasks": ["Task_1"]
+    },
+    {
+      "id": "stateful2",
+      "dataType": "task2",
+      "tasks": ["Task_2"]
+    },
+    {
+      "id": "error",
+      "dataType": "task2",
+      "tasks": ["Task_4"]
+    }
+  ]
+}

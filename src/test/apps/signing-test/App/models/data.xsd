@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xs:complexType name="form">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string" />
+      <xs:element name="orgNumber" type="xs:string" />
+      <xs:element name="year" type="xs:long" />
+      <xs:element name="income" type="xs:long" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="sources">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="type" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="data">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="form" type="form" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xsd:schema>

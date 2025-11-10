@@ -208,6 +208,17 @@ export function en() {
     'iframe_component.unsupported_browser_title': 'Your browser is unsupported',
     'iframe_component.unsupported_browser':
       'Your browser does not support iframes that use srcdoc. This may result in not being able to see all the content intended to be displayed here. We recommend trying a different browser.',
+    'image_upload_component.animated_warning': 'If the image is animated, only the first frame will be shown.',
+    'image_upload_component.button_change': 'Change image',
+    'image_upload_component.button_delete': 'Delete image',
+    'image_upload_component.button_save': 'Save image',
+    'image_upload_component.crop_area': 'Crop area',
+    'image_upload_component.slider_zoom': 'Zoom',
+    'image_upload_component.summary_empty': "You haven't uploaded an image",
+    'image_upload_component.reset': 'Reset position and zoom',
+    'image_upload_component.error_invalid_file_type': 'Invalid file format. Please upload an image file.',
+    'image_upload_component.error_file_size_exceeded': 'File size exceeds 10MB limit.',
+    'image_upload_component.valid_file_types': 'Image files only',
     'input_components.remaining_characters': 'You have %d characters left',
     'input_components.exceeded_max_limit': 'You have exceeded the maximum limit with %d characters',
     'instance_selection.changed_by': 'Changed by',
@@ -494,5 +505,11 @@ export function en() {
     'signing_document_list.attachment_type_form': 'Form',
     'signing_document_list.download': 'Download',
     'signing_document_list_summary.header': 'Signed documents',
+    'service_task.title': 'Something went wrong',
+    'service_task.body': 'An error occurred during automatic processing of the form.',
+    'service_task.help_text':
+      'You can try to process again by clicking "{0}". If the problem persists, contact customer service at {1}.',
+    'service_task.retry_button': 'Try again',
+    'service_task.back_button': 'Go back',
   };
 }

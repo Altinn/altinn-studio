@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+    xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+    xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+    xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+    xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:altinn="http://altinn.no/process"
+    xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Altinn_Data_Signing_Process_Definition"
+    targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Web Modeler"
+    exporterVersion="60e1771" modeler:executionPlatform="Camunda Cloud"
+    modeler:executionPlatformVersion="8.1.0"
+    camunda:diagramRelationId="69b5995e-5e3d-457e-b866-aa9a162a36c5">
+    <bpmn:process id="Data_Signing" isExecutable="false">
+        <bpmn:startEvent id="StartEvent_1">
+            <bpmn:outgoing>SequenceFlow_1</bpmn:outgoing>
+        </bpmn:startEvent>
+        <bpmn:task id="Task_1" name="Form">
+            <bpmn:incoming>SequenceFlow_1</bpmn:incoming>
+            <bpmn:outgoing>SequenceFlow_2</bpmn:outgoing>
+            <bpmn:extensionElements>
+                <altinn:taskExtension>
+                    <altinn:taskType>data</altinn:taskType>
+                </altinn:taskExtension>
+            </bpmn:extensionElements>
+        </bpmn:task>
+        <bpmn:task id="Task_2" name="Confirm1">
+            <bpmn:incoming>SequenceFlow_2</bpmn:incoming>
+            <bpmn:outgoing>Gateway</bpmn:outgoing>
+            <bpmn:extensionElements>
+                <altinn:taskExtension>
+                    <altinn:taskType>signing</altinn:taskType>
+                    <altinn:actions>
+                        <altinn:action>reject</altinn:action>
+                        <altinn:action>sign</altinn:action> 
+                    </altinn:actions>
+                    <altinn:signatureConfig>
+                        <altinn:dataTypesToSign>
+                            <altinn:dataType>data</altinn:dataType>
+                        </altinn:dataTypesToSign>
+                        <altinn:signatureDataType>signature1</altinn:signatureDataType>
+                    </altinn:signatureConfig>
+                </altinn:taskExtension>
+            </bpmn:extensionElements>
+        </bpmn:task>
+
+        <bpmn:sequenceFlow id="Gateway" sourceRef="Task_2" targetRef="Gateway_0" />
+        <bpmn:exclusiveGateway id="Gateway_0" name="Gateway">
+            <bpmn:incoming>Gateway</bpmn:incoming>
+            <bpmn:outgoing>Back_To_Task_1</bpmn:outgoing>
+            <bpmn:outgoing>To_Task_3</bpmn:outgoing>
+        </bpmn:exclusiveGateway>
+        <bpmn:sequenceFlow id="Back_To_Task_1" sourceRef="GW_From_Task_2" targetRef="Task_1">
+            <bpmn:conditionExpression>["equals", ["gatewayAction"], "reject"]</bpmn:conditionExpression>
+        </bpmn:sequenceFlow>
+        <bpmn:sequenceFlow id="To_Task_3" sourceRef="GW_From_Task_2" targetRef="Task_3">
+            <bpmn:conditionExpression>["notEquals", ["gatewayAction"], "reject"]</bpmn:conditionExpression>
+        </bpmn:sequenceFlow>
+
+        <bpmn:task id="Task_3" name="Confirm2">
+            <bpmn:incoming>To_Task_3</bpmn:incoming>
+            <bpmn:outgoing>SequenceFlow_4</bpmn:outgoing>
+            <bpmn:extensionElements>
+                <altinn:taskExtension>
+                    <altinn:taskType>signing</altinn:taskType>
+                    <altinn:actions>
+                        <altinn:action>sign</altinn:action> 
+                    </altinn:actions>
+                    <altinn:signatureConfig>
+                        <altinn:dataTypesToSign>
+                            <altinn:dataType>data</altinn:dataType>
+                        </altinn:dataTypesToSign>
+                        <altinn:signatureDataType>signature2</altinn:signatureDataType>
+                    </altinn:signatureConfig>
+                </altinn:taskExtension>
+            </bpmn:extensionElements>
+        </bpmn:task>
+        <bpmn:endEvent id="EndEvent_1">
+            <bpmn:incoming>SequenceFlow_4</bpmn:incoming>
+        </bpmn:endEvent>
+        <bpmn:sequenceFlow id="SequenceFlow_1" sourceRef="StartEvent_1" targetRef="Task_1" />
+        <bpmn:sequenceFlow id="SequenceFlow_2" sourceRef="Task_1" targetRef="Task_2" />
+        <bpmn:sequenceFlow id="SequenceFlow_4" sourceRef="Task_3" targetRef="EndEvent_1" />
+    </bpmn:process>
+</bpmn:definitions>

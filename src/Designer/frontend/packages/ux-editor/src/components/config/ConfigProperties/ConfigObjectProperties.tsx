@@ -72,7 +72,6 @@ export const ConfigObjectProperties = ({
                       });
                     }}
                     editFormId={editFormId}
-                    hideUnsupported
                   />
                 </StudioCard.Block>
               </StudioCard>

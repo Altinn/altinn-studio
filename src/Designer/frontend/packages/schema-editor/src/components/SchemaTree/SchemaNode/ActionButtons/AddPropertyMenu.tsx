@@ -4,8 +4,6 @@ import type { FieldType, ObjectKind } from '@altinn/schema-model';
 import { SchemaModel } from '@altinn/schema-model';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { AddPropertiesMenu } from '../../../AddPropertiesMenu';
-import { useTranslation } from 'react-i18next';
-import classes from './ActionButton.module.css';
 
 interface AddPropertyMenuProps {
   schemaPointer: string;
@@ -14,7 +12,6 @@ interface AddPropertyMenuProps {
 
 export const AddPropertyMenu = ({ schemaPointer, uniquePointer }: AddPropertyMenuProps) => {
   const { setSelectedUniquePointer } = useSchemaEditorAppContext();
-  const { t } = useTranslation();
 
   const addProperty = useAddProperty();
 
@@ -26,15 +23,5 @@ export const AddPropertyMenu = ({ schemaPointer, uniquePointer }: AddPropertyMen
     }
   };
 
-  return (
-    <AddPropertiesMenu
-      onItemClick={addPropertyAndClose}
-      anchorButtonProps={{
-        children: '',
-        title: t('schema_editor.add_node_of_type_in_child_node_title'),
-        variant: 'tertiary',
-        className: classes.actionButton,
-      }}
-    />
-  );
+  return <AddPropertiesMenu onItemClick={addPropertyAndClose} />;
 };

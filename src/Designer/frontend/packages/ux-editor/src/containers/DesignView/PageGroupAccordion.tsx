@@ -36,6 +36,7 @@ import { ItemType } from '../../../../ux-editor/src/components/Properties/ItemTy
 import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
 import { useAddPageToGroup } from '../../hooks/mutations/useAddPageToGroup';
 import { pageGroupDisplayName } from '@altinn/ux-editor/utils/pageGroupUtils';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export interface PageGroupAccordionProps {
   pages: PagesModelWithPageGroups;
@@ -57,21 +58,14 @@ export const PageGroupAccordion = ({
     () => findLayoutsContainingDuplicateComponents(layouts),
     [layouts],
   );
-  const { selectedFormLayoutSetName, setSelectedFormLayoutName, selectedItem, setSelectedItem } =
-    useAppContext();
-  const { org, app } = useStudioEnvironmentParams();
-  const { mutate: changePageGroupOrder } = useChangePageGroupOrder(
-    org,
-    app,
-    selectedFormLayoutSetName,
-  );
-  const { mutate: deletePageGroup, isPending } = useDeletePageGroupMutation(
-    org,
-    app,
-    selectedFormLayoutSetName,
-  );
+  const { selectedItem, setSelectedItem, setSelectedFormLayoutName } = useAppContext();
+  const { layoutSet } = useUxEditorParams();
 
-  const { data: pagesModel } = usePagesQuery(org, app, selectedFormLayoutSetName);
+  const { org, app } = useStudioEnvironmentParams();
+  const { mutate: changePageGroupOrder } = useChangePageGroupOrder(org, app, layoutSet);
+  const { mutate: deletePageGroup, isPending } = useDeletePageGroupMutation(org, app, layoutSet);
+
+  const { data: pagesModel } = usePagesQuery(org, app, layoutSet);
   const { addPageToGroup: handleAddPageInsideGroup } = useAddPageToGroup(
     pagesModel as PagesModelWithPageGroups,
   );
