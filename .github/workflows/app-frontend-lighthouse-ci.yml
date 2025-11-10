@@ -1,5 +1,9 @@
 name: App Frontend - Lighthouse CI
-on: pull_request
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
 jobs:
   lighthouse:
     name: Lighthouse CI
@@ -72,7 +76,7 @@ jobs:
           REPORT_URL=$(grep -o 'https://storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/[^[:space:]]*' lighthouse_output.txt || echo "")
           echo "report_url=$REPORT_URL" >> $GITHUB_OUTPUT
       - name: Comment PR with Lighthouse Report
-        if: steps.lighthouse-ci.outputs.report_url != ''
+        if: github.event_name == 'pull_request' && steps.lighthouse-ci.outputs.report_url != ''
         uses: actions/github-script@v7
         with:
           script: |
