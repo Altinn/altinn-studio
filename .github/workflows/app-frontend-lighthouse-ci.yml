@@ -3,7 +3,11 @@ on:
   push:
     branches:
       - 'main'
+    paths:
+      - 'src/App/frontend/**'
   pull_request:
+    paths:
+      - 'src/App/frontend/**'
 jobs:
   lighthouse:
     name: Lighthouse CI
