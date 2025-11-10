@@ -53,56 +53,6 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
         return new GetSharedResourcesResponse(Files: [.. libraryFiles], CommitSha: baseCommitSha);
     }
 
-    private static void AddJsonFile(FileSystemObject jsonFile, ConcurrentBag<LibraryFile> libraryFiles)
-    {
-        string contentType = Path.GetExtension(jsonFile.Name);
-        LibraryFile libraryFile = new(
-            Path: jsonFile.Path,
-            ContentType: contentType,
-            Content: jsonFile.Content,
-            Url: null
-        );
-        libraryFiles.Add(libraryFile);
-    }
-
-    private static void AddOtherFile(FileSystemObject otherFile, ConcurrentBag<LibraryFile> libraryFiles)
-    {
-        string contentType = Path.GetExtension(otherFile.Name);
-        LibraryFile libraryFile = new(
-            Path: otherFile.Path,
-            ContentType: contentType,
-            Content: null,
-            Url: otherFile.HtmlUrl
-        );
-        libraryFiles.Add(libraryFile);
-    }
-
-    private async Task<List<FileSystemObject>> GetDirectoryContent(string org, string? path = null, string? reference = null, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        List<FileSystemObject> files = [];
-        string repository = GetStaticContentRepo(org);
-
-        List<FileSystemObject> directoryContent = await gitea.GetDirectoryAsync(org, repository, path, reference, cancellationToken);
-
-        foreach (FileSystemObject element in directoryContent)
-        {
-            if (element.Type == "file")
-            {
-                files.Add(element);
-            }
-
-            if (element.Type == "dir")
-            {
-                string directoryPath = Path.Combine(path ?? "", element.Name);
-                List<FileSystemObject> directoryFiles = await GetDirectoryContent(org, directoryPath, reference, cancellationToken);
-                files.AddRange(directoryFiles);
-            }
-        }
-
-        return files;
-    }
-
     /// <inheritdoc />
     public async Task UpdateSharedResourcesByPath(string org, string developer, UpdateSharedResourceRequest request, CancellationToken cancellationToken = default)
     {
@@ -153,7 +103,34 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
         sourceControl.DeleteLocalBranchIfExists(editingContext, branchName);
     }
 
-    private async Task UpdateFiles(AltinnRepoEditingContext editingContext, UpdateSharedResourceRequest request, CancellationToken cancellationToken)
+    internal async Task<List<FileSystemObject>> GetDirectoryContent(string org, string? path = null, string? reference = null, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        List<FileSystemObject> files = [];
+        string repository = GetStaticContentRepo(org);
+
+        List<FileSystemObject> directoryContent = await gitea.GetDirectoryAsync(org, repository, path, reference, cancellationToken);
+
+        foreach (FileSystemObject element in directoryContent)
+        {
+            if (element.Type == "file")
+            {
+                files.Add(element);
+            }
+
+            if (element.Type == "dir")
+            {
+                string directoryPath = Path.Combine(path ?? "", element.Name);
+                List<FileSystemObject> directoryFiles = await GetDirectoryContent(org, directoryPath, reference, cancellationToken);
+                files.AddRange(directoryFiles);
+            }
+        }
+
+        return files;
+    }
+
+
+    internal async Task UpdateFiles(AltinnRepoEditingContext editingContext, UpdateSharedResourceRequest request, CancellationToken cancellationToken)
     {
         ParallelOptions options = new() { MaxDegreeOfParallelism = 25, CancellationToken = cancellationToken };
         await Parallel.ForEachAsync(request.Files, options,
@@ -183,6 +160,30 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
         {
             throw new IllegalCommitMessageException("The commit message is invalid. It must be between 1 and 5120 characters and not contain null characters.");
         }
+    }
+
+    private static void AddJsonFile(FileSystemObject jsonFile, ConcurrentBag<LibraryFile> libraryFiles)
+    {
+        string contentType = Path.GetExtension(jsonFile.Name);
+        LibraryFile libraryFile = new(
+            Path: jsonFile.Path,
+            ContentType: contentType,
+            Content: jsonFile.Content,
+            Url: null
+        );
+        libraryFiles.Add(libraryFile);
+    }
+
+    private static void AddOtherFile(FileSystemObject otherFile, ConcurrentBag<LibraryFile> libraryFiles)
+    {
+        string contentType = Path.GetExtension(otherFile.Name);
+        LibraryFile libraryFile = new(
+            Path: otherFile.Path,
+            ContentType: contentType,
+            Content: null,
+            Url: otherFile.HtmlUrl
+        );
+        libraryFiles.Add(libraryFile);
     }
 
     private static string GetStaticContentRepo(string org)
