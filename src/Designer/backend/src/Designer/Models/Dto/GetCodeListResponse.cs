@@ -30,13 +30,11 @@ public sealed record GetCodeListResponse(List<CodeListWrapper> CodeListWrappers,
         var hash = new HashCode();
         hash.Add(CommitSha);
 
-        if (CodeListWrappers is not null)
+        foreach (CodeListWrapper wrapper in CodeListWrappers)
         {
-            foreach (CodeListWrapper wrapper in CodeListWrappers)
-            {
-                hash.Add(wrapper);
-            }
+            hash.Add(wrapper);
         }
+
         return hash.ToHashCode();
     }
 }
