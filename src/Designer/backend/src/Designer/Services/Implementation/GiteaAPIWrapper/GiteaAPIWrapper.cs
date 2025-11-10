@@ -485,7 +485,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
                 string suffix = string.IsNullOrWhiteSpace(reference) ? string.Empty : $" at reference {reference}";
-                DirectoryNotFoundException ex = new ($"Directory {directoryPath} not found in repository {org}/{app}{suffix}");
+                DirectoryNotFoundException ex = new($"Directory {directoryPath} not found in repository {org}/{app}{suffix}");
                 _logger.LogWarning(ex, "Directory not found for org {Org} in repository {App}, at directory path {DirPath} and reference {Ref}", org, app, directoryPath, reference);
                 throw ex;
             }
@@ -512,12 +512,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 .Select(f => f.Name);
 
             ParallelOptions options = new() { MaxDegreeOfParallelism = 25, CancellationToken = cancellationToken };
-            await Parallel.ForEachAsync(directoryFileNames, options, async (fileName, token) =>
-            {
-                string filePath = $"{CodeListFolderName}/{fileName}";
-                FileSystemObject file = await GetFileAsync(org, repository, filePath, reference, token);
-                files.Add(file);
-            });
+            await Parallel.ForEachAsync(directoryFileNames, options,
+                async (string fileName, CancellationToken token) =>
+                {
+                    string filePath = $"{CodeListFolderName}/{fileName}";
+                    FileSystemObject file = await GetFileAsync(org, repository, filePath, reference, token);
+                    files.Add(file);
+                }
+            );
 
             return files;
         }
