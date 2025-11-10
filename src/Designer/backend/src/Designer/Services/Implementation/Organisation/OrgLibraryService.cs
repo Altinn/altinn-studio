@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -24,71 +25,55 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
         cancellationToken.ThrowIfCancellationRequested();
 
         string repository = GetStaticContentRepo(org);
-        List<FileSystemObject> jsonFiles = [];
         List<FileSystemObject> directoryContent = await GetDirectoryContent(org, path, reference, cancellationToken);
 
-        List<string> jsonFilePaths = [];
-        List<FileSystemObject> otherFiles = [];
-        foreach (FileSystemObject fileSystemObject in directoryContent)
-        {
-            string? fileExtension = Path.GetExtension(fileSystemObject.Name);
-            switch (fileExtension)
-            {
-                case ".json":
-                    jsonFilePaths.Add(fileSystemObject.Path);
-                    break;
-                default:
-                    otherFiles.Add(fileSystemObject);
-                    break;
-            }
-        }
+        ConcurrentBag<LibraryFile> libraryFiles = [];
 
         ParallelOptions options = new() { MaxDegreeOfParallelism = 25, CancellationToken = cancellationToken };
-        await Parallel.ForEachAsync(jsonFilePaths, options,
-            async (string filePath, CancellationToken token) =>
+        await Parallel.ForEachAsync(directoryContent, options,
+            async (FileSystemObject fileSystemObject, CancellationToken token) =>
             {
-                FileSystemObject file = await gitea.GetFileAsync(org, repository, filePath, reference, token);
-                jsonFiles.Add(file);
+                string? fileExtension = Path.GetExtension(fileSystemObject.Name);
+                switch (fileExtension)
+                {
+                    case ".json":
+                        FileSystemObject file = await gitea.GetFileAsync(org, repository, fileSystemObject.Path, reference, token);
+                        AddJsonFile(file, libraryFiles);
+                        break;
+                    default:
+                        AddOtherFile(fileSystemObject, libraryFiles);
+                        break;
+                }
             }
         );
 
-        List<LibraryFile> libraryFiles = [];
-        AddJsonFiles(jsonFiles, libraryFiles);
-        AddOtherFiles(otherFiles, libraryFiles);
-
         string baseCommitSha = await gitea.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
 
-        return new GetSharedResourcesResponse(Files: libraryFiles, CommitSha: baseCommitSha);
+        return new GetSharedResourcesResponse(Files: [.. libraryFiles], CommitSha: baseCommitSha);
     }
 
-    private static void AddJsonFiles(List<FileSystemObject> jsonFiles, List<LibraryFile> libraryFiles)
+    private static void AddJsonFile(FileSystemObject jsonFile, ConcurrentBag<LibraryFile> libraryFiles)
     {
-        foreach (FileSystemObject jsonFile in jsonFiles)
-        {
-            string contentType = Path.GetExtension(jsonFile.Name);
-            LibraryFile libraryFile = new(
-                Path: jsonFile.Path,
-                ContentType: contentType,
-                Content: jsonFile.Content,
-                Url: null
-            );
-            libraryFiles.Add(libraryFile);
-        }
+        string contentType = Path.GetExtension(jsonFile.Name);
+        LibraryFile libraryFile = new(
+            Path: jsonFile.Path,
+            ContentType: contentType,
+            Content: jsonFile.Content,
+            Url: null
+        );
+        libraryFiles.Add(libraryFile);
     }
 
-    private static void AddOtherFiles(List<FileSystemObject> otherFiles, List<LibraryFile> libraryFiles)
+    private static void AddOtherFile(FileSystemObject otherFile, ConcurrentBag<LibraryFile> libraryFiles)
     {
-        foreach (FileSystemObject file in otherFiles)
-        {
-            string contentType = Path.GetExtension(file.Name);
-            LibraryFile libraryFile = new(
-                Path: file.Path,
-                ContentType: contentType,
-                Content: null,
-                Url: file.HtmlUrl
-            );
-            libraryFiles.Add(libraryFile);
-        }
+        string contentType = Path.GetExtension(otherFile.Name);
+        LibraryFile libraryFile = new(
+            Path: otherFile.Path,
+            ContentType: contentType,
+            Content: null,
+            Url: otherFile.HtmlUrl
+        );
+        libraryFiles.Add(libraryFile);
     }
 
     private async Task<List<FileSystemObject>> GetDirectoryContent(string org, string? path = null, string? reference = null, CancellationToken cancellationToken = default)
