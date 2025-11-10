@@ -10,7 +10,7 @@
 }
 
 .heading {
-  font-weight: 400;
+  font-weight: var(--ds-font-weight-regular);
   font-size: var(--ds-font-size-4);
 }
 
