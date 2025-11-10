@@ -3,7 +3,7 @@ import type {
   OverrideDisplay,
   Summary2OverrideConfig,
 } from 'app-shared/types/ComponentSpecificConfig';
-import { StudioNativeSelect } from '@studio/components-legacy';
+import { StudioSelect } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 type Summary2OverrideDisplaySelectProps = {
@@ -23,8 +23,7 @@ export const Summary2OverrideDisplaySelect = ({
   ];
 
   return (
-    <StudioNativeSelect
-      size='sm'
+    <StudioSelect
       label={t('ux_editor.component_properties.summary.override.display')}
       value={override.display}
       onChange={(event) => {
@@ -32,10 +31,10 @@ export const Summary2OverrideDisplaySelect = ({
       }}
     >
       {options.map((option) => (
-        <option key={option.value} value={option.value}>
+        <StudioSelect.Option key={option.value} value={option.value}>
           {option.text}
-        </option>
+        </StudioSelect.Option>
       ))}
-    </StudioNativeSelect>
+    </StudioSelect>
   );
 };

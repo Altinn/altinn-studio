@@ -4,35 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os/exec"
 	"time"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
-
-// HTTPRouteBackendRef represents a backend reference in an HTTPRoute (minimal for validation)
-type HTTPRouteBackendRef struct {
-	Weight *int `json:"weight,omitempty"`
-}
-
-// HTTPRouteRule represents a rule in an HTTPRoute (minimal for validation)
-type HTTPRouteRule struct {
-	BackendRefs []HTTPRouteBackendRef `json:"backendRefs"`
-}
-
-// HTTPRouteSpec represents the spec field of an HTTPRoute (minimal for validation)
-type HTTPRouteSpec struct {
-	Rules []HTTPRouteRule `json:"rules"`
-}
-
-// HTTPRouteMetadata represents the metadata field (minimal for validation)
-type HTTPRouteMetadata struct {
-	Annotations map[string]string `json:"annotations,omitempty"`
-}
-
-// HTTPRoute represents a Gateway API HTTPRoute resource (minimal fields for validation only)
-type HTTPRoute struct {
-	Metadata HTTPRouteMetadata `json:"metadata"`
-	Spec     HTTPRouteSpec     `json:"spec"`
-}
 
 // HTTPRouteResult represents the result of an HTTPRoute operation
 type HTTPRouteResult struct {
@@ -46,31 +23,24 @@ type HTTPRouteResult struct {
 	Error                  error
 }
 
-// GetHTTPRoute fetches an HTTPRoute from a cluster
-func GetHTTPRoute(ctx context.Context, clusterName string, namespace string, name string) (*HTTPRoute, error) {
-	cmd := exec.CommandContext(ctx,
-		"kubectl",
-		"get", "httproute.gateway.networking.k8s.io",
-		name,
-		"-n", namespace,
-		"--context", clusterName,
-		"-o", "json")
-
-	output, err := cmd.CombinedOutput()
+// GetHTTPRoute fetches an HTTPRoute from a cluster using the Gateway API client
+func GetHTTPRoute(ctx context.Context, runtime KubernetesRuntime, namespace string, name string) (*gatewayv1.HTTPRoute, error) {
+	client := runtime.GetKubernetesClient()
+	gwClient, err := client.GatewayClient()
 	if err != nil {
-		return nil, fmt.Errorf("kubectl error: %w (output: %s)", err, string(output))
+		return nil, fmt.Errorf("failed to get gateway client: %w", err)
 	}
 
-	var route HTTPRoute
-	if err := json.Unmarshal(output, &route); err != nil {
-		return nil, fmt.Errorf("failed to parse HTTPRoute: %w", err)
+	route, err := gwClient.GatewayV1().HTTPRoutes(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get httproute %s/%s: %w", namespace, name, err)
 	}
 
-	return &route, nil
+	return route, nil
 }
 
 // ValidateHTTPRouteStructure validates that the HTTPRoute has exactly 1 rule with 2 backendRefs
-func ValidateHTTPRouteStructure(route *HTTPRoute) error {
+func ValidateHTTPRouteStructure(route *gatewayv1.HTTPRoute) error {
 	if len(route.Spec.Rules) != 1 {
 		return fmt.Errorf("HTTPRoute must have exactly 1 rule, found %d", len(route.Spec.Rules))
 	}
@@ -139,79 +109,41 @@ func buildWeightPatch(weight1, weight2 int, hasReconcileAnnotation bool, hasAnyA
 }
 
 // UpdateHTTPRouteWeights updates the weights of an HTTPRoute and adds the flux reconcile annotation using JSON Patch
-func UpdateHTTPRouteWeights(ctx context.Context, clusterName string, namespace string, name string, weight1 int, weight2 int, hasReconcileAnnotation bool, hasAnyAnnotations bool) error {
+func UpdateHTTPRouteWeights(ctx context.Context, runtime KubernetesRuntime, namespace string, name string, weight1 int, weight2 int, hasReconcileAnnotation bool, hasAnyAnnotations bool) error {
+	client := runtime.GetKubernetesClient()
 	patch, err := buildWeightPatch(weight1, weight2, hasReconcileAnnotation, hasAnyAnnotations)
 	if err != nil {
 		return err
 	}
 
-	cmd := exec.CommandContext(ctx,
-		"kubectl",
-		"patch", "httproute.gateway.networking.k8s.io",
+	gwClient, err := client.GatewayClient()
+	if err != nil {
+		return fmt.Errorf("failed to get gateway client: %w", err)
+	}
+
+	_, err = gwClient.GatewayV1().HTTPRoutes(namespace).Patch(
+		ctx,
 		name,
-		"-n", namespace,
-		"--context", clusterName,
-		"--type=json",
-		"-p", patch)
-
-	output, err := cmd.CombinedOutput()
+		types.JSONPatchType,
+		[]byte(patch),
+		metav1.PatchOptions{},
+	)
 	if err != nil {
-		return fmt.Errorf("kubectl patch error: %w (output: %s)", err, string(output))
-	}
-
-	return nil
-}
-
-// buildRemoveAnnotationPatch constructs a JSON Patch document to remove the reconcile annotation
-func buildRemoveAnnotationPatch() (string, error) {
-	operations := []JSONPatchOperation{
-		{
-			Op:   "remove",
-			Path: "/metadata/annotations/kustomize.toolkit.fluxcd.io~1reconcile",
-		},
-	}
-
-	patchBytes, err := json.Marshal(operations)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal JSON patch: %w", err)
-	}
-
-	return string(patchBytes), nil
-}
-
-// RemoveReconcileAnnotation removes the reconcile annotation from an HTTPRoute using JSON Patch
-func RemoveReconcileAnnotation(ctx context.Context, clusterName string, namespace string, name string) error {
-	patch, err := buildRemoveAnnotationPatch()
-	if err != nil {
-		return err
-	}
-
-	cmd := exec.CommandContext(ctx,
-		"kubectl",
-		"patch", "httproute.gateway.networking.k8s.io",
-		name,
-		"-n", namespace,
-		"--context", clusterName,
-		"--type=json",
-		"-p", patch)
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("kubectl patch error: %w (output: %s)", err, string(output))
+		return fmt.Errorf("failed to patch httproute %s/%s: %w", namespace, name, err)
 	}
 
 	return nil
 }
 
 // GetHTTPRouteFromCluster fetches and validates an HTTPRoute from a cluster
-func GetHTTPRouteFromCluster(ctx context.Context, clusterName string, namespace string, name string) HTTPRouteResult {
+func GetHTTPRouteFromCluster(ctx context.Context, runtime KubernetesRuntime, namespace string, name string) HTTPRouteResult {
 	result := HTTPRouteResult{
-		ClusterName: clusterName,
+		ClusterName: runtime.GetName(),
 		Namespace:   namespace,
 		Name:        name,
 	}
 
-	route, err := GetHTTPRoute(ctx, clusterName, namespace, name)
+	route, err := GetHTTPRoute(ctx, runtime, namespace, name)
 	if err != nil {
 		result.Error = err
 		return result
@@ -225,17 +157,17 @@ func GetHTTPRouteFromCluster(ctx context.Context, clusterName string, namespace 
 	currentWeight1 := route.Spec.Rules[0].BackendRefs[0].Weight
 	currentWeight2 := route.Spec.Rules[0].BackendRefs[1].Weight
 	if currentWeight1 == nil || currentWeight2 == nil {
-		result.Error = fmt.Errorf("httproute in %s does not have weight", clusterName)
+		result.Error = fmt.Errorf("httproute in %s does not have weight", runtime.GetName())
 		return result
 	}
 
-	result.CurrentWeight1 = *currentWeight1
-	result.CurrentWeight2 = *currentWeight2
+	result.CurrentWeight1 = int(*currentWeight1)
+	result.CurrentWeight2 = int(*currentWeight2)
 
 	// Check if annotations exist and if the specific reconcile annotation exists
-	result.HasAnyAnnotations = route.Metadata.Annotations != nil
+	result.HasAnyAnnotations = route.Annotations != nil
 	if result.HasAnyAnnotations {
-		_, exists := route.Metadata.Annotations["kustomize.toolkit.fluxcd.io/reconcile"]
+		_, exists := route.Annotations["kustomize.toolkit.fluxcd.io/reconcile"]
 		result.HasReconcileAnnotation = exists
 	}
 
@@ -243,29 +175,29 @@ func GetHTTPRouteFromCluster(ctx context.Context, clusterName string, namespace 
 }
 
 // GetAllHTTPRoutes fetches HTTPRoutes from all clusters in parallel
-func GetAllHTTPRoutes(clusters []string, namespace string, name string, maxWorkers int) []HTTPRouteResult {
+func GetAllHTTPRoutes(runtimes []KubernetesRuntime, namespace string, name string, maxWorkers int) []HTTPRouteResult {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	jobs := make(chan string, len(clusters))
-	results := make(chan HTTPRouteResult, len(clusters))
+	jobs := make(chan KubernetesRuntime, len(runtimes))
+	results := make(chan HTTPRouteResult, len(runtimes))
 
 	for w := 0; w < maxWorkers; w++ {
 		go func() {
-			for clusterName := range jobs {
-				result := GetHTTPRouteFromCluster(ctx, clusterName, namespace, name)
+			for runtime := range jobs {
+				result := GetHTTPRouteFromCluster(ctx, runtime, namespace, name)
 				results <- result
 			}
 		}()
 	}
 
-	for _, cluster := range clusters {
-		jobs <- cluster
+	for _, runtime := range runtimes {
+		jobs <- runtime
 	}
 	close(jobs)
 
 	var routeResults []HTTPRouteResult
-	for i := 0; i < len(clusters); i++ {
+	for i := 0; i < len(runtimes); i++ {
 		routeResults = append(routeResults, <-results)
 	}
 	close(results)
@@ -274,12 +206,17 @@ func GetAllHTTPRoutes(clusters []string, namespace string, name string, maxWorke
 }
 
 // UpdateAllHTTPRoutes updates HTTPRoutes on clusters in parallel using JSON Patch
-func UpdateAllHTTPRoutes(routesToUpdate []HTTPRouteResult, weight1 int, weight2 int, maxWorkers int) []HTTPRouteResult {
+func UpdateAllHTTPRoutes(runtimes []KubernetesRuntime, routesToUpdate []HTTPRouteResult, weight1 int, weight2 int, maxWorkers int) []HTTPRouteResult {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	jobs := make(chan HTTPRouteResult, len(routesToUpdate))
 	results := make(chan HTTPRouteResult, len(routesToUpdate))
+
+	runtimeByClusterName := make(map[string]KubernetesRuntime, len(runtimes))
+	for _, runtime := range runtimes {
+		runtimeByClusterName[runtime.GetName()] = runtime
+	}
 
 	for w := 0; w < maxWorkers; w++ {
 		go func() {
@@ -290,7 +227,14 @@ func UpdateAllHTTPRoutes(routesToUpdate []HTTPRouteResult, weight1 int, weight2 
 					Name:        routeResult.Name,
 				}
 
-				if err := UpdateHTTPRouteWeights(ctx, routeResult.ClusterName, routeResult.Namespace, routeResult.Name, weight1, weight2, routeResult.HasReconcileAnnotation, routeResult.HasAnyAnnotations); err != nil {
+				runtime, ok := runtimeByClusterName[routeResult.ClusterName]
+				if !ok {
+					result.Error = fmt.Errorf("client not found for cluster %s", routeResult.ClusterName)
+					results <- result
+					continue
+				}
+
+				if err := UpdateHTTPRouteWeights(ctx, runtime, routeResult.Namespace, routeResult.Name, weight1, weight2, routeResult.HasReconcileAnnotation, routeResult.HasAnyAnnotations); err != nil {
 					result.Error = err
 					results <- result
 					continue
