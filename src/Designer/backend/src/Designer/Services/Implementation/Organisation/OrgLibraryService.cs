@@ -18,6 +18,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory) : IOrgLibraryService
 {
     private const string DefaultCommitMessage = "Update code lists.";
+    private const string JsonExtension = ".json";
 
     /// <inheritdoc />
     public async Task<GetSharedResourcesResponse> GetSharedResourcesByPath(string org, string? path = null, string? reference = null, CancellationToken cancellationToken = default)
@@ -36,7 +37,7 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
                 string? fileExtension = Path.GetExtension(fileSystemObject.Name);
                 switch (fileExtension)
                 {
-                    case ".json":
+                    case JsonExtension:
                         FileSystemObject file = await gitea.GetFileAsync(org, repository, fileSystemObject.Path, reference, token);
                         AddJsonFile(file, libraryFiles);
                         break;
