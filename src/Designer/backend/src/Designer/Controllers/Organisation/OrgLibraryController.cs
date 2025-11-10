@@ -56,6 +56,7 @@ public class OrgLibraryController : ControllerBase
         }
         catch (Exception ex) when (ex is DirectoryNotFoundException)
         {
+            _logger.LogWarning(ex, "Directory not found when fetching shared resources for org {Org} at path {Path} and reference {Reference}", org, path, reference);
             return BadRequest(ex);
         }
     }
