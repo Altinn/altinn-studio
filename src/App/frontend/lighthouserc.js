@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 // Configuration
-const BASE_URL = 'http://local.altinn.cloud';
-const APP_PATH = 'ttd/component-library'; // App path
+const { BASE_URL, APP_PATH } = require('./lighthouse-config-constants');
 
 /**
  * Lighthouse CI configuration object
@@ -17,7 +18,7 @@ module.exports = {
         headless: true,
         args: ['--disable-features=HttpsFirstBalancedModeAutoEnable', '--no-sandbox', '--disable-setuid-sandbox'],
       },
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
+
       chromePath: require('puppeteer').executablePath(),
     },
     upload: {

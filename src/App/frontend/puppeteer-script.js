@@ -1,7 +1,8 @@
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 // Configuration
-const BASE_URL = 'http://local.altinn.cloud';
-const USER_ID = '1337.501337'; // Test user ID (userid.partyid format)
-const AUTH_LEVEL = '2'; // Authentication level
+const { BASE_URL, TEST_USER_ID, AUTH_LEVEL } = require('./lighthouse-config-constants');
 
 /**
  * Puppeteer script for Lighthouse CI to handle authentication flow
@@ -17,8 +18,8 @@ module.exports = async (browser) => {
   console.log('📝 Filling login form...');
 
   // Select user from dropdown
-  await page.select('select#UserSelect', USER_ID);
-  console.log(`✅ Selected user: ${USER_ID}`);
+  await page.select('select#UserSelect', TEST_USER_ID);
+  console.log(`✅ Selected user: ${TEST_USER_ID}`);
 
   // Select authentication level
   await page.select('select#AuthenticationLevel', AUTH_LEVEL);
