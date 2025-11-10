@@ -33,7 +33,7 @@ spec:
                 | summarize Count = sum(itemCount) by cloud_RoleName, DateTimeOffset = bin(timestamp, 1h)
                 | order by DateTimeOffset asc
               resources:
-                - /subscriptions/ca0666d3-b3c0-4159-93f1-b71777ed4338/resourceGroups/monitor-ttd-tt02-rg/providers/Microsoft.Insights/components/ttd-tt02-ai
+                - /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
               resultFormat: logs
               timeColumn: timestamp
               workspace: ""
@@ -135,9 +135,9 @@ spec:
               resources:
                 - metricNamespace: microsoft.insights/components
                   region: norwayeast
-                  resourceGroup: monitor-ttd-tt02-rg
-                  resourceName: ttd-tt02-ai
-                  subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
+                  resourceGroup: monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg
+                  resourceName: ${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
+                  subscription: ${AZURE_SUBSCRIPTION_ID}
               timeGrain: auto
               top: "10"
             datasource:
@@ -150,7 +150,7 @@ spec:
             queryType: Azure Monitor
             range: true
             refId: A
-            subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
+            subscription: ${AZURE_SUBSCRIPTION_ID}
         - refId: B
           datasourceUid: __expr__
           model:
@@ -232,9 +232,9 @@ spec:
               resources:
                 - metricNamespace: microsoft.insights/components
                   region: norwayeast
-                  resourceGroup: monitor-ttd-tt02-rg
-                  resourceName: ttd-tt02-ai
-                  subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
+                  resourceGroup: monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg
+                  resourceName: ${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
+                  subscription: ${AZURE_SUBSCRIPTION_ID}
               timeGrain: auto
               top: "10"
             datasource:
@@ -247,7 +247,7 @@ spec:
             queryType: Azure Monitor
             range: true
             refId: A
-            subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
+            subscription: ${AZURE_SUBSCRIPTION_ID}
         - refId: B
           datasourceUid: __expr__
           model:
@@ -355,9 +355,9 @@ spec:
               resources:
                 - metricNamespace: Microsoft.Insights/components
                   region: norwayeast
-                  resourceGroup: monitor-ttd-tt02-rg
-                  resourceName: ttd-tt02-ai
-                  subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
+                  resourceGroup: monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg
+                  resourceName: ${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
+                  subscription: ${AZURE_SUBSCRIPTION_ID}
               timeGrain: auto
               top: "10"
             datasource:
@@ -370,7 +370,7 @@ spec:
             queryType: Azure Monitor
             range: true
             refId: A
-            subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
+            subscription: ${AZURE_SUBSCRIPTION_ID}
         - refId: B
           datasourceUid: __expr__
           model:
@@ -465,9 +465,9 @@ spec:
               resources:
                 - metricNamespace: Microsoft.Insights/components
                   region: norwayeast
-                  resourceGroup: monitor-ttd-tt02-rg
-                  resourceName: ttd-tt02-ai
-                  subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
+                  resourceGroup: monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg
+                  resourceName: ${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
+                  subscription: ${AZURE_SUBSCRIPTION_ID}
               timeGrain: auto
               top: "10"
             datasource:
@@ -480,7 +480,7 @@ spec:
             queryType: Azure Monitor
             range: true
             refId: A
-            subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
+            subscription: ${AZURE_SUBSCRIPTION_ID}
         - refId: B
           datasourceUid: __expr__
           model:
@@ -575,9 +575,9 @@ spec:
               resources:
                 - metricNamespace: Microsoft.Insights/components
                   region: norwayeast
-                  resourceGroup: monitor-ttd-tt02-rg
-                  resourceName: ttd-tt02-ai
-                  subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
+                  resourceGroup: monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg
+                  resourceName: ${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
+                  subscription: ${AZURE_SUBSCRIPTION_ID}
               timeGrain: auto
               top: "10"
             datasource:
@@ -590,7 +590,7 @@ spec:
             queryType: Azure Monitor
             range: true
             refId: A
-            subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
+            subscription: ${AZURE_SUBSCRIPTION_ID}
         - refId: B
           datasourceUid: __expr__
           model:
@@ -685,9 +685,9 @@ spec:
               resources:
                 - metricNamespace: Microsoft.Insights/components
                   region: norwayeast
-                  resourceGroup: monitor-ttd-tt02-rg
-                  resourceName: ttd-tt02-ai
-                  subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
+                  resourceGroup: monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg
+                  resourceName: ${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
+                  subscription: ${AZURE_SUBSCRIPTION_ID}
               timeGrain: auto
               top: "10"
             datasource:
@@ -700,7 +700,7 @@ spec:
             queryType: Azure Monitor
             range: true
             refId: A
-            subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
+            subscription: ${AZURE_SUBSCRIPTION_ID}
         - refId: B
           datasourceUid: __expr__
           model:
@@ -769,12 +769,12 @@ spec:
           relativeTimeRange:
             from: 300
             to: 0
-          datasourceUid: ttd-tt02-amw
+          datasourceUid: ${SERVICEOWNER_ID}-${ENVIRONMENT}-amw
           model:
             adhocFilters: []
             datasource:
               type: prometheus
-              uid: ttd-tt02-amw
+              uid: ${SERVICEOWNER_ID}-${ENVIRONMENT}-amw
             editorMode: code
             expr: |-
               sum(
@@ -784,7 +784,7 @@ spec:
                           namespace_workload_pod:kube_pod_owner:relabel{
                               namespace="default",
                               workload_type="deployment",
-                              workload=~"^ttd-(.*)-deployment-v2$"
+                              workload=~"^${SERVICEOWNER_ID}-(.*)-deployment-v2$"
                           }
                       ) by (workload)
                       /
@@ -795,7 +795,7 @@ spec:
                           namespace_workload_pod:kube_pod_owner:relabel{
                               namespace="default",
                               workload_type="deployment",
-                              workload=~"^ttd-(.*)-deployment-v2$"
+                              workload=~"^${SERVICEOWNER_ID}-(.*)-deployment-v2$"
                           }
                       ) by (workload)
                       * 100
@@ -874,12 +874,12 @@ spec:
           relativeTimeRange:
             from: 300
             to: 0
-          datasourceUid: ttd-tt02-amw
+          datasourceUid: ${SERVICEOWNER_ID}-${ENVIRONMENT}-amw
           model:
             adhocFilters: []
             datasource:
               type: prometheus
-              uid: ttd-tt02-amw
+              uid: ${SERVICEOWNER_ID}-${ENVIRONMENT}-amw
             editorMode: code
             expr: |-
               sum(
@@ -891,7 +891,7 @@ spec:
                               namespace_workload_pod:kube_pod_owner:relabel{
                                   namespace="default",
                                   workload_type="deployment",
-                                  workload=~"^ttd-(.*)-deployment-v2$"
+                                  workload=~"^${SERVICEOWNER_ID}-(.*)-deployment-v2$"
                               }
                           ) by (workload)
                           /
@@ -902,7 +902,7 @@ spec:
                               namespace_workload_pod:kube_pod_owner:relabel{
                                   namespace="default",
                                   workload_type="deployment",
-                                  workload=~"^ttd-(.*)-deployment-v2$"
+                                  workload=~"^${SERVICEOWNER_ID}-(.*)-deployment-v2$"
                               }
                           ) by (workload)
                           * 100
@@ -981,12 +981,12 @@ spec:
           relativeTimeRange:
             from: 300
             to: 0
-          datasourceUid: ttd-tt02-amw
+          datasourceUid: ${SERVICEOWNER_ID}-${ENVIRONMENT}-amw
           model:
             adhocFilters: []
             datasource:
               type: prometheus
-              uid: ttd-tt02-amw
+              uid: ${SERVICEOWNER_ID}-${ENVIRONMENT}-amw
             editorMode: code
             expr: |-
               (
