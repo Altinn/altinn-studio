@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Exceptions.OrgLibrary;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
@@ -36,6 +37,7 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<GetSharedResourcesResponse>> GetSharedResourcesByPath(string org, [FromQuery] string? path, [FromQuery] string? reference = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -67,8 +69,15 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        await orgLibraryService.UpdateSharedResourcesByPath(org, developer, requestBody, cancellationToken);
-
-        return Ok();
+        try
+        {
+            await orgLibraryService.UpdateSharedResourcesByPath(org, developer, requestBody, cancellationToken);
+            return Ok();
+        }
+        catch (Exception ex) when (ex is InvalidOperationException || ex is IllegalCommitMessageException)
+        {
+            logger.LogWarning(ex, "Error updating shared resources for {Org} by {Developer}.", org, developer);
+            return BadRequest(ex);
+        }
     }
 }
