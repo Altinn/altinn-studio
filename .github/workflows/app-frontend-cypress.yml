@@ -27,7 +27,7 @@ jobs:
         run: yarn --immutable
 
       - name: Cypress install
-        uses: cypress-io/github-action@v6
+        uses: cypress-io/github-action@7ef72e250a9e564efb4ed4c2433971ada4cc38b4 # v6
         with:
           working-directory: src/App/frontend/
           # Disable running of tests within install job
@@ -69,8 +69,6 @@ jobs:
       (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
     runs-on: ubuntu-latest
-    container:
-      image: cypress/browsers:node-22.13.1-chrome-133.0.6943.53-1-ff-135.0-edge-132.0.2957.140-1@sha256:914c9814a9567f32660203db7ecd610b8f8fede6e9103885728b3bd3f6dca4ff
     timeout-minutes: 60
     needs: [install, build-docker-images]
     defaults:
@@ -121,7 +119,7 @@ jobs:
           PERCY_BRANCH: ${{ github.head_ref || github.ref_name }}
           PERCY_TARGET_BRANCH: ${{ github.base_ref || 'main' }}
           IS_PR_DRAFT: ${{ github.event.pull_request.draft }}
-        uses: cypress-io/github-action@v6
+        uses: cypress-io/github-action@7ef72e250a9e564efb4ed4c2433971ada4cc38b4 # v6
         with:
           # quote the url to be safe against YML parsing surprises
           working-directory: src/App/frontend/
@@ -155,8 +153,6 @@ jobs:
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true)
 
     runs-on: ubuntu-latest
-    container:
-      image: cypress/browsers:node-22.13.1-chrome-133.0.6943.53-1-ff-135.0-edge-132.0.2957.140-1@sha256:914c9814a9567f32660203db7ecd610b8f8fede6e9103885728b3bd3f6dca4ff
     needs: [install, build-docker-images]
     defaults:
       run:
@@ -186,7 +182,7 @@ jobs:
         run: docker compose --profile test-apps up -d
 
       - name: Cypress run
-        uses: cypress-io/github-action@v6
+        uses: cypress-io/github-action@7ef72e250a9e564efb4ed4c2433971ada4cc38b4 # v6
         with:
           working-directory: src/App/frontend/
           start: 'npx http-server dist --cors="*" -p 8080'
