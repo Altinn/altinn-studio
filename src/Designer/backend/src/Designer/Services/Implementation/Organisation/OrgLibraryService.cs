@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Clients.Interfaces;
+using Altinn.Studio.Designer.Constants;
+using Altinn.Studio.Designer.Exceptions.OrgLibrary;
+using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -14,21 +15,9 @@ using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 
-public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, ISharedContentClient sharedContentClient) : IOrgLibraryService
+public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory) : IOrgLibraryService
 {
-    private readonly ISourceControl _sourceControl = sourceControl;
-    private readonly ISharedContentClient _sharedContentClient = sharedContentClient;
-
     private const string DefaultCommitMessage = "Update code lists.";
-    private static readonly JsonSerializerOptions s_jsonOptions = new()
-    {
-        WriteIndented = true,
-        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true,
-        AllowTrailingCommas = true
-    };
 
     /// <inheritdoc />
     public async Task<GetSharedResourcesResponse> GetSharedResourcesByPath(string org, string? path = null, string? reference = null, CancellationToken cancellationToken = default)
@@ -99,10 +88,86 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IShar
     /// <inheritdoc />
     public async Task UpdateSharedResourcesByPath(string org, string developer, UpdateSharedResourceRequest request, CancellationToken cancellationToken = default)
     {
-        await Task.CompletedTask;
-        throw new NotImplementedException();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        ValidateCommitMessage(request.CommitMessage);
+        string repositoryName = GetStaticContentRepo(org);
+
+        await sourceControl.CloneIfNotExists(org, repositoryName);
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repositoryName, developer);
+
+        string latestCommitSha = await gitea.GetLatestCommitOnBranch(org, repositoryName, General.DefaultBranch, cancellationToken);
+        if (latestCommitSha == request.BaseCommitSha)
+        {
+            await HandleCommit(editingContext, request, cancellationToken);
+        }
+        else
+        {
+            await HandleDivergentCommit(editingContext, request, cancellationToken);
+        }
+        bool pushOk = await sourceControl.Push(org, repositoryName);
+        if (!pushOk)
+        {
+            throw new InvalidOperationException($"Push failed for {org}/{repositoryName}. Remote rejected the update.");
+        }
     }
 
+    internal async Task HandleCommit(AltinnRepoEditingContext editingContext, UpdateSharedResourceRequest request, CancellationToken cancellationToken = default)
+    {
+        sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
+        await UpdateFiles(editingContext, request, cancellationToken);
+        sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? DefaultCommitMessage);
+    }
+
+    internal async Task HandleDivergentCommit(AltinnRepoEditingContext editingContext, UpdateSharedResourceRequest request, CancellationToken cancellationToken = default)
+    {
+        string branchName = editingContext.Developer;
+        sourceControl.DeleteLocalBranchIfExists(editingContext, branchName);
+        sourceControl.CreateLocalBranch(editingContext, branchName, request.BaseCommitSha);
+        sourceControl.CheckoutRepoOnBranch(editingContext, branchName);
+
+        await UpdateFiles(editingContext, request, cancellationToken);
+
+        sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? DefaultCommitMessage);
+        sourceControl.RebaseOntoDefaultBranch(editingContext);
+        sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
+        sourceControl.MergeBranchIntoHead(editingContext, branchName);
+        sourceControl.DeleteLocalBranchIfExists(editingContext, branchName);
+    }
+
+    private async Task UpdateFiles(AltinnRepoEditingContext editingContext, UpdateSharedResourceRequest request, CancellationToken cancellationToken)
+    {
+        ParallelOptions options = new() { MaxDegreeOfParallelism = 25, CancellationToken = cancellationToken };
+        await Parallel.ForEachAsync(request.Files, options,
+            async (KeyValuePair<string, string> kv, CancellationToken token) =>
+            {
+                string path = kv.Key;
+                string content = kv.Value;
+                await UpdateFile(editingContext.Org, editingContext.Developer, path, content, cancellationToken);
+            }
+        );
+    }
+
+    internal async Task UpdateFile(string org, string developer, string path, string content, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string repo = GetStaticContentRepo(org);
+        AltinnGitRepository altinnOrgGitRepository = altinnGitRepositoryFactory.GetAltinnGitRepository(org, repo, developer);
+
+        await altinnOrgGitRepository.WriteTextByRelativePathAsync(path, content, createDirectory: true, cancellationToken);
+    }
+
+    internal static void ValidateCommitMessage(string? commitMessage)
+    {
+        if (string.IsNullOrWhiteSpace(commitMessage))
+        {
+            return;
+        }
+        if (InputValidator.IsValidGiteaCommitMessage(commitMessage) is false)
+        {
+            throw new IllegalCommitMessageException("The commit message is invalid. It must be between 1 and 5120 characters and not contain null characters.");
+        }
+    }
 
     private static string GetStaticContentRepo(string org)
     {
