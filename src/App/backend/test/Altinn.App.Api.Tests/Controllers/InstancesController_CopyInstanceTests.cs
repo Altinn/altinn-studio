@@ -394,12 +394,8 @@ public class InstancesController_CopyInstanceTests
             .Mock<IDataClient>()
             .Setup(p =>
                 p.GetFormData(
-                    instanceGuid,
-                    It.IsAny<Type?>()!,
-                    Org,
-                    AppName,
-                    instanceOwnerPartyId,
-                    dataGuid,
+                    It.IsAny<Instance>(),
+                    It.IsAny<DataElement>(),
                     It.IsAny<StorageAuthenticationMethod>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -409,13 +405,9 @@ public class InstancesController_CopyInstanceTests
             .Mock<IDataClient>()
             .Setup(p =>
                 p.InsertFormData(
-                    It.IsAny<object>(),
-                    instanceGuid,
-                    It.IsAny<Type?>()!,
-                    Org,
-                    AppName,
-                    instanceOwnerPartyId,
+                    It.IsAny<Instance>(),
                     dataTypeId,
+                    It.IsAny<object>(),
                     It.IsAny<StorageAuthenticationMethod>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -524,12 +516,8 @@ public class InstancesController_CopyInstanceTests
             .Mock<IDataClient>()
             .Setup(p =>
                 p.GetFormData(
-                    instanceGuid,
-                    It.IsAny<Type?>()!,
-                    Org,
-                    AppName,
-                    instanceOwnerPartyId,
-                    formDataGuid,
+                    It.Is<Instance>(i => i.Id == instance.Id),
+                    It.Is<DataElement>(d => d.Id == formDataGuid.ToString()),
                     It.IsAny<StorageAuthenticationMethod>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -539,13 +527,9 @@ public class InstancesController_CopyInstanceTests
             .Mock<IDataClient>()
             .Setup(p =>
                 p.InsertFormData(
-                    It.IsAny<object>(),
-                    instanceGuid,
-                    It.IsAny<Type?>()!,
-                    Org,
-                    AppName,
-                    instanceOwnerPartyId,
+                    It.Is<Instance>(i => i.Id == instance.Id),
                     formDataTypeId,
+                    It.IsAny<object>(),
                     It.IsAny<StorageAuthenticationMethod>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -556,8 +540,6 @@ public class InstancesController_CopyInstanceTests
             .Mock<IDataClient>()
             .Setup(p =>
                 p.GetBinaryData(
-                    Org,
-                    AppName,
                     instanceOwnerPartyId,
                     instanceGuid,
                     binaryDataGuid,
@@ -595,12 +577,8 @@ public class InstancesController_CopyInstanceTests
             .Verify(
                 p =>
                     p.GetFormData(
-                        instanceGuid,
-                        It.IsAny<Type?>()!,
-                        Org,
-                        AppName,
-                        instanceOwnerPartyId,
-                        formDataGuid,
+                        It.IsAny<Instance>(),
+                        It.IsAny<DataElement>(),
                         It.IsAny<StorageAuthenticationMethod>(),
                         It.IsAny<CancellationToken>()
                     ),
@@ -611,27 +589,21 @@ public class InstancesController_CopyInstanceTests
             .Verify(
                 p =>
                     p.InsertFormData(
-                        It.IsAny<object>(),
-                        instanceGuid,
-                        It.IsAny<Type?>()!,
-                        Org,
-                        AppName,
-                        instanceOwnerPartyId,
+                        It.IsAny<Instance>(),
                         formDataTypeId,
+                        It.IsAny<object>(),
                         It.IsAny<StorageAuthenticationMethod>(),
                         It.IsAny<CancellationToken>()
                     ),
                 Times.Once
             );
 
-        // Verify binary data was copied (this should FAIL until we implement it)
+        // Verify binary data was copied
         fixture
             .Mock<IDataClient>()
             .Verify(
                 p =>
                     p.GetBinaryData(
-                        Org,
-                        AppName,
                         instanceOwnerPartyId,
                         instanceGuid,
                         binaryDataGuid,
@@ -743,12 +715,8 @@ public class InstancesController_CopyInstanceTests
             .Mock<IDataClient>()
             .Setup(p =>
                 p.GetFormData(
-                    instanceGuid,
-                    It.IsAny<Type?>()!,
-                    Org,
-                    AppName,
-                    instanceOwnerPartyId,
-                    formDataGuid,
+                    It.Is<Instance>(i => i.Id == instance.Id),
+                    It.Is<DataElement>(d => d.Id == formDataGuid.ToString()),
                     It.IsAny<StorageAuthenticationMethod>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -758,13 +726,9 @@ public class InstancesController_CopyInstanceTests
             .Mock<IDataClient>()
             .Setup(p =>
                 p.InsertFormData(
-                    It.IsAny<object>(),
-                    instanceGuid,
-                    It.IsAny<Type?>()!,
-                    Org,
-                    AppName,
-                    instanceOwnerPartyId,
+                    It.Is<Instance>(i => i.Id == instance.Id),
                     formDataTypeId,
+                    It.IsAny<object>(),
                     It.IsAny<StorageAuthenticationMethod>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -776,8 +740,6 @@ public class InstancesController_CopyInstanceTests
             .Mock<IDataClient>()
             .Setup(p =>
                 p.GetBinaryData(
-                    Org,
-                    AppName,
                     instanceOwnerPartyId,
                     instanceGuid,
                     binaryDataGuid,
@@ -815,12 +777,8 @@ public class InstancesController_CopyInstanceTests
             .Verify(
                 p =>
                     p.GetFormData(
-                        instanceGuid,
-                        It.IsAny<Type?>()!,
-                        Org,
-                        AppName,
-                        instanceOwnerPartyId,
-                        formDataGuid,
+                        It.Is<Instance>(i => i.Id == instance.Id),
+                        It.Is<DataElement>(d => d.Id == formDataGuid.ToString()),
                         It.IsAny<StorageAuthenticationMethod>(),
                         It.IsAny<CancellationToken>()
                     ),
@@ -831,13 +789,9 @@ public class InstancesController_CopyInstanceTests
             .Verify(
                 p =>
                     p.InsertFormData(
-                        It.IsAny<object>(),
-                        instanceGuid,
-                        It.IsAny<Type?>()!,
-                        Org,
-                        AppName,
-                        instanceOwnerPartyId,
+                        It.Is<Instance>(i => i.Id == instance.Id),
                         formDataTypeId,
+                        It.IsAny<object>(),
                         It.IsAny<StorageAuthenticationMethod>(),
                         It.IsAny<CancellationToken>()
                     ),
@@ -850,8 +804,6 @@ public class InstancesController_CopyInstanceTests
             .Verify(
                 p =>
                     p.GetBinaryData(
-                        Org,
-                        AppName,
                         instanceOwnerPartyId,
                         instanceGuid,
                         binaryDataGuid,
@@ -961,8 +913,6 @@ public class InstancesController_CopyInstanceTests
             .Mock<IDataClient>()
             .Setup(p =>
                 p.GetBinaryData(
-                    Org,
-                    AppName,
                     instanceOwnerPartyId,
                     instanceGuid,
                     binaryDataGuid,
@@ -1000,8 +950,6 @@ public class InstancesController_CopyInstanceTests
             .Verify(
                 p =>
                     p.GetBinaryData(
-                        Org,
-                        AppName,
                         instanceOwnerPartyId,
                         instanceGuid,
                         binaryDataGuid,
@@ -1056,6 +1004,31 @@ public class InstancesController_CopyInstanceTests
                         It.IsAny<string>(),
                         It.IsAny<int>(),
                         It.IsAny<string>(),
+                        It.IsAny<StorageAuthenticationMethod>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Never
+            );
+        fixture
+            .Mock<IDataClient>()
+            .Verify(
+                p =>
+                    p.GetFormData(
+                        It.IsAny<Instance>(),
+                        It.IsAny<DataElement>(),
+                        It.IsAny<StorageAuthenticationMethod>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Never
+            );
+        fixture
+            .Mock<IDataClient>()
+            .Verify(
+                p =>
+                    p.InsertFormData(
+                        It.IsAny<Instance>(),
+                        It.IsAny<string>(),
+                        It.IsAny<object>(),
                         It.IsAny<StorageAuthenticationMethod>(),
                         It.IsAny<CancellationToken>()
                     ),
@@ -1145,8 +1118,6 @@ public class InstancesController_CopyInstanceTests
             .Mock<IDataClient>()
             .Setup(p =>
                 p.GetBinaryData(
-                    Org,
-                    AppName,
                     instanceOwnerPartyId,
                     instanceGuid,
                     binaryDataGuid,
@@ -1184,8 +1155,6 @@ public class InstancesController_CopyInstanceTests
             .Verify(
                 p =>
                     p.GetBinaryData(
-                        Org,
-                        AppName,
                         instanceOwnerPartyId,
                         instanceGuid,
                         binaryDataGuid,

@@ -505,5 +505,11 @@ export function en() {
     'signing_document_list.attachment_type_form': 'Form',
     'signing_document_list.download': 'Download',
     'signing_document_list_summary.header': 'Signed documents',
+    'service_task.title': 'Something went wrong',
+    'service_task.body': 'An error occurred during automatic processing of the form.',
+    'service_task.help_text':
+      'You can try to process again by clicking "{0}". If the problem persists, contact customer service at {1}.',
+    'service_task.retry_button': 'Try again',
+    'service_task.back_button': 'Go back',
   };
 }

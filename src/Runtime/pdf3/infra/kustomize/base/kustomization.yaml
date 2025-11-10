@@ -4,6 +4,13 @@ resources:
   - proxy.yaml
   - worker.yaml
   - networkpolicy.yaml
+  - dashboard.yaml
+configMapGenerator:
+- name: pdf3-dashboard
+  files:
+    - dashboard.json
+  options:
+    disableNameSuffixHash: true
 replacements:
 - source:
     kind: Deployment
