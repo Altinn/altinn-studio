@@ -95,5 +95,33 @@ namespace LocalTest.Controllers.Authentication
 
             return await Task.FromResult(Ok(token));
         }
+
+        /// <summary>
+        /// Endpoint for exchanging Maskinporten tokens to Altinn tokens.
+        /// This is a mock implementation for local testing that accepts any bearer token
+        /// and returns a valid organization token for local use.
+        /// </summary>
+        [HttpGet("exchange/maskinporten")]
+        public async Task<ActionResult> ExchangeMaskinportenToken()
+        {
+            // For localtest, we generate a standard org token that apps can use
+            // In production, this endpoint validates the Maskinporten token and exchanges it
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim("urn:altinn:org", "ttd", ClaimValueTypes.String),
+                new Claim("urn:altinn:orgNumber", "991825827", ClaimValueTypes.Integer32),
+                new Claim(AltinnCoreClaimTypes.AuthenticateMethod, "maskinporten", ClaimValueTypes.String),
+                new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "3", ClaimValueTypes.Integer32),
+                new Claim("urn:altinn:scope", "altinn:serviceowner/instances.read", ClaimValueTypes.String)
+            };
+
+            ClaimsIdentity identity = new ClaimsIdentity("OrganisationLogin");
+            identity.AddClaims(claims);
+            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+
+            string token = _authenticationService.GenerateToken(principal);
+
+            return await Task.FromResult(Ok(token));
+        }
     }
 }
