@@ -14,11 +14,10 @@ using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 
-public class OrgLibraryService: IOrgLibraryService
+public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, ISharedContentClient sharedContentClient) : IOrgLibraryService
 {
-    private readonly IGitea _gitea;
-    private readonly ISourceControl _sourceControl;
-    private readonly ISharedContentClient _sharedContentClient;
+    private readonly ISourceControl _sourceControl = sourceControl;
+    private readonly ISharedContentClient _sharedContentClient = sharedContentClient;
 
     private const string DefaultCommitMessage = "Update code lists.";
     private static readonly JsonSerializerOptions s_jsonOptions = new()
@@ -30,13 +29,6 @@ public class OrgLibraryService: IOrgLibraryService
         PropertyNameCaseInsensitive = true,
         AllowTrailingCommas = true
     };
-
-    public OrgLibraryService(IGitea gitea, ISourceControl sourceControl, ISharedContentClient sharedContentClient)
-    {
-        _gitea = gitea;
-        _sourceControl = sourceControl;
-        _sharedContentClient = sharedContentClient;
-    }
 
     /// <inheritdoc />
     public async Task<GetSharedResourcesResponse> GetSharedResourcesByPath(string org, string? path = null, string? reference = null, CancellationToken cancellationToken = default)
@@ -54,7 +46,7 @@ public class OrgLibraryService: IOrgLibraryService
         ParallelOptions options = new() { MaxDegreeOfParallelism = 25, CancellationToken = cancellationToken };
         await Parallel.ForEachAsync(filePaths, options, async (filePath, token) =>
         {
-            FileSystemObject file = await _gitea.GetFileAsync(org, repository, filePath, reference, token);
+            FileSystemObject file = await gitea.GetFileAsync(org, repository, filePath, reference, token);
             files.Add(file);
         });
 
@@ -65,7 +57,7 @@ public class OrgLibraryService: IOrgLibraryService
             listOfLibraryFiles.Add(libraryFile);
         }
 
-        string baseCommitSha = await _gitea.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
+        string baseCommitSha = await gitea.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
 
         return new GetSharedResourcesResponse(Files: listOfLibraryFiles, CommitSha: baseCommitSha);
     }
@@ -76,7 +68,7 @@ public class OrgLibraryService: IOrgLibraryService
         List<FileSystemObject> files = [];
         string repository = GetStaticContentRepo(org);
 
-        List<FileSystemObject> directoryContent = await _gitea.GetDirectoryAsync(org, repository, path, reference, cancellationToken);
+        List<FileSystemObject> directoryContent = await gitea.GetDirectoryAsync(org, repository, path, reference, cancellationToken);
 
         foreach (FileSystemObject element in directoryContent)
         {
