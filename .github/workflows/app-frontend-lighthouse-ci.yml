@@ -1,5 +1,5 @@
 name: App Frontend - Lighthouse CI
-on: [push]
+on: pull_request
 jobs:
   lighthouse:
     name: Lighthouse CI
@@ -61,9 +61,27 @@ jobs:
         env:
           TEST_DOMAIN: local.altinn.cloud
           ALTINN3LOCAL_PORT: 80
-      - name: Run Lighthouse CI with authentication
+      - name: Run Lighthouse CI
+        id: lighthouse-ci
         working-directory: src/App/frontend
-        run: yarn run lhci
+        run: |
+          yarn run lhci > lighthouse_output.txt 2>&1
+          cat lighthouse_output.txt
+
+          # Extract the report URL
+          REPORT_URL=$(grep -o 'https://storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/[^[:space:]]*' lighthouse_output.txt || echo "")
+          echo "report_url=$REPORT_URL" >> $GITHUB_OUTPUT
+      - name: Comment PR with Lighthouse Report
+        if: steps.lighthouse-ci.outputs.report_url != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🔍 **Lighthouse Report**\n\n📊 [View Performance Report](${{ steps.lighthouse-ci.outputs.report_url }})'
+            });
       - name: Upload Lighthouse results
         uses: actions/upload-artifact@v4
         with:
