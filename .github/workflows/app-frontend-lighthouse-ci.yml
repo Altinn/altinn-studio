@@ -64,15 +64,10 @@ jobs:
       - name: Run Lighthouse CI with authentication
         working-directory: src/App/frontend
         run: yarn run lhci
-      - name: Debug - List files
-        run: |
-          ls -la src/App/frontend/
-          find . -name ".lighthouseci" -type d 2>/dev/null ||
-          echo "No .lighthouseci directory found"
       - name: Upload Lighthouse results
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: lighthouse-results
+          include-hidden-files: true
           path: src/App/frontend/.lighthouseci/
           retention-days: 30
