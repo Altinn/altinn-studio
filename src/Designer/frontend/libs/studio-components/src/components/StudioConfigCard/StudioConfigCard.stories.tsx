@@ -32,7 +32,7 @@ export const Preview: Story = {
         cardLabel={args.cardLabel}
         onDelete={action('delete')}
         deleteAriaLabel='Delete me'
-        confirmMessage='Are you sure you want to delete me?'
+        confirmDeleteMessage='Are you sure you want to delete me?'
       />
       <StudioConfigCard.Body>{args.bodyContent}</StudioConfigCard.Body>
       <StudioConfigCard.Footer
