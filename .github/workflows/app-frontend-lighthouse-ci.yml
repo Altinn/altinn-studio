@@ -90,10 +90,3 @@ jobs:
               repo: context.repo.repo,
               body: '🔍 **Lighthouse Report**\n\n📊 [View Performance Report](${{ steps.lighthouse-ci.outputs.report_url }})'
             });
-      - name: Upload Lighthouse results
-        uses: actions/upload-artifact@v4
-        with:
-          name: lighthouse-results
-          include-hidden-files: true
-          path: src/App/frontend/.lighthouseci/
-          retention-days: 30
