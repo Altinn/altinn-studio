@@ -46,5 +46,11 @@ namespace Altinn.Studio.Designer.Models
         /// </summary>
         [JsonPropertyName("type")]
         public string Type { get; set; }
+
+        /// <summary>
+        /// Url to the file in gitea
+        /// </summary>
+        [JsonPropertyName("html_url")]
+        public string HtmlUrl { get; set; }
     }
 }
