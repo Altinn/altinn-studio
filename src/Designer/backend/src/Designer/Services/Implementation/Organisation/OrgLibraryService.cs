@@ -53,9 +53,17 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IShar
         List<LibraryFile> listOfLibraryFiles = [];
         foreach (FileSystemObject file in files)
         {
-            LibraryFile libraryFile = new(Path: file.Path, ContentType: "File", Content: file.Content, Url: null);
+            string contentType = Path.GetExtension(file.Name);
+            LibraryFile libraryFile = new(
+                Path: file.Path,
+                ContentType: contentType,
+                Content: file.Content,
+                Url: null
+            );
             listOfLibraryFiles.Add(libraryFile);
         }
+
+        // Missing handling of non-json files. They should return the url.
 
         string baseCommitSha = await gitea.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
 
