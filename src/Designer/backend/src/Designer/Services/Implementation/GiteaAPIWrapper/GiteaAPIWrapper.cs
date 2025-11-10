@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -463,7 +464,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             using HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadAsAsync<FileSystemObject>(cancellationToken);
+                return await response.Content.ReadFromJsonAsync<FileSystemObject>(s_jsonOptions, cancellationToken);
             }
 
             return null;
@@ -478,7 +479,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             using HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadAsAsync<List<FileSystemObject>>(cancellationToken);
+                return await response.Content.ReadFromJsonAsync<List<FileSystemObject>>(s_jsonOptions, cancellationToken);
             }
 
             if (response.StatusCode == HttpStatusCode.NotFound)
@@ -493,38 +494,30 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(string org, string repository, string reference = null, CancellationToken cancellationToken = default)
         {
-            List<FileSystemObject> directoryFiles;
+            List<FileSystemObject> directoryContent;
             try
             {
-                directoryFiles = await GetDirectoryAsync(org, repository, CodeListFolderName, reference, cancellationToken);
+                directoryContent = await GetDirectoryAsync(org, repository, CodeListFolderName, reference, cancellationToken);
             }
             catch (DirectoryNotFoundException)
             {
                 return [];
             }
 
-            SemaphoreSlim semaphore = new(25); // Limit to 25 concurrent requests
-            List<Task<FileSystemObject>> tasks = [];
+            List<FileSystemObject> files = [];
+            IEnumerable<string> directoryFileNames = directoryContent
+                .Where(f => string.Equals(f.Type, "file", StringComparison.OrdinalIgnoreCase))
+                .Select(f => f.Name);
 
-            foreach (FileSystemObject directoryFile in directoryFiles.Where(f => string.Equals(f.Type, "file", StringComparison.OrdinalIgnoreCase)))
+            ParallelOptions options = new() { MaxDegreeOfParallelism = 25, CancellationToken = cancellationToken };
+            await Parallel.ForEachAsync(directoryFileNames, options, async (fileName, token) =>
             {
-                string filePath = $"{CodeListFolderName}/{directoryFile.Name}";
-                tasks.Add(Task.Run(async () =>
-                {
-                    await semaphore.WaitAsync(cancellationToken);
-                    try
-                    {
-                        return await GetFileAsync(org, repository, filePath, reference, cancellationToken);
-                    }
-                    finally
-                    {
-                        semaphore.Release();
-                    }
-                }, cancellationToken));
-            }
+                string filePath = $"{CodeListFolderName}/{fileName}";
+                FileSystemObject file = await GetFileAsync(org, repository, filePath, reference, token);
+                files.Add(file);
+            });
 
-            FileSystemObject[] files = await Task.WhenAll(tasks);
-            return [.. files.Where(file => file is not null)];
+            return files;
         }
 
         /// <inheritdoc/>
@@ -554,7 +547,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             using HttpResponseMessage response = await _httpClient.GetAsync(url.ToString(), cancellationToken);
             if (response.IsSuccessStatusCode)
             {
-                List<GiteaCommit> commits = await response.Content.ReadAsAsync<List<GiteaCommit>>(cancellationToken);
+                List<GiteaCommit> commits = await response.Content.ReadFromJsonAsync<List<GiteaCommit>>(s_jsonOptions, cancellationToken);
                 return commits?.FirstOrDefault()?.Sha;
             }
 
