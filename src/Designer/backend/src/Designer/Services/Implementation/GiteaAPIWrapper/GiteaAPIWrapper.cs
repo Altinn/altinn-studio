@@ -485,7 +485,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
                 string suffix = string.IsNullOrWhiteSpace(reference) ? string.Empty : $" at reference {reference}";
-                throw new DirectoryNotFoundException($"Directory {directoryPath} not found in repository {org}/{app}{suffix}");
+                DirectoryNotFoundException ex = new ($"Directory {directoryPath} not found in repository {org}/{app}{suffix}");
+                _logger.LogWarning(ex, "Directory not found for org {Org} in repository {App}, at directory path {DirPath} and reference {Ref}", org, app, directoryPath, reference);
+                throw ex;
             }
 
             return [];
