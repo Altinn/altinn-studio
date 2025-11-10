@@ -180,7 +180,7 @@ public class OrgCodeListService : IOrgCodeListService
         CodeList codeList = request.CodeList;
         if (InputValidator.IsInvalidCodeListTitle(codeListId))
         {
-            throw new IllegalFileNameException("The code list title contains invalid characters.");
+            throw new IllegalCodeListTitleException("The code list title contains invalid characters.");
         }
 
         await _sharedContentClient.PublishCodeList(org, codeListId, codeList, cancellationToken);
@@ -228,7 +228,7 @@ public class OrgCodeListService : IOrgCodeListService
     {
         if (codeListWrappers.Exists(clw => InputValidator.IsInvalidCodeListTitle(clw.Title)))
         {
-            throw new IllegalFileNameException("One or more code list titles contains invalid characters.");
+            throw new IllegalCodeListTitleException("One or more code list titles contains invalid characters.");
         }
     }
 
