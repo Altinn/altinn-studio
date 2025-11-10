@@ -1,10 +1,9 @@
 import React from 'react';
-import { StudioHeading } from '@studio/components';
-import { RequiredIndicator } from '../../RequiredIndicator';
-import classes from './HeaderMainConfig.module.css';
+import { StudioHeading, StudioTag } from '@studio/components';
+import classes from './MainSettingsHeader.module.css';
 import { useTranslation } from 'react-i18next';
 
-export const HeaderMainConfig = (): JSX.Element => {
+export const MainSettingsHeader = (): JSX.Element => {
   const { t } = useTranslation();
 
   const headingId = 'main-config-heading';
@@ -12,16 +11,18 @@ export const HeaderMainConfig = (): JSX.Element => {
 
   return (
     <section
-      className={classes.componentMainConfig}
+      className={classes.wrapper}
       aria-labelledby={headingId}
       aria-describedby={requiredIndicatorId}
     >
       <div className={classes.flexContainer}>
-        <StudioHeading id={headingId}>
+        <StudioHeading id={headingId} className={classes.heading}>
           {t('ux_editor.component_properties.main_configuration')}
         </StudioHeading>
         <span id={requiredIndicatorId}>
-          <RequiredIndicator />
+          <StudioTag className={classes.requiredIndicator} data-color='warning'>
+            {t('general.required')}
+          </StudioTag>
         </span>
       </div>
     </section>
