@@ -12,7 +12,7 @@ on:
 
 jobs:
   install:
-    name: Install
+    name: Install cypress, build frontend
     runs-on: ubuntu-latest
     defaults:
       run:
