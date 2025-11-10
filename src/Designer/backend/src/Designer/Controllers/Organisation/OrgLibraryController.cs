@@ -15,25 +15,16 @@ namespace Altinn.Studio.Designer.Controllers.Organisation;
 /// <summary>
 /// Controller containing actions related to the organisation library.
 /// </summary>
+/// <remarks>
+/// Initializes a new instance of the <see cref="OrgLibraryController"/> class.
+/// </remarks>
+/// <param name="orgLibraryService">The library service.</param>
+/// <param name="logger">The logger.</param>
 [ApiController]
 [Authorize]
 [Route("designer/api/{org}/shared-resources")]
-public class OrgLibraryController : ControllerBase
+public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<OrgLibraryController> logger) : ControllerBase
 {
-    private readonly IOrgLibraryService _orgLibraryService;
-    private readonly ILogger<OrgLibraryController> _logger;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="OrgLibraryController"/> class.
-    /// </summary>
-    /// <param name="orgLibraryService">The library service.</param>
-    /// <param name="logger">The logger.</param>
-    public OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<OrgLibraryController> logger)
-    {
-        _orgLibraryService = orgLibraryService;
-        _logger = logger;
-    }
-
     /// <summary>
     /// Fetches the contents of all the code lists belonging to the organisation.
     /// </summary>
@@ -51,12 +42,12 @@ public class OrgLibraryController : ControllerBase
 
         try
         {
-            GetSharedResourcesResponse response = await _orgLibraryService.GetSharedResourcesByPath(org, path, reference, cancellationToken);
+            GetSharedResourcesResponse response = await orgLibraryService.GetSharedResourcesByPath(org, path, reference, cancellationToken);
             return Ok(response);
         }
         catch (Exception ex) when (ex is DirectoryNotFoundException)
         {
-            _logger.LogWarning(ex, "Directory not found when fetching shared resources for org {Org} at path {Path} and reference {Reference}", org, path, reference);
+            logger.LogWarning(ex, "Directory not found when fetching shared resources for org {Org} at path {Path} and reference {Reference}", org, path, reference);
             return BadRequest(ex);
         }
     }
@@ -76,7 +67,7 @@ public class OrgLibraryController : ControllerBase
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        await _orgLibraryService.UpdateSharedResourcesByPath(org, developer, requestBody, cancellationToken);
+        await orgLibraryService.UpdateSharedResourcesByPath(org, developer, requestBody, cancellationToken);
 
         return Ok();
     }
