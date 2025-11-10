@@ -8,7 +8,7 @@ namespace StudioGateway.Api.TypedHttpClients.Grafana;
 
 public class GrafanaClient(
     HttpClient httpClient,
-    IOptions<GrafanaSettings> grafanaSettings
+    IConfiguration config
     ) : IGrafanaClient
 {
     private readonly GrafanaSettings _grafanaSettings = grafanaSettings.Value;
@@ -16,6 +16,7 @@ public class GrafanaClient(
     /// <inheritdoc />
     public async Task<IEnumerable<GrafanaAlert>> GetFiringAlertsAsync(CancellationToken cancellationToken)
     {
+        AzureDevOpsSettings azureDevOpsSettings = config.Get("external-grafana-altinn-studio-gateway-token").Get<AzureDevOpsSettings>();
         string apiToken = _grafanaSettings.Token;
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);
 
