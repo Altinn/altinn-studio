@@ -33,13 +33,15 @@ describe('Properties', () => {
 
     it('shows page config when selectedItem is a page', () => {
       renderProperties({ selectedItem: { type: ItemType.Page, id: layout1NameMock } });
-      const pageConfigPanel = screen.getByTestId('pageConfigPanel');
+      const pageConfigPanel = screen.getByRole('heading', { name: 'Side1' });
       expect(pageConfigPanel).toBeInTheDocument();
     });
 
     it('shows group config when selectedItem is a group', () => {
       renderProperties({ selectedItem: { type: ItemType.Group, id: 0 } });
-      const pageConfigPanel = screen.getByTestId('groupConfigPanel');
+      const pageConfigPanel = screen.getByRole('group', {
+        name: textMock('ux_editor.page_group.select_type_title'),
+      });
       expect(pageConfigPanel).toBeInTheDocument();
     });
 
