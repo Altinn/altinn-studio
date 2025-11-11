@@ -79,7 +79,9 @@ describe('TextResource', () => {
     await user.click(addButton);
     await fillTextAndSave();
     expect(handleIdChange).toHaveBeenCalledTimes(1);
-    expect(handleIdChange).toHaveBeenCalledWith(expect.stringMatching(/^Page1\.test-id\.title/));
+    expect(handleIdChange).toHaveBeenCalledWith(
+      expect.stringMatching(/^Page1\.test-id\.title\..+$/),
+    );
   });
 
   it('Renders value of resource with given id', () => {
