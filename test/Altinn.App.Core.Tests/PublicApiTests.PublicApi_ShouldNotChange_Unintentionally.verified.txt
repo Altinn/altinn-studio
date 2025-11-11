@@ -4417,10 +4417,10 @@ namespace Altinn.App.Core.Models.Expressions
     [System.Diagnostics.DebuggerTypeProxy(typeof(Altinn.App.Core.Models.Expressions.ComponentContext.DebuggerProxy))]
     public sealed class ComponentContext
     {
-        public ComponentContext(Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state, Altinn.App.Core.Models.Layout.Components.Base.BaseComponent? component, int[]? rowIndices, Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, System.Collections.Generic.List<Altinn.App.Core.Models.Expressions.ComponentContext>? childContexts = null) { }
+        public ComponentContext(Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state, Altinn.App.Core.Models.Layout.Components.Base.BaseComponent? component, int[]? rowIndices, Altinn.App.Core.Models.DataElementIdentifier? dataElementIdentifier, System.Collections.Generic.List<Altinn.App.Core.Models.Expressions.ComponentContext>? childContexts = null) { }
         public System.Collections.Generic.List<Altinn.App.Core.Models.Expressions.ComponentContext> ChildContexts { get; }
         public Altinn.App.Core.Models.Layout.Components.Base.BaseComponent? Component { get; }
-        public Altinn.App.Core.Models.DataElementIdentifier DataElementIdentifier { get; }
+        public Altinn.App.Core.Models.DataElementIdentifier? DataElementIdentifier { get; }
         public System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.Expressions.ComponentContext> Descendants { get; }
         public bool HasChildContexts { get; }
         public Altinn.App.Core.Models.Expressions.ComponentContext? Parent { get; }
