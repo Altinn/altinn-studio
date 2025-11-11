@@ -414,6 +414,7 @@ func PushKustomizeArtifact() (bool, error) {
 	patterns := []string{
 		"infra/kustomize/**/*.yaml",
 		"infra/kustomize/**/*.yml",
+		"infra/kustomize/**/*.json",
 	}
 	currentHash, err := checksum.ComputeFilesChecksum(projectRoot, patterns)
 	if err != nil {

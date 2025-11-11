@@ -1,4 +1,4 @@
-import type { CodeListData } from '../types/CodeListData';
+import type { CodeListData } from '../../../../../types/CodeListData';
 import type { CodeListMap } from '../types/CodeListMap';
 import { coloursData, countriesData, fruitsData } from './codeLists';
 

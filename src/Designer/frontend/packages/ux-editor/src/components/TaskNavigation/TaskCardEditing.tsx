@@ -1,5 +1,11 @@
-import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
-import { StudioButton, StudioParagraph, StudioCard, StudioSpinner } from '@studio/components';
+import { StudioTextfield } from '@studio/components-legacy';
+import {
+  StudioButton,
+  StudioParagraph,
+  StudioCard,
+  StudioSpinner,
+  StudioSelect,
+} from '@studio/components';
 import { useUpdateLayoutSetIdMutation } from 'app-development/hooks/mutations/useUpdateLayoutSetIdMutation';
 import { useUpdateProcessDataTypesMutation } from 'app-development/hooks/mutations/useUpdateProcessDataTypesMutation';
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
@@ -87,25 +93,26 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
         }}
         onChange={(event: ChangeEvent<HTMLInputElement>) => setId(event.target.value)}
       ></StudioTextfield>
-      <StudioNativeSelect
+      <StudioSelect
         label={t('ux_editor.modal_properties_data_model_binding')}
-        size='sm'
         disabled={layoutSetModel.type === 'subform'}
         value={dataType}
         onChange={(event) => setDataType(event.target.value)}
       >
-        <option value='' disabled>
+        <StudioSelect.Option value='' disabled>
           {t('ux_editor.task_card.choose_datamodel')}
-        </option>
+        </StudioSelect.Option>
         {layoutSetModel.dataType && (
-          <option value={layoutSetModel.dataType}>{layoutSetModel.dataType}</option>
+          <StudioSelect.Option value={layoutSetModel.dataType}>
+            {layoutSetModel.dataType}
+          </StudioSelect.Option>
         )}
         {dataModels?.map((dataModel) => (
-          <option key={dataModel} value={dataModel}>
+          <StudioSelect.Option key={dataModel} value={dataModel}>
             {dataModel}
-          </option>
+          </StudioSelect.Option>
         ))}
-      </StudioNativeSelect>
+      </StudioSelect>
       <div className={classes.btnGroup}>
         <StudioButton
           disabled={disableSaveButton}

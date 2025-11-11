@@ -30,7 +30,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="4.14.0" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="9.9.0" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="9.10.0" />
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.Testing" Version="8.10.0" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="8.10.0" />
     <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.3.0" />
@@ -42,30 +42,30 @@
     <PackageVersion Include="NetEscapades.EnumGenerators" Version="1.0.0-beta14" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="Nullable.Extended.Analyzer" Version="1.15.6581" />
-    <PackageVersion Include="OpenTelemetry" Version="1.12.0" />
-    <PackageVersion Include="OpenTelemetry.Api" Version="1.12.0" />
-    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0" />
-    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.12.0" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.12.0" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.12.0" />
+    <PackageVersion Include="OpenTelemetry" Version="1.13.1" />
+    <PackageVersion Include="OpenTelemetry.Api" Version="1.13.1" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.13.1" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.13.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.13.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.13.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.13.0" />
     <PackageVersion Include="PolySharp" Version="1.15.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="9.0.6" />
     <PackageVersion Include="System.Formats.Asn1" Version="9.0.10" />
     <PackageVersion Include="System.Linq.Async" Version="6.0.3" />
-    <PackageVersion Include="Testcontainers" Version="4.7.0" />
+    <PackageVersion Include="Testcontainers" Version="4.8.1" />
     <PackageVersion Include="Verify.AspNetCore" Version="4.0.0" />
     <PackageVersion Include="Verify.Moq" Version="2.2.0" />
     <PackageVersion Include="Verify.Xunit" Version="30.20.1" />
     <PackageVersion Include="Verify.Http" Version="6.6.0" />
-    <PackageVersion Include="WireMock.Net" Version="1.14.0" />
+    <PackageVersion Include="WireMock.Net" Version="1.15.0" />
     <PackageVersion Include="Verify.SourceGenerators" Version="2.5.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.assert" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="Xunit.Combinatorial" Version="1.6.24" />
     <PackageVersion Include="System.IO.Hashing" Version="9.0.10" />
-    <PackageVersion Include="PublicApiGenerator" Version="11.4.6" />
+    <PackageVersion Include="PublicApiGenerator" Version="11.5.0" />
   </ItemGroup>
   <ItemGroup>
     <!-- Transitive dependecies for JWTCookieAuthentication -->

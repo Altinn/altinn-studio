@@ -90,7 +90,7 @@ export const PageAccordion = ({
             isInvalid || hasDuplicatedIds ? classes.accordionHeaderWarning : classes.accordionHeader
           }
         >
-          <Accordion.Header level={3} onHeaderClick={onClick}>
+          <Accordion.Header level={3} onHeaderClick={onClick} className={classes.headerContent}>
             {pageName || pageId}
           </Accordion.Header>
         </div>
