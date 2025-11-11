@@ -37,7 +37,7 @@ function StudioTextarea(
       {label && (
         <StudioLabel>
           <StudioLabelWrapper required={required} tagText={tagText}>
-            {<span className={classes.labelText}>{label}</span>}
+            <span className={classes.labelText}>{label}</span>
           </StudioLabelWrapper>
         </StudioLabel>
       )}
