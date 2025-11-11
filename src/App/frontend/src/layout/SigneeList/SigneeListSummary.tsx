@@ -6,7 +6,9 @@ import { Divider, Paragraph } from '@digdir/designsystemet-react';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale/nb';
 
+import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import { Label } from 'src/app-components/Label/Label';
+import { LoadingWrapper } from 'src/app-components/loading/LoadingWrapper/LoadingWrapper';
 import { Lang } from 'src/features/language/Lang';
 import { type SigneeState, useSigneeList } from 'src/layout/SigneeList/api';
 import classes from 'src/layout/SigneeList/SigneeListSummary.module.css';
@@ -31,29 +33,33 @@ export function SigneeListSummary({ targetBaseComponentId, titleOverride }: Sign
 
   if (isLoading) {
     return (
-      <SigneeListSummaryContainer
-        heading={heading}
-        baseComponentId={targetBaseComponentId}
-        content={SummaryContains.Presentational}
-      >
-        <Paragraph>
-          <Lang id='signee_list_summary.loading' />
-        </Paragraph>
-      </SigneeListSummaryContainer>
+      <LoadingWrapper>
+        <SigneeListSummaryContainer
+          heading={heading}
+          baseComponentId={targetBaseComponentId}
+          content={SummaryContains.Presentational}
+        >
+          <Paragraph>
+            <Lang id='signee_list_summary.loading' />
+          </Paragraph>
+        </SigneeListSummaryContainer>
+      </LoadingWrapper>
     );
   }
 
   if (error) {
     return (
-      <SigneeListSummaryContainer
-        heading={heading}
-        baseComponentId={targetBaseComponentId}
-        content={SummaryContains.SomeUserContent}
-      >
-        <Paragraph>
-          <Lang id='signee_list_summary.error' />
-        </Paragraph>
-      </SigneeListSummaryContainer>
+      <FatalError>
+        <SigneeListSummaryContainer
+          heading={heading}
+          baseComponentId={targetBaseComponentId}
+          content={SummaryContains.SomeUserContent}
+        >
+          <Paragraph>
+            <Lang id='signee_list_summary.error' />
+          </Paragraph>
+        </SigneeListSummaryContainer>
+      </FatalError>
     );
   }
 

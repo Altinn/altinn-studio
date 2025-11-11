@@ -1,9 +1,9 @@
 import React, { useLayoutEffect, useState } from 'react';
 
-import { Spinner } from '@digdir/designsystemet-react';
 import { CheckmarkIcon, ChevronDownIcon, InformationIcon, XMarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
+import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useGetAltinnTaskType } from 'src/features/instance/useProcessQuery';

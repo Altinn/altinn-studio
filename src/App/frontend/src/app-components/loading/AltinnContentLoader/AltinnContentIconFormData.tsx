@@ -4,6 +4,7 @@ export function AltinnContentIconFormData() {
   return (
     <>
       <rect
+        data-testid='AltinnContentIconFormData'
         x='0'
         y='0'
         rx='0'

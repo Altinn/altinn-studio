@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { Spinner } from '@digdir/designsystemet-react';
 import { CaretDownFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
+import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
