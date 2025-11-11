@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
@@ -10,7 +11,7 @@ namespace Altinn.Studio.Designer.Models.Dto;
 /// <param name="Files">Key is file path, Value is file content.</param>
 /// <param name="BaseCommitSha">The commit sha the user was checkout on.</param>
 /// <param name="CommitMessage">The commit message.</param>
-public sealed record UpdateSharedResourceRequest(List<FileMetadata> Files, string BaseCommitSha, string? CommitMessage = null)
+public sealed record UpdateSharedResourceRequest(Dictionary<string, JsonElement> Files, string BaseCommitSha, string? CommitMessage = null)
 {
     public bool Equals(UpdateSharedResourceRequest? other)
     {
@@ -29,9 +30,14 @@ public sealed record UpdateSharedResourceRequest(List<FileMetadata> Files, strin
             return false;
         }
 
-        if (Files.SequenceEqual(other.Files) is false)
+        foreach (KeyValuePair<string, JsonElement> kvp in Files)
         {
-            return false;
+            if (other.Files.TryGetValue(kvp.Key, out JsonElement otherValue) is false) { return false; }
+
+            if (string.Equals(kvp.Value.GetRawText(), otherValue.GetRawText(), StringComparison.Ordinal) is false)
+            {
+                return false;
+            }
         }
         return true;
     }
@@ -42,9 +48,10 @@ public sealed record UpdateSharedResourceRequest(List<FileMetadata> Files, strin
         hash.Add(BaseCommitSha, StringComparer.Ordinal);
         hash.Add(CommitMessage, StringComparer.Ordinal);
 
-        foreach (FileMetadata fileMetadata in Files)
+        foreach (KeyValuePair<string, JsonElement> kv in Files.OrderBy(x => x.Key, StringComparer.Ordinal))
         {
-            hash.Add(fileMetadata);
+            hash.Add(kv.Key, StringComparer.Ordinal);
+            hash.Add(kv.Value.GetRawText(), StringComparer.Ordinal);
         }
 
         return hash.ToHashCode();

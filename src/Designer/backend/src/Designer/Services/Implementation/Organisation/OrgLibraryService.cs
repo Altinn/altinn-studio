@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Constants;
@@ -134,20 +135,23 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
     {
         ParallelOptions options = new() { MaxDegreeOfParallelism = 25, CancellationToken = cancellationToken };
         await Parallel.ForEachAsync(request.Files, options,
-            async (FileMetadata fileMetadata, CancellationToken token) =>
+            async (KeyValuePair<string, JsonElement> fileMetadata, CancellationToken token) =>
             {
-                await UpdateFile(editingContext.Org, editingContext.Developer, fileMetadata.Path, fileMetadata.Content, cancellationToken);
+                string path = fileMetadata.Key;
+                JsonElement content = fileMetadata.Value;
+                await UpdateFile(editingContext.Org, editingContext.Developer, path, content, cancellationToken);
             }
         );
     }
 
-    internal async Task UpdateFile(string org, string developer, string path, string content, CancellationToken cancellationToken = default)
+    internal async Task UpdateFile(string org, string developer, string path, JsonElement content, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string repo = GetStaticContentRepo(org);
         AltinnGitRepository altinnOrgGitRepository = altinnGitRepositoryFactory.GetAltinnGitRepository(org, repo, developer);
 
-        await altinnOrgGitRepository.WriteTextByRelativePathAsync(path, content, createDirectory: true, cancellationToken);
+        string contentText = content.GetRawText();
+        await altinnOrgGitRepository.WriteTextByRelativePathAsync(path, contentText, createDirectory: true, cancellationToken);
     }
 
     internal static void ValidateCommitMessage(string? commitMessage)
