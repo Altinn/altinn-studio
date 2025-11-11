@@ -152,7 +152,8 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
             byte[] data = Convert.FromBase64String(fileMetadata.Content);
             using MemoryStream stream = new(data);
             await altinnOrgGitRepository.WriteStreamByRelativePathAsync(fileMetadata.Path, stream, createDirectory: true, cancellationToken);
-        }else
+        }
+        else
         {
             await altinnOrgGitRepository.WriteTextByRelativePathAsync(fileMetadata.Path, fileMetadata.Content, createDirectory: true, cancellationToken);
         }
