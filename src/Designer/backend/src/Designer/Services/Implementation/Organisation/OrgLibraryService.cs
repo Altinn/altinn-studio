@@ -136,18 +136,26 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
         await Parallel.ForEachAsync(request.Files, options,
             async (FileMetadata fileMetadata, CancellationToken token) =>
             {
-                await UpdateFile(editingContext.Org, editingContext.Developer, fileMetadata.Path, fileMetadata.Content, cancellationToken);
+                await UpdateFile(editingContext.Org, editingContext.Developer, fileMetadata, cancellationToken);
             }
         );
     }
 
-    internal async Task UpdateFile(string org, string developer, string path, string content, CancellationToken cancellationToken = default)
+    internal async Task UpdateFile(string org, string developer, FileMetadata fileMetadata, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string repo = GetStaticContentRepo(org);
         AltinnGitRepository altinnOrgGitRepository = altinnGitRepositoryFactory.GetAltinnGitRepository(org, repo, developer);
 
-        await altinnOrgGitRepository.WriteTextByRelativePathAsync(path, content, createDirectory: true, cancellationToken);
+        if (fileMetadata.Encoding?.Equals("base64", StringComparison.OrdinalIgnoreCase) is true)
+        {
+            byte[] data = Convert.FromBase64String(fileMetadata.Content);
+            using MemoryStream stream = new(data);
+            await altinnOrgGitRepository.WriteStreamByRelativePathAsync(fileMetadata.Path, stream, createDirectory: true, cancellationToken);
+        }else
+        {
+            await altinnOrgGitRepository.WriteTextByRelativePathAsync(fileMetadata.Path, fileMetadata.Content, createDirectory: true, cancellationToken);
+        }
     }
 
     internal static void ValidateCommitMessage(string? commitMessage)
