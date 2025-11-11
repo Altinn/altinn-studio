@@ -6,6 +6,7 @@ import { StudioLabelWrapper } from '../StudioLabelWrapper';
 import { StudioLabel } from '../StudioLabel';
 import { StudioField } from '../StudioField';
 import { StudioValidationMessage } from '../StudioValidationMessage';
+import classes from './StudioTextarea.module.css';
 
 export type StudioTextareaProps = TextareaProps & {
   tagText?: string;
@@ -36,7 +37,7 @@ function StudioTextarea(
       {label && (
         <StudioLabel>
           <StudioLabelWrapper required={required} tagText={tagText}>
-            {label}
+            {<span className={classes.labelText}>{label}</span>}
           </StudioLabelWrapper>
         </StudioLabel>
       )}
