@@ -4,6 +4,7 @@ export function AltinnContentIconReceipt() {
   return (
     <>
       <rect
+        data-testid='AltinnContentIconReceipt'
         x='12'
         y='11'
         rx='0'
