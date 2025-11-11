@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -33,7 +33,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             await CopyRepositoryForTest(org, app, developer, targetRepository);
             var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["NewTask"] };
             LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
-            { TaskType = "data", LayoutSetConfig = newLayoutSetConfig };
+            { TaskType = TaskType.Data, LayoutSetConfig = newLayoutSetConfig };
 
             LayoutSets layoutSetsBefore = await GetLayoutSetsFile(org, targetRepository, developer);
 
@@ -65,7 +65,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             await CopyRepositoryForTest(org, app, developer, targetRepository);
             var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["newTask"] };
             LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
-            { TaskType = "data", LayoutSetConfig = newLayoutSetConfig };
+            { TaskType = TaskType.Data, LayoutSetConfig = newLayoutSetConfig };
 
             string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
 
@@ -91,7 +91,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             const string ExistingTaskId = "Task_1";
             var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = [ExistingTaskId] };
             LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
-            { TaskType = "data", LayoutSetConfig = newLayoutSetConfig };
+            { TaskType = TaskType.Data, LayoutSetConfig = newLayoutSetConfig };
 
             string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
 
@@ -116,7 +116,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             await CopyRepositoryForTest(org, app, developer, targetRepository);
             var newLayoutSetConfig = new LayoutSetConfig() { Id = "" };
             LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
-            { TaskType = "data", LayoutSetConfig = newLayoutSetConfig };
+            { TaskType = TaskType.Data, LayoutSetConfig = newLayoutSetConfig };
 
             string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
 
@@ -196,7 +196,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             await CopyRepositoryForTest(org, app, developer, targetRepository);
             var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["NewTask"] };
             LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
-            { TaskType = "data", LayoutSetConfig = newLayoutSetConfig };
+            { TaskType = TaskType.Data, LayoutSetConfig = newLayoutSetConfig };
 
             string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
 
