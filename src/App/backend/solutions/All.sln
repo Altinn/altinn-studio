@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -22,6 +22,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Api.Tests", "..\test\Altinn.App.Api.Tests\Altinn.App.Api.Tests.csproj", "{6F762771-DC24-4139-B1B2-DD0F6A4E2B5B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Integration.Tests", "..\test\Altinn.App.Integration.Tests\Altinn.App.Integration.Tests.csproj", "{0DE9F775-FE1A-4604-B239-4CFE4E105B1D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Clients.Fiks", "..\src\Altinn.App.Clients.Fiks\Altinn.App.Clients.Fiks.csproj", "{B9EF324F-7223-484B-B9BC-C8F705431AE3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Clients.Fiks.Tests", "..\test\Altinn.App.Clients.Fiks.Tests\Altinn.App.Clients.Fiks.Tests.csproj", "{4CCE3E2A-E12C-4382-9089-84A0275478AB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.SourceGenerator.Tests", "..\test\Altinn.App.SourceGenerator.Tests\Altinn.App.SourceGenerator.Tests.csproj", "{976E3CF9-26CC-4825-92F7-5EEBD99A8B6A}"
 EndProject
@@ -93,6 +97,14 @@ Global
 		{836CECBF-5518-4276-BE2C-B0F255BF19F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{836CECBF-5518-4276-BE2C-B0F255BF19F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{836CECBF-5518-4276-BE2C-B0F255BF19F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9EF324F-7223-484B-B9BC-C8F705431AE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9EF324F-7223-484B-B9BC-C8F705431AE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9EF324F-7223-484B-B9BC-C8F705431AE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9EF324F-7223-484B-B9BC-C8F705431AE3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CCE3E2A-E12C-4382-9089-84A0275478AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CCE3E2A-E12C-4382-9089-84A0275478AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CCE3E2A-E12C-4382-9089-84A0275478AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CCE3E2A-E12C-4382-9089-84A0275478AB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{D6C1901B-BED6-44AC-A061-5981A2DEB937} = {C5968C89-1529-42F3-B082-DC1184C18395}

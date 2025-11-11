@@ -1,4 +1,5 @@
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.Legacy;
@@ -32,6 +33,7 @@ public class EndTaskEventHandlerTests
             services.AddLogging(builder => builder.AddProvider(NullLoggerProvider.Instance));
             services.AddAppImplementationFactory();
 
+            services.AddSingleton(new Mock<IInstanceClient>().Object);
             services.AddSingleton(new Mock<IProcessTaskDataLocker>().Object);
             services.AddSingleton(new Mock<IProcessTaskFinalizer>().Object);
 
