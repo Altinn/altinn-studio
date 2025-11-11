@@ -30,6 +30,10 @@ export class OnProcessTaskRemoveHandler {
     if (taskMetadata.taskType === 'signing') {
       this.handleSigningTaskRemove(taskMetadata);
     }
+
+    if (taskMetadata.taskType === 'pdf') {
+      this.handlePdfServiceTaskRemove(taskMetadata);
+    }
   }
 
   private handleDataTaskRemove(taskMetadata: OnProcessTaskEvent): void {
@@ -164,5 +168,18 @@ export class OnProcessTaskRemoveHandler {
     this.deleteDataTypeFromAppMetadata({
       dataTypeId,
     });
+  }
+
+  private handlePdfServiceTaskRemove(taskMetadata: OnProcessTaskEvent): void {
+    const layoutSetId = getLayoutSetIdFromTaskId(
+      taskMetadata.taskEvent.element.id,
+      this.layoutSets,
+    );
+
+    if (layoutSetId) {
+      this.deleteLayoutSet({
+        layoutSetIdToUpdate: layoutSetId,
+      });
+    }
   }
 }

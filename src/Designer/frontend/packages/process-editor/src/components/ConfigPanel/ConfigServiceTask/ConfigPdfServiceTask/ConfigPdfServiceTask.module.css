@@ -1,8 +1,33 @@
+.pdfConfig {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-3);
+  padding-inline: var(--fds-spacing-10);
+  margin-top: var(--fds-spacing-3);
+  margin-bottom: var(--fds-spacing-3);
+}
+
+ol > li::marker {
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-5);
+}
+
+.displayTile {
+  padding-inline: var(--fds-spacing-5);
+}
+
+.boldFont {
+  font-weight: var(--ds-font-weight-medium);
+}
+
 .taskIdSelectContainer {
   display: grid;
   gap: var(--fds-spacing-2);
-  padding-inline: var(--fds-spacing-5);
-  padding-bottom: var(--fds-spacing-3);
 }
 
 .taskIdSelectAndButtons {
@@ -10,9 +35,18 @@
   flex-direction: row;
   align-items: flex-start;
   gap: var(--fds-spacing-4);
-  vertical-align: middle;
 }
 
 .taskIdSelect {
   flex: 1;
+}
+
+.createLayoutSet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-3);
+}
+
+.description {
+  margin-top: calc(var(--fds-spacing-2) * -1);
 }
