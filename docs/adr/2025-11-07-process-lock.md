@@ -24,19 +24,23 @@ If handling of a request by the /process/next endpoint failed for some reason (e
 - B4: Nice to have: Should provide visibility into locked instances for debugging and monitoring.
 - B5: Should be compatible with or easily replaceable by the new process engine architecture.
 - B6: Should not require significant changes to deployment or monitoring.
+- B7: Should not require new infrastructure/dependencies.
+- B8: Must not require changes in apps.
 
 ## Alternatives considered
 
 ### A1: PostgreSQL advisory locks
 
-Use PostgreSQL's built-in advisory lock functionality (`pg_advisory_lock`).
+Use PostgreSQL's built-in advisory lock functionality (`pg_advisory_lock`),
+which would hold the lock for the duration of process/next request.
+The lock would be scoped to connection/transaction.
 
 How it works:
 - Acquire an advisory lock using instance ID as the lock key
 - Hold the lock for the duration of the request
 - Release the lock when processing completes
 
-Decision: Rejected due to connection pool concerns.
+Decision: Rejected due to connection pool concerns, connections are expensive in PostgreSQL due to its' process-per-connection model
 
 ### Option A2: PostgreSQL lock table (SELECTED)
 
@@ -95,9 +99,17 @@ WHERE lock_token = :lockToken;
 
 Decision: Selected.
 
-### Option A3: Kubernetes leader election
+### Option A3: Distributed locks/leader election
 
-???
+There are various mechanisms that could allow us to have a leader process to coordinate/keep state relating to active process/next requests:
+- Kubernetes API with it's optimstic concurrency mechanism (`resourceVersion` as a precondition)
+- PostgreSQL long running advisory locks (connection scoped)
+
+We could then have processes, e.g. in Storage
+- Compete for leadership
+- Track process/next requests
+
+Decision: Rejected.
 
 ### Option A4: Optimistic concurrency control with idempotency keys
 
@@ -118,10 +130,12 @@ Decision: Rejected. Idempotency ensures operations can be retried without duplic
 - Native database feature, no additional tables needed
 - Guaranteed cleanup on connection close
 - Simple implementation
+- No new infrastructure/dependencies (B7)
+- No change required in apps (B8)
 
 #### Cons
 
-- Critical issue: Requires holding a database connection open for the entire request duration
+- Critical issue: Requires holding a database connection open for the entire request duration (B2)
     - Would exhaust connection pool quickly under moderate load if there are a high proportion of long-running requests
     - All applications share a single database instance, so long-held connections would impact other applications
     - Could create cascading failures if connection pool is exhausted
@@ -135,7 +149,7 @@ Decision: Rejected. Idempotency ensures operations can be retried without duplic
 - Can include debugging metadata (creation, expiration)
 - Queryable for monitoring and troubleshooting
 - Automatic cleanup via expiration timestamps
-- Supports all decision drivers (B1-B6)
+- Supports all decision drivers (B1-B8)
 
 #### Cons
 
@@ -148,6 +162,8 @@ Decision: Rejected. Idempotency ensures operations can be retried without duplic
 #### Cons
 
 - Tight coupling to Kubernetes
+- Hard to implement (B1)
+- Provides no persistence/durability
 
 ### A4
 
