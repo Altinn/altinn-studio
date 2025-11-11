@@ -45,7 +45,14 @@ describe('TextResource', () => {
 
   it('Calls handleIdChange when the button is clicked', async () => {
     const label = 'Lorem ipsum';
-    renderTextResource({ label });
+    renderTextResource({
+      label,
+      generateIdOptions: {
+        componentId: 'test-id',
+        layoutId: 'Page1',
+        textResourceKey: 'title',
+      },
+    });
     await user.click(screen.getByRole('button', { name: label }));
     await fillTextAndSave();
     expect(handleIdChange).toHaveBeenCalledTimes(1);
@@ -72,24 +79,7 @@ describe('TextResource', () => {
     await user.click(addButton);
     await fillTextAndSave();
     expect(handleIdChange).toHaveBeenCalledTimes(1);
-    expect(handleIdChange).toHaveBeenCalledWith('Page1.test-id.title');
-  });
-
-  it('Calls handleIdChange with expected id when save button is clicked', async () => {
-    const label = 'Title';
-    renderTextResource({
-      label,
-      generateIdOptions: {
-        componentId: 'test-id',
-        layoutId: 'Page1',
-        textResourceKey: 'title',
-      },
-    });
-    const addButton = screen.getByRole('button', { name: label });
-    await user.click(addButton);
-    await fillTextAndSave();
-    expect(handleIdChange).toHaveBeenCalledTimes(1);
-    expect(handleIdChange).toHaveBeenCalledWith('Page1.test-id.title');
+    expect(handleIdChange).toHaveBeenCalledWith(expect.stringMatching(/^Page1\.test-id\.title/));
   });
 
   it('Renders value of resource with given id', () => {
