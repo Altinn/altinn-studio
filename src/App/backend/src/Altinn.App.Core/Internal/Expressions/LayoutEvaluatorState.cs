@@ -289,7 +289,7 @@ public class LayoutEvaluatorState
         }
         // If the data element has the same type as default, return it
 
-        if (defaultDataElementIdentifier.HasValue)
+        if (defaultDataElementIdentifier.HasValue && defaultDataElementIdentifier.Value.Guid != Guid.Empty)
         {
             var defaultDataType = _dataAccessor.GetDataType(defaultDataElementIdentifier.Value);
             if (defaultDataType.Id == key.DataType)
