@@ -44,8 +44,7 @@ describe('PreviewActions', () => {
 });
 
 const renderPreviewActions = (props: Partial<PreviewActionsProps>) => {
-  const defaultProps = {
-    toggleIcon: <div>Toggle Icon</div>,
+  const defaultProps: PreviewActionsProps = {
     className: 'preview-actions',
     onCollapseToggle: jest.fn(),
   };

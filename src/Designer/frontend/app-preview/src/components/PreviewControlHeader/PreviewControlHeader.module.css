@@ -1,7 +1,7 @@
 .wrapper {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-end;
   padding-top: var(--fds-spacing-4);
 }
 
@@ -17,16 +17,11 @@
   --component-toggle_button-color-text-inactive: white;
 }
 
-.layoutSetSelector input {
-  color: white;
-}
-
 .layoutSetSelector {
   width: 200px;
 }
 
 .layoutSetSelector > * {
-  color: white;
   --arrow-color: white;
   --arrow-border_left: none;
   --component-input-color-border-hover: white;

@@ -4,7 +4,7 @@ import { useTextResourcesSelector } from '../../../../hooks';
 import { allTextResourceIdsWithTextSelector } from '../../../../selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useTranslation } from 'react-i18next';
-import { StudioNativeSelect } from '@studio/components-legacy';
+import { StudioSelect } from '@studio/components';
 
 export type TextResourcePickerProps = {
   textResourceId?: string;
@@ -21,20 +21,21 @@ export const TextResourcePicker = ({
   );
 
   return (
-    <StudioNativeSelect
+    <StudioSelect
       label={t('ux_editor.search_text_resources_label')}
       onChange={(event) =>
         onReferenceChange(event.target.value === '' ? undefined : event.target.value)
       }
       value={textResourceId}
-      size='sm'
     >
-      <option value=''>{t('ux_editor.search_text_resources_none')}</option>
+      <StudioSelect.Option value=''>
+        {t('ux_editor.search_text_resources_none')}
+      </StudioSelect.Option>
       {textResources.map((option) => (
-        <option title={option.value} key={option.id} value={option.id}>
+        <StudioSelect.Option title={option.value} key={option.id} value={option.id}>
           {option.id}
-        </option>
+        </StudioSelect.Option>
       ))}
-    </StudioNativeSelect>
+    </StudioSelect>
   );
 };
