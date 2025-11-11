@@ -4,7 +4,7 @@ import 'core-js';
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { createBrowserRouter, RouterProvider, useLocation } from 'react-router-dom';
+import { createBrowserRouter, Outlet, RouterProvider, useLocation } from 'react-router-dom';
 import { Slide, ToastContainer } from 'react-toastify';
 
 import '@digdir/designsystemet-css';
@@ -16,9 +16,12 @@ import 'src/features/toggles';
 
 import { QueryClient, useQueryClient } from '@tanstack/react-query';
 
-import { App } from 'src/App';
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
+import { ErrorPageContent } from 'src/components/ErrorPageContent';
+import { Form } from 'src/components/form/Form';
+import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ViewportWrapper } from 'src/components/ViewportWrapper';
+import { ComponentRouting, NavigateToStartUrl, ProcessWrapper } from 'src/components/wrappers/ProcessWrapper';
 import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { ProcessingProvider } from 'src/core/contexts/processingContext';
@@ -26,9 +29,11 @@ import { DisplayErrorProvider } from 'src/core/errorHandling/DisplayErrorProvide
 import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { VersionErrorOrChildren } from 'src/features/applicationMetadata/VersionErrorOrChildren';
 import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
+import { FormProvider } from 'src/features/form/FormContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
+import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { PartyelectionWrapper } from 'src/features/instantiate/containers/PartySelection';
 import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
 import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
@@ -37,7 +42,11 @@ import { TextResourcesProvider } from 'src/features/language/textResources/TextR
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
+import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
+import { FixWrongReceiptType } from 'src/features/receipt/FixWrongReceiptType';
+import { DefaultReceipt } from 'src/features/receipt/ReceiptContainer';
+import { TaskKeys } from 'src/hooks/useNavigatePage';
 // import { AppPrefetcher } from 'src/queries/appPrefetcher';
 import { PartyPrefetcher } from 'src/queries/partyPrefetcher';
 import * as queries from 'src/queries/queries';
@@ -71,7 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
       queryClient={defaultQueryClient}
     >
       <ErrorBoundary>
-        {/*<AppPrefetcher />*/}
         <LangToolsStoreProvider>
           <ViewportWrapper>
             <UiConfigProvider>
@@ -97,6 +105,83 @@ document.addEventListener('DOMContentLoaded', () => {
                           </ErrorBoundary>
                         </NavigationEffectProvider>
                       ),
+                      children: [
+                        {
+                          path: 'error',
+                          element: (
+                            <PresentationComponent>
+                              <ErrorPageContent />
+                            </PresentationComponent>
+                          ),
+                        },
+                        {
+                          path: ':pageKey',
+                          element: (
+                            <PresentationComponent>
+                              <Form />
+                            </PresentationComponent>
+                          ),
+                        },
+                        {
+                          path: 'instance/:instanceOwnerPartyId/:instanceGuid',
+                          element: (
+                            <InstanceProvider>
+                              <Outlet />
+                            </InstanceProvider>
+                          ),
+                          children: [
+                            // {
+                            //   index: true,
+                            //   element: <NavigateToStartUrl />,
+                            // },
+                            {
+                              path: TaskKeys.ProcessEnd,
+                              element: <DefaultReceipt />,
+                            },
+                            {
+                              path: ':taskId',
+                              element: (
+                                <FixWrongReceiptType>
+                                  <ProcessWrapper>
+                                    <FormProvider>
+                                      <Outlet />
+                                    </FormProvider>
+                                  </ProcessWrapper>
+                                </FixWrongReceiptType>
+                              ),
+                              children: [
+                                {
+                                  index: true,
+                                  element: <NavigateToStartUrl forceCurrentTask={false} />,
+                                },
+                                {
+                                  path: ':pageKey',
+                                  children: [
+                                    {
+                                      index: true,
+                                      element: (
+                                        <PdfWrapper>
+                                          <PresentationComponent>
+                                            <Form />
+                                          </PresentationComponent>
+                                        </PdfWrapper>
+                                      ),
+                                    },
+                                    {
+                                      path: ':componentId',
+                                      element: <ComponentRouting />,
+                                    },
+                                    {
+                                      path: '*',
+                                      element: <ComponentRouting />,
+                                    },
+                                  ],
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
                     },
                   ],
                   {
@@ -125,7 +210,6 @@ function Root() {
         <VersionErrorOrChildren>
           <GlobalFormDataReadersProvider>
             <LayoutSetsProvider>
-              {/*<ProfileProvider>*/}
               <TextResourcesProvider>
                 <OrgsProvider>
                   <ApplicationSettingsProvider>
@@ -133,7 +217,7 @@ function Root() {
                       <KeepAliveProvider>
                         <DisplayErrorProvider>
                           <ProcessingProvider>
-                            <App />
+                            <Outlet />
                           </ProcessingProvider>
                         </DisplayErrorProvider>
                         <ToastContainer
@@ -147,7 +231,6 @@ function Root() {
                   </ApplicationSettingsProvider>
                 </OrgsProvider>
               </TextResourcesProvider>
-              {/*</ProfileProvider>*/}
               <PartyPrefetcher />
             </LayoutSetsProvider>
           </GlobalFormDataReadersProvider>
