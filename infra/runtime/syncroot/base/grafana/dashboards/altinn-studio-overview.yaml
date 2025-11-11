@@ -35,7 +35,7 @@ spec:
       "editable": true,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 0,
-      "id": 383,
+      "id": 390,
       "links": [],
       "panels": [
         {
@@ -159,37 +159,17 @@ spec:
           "pluginVersion": "11.6.3",
           "targets": [
             {
-              "azureMonitor": {
-                "aggregation": "Count",
-                "allowedTimeGrainsMs": [
-                  60000,
-                  300000,
-                  900000,
-                  1800000,
-                  3600000,
-                  21600000,
-                  43200000,
-                  86400000
-                ],
-                "customNamespace": "Azure.ApplicationInsights",
-                "dimensionFilters": [],
-                "metricName": "altinn_app_lib_instances_created",
-                "metricNamespace": "microsoft.insights/components",
-                "region": "norwayeast",
+              "azureLogAnalytics": {
+                "dashboardTime": false,
+                "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where name == \"altinn_app_lib_instances_created\"\n| where cloud_RoleName in ($app)\n| summarize Value = sum(valueCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc;",
                 "resources": [
-                  {
-                    "metricNamespace": "microsoft.insights/components",
-                    "region": "norwayeast",
-                    "resourceGroup": "monitor-$org-$env-rg",
-                    "resourceName": "$org-$env-ai",
-                    "subscription": "$sub"
-                  }
+                  "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
                 ],
-                "timeGrain": "auto"
+                "resultFormat": "time_series",
+                "timeColumn": "timestamp"
               },
-              "queryType": "Azure Monitor",
-              "refId": "A",
-              "subscription": "ca0666d3-b3c0-4159-93f1-b71777ed4338"
+              "queryType": "Azure Log Analytics",
+              "refId": "A"
             }
           ],
           "title": "Instances created",
@@ -277,28 +257,16 @@ spec:
           "pluginVersion": "11.6.3",
           "targets": [
             {
-              "azureMonitor": {
-                "aggregation": "Count",
-                "allowedTimeGrainsMs": [],
-                "customNamespace": "Azure.ApplicationInsights",
-                "dimensionFilters": [],
-                "metricName": "altinn_app_lib_instances_completed",
-                "metricNamespace": "microsoft.insights/components",
-                "region": "norwayeast",
+              "azureLogAnalytics": {
+                "dashboardTime": false,
+                "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where name == \"altinn_app_lib_instances_completed\"\n| where cloud_RoleName in ($app)\n| summarize Value = sum(valueCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc;",
                 "resources": [
-                  {
-                    "metricNamespace": "microsoft.insights/components",
-                    "region": "norwayeast",
-                    "resourceGroup": "monitor-$org-$env-rg",
-                    "resourceName": "$org-$env-ai",
-                    "subscription": "$sub"
-                  }
+                  "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
                 ],
-                "timeGrain": "auto"
+                "resultFormat": "logs"
               },
-              "queryType": "Azure Monitor",
-              "refId": "A",
-              "subscription": "ca0666d3-b3c0-4159-93f1-b71777ed4338"
+              "queryType": "Azure Log Analytics",
+              "refId": "A"
             }
           ],
           "title": "Instances completed",
@@ -369,7 +337,107 @@ spec:
             "x": 0,
             "y": 11
           },
-          "id": 14,
+          "id": 18,
+          "options": {
+            "legend": {
+              "calcs": [
+                "sum"
+              ],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "11.6.3",
+          "targets": [
+            {
+              "azureLogAnalytics": {
+                "dashboardTime": false,
+                "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where name == \"altinn_app_lib_processes_started\"\n| where cloud_RoleName in ($app)\n| summarize Value = sum(valueCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc;",
+                "resources": [
+                  "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
+                ],
+                "resultFormat": "time_series",
+                "timeColumn": "timestamp"
+              },
+              "queryType": "Azure Log Analytics",
+              "refId": "A"
+            }
+          ],
+          "title": "Processes started",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "barWidthFactor": 0.6,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 11
+          },
+          "id": 19,
           "options": {
             "legend": {
               "calcs": [],
@@ -387,13 +455,901 @@ spec:
           "targets": [
             {
               "azureLogAnalytics": {
-                "dashboardTime": true,
-                "query": "requests\n| where success == false\n| where client_Type != 'Browser'\n| where toint(resultCode) >= 500\n| where name has 'PUT Process/NextElement'\n| summarize Count = sum(itemCount) by cloud_RoleName, DateTimeOffset = bin(timestamp, 1h)\n| order by DateTimeOffset asc",
+                "dashboardTime": false,
+                "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where name == \"altinn_app_lib_processes_ended\"\n| where cloud_RoleName in ($app)\n| summarize Value = sum(valueCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc;",
                 "resources": [
                   "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
                 ],
-                "resultFormat": "logs",
+                "resultFormat": "time_series",
                 "timeColumn": "timestamp"
+              },
+              "queryType": "Azure Log Analytics",
+              "refId": "A"
+            }
+          ],
+          "title": "Processes ended",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "barWidthFactor": 0.6,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 19
+          },
+          "id": 14,
+          "options": {
+            "legend": {
+              "calcs": [
+                "sum"
+              ],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "11.6.3",
+          "targets": [
+            {
+              "azureLogAnalytics": {
+                "dashboardTime": false,
+                "query": "requests\n| where $__timeFilter(timestamp)\n| where success == false\n| where client_Type != 'Browser'\n| where toint(resultCode) >= 500\n| where cloud_RoleName in ($app)\n| where name has 'PUT Process/NextElement'\n| summarize Value = sum(itemCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
+                "resources": [
+                  "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
+                ],
+                "resultFormat": "time_series",
+                "timeColumn": "timestamp"
+              },
+              "datasource": {
+                "azureMonitorPath": "azuremonitor/subscriptions",
+                "cachingConfig": {
+                  "TTLMs": 0,
+                  "enabled": false
+                },
+                "credentials": {
+                  "authType": "msi"
+                },
+                "defaultSubscriptionId": "$sub",
+                "id": 1,
+                "instanceSettings": {
+                  "access": "proxy",
+                  "cachingConfig": {
+                    "TTLMs": 0,
+                    "enabled": false
+                  },
+                  "id": 1,
+                  "isDefault": true,
+                  "jsonData": {
+                    "azureAuthType": "msi",
+                    "subscriptionId": "$sub"
+                  },
+                  "meta": {
+                    "alerting": true,
+                    "angular": {
+                      "detected": false,
+                      "hideDeprecation": false
+                    },
+                    "annotations": true,
+                    "autoEnabled": false,
+                    "backend": true,
+                    "baseUrl": "public/app/plugins/datasource/azuremonitor",
+                    "category": "cloud",
+                    "dependencies": {
+                      "extensions": {
+                        "exposedComponents": []
+                      },
+                      "grafanaDependency": ">=10.3.0",
+                      "grafanaVersion": "*",
+                      "plugins": []
+                    },
+                    "executable": "gpx_azuremonitor",
+                    "explore": false,
+                    "extensions": {},
+                    "id": "grafana-azure-monitor-datasource",
+                    "includes": [
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Alert Consumption",
+                        "path": "dashboards/v1Alerts.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Infrastructure / Apps Monitoring",
+                        "path": "dashboards/azureInfraApps.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Infrastructure / Compute Monitoring",
+                        "path": "dashboards/azureInfraCompute.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Infrastructure / Data Monitoring",
+                        "path": "dashboards/azureInfraData.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Infrastructure / Network Monitoring",
+                        "path": "dashboards/azureInfraNetwork.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Infrastructure / Storage and Key Vaults Monitoring",
+                        "path": "dashboards/azureInfraStorageVaults.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Azure PostgreSQL / Flexible Server Monitoring",
+                        "path": "dashboards/postgresFlexibleServer.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure Monitor / Container Insights / Syslog",
+                        "path": "dashboards/containerInsightsSyslog.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Insights / Applications",
+                        "path": "dashboards/appInsights.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Insights / Applications / Performance / Operations",
+                        "path": "dashboards/appInsightsPerfOperations.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Insights / Applications / Performance / Dependencies",
+                        "path": "dashboards/appInsightsPerfDependencies.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Insights / Applications / Failures / Operations",
+                        "path": "dashboards/appInsightsFailureOperations.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Insights / Applications / Failures / Dependencies",
+                        "path": "dashboards/appInsightsFailureDependencies.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Insights / Applications / Failures / Exceptions",
+                        "path": "dashboards/appInsightsFailureExceptions.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Insights / Applications Test Availability Geo Map",
+                        "path": "dashboards/appInsightsGeoMap.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Insights / CosmosDB",
+                        "path": "dashboards/cosmosdb.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Insights / Data Explorer Clusters",
+                        "path": "dashboards/adx.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Insights / Key Vaults",
+                        "path": "dashboards/keyvault.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Insights / Networks",
+                        "path": "dashboards/networkInsightsDashboard.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Insights / SQL Database",
+                        "path": "dashboards/sqldb.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Insights / Storage Accounts",
+                        "path": "dashboards/storage.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Insights / Virtual Machines by Resource Group",
+                        "path": "dashboards/vMInsightsRG.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Insights / Virtual Machines by Workspace",
+                        "path": "dashboards/vMInsightsWorkspace.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      },
+                      {
+                        "addToNav": false,
+                        "component": "",
+                        "defaultNav": false,
+                        "icon": "",
+                        "name": "Azure / Resources Overview",
+                        "path": "dashboards/arg.json",
+                        "role": "Viewer",
+                        "slug": "",
+                        "type": "dashboard",
+                        "uid": ""
+                      }
+                    ],
+                    "info": {
+                      "author": {
+                        "name": "Grafana Labs",
+                        "url": "https://grafana.com"
+                      },
+                      "build": {},
+                      "description": "Data source for Microsoft Azure Monitor & Application Insights",
+                      "keywords": [
+                        "azure",
+                        "monitor",
+                        "Application Insights",
+                        "Log Analytics",
+                        "App Insights"
+                      ],
+                      "links": [
+                        {
+                          "name": "Learn more",
+                          "url": "https://grafana.com/docs/grafana/latest/datasources/azuremonitor/"
+                        },
+                        {
+                          "name": "Apache License",
+                          "url": "https://github.com/grafana/azure-monitor-datasource/blob/master/LICENSE"
+                        }
+                      ],
+                      "logos": {
+                        "large": "public/app/plugins/datasource/azuremonitor/img/logo.jpg",
+                        "small": "public/app/plugins/datasource/azuremonitor/img/logo.jpg"
+                      },
+                      "screenshots": [
+                        {
+                          "name": "Azure Contoso Loans",
+                          "path": "public/app/plugins/datasource/azuremonitor/img/contoso_loans_grafana_dashboard.png"
+                        },
+                        {
+                          "name": "Azure Monitor Network",
+                          "path": "public/app/plugins/datasource/azuremonitor/img/azure_monitor_network.png"
+                        },
+                        {
+                          "name": "Azure Monitor CPU",
+                          "path": "public/app/plugins/datasource/azuremonitor/img/azure_monitor_cpu.png"
+                        }
+                      ],
+                      "updated": "",
+                      "version": "11.6.4"
+                    },
+                    "loadingStrategy": "script",
+                    "logs": true,
+                    "metrics": true,
+                    "module": "public/plugins/grafana-azure-monitor-datasource/module.js",
+                    "multiValueFilterOperators": false,
+                    "name": "Azure Monitor",
+                    "preload": false,
+                    "signature": "internal",
+                    "skipDataQuery": false,
+                    "streaming": false,
+                    "tables": false,
+                    "tracing": true,
+                    "type": "datasource"
+                  },
+                  "module": "public/plugins/grafana-azure-monitor-datasource/module.js",
+                  "name": "Azure Monitor",
+                  "preload": false,
+                  "readOnly": false,
+                  "type": "grafana-azure-monitor-datasource",
+                  "uid": "azure-monitor-oob",
+                  "url": "/api/datasources/proxy/uid/azure-monitor-oob"
+                },
+                "meta": {
+                  "alerting": true,
+                  "angular": {
+                    "detected": false,
+                    "hideDeprecation": false
+                  },
+                  "annotations": true,
+                  "autoEnabled": false,
+                  "backend": true,
+                  "baseUrl": "public/app/plugins/datasource/azuremonitor",
+                  "category": "cloud",
+                  "dependencies": {
+                    "extensions": {
+                      "exposedComponents": []
+                    },
+                    "grafanaDependency": ">=10.3.0",
+                    "grafanaVersion": "*",
+                    "plugins": []
+                  },
+                  "executable": "gpx_azuremonitor",
+                  "explore": false,
+                  "extensions": {},
+                  "id": "grafana-azure-monitor-datasource",
+                  "includes": [
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Alert Consumption",
+                      "path": "dashboards/v1Alerts.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Infrastructure / Apps Monitoring",
+                      "path": "dashboards/azureInfraApps.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Infrastructure / Compute Monitoring",
+                      "path": "dashboards/azureInfraCompute.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Infrastructure / Data Monitoring",
+                      "path": "dashboards/azureInfraData.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Infrastructure / Network Monitoring",
+                      "path": "dashboards/azureInfraNetwork.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Infrastructure / Storage and Key Vaults Monitoring",
+                      "path": "dashboards/azureInfraStorageVaults.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Azure PostgreSQL / Flexible Server Monitoring",
+                      "path": "dashboards/postgresFlexibleServer.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure Monitor / Container Insights / Syslog",
+                      "path": "dashboards/containerInsightsSyslog.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Insights / Applications",
+                      "path": "dashboards/appInsights.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Insights / Applications / Performance / Operations",
+                      "path": "dashboards/appInsightsPerfOperations.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Insights / Applications / Performance / Dependencies",
+                      "path": "dashboards/appInsightsPerfDependencies.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Insights / Applications / Failures / Operations",
+                      "path": "dashboards/appInsightsFailureOperations.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Insights / Applications / Failures / Dependencies",
+                      "path": "dashboards/appInsightsFailureDependencies.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Insights / Applications / Failures / Exceptions",
+                      "path": "dashboards/appInsightsFailureExceptions.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Insights / Applications Test Availability Geo Map",
+                      "path": "dashboards/appInsightsGeoMap.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Insights / CosmosDB",
+                      "path": "dashboards/cosmosdb.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Insights / Data Explorer Clusters",
+                      "path": "dashboards/adx.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Insights / Key Vaults",
+                      "path": "dashboards/keyvault.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Insights / Networks",
+                      "path": "dashboards/networkInsightsDashboard.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Insights / SQL Database",
+                      "path": "dashboards/sqldb.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Insights / Storage Accounts",
+                      "path": "dashboards/storage.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Insights / Virtual Machines by Resource Group",
+                      "path": "dashboards/vMInsightsRG.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Insights / Virtual Machines by Workspace",
+                      "path": "dashboards/vMInsightsWorkspace.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    },
+                    {
+                      "addToNav": false,
+                      "component": "",
+                      "defaultNav": false,
+                      "icon": "",
+                      "name": "Azure / Resources Overview",
+                      "path": "dashboards/arg.json",
+                      "role": "Viewer",
+                      "slug": "",
+                      "type": "dashboard",
+                      "uid": ""
+                    }
+                  ],
+                  "info": {
+                    "author": {
+                      "name": "Grafana Labs",
+                      "url": "https://grafana.com"
+                    },
+                    "build": {},
+                    "description": "Data source for Microsoft Azure Monitor & Application Insights",
+                    "keywords": [
+                      "azure",
+                      "monitor",
+                      "Application Insights",
+                      "Log Analytics",
+                      "App Insights"
+                    ],
+                    "links": [
+                      {
+                        "name": "Learn more",
+                        "url": "https://grafana.com/docs/grafana/latest/datasources/azuremonitor/"
+                      },
+                      {
+                        "name": "Apache License",
+                        "url": "https://github.com/grafana/azure-monitor-datasource/blob/master/LICENSE"
+                      }
+                    ],
+                    "logos": {
+                      "large": "public/app/plugins/datasource/azuremonitor/img/logo.jpg",
+                      "small": "public/app/plugins/datasource/azuremonitor/img/logo.jpg"
+                    },
+                    "screenshots": [
+                      {
+                        "name": "Azure Contoso Loans",
+                        "path": "public/app/plugins/datasource/azuremonitor/img/contoso_loans_grafana_dashboard.png"
+                      },
+                      {
+                        "name": "Azure Monitor Network",
+                        "path": "public/app/plugins/datasource/azuremonitor/img/azure_monitor_network.png"
+                      },
+                      {
+                        "name": "Azure Monitor CPU",
+                        "path": "public/app/plugins/datasource/azuremonitor/img/azure_monitor_cpu.png"
+                      }
+                    ],
+                    "updated": "",
+                    "version": "11.6.4"
+                  },
+                  "loadingStrategy": "script",
+                  "logs": true,
+                  "metrics": true,
+                  "module": "public/plugins/grafana-azure-monitor-datasource/module.js",
+                  "multiValueFilterOperators": false,
+                  "name": "Azure Monitor",
+                  "preload": false,
+                  "signature": "internal",
+                  "skipDataQuery": false,
+                  "streaming": false,
+                  "tables": false,
+                  "tracing": true,
+                  "type": "datasource"
+                },
+                "name": "Azure Monitor",
+                "resourcePath": "loganalytics",
+                "templateSrv": {
+                  "_adhocFiltersDeprecationWarningLogged": {},
+                  "_variables": [],
+                  "dependencies": {},
+                  "grafanaVariables": {},
+                  "index": {},
+                  "regex": {}
+                },
+                "type": "grafana-azure-monitor-datasource",
+                "uid": "azure-monitor-oob"
               },
               "queryType": "Azure Log Analytics",
               "refId": "A"
@@ -408,7 +1364,7 @@ spec:
             "h": 1,
             "w": 24,
             "x": 0,
-            "y": 19
+            "y": 27
           },
           "id": 16,
           "panels": [],
@@ -478,7 +1434,7 @@ spec:
             "h": 9,
             "w": 12,
             "x": 0,
-            "y": 20
+            "y": 28
           },
           "id": 10,
           "options": {
@@ -499,45 +1455,16 @@ spec:
           "pluginVersion": "11.6.3",
           "targets": [
             {
-              "azureMonitor": {
-                "aggregation": "Count",
-                "alias": "{{cloud/rolename}}",
-                "allowedTimeGrainsMs": [
-                  60000,
-                  300000,
-                  900000,
-                  1800000,
-                  3600000,
-                  21600000,
-                  43200000,
-                  86400000
-                ],
-                "dimensionFilters": [
-                  {
-                    "dimension": "cloud/roleName",
-                    "filters": [
-                      "$app"
-                    ],
-                    "operator": "eq"
-                  }
-                ],
-                "metricName": "requests/count",
-                "metricNamespace": "microsoft.insights/components",
-                "region": "norwayeast",
+              "azureLogAnalytics": {
+                "dashboardTime": false,
+                "query": "requests\n| where $__timeFilter(timestamp)\n| where client_Type != 'Browser'\n| where cloud_RoleName in ($app)\n| summarize Value = sum(itemCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
                 "resources": [
-                  {
-                    "metricNamespace": "microsoft.insights/components",
-                    "region": "norwayeast",
-                    "resourceGroup": "monitor-$org-$env-rg",
-                    "resourceName": "$org-$env-ai",
-                    "subscription": "$sub"
-                  }
+                  "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
                 ],
-                "timeGrain": "auto"
+                "resultFormat": "time_series"
               },
-              "queryType": "Azure Monitor",
-              "refId": "A",
-              "subscription": "$sub"
+              "queryType": "Azure Log Analytics",
+              "refId": "A"
             }
           ],
           "title": "Server requests",
@@ -606,7 +1533,7 @@ spec:
             "h": 9,
             "w": 12,
             "x": 12,
-            "y": 20
+            "y": 28
           },
           "id": 3,
           "options": {
@@ -627,63 +1554,16 @@ spec:
           "pluginVersion": "11.6.3",
           "targets": [
             {
-              "azureMonitor": {
-                "aggregation": "Count",
-                "alias": "{{cloud/rolename}}",
-                "allowedTimeGrainsMs": [
-                  60000,
-                  300000,
-                  900000,
-                  1800000,
-                  3600000,
-                  21600000,
-                  43200000,
-                  86400000
-                ],
-                "dimensionFilters": [
-                  {
-                    "dimension": "cloud/roleName",
-                    "filters": [
-                      "$app"
-                    ],
-                    "operator": "eq"
-                  },
-                  {
-                    "dimension": "request/resultCode",
-                    "filters": [
-                      "500",
-                      "501",
-                      "502",
-                      "503",
-                      "504",
-                      "505",
-                      "506",
-                      "507",
-                      "508",
-                      "510",
-                      "511"
-                    ],
-                    "operator": "eq"
-                  }
-                ],
-                "metricName": "requests/failed",
-                "metricNamespace": "microsoft.insights/components",
-                "region": "norwayeast",
+              "azureLogAnalytics": {
+                "dashboardTime": false,
+                "query": "requests\n| where $__timeFilter(timestamp)\n| where success == false\n| where client_Type != 'Browser'\n| where toint(resultCode) >= 500\n| where cloud_RoleName in ($app)\n| summarize Value = sum(itemCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
                 "resources": [
-                  {
-                    "metricNamespace": "microsoft.insights/components",
-                    "region": "norwayeast",
-                    "resourceGroup": "monitor-$org-$env-rg",
-                    "resourceName": "$org-$env-ai",
-                    "subscription": "$sub"
-                  }
+                  "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
                 ],
-                "timeGrain": "auto",
-                "top": ""
+                "resultFormat": "time_series"
               },
-              "queryType": "Azure Monitor",
-              "refId": "A",
-              "subscription": "$sub"
+              "queryType": "Azure Log Analytics",
+              "refId": "A"
             }
           ],
           "title": "5xx failed requests",
@@ -752,7 +1632,7 @@ spec:
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 29
+            "y": 37
           },
           "id": 2,
           "options": {
@@ -773,45 +1653,16 @@ spec:
           "pluginVersion": "11.6.3",
           "targets": [
             {
-              "azureMonitor": {
-                "aggregation": "Average",
-                "alias": "{{cloud/rolename}}",
-                "allowedTimeGrainsMs": [
-                  60000,
-                  300000,
-                  900000,
-                  1800000,
-                  3600000,
-                  21600000,
-                  43200000,
-                  86400000
-                ],
-                "dimensionFilters": [
-                  {
-                    "dimension": "cloud/roleName",
-                    "filters": [
-                      "$app"
-                    ],
-                    "operator": "eq"
-                  }
-                ],
-                "metricName": "requests/duration",
-                "metricNamespace": "microsoft.insights/components",
-                "region": "norwayeast",
+              "azureLogAnalytics": {
+                "dashboardTime": false,
+                "query": "requests\n| where $__timeFilter(timestamp)\n| where client_Type != 'Browser'\n| where cloud_RoleName in ($app)\n| summarize Value = avg(duration) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
                 "resources": [
-                  {
-                    "metricNamespace": "microsoft.insights/components",
-                    "region": "norwayeast",
-                    "resourceGroup": "monitor-$org-$env-rg",
-                    "resourceName": "$org-$env-ai",
-                    "subscription": "$sub"
-                  }
+                  "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
                 ],
-                "timeGrain": "auto"
+                "resultFormat": "time_series"
               },
-              "queryType": "Azure Monitor",
-              "refId": "A",
-              "subscription": "$sub"
+              "queryType": "Azure Log Analytics",
+              "refId": "A"
             }
           ],
           "title": "Server response time",
@@ -880,7 +1731,7 @@ spec:
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 29
+            "y": 37
           },
           "id": 4,
           "options": {
@@ -901,45 +1752,16 @@ spec:
           "pluginVersion": "11.6.3",
           "targets": [
             {
-              "azureMonitor": {
-                "aggregation": "Count",
-                "alias": "{{cloud/rolename}}",
-                "allowedTimeGrainsMs": [
-                  60000,
-                  300000,
-                  900000,
-                  1800000,
-                  3600000,
-                  21600000,
-                  43200000,
-                  86400000
-                ],
-                "dimensionFilters": [
-                  {
-                    "dimension": "cloud/roleName",
-                    "filters": [
-                      "$app"
-                    ],
-                    "operator": "eq"
-                  }
-                ],
-                "metricName": "exceptions/server",
-                "metricNamespace": "microsoft.insights/components",
-                "region": "norwayeast",
+              "azureLogAnalytics": {
+                "dashboardTime": false,
+                "query": "exceptions\n| where $__timeFilter(timestamp)\n| where client_Type != 'Browser'\n| where cloud_RoleName in ($app)\n| summarize exceptions_count = count() by bin(timestamp, $__interval)\n| order by timestamp asc",
                 "resources": [
-                  {
-                    "metricNamespace": "microsoft.insights/components",
-                    "region": "norwayeast",
-                    "resourceGroup": "monitor-$org-$env-rg",
-                    "resourceName": "$org-$env-ai",
-                    "subscription": "$sub"
-                  }
+                  "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
                 ],
-                "timeGrain": "auto"
+                "resultFormat": "time_series"
               },
-              "queryType": "Azure Monitor",
-              "refId": "A",
-              "subscription": "$sub"
+              "queryType": "Azure Log Analytics",
+              "refId": "A"
             }
           ],
           "title": "Server exceptions",
@@ -1009,7 +1831,7 @@ spec:
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 37
+            "y": 45
           },
           "id": 5,
           "options": {
@@ -1035,7 +1857,7 @@ spec:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(\n            container_memory_working_set_bytes{namespace=\"default\", container!=\"\", image!=\"\"}\n            * on(namespace,pod)\n            group_left(workload, workload_type)\n            namespace_workload_pod:kube_pod_owner:relabel{\n                namespace=\"default\",\n                workload_type=\"deployment\",\n                workload=~\"^$org-.*-deployment-v2$\"\n            }\n        ) by (workload)\n        /\n        sum(\n            kube_pod_container_resource_requests{namespace=\"default\", container!=\"\", resource=\"memory\"}\n            * on(namespace,pod)\n            group_left(workload, workload_type)\n            namespace_workload_pod:kube_pod_owner:relabel{\n                namespace=\"default\",\n                workload_type=\"deployment\",\n                workload=~\"^$org-.*-deployment-v2$\"\n            }\n        ) by (workload)\n        * 100",
+              "expr": "sum(\n            container_memory_working_set_bytes{namespace=\"default\", container!=\"\", image!=\"\"}\n            * on(namespace,pod)\n            group_left(workload, workload_type)\n            namespace_workload_pod:kube_pod_owner:relabel{\n                namespace=\"default\",\n                workload_type=\"deployment\",\n                workload=~\"^$org-$app-deployment-v2$\"\n            }\n        ) by (workload)\n        /\n        sum(\n            kube_pod_container_resource_requests{namespace=\"default\", container!=\"\", resource=\"memory\"}\n            * on(namespace,pod)\n            group_left(workload, workload_type)\n            namespace_workload_pod:kube_pod_owner:relabel{\n                namespace=\"default\",\n                workload_type=\"deployment\",\n                workload=~\"^$org-$app-deployment-v2$\"\n            }\n        ) by (workload)\n        * 100",
               "instant": false,
               "legendFormat": "__auto",
               "range": true,
@@ -1108,7 +1930,7 @@ spec:
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 37
+            "y": 45
           },
           "id": 11,
           "options": {
@@ -1129,48 +1951,16 @@ spec:
           "pluginVersion": "11.6.3",
           "targets": [
             {
-              "azureMonitor": {
-                "aggregation": "Count",
-                "alias": "",
-                "allowedTimeGrainsMs": [
-                  60000,
-                  300000,
-                  900000,
-                  1800000,
-                  3600000,
-                  21600000,
-                  43200000,
-                  86400000
-                ],
-                "dimensionFilters": [
-                  {
-                    "dimension": "dependency/target",
-                    "filters": [],
-                    "operator": "eq"
-                  },
-                  {
-                    "dimension": "dependency/resultCode",
-                    "filters": [],
-                    "operator": "eq"
-                  }
-                ],
-                "metricName": "dependencies/failed",
-                "metricNamespace": "microsoft.insights/components",
-                "region": "norwayeast",
+              "azureLogAnalytics": {
+                "dashboardTime": false,
+                "query": "dependencies\n| where $__timeFilter(timestamp)\n| where success == false\n| where client_Type != 'Browser'\n| where toint(resultCode) >= 500\n| where cloud_RoleName in ($app)\n| summarize Value = sum(itemCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
                 "resources": [
-                  {
-                    "metricNamespace": "microsoft.insights/components",
-                    "region": "norwayeast",
-                    "resourceGroup": "monitor-$org-$env-rg",
-                    "resourceName": "$org-$env-ai",
-                    "subscription": "$sub"
-                  }
+                  "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
                 ],
-                "timeGrain": "auto"
+                "resultFormat": "time_series"
               },
-              "queryType": "Azure Monitor",
-              "refId": "A",
-              "subscription": "$sub"
+              "queryType": "Azure Log Analytics",
+              "refId": "A"
             }
           ],
           "title": "Dependency call failures",
@@ -1240,7 +2030,7 @@ spec:
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 45
+            "y": 53
           },
           "id": 6,
           "options": {
@@ -1266,7 +2056,7 @@ spec:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(\n                sum by (namespace, pod, container) (\n                    rate(container_cpu_usage_seconds_total{namespace=\"default\", container!=\"\"}[5m])\n                )\n                * on(namespace,pod)\n                group_left(workload, workload_type)\n                namespace_workload_pod:kube_pod_owner:relabel{\n                    namespace=\"default\",\n                    workload_type=\"deployment\",\n                    workload=~\"^$org-.*-deployment-v2$\"\n                }\n            ) by (workload)\n            /\n            sum(\n                kube_pod_container_resource_requests{namespace=\"default\", container!=\"\", resource=\"cpu\"}\n                * on(namespace,pod)\n                group_left(workload, workload_type)\n                namespace_workload_pod:kube_pod_owner:relabel{\n                    namespace=\"default\",\n                    workload_type=\"deployment\",\n                    workload=~\"^$org-.*-deployment-v2$\"\n                }\n            ) by (workload)\n            * 100",
+              "expr": "sum(\n                sum by (namespace, pod, container) (\n                    rate(container_cpu_usage_seconds_total{namespace=\"default\", container!=\"\"}[5m])\n                )\n                * on(namespace,pod)\n                group_left(workload, workload_type)\n                namespace_workload_pod:kube_pod_owner:relabel{\n                    namespace=\"default\",\n                    workload_type=\"deployment\",\n                    workload=~\"^$org-$app-deployment-v2$\"\n                }\n            ) by (workload)\n            /\n            sum(\n                kube_pod_container_resource_requests{namespace=\"default\", container!=\"\", resource=\"cpu\"}\n                * on(namespace,pod)\n                group_left(workload, workload_type)\n                namespace_workload_pod:kube_pod_owner:relabel{\n                    namespace=\"default\",\n                    workload_type=\"deployment\",\n                    workload=~\"^$org-$app-deployment-v2$\"\n                }\n            ) by (workload)\n            * 100",
               "instant": false,
               "legendFormat": "__auto",
               "range": true,
@@ -1341,7 +2131,7 @@ spec:
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 45
+            "y": 53
           },
           "id": 7,
           "options": {
@@ -1367,7 +2157,7 @@ spec:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "clamp_max(\n  100 *\n  sum by (namespace, deployment) (\n    kube_deployment_status_replicas_available{namespace=\"default\", deployment=~\"^$org-.*-deployment-v2$\"}\n  )\n  /\n  clamp_min(\n    sum by (namespace, deployment) (\n      kube_deployment_spec_replicas{namespace=\"default\", deployment=~\"^$org-.*-deployment-v2$\"}\n    ), 1\n  ),\n  100\n)",
+              "expr": "clamp_max(\n  100 *\n  sum by (namespace, deployment) (\n    kube_deployment_status_replicas_available{namespace=\"default\", deployment=~\"^$org-$app-deployment-v2$\"}\n  )\n  /\n  clamp_min(\n    sum by (namespace, deployment) (\n      kube_deployment_spec_replicas{namespace=\"default\", deployment=~\"^$org-$app-deployment-v2$\"}\n    ), 1\n  ),\n  100\n)",
               "instant": false,
               "legendFormat": "__auto",
               "range": true,
@@ -1454,7 +2244,6 @@ spec:
             "type": "datasource"
           },
           {
-            "allValue": "*",
             "allowCustomValue": false,
             "current": {
               "text": "All",
