@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <NoWarn>$(NoWarn);CS1591;CS0618</NoWarn>
+    <!--
+      CS1591: Don't warn for missing XML doc
+      CS0618: This is a test project, so we usually continue testing [Obsolete] apis
+    -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Polly.Testing" />
+    <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="KS.Fiks.Arkiv.Models.V1" />
+    <PackageReference Include="KS.Fiks.IO.Client" />
+    <PackageReference Include="PublicApiGenerator" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Altinn.App.Clients.Fiks/Altinn.App.Clients.Fiks.csproj" />
+    <ProjectReference Include="../Altinn.App.Tests.Common/Altinn.App.Tests.Common.csproj" />
+  </ItemGroup>
+
+</Project>
