@@ -74,7 +74,7 @@ export const MakeCopyModal = forwardRef<HTMLDialogElement, MakeCopyModalProps>(
     };
 
     return (
-      <StudioDialog open={open} ref={dialogRef}>
+      <StudioDialog open={open} ref={dialogRef} closedby='any'>
         <StudioDialog.Block>
           <StudioHeading level={2}>{t('dashboard.copy_application')}</StudioHeading>
         </StudioDialog.Block>

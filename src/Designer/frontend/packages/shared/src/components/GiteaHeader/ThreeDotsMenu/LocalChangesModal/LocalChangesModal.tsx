@@ -25,7 +25,7 @@ export const LocalChangesModal = ({ triggerClassName }: LocalChangesModalProps):
       >
         {t('sync_header.local_changes')}
       </StudioButton>
-      <StudioDialog ref={dialogRef}>
+      <StudioDialog ref={dialogRef} closedby='any'>
         <StudioDialog.Block>
           <StudioHeading level={2}>{t('sync_header.local_changes')}</StudioHeading>
         </StudioDialog.Block>

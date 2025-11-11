@@ -42,7 +42,7 @@ export const FileChangesInfoModal = ({
       >
         {t('sync_header.review_file_changes')}
       </StudioDialog.Trigger>
-      <StudioDialog className={classes.dialog}>
+      <StudioDialog className={classes.dialog} closedby='any'>
         <StudioDialog.Block>
           <StudioHeading level={2}>
             <ClockDashedIcon /> {t('sync_header.show_changes_modal.title')}

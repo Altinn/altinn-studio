@@ -43,7 +43,12 @@ export const ManualOptionsDialog = forwardRef<HTMLDialogElement, ManualOptionsDi
     }, [component, handleComponentChange]);
 
     return (
-      <StudioDialog ref={ref} className={classes.editOptionTabModal} onClose={handleBeforeClose}>
+      <StudioDialog
+        ref={ref}
+        className={classes.editOptionTabModal}
+        onClose={handleBeforeClose}
+        closedby='any'
+      >
         <StudioDialog.Block>
           <StudioHeading level={2}>
             {t('ux_editor.options.modal_header_manual_code_list')}

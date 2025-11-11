@@ -40,7 +40,12 @@ export const AddItemModal = ({ containerId, layout, onAddComponent }: AddItemMod
           {t('ux_editor.add_item.show_all')}
         </div>
       </StudioDialog.Trigger>
-      <StudioDialog onClose={handleCloseModal} style={{ minWidth: '85vw' }} ref={modalRef}>
+      <StudioDialog
+        onClose={handleCloseModal}
+        style={{ minWidth: '85vw' }}
+        ref={modalRef}
+        closedby='any'
+      >
         <StudioDialog.Block>
           <StudioHeading level={4}>{t('ux_editor.add_item.select_component_header')}</StudioHeading>
         </StudioDialog.Block>

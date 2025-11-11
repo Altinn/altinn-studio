@@ -81,7 +81,7 @@ export function FeedbackForm({
       <StudioDialog.Trigger className={position === 'fixed' ? classes.fixed : undefined}>
         {buttonTexts.trigger}
       </StudioDialog.Trigger>
-      <StudioDialog ref={modalRef} onClose={handleCloseModal}>
+      <StudioDialog ref={modalRef} onClose={handleCloseModal} closedby='any'>
         <StudioDialog.Block>
           <StudioHeading level={2}>{heading}</StudioHeading>
         </StudioDialog.Block>

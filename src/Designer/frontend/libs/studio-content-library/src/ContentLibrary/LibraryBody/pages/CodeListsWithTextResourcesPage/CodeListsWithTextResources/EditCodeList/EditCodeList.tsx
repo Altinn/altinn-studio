@@ -199,7 +199,7 @@ function ShowCodeListUsagesSourcesModal({
       >
         {t('app_content_library.code_lists_with_text_resources.code_list_show_usage')}
       </StudioDialog.Trigger>
-      <StudioDialog className={classes.codeListUsageModal}>
+      <StudioDialog className={classes.codeListUsageModal} closedby='any'>
         <StudioDialog.Block>
           <StudioHeading level={2}>
             {t(

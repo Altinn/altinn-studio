@@ -39,7 +39,7 @@ export const DeleteModal = forwardRef<HTMLDialogElement, DeleteModalProps>(
     };
 
     return (
-      <StudioDialog onClose={handleClose} ref={dialogRef}>
+      <StudioDialog onClose={handleClose} ref={dialogRef} closedby='any'>
         <StudioDialog.Block>
           <StudioHeading className={classes.headerWrapper} level={2}>
             <TrashIcon className={classes.trashIcon} />

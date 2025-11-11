@@ -15,7 +15,7 @@ export const DeleteOptionsModal = forwardRef<HTMLDialogElement, DeleteOptionsMod
     const dialogRef = useForwardedRef<HTMLDialogElement>(ref);
 
     return (
-      <StudioDialog ref={dialogRef}>
+      <StudioDialog ref={dialogRef} closedby='any'>
         <StudioDialog.Block>
           <StudioHeading level={2}>
             {t('ux_editor.properties_panel.images.delete_image_options_modal_title')}

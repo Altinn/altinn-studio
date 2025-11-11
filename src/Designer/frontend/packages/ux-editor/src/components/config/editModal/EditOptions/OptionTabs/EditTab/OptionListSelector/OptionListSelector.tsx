@@ -73,7 +73,7 @@ function OptionListSelectorWithData({
       <StudioButton onClick={handleClick} variant={'secondary'}>
         {t('ux_editor.modal_properties_code_list')}
       </StudioButton>
-      <StudioDialog ref={modalRef} className={classes.modal}>
+      <StudioDialog ref={modalRef} className={classes.modal} closedby='any'>
         <StudioDialog.Block>
           <div className={classes.headingWithIcon}>
             <BookIcon />
