@@ -7,5 +7,5 @@
   display: flex;
   flex-direction: column;
   margin-bottom: var(--ds-size-3);
-  gap: var(--fds-spacing-2);
+  gap: var(--ds-size-2);
 }
