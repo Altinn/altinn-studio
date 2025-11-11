@@ -89,7 +89,7 @@ namespace LocalTest.Controllers
                 model.TestUsers = await GetTestUsersAndPartiesSelectList();
                 model.UserSelect = Request.Cookies["Localtest_User.Party_Select"];
                 var firstAppId = model.AppMode == AppMode.Http && model.TestApps.Count() == 1 ? model.TestApps.First().Value : null;
-                var defaultAuthLevel = await GetAppAuthLevel(model.AppMode == AppMode.Http, firstAppId);
+                var defaultAuthLevel = await GetAppAuthLevel(firstAppId);
                 model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
             }
             catch (HttpRequestException e)
@@ -431,8 +431,9 @@ namespace LocalTest.Controllers
             return testUsers;
         }
 
-        private async Task<int> GetAppAuthLevel(bool isHttp, string appId)
+        private async Task<int> GetAppAuthLevel(string appId)
         {
+            bool isHttp = _localPlatformSettings.LocalAppMode == "http";
             if (!isHttp || string.IsNullOrWhiteSpace(appId))
             {
                 return 2;
@@ -468,7 +469,7 @@ namespace LocalTest.Controllers
                 return BadRequest("AppId is required");
             }
 
-            var authLevel = await GetAppAuthLevel(_localPlatformSettings.LocalAppMode == "http", appId);
+            var authLevel = await GetAppAuthLevel(appId);
             return Ok(authLevel);
         }
 
