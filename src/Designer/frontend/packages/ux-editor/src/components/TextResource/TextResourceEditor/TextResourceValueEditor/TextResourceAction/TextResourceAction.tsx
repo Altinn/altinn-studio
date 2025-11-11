@@ -1,14 +1,7 @@
-import {
-  StudioButton,
-  StudioFieldset,
-  StudioDeleteButton,
-  StudioHeading,
-} from '@studio/components';
+import { StudioConfigCard } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState } from 'react';
-import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
 import { TextResourceEditor } from '../../TextResourceEditor';
-import classes from './TextResourceAction.module.css';
 import type { TranslationKey } from '@altinn-studio/language/type';
 import { useTextResourceValue } from '../../../hooks/useTextResourceValue';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
@@ -63,49 +56,34 @@ export const TextResourceAction = ({
   const shouldShowButtons = !(activeTab === TextResourceTab.Search && disableSearch);
 
   return (
-    <StudioFieldset
-      aria-label={legend}
-      className={classes.fieldset}
-      legend={
-        <div className={classes.header}>
-          <StudioHeading>
-            {legend} ({t('language.' + DEFAULT_LANGUAGE)})
-          </StudioHeading>
-          <StudioDeleteButton
-            disabled={!(initialValue && initialValue.trim() !== '')}
-            confirmMessage={t('ux_editor.text_resource_bindings.delete_confirm_question')}
-            onDelete={handleDelete}
-          >
-            {t('general.delete')}
-          </StudioDeleteButton>
-        </div>
-      }
-    >
-      <TextResourceEditor
-        textResourceId={textResourceId}
-        onTextChange={handleTextChange}
-        onReferenceChange={onReferenceChange}
-        disableSearch={disableSearch}
-        textResourceValue={textResourceValue}
-        onTabChange={setActiveTab}
+    <StudioConfigCard>
+      <StudioConfigCard.Header
+        cardLabel={`${legend} (${t('language.' + DEFAULT_LANGUAGE)})`}
+        deleteAriaLabel={t('general.delete')}
+        confirmDeleteMessage={t('ux_editor.text_resource_bindings.delete_confirm_question')}
+        onDelete={handleDelete}
+        isDeleteDisabled={!(initialValue && initialValue.trim() !== '')}
       />
-      <div className={classes.buttonGroup}>
-        {shouldShowButtons && (
-          <>
-            <StudioButton
-              variant='primary'
-              onClick={handleSave}
-              icon={<CheckmarkIcon />}
-              disabled={!textResourceValue?.trim() && !(activeTab === TextResourceTab.Search)}
-            >
-              {t('general.save')}
-            </StudioButton>
-            <StudioButton variant='secondary' onClick={handleCancel} icon={<XMarkIcon />}>
-              {t('general.cancel')}
-            </StudioButton>
-          </>
-        )}
-      </div>
-    </StudioFieldset>
+      <StudioConfigCard.Body>
+        <TextResourceEditor
+          textResourceId={textResourceId}
+          onTextChange={handleTextChange}
+          onReferenceChange={onReferenceChange}
+          disableSearch={disableSearch}
+          textResourceValue={textResourceValue}
+          onTabChange={setActiveTab}
+        />
+      </StudioConfigCard.Body>
+      {shouldShowButtons && (
+        <StudioConfigCard.Footer
+          saveLabel={t('general.save')}
+          cancelLabel={t('general.cancel')}
+          onCancel={handleCancel}
+          onSave={handleSave}
+          isLoading={false}
+          isDisabled={!textResourceValue?.trim()}
+        />
+      )}
+    </StudioConfigCard>
   );
 };

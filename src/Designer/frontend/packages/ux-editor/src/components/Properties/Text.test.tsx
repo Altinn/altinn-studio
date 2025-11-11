@@ -140,9 +140,7 @@ describe('TextTab', () => {
         name: textMock('ux_editor.modal_properties_textResourceBindings_title'),
       });
       await user.click(addTitleText);
-      const enterTextField = screen.getByRole('textbox', {
-        name: textMock('ux_editor.text_resource_binding_text'),
-      });
+      const enterTextField = screen.getByRole('textbox');
       await user.type(enterTextField, newText);
       await waitFor(() => enterTextField.blur());
       await user.click(screen.getByRole('button', { name: textMock('general.save') }));

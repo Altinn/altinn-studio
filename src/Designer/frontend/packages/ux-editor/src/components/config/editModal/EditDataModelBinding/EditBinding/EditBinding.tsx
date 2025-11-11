@@ -94,7 +94,7 @@ export const EditBinding = ({
         cardLabel={label}
         onDelete={handleDelete}
         isDeleteDisabled={!Object.keys(component?.dataModelBindings || {}).length}
-        confirmMessage={t('right_menu.data_model_bindings_delete_confirm')}
+        confirmDeleteMessage={t('right_menu.data_model_bindings_delete_confirm')}
         deleteAriaLabel={t('right_menu.data_model_bindings_delete_button')}
       />
       <StudioConfigCard.Body>

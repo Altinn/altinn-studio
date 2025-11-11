@@ -2206,7 +2206,6 @@
   "ux_editor.text_resource_binding_search_description": "Søk etter beskrivelse",
   "ux_editor.text_resource_binding_search_help": "Søk etter hjelpetekst",
   "ux_editor.text_resource_binding_search_title": "Søk etter ledetekst",
-  "ux_editor.text_resource_binding_text": "Tekst",
   "ux_editor.text_resource_binding_write": "Skriv tekst",
   "ux_editor.text_resource_bindings.add_label": "Velg teksttype å legge til",
   "ux_editor.text_resource_bindings.delete_confirm": "Ja, fjern teksten",

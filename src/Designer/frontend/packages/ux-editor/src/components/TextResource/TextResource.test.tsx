@@ -55,7 +55,7 @@ describe('TextResource', () => {
     const label = 'Lorem ipsum';
     renderTextResource({ label });
     await user.click(screen.getByRole('button', { name: label }));
-    expect(screen.getByRole('group', { name: label })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: label })).toBeInTheDocument();
   });
 
   it('Calls handleIdChange with expected id when save button is clicked', async () => {
@@ -212,8 +212,7 @@ describe('TextResource', () => {
     const textResourceId = textResources[0].id;
     renderTextResource({ label, textResourceId }, textResources);
     await user.click(screen.getByRole('button', { name: label }));
-    const textboxLabel = textMock('ux_editor.text_resource_binding_text');
-    const textbox = screen.getByRole('textbox', { name: textboxLabel });
+    const textbox = screen.getByRole('textbox');
     expect(textbox).toHaveValue(textResources[0].value);
   });
 
@@ -225,8 +224,7 @@ describe('TextResource', () => {
       .mockImplementation(() => Promise.resolve(emptyTextResourceListMock(DEFAULT_LANGUAGE)));
     renderTextResource({ label, textResourceId }, textResources, { upsertTextResources });
     await user.click(screen.getByRole('button', { name: label }));
-    const textboxLabel = textMock('ux_editor.text_resource_binding_text');
-    const textbox = screen.getByRole('textbox', { name: textboxLabel });
+    const textbox = screen.getByRole('textbox');
     await user.type(textbox, 'a');
     await user.click(getSaveButton());
     expect(upsertTextResources).toHaveBeenCalledTimes(1);
@@ -243,8 +241,7 @@ describe('TextResource', () => {
     const upsertTextResources = jest.fn().mockImplementation(() => Promise.resolve());
     renderTextResource({ label, textResourceId }, textResources, { upsertTextResources });
     await user.click(screen.getByRole('button', { name: label }));
-    const textboxLabel = textMock('ux_editor.text_resource_binding_text');
-    const textbox = screen.getByRole('textbox', { name: textboxLabel });
+    const textbox = screen.getByRole('textbox');
     await user.clear(textbox);
     const saveButton = getSaveButton();
     expect(saveButton).toBeDisabled();
@@ -257,8 +254,7 @@ describe('TextResource', () => {
     const upsertTextResources = jest.fn().mockImplementation(() => Promise.resolve());
     renderTextResource({ label, textResourceId }, textResources, { upsertTextResources });
     await user.click(screen.getByRole('button', { name: label }));
-    const textboxLabel = textMock('ux_editor.text_resource_binding_text');
-    const textbox = screen.getByRole('textbox', { name: textboxLabel });
+    const textbox = screen.getByRole('textbox');
     expect(textbox.style.height).toBe('100px'); // the min height passed to the useAutoSizeTextArea hook from TextResourceValueEditor
     expect(textbox.style.overflow).toBe('hidden');
   });

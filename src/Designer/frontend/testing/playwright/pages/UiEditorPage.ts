@@ -134,9 +134,7 @@ export class UiEditorPage extends BasePage {
   }
 
   public async writeTitleTextInTextarea(text: string): Promise<void> {
-    await this.getTitleTextFieldset()
-      .getByRole('textbox', { name: this.textMock('ux_editor.text_resource_binding_text') })
-      .fill(text);
+    await this.getTitleTextFieldset().getByRole('textbox').fill(text);
   }
 
   private getTitleTextFieldset(): Locator {
