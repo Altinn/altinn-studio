@@ -25,7 +25,7 @@ export interface GenerateTextResourceIdOptions {
   textResourceKey: string;
 }
 
-export const generateId = (options: GenerateTextResourceIdOptions) => {
+export const generateId = (options?: GenerateTextResourceIdOptions) => {
   if (!options) {
     return '';
   }
