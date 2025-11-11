@@ -57,14 +57,12 @@ namespace LocalTest.Services.LocalApp.Implementation
                 {
                     var host = registration.Hostname.Contains(':') ? $"[{registration.Hostname}]" : registration.Hostname;
                     client.BaseAddress = new Uri($"http://{host}:{registration.Port}");
-                    client.Timeout = TimeSpan.FromSeconds(30);
                     return client;
                 }
             }
 
             // Fallback to default URL (port 5005)
             client.BaseAddress = new Uri(_defaultAppUrl);
-            client.Timeout = TimeSpan.FromSeconds(30);
             return client;
         }
         public async Task<string?> GetXACMLPolicy(string appId)
