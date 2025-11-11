@@ -29,6 +29,7 @@ import { DisplayErrorProvider } from 'src/core/errorHandling/DisplayErrorProvide
 import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { VersionErrorOrChildren } from 'src/features/applicationMetadata/VersionErrorOrChildren';
 import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
+import { createDynamicsLoader } from 'src/features/form/dynamics/dynamicsLoader';
 import { FormProvider } from 'src/features/form/FormContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
@@ -47,14 +48,12 @@ import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import { FixWrongReceiptType } from 'src/features/receipt/FixWrongReceiptType';
 import { DefaultReceipt } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
-// import { AppPrefetcher } from 'src/queries/appPrefetcher';
 import { PartyPrefetcher } from 'src/queries/partyPrefetcher';
 import * as queries from 'src/queries/queries';
 
 import 'leaflet/dist/leaflet.css';
 import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
-
 /**
  * This query client should not be used in unit tests, as multiple tests will end up re-using
  * the same query cache. Provide your own when running code in tests.
@@ -140,6 +139,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             },
                             {
                               path: ':taskId',
+                              loader: createDynamicsLoader({
+                                queryClient: defaultQueryClient,
+                                // Use window data when available
+                                application: () => window.AltinnAppData?.applicationMetadata,
+                                layoutSets: () => window.AltinnAppData?.layoutSets,
+                              }),
                               element: (
                                 <FixWrongReceiptType>
                                   <ProcessWrapper>

@@ -58,9 +58,15 @@ const gotoFunctions: { [key in FrontendTestTask]: (extra?: Extras, startOptions?
     if (extra) {
       throw new Error('Extra not supported for likert navigator');
     }
+
     cy.startAppInstance(appFrontend.apps.frontendTest, {
       ...startOptions,
     });
+
+    cy.get('#custom-button-taskChooserButton').should('exist').click();
+    // Click the radio button for "Endring av navn (Task_2)"
+    cy.findByRole('radio', { name: 'Likert (Task_4)' }).should('exist').click();
+    cy.get('#sendInButtonOnTaskChooser').should('exist').click();
   },
   datalist: (extra?: Extras, startOptions?: StartAppInstanceOptions) => {
     if (extra) {
@@ -68,8 +74,11 @@ const gotoFunctions: { [key in FrontendTestTask]: (extra?: Extras, startOptions?
     }
     cy.startAppInstance(appFrontend.apps.frontendTest, {
       ...startOptions,
-      // evaluateBefore: generateEvalString('datalist'),
     });
+
+    cy.get('#custom-button-taskChooserButton').should('exist').click();
+    cy.findByRole('radio', { name: 'List (Task_5)' }).should('exist').click();
+    cy.get('#sendInButtonOnTaskChooser').should('exist').click();
   },
   confirm: (extra?: Extras, startOptions?: StartAppInstanceOptions) => {
     if (extra) {

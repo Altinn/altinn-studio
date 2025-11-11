@@ -8,7 +8,6 @@ import { DynamicsProvider } from 'src/features/form/dynamics/DynamicsContext';
 import { LayoutsProvider } from 'src/features/form/layout/LayoutsContext';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
 import { LayoutSettingsProvider } from 'src/features/form/layoutSettings/LayoutSettingsContext';
-import { RulesProvider } from 'src/features/form/rules/RulesContext';
 import { FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
 import { CodeListsProvider } from 'src/features/options/CodeListsProvider';
 import { OrderDetailsProvider } from 'src/features/payment/OrderDetailsProvider';
@@ -48,33 +47,30 @@ export function FormProvider({ children, readOnly = false }: React.PropsWithChil
 
   return (
     <LoadingRegistryProvider>
-      {/*<FormPrefetcher />*/}
       <LayoutsProvider>
         <CodeListsProvider>
           <DataModelsProvider>
             <LayoutSettingsProvider>
               <PageNavigationProvider>
                 <DynamicsProvider>
-                  <MaybeRulesProvider isEmbedded={isEmbedded}>
-                    <FormDataWriteProvider>
-                      <ValidationProvider>
-                        <NodesProvider
-                          readOnly={readOnly}
-                          isEmbedded={isEmbedded}
-                        >
-                          <PaymentInformationProvider>
-                            <OrderDetailsProvider>
-                              <MaybePaymentProvider hasProcess={hasProcess}>
-                                <Provider value={{ readOnly }}>
-                                  <BlockUntilAllLoaded>{children}</BlockUntilAllLoaded>
-                                </Provider>
-                              </MaybePaymentProvider>
-                            </OrderDetailsProvider>
-                          </PaymentInformationProvider>
-                        </NodesProvider>
-                      </ValidationProvider>
-                    </FormDataWriteProvider>
-                  </MaybeRulesProvider>
+                  <FormDataWriteProvider>
+                    <ValidationProvider>
+                      <NodesProvider
+                        readOnly={readOnly}
+                        isEmbedded={isEmbedded}
+                      >
+                        <PaymentInformationProvider>
+                          <OrderDetailsProvider>
+                            <MaybePaymentProvider hasProcess={hasProcess}>
+                              <Provider value={{ readOnly }}>
+                                <BlockUntilAllLoaded>{children}</BlockUntilAllLoaded>
+                              </Provider>
+                            </MaybePaymentProvider>
+                          </OrderDetailsProvider>
+                        </PaymentInformationProvider>
+                      </NodesProvider>
+                    </ValidationProvider>
+                  </FormDataWriteProvider>
                 </DynamicsProvider>
               </PageNavigationProvider>
             </LayoutSettingsProvider>
@@ -91,14 +87,4 @@ function MaybePaymentProvider({ children, hasProcess }: PropsWithChildren<{ hasP
   }
 
   return children;
-}
-
-function MaybeRulesProvider({ children, isEmbedded }: PropsWithChildren<{ isEmbedded: boolean }>) {
-  if (isEmbedded) {
-    // The RulesProvider will overwrite a script tag in the body with custom global rules. If we did this in an
-    // embedded form, we might overwrite rules for the parent FormProvider, thus affecting/damaging the parent form.
-    return children;
-  }
-
-  return <RulesProvider>{children}</RulesProvider>;
 }

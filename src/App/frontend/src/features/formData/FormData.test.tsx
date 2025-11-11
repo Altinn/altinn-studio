@@ -17,7 +17,6 @@ import { DynamicsProvider } from 'src/features/form/dynamics/DynamicsContext';
 import { LayoutsProvider } from 'src/features/form/layout/LayoutsContext';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { LayoutSettingsProvider } from 'src/features/form/layoutSettings/LayoutSettingsContext';
-import { RulesProvider } from 'src/features/form/rules/RulesContext';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FD, FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
@@ -143,11 +142,9 @@ async function statelessRender(props: RenderProps) {
                 <DataModelsProvider>
                   <LayoutSettingsProvider>
                     <DynamicsProvider>
-                      <RulesProvider>
-                        <FormDataWriteProxyProvider value={formDataProxies}>
-                          <FormDataWriteProvider>{props.renderer}</FormDataWriteProvider>
-                        </FormDataWriteProxyProvider>
-                      </RulesProvider>
+                      <FormDataWriteProxyProvider value={formDataProxies}>
+                        <FormDataWriteProvider>{props.renderer}</FormDataWriteProvider>
+                      </FormDataWriteProxyProvider>
                     </DynamicsProvider>
                   </LayoutSettingsProvider>
                 </DataModelsProvider>
