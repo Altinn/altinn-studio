@@ -18,7 +18,6 @@ permissions:
   id-token: write
   contents: read
   actions: write
-  packages: write
 
 jobs:
   get-short-sha:
@@ -49,6 +48,7 @@ jobs:
     environment: dev
     permissions:
       id-token: write # Require write permission to Fetch an OIDC token.
+      packages: write # Require write permission to push to GHCR.
     outputs:
       short-sha: ${{ needs.get-short-sha.outputs.short-sha }}
       config-repo: ${{ steps.vars.outputs.config-repo }}
