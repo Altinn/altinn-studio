@@ -161,9 +161,13 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
 
     internal static void ValidateCommitMessage(string? commitMessage)
     {
-        if (string.IsNullOrWhiteSpace(commitMessage))
+        if (commitMessage is null)
         {
-            return;
+            return; // Default message will be used
+        }
+        if (commitMessage.Trim().Length == 0)
+        {
+            throw new IllegalCommitMessageException("The commit message cannot be whitespace only.");
         }
         if (InputValidator.IsValidGiteaCommitMessage(commitMessage) is false)
         {
