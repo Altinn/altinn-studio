@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 
 // Configuration
-const { BASE_URL, APP_PATH } = require('./lighthouse-config-constants');
+const { BASE_URL, APP_PATH } = require('./scripts/lighthouse/lighthouse-config-constants');
 
 /**
  * Lighthouse CI configuration object
@@ -13,7 +13,7 @@ module.exports = {
       headful: false,
       startServerCommand: 'yarn run start',
       url: [`${BASE_URL}/${APP_PATH}/#/`],
-      puppeteerScript: './puppeteer-script.js',
+      puppeteerScript: './scripts/lighthouse/puppeteer-script.js',
       puppeteerLaunchOptions: {
         headless: true,
         args: ['--disable-features=HttpsFirstBalancedModeAutoEnable', '--no-sandbox', '--disable-setuid-sandbox'],

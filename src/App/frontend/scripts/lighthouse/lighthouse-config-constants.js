@@ -1,4 +1,3 @@
-// lighthouse-config-constants.js
 module.exports = {
   BASE_URL: 'http://local.altinn.cloud',
   APP_PATH: 'ttd/component-library',
