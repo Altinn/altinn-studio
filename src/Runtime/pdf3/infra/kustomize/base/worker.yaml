@@ -32,7 +32,7 @@ spec:
     kind: Deployment
     name: pdf3-worker
   minReplicas: 3
-  maxReplicas: 30
+  maxReplicas: 50
   metrics:
   - type: Resource
     resource:
@@ -95,9 +95,9 @@ spec:
   minReadySeconds: 3
   revisionHistoryLimit: 5
   progressDeadlineSeconds: 60
-  # 1 replica per availability zone by default (hopefully)
-  # See podAntiAffinity and topologySpreadConstraints below
-  replicas: 3
+  # NOTE: we don't specify replicas here as
+  # as that would force flux to override replicas
+  # set by HPA
   strategy:
     # Rolling upgrade of pods
     type: RollingUpdate
