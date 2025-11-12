@@ -120,7 +120,7 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
 
             if (element.Type == "dir")
             {
-                string directoryPath = Path.Combine(path ?? "", element.Name);
+                string directoryPath = string.IsNullOrEmpty(path) ? element.Name : $"{path.TrimEnd('/')}/{element.Name}";
                 List<FileSystemObject> directoryFiles = await GetDirectoryContent(org, directoryPath, reference, cancellationToken);
                 files.AddRange(directoryFiles);
             }
