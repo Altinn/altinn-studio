@@ -370,7 +370,8 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		}
 	} else {
 		// No waitFor specified - just wait for page load event
-		expression := fmt.Sprintf("(function(){ return %s; })()", loadWaitSnippet())
+		const maxWaitMs int32 = types.MaxTimeoutMs
+		expression := fmt.Sprintf("(function(timeoutMs){ return %s; })(%d)", loadWaitSnippet(), maxWaitMs)
 		_, err := w.conn.SendCommand(req.ctx, "Runtime.evaluate", map[string]any{
 			"expression":    expression,
 			"awaitPromise":  true,
