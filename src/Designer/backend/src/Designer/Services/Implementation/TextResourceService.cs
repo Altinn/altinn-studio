@@ -88,7 +88,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     throw;
                 }
             });
-            }
+        }
 
         private string GetTextResourceDirectoryPath()
         {
