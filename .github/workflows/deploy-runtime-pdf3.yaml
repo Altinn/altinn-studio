@@ -18,6 +18,7 @@ permissions:
   id-token: write
   contents: read
   actions: write
+  packages: write
 
 jobs:
   get-short-sha:
@@ -63,9 +64,12 @@ jobs:
         id: vars
         run: |
           echo "registry-name=altinncr" >> $GITHUB_OUTPUT
-          echo "image-proxy-repo=altinncr.azurecr.io/studio-apps/runtime-pdf3-proxy:$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "image-worker-repo=altinncr.azurecr.io/studio-apps/runtime-pdf3-worker:$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "image-proxy-repo=ghcr.io/altinn/altinn-studio/runtime-pdf3-proxy:$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "image-worker-repo=ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           echo "config-repo=altinncr.azurecr.io/studio-apps/runtime-pdf3-repo:$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: login to ghcr
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: az login
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
