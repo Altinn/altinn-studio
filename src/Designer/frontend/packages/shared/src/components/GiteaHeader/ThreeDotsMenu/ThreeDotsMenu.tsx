@@ -43,11 +43,7 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
                 {t('sync_header.clone')}
               </StudioPopover.Trigger>
               <StudioPopover open={clonePopoverOpen} onClose={() => setClonePopoverOpen(false)}>
-                {clonePopoverOpen && (
-                  <div className={classes.popoverContent}>
-                    <ClonePopoverContent />
-                  </div>
-                )}
+                {clonePopoverOpen && <ClonePopoverContent />}
               </StudioPopover>
             </StudioPopover.TriggerContext>
           )}
