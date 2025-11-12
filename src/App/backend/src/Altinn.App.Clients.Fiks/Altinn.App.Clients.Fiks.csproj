@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <PackageTags>Altinn;Studio;App;Clients;Fiks</PackageTags>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Altinn.App.Core/Altinn.App.Core.csproj"/>
+    <ProjectReference Include="../Altinn.App.Api/Altinn.App.Api.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="KS.Fiks.Arkiv.Models.V1" />
+    <PackageReference Include="KS.Fiks.IO.Client" />
+    <PackageReference Include="Polly.Extensions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Altinn.App.Internal.Analyzers/Altinn.App.Internal.Analyzers.csproj" PrivateAssets="all" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Altinn.App.Clients.Fiks.Tests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
+</Project>

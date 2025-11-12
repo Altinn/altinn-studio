@@ -19,7 +19,7 @@ public sealed class ComponentContext
         LayoutEvaluatorState state,
         BaseComponent? component,
         int[]? rowIndices,
-        DataElementIdentifier dataElementIdentifier,
+        DataElementIdentifier? dataElementIdentifier,
         List<ComponentContext>? childContexts = null
     )
     {
@@ -160,7 +160,7 @@ public sealed class ComponentContext
     /// <summary>
     /// The Id of the default data element in this context
     /// </summary>
-    public DataElementIdentifier DataElementIdentifier { get; }
+    public DataElementIdentifier? DataElementIdentifier { get; }
 
     /// <summary>
     /// Get all children and children of children of this componentContext (not including this)
@@ -199,7 +199,7 @@ public sealed class ComponentContext
         public BaseComponent? Component => _context.Component;
         public ComponentContext? Parent => _context.Parent;
         public bool? IsHidden => _context._isHidden;
-        public Guid DataElementId => _context.DataElementIdentifier.Guid;
+        public Guid? DataElementId => _context.DataElementIdentifier?.Guid;
         public int[]? RowIndices => _context.RowIndices;
 
         public DebuggerEvaluatedExpression HiddenExpression =>

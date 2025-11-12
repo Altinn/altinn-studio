@@ -5,7 +5,7 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import type { ITextResources } from 'app-shared/types/global';
 import classes from './TextResourceValueEditor.module.css';
-import { Trans } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { useAutoSizeTextArea } from 'app-shared/hooks/useAutoSizeTextArea';
 
 export type TextResourceValueEditorProps = {
@@ -29,6 +29,7 @@ export const TextResourceValueEditor = ({
 }: TextResourceValueEditorProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
+  const { t } = useTranslation();
   const value = getTextResourceValue(textResources, textResourceId);
   const minHeightInPx = 100;
   const maxHeightInPx = 400;
@@ -44,7 +45,12 @@ export const TextResourceValueEditor = ({
 
   return (
     <div className={classes.root}>
-      <StudioTextarea value={displayValue} onChange={handleTextEntryChange} ref={textareaRef} />
+      <StudioTextarea
+        aria-label={t('ux_editor.text_resource_binding_text')}
+        value={displayValue}
+        onChange={handleTextEntryChange}
+        ref={textareaRef}
+      />
       <div className={classes.id}>
         <Trans
           i18nKey='ux_editor.text_resource_binding_id'

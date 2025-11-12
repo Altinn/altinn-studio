@@ -1,9 +1,10 @@
 import React, { forwardRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { Button as DesignSystemButton, Spinner } from '@digdir/designsystemet-react';
+import { Button as DesignSystemButton } from '@digdir/designsystemet-react';
 import type { ButtonProps as DesignSystemButtonProps } from '@digdir/designsystemet-react';
 
+import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import { useLanguage } from 'src/features/language/useLanguage';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | undefined;
