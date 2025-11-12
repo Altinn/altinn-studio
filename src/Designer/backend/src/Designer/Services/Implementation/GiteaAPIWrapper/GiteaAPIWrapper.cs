@@ -1,5 +1,6 @@
 #nullable disable
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -506,7 +507,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return [];
             }
 
-            List<FileSystemObject> files = [];
+            ConcurrentBag<FileSystemObject> fileBag = [];
             IEnumerable<string> directoryFileNames = directoryContent
                 .Where(f => string.Equals(f.Type, "file", StringComparison.OrdinalIgnoreCase))
                 .Select(f => f.Name);
@@ -517,11 +518,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     string filePath = $"{CodeListFolderName}/{fileName}";
                     FileSystemObject file = await GetFileAsync(org, repository, filePath, reference, token);
-                    files.Add(file);
+                    fileBag.Add(file);
                 }
             );
 
-            return files;
+            return fileBag.ToList();
         }
 
         /// <inheritdoc/>
