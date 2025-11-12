@@ -33,7 +33,7 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     /// <param name="path">Directory path where resources are located.</param>
     /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>List of <see cref="CodeListWrapper" /> which includes all code lists belonging to the organisation.</returns>
+    /// <returns>A <see cref="GetSharedResourcesResponse" /> with org library resources.</returns>
     [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
