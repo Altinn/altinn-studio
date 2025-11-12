@@ -1,5 +1,6 @@
 #nullable enable
 using System.Collections.Concurrent;
+using System.Net;
 
 namespace LocalTest.Services.AppRegistry
 {
@@ -49,9 +50,38 @@ namespace LocalTest.Services.AppRegistry
         /// <summary>
         /// Get registration for a specific app
         /// </summary>
-        public AppRegistration? GetRegistration(string appId)
+        private AppRegistration? GetRegistration(string appId)
         {
             return _registrations.TryGetValue(appId, out var registration) ? registration : null;
+        }
+
+        /// <summary>
+        /// Get the URL for a registered app, properly formatted with IPv4 handling
+        /// </summary>
+        /// <param name="appId">Application ID (org/app format)</param>
+        /// <returns>URL string like "http://172.18.0.6:36813" or null if app not registered</returns>
+        public string? GetUrl(string appId)
+        {
+            var registration = GetRegistration(appId);
+            if (registration == null)
+            {
+                return null;
+            }
+
+            var hostname = registration.Hostname;
+            if (IPAddress.TryParse(hostname, out var ipAddress))
+            {
+                if (ipAddress.IsIPv4MappedToIPv6)
+                {
+                    hostname = ipAddress.MapToIPv4().ToString();
+                }
+                else if (ipAddress.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+                {
+                    hostname = $"[{hostname}]";
+                }
+            }
+
+            return $"http://{hostname}:{registration.Port}";
         }
 
         /// <summary>
