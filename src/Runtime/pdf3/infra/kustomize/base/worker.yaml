@@ -32,14 +32,14 @@ spec:
     kind: Deployment
     name: pdf3-worker
   minReplicas: 3
-  maxReplicas: 30
+  maxReplicas: 50
   metrics:
   - type: Resource
     resource:
       name: cpu
       target:
         type: Utilization
-        averageUtilization: 60
+        averageUtilization: 40
   behavior:
     scaleUp:
       stabilizationWindowSeconds: 0
@@ -47,11 +47,12 @@ spec:
       - type: Pods
         # Limits scaleup of at most 2 pods per 10 second period
         # With the current node size it won't take long before new nodes need to be added to the cluster
-        value: 2
+        value: 5
         periodSeconds: 10
     scaleDown:
-      # When evaluating the policy, takes the max metric value from the past 5 minutes
-      stabilizationWindowSeconds: 300
+      # When evaluating the policy, takes the max metric value from the past 1 hour
+      # This ensures we keep scaled up capacity for at least 1 hour after a spike
+      stabilizationWindowSeconds: 3600
       policies:
       - type: Pods
         # If we've seen lots of traffic we should be careful when scaling down
@@ -94,9 +95,9 @@ spec:
   minReadySeconds: 3
   revisionHistoryLimit: 5
   progressDeadlineSeconds: 60
-  # 1 replica per availability zone by default (hopefully)
-  # See podAntiAffinity and topologySpreadConstraints below
-  replicas: 3
+  # NOTE: we don't specify replicas here as
+  # as that would force flux to override replicas
+  # set by HPA
   strategy:
     # Rolling upgrade of pods
     type: RollingUpdate
@@ -229,8 +230,8 @@ spec:
             requests:
               # With the current nodes in AKS, the browser instance
               # can easily saturate a core (1000m). But it won't do that
-              # all the time, so settling on 750m for reserving capacity
-              cpu: 750m
+              # all the time, so settling on 500m for reserving capacity
+              cpu: 500m
               memory: 1Gi
           volumeMounts:
           - mountPath: /tmp
