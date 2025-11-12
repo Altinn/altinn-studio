@@ -50,7 +50,12 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
         catch (Exception ex) when (ex is DirectoryNotFoundException)
         {
             logger.LogWarning(ex, "Directory not found when fetching shared resources for {Org}.", org);
-            return BadRequest(ex);
+            return BadRequest(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Directory not found",
+                Detail = ex.Message
+            });
         }
     }
 
@@ -77,7 +82,12 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
         catch (Exception ex) when (ex is InvalidOperationException || ex is IllegalCommitMessageException)
         {
             logger.LogWarning(ex, "Error updating shared resources for {Org} by {Developer}.", org, developer);
-            return BadRequest(ex);
+            return BadRequest(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Unable to update shared resources",
+                Detail = ex.Message
+            });
         }
     }
 }
