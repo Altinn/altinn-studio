@@ -42,6 +42,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private readonly ServiceRepositorySettings _settings;
         private readonly GeneralSettings _generalSettings;
+        private readonly ParallelismSettings _parallelismSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IGitea _gitea;
         private readonly ISourceControl _sourceControl;
@@ -58,6 +59,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="repositorySettings">The settings for the app repository</param>
         /// <param name="generalSettings">The current general settings</param>
+        /// <param name="parallelismSettings">The current parallellism settings</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="gitea">gitea</param>
         /// <param name="sourceControl">the source control</param>
@@ -70,6 +72,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public RepositorySI(
             ServiceRepositorySettings repositorySettings,
             GeneralSettings generalSettings,
+            ParallelismSettings parallelismSettings,
             IHttpContextAccessor httpContextAccessor,
             IGitea gitea,
             ISourceControl sourceControl,
@@ -82,6 +85,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             _settings = repositorySettings;
             _generalSettings = generalSettings;
+            _parallelismSettings = parallelismSettings;
             _httpContextAccessor = httpContextAccessor;
             _gitea = gitea;
             _sourceControl = sourceControl;
@@ -421,7 +425,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository, Path.Combine(path));
             string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
-            using SemaphoreSlim semaphore = new(50); // Limit to 50 concurrent tasks
+            int maxParallellism = _parallelismSettings.RepositoryBaseSI;
+            using SemaphoreSlim semaphore = new(maxParallellism);
 
             async Task<ServiceResource> ReadResourceAsync(FileSystemObject resourceFile)
             {

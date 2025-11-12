@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Exceptions.OrgLibrary;
 using Altinn.Studio.Designer.Helpers;
@@ -15,7 +16,7 @@ using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 
-public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory) : IOrgLibraryService
+public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ParallelismSettings parallelismSettings) : IOrgLibraryService
 {
     private const string DefaultCommitMessage = "Update code lists.";
     private const string JsonExtension = ".json";
@@ -30,7 +31,8 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
 
         ConcurrentBag<LibraryFile> libraryFiles = [];
 
-        ParallelOptions options = new() { MaxDegreeOfParallelism = 25, CancellationToken = cancellationToken };
+        int maxParallellism = parallelismSettings.FetchFilesFromGitea;
+        ParallelOptions options = new() { MaxDegreeOfParallelism = maxParallellism, CancellationToken = cancellationToken };
         await Parallel.ForEachAsync(directoryContent, options,
             async (FileSystemObject fileSystemObject, CancellationToken token) =>
             {
