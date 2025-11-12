@@ -13,7 +13,8 @@ import type { Option } from 'app-shared/types/Option';
 import { useOptionListEditorTexts } from '../../hooks';
 import { useTextResourcesForLanguage } from '../hooks/useTextResourcesForLanguage';
 import { useHandleUpdateTextResource } from '../hooks/useHandleUpdateTextResource';
-import { StudioCodeListEditor, StudioModal } from '@studio/components-legacy';
+import { StudioCodeListEditor } from '@studio/components-legacy';
+import { StudioDialog, StudioHeading } from '@studio/components';
 
 export type ManualOptionsDialogProps = {
   textResources: ITextResources;
@@ -42,25 +43,30 @@ export const ManualOptionsDialog = forwardRef<HTMLDialogElement, ManualOptionsDi
     }, [component, handleComponentChange]);
 
     return (
-      <StudioModal.Dialog
+      <StudioDialog
         ref={ref}
         className={classes.editOptionTabModal}
-        contentClassName={classes.content}
-        closeButtonTitle={t('general.close')}
-        onBeforeClose={handleBeforeClose}
-        heading={t('ux_editor.options.modal_header_manual_code_list')}
+        onClose={handleBeforeClose}
+        closedby='any'
       >
-        {component.options && (
-          <StudioCodeListEditor
-            codeList={component.options}
-            onCreateTextResource={handleUpdateTextResource}
-            onUpdateTextResource={handleUpdateTextResource}
-            onUpdateCodeList={handleUpdateCodeList}
-            texts={editorTexts}
-            textResources={textResourcesForLanguage}
-          />
-        )}
-      </StudioModal.Dialog>
+        <StudioDialog.Block>
+          <StudioHeading level={2}>
+            {t('ux_editor.options.modal_header_manual_code_list')}
+          </StudioHeading>
+        </StudioDialog.Block>
+        <StudioDialog.Block className={classes.content}>
+          {component.options && (
+            <StudioCodeListEditor
+              codeList={component.options}
+              onCreateTextResource={handleUpdateTextResource}
+              onUpdateTextResource={handleUpdateTextResource}
+              onUpdateCodeList={handleUpdateCodeList}
+              texts={editorTexts}
+              textResources={textResourcesForLanguage}
+            />
+          )}
+        </StudioDialog.Block>
+      </StudioDialog>
     );
   },
 );
