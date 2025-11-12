@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.OrgLibrary;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using Microsoft.AspNetCore.Authorization;
@@ -22,12 +23,12 @@ namespace Altinn.Studio.Designer.Controllers.Organisation;
 /// <param name="orgLibraryService">The library service.</param>
 /// <param name="logger">The logger.</param>
 [ApiController]
-[Authorize]
+[Authorize(Policy = AltinnPolicy.MustBelongToOrganization)]
 [Route("designer/api/{org}/shared-resources")]
 public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<OrgLibraryController> logger) : ControllerBase
 {
     /// <summary>
-    /// Fetches the contents of all the code lists belonging to the organisation.
+    /// Fetches the shared resources belonging to the organisation.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation.</param>
     /// <param name="path">Directory path where resources are located.</param>
@@ -60,10 +61,10 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     }
 
     /// <summary>
-    /// Creates or overwrites the code lists.
+    /// Creates or overwrites the shared resources.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation.</param>
-    /// <param name="requestBody">The body of the request <see cref="UpdateCodeListRequest"/></param>
+    /// <param name="requestBody">The body of the request <see cref="UpdateSharedResourceRequest"/></param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpPut]
     [Produces("application/json")]
