@@ -24,6 +24,7 @@ public class AzureSharedContentClient : ISharedContentClient
     private readonly HttpClient _httpClient;
     private readonly ILogger<AzureSharedContentClient> _logger;
     private readonly SharedContentClientSettings _sharedContentClientSettings;
+    private readonly ParallelismSettings _parallelismSettings;
     private readonly string _sharedContentBaseUri;
 
     private const string InitialVersion = "1";
@@ -43,12 +44,12 @@ public class AzureSharedContentClient : ISharedContentClient
         AllowTrailingCommas = true
     };
 
-    public AzureSharedContentClient(HttpClient httpClient, ILogger<AzureSharedContentClient> logger, SharedContentClientSettings sharedContentClientSettings)
+    public AzureSharedContentClient(HttpClient httpClient, ILogger<AzureSharedContentClient> logger, SharedContentClientSettings sharedContentClientSettings, ParallelismSettings parallelismSettings)
     {
         _httpClient = httpClient;
         _logger = logger;
         _sharedContentClientSettings = sharedContentClientSettings;
-
+        _parallelismSettings = parallelismSettings;
         string storageAccountUrl = sharedContentClientSettings.StorageAccountUrl;
         string storageContainerName = sharedContentClientSettings.StorageContainerName;
 
@@ -238,7 +239,8 @@ public class AzureSharedContentClient : ISharedContentClient
 
     internal async Task UploadBlobs(BlobContainerClient containerClient, CancellationToken cancellationToken = default)
     {
-        ParallelOptions options = new() { MaxDegreeOfParallelism = 10, CancellationToken = cancellationToken };
+        int maxParallellism = _parallelismSettings.UploadFilesToOrgLibrary;
+        ParallelOptions options = new() { MaxDegreeOfParallelism = maxParallellism, CancellationToken = cancellationToken };
         await Parallel.ForEachAsync(FileNamesAndContent, options, async (fileNameAndContent, token) =>
         {
             BlobClient blobClient = containerClient.GetBlobClient(fileNameAndContent.Key);

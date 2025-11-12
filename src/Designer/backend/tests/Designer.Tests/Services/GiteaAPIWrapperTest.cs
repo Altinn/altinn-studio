@@ -886,12 +886,18 @@ namespace Designer.Tests.Services
                 RepositoryLocation = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories")
             };
 
+            ParallelismSettings parallelismSettings = new()
+            {
+                FetchFilesFromGitea = 25
+            };
+
             GiteaAPIWrapper service = new(
                 repoSettings,
                 httpContextAccessorMock.Object,
                 new MemoryCache(new MemoryCacheOptions()),
                 logger ?? new Mock<ILogger<GiteaAPIWrapper>>().Object,
-                client);
+                client,
+                parallelismSettings);
 
             return service;
         }

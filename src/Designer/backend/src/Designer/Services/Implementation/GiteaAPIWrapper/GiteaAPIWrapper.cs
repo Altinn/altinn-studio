@@ -34,6 +34,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IMemoryCache _cache;
         private readonly ILogger _logger;
         private readonly HttpClient _httpClient;
+        private readonly ParallelismSettings _parallelismSettings;
         private const string CodeListFolderName = "CodeLists";
 
         private static readonly JsonSerializerOptions s_jsonOptions = new()
@@ -51,18 +52,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="memoryCache">The configured memory cache</param>
         /// <param name="logger">The configured logger</param>
         /// <param name="httpClient">System.Net.Http.HttpClient</param>
+        /// <param name="parallelismSettings">The parallellism settings</param>
         public GiteaAPIWrapper(
             ServiceRepositorySettings repositorySettings,
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
             ILogger<GiteaAPIWrapper> logger,
-            HttpClient httpClient)
+            HttpClient httpClient,
+            ParallelismSettings parallelismSettings)
         {
             _settings = repositorySettings;
             _httpContextAccessor = httpContextAccessor;
             _cache = memoryCache;
             _logger = logger;
             _httpClient = httpClient;
+            _parallelismSettings = parallelismSettings;
         }
 
         /// <inheritdoc/>
@@ -512,7 +516,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 .Where(f => string.Equals(f.Type, "file", StringComparison.OrdinalIgnoreCase))
                 .Select(f => f.Name);
 
-            ParallelOptions options = new() { MaxDegreeOfParallelism = 25, CancellationToken = cancellationToken };
+            int maxParallellism = _parallelismSettings.FetchFilesFromGitea;
+            ParallelOptions options = new() { MaxDegreeOfParallelism = maxParallellism, CancellationToken = cancellationToken };
             await Parallel.ForEachAsync(directoryFileNames, options,
                 async (string fileName, CancellationToken token) =>
                 {
