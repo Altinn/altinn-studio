@@ -406,9 +406,15 @@ namespace Designer.Tests.Services
 
             ResourceRegistryService resourceRegistryService = new();
 
+            ParallelismSettings parallelismSettings = new()
+            {
+                RepositoryBaseSI = 50,
+            };
+
             RepositorySI service = new(
                 repoSettings,
                 generalSettings,
+                parallelismSettings,
                 httpContextAccessorMock.Object,
                 new IGiteaMock(),
                 sourceControlMock,

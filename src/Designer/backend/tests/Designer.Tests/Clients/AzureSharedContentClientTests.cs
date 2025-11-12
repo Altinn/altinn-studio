@@ -654,7 +654,11 @@ public class AzureSharedContentClientTests
         Mock<HttpClient> httpClientMock = new();
         Mock<ILogger<AzureSharedContentClient>> logger = new();
         SharedContentClientSettings settings = new() { StorageAccountUrl = "http://test.no", StorageContainerName = "storageAccountName" };
+        ParallelismSettings parallelismSettings = new()
+        {
+            UploadFilesToOrgLibrary = 10,
+        };
 
-        return new AzureSharedContentClient(httpClient ?? httpClientMock.Object, logger.Object, settings);
+        return new AzureSharedContentClient(httpClient ?? httpClientMock.Object, logger.Object, settings, parallelismSettings);
     }
 }
