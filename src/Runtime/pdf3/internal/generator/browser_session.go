@@ -536,7 +536,16 @@ func (w *browserSession) waitForElement(req *workerRequest, selector string, tim
 // loadWaitSnippet returns JavaScript code that creates a promise which resolves when the page load event fires.
 // This can be used in Promise.all() to ensure load event completes along with other conditions.
 func loadWaitSnippet() string {
-	return `(document.readyState === 'complete' ? Promise.resolve() : new Promise(r => window.addEventListener('load', r)))`
+	return `(document.readyState === 'complete' ? Promise.resolve() : new Promise(r => {
+	let timerId;
+	const resolve = () => {
+		if (timerId !== undefined) clearTimeout(timerId);
+		window.removeEventListener('load', resolve);
+		r();
+	};
+	window.addEventListener('load', resolve, { once: true });
+	timerId = setTimeout(resolve, timeoutMs);
+  }))`
 }
 
 // buildSimpleWaitExpression generates JavaScript for simple element existence checking.
