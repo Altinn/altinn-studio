@@ -1,0 +1,10 @@
+{
+  "name": "applicationmetadata.json",
+  "path": "App/config/applicationmetadata.json",
+  "sha": "abc123",
+  "type": "file",
+  "size": 100,
+  "encoding": "base64",
+  "content": "ewogICJpZCI6ICJ0dGQvJyRhcHAnIiwKICAib3JnIjogInR0ZCIsCiAgInRpdGxlIjogewogICAgIm5iIjogIlRlc3QgRGVwbG95IiwKICAgICJlbiI6ICJUZXN0IERlcGxveSIKICB9LAogICJkYXRhVHlwZXMiOiBbXSwKICAicGFydHlUeXBlc0FsbG93ZWQiOiB7CiAgICAiYmFua3J1cHRjeUVzdGF0ZSI6IGZhbHNlLAogICAgIm9yZ2FuaXNhdGlvbiI6IHRydWUsCiAgICAicGVyc29uIjogdHJ1ZSwKICAgICJzdWJVbml0IjogZmFsc2UKICB9LAogICJhdXRvRGVsZXRlT25Qcm9jZXNzRW5kIjogZmFsc2UsCiAgImNyZWF0ZWQiOiAiMjAyNC0wMS0wMVQwMDowMDowMFoiLAogICJjcmVhdGVkQnkiOiAidGVzdFVzZXIiLAogICJsYXN0Q2hhbmdlZCI6ICIyMDI0LTAxLTAxVDAwOjAwOjAwWiIsCiAgImxhc3RDaGFuZ2VkQnkiOiAidGVzdFVzZXIiCn0K",
+  "target": null
+}
