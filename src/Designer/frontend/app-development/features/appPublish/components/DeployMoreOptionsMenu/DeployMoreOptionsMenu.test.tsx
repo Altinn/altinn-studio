@@ -16,7 +16,9 @@ describe('DeployMoreOptionsMenu', () => {
     const listItems = screen.getAllByRole('listitem');
     expect(listItems).toHaveLength(2);
 
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: textMock('app_deployment.undeploy_button') }),
+    ).toBeInTheDocument();
     expect(screen.getByText(textMock('app_deployment.more_options_menu'))).toBeInTheDocument();
   });
 
@@ -32,8 +34,10 @@ describe('DeployMoreOptionsMenu', () => {
     renderMenu(linkToEnv);
     await openMenu();
 
-    const dialog = screen.getByRole('dialog');
-    expect(dialog).toBeInTheDocument();
+    const undeployButton = screen.getByRole('button', {
+      name: textMock('app_deployment.undeploy_button'),
+    });
+    expect(undeployButton).toBeInTheDocument();
   });
 
   it('should have a link to app within the env', async () => {
