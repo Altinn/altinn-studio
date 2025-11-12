@@ -135,11 +135,12 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 // Use the same dependencies that the named client would use
                 var serviceRepoSettings = sp.GetRequiredService<IConfiguration>()
                     .GetSection(nameof(ServiceRepositorySettings)).Get<ServiceRepositorySettings>();
+                var parallelismSettings = sp.GetRequiredService<IOptions<ParallelismSettings>>().Value;
                 var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
                 var memoryCache = sp.GetRequiredService<IMemoryCache>();
                 var logger = sp.GetRequiredService<ILogger<GiteaAPIWrapper>>();
 
-                return new GiteaAPIWrapper(serviceRepoSettings, httpContextAccessor, memoryCache, logger, namedClient);
+                return new GiteaAPIWrapper(serviceRepoSettings, httpContextAccessor, memoryCache, logger, namedClient, parallelismSettings);
             });
 
             return builder;
