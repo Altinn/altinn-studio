@@ -1,12 +1,7 @@
-import React, { useMemo, useState } from 'react';
-import { generateRandomId } from 'app-shared/utils/generateRandomId';
-import { generateTextResourceId } from '../../utils/generateId';
+import React, { useState } from 'react';
 import { StudioProperty } from '@studio/components';
-import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useTextResourceValue } from './hooks/useTextResourceValue';
 import { TextResourceAction } from './TextResourceEditor/TextResourceValueEditor/TextResourceAction';
-import { useUpsertTextResourceMutation } from '../../hooks/mutations/useUpsertTextResourceMutation';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { TranslationKey } from 'language/type';
 
 export interface TextResourceProps {
@@ -25,18 +20,6 @@ export interface GenerateTextResourceIdOptions {
   textResourceKey: string;
 }
 
-export const generateId = (options?: GenerateTextResourceIdOptions) => {
-  if (!options) {
-    return '';
-  }
-  return generateTextResourceId({
-    layoutId: options.layoutId,
-    componentId: options.componentId,
-    textKey: options.textResourceKey,
-    suffix: generateRandomId(4),
-  });
-};
-
 export const TextResource = ({
   compact,
   generateIdOptions,
@@ -46,78 +29,29 @@ export const TextResource = ({
   textResourceId,
   disableSearch,
 }: TextResourceProps) => {
-  const { org, app } = useStudioEnvironmentParams();
-  const { mutate: upsertTextResourceMutation } = useUpsertTextResourceMutation(org, app);
-
-  const defaultId = useMemo(() => generateId(generateIdOptions), [generateIdOptions]);
-  const [currentTextResourceId, setCurrentTextResourceId] = useState<string>('');
+  const textValue = useTextResourceValue(textResourceId);
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
-  const handleOpen = () => {
-    if (!textResourceId) setCurrentTextResourceId(defaultId);
-    else setCurrentTextResourceId(textResourceId);
-    setIsOpen(true);
-  };
+  if (isOpen) {
+    return (
+      <TextResourceAction
+        label={label}
+        textResourceId={textResourceId}
+        generateIdOptions={generateIdOptions}
+        disableSearch={disableSearch}
+        setIsOpen={setIsOpen}
+        handleIdChange={handleIdChange}
+        handleRemoveTextResource={handleRemoveTextResource}
+      />
+    );
+  }
 
-  const handleSave = (id: string, value: string) => {
-    if (currentTextResourceId === '') handleRemoveTextResource?.();
-    else {
-      const textId = currentTextResourceId || id;
-      handleIdChange(textId);
-      upsertTextResourceMutation({
-        textId: textId,
-        language: DEFAULT_LANGUAGE,
-        translation: value,
-      });
-    }
-    setIsOpen(false);
-    setCurrentTextResourceId('');
-  };
-
-  const handleCancel = () => {
-    setIsOpen(false);
-    setCurrentTextResourceId('');
-  };
-
-  const handleDelete = () => handleRemoveTextResource?.();
-
-  const handleLocalReferenceChange = (id: string) => setCurrentTextResourceId(id || '');
-
-  return isOpen ? (
-    <TextResourceAction
-      legend={label}
-      textResourceId={currentTextResourceId || defaultId}
-      onSave={handleSave}
-      onCancel={handleCancel}
-      onDelete={handleDelete}
-      onReferenceChange={handleLocalReferenceChange}
-      disableSearch={disableSearch}
-    />
-  ) : (
-    <TextResourceButton
-      compact={compact}
-      label={label}
-      onOpen={handleOpen}
-      textResourceId={textResourceId}
-    />
-  );
-};
-
-type TextResourceButtonProps = {
-  compact?: boolean;
-  label?: TranslationKey | string;
-  onOpen: () => void;
-  textResourceId?: string;
-};
-
-const TextResourceButton = ({
-  compact,
-  label,
-  onOpen,
-  textResourceId,
-}: TextResourceButtonProps) => {
-  const value = useTextResourceValue(textResourceId);
   return (
-    <StudioProperty.Button compact={compact} onClick={onOpen} property={label} value={value} />
+    <StudioProperty.Button
+      compact={compact}
+      onClick={() => setIsOpen(true)}
+      property={label}
+      value={textValue}
+    />
   );
 };

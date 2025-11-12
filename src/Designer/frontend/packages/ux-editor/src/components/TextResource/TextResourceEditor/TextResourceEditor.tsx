@@ -14,7 +14,7 @@ export interface TextResourceEditorProps {
   onTabChange?: (tab: TextResourceTab) => void;
 }
 
-enum TextResourceTab {
+export enum TextResourceTab {
   Type = 'type',
   Search = 'search',
 }
