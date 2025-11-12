@@ -1,16 +1,16 @@
 import React, { type ReactElement } from 'react';
-import { StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
+import { useMediaQuery } from '@studio/components-legacy';
+import { StudioPageHeader } from '@studio/components';
 import { ArrowLeftIcon, CogIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
-import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
+
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { useNavigate } from 'react-router-dom';
 import { useNavigateFrom } from './useNavigateFrom';
 
 export const SettingsPageButton = (): ReactElement => {
   const { t } = useTranslation();
-  const { variant } = usePageHeaderContext();
 
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const navigate = useNavigate();
@@ -42,10 +42,10 @@ export const SettingsPageButton = (): ReactElement => {
 
   return (
     <StudioPageHeader.HeaderButton
-      color='light'
+      data-color='neutral'
       onClick={handleClick}
       icon={<ButtonIcon isSettingsPage={isSettingsPage} />}
-      variant={variant}
+      variant='tertiary'
       aria-label={buttonText}
     >
       {shouldDisplayText && buttonText}

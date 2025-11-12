@@ -8,7 +8,6 @@
 }
 
 .titleText {
-  color: var(--ds-color-background-default);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

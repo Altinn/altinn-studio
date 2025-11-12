@@ -1,7 +1,7 @@
 import React, { type ReactElement } from 'react';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
-import { StudioAvatar } from '@studio/components';
+import { useMediaQuery } from '@studio/components-legacy';
+import { StudioAvatar, StudioPageHeader } from '@studio/components';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { SubHeader } from './SubHeader';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
@@ -65,7 +65,7 @@ const RightContent = (): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: repository } = useRepoMetadataQuery(org, app);
   const { t } = useTranslation();
-  const { user, profileMenuGroups, variant } = usePageHeaderContext();
+  const { user, profileMenuGroups } = usePageHeaderContext();
 
   const isSmallScreen = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const userNameAndOrg = useUserNameAndOrg(user, org, repository);
@@ -76,7 +76,6 @@ const RightContent = (): ReactElement => {
   return (
     <StudioPageHeader.ProfileMenu
       triggerButtonText={userNameAndOrg}
-      ariaLabelTriggerButton={userNameAndOrg}
       profileImage={
         <StudioAvatar
           src={user?.avatar_url}
@@ -85,8 +84,6 @@ const RightContent = (): ReactElement => {
         />
       }
       profileMenuGroups={profileMenuGroups}
-      color='dark'
-      variant={variant}
     />
   );
 };

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StudioPageHeader, StudioPopover, useMediaQuery } from '@studio/components-legacy';
+import { StudioPopover, useMediaQuery } from '@studio/components-legacy';
+import { StudioPageHeader } from '@studio/components';
 import { UploadIcon } from '@studio/icons';
 import classes from './ShareChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
@@ -65,8 +66,8 @@ export const ShareChangesPopover = () => {
         disabled={!hasPushRights || hasMergeConflict}
         title={renderCorrectTitle()}
         icon={<UploadIcon />}
-        color='light'
-        variant='regular'
+        data-color='neutral'
+        variant='tertiary'
         aria-label={t('sync_header.changes_to_share')}
       >
         {shouldDisplayText && t('sync_header.changes_to_share')}
