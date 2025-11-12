@@ -330,16 +330,15 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		return nil
 	}
 
-	// Wait for element if specified
-	if request.WaitFor != nil {
-		if req.hasResponded() {
-			return nil
-		}
-		if req.ctx.Err() != nil {
-			req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
-			return nil
-		}
+	if req.hasResponded() {
+		return nil
+	}
+	if req.ctx.Err() != nil {
+		req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
+		return nil
+	}
 
+	if request.WaitFor != nil {
 		const maxWaitMs int32 = types.MaxTimeoutMs
 		if selector, ok := request.WaitFor.AsString(); ok {
 			// Simple string selector - wait for element existence only
@@ -369,6 +368,20 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 				return nil
 			}
 		}
+	} else {
+		// No waitFor specified - just wait for page load event
+		expression := fmt.Sprintf("(function(){ return %s; })()", loadWaitSnippet())
+		_, err := w.conn.SendCommand(req.ctx, "Runtime.evaluate", map[string]any{
+			"expression":    expression,
+			"awaitPromise":  true,
+			"returnByValue": true,
+		})
+		if err != nil {
+			w.logger.Warn("Failed to wait for page load event", "error", err)
+			req.tryRespondError(contextErrorToPDFError(err, types.ErrGenerationFail, "page load"))
+			return nil
+		}
+		w.logger.Info("Page load event completed")
 	}
 
 	if req.hasResponded() {
@@ -520,15 +533,23 @@ func (w *browserSession) waitForElement(req *workerRequest, selector string, tim
 	return nil
 }
 
+// loadWaitSnippet returns JavaScript code that creates a promise which resolves when the page load event fires.
+// This can be used in Promise.all() to ensure load event completes along with other conditions.
+func loadWaitSnippet() string {
+	return `(document.readyState === 'complete' ? Promise.resolve() : new Promise(r => window.addEventListener('load', r)))`
+}
+
 // buildSimpleWaitExpression generates JavaScript for simple element existence checking.
 // Uses MutationObserver only, no polling (original behavior).
+// Also waits for the page 'load' event to ensure the page is fully loaded.
 func (w *browserSession) buildSimpleWaitExpression(selector string, timeoutMs int32) string {
 	if htmlIDSelectorPattern.MatchString(selector) {
 		// ID-optimized path
 		id := selector[1:]
 		return fmt.Sprintf(`(function(){
 		  const id = %q; const timeoutMs = %d;
-		  return new Promise((resolve) => {
+		  const loadWait = %s;
+		  const elementWait = new Promise((resolve) => {
 		    const e = document.getElementById(id);
 		    if (e) return requestAnimationFrame(() => resolve(true));
 		    let obs;
@@ -548,13 +569,15 @@ func (w *browserSession) buildSimpleWaitExpression(selector string, timeoutMs in
 		    obs.observe(document, {subtree:true, childList:true, attributes:true, attributeFilter:['id']});
 		    setTimeout(() => done(false), timeoutMs);
 		  });
-		})()`, id, timeoutMs)
+		  return Promise.all([loadWait, elementWait]).then(([_, found]) => found);
+		})()`, id, timeoutMs, loadWaitSnippet())
 	}
 
 	// General selector path
 	return fmt.Sprintf(`(function(){
 	  const selector = %q; const timeoutMs = %d;
-	  return new Promise((resolve) => {
+	  const loadWait = %s;
+	  const elementWait = new Promise((resolve) => {
 	    if (document.querySelector(selector)) return requestAnimationFrame(() => resolve(true));
 	    let obs;
 	    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} requestAnimationFrame(() => resolve(v)); };
@@ -564,11 +587,13 @@ func (w *browserSession) buildSimpleWaitExpression(selector string, timeoutMs in
 	    obs.observe(document, {subtree:true, childList:true, attributes:true});
 	    setTimeout(() => done(false), timeoutMs);
 	  });
-	})()`, selector, timeoutMs)
+	  return Promise.all([loadWait, elementWait]).then(([_, found]) => found);
+	})()`, selector, timeoutMs, loadWaitSnippet())
 }
 
 // buildVisibilityWaitExpression generates JavaScript for visibility checking with polling fallback.
 // Uses MutationObserver for attribute changes + polling for CSS rule changes.
+// Also waits for the page 'load' event to ensure the page is fully loaded.
 func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutMs int32, checkVisible, checkHidden bool) string {
 	// Visibility helper function
 	visibilityHelper := `
@@ -598,7 +623,8 @@ func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutM
 		  const id = %q; const timeoutMs = %d;
 		  %s
 		  %s
-		  return new Promise((resolve) => {
+		  const loadWait = %s;
+		  const elementWait = new Promise((resolve) => {
 		    const e = document.getElementById(id);
 		    if (checkElement(e)) return requestAnimationFrame(() => resolve(true));
 		    let obs, pollInterval;
@@ -629,7 +655,8 @@ func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutM
 		    pollInterval = setInterval(check, 100);
 		    setTimeout(() => done(false), timeoutMs);
 		  });
-		})()`, id, timeoutMs, visibilityHelper, checkElementDef)
+		  return Promise.all([loadWait, elementWait]).then(([_, found]) => found);
+		})()`, id, timeoutMs, visibilityHelper, checkElementDef, loadWaitSnippet())
 	}
 
 	// General selector path with visibility checking
@@ -637,7 +664,8 @@ func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutM
 	  const selector = %q; const timeoutMs = %d;
 	  %s
 	  %s
-	  return new Promise((resolve) => {
+	  const loadWait = %s;
+	  const elementWait = new Promise((resolve) => {
 	    const e = document.querySelector(selector);
 	    if (checkElement(e)) return requestAnimationFrame(() => resolve(true));
 	    let obs, pollInterval;
@@ -658,7 +686,8 @@ func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutM
 	    pollInterval = setInterval(check, 100);
 	    setTimeout(() => done(false), timeoutMs);
 	  });
-	})()`, selector, timeoutMs, visibilityHelper, checkElementDef)
+	  return Promise.all([loadWait, elementWait]).then(([_, found]) => found);
+	})()`, selector, timeoutMs, visibilityHelper, checkElementDef, loadWaitSnippet())
 }
 
 func (w *browserSession) getCookies() ([]map[string]any, error) {
