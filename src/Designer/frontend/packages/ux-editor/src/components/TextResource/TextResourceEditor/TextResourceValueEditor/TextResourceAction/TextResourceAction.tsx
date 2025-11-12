@@ -7,8 +7,8 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { type GenerateTextResourceIdOptions } from '../../../TextResource';
 import { useUpsertTextResourceMutation } from '../../../../../hooks/mutations/useUpsertTextResourceMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { generateId } from './TextResourceActionUtils';
 import { useTextResourceValue } from '../../../hooks/useTextResourceValue';
+import { generateId } from './textfResourceActionUtils';
 
 export type TextResourceActionProps = {
   label: TranslationKey | string;

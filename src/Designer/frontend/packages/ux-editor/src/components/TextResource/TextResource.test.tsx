@@ -10,9 +10,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { appContextMock } from '../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
-import { emptyTextResourceListMock } from 'app-shared/mocks/emptyTextResourceListMock';
 
 const user = userEvent.setup();
 
