@@ -537,14 +537,14 @@ func (w *browserSession) waitForElement(req *workerRequest, selector string, tim
 // This can be used in Promise.all() to ensure load event completes along with other conditions.
 func loadWaitSnippet() string {
 	return `(document.readyState === 'complete' ? Promise.resolve() : new Promise(r => {
-	let timerId;
+	let timeoutId;
 	const resolve = () => {
-		if (timerId !== undefined) clearTimeout(timerId);
+		if (timeoutId !== undefined) clearTimeout(timeoutId);
 		window.removeEventListener('load', resolve);
 		r();
 	};
 	window.addEventListener('load', resolve, { once: true });
-	timerId = setTimeout(resolve, timeoutMs);
+	timeoutId = setTimeout(resolve, timeoutMs);
   }))`
 }
 
@@ -561,8 +561,8 @@ func (w *browserSession) buildSimpleWaitExpression(selector string, timeoutMs in
 		  const elementWait = new Promise((resolve) => {
 		    const e = document.getElementById(id);
 		    if (e) return requestAnimationFrame(() => resolve(true));
-		    let obs;
-		    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} requestAnimationFrame(() => resolve(v)); };
+		    let obs, timeoutId;
+		    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} if (timeoutId !== undefined) clearTimeout(timeoutId); requestAnimationFrame(() => resolve(v)); };
 		    obs = new MutationObserver(recs => {
 		      for (const m of recs) {
 		        if (m.type === 'attributes' && m.attributeName === 'id' && m.target.id === id) { return done(true); }
@@ -576,7 +576,7 @@ func (w *browserSession) buildSimpleWaitExpression(selector string, timeoutMs in
 		      }
 		    });
 		    obs.observe(document, {subtree:true, childList:true, attributes:true, attributeFilter:['id']});
-		    setTimeout(() => done(false), timeoutMs);
+		    timeoutId = setTimeout(() => done(false), timeoutMs);
 		  });
 		  return Promise.all([loadWait, elementWait]).then(([_, found]) => found);
 		})()`, id, timeoutMs, loadWaitSnippet())
@@ -588,13 +588,13 @@ func (w *browserSession) buildSimpleWaitExpression(selector string, timeoutMs in
 	  const loadWait = %s;
 	  const elementWait = new Promise((resolve) => {
 	    if (document.querySelector(selector)) return requestAnimationFrame(() => resolve(true));
-	    let obs;
-	    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} requestAnimationFrame(() => resolve(v)); };
+	    let obs, timeoutId;
+	    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} if (timeoutId !== undefined) clearTimeout(timeoutId); requestAnimationFrame(() => resolve(v)); };
 	    obs = new MutationObserver(() => {
 	      if (document.querySelector(selector)) done(true);
 	    });
 	    obs.observe(document, {subtree:true, childList:true, attributes:true});
-	    setTimeout(() => done(false), timeoutMs);
+	    timeoutId = setTimeout(() => done(false), timeoutMs);
 	  });
 	  return Promise.all([loadWait, elementWait]).then(([_, found]) => found);
 	})()`, selector, timeoutMs, loadWaitSnippet())
@@ -636,10 +636,11 @@ func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutM
 		  const elementWait = new Promise((resolve) => {
 		    const e = document.getElementById(id);
 		    if (checkElement(e)) return requestAnimationFrame(() => resolve(true));
-		    let obs, pollInterval;
+		    let obs, pollInterval, timeoutId;
 		    const done = (v) => {
 		      try { obs && obs.disconnect(); } catch(e){}
-		      if (pollInterval) clearInterval(pollInterval);
+		      if (pollInterval !== undefined) clearInterval(pollInterval);
+		      if (timeoutId !== undefined) clearTimeout(timeoutId);
 		      requestAnimationFrame(() => resolve(v));
 		    };
 		    const check = () => {
@@ -662,7 +663,7 @@ func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutM
 		    obs.observe(document, {subtree:true, childList:true, attributes:true, attributeFilter:['id', 'style', 'class']});
 		    // Fallback polling for visibility changes via CSS rules (media queries, animations, etc.)
 		    pollInterval = setInterval(check, 100);
-		    setTimeout(() => done(false), timeoutMs);
+		    timeoutId = setTimeout(() => done(false), timeoutMs);
 		  });
 		  return Promise.all([loadWait, elementWait]).then(([_, found]) => found);
 		})()`, id, timeoutMs, visibilityHelper, checkElementDef, loadWaitSnippet())
@@ -677,10 +678,11 @@ func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutM
 	  const elementWait = new Promise((resolve) => {
 	    const e = document.querySelector(selector);
 	    if (checkElement(e)) return requestAnimationFrame(() => resolve(true));
-	    let obs, pollInterval;
+	    let obs, pollInterval, timeoutId;
 	    const done = (v) => {
 	      try { obs && obs.disconnect(); } catch(e){}
-	      if (pollInterval) clearInterval(pollInterval);
+	      if (pollInterval !== undefined) clearInterval(pollInterval);
+	      if (timeoutId !== undefined) clearTimeout(timeoutId);
 	      requestAnimationFrame(() => resolve(v));
 	    };
 	    const check = () => {
@@ -693,7 +695,7 @@ func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutM
 	    obs.observe(document, {subtree:true, childList:true, attributes:true, attributeFilter:['style', 'class']});
 	    // Fallback polling for visibility changes via CSS rules (media queries, animations, etc.)
 	    pollInterval = setInterval(check, 100);
-	    setTimeout(() => done(false), timeoutMs);
+	    timeoutId = setTimeout(() => done(false), timeoutMs);
 	  });
 	  return Promise.all([loadWait, elementWait]).then(([_, found]) => found);
 	})()`, selector, timeoutMs, visibilityHelper, checkElementDef, loadWaitSnippet())
