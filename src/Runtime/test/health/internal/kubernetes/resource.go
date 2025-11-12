@@ -16,17 +16,22 @@ const (
 	HelmReleaseResourceType   ResourceType = "helmrelease"
 	KustomizationResourceType ResourceType = "kustomization"
 	DeploymentResourceType    ResourceType = "deployment"
+	HTTPRouteResourceType     ResourceType = "httproute"
 )
 
 // QueryResult represents the result of a resource query
 type QueryResult struct {
-	ClusterName string
-	Namespace   string
-	Name        string
-	Conditions  []metav1.Condition
-	PodAge      *string // Only populated for Deployment resources
-	PodRestarts *string // Only populated for Deployment resources
-	Error       error
+	ClusterName            string
+	Namespace              string
+	Name                   string
+	Conditions             []metav1.Condition
+	PodAge                 *string            // Only populated for Deployment resources
+	PodRestarts            *string            // Only populated for Deployment resources
+	Weight1                *int               // Only populated for HTTPRoute resources
+	Weight2                *int               // Only populated for HTTPRoute resources
+	HasReconcileAnnotation *bool              // Only populated for HTTPRoute resources
+	Annotations            map[string]string  // Only populated for HTTPRoute resources
+	Error                  error
 }
 
 // GetResourceStatus queries a resource (FluxCD or Deployment) and returns its status
@@ -78,6 +83,31 @@ func GetResourceStatus(ctx context.Context, runtime KubernetesRuntime, resourceT
 		podAge, podRestarts := GetPodInfo(ctx, runtime, namespace, dep.Spec.Selector.MatchLabels)
 		result.PodAge = &podAge
 		result.PodRestarts = &podRestarts
+
+	case HTTPRouteResourceType:
+		routeResult := GetHTTPRouteFromCluster(ctx, runtime, namespace, name)
+		if routeResult.Error != nil {
+			result.Error = routeResult.Error
+			return result
+		}
+
+		// Populate HTTPRoute-specific fields
+		result.Weight1 = &routeResult.CurrentWeight1
+		result.Weight2 = &routeResult.CurrentWeight2
+		result.HasReconcileAnnotation = &routeResult.HasReconcileAnnotation
+
+		// Get full HTTPRoute to extract annotations
+		route, err := GetHTTPRoute(ctx, runtime, namespace, name)
+		if err != nil {
+			result.Error = fmt.Errorf("failed to get httproute annotations: %w", err)
+			return result
+		}
+		if route.Annotations != nil {
+			result.Annotations = route.Annotations
+		}
+
+		// HTTPRoutes don't have conditions, so we'll skip that check for this resource type
+		return result
 	}
 
 	if len(result.Conditions) == 0 {
@@ -105,8 +135,10 @@ func ParseResourceType(input string) (ResourceType, error) {
 		return KustomizationResourceType, nil
 	case "dep", "deployment":
 		return DeploymentResourceType, nil
+	case "httproute":
+		return HTTPRouteResourceType, nil
 	default:
-		return "", fmt.Errorf("invalid resource type: %s (expected: hr, ks, or dep)", input)
+		return "", fmt.Errorf("invalid resource type: %s (expected: hr, ks, dep, or httproute)", input)
 	}
 }
 
