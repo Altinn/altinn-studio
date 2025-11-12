@@ -18,7 +18,7 @@ public sealed record GetSharedResourcesResponse(List<LibraryFile> Files, string 
             return false;
         }
 
-        return other.CommitSha.Equals(CommitSha);
+        return string.Equals(other.CommitSha, CommitSha, StringComparison.Ordinal);
     }
 
     public override int GetHashCode()
