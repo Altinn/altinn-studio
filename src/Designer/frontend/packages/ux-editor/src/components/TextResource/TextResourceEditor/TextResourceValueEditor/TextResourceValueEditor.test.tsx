@@ -45,7 +45,9 @@ describe('TextResourceValueEditor', () => {
 
   it('Calls onTextChange when value is changed', async () => {
     renderTextResource({}, textResources);
-    const textbox = screen.getByRole('textbox');
+    const textbox = screen.getByRole('textbox', {
+      name: textMock('ux_editor.text_resource_binding_text'),
+    });
     await user.type(textbox, 'a');
     expect(mockOnTextChange).toHaveBeenCalled();
     const lastCall = mockOnTextChange.mock.calls[mockOnTextChange.mock.calls.length - 1];
