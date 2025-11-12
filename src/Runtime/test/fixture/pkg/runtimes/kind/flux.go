@@ -136,6 +136,9 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 	if err := r.FluxClient.ReconcileHelmRelease("linkerd-control-plane", "linkerd", true, syncOpts); err != nil {
 		return fmt.Errorf("failed to reconcile base infra: %w", err)
 	}
+	if err := r.FluxClient.ReconcileHelmRelease("kube-prometheus-stack", "monitoring", true, syncOpts); err != nil {
+		return fmt.Errorf("failed to reconcile base infra: %w", err)
+	}
 
 	fmt.Println("✓ Base infra reconciled")
 

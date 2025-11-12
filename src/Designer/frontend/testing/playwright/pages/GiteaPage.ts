@@ -1,7 +1,7 @@
 import type { LanguageCode } from '../enum/LanguageCode';
 import { BasePage } from '../helpers/BasePage';
 import type { Environment } from '../helpers/StudioEnvironment';
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { type BpmnTaskType } from '../types/BpmnTaskType';
 import { expect } from '@playwright/test';
 
@@ -27,28 +27,42 @@ export class GiteaPage extends BasePage {
     await this.page.waitForURL(this.getRoute('gitea'));
   }
 
+  public getRepoFilesTable(): Locator {
+    return this.page.locator('#repo-files-table');
+  }
+
   public async clickOnAppFilesButton(): Promise<void> {
-    await this.page.getByRole('link', { name: giteaPageTexts['app'], exact: true }).click();
+    await this.getRepoFilesTable()
+      .getByRole('link', { name: giteaPageTexts['app'], exact: true })
+      .click();
   }
 
   public async clickOnUiFilesButton(): Promise<void> {
-    await this.page.getByRole('link', { name: giteaPageTexts['ui'], exact: true }).click();
+    await this.getRepoFilesTable()
+      .getByRole('link', { name: giteaPageTexts['ui'], exact: true })
+      .click();
   }
 
   public async clickOnLayoutSetsFolder(): Promise<void> {
-    await this.page.getByRole('link', { name: giteaPageTexts['layoutSetFolderName'] }).click();
+    await this.getRepoFilesTable()
+      .getByRole('link', { name: giteaPageTexts['layoutSetFolderName'] })
+      .click();
   }
 
   public async clickOnLayoutsFilesFolder(): Promise<void> {
-    await this.page.getByRole('link', { name: giteaPageTexts['layouts'] }).click();
+    await this.getRepoFilesTable().getByRole('link', { name: giteaPageTexts['layouts'] }).click();
   }
 
   public async verifyThatTheNewPageIsNotPresent(pageName: string): Promise<void> {
-    await this.page.getByRole('link', { name: `${pageName}.json` }).isHidden();
+    await this.getRepoFilesTable()
+      .getByRole('link', { name: `${pageName}.json` })
+      .isHidden();
   }
 
   public async verifyThatTheNewPageIsPresent(pageName: string): Promise<void> {
-    await this.page.getByRole('link', { name: `${pageName}.json` }).isVisible();
+    await this.getRepoFilesTable()
+      .getByRole('link', { name: `${pageName}.json` })
+      .isVisible();
   }
 
   public async goBackNPages(nPages: number): Promise<void> {
@@ -58,7 +72,9 @@ export class GiteaPage extends BasePage {
   }
 
   public async clickOnLayoutJsonFile(pageName: string): Promise<void> {
-    await this.page.getByRole('link', { name: `${pageName}.json` }).click();
+    await this.getRepoFilesTable()
+      .getByRole('link', { name: `${pageName}.json` })
+      .click();
   }
 
   public async verifyThatDataModelBindingsAreNotPresent(): Promise<void> {
@@ -82,19 +98,23 @@ export class GiteaPage extends BasePage {
   }
 
   public async clickOnConfigFilesButton(): Promise<void> {
-    await this.page.getByRole('link', { name: giteaPageTexts['config'] }).click();
+    await this.getRepoFilesTable().getByRole('link', { name: giteaPageTexts['config'] }).click();
   }
 
   public async clickOnTextFilesButton(): Promise<void> {
-    await this.page.getByRole('link', { name: giteaPageTexts['texts'] }).click();
+    await this.getRepoFilesTable().getByRole('link', { name: giteaPageTexts['texts'] }).click();
   }
 
   public async verifyThatResourceJsonFileIsVisible(lang: LanguageCode): Promise<void> {
-    await this.page.getByRole('link', { name: `resource.${lang}.json`, exact: true }).isVisible();
+    await this.getRepoFilesTable()
+      .getByRole('link', { name: `resource.${lang}.json`, exact: true })
+      .isVisible();
   }
 
   public async clickOnResourceJsonFile(lang: LanguageCode): Promise<void> {
-    await this.page.getByRole('link', { name: `resource.${lang}.json` }).click();
+    await this.getRepoFilesTable()
+      .getByRole('link', { name: `resource.${lang}.json` })
+      .click();
   }
 
   public async verifyLanguageFile(lang: LanguageCode): Promise<void> {
@@ -106,11 +126,15 @@ export class GiteaPage extends BasePage {
   }
 
   public async clickOnProcessFilesButton(): Promise<void> {
-    await this.page.getByRole('link', { name: giteaPageTexts['process'], exact: true }).click();
+    await this.getRepoFilesTable()
+      .getByRole('link', { name: giteaPageTexts['process'], exact: true })
+      .click();
   }
 
   public async clickOnProcessBpmnFile(): Promise<void> {
-    await this.page.getByRole('link', { name: `${giteaPageTexts['process']}.bpmn` }).click();
+    await this.getRepoFilesTable()
+      .getByRole('link', { name: `${giteaPageTexts['process']}.bpmn` })
+      .click();
   }
 
   public async verifyThatTheNewTaskIsVisible(id: string, task: BpmnTaskType): Promise<void> {
@@ -131,7 +155,7 @@ export class GiteaPage extends BasePage {
   }
 
   public async clickOnApplicationMetadataFile(): Promise<void> {
-    await this.page
+    await this.getRepoFilesTable()
       .getByRole('link', { name: `${giteaPageTexts['applicationmetadata']}.json` })
       .click();
   }

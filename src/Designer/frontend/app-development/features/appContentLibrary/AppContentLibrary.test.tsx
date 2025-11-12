@@ -10,7 +10,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import type {
-  CodeListData,
+  CodeListDataWithTextResources,
   CodeListWithMetadata,
   ContentLibraryConfig,
   PagesConfig,
@@ -79,7 +79,7 @@ describe('AppContentLibrary', () => {
     renderAppContentLibraryWithData();
     const codeListDataList =
       retrievePagesConfig().codeListsWithTextResources.props.codeListDataList;
-    const expectedData: CodeListData[] = optionListDataList;
+    const expectedData: CodeListDataWithTextResources[] = optionListDataList;
     expect(codeListDataList).toEqual(expectedData);
   });
 

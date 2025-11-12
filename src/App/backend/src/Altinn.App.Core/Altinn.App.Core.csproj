@@ -55,6 +55,8 @@
     <InternalsVisibleTo Include="Altinn.App.SourceGenerator.Integration.Tests" />
     <InternalsVisibleTo Include="Altinn.App.Benchmarks" />
     <InternalsVisibleTo Include="Altinn.App.Tests.Common" />
+    <InternalsVisibleTo Include="Altinn.App.Clients.Fiks" />
+    <InternalsVisibleTo Include="Altinn.App.Clients.Fiks.Tests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
     <InternalsVisibleTo Include="Altinn.Application.For.IntegrationTesting" />
     <InternalsVisibleTo Include="Altinn.Application.For.IntegrationTesting.Scenario" />

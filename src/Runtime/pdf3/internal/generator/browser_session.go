@@ -32,7 +32,7 @@ type browserSession struct {
 
 	queue          chan workerRequest
 	state          atomic.Uint32
-	currentRequest *workerRequest
+	currentRequest atomic.Pointer[workerRequest]
 
 	// Error tracking for current request
 	consoleErrors atomic.Int32
@@ -148,12 +148,12 @@ func (w *browserSession) handleRequests() {
 			w.browserErrors.Store(0)
 			w.tryUpdateTestModeOutput(&req, "Before", false)
 
-			w.currentRequest = &req
+			w.currentRequest.Store(&req)
 			rootLogger := w.logger
 			w.logger = w.logger.With("url", req.request.URL)
 			w.handleRequest(&req)
 			w.logger = rootLogger
-			w.currentRequest = nil
+			w.currentRequest.Store(nil)
 
 			w.assertA(
 				req.hasResponded(),
@@ -791,18 +791,18 @@ func (w *browserSession) cleanupBrowser(req *workerRequest) {
 }
 
 func (w *browserSession) assert(condition bool, message string) {
-	if w.currentRequest != nil {
-		assert.AssertWithMessage(condition, message, "id", w.id, "url", w.currentRequest.request.URL)
+	if req := w.currentRequest.Load(); req != nil {
+		assert.AssertWithMessage(condition, message, "id", w.id, "url", req.request.URL)
 	} else {
 		assert.AssertWithMessage(condition, message, "id", w.id)
 	}
 }
 
 func (w *browserSession) assertA(condition bool, message string, userArgs ...any) {
-	if w.currentRequest != nil {
+	if req := w.currentRequest.Load(); req != nil {
 		args := make([]any, 0, 2+2+len(userArgs))
 		args = append(args, "id", w.id)
-		args = append(args, "url", w.currentRequest.request.URL)
+		args = append(args, "url", req.request.URL)
 		args = append(args, userArgs...)
 		assert.AssertWithMessage(condition, message, args...)
 	} else {
@@ -836,6 +836,25 @@ func (w *browserSession) close() {
 	}
 
 	w.logger.Info("Worker closed")
+}
+
+// isProcessing returns true if a request is currently being processed
+func (w *browserSession) isProcessing() bool {
+	return w.currentRequest.Load() != nil
+}
+
+// waitForDrain waits for active request to complete, up to timeout
+func (w *browserSession) waitForDrain(timeout time.Duration) {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		if !w.isProcessing() {
+			w.logger.Info("Session drained successfully")
+			return // Drained successfully
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	// Timeout - log warning but don't crash
+	w.logger.Warn("Session drain timeout, forcing close", "timeout", timeout)
 }
 
 // paperFormats defines standard paper sizes in inches (compatible with Puppeteer)
