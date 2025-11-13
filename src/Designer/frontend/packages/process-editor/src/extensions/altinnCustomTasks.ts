@@ -158,10 +158,10 @@ export const altinnCustomTasks = {
       name: 'PdfConfig',
       properties: [
         {
-          name: 'filename',
+          name: 'filenameTextResourceKey',
           isMany: false,
           isAttr: false,
-          type: 'Filename',
+          type: 'FilenameTextResourceKey',
         },
         {
           name: 'autoPdfTaskIds',
@@ -171,7 +171,7 @@ export const altinnCustomTasks = {
       ],
     },
     {
-      name: 'Filename',
+      name: 'FilenameTextResourceKey',
       properties: [
         {
           name: 'value',
