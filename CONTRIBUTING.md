@@ -56,7 +56,7 @@ that may break things downstream. Names and tags are in the `Telemetry` class.
 
 ### Testing
 
-We have automated tests in the `test/` folder using mainly xUnit, FluentAssertions, Moq and Verify.
+We have automated tests in the `test/` folder using mainly xUnit, Moq and Verify.
 Some tests invoke classes directly (while mocking dependencies as needed),
 while some construct adhoc DI containers or use ASP.NET Core `WebApplicationFactory<>`.
 The following resources are currently snapshot tested (some with Verify)

@@ -13,6 +13,13 @@
   ],
   "packageRules": [
     {
+        // Limit FluentAssertions to version 7.x due to change of license in version 8.x
+        "matchPackageNames":[
+            "FluentAssertions"
+        ],
+        "allowedVersions":"<=7"
+    },
+    {
       "matchPackageNames": [
         "/dotnet(-|\\/)sdk/",
         "/^Microsoft\\.AspNetCore/",
