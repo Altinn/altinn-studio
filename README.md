@@ -189,3 +189,5 @@ This project is licensed under the 3-Clause BSD License - see the [LICENSE.md](L
 [24]: https://kubernetes.io/
 [25]: https://github.com/Altinn/altinn-studio/issues/new/choose
 [26]: https://github.com/Altinn/altinn-studio/graphs/contributors
+
+en endring.
