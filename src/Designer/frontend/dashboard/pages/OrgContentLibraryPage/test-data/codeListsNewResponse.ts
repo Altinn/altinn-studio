@@ -10,7 +10,7 @@ const animalsData: CodeListDataNew = {
   hasError: false,
 };
 
-export const vehiclesData: CodeListDataNew = {
+const vehiclesData: CodeListDataNew = {
   title: 'vehicles' satisfies keyof typeof codeLists,
   codeList: {
     codes: codeLists.vehicles,
