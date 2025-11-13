@@ -53,12 +53,7 @@ import type { DataPostResponse } from 'src/features/attachments';
 import type { IDataList } from 'src/features/dataLists';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { IFormDynamics } from 'src/features/form/dynamics';
-import type {
-  IDataModelMultiPatchRequest,
-  IDataModelMultiPatchResponse,
-  IDataModelPatchRequest,
-  IDataModelPatchResponse,
-} from 'src/features/formData/types';
+import type { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import type { Instantiation } from 'src/features/instantiate/useInstantiation';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { OrderDetails, PaymentResponsePayload } from 'src/features/payment/types';
@@ -217,13 +212,11 @@ export const doSubformEntryDelete = async (instanceId: string, dataElementId: st
   }
 };
 
-// When saving data for normal/stateful apps
-export const doPatchFormData = (url: string, data: IDataModelPatchRequest) =>
-  httpPatch<IDataModelPatchResponse>(url, data);
-
 // New multi-patch endpoint for stateful apps
-export const doPatchMultipleFormData = (url: string, data: IDataModelMultiPatchRequest) =>
-  httpPatch<IDataModelMultiPatchResponse>(url, data);
+export const doPatchMultipleFormData = (url: string, data: IDataModelMultiPatchRequest) => {
+  debugger;
+  return httpPatch<IDataModelMultiPatchResponse>(url, data);
+};
 
 // When saving data for stateless apps
 export const doPostStatelessFormData = async (
