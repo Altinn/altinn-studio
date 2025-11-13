@@ -1,12 +1,18 @@
+using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Text.Json.Serialization;
 using Altinn.App.Analyzers;
+using Altinn.App.Core.Helpers.DataModel;
+using Altinn.App.Core.Internal.Data;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Newtonsoft.Json.Serialization;
+using Xunit.Abstractions;
 
 namespace Altinn.App.SourceGenerator.Tests;
 
-public class FullTests
+public class FullTests(ITestOutputHelper output)
 {
     [Fact]
     public async Task Run()
@@ -15,7 +21,10 @@ public class FullTests
             #nullable enable
             using System;
             using System.Collections.Generic;
+            using System.ComponentModel.DataAnnotations;
             using System.Text.Json.Serialization;
+            using System.Xml.Serialization;
+            using Microsoft.AspNetCore.Mvc.ModelBinding;
 
             namespace Altinn.App.SourceGenerator.Tests;
 
@@ -60,6 +69,8 @@ public class FullTests
                 [JsonPropertyName("tidligere-adresse")]
                 public List<Adresse>? TidligereAdresse { get; set; }
 
+                [JsonPropertyName("oldXmlValue")]
+                public OldXmlValue? OldXmlValue { get; set; }
 
                 [JsonPropertyName("withCollection")]
                 public ICollection<Adresse>? WithCollection { get; set; }
@@ -83,7 +94,33 @@ public class FullTests
 
                 // List of string is invalid in altinn datamodels, but might be used for backend purposes and must compile
                 [JsonPropertyName("tags")]
+                [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
                 public List<string>? Tags { get; set; }
+            }
+
+            public class OldXmlValue
+            {
+              [Range(-999999999999999d, 999999999999999d)]
+              [Required]
+              [XmlIgnore]
+              [JsonPropertyName("value")]
+              public decimal? valueNullable { get; set; }
+
+              [XmlText]
+              [JsonIgnore]
+              public decimal value
+              {
+                get => valueNullable ?? default;
+                set
+                {
+                  this.valueNullable = value;
+                }
+              }
+
+              [XmlAttribute("orid")]
+              [BindNever]
+              public string orid { get; set; } = "7117";
+
             }
             """;
         var syntax = CSharpSyntaxTree.ParseText(source, path: "models/Models.cs");
@@ -108,7 +145,7 @@ public class FullTests
         await Verify(RunFormDataWrapper([syntax], applicationMetadata));
     }
 
-    public static GeneratorDriverRunResult RunFormDataWrapper(SyntaxTree[] sources, string applicationMetadata)
+    private GeneratorDriverRunResult RunFormDataWrapper(SyntaxTree[] sources, string applicationMetadata)
     {
         var currentAssembly = Assembly.GetAssembly(typeof(Skjema));
         // Get references so that the test compilation can reference system libraries
@@ -117,7 +154,18 @@ public class FullTests
             .Where(static assembly => !assembly.IsDynamic && !string.IsNullOrWhiteSpace(assembly.Location))
             .Where(assembly => assembly != currentAssembly)
             .Select(static assembly => MetadataReference.CreateFromFile(assembly.Location))
-            .Concat([MetadataReference.CreateFromFile(typeof(JsonPropertyNameAttribute).Assembly.Location)]);
+            .Concat(
+                [
+                    MetadataReference.CreateFromFile(typeof(RangeAttribute).Assembly.Location),
+                    MetadataReference.CreateFromFile(typeof(BindNeverAttribute).Assembly.Location),
+                    MetadataReference.CreateFromFile(typeof(JsonProperty).Assembly.Location),
+                    MetadataReference.CreateFromFile(typeof(RequiredAttribute).Assembly.Location),
+                    MetadataReference.CreateFromFile(typeof(JsonIgnoreAttribute).Assembly.Location),
+                    MetadataReference.CreateFromFile(typeof(JsonPropertyNameAttribute).Assembly.Location),
+                    MetadataReference.CreateFromFile(typeof(IFormDataWrapper).Assembly.Location),
+                    MetadataReference.CreateFromFile(typeof(DataModelException).Assembly.Location),
+                ]
+            );
 
         var compilation = CSharpCompilation.Create(
             "name",
@@ -136,6 +184,13 @@ public class FullTests
         var runResult = results.GetRunResult();
 
         Assert.Empty(compilation.GetDiagnostics());
+
+        // Ensure that the generated code compiles without errors
+        var updatedCompilation = compilation.AddSyntaxTrees(runResult.GeneratedTrees);
+        var diagnostics = updatedCompilation.GetDiagnostics();
+        output.WriteLine(string.Join(Environment.NewLine, diagnostics));
+        Assert.Empty(diagnostics);
+
         // Verify the generated code
         return runResult;
     }
