@@ -372,7 +372,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		// No waitFor specified - just wait for page load event
 		const maxWaitMs int32 = types.MaxTimeoutMs
 		expression := fmt.Sprintf("(function(timeoutMs){ return %s; })(%d)", loadWaitSnippet(), maxWaitMs)
-		_, err := w.conn.SendCommand(req.ctx, "Runtime.evaluate", map[string]any{
+		resp, err := w.conn.SendCommand(req.ctx, "Runtime.evaluate", map[string]any{
 			"expression":    expression,
 			"awaitPromise":  true,
 			"returnByValue": true,
@@ -381,6 +381,11 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			w.logger.Warn("Failed to wait for page load event", "error", err)
 			req.tryRespondError(contextErrorToPDFError(err, types.ErrGenerationFail, "page load"))
 			return nil
+		}
+
+		err = w.processWaitResult(req, resp)
+		if err != nil {
+			return err
 		}
 		w.logger.Info("Page load event completed")
 	}
@@ -515,42 +520,90 @@ func (w *browserSession) waitForElement(req *workerRequest, selector string, tim
 		return err
 	}
 
-	// Expect a boolean result indicating whether the element was found within timeout
-	if result, ok := resp.Result.(map[string]any); ok {
-		if resultObj, ok := result["result"].(map[string]any); ok {
-			if value, ok := resultObj["value"].(bool); ok {
-				if !value {
-					w.logger.Warn("Failed to wait for element: timeout", "selector", selector)
-					err := fmt.Errorf("timeout")
-					req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", selector), err))
-					return err
-				}
-			} else {
-				w.logger.Warn("Unexpected evaluation result type waiting for element", "selector", selector)
-			}
-		}
+	err = w.processWaitResult(req, resp)
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
+func (w *browserSession) processWaitResult(req *workerRequest, resp *cdp.CDPResponse) error {
+	result, ok := resp.Result.(map[string]any)
+	if !ok {
+		return w.handleWaitError(req, "invalid response format", resp.Result, "malformed CDP response")
+	}
+
+	if errorObj, ok := result["exceptionDetails"]; ok {
+		return w.handleWaitError(req, "JavaScript exception during wait", errorObj, "exception in wait expression")
+	}
+
+	resultObj, ok := result["result"].(map[string]any)
+	if !ok {
+		return w.handleWaitError(req, "missing or invalid result object", result, "malformed result object")
+	}
+
+	value, ok := resultObj["value"].(bool)
+	if !ok {
+		return w.handleWaitError(req, "result value is not boolean", resultObj, "expected boolean result")
+	}
+
+	if !value {
+		waitForData := waitForToJson(req.request.WaitFor)
+		w.logger.Warn("Wait condition not satisfied within timeout", "waitFor", waitForData)
+		err := fmt.Errorf("timeout")
+		req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, "failed waiting for condition", err))
+		return err
+	}
+
+	return nil
+}
+
+// handleWaitError logs and responds with an error for wait failures
+func (w *browserSession) handleWaitError(req *workerRequest, logMsg string, data any, errDetail string) error {
+	waitForData := waitForToJson(req.request.WaitFor)
+
+	// Marshal the data for logging
+	dataBytes, err := json.Marshal(data)
+	if err != nil {
+		dataBytes = []byte(fmt.Sprintf("(marshal error: %v)", err))
+	}
+
+	w.logger.Error(logMsg, "waitFor", waitForData, "data", string(dataBytes))
+
+	err = fmt.Errorf("%s", errDetail)
+	req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, "failed waiting for condition", err))
+	return err
+}
+
+func waitForToJson(waitFor *types.WaitFor) string {
+	waitForData := ""
+	if waitFor != nil {
+		waitForDataBytes, err := json.Marshal(waitFor)
+		if err != nil {
+			waitForData = err.Error()
+		} else {
+			waitForData = string(waitForDataBytes)
+		}
+	}
+
+	return waitForData
+}
+
 // loadWaitSnippet returns JavaScript code that creates a promise which resolves when the page load event fires.
 // This can be used in Promise.all() to ensure load event completes along with other conditions.
 func loadWaitSnippet() string {
-	return `(document.readyState === 'complete' ? Promise.resolve() : new Promise((r, re) => {
+	return `(document.readyState === 'complete' ? Promise.resolve(true) : new Promise(r => {
 	let timeoutId;
 	let resolveSuccess;
 	const resolve = (success) => {
 		if (timeoutId !== undefined) clearTimeout(timeoutId);
 		window.removeEventListener('load', resolveSuccess);
-		if (success) {
-			r();
-		} else {
-			re();
-		}
+		r(success);
 	};
 	resolveSuccess = () => resolve(true);
 	window.addEventListener('load', resolveSuccess, { once: true });
+	if (document.readyState === 'complete') resolveSuccess();
 	timeoutId = setTimeout(() => resolve(false), timeoutMs);
   }))`
 }
@@ -585,7 +638,7 @@ func (w *browserSession) buildSimpleWaitExpression(selector string, timeoutMs in
 		    obs.observe(document, {subtree:true, childList:true, attributes:true, attributeFilter:['id']});
 		    timeoutId = setTimeout(() => done(false), timeoutMs);
 		  });
-		  return Promise.all([loadWait, elementWait]).then(([_, found]) => found);
+		  return Promise.all([loadWait, elementWait]).then(([loaded, found]) => loaded && found);
 		})()`, id, timeoutMs, loadWaitSnippet())
 	}
 
@@ -603,7 +656,7 @@ func (w *browserSession) buildSimpleWaitExpression(selector string, timeoutMs in
 	    obs.observe(document, {subtree:true, childList:true, attributes:true});
 	    timeoutId = setTimeout(() => done(false), timeoutMs);
 	  });
-	  return Promise.all([loadWait, elementWait]).then(([_, found]) => found);
+	  return Promise.all([loadWait, elementWait]).then(([loaded, found]) => loaded && found);
 	})()`, selector, timeoutMs, loadWaitSnippet())
 }
 
@@ -672,7 +725,7 @@ func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutM
 		    pollInterval = setInterval(check, 100);
 		    timeoutId = setTimeout(() => done(false), timeoutMs);
 		  });
-		  return Promise.all([loadWait, elementWait]).then(([_, found]) => found);
+		  return Promise.all([loadWait, elementWait]).then(([loaded, found]) => loaded && found);
 		})()`, id, timeoutMs, visibilityHelper, checkElementDef, loadWaitSnippet())
 	}
 
@@ -704,7 +757,7 @@ func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutM
 	    pollInterval = setInterval(check, 100);
 	    timeoutId = setTimeout(() => done(false), timeoutMs);
 	  });
-	  return Promise.all([loadWait, elementWait]).then(([_, found]) => found);
+	  return Promise.all([loadWait, elementWait]).then(([loaded, found]) => loaded && found);
 	})()`, selector, timeoutMs, visibilityHelper, checkElementDef, loadWaitSnippet())
 }
 
