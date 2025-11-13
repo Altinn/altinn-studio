@@ -375,4 +375,25 @@ describe('EditBinding', () => {
       },
     );
   });
+
+  it('should close the EditBinding when clicking cancel', async () => {
+    const user = userEvent.setup();
+    const onSetDataModelSelectVisible = jest.fn();
+    renderEditBinding({
+      editBindingProps: {
+        ...defaultEditBinding,
+        onSetDataModelSelectVisible,
+      },
+    });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
+    );
+    const cancelButton = screen.getByRole('button', {
+      name: textMock('general.cancel'),
+    });
+    await user.click(cancelButton);
+
+    expect(onSetDataModelSelectVisible).toHaveBeenCalledTimes(1);
+    expect(onSetDataModelSelectVisible).toHaveBeenCalledWith(false);
+  });
 });
