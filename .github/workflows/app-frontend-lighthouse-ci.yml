@@ -13,17 +13,18 @@ jobs:
     name: Lighthouse CI
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           dotnet-version: '8.0.x'
 
-      - name: Use Node.js 20.x
-        uses: actions/setup-node@v4
+      - name: Installing Frontend Dependencies
+        uses: ./.github/actions/yarn-install
         with:
-          node-version: 20.x
+          working-directory: src/App/frontend
+          node-version: '20.x'
 
       - name: Setup hosts for local.altinn.cloud
         run: |
@@ -31,14 +32,11 @@ jobs:
           # Verify host resolution
           getent hosts local.altinn.cloud
 
-      - name: Start LocalTest, component-library and install frontend deps
+      - name: Start LocalTest and component-library
         run: |
           # Start LocalTest backend build in background
           (cd src/Runtime/localtest && docker compose up -d --build) & DOCKER_PID=$!
           echo "Waiting for backend at http://local.altinn.cloud:80/"
-
-          # Start frontend deps install in background
-          (cd src/App/frontend && yarn install) & YARN_PID=$!
 
           # Build .NET app in foreground
           cd src/test/apps/component-library/App
@@ -46,7 +44,7 @@ jobs:
           dotnet build --no-restore
 
           # Wait for background processes
-          wait $DOCKER_PID $YARN_PID
+          wait $DOCKER_PID
 
           # Now start services and wait for readiness
           timeout 120 bash -c 'until curl -f http://local.altinn.cloud/ > /dev/null 2>&1; do sleep 2; done'
@@ -81,7 +79,7 @@ jobs:
           echo "report_url=$REPORT_URL" >> $GITHUB_OUTPUT
       - name: Comment PR with Lighthouse Report
         if: github.event_name == 'pull_request' && steps.lighthouse-ci.outputs.report_url != ''
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
         env:
           REPORT_URL: ${{ steps.lighthouse-ci.outputs.report_url }}
         with:
