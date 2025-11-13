@@ -2,20 +2,12 @@ import React, { useState } from 'react';
 import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { properties } from '../../../../testing/schemas/json/component/Text.schema.v1.json';
-import {
-  type StringExpression,
-  StudioCard,
-  StudioFormActions,
-  StudioManualExpression,
-  StudioParagraph,
-  StudioProperty,
-} from '@studio/components';
+import { type StringExpression, StudioManualExpression, StudioProperty } from '@studio/components';
 import { useComponentPropertyLabel } from '@altinn/ux-editor/hooks';
 import { useTranslation } from 'react-i18next';
-import cn from 'classnames';
-import classes from './TextComponent.module.css';
 import { useExpressionTexts } from 'app-shared/hooks/useExpressionTexts';
 import { getDisplayValues } from './TextComponentUtils';
+import { StudioConfigCard } from '@studio/components';
 
 type TextProperties = keyof typeof properties;
 const textSpecificProperty: TextProperties = 'value';
@@ -23,13 +15,11 @@ const textSpecificProperty: TextProperties = 'value';
 export type TextComponentProps = {
   component: FormItem<ComponentType.Text>;
   handleComponentChange: (component: FormItem<ComponentType.Text>) => void;
-  className?: string;
 };
 
 export const TextComponent = ({
   component,
   handleComponentChange,
-  className,
 }: TextComponentProps): JSX.Element => {
   const componentPropertyLabel = useComponentPropertyLabel();
   const [value, setValue] = useState<StringExpression>(component?.value || null);
@@ -37,7 +27,7 @@ export const TextComponent = ({
   const [isValid, setIsValid] = useState(false);
   const texts = useExpressionTexts();
   const { t } = useTranslation();
-  const isDisabled = !isValid || value === component?.value;
+  const isSaveDisabled = !isValid || value === component?.value;
 
   if (!isEditMode) {
     return (
@@ -61,27 +51,39 @@ export const TextComponent = ({
     setIsEditMode(false);
   };
 
+  const handleDelete = () => {
+    handleComponentChange({
+      ...component,
+      value: '',
+    });
+    setIsEditMode(false);
+  };
+
   return (
-    <StudioCard className={cn(className, classes.wrapper)}>
-      <StudioParagraph>{componentPropertyLabel(textSpecificProperty)}</StudioParagraph>
-      <StudioManualExpression
-        expression={component.value}
-        onValidExpressionChange={handleValidChange}
-        onValidityChange={setIsValid}
-        texts={texts}
+    <StudioConfigCard>
+      <StudioConfigCard.Header
+        cardLabel={componentPropertyLabel(textSpecificProperty)}
+        deleteAriaLabel={t('general.delete')}
+        onDelete={handleDelete}
+        confirmDeleteMessage={t('ux_editor.properties_text.value_confirm_delete')}
+        isDeleteDisabled={!component?.value}
       />
-      <StudioFormActions
-        primary={{
-          label: t('general.save'),
-          onClick: saveValue,
-          disabled: isDisabled,
-        }}
-        secondary={{
-          label: t('general.cancel'),
-          onClick: () => setIsEditMode(false),
-        }}
+      <StudioConfigCard.Body>
+        <StudioManualExpression
+          expression={component.value}
+          onValidExpressionChange={handleValidChange}
+          onValidityChange={setIsValid}
+          texts={texts}
+        />
+      </StudioConfigCard.Body>
+      <StudioConfigCard.Footer
+        saveLabel={t('general.save')}
+        cancelLabel={t('general.cancel')}
+        onCancel={() => setIsEditMode(false)}
+        onSave={saveValue}
         isLoading={false}
+        isDisabled={isSaveDisabled}
       />
-    </StudioCard>
+    </StudioConfigCard>
   );
 };

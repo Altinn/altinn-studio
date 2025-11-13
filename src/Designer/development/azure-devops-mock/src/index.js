@@ -3,7 +3,11 @@ import cors from 'cors';
 import morgan from 'morgan';
 import { buildRoute, buildsRoute, kubernetesWrapperRoute } from './routes/builds.js';
 import { authenticationRoute } from './routes/authentication.js';
-import { storageApplicationMetadataRoute, storageTextsRoute } from './routes/storage.js';
+import {
+  storageApplicationMetadataRoute,
+  storageTextsRoute,
+  storageInstancesRoute,
+} from './routes/storage.js';
 import { environmentsRoute } from './routes/environments.js';
 import { appProcessRoute } from './routes/apps.js';
 
@@ -22,6 +26,7 @@ app.get('/apps/:org/:env/kuberneteswrapper/api/v1/deployments', kubernetesWrappe
 app.get('/apps/:org/:env/:org/:app/api/v1/meta/process', appProcessRoute);
 app.get('/storage/api/v1/applications/:org/:app', storageApplicationMetadataRoute);
 app.get('/storage/api/v1/applications/:org/:app/texts/:lang', storageTextsRoute);
+app.get('/storage/api/v1/studio/instances/:org/:app', storageInstancesRoute);
 app.post('/_apis/build/builds/', buildsRoute);
 
 app.all('*', function (req, res) {

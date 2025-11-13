@@ -29,6 +29,7 @@ export const TextResourceValueEditor = ({
 }: TextResourceValueEditorProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
+  const { t } = useTranslation();
   const value = getTextResourceValue(textResources, textResourceId);
   const minHeightInPx = 100;
   const maxHeightInPx = 400;
@@ -37,7 +38,6 @@ export const TextResourceValueEditor = ({
     minHeightInPx,
     maxHeightInPx,
   });
-  const { t } = useTranslation();
 
   const handleTextEntryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onTextChange?.(e.currentTarget.value);

@@ -20,7 +20,7 @@ jobs:
       - name: Check if auto-approval is needed
         id: check-labels
         run: |
-          labels=$(gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name')
+          labels=$(gh pr view ${{ github.event.pull_request.number }} --repo "${{ github.repository }}" --json labels --jq '.labels[].name')
           if echo "$labels" | grep -qE '^(skip-manual-testing|skip-second-approval)$'; then
             echo "should_approve=true" >> $GITHUB_OUTPUT
           else
@@ -31,6 +31,6 @@ jobs:
 
       - name: Auto approve PR
         if: steps.check-labels.outputs.should_approve == 'true'
-        run: gh pr review ${{ github.event.pull_request.number }} --approve
+        run: gh pr review ${{ github.event.pull_request.number }} --repo "${{ github.repository }}" --approve
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
