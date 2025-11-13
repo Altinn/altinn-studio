@@ -4,15 +4,15 @@
 }
 
 .content {
-  padding: 0;
-}
-
-.itemButton {
-  justify-content: flex-start;
+  padding: var(--ds-size-3);
 }
 
 .trigger {
   position: absolute;
-  top: var(--fds-spacing-3);
-  right: var(--fds-spacing-3);
+  top: var(--ds-size-3);
+  right: var(--ds-size-3);
+}
+
+.linkButton {
+  margin-left: var(--ds-size-4);
 }

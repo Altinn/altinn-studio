@@ -1,16 +1,17 @@
 import React from 'react';
 import { useRouterContext } from '../../../contexts/RouterContext';
 import type { PageName } from '../../../types/PageName';
-import { useContentTabs } from '../../../hooks/useLibraryMenuContentTabs';
 import { StudioContentMenu } from '@studio/components';
+import type { ContentLibraryConfig } from '../../../types/ContentLibraryConfig';
+import type { Page } from '../../../pages/Page';
+import { pages } from '../../../pages';
 
 type PagesRouterProps = {
-  pageNames: PageName[];
+  config: ContentLibraryConfig;
 };
 
-export function PagesRouter({ pageNames }: PagesRouterProps): React.ReactElement {
+export function PagesRouter({ config }: PagesRouterProps): React.ReactElement {
   const { navigate, currentPage } = useRouterContext();
-  const contentTabs = useContentTabs();
 
   const handleNavigation = (pageToNavigateTo: PageName) => {
     navigate(pageToNavigateTo);
@@ -18,15 +19,11 @@ export function PagesRouter({ pageNames }: PagesRouterProps): React.ReactElement
 
   return (
     <StudioContentMenu selectedTabId={currentPage} onChangeTab={handleNavigation}>
-      {pageNames.map((pageName) => (
-        <StudioContentMenu.LinkTab
-          key={contentTabs[pageName].tabId}
-          icon={contentTabs[pageName].icon}
-          tabId={contentTabs[pageName].tabId}
-          tabName={contentTabs[pageName].tabName}
-          renderTab={contentTabs[pageName].renderTab}
-        />
-      ))}
+      {configuredPages(config).map((page) => page.renderTab())}
     </StudioContentMenu>
   );
+}
+
+function configuredPages(config: ContentLibraryConfig): Page<PageName>[] {
+  return Object.values(pages).filter((page) => page.isConfigured(config));
 }

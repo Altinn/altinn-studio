@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable disable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -143,8 +144,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/allaccesslists")]
         public async Task<ActionResult> GetAllAccessLists(string org)
         {
-            // check that the user is member of at least one Resources-Publish-XXXX team in the given organization to 
-            // call this service. We use the Resources-Publish team instead of the AccessLists team, so users 
+            // check that the user is member of at least one Resources-Publish-XXXX team in the given organization to
+            // call this service. We use the Resources-Publish team instead of the AccessLists team, so users
             // publishing resource can also set accesslists in policy (but might not have access to change acceslists)
             bool hasPublishResourcePermission = await HasPublishResourcePermissionInAnyEnv(org);
             if (!hasPublishResourcePermission)
@@ -239,7 +240,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
             else
             {
-                using SemaphoreSlim semaphore = new(25); // Limit to 25 concurrent requests 
+                using SemaphoreSlim semaphore = new(25); // Limit to 25 concurrent requests
 
                 async Task<ListviewServiceResource> ProcessResourceAsync(ServiceResource resource)
                 {
@@ -272,12 +273,19 @@ namespace Altinn.Studio.Designer.Controllers
                     string cacheKey = $"resourcelist_${environment}";
                     if (!_memoryCache.TryGetValue(cacheKey, out List<ServiceResource> environmentResources))
                     {
-                        environmentResources = await _resourceRegistry.GetResourceList(environment, false);
-
-                        var cacheEntryOptions = new MemoryCacheEntryOptions()
-                            .SetPriority(CacheItemPriority.High)
-                            .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
-                        _memoryCache.Set(cacheKey, environmentResources, cacheEntryOptions);
+                        try
+                        {
+                            environmentResources = await _resourceRegistry.GetResourceList(environment, false);
+                            var cacheEntryOptions = new MemoryCacheEntryOptions()
+                                .SetPriority(CacheItemPriority.High)
+                                .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
+                            _memoryCache.Set(cacheKey, environmentResources, cacheEntryOptions);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error fetching resource list for env {environment}: {ex.Message}");
+                            environmentResources = [];
+                        }
                     }
 
                     IEnumerable<ServiceResource> environmentResourcesForOrg = environmentResources.Where(x =>

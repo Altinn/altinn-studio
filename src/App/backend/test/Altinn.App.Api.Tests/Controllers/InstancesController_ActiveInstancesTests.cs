@@ -82,7 +82,7 @@ public class InstancesController_ActiveInstancesTest
             .Mock<IInstanceClient>()
             .Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>()))
             .ReturnsAsync(instances);
-        // _profile.Setup(p=>p.GetUserProfile(12345)).ReturnsAsync(default(UserProfile)!);
+        fixture.Mock<IProfileClient>().Setup(p => p.GetUserProfile(12345)).ReturnsAsync(default(UserProfile)!);
 
         // Act
         var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();

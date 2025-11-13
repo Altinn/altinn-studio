@@ -12,8 +12,8 @@ import type {
   ContentLibraryConfig,
   PagesConfig,
   ResourceContentLibraryImpl,
-  TextResourceWithLanguage,
   TextResources,
+  TextResourceWithLanguage,
 } from '@studio/content-library';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { Route, Routes } from 'react-router-dom';
@@ -28,6 +28,8 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import userEvent from '@testing-library/user-event';
+import { FeatureFlag } from '@studio/feature-flags';
+import { codeListsNewResponse } from './test-data/codeListsNewResponse';
 
 // Test data:
 const orgName: string = 'org';
@@ -39,6 +41,7 @@ const repositoryName = `${orgName}-content`;
 const repoStatusQueryKey: string[] = [QueryKey.RepoStatus, orgName, repositoryName];
 const orgCodeListsQueryKey: string[] = [QueryKey.OrgCodeLists, orgName];
 const orgTextResourcesQueryKey: string[] = [QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE];
+const orgCodeListsNewQueryKey: string[] = [QueryKey.OrgCodeListsNew, orgName];
 
 // Mocks:
 jest.mock('@studio/content-library', () => ({
@@ -275,12 +278,34 @@ describe('OrgContentLibraryPage', () => {
     const user = userEvent.setup();
     renderOrgContentLibraryWithData();
     await user.click(screen.getByRole('button', { name: /Gi tilbakemelding/ }));
-    expect(screen.getByRole('dialog', { name: /Gi tilbakemelding om biblioteket/ })).toBeVisible();
+    expect(screen.getByRole('dialog')).toBeVisible();
+    expect(
+      screen.getByRole('heading', { name: /Gi tilbakemelding om biblioteket/ }),
+    ).toBeInTheDocument();
   });
 
   it('Renders with the organisation library heading', () => {
     renderOrgContentLibraryWithData();
     expect(retrieveConfig().heading).toBe(textMock('org_content_library.library_heading'));
+  });
+
+  it('Does not render with the new code list page by default', () => {
+    renderOrgContentLibraryWithData();
+    const pagesConfig = retrievePagesConfig();
+    expect(pagesConfig).not.toHaveProperty('codeLists');
+  });
+
+  it('Renders with the new code list page when the feature flag is enabled', () => {
+    renderOrgContentLibraryWithData({ featureFlags: [FeatureFlag.NewCodeLists] });
+    const pagesConfig = retrievePagesConfig();
+    expect(pagesConfig).toHaveProperty('codeLists');
+  });
+
+  it('Renders with code lists on the new code list page', () => {
+    renderOrgContentLibraryWithData({ featureFlags: [FeatureFlag.NewCodeLists] });
+    const pagesConfig = retrievePagesConfig();
+    const { codeLists } = pagesConfig.codeLists.props;
+    expect(codeLists).toHaveLength(codeListsNewResponse.codeListWrappers.length);
   });
 });
 
@@ -294,6 +319,7 @@ function createQueryClientWithData(): QueryClient {
   queryClient.setQueryData(orgCodeListsQueryKey, codeListDataList);
   queryClient.setQueryData(orgTextResourcesQueryKey, textResourcesWithLanguage);
   queryClient.setQueryData(repoStatusQueryKey, repoStatus);
+  queryClient.setQueryData(orgCodeListsNewQueryKey, codeListsNewResponse);
   return queryClient;
 }
 
@@ -307,6 +333,7 @@ function createQueryClientWithMissingTextResources(): QueryClient {
   queryClient.setQueryData(orgCodeListsQueryKey, codeListDataList);
   queryClient.setQueryData(orgTextResourcesQueryKey, null);
   queryClient.setQueryData(repoStatusQueryKey, repoStatus);
+  queryClient.setQueryData(orgCodeListsNewQueryKey, codeListsNewResponse);
   return queryClient;
 }
 

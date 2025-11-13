@@ -1,4 +1,5 @@
-﻿namespace Altinn.Studio.Designer.Filters.Git
+﻿#nullable disable
+namespace Altinn.Studio.Designer.Filters.Git
 {
     public class GitErrorCodes
     {

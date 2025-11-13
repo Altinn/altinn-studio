@@ -5,3 +5,14 @@ resources:
   - service.yaml
   - deployment.yaml
   - networkpolicy.yaml
+replacements:
+- source:
+    kind: Deployment
+    name: studio-gateway
+    fieldPath: metadata.annotations.[altinn.studio/image]
+  targets:
+  - select:
+      kind: Deployment
+      name: studio-gateway
+    fieldPaths:
+      - spec.template.spec.containers.[name=studio-gateway].image

@@ -3,8 +3,7 @@ import React, { useMemo } from 'react';
 import { formatDate } from 'date-fns';
 
 import { PrettyDateAndTime } from 'src/app-components/Datepicker/utils/dateHelpers';
-import { AltinnContentIconReceipt } from 'src/components/atoms/AltinnContentIconReceipt';
-import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoader';
+import { AltinnContentLoader } from 'src/app-components/loading/AltinnContentLoader/AltinnContentLoader';
 import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
 import { ReceiptComponentSimple } from 'src/components/organisms/AltinnReceiptSimple';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
@@ -15,7 +14,7 @@ import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
-import { getInstanceSender } from 'src/features/processEnd/confirm/helpers/returnConfirmSummaryObject';
+import { getInstanceSender } from 'src/features/process/confirm/helpers/returnConfirmSummaryObject';
 import { FixWrongReceiptType } from 'src/features/receipt/FixWrongReceiptType';
 import { useNavigationParam } from 'src/hooks/navigation';
 import {
@@ -163,12 +162,11 @@ export const ReceiptContainer = () => {
   if (requirementMissing || !(instanceMetaObject && pdfDisplayAttachments)) {
     return (
       <AltinnContentLoader
+        variant='receipt'
         width={705}
         height={561}
         reason={`receipt-missing-${requirementMissing}`}
-      >
-        <AltinnContentIconReceipt />
-      </AltinnContentLoader>
+      />
     );
   }
 

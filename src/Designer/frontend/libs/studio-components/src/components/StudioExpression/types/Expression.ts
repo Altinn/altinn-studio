@@ -69,7 +69,9 @@ export type NumberExpression = null | StrictNumberExpression | FuncIf | StrictSt
 
 type StrictNumberExpression = number | FuncStringLength;
 
-type GenericDataLookupFunc<N extends DataLookupFuncName> = [N, StringExpression];
+type GenericDataLookupFunc<N extends DataLookupFuncName> =
+  | [N, StringExpression]
+  | [N, StringExpression, StringExpression];
 export type DataLookupFunc<N extends DataLookupFuncName = DataLookupFuncName> = {
   [K in N]: GenericDataLookupFunc<K>;
 }[N];

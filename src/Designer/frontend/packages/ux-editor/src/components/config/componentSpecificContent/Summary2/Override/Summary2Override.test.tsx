@@ -133,7 +133,7 @@ describe('Summary2Override', () => {
     render({ component });
     await user.click(overrideCollapsedButton(1));
     await user.click(
-      screen.getByRole('checkbox', {
+      screen.getByRole('switch', {
         name: textMock('ux_editor.component_properties.summary.override.show_component'),
       }),
     );
@@ -146,7 +146,7 @@ describe('Summary2Override', () => {
     );
   });
 
-  it('"isCompact" checkbox should not be checked when isCompact is false', async () => {
+  it('"isCompact" switch should not be checked when isCompact is false', async () => {
     const user = userEvent.setup();
     const component = {
       ...defaultProps.component,
@@ -154,7 +154,7 @@ describe('Summary2Override', () => {
     };
     render({ component });
     await user.click(overrideCollapsedButton(1));
-    const compactCheckbox = screen.getByRole('checkbox', {
+    const compactCheckbox = screen.getByRole('switch', {
       name: textMock('ux_editor.component_properties.summary.override.is_compact'),
     });
     expect(compactCheckbox).toBeInTheDocument();
@@ -169,7 +169,7 @@ describe('Summary2Override', () => {
     );
   });
 
-  it('"isCompact" checkbox should be checked when isCompact is true', async () => {
+  it('"isCompact" switch should be checked when isCompact is true', async () => {
     const user = userEvent.setup();
     const component = {
       ...defaultProps.component,
@@ -177,7 +177,7 @@ describe('Summary2Override', () => {
     };
     render({ component });
     await user.click(overrideCollapsedButton(1));
-    const compactCheckbox = screen.getByRole('checkbox', {
+    const compactCheckbox = screen.getByRole('switch', {
       name: textMock('ux_editor.component_properties.summary.override.is_compact'),
     });
     expect(compactCheckbox).toBeInTheDocument();

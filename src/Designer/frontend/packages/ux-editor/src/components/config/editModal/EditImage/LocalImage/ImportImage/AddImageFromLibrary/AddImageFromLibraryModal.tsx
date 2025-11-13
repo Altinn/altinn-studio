@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { StudioModal } from '@studio/components-legacy';
+import { StudioDialog, StudioHeading } from '@studio/components';
 import { ChooseFromLibrary } from './ChooseFromLibrary/ChooseFromLibrary';
 import { useTranslation } from 'react-i18next';
 import classes from './AddImageFromLibraryModal.module.css';
@@ -19,14 +19,20 @@ export const AddImageFromLibraryModal = forwardRef<
   const { data: imagesFileNames } = useGetAllImageFileNamesQuery(org, app);
 
   return (
-    <StudioModal.Dialog
-      closeButtonTitle={t('general.close')}
-      heading={t('ux_editor.properties_panel.images.choose_from_library_modal_title')}
+    <StudioDialog
       ref={ref}
-      className={imagesFileNames?.length > 0 && classes.dialog}
+      className={imagesFileNames?.length > 0 ? classes.dialog : undefined}
+      closedby='any'
     >
-      <ChooseFromLibrary onAddImageReference={onAddImageReference} />
-    </StudioModal.Dialog>
+      <StudioDialog.Block>
+        <StudioHeading level={2}>
+          {t('ux_editor.properties_panel.images.choose_from_library_modal_title')}
+        </StudioHeading>
+      </StudioDialog.Block>
+      <StudioDialog.Block>
+        <ChooseFromLibrary onAddImageReference={onAddImageReference} />
+      </StudioDialog.Block>
+    </StudioDialog>
   );
 });
 

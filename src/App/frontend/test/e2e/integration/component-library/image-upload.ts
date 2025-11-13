@@ -59,7 +59,7 @@ describe('ImageUpload component', () => {
       }
       const originalPixels = ctx.getImageData(0, 0, $canvas[0].width, $canvas[0].height).data;
 
-      cy.contains('label', 'Bytt bilde').selectFile(makeTestFile(fileName2, newImageUrl), { force: true });
+      cy.get('input[type="file"]').selectFile(makeTestFile(fileName2, newImageUrl), { force: true });
       cy.get('canvas').should(($newCanvas) => {
         const ctx2 = $newCanvas[0].getContext('2d');
         if (!ctx2) {

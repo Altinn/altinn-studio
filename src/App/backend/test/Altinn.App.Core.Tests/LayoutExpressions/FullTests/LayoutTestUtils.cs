@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Expressions;
@@ -18,8 +17,6 @@ namespace Altinn.App.Core.Tests.LayoutExpressions.FullTests;
 
 public static class LayoutTestUtils
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
-
     private const string Org = "ttd";
     private const string App = "test";
     private const string AppId = $"{Org}/{App}";
@@ -42,6 +39,12 @@ public static class LayoutTestUtils
     {
         Id = _dataGuid.ToString(),
         DataType = "default",
+    };
+
+    private static JsonDocumentOptions _options = new()
+    {
+        AllowTrailingCommas = true,
+        CommentHandling = JsonCommentHandling.Skip,
     };
 
     public static async Task<LayoutEvaluatorState> GetLayoutModelTools(object model, string folder)
@@ -78,11 +81,11 @@ public static class LayoutTestUtils
         foreach (var layoutFile in Directory.GetFiles(layoutsPath, "*.json"))
         {
             var layoutBytes = await File.ReadAllBytesAsync(layoutFile);
-            string pageName = layoutFile.Replace(layoutsPath + "/", string.Empty).Replace(".json", string.Empty);
+            string pageName = Path.GetFileNameWithoutExtension(layoutFile);
 
-            PageComponentConverter.SetAsyncLocalPageName("layout", pageName);
+            using var document = JsonDocument.Parse(layoutBytes, _options);
 
-            pages.Add(JsonSerializer.Deserialize<PageComponent>(layoutBytes.RemoveBom(), _jsonSerializerOptions)!);
+            pages.Add(PageComponent.Parse(document.RootElement, pageName, "layout"));
         }
         var dataType = new DataType() { Id = DataTypeId };
         var layout = new LayoutSetComponent(pages, "layout", dataType);

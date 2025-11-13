@@ -9,6 +9,7 @@ namespace Altinn.App.Core.Helpers.DataModel;
 /// <summary>
 /// Get data fields from a model, using string keys (like "Bedrifter[1].Ansatte[1].Alder")
 /// </summary>
+[Obsolete("This class is no longer in use by altinn and will be removed in a future version")]
 public class DataModel
 {
     private readonly IInstanceDataAccessor _dataAccessor;
@@ -79,9 +80,9 @@ public class DataModel
     /// Get model data based on key and optionally indexes
     /// </summary>
     /// <remarks>
-    /// Inline indicies in the key "Bedrifter[1].Ansatte[1].Alder" will override
-    /// normal indicies, and if both "Bedrifter" and "Ansatte" is lists,
-    /// "Bedrifter[1].Ansatte.Alder", will fail, because the indicies will be reset
+    /// Inline indexes in the key "Bedrifter[1].Ansatte[1].Alder" will override
+    /// normal indexes, and if both "Bedrifter" and "Ansatte" is lists,
+    /// "Bedrifter[1].Ansatte.Alder", will fail, because the indexes will be reset
     /// after an inline index is used
     /// </remarks>
     public async Task<object?> GetModelData(
@@ -146,11 +147,11 @@ public class DataModel
     }
 
     /// <summary>
-    /// Return a full dataModelBiding from a context aware binding by adding indicies
+    /// Return a full dataModelBinding from a context aware binding by adding indexes
     /// </summary>
     /// <example>
     /// key = "bedrift.ansatte.navn"
-    /// indicies = [1,2]
+    /// indexes = [1,2]
     /// => "bedrift[1].ansatte[2].navn"
     /// </example>
     public async Task<DataReference> AddIndexes(

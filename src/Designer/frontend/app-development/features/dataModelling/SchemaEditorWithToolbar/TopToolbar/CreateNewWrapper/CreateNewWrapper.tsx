@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import classes from './CreateNewWrapper.module.css';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@studio/icons';
-import { StudioPopover, StudioTextfield } from '@studio/components-legacy';
+import { StudioPopover, StudioButton, StudioTextfield } from '@studio/components';
 import { useValidateSchemaName } from 'app-shared/hooks/useValidateSchemaName';
 import { useCreateDataModelMutation } from '../../../../../hooks/mutations';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
@@ -11,7 +11,6 @@ import { extractModelNamesFromMetadataList } from '../../../../../utils/metadata
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { extractDataTypeNamesFromAppMetadata } from '../utils/validationUtils';
-import { StudioButton } from '@studio/components';
 
 export interface CreateNewWrapperProps {
   disabled: boolean;
@@ -71,34 +70,37 @@ export function CreateNewWrapper({
   };
 
   return (
-    <StudioPopover open={isCreateNewOpen} onClose={handleOpenChange}>
+    <StudioPopover.TriggerContext>
       <StudioPopover.Trigger
         id='create-new-data-model-button'
         disabled={disabled}
         variant='tertiary'
         onClick={handleOpenChange}
-        size='small'
+        icon={<PlusIcon />}
       >
-        {<PlusIcon />}
         {t('general.create_new')}
       </StudioPopover.Trigger>
-      <StudioPopover.Content className={classes.popover}>
-        <StudioTextfield
-          id='newModelInput'
-          label={t('schema_editor.create_model_description')}
-          onChange={handleNameChange}
-          onKeyUp={handleKeyUp}
-          error={nameError}
-          autoFocus
-        />
-        <StudioButton
-          onClick={handleConfirm}
-          disabled={!isConfirmButtonActivated}
-          variant='secondary'
-        >
-          {t('schema_editor.create_model_confirm_button')}
-        </StudioButton>
-      </StudioPopover.Content>
-    </StudioPopover>
+      <StudioPopover open={isCreateNewOpen} onClose={() => setIsCreateNewOpen(false)}>
+        {isCreateNewOpen && (
+          <div className={classes.popover}>
+            <StudioTextfield
+              id='newModelInput'
+              label={t('schema_editor.create_model_description')}
+              onChange={handleNameChange}
+              onKeyUp={handleKeyUp}
+              error={nameError}
+              autoFocus
+            />
+            <StudioButton
+              onClick={handleConfirm}
+              disabled={!isConfirmButtonActivated}
+              variant='secondary'
+            >
+              {t('schema_editor.create_model_confirm_button')}
+            </StudioButton>
+          </div>
+        )}
+      </StudioPopover>
+    </StudioPopover.TriggerContext>
   );
 }

@@ -103,7 +103,8 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         TranslationService translationService = new(
             appIdentifier,
             appResourcesMock.Object,
-            FakeLoggerXunit.Get<TranslationService>(output)
+            FakeLoggerXunit.Get<TranslationService>(output),
+            appMetadataMock.Object
         );
 
         SigningCallToActionService service = SetupService(
@@ -192,7 +193,8 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         TranslationService translationService = new(
             appIdentifier,
             appResourcesMock.Object,
-            FakeLoggerXunit.Get<TranslationService>(output)
+            FakeLoggerXunit.Get<TranslationService>(output),
+            appMetadataMock.Object
         );
 
         SigningCallToActionService service = SetupService(
@@ -293,7 +295,8 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         TranslationService translationService = new(
             appIdentifier,
             appResourcesMock.Object,
-            FakeLoggerXunit.Get<TranslationService>(output)
+            FakeLoggerXunit.Get<TranslationService>(output),
+            appMetadataMock.Object
         );
 
         SigningCallToActionService service = SetupService(
@@ -394,7 +397,8 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         TranslationService translationService = new(
             appIdentifier,
             appResourcesMock.Object,
-            FakeLoggerXunit.Get<TranslationService>(output)
+            FakeLoggerXunit.Get<TranslationService>(output),
+            appMetadataMock.Object
         );
 
         SigningCallToActionService service = SetupService(
@@ -482,7 +486,8 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         TranslationService translationService = new(
             appIdentifier,
             appResourcesMock.Object,
-            FakeLoggerXunit.Get<TranslationService>(output)
+            FakeLoggerXunit.Get<TranslationService>(output),
+            appMetadataMock.Object
         );
 
         SigningCallToActionService service = SetupService(
@@ -538,7 +543,8 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         TranslationService translationService = new(
             appIdentifier,
             mock.Object,
-            FakeLoggerXunit.Get<TranslationService>(output)
+            FakeLoggerXunit.Get<TranslationService>(output),
+            appMetadata: null
         );
         SigningCallToActionService service = SetupService(translationServiceOverride: translationService);
 

@@ -18,8 +18,7 @@ import type i18next from 'i18next';
 import type { FormComponent } from '../../types/FormComponent';
 import { CogIcon, PlusIcon, XMarkOctagonFillIcon } from '@studio/icons';
 import type { FormContainer } from '../../types/FormContainer';
-import { StudioModal } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioDialog, StudioHeading } from '@studio/components';
 import { withTranslation } from 'react-i18next';
 import {
   conditionalRenderingDeleteButtonId,
@@ -289,192 +288,195 @@ class ConditionalRendering extends React.Component<
     const selectedMethod = this.state.conditionalRendering.selectedFunction;
     const selectedMethodNr = this.state.selectedFunctionNr;
     return (
-      <StudioModal.Root>
+      <StudioDialog.TriggerContext>
         {!this.props.connectionId ? (
-          <StudioModal.Trigger
+          <StudioDialog.Trigger
             aria-label={this.props.t('right_menu.rules_conditional_rendering_add_alt')}
             icon={<PlusIcon />}
             variant='tertiary'
           />
         ) : (
-          <StudioModal.Trigger variant='tertiary' icon={<CogIcon />}>
+          <StudioDialog.Trigger variant='tertiary' icon={<CogIcon />}>
             {selectedMethod}
-          </StudioModal.Trigger>
+          </StudioDialog.Trigger>
         )}
-        <StudioModal.Dialog
-          ref={this.state.dialogRef}
-          heading={this.props.t('ux_editor.modal_configure_conditional_rendering_header')}
-          closeButtonTitle={this.props.t('general.close')}
-        >
-          <div className={classes.formGroup}>
-            <label htmlFor='selectConditionalRule' className={classes.label}>
-              {this.props.t('ux_editor.modal_configure_conditional_rendering_helper')}
-            </label>
-            <select
-              name='selectConditionalRule'
-              onChange={this.handleSelectedMethodChange}
-              value={selectedMethod}
-              className={classes.customSelect}
-              id='selectConditionalRule'
-              style={{ fontSize: '16px' }}
-            >
-              <option value=''>{this.props.t('general.choose_method')}</option>
-              {this.props.ruleModelElements?.map((funcObj: any) => {
-                return (
-                  <option key={funcObj.name} value={funcObj.name}>
-                    {funcObj.name}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-          {this.state.conditionalRendering.selectedFunction ? (
-            <>
-              <div>
-                <h2 className={classes.subTitle}>
-                  {this.props.t(
-                    'ux_editor.modal_configure_conditional_rendering_configure_input_header',
-                  )}
-                </h2>
-                {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map(
-                  (key: any) => {
-                    const paramName = key;
-                    return (
-                      <Fragment key={key}>
-                        <label className={classes.label} htmlFor={paramName}>
-                          {this.props.t(
-                            'ux_editor.modal_configure_conditional_rendering_configure_input_param_helper',
-                          )}
-                        </label>
-                        <div className={classes.configureInputParamsContainer} key={key}>
-                          <input
-                            id={paramName}
-                            name={paramName}
-                            type='text'
-                            className={classes.inputType}
-                            value={this.props.ruleModelElements[selectedMethodNr].inputs[key]}
-                            width={10}
-                            disabled={true}
-                          />
-
-                          <div>
-                            <SelectDataModelComponent
-                              label={this.props.t('ux_editor.modal_properties_data_model_helper')}
-                              onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
-                              selectedElement={
-                                this.state.conditionalRendering.inputParams[paramName]
-                              }
-                              hideRestrictions={true}
-                            />
-                          </div>
-                        </div>
-                      </Fragment>
-                    );
-                  },
-                )}
-              </div>
-              <div>
-                <h2 className={classes.subTitle}>
-                  {this.props.t(
-                    'ux_editor.modal_configure_conditional_rendering_configure_output_header',
-                  )}
-                </h2>
-                <div className={classes.selectActionContainer}>
-                  <label className={classes.label} htmlFor='select_action'>
-                    {this.props.t(
-                      'ux_editor.modal_configure_conditional_rendering_configure_output_action_helper',
-                    )}
-                  </label>
-                  <select
-                    id='select_action'
-                    value={this.state.conditionalRendering.selectedAction}
-                    onChange={this.handleActionChange}
-                    className={classes.customSelect}
-                    style={{ fontSize: '16px' }}
-                  >
-                    <option value=''>{this.props.t('general.action')}</option>
-                    {this.state.selectableActions.map((value: string) => {
-                      return (
-                        <option key={value} value={value}>
-                          {value}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </div>
-                <p>
-                  {this.props.t(
-                    'ux_editor.modal_configure_conditional_rendering_configure_output_field_helper',
-                  )}
-                </p>
-                {Object.keys(this.state.conditionalRendering.selectedFields).map((key: any) => {
+        <StudioDialog ref={this.state.dialogRef}>
+          <StudioDialog.Block>
+            <StudioHeading level={2}>
+              {this.props.t('ux_editor.modal_configure_conditional_rendering_header')}
+            </StudioHeading>
+          </StudioDialog.Block>
+          <StudioDialog.Block>
+            <div className={classes.formGroup}>
+              <label htmlFor='selectConditionalRule' className={classes.label}>
+                {this.props.t('ux_editor.modal_configure_conditional_rendering_helper')}
+              </label>
+              <select
+                name='selectConditionalRule'
+                onChange={this.handleSelectedMethodChange}
+                value={selectedMethod}
+                className={classes.customSelect}
+                id='selectConditionalRule'
+                style={{ fontSize: '16px' }}
+              >
+                <option value=''>{this.props.t('general.choose_method')}</option>
+                {this.props.ruleModelElements?.map((funcObj: any) => {
                   return (
-                    <div className={classes.chooseComponentContainer} key={key}>
-                      <select
-                        name={key}
-                        data-testid={conditionalRenderingOutputFieldId}
-                        onChange={this.handleFieldMappingChange.bind(null, key)}
-                        value={this.state.conditionalRendering.selectedFields[key]}
-                        className={classes.customSelect}
-                        style={{ fontSize: '16px' }}
-                      >
-                        <option value=''>{this.props.t('general.select_component')}</option>
-                        {this.renderConditionalRenderingTargetOptions()}
-                      </select>
-
-                      <StudioButton
-                        type='button'
-                        data-testid={conditionalRenderingDeleteButtonId}
-                        className={classes.deleteFieldButton}
-                        onClick={this.removeFieldMapping.bind(null, key)}
-                      >
-                        <XMarkOctagonFillIcon className={classes.exitIcon} />
-                      </StudioButton>
-                    </div>
+                    <option key={funcObj.name} value={funcObj.name}>
+                      {funcObj.name}
+                    </option>
                   );
                 })}
+              </select>
+            </div>
+            {this.state.conditionalRendering.selectedFunction ? (
+              <>
+                <div>
+                  <h2 className={classes.subTitle}>
+                    {this.props.t(
+                      'ux_editor.modal_configure_conditional_rendering_configure_input_header',
+                    )}
+                  </h2>
+                  {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map(
+                    (key: any) => {
+                      const paramName = key;
+                      return (
+                        <Fragment key={key}>
+                          <label className={classes.label} htmlFor={paramName}>
+                            {this.props.t(
+                              'ux_editor.modal_configure_conditional_rendering_configure_input_param_helper',
+                            )}
+                          </label>
+                          <div className={classes.configureInputParamsContainer} key={key}>
+                            <input
+                              id={paramName}
+                              name={paramName}
+                              type='text'
+                              className={classes.inputType}
+                              value={this.props.ruleModelElements[selectedMethodNr].inputs[key]}
+                              width={10}
+                              disabled={true}
+                            />
+
+                            <div>
+                              <SelectDataModelComponent
+                                label={this.props.t('ux_editor.modal_properties_data_model_helper')}
+                                onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
+                                selectedElement={
+                                  this.state.conditionalRendering.inputParams[paramName]
+                                }
+                                hideRestrictions={true}
+                              />
+                            </div>
+                          </div>
+                        </Fragment>
+                      );
+                    },
+                  )}
+                </div>
+                <div>
+                  <h2 className={classes.subTitle}>
+                    {this.props.t(
+                      'ux_editor.modal_configure_conditional_rendering_configure_output_header',
+                    )}
+                  </h2>
+                  <div className={classes.selectActionContainer}>
+                    <label className={classes.label} htmlFor='select_action'>
+                      {this.props.t(
+                        'ux_editor.modal_configure_conditional_rendering_configure_output_action_helper',
+                      )}
+                    </label>
+                    <select
+                      id='select_action'
+                      value={this.state.conditionalRendering.selectedAction}
+                      onChange={this.handleActionChange}
+                      className={classes.customSelect}
+                      style={{ fontSize: '16px' }}
+                    >
+                      <option value=''>{this.props.t('general.action')}</option>
+                      {this.state.selectableActions.map((value: string) => {
+                        return (
+                          <option key={value} value={value}>
+                            {value}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                  <p>
+                    {this.props.t(
+                      'ux_editor.modal_configure_conditional_rendering_configure_output_field_helper',
+                    )}
+                  </p>
+                  {Object.keys(this.state.conditionalRendering.selectedFields).map((key: any) => {
+                    return (
+                      <div className={classes.chooseComponentContainer} key={key}>
+                        <select
+                          name={key}
+                          data-testid={conditionalRenderingOutputFieldId}
+                          onChange={this.handleFieldMappingChange.bind(null, key)}
+                          value={this.state.conditionalRendering.selectedFields[key]}
+                          className={classes.customSelect}
+                          style={{ fontSize: '16px' }}
+                        >
+                          <option value=''>{this.props.t('general.select_component')}</option>
+                          {this.renderConditionalRenderingTargetOptions()}
+                        </select>
+
+                        <StudioButton
+                          type='button'
+                          data-testid={conditionalRenderingDeleteButtonId}
+                          className={classes.deleteFieldButton}
+                          onClick={this.removeFieldMapping.bind(null, key)}
+                        >
+                          <XMarkOctagonFillIcon className={classes.exitIcon} />
+                        </StudioButton>
+                      </div>
+                    );
+                  })}
+                  <StudioButton
+                    type='button'
+                    className={classes.addFieldButton}
+                    onClick={this.addNewField}
+                  >
+                    {this.props.t(
+                      'ux_editor.modal_configure_conditional_rendering_configure_add_new_field_mapping',
+                    )}
+                  </StudioButton>
+                </div>
+              </>
+            ) : null}
+            <div className={classes.buttonsContainer}>
+              {this.state.conditionalRendering.selectedFunction ? (
+                <StudioButton
+                  onClick={this.handleSaveEdit}
+                  type='submit'
+                  className={classes.saveButton}
+                >
+                  {this.props.t('general.save')}
+                </StudioButton>
+              ) : null}
+              {this.props.connectionId ? (
                 <StudioButton
                   type='button'
-                  className={classes.addFieldButton}
-                  onClick={this.addNewField}
+                  className={classes.dangerButton}
+                  onClick={this.handleDeleteConnection}
                 >
-                  {this.props.t(
-                    'ux_editor.modal_configure_conditional_rendering_configure_add_new_field_mapping',
-                  )}
+                  {this.props.t('general.delete')}
                 </StudioButton>
-              </div>
-            </>
-          ) : null}
-          <div className={classes.buttonsContainer}>
-            {this.state.conditionalRendering.selectedFunction ? (
+              ) : null}
               <StudioButton
-                onClick={this.handleSaveEdit}
-                type='submit'
-                className={classes.saveButton}
+                className={classes.cancelButton}
+                onClick={() => {
+                  this.state.dialogRef?.current?.close();
+                }}
               >
-                {this.props.t('general.save')}
+                {this.props.t('general.cancel')}
               </StudioButton>
-            ) : null}
-            {this.props.connectionId ? (
-              <StudioButton
-                type='button'
-                className={classes.dangerButton}
-                onClick={this.handleDeleteConnection}
-              >
-                {this.props.t('general.delete')}
-              </StudioButton>
-            ) : null}
-            <StudioButton
-              className={classes.cancelButton}
-              onClick={() => {
-                this.state.dialogRef?.current?.close();
-              }}
-            >
-              {this.props.t('general.cancel')}
-            </StudioButton>
-          </div>
-        </StudioModal.Dialog>
-      </StudioModal.Root>
+            </div>
+          </StudioDialog.Block>
+        </StudioDialog>
+      </StudioDialog.TriggerContext>
     );
   }
 }

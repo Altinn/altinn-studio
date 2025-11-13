@@ -94,11 +94,16 @@ func CopyTestInput(dst http.Header, src http.Header) {
 	}
 }
 
+type CookieInfo struct {
+	Name   string `json:"name"`
+	Domain string `json:"domain"`
+}
+
 type BrowserState struct {
-	State            string   `json:"state"`            // Session state when snapshot was taken (e.g., "Generating", "CleaningUp")
-	Cookies          []string `json:"cookies"`          // List of cookie names present in browser
-	ConsoleErrorLogs int      `json:"consoleErrorLogs"` // Count of console errors at this point
-	BrowserErrors    int      `json:"browserErrors"`    // Count of browser errors at this point
+	State            string       `json:"state"`            // Session state when snapshot was taken (e.g., "Generating", "CleaningUp")
+	Cookies          []CookieInfo `json:"cookies"`          // List of cookies present in browser with domain info
+	ConsoleErrorLogs int          `json:"consoleErrorLogs"` // Count of console errors at this point
+	BrowserErrors    int          `json:"browserErrors"`    // Count of browser errors at this point
 }
 
 type PdfInternalsTestOutput struct {

@@ -3,11 +3,13 @@ import type {
   CodeListEditorTexts,
   TextResource,
 } from '@studio/components-legacy';
-import { StudioModal, StudioCodeListEditor } from '@studio/components-legacy';
+import { StudioCodeListEditor } from '@studio/components-legacy';
 import {
   StudioDeleteButton,
   StudioDisplayTile,
-  StudioToggleableTextfield,
+  StudioDialog,
+  StudioHeading,
+  StudioToggleableTextfield
 } from '@studio/components';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -190,23 +192,26 @@ function ShowCodeListUsagesSourcesModal({
   const { t } = useTranslation();
 
   return (
-    <StudioModal.Root>
-      <StudioModal.Trigger
+    <StudioDialog.TriggerContext>
+      <StudioDialog.Trigger
         icon={<EyeIcon className={classes.seeUsageIcon} />}
         variant='tertiary'
         className={classes.codeListUsageButton}
       >
         {t('app_content_library.code_lists_with_text_resources.code_list_show_usage')}
-      </StudioModal.Trigger>
-      <StudioModal.Dialog
-        closeButtonTitle={t('general.close')}
-        heading={t(
-          'app_content_library.code_lists_with_text_resources.code_list_show_usage_modal_title',
-        )}
-        className={classes.codeListUsageModal}
-      >
-        <CodeListUsages codeListSources={codeListSources} />
-      </StudioModal.Dialog>
-    </StudioModal.Root>
+      </StudioDialog.Trigger>
+      <StudioDialog className={classes.codeListUsageModal} closedby='any'>
+        <StudioDialog.Block>
+          <StudioHeading level={2}>
+            {t(
+              'app_content_library.code_lists_with_text_resources.code_list_show_usage_modal_title',
+            )}
+          </StudioHeading>
+        </StudioDialog.Block>
+        <StudioDialog.Block>
+          <CodeListUsages codeListSources={codeListSources} />
+        </StudioDialog.Block>
+      </StudioDialog>
+    </StudioDialog.TriggerContext>
   );
 }

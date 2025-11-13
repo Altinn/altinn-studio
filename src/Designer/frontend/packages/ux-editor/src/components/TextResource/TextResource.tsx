@@ -27,9 +27,14 @@ export interface GenerateTextResourceIdOptions {
 
 export const generateId = (options?: GenerateTextResourceIdOptions) => {
   if (!options) {
-    return generateRandomId(12);
+    return '';
   }
-  return generateTextResourceId(options.layoutId, options.componentId, options.textResourceKey);
+  return generateTextResourceId({
+    layoutId: options.layoutId,
+    componentId: options.componentId,
+    textKey: options.textResourceKey,
+    suffix: generateRandomId(4),
+  });
 };
 
 export const TextResource = ({

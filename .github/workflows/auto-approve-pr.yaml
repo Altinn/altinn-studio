@@ -1,20 +1,36 @@
-name: Auto-Approve PR
+name: Label and Auto-Approve PR
 
 on:
-  pull_request:
-    types: [ labeled ]
+  pull_request_target:
+    types: [ opened, synchronize, reopened, labeled ]
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
-  auto-approve:
+  label-and-approve:
     runs-on: ubuntu-latest
-    if: github.event.label.name == 'skip-manual-testing'
     steps:
-      - name: Checkout PR code
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - name: Label PR based on changed files
+        uses: actions/labeler@8558fd74291d67161a8a78ce36a881fa63b766a9 # v5
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Check if auto-approval is needed
+        id: check-labels
+        run: |
+          labels=$(gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name')
+          if echo "$labels" | grep -qE '^(skip-manual-testing|skip-second-approval)$'; then
+            echo "should_approve=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_approve=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Auto approve PR
+        if: steps.check-labels.outputs.should_approve == 'true'
         run: gh pr review ${{ github.event.pull_request.number }} --approve
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
