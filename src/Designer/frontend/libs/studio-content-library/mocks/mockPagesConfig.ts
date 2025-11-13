@@ -24,6 +24,7 @@ export const mockPagesConfig: PagesConfig = {
   codeLists: {
     props: {
       codeLists: [],
+      onSave: () => {},
     },
   },
   images: {
