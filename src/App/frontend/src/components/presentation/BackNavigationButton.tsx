@@ -1,11 +1,11 @@
 import React from 'react';
 
-import { Spinner } from '@digdir/designsystemet-react';
 import { ArrowLeftIcon } from '@navikt/aksel-icons';
 import { skipToken, useQuery } from '@tanstack/react-query';
 import cn from 'classnames';
 
 import { Button } from 'src/app-components/Button/Button';
+import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import classes from 'src/components/presentation/BackNavigationButton.module.css';
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { useIsProcessing } from 'src/core/contexts/processingContext';

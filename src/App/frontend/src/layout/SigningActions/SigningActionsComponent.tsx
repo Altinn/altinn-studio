@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { Spinner } from '@digdir/designsystemet-react';
-
+import { FatalError } from 'src/app-components/error/FatalError/FatalError';
+import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import { Panel } from 'src/app-components/Panel/Panel';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
@@ -58,12 +58,14 @@ export function SigningActionsComponent({ baseComponentId }: PropsFromGenericCom
 
   if (signeeListError) {
     return (
-      <SigningPanel
-        baseComponentId={baseComponentId}
-        heading={<Lang id='signing.api_error_panel_title' />}
-        description={<Lang id='signing.api_error_panel_description' />}
-        variant='error'
-      />
+      <FatalError>
+        <SigningPanel
+          baseComponentId={baseComponentId}
+          heading={<Lang id='signing.api_error_panel_title' />}
+          description={<Lang id='signing.api_error_panel_description' />}
+          variant='error'
+        />
+      </FatalError>
     );
   }
 

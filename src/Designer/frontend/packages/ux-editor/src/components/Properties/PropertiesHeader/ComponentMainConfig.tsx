@@ -104,13 +104,7 @@ export const ComponentMainConfig = ({
         />
       );
     case ComponentType.Text:
-      return (
-        <TextComponent
-          component={component}
-          handleComponentChange={handleComponentChange}
-          className={classes.mainConfigWrapper}
-        />
-      );
+      return <TextComponent component={component} handleComponentChange={handleComponentChange} />;
     case ComponentType.CustomButton:
       return (
         <CustomButtonMainConfig

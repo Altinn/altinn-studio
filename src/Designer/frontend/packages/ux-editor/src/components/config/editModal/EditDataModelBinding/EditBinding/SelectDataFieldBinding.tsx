@@ -5,7 +5,7 @@ import {
 } from '@altinn/ux-editor/utils/dataModelUtils';
 import { useTranslation } from 'react-i18next';
 import { FormField } from 'app-shared/components/FormField';
-import { StudioNativeSelect } from '@studio/components-legacy';
+import { StudioSelect } from '@studio/components';
 import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import classes from './SelectDataFieldBinding.module.css';
@@ -27,26 +27,25 @@ export const SelectDataFieldBinding = ({
 }: SelectDataFieldProps): React.JSX.Element => {
   const { t } = useTranslation();
   const propertyPath = `definitions/component/properties/dataModelBindings/properties/${bindingKey}`;
-
   const { dataType: currentDataModel, field: currentDataModelField } = internalBindingFormat || {
     dataType: '',
     field: '',
   };
   const { dataModelMetadata, isDataModelValid, selectedDataModel } =
     useValidDataModels(currentDataModel);
-
   const dataModelFields = getDataModelFields({ componentType, bindingKey, dataModelMetadata });
   const isDataModelFieldValid = validateSelectedDataField(currentDataModelField, dataModelFields);
+  const [isBindingError, setIsBindingError] = React.useState(
+    !isDataModelFieldValid || !isDataModelValid,
+  );
   const componentPropertyHelpText = useComponentPropertyHelpText();
-
-  // Validate datamodel as well: fallbacks to default if invalid, then user must update datafield
-  const isBindingError = !isDataModelFieldValid || !isDataModelValid;
 
   const handleDataModelFieldChange = (updatedDataModelField: string) => {
     const updatedDataModelBinding = {
       field: updatedDataModelField,
       dataType: selectedDataModel,
     };
+    setIsBindingError(false);
     handleBindingChange(updatedDataModelBinding);
   };
 
@@ -54,6 +53,7 @@ export const SelectDataFieldBinding = ({
     { value: '', label: t('ux_editor.modal_properties_data_model_field_choose') },
     ...dataModelFields,
   ];
+
   return (
     <FormField
       id={`selectDataModelField-${bindingKey}`}
@@ -63,20 +63,19 @@ export const SelectDataFieldBinding = ({
       helpText={componentPropertyHelpText(`data_model_bindings.${bindingKey}`)}
       label={t('ux_editor.modal_properties_data_model_field_binding')}
       renderField={({ fieldProps }) => (
-        <StudioNativeSelect
+        <StudioSelect
           className={classes.selectedDatafieldBinding}
           {...fieldProps}
           id={`selectDataModelField-${bindingKey}`}
           onChange={(e) => fieldProps.onChange(e.target.value)}
           error={isBindingError && t('ux_editor.modal_properties_data_model_field_update')}
-          size='small'
         >
           {dataModelFieldsWithDefaultOption.map((element) => (
-            <option key={element.value} value={element.value}>
+            <StudioSelect.Option key={element.value} value={element.value}>
               {element.label}
-            </option>
+            </StudioSelect.Option>
           ))}
-        </StudioNativeSelect>
+        </StudioSelect>
       )}
     />
   );

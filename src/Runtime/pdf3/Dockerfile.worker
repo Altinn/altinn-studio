@@ -22,6 +22,18 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/worker
 # Runtime stage
 FROM docker.io/chromedp/headless-shell:stable@sha256:de5b057849de96955de7662023420a46355abfbb24d57aa01282ec7c811aacab
 
+USER root
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections && \
+    sed -i 's/main$/main contrib/' /etc/apt/sources.list.d/debian.sources && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        fontconfig \
+        ttf-mscorefonts-installer && \
+    fc-cache -f -v && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Copy the binary from builder stage

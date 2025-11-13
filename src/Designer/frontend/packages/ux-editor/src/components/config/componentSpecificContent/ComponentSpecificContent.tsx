@@ -64,13 +64,7 @@ export function ComponentSpecificContent({
     }
 
     case ComponentType.Text: {
-      return (
-        <TextComponent
-          component={component}
-          handleComponentChange={handleComponentChange}
-          className={classes.containerWrapper}
-        />
-      );
+      return <TextComponent component={component} handleComponentChange={handleComponentChange} />;
     }
 
     default: {

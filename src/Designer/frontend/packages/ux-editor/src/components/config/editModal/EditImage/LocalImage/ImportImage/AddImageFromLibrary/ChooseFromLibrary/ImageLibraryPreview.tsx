@@ -19,7 +19,7 @@ export const ImageLibraryPreview = ({
 
   return (
     <div className={classes.cardsContainer}>
-      {imagesFileNames.map((imageFilePath) => (
+      {imagesFileNames?.map((imageFilePath) => (
         <ImageFromLibrary
           key={imageFilePath}
           imageFilePath={imageFilePath}

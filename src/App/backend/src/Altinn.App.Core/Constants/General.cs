@@ -11,7 +11,7 @@ public static class General
     public const string AppTokenName = "AltinnToken";
 
     /// <summary>
-    /// The name of the authorization token
+    /// The name of the authorization token header
     /// </summary>
     public const string AuthorizationTokenHeaderName = "Authorization";
 
@@ -31,7 +31,7 @@ public static class General
     public const string SubscriptionKeyHeaderName = "Ocp-Apim-Subscription-Key";
 
     /// <summary>
-    /// Header name for eFormidling Integration Point access token
+    /// The name of the eFormidling Integration Point token header
     /// </summary>
     public const string EFormidlingAccessTokenHeaderName = "AltinnIntegrationPointToken";
 
