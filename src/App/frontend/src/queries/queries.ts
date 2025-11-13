@@ -21,9 +21,7 @@ import {
   getDataElementIdUrl,
   getDataElementUrl,
   getDataModelTypeUrl,
-  getDataValidationUrl,
   getFetchFormDynamicsUrl,
-  getFileTagUrl,
   getFileUploadUrl,
   getFileUploadUrlOld,
   getFooterLayoutUrl,
@@ -129,35 +127,6 @@ export const doAttachmentUpload = async (
   };
 
   return (await httpPost<DataPostResponse>(url, config, file)).data;
-};
-
-export const doAttachmentRemoveTag = async (
-  instanceId: string,
-  dataElementId: string,
-  tagToRemove: string,
-): Promise<void> => {
-  await httpDelete(getFileTagUrl(instanceId, dataElementId, tagToRemove));
-};
-
-export const doAttachmentAddTag = async (
-  instanceId: string,
-  dataElementId: string,
-  tagToAdd: string,
-): Promise<void> => {
-  const response = await httpPost(
-    getFileTagUrl(instanceId, dataElementId, undefined),
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-    JSON.stringify(tagToAdd),
-  );
-  if (response.status !== 201) {
-    throw new Error('Failed to add tag to attachment');
-  }
-
-  return;
 };
 
 export type SetTagsRequest = {
@@ -347,12 +316,6 @@ export const fetchBackendValidations = (
   language: string,
   onlyIncrementalValidators?: boolean,
 ): Promise<BackendValidationIssue[]> => httpGet(getValidationUrl(instanceId, language, onlyIncrementalValidators));
-
-export const fetchBackendValidationsForDataElement = (
-  instanceId: string,
-  currentDataElementID: string,
-  language: string,
-): Promise<BackendValidationIssue[]> => httpGet(getDataValidationUrl(instanceId, currentDataElementID, language));
 
 export const fetchLayoutSchema = async (): Promise<JSONSchema7 | undefined> => {
   // Hacky (and only) way to get the correct CDN url

@@ -41,14 +41,6 @@ export const getFileUploadUrl = (instanceId: string, attachmentDataType: string,
   return `${appPath}/instances/${instanceId}/data/${attachmentDataType}${queryString}`;
 };
 
-export const getFileTagUrl = (instanceId: string, dataElementId: string, tag: string | undefined) => {
-  if (tag) {
-    return `${appPath}/instances/${instanceId}/data/${dataElementId}/tags/${tag}`;
-  }
-
-  return `${appPath}/instances/${instanceId}/data/${dataElementId}/tags`;
-};
-
 export const getUpdateFileTagsUrl = (instanceId: string, dataGuid: string) => {
   const searchParams = new URLSearchParams({ ignoredValidators: IgnoredValidators.join(',') });
 
@@ -95,14 +87,6 @@ export const getValidationUrl = (instanceId: string, language: string, onlyIncre
     onlyIncrementalValidators: onlyIncrementalValidators?.toString(),
   });
   return `${appPath}/instances/${instanceId}/validate${queryString}`;
-};
-
-/**
- * @deprecated use getValidationUrl instead
- */
-export const getDataValidationUrl = (instanceId: string, dataElementId: string, language: string) => {
-  const queryString = getQueryStringFromObject({ language });
-  return `${appPath}/instances/${instanceId}/data/${dataElementId}/validate${queryString}`;
 };
 
 export const getPdfFormatUrl = (instanceId: string, dataElementId: string) =>

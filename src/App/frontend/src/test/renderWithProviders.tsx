@@ -31,7 +31,7 @@ import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataRea
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
-import { LanguageProvider, SetShouldFetchAppLanguages } from 'src/features/language/LanguageProvider';
+import { LanguageProvider } from 'src/features/language/LanguageProvider';
 import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
@@ -111,9 +111,7 @@ export const makeMutationMocks = <T extends (name: keyof AppMutations) => any>(
 ): {
   [fn in keyof AppMutations]: ReturnType<T>;
 } => ({
-  doAttachmentAddTag: makeMock('doAttachmentAddTag'),
   doAttachmentRemove: makeMock('doAttachmentRemove'),
-  doAttachmentRemoveTag: makeMock('doAttachmentRemoveTag'),
   doAttachmentUploadOld: makeMock('doAttachmentUploadOld'),
   doAttachmentUpload: makeMock('doAttachmentUpload'),
   doPatchFormData: makeMock('doPatchFormData'),
@@ -153,7 +151,6 @@ const defaultQueryMocks: AppQueries = {
   fetchLayoutSettings: async () => ({ pages: { order: [] } }),
   fetchLayouts: () => Promise.reject(new Error('fetchLayouts not mocked')),
   fetchBackendValidations: async () => [],
-  fetchBackendValidationsForDataElement: async () => [],
   fetchPaymentInformation: async () => paymentResponsePayload,
   fetchOrderDetails: async () => orderDetailsResponsePayload,
 };
@@ -340,7 +337,6 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
                       <OrgsProvider>
                         <ApplicationSettingsProvider>
                           <LayoutSetsProvider>
-                            <SetShouldFetchAppLanguages />
                             <ProfileProvider>
                               <PartyProvider>
                                 <TextResourcesProvider>{children}</TextResourcesProvider>
