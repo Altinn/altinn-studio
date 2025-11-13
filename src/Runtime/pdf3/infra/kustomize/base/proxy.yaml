@@ -134,24 +134,20 @@ spec:
         # such as topology aware routing
         linkerd.io/inject: enabled
     spec:
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          # Spread pods across different hosts/nodes during scheduling
-          # This prevents multiple replicas from running on the same node
-          # improving fault tolerance if a node fails
-          - weight: 100
-            podAffinityTerm:
-              topologyKey: kubernetes.io/hostname
-              labelSelector:
-                matchLabels:
-                  app: pdf3-proxy
       topologySpreadConstraints:
-        # Ensure that pods are evenly spread across availability zones
-        # a skew of 1 _can_ result in 1 AZ being unused when AZs = 3 and replicas = 3
+        # Try to spread across availability zones first (highest priority)
+        # A skew of 1 can result in 1 AZ being unused when AZs = 3 and replicas = 3
         - maxSkew: 1
           topologyKey: topology.kubernetes.io/zone
           # ScheduleAnyway ensures progress even if distribution is imperfect
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: pdf3-proxy
+        # Try to spread across nodes within zones
+        # Prevents multiple replicas from running on the same node, improving fault tolerance
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
