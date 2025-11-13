@@ -68,6 +68,23 @@ describe('TextComponent', () => {
     expect(displayValue).toBeInTheDocument();
     expect(handleComponentChange).not.toHaveBeenCalled();
   });
+
+  it('should clear value when delete is clicked', async () => {
+    const user = userEvent.setup();
+    const handleComponentChange = jest.fn();
+    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    renderTextComponent({
+      component: { ...textComponent, value: expressionValue },
+      handleComponentChange,
+    });
+    await openEditMode();
+
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('general.delete'),
+    });
+    await user.click(deleteButton);
+    expect(handleComponentChange).toHaveBeenCalledWith(expect.objectContaining({ value: '' }));
+  });
 });
 
 const renderTextComponent = (props: Partial<TextComponentProps> = {}) => {

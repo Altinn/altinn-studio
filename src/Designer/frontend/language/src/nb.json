@@ -2133,6 +2133,7 @@
   "ux_editor.properties_panel.subform_table_columns.heading": "Valg for tabell",
   "ux_editor.properties_panel.subform_table_columns.no_components_available_message": "Du har ingen komponenter med ledetekst og knyttet til datamodell",
   "ux_editor.properties_panel.texts.sub_title_images": "Valg for bilde",
+  "ux_editor.properties_text.value_confirm_delete": "Er du sikker på at du vil slette verdien?",
   "ux_editor.radios_error_DuplicateValues": "Alle verdier må være unike.",
   "ux_editor.radios_error_NoOptions": "Det må være minst én radioknapp.",
   "ux_editor.radios_option": "Radioknapp {{optionNumber}}",
