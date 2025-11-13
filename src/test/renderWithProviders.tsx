@@ -152,6 +152,7 @@ const defaultQueryMocks: AppQueries = {
   fetchPostPlace: async () => ({ valid: true, result: 'OSLO' }),
   fetchLayoutSettings: async () => ({ pages: { order: [] } }),
   fetchLayouts: () => Promise.reject(new Error('fetchLayouts not mocked')),
+  fetchLayoutsForInstance: () => Promise.reject(new Error('fetchLayoutsForInstance not mocked')),
   fetchBackendValidations: async () => [],
   fetchBackendValidationsForDataElement: async () => [],
   fetchPaymentInformation: async () => paymentResponsePayload,
