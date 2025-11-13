@@ -1,5 +1,8 @@
 import { v4 as uuid } from 'uuid';
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ARCHIVE_REF_REGEX = /^[0-9a-f]{12}$/i;
+
 export const storageApplicationMetadataRoute = async (req, res) => {
   res.json({});
 };
@@ -18,7 +21,11 @@ function makeInstance(org, app, currentTask, isComplete, archiveReference = null
     }
   }
 
-  const id = archiveReference ? uuid().slice(0, 24) + archiveReference.toLowerCase() : uuid();
+  const id = archiveReference
+    ? UUID_REGEX.test(archiveReference)
+      ? archiveReference
+      : uuid().slice(0, 24) + archiveReference.toLowerCase()
+    : uuid();
 
   if (currentTask) {
     return {
@@ -54,7 +61,7 @@ export const storageInstancesRoute = (req, res) => {
   const size = req.query?.['size'] ?? 10;
 
   if (archiveReference) {
-    if (/^[0-9a-fA-F]{12}$/.test(archiveReference)) {
+    if (UUID_REGEX.test(archiveReference) || ARCHIVE_REF_REGEX.test(archiveReference)) {
       res.json({
         count: 1,
         next: null,
