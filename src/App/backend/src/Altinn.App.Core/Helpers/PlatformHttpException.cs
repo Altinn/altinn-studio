@@ -34,6 +34,12 @@ public class PlatformHttpException : AltinnException
     public PlatformHttpException(HttpResponseMessage response, string message)
         : base(message)
     {
-        this.Response = response;
+        Response = response;
+    }
+
+    internal PlatformHttpException(HttpResponseMessage response, string message, Exception? innerException)
+        : base(message, innerException)
+    {
+        Response = response;
     }
 }

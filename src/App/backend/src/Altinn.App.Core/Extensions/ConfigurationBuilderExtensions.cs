@@ -22,6 +22,7 @@ public static class ConfigurationBuilderExtensions
         builder.AddAppSettingsSecretFile();
         builder.AddEnvironmentVariables();
         builder.AddCommandLine(args ?? []);
+        builder.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
     }
 
     internal static void AddAppSettingsSecretFile(

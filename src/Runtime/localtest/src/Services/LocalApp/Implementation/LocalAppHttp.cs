@@ -10,6 +10,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using LocalTest.Configuration;
 using LocalTest.Services.LocalApp.Interface;
 using LocalTest.Services.TestData;
+using LocalTest.Services.AppRegistry;
 using LocalTest.Helpers;
 
 namespace LocalTest.Services.LocalApp.Implementation
@@ -28,18 +29,41 @@ namespace LocalTest.Services.LocalApp.Implementation
         public const string TEXT_RESOURCE_CACE_KEY = "/api/v1/texts";
         public const string TEST_DATA_CACHE_KEY = "TEST_DATA_CACHE_KEY";
         private readonly GeneralSettings _generalSettings;
-        private readonly HttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly string _defaultAppUrl;
         private readonly IMemoryCache _cache;
         private readonly ILogger<LocalAppHttp> _logger;
+        private readonly AppRegistryService _appRegistryService;
 
-        public LocalAppHttp(IOptions<GeneralSettings> generalSettings, IHttpClientFactory httpClientFactory, IOptions<LocalPlatformSettings> localPlatformSettings, IMemoryCache cache, ILogger<LocalAppHttp> logger)
+        public LocalAppHttp(IOptions<GeneralSettings> generalSettings, IHttpClientFactory httpClientFactory, IOptions<LocalPlatformSettings> localPlatformSettings, IMemoryCache cache, ILogger<LocalAppHttp> logger, AppRegistryService appRegistryService)
         {
             _generalSettings = generalSettings.Value;
-            _httpClient = httpClientFactory.CreateClient();
-            _httpClient.BaseAddress = new Uri(localPlatformSettings.Value.LocalAppUrl);
-            _httpClient.Timeout = TimeSpan.FromHours(1);
+            _httpClientFactory = httpClientFactory;
+            _defaultAppUrl = localPlatformSettings.Value.LocalAppUrl;
             _cache = cache;
             _logger = logger;
+            _appRegistryService = appRegistryService;
+        }
+
+        private HttpClient CreateClient(string? appId = null)
+        {
+            var client = _httpClientFactory.CreateClient();
+
+            // Try to get registered app first
+            if (appId != null)
+            {
+                var registration = _appRegistryService.GetRegistration(appId);
+                if (registration != null)
+                {
+                    var host = registration.Hostname.Contains(':') ? $"[{registration.Hostname}]" : registration.Hostname;
+                    client.BaseAddress = new Uri($"http://{host}:{registration.Port}");
+                    return client;
+                }
+            }
+
+            // Fallback to default URL (port 5005)
+            client.BaseAddress = new Uri(_defaultAppUrl);
+            return client;
         }
         public async Task<string?> GetXACMLPolicy(string appId)
         {
@@ -47,7 +71,8 @@ namespace LocalTest.Services.LocalApp.Implementation
             {
                 // Cache with very short duration to not slow down page load, where this file can be accessed many many times
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
-                return await _httpClient.GetStringAsync($"{appId}/api/v1/meta/authorizationpolicy");
+                using var client = CreateClient(appId);
+                return await client.GetStringAsync($"{appId}/api/v1/meta/authorizationpolicy");
             });
         }
         public async Task<Application?> GetApplicationMetadata(string? appId)
@@ -57,7 +82,8 @@ namespace LocalTest.Services.LocalApp.Implementation
             {
                 // Cache with very short duration to not slow down page load, where this file can be accessed many many times
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
-                return await _httpClient.GetStringAsync($"{appId}/api/v1/applicationmetadata?checkOrgApp=false");
+                using var client = CreateClient(appId);
+                return await client.GetStringAsync($"{appId}/api/v1/applicationmetadata?checkOrgApp=false");
             });
 
             return JsonSerializer.Deserialize<Application>(content!, JSON_OPTIONS);
@@ -65,10 +91,12 @@ namespace LocalTest.Services.LocalApp.Implementation
 
         public async Task<TextResource?> GetTextResource(string org, string app, string language)
         {
+            var appId = $"{org}/{app}";
             var content = await _cache.GetOrCreateAsync(TEXT_RESOURCE_CACE_KEY + org + app + language, async cacheEntry =>
             {
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
-                return await _httpClient.GetStringAsync($"{org}/{app}/api/v1/texts/{language}");
+                using var client = CreateClient(appId);
+                return await client.GetStringAsync($"{appId}/api/v1/texts/{language}");
             });
 
             var textResource = JsonSerializer.Deserialize<TextResource>(content!, JSON_OPTIONS);
@@ -86,11 +114,38 @@ namespace LocalTest.Services.LocalApp.Implementation
         public async Task<Dictionary<string, Application>> GetApplications()
         {
             var ret = new Dictionary<string, Application>();
-            // Return a single element as only one app can run on port 5005
-            var app = await GetApplicationMetadata(null);
-            if (app != null)
+
+            // Get all registered apps
+            var registrations = _appRegistryService.GetAll();
+            foreach (var registration in registrations.Values)
             {
-                ret.Add(app.Id, app);
+                try
+                {
+                    var app = await GetApplicationMetadata(registration.AppId);
+                    if (app != null)
+                    {
+                        ret.Add(app.Id, app);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to get metadata for registered app {AppId}", registration.AppId);
+                }
+            }
+
+            // Always try to get app from default port 5005
+            // This allows both registered apps and the default app to coexist
+            try
+            {
+                var app = await GetApplicationMetadata(null);
+                if (app != null && !ret.ContainsKey(app.Id))
+                {
+                    ret.Add(app.Id, app);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "No app found on default port 5005");
             }
 
             return ret;
@@ -108,10 +163,11 @@ namespace LocalTest.Services.LocalApp.Implementation
                 content.Add(new StringContent(xmlPrefill, System.Text.Encoding.UTF8, "application/xml"), xmlDataId);
             }
 
+            using var client = CreateClient(appId);
             using var message = new HttpRequestMessage(HttpMethod.Post, requestUri);
             message.Content = content;
             message.Headers.Authorization = new ("Bearer", token);
-            var response = await _httpClient.SendAsync(message);
+            var response = await client.SendAsync(message);
             var stringResponse = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode)
             {
@@ -121,38 +177,122 @@ namespace LocalTest.Services.LocalApp.Implementation
             return JsonSerializer.Deserialize<Instance>(stringResponse, new JsonSerializerOptions{PropertyNameCaseInsensitive = true});
         }
 
-        public async Task<AppTestDataModel?> GetTestData()
+        private record FetchResult(AppTestDataModel? MergedData, bool AppWasReachable, bool AppHadData);
+
+        public async Task<ILocalApp.TestDataResult> GetTestDataWithMetadata()
         {
-            return await _cache.GetOrCreateAsync(TEST_DATA_CACHE_KEY, async (cacheEntry) =>
+            var result = await _cache.GetOrCreateAsync(TEST_DATA_CACHE_KEY, async (cacheEntry) =>
             {
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
+                AppTestDataModel? merged = null;
+                int reachableApps = 0;
+                int appsWithData = 0;
 
+                var registrations = _appRegistryService.GetAll();
+                foreach (var registration in registrations.Values)
+                {
+                    try
+                    {
+                        var result = await FetchAndMergeTestData(registration.AppId, $"{registration.AppId}/testData.json", merged);
+                        if (result.AppWasReachable)
+                        {
+                            reachableApps++;
+                            if (result.AppHadData)
+                            {
+                                appsWithData++;
+                            }
+                            merged = result.MergedData;
+                        }
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        _logger.LogCritical(ex, "Test data conflict detected when loading from app {AppId}", registration.AppId);
+                        throw;
+                    }
+                }
+
+                // Also try default app (port 5005) as fallback
                 try
                 {
-                    var applicationmetadata = await GetApplicationMetadata(null);
-                    if (applicationmetadata is null)
+                    var defaultAppMetadata = await GetApplicationMetadata(null);
+                    if (defaultAppMetadata != null)
                     {
-                        return null;
-                    }
+                        var defaultResult = await FetchAndMergeTestData(defaultAppMetadata.Id, $"{defaultAppMetadata.Id}/testData.json", merged);
 
-                    var response = await _httpClient.GetAsync($"{applicationmetadata.Id}/testData.json");
-                    if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                    {
-                        _logger.LogInformation("No custom www/testData.json found. Using default test users");
-                        return null;
+                        if (defaultResult.AppWasReachable)
+                        {
+                            reachableApps++;
+                            if (defaultResult.AppHadData)
+                            {
+                                appsWithData++;
+                            }
+                            merged = defaultResult.MergedData;
+                        }
                     }
-
-                    response.EnsureSuccessStatusCode();
-                    var data = await response.Content.ReadAsByteArrayAsync();
-                    return JsonSerializer.Deserialize<AppTestDataModel>(data.RemoveBom(), JSON_OPTIONS);
                 }
-                catch (HttpRequestException e)
+                catch (InvalidOperationException ex)
                 {
-                    _logger.LogCritical(e, "Failed to get Test data");
-                    return null;
+                    _logger.LogCritical(ex, "Test data conflict detected when loading from default app");
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "No default app found on port 5005");
                 }
 
+                var allHaveData = merged != null && reachableApps > 0 && appsWithData == reachableApps;
+                _logger.LogInformation("GetTestDataWithMetadata: reachableApps={ReachableApps}, appsWithData={AppsWithData}, allHaveData={AllHaveData}",
+                    reachableApps, appsWithData, allHaveData);
+
+                return new ILocalApp.TestDataResult(merged, allHaveData);
             });
+
+            return result ?? new ILocalApp.TestDataResult(null, false);
+        }
+
+        private async Task<FetchResult> FetchAndMergeTestData(string? appId, string requestUri, AppTestDataModel? merged)
+        {
+            try
+            {
+                using var client = CreateClient(appId);
+                var response = await client.GetAsync(requestUri);
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new FetchResult(merged, AppWasReachable: true, AppHadData: false);
+                }
+
+                response.EnsureSuccessStatusCode();
+                var data = await response.Content.ReadAsByteArrayAsync();
+                var appData = JsonSerializer.Deserialize<AppTestDataModel>(data.RemoveBom(), JSON_OPTIONS);
+
+                if (appData != null)
+                {
+                    if (merged == null)
+                    {
+                        return new FetchResult(appData, AppWasReachable: true, AppHadData: true);
+                    }
+
+                    var sourceModel = appData.GetTestDataModel();
+                    var targetModel = merged.GetTestDataModel();
+
+                    // MergeTestData will detect conflicts and throw if any already exist
+                    TestDataMerger.MergeTestData(sourceModel, targetModel, appId ?? "default app");
+                    merged = AppTestDataModel.FromTestDataModel(targetModel);
+                    return new FetchResult(merged, AppWasReachable: true, AppHadData: true);
+                }
+
+                return new FetchResult(merged, AppWasReachable: true, AppHadData: false);
+            }
+            catch (HttpRequestException e)
+            {
+                _logger.LogWarning(e, "Failed to get test data from app {AppId} - app appears to be offline", appId);
+                return new FetchResult(merged, AppWasReachable: false, AppHadData: false);
+            }
+        }
+
+        public void InvalidateTestDataCache()
+        {
+            _cache.Remove(TEST_DATA_CACHE_KEY);
         }
     }
 }

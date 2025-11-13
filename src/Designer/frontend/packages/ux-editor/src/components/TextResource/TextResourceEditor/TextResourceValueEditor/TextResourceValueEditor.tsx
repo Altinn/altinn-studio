@@ -46,7 +46,7 @@ export const TextResourceValueEditor = ({
   return (
     <div className={classes.root}>
       <StudioTextarea
-        label={t('ux_editor.text_resource_binding_text')}
+        aria-label={t('ux_editor.text_resource_binding_text')}
         value={displayValue}
         onChange={handleTextEntryChange}
         ref={textareaRef}
