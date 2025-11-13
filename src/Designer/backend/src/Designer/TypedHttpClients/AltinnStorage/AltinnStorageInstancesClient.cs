@@ -42,6 +42,7 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
         string? continuationToken,
         string? currentTaskFilter,
         bool? processIsCompleteFilter,
+        string? archiveReference,
         CancellationToken ct
     )
     {
@@ -67,6 +68,11 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
                 "process.isComplete",
                 processIsCompleteFilter.Value.ToString().ToLowerInvariant()
             );
+        }
+
+        if (!string.IsNullOrEmpty(archiveReference))
+        {
+            uri = QueryHelpers.AddQueryString(uri, "archiveReference", archiveReference);
         }
 
         using var response = await _httpClient.GetAsync(uri, ct);
