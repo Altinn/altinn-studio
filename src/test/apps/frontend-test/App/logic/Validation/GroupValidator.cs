@@ -69,6 +69,16 @@ namespace Altinn.App.logic.Validation
                 });
             }
 
+            if (model?.sumAll == 9044622)
+            {
+                validationIssues.Add(new ValidationIssue
+                {
+                    Field = "sumAll",
+                    Description = "9044622 er et magisk tall som ikke er tillatt!",
+                    Severity = ValidationIssueSeverity.Error,
+                });
+            }
+
             // Iterate pets and check for duplicates (same name and species). Iterate the list once first to get the
             // number of instances of each combination.
             var numPetInstances = new Dictionary<string, int>();

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
-import { loadingClassName, useHasElementsByClass } from 'src/components/ReadyForPrint';
+import { loadingAttribute, useHasElementsByAttribute } from 'src/components/ReadyForPrint';
 import { useIsLoading } from 'src/core/loading/LoadingContext';
 import { DevTools } from 'src/features/devtools/DevTools';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
@@ -32,7 +32,7 @@ export function RenderStart({ children, devTools = true, dataModelFetcher = true
 
 function RunNavigationEffect() {
   const isLoading = useIsLoading();
-  const hasLoaders = useHasElementsByClass(loadingClassName);
+  const hasLoaders = useHasElementsByAttribute(loadingAttribute);
   const navigationEffect = useNavigationEffect();
   const location = useLocation().pathname;
 

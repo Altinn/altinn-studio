@@ -68,10 +68,11 @@ internal class PreviousDataAccessor : IInstanceDataAccessor
                             $"Data element {id.Id} is of data type {dataType.Id} which doesn't have app logic in application metadata and cant be used as form data"
                         );
                     }
-
+                    var dataElement = GetDataElement(id);
                     var binaryData = await _dataAccessor.GetBinaryData(id).ConfigureAwait(false);
+
                     return FormDataWrapperFactory.Create(
-                        _modelSerializationService.DeserializeFromStorage(binaryData.Span, dataType)
+                        _modelSerializationService.DeserializeFromStorage(binaryData.Span, dataType, dataElement)
                     );
                 }
             )

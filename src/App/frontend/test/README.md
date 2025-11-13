@@ -36,16 +36,18 @@ npx cypress run --env environment=tt02 -s 'test/e2e/integration/*/*.ts'
 
 1. Clone one or more of the apps we've made automatic tests for:
 
-- [ttd/frontend-test](https://dev.altinn.studio/repos/ttd/frontend-test)
 - [ttd/anonymous-stateless-app](https://dev.altinn.studio/repos/ttd/anonymous-stateless-app)
-- [ttd/stateless-app](https://dev.altinn.studio/repos/ttd/stateless-app)
-- [ttd/signing-test](https://dev.altinn.studio/repos/ttd/signing-test)
-- [ttd/expression-validation-test](https://dev.altinn.studio/repos/ttd/expression-validation-test)
-- [ttd/payment-test](https://dev.altinn.studio/repos/ttd/payment-test)
 - [ttd/component-library](https://altinn.studio/repos/ttd/component-library.git)
+- [ttd/expression-validation-test](https://dev.altinn.studio/repos/ttd/expression-validation-test)
+- [ttd/frontend-test](https://dev.altinn.studio/repos/ttd/frontend-test)
 - [ttd/multiple-datamodels-test](https://dev.altinn.studio/repos/ttd/multiple-datamodels-test)
-- [ttd/subform-test](https://dev.altinn.studio/repos/ttd/subform-test)
 - [ttd/navigation-test-subform](https://dev.altinn.studio/repos/ttd/navigation-test-subform)
+- [ttd/payment-test](https://dev.altinn.studio/repos/ttd/payment-test)
+- [ttd/service-task](https://altinn.studio/repos/ttd/service-task)
+- [ttd/signering-brukerstyrt](https://altinn.studio/repos/ttd/signering-brukerstyrt)
+- [ttd/signing-test](https://dev.altinn.studio/repos/ttd/signing-test)
+- [ttd/stateless-app](https://dev.altinn.studio/repos/ttd/stateless-app)
+- [ttd/subform-test](https://dev.altinn.studio/repos/ttd/subform-test)
 
 3. Start the app you want to test:
 
