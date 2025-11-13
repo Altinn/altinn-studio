@@ -153,7 +153,9 @@ describe('ConfigPdfServiceTask', () => {
       await user.type(input, 'new.pdf');
       await user.tab();
 
-      expect(mockCreate).toHaveBeenCalledWith('altinn:Filename', { value: 'new.pdf' });
+      expect(mockCreate).toHaveBeenCalledWith('altinn:FilenameTextResourceKey', {
+        value: 'new.pdf',
+      });
       expect(mockUpdateModdleProperties).toHaveBeenCalled();
     });
 

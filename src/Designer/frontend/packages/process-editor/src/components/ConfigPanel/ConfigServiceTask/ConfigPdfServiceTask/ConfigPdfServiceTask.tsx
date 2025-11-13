@@ -57,7 +57,7 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
       .map((taskId) => taskId.value) || [];
 
   const [filenameTextResourceId, setFilenameTextResourceId] = useState<string>(
-    pdfConfig.filename?.value || '',
+    pdfConfig.filenameTextResourceKey?.value || '',
   );
   const [selectedTaskIds, setSelectedTaskIds] = useState(currentTaskIds);
 
@@ -109,18 +109,18 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
   const handleFilenameIdChange = (textResourceId: string) => {
     setFilenameTextResourceId(textResourceId);
 
-    if (textResourceId === pdfConfig.filename?.value) {
+    if (textResourceId === pdfConfig.filenameTextResourceKey?.value) {
       return;
     }
 
     const filenameElement = textResourceId
-      ? bpmnFactory.create('altinn:Filename', {
+      ? bpmnFactory.create('altinn:FilenameTextResourceKey', {
           value: textResourceId,
         })
       : null;
 
     modeling.updateModdleProperties(bpmnDetails.element, pdfConfig, {
-      filename: filenameElement,
+      filenameTextResourceKey: filenameElement,
     });
   };
 
