@@ -34,7 +34,7 @@ spec:
                     | summarize Count = sum(itemCount) by cloud_RoleName, DateTimeOffset = bin(timestamp, $__interval)
                     | order by DateTimeOffset asc
                 resources:
-                    - /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
+                    - /subscriptions/ca0666d3-b3c0-4159-93f1-b71777ed4338/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
                 resultFormat: time_series
                 timeColumn: timestamp
                 workspace: ""
@@ -97,8 +97,6 @@ spec:
             maxDataPoints: 43200
             refId: C
             type: threshold
-      dashboardUid: AltinnApps
-      panelId: 14
       noDataState: OK
       execErrState: Error
       annotations:
@@ -127,7 +125,7 @@ spec:
                     | summarize Value = sum(valueCount) by cloud_RoleName, bin(timestamp, $__interval)
                     | order by timestamp asc;
                 resources:
-                    - /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
+                    - /subscriptions/ca0666d3-b3c0-4159-93f1-b71777ed4338/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
                 resultFormat: time_series
                 timeColumn: timestamp
                 workspace: ""
@@ -190,8 +188,6 @@ spec:
             maxDataPoints: 43200
             refId: C
             type: threshold
-      dashboardUid: AltinnApps
-      panelId: 18
       noDataState: OK
       execErrState: Error
       annotations:
@@ -250,7 +246,7 @@ spec:
                       region: norwayeast
                       resourceGroup: monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg
                       resourceName: ${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
-                      subscription: ${AZURE_SUBSCRIPTION_ID}
+                      subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
                 timeGrain: auto
                 top: "10"
             datasource:
@@ -263,7 +259,7 @@ spec:
             queryType: Azure Monitor
             range: true
             refId: A
-            subscription: ${AZURE_SUBSCRIPTION_ID}
+            subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
         - refId: B
           datasourceUid: __expr__
           model:
@@ -314,8 +310,6 @@ spec:
             maxDataPoints: 43200
             refId: C
             type: threshold
-      dashboardUid: AltinnApps
-      panelId: 3
       noDataState: OK
       execErrState: Error
       annotations:
@@ -361,7 +355,7 @@ spec:
                       region: norwayeast
                       resourceGroup: monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg
                       resourceName: ${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
-                      subscription: ${AZURE_SUBSCRIPTION_ID}
+                      subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
                 timeGrain: auto
                 top: "10"
             datasource:
@@ -374,7 +368,7 @@ spec:
             queryType: Azure Monitor
             range: true
             refId: A
-            subscription: ${AZURE_SUBSCRIPTION_ID}
+            subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
         - refId: B
           datasourceUid: __expr__
           model:
@@ -425,8 +419,6 @@ spec:
             maxDataPoints: 43200
             refId: C
             type: threshold
-      dashboardUid: AltinnApps
-      panelId: 4
       noDataState: OK
       execErrState: Error
       annotations:
@@ -472,7 +464,7 @@ spec:
                       region: norwayeast
                       resourceGroup: monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg
                       resourceName: ${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
-                      subscription: ${AZURE_SUBSCRIPTION_ID}
+                      subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
                 timeGrain: auto
                 top: "10"
             datasource:
@@ -485,7 +477,7 @@ spec:
             queryType: Azure Monitor
             range: true
             refId: A
-            subscription: ${AZURE_SUBSCRIPTION_ID}
+            subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
         - refId: B
           datasourceUid: __expr__
           model:
@@ -536,8 +528,6 @@ spec:
             maxDataPoints: 43200
             refId: C
             type: threshold
-      dashboardUid: AltinnApps
-      panelId: 2
       noDataState: OK
       execErrState: Error
       annotations:
@@ -583,7 +573,7 @@ spec:
                       region: norwayeast
                       resourceGroup: monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg
                       resourceName: ${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
-                      subscription: ${AZURE_SUBSCRIPTION_ID}
+                      subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
                 timeGrain: auto
                 top: "10"
             datasource:
@@ -596,7 +586,7 @@ spec:
             queryType: Azure Monitor
             range: true
             refId: A
-            subscription: ${AZURE_SUBSCRIPTION_ID}
+            subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
         - refId: B
           datasourceUid: __expr__
           model:
@@ -647,8 +637,6 @@ spec:
             maxDataPoints: 43200
             refId: C
             type: threshold
-      dashboardUid: AltinnApps
-      panelId: 10
       noDataState: OK
       execErrState: Error
       annotations:
@@ -753,8 +741,6 @@ spec:
             maxDataPoints: 43200
             refId: C
             type: threshold
-      dashboardUid: AltinnApps
-      panelId: 5
       noDataState: OK
       execErrState: Error
       annotations:
@@ -861,8 +847,6 @@ spec:
             maxDataPoints: 43200
             refId: C
             type: threshold
-      dashboardUid: AltinnApps
-      panelId: 6
       noDataState: OK
       execErrState: Error
       annotations:
@@ -951,8 +935,6 @@ spec:
             maxDataPoints: 43200
             refId: C
             type: threshold
-      dashboardUid: AltinnApps
-      panelId: 7
       noDataState: OK
       execErrState: Error
       annotations:
