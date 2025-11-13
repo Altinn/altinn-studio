@@ -134,13 +134,9 @@ export class UiEditorPage extends BasePage {
   }
 
   public async writeTitleTextInTextarea(text: string): Promise<void> {
-    await this.getTitleTextFieldset()
+    await this.page
       .getByRole('textbox', { name: this.textMock('ux_editor.text_resource_binding_text') })
       .fill(text);
-  }
-
-  private getTitleTextFieldset(): Locator {
-    return this.page.getByRole('region');
   }
 
   public async clickOnSaveNewLabelName(): Promise<void> {
