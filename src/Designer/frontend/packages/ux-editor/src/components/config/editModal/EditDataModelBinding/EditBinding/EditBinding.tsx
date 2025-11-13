@@ -87,13 +87,15 @@ export const EditBinding = ({
     handleBindingChange(undefined);
     onSetDataModelSelectVisible(false);
   };
-
+  const isDeleteDisabled = !Object.values(component?.dataModelBindings || {}).some(
+    (value) => value,
+  );
   return (
     <StudioConfigCard>
       <StudioConfigCard.Header
         cardLabel={label}
         onDelete={handleDelete}
-        isDeleteDisabled={!Object.keys(component?.dataModelBindings || {}).length}
+        isDeleteDisabled={isDeleteDisabled}
         confirmDeleteMessage={t('right_menu.data_model_bindings_delete_confirm')}
         deleteAriaLabel={t('right_menu.data_model_bindings_delete_button')}
       />
@@ -108,7 +110,7 @@ export const EditBinding = ({
               bindingKey={bindingKey}
             />
             <SelectDataFieldBinding
-              internalBindingFormat={internalBindingFormat}
+              internalBindingFormat={binding}
               handleBindingChange={setBinding}
               bindingKey={bindingKey}
               componentType={component.type}
@@ -122,6 +124,7 @@ export const EditBinding = ({
         onCancel={() => onSetDataModelSelectVisible(false)}
         onSave={() => handleBindingChange(binding)}
         isLoading={isLoadingDataModels}
+        isDisabled={!binding?.field || !binding?.dataType || internalBindingFormat === binding}
       />
     </StudioConfigCard>
   );
