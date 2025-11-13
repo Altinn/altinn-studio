@@ -136,7 +136,7 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
         await Parallel.ForEachAsync(request.Files, options,
             async (FileMetadata fileMetadata, CancellationToken token) =>
             {
-                await UpdateFile(editingContext.Org, editingContext.Developer, fileMetadata, cancellationToken);
+                await UpdateFile(editingContext.Org, editingContext.Developer, fileMetadata, token);
             }
         );
     }
