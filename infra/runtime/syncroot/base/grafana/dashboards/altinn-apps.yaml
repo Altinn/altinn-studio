@@ -10,10 +10,32 @@ spec:
       dashboards: external-grafana
   json: >
     {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": {
+              "type": "grafana",
+              "uid": "-- Grafana --"
+            },
+            "enable": false,
+            "hide": false,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "target": {
+              "limit": 100,
+              "matchAny": false,
+              "tags": [],
+              "type": "dashboard"
+            },
+            "type": "dashboard"
+          }
+        ]
+      },
       "editable": true,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 0,
-      "id": 390,
+      "id": 397,
       "links": [],
       "panels": [
         {
@@ -89,7 +111,7 @@ spec:
                   "type": "linear"
                 },
                 "showPoints": "auto",
-                "spanNulls": false,
+                "spanNulls": true,
                 "stacking": {
                   "group": "A",
                   "mode": "none"
@@ -123,7 +145,9 @@ spec:
           "id": 12,
           "options": {
             "legend": {
-              "calcs": [],
+              "calcs": [
+                "sum"
+              ],
               "displayMode": "list",
               "placement": "bottom",
               "showLegend": true
@@ -138,7 +162,7 @@ spec:
           "targets": [
             {
               "azureLogAnalytics": {
-                "dashboardTime": false,
+                "dashboardTime": true,
                 "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where name == \"altinn_app_lib_instances_created\"\n| where cloud_RoleName in ($app)\n| summarize Value = sum(valueCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc;",
                 "resources": [
                   "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
@@ -187,7 +211,7 @@ spec:
                   "type": "linear"
                 },
                 "showPoints": "auto",
-                "spanNulls": false,
+                "spanNulls": true,
                 "stacking": {
                   "group": "A",
                   "mode": "none"
@@ -221,7 +245,9 @@ spec:
           "id": 13,
           "options": {
             "legend": {
-              "calcs": [],
+              "calcs": [
+                "sum"
+              ],
               "displayMode": "list",
               "placement": "bottom",
               "showLegend": true
@@ -236,12 +262,13 @@ spec:
           "targets": [
             {
               "azureLogAnalytics": {
-                "dashboardTime": false,
+                "dashboardTime": true,
                 "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where name == \"altinn_app_lib_instances_completed\"\n| where cloud_RoleName in ($app)\n| summarize Value = sum(valueCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc;",
                 "resources": [
                   "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
                 ],
-                "resultFormat": "logs"
+                "resultFormat": "logs",
+                "timeColumn": "timestamp"
               },
               "queryType": "Azure Log Analytics",
               "refId": "A"
@@ -284,7 +311,7 @@ spec:
                   "type": "linear"
                 },
                 "showPoints": "auto",
-                "spanNulls": false,
+                "spanNulls": true,
                 "stacking": {
                   "group": "A",
                   "mode": "none"
@@ -335,7 +362,7 @@ spec:
           "targets": [
             {
               "azureLogAnalytics": {
-                "dashboardTime": false,
+                "dashboardTime": true,
                 "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where name == \"altinn_app_lib_processes_started\"\n| where cloud_RoleName in ($app)\n| summarize Value = sum(valueCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc;",
                 "resources": [
                   "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
@@ -384,7 +411,7 @@ spec:
                   "type": "linear"
                 },
                 "showPoints": "auto",
-                "spanNulls": false,
+                "spanNulls": true,
                 "stacking": {
                   "group": "A",
                   "mode": "none"
@@ -418,7 +445,9 @@ spec:
           "id": 19,
           "options": {
             "legend": {
-              "calcs": [],
+              "calcs": [
+                "sum"
+              ],
               "displayMode": "list",
               "placement": "bottom",
               "showLegend": true
@@ -433,7 +462,7 @@ spec:
           "targets": [
             {
               "azureLogAnalytics": {
-                "dashboardTime": false,
+                "dashboardTime": true,
                 "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where name == \"altinn_app_lib_processes_ended\"\n| where cloud_RoleName in ($app)\n| summarize Value = sum(valueCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc;",
                 "resources": [
                   "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
@@ -482,7 +511,7 @@ spec:
                   "type": "linear"
                 },
                 "showPoints": "auto",
-                "spanNulls": false,
+                "spanNulls": true,
                 "stacking": {
                   "group": "A",
                   "mode": "none"
@@ -533,7 +562,7 @@ spec:
           "targets": [
             {
               "azureLogAnalytics": {
-                "dashboardTime": false,
+                "dashboardTime": true,
                 "query": "requests\n| where $__timeFilter(timestamp)\n| where success == false\n| where client_Type != 'Browser'\n| where toint(resultCode) >= 500\n| where cloud_RoleName in ($app)\n| where name has 'PUT Process/NextElement'\n| summarize Value = sum(itemCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
                 "resources": [
                   "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
@@ -598,7 +627,7 @@ spec:
                 "scaleDistribution": {
                   "type": "linear"
                 },
-                "showPoints": "never",
+                "showPoints": "auto",
                 "spanNulls": true,
                 "stacking": {
                   "group": "A",
@@ -622,7 +651,32 @@ spec:
                 ]
               }
             },
-            "overrides": []
+            "overrides": [
+              {
+                "__systemRef": "hideSeriesFrom",
+                "matcher": {
+                  "id": "byNames",
+                  "options": {
+                    "mode": "exclude",
+                    "names": [
+                      "frontend-test"
+                    ],
+                    "prefix": "All except:",
+                    "readOnly": true
+                  }
+                },
+                "properties": [
+                  {
+                    "id": "custom.hideFrom",
+                    "value": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": true
+                    }
+                  }
+                ]
+              }
+            ]
           },
           "gridPos": {
             "h": 9,
@@ -650,12 +704,13 @@ spec:
           "targets": [
             {
               "azureLogAnalytics": {
-                "dashboardTime": false,
+                "dashboardTime": true,
                 "query": "requests\n| where $__timeFilter(timestamp)\n| where client_Type != 'Browser'\n| where cloud_RoleName in ($app)\n| summarize Value = sum(itemCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
                 "resources": [
                   "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
                 ],
-                "resultFormat": "time_series"
+                "resultFormat": "time_series",
+                "timeColumn": "timestamp"
               },
               "queryType": "Azure Log Analytics",
               "refId": "A"
@@ -697,7 +752,7 @@ spec:
                 "scaleDistribution": {
                   "type": "linear"
                 },
-                "showPoints": "never",
+                "showPoints": "auto",
                 "spanNulls": true,
                 "stacking": {
                   "group": "A",
@@ -749,12 +804,13 @@ spec:
           "targets": [
             {
               "azureLogAnalytics": {
-                "dashboardTime": false,
+                "dashboardTime": true,
                 "query": "requests\n| where $__timeFilter(timestamp)\n| where success == false\n| where client_Type != 'Browser'\n| where toint(resultCode) >= 500\n| where cloud_RoleName in ($app)\n| summarize Value = sum(itemCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
                 "resources": [
                   "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
                 ],
-                "resultFormat": "time_series"
+                "resultFormat": "time_series",
+                "timeColumn": "timestamp"
               },
               "queryType": "Azure Log Analytics",
               "refId": "A"
@@ -796,7 +852,7 @@ spec:
                 "scaleDistribution": {
                   "type": "linear"
                 },
-                "showPoints": "never",
+                "showPoints": "auto",
                 "spanNulls": true,
                 "stacking": {
                   "group": "A",
@@ -848,12 +904,13 @@ spec:
           "targets": [
             {
               "azureLogAnalytics": {
-                "dashboardTime": false,
+                "dashboardTime": true,
                 "query": "requests\n| where $__timeFilter(timestamp)\n| where client_Type != 'Browser'\n| where cloud_RoleName in ($app)\n| summarize Value = avg(duration) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
                 "resources": [
                   "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
                 ],
-                "resultFormat": "time_series"
+                "resultFormat": "time_series",
+                "timeColumn": "timestamp"
               },
               "queryType": "Azure Log Analytics",
               "refId": "A"
@@ -895,7 +952,7 @@ spec:
                 "scaleDistribution": {
                   "type": "linear"
                 },
-                "showPoints": "never",
+                "showPoints": "auto",
                 "spanNulls": true,
                 "stacking": {
                   "group": "A",
@@ -947,12 +1004,13 @@ spec:
           "targets": [
             {
               "azureLogAnalytics": {
-                "dashboardTime": false,
+                "dashboardTime": true,
                 "query": "exceptions\n| where $__timeFilter(timestamp)\n| where client_Type != 'Browser'\n| where cloud_RoleName in ($app)\n| summarize exceptions_count = count() by bin(timestamp, $__interval)\n| order by timestamp asc",
                 "resources": [
                   "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
                 ],
-                "resultFormat": "time_series"
+                "resultFormat": "time_series",
+                "timeColumn": "timestamp"
               },
               "queryType": "Azure Log Analytics",
               "refId": "A"
@@ -994,7 +1052,7 @@ spec:
                 "scaleDistribution": {
                   "type": "linear"
                 },
-                "showPoints": "never",
+                "showPoints": "auto",
                 "spanNulls": true,
                 "stacking": {
                   "group": "A",
@@ -1094,7 +1152,7 @@ spec:
                 "scaleDistribution": {
                   "type": "linear"
                 },
-                "showPoints": "never",
+                "showPoints": "auto",
                 "spanNulls": true,
                 "stacking": {
                   "group": "A",
@@ -1146,12 +1204,13 @@ spec:
           "targets": [
             {
               "azureLogAnalytics": {
-                "dashboardTime": false,
+                "dashboardTime": true,
                 "query": "dependencies\n| where $__timeFilter(timestamp)\n| where success == false\n| where client_Type != 'Browser'\n| where toint(resultCode) >= 500\n| where cloud_RoleName in ($app)\n| summarize Value = sum(itemCount) by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
                 "resources": [
                   "/subscriptions/$sub/resourceGroups/monitor-$org-$env-rg/providers/Microsoft.Insights/components/$org-$env-ai"
                 ],
-                "resultFormat": "time_series"
+                "resultFormat": "time_series",
+                "timeColumn": "timestamp"
               },
               "queryType": "Azure Log Analytics",
               "refId": "A"
@@ -1193,7 +1252,7 @@ spec:
                 "scaleDistribution": {
                   "type": "linear"
                 },
-                "showPoints": "never",
+                "showPoints": "auto",
                 "spanNulls": true,
                 "stacking": {
                   "group": "A",
@@ -1294,7 +1353,7 @@ spec:
                 "scaleDistribution": {
                   "type": "linear"
                 },
-                "showPoints": "never",
+                "showPoints": "auto",
                 "spanNulls": true,
                 "stacking": {
                   "group": "A",
