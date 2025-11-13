@@ -57,11 +57,22 @@ func PrintResults(w io.Writer, results []kubernetes.QueryResult) {
 	tw := tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
 
 	hasDeploymentInfo := false
+	hasHTTPRouteInfo := false
 	for _, result := range results {
 		if result.PodAge != nil {
 			hasDeploymentInfo = true
 			break
 		}
+		if result.Weight1 != nil {
+			hasHTTPRouteInfo = true
+			break
+		}
+	}
+
+	// Use different table format for HTTPRoute
+	if hasHTTPRouteInfo {
+		printHTTPRouteResults(tw, results)
+		return
 	}
 
 	if hasDeploymentInfo {
@@ -204,4 +215,65 @@ func truncate(s string, maxLen int) string {
 		return s
 	}
 	return s[:maxLen-3] + "..."
+}
+
+// printHTTPRouteResults prints HTTPRoute query results in a specialized table format
+func printHTTPRouteResults(tw *tabwriter.Writer, results []kubernetes.QueryResult) {
+	fmt.Fprintln(tw, "CLUSTER\tNAMESPACE/NAME\tWEIGHT1\tWEIGHT2\tRECONCILE\tANNOTATIONS\tSTATUS")
+	fmt.Fprintln(tw, strings.Repeat("-", 20)+"\t"+strings.Repeat("-", 20)+"\t"+strings.Repeat("-", 8)+"\t"+strings.Repeat("-", 8)+"\t"+strings.Repeat("-", 10)+"\t"+strings.Repeat("-", 40)+"\t"+strings.Repeat("-", 15))
+
+	for _, result := range results {
+		cluster := result.ClusterName
+		namespacedName := result.Namespace + "/" + result.Name
+
+		if result.Error != nil {
+			errorMsg := truncate(result.Error.Error(), 100)
+			fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+				cluster,
+				namespacedName,
+				"-",
+				"-",
+				"-",
+				"-",
+				"ERROR: "+errorMsg)
+		} else {
+			weight1 := "-"
+			if result.Weight1 != nil {
+				weight1 = fmt.Sprintf("%d", *result.Weight1)
+			}
+			weight2 := "-"
+			if result.Weight2 != nil {
+				weight2 = fmt.Sprintf("%d", *result.Weight2)
+			}
+
+			reconcile := "enabled"
+			if result.HasReconcileAnnotation != nil && *result.HasReconcileAnnotation {
+				reconcile = "disabled"
+			}
+
+			annotations := "-"
+			if len(result.Annotations) > 0 {
+				// Format annotations as key=value pairs, truncated
+				var annotationList []string
+				for k, v := range result.Annotations {
+					annotationList = append(annotationList, fmt.Sprintf("%s=%s", k, v))
+				}
+				sort.Strings(annotationList)
+				annotations = truncate(strings.Join(annotationList, ", "), 80)
+			}
+
+			status := "✓"
+
+			fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+				cluster,
+				namespacedName,
+				weight1,
+				weight2,
+				reconcile,
+				annotations,
+				status)
+		}
+	}
+
+	tw.Flush()
 }

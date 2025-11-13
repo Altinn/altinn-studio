@@ -45,6 +45,7 @@ Examples:
   go run cmd/main.go status tt02 hr traefik/altinn-traefik
   go run cmd/main.go status tt02 ks runtime-pdf3/pdf3-app
   go run cmd/main.go status at22,at24 dep runtime-pdf3/pdf3-proxy
+  go run cmd/main.go status tt02 httproute pdf/pdf3-migration
   go run cmd/main.go status -s ttd tt02,prod ks runtime-pdf3/pdf3-app
 
   # Update HTTPRoute weights
@@ -344,7 +345,7 @@ func runStatus() error {
 		return fmt.Errorf("usage: go run cmd/main.go status [flags] <environments> <resource-type> <namespace/name>\n\n" +
 			"Arguments:\n" +
 			"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n" +
-			"  resource-type   hr (helmrelease) or ks (kustomization) or dep (deployment)\n" +
+			"  resource-type   hr (helmrelease) or ks (kustomization) or dep (deployment) or httproute\n" +
 			"  namespace/name  Resource location (e.g., default/my-app)\n\n" +
 			"Flags:\n" +
 			"  -s, --service-owner string\n" +
