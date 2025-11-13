@@ -87,9 +87,17 @@ export const EditBinding = ({
     handleBindingChange(undefined);
     onSetDataModelSelectVisible(false);
   };
+
   const isDeleteDisabled = !Object.values(component?.dataModelBindings || {}).some(
     (value) => value,
   );
+  const isSaveDisabled =
+    !binding?.field ||
+    !binding?.dataType ||
+    (internalBindingFormat &&
+      internalBindingFormat.field === binding.field &&
+      internalBindingFormat.dataType === binding.dataType);
+
   return (
     <StudioConfigCard>
       <StudioConfigCard.Header
@@ -124,7 +132,7 @@ export const EditBinding = ({
         onCancel={() => onSetDataModelSelectVisible(false)}
         onSave={() => handleBindingChange(binding)}
         isLoading={isLoadingDataModels}
-        isDisabled={!binding?.field || !binding?.dataType || internalBindingFormat === binding}
+        isDisabled={isSaveDisabled}
       />
     </StudioConfigCard>
   );
