@@ -9,6 +9,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type {
+  CodeListData as LibraryCodeListData,
   ContentLibraryConfig,
   PagesConfig,
   ResourceContentLibraryImpl,
@@ -30,6 +31,7 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import userEvent from '@testing-library/user-event';
 import { FeatureFlag } from '@studio/feature-flags';
 import { codeListsNewResponse } from './test-data/codeListsNewResponse';
+import type { UpdateOrgCodeListsPayload } from 'app-shared/types/api/UpdateOrgCodeListsPayload';
 
 // Test data:
 const orgName: string = 'org';
@@ -306,6 +308,32 @@ describe('OrgContentLibraryPage', () => {
     const pagesConfig = retrievePagesConfig();
     const { codeLists } = pagesConfig.codeLists.props;
     expect(codeLists).toHaveLength(codeListsNewResponse.codeListWrappers.length);
+  });
+
+  it('Calls updateOrgCodeLists with correct data when code list saving is triggered on the new code list page', async () => {
+    const updateOrgCodeLists = jest.fn();
+    renderOrgContentLibraryWithData({
+      featureFlags: [FeatureFlag.NewCodeLists],
+      queries: { updateOrgCodeLists },
+    });
+
+    const newCodeLists: LibraryCodeListData[] = [
+      { name: 'list-1', codes: [{ value: '8', label: { nb: 'Åtte' } }] },
+      { name: 'list-2', codes: [{ value: '9', label: { en: 'Nine' } }] },
+    ];
+    retrievePagesConfig().codeLists.props.onSave(newCodeLists);
+    await waitFor(expect(updateOrgCodeLists).toHaveBeenCalled);
+
+    const expectedPayload: UpdateOrgCodeListsPayload = {
+      baseCommitSha: codeListsNewResponse.commitSha,
+      codeListWrappers: expect.arrayContaining([
+        { title: newCodeLists[0].name, codeList: { codes: newCodeLists[0].codes } },
+        { title: newCodeLists[1].name, codeList: { codes: newCodeLists[1].codes } },
+      ]),
+      commitMessage: textMock('org_content_library.code_lists.commit_message_default'),
+    };
+    expect(updateOrgCodeLists).toHaveBeenCalledTimes(1);
+    expect(updateOrgCodeLists).toHaveBeenCalledWith(orgName, expectedPayload);
   });
 });
 

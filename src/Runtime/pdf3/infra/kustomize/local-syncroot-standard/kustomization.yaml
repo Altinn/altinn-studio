@@ -56,4 +56,15 @@ patches:
         upgrade_channel: local
         environment: local
         serviceowner: ttd
+  - target:
+      kind: HTTPRoute
+      name: pdf3-migration
+      namespace: pdf
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/backendRefs/0/weight
+        value: 100
+      - op: replace
+        path: /spec/rules/0/backendRefs/1/weight
+        value: 0
 
