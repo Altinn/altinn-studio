@@ -46,9 +46,9 @@ function makeInstance(org, app, currentTask, isComplete) {
 
 export const storageInstancesRoute = (req, res) => {
   const { org, app } = req.params;
-  const currentTask = req.query['process.currentTask'];
-  const isComplete = req.query['process.isComplete'];
-  const size = req.query['size'] ?? 10;
+  const currentTask = req.query?.['process.currentTask'];
+  const isComplete = req.query?.['process.isComplete'];
+  const size = req.query?.['size'] ?? 10;
 
   res.json({
     count: size,

@@ -10,6 +10,7 @@ using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Rest.TransientFaultHandling;
 
 namespace Altinn.Studio.Designer.Controllers;
 
@@ -59,7 +60,7 @@ public class InstancesController : ControllerBase
                 ContinuationToken = queryResponse.Next,
             };
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestWithStatusException ex)
         {
             return StatusCode((int?)ex.StatusCode ?? 500);
         }
