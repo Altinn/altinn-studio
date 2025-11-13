@@ -147,7 +147,6 @@ jobs:
           path: src/App/frontend/test/logs/*
 
       - name: Stop localtest
-        if: always()
         working-directory: src/Runtime/localtest
         run: docker compose down
 
