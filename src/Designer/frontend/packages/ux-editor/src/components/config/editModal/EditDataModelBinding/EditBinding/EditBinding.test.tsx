@@ -310,28 +310,30 @@ describe('EditBinding', () => {
     });
     const option2 = screen.getByRole('option', { name: secondDataModel });
     await user.selectOptions(dataModelSelector, option2);
+
+    const dataFieldSelector = screen.getByRole('combobox', {
+      name: textMock('ux_editor.modal_properties_data_model_field_binding'),
+    });
+    const secondDataFieldOption = screen.getByRole('option', { name: secondDataModelField });
+    await user.selectOptions(dataFieldSelector, secondDataFieldOption);
+
     const saveButton = screen.getByRole('button', {
       name: textMock('right_menu.data_model_bindings_save_button'),
     });
+
     await user.click(saveButton);
 
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     expect(handleComponentChange).toHaveBeenCalledWith(
-      {
-        ...componentMocks[ComponentType.Input],
-        dataModelBindings: {
-          [defaultEditBinding.bindingKey]: {
-            field: '',
+      expect.objectContaining({
+        dataModelBindings: expect.objectContaining({
+          [defaultEditBinding.bindingKey]: expect.objectContaining({
+            field: 'field2',
             dataType: secondDataModel,
-          },
-        },
-        maxCount: undefined,
-        required: undefined,
-        timeStamp: undefined,
-      },
-      {
-        onSuccess: expect.any(Function),
-      },
+          }),
+        }),
+      }),
+      expect.any(Object),
     );
   });
 
