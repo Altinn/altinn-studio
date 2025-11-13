@@ -1,11 +1,11 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaAlertRuleGroup
 metadata:
-  name: external-grafana-altinn-studio-overview
+  name: external-grafana-altinn-apps
   namespace: grafana
 spec:
   name: Exceptions
-  folderRef: external-grafana-altinn-studio
+  folderRef: external-grafana-altinn
   instanceSelector:
     matchLabels:
       dashboards: external-grafana
@@ -100,7 +100,7 @@ spec:
       execErrState: Error
       for: 0s
       annotations:
-        __dashboardUid__: AltinnStudioOverview
+        __dashboardUid__: AltinnApps
         __panelId__: "14"
       labels:
         Type: Altinn
@@ -205,7 +205,7 @@ spec:
       execErrState: Error
       for: 0s
       annotations:
-        __dashboardUid__: AltinnStudioOverview
+        __dashboardUid__: AltinnApps
         __panelId__: "12"
       labels:
         Type: Altinn
@@ -302,7 +302,7 @@ spec:
       execErrState: Error
       for: 0s
       annotations:
-        __dashboardUid__: AltinnStudioOverview
+        __dashboardUid__: AltinnApps
         __panelId__: "13"
       labels:
         Type: Altinn
@@ -425,7 +425,7 @@ spec:
       execErrState: Error
       for: 0s
       annotations:
-        __dashboardUid__: AltinnStudioOverview
+        __dashboardUid__: AltinnApps
         __panelId__: "3"
         summary: '`{{ index $labels "cloud/rolename" }}` had 5xx failed requests in the last 5m'
       labels:
@@ -535,7 +535,7 @@ spec:
       execErrState: Error
       for: 0s
       annotations:
-        __dashboardUid__: AltinnStudioOverview
+        __dashboardUid__: AltinnApps
         __panelId__: "4"
         summary: '`{{ index $labels "cloud/rolename" }}` had exceptions in the last 5m'
       labels:
@@ -645,7 +645,7 @@ spec:
       execErrState: Error
       for: 0s
       annotations:
-        __dashboardUid__: AltinnStudioOverview
+        __dashboardUid__: AltinnApps
         __panelId__: "2"
         summary: '`{{ index $labels "cloud/rolename" }}` had slow requests in the last 5m'
       labels:
@@ -755,7 +755,7 @@ spec:
       execErrState: Error
       for: 0s
       annotations:
-        __dashboardUid__: AltinnStudioOverview
+        __dashboardUid__: AltinnApps
         __panelId__: "10"
         summary: '`{{ index $labels "cloud/rolename" }}` had a surge in requests in the last 5m'
       labels:
@@ -860,7 +860,7 @@ spec:
       execErrState: Error
       for: 0s
       annotations:
-        __dashboardUid__: AltinnStudioOverview
+        __dashboardUid__: AltinnApps
         __panelId__: "5"
         summary: "`{{ $labels.workload }}` had memory pressure in the last 5m"
       labels:
@@ -967,7 +967,7 @@ spec:
       execErrState: Error
       for: 0s
       annotations:
-        __dashboardUid__: AltinnStudioOverview
+        __dashboardUid__: AltinnApps
         __panelId__: "6"
         summary: "`{{ $labels.workload }}` had cpu pressure in the last 5m"
       labels:
@@ -1056,7 +1056,7 @@ spec:
       execErrState: Error
       for: 0s
       annotations:
-        __dashboardUid__: AltinnStudioOverview
+        __dashboardUid__: AltinnApps
         __panelId__: "7"
         summary: "`{{ $labels.deployment }}` was down in the last 5m"
       labels:

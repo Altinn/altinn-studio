@@ -1,10 +1,10 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaContactPoint
 metadata:
-  name: external-grafana-altinn-studio-slack
+  name: external-grafana-altinn-slack
   namespace: grafana
 spec:
-  name: altinn-studio-slack
+  name: altinn-slack
   type: slack
   instanceSelector:
     matchLabels:
@@ -17,5 +17,5 @@ spec:
     - targetPath: url
       valueFrom:
         secretKeyRef:
-          name: external-grafana-altinn-studio-slack-webhook
+          name: external-grafana-altinn-slack-webhook
           key: url

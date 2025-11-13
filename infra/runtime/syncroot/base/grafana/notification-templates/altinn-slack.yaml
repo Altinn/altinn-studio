@@ -1,13 +1,13 @@
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaNotificationTemplate
 metadata:
-  name: external-grafana-altinn-studio-slack
+  name: external-grafana-altinn-slack
   namespace: grafana
 spec:
   instanceSelector:
     matchLabels:
       dashboards: external-grafana
-  name: "Altinn Studio Slack"
+  name: "Altinn Slack"
   editable: true
   template: |
     {{ define "slack.message" -}}
