@@ -140,9 +140,7 @@ export class UiEditorPage extends BasePage {
   }
 
   private getTitleTextFieldset(): Locator {
-    return this.page.getByRole('group', {
-      name: this.textMock('ux_editor.modal_properties_textResourceBindings_title'),
-    });
+    return this.page.getByRole('region');
   }
 
   public async clickOnSaveNewLabelName(): Promise<void> {
