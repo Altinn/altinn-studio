@@ -52,11 +52,10 @@ namespace LocalTest.Services.LocalApp.Implementation
             // Try to get registered app first
             if (appId != null)
             {
-                var registration = _appRegistryService.GetRegistration(appId);
-                if (registration != null)
+                var appUrl = _appRegistryService.GetUrl(appId);
+                if (appUrl != null)
                 {
-                    var host = registration.Hostname.Contains(':') ? $"[{registration.Hostname}]" : registration.Hostname;
-                    client.BaseAddress = new Uri($"http://{host}:{registration.Port}");
+                    client.BaseAddress = new Uri(appUrl);
                     return client;
                 }
             }
