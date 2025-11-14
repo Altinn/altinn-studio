@@ -179,14 +179,6 @@
     "zustand": "5.0.8"
   },
   "packageManager": "yarn@4.10.3",
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      ".husky/pre-commit-check-for-skipped-tests",
-      "yarn eslint --cache --fix"
-    ],
-    "*.json": "yarn eslint --cache --fix",
-    "*.{css,md}": "yarn prettier --write"
-  },
   "browserslist": {
     "production": [
       ">0.2%",
