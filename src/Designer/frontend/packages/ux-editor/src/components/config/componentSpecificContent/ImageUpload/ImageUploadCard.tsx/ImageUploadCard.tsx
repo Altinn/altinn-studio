@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 
 export type ImageUploadCardProps = {
   externalCrop?: ExternalCrop;
-  handleSaveChanges: (CropToBeSaved: ExternalCrop) => void;
+  handleSaveChanges: (CropToBeSaved: ExternalCrop | null) => void;
   setOpenCard: (open: boolean) => void;
 };
 
