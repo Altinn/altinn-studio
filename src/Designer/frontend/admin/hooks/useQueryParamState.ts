@@ -15,7 +15,11 @@ export function useQueryParamState<T extends { [key: string]: any }>(
           if (val === initial[key]) {
             delete newParams[key];
           } else {
-            newParams[key] = JSON.stringify(val);
+            try {
+              newParams[key] = JSON.stringify(val);
+            } catch {
+              delete newParams[key];
+            }
           }
         }
 
@@ -31,7 +35,11 @@ export function useQueryParamState<T extends { [key: string]: any }>(
       if (raw === null) {
         return [key, initial[key]];
       }
-      return [key, JSON.parse(raw)];
+      try {
+        return [key, JSON.parse(raw)];
+      } catch {
+        return [key, initial[key]];
+      }
     }),
   );
 
