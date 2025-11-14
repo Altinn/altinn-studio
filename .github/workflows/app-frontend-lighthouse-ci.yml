@@ -54,7 +54,7 @@ jobs:
         run: |
           # Start the app in background
           cd src/test/apps/component-library/App
-          nohup dotnet run --no-build > app.log 2>&1 & APP_PID=$!
+          nohup dotnet run --no-build > $GITHUB_WORKSPACE/app.log 2>&1 & APP_PID=$!
 
           # Return to workspace root
           cd $GITHUB_WORKSPACE
@@ -71,17 +71,14 @@ jobs:
             echo "❌ localtest failed to start within 2 minutes."
           fi
 
-          # Return to workspace root
-          cd $GITHUB_WORKSPACE
-
           # Wait for app readiness
           echo "Waiting for app to start listening on port 5005..."
-          if timeout 120 bash -c 'until grep -q "Now listening on: http://\[::]:5005" src/test/apps/component-library/App/app.log 2>/dev/null; do sleep 1; done'; then
+          if timeout 120 bash -c 'until grep -q "Now listening on: http://\[::]:" $GITHUB_WORKSPACE/app.log 2>/dev/null; do sleep 1; done'; then
             echo "✅ App is ready!"
           else
             echo "❌ App failed to start within 2 minutes."
             echo "=== App log ==="
-            cat src/test/apps/component-library/App/app.log
+            cat $GITHUB_WORKSPACE/app.log
             kill $APP_PID 2>/dev/null || true
             exit 1
           fi
