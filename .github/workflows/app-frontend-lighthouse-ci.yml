@@ -26,12 +26,6 @@ jobs:
           working-directory: src/App/frontend
           node-version: '20.x'
 
-      - name: Setup hosts for local.altinn.cloud
-        run: |
-          echo "127.0.0.1 local.altinn.cloud" | sudo tee -a /etc/hosts
-          # Verify host resolution
-          getent hosts local.altinn.cloud
-
       - name: Build localtest
         working-directory: src/Runtime/localtest
         run: docker compose build
