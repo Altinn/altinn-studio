@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import { ProcessEditor } from './ProcessEditor';
+import ProcessEditor from './ProcessEditor';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../test/testUtils';
 import { QueryKey } from 'app-shared/types/QueryKey';
