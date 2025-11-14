@@ -35,7 +35,7 @@ cp .env.example .env
 
 ## Usage
 
-You can start the MCP server in two ways:
+You can start the MCP server in 3 ways:
 
 ### Option 1: Using the launcher script
 
@@ -52,6 +52,12 @@ uv run -m server.main
 ```
 
 The MCP server will start and be available for connections from MCP clients like Windsurf.
+
+### Option 3: Docker container
+
+```bash
+docker-compose up
+```
 
 ## Development
 
