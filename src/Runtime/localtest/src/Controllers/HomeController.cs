@@ -149,9 +149,9 @@ namespace LocalTest.Controllers
 
             var hostname = sourceIp.ToString();
             var parsedSourceIp = sourceIp.IsIPv4MappedToIPv6 ? sourceIp.MapToIPv4() : sourceIp;
-            var dockerBridgeGateway = GetDockerBridgeGateway();
+            var defaultGateway = GetDefaultGateway();
 
-            if (dockerBridgeGateway != null && parsedSourceIp.Equals(dockerBridgeGateway))
+            if (defaultGateway != null && parsedSourceIp.Equals(defaultGateway))
             {
                 hostname = "host.docker.internal";
             }
@@ -653,45 +653,21 @@ namespace LocalTest.Controllers
             );
         }
 
-        private static bool IsDockerNetworkRange(IPAddress ipAddress)
-        {
-            if (ipAddress.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
-                return false;
-
-            var bytes = ipAddress.GetAddressBytes();
-
-            // 172.16.0.0/12 (172.16.0.0 - 172.31.255.255)
-            if (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31)
-                return true;
-
-            // 192.168.0.0/16 (192.168.0.0 - 192.168.255.255)
-            if (bytes[0] == 192 && bytes[1] == 168)
-                return true;
-
-            return false;
-        }
-
-        private static IPAddress? GetDockerBridgeGateway()
+        private static IPAddress? GetDefaultGateway()
         {
             try
             {
-                var commonDockerGateways = new[]
-                {
-                    IPAddress.Parse("172.17.0.1"),
-                    IPAddress.Parse("172.18.0.1"),
-                    IPAddress.Parse("172.19.0.1"),
-                    IPAddress.Parse("172.20.0.1")
-                };
-
                 return NetworkInterface
                     .GetAllNetworkInterfaces()
                     .Where(n => n.OperationalStatus == OperationalStatus.Up)
+                    .Where(n => n.NetworkInterfaceType != NetworkInterfaceType.Loopback)
                     .SelectMany(n =>
                         n.GetIPProperties()?.GatewayAddresses
                         ?? Enumerable.Empty<GatewayIPAddressInformation>()
                     )
                     .Select(g => g.Address)
-                    .FirstOrDefault(a => a != null && commonDockerGateways.Contains(a));
+                    .Where(a => a?.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    .FirstOrDefault();
             }
             catch
             {
