@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { ErrorMessage, Label, Search } from '@digdir/designsystemet-react';
+import { Search } from '@digdir/designsystemet-react';
+
+import classes from './ArchiveReferenceSearch.module.css';
 
 type ArchiveReferenceSearchProps = {
   value: string;
@@ -34,19 +36,19 @@ export const ArchiveReferenceSearch = ({ value, setValue }: ArchiveReferenceSear
   };
 
   return (
-    <div>
-      <Label data-size='md'>Arkivreferanse</Label>
-      <Search
-        variant={canSearch ? 'primary' : 'simple'}
-        label='Arkivreferanse'
-        value={searchString}
-        onClear={handleClear}
-        onChange={handleChange}
-        onSearchClick={handleSearchClick}
-      />
-      {!isEmpty && !isValid && (
-        <ErrorMessage>Må være en gyldig instans-ID eller arkivreferanse.</ErrorMessage>
-      )}
-    </div>
+    <Search
+      className={classes.search}
+      variant={canSearch ? 'primary' : 'simple'}
+      error={
+        !isEmpty && !isValid ? 'Må være en gyldig instans-ID eller arkivreferanse.' : undefined
+      }
+      hideLabel={false}
+      size='sm'
+      label='Arkivreferanse'
+      value={searchString}
+      onClear={handleClear}
+      onChange={handleChange}
+      onSearchClick={handleSearchClick}
+    />
   );
 };
