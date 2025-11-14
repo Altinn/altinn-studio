@@ -198,10 +198,8 @@ export const doSubformEntryDelete = async (instanceId: string, dataElementId: st
 };
 
 // New multi-patch endpoint for stateful apps
-export const doPatchMultipleFormData = (url: string, data: IDataModelMultiPatchRequest) => {
-  debugger;
-  return httpPatch<IDataModelMultiPatchResponse>(url, data);
-};
+export const doPatchMultipleFormData = (url: string, data: IDataModelMultiPatchRequest) =>
+  httpPatch<IDataModelMultiPatchResponse>(url, data);
 
 // When saving data for stateless apps
 export const doPostStatelessFormData = async (
