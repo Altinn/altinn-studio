@@ -154,18 +154,16 @@ public class FullTests(ITestOutputHelper output)
             .Where(static assembly => !assembly.IsDynamic && !string.IsNullOrWhiteSpace(assembly.Location))
             .Where(assembly => assembly != currentAssembly)
             .Select(static assembly => MetadataReference.CreateFromFile(assembly.Location))
-            .Concat(
-                [
-                    MetadataReference.CreateFromFile(typeof(RangeAttribute).Assembly.Location),
-                    MetadataReference.CreateFromFile(typeof(BindNeverAttribute).Assembly.Location),
-                    MetadataReference.CreateFromFile(typeof(JsonProperty).Assembly.Location),
-                    MetadataReference.CreateFromFile(typeof(RequiredAttribute).Assembly.Location),
-                    MetadataReference.CreateFromFile(typeof(JsonIgnoreAttribute).Assembly.Location),
-                    MetadataReference.CreateFromFile(typeof(JsonPropertyNameAttribute).Assembly.Location),
-                    MetadataReference.CreateFromFile(typeof(IFormDataWrapper).Assembly.Location),
-                    MetadataReference.CreateFromFile(typeof(DataModelException).Assembly.Location),
-                ]
-            );
+            .Concat([
+                MetadataReference.CreateFromFile(typeof(RangeAttribute).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(BindNeverAttribute).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(JsonProperty).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(RequiredAttribute).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(JsonIgnoreAttribute).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(JsonPropertyNameAttribute).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(IFormDataWrapper).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(DataModelException).Assembly.Location),
+            ]);
 
         var compilation = CSharpCompilation.Create(
             "name",
@@ -176,9 +174,9 @@ public class FullTests(ITestOutputHelper output)
         var generator = new FormDataWrapperGenerator();
 
         GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
-        driver = driver.AddAdditionalTexts(
-            [new AdditionalTextImplementation(applicationMetadata, "C:\\temp\\config\\applicationmetadata.json")]
-        );
+        driver = driver.AddAdditionalTexts([
+            new AdditionalTextImplementation(applicationMetadata, "C:\\temp\\config\\applicationmetadata.json"),
+        ]);
         var results = driver.RunGenerators(compilation);
 
         var runResult = results.GetRunResult();

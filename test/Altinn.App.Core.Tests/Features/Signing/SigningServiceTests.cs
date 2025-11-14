@@ -763,22 +763,20 @@ public sealed class SigningServiceTests : IDisposable
                     CancellationToken.None
                 )
             )
-            .ReturnsAsync(
-                [
-                    new SigneeContext
+            .ReturnsAsync([
+                new SigneeContext
+                {
+                    TaskId = "Task_1",
+                    SignDocument = signDocument,
+                    SigneeState = new SigneeState { IsAccessDelegated = true },
+                    Signee = new PersonSignee
                     {
-                        TaskId = "Task_1",
-                        SignDocument = signDocument,
-                        SigneeState = new SigneeState { IsAccessDelegated = true },
-                        Signee = new PersonSignee
-                        {
-                            FullName = "Test Person",
-                            Party = new Party(),
-                            SocialSecurityNumber = "12345678910",
-                        },
+                        FullName = "Test Person",
+                        Party = new Party(),
+                        SocialSecurityNumber = "12345678910",
                     },
-                ]
-            );
+                },
+            ]);
 
         // Setup to throw exception during party lookup
         _altinnPartyClient.Reset();
