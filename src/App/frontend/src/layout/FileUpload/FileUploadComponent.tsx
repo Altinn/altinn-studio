@@ -59,6 +59,7 @@ export function FileUploadComponent({
 
 
 
+
   const validations = useUnifiedValidationsForNode(baseComponentId).filter(
     (v) => !('attachmentId' in v) || !v.attachmentId,
   );
