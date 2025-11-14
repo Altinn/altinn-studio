@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryOptions } from '@tanstack/react-query';
 
 import { delayedContext } from 'src/core/contexts/delayedContext';
@@ -34,7 +34,13 @@ export function getApplicationMetadataQueryDef(instanceGuid: string | undefined)
 
 const useApplicationMetadataQuery = () => {
   const instanceGuid = useNavigationParam('instanceGuid');
-  const query = useQuery(getApplicationMetadataQueryDef(instanceGuid));
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    ...getApplicationMetadataQueryDef(instanceGuid),
+    // Use initialData from cache to avoid loading state when data is prefilled
+    initialData: () => queryClient.getQueryData<IncomingApplicationMetadata>(['fetchApplicationMetadata']),
+  });
 
   useEffect(() => {
     query.error && window.logError('Fetching application metadata failed:\n', query.error);

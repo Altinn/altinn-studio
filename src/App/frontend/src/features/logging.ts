@@ -28,7 +28,8 @@ function postLog(level: 'info' | 'warn' | 'error', args: unknown[], once = false
   tempLogs.push({ index: logIndex, level, message });
   clearTimeout(timer);
   if (tempLogs.length > 100) {
-    pushLogs();
+    // Use queueMicrotask to defer state update until after current render
+    queueMicrotask(pushLogs);
   } else {
     timer = setTimeout(pushLogs, 400);
   }

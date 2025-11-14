@@ -85,12 +85,19 @@ const emptyLayouts: ILayouts = {};
 export const LayoutsProvider = Provider;
 export const useLayouts = (): ILayouts => {
   const ctx = useLaxCtx();
-  return ctx === ContextNotProvided ? emptyLayouts : (ctx.layouts ?? emptyLayouts);
+
+  return ctx === ContextNotProvided || !ctx ? emptyLayouts : (ctx.layouts ?? emptyLayouts);
 };
-export const useLayoutLookups = () => useCtx().lookups;
+export const useLayoutLookups = () => {
+  const ctx = useLaxCtx();
+  if (ctx === ContextNotProvided || !ctx) {
+    return makeLayoutLookups(emptyLayouts);
+  }
+  return ctx.lookups;
+};
 export const useLayoutLookupsLax = () => {
   const ctx = useLaxCtx();
-  return ctx === ContextNotProvided ? undefined : ctx.lookups;
+  return ctx === ContextNotProvided || !ctx ? undefined : ctx.lookups;
 };
 
 const noExpressions: IHiddenLayoutsExternal = {};

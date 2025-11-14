@@ -6,7 +6,6 @@ import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/rea
 import deepEqual from 'fast-deep-equal';
 import type { UseQueryOptions } from '@tanstack/react-query';
 
-import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { FileScanResults } from 'src/features/attachments/types';
 import { removeProcessFromInstance } from 'src/features/instance/instanceUtils';
@@ -30,16 +29,16 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const { isLoading: isLoadingProcess, error: processError } = useProcessQuery();
 
   const hasPendingScans = useHasPendingScans();
-  const { error: instanceDataError, data } = useInstanceDataQuery({ refetchInterval: hasPendingScans ? 5000 : false });
+  const { data } = useInstanceDataQuery({ refetchInterval: hasPendingScans ? 5000 : false });
 
   if (!instanceOwnerPartyId || !instanceGuid) {
     throw new Error('Missing instanceOwnerPartyId or instanceGuid when creating instance context');
   }
 
-  const error = instantiation.error ?? instanceDataError ?? processError;
-  if (error) {
-    return <DisplayError error={error} />;
-  }
+  // const error = instantiation.error ?? instanceDataError ?? processError;
+  // if (error) {
+  //   return <DisplayError error={error} />;
+  // }
 
   if (!data) {
     return <Loader reason='loading-instance' />;
@@ -55,11 +54,7 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   return <InstanceContext.Provider value={data}>{children}</InstanceContext.Provider>;
 };
 
-export const useLaxInstanceId = () => {
-  const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
-  const instanceGuid = useNavigationParam('instanceGuid');
-  return instanceOwnerPartyId && instanceGuid ? `${instanceOwnerPartyId}/${instanceGuid}` : undefined;
-};
+export const useLaxInstanceId = () => window.AltinnAppData?.instance?.id;
 
 export const useStrictInstanceId = () => {
   const instanceId = useLaxInstanceId();
