@@ -33,8 +33,6 @@ export const getOrderDetailsUrl = (instanceId: string, language?: string) => {
   const queryString = getQueryStringFromObject({ language });
   return `${origin}/${org}/${app}/instances/${instanceId}/payment/order-details${queryString}`;
 };
-export const getFileUploadUrlOld = (instanceId: string, attachmentDataType: string) =>
-  `${appPath}/instances/${instanceId}/data?dataType=${attachmentDataType}`;
 
 export const getFileUploadUrl = (instanceId: string, attachmentDataType: string, language?: string) => {
   const queryString = getQueryStringFromObject({ language });

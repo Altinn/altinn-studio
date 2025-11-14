@@ -23,7 +23,6 @@ import {
   getDataModelTypeUrl,
   getFetchFormDynamicsUrl,
   getFileUploadUrl,
-  getFileUploadUrlOld,
   getFooterLayoutUrl,
   getInstantiateUrl,
   getJsonSchemaUrl,
@@ -90,20 +89,6 @@ export const doInstantiate = async (partyId: number, language?: string): Promise
 
 export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
   httpPut<IProcess>(getProcessNextUrl(instanceId, language), action ? { action } : null);
-
-export const doAttachmentUploadOld = async (instanceId: string, dataTypeId: string, file: File): Promise<IData> => {
-  const url = getFileUploadUrlOld(instanceId, dataTypeId);
-  const contentType = getFileContentType(file);
-
-  const config: AxiosRequestConfig = {
-    headers: {
-      'Content-Type': contentType,
-      'Content-Disposition': `attachment; filename=${customEncodeURI(file.name)}`,
-    },
-  };
-
-  return (await httpPost<IData>(url, config, file)).data;
-};
 
 export const doAttachmentUpload = async (
   instanceId: string,

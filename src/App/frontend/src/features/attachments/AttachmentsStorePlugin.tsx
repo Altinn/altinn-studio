@@ -8,7 +8,6 @@ import type { AxiosError } from 'axios';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { isAttachmentUploaded, isDataPostError } from 'src/features/attachments/index';
 import { sortAttachmentsByName } from 'src/features/attachments/sortAttachments';
 import { attachmentSelector } from 'src/features/attachments/tools';
@@ -350,7 +349,6 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
         const update = store.useSelector((state) => state.attachmentUpdate);
         const fulfill = store.useSelector((state) => state.attachmentUpdateFulfilled);
         const reject = store.useSelector((state) => state.attachmentUpdateRejected);
-        const backendVersion = useApplicationMetadata().altinnNugetVersion ?? '';
 
         return useCallback(
           async (action: AttachmentActionUpdate) => {
@@ -377,7 +375,7 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
               toast(lang('form_filler.file_uploader_validation_error_update'), { type: 'error' });
             }
           },
-          [update, backendVersion, fulfill, optimisticallyUpdateDataElement, updateTags, reject, lang],
+          [update, fulfill, optimisticallyUpdateDataElement, updateTags, reject, lang],
         );
       },
       useAttachmentsRemove() {
@@ -616,26 +614,6 @@ function useSetAttachmentInDataModel() {
 interface AttachmentUploadVariables {
   dataTypeId: string;
   file: File;
-}
-
-function useAttachmentsUploadMutationOld() {
-  const { doAttachmentUploadOld } = useAppMutations();
-  const instanceId = useLaxInstanceId();
-
-  const options: UseMutationOptions<IData, AxiosError, AttachmentUploadVariables> = {
-    mutationFn: ({ dataTypeId, file }) => {
-      if (!instanceId) {
-        throw new Error('Missing instanceId, cannot upload attachment');
-      }
-
-      return doAttachmentUploadOld(instanceId, dataTypeId, file);
-    },
-    onError: (error: AxiosError) => {
-      window.logError('Failed to upload attachment:\n', error.message);
-    },
-  };
-
-  return useMutation(options);
 }
 
 function useAttachmentsUploadMutation() {
