@@ -1,4 +1,3 @@
-import base64
 import requests
 import os
 
@@ -20,17 +19,26 @@ def get_file(repo_owner: str, repo_name: str, file_path: str, branch: str = "mas
     Returns:
         str: The content of the file
     """
-    url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}?ref={branch}"
+    # Try raw GitHub URL first (no auth needed for public repos)
+    raw_url = f"https://raw.githubusercontent.com/{repo_owner}/{repo_name}/{branch}/{file_path}"
     try:
-        headers = {
-            "Authorization": f"token {GITHUB_API_TOKEN}",
-            "Accept": "application/vnd.github.v3+json"
-        }
-        response = requests.get(url, headers=headers)
+        response = requests.get(raw_url)
         response.raise_for_status()
+        return response.text
+    except requests.exceptions.RequestException:
+        # Fallback to API with token if raw fails
+        url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}?ref={branch}"
+        try:
+            headers = {
+                "Authorization": f"token {GITHUB_API_TOKEN}",
+                "Accept": "application/vnd.github.v3+json"
+            }
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
 
-        #Parse content from base64
-        content = base64.b64decode(response.json()["content"]).decode("utf-8")
-        return content
-    except requests.exceptions.RequestException as e:
-        raise RuntimeError(f"Error fetching file: {e}")
+            #Parse content from base64
+            import base64
+            content = base64.b64decode(response.json()["content"]).decode("utf-8")
+            return content
+        except requests.exceptions.RequestException as e:
+            raise RuntimeError(f"Error fetching file: {e}")

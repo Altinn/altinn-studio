@@ -12,7 +12,12 @@ DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-4o-2M-tps")
 EMBEDDING_DEPLOYMENT_NAME = os.getenv("AZURE_EMBEDDING_DEPLOYMENT_NAME", "text-embedding-3-large")
 
 # MCP Configuration
-# No LangWatch configuration needed for MCP-only version
+# LangWatch to be replaced with langfuse
+# LangWatch Configuration
+LANGWATCH_API_KEY = os.getenv("LANGWATCH_API_KEY", "")
+LANGWATCH_PROJECT_ID = os.getenv("LANGWATCH_PROJECT_ID", "studio-assistant")
+LANGWATCH_ENABLED = os.getenv("LANGWATCH_ENABLED", "false")
+LANGWATCH_LABELS = [""]
 
 # LLM Configuration
 LLM_CONFIG = {

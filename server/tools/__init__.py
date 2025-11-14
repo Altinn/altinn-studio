@@ -95,13 +95,24 @@ Use these tools to help developers build Altinn Studio applications:
 Remember: This server specializes in Norwegian government applications using the Altinn platform. All generated code and guidance follows Altinn Studio conventions and patterns.
 """
 
-mcp = FastMCP(
-    name="altinity_mcp_server", 
-    instructions=ALTINITY_INSTRUCTIONS,
-    host="127.0.0.1", 
-    port=8069, 
-    timeout=60
-)
+# Global MCP instance - will be initialized by main.py after parsing arguments
+mcp = None
+
+def initialize_mcp(port: int = 8069):
+    """Initialize the MCP server with the specified port."""
+    global mcp
+    if mcp is not None:
+        return mcp  # Already initialized
+    
+    mcp = FastMCP(
+        name="altinity_mcp_server", 
+        instructions=ALTINITY_INSTRUCTIONS,
+        host="127.0.0.1", 
+        port=port, 
+        timeout=60,
+        version="1.0.5"
+    )
+    return mcp
 
 # Registry for dynamically loaded tools
 tool_registry = []
@@ -109,6 +120,45 @@ tool_registry = []
 def register_tool(name=None, description=None, title=None, annotations=None):
     """Decorator to register an MCP tool and store it in the registry."""
     def decorator(f):
+        # Store the tool metadata on the function
+        f._tool_name = name or f.__name__
+        f._tool_description = description or f.__doc__ or ""
+        f._tool_title = title
+        f._tool_annotations = annotations
+        
         tool_registry.append(f)
-        return mcp.tool(name=name, description=description, title=title, annotations=annotations)(f)
+        # FastMCP.tool() doesn't accept 'title' parameter, only name and description
+        # Tool will be registered when MCP is initialized
+        return f
     return decorator
+
+def register_all_tools():
+    """Register all collected tools with the MCP instance."""
+    global mcp
+    if mcp is None:
+        raise RuntimeError("MCP instance not initialized. Call initialize_mcp() first.")
+    
+    for tool_func in tool_registry:
+        # Extract tool metadata from function attributes set by register_tool decorator
+        name = getattr(tool_func, '_tool_name', tool_func.__name__)
+        description = getattr(tool_func, '_tool_description', tool_func.__doc__ or "")
+        
+        mcp.tool(name=name, description=description)(tool_func)
+
+# Import all tools to register them
+# from .agent_status_tool import agent_status_tool  # Commented out - empty implementation
+from .app_lib_examples_tool import app_lib_examples_tool
+from .datamodel_tool import datamodel_tool
+from .dynamic_expression_tool import dynamic_expression
+# from .fastagent_tool import fastagent_tool  # Commented out - empty implementation
+from .layout_components_tool import layout_components_tool
+from .layout_properties_tool import layout_properties_tool
+from .planning_tool import planning_tool
+from .policy_summarization_tool import policy_summarization_tool
+from .policy_tool import policy_tool
+from .policy_validation_tool import policy_validation_tool
+from .prefill_tool import prefill_tool
+from .resource_validator_tool import resource_validator_tool
+from .schema_validator_tool import schema_validator_tool
+from .server_info_tool import server_info
+from .studio_examples_tool import studio_examples_tool
