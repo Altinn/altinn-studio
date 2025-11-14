@@ -106,7 +106,6 @@ export const makeMutationMocks = <T extends (name: keyof AppMutations) => any>(
   [fn in keyof AppMutations]: ReturnType<T>;
 } => ({
   doAttachmentRemove: makeMock('doAttachmentRemove'),
-  doAttachmentUploadOld: makeMock('doAttachmentUploadOld'),
   doAttachmentUpload: makeMock('doAttachmentUpload'),
   doPatchMultipleFormData: makeMock('doPatchMultipleFormData'),
   doPostStatelessFormData: makeMock('doPostStatelessFormData'),
