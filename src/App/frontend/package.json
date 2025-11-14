@@ -29,7 +29,7 @@
     "tsc:watch:cypress": "yarn gen && tsc --watch --project test/tsconfig.json",
     "lint": "yarn gen && eslint .",
     "bench": "tsx --expose_gc --tsconfig benchmarks/tsconfig.json benchmarks/${0}",
-    "lhci": "npx @lhci/cli autorun"
+    "lhci": "lhci autorun"
   },
   "devDependencies": {
     "@babel/core": "7.28.5",
@@ -40,6 +40,7 @@
     "@babel/runtime-corejs3": "7.28.4",
     "@eslint/compat": "1.4.1",
     "@faker-js/faker": "10.1.0",
+    "@lhci/cli": "^0.15.1",
     "@percy/cli": "1.31.4",
     "@percy/cypress": "3.1.6",
     "@pmmmwh/react-refresh-webpack-plugin": "0.6.1",
