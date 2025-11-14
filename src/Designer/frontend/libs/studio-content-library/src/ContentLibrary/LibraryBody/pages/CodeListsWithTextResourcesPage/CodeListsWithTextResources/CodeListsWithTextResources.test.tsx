@@ -305,10 +305,8 @@ const changeCodeListId = async (user: UserEvent, oldCodeListId: string, newCodeL
     }),
   );
   await user.click(codeListIdToggleTextfield);
-  const codeListIdInput = screen.getByTitle(
-    textMock('app_content_library.code_lists_with_text_resources.code_list_view_id_title', {
-      codeListName: oldCodeListId,
-    }),
+  const codeListIdInput = screen.getByLabelText(
+    textMock('app_content_library.code_lists_with_text_resources.code_list_edit_id_label'),
   );
   await user.clear(codeListIdInput);
   await user.type(codeListIdInput, newCodeListId);

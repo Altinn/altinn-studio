@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { LinkIcon } from '@studio/icons';
-import { StudioToggleableTextfield } from '@studio/components-legacy';
+import { StudioToggleableTextfield } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './ExternalImage.module.css';
 import { useValidateImageExternalUrlQuery } from 'app-shared/hooks/queries/useValidateImageExternalUrlQuery';
