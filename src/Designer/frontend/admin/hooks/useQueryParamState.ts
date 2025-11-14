@@ -6,7 +6,7 @@ export function useQueryParamState<T extends { [key: string]: any }>(
 ): [T, (value: Partial<T>) => void] {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const setValue = useEffectEventPolyfill((value: T) =>
+  const setValue = useEffectEventPolyfill((value: Partial<T>) =>
     setSearchParams(
       (params) => {
         const newParams = Object.fromEntries(params.entries());
