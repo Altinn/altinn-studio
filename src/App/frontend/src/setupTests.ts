@@ -100,11 +100,7 @@ window.AltinnAppData = {
   layoutSets: getLayoutSetsMock(),
   applicationMetadata: getIncomingApplicationMetadataMock(),
   footerLayout: null,
-  appLanguages: [
-    { language: 'nb' },
-    { language: 'nn' },
-    { language: 'en' },
-  ],
+  appLanguages: [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
   textResources: {
     language: 'nb',
     resources: getTextResourcesMock(),

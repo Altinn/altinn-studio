@@ -4,15 +4,14 @@ import type { PropsWithChildren } from 'react';
 import { resourcesAsMap } from 'src/features/language/textResources/resourcesAsMap';
 import type { TextResourceMap } from 'src/features/language/textResources/index';
 
-export const useTextResources = (): TextResourceMap => {
-  return useMemo(() => {
+export const useTextResources = (): TextResourceMap =>
+  useMemo(() => {
     const data = window.AltinnAppData?.textResources;
     if (!data) {
       return {};
     }
     return resourcesAsMap(data.resources);
   }, []);
-};
 
 export const useHasTextResources = () => true;
 

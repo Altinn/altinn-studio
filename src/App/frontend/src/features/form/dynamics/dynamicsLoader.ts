@@ -36,7 +36,7 @@ function clearExistingRules() {
 export async function dynamicsLoader({
   params,
   context,
-}: LoaderFunctionArgs & { context: DynamicsLoaderContext }): Promise<any> {
+}: LoaderFunctionArgs & { context: DynamicsLoaderContext }): Promise<unknown> {
   const { application, layoutSets } = context;
 
   const { taskId } = params;
