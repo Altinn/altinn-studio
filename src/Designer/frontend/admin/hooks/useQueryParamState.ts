@@ -3,7 +3,7 @@ import { useEffectEventPolyfill } from './useEffectEventPolyfill';
 
 export function useQueryParamState<T extends { [key: string]: any }>(
   initial: T,
-): [T, (value: T) => void] {
+): [T, (value: Partial<T>) => void] {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const setValue = useEffectEventPolyfill((value: T) =>

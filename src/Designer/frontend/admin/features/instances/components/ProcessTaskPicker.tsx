@@ -1,11 +1,10 @@
 import type { ChangeEvent } from 'react';
-import React, { useState } from 'react';
+import React from 'react';
 import { StudioSpinner, StudioSelect, StudioError } from '@studio/components';
 import { useAppProcessTasks } from 'admin/hooks/queries/useAppProcessTasks';
 import { useTranslation } from 'react-i18next';
 import type { ProcessTask } from 'admin/types/ProcessTask';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
-import { useEffectEventPolyfill } from 'admin/hooks/useEffectEventPolyfill';
 
 type ProcessTaskPickerProps = {
   org: string;
