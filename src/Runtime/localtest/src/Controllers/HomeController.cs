@@ -153,7 +153,7 @@ namespace LocalTest.Controllers
 
             if (defaultGateway != null && parsedSourceIp.Equals(defaultGateway))
             {
-                hostname = "host.docker.internal";
+                hostname = GetHostInternalHostname();
             }
 
             _appRegistryService.Register(request.AppId, request.Port, hostname);
@@ -673,6 +673,34 @@ namespace LocalTest.Controllers
             {
                 return null;
             }
+        }
+
+        private static string GetHostInternalHostname()
+        {
+            var hostnames = new[]
+            {
+                "host.docker.internal",
+                "host.containers.internal",
+                "host.rancher-desktop.internal",
+                "host.lima.internal"
+            };
+
+            foreach (var hostname in hostnames)
+            {
+                try
+                {
+                    var addresses = System.Net.Dns.GetHostAddresses(hostname);
+                    if (addresses.Length > 0)
+                        return hostname;
+                }
+                catch
+                {
+                    // Continue to next hostname
+                }
+            }
+
+            // Fallback to Docker's default
+            return "host.docker.internal";
         }
     }
 }
