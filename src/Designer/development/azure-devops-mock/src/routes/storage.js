@@ -28,11 +28,13 @@ function makeInstance(org, app, currentTask, isComplete, archiveReference = null
     : uuid();
 
   if (currentTask) {
+    const isRead = Math.random() < 0.5;
+
     return {
       id,
       org,
       app,
-      isRead: true,
+      isRead,
       currentTaskName: taskNames[currentTask],
       currentTaskId: currentTask,
       createdAt: new Date(),
@@ -40,17 +42,23 @@ function makeInstance(org, app, currentTask, isComplete, archiveReference = null
     };
   }
 
-  if (isComplete) {
-    return {
-      id,
-      org,
-      app,
-      isRead: true,
-      archivedAt: new Date(),
-      createdAt: new Date(),
-      lastChangedAt: new Date(),
-    };
-  }
+  // Instance is completed
+  const isConfirmed = Math.random() < 0.5;
+  const isSoftDeleted = isConfirmed && Math.random() < 0.5;
+  const isHardDeleted = isConfirmed && !isSoftDeleted && Math.random() < 0.5;
+
+  return {
+    id,
+    org,
+    app,
+    isRead: true,
+    archivedAt: new Date(),
+    confirmedAt: isConfirmed ? new Date() : null,
+    softDeletedAt: isSoftDeleted ? new Date() : null,
+    hardDeletedAt: isHardDeleted ? new Date() : null,
+    createdAt: new Date(),
+    lastChangedAt: new Date(),
+  };
 }
 
 export const storageInstancesRoute = (req, res) => {

@@ -6,6 +6,7 @@ import { useAppInstancesQuery } from 'admin/hooks/queries/useAppInstancesQuery';
 import type { SimpleInstance } from 'admin/types/InstancesResponse';
 import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
 import { useMutation } from '@tanstack/react-query';
+import { InstanceStatus } from './InstanceStatus';
 
 type InstancesTableProps = {
   org: string;
@@ -87,7 +88,9 @@ const InstancesTableWithData = ({
             <StudioTable.Cell>
               {instance.currentTaskName ?? instance.currentTaskId ?? 'Avsluttet'}
             </StudioTable.Cell>
-            <StudioTable.Cell>{getStatus(instance)}</StudioTable.Cell>
+            <StudioTable.Cell>
+              <InstanceStatus instance={instance} />
+            </StudioTable.Cell>
           </StudioTable.Row>
         ))}
       </StudioTable.Body>
@@ -106,18 +109,3 @@ const InstancesTableWithData = ({
     </StudioTable>
   );
 };
-
-// TODO: These may not be reducable to a single status?
-function getStatus(instance: SimpleInstance) {
-  switch (true) {
-    case instance.softDeletedAt != null:
-    case instance.hardDeletedAt != null:
-      return 'Slettet';
-    case instance.confirmedAt != null:
-      return 'Bekreftet';
-    case instance.archivedAt != null:
-      return 'Arkivert';
-    default:
-      return 'Aktiv';
-  }
-}
