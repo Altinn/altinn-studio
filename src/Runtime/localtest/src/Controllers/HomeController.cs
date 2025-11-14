@@ -152,7 +152,7 @@ namespace LocalTest.Controllers
             var parsedSourceIp = sourceIp.IsIPv4MappedToIPv6 ? sourceIp.MapToIPv4() : sourceIp;
             if (IsContainerHostAddress(parsedSourceIp))
             {
-                hostname = GetHostInternalHostname();
+                hostname = "host.docker.internal";
             }
 
             _appRegistryService.Register(request.AppId, request.Port, hostname);
@@ -667,7 +667,7 @@ namespace LocalTest.Controllers
                     .Where(n => n.NetworkInterfaceType != NetworkInterfaceType.Loopback);
 
                 var myIp = interfaces
-                    .SelectMany(n  => n.GetIPProperties().UnicastAddresses)
+                    .SelectMany(n => n.GetIPProperties().UnicastAddresses)
                     .Select(a => a.Address)
                     .FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork);
 
@@ -684,34 +684,6 @@ namespace LocalTest.Controllers
             {
                 return false;
             }
-        }
-
-        private static string GetHostInternalHostname()
-        {
-            var hostnames = new[]
-            {
-                "host.docker.internal",
-                "host.containers.internal",
-                "host.rancher-desktop.internal",
-                "host.lima.internal"
-            };
-
-            foreach (var hostname in hostnames)
-            {
-                try
-                {
-                    var addresses = System.Net.Dns.GetHostAddresses(hostname);
-                    if (addresses.Length > 0)
-                        return hostname;
-                }
-                catch
-                {
-                    // Continue to next hostname
-                }
-            }
-
-            // Fallback to Docker's default
-            return "host.docker.internal";
         }
     }
 }
