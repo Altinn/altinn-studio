@@ -32,7 +32,7 @@ def dynamic_expression() -> dict:
     """
     try:
         # Get the expressions documentation from GitHub
-        expressions = get_file("altinn", "altinn-studio-docs", "content/altinn-studio/reference/logic/expressions/_index.en.md", "master")
+        expressions = get_file("altinn", "altinn-studio-docs", "content/altinn-studio/v8/reference/logic/dynamic/_index.en.md", "master")
         
         # Load the instructions markdown file
         current_dir = pathlib.Path(__file__).parent.absolute()
