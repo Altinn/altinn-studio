@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Xml;
 using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Profile.Models;
@@ -149,9 +150,7 @@ namespace LocalTest.Controllers
 
             var hostname = sourceIp.ToString();
             var parsedSourceIp = sourceIp.IsIPv4MappedToIPv6 ? sourceIp.MapToIPv4() : sourceIp;
-            var defaultGateway = GetDefaultGateway();
-
-            if (defaultGateway != null && parsedSourceIp.Equals(defaultGateway))
+            if (IsContainerHostAddress(parsedSourceIp))
             {
                 hostname = GetHostInternalHostname();
             }
@@ -653,25 +652,37 @@ namespace LocalTest.Controllers
             );
         }
 
-        private static IPAddress? GetDefaultGateway()
+        private bool IsContainerHostAddress(IPAddress? address)
         {
+            if (address == null)
+            {
+                return false;
+            }
+
             try
             {
-                return NetworkInterface
+                var interfaces = NetworkInterface
                     .GetAllNetworkInterfaces()
                     .Where(n => n.OperationalStatus == OperationalStatus.Up)
-                    .Where(n => n.NetworkInterfaceType != NetworkInterfaceType.Loopback)
-                    .SelectMany(n =>
-                        n.GetIPProperties()?.GatewayAddresses
-                        ?? Enumerable.Empty<GatewayIPAddressInformation>()
-                    )
+                    .Where(n => n.NetworkInterfaceType != NetworkInterfaceType.Loopback);
+
+                var myIp = interfaces
+                    .SelectMany(n  => n.GetIPProperties().UnicastAddresses)
+                    .Select(a => a.Address)
+                    .FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork);
+
+                var defaultGateway = interfaces
+                    .SelectMany(n => n.GetIPProperties().GatewayAddresses)
                     .Select(g => g.Address)
-                    .Where(a => a?.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                    .FirstOrDefault();
+                    .FirstOrDefault(a => a?.AddressFamily == AddressFamily.InterNetwork);
+
+                // In docker, the registration request comes from the default gateway when container is started on the
+                // host, but in podman it apparently comes from the containers own IP.
+                return Equals(address, defaultGateway) || Equals(address, myIp);
             }
             catch
             {
-                return null;
+                return false;
             }
         }
 
