@@ -1,10 +1,12 @@
 #nullable disable
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -463,7 +465,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             using HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadAsAsync<FileSystemObject>(cancellationToken);
+                return await response.Content.ReadFromJsonAsync<FileSystemObject>(s_jsonOptions, cancellationToken);
             }
 
             return null;
@@ -478,13 +480,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             using HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadAsAsync<List<FileSystemObject>>(cancellationToken);
+                return await response.Content.ReadFromJsonAsync<List<FileSystemObject>>(s_jsonOptions, cancellationToken);
             }
 
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
                 string suffix = string.IsNullOrWhiteSpace(reference) ? string.Empty : $" at reference {reference}";
-                throw new DirectoryNotFoundException($"Directory {directoryPath} not found in repository {org}/{app}{suffix}");
+                DirectoryNotFoundException ex = new($"Directory {directoryPath} not found in repository {org}/{app}{suffix}");
+                _logger.LogWarning(ex, "Directory not found for org {Org} in repository {App}, at directory path {DirPath} and reference {Ref}", org, app, directoryPath, reference);
+                throw ex;
             }
 
             return [];
@@ -493,38 +497,32 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(string org, string repository, string reference = null, CancellationToken cancellationToken = default)
         {
-            List<FileSystemObject> directoryFiles;
+            List<FileSystemObject> directoryContent;
             try
             {
-                directoryFiles = await GetDirectoryAsync(org, repository, CodeListFolderName, reference, cancellationToken);
+                directoryContent = await GetDirectoryAsync(org, repository, CodeListFolderName, reference, cancellationToken);
             }
             catch (DirectoryNotFoundException)
             {
                 return [];
             }
 
-            SemaphoreSlim semaphore = new(25); // Limit to 25 concurrent requests
-            List<Task<FileSystemObject>> tasks = [];
+            ConcurrentBag<FileSystemObject> fileBag = [];
+            IEnumerable<string> directoryFileNames = directoryContent
+                .Where(f => string.Equals(f.Type, "file", StringComparison.OrdinalIgnoreCase))
+                .Select(f => f.Name);
 
-            foreach (FileSystemObject directoryFile in directoryFiles.Where(f => string.Equals(f.Type, "file", StringComparison.OrdinalIgnoreCase)))
-            {
-                string filePath = $"{CodeListFolderName}/{directoryFile.Name}";
-                tasks.Add(Task.Run(async () =>
+            ParallelOptions options = new() { MaxDegreeOfParallelism = 25, CancellationToken = cancellationToken };
+            await Parallel.ForEachAsync(directoryFileNames, options,
+                async (string fileName, CancellationToken token) =>
                 {
-                    await semaphore.WaitAsync(cancellationToken);
-                    try
-                    {
-                        return await GetFileAsync(org, repository, filePath, reference, cancellationToken);
-                    }
-                    finally
-                    {
-                        semaphore.Release();
-                    }
-                }, cancellationToken));
-            }
+                    string filePath = $"{CodeListFolderName}/{fileName}";
+                    FileSystemObject file = await GetFileAsync(org, repository, filePath, reference, token);
+                    fileBag.Add(file);
+                }
+            );
 
-            FileSystemObject[] files = await Task.WhenAll(tasks);
-            return [.. files.Where(file => file is not null)];
+            return fileBag.ToList();
         }
 
         /// <inheritdoc/>
@@ -554,7 +552,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             using HttpResponseMessage response = await _httpClient.GetAsync(url.ToString(), cancellationToken);
             if (response.IsSuccessStatusCode)
             {
-                List<GiteaCommit> commits = await response.Content.ReadAsAsync<List<GiteaCommit>>(cancellationToken);
+                List<GiteaCommit> commits = await response.Content.ReadFromJsonAsync<List<GiteaCommit>>(s_jsonOptions, cancellationToken);
                 return commits?.FirstOrDefault()?.Sha;
             }
 
