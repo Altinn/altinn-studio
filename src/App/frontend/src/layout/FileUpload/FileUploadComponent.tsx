@@ -57,9 +57,6 @@ export function FileUploadComponent({
   const navigation = useNavigation();
   const { langAsString } = useLanguage();
 
-
-
-
   const validations = useUnifiedValidationsForNode(baseComponentId).filter(
     (v) => !('attachmentId' in v) || !v.attachmentId,
   );
