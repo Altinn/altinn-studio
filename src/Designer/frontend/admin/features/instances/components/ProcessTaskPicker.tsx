@@ -4,6 +4,8 @@ import { StudioSpinner, StudioSelect, StudioError } from '@studio/components';
 import { useAppProcessTasks } from 'admin/hooks/queries/useAppProcessTasks';
 import { useTranslation } from 'react-i18next';
 import type { ProcessTask } from 'admin/types/ProcessTask';
+import { useQueryParamState } from 'admin/hooks/useQueryParamState';
+import { useEffectEventPolyfill } from 'admin/hooks/useEffectEventPolyfill';
 
 type ProcessTaskPickerProps = {
   org: string;
@@ -27,8 +29,8 @@ export const ProcessTaskPicker = ({ org, env, app, state }: ProcessTaskPickerPro
 };
 
 type ProcessTaskPickerData = {
-  currentTask: string | null;
-  isComplete: true | null;
+  currentTask: string | undefined;
+  isComplete: true | undefined;
 };
 
 type ProcessTaskPickerState = ProcessTaskPickerData & {
@@ -36,12 +38,13 @@ type ProcessTaskPickerState = ProcessTaskPickerData & {
 };
 
 export const useProcessTaskPicker: () => ProcessTaskPickerState = () => {
-  const [state, setProcessTaskPickerState] = useState<ProcessTaskPickerData>({
-    currentTask: null,
-    isComplete: null,
-  });
+  const [processTaskPickerData, setProcessTaskPickerState] =
+    useQueryParamState<ProcessTaskPickerData>({
+      currentTask: undefined,
+      isComplete: undefined,
+    });
 
-  return { ...state, setProcessTaskPickerState };
+  return { ...processTaskPickerData, setProcessTaskPickerState };
 };
 
 type ProcessTaskPickerWithDataProps = {
@@ -56,13 +59,13 @@ const ProcessTaskPickerWithData = ({ processTasks, state }: ProcessTaskPickerWit
     const value = e.target.value;
     switch (value) {
       case '__all__':
-        state.setProcessTaskPickerState({ currentTask: null, isComplete: null });
+        state.setProcessTaskPickerState({ currentTask: undefined, isComplete: undefined });
         break;
       case '__ended__':
-        state.setProcessTaskPickerState({ currentTask: null, isComplete: true });
+        state.setProcessTaskPickerState({ currentTask: undefined, isComplete: true });
         break;
       default:
-        state.setProcessTaskPickerState({ currentTask: value, isComplete: null });
+        state.setProcessTaskPickerState({ currentTask: value, isComplete: undefined });
     }
   }
 

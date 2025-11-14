@@ -24,7 +24,7 @@ export const useAppInstancesQuery = (
       processIsComplete,
       archiveReference,
     ],
-    queryFn: async ({ signal, pageParam = null }) =>
+    queryFn: async ({ signal, pageParam = undefined }) =>
       (
         await axios.get<InstancesResponse>(
           instancesListPath(

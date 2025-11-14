@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 import classes from './Instances.module.css';
 import { Link, useParams } from 'react-router-dom';
 import { InstancesTable } from './components/InstancesTable';
 import { StudioBreadcrumbs } from '@studio/components';
 import { ProcessTaskPicker, useProcessTaskPicker } from './components/ProcessTaskPicker';
-import { ArchiveReferenceSearch } from './components/ArchiveReferenceSearch';
+import {
+  ArchiveReferenceSearch,
+  useArchiveReferenceSearch,
+} from './components/ArchiveReferenceSearch';
 
 export const Instances = () => {
-  const { org, env, app } = useParams();
+  const { org, env, app } = useParams() as { org: string; env: string; app: string };
   const processTaskPickerState = useProcessTaskPicker();
-  const [archiveReference, setArchiveReference] = useState('');
+  const [archiveReference, setArchiveReference] = useArchiveReferenceSearch();
 
   return (
     <div>

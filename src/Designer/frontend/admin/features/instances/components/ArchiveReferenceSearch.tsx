@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Search } from '@digdir/designsystemet-react';
 
 import classes from './ArchiveReferenceSearch.module.css';
+import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 
 type ArchiveReferenceSearchProps = {
   value: string;
@@ -10,6 +11,17 @@ type ArchiveReferenceSearchProps = {
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ARCHIVE_REF_REGEX = /^[0-9a-f]{12}$/i;
+
+export const useArchiveReferenceSearch: () => [string, (value: string) => void] = () => {
+  const [{ archiveReference }, _setArchiveReference] = useQueryParamState({ archiveReference: '' });
+
+  const setArchiveReference = useCallback(
+    (value: string) => _setArchiveReference({ archiveReference: value }),
+    [_setArchiveReference],
+  );
+
+  return [archiveReference, setArchiveReference];
+};
 
 export const ArchiveReferenceSearch = ({ value, setValue }: ArchiveReferenceSearchProps) => {
   const [searchString, setSearchString] = useState(value);
