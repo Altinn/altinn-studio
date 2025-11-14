@@ -32,23 +32,25 @@ jobs:
           # Verify host resolution
           getent hosts local.altinn.cloud
 
-      - name: Build localtest and component-library
+      - name: Build localtest
+        working-directory: src/Runtime/localtest
+        run: docker compose build
+
+      - name: Build component-library and frontend
         working-directory: '.'
         run: |
-          # Build localtest in background
-          cd src/Runtime/localtest
-          docker compose build &
-          LOCALTEST_PID=$!
+          # Build frontend in background
+          cd src/App/frontend
+          yarn run build & YARN_BUILD_PID=$!
 
           # Return to workspace root
           cd $GITHUB_WORKSPACE
 
           # Build component-library app in foreground
           cd src/test/apps/component-library/App
-          dotnet restore
-          dotnet build --no-restore
+          dotnet build --restore
 
-          wait $LOCALTEST_PID
+          wait $YARN_BUILD_PID
 
       - name: Start localtest and component-library
         run: |
