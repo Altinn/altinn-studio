@@ -165,7 +165,7 @@ describe('Validation', () => {
   });
 
   it('Validation on uploaded attachment type with tag', () => {
-    cy.intercept('POST', '**/instances/**/data?dataType=*').as('upload');
+    cy.intercept('POST', '**/instances/**/data/*').as('upload');
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('test/e2e/fixtures/test.pdf', { force: true });
     cy.wait('@upload');
