@@ -45,6 +45,16 @@ describe('ImageUploadCard', () => {
       height: 250,
     });
   });
+
+  it('should call handleSaveChanges with null when clicking delete button', async () => {
+    const user = userEvent.setup();
+    const handleSaveChangesMock = jest.fn();
+    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    renderImageUploadCard({ handleSaveChanges: handleSaveChangesMock });
+    const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
+    await user.click(deleteButton);
+    expect(handleSaveChangesMock).toHaveBeenCalledWith(null);
+  });
 });
 
 const renderImageUploadCard = (props: Partial<ImageUploadCardProps> = {}) => {
