@@ -180,6 +180,8 @@ services:
       - PlatformSettings__ApiAccessManagementEndpoint=http://altinn_localtest:5101/accessmanagement/api/v1/
       - PlatformSettings__ApiEventsEndpoint=http://altinn_localtest:5101/events/api/v1/
       - PlatformSettings__ApiPdf2Endpoint=http://host.docker.internal:5300/pdf
+    security_opt:
+      - seccomp=unconfined
     depends_on:
       - altinn_localtest
 
