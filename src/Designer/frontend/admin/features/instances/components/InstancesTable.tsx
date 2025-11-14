@@ -2,7 +2,6 @@ import { StudioButton, StudioSpinner, StudioTable, StudioError } from '@studio/c
 import classes from './InstancesTable.module.css';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
 import { useAppInstancesQuery } from 'admin/hooks/queries/useAppInstancesQuery';
 import type { SimpleInstance } from 'admin/types/InstancesResponse';
 import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
@@ -14,6 +13,7 @@ type InstancesTableProps = {
   app: string;
   currentTask?: string;
   processIsComplete?: boolean;
+  archiveReference?: string;
 };
 
 export const InstancesTable = ({
@@ -22,6 +22,7 @@ export const InstancesTable = ({
   app,
   currentTask,
   processIsComplete,
+  archiveReference,
 }: InstancesTableProps) => {
   const { data, status, fetchNextPage, hasNextPage } = useAppInstancesQuery(
     org,
@@ -29,6 +30,7 @@ export const InstancesTable = ({
     app,
     currentTask,
     processIsComplete,
+    archiveReference,
   );
   const { t } = useTranslation();
 
@@ -78,7 +80,8 @@ const InstancesTableWithData = ({
         {instances.map((instance) => (
           <StudioTable.Row key={instance.id}>
             <StudioTable.Cell>
-              <Link to={`${instance.id}`}>{instance.id}</Link>
+              {/* <Link to={`${instance.id}`}>{instance.id}</Link> */}
+              {instance.id}
             </StudioTable.Cell>
             <StudioTable.Cell>{formatDateAndTime(instance.createdAt)}</StudioTable.Cell>
             <StudioTable.Cell>
