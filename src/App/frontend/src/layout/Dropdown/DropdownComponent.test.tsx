@@ -293,11 +293,11 @@ describe('DropdownComponent', () => {
     expect((await screen.findAllByText(label)).at(0)).toBeInTheDocument();
     act(() => jest.advanceTimersByTime(1000));
 
-    await waitFor(() => expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(1));
-    expect(mutations.doPatchFormData.mock).toHaveBeenCalledWith(
-      expect.anything(),
+    await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
+    expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledWith(
+      expect.stringContaining('local.altinn.cloud'),
       expect.objectContaining({
-        patch: [{ op: 'add', path: '/myDropdown', value }],
+        patches: [expect.objectContaining({ patch: [{ op: 'add', path: '/myDropdown', value }] })],
       }),
     );
 

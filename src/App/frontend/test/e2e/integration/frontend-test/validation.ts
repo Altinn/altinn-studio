@@ -2,7 +2,7 @@ import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Datalist } from 'test/e2e/pageobjects/datalist';
 
-import type { IDataModelPatchResponse } from 'src/features/formData/types';
+import type { IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { BackendValidationIssue } from 'src/features/validation';
 
@@ -803,8 +803,10 @@ describe('Validation', () => {
       texts.testIsNotValidValue,
     );
 
-    cy.intercept('PATCH', '**/data/**', (req) =>
-      req.reply((res) => res.send(JSON.stringify({ ...res.body, validationIssues: {} }))),
+    cy.intercept('PATCH', '**/data?language=*', (req) =>
+      req.reply((res) =>
+        res.send(JSON.stringify({ ...res.body, validationIssues: [] } satisfies IDataModelMultiPatchResponse)),
+      ),
     ).as('patchData');
 
     cy.get(appFrontend.changeOfName.newMiddleName).type('hei');
@@ -827,7 +829,7 @@ describe('Validation', () => {
     cy.waitForLoad();
 
     let c = 0;
-    cy.intercept('PATCH', '**/data/**', () => {
+    cy.intercept('PATCH', '**/data?language=*', () => {
       c++;
     }).as('patchData');
 
@@ -862,16 +864,6 @@ describe('Validation', () => {
         component.showValidations = ['All'];
         component.required = true;
       }
-    });
-
-    // Prevent patch response from setting the value to zero when empty
-    cy.intercept('PATCH', '**/data/**', (req) => {
-      req.on('response', (res) => {
-        const body = res.body as IDataModelPatchResponse;
-        if (body.newDataModel['Numeric']?.Int32 === 0) {
-          delete body.newDataModel['Numeric'].Int32;
-        }
-      });
     });
 
     cy.gotoHiddenPage('numeric-fields');

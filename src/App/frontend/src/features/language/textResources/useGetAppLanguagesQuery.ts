@@ -5,12 +5,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import type { IAppLanguage } from 'src/types/shared';
 
-export function useGetAppLanguageQuery(enabled: boolean) {
+export function useGetAppLanguageQuery() {
   const { fetchAppLanguages } = useAppQueries();
   const utils = useQuery({
     queryKey: ['fetchAppLanguages'],
     queryFn: () => fetchAppLanguages(),
-    enabled,
     select,
   });
 

@@ -1,7 +1,6 @@
 import {
   getCreateInstancesUrl,
   getDataListsUrl,
-  getDataValidationUrl,
   getEnvironmentLoginUrl,
   getFetchFormDynamicsUrl,
   getHostname,
@@ -57,11 +56,6 @@ describe('Frontend urlHelper.ts', () => {
     it('should return the expected url for getValidationUrl', () => {
       expect(getValidationUrl('12345/instanceId-1234', 'nb')).toBe(
         'https://local.altinn.cloud/ttd/test/instances/12345/instanceId-1234/validate?language=nb',
-      );
-    });
-    it('should return the expected url for getDataValidationUrl', () => {
-      expect(getDataValidationUrl('12345/instanceId-1234', 'DataElementId', 'nb')).toBe(
-        'https://local.altinn.cloud/ttd/test/instances/12345/instanceId-1234/data/DataElementId/validate?language=nb',
       );
     });
     it('should return the expected url for getRedirectUrl', () => {

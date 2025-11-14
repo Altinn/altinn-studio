@@ -4,8 +4,6 @@ import { toast } from 'react-toastify';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { useDisplayError } from 'src/core/errorHandling/DisplayErrorProvider';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { invalidateFormDataQueries } from 'src/features/formData/useFormDataQuery';
 import { useHasPendingScans, useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/instance/useProcessQuery';
@@ -16,10 +14,6 @@ import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onF
 import { Validation } from 'src/features/validation/validationContext';
 import { TaskKeys, useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { doProcessNext } from 'src/queries/queries';
-import {
-  appSupportsIncrementalValidationFeatures,
-  appSupportsUnlockingOnProcessNextFailure,
-} from 'src/utils/versioning/versions';
 import type { BackendValidationIssue } from 'src/features/validation';
 import type { IActionType, IProcess, ProblemDetails } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
@@ -46,13 +40,8 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
   const setShowAllBackendErrors = Validation.useSetShowAllBackendErrors();
   const onSubmitFormValidation = useOnFormSubmitValidation();
   const queryClient = useQueryClient();
-  const displayError = useDisplayError();
   const hasPendingScans = useHasPendingScans();
   const optimisticallyUpdateProcess = useOptimisticallyUpdateProcess();
-
-  const altinnNugetVersion = useApplicationMetadata().altinnNugetVersion;
-  const isUnlockingOnProcessNextSupported = appSupportsUnlockingOnProcessNextFailure(altinnNugetVersion);
-  const isIncrementalValidationSupported = appSupportsIncrementalValidationFeatures(altinnNugetVersion);
 
   return useMutation({
     scope: { id: 'process/next' },
@@ -77,11 +66,7 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
           if (error.response?.status === 409 && error.response?.data?.['validationIssues']?.length) {
             // If process next failed due to validation, return validationIssues instead of throwing
             return [null, error.response.data['validationIssues'] as BackendValidationIssue[]] as const;
-          } else if (
-            error.response?.status === 500 &&
-            error.response?.data?.['detail'] === 'Pdf generation failed' &&
-            isUnlockingOnProcessNextSupported
-          ) {
+          } else if (error.response?.status === 500 && error.response?.data?.['detail'] === 'Pdf generation failed') {
             // If process next fails due to the PDF generator failing, don't show unknown error if the app unlocks data elements
             toast(<Lang id='process_error.submit_error_please_retry' />, { type: 'error', autoClose: false });
             return [null, null];
@@ -103,7 +88,7 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
         navigateToTask(task);
       } else if (validationIssues) {
         // Set initial validation to validation issues from process/next and make all errors visible
-        updateInitialValidations(validationIssues, !isIncrementalValidationSupported);
+        updateInitialValidations(validationIssues);
 
         const hasValidationErrors = await onSubmitFormValidation(true);
         if (!hasValidationErrors) {
@@ -113,11 +98,6 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
     },
     onError: async (error: HttpClientError<ProblemDetails | undefined>) => {
       window.logError('Process next failed:\n', error);
-
-      if (!isUnlockingOnProcessNextSupported) {
-        displayError(error);
-        return;
-      }
 
       const { data: newProcess } = await refetchProcessData();
       const newCurrentTask = newProcess?.currentTask;

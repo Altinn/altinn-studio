@@ -8,10 +8,10 @@ import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import * as useDeviceWidths from 'src/hooks/useDeviceWidths';
 import { ListComponent } from 'src/layout/List/ListComponent';
+import { doPatchMultipleFormData } from 'src/queries/queries';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import type { JsonPatch } from 'src/features/formData/jsonPatch/types';
-import type { doPatchFormData } from 'src/queries/queries';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const paginationData = { alternatives: [2, 5], default: 2 };
@@ -184,12 +184,12 @@ describe('ListComponent', () => {
     // Wait until the debounce timeout has definitely passed, then expect the form data to be saved. It should only
     // be saved once (even though we changed the value twice) because the debouncing happens globally.
     act(() => jest.advanceTimersByTime(2000));
-    await waitFor(() => expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
 
-    const mockedArgs = (mutations.doPatchFormData.mock as jest.Mock).mock.calls[0] as unknown as Parameters<
-      typeof doPatchFormData
+    const mockedArgs = (mutations.doPatchMultipleFormData.mock as jest.Mock).mock.calls[0] as unknown as Parameters<
+      typeof doPatchMultipleFormData
     >;
-    const patch: JsonPatch = mockedArgs[1].patch;
+    const patch: JsonPatch = mockedArgs[1].patches[0].patch;
     expect(patch).toEqual([
       { op: 'add', path: '/CountryName', value: 'Denmark' },
       { op: 'add', path: '/CountryPopulation', value: 6 },
