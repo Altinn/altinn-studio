@@ -2,7 +2,7 @@ import React from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { LoggerContextProvider, type LoggerContextProviderProps } from './LoggerContext';
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
-import axios from 'axios';
+import type { AltinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
 
 jest.mock('@microsoft/applicationinsights-web', () => {
   const mockTrackException = jest.fn();
@@ -15,8 +15,11 @@ jest.mock('@microsoft/applicationinsights-web', () => {
   };
 });
 
-jest.mock('axios');
-const axiosMock = axios as jest.Mocked<typeof axios>;
+jest.mock('./EnvironmentConfigContext', () => ({
+  useEnvironmentConfig: jest.fn(),
+}));
+
+const { useEnvironmentConfig } = require('./EnvironmentConfigContext');
 
 describe('LoggerContextProvider', () => {
   afterEach(() => {
@@ -24,23 +27,47 @@ describe('LoggerContextProvider', () => {
   });
 
   test('does not initialize ApplicationInsights without connectionString', async () => {
-    jest.spyOn(console, 'warn').mockImplementation();
-    axiosMock.get.mockImplementation(() => Promise.reject());
+    const mockEnvironment: AltinnStudioEnvironment = null;
+    useEnvironmentConfig.mockReturnValue({
+      environment: mockEnvironment,
+      isLoading: false,
+      error: null,
+    });
+
     const emptyConfig = {};
     renderLoggerContext({ config: emptyConfig });
 
     await waitFor(() => {
       expect(ApplicationInsights).not.toHaveBeenCalled();
     });
-    jest.restoreAllMocks();
+  });
+
+  test('does not initialize ApplicationInsights when environment has no aiConnectionString', async () => {
+    const mockEnvironment: AltinnStudioEnvironment = {};
+    useEnvironmentConfig.mockReturnValue({
+      environment: mockEnvironment,
+      isLoading: false,
+      error: null,
+    });
+
+    const emptyConfig = {};
+    renderLoggerContext({ config: emptyConfig });
+
+    await waitFor(() => {
+      expect(ApplicationInsights).not.toHaveBeenCalled();
+    });
   });
 
   test('does initialize ApplicationInsights when connectionString is provided', async () => {
-    axiosMock.get.mockImplementation(() =>
-      Promise.resolve({
-        data: { aiConnectionString: 'my-unit-test-connection-string' },
-      }),
-    );
+    const mockEnvironment: AltinnStudioEnvironment = {
+      aiConnectionString: 'my-unit-test-connection-string',
+    };
+    useEnvironmentConfig.mockReturnValue({
+      environment: mockEnvironment,
+      isLoading: false,
+      error: null,
+    });
+
     renderLoggerContext({
       config: {
         connectionString: 'my-unit-test-connection-string',
@@ -51,12 +78,12 @@ describe('LoggerContextProvider', () => {
       expect(ApplicationInsights).toHaveBeenCalled();
     });
   });
-});
 
-const renderLoggerContext = (props?: Pick<LoggerContextProviderProps, 'config'>): void => {
-  render(
-    <LoggerContextProvider config={{ ...props.config }}>
-      <div>child</div>
-    </LoggerContextProvider>,
-  );
-};
+  const renderLoggerContext = (props?: Pick<LoggerContextProviderProps, 'config'>): void => {
+    render(
+      <LoggerContextProvider config={{ ...props.config }}>
+        <div>child</div>
+      </LoggerContextProvider>,
+    );
+  };
+});
