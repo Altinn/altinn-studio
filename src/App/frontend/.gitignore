@@ -411,3 +411,6 @@ runner-results
 
 # CLAUDE local context file
 CLAUDE.local.md
+
+# Lighthouse CI generated files
+.lighthouseci/
