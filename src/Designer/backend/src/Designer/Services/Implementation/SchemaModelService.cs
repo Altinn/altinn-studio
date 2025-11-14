@@ -314,11 +314,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private async Task UpdateCSharpClasses(AltinnAppGitRepository altinnAppGitRepository, ModelMetadata modelMetadata, string schemaFileName)
         {
-            ApplicationMetadata application = await altinnAppGitRepository.GetApplicationMetadata();
+            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
+            AltinnStudioSettings altinnStudioSettings = await altinnAppGitRepository.GetAltinnStudioSettings();
             string csharpModelName = modelMetadata.GetRootElement().TypeName;
-            bool separateNamespace = NamespaceNeedsToBeSeparated(application, csharpModelName);
+            bool separateNamespace = NamespaceNeedsToBeSeparated(applicationMetadata, csharpModelName);
             string csharpClasses = _modelMetadataToCsharpConverter.CreateModelFromMetadata(modelMetadata,
-                separateNamespace, useNullableReferenceTypes: false);
+                separateNamespace, altinnStudioSettings.UseNullableReferenceTypes);
             await altinnAppGitRepository.SaveCSharpClasses(csharpClasses, schemaFileName);
         }
 

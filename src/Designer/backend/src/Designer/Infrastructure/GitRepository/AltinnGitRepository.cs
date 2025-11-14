@@ -1,5 +1,6 @@
 #nullable disable
 using System.IO;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -61,7 +62,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         public string Developer { get; private set; }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Gets the repository type.
+        /// </summary>
+        /// <returns>The repository type, see <see cref="AltinnRepositoryType"/></returns>
         public async Task<AltinnRepositoryType> GetRepositoryType()
         {
             var settings = await GetAltinnStudioSettings();
@@ -146,6 +150,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 ? new AltinnStudioSettings { RepoType = AltinnRepositoryType.Datamodels }
                 : new AltinnStudioSettings { RepoType = AltinnRepositoryType.App };
 
+            settings.UseNullableReferenceTypes = false;
+
             await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, settings, true);
 
             return settings;
@@ -156,7 +162,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string altinnStudioSettingsJson = await ReadTextByRelativePathAsync(STUDIO_SETTINGS_FILEPATH);
             AltinnStudioSettings altinnStudioSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(altinnStudioSettingsJson, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });
 
-            bool needsSaving = false;
+            bool needsSaving = !JsonContainsAllModelProperties(altinnStudioSettingsJson, altinnStudioSettings);
 
             if (altinnStudioSettings.RepoType == AltinnRepositoryType.Unknown)
             {
@@ -165,6 +171,22 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
 
             return (altinnStudioSettings, needsSaving);
+        }
+
+        private static bool JsonContainsAllModelProperties(string altinnStudioSettingsJson, AltinnStudioSettings altinnStudioSettings)
+        {
+            PropertyInfo[] properties = altinnStudioSettings.GetType().GetProperties();
+            using JsonDocument jsonDocument = JsonDocument.Parse(altinnStudioSettingsJson);
+            JsonElement root = jsonDocument.RootElement;
+            foreach (PropertyInfo property in properties)
+            {
+                string jsonName = property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name;
+                if (!root.TryGetProperty(jsonName, out _))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         /// <summary>
