@@ -1,7 +1,6 @@
 import React from 'react';
 
-import { AltinnContentIconReceipt } from 'src/components/atoms/AltinnContentIconReceipt';
-import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoader';
+import { AltinnContentLoader } from 'src/app-components/loading/AltinnContentLoader/AltinnContentLoader';
 import { useAppName } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
@@ -21,12 +20,11 @@ export const Confirm = () => {
     <div id='confirmcontainer'>
       {missingRequirement ? (
         <AltinnContentLoader
+          variant='receipt'
           width={705}
           height={561}
           reason={`confirm-missing-${missingRequirement}`}
-        >
-          <AltinnContentIconReceipt />
-        </AltinnContentLoader>
+        />
       ) : (
         <ConfirmPage
           applicationMetadata={applicationMetadata}

@@ -13,8 +13,10 @@ import type { TranslationKey } from '@altinn-studio/language/type';
 
 const newText = 'New text';
 const testId = 'test-id';
-const initialText = 'Initial text';
-const modifiedText = 'Modified text';
+
+jest.mock('../../../../../hooks/mutations/useUpsertTextResourceMutation', () => ({
+  useUpsertTextResourceMutation: () => ({ mutate: onSave }),
+}));
 
 describe('TextResourceAction', () => {
   const getSaveButton = () => screen.getByRole('button', { name: textMock('general.save') });
@@ -24,20 +26,25 @@ describe('TextResourceAction', () => {
 
   afterEach(() => jest.clearAllMocks());
 
-  it('disables save button when empty, enables it when text is entered', async () => {
+  it('disables save button when text is unchanged or is empty', async () => {
     const user = userEvent.setup();
-    renderTextResourceAction();
+    renderTextResourceAction({}, [{ id: testId, value: 'Existing text' }]);
     expect(getSaveButton()).toBeDisabled();
-    await user.type(getTextbox(), 'Some text');
+
+    await user.type(getTextbox(), ' Some text');
     expect(getSaveButton()).toBeEnabled();
+
+    await user.clear(getTextbox());
+    expect(getSaveButton()).toBeDisabled();
   });
 
   it('calls onSave when save button is clicked', async () => {
     const user = userEvent.setup();
-    renderTextResourceAction();
+    renderTextResourceAction({ handleIdChange: onSave });
     await user.type(getTextbox(), newText);
+
     await user.click(getSaveButton());
-    expect(onSave).toHaveBeenCalledWith(testId, newText);
+    expect(onSave).toHaveBeenCalledWith({ language: 'nb', textId: testId, translation: newText });
   });
 
   it('calls onCancel when cancel button is clicked', async () => {
@@ -56,35 +63,23 @@ describe('TextResourceAction', () => {
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
 
-  it('disables delete button when no saved text exists', () => {
-    renderTextResourceAction();
+  it('disables delete button when textResourceId doesnt exists in the component', () => {
+    renderTextResourceAction({ textResourceId: undefined });
     expect(getDeleteButton()).toBeDisabled();
-  });
-
-  it('resets text to initial value when cancel is clicked', async () => {
-    const user = userEvent.setup();
-    renderTextResourceAction({}, [{ id: testId, value: initialText }]);
-    await user.clear(getTextbox());
-    await user.type(getTextbox(), modifiedText);
-    expect(getTextbox()).toHaveValue(modifiedText);
-    await user.click(getCancelButton());
-    expect(onCancel).toHaveBeenCalledTimes(1);
-    expect(getTextbox()).toHaveValue(initialText);
   });
 });
 
 const onSave = jest.fn();
 const onCancel = jest.fn();
 const onDelete = jest.fn();
-const onReferenceChange = jest.fn();
 
 const defaultProps: TextResourceActionProps = {
-  legend: 'ux_editor.component_title' as TranslationKey,
+  label: 'ux_editor.component_title' as TranslationKey,
   textResourceId: testId,
-  onSave,
-  onCancel,
-  onDelete,
-  onReferenceChange,
+  handleIdChange: jest.fn(),
+  setIsOpen: onCancel,
+  handleRemoveTextResource: onDelete,
+  disableSearch: false,
 };
 
 const renderTextResourceAction = (

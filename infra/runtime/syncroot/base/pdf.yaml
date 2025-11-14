@@ -49,12 +49,12 @@ spec:
       namespace: pdf
       kind: Service
       port: 80
-      weight: 100
+      weight: 0
     - name: pdf3-proxy
       namespace: runtime-pdf3
       kind: Service
       port: 80
-      weight: 0
+      weight: 100
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -82,3 +82,6 @@ spec:
         namespace: default
   values:
     environment: ${ENVIRONMENT}
+    replicaCount: 0
+    autoscaling:
+      enabled: false

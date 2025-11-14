@@ -3,8 +3,7 @@ import classes from './ThreeDotsMenu.module.css';
 import { TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
-import { StudioPageHeader, StudioPopover } from '@studio/components-legacy';
-import { StudioLinkButton } from '@studio/components';
+import { StudioLinkButton, StudioList, StudioPopover } from '@studio/components';
 import { LocalChangesModal } from './LocalChangesModal';
 import { ClonePopoverContent } from './ClonePopoverContent';
 import { useGiteaHeaderContext } from '../context/GiteaHeaderContext';
@@ -21,52 +20,47 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
   const toggleClonePopoverOpen = () => setClonePopoverOpen((oldValue) => !oldValue);
 
   return (
-    <StudioPopover>
-      <StudioPageHeader.PopoverTrigger
+    <StudioPopover.TriggerContext>
+      <StudioPopover.Trigger
         icon={<MenuElipsisVerticalIcon />}
         title={t('sync_header.gitea_menu')}
-        color='light'
-        variant='regular'
+        variant='tertiary'
       />
-      <StudioPopover.Content data-color-scheme='light' className={classes.popover}>
-        <ul className={classes.menuItems}>
+      <StudioPopover
+        data-color-scheme='light'
+        className={classes.popover}
+        onClose={() => setClonePopoverOpen(false)}
+      >
+        <StudioList.Root className={classes.menuItems}>
           {isClonePossible && (
-            <li>
-              <StudioPopover open={clonePopoverOpen} onClose={toggleClonePopoverOpen}>
-                <StudioPopover.Trigger
-                  fullWidth
-                  onClick={toggleClonePopoverOpen}
-                  variant='tertiary'
-                  className={classes.menuButton}
-                  size='small'
-                >
-                  <TabsIcon />
-                  {t('sync_header.clone')}
-                </StudioPopover.Trigger>
-                <StudioPopover.Content className={classes.popoverContent}>
-                  <ClonePopoverContent />
-                </StudioPopover.Content>
+            <StudioPopover.TriggerContext>
+              <StudioPopover.Trigger
+                onClick={toggleClonePopoverOpen}
+                variant='tertiary'
+                className={classes.menuButton}
+                icon={<TabsIcon />}
+              >
+                {t('sync_header.clone')}
+              </StudioPopover.Trigger>
+              <StudioPopover open={clonePopoverOpen} onClose={() => setClonePopoverOpen(false)}>
+                {clonePopoverOpen && <ClonePopoverContent />}
               </StudioPopover>
-            </li>
+            </StudioPopover.TriggerContext>
           )}
-          <li>
-            <StudioLinkButton
-              className={classes.link}
-              data-color=''
-              data-size='sm'
-              href={repositoryPath(owner, repoName)}
-              icon={<GiteaIcon />}
-              rel='noopener noreferrer'
-              variant='tertiary'
-            >
-              {t('sync_header.repository')}
-            </StudioLinkButton>
-          </li>
-          <li>
-            <LocalChangesModal triggerClassName={classes.menuButton} />
-          </li>
-        </ul>
-      </StudioPopover.Content>
-    </StudioPopover>
+          <StudioLinkButton
+            className={classes.link}
+            data-color=''
+            data-size='sm'
+            href={repositoryPath(owner, repoName)}
+            icon={<GiteaIcon />}
+            rel='noopener noreferrer'
+            variant='tertiary'
+          >
+            {t('sync_header.repository')}
+          </StudioLinkButton>
+          <LocalChangesModal triggerClassName={classes.menuButton} />
+        </StudioList.Root>
+      </StudioPopover>
+    </StudioPopover.TriggerContext>
   );
 };

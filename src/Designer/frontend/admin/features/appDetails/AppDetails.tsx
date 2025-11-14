@@ -2,7 +2,7 @@ import { Link, useParams } from 'react-router-dom';
 import { StudioBreadcrumbs } from '@studio/components';
 
 export const AppsDetails = () => {
-  const { org, env, app } = useParams();
+  const { org, env, app } = useParams() as { org: string; env: string; app: string };
   return (
     <div>
       <StudioBreadcrumbs>
@@ -23,7 +23,9 @@ export const AppsDetails = () => {
       <h1>
         {env} / {app}
       </h1>
-      <p>Her var det tomt.</p>
+      <p>
+        Gå til <Link to='instances'>instanser</Link>.
+      </p>
     </div>
   );
 };

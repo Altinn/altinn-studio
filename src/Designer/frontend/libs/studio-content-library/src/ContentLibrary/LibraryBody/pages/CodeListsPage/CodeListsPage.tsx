@@ -7,20 +7,25 @@ import {
   createCodeListMap,
   deleteCodeListFromMap,
   updateCodeListDataInMap,
+  validateCodeListMap,
 } from './utils';
 import { CodeListDataEditor } from './CodeListDataEditor';
 import type { CodeListMap } from './types/CodeListMap';
-import type { CodeListData } from './types/CodeListData';
+import type { CodeListData } from '../../../../types/CodeListData';
 import classes from './CodeListsPage.module.css';
-import { PlusIcon } from '@studio/icons';
+import { FloppydiskIcon, PlusIcon } from '@studio/icons';
+import type { CodeListMapError } from './types/CodeListMapError';
+import { Errors } from './Errors';
 
 export type CodeListsPageProps = {
   codeLists: CodeListData[];
+  onSave: (data: CodeListData[]) => void;
 };
 
-export function CodeListsPage({ codeLists }: CodeListsPageProps): ReactElement {
+export function CodeListsPage({ codeLists, onSave }: CodeListsPageProps): ReactElement {
   const { t } = useTranslation();
   const [codeListMap, setCodeListMap] = useState<CodeListMap>(createCodeListMap(codeLists));
+  const [errors, setErrors] = useState<CodeListMapError[]>([]);
 
   const handleUpdateCodeListData = useCallback(
     (key: string, newData: CodeListData): void => {
@@ -43,6 +48,17 @@ export function CodeListsPage({ codeLists }: CodeListsPageProps): ReactElement {
     [codeListMap, setCodeListMap],
   );
 
+  const handleSave: React.MouseEventHandler<HTMLButtonElement> = useCallback(() => {
+    const validationErrors = validateCodeListMap(codeListMap);
+    if (validationErrors.length) {
+      setErrors(validationErrors);
+    } else {
+      setErrors([]);
+      const updatedCodeLists: CodeListData[] = [...codeListMap.values()];
+      onSave(updatedCodeLists);
+    }
+  }, [codeListMap, onSave]);
+
   return (
     <div className={classes.codeListsPage}>
       <StudioHeading>{t('app_content_library.code_lists.page_name')}</StudioHeading>
@@ -59,6 +75,10 @@ export function CodeListsPage({ codeLists }: CodeListsPageProps): ReactElement {
         onDeleteCodeList={handleDeleteCodeList}
         onUpdateCodeListData={handleUpdateCodeListData}
       />
+      <Errors errors={errors} />
+      <StudioButton data-color='success' icon={<FloppydiskIcon />} onClick={handleSave}>
+        {t('general.save')}
+      </StudioButton>
     </div>
   );
 }

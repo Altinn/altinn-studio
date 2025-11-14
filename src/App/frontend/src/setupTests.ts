@@ -22,6 +22,7 @@ import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import type {
   doProcessNext,
+  doUpdateAttachmentTags,
   fetchApplicationMetadata,
   fetchInstanceData,
   fetchProcessState,
@@ -150,4 +151,7 @@ jest.mock('src/queries/queries', () => ({
   doProcessNext: jest.fn<typeof doProcessNext>(async () => ({ data: getProcessDataMock() }) as AxiosResponse<IProcess>),
   fetchUserProfile: jest.fn<typeof fetchUserProfile>(async () => getProfileMock()),
   fetchInstanceData: jest.fn<typeof fetchInstanceData>(async () => getInstanceDataMock()),
+  doUpdateAttachmentTags: jest.fn<typeof doUpdateAttachmentTags>(async ({ setTagsRequest }) => ({
+    tags: setTagsRequest.tags,
+  })),
 }));

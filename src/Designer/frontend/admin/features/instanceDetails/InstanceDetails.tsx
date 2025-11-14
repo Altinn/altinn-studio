@@ -4,7 +4,12 @@ import { InstanceDataView } from './components/InstanceDataView';
 import { StudioBreadcrumbs } from '@studio/components';
 
 export const InstanceDetails = () => {
-  const { org, env, app, instanceId } = useParams();
+  const { org, env, app, instanceId } = useParams() as {
+    org: string;
+    env: string;
+    app: string;
+    instanceId: string;
+  };
   return (
     <div>
       <StudioBreadcrumbs>

@@ -5,7 +5,8 @@ import { useIsFetching } from '@tanstack/react-query';
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { waitForAnimationFrames } from 'src/utils/waitForAnimationFrames';
 
-export const loadingClassName = 'loading';
+export const loadingAttribute = 'data-loading';
+const errorAttribute = 'data-fatal-error';
 
 type ReadyType = 'print' | 'load';
 const readyId: Record<ReadyType, string> = {
@@ -25,7 +26,8 @@ export function ReadyForPrint({ type }: { type: ReadyType }) {
 
   const isFetching = useIsFetching() > 0;
 
-  const hasLoaders = useHasElementsByClass(loadingClassName);
+  const hasLoaders = useHasElementsByAttribute(loadingAttribute);
+  const hasErrors = useHasElementsByAttribute(errorAttribute);
 
   const is = useIsPdf();
 
@@ -42,11 +44,10 @@ export function ReadyForPrint({ type }: { type: ReadyType }) {
     });
   }, [assetsLoaded]);
 
-  if (!assetsLoaded || hasLoaders || isFetching || isPending) {
+  if (!assetsLoaded || hasLoaders || isFetching || isPending || (type === 'print' && hasErrors)) {
     // if (is) {
     //   debugger;
     // }
-
     return null;
   }
 
@@ -81,13 +82,12 @@ async function waitForImages() {
   } while (nodes.some((node) => !node.complete));
 }
 
-export function useHasElementsByClass(className: string) {
-  const [hasElements, setHasElements] = useState(() => document.getElementsByClassName(className).length > 0);
+export function useHasElementsByAttribute(attribute: string) {
+  const [hasElements, setHasElements] = useState(() => document.querySelector(`[${attribute}]`) != null);
 
   useEffect(() => {
     const updateCount = () => {
-      const newCount = document.getElementsByClassName(className).length;
-      setHasElements(newCount > 0);
+      setHasElements(document.querySelector(`[${attribute}]`) != null);
     };
 
     const observer = new MutationObserver(updateCount);
@@ -96,7 +96,7 @@ export function useHasElementsByClass(className: string) {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['class'],
+      attributeFilter: [attribute],
     });
 
     updateCount();
@@ -104,16 +104,7 @@ export function useHasElementsByClass(className: string) {
     return () => {
       observer.disconnect();
     };
-  }, [className]);
+  }, [attribute]);
 
   return hasElements;
-}
-
-export function BlockPrint() {
-  return (
-    <div
-      className={loadingClassName}
-      style={{ display: 'none' }}
-    />
-  );
 }
