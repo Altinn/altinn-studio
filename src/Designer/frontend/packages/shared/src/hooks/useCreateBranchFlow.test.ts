@@ -212,9 +212,9 @@ describe('useCreateBranchFlow', () => {
       expect(result.current.error).toBeNull();
     });
 
-    it('should clear previous errors before creating', () => {
-      const createBranch = jest.fn();
-      const checkoutBranch = jest.fn();
+    it('should clear previous errors before creating', async () => {
+      const createBranch = jest.fn().mockImplementation(() => Promise.resolve(mockBranch));
+      const checkoutBranch = jest.fn().mockImplementation(() => Promise.resolve(mockRepoStatus));
 
       const { result } = renderHookWithProviders(
         () => useCreateBranchFlow({ org, app, onSuccess: mockOnSuccess }),
@@ -239,7 +239,7 @@ describe('useCreateBranchFlow', () => {
         result.current.handleCreate();
       });
 
-      expect(result.current.error).toBeNull();
+      await waitFor(() => expect(result.current.error).toBeNull());
     });
   });
 

@@ -209,6 +209,6 @@ export const createOrgTextResources = async (org: string, language: string, payl
 export const updateOrgTextResources = async (org: string, language: string, payload: KeyValuePairs<string>): Promise<ITextResourcesWithLanguage> => patch<ITextResourcesWithLanguage, KeyValuePairs<string>>(orgTextResourcesPath(org, language), payload);
 
 // Branches:
-export const createBranch = async (org: string, app: string, branchName: string): Promise<any> => post(branchesPath(org, app), { branchName });
-export const checkoutBranch = async (org: string, app: string, branchName: string): Promise<any> => post(checkoutBranchPath(org, app), { branchName });
-export const discardChanges = async (org: string, app: string): Promise<any> => post(discardChangesPath(org, app), {});
+export const createBranch = async (org: string, app: string, branchName: string): Promise<void> => post(branchesPath(org, app), { branchName });
+export const checkoutBranch = async (org: string, app: string, branchName: string): Promise<void> => post(checkoutBranchPath(org, app), { branchName });
+export const discardChanges = async (org: string, app: string): Promise<void> => post(discardChangesPath(org, app), {});
