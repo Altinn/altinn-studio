@@ -29,7 +29,6 @@
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="9.0.10" />
     <PackageVersion Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageVersion Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.24" />
     <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.10" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.10" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="9.0.10" />
@@ -51,7 +50,10 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.14.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="[4.14.0]" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="[4.14.0]" />
+    <PackageVersion Include="Azure.Identity" Version="1.17.0" />
+    <PackageVersion Include="Azure.Storage.Blobs" Version="[12.25.1]" />
     <PackageVersion Include="Azure.Security.KeyVault.Secrets" Version="[4.8.0]" />
+    <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
     <PackageVersion Include="Scriban" Version="6.4.0" />
     <PackageVersion Include="System.Formats.Asn1" Version="9.0.10" />
     <PackageVersion Include="System.Net.Http" Version="[4.3.4]" />
@@ -84,5 +86,6 @@
     <PackageVersion Include="WireMock.Net" Version="1.8.18" />
     <PackageVersion Include="DistributedLock.FileSystem" Version="1.0.3" />
     <PackageVersion Include="System.Linq.Dynamic.Core" Version="1.6.9" />
+    <PackageVersion Include="Verify.Xunit" Version="31.0.3" />
   </ItemGroup>
 </Project>

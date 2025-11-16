@@ -69,7 +69,7 @@ function fillOutGroup() {
     };
   };
 
-  cy.intercept('POST', '**/instances/**/data?dataType=*').as('upload');
+  cy.intercept('POST', '**/instances/**/data/*').as('upload');
   cy.findByRole('button', { name: /Neste/ }).click();
   cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
   cy.addItemToGroup(1, 2, 'automation');
