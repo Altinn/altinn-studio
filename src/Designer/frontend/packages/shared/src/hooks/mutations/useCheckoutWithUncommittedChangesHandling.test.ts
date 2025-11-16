@@ -79,7 +79,6 @@ describe('useCheckoutWithUncommittedChangesHandling', () => {
   describe('uncommitted changes error (409 Conflict)', () => {
     it('should call onUncommittedChanges when checkout fails with 409 and has data', async () => {
       const mockUncommittedChangesError: UncommittedChangesError = {
-        errorCode: 'GT_04',
         error: 'Cannot switch branches',
         message: 'You have uncommitted changes',
         uncommittedFiles: [{ filePath: 'test.txt', status: 'Modified' }],

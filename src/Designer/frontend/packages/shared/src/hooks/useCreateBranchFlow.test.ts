@@ -349,7 +349,6 @@ describe('useCreateBranchFlow', () => {
   describe('checkout mutation flow', () => {
     it('should set uncommittedChangesError when checkout fails with uncommitted changes', async () => {
       const mockUncommittedChangesError: UncommittedChangesError = {
-        errorCode: 'GT_04',
         error: 'Cannot switch branches',
         message: 'You have uncommitted changes',
         uncommittedFiles: [],
@@ -508,7 +507,6 @@ describe('useCreateBranchFlow', () => {
   describe('handleCloseUncommittedChangesDialog', () => {
     it('should clear uncommittedChangesError and call onSuccess', async () => {
       const mockUncommittedChangesError: UncommittedChangesError = {
-        errorCode: 'GT_04',
         error: 'Cannot switch branches',
         message: 'You have uncommitted changes',
         uncommittedFiles: [],

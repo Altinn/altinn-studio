@@ -89,6 +89,8 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<ExternalResource[]>([])),
   getBranchStatus: jest.fn().mockImplementation(() => Promise.resolve<BranchStatus>(branchStatus)),
+  getBranches: jest.fn().mockImplementation(() => Promise.resolve([])),
+  getCurrentBranch: jest.fn().mockImplementation(() => Promise.resolve({})),
   getDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   getDataModelMetadata: jest
     .fn()
@@ -230,6 +232,7 @@ export const queriesMock: ServicesContextProps = {
   addLanguageCode: jest.fn().mockImplementation(() => Promise.resolve()),
   addRepo: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
   addXsdFromRepo: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
+  checkoutBranch: jest.fn().mockImplementation(() => Promise.resolve({})),
   commitAndPushChanges: jest
     .fn()
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
