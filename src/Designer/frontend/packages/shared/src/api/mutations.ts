@@ -78,6 +78,7 @@ import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { CreateDataModelPayload } from 'app-shared/types/api/CreateDataModelPayload';
 import type { Policy } from '@altinn/policy-editor';
 import type { NewResource, AccessList, Resource, AccessListOrganizationNumbers, HeaderEtag, MigrateDelegationsRequest } from 'app-shared/types/ResourceAdm';
+import type { Branch, RepoStatus } from 'app-shared/types/api/BranchTypes';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Repository } from 'app-shared/types/Repository';
@@ -209,6 +210,6 @@ export const createOrgTextResources = async (org: string, language: string, payl
 export const updateOrgTextResources = async (org: string, language: string, payload: KeyValuePairs<string>): Promise<ITextResourcesWithLanguage> => patch<ITextResourcesWithLanguage, KeyValuePairs<string>>(orgTextResourcesPath(org, language), payload);
 
 // Branches:
-export const createBranch = async (org: string, app: string, branchName: string): Promise<void> => post(branchesPath(org, app), { branchName });
-export const checkoutBranch = async (org: string, app: string, branchName: string): Promise<void> => post(checkoutBranchPath(org, app), { branchName });
-export const discardChanges = async (org: string, app: string): Promise<void> => post(discardChangesPath(org, app), {});
+export const createBranch = async (org: string, app: string, branchName: string): Promise<Branch> => post(branchesPath(org, app), { branchName });
+export const checkoutBranch = async (org: string, app: string, branchName: string): Promise<RepoStatus> => post(checkoutBranchPath(org, app), { branchName });
+export const discardChanges = async (org: string, app: string): Promise<RepoStatus> => post(discardChangesPath(org, app), {});
