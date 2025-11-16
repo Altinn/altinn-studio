@@ -1,6 +1,9 @@
 import { del, get, patch, post, put } from 'app-shared/utils/networking';
 import {
   appMetadataAttachmentPath,
+  branchesPath,
+  checkoutBranchPath,
+  discardChangesPath,
   copyAppPath,
   createRepoPath,
   deploymentsPath,
@@ -204,3 +207,8 @@ export const uploadOrgCodeList = async (org: string, payload: FormData): Promise
 // Organisation text resources:
 export const createOrgTextResources = async (org: string, language: string, payload: ITextResourcesWithLanguage): Promise<ITextResourcesWithLanguage> => post<ITextResourcesWithLanguage, ITextResourcesWithLanguage>(orgTextResourcesPath(org, language), payload);
 export const updateOrgTextResources = async (org: string, language: string, payload: KeyValuePairs<string>): Promise<ITextResourcesWithLanguage> => patch<ITextResourcesWithLanguage, KeyValuePairs<string>>(orgTextResourcesPath(org, language), payload);
+
+// Branches:
+export const createBranch = async (org: string, app: string, branchName: string): Promise<any> => post(branchesPath(org, app), { branchName });
+export const checkoutBranch = async (org: string, app: string, branchName: string): Promise<any> => post(checkoutBranchPath(org, app), { branchName });
+export const discardChanges = async (org: string, app: string): Promise<any> => post(discardChangesPath(org, app), {});

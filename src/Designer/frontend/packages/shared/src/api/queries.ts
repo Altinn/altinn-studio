@@ -6,6 +6,8 @@ import {
   appVersionPath,
   belongsToOrg,
   branchStatusPath,
+  branchesPath,
+  currentBranchPath,
   dataModelMetadataPath,
   dataModelPath,
   dataModelsJsonPath,
@@ -206,3 +208,7 @@ export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());
 export const getOrgCodeLists = (org: string) => get<CodeListsResponse>(orgCodeListsPath(org));
 export const getOrgTextLanguages = (org: string): Promise<string[] | null> => get<string[] | null>(orgTextLanguagesPath(org));
 export const getOrgTextResources = (org: string, language: string): Promise<ITextResourcesWithLanguage | null> => get<ITextResourcesWithLanguage | null>(orgTextResourcesPath(org, language));
+
+// Branches
+export const getBranches = (org: string, app: string) => get<any[]>(branchesPath(org, app));
+export const getCurrentBranch = (org: string, app: string) => get<any>(currentBranchPath(org, app));

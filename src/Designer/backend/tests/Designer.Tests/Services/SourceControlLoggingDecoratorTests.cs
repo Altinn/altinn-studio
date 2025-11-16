@@ -527,5 +527,20 @@ namespace Designer.Tests.Services
         {
             throw new NotImplementedException();
         }
+
+        public CurrentBranchInfo GetCurrentBranch(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public RepoStatus DiscardLocalChanges(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
