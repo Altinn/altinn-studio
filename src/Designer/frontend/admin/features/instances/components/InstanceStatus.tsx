@@ -22,6 +22,7 @@ export const InstanceStatus = ({ instance }: InstanceStatusProps) => {
 type InstanceStatusChipProps = {
   status: Status;
 };
+
 const InstanceStatusChip = ({ status }: InstanceStatusChipProps) => {
   switch (status) {
     case Status.Unread:

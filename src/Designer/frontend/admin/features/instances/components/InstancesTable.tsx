@@ -15,6 +15,7 @@ type InstancesTableProps = {
   currentTask?: string;
   processIsComplete?: boolean;
   archiveReference?: string;
+  confirmed?: boolean;
 };
 
 export const InstancesTable = ({
@@ -24,6 +25,7 @@ export const InstancesTable = ({
   currentTask,
   processIsComplete,
   archiveReference,
+  confirmed,
 }: InstancesTableProps) => {
   const { data, status, fetchNextPage, hasNextPage } = useAppInstancesQuery(
     org,
@@ -32,6 +34,7 @@ export const InstancesTable = ({
     currentTask,
     processIsComplete,
     archiveReference,
+    confirmed,
   );
   const { t } = useTranslation();
 

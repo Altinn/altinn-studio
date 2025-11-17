@@ -12,6 +12,7 @@ export const useAppInstancesQuery = (
   currentTask?: string,
   processIsComplete?: boolean,
   archiveReference?: string,
+  confirmed?: boolean,
 ): UseInfiniteQueryResult<SimpleInstance[]> => {
   return useInfiniteQuery({
     initialPageParam: undefined,
@@ -23,6 +24,7 @@ export const useAppInstancesQuery = (
       currentTask,
       processIsComplete,
       archiveReference,
+      confirmed,
     ],
     queryFn: async ({ signal, pageParam = undefined }) =>
       (
@@ -35,6 +37,7 @@ export const useAppInstancesQuery = (
             currentTask,
             processIsComplete,
             archiveReference,
+            confirmed,
           ),
           { signal },
         )

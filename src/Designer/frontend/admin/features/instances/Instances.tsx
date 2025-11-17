@@ -8,11 +8,13 @@ import {
   ArchiveReferenceSearch,
   useArchiveReferenceSearch,
 } from './components/ArchiveReferenceSearch';
+import { StatusFilter, useStatusFilter } from './components/StatusFilter';
 
 export const Instances = () => {
   const { org, env, app } = useParams() as { org: string; env: string; app: string };
-  const processTaskPickerState = useProcessTaskPicker();
   const [archiveReference, setArchiveReference] = useArchiveReferenceSearch();
+  const processTaskPickerState = useProcessTaskPicker();
+  const [isConfirmed, setIsConfirmed] = useStatusFilter<boolean>('isConfirmed');
 
   return (
     <div>
@@ -42,6 +44,16 @@ export const Instances = () => {
       <div className={classes.filterWrapper}>
         <ArchiveReferenceSearch value={archiveReference} setValue={setArchiveReference} />
         <ProcessTaskPicker org={org} env={env} app={app} state={processTaskPickerState} />
+        <StatusFilter
+          label='Bekreftet mottatt'
+          value={isConfirmed}
+          setValue={setIsConfirmed}
+          options={[
+            { label: 'Alle', value: undefined },
+            { label: 'Ja', value: true },
+            { label: 'Nei', value: false },
+          ]}
+        />
       </div>
       <InstancesTable
         org={org}
@@ -50,6 +62,7 @@ export const Instances = () => {
         currentTask={processTaskPickerState.currentTask}
         processIsComplete={processTaskPickerState.isComplete}
         archiveReference={archiveReference}
+        confirmed={isConfirmed}
       />
     </div>
   );

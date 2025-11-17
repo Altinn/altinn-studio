@@ -10,9 +10,35 @@ export const storageTextsRoute = async (req, res) => {
   res.json({});
 };
 
+class NoResultsError extends Error {}
+
 const taskNames = { Task_1: 'Utfylling' };
 
-function makeInstance(org, app, currentTask, isComplete, archiveReference = null) {
+function makeInstance(org, app, currentTask, isComplete, isConfirmed, archiveReference = null) {
+  // Check illogical filters
+
+  if (
+    archiveReference &&
+    !UUID_REGEX.test(archiveReference) &&
+    !ARCHIVE_REF_REGEX.test(archiveReference)
+  ) {
+    throw new NoResultsError();
+  }
+
+  if (isComplete === true && currentTask != null) {
+    throw new NoResultsError();
+  }
+
+  if (isConfirmed === true && (isComplete === false || currentTask != null)) {
+    throw new NoResultsError();
+  }
+
+  // Perform logical constraints
+
+  if (isConfirmed) {
+    isComplete = true;
+  }
+
   if (currentTask == null && isComplete == null) {
     if (Math.random() < 0.5) {
       currentTask = 'Task_1';
@@ -43,7 +69,7 @@ function makeInstance(org, app, currentTask, isComplete, archiveReference = null
   }
 
   // Instance is completed
-  const isConfirmed = Math.random() < 0.5;
+  isConfirmed = isConfirmed == null ? Math.random() < 0.5 : isConfirmed;
   const isSoftDeleted = isConfirmed && Math.random() < 0.5;
   const isHardDeleted = isConfirmed && !isSoftDeleted && Math.random() < 0.5;
 
@@ -61,34 +87,45 @@ function makeInstance(org, app, currentTask, isComplete, archiveReference = null
   };
 }
 
+function parseBoolParam(param) {
+  if (param === 'true') {
+    return true;
+  }
+  if (param === 'false') {
+    return false;
+  }
+  return null;
+}
+
 export const storageInstancesRoute = (req, res) => {
   const { org, app } = req.params;
   const currentTask = req.query?.['process.currentTask'];
-  const isComplete = req.query?.['process.isComplete'];
+  const isComplete = parseBoolParam(req.query?.['process.isComplete']);
+  const isConfirmed = parseBoolParam(req.query?.['confirmed']);
   const archiveReference = req.query?.['archiveReference'];
   const size = req.query?.['size'] ?? 10;
 
-  if (archiveReference) {
-    if (UUID_REGEX.test(archiveReference) || ARCHIVE_REF_REGEX.test(archiveReference)) {
+  try {
+    if (archiveReference) {
       res.json({
         count: 1,
         next: null,
-        instances: [makeInstance(org, app, currentTask, isComplete, archiveReference)],
+        instances: [makeInstance(org, app, currentTask, isComplete, isConfirmed, archiveReference)],
       });
-      return;
+    } else {
+      res.json({
+        count: size,
+        next: 'next',
+        instances: Array.from({ length: size }, () =>
+          makeInstance(org, app, currentTask, isComplete, isConfirmed),
+        ),
+      });
     }
-
+  } catch (NoResultsError) {
     res.json({
       count: 0,
       next: null,
       instances: [],
     });
-    return;
   }
-
-  res.json({
-    count: size,
-    next: 'next',
-    instances: Array.from({ length: size }, () => makeInstance(org, app, currentTask, isComplete)),
-  });
 };
