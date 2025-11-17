@@ -2,6 +2,7 @@ using System;
 using System.Net.Mime;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Designer.Tests.Fixtures;
+using WireMock.Matchers;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 
@@ -16,7 +17,7 @@ public static class DeploymentMockServerExtensions
     {
         var request = Request.Create()
             .UsingGet()
-            .WithPath("/designer/frontend/resources/environments.json");
+            .WithPath("/cdn-mock/environments.json");
 
         var responseBody = $$"""
         {
@@ -109,7 +110,7 @@ public static class DeploymentMockServerExtensions
     {
         var request = Request.Create()
             .UsingPost()
-            .WithPath("/storage/api/v1/applications")
+            .WithPath(new WildcardMatcher("*/storage/api/v1/applications*"))
             .WithParam("appId", $"{org}/{app}");
 
         var response = Response.Create()
@@ -129,7 +130,7 @@ public static class DeploymentMockServerExtensions
     {
         var request = Request.Create()
             .UsingPost()
-            .WithPath($"/storage/api/v1/applications/{org}/{app}/texts");
+            .WithPath(new WildcardMatcher($"*/storage/api/v1/applications/{org}/{app}/texts"));
 
         var response = Response.Create()
             .WithStatusCode(200)
@@ -149,7 +150,7 @@ public static class DeploymentMockServerExtensions
         // Mock the SavePolicy endpoint
         var savePolicyRequest = Request.Create()
             .UsingPost()
-            .WithPath("/authorization/api/v1/policy")
+            .WithPath(new WildcardMatcher("*/authorization/api/v1/policy*"))
             .WithParam("org", org)
             .WithParam("app", app);
 
@@ -164,7 +165,7 @@ public static class DeploymentMockServerExtensions
         // Path: /resourceregistry/api/v1/resource/app_{{org}}_{{app}}/policy/subjects?reloadFromXacml=true
         var refreshSubjectsRequest = Request.Create()
             .UsingGet()
-            .WithPath($"/resourceregistry/api/v1/resource/app_{org}_{app}/policy/subjects")
+            .WithPath(new WildcardMatcher($"*/resourceregistry/api/v1/resource/app_{org}_{app}/policy/subjects*"))
             .WithParam("reloadFromXacml", "true");
 
         var refreshSubjectsResponse = Response.Create()
@@ -177,15 +178,10 @@ public static class DeploymentMockServerExtensions
     }
 
     /// <summary>
-    /// Prepares all required mock responses for ANY deployment creation
-    /// Uses wildcard matchers to handle dynamic org/app values
+    /// Prepares mock response for authentication token conversion endpoint
     /// </summary>
-    public static void PrepareAllDeploymentMockResponses(this MockServerFixture mockServerFixture)
+    public static void PrepareAuthenticationTokenConversionResponse(this MockServerFixture mockServerFixture)
     {
-        // Environments endpoint
-        mockServerFixture.PrepareEnvironmentsResponse(mockServerFixture.MockApi.Url);
-
-        // Authentication token conversion endpoint
         var authConvertRequest = Request.Create()
             .WithPath("/authentication/api/v1/exchange/altinnstudio");
 
@@ -196,80 +192,75 @@ public static class DeploymentMockServerExtensions
 
         mockServerFixture.MockApi.Given(authConvertRequest)
             .RespondWith(authConvertResponse);
+    }
 
-        // Azure DevOps build queue - responds with dynamic build ID
+    /// <summary>
+    /// Prepares mock response for Azure DevOps build queue endpoint with specific buildId for org/app combination
+    /// </summary>
+    /// <param name="mockServerFixture">The mock server fixture</param>
+    /// <param name="org">Organization name (APP_OWNER)</param>
+    /// <param name="app">Application name (APP_REPO)</param>
+    /// <param name="buildId">The build ID to return from the mock (as string)</param>
+    public static void PrepareAzureDevOpsBuildQueueResponseForOrgApp(
+        this MockServerFixture mockServerFixture,
+        string org,
+        string app,
+        string buildId)
+    {
+        // Match on APP_OWNER and APP_REPO in the parameters field to ensure each test gets its own response
         var azureDevOpsRequest = Request.Create()
             .UsingPost()
             .WithPath("/build/builds")
-            .WithParam("api-version");
+            .WithParam("api-version")
+            .WithBody(new WildcardMatcher($"*APP_OWNER*{org}*", true))
+            .WithBody(new WildcardMatcher($"*APP_REPO*{app}*", true));
+
+        var azureDevOpsResponseBody = $$"""
+        {
+            "id": {{buildId}},
+            "status": "{{BuildStatus.NotStarted.ToString()}}",
+            "startTime": "{{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss.fffZ}}"
+        }
+        """;
 
         var azureDevOpsResponse = Response.Create()
             .WithStatusCode(200)
             .WithHeader("content-type", MediaTypeNames.Application.Json)
-            .WithBody($$"""
-        {
-            "id": 12345,
-            "status": "{{BuildStatus.NotStarted.ToString()}}",
-            "startTime": "{{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss.fffZ}}"
-        }
-        """);
+            .WithBody(azureDevOpsResponseBody);
 
         mockServerFixture.MockApi.Given(azureDevOpsRequest)
             .RespondWith(azureDevOpsResponse);
+    }
 
-        // Storage app metadata - accepts any org/app
-        var storageAppRequest = Request.Create()
-            .UsingPost()
-            .WithPath("/storage/api/v1/applications/")
-            .WithParam("appId");
+    /// <summary>
+    /// Prepares mock responses for a specific deployment test
+    /// </summary>
+    /// <param name="mockServerFixture">The mock server fixture</param>
+    /// <param name="org">Organization name</param>
+    /// <param name="app">Application name</param>
+    /// <param name="buildId">The build ID to return from Azure DevOps mock (as string)</param>
+    public static void PrepareDeploymentMockResponses(
+        this MockServerFixture mockServerFixture,
+        string org,
+        string app,
+        string buildId)
+    {
+        // Environments endpoint (shared across all tests)
+        mockServerFixture.PrepareEnvironmentsResponse(mockServerFixture.MockApi.Url);
 
-        var storageAppResponse = Response.Create()
-            .WithStatusCode(200)
-            .WithHeader("content-type", MediaTypeNames.Application.Json)
-            .WithBody("{}");
+        // Authentication token conversion endpoint
+        mockServerFixture.PrepareAuthenticationTokenConversionResponse();
 
-        mockServerFixture.MockApi.Given(storageAppRequest)
-            .RespondWith(storageAppResponse);
+        // Azure DevOps build queue - responds with specific build ID for this test
+        mockServerFixture.PrepareAzureDevOpsBuildQueueResponseForOrgApp(org, app, buildId);
 
-        // Storage text resources - wildcard path matching
-        var storageTextRequest = Request.Create()
-            .UsingPost()
-            .WithPath("/storage/api/v1/applications/*/*/texts");
+        // Storage app metadata for specific org/app
+        mockServerFixture.PrepareStorageAppMetadataResponse(org, app);
 
-        var storageTextResponse = Response.Create()
-            .WithStatusCode(200)
-            .WithHeader("content-type", MediaTypeNames.Application.Json)
-            .WithBody("{}");
+        // Storage text resources for specific org/app
+        mockServerFixture.PrepareStorageTextResourceResponse(org, app);
 
-        mockServerFixture.MockApi.Given(storageTextRequest)
-            .RespondWith(storageTextResponse);
-
-        // Authorization policy - accepts any org/app
-        var authPolicyRequest = Request.Create()
-            .UsingPost()
-            .WithPath("/authorization/api/v1/policy")
-            .WithParam("org")
-            .WithParam("app");
-
-        var authPolicyResponse = Response.Create()
-            .WithStatusCode(200)
-            .WithHeader("content-type", MediaTypeNames.Application.Xml);
-
-        mockServerFixture.MockApi.Given(authPolicyRequest)
-            .RespondWith(authPolicyResponse);
-
-        // Resource registry subjects refresh - wildcard matching
-        var refreshSubjectsRequest = Request.Create()
-            .UsingGet()
-            .WithPath("/resourceregistry/api/v1/resource/app_*/policy/subjects")
-            .WithParam("reloadFromXacml");
-
-        var refreshSubjectsResponse = Response.Create()
-            .WithStatusCode(200)
-            .WithHeader("content-type", MediaTypeNames.Application.Json)
-            .WithBody("[]");
-
-        mockServerFixture.MockApi.Given(refreshSubjectsRequest)
-            .RespondWith(refreshSubjectsResponse);
+        // Authorization policy for specific org/app
+        mockServerFixture.PrepareAuthorizationPolicyResponse(org, app);
     }
 }
