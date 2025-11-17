@@ -50,9 +50,9 @@ func main() {
 
 	workerId = hostname
 
-	// Get pod IP from environment variable (set by Kubernetes downward API)
-	workerIP = os.Getenv("POD_IP")
-	assert.AssertWithMessage(workerIP != "", "Worker IP should always be configured", "worker_id", workerId)
+	workerIP, err = discoverLocalIP()
+	assert.AssertWithMessage(err == nil, "Failed to discover local IP", "error", err)
+	assert.AssertWithMessage(workerIP != "", "Worker IP should be available", "worker_id", workerId)
 
 	// Create logger with worker context
 	logger := baseLogger.With("worker_id", workerId, "worker_ip", workerIP)
@@ -222,6 +222,25 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 			logger.Error("Failed to write PDF response", "error", err)
 		}
 	}
+}
+
+// discoverLocalIP finds the first non-loopback IPv4 address on this host.
+// This works in both Kubernetes and regular containers.
+func discoverLocalIP() (string, error) {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return "", err
+	}
+
+	for _, addr := range addrs {
+		if ipNet, ok := addr.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
+			if ipNet.IP.To4() != nil {
+				return ipNet.IP.String(), nil
+			}
+		}
+	}
+
+	return "", fmt.Errorf("no non-loopback IPv4 address found")
 }
 
 func getTestOutputHandler(logger *slog.Logger) http.HandlerFunc {
