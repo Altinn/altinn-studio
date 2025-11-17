@@ -1,3 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: runtime-grafana
+---
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
@@ -17,7 +22,7 @@ metadata:
   name: grafana-manifests
   namespace: runtime-grafana
 spec:
-  targetNamespace: grafana
+  targetNamespace: runtime-grafana
   interval: 5m
   retryInterval: 5m
   timeout: 1m
