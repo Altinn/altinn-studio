@@ -63,17 +63,6 @@ public abstract class BaseComponent
     public required IReadOnlyDictionary<string, Expression> TextResourceBindings { get; init; }
 
     /// <summary>
-    /// Creates a context for the component based on the provided parameters.
-    /// </summary>
-    /// <returns>A <see cref="ComponentContext"/> instance representing the current context of the component.</returns>
-    public abstract Task<ComponentContext> GetContext(
-        LayoutEvaluatorState state,
-        DataElementIdentifier defaultDataElementIdentifier,
-        int[]? rowIndexes,
-        Dictionary<string, LayoutSetComponent> layoutsLookup
-    );
-
-    /// <summary>
     /// Get the data model bindings that should be removed when the component is hidden,
     /// or should be kept when the component is not hidden.
     /// </summary>
@@ -89,20 +78,6 @@ public abstract class BaseComponent
 
         return references;
     }
-
-    /// <summary>
-    /// Claims child components based on the provided references and updates the lookup dictionaries.
-    /// </summary>
-    /// <param name="unclaimedComponents">
-    /// A dictionary of unclaimed components, where keys are component IDs and values are the corresponding component instances.
-    /// </param>
-    /// <param name="claimedComponents">
-    /// A dictionary to track claimed components, where the keys are component IDs and values are the IDs of the components that claimed them.
-    /// </param>
-    public abstract void ClaimChildren(
-        Dictionary<string, BaseComponent> unclaimedComponents,
-        Dictionary<string, string> claimedComponents
-    );
 
     /// <summary>
     /// Parse the Id property from a JsonElement

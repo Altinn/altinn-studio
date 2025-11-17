@@ -6,21 +6,21 @@ namespace Altinn.App.Core.Models.Layout.Components.Base;
 /// <summary>
 /// Utility class for components that references other components without any repeating logic, such as Grid, Accordion, or Tabs.
 /// </summary>
-public abstract class SimpleReferenceComponent : BaseComponent
+public abstract class SimpleReferenceComponent : BaseLayoutComponent
 {
     /// <summary>
     /// Collection of IDs for children that should be claimed.
     /// </summary>
     public required IReadOnlyCollection<string> ChildReferences { get; init; }
 
-    private IReadOnlyDictionary<string, BaseComponent>? _claimedChildrenLookup;
+    private IReadOnlyDictionary<string, BaseLayoutComponent>? _claimedChildrenLookup;
 
     // used for some tests to ensure hierarchy is correct
     internal IEnumerable<BaseComponent>? AllChildren => _claimedChildrenLookup?.Values;
 
     /// <inheritdoc />
     public override void ClaimChildren(
-        Dictionary<string, BaseComponent> unclaimedComponents,
+        Dictionary<string, BaseLayoutComponent> unclaimedComponents,
         Dictionary<string, string> claimedComponents
     )
     {
@@ -31,7 +31,7 @@ public abstract class SimpleReferenceComponent : BaseComponent
             );
         }
 
-        var components = new Dictionary<string, BaseComponent>();
+        var components = new Dictionary<string, BaseLayoutComponent>();
         foreach (var componentId in ChildReferences)
         {
             if (unclaimedComponents.Remove(componentId, out var component))
@@ -66,7 +66,7 @@ public abstract class SimpleReferenceComponent : BaseComponent
     ///
     /// Will be populated after the <see cref="ClaimChildren"/> method is called.
     /// </summary>
-    public IReadOnlyDictionary<string, BaseComponent> ClaimedChildrenLookup =>
+    public IReadOnlyDictionary<string, BaseLayoutComponent> ClaimedChildrenLookup =>
         _claimedChildrenLookup
         ?? throw new InvalidOperationException(
             "ClaimChildren has not been called. This is a bug in the component initialization process."

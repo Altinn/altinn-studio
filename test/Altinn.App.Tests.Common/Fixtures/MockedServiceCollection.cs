@@ -352,7 +352,7 @@ public class WrappedServiceProvider : IKeyedServiceProvider, IDisposable, IAsync
 
     internal async Task<InstanceDataUnitOfWork> CreateInstanceDataMutatorWithDataAndLayout<T>(
         T model,
-        List<BaseComponent> components,
+        List<BaseLayoutComponent> components,
         string? language
     )
         where T : class, new()
