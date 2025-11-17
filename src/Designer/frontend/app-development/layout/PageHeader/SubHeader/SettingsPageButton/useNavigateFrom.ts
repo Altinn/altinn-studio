@@ -12,7 +12,7 @@ export const useNavigateFrom = () => {
   const state = location.state as LocationState;
 
   const navigateFrom: RoutePaths | undefined = getNavigateFrom(state);
-  const currentRoutePath: string = UrlUtils.extractThirdRouterParam(location.pathname);
+  const currentRoutePath: string = UrlUtils.extractAllParamsFromThird(location.pathname);
   const search: string = location?.search ?? '';
 
   return {

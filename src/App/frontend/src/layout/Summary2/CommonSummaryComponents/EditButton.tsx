@@ -7,7 +7,7 @@ import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
+import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useCurrentView, useNavigateToComponent } from 'src/hooks/useNavigatePage';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';

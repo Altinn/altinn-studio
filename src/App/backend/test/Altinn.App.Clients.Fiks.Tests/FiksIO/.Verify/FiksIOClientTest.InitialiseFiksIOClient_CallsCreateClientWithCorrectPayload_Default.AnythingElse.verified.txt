@@ -1,0 +1,16 @@
+﻿{
+  "apiScheme": "https",
+  "apiHost": "api.fiks.test.ks.no",
+  "apiPort": 443,
+  "amqpHost": "io.fiks.test.ks.no",
+  "amqpPort": 5671,
+  "applicationName": "altinn-studio-app-ttd-unit-testing",
+  "prefetchCount": 0,
+  "integrationId": "930d98f0-57de-4606-a9e8-4a4427249967",
+  "integrationPassord": "test-integration-password",
+  "integrationScope": "ks:fiks",
+  "accountId": "58f559e2-783e-4b99-9527-8d3342ac4244",
+  "accountPrivateKey": [
+    "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w..."
+  ]
+}

@@ -245,9 +245,6 @@
       Tags: [
         {
           instance.guid: Guid_1
-        },
-        {
-          process.action: write
         }
       ],
       HasParent: true

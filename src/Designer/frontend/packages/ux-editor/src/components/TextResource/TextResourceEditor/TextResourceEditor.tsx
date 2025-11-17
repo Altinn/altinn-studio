@@ -14,7 +14,7 @@ export interface TextResourceEditorProps {
   onTabChange?: (tab: TextResourceTab) => void;
 }
 
-enum TextResourceTab {
+export enum TextResourceTab {
   Type = 'type',
   Search = 'search',
 }
@@ -37,7 +37,6 @@ export const TextResourceEditor = ({
 
   return (
     <StudioTabs
-      data-size='small'
       value={activeTab}
       className={classes.root}
       onChange={(newValue) => handleTabClick(newValue as TextResourceTab)}
@@ -57,7 +56,7 @@ export const TextResourceEditor = ({
           textResourceValue={textResourceValue}
         />
       </StudioTabs.Panel>
-      <StudioTabs.Panel value={TextResourceTab.Search}>
+      <StudioTabs.Panel value={TextResourceTab.Search} className={classes.tabContent}>
         {disableSearch && (
           <StudioAlert data-color='info'>
             {t('ux_editor.modal_properties_textResourceBindings_page_name_search_disabled')}

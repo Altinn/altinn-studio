@@ -4,6 +4,8 @@ import { ValidationMessage } from '@digdir/designsystemet-react';
 
 import { AppCard } from 'src/app-components/Card/Card';
 import { Lang } from 'src/features/language/Lang';
+import { useFocusOnChange } from 'src/layout/ImageUpload/hooks/useFocusOnChange';
+import { useFocusWhenRemoved } from 'src/layout/ImageUpload/hooks/useFocusWhenRemoved';
 import { useImageCropperSave } from 'src/layout/ImageUpload/hooks/useImageCropperSave';
 import { useImageFile } from 'src/layout/ImageUpload/hooks/useImageFile';
 import { useImageUploader } from 'src/layout/ImageUpload/hooks/useImageUploader';
@@ -29,6 +31,7 @@ export function ImageCropper({ baseComponentId, cropArea, readOnly }: ImageCropp
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
   const imageTypeRef = useRef<string | null>(null);
+  const dropzoneInputRef = useRef<HTMLInputElement | null>(null);
   const [zoom, setZoom] = useState<number>(0);
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
   const [validationErrors, setValidationErrors] = useState<string[] | null>(null);
@@ -41,6 +44,13 @@ export function ImageCropper({ baseComponentId, cropArea, readOnly }: ImageCropp
     baseComponentId,
     setValidationErrors,
   });
+
+  // Focus canvas when a new image is loaded
+  useFocusOnChange(imageRef.current, canvasRef);
+
+  // Focus dropzone when image is deleted/cancelled
+  const currentImage = imageRef.current || storedImage;
+  useFocusWhenRemoved(currentImage, dropzoneInputRef);
 
   type UpdateImageState = { minZoom?: number; img?: HTMLImageElement | null };
   const updateImageState = ({ minZoom = minAllowedZoom, img = imageRef.current }: UpdateImageState) => {
@@ -87,6 +97,7 @@ export function ImageCropper({ baseComponentId, cropArea, readOnly }: ImageCropp
           onDrop={(files) => handleFileUpload(files[0])}
           readOnly={readOnly}
           hasErrors={!!validationErrors && validationErrors?.length > 0}
+          dropzoneInputRef={dropzoneInputRef}
         />
         <ValidationMessages validationErrors={validationErrors} />
       </>

@@ -48,6 +48,7 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
   const [languageFromSelector, setWithLanguageSelector] = useLocalStorageState(['selectedLanguage', userId], null);
 
   const { data: appLanguages, error, isFetching } = useGetAppLanguageQuery(shouldFetchAppLanguages === true);
+  // TODO(Error handling): Should failing to fetch app languages cause PDF generation to fail?
 
   useEffect(() => {
     error && window.logError('Fetching app languages failed:\n', error);

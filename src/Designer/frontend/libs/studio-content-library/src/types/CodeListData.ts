@@ -1,7 +1,6 @@
-import type { CodeListWithTextResources } from './CodeListWithTextResources';
+import type { CodeList } from './CodeList';
 
 export type CodeListData = {
-  title: string;
-  data?: CodeListWithTextResources;
-  hasError?: boolean;
+  name: string;
+  codes: CodeList;
 };

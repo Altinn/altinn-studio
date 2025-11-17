@@ -4,10 +4,15 @@ import { Link, useParams } from 'react-router-dom';
 import { InstancesTable } from './components/InstancesTable';
 import { StudioBreadcrumbs } from '@studio/components';
 import { ProcessTaskPicker, useProcessTaskPicker } from './components/ProcessTaskPicker';
+import {
+  ArchiveReferenceSearch,
+  useArchiveReferenceSearch,
+} from './components/ArchiveReferenceSearch';
 
 export const Instances = () => {
-  const { org, env, app } = useParams();
+  const { org, env, app } = useParams() as { org: string; env: string; app: string };
   const processTaskPickerState = useProcessTaskPicker();
+  const [archiveReference, setArchiveReference] = useArchiveReferenceSearch();
 
   return (
     <div>
@@ -35,6 +40,7 @@ export const Instances = () => {
         {env} / {app} / Instanser
       </h1>
       <div className={classes.filterWrapper}>
+        <ArchiveReferenceSearch value={archiveReference} setValue={setArchiveReference} />
         <ProcessTaskPicker org={org} env={env} app={app} state={processTaskPickerState} />
       </div>
       <InstancesTable
@@ -43,6 +49,7 @@ export const Instances = () => {
         app={app}
         currentTask={processTaskPickerState.currentTask}
         processIsComplete={processTaskPickerState.isComplete}
+        archiveReference={archiveReference}
       />
     </div>
   );

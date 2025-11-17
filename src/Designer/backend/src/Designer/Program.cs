@@ -21,6 +21,9 @@ using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Tracing;
 using Altinn.Studio.Designer.TypedHttpClients;
+using Azure;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
 using Microsoft.AspNetCore.Builder;
@@ -29,11 +32,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Headers;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.KeyVault.Models;
-using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -96,30 +95,25 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
 
     KeyVaultSettings keyVaultSettings = new();
     config.GetSection("kvSetting").Bind(keyVaultSettings);
+    string secretUri = keyVaultSettings.SecretUri;
 
-    if (!string.IsNullOrEmpty(keyVaultSettings.ClientId) &&
-        !string.IsNullOrEmpty(keyVaultSettings.TenantId) &&
-        !string.IsNullOrEmpty(keyVaultSettings.ClientSecret) &&
-        !string.IsNullOrEmpty(keyVaultSettings.SecretUri))
+    if (!string.IsNullOrEmpty(secretUri))
     {
         logger.LogInformation("// Program.cs // SetConfigurationProviders // Attempting to configure KeyVault");
-        AzureServiceTokenProvider azureServiceTokenProvider = new($"RunAs=App;AppId={keyVaultSettings.ClientId};TenantId={keyVaultSettings.TenantId};AppKey={keyVaultSettings.ClientSecret}");
-        KeyVaultClient keyVaultClient = new(
-            new KeyVaultClient.AuthenticationCallback(
-                azureServiceTokenProvider.KeyVaultTokenCallback));
-        config.AddAzureKeyVault(
-            keyVaultSettings.SecretUri, keyVaultClient, new DefaultKeyVaultSecretManager());
+        DefaultAzureCredential azureCredentials = new();
+        SecretClient keyVaultClient = new(new Uri(secretUri), azureCredentials);
+
         try
         {
+            config.AddAzureKeyVault(new Uri(secretUri), azureCredentials);
             string secretId = "ApplicationInsights--ConnectionString";
-            SecretBundle secretBundle = await keyVaultClient.GetSecretAsync(
-                keyVaultSettings.SecretUri, secretId);
-
-            applicationInsightsConnectionString = secretBundle.Value;
+            Response<KeyVaultSecret> kvSecret = await keyVaultClient.GetSecretAsync(secretId);
+            KeyVaultSecret secretValue = kvSecret.Value;
+            applicationInsightsConnectionString = secretValue.Value;
         }
         catch (Exception vaultException)
         {
-            logger.LogError(vaultException, $"Could not find secretBundle for application insights");
+            logger.LogError(vaultException, "Could not find secret for application insights");
         }
     }
 
@@ -189,6 +183,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.ConfigureResourceRegistryIntegrationSettings(configuration.GetSection("ResourceRegistryIntegrationSettings"));
     services.ConfigureMaskinportenIntegrationSettings(configuration.GetSection("MaskinportenClientSettings"));
 
+    services.Configure<SharedContentClientSettings>(configuration.GetSection("SharedContentClientSettings"));
     services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
     var maskinPortenClientName = "MaskinportenClient";
     services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(maskinPortenClientName, configuration.GetSection("MaskinportenClientSettings"));
@@ -335,7 +330,7 @@ void Configure(IConfiguration configuration)
 
 void CreateDirectory(IConfiguration configuration)
 {
-    Console.WriteLine($"// Program.cs // CreateDirectory // Trying to create directory");
+    logger.LogInformation("// Program.cs // CreateDirectory // Trying to create directory");
 
     // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
     // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
@@ -350,7 +345,7 @@ void CreateDirectory(IConfiguration configuration)
     if (!Directory.Exists(repoLocation))
     {
         Directory.CreateDirectory(repoLocation);
-        Console.WriteLine($"// Program.cs // CreateDirectory // Successfully created directory");
+        logger.LogInformation("// Program.cs // CreateDirectory // Successfully created directory");
     }
 }
 

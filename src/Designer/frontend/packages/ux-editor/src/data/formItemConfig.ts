@@ -40,7 +40,6 @@ import { LayoutItemType } from '../types/global';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { FilterUtils } from './FilterUtils';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export type FormItemConfig<T extends ComponentType | CustomComponentType = ComponentType> = {
   name: ComponentType | CustomComponentType;
@@ -572,7 +571,7 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.InstantiationButton],
   formItemConfigs[ComponentType.ActionButton],
   formItemConfigs[ComponentType.Image],
-  shouldDisplayFeature(FeatureFlag.ImageUpload) && formItemConfigs[ComponentType.ImageUpload],
+  formItemConfigs[ComponentType.ImageUpload],
   formItemConfigs[ComponentType.Link],
   formItemConfigs[ComponentType.IFrame],
   formItemConfigs[ComponentType.InstanceInformation],
@@ -653,7 +652,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.AttachmentList,
     ComponentType.FileUpload,
     ComponentType.FileUploadWithTag,
-    ...(shouldDisplayFeature(FeatureFlag.ImageUpload) ? [ComponentType.ImageUpload] : []),
+    ComponentType.ImageUpload,
   ],
   container: [
     ComponentType.Group,
