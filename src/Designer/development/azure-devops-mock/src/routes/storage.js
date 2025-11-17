@@ -178,11 +178,15 @@ export const storageInstancesRoute = (req, res) => {
         ),
       });
     }
-  } catch (NoResultsError) {
-    res.json({
-      count: 0,
-      next: null,
-      instances: [],
-    });
+  } catch (error) {
+    if (error instanceof NoResultsError) {
+      res.json({
+        count: 0,
+        next: null,
+        instances: [],
+      });
+    } else {
+      throw error;
+    }
   }
 };
