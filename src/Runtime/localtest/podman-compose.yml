@@ -32,16 +32,6 @@ services:
       - ./loadbalancer/templates/:/etc/nginx/templates/:ro,z
       - ./loadbalancer/www/:/www/:ro,z
 
-  altinn_platform_pdf:
-    container_name: altinn-pdf
-    platform: linux/amd64
-    image: ghcr.io/altinn/altinn-pdf:latest
-    restart: always
-    networks:
-      - altinntestlocal_network
-    ports:
-      - "5070:5070"
-
   altinn_pdf_service:
     container_name: altinn-pdf-service
     image: browserless/chrome:1-puppeteer-21.3.6
@@ -180,6 +170,8 @@ services:
       - PlatformSettings__ApiAccessManagementEndpoint=http://altinn_localtest:5101/accessmanagement/api/v1/
       - PlatformSettings__ApiEventsEndpoint=http://altinn_localtest:5101/events/api/v1/
       - PlatformSettings__ApiPdf2Endpoint=http://host.docker.internal:5300/pdf
+    security_opt:
+      - seccomp=unconfined
     depends_on:
       - altinn_localtest
 

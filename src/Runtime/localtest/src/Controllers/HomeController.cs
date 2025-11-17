@@ -150,8 +150,11 @@ namespace LocalTest.Controllers
 
             var hostname = sourceIp.ToString();
             var parsedSourceIp = sourceIp.IsIPv4MappedToIPv6 ? sourceIp.MapToIPv4() : sourceIp;
-            if (IsContainerHostAddress(parsedSourceIp))
+
+            // Reach the host machine when apps are running outside of container runtime
+            if (ShouldUseDockerHostInternal(parsedSourceIp))
             {
+                // TODO: This does not work with all container runtimes. Make sure it does.
                 hostname = "host.docker.internal";
             }
 
@@ -652,7 +655,11 @@ namespace LocalTest.Controllers
             );
         }
 
-        private bool IsContainerHostAddress(IPAddress? address)
+        /// <summary>
+        /// Determines whether to use host.docker.internal based on the source IP address.
+        /// Returns true if host.docker.internal should be used, false if the actual IP should be used.
+        /// </summary>
+        private bool ShouldUseDockerHostInternal(IPAddress? address)
         {
             if (address == null)
             {
@@ -676,9 +683,59 @@ namespace LocalTest.Controllers
                     .Select(g => g.Address)
                     .FirstOrDefault(a => a?.AddressFamily == AddressFamily.InterNetwork);
 
-                // In docker, the registration request comes from the default gateway when container is started on the
-                // host, but in podman it apparently comes from the containers own IP.
-                return Equals(address, defaultGateway) || Equals(address, myIp);
+                // Request comes from default gateway (typically using docker)
+                if (Equals(address, defaultGateway))
+                {
+                    return true;
+                }
+
+                // Request comes from the containers own IP (typical quick in podman on linux)
+                if (Equals(address, myIp))
+                {
+                    return true;
+                }
+
+                // Request comes from same subnet as container's assigned interface (typically goes to test-apps container)
+                var myUnicastAddress = interfaces
+                    .SelectMany(n => n.GetIPProperties().UnicastAddresses)
+                    .FirstOrDefault(a => a.Address.AddressFamily == AddressFamily.InterNetwork);
+
+                if (myUnicastAddress != null)
+                {
+                    var subnetMask = myUnicastAddress.IPv4Mask;
+                    if (subnetMask != null)
+                    {
+                        // Check if addresses are in the same subnet
+                        var ip1Bytes = address.GetAddressBytes();
+                        var ip2Bytes = myUnicastAddress.Address.GetAddressBytes();
+                        var maskBytes = subnetMask.GetAddressBytes();
+
+                        if (
+                            ip1Bytes.Length == ip2Bytes.Length
+                            && ip1Bytes.Length == maskBytes.Length
+                        )
+                        {
+                            bool sameSubnet = true;
+                            for (int i = 0; i < ip1Bytes.Length; i++)
+                            {
+                                if ((ip1Bytes[i] & maskBytes[i]) != (ip2Bytes[i] & maskBytes[i]))
+                                {
+                                    sameSubnet = false;
+                                    break;
+                                }
+                            }
+
+                            if (sameSubnet)
+                            {
+                                return false; // Use the actual IP we received
+                            }
+                        }
+                    }
+                }
+
+                // Otherwise, the request came from outside our inner network, so we assume it came from the container
+                // host. This makes it impossible to run an app on an entirely different machine, but that's OK.
+                return true;
             }
             catch
             {
