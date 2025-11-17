@@ -1,10 +1,23 @@
 {
-  "name": "applicationmetadata.json",
-  "path": "App/config/applicationmetadata.json",
-  "sha": "abc123",
-  "type": "file",
-  "size": 100,
-  "encoding": "base64",
-  "content": "ewogICJpZCI6ICJ0dGQvJyRhcHAnIiwKICAib3JnIjogInR0ZCIsCiAgInRpdGxlIjogewogICAgIm5iIjogIlRlc3QgRGVwbG95IiwKICAgICJlbiI6ICJUZXN0IERlcGxveSIKICB9LAogICJkYXRhVHlwZXMiOiBbXSwKICAicGFydHlUeXBlc0FsbG93ZWQiOiB7CiAgICAiYmFua3J1cHRjeUVzdGF0ZSI6IGZhbHNlLAogICAgIm9yZ2FuaXNhdGlvbiI6IHRydWUsCiAgICAicGVyc29uIjogdHJ1ZSwKICAgICJzdWJVbml0IjogZmFsc2UKICB9LAogICJhdXRvRGVsZXRlT25Qcm9jZXNzRW5kIjogZmFsc2UsCiAgImNyZWF0ZWQiOiAiMjAyNC0wMS0wMVQwMDowMDowMFoiLAogICJjcmVhdGVkQnkiOiAidGVzdFVzZXIiLAogICJsYXN0Q2hhbmdlZCI6ICIyMDI0LTAxLTAxVDAwOjAwOjAwWiIsCiAgImxhc3RDaGFuZ2VkQnkiOiAidGVzdFVzZXIiCn0K",
-  "target": null
+    "name": "applicationmetadata.json",
+    "path": "App/config/applicationmetadata.json",
+    "sha": "1ad8b3c11f87aa16fbe5ed4487968b84fdc89e50",
+    "last_commit_sha": "c6092c480c5ab004c20b427285e5c1227f9b4015",
+    "last_committer_date": "2024-11-15T08:41:30Z",
+    "last_author_date": "2024-11-15T08:41:30Z",
+    "type": "file",
+    "size": 1444,
+    "encoding": "base64",
+    "content": "ewogICJpZCI6ICJ0dGQvc3luYy10ZXN0IiwKICAib3JnIjogInR0ZCIsCiAgInRpdGxlIjogewogICAgIm5iIjogInN5bmMtdGVzdCIKICB9LAogICJkYXRhVHlwZXMiOiBbCiAgICB7CiAgICAgICJpZCI6ICJyZWYtZGF0YS1hcy1wZGYiLAogICAgICAiYWxsb3dlZENvbnRlbnRUeXBlcyI6IFsKICAgICAgICAiYXBwbGljYXRpb24vcGRmIgogICAgICBdLAogICAgICAibWF4Q291bnQiOiAwLAogICAgICAibWluQ291bnQiOiAwLAogICAgICAiZW5hYmxlUGRmQ3JlYXRpb24iOiB0cnVlLAogICAgICAiZW5hYmxlRmlsZVNjYW4iOiBmYWxzZSwKICAgICAgInZhbGlkYXRpb25FcnJvck9uUGVuZGluZ0ZpbGVTY2FuIjogZmFsc2UsCiAgICAgICJlbmFibGVkRmlsZUFuYWx5c2VycyI6IFtdLAogICAgICAiZW5hYmxlZEZpbGVWYWxpZGF0b3JzIjogW10KICAgIH0sCiAgICB7CiAgICAgICJpZCI6ICJtb2RlbCIsCiAgICAgICJhbGxvd2VkQ29udGVudFR5cGVzIjogWwogICAgICAgICJhcHBsaWNhdGlvbi94bWwiCiAgICAgIF0sCiAgICAgICJhcHBMb2dpYyI6IHsKICAgICAgICAiYXV0b0NyZWF0ZSI6IHRydWUsCiAgICAgICAgImNsYXNzUmVmIjogIkFsdGlubi5BcHAuTW9kZWxzLm1vZGVsLm1vZGVsIiwKICAgICAgICAiYWxsb3dBbm9ueW1vdXNPblN0YXRlbGVzcyI6IGZhbHNlLAogICAgICAgICJhdXRvRGVsZXRlT25Qcm9jZXNzRW5kIjogZmFsc2UsCiAgICAgICAgImFsbG93VXNlckNyZWF0ZSI6IGZhbHNlLAogICAgICAgICJhbGxvd1VzZXJEZWxldGUiOiBmYWxzZSwKICAgICAgICAiYWxsb3dJblN1YmZvcm0iOiBmYWxzZQogICAgICB9LAogICAgICAidGFza0lkIjogIlRhc2tfMSIsCiAgICAgICJtYXhDb3VudCI6IDEsCiAgICAgICJtaW5Db3VudCI6IDEsCiAgICAgICJlbmFibGVQZGZDcmVhdGlvbiI6IHRydWUsCiAgICAgICJlbmFibGVGaWxlU2NhbiI6IGZhbHNlLAogICAgICAidmFsaWRhdGlvbkVycm9yT25QZW5kaW5nRmlsZVNjYW4iOiBmYWxzZSwKICAgICAgImVuYWJsZWRGaWxlQW5hbHlzZXJzIjogW10sCiAgICAgICJlbmFibGVkRmlsZVZhbGlkYXRvcnMiOiBbXQogICAgfQogIF0sCiAgInBhcnR5VHlwZXNBbGxvd2VkIjogewogICAgImJhbmtydXB0Y3lFc3RhdGUiOiBmYWxzZSwKICAgICJvcmdhbmlzYXRpb24iOiBmYWxzZSwKICAgICJwZXJzb24iOiBmYWxzZSwKICAgICJzdWJVbml0IjogZmFsc2UKICB9LAogICJhdXRvRGVsZXRlT25Qcm9jZXNzRW5kIjogZmFsc2UsCiAgImRpc2FsbG93VXNlckluc3RhbnRpYXRpb24iOiBmYWxzZSwKICAiY3JlYXRlZCI6ICIyMDI0LTExLTE1VDA4OjQxOjI2LjU0Nzc4MzJaIiwKICAiY3JlYXRlZEJ5IjogIm1pcmtvU2VrdWxpYyIsCiAgImxhc3RDaGFuZ2VkIjogIjIwMjQtMTEtMTVUMDg6NDE6MjYuNTQ3ODI3NloiLAogICJsYXN0Q2hhbmdlZEJ5IjogIm1pcmtvU2VrdWxpYyIKfQ==",
+    "target": null,
+    "url": "https://dev.altinn.studio/repos/api/v1/repos/ttd/sync-test/contents/App/config/applicationmetadata.json?ref=master",
+    "html_url": "https://dev.altinn.studio/repos/ttd/sync-test/src/branch/master/App/config/applicationmetadata.json",
+    "git_url": "https://dev.altinn.studio/repos/api/v1/repos/ttd/sync-test/git/blobs/1ad8b3c11f87aa16fbe5ed4487968b84fdc89e50",
+    "download_url": "https://dev.altinn.studio/repos/ttd/sync-test/raw/branch/master/App/config/applicationmetadata.json",
+    "submodule_git_url": null,
+    "_links": {
+        "self": "https://dev.altinn.studio/repos/api/v1/repos/ttd/sync-test/contents/App/config/applicationmetadata.json?ref=master",
+        "git": "https://dev.altinn.studio/repos/api/v1/repos/ttd/sync-test/git/blobs/1ad8b3c11f87aa16fbe5ed4487968b84fdc89e50",
+        "html": "https://dev.altinn.studio/repos/ttd/sync-test/src/branch/master/App/config/applicationmetadata.json"
+    }
 }
