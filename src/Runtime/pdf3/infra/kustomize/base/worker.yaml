@@ -215,10 +215,24 @@ spec:
           env:
           - name: TZ
             value: Europe/Oslo
-          - name: POD_IP
+          - name: PDF3_UPGRADE_CHANNEL
             valueFrom:
-              fieldRef:
-                fieldPath: status.podIP
+              # Configmap is created in syncroot
+              configMapKeyRef:
+                name: runtime-environment
+                key: upgrade_channel
+          - name: PDF3_ENVIRONMENT
+            valueFrom:
+              configMapKeyRef:
+                name: runtime-environment
+                key: environment
+          - name: PDF3_SERVICEOWNER
+            valueFrom:
+              configMapKeyRef:
+                name: runtime-environment
+                key: serviceowner
+          - name: PDF3_QUEUE_SIZE
+            value: "0"
           resources:
             # Requests affect sheduling/scaling decisions.
             # For a 1 CPU core + 1 GB RAM VM, current configuration

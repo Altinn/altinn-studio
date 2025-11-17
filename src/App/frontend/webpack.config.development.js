@@ -11,11 +11,7 @@ const { EsbuildPlugin } = require('esbuild-loader');
 const common = require('./webpack.common');
 
 const enableNotifier = !('WEBPACK_SILENT' in env) || env.WEBPACK_SILENT === 'false';
-const plugins = [
-  ...common.plugins,
-  new ReactRefreshWebpackPlugin(),
-  new CodegenWatchPlugin(),
-];
+const plugins = [...common.plugins, new ReactRefreshWebpackPlugin(), new CodegenWatchPlugin()];
 
 if (enableNotifier) {
   plugins.push(new ForkTsCheckerNotifierWebpackPlugin());
