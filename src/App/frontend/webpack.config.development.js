@@ -79,10 +79,6 @@ module.exports = {
         warnings: false,
       },
     },
-    onListening: function (devServer) {
-      const port = devServer.server.address().port;
-      console.log(`\n🎉Webpack dev server is ready on port ${port}!\n`);
-    },
     static: [
       {
         directory: path.join(__dirname, 'schemas'),
