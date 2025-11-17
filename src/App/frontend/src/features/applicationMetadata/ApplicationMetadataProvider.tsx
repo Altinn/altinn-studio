@@ -13,22 +13,27 @@ import { fetchApplicationMetadata } from 'src/queries/queries';
 import { isMinimumApplicationVersion } from 'src/utils/versioning/versions';
 import type { ApplicationMetadata, IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 
+export function processApplicationMetadata(
+  instanceGuid: string | undefined,
+  data: IncomingApplicationMetadata,
+): ApplicationMetadata {
+  const onEntry = data.onEntry ?? { show: 'new-instance' };
+
+  return {
+    ...data,
+    isValidVersion: isMinimumApplicationVersion(data.altinnNugetVersion),
+    onEntry,
+    isStatelessApp: isStatelessApp(!!instanceGuid, onEntry.show),
+    logoOptions: data.logo,
+  };
+}
+
 // Also used for prefetching @see appPrefetcher.ts
 export function getApplicationMetadataQueryDef(instanceGuid: string | undefined) {
   return {
     queryKey: ['fetchApplicationMetadata'],
     queryFn: fetchApplicationMetadata,
-    select: (data) => {
-      const onEntry = data.onEntry ?? { show: 'new-instance' };
-
-      return {
-        ...data,
-        isValidVersion: isMinimumApplicationVersion(data.altinnNugetVersion),
-        onEntry,
-        isStatelessApp: isStatelessApp(!!instanceGuid, onEntry.show),
-        logoOptions: data.logo,
-      };
-    },
+    select: (data) => processApplicationMetadata(instanceGuid, data),
   } satisfies UseQueryOptions<IncomingApplicationMetadata, Error, ApplicationMetadata>;
 }
 

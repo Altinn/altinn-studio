@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+/* eslint-disable no-console,@typescript-eslint/no-require-imports */
 const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
@@ -144,7 +144,7 @@ class YamlAIFailuresReporter {
       let yamlStr;
       try {
         yamlStr = yaml.dump(doc, { lineWidth: -1, noRefs: true, skipInvalid: true });
-      } catch (e) {
+      } catch (_e) {
         // Fallback to JSON if YAML fails, but DO NOT throw
         yamlStr = JSON.stringify(doc, null, 2);
       }

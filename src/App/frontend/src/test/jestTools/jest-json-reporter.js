@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+/* eslint-disable no-console,@typescript-eslint/no-require-imports */
 const fs = require('fs');
 const path = require('path');
 

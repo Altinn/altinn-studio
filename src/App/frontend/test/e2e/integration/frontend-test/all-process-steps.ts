@@ -207,6 +207,7 @@ export function testCustomReceiptPage() {
 
         // Optional debug without triggering recursion
         win.addEventListener('DOMContentLoaded', () => {
+          // eslint-disable-next-line no-console
           console.log('AltinnAppData after inline assignment:', backing);
         });
       },

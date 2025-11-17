@@ -9,7 +9,6 @@ import { Loader } from 'src/core/loading/Loader';
 import { FileScanResults } from 'src/features/attachments/types';
 import { removeProcessFromInstance } from 'src/features/instance/instanceUtils';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
-import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { fetchInstanceData } from 'src/queries/queries';
@@ -22,9 +21,9 @@ const InstanceContext = React.createContext<IInstance | null>(null);
 export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
-  const instantiation = useInstantiation();
+  // const instantiation = useInstantiation();
 
-  const { isLoading: isLoadingProcess, error: processError } = useProcessQuery();
+  const { isLoading: isLoadingProcess, error: _processError } = useProcessQuery();
 
   const hasPendingScans = useHasPendingScans();
   const { data } = useInstanceDataQuery({ refetchInterval: hasPendingScans ? 5000 : false });

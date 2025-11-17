@@ -497,7 +497,7 @@ const renderBase = async ({
       if (textResources && window.AltinnAppData) {
         window.AltinnAppData.textResources = textResources;
       }
-    } catch (e) {
+    } catch (_e) {
       // If the mock throws or returns invalid data, keep default text resources
     }
   }
@@ -512,7 +512,7 @@ const renderBase = async ({
       // Also preload into query cache so ApplicationMetadataProvider can use it
       queryClient.setQueryData(['fetchApplicationMetadata'], applicationMetadata);
     }
-  } catch (e) {
+  } catch (_e) {
     // Keep default metadata if query throws
   }
 
@@ -523,7 +523,7 @@ const renderBase = async ({
       if (applicationSettings && window.AltinnAppData) {
         window.AltinnAppData.frontendSettings = applicationSettings;
       }
-    } catch (e) {
+    } catch (_e) {
       // Keep default settings if query throws
     }
   }
@@ -535,7 +535,7 @@ const renderBase = async ({
       if (layoutSets && window.AltinnAppData) {
         window.AltinnAppData.layoutSets = layoutSets;
       }
-    } catch (e) {
+    } catch (_e) {
       // Keep default layout sets if query throws
     }
   }
@@ -549,11 +549,11 @@ const renderBase = async ({
         if (processState && window.AltinnAppData) {
           window.AltinnAppData.processState = processState;
         }
-      } catch (e) {
+      } catch (_e) {
         // Mock might throw or return undefined - that's OK
       }
     }
-  } catch (_) {
+  } catch (_e) {
     // fetchProcessState not mocked - fine for stateless tests
   }
 
@@ -571,11 +571,11 @@ const renderBase = async ({
           instanceQueries.instanceData({ instanceOwnerPartyId: 'dummy-owner', instanceGuid: 'dummy-guid' }).queryKey,
           instanceData,
         );
-      } catch (_) {
+      } catch (_e) {
         // Mock might be set up with mockImplementationOnce - that's OK, test will handle it
       }
     }
-  } catch (_) {
+  } catch (_e) {
     // Instance data not mocked or not available - fine for stateless tests
   }
 

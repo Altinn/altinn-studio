@@ -38,17 +38,16 @@ describe('InstanceSelection', () => {
     // Set screen size to desktop
     setScreenWidth(1200);
 
-    // Save original location and create a mock
+    // Save the original location and create a mock
     originalLocation = window.location;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (window as any).location;
-    // @ts-ignore
-    window.location = { ...originalLocation, href: '' } as Location;
+    window.location = { ...originalLocation, href: '', toString: () => '' } as string & Location;
   });
 
   afterEach(() => {
     // Restore original location
-    // @ts-ignore
-    window.location = originalLocation;
+    window.location = originalLocation as string & Location;
   });
 
   it('should show full size table for larger devices', async () => {

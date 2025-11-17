@@ -69,10 +69,10 @@ export const PartySelection = () => {
 
   // Mutation to set selected party
   const { doSetSelectedParty } = useAppMutations();
-  const [sentToMutation, setSentToMutation] = useReactState<IParty | undefined>(undefined);
+  const [_sentToMutation, setSentToMutation] = useReactState<IParty | undefined>(undefined);
   const {
     mutateAsync,
-    data: dataFromMutation,
+    data: _dataFromMutation,
     error: mutationError,
   } = useMutation({
     mutationKey: ['doSetSelectedParty'],
@@ -83,7 +83,7 @@ export const PartySelection = () => {
   });
 
   const selectedParty = useSelectedParty();
-  const [userHasSelectedParty, setUserHasSelectedParty] = useReactState(false);
+  const [_userHasSelectedParty, setUserHasSelectedParty] = useReactState(false);
 
   const appMetadata = useApplicationMetadata();
 
