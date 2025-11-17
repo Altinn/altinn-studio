@@ -28,7 +28,7 @@ public class TranslationServiceInstanceTests
     public async Task TranslateTextKey_WithDataSources()
     {
         var fixture = new MockedServiceCollection();
-        fixture.AddXunitLogging(_output);
+        fixture.OutputHelper = _output;
         var language = "esperanto";
         fixture.AddTextResource(
             language,
