@@ -1,20 +1,6 @@
-import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 import { StudioSelect } from '@studio/components';
-import React, { useCallback } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-
-export function useStatusFilter<T>(key: string): [T | undefined, (value: T | undefined) => void] {
-  const [state, _setState] = useQueryParamState<{ [key: string]: T | undefined }>({
-    [key]: undefined,
-  });
-
-  const setState = useCallback(
-    (value: T | undefined) => _setState({ [key]: value }),
-    [_setState, key],
-  );
-
-  return [state[key], setState];
-}
 
 type StatusFilterProps = {
   label: string;
@@ -39,7 +25,10 @@ export const StatusFilter = ({ label, value, setValue, options, disabled }: Stat
       onChange={handleChange}
     >
       {options.map((option) => (
-        <StudioSelect.Option key={option.value} value={JSON.stringify(option.value ?? null)}>
+        <StudioSelect.Option
+          key={JSON.stringify(option.value ?? null)}
+          value={JSON.stringify(option.value ?? null)}
+        >
           {option.label}
         </StudioSelect.Option>
       ))}

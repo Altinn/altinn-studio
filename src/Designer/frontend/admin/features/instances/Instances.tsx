@@ -3,18 +3,20 @@ import classes from './Instances.module.css';
 import { Link, useParams } from 'react-router-dom';
 import { InstancesTable } from './components/InstancesTable';
 import { StudioBreadcrumbs } from '@studio/components';
-import { ProcessTaskPicker, useProcessTaskPicker } from './components/ProcessTaskPicker';
-import {
-  ArchiveReferenceSearch,
-  useArchiveReferenceSearch,
-} from './components/ArchiveReferenceSearch';
-import { StatusFilter, useStatusFilter } from './components/StatusFilter';
+import { ProcessTaskPicker } from './components/ProcessTaskPicker';
+import { ArchiveReferenceSearch } from './components/ArchiveReferenceSearch';
+import { StatusFilter } from './components/StatusFilter';
+import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 
 export const Instances = () => {
   const { org, env, app } = useParams() as { org: string; env: string; app: string };
-  const [archiveReference, setArchiveReference] = useArchiveReferenceSearch();
-  const processTaskPickerState = useProcessTaskPicker();
-  const [isConfirmed, setIsConfirmed] = useStatusFilter<boolean>('isConfirmed');
+  const [archiveReference, setArchiveReference] = useQueryParamState<string>(
+    'archiveReference',
+    undefined,
+  );
+  const [currentTask, setCurrentTask] = useQueryParamState<string>('currentTask', undefined);
+  const [isComplete, setIsComplete] = useQueryParamState<boolean>('isComplete', undefined);
+  const [isConfirmed, setIsConfirmed] = useQueryParamState<boolean>('isConfirmed', undefined);
 
   return (
     <div>
@@ -43,7 +45,23 @@ export const Instances = () => {
       </h1>
       <div className={classes.filterWrapper}>
         <ArchiveReferenceSearch value={archiveReference} setValue={setArchiveReference} />
-        <ProcessTaskPicker org={org} env={env} app={app} state={processTaskPickerState} />
+        <ProcessTaskPicker
+          org={org}
+          env={env}
+          app={app}
+          value={currentTask}
+          setValue={setCurrentTask}
+        />
+        <StatusFilter
+          label='Levert av bruker'
+          value={isComplete}
+          setValue={setIsComplete}
+          options={[
+            { label: 'Alle', value: undefined },
+            { label: 'Ja', value: true },
+            { label: 'Nei', value: false },
+          ]}
+        />
         <StatusFilter
           label='Bekreftet mottatt'
           value={isConfirmed}
@@ -59,8 +77,8 @@ export const Instances = () => {
         org={org}
         env={env}
         app={app}
-        currentTask={processTaskPickerState.currentTask}
-        processIsComplete={processTaskPickerState.isComplete}
+        currentTask={currentTask}
+        processIsComplete={isComplete}
         archiveReference={archiveReference}
         confirmed={isConfirmed}
       />
