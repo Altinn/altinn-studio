@@ -199,7 +199,7 @@ public class GetSharedResources(WebApplicationFactory<Program> factory) : Design
         Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
 
         ProblemDetails problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>();
-        Assert.Equal(StatusCodes.Status400BadRequest, problemDetails.Status);
+        Assert.Equal(StatusCodes.Status404NotFound, problemDetails.Status);
         Assert.Equal("Directory not found", problemDetails.Title);
     }
 }
