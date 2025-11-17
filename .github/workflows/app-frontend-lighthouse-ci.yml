@@ -95,6 +95,7 @@ jobs:
         working-directory: src/App/frontend
         run: |
           set -e # exit on any failure
+          set -o pipefail # preserve exit codes in pipes
           yarn run lhci 2>&1 | tee lighthouse_output.txt
 
           # Extract the report URL
