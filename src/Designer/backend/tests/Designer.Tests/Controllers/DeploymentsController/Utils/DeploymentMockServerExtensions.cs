@@ -76,33 +76,6 @@ public static class DeploymentMockServerExtensions
     }
 
     /// <summary>
-    /// Prepares mock responses for Azure DevOps build queue endpoint
-    /// </summary>
-    public static void PrepareAzureDevOpsBuildQueueResponse(this MockServerFixture mockServerFixture, int buildId, BuildStatus status = BuildStatus.NotStarted)
-    {
-        var request = Request.Create()
-            .UsingPost()
-            .WithPath("/build/builds")
-            .WithParam("api-version", "5.1");
-
-        var responseBody = $$"""
-        {
-            "id": {{buildId}},
-            "status": "{{status.ToString()}}",
-            "startTime": "{{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss.fffZ}}"
-        }
-        """;
-
-        var response = Response.Create()
-            .WithStatusCode(200)
-            .WithHeader("content-type", MediaTypeNames.Application.Json)
-            .WithBody(responseBody);
-
-        mockServerFixture.MockApi.Given(request)
-            .RespondWith(response);
-    }
-
-    /// <summary>
     /// Prepares mock responses for Altinn Storage Application Metadata endpoint
     /// Path: /storage/api/v1/applications?appId={{org}}/{{app}}
     /// </summary>
