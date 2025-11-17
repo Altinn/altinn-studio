@@ -3,10 +3,10 @@ import classes from './Instances.module.css';
 import { Link, useParams } from 'react-router-dom';
 import { InstancesTable } from './components/InstancesTable';
 import { StudioBreadcrumbs } from '@studio/components';
-import { ProcessTaskPicker } from './components/ProcessTaskPicker';
 import { ArchiveReferenceSearch } from './components/ArchiveReferenceSearch';
 import { StatusFilter } from './components/StatusFilter';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
+import { ProcessTaskFilter } from './components/ProcessTaskFilter';
 
 export const Instances = () => {
   const { org, env, app } = useParams() as { org: string; env: string; app: string };
@@ -45,7 +45,7 @@ export const Instances = () => {
       </h1>
       <div className={classes.filterWrapper}>
         <ArchiveReferenceSearch value={archiveReference} setValue={setArchiveReference} />
-        <ProcessTaskPicker
+        <ProcessTaskFilter
           org={org}
           env={env}
           app={app}

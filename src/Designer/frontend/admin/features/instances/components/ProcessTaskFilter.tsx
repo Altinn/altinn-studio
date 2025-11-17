@@ -13,7 +13,7 @@ type ProcessTaskPickerProps = {
   setValue: (value: string | undefined) => void;
 };
 
-export const ProcessTaskPicker = ({ org, env, app, value, setValue }: ProcessTaskPickerProps) => {
+export const ProcessTaskFilter = ({ org, env, app, value, setValue }: ProcessTaskPickerProps) => {
   const { data, status } = useAppProcessTasks(org, env, app);
   const { t } = useTranslation();
 
@@ -23,7 +23,7 @@ export const ProcessTaskPicker = ({ org, env, app, value, setValue }: ProcessTas
     case 'error':
       return <StudioError>{t('general.page_error_title')}</StudioError>;
     case 'success':
-      return <ProcessTaskPickerWithData processTasks={data} value={value} setValue={setValue} />;
+      return <ProcessTaskFilterWithData processTasks={data} value={value} setValue={setValue} />;
   }
 };
 
@@ -33,7 +33,7 @@ type ProcessTaskPickerWithDataProps = {
   setValue: (value: string | undefined) => void;
 };
 
-const ProcessTaskPickerWithData = ({
+const ProcessTaskFilterWithData = ({
   processTasks,
   value,
   setValue,
