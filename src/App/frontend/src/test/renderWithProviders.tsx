@@ -6,7 +6,6 @@ import { jest } from '@jest/globals';
 import { QueryClient } from '@tanstack/react-query';
 import { act, render as rtlRender, waitFor } from '@testing-library/react';
 import dotenv from 'dotenv';
-import { applyPatch } from 'fast-json-patch';
 import type { RenderOptions, waitForOptions } from '@testing-library/react';
 import type { AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
@@ -31,7 +30,7 @@ import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataRea
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider, instanceQueries } from 'src/features/instance/InstanceContext';
 import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
-import { LanguageProvider, SetShouldFetchAppLanguages } from 'src/features/language/LanguageProvider';
+import { LanguageProvider } from 'src/features/language/LanguageProvider';
 import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
@@ -43,7 +42,6 @@ import { PageNavigationRouter } from 'src/test/routerUtils';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { FormDataMethods } from 'src/features/formData/FormDataWriteStateMachine';
-import type { IDataModelPatchRequest, IDataModelPatchResponse } from 'src/features/formData/types';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { CompExternal, CompExternalExact, CompTypes } from 'src/layout/layout';
@@ -55,10 +53,6 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   waitUntilLoaded?: boolean;
   queries?: Partial<AppQueries>;
   initialRenderRef?: InitialRenderRef;
-
-  // Setting this allows you to pretend to be the backend (true = all requests are resolved successfully). When
-  // using a callback function you can simulate ProcessDataWrite by returning a new model.
-  mockFormDataSaving?: true | ((data: unknown, url: string) => unknown);
 }
 
 interface InstanceRouterProps {
@@ -112,12 +106,8 @@ export const makeMutationMocks = <T extends (name: keyof AppMutations) => any>(
 ): {
   [fn in keyof AppMutations]: ReturnType<T>;
 } => ({
-  doAttachmentAddTag: makeMock('doAttachmentAddTag'),
   doAttachmentRemove: makeMock('doAttachmentRemove'),
-  doAttachmentRemoveTag: makeMock('doAttachmentRemoveTag'),
-  doAttachmentUploadOld: makeMock('doAttachmentUploadOld'),
   doAttachmentUpload: makeMock('doAttachmentUpload'),
-  doPatchFormData: makeMock('doPatchFormData'),
   doPatchMultipleFormData: makeMock('doPatchMultipleFormData'),
   doPostStatelessFormData: makeMock('doPostStatelessFormData'),
   doSetSelectedParty: makeMock('doSetSelectedParty'),
@@ -154,7 +144,6 @@ const defaultQueryMocks: AppQueries = {
   fetchLayoutSettings: async () => ({ pages: { order: [] } }),
   fetchLayouts: () => Promise.reject(new Error('fetchLayouts not mocked')),
   fetchBackendValidations: async () => [],
-  fetchBackendValidationsForDataElement: async () => [],
   fetchPaymentInformation: async () => paymentResponsePayload,
   fetchOrderDetails: async () => orderDetailsResponsePayload,
 };
@@ -327,7 +316,6 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
                       <OrgsProvider>
                         <ApplicationSettingsProvider>
                           <LayoutSetsProvider>
-                            <SetShouldFetchAppLanguages />
                             <PartyProvider>
                               <TextResourcesProvider>{children}</TextResourcesProvider>
                             </PartyProvider>
@@ -422,48 +410,6 @@ export function setupFakeApp({ queries, mutations }: SetupFakeAppProps = {}) {
   };
 }
 
-function injectFormDataSavingSimulator(
-  queryMocks: AppQueries,
-  mutationMocks: AppMutations,
-  mockBackend: Required<ExtendedRenderOptions>['mockFormDataSaving'],
-) {
-  const models: Record<string, unknown> = {};
-  const originalFetchFormData = queryMocks.fetchFormData;
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (queryMocks as any).fetchFormData = jest.fn().mockImplementation(async (url: string) => {
-    const result = await originalFetchFormData(url);
-    models[url] = result;
-    return result;
-  });
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (mutationMocks as any).doPatchFormData = jest
-    .fn()
-    .mockImplementation(
-      async (url: string, req: IDataModelPatchRequest): Promise<{ data: IDataModelPatchResponse }> => {
-        const model = structuredClone(models[url] ?? {});
-        applyPatch(model, req.patch);
-        const afterProcessing = typeof mockBackend === 'function' ? mockBackend(model, url) : model;
-        models[url] = afterProcessing;
-
-        return {
-          data: {
-            newDataModel: afterProcessing as object,
-            validationIssues: {},
-          },
-        };
-      },
-    );
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (mutationMocks as any).doPostStatelessFormData = jest.fn().mockImplementation(async (url: string, data: unknown) => {
-    const afterProcessing = typeof mockBackend === 'function' ? mockBackend(data, url) : data;
-    models[url] = afterProcessing;
-    return afterProcessing;
-  });
-}
-
 const renderBase = async ({
   renderer,
   router,
@@ -471,7 +417,6 @@ const renderBase = async ({
   waitUntilLoaded = true,
   Providers = DefaultProviders,
   initialRenderRef = { current: true },
-  mockFormDataSaving,
   ...renderOptions
 }: BaseRenderOptions) => {
   const { queryClient, queriesOnly: finalQueries } = setupFakeApp({ queries });
@@ -484,10 +429,6 @@ const renderBase = async ({
   const mutationMocks = Object.fromEntries(
     Object.entries(mutations).map(([key, value]) => [key, value.mock]),
   ) as AppMutations;
-
-  if (mockFormDataSaving) {
-    injectFormDataSavingSimulator(queryMocks, mutationMocks, mockFormDataSaving);
-  }
 
   // Preload window.AltinnAppData and query cache with mocked data BEFORE rendering
   // Text resources: call the mocked query and update window

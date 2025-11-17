@@ -25,7 +25,6 @@ import { ComponentRouting, NavigateToStartUrl, ProcessWrapper } from 'src/compon
 import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { ProcessingProvider } from 'src/core/contexts/processingContext';
-import { DisplayErrorProvider } from 'src/core/errorHandling/DisplayErrorProvider';
 import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { VersionErrorOrChildren } from 'src/features/applicationMetadata/VersionErrorOrChildren';
 import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
@@ -220,11 +219,9 @@ function Root() {
                   <ApplicationSettingsProvider>
                     <PartyProvider>
                       <KeepAliveProvider>
-                        <DisplayErrorProvider>
-                          <ProcessingProvider>
-                            <Outlet />
-                          </ProcessingProvider>
-                        </DisplayErrorProvider>
+                        <ProcessingProvider>
+                          <Outlet />
+                        </ProcessingProvider>
                         <ToastContainer
                           position='top-center'
                           theme='colored'

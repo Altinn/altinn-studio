@@ -27,7 +27,9 @@
     "tsc": "yarn gen && tsc && tsc --project test/tsconfig.json",
     "tsc:watch": "yarn gen && tsc --watch",
     "tsc:watch:cypress": "yarn gen && tsc --watch --project test/tsconfig.json",
-    "lint": "yarn gen && eslint ."
+    "lint": "yarn gen && eslint .",
+    "bench": "tsx --expose_gc --tsconfig benchmarks/tsconfig.json benchmarks/${0}",
+    "lhci": "lhci autorun"
   },
   "devDependencies": {
     "@babel/core": "7.28.5",
@@ -38,6 +40,7 @@
     "@babel/runtime-corejs3": "7.28.4",
     "@eslint/compat": "1.4.1",
     "@faker-js/faker": "10.1.0",
+    "@lhci/cli": "^0.15.1",
     "@percy/cli": "1.31.4",
     "@percy/cypress": "3.1.6",
     "@pmmmwh/react-refresh-webpack-plugin": "0.6.1",
@@ -112,6 +115,7 @@
     "mime": "4.1.0",
     "mini-css-extract-plugin": "2.9.4",
     "prettier": "3.6.2",
+    "puppeteer": "^24.29.0",
     "react-refresh": "0.18.0",
     "resize-observer-polyfill": "1.5.1",
     "source-map-loader": "5.0.0",
