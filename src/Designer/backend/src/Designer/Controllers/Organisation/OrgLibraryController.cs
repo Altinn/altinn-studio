@@ -39,7 +39,7 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<GetSharedResourcesResponse>> GetSharedResourcesByPath(string org, [FromQuery] string? path, [FromQuery] string? reference = null, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<GetSharedResourcesResponse>> GetSharedResources(string org, [FromQuery] string? path, [FromQuery] string? reference = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -70,7 +70,7 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> UpdateSharedResourcesByPath(string org, [FromBody] UpdateSharedResourceRequest requestBody, CancellationToken cancellationToken = default)
+    public async Task<ActionResult> UpdateSharedResources(string org, [FromBody] UpdateSharedResourceRequest requestBody, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
