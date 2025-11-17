@@ -1,9 +1,9 @@
-name: Infra - deploy studio syncroot
+name: Deploy studio syncroot
 
 on:
   push:
     branches:
-      - main
+      - feat/studio-syncroot
     paths:
       - infra/studio/syncroot/**
       - .github/workflows/deploy-studio-syncroot.yaml
@@ -25,7 +25,7 @@ jobs:
   construct-environments-array:
     uses: ./.github/workflows/template-construct-environments.yaml
     with:
-      environments: ${{ github.event.inputs.environments || 'dev,staging,prod' }}
+      environments: ${{ github.event.inputs.environments || 'staging' }}
 
   push-syncroot-artifact:
     name: Push syncroot as OCI artifact
