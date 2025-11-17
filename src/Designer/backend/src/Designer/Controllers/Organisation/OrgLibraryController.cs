@@ -38,7 +38,7 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<GetSharedResourcesResponse>> GetSharedResources(string org, [FromQuery] string? path, [FromQuery] string? reference = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -51,9 +51,9 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
         catch (Exception ex) when (ex is DirectoryNotFoundException)
         {
             logger.LogWarning(ex, "Directory not found when fetching shared resources for {Org}.", org);
-            return BadRequest(new ProblemDetails
+            return NotFound(new ProblemDetails
             {
-                Status = StatusCodes.Status400BadRequest,
+                Status = StatusCodes.Status404NotFound,
                 Title = "Directory not found",
                 Detail = ex.Message
             });
