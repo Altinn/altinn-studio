@@ -43,7 +43,7 @@ func main() {
 	defer host.Stop()
 
 	// Setup HTTP client for worker communication
-	workerHTTPAddr := os.Getenv("WORKER_HTTP_ADDR")
+	workerHTTPAddr := os.Getenv("PDF3_WORKER_HTTP_ADDR")
 	if workerHTTPAddr == "" {
 		workerHTTPAddr = "http://localhost:5031"
 	}
