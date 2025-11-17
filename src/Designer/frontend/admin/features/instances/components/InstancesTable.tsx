@@ -86,7 +86,7 @@ const InstancesTableWithData = ({
             </StudioTable.Cell>
             <StudioTable.Cell>{formatDateAndTime(instance.createdAt)}</StudioTable.Cell>
             <StudioTable.Cell>
-              {instance.currentTaskName ?? instance.currentTaskId ?? 'Avsluttet'}
+              {instance.currentTaskName ?? instance.currentTaskId ?? '-'}
             </StudioTable.Cell>
             <StudioTable.Cell>
               <InstanceStatus instance={instance} />

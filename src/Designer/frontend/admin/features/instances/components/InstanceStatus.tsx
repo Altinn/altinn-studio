@@ -24,12 +24,12 @@ type InstanceStatusChipProps = {
 };
 const InstanceStatusChip = ({ status }: InstanceStatusChipProps) => {
   switch (status) {
-    // case Status.Unread:
-    //   return (
-    //     <Tag size='sm' color='warning'>
-    //       Ulest
-    //     </Tag>
-    //   );
+    case Status.Unread:
+      return (
+        <Tag size='sm' color='warning'>
+          Ulest
+        </Tag>
+      );
     case Status.Active:
       return (
         <Tag size='sm' color='first'>
@@ -39,7 +39,7 @@ const InstanceStatusChip = ({ status }: InstanceStatusChipProps) => {
     case Status.Archived:
       return (
         <Tag size='sm' color='success'>
-          Levert
+          Levert av bruker
         </Tag>
       );
     case Status.Confirmed:
@@ -64,7 +64,7 @@ const InstanceStatusChip = ({ status }: InstanceStatusChipProps) => {
 };
 
 enum Status {
-  // Unread = 'unread',
+  Unread = 'unread',
   Active = 'active',
   Archived = 'archived',
   Confirmed = 'confirmed',
@@ -74,10 +74,9 @@ enum Status {
 
 /*
  * These are the (assumed) possible states an instance can exist in.
- * Filtering on read status is not possible currently, so not going to show it either
  */
 type InstanceStatus =
-  // | [Status.Unread]
+  | [Status.Unread]
   | [Status.Active]
   | [Status.Archived]
   | [Status.Archived, Status.Confirmed]
@@ -101,8 +100,7 @@ function getInstanceStatus(instance: SimpleInstance): InstanceStatus {
     return [Status.Active];
   }
   if (!instance.isRead) {
-    // return [Status.Unread];
-    return [Status.Active];
+    return [Status.Unread];
   }
   throw new Error(`Unknown state for instance:\n${JSON.stringify(instance)}`);
 }
