@@ -32,26 +32,18 @@ services:
       - ./loadbalancer/templates/:/etc/nginx/templates/:ro,z
       - ./loadbalancer/www/:/www/:ro,z
 
-  altinn_platform_pdf:
-    container_name: altinn-pdf
-    platform: linux/amd64
-    image: ghcr.io/altinn/altinn-pdf:latest
+  altinn_pdf3:
+    container_name: localtest-pdf3
+    image: ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:18d798ea03
     restart: always
     networks:
       - altinntestlocal_network
     ports:
-      - "5070:5070"
-
-  altinn_pdf_service:
-    container_name: altinn-pdf-service
-    image: browserless/chrome:1-puppeteer-21.3.6
-    restart: always
-    networks:
-      - altinntestlocal_network
-    ports:
-      - "5300:3000"
+      - "5300:5031"
     environment:
       - TZ=Europe/Oslo
+      - PDF3_ENVIRONMENT=localtest
+      - PDF3_QUEUE_SIZE=3
 
   altinn_localtest:
     container_name: localtest
