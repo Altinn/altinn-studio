@@ -8,6 +8,7 @@ import type {
   WorkflowStatus,
   AgentResponse,
   ConnectionStatus,
+  UserAttachment,
 } from '@studio/assistant';
 import { MessageAuthor } from '@studio/assistant';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -198,7 +199,10 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
   const handleWorkflowEvent = useCallback(
     (event: WorkflowEvent) => {
       if (event.type === 'assistant_message') {
-        const assistantMessage = event.data;
+        const assistantMessage = event.data as any;
+        // Backend sends 'response' or 'message' field, but we need 'content' for the frontend
+        const messageContent =
+          assistantMessage.response || assistantMessage.message || assistantMessage.content || '';
 
         // Convert backend timestamp (ISO string) to Date - handle null timestamp
         const messageTimestamp = new Date(assistantMessage.timestamp || Date.now());
@@ -210,7 +214,7 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
           message: 'AI agent workflow completed successfully',
           isActive: false,
           lastCompletedAt: messageTimestamp,
-          filesChanged: assistantMessage.filesChanged,
+          filesChanged: assistantMessage.filesChanged || [],
         }));
 
         // Replace or add the assistant message
@@ -229,9 +233,10 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
                 ...existingThread.messages.slice(0, -1),
                 {
                   ...lastMessage,
-                  content: assistantMessage.content, // Use the content as-is, don't add files again
+                  content: messageContent,
                   timestamp: messageTimestamp,
-                  filesChanged: assistantMessage.filesChanged,
+                  filesChanged: assistantMessage.filesChanged || [],
+                  sources: assistantMessage.sources || [],
                   isLoading: false,
                 },
               ];
@@ -242,52 +247,57 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
                 ...existingThread.messages,
                 {
                   author: MessageAuthor.Assistant,
-                  content: assistantMessage.content, // Use the content as-is
+                  content: messageContent,
                   timestamp: messageTimestamp,
-                  filesChanged: assistantMessage.filesChanged,
+                  filesChanged: assistantMessage.filesChanged || [],
+                  sources: assistantMessage.sources || [],
                   isLoading: false,
                 },
               ];
               updateThread(currentSession, { messages: updatedMessages });
             }
-          } else {
-            console.log('No existing thread found for session:', currentSession);
           }
-        } else {
-          console.log('No current session found');
         }
 
-        // Extract branch name from the session_id (not from message content)
-        // Backend logic: altinity_session_{session_id[8:16]}
-        const sessionId = (event as any).session_id || currentSession;
-        const uniqueId = sessionId.startsWith('session_')
-          ? sessionId.substring(8, 16)
-          : sessionId.substring(0, 8);
-        const branch = `altinity_session_${uniqueId}`;
+        // Check if we should skip branch operations (chat mode or explicit flag)
+        const eventData = event.data as any;
+        const mode = eventData.mode;
+        const noBranchOps = eventData.no_branch_operations;
+        const shouldSkipBranchOps = mode === 'chat' || noBranchOps === true;
 
-        // Trigger repo reset to reclone the repository to dev location with the new branch
-        const resetUrl = `/designer/api/repos/repo/${org}/${app}/reset${branch !== 'main' ? `?branch=${encodeURIComponent(branch)}` : ''}`;
-        fetch(resetUrl, {
-          method: 'GET',
-          credentials: 'same-origin',
-        })
-          .then(() => {
-            // Trigger preview reload after successful reset
-            console.log('Repository reset completed, triggering preview reload');
-            currentBranchRef.current = branch;
-            queryClient.invalidateQueries({
-              queryKey: [QueryKey.RepoCurrentBranch, org, app],
-            });
-            // Dispatch custom event that preview components can listen for
-            window.dispatchEvent(
-              new CustomEvent('altinity-repo-reset', {
-                detail: { branch, sessionId },
-              }),
-            );
+        if (!shouldSkipBranchOps) {
+          // Extract branch name from the session_id (not from message content)
+          // Backend logic: altinity_session_{session_id[8:16]}
+          const sessionId = (event as any).session_id || currentSession;
+          const uniqueId = sessionId.startsWith('session_')
+            ? sessionId.substring(8, 16)
+            : sessionId.substring(0, 8);
+          const branch = `altinity_session_${uniqueId}`;
+
+          // Trigger repo reset to reclone the repository to dev location with the new branch
+          const resetUrl = `/designer/api/repos/repo/${org}/${app}/reset${branch !== 'main' ? `?branch=${encodeURIComponent(branch)}` : ''}`;
+          fetch(resetUrl, {
+            method: 'GET',
+            credentials: 'same-origin',
           })
-          .catch((error) => {
-            console.warn('Failed to reset repository:', error);
-          });
+            .then(() => {
+              // Trigger preview reload after successful reset
+              console.log('Repository reset completed, triggering preview reload');
+              currentBranchRef.current = branch;
+              queryClient.invalidateQueries({
+                queryKey: [QueryKey.RepoCurrentBranch, org, app],
+              });
+              // Dispatch custom event that preview components can listen for
+              window.dispatchEvent(
+                new CustomEvent('altinity-repo-reset', {
+                  detail: { branch, sessionId },
+                }),
+              );
+            })
+            .catch((error) => {
+              console.warn('Failed to reset repository:', error);
+            });
+        }
       } else if (event.type === 'workflow_status') {
         // Handle workflow status updates by updating the existing assistant message
         if (currentSessionId) {
@@ -314,7 +324,12 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     },
     [currentSessionId, getThread],
   );
-  const startAgentWorkflow = async (sessionId: string, goal: string): Promise<AgentResponse> => {
+  const startAgentWorkflow = async (
+    sessionId: string,
+    goal: string,
+    allowAppChanges: boolean,
+    attachments?: UserAttachment[],
+  ): Promise<AgentResponse> => {
     const branchToUse = currentBranch ?? currentBranchRef.current ?? 'main';
     const response = await fetch('http://localhost:8071/api/agent/start', {
       method: 'POST',
@@ -326,6 +341,8 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
         goal: goal,
         repo_url: `http://studio.localhost/repos/${org}/${app}.git`,
         branch: branchToUse,
+        allow_app_changes: allowAppChanges,
+        attachments,
       }),
     });
 
@@ -394,7 +411,12 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
       addMessageToThread(sessionId, userMessage);
 
       try {
-        const result = await startAgentWorkflow(sessionId, trimmedContent);
+        const result = await startAgentWorkflow(
+          sessionId,
+          trimmedContent,
+          message.allowAppChanges ?? false,
+          message.attachments,
+        );
         if (!result.accepted) {
           const rejectionMessage: AssistantMessage = {
             author: MessageAuthor.Assistant,
@@ -423,7 +445,12 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
       addMessageToThread(sessionId, userMessage);
 
       try {
-        const result = await startAgentWorkflow(sessionId, message.content);
+        const result = await startAgentWorkflow(
+          sessionId,
+          message.content,
+          message.allowAppChanges ?? false,
+          message.attachments,
+        );
 
         if (result.accepted) {
           // Initial message already added in startAgentWorkflow - don't add another one

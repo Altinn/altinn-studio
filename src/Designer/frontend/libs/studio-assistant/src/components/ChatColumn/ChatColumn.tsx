@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import type { ReactElement } from 'react';
 import cn from 'classnames';
 import { Messages } from './Messages/Messages';
@@ -23,6 +23,14 @@ export function ChatColumn({
   enableCompactInterface,
 }: ChatColumnProps): ReactElement {
   const { data: currentUser } = useUserQuery();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
   const placeholderContent = (
     <div className={classes.emptyState}>
       <div className={classes.emptyStateIcon}>
@@ -45,7 +53,14 @@ export function ChatColumn({
     <div className={classes.chatColumn}>
       <div className={cn(classes.messagesWrapper, { [classes.hasMessages]: hasMessages })}>
         {hasMessages ? (
-          <Messages messages={messages} currentUser={currentUser} assistantAvatarUrl={undefined} />
+          <>
+            <Messages
+              messages={messages}
+              currentUser={currentUser}
+              assistantAvatarUrl={undefined}
+            />
+            <div ref={messagesEndRef} />
+          </>
         ) : (
           placeholderContent
         )}

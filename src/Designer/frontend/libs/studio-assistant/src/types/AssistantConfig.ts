@@ -19,6 +19,7 @@ export interface AgentResponse {
   accepted: boolean;
   session_id: string;
   message: string;
+  mode?: 'chat' | 'edit';
   app_name?: string;
   parsed_intent?: any;
 }

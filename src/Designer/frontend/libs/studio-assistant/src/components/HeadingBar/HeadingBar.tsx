@@ -1,6 +1,13 @@
 import React from 'react';
 import type { ReactElement } from 'react';
-import { StudioHeading, StudioToggleGroup, StudioBadge, StudioParagraph } from '@studio/components';
+import {
+  StudioHeading,
+  StudioToggleGroup,
+  StudioBadge,
+  StudioParagraph,
+  StudioAlert,
+  StudioTag,
+} from '@studio/components';
 import classes from './HeadingBar.module.css';
 import { CodeIcon, PlayFillIcon } from '@studio/icons';
 import { ToolColumnMode } from '../../types/ToolColumnMode';
@@ -25,13 +32,13 @@ export function HeadingBar({
   const getConnectionStatusDisplay = () => {
     switch (connectionStatus) {
       case 'connecting':
-        return { text: 'Kobler til Altinity', color: 'warning' as const };
+        return { text: 'Kobler til...', color: 'warning' as const };
       case 'connected':
-        return { text: 'Koblet til Altinity', color: 'success' as const };
+        return { text: 'Tilkoblet', color: 'success' as const };
       case 'error':
         return { text: 'Kobling feilet', color: 'danger' as const };
       default:
-        return { text: 'Ikke koblet til Altinity', color: 'neutral' as const };
+        return { text: 'Ikke tilkoblet', color: 'neutral' as const };
     }
   };
 
@@ -45,8 +52,7 @@ export function HeadingBar({
         </div>
         {statusDisplay && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <StudioBadge style={{ display: 'flex' }} data-color={statusDisplay.color} />
-            <StudioParagraph data-size='xs'>{statusDisplay.text}</StudioParagraph>
+            <StudioTag data-color={statusDisplay.color}>{statusDisplay.text}</StudioTag>
           </div>
         )}
       </div>

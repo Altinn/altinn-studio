@@ -1,4 +1,9 @@
-import type { AssistantMessage, ChatThread, UserMessage } from '../types/ChatThread';
+import type {
+  AssistantMessage,
+  ChatThread,
+  UserAttachment,
+  UserMessage,
+} from '../types/ChatThread';
 import { MessageAuthor } from '../types/MessageAuthor';
 
 export function createNewChatThread(title: string): ChatThread {
@@ -25,11 +30,16 @@ export function createAssistantMessage(content: string): AssistantMessage {
   };
 }
 
-export function createUserMessage(content: string, allowAppChanges: boolean): UserMessage {
+export function createUserMessage(
+  content: string,
+  allowAppChanges: boolean,
+  attachments?: UserAttachment[],
+): UserMessage {
   return {
     author: MessageAuthor.User,
     content,
     timestamp: new Date(),
     allowAppChanges,
+    attachments,
   };
 }
