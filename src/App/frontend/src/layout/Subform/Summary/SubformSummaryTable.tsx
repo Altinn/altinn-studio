@@ -1,10 +1,12 @@
 import React from 'react';
 import { useNavigate, useNavigation } from 'react-router-dom';
 
-import { Paragraph, Spinner, Table } from '@digdir/designsystemet-react';
+import { Paragraph, Table } from '@digdir/designsystemet-react';
 import classNames from 'classnames';
 
+import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import { Flex } from 'src/app-components/Flex/Flex';
+import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import { Caption } from 'src/components/form/caption/Caption';
 import { Label } from 'src/components/label/Label';
 import { useDataTypeFromLayoutSet, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
@@ -64,7 +66,9 @@ function SubformTableRow({
     return (
       <Table.Row>
         <Table.Cell colSpan={numColumns}>
-          <Lang id='form_filler.error_fetch_subform' />
+          <FatalError>
+            <Lang id='form_filler.error_fetch_subform' />
+          </FatalError>
         </Table.Cell>
       </Table.Row>
     );

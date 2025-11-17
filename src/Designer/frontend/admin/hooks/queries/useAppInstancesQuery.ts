@@ -11,14 +11,31 @@ export const useAppInstancesQuery = (
   app: string,
   currentTask?: string,
   processIsComplete?: boolean,
+  archiveReference?: string,
 ): UseInfiniteQueryResult<SimpleInstance[]> => {
   return useInfiniteQuery({
     initialPageParam: undefined,
-    queryKey: [QueryKey.AppInstances, org, env, app, currentTask, processIsComplete],
-    queryFn: async ({ signal, pageParam = null }) =>
+    queryKey: [
+      QueryKey.AppInstances,
+      org,
+      env,
+      app,
+      currentTask,
+      processIsComplete,
+      archiveReference,
+    ],
+    queryFn: async ({ signal, pageParam = undefined }) =>
       (
         await axios.get<InstancesResponse>(
-          instancesListPath(org, env, app, pageParam, currentTask, processIsComplete),
+          instancesListPath(
+            org,
+            env,
+            app,
+            pageParam,
+            currentTask,
+            processIsComplete,
+            archiveReference,
+          ),
           { signal },
         )
       ).data,

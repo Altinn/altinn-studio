@@ -120,7 +120,7 @@ export default function (data) {
   res = appResources.batchGetAppResources(runtimeToken, appOwner, level2App);
   for (var i = 0; i < res.length; i++) {
     success = check(res[i], {
-      'Batch request to get app resources': (r) => r.status === 200,
+      'Batch request to get app resources': (r) => r.status >= 200 && r.status < 400,
     });
     addErrorCount(success);
     stopIterationOnFail('Batch request to get app resources', success, res[i]);

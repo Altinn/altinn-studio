@@ -4,3 +4,13 @@
   margin-top: var(--fds-spacing-6);
   gap: var(--fds-spacing-6);
 }
+
+.headerWrapper {
+  display: flex;
+  align-items: center;
+}
+
+.trashIcon {
+  font-size: var(--ds-size-6);
+  margin-right: var(--ds-size-2);
+}
