@@ -10,6 +10,7 @@ on:
     paths:
       - 'src/App/frontend/**'
       - '.github/workflows/app-frontend-lighthouse-ci.yml'
+  workflow_dispatch:
 jobs:
   lighthouse:
     name: Lighthouse CI
