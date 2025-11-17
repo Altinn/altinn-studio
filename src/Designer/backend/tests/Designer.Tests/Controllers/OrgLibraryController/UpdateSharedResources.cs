@@ -55,7 +55,7 @@ public class UpdateSharedResources(WebApplicationFactory<Program> factory) : Des
         var updateRequest = new UpdateSharedResourceRequest(fileMetadata, baseCommitSha, "Updating shared resources");
 
         // Act
-        HttpResponseMessage response =  await HttpClient.PutAsJsonAsync(apiUrl, updateRequest);
+        HttpResponseMessage response = await HttpClient.PutAsJsonAsync(apiUrl, updateRequest);
 
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
