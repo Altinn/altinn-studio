@@ -35,8 +35,12 @@ function makeInstance(org, app, currentTask, isComplete, isConfirmed, archiveRef
 
   // Perform logical constraints
 
-  if (isConfirmed) {
+  if (isConfirmed === true) {
     isComplete = true;
+  }
+
+  if (isComplete === false) {
+    currentTask ??= 'Task_1';
   }
 
   if (currentTask == null && isComplete == null) {
