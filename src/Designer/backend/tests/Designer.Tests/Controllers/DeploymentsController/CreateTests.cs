@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
@@ -31,15 +30,12 @@ public class CreateTests : DbDesignerEndpointsTestsBase<CreateTests>, IClassFixt
     {
         _mockServerFixture = mockServerFixture;
 
-        // Setup all mock server responses once for all tests
-        _mockServerFixture.PrepareAllDeploymentMockResponses();
-
         // Configure settings to point to mock server
         JsonConfigOverrides.Add(
             $$"""
                     {
                       "GeneralSettings": {
-                            "EnvironmentsUrl": "{{mockServerFixture.MockApi.Url}}/designer/frontend/resources/environments.json",
+                            "EnvironmentsUrl": "{{mockServerFixture.MockApi.Url}}/cdn-mock/environments.json",
                             "HostName": "{{mockServerFixture.MockApi.Url}}"
                         },
                       "Integrations": {
@@ -66,12 +62,13 @@ public class CreateTests : DbDesignerEndpointsTestsBase<CreateTests>, IClassFixt
     }
 
     [Theory]
-    [InlineData("ttd", "deploy-test-at22", "at22", "1.0.0")]
-    [InlineData("ttd", "deploy-test-tt02", "tt02", "2.1.5")]
-    public async Task Create_Returns_201Created_With_Valid_Deployment(string org, string app, string envName, string tagName)
+    [InlineData("ttd", "deploy-test-at22", "at22", "1.0.0", "10001")]
+    [InlineData("ttd", "deploy-test-tt02", "tt02", "2.1.5", "10002")]
+    public async Task Create_Returns_201Created_With_Valid_Deployment(string org, string app, string envName, string tagName, string buildId)
     {
         // Arrange
         await PrepareTestData(org, app, tagName);
+        _mockServerFixture.PrepareDeploymentMockResponses(org, app, buildId);
 
         var createDeployment = new CreateDeploymentRequestViewModel
         {
@@ -98,7 +95,7 @@ public class CreateTests : DbDesignerEndpointsTestsBase<CreateTests>, IClassFixt
         Assert.Equal(envName, deploymentEntity.EnvName);
         Assert.Equal(tagName, deploymentEntity.TagName);
         Assert.NotNull(deploymentEntity.Build);
-        Assert.Equal("12345", deploymentEntity.Build.Id);
+        Assert.Equal(buildId, deploymentEntity.Build.Id);
         Assert.Equal(BuildStatus.NotStarted, deploymentEntity.Build.Status);
     }
 
@@ -223,12 +220,13 @@ public class CreateTests : DbDesignerEndpointsTestsBase<CreateTests>, IClassFixt
     }
 
     [Theory]
-    [InlineData("ttd", "test-validchars1", "at22", "valid-tag.1.0.0")]
-    [InlineData("ttd", "test-validchars2", "tt02", "release-2.5.0")]
-    public async Task Create_Returns_201Created_When_TagName_Has_Valid_Special_Characters(string org, string app, string envName, string tagName)
+    [InlineData("ttd", "test-validchars1", "at22", "valid-tag.1.0.0", "20001")]
+    [InlineData("ttd", "test-validchars2", "tt02", "release-2.5.0", "20002")]
+    public async Task Create_Returns_201Created_When_TagName_Has_Valid_Special_Characters(string org, string app, string envName, string tagName, string buildId)
     {
         // Arrange
         await PrepareTestData(org, app, tagName);
+        _mockServerFixture.PrepareDeploymentMockResponses(org, app, buildId);
 
         var createDeployment = new CreateDeploymentRequestViewModel
         {
@@ -261,8 +259,10 @@ public class CreateTests : DbDesignerEndpointsTestsBase<CreateTests>, IClassFixt
         string app = "queue-build-test";
         string envName = "at22";
         string tagName = "1.0.0";
+        string buildId = "30001";
 
         await PrepareTestData(org, app, tagName);
+        _mockServerFixture.PrepareDeploymentMockResponses(org, app, buildId);
 
         var createDeployment = new CreateDeploymentRequestViewModel
         {
@@ -284,7 +284,7 @@ public class CreateTests : DbDesignerEndpointsTestsBase<CreateTests>, IClassFixt
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.NotNull(deploymentEntity);
-        Assert.Equal("12345", deploymentEntity.Build.Id);
+        Assert.Equal(buildId, deploymentEntity.Build.Id);
 
         // Verify that the mock server received the expected calls
         var logEntries = _mockServerFixture.MockApi.LogEntries;
