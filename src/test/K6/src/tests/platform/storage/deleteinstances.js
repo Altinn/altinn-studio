@@ -71,13 +71,16 @@ export default function (data) {
 
         //Find more instances to loop through
         instanceIds = getInstanceIds(runtimeToken, filters)
+        console.log('Remaining instances to hard delete: ' + instanceIds.length);
       }
     } while (instanceIds.length > 0);
+
+    console.log('All instances hard deleted : ' + instanceIds.length);
 
     success = check(instanceIds.length, {
       'Hard delete instances for party. Remaining instance count is 0': (c) => c === 0,
     });
     addErrorCount(success);
-    stopIterationOnFail('Hard delete instances for party. Remaining instance count is 0');
+    stopIterationOnFail('Hard delete instances for party. Remaining instance count is 0', success, null);
   });
 }
