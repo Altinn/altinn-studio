@@ -95,8 +95,7 @@ jobs:
         working-directory: src/App/frontend
         run: |
           set -e # exit on any failure
-          yarn run lhci > lighthouse_output.txt 2>&1
-          cat lighthouse_output.txt
+          yarn run lhci 2>&1 | tee lighthouse_output.txt
 
           # Extract the report URL
           REPORT_URL=$(grep -o 'https://storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/[^[:space:]]*' lighthouse_output.txt || echo "")
