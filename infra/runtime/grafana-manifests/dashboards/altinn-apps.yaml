@@ -2,8 +2,8 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: external-grafana-altinn-apps
-  namespace: grafana
 spec:
+  allowCrossNamespaceImport: true
   folderRef: external-grafana-altinn
   instanceSelector:
     matchLabels:
@@ -1517,7 +1517,7 @@ spec:
               "refId": "PrometheusVariableQueryEditor-VariableQuery"
             },
             "refresh": 2,
-            "regex": "^${org}-(.*?)-deployment-v2$",
+            "regex": "^$org-(.*?)-deployment-v2$",
             "type": "query"
           }
         ]

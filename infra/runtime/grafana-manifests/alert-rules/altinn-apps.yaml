@@ -2,8 +2,8 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaAlertRuleGroup
 metadata:
   name: external-grafana-altinn-apps
-  namespace: grafana
 spec:
+  allowCrossNamespaceImport: true
   name: Exceptions
   folderRef: external-grafana-altinn
   instanceSelector:
@@ -34,7 +34,7 @@ spec:
                     | summarize Count = sum(itemCount) by cloud_RoleName, DateTimeOffset = bin(timestamp, $__interval)
                     | order by DateTimeOffset asc
                 resources:
-                    - /subscriptions/ca0666d3-b3c0-4159-93f1-b71777ed4338/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
+                    - /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
                 resultFormat: time_series
                 timeColumn: timestamp
                 workspace: ""
@@ -125,7 +125,7 @@ spec:
                     | summarize Value = sum(valueCount) by cloud_RoleName, bin(timestamp, $__interval)
                     | order by timestamp asc;
                 resources:
-                    - /subscriptions/ca0666d3-b3c0-4159-93f1-b71777ed4338/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
+                    - /subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg/providers/Microsoft.Insights/components/${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
                 resultFormat: time_series
                 timeColumn: timestamp
                 workspace: ""
@@ -246,7 +246,7 @@ spec:
                       region: norwayeast
                       resourceGroup: monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg
                       resourceName: ${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
-                      subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
+                      subscription: ${AZURE_SUBSCRIPTION_ID}
                 timeGrain: auto
                 top: "10"
             datasource:
@@ -259,7 +259,7 @@ spec:
             queryType: Azure Monitor
             range: true
             refId: A
-            subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
+            subscription: ${AZURE_SUBSCRIPTION_ID}
         - refId: B
           datasourceUid: __expr__
           model:
@@ -355,7 +355,7 @@ spec:
                       region: norwayeast
                       resourceGroup: monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg
                       resourceName: ${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
-                      subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
+                      subscription: ${AZURE_SUBSCRIPTION_ID}
                 timeGrain: auto
                 top: "10"
             datasource:
@@ -368,7 +368,7 @@ spec:
             queryType: Azure Monitor
             range: true
             refId: A
-            subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
+            subscription: ${AZURE_SUBSCRIPTION_ID}
         - refId: B
           datasourceUid: __expr__
           model:
@@ -464,7 +464,7 @@ spec:
                       region: norwayeast
                       resourceGroup: monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg
                       resourceName: ${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
-                      subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
+                      subscription: ${AZURE_SUBSCRIPTION_ID}
                 timeGrain: auto
                 top: "10"
             datasource:
@@ -477,7 +477,7 @@ spec:
             queryType: Azure Monitor
             range: true
             refId: A
-            subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
+            subscription: ${AZURE_SUBSCRIPTION_ID}
         - refId: B
           datasourceUid: __expr__
           model:
@@ -573,7 +573,7 @@ spec:
                       region: norwayeast
                       resourceGroup: monitor-${SERVICEOWNER_ID}-${ENVIRONMENT}-rg
                       resourceName: ${SERVICEOWNER_ID}-${ENVIRONMENT}-ai
-                      subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
+                      subscription: ${AZURE_SUBSCRIPTION_ID}
                 timeGrain: auto
                 top: "10"
             datasource:
@@ -586,7 +586,7 @@ spec:
             queryType: Azure Monitor
             range: true
             refId: A
-            subscription: ca0666d3-b3c0-4159-93f1-b71777ed4338
+            subscription: ${AZURE_SUBSCRIPTION_ID}
         - refId: B
           datasourceUid: __expr__
           model:
