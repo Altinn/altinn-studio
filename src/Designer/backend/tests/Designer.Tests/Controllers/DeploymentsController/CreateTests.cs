@@ -6,16 +6,13 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Controllers.DeploymentsController.Utils;
 using Designer.Tests.DbIntegrationTests;
 using Designer.Tests.Fixtures;
-using Designer.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Designer.Tests.Controllers.DeploymentsController;
@@ -54,11 +51,6 @@ public class CreateTests : DbDesignerEndpointsTestsBase<CreateTests>, IClassFixt
                     }
                 """
         );
-    }
-
-    protected override void ConfigureTestServices(IServiceCollection services)
-    {
-        services.AddSingleton<IGitea, IGiteaMock>();
     }
 
     [Theory]
@@ -154,13 +146,11 @@ public class CreateTests : DbDesignerEndpointsTestsBase<CreateTests>, IClassFixt
         Assert.Contains("cannot start with '.' or '-'", tagNameErrors[0].GetString());
     }
 
-    [Fact]
-    public async Task Create_Returns_400BadRequest_When_TagName_Too_Long()
+    [Theory]
+    [InlineData("ttd", "test-toolong", "at22")]
+    public async Task Create_Returns_400BadRequest_When_TagName_Too_Long(string org, string app, string envName)
     {
         // Arrange
-        string org = "ttd";
-        string app = "test-toolong";
-        string envName = "at22";
         string tagName = new string('a', 129); // 129 characters - exceeds 128 limit
 
         var createDeployment = new CreateDeploymentRequestViewModel
@@ -251,16 +241,11 @@ public class CreateTests : DbDesignerEndpointsTestsBase<CreateTests>, IClassFixt
         Assert.Equal(tagName, deploymentEntity.TagName);
     }
 
-    [Fact]
-    public async Task Create_Calls_UpdateApplicationInformation_And_QueueBuild()
+    [Theory]
+    [InlineData("ttd", "queue-build-test", "at22", "1.0.0", "30001")]
+    public async Task Create_Calls_UpdateApplicationInformation_And_QueueBuild(string org, string app, string envName, string tagName, string buildId)
     {
         // Arrange
-        string org = "ttd";
-        string app = "queue-build-test";
-        string envName = "at22";
-        string tagName = "1.0.0";
-        string buildId = "30001";
-
         await PrepareReleaseInDb(org, app, tagName);
         _mockServerFixture.PrepareDeploymentMockResponses(org, app, buildId);
 
@@ -288,7 +273,29 @@ public class CreateTests : DbDesignerEndpointsTestsBase<CreateTests>, IClassFixt
 
         // Verify that the mock server received the expected calls
         var logEntries = _mockServerFixture.MockApi.LogEntries;
-        Assert.Contains(logEntries, entry => entry.RequestMessage.Path.Contains("/build/builds"));
+
+        // Assert application metadata update was called
+        Assert.Contains(logEntries, entry =>
+            entry.RequestMessage.Path.Contains("/storage/api/v1/applications") &&
+            entry.RequestMessage.Method == "POST" &&
+            entry.RequestMessage.RawQuery.Contains($"appId={org}/{app}"));
+
+        // Assert text resources update was called
+        Assert.Contains(logEntries, entry =>
+            entry.RequestMessage.Path.EndsWith($"/{org}/{app}/texts") &&
+            entry.RequestMessage.Method == "POST");
+
+        // Assert policy update was called
+        Assert.Contains(logEntries, entry =>
+            entry.RequestMessage.Path.Contains("/authorization/api/v1/policy") &&
+            entry.RequestMessage.Method == "POST" &&
+            entry.RequestMessage.RawQuery.Contains($"org={org}") &&
+            entry.RequestMessage.RawQuery.Contains($"app={app}"));
+
+        // Assert build was queued
+        Assert.Contains(logEntries, entry =>
+            entry.RequestMessage.Path.Contains("/build/builds") &&
+            entry.RequestMessage.Method == "POST");
     }
 
     private async Task PrepareReleaseInDb(string org, string app, string tagName)
