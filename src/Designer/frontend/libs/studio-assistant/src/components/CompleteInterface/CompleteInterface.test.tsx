@@ -132,6 +132,7 @@ const defaultProps: CompleteInterfaceProps = {
   activeThreadId: '1',
   connectionStatus: 'connected',
   workflowStatus: { isActive: true },
+  previewContent: <p>Preview</p>,
 };
 
 const renderCompleteInterface = (props?: Partial<CompleteInterfaceProps>): void => {

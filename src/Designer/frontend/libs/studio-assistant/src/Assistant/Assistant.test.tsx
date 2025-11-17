@@ -42,6 +42,7 @@ const defaultProps: AssistantProps = {
   activeThreadId: '',
   connectionStatus: 'error',
   workflowStatus: undefined,
+  previewContent: <p>Preview</p>,
 };
 
 const renderAssistant = (props?: Partial<AssistantProps>): void => {

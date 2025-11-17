@@ -1,4 +1,5 @@
 import React from 'react';
+import type { ReactElement } from 'react';
 import type { ChatThread, UserMessage } from '../types/ChatThread';
 import { CompactInterface } from '../components/CompactInterface/CompactInterface';
 import { CompleteInterface } from '../components/CompleteInterface/CompleteInterface';
@@ -17,6 +18,7 @@ export type AssistantProps = {
   onDeleteThread?: (threadId: string) => void;
   onCreateThread?: () => void;
   workflowStatus: WorkflowStatus;
+  previewContent: ReactElement;
 };
 
 export function Assistant({
@@ -30,6 +32,7 @@ export function Assistant({
   onSelectThread,
   onDeleteThread,
   onCreateThread,
+  previewContent,
 }: AssistantProps): React.ReactElement {
   return enableCompactInterface ? (
     <CompactInterface texts={texts} onSubmitMessage={onSubmitMessage} />
@@ -44,6 +47,7 @@ export function Assistant({
       onSelectThread={onSelectThread}
       onDeleteThread={onDeleteThread}
       onCreateThread={onCreateThread}
+      previewContent={previewContent}
     />
   );
 }

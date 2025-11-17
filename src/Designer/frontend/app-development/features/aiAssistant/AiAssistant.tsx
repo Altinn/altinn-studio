@@ -4,6 +4,7 @@ import type { AssistantTexts } from '@studio/assistant';
 import { Assistant } from '@studio/assistant';
 import { useTranslation } from 'react-i18next';
 import { useAltinityAssistant } from './hooks';
+import { Preview } from './components/Preview';
 
 export function AiAssistant(): ReactElement {
   const { t } = useTranslation();
@@ -52,6 +53,7 @@ export function AiAssistant(): ReactElement {
       onDeleteThread={deleteThread}
       connectionStatus={connectionStatus}
       workflowStatus={workflowStatus}
+      previewContent={<Preview />}
     />
   );
 }
