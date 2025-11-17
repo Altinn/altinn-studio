@@ -67,7 +67,7 @@ public class CreateTests : DbDesignerEndpointsTestsBase<CreateTests>, IClassFixt
     public async Task Create_Returns_201Created_With_Valid_Deployment(string org, string app, string envName, string tagName, string buildId)
     {
         // Arrange
-        await PrepareTestData(org, app, tagName);
+        await PrepareReleaseInDb(org, app, tagName);
         _mockServerFixture.PrepareDeploymentMockResponses(org, app, buildId);
 
         var createDeployment = new CreateDeploymentRequestViewModel
@@ -225,7 +225,7 @@ public class CreateTests : DbDesignerEndpointsTestsBase<CreateTests>, IClassFixt
     public async Task Create_Returns_201Created_When_TagName_Has_Valid_Special_Characters(string org, string app, string envName, string tagName, string buildId)
     {
         // Arrange
-        await PrepareTestData(org, app, tagName);
+        await PrepareReleaseInDb(org, app, tagName);
         _mockServerFixture.PrepareDeploymentMockResponses(org, app, buildId);
 
         var createDeployment = new CreateDeploymentRequestViewModel
@@ -261,7 +261,7 @@ public class CreateTests : DbDesignerEndpointsTestsBase<CreateTests>, IClassFixt
         string tagName = "1.0.0";
         string buildId = "30001";
 
-        await PrepareTestData(org, app, tagName);
+        await PrepareReleaseInDb(org, app, tagName);
         _mockServerFixture.PrepareDeploymentMockResponses(org, app, buildId);
 
         var createDeployment = new CreateDeploymentRequestViewModel
@@ -291,7 +291,7 @@ public class CreateTests : DbDesignerEndpointsTestsBase<CreateTests>, IClassFixt
         Assert.Contains(logEntries, entry => entry.RequestMessage.Path.Contains("/build/builds"));
     }
 
-    private async Task PrepareTestData(string org, string app, string tagName)
+    private async Task PrepareReleaseInDb(string org, string app, string tagName)
     {
         var releaseEntity = new ReleaseEntity
         {
