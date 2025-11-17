@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigation } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -24,7 +23,6 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
   const instantiation = useInstantiation();
-  const navigation = useNavigation();
 
   const { isLoading: isLoadingProcess, error: processError } = useProcessQuery();
 
@@ -45,10 +43,6 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   }
   if (isLoadingProcess) {
     return <Loader reason='fetching-process' />;
-  }
-
-  if (navigation.state === 'loading') {
-    return <Loader reason='navigating' />;
   }
 
   return <InstanceContext.Provider value={data}>{children}</InstanceContext.Provider>;
