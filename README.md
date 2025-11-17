@@ -141,7 +141,6 @@ Add the following to your MCP client configuration file:
 - Always use `--stdio` when running in MCP clients
 - Always use `--skip-doc-init` to skip documentation indexing (uses cached data)
 - Replace `/path/to/altinity-mcp` with the actual path to your installation
-- Add your API keys to the `env` section
 
 ## Usage
 
