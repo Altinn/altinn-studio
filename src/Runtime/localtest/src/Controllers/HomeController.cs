@@ -150,8 +150,11 @@ namespace LocalTest.Controllers
 
             var hostname = sourceIp.ToString();
             var parsedSourceIp = sourceIp.IsIPv4MappedToIPv6 ? sourceIp.MapToIPv4() : sourceIp;
+
+            // Reach the host machine when apps are running outside of container runtime
             if (ShouldUseDockerHostInternal(parsedSourceIp))
             {
+                // TODO: This does not work with all container runtimes. Make sure it does.
                 hostname = "host.docker.internal";
             }
 
@@ -707,7 +710,10 @@ namespace LocalTest.Controllers
                         var ip2Bytes = myUnicastAddress.Address.GetAddressBytes();
                         var maskBytes = subnetMask.GetAddressBytes();
 
-                        if (ip1Bytes.Length == ip2Bytes.Length && ip1Bytes.Length == maskBytes.Length)
+                        if (
+                            ip1Bytes.Length == ip2Bytes.Length
+                            && ip1Bytes.Length == maskBytes.Length
+                        )
                         {
                             bool sameSubnet = true;
                             for (int i = 0; i < ip1Bytes.Length; i++)
