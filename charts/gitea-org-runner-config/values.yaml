@@ -11,27 +11,27 @@ runners:
   dev:
     - name: ttd
       replicas: 1
-      registrationTokenSecretName: gitea-runner-ttd-token
+      registrationTokenSecretName: altinn-gitea-runner-ttd-secret
   staging:
     - name: ttd
       replicas: 1
-      registrationTokenSecretName: gitea-runner-ttd-token
+      registrationTokenSecretName: altinn-gitea-runner-ttd-secret
   prod:
     - name: ttd
       replicas: 1
-      registrationTokenSecretName: gitea-runner-ttd-token
+      registrationTokenSecretName: altinn-gitea-runner-ttd-secret
     - name: brg
       replicas: 5
-      registrationTokenSecretName: gitea-runner-brg-token
+      registrationTokenSecretName: altinn-gitea-runner-brg-secret
     - name: dsb
       replicas: 1
-      registrationTokenSecretName: gitea-runner-dsb-token
+      registrationTokenSecretName: altinn-gitea-runner-dsb-secret
     - name: ssb
       replicas: 5
-      registrationTokenSecretName: gitea-runner-ssb-token
+      registrationTokenSecretName: altinn-gitea-runner-ssb-secret
     - name: ksdigi
       replicas: 1
-      registrationTokenSecretName: gitea-runner-ksdigi-token
+      registrationTokenSecretName: altinn-gitea-runner-ksdigi-secret
     - name: pat
       replicas: 1
-      registrationTokenSecretName: gitea-runner-pat-token
+      registrationTokenSecretName: altinn-gitea-runner-pat-secret
