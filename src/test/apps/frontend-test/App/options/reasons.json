@@ -1,0 +1,40 @@
+[
+  {
+    "label": "reasons.related",
+    "value": "1"
+  },
+  {
+    "label": "reasons.adoptive",
+    "value": "2"
+  },
+  {
+    "label": "reasons.stepParents",
+    "value": "3"
+  },
+  {
+    "label": "reasons.spouse",
+    "value": "4"
+  },
+  {
+    "label": "reasons.cohabitant",
+    "value": "5"
+  },
+  {
+    "label": "reasons.pastName",
+    "value": "6"
+  },
+  {
+    "label": "reasons.farm",
+    "value": "7"
+  },
+  {
+    "label": "reasons.newName",
+    "value": "8",
+    "description": "Dette er en beskrivelse.",
+    "helpText": "Dette er en hjelpetekst."
+  },
+  {
+    "label": "reasons.other",
+    "value": "9"
+  }
+]

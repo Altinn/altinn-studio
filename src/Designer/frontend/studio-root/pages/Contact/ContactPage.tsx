@@ -8,8 +8,11 @@ import {
   GitHubIssueContactProvider,
   SlackContactProvider,
 } from 'app-shared/getInTouch/providers';
-import { StudioPageImageBackgroundContainer } from '@studio/components-legacy';
-import { StudioParagraph, StudioHeading } from '@studio/components';
+import {
+  StudioParagraph,
+  StudioHeading,
+  StudioPageImageBackgroundContainer,
+} from '@studio/components';
 import { ContactSection, type ContactSectionProps } from '../../components/ContactSection';
 import { ContactServiceDesk } from '../../components/ContactServiceDesk';
 import { useFetchBelongsToOrgQuery } from '../hooks/queries/useFetchBelongsToOrgQuery';

@@ -47,7 +47,7 @@ describe('UI Components', () => {
   });
 
   it('while file upload is in progress, the animation should be visible', () => {
-    cy.intercept({ url: '**/instances/**/data?dataType=fileUpload-changename' }, (req) => {
+    cy.intercept({ url: '**/instances/**/data/fileUpload-changename?*', method: 'POST' }, (req) => {
       req.reply((res) => {
         res.setDelay(500);
       });
@@ -123,8 +123,8 @@ describe('UI Components', () => {
       }
     });
     cy.goto('changename');
-    cy.intercept('POST', '**/tags').as('saveTags');
-    cy.intercept('POST', '**/instances/**/data?dataType=*').as('upload');
+    cy.intercept('PUT', '**/tags?*').as('saveTags');
+    cy.intercept('POST', '**/instances/**/data/*').as('upload');
     cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).should('not.exist');
     cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('test/e2e/fixtures/test.pdf', { force: true });
     cy.wait('@upload');
@@ -152,7 +152,7 @@ describe('UI Components', () => {
 
   it('is possible to download attachments with tags that are uploaded', () => {
     cy.goto('changename');
-    cy.intercept('POST', '**/tags').as('saveTags');
+    cy.intercept('PUT', '**/tags?*').as('saveTags');
     cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).should('not.exist');
     cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('test/e2e/fixtures/test.pdf', {
       force: true,
@@ -502,12 +502,30 @@ describe('UI Components', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).type('Per');
     cy.get(appFrontend.changeOfName.newFirstName).blur();
-    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').dblclick();
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
     cy.findByRole('button', { name: /Avbryt/ }).click();
     cy.get(appFrontend.changeOfName.reasons).should('be.visible');
     cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
     cy.findByRole('button', { name: /Bekreft/ }).click();
     cy.get(appFrontend.changeOfName.reasons).should('not.exist');
+  });
+
+  it('retains focus when checking focused checkbox that has alert on uncheck', () => {
+    cy.interceptLayout('changename', (component) => {
+      if (component.id === 'confirmChangeName' && component.type === 'Checkboxes') {
+        component.alertOnChange = true;
+      }
+    });
+
+    cy.goto('changename');
+    cy.get(appFrontend.changeOfName.newFirstName).type('Per');
+    cy.get(appFrontend.changeOfName.newFirstName).blur();
+
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').focus();
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').click();
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').should('be.checked');
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').should('have.focus');
   });
 
   it('should display alert unchecking checkbox in checkbox group', () => {

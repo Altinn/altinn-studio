@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -22,7 +23,7 @@ namespace Altinn.Studio.Designer.Controllers.Preview;
 [ApiController]
 [Authorize]
 [AutoValidateAntiforgeryToken]
-[Route("{org:regex(^(?!designer|editor|dashboard|preview|resourceadm|info))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/instances")]
+[Route("{org:regex(^(?!designer|editor|dashboard|preview|admin|resourceadm|info))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/instances")]
 public class InstancesController(IHttpContextAccessor httpContextAccessor,
     IPreviewService previewService,
     IAltinnGitRepositoryFactory altinnGitRepositoryFactory,

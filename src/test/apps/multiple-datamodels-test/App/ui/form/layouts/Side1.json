@@ -1,0 +1,116 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": false,
+    "layout": [
+      {
+        "id": "nav1",
+        "type": "NavigationBar"
+      },
+      {
+        "size": "M",
+        "id": "Header-GPW9rL",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Side1.Header-GPW9rL.title"
+        }
+      },
+      {
+        "id": "Input-bhWSyO",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Side1.Input-bhWSyO.title"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "tekstfelt",
+            "dataType": "modell1"
+          }
+        },
+        "required": true
+      },
+      {
+        "size": "M",
+        "id": "Header-vzkx0K",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Side1.Header-vzkx0K.title"
+        }
+      },
+      {
+        "id": "Input-aWlSF3",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Side1.Input-aWlSF3.title"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "tekstfelt",
+            "dataType": "modell2"
+          }
+        },
+        "required": true
+      },
+      {
+        "id": "variableParagraph",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": [
+            "if",
+            [
+              "and",
+              ["greaterThan", ["stringLength", ["dataModel", "tekstfelt"]], 0],
+              [
+                "equals",
+                ["dataModel", "tekstfelt", "modell1"],
+                ["dataModel", "tekstfelt", "modell2"]
+              ]
+            ],
+            "equalParagraph",
+            "else",
+            "variableParagraph"
+          ]
+        }
+      },
+      {
+        "size": "M",
+        "id": "Header-adresse",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "En god blanding"
+        }
+      },
+      {
+        "id": "Address-xdZ7PE",
+        "type": "Address",
+        "textResourceBindings": {
+          "title": "Side2.Address-xdZ7PE.title"
+        },
+        "dataModelBindings": {
+          "address": {
+            "dataType": "modell1",
+            "field": "gateadresse"
+          },
+          "zipCode": {
+            "dataType": "modell2",
+            "field": "postnummer"
+          },
+          "postPlace": {
+            "dataType": "modell1",
+            "field": "poststed"
+          }
+        },
+        "simplified": true
+      },
+      {
+        "id": "navbuttons1",
+        "showBackButton": true,
+        "textResourceBindings": {
+          "next": "Neste",
+          "back": "Forrige"
+        },
+        "type": "NavigationButtons"
+      }
+    ]
+  }
+}

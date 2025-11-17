@@ -632,7 +632,7 @@ function buildPdfUrl(href: string): string {
 
 Cypress.Commands.add(
   'testPdf',
-  ({
+  function ({
     snapshotName = false,
     beforeReload,
     callback,
@@ -640,12 +640,20 @@ Cypress.Commands.add(
     returnToForm = false,
     enableResponseFuzzing = false,
     buildUrl = buildPdfUrl,
-  }) => {
+  }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((this as any).test._retries).to.eq(
+      0,
+      'This test should not be retried, as the real PDF generator needs everything to be working every time. Cypress ' +
+        'automatic retrying should be disabled for this test to make sure we catch bugs instead of silently working ' +
+        'around flaky tests.',
+    );
+
     // Store initial viewport size for later
     cy.getCurrentViewportSize().as('testPdfViewportSize');
 
     // Make sure instantiation is completed before we get the url
-    cy.location('hash', { log: false }).should('contain', '#/instance/');
+    cy.location('hash', { log: false }).should('contain', '#/instance/').as('hashBeforePdf');
 
     // Make sure we blur any selected component before reload to trigger save
     cy.get('body').click({ log: false });
@@ -726,9 +734,12 @@ Cypress.Commands.add(
       });
       cy.get('body').invoke('css', 'margin', '');
 
-      cy.location('href').then((href) => {
-        cy.visit(href.replace('?pdf=1', ''));
+      cy.get('@hashBeforePdf').then((hashBeforePdf) => {
+        cy.window().then((win) => {
+          win.location.hash = hashBeforePdf.toString();
+        });
       });
+
       cy.get('#readyForPrint').should('not.exist');
       cy.get('#finishedLoading').should('exist');
     }

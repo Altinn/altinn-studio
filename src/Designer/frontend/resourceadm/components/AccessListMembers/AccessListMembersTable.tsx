@@ -2,8 +2,11 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import type { AccessListMember } from 'app-shared/types/ResourceAdm';
-import { StudioTableLocalPagination } from '@studio/components-legacy';
-import { StudioButton, StudioValidationMessage } from '@studio/components';
+import {
+  StudioButton,
+  StudioValidationMessage,
+  StudioTableLocalPagination,
+} from '@studio/components';
 import type { Columns } from '@studio/components-legacy';
 import classes from './AccessListMembers.module.css';
 import { PlusCircleIcon, MinusCircleIcon } from '@studio/icons';

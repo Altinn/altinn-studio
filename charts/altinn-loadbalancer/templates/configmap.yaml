@@ -31,7 +31,7 @@ data:
       }
 
       map $uri $spa_path {
-        ~^/(dashboard|editor|preview|resourceadm|info)(/.*)?$ $1;
+        ~^/(dashboard|editor|preview|admin|resourceadm|info)(/.*)?$ $1;
         default                                               none;
       }
 
@@ -108,11 +108,11 @@ data:
           proxy_set_header 	  X-Forwarded-For $remote_addr;
         }
 
-        location ~ ^/(dashboard|editor|preview|resourceadm|info)/assets(/.*)?$ {
+        location ~ ^/(dashboard|editor|preview|admin|resourceadm|info)/assets(/.*)?$ {
             proxy_pass http://designer;
         }
 
-        location ~ ^/(dashboard|editor|preview|resourceadm|info)(/.*)?$ {
+        location ~ ^/(dashboard|editor|preview|admin|resourceadm|info)(/.*)?$ {
           rewrite ^/[^/]+(/.*)?$ /$spa_path/index.html break;
           proxy_pass http://designer;
           proxy_set_header 	  Host $host;

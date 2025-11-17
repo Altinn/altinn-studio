@@ -1,0 +1,109 @@
+{
+  "language": "nb",
+  "resources": [
+    {
+      "id": "7HWbT5AzqSE1",
+      "value": "Utleie av undervannsdrone for inspeksjon av saltvannsinstallasjoner"
+    },
+    {
+      "id": "9mU0XbuSAKU3",
+      "value": "Varesalg"
+    },
+    {
+      "id": "zDPIE9JdO5sk",
+      "value": "Væpnet ran"
+    },
+    {
+      "id": "xpwJMabXnhVc",
+      "value": "Kryptosvindel"
+    },
+    {
+      "id": "Form.sourceType.title",
+      "value": "Kilde"
+    },
+    {
+      "id": "Form.sources.title",
+      "value": "Inntektskilder"
+    },
+    {
+      "id": "Form.Button-submit.title",
+      "value": "Send til bekreftelse"
+    },
+    {
+      "id": "Form.Button-confirm.title",
+      "value": "Bekreft"
+    },
+    {
+      "id": "Form.Header-form.title",
+      "value": "Inntektsrapportering"
+    },
+    {
+      "id": "Form.Panel-confirm1.title",
+      "value": "Daglig leders bekreftelse"
+    },
+    {
+      "id": "Form.Panel-confirm1.body",
+      "value": "Dette steget krever bekreftelse fra daglig leder."
+    },
+    {
+      "id": "Form.Panel-noaccess.body",
+      "value": "## Du kan **ikke** bekrefte skjemaet\n\nSkjemaet du har fylt ut er lagret, men du kan ikke bekrefte det. Årsaken er at du ikke har blitt tildelt en rolle som har rett til å bekrefte. Vi har derfor sendt skjemaet til noen som har rett til å bekrefte det.<br><br>Den som skal bekrefte kan se, redigere og sende skjemaet du har fylt ut. Det er bare den som bekrefter skjemaet som får kvittering om at det er gjort. Det betyr at du ikke får kvittering."
+    },
+    {
+      "id": "Header-noaccess.title",
+      "value": "Skjemaet er sendt til revisor"
+    },
+    {
+      "id": "Paragraph-noaccess.title",
+      "value": "Du har sendt skjemaet til revisor. Du får en kvittering i arkivet ditt i Altinn når revisor har bekreftet og sendt skjemaet til Testdepartementet."
+    },
+    {
+      "id": "Form.Panel-confirm2.title",
+      "value": "Revisors bekreftelse"
+    },
+    {
+      "id": "Form.Panel-confirm2.body",
+      "value": "Dette steget krever bekreftelse fra revisor."
+    },
+    {
+      "id": "Confirm.Paragraph-confirm.title",
+      "value": "#### **Jeg bekrefter at opplysningene er korrekt.**"
+    },
+    {
+      "id": "Form.Input-income.description",
+      "value": "Inntekt for hele året i NOK."
+    },
+    {
+      "id": "Form.Input-income.title",
+      "value": "Inntekt"
+    },
+    {
+      "id": "Form.Input-name.description",
+      "value": "Bedriftens navn"
+    },
+    {
+      "id": "Form.Input-name.title",
+      "value": "Navn"
+    },
+    {
+      "id": "Form.Input-orgNumber.description",
+      "value": "Bedriftens organisasjonsnummer"
+    },
+    {
+      "id": "Form.Input-orgNumber.title",
+      "value": "Org. nr."
+    },
+    {
+      "id": "Form.Input-year.description",
+      "value": "Hvilket år rapporterer du inntekt for?"
+    },
+    {
+      "id": "Form.Input-year.title",
+      "value": "Inntektsår"
+    },
+    {
+      "id": "appName",
+      "value": "Signeringstest"
+    }
+  ]
+}

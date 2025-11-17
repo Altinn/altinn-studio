@@ -1,0 +1,157 @@
+{
+  "id": "ttd/signering-brukerstyrt",
+  "org": "ttd",
+  "title": {
+    "nb": "Stiftelse av aksjeselskap"
+  },
+  "dataTypes": [
+    {
+      "id": "ref-data-as-pdf",
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
+      "maxCount": 0,
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "signatures-founders-pdf",
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
+      "maxCount": 1,
+      "minCount": 0,
+      "enablePdfCreation": false,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "Skjemadata",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.Skjemadata.Skjemadata",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false,
+        "allowUserCreate": false,
+        "allowUserDelete": false,
+        "allowInSubform": false
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "Stiftelsesdokumenter",
+      "allowedContentTypes": [
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "image/jpeg",
+        "image/jpeg",
+        "application/vnd.ms-excel",
+        "application/octet-stream",
+        "application/vnd.ms-powerpoint",
+        "application/msword",
+        "application/vnd.oasis.opendocument.text",
+        "image/png",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "application/pdf",
+        "text/plain",
+        "image/tiff",
+        "image/tiff",
+        "application/rtf",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      ],
+      "taskId": "Task_1",
+      "maxSize": 25,
+      "maxCount": 5,
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "signatures-founders",
+      "allowedContentTypes": [
+        "application/json"
+      ],
+      "allowedContributers": [
+        "app:owned"
+      ],
+      "actionRequiredToRead": "signature-access",
+      "actionRequiredToWrite": "signature-access",
+      "taskId": "SigningTask_Founders",
+      "maxCount": 10,
+      "minCount": 1
+    },
+    {
+      "id": "signeeStates-founders",
+      "allowedContentTypes": [
+        "application/json"
+      ],
+      "allowedContributers": [
+        "app:owned"
+      ],
+      "actionRequiredToRead": "signature-access",
+      "actionRequiredToWrite": "signature-access",
+      "taskId": "SigningTask_Founders",
+      "maxCount": 1,
+      "minCount": 1
+    },
+    {
+      "id": "signatures-auditor",
+      "allowedContentTypes": [
+        "application/json"
+      ],
+      "allowedContributers": [
+        "app:owned"
+      ],
+      "actionRequiredToRead": "signature-access",
+      "actionRequiredToWrite": "signature-access",
+      "taskId": "SigningTask_Auditor",
+      "maxCount": 1,
+      "minCount": 0
+    },
+    {
+      "id": "signeeStates-auditor",
+      "allowedContentTypes": [
+        "application/json"
+      ],
+      "allowedContributers": [
+        "app:owned"
+      ],
+      "actionRequiredToRead": "signature-access",
+      "actionRequiredToWrite": "signature-access",
+      "taskId": "SigningTask_Auditor",
+      "maxCount": 1,
+      "minCount": 1
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": false,
+    "subUnit": false
+  },
+  "preventInstanceDeletionForDays": 3,
+  "autoDeleteOnProcessEnd": false,
+  "disallowUserInstantiation": false,
+  "created": "2024-11-08T09:01:02.4939342Z",
+  "createdBy": "bjorntore",
+  "lastChanged": "2024-11-08T09:01:02.4939351Z",
+  "lastChangedBy": "bjorntore"
+}

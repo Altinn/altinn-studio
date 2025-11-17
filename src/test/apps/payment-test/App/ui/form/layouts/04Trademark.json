@@ -1,0 +1,87 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "navbar4",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "chooseTrademark",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "chooseTrademark"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Trademark.TrademarkType"
+        },
+        "optionsId": "trademarks"
+      },
+      {
+        "id": "trademarkTextInfo",
+        "type": "Accordion",
+        "textResourceBindings": {
+          "title": "trademarkTextInfo"
+        },
+        "children": [
+          "trademarkTextDescription"
+        ]
+      },
+      {
+        "id": "trademarkTextDescription",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "trademarkTextDescription"
+        }
+      },
+      {
+        "id": "trademarkText",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "trademarkText"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Trademark.TrademarkText"
+        }
+      },
+      {
+        "id": "trademarkDetails",
+        "type": "TextArea",
+        "textResourceBindings": {
+          "title": "trademarkDetails"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Trademark.TrademarkDetails"
+        }
+      },
+      {
+        "id": "trademarkAttachments",
+        "type": "FileUpload",
+        "textResourceBindings": {
+          "title": "trademarkAttachments"
+        },
+        "maxFileSizeInMB": 10,
+        "maxNumberOfAttachments": 1,
+        "minNumberOfAttachments": 0,
+        "required": false,
+        "displayMode": "list",
+        "hasCustomFileEndings": true,
+        "validFileEndings": ".jpeg, .jpg, .png"
+      },
+      {
+        "id": "navButtons4",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "next"
+        },
+        "showBackButton": true,
+        "validateOnNext": {
+          "page": "current",
+          "show": [
+            "All"
+          ]
+        }
+      }
+    ]
+  }
+}

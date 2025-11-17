@@ -1,4 +1,4 @@
-#nullable  enable
+#nullable enable
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -50,11 +50,11 @@ public class GetCodeListsNewTests : DesignerEndpointsTestsBase<GetCodeListsNewTe
         List<Code> codes =
         [
             new(
-                value: "no",
-                label: new Dictionary<string, string> { { "nb", "Norge" } },
-                description: new Dictionary<string, string> { { "nb", "Et land i nord europa." } },
-                helpText: new Dictionary<string, string> { { "nb", "En hjelpe tekst." } },
-                tags: ["tag"]
+                Value: "no",
+                Label: new Dictionary<string, string> { { "nb", "Norge" } },
+                Description: new Dictionary<string, string> { { "nb", "Et land i nord europa." } },
+                HelpText: new Dictionary<string, string> { { "nb", "En hjelpe tekst." } },
+                Tags: ["tag"]
             )
 
         ];
@@ -63,7 +63,7 @@ public class GetCodeListsNewTests : DesignerEndpointsTestsBase<GetCodeListsNewTe
             Source: source,
             TagNames: ["tagName"]
         );
-        List<CodeListWrapper> expected =
+        List<CodeListWrapper> codeListWrappers =
         [
             new(
                 Title: "CodeListId",
@@ -71,6 +71,8 @@ public class GetCodeListsNewTests : DesignerEndpointsTestsBase<GetCodeListsNewTe
                 HasError: false
             )
         ];
+
+        var expected = new GetCodeListResponse(codeListWrappers, "latestCommitSha");
 
         _orgCodeListService
             .Setup(service => service.GetCodeListsNew(Org, It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -82,7 +84,7 @@ public class GetCodeListsNewTests : DesignerEndpointsTestsBase<GetCodeListsNewTe
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(request);
         string responseBody = await response.Content.ReadAsStringAsync();
-        List<CodeListWrapper>? result = JsonSerializer.Deserialize<List<CodeListWrapper>>(responseBody, s_jsonOptions);
+        GetCodeListResponse? result = JsonSerializer.Deserialize<GetCodeListResponse>(responseBody, s_jsonOptions);
 
         // Assert
         Assert.NotNull(result);

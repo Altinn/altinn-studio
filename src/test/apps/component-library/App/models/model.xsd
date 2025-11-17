@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xs:annotation>
+    <xs:documentation>
+      <xsd:attribute name="rootNode" fixed="" />
+    </xs:documentation>
+  </xs:annotation>
+  <xs:complexType name="GridExample">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ExampleDate" type="xs:string" />
+      <xs:element minOccurs="0" name="ExampleDropdown" type="xs:string" />
+      <xs:element minOccurs="0" name="ExampleMultiSelect" type="xs:string" />
+      <xs:element minOccurs="0" name="ExampleTextArea" type="xs:string" />
+      <xs:element minOccurs="0" name="ExampleInput" type="xs:string" />
+      <xs:element minOccurs="0" name="ExampleRadio" type="xs:string" />
+      <xs:element minOccurs="0" name="ExampleCheckbox" type="xs:string" />
+      <xs:element minOccurs="0" name="ExampleInputTwo" type="xs:string" />
+      <xs:element minOccurs="0" name="ExampleInputThree" type="xs:string" />
+      <xs:element minOccurs="0" name="ExampleRadioTwo" type="xs:string" />
+      <xs:element minOccurs="0" name="ExampleRadioThree" type="xs:string" />
+      <xs:element minOccurs="0" name="ExampleCheckboxTwo" type="xs:string" />
+      <xs:element minOccurs="0" name="ExampleCheckboxThree" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="RepeatingGroupExample">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="name" type="xs:string" />
+      <xs:element minOccurs="0" name="points" type="xs:long" />
+      <xs:element minOccurs="0" name="date" type="xs:date" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="RepeatingGroupWithNestedGroup">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="name" type="xs:string" />
+      <xs:element minOccurs="0" name="points" type="xs:long" />
+      <xs:element minOccurs="0" name="date" type="xs:date" />
+      <xs:element minOccurs="0" maxOccurs="3" name="cars" type="NestedGroup" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="NestedGroup">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="carBrand" type="xs:string" />
+      <xs:element minOccurs="0" name="carModel" type="xs:string" />
+      <xs:element minOccurs="0" name="modelYear" type="xs:long" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="LikertQuestion">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Id" type="xs:string" />
+      <xs:element minOccurs="0" name="Answer" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Numbers">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="TotalGjeld" type="xs:double" />
+      <xs:element minOccurs="0" name="Gjeldsfordeling">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="Prosent" type="xs:double" />
+            <xs:element minOccurs="0" name="Belop" type="xs:double" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="Model">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="inputfield" type="xs:string" />
+        <xs:element minOccurs="0" name="shortAnswerInput" type="xs:string" />
+        <xs:element minOccurs="0" name="longAnswerInput" type="xs:string" />
+        <xs:element minOccurs="0" name="radioButtonInput" type="xs:string" />
+        <xs:element minOccurs="0" name="checkboxesInput" type="xs:string" />
+        <xs:element minOccurs="0" name="nestedInput" type="xs:string" />
+        <xs:element minOccurs="0" name="nestedInput2" type="xs:string" />
+        <xs:element minOccurs="0" name="nestedInput3" type="xs:string" />
+        <xs:element name="streetnr" type="xs:string" />
+        <xs:element name="postnr" type="xs:string" />
+        <xs:element minOccurs="0" name="city" type="xs:string" />
+        <xs:element minOccurs="0" name="co" type="xs:string" />
+        <xs:element minOccurs="0" name="street" type="xs:string" />
+        <xs:element minOccurs="0" name="GridExample" type="GridExample" />
+        <xs:element minOccurs="0" name="dropdown" type="xs:string" />
+        <xs:element minOccurs="0" name="multipleSelect" type="xs:string" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="repeatingGroup" type="RepeatingGroupExample" />
+        <xs:element minOccurs="0" maxOccurs="3" name="nestedRepeatingGroup" type="RepeatingGroupWithNestedGroup" />
+        <xs:element minOccurs="0" name="list" type="xs:string" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="LikertExample" type="LikertQuestion" />
+        <xs:element minOccurs="0" name="DatepickerExample" type="xs:string" />
+        <xs:element minOccurs="0" name="mapComponent" type="xs:string" />
+        <xs:element minOccurs="0" name="numberPercentage" type="xs:long" />
+        <xs:element minOccurs="0" name="anyNumber" type="xs:double" />
+        <xs:element minOccurs="0" name="checkboxForCard" type="xs:string" />
+        <xs:element minOccurs="0" name="Numbers" type="Numbers" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="ListGroupExample">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="age" type="xs:long" />
+              <xs:element minOccurs="0" name="profession" type="xs:string" />
+              <xs:element minOccurs="0" name="surname" type="xs:string" />
+              <xs:element minOccurs="0" name="Internal">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="0" name="isChecked" type="xs:boolean" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element minOccurs="0" name="Name">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="0" name="firstname" type="xs:string" />
+                    <xs:element minOccurs="0" name="id" type="xs:double" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="checkboxesPersons" type="xs:string" />
+        <xs:element minOccurs="0" name="Dates">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="SetDate" type="xs:string" />
+              <xs:element minOccurs="0" name="String" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="DateTime" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="DateOnly" type="xs:date" />
+              <xs:element minOccurs="0" name="FormatStringBackend" type="xs:string" />
+              <xs:element minOccurs="0" name="FormatDateTimeBackend" type="xs:string" />
+              <xs:element minOccurs="0" name="FormatDateOnlyBackend" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="CheckboxesGroupExample">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="age" type="xs:long" />
+              <xs:element minOccurs="0" name="profession" type="xs:string" />
+              <xs:element minOccurs="0" name="surname" type="xs:string" />
+              <xs:element minOccurs="0" name="Name">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="0" name="firstname" type="xs:string" />
+                    <xs:element minOccurs="0" name="id" type="xs:double" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element minOccurs="0" name="Internal">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="0" name="isChecked" type="xs:boolean" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="MultiselectGroupExample">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="age" type="xs:long" />
+              <xs:element minOccurs="0" name="profession" type="xs:string" />
+              <xs:element minOccurs="0" name="surname" type="xs:string" />
+              <xs:element minOccurs="0" name="Name">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="0" name="firstname" type="xs:string" />
+                    <xs:element minOccurs="0" name="id" type="xs:double" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element minOccurs="0" name="Internal">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="0" name="isChecked" type="xs:boolean" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+        <xs:element minOccurs="0" name="DatepickerMaxDateExample" type="xs:string" />
+        <xs:element minOccurs="0" name="DatepickerMinDateExample" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xsd:schema>

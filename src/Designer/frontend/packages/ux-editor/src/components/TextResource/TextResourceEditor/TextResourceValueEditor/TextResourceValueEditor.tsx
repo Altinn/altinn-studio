@@ -1,6 +1,5 @@
 import React from 'react';
-import { StudioTextarea } from '@studio/components-legacy';
-import { StudioCodeFragment } from '@studio/components';
+import { StudioCodeFragment, StudioTextarea } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
@@ -30,6 +29,7 @@ export const TextResourceValueEditor = ({
 }: TextResourceValueEditorProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
+  const { t } = useTranslation();
   const value = getTextResourceValue(textResources, textResourceId);
   const minHeightInPx = 100;
   const maxHeightInPx = 400;
@@ -38,7 +38,6 @@ export const TextResourceValueEditor = ({
     minHeightInPx,
     maxHeightInPx,
   });
-  const { t } = useTranslation();
 
   const handleTextEntryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onTextChange?.(e.currentTarget.value);
@@ -47,7 +46,7 @@ export const TextResourceValueEditor = ({
   return (
     <div className={classes.root}>
       <StudioTextarea
-        label={t('ux_editor.text_resource_binding_text')}
+        aria-label={t('ux_editor.text_resource_binding_text')}
         value={displayValue}
         onChange={handleTextEntryChange}
         ref={textareaRef}

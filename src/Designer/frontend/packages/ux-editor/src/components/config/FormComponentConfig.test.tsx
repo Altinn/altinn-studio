@@ -19,7 +19,7 @@ describe('FormComponentConfig', () => {
     ];
 
     schemaConfigs.forEach((props) => {
-      renderFormComponentConfig({ props });
+      renderFormComponentConfig(props);
       const properties = ['grid', 'readOnly', 'required', 'hidden'];
       properties.forEach((property) => {
         expect(
@@ -34,7 +34,7 @@ describe('FormComponentConfig', () => {
   });
 
   it('should render expected default components', async () => {
-    renderFormComponentConfig({});
+    renderFormComponentConfig();
     const properties = ['readOnly', 'required', 'hidden'];
     for (const property of properties) {
       expect(
@@ -45,7 +45,7 @@ describe('FormComponentConfig', () => {
 
   it('should render the hide-button after clikcing on show-button', async () => {
     const user = userEvent.setup();
-    renderFormComponentConfig({});
+    renderFormComponentConfig();
     const button = screen.getByRole('button', {
       name: textMock('ux_editor.component_other_properties_show_many_settings'),
     });
@@ -60,7 +60,7 @@ describe('FormComponentConfig', () => {
 
   it('Should render the rest of the components when show-button is clicked and show hide-button', async () => {
     const user = userEvent.setup();
-    renderFormComponentConfig({});
+    renderFormComponentConfig();
     const button = screen.getByRole('button', {
       name: textMock('ux_editor.component_other_properties_show_many_settings'),
     });
@@ -88,17 +88,15 @@ describe('FormComponentConfig', () => {
 
   it('should render "RedirectToLayoutSet"', () => {
     renderFormComponentConfig({
-      props: {
-        component: {
-          id: 'subform-unit-test-id',
-          layoutSet: 'subform-unit-test-layout-set',
-          itemType: 'COMPONENT',
-          type: ComponentType.Subform,
-        },
-        schema: {
-          properties: {
-            layoutSet: { value: 'subform-unit-test-layout-set' },
-          },
+      component: {
+        id: 'subform-unit-test-id',
+        layoutSet: 'subform-unit-test-layout-set',
+        itemType: 'COMPONENT',
+        type: ComponentType.Subform,
+      },
+      schema: {
+        properties: {
+          layoutSet: { value: 'subform-unit-test-layout-set' },
         },
       },
     });
@@ -109,17 +107,15 @@ describe('FormComponentConfig', () => {
   it('should render property text for the "sortOrder" property', async () => {
     const user = userEvent.setup();
     renderFormComponentConfig({
-      props: {
-        schema: {
-          ...InputSchema,
-          properties: {
-            ...InputSchema.properties,
-            sortOrder: {
-              type: 'array',
-              items: {
-                type: 'string',
-                enum: ['option1', 'option2'],
-              },
+      schema: {
+        ...InputSchema,
+        properties: {
+          ...InputSchema.properties,
+          sortOrder: {
+            type: 'array',
+            items: {
+              type: 'string',
+              enum: ['option1', 'option2'],
             },
           },
         },
@@ -135,24 +131,22 @@ describe('FormComponentConfig', () => {
 
   it('should render property text for the "showValidations" property', () => {
     renderFormComponentConfig({
-      props: {
-        schema: {
-          ...InputSchema,
-          properties: {
-            ...InputSchema.properties,
-            showValidations: {
-              type: 'array',
-              items: {
-                type: 'string',
-                enum: ['true', 'false'],
-              },
+      schema: {
+        ...InputSchema,
+        properties: {
+          ...InputSchema.properties,
+          showValidations: {
+            type: 'array',
+            items: {
+              type: 'string',
+              enum: ['true', 'false'],
             },
-            anotherProperty: {
-              type: 'array',
-              items: {
-                type: 'string',
-                enum: ['option1', 'option2'],
-              },
+          },
+          anotherProperty: {
+            type: 'array',
+            items: {
+              type: 'string',
+              enum: ['option1', 'option2'],
             },
           },
         },
@@ -165,14 +159,11 @@ describe('FormComponentConfig', () => {
 
   it('should not render property if it is null', () => {
     renderFormComponentConfig({
-      props: {
-        hideUnsupported: true,
-        schema: {
-          ...InputSchema,
-          properties: {
-            ...InputSchema.properties,
-            nullProperty: null,
-          },
+      schema: {
+        ...InputSchema,
+        properties: {
+          ...InputSchema.properties,
+          nullProperty: null,
         },
       },
     });
@@ -183,10 +174,8 @@ describe('FormComponentConfig', () => {
     const user = userEvent.setup();
     const handleComponentUpdateMock = jest.fn();
     renderFormComponentConfig({
-      props: {
-        schema: DatepickerSchema,
-        handleComponentUpdate: handleComponentUpdateMock,
-      },
+      schema: DatepickerSchema,
+      handleComponentUpdate: handleComponentUpdateMock,
     });
     const button = screen.getByRole('button', {
       name: textMock('ux_editor.component_other_properties_show_many_settings'),
@@ -202,18 +191,26 @@ describe('FormComponentConfig', () => {
     );
   });
 
-  const renderFormComponentConfig = ({
-    props = {},
-  }: {
-    props?: Partial<FormComponentConfigProps>;
-  }) => {
+  it('should not render value property for Text component', () => {
+    const { Text: textComponent } = componentMocks;
+    renderFormComponentConfig({
+      component: textComponent,
+      schema: {
+        properties: {
+          value: { type: 'string' },
+        },
+      },
+    });
+    expect(screen.queryByText('ux_editor.component_properties.value')).not.toBeInTheDocument();
+  });
+
+  const renderFormComponentConfig = (props: Partial<FormComponentConfigProps> = {}) => {
     const { Input: inputComponent } = componentMocks;
     const defaultProps: FormComponentConfigProps = {
       schema: InputSchema,
       editFormId: '',
       component: inputComponent,
       handleComponentUpdate: jest.fn(),
-      hideUnsupported: false,
     };
     return renderWithProviders(<FormComponentConfig {...defaultProps} {...props} />);
   };

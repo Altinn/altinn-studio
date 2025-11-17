@@ -1,0 +1,41 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "neverValidatedInputChangeName1",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "This input should never be shown, and never validated (changename layout)"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "neverValidatedInput"
+        },
+        "required": true
+      },
+      {
+        "id": "neverValidatedInputChangeName2",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "This input should never be shown, and never validated (changename layout, valid binding #1)"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraMobiltelefonsnummer-datadef-34750.value"
+        },
+        "required": true
+      },
+      {
+        "id": "neverValidatedInputChangeName3",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "This input should never be shown, and never validated (changename layout, valid binding #2)"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonFornavnNytt-datadef-34758.value"
+        },
+        "required": true
+      }
+    ]
+  }
+}
+

@@ -45,7 +45,7 @@ describe('App', () => {
 
   it('should render the spinner', () => {
     renderApp();
-    expect(screen.getByTitle(textMock('ux_editor.loading_page'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('ux_editor.loading_page'))).toBeInTheDocument();
   });
 
   it('should render the component', async () => {
@@ -77,4 +77,6 @@ describe('App', () => {
 });
 
 const waitForLoadingToFinish = async () =>
-  await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('ux_editor.loading_page')));
+  await waitForElementToBeRemoved(() =>
+    screen.queryByLabelText(textMock('ux_editor.loading_page')),
+  );

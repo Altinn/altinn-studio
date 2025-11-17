@@ -1,4 +1,5 @@
 using Altinn.Studio.Admin.Configuration;
+using Altinn.Studio.Admin.Health;
 using Altinn.Studio.Admin.Services;
 using Altinn.Studio.Admin.Services.Interfaces;
 
@@ -25,6 +26,7 @@ builder.Services.AddHttpClient<IStorageService, TestStorageService>();
 builder.Services.AddHttpClient<IApplicationsService, ApplicationsService>();
 builder.Services.AddHttpClient<IAppResourcesService, AppResourcesService>();
 builder.Services.AddControllers();
+builder.Services.AddHealthChecks().AddCheck<HealthCheck>("admin_health_check");
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -42,5 +44,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHealthChecks("/health");
 
 app.Run();

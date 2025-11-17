@@ -10,10 +10,12 @@ import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { OptionTabs } from './OptionTabs';
 import { componentMocks } from '../../../../../testing/componentMocks';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
 const queryClient = createQueryClientMock();
+queryClient.setQueryData([QueryKey.TextResources, org, app], { nb: [], nn: [], en: [] });
 
 describe('OptionTabs', () => {
   afterEach(jest.clearAllMocks);

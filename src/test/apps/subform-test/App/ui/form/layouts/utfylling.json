@@ -1,0 +1,188 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": false,
+    "layout": [
+      {
+        "size": "L",
+        "id": "Header-wtBlvU",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Side1.Header-wtBlvU.title"
+        }
+      },
+      {
+        "id": "Paragraph-kuSAR3",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Side1.Paragraph-kuSAR3.title"
+        }
+      },
+      {
+        "id": "personalia",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "Personalia"
+        },
+        "children": [
+          "Input-Name",
+          "Input-Age",
+          "attachments"
+        ]
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "Navn"
+        },
+        "id": "Input-Name",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Side1.Input-Name.title"
+        },
+        "required": true,
+        "showValidations": ["AllExceptRequired"]
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "Alder"
+        },
+        "id": "Input-Age",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Side1.Input-Age.title"
+        },
+        "formatting": {
+          "unit": "year"
+        },
+        "required": true
+      },
+      {
+        "id": "attachments",
+        "type": "FileUpload",
+        "textResourceBindings": {
+          "title": "attachments.title"
+        },
+        "maxFileSizeInMB": 10,
+        "maxNumberOfAttachments": 20,
+        "minNumberOfAttachments": 0,
+        "displayMode": "list",
+        "hasCustomFileEndings": true,
+        "validFileEndings": ".png",
+        "dataModelBindings": {
+          "list": "AttachmentId"
+        },
+        "showValidations": ["AllExceptRequired"]
+      },
+      {
+        "id": "debug-attachmentIds-frontend",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Vedleggenes IDer (fra frontend)"
+        },
+        "value": ["dataModel", "AttachmentIdJoined"],
+        "direction": "vertical",
+        "hidden": ["not", ["startsWith", ["component", "Input-Name"], "debug"]],
+        "grid": { "md": 6 }
+      },
+      {
+        "id": "debug-attachmentNames-backend",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Navn på vedlegg (fra backend)"
+        },
+        "value": ["dataModel", "AttachmentNameJoined"],
+        "direction": "vertical",
+        "hidden": ["not", ["startsWith", ["component", "Input-Name"], "debug"]],
+        "grid": { "md": 6 }
+      },
+      {
+        "id": "subform-mopeder",
+        "type": "Subform",
+        "textResourceBindings": {
+          "title": "subform-moped.title",
+          "addButton": "subform-moped.add",
+          "tableEditButton": [
+            "if",
+            [
+              "equals",  ["dataModel",
+              "Merke"],
+              "Vespa"
+            ],
+            "Rediger Vespa",
+            "else",
+            "general.edit"
+          ]
+        },
+        "layoutSet": "moped-subform",
+        "showAddButton": true,
+        "showDeleteButton": true,
+        "tableColumns": [
+          {
+            "headerContent": "subform-moped.regno",
+            "cellContent": {
+              "query": "RegNo"
+            }
+          },
+          {
+            "headerContent": "subform-moped.merke",
+            "cellContent": {
+              "query": "Merke"
+            }
+          },
+          {
+            "headerContent": "subform-moped.extra-info",
+            "cellContent": {
+              "query": "EkstraInfoData",
+              "default": "subform-moped.extra-info.value.default"
+            }
+          }
+        ]
+      },
+      {
+        "id": "subform-boker",
+        "type": "Subform",
+        "textResourceBindings": {
+          "title": "subform-bok.title",
+          "addButton": "subform-bok.add"
+        },
+        "layoutSet": "bok-subform",
+        "showAddButton": true,
+        "showDeleteButton": true,
+        "tableColumns": [
+          {
+            "headerContent": "subform-bok.tittel",
+            "cellContent": {
+              "query": "Tittel"
+            }
+          },
+          {
+            "headerContent": "subform-bok.serie",
+            "cellContent": {
+              "query": "Serie",
+              "default": "subform-bok.serie.value.default"
+            }
+          },
+          {
+            "headerContent": "subform-bok.forfatter",
+            "cellContent": {
+              "query": "Forfatter"
+            }
+          }
+        ]
+      },
+      {
+        "id": "hovedskjema-nextButton",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "general.next"
+        },
+        "validateOnNext": {
+          "page": "current",
+          "show": [
+            "All"
+          ]
+        }
+      }
+    ]
+  }
+}

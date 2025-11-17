@@ -1,0 +1,51 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: pdf3-proxy-allow-ingress-from-apps
+spec:
+  # Allow ingress traffic to proxy pods from default namespace
+  # and monitoring agents
+  podSelector:
+    matchLabels:
+      app: pdf3-proxy
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: default
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: monitoring # Prometheus (locally)
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system # Azure Monitor Agent (envs)
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: pdf3-worker-allow-ingress-from-proxy
+spec:
+  # Allow ingress to worker pods only from proxy pods
+  # Workers should only be accessed by the proxy, not from external sources
+  podSelector:
+    matchLabels:
+      app: pdf3-worker
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: pdf3-proxy
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: monitoring # Prometheus (locally)
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system # Azure Monitor Agent (envs)

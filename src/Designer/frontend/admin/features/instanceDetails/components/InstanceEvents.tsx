@@ -1,7 +1,6 @@
 import { useInstanceEventsQuery } from 'admin/hooks/queries/useInstanceEventsQuery';
-import { StudioSpinner } from '@studio/components';
+import { StudioSpinner, StudioError } from '@studio/components';
 import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
-import { StudioError } from '@studio/components-legacy';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { InstanceEvent } from 'admin/types/InstanceEvent';

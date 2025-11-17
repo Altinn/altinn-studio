@@ -5,20 +5,163 @@ on:
     branches:
       - main
     paths:
-      - infra/runtime/pdf3/**
+      - src/Runtime/pdf3/**
       - .github/workflows/deploy-runtime-pdf3.yaml
   workflow_dispatch:
+    inputs:
+      rings:
+        description: 'Rings to tag the artifact with. Format of the input object is [{"ring": "at_ring1", "environment": "dev"}].'
+        required: false
+        default: '[{"ring": "at_ring1", "environment": "runtime_at_ring1"}]'
+
+permissions:
+  id-token: write
+  contents: read
+  actions: write
 
 jobs:
+  get-short-sha:
+    uses: ./.github/workflows/template-short-sha.yaml
+
+  construct-rings-array:
+    runs-on: ubuntu-latest
+    env:
+      default-rings: >-
+        [{"ring": "at_ring1", "environment": "runtime_at_ring1"},{"ring": "at_ring2", "environment": "runtime_at_ring2"},{"ring": "tt_ring1", "environment": "runtime_tt_ring1"},{"ring": "tt_ring2", "environment": "runtime_tt_ring2"},{"ring": "prod_ring1", "environment": "runtime_prod_ring1"},{"ring": "prod_ring2", "environment": "runtime_prod_ring2"}]
+    outputs:
+      ringsjson: ${{ steps.construct-rings.outputs.ringsjson }}
+    steps:
+      - name: Construct rings array
+        id: construct-rings
+        run: |
+          rings='${{ github.event.inputs.rings }}'
+          if [ -z "$rings" ]; then
+            rings='${{ env.default-rings }}'
+          fi
+          echo "Raw rings input: $rings"
+          echo "ringsjson=${rings}" >> $GITHUB_OUTPUT
+
   push-pdf3-artifact:
     name: Push pdf3 as OCI artifact
+    needs: get-short-sha
     runs-on: ubuntu-latest
     environment: dev
     permissions:
       id-token: write # Require write permission to Fetch an OIDC token.
+      packages: write # Require write permission to push to GHCR.
+    outputs:
+      short-sha: ${{ needs.get-short-sha.outputs.short-sha }}
+      config-repo: ${{ steps.vars.outputs.config-repo }}
     defaults:
       run:
-        working-directory: ./infra/runtime
+        working-directory: src/Runtime/pdf3
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        with:
+          fetch-depth: 0 # Shallow clone
+
+      - name: set vars
+        id: vars
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          GHCR_BASE="ghcr.io/altinn/altinn-studio"
+          ACR_PREFIX="altinncr.azurecr.io"
+
+          echo "registry-name=altinncr" >> $GITHUB_OUTPUT
+          echo "ghcr-image-proxy-repo=${GHCR_BASE}/runtime-pdf3-proxy:${SHA}" >> $GITHUB_OUTPUT
+          echo "ghcr-image-worker-repo=${GHCR_BASE}/runtime-pdf3-worker:${SHA}" >> $GITHUB_OUTPUT
+          echo "image-proxy-repo=${ACR_PREFIX}/${GHCR_BASE}/runtime-pdf3-proxy:${SHA}" >> $GITHUB_OUTPUT
+          echo "image-worker-repo=${ACR_PREFIX}/${GHCR_BASE}/runtime-pdf3-worker:${SHA}" >> $GITHUB_OUTPUT
+          echo "config-repo=${ACR_PREFIX}/studio-apps/runtime-pdf3-repo:${SHA}" >> $GITHUB_OUTPUT
+
+      - name: login to ghcr
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name ${{ steps.vars.outputs.registry-name }}
+
+      - name: flux install
+        uses: fluxcd/flux2/action@6bf37f6a560fd84982d67f853162e4b3c2235edb # v2.6.4
+
+      - name: docker build
+        run: |
+          set -e
+          docker build -t ${{ steps.vars.outputs.ghcr-image-proxy-repo }} -f Dockerfile.proxy . &
+          PROXY_PID=$!
+          docker build -t ${{ steps.vars.outputs.ghcr-image-worker-repo }} -f Dockerfile.worker . &
+          WORKER_PID=$!
+          wait $PROXY_PID
+          wait $WORKER_PID
+
+      - name: scan image - proxy
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # 0.33.1
+        with:
+          image-ref: '${{ steps.vars.outputs.ghcr-image-proxy-repo }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: scan image - worker
+        if: success() || failure()
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # 0.33.1
+        with:
+          image-ref: '${{ steps.vars.outputs.ghcr-image-worker-repo }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: push images
+        run: |
+          set -e
+          docker push ${{ steps.vars.outputs.ghcr-image-proxy-repo }} &
+          PROXY_PID=$!
+          docker push ${{ steps.vars.outputs.ghcr-image-worker-repo }} &
+          WORKER_PID=$!
+          wait $PROXY_PID
+          wait $WORKER_PID
+
+      - name: patch base with image tag
+        working-directory: src/Runtime/pdf3/infra/kustomize/base
+        run: |
+          export PROXY_IMAGE="${{ steps.vars.outputs.image-proxy-repo }}"
+          export WORKER_IMAGE="${{ steps.vars.outputs.image-worker-repo }}"
+          export IMAGE_TAG="${{ needs.get-short-sha.outputs.short-sha }}"
+          yq -i '.metadata.annotations["altinn.studio/image"] = env(PROXY_IMAGE)' proxy.yaml
+          yq -i '.metadata.annotations["altinn.studio/image"] = env(WORKER_IMAGE)' worker.yaml
+          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' proxy.yaml
+          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' worker.yaml
+
+      - name: push artifact
+        working-directory: src/Runtime/pdf3/infra/kustomize
+        run: |
+          flux push artifact oci://${{ steps.vars.outputs.config-repo }} \
+            --provider=generic \
+            --reproducible \
+            --path="." \
+            --source="$(git config --get remote.origin.url)" \
+            --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
+
+  tag-pdf3:
+    name: Tag pdf3
+    needs: [push-pdf3-artifact, construct-rings-array]
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    permissions:
+      id-token: write # Require write permission to Fetch an OIDC token.
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.construct-rings-array.outputs.ringsjson) }}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
         with:
@@ -37,16 +180,8 @@ jobs:
       - name: flux install
         uses: fluxcd/flux2/action@6bf37f6a560fd84982d67f853162e4b3c2235edb # v2.6.4
 
-      - name: push artifact
+      - name: tag artifact
         run: |
-          cd pdf3/
-          flux push artifact oci://altinncr.azurecr.io/studio-apps/runtime-pdf3-repo:$(git rev-parse --short HEAD) \
-            --provider=generic \
-            --reproducible \
-            --path="." \
-            --source="$(git config --get remote.origin.url)" \
-            --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
+          flux tag artifact oci://${{ needs.push-pdf3-artifact.outputs.config-repo }} \
+            --tag ${{ matrix.ring }}
 
-      - name: tag artifact at_ring1 (ttd/at22)
-        run: |
-          flux tag artifact oci://altinncr.azurecr.io/studio-apps/runtime-pdf3-repo:$(git rev-parse --short HEAD) --tag at_ring1

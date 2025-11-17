@@ -6,15 +6,16 @@ import { DefaultToolbar } from './DefaultToolbar';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './Elements.module.css';
 
-import { StudioError, StudioSpinner } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
-import { ShrinkIcon } from '@studio/icons';
+import { StudioSpinner } from '@studio/components-legacy';
+import { StudioButton, StudioError, StudioHeading } from '@studio/components';
+import { SidebarLeftIcon } from '@studio/icons';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useTranslation } from 'react-i18next';
 import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import { ElementsUtils } from './ElementsUtils';
 import type { ConfPageType } from './types/ConfigPageType';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export interface ElementsProps {
   collapsed: boolean;
@@ -24,9 +25,10 @@ export interface ElementsProps {
 export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
+  const { selectedFormLayoutName } = useAppContext();
+  const { layoutSet } = useUxEditorParams();
   const selectedLayoutSet = useGetLayoutSetByName({
-    name: selectedFormLayoutSetName,
+    name: layoutSet,
     org,
     app,
   });
@@ -35,7 +37,7 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
     data: processTaskType,
     isPending: isFetchingProcessTaskType,
     isError: hasProcessTaskTypeError,
-  } = useProcessTaskTypeQuery(org, app, selectedFormLayoutSetName);
+  } = useProcessTaskTypeQuery(org, app, layoutSet);
 
   const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
   const hideComponents =
@@ -59,7 +61,7 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
           <StudioError>
             <Heading level={3} size='xsmall' spacing>
               {t('schema_editor.error_could_not_detect_taskType', {
-                layout: selectedFormLayoutSetName,
+                layout: layoutSet,
               })}
             </Heading>
             <Paragraph>{t('schema_editor.error_could_not_detect_taskType_description')}</Paragraph>
@@ -69,7 +71,7 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
     );
   }
 
-  const selectedLayoutIsCustomReceipt = selectedFormLayoutSetName === existingCustomReceiptName;
+  const selectedLayoutIsCustomReceipt = layoutSet === existingCustomReceiptName;
 
   const configToolbarMode: ConfPageType = ElementsUtils.getConfigurationMode({
     selectedLayoutIsCustomReceipt,
@@ -80,28 +82,14 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
   const shouldShowConfPageToolbar: boolean = Boolean(configToolbarMode);
 
   if (collapsed) {
-    return (
-      <StudioButton
-        variant='secondary'
-        className={classes.openElementsButton}
-        onClick={onCollapseToggle}
-        title={t('left_menu.open_components')}
-      >
-        {t('left_menu.open_components')}
-      </StudioButton>
-    );
+    return <TogglePanelButton onClick={onCollapseToggle} isCollapsed={collapsed} />;
   }
 
   return (
     <div className={classes.root}>
       <div className={classes.componentsHeader}>
-        <Heading size='xxsmall'>{t('left_menu.components')}</Heading>
-        <StudioButton
-          variant='tertiary'
-          icon={<ShrinkIcon title='1' fontSize='1.5rem' />}
-          title={t('left_menu.close_components')}
-          onClick={onCollapseToggle}
-        ></StudioButton>
+        <StudioHeading data-size='2xs'>{t('left_menu.components')}</StudioHeading>
+        <TogglePanelButton onClick={onCollapseToggle} isCollapsed={collapsed} />
       </div>
       {hideComponents ? (
         <Paragraph className={classes.noPageSelected} size='small'>
@@ -113,5 +101,26 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
         <DefaultToolbar />
       )}
     </div>
+  );
+};
+
+type TogglePanelButtonProps = {
+  onClick: () => void;
+  isCollapsed: boolean;
+};
+
+const TogglePanelButton = ({ onClick, isCollapsed }: TogglePanelButtonProps) => {
+  const { t } = useTranslation();
+  const title = isCollapsed ? t('left_menu.open_components') : t('left_menu.close_components');
+
+  return (
+    <StudioButton
+      variant='tertiary'
+      data-color='neutral'
+      onClick={onClick}
+      title={title}
+      icon={<SidebarLeftIcon />}
+      className={isCollapsed ? classes.collapsedPanel : undefined}
+    />
   );
 };

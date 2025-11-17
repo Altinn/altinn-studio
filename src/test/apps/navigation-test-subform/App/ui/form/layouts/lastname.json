@@ -1,0 +1,24 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "dataModelBindings": {
+          "simpleBinding": "lastname"
+        },
+        "id": "lastname",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "lastname.lastname.title"
+        },
+        "required": true
+      },
+      {
+        "id": "NavigationButtons-IsqrZb",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      }
+    ]
+  }
+}

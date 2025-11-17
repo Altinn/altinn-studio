@@ -1,15 +1,26 @@
 import { useRunningAppsQuery } from 'admin/hooks/queries/useRunningAppsQuery';
 import classes from './AppsTable.module.css';
-import type { RunningApplication } from 'admin/types/RunningApplication';
-import { StudioSpinner, StudioTable, StudioSearch } from '@studio/components';
-import React, { useState } from 'react';
+import type { PublishedApplication } from 'admin/types/PublishedApplication';
+import {
+  StudioSpinner,
+  StudioTable,
+  StudioSearch,
+  StudioError,
+  StudioTabs,
+} from '@studio/components';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioError, StudioTabs } from '@studio/components-legacy';
 import { Link } from 'react-router-dom';
 import type { TFunction } from 'i18next';
+import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 
 type AppsTableProps = {
   org: string;
+};
+
+type AppsTableState = {
+  search: string;
+  tab: string | undefined;
 };
 
 export const AppsTable = ({ org }: AppsTableProps) => {
@@ -27,7 +38,7 @@ export const AppsTable = ({ org }: AppsTableProps) => {
 };
 
 type AppsTableWithDataProps = {
-  runningApps: Record<string, RunningApplication[]>;
+  runningApps: Record<string, PublishedApplication[]>;
 };
 
 function getEnvironmentName(env: string, t: TFunction) {
@@ -39,12 +50,18 @@ function getEnvironmentName(env: string, t: TFunction) {
 
 const AppsTableWithData = ({ runningApps }: AppsTableWithDataProps) => {
   const { t } = useTranslation();
-  const [search, setSearch] = useState('');
+  const [{ search, tab }, setState] = useQueryParamState<AppsTableState>({
+    search: '',
+    tab: undefined,
+  });
 
   const availableEnvironments = Object.keys(runningApps);
 
   return (
-    <StudioTabs defaultValue={availableEnvironments.at(0)}>
+    <StudioTabs
+      value={tab ?? availableEnvironments.at(0)}
+      onChange={(value) => setState({ tab: value })}
+    >
       <StudioTabs.List>
         {availableEnvironments.map((env) => (
           <StudioTabs.Tab key={env} value={env}>
@@ -53,11 +70,13 @@ const AppsTableWithData = ({ runningApps }: AppsTableWithDataProps) => {
         ))}
       </StudioTabs.List>
       {availableEnvironments.map((env) => (
-        <StudioTabs.Content key={env} value={env}>
+        <StudioTabs.Panel key={env} value={env}>
           <StudioSearch
             className={classes.appSearch}
             value={search}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setState({ search: e.target.value })
+            }
             label={t('Søk i apper')}
           />
           <StudioTable>
@@ -73,14 +92,14 @@ const AppsTableWithData = ({ runningApps }: AppsTableWithDataProps) => {
                 .map((app) => (
                   <StudioTable.Row key={app.app}>
                     <StudioTable.Cell>
-                      <Link to={`${env}/${app.app}/instances`}>{app.app}</Link>
+                      <Link to={`${env}/${app.app}`}>{app.app}</Link>
                     </StudioTable.Cell>
                     <StudioTable.Cell>{app.version}</StudioTable.Cell>
                   </StudioTable.Row>
                 ))}
             </StudioTable.Body>
           </StudioTable>
-        </StudioTabs.Content>
+        </StudioTabs.Panel>
       ))}
     </StudioTabs>
   );

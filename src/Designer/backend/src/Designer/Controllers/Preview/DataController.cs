@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Nodes;
@@ -18,7 +19,7 @@ namespace Altinn.Studio.Designer.Controllers.Preview
     [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("{org:regex(^(?!designer|editor|dashboard|preview|resourceadm|info))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/instances/{partyId}/{instanceGuid}/data")]
+    [Route("{org:regex(^(?!designer|editor|dashboard|preview|admin|resourceadm|info))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/instances/{partyId}/{instanceGuid}/data")]
     public class DataController(
         IInstanceService instanceService,
         IDataService dataService,

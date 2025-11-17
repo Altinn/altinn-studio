@@ -1,0 +1,660 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "nav1",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "showGroupToContinue",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Åpne repterenede grupper"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.Avgiver-grp-9787.KontaktpersonEPost-datadef-27688.value"
+        },
+        "options": [
+          {
+            "label": "Ja",
+            "value": "Ja"
+          }
+        ],
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "info-msg",
+        "type": "Panel",
+        "textResourceBindings": {
+          "title": "Obs: Noen rader er skjult",
+          "body": [
+            "concat",
+            "Oida, noen av radene har forsvunnet! De ble skjult fordi de har en fra-verdi som er høyere enn ",
+            ["component", "hideRepeatingGroupRow"],
+            " NOK. ",
+            "Ta en titt på neste side, så finner du dem igjen der. For å få dem tilbake hit, senk fra-verdien til ",
+            "noe lavere enn ",
+            ["component", "hideRepeatingGroupRow"],
+            " NOK"
+          ]
+        },
+        "variant": "warning",
+        "hidden": ["equals", ["dataModel", "numAboveLimit"], 0]
+      },
+      {
+        "id": "mainGroup",
+        "type": "RepeatingGroup",
+        "children": [
+          "0:currentValue",
+          "0:newValue",
+          "1:cards",
+          "1:mainUploaderSingle",
+          "1:mainUploaderMulti",
+          "1:subGroup"
+        ],
+        "dataModelBindings": {
+          "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
+        },
+        "textResourceBindings": {
+          "title": "Group title",
+          "summaryTitle": "Group summary title",
+          "edit_button_open": [
+            "if",
+            [
+              "dataModel",
+              "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+            ],
+            "Se innhold",
+            "else",
+            "Rediger"
+          ],
+          "edit_button_close": [
+            "if",
+            [
+              "dataModel",
+              "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+            ],
+            "Lukk",
+            "else",
+            "Lagre og lukk"
+          ],
+          "save_button": [
+            "if",
+            [
+              "dataModel",
+              "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+            ],
+            "Lukk",
+            "else",
+            "Lagre og lukk"
+          ]
+        },
+        "tableHeaders": [
+          "currentValue",
+          "newValue",
+          "mainUploaderSingle",
+          "mainUploaderMulti"
+        ],
+        "tableColumns": {
+          "currentValue": {
+            "editInTable": false,
+            "showInExpandedEdit": true
+          },
+          "newValue": {
+            "editInTable": false,
+            "showInExpandedEdit": true
+          }
+        },
+        "validateOnSaveRow": ["All"],
+        "hiddenRow": [
+          "greaterThanEq",
+          [
+            "dataModel",
+            "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+          ],
+          ["dataModel", "hideRowValue"]
+        ],
+        "edit": {
+          "mode": "showTable",
+          "alwaysShowAddButton": false,
+          "editButton": true,
+          "saveButton": [
+            "not",
+            [
+              "and",
+              [
+                "dataModel",
+                "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+              ],
+              ["equals", ["component", "currentValue"], 1]
+            ]
+          ],
+          "deleteButton": [
+            "not",
+            [
+              "dataModel",
+              "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+            ]
+          ],
+          "multiPage": true,
+          "openByDefault": false
+        }
+      },
+      {
+        "id": "currentValue",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "37131.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131.Label",
+          "tableTitle": "Endre fra"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+        },
+        "required": false,
+        "readOnly": [
+          "dataModel",
+          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+        ],
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "md": 6
+        },
+        "formatting": {
+          "number": {
+            "thousandSeparator": " ",
+            "prefix": "NOK ",
+            "allowNegative": false
+          },
+          "align": "right"
+        }
+      },
+      {
+        "id": "newValue",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": [
+            "if",
+            [
+              "equals",
+              [
+                "dataModel",
+                "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+              ],
+              null
+            ],
+            "2\\. Endre verdi til",
+            "else",
+            "37132.SkattemeldingEndringEtterFristNyttBelopdatadef37132.Label"
+          ],
+          "tableTitle": "Endre til"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value"
+        },
+        "required": false,
+        "readOnly": [
+          "dataModel",
+          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+        ],
+        "grid": {
+          "md": 6
+        },
+        "formatting": {
+          "number": {
+            "thousandSeparator": " ",
+            "prefix": "NOK ",
+            "allowNegative": false
+          },
+          "align": "right"
+        },
+        "showValidations": ["AllExceptRequired"]
+      },
+      {
+        "id": "mainUploaderSingle",
+        "type": "FileUpload",
+        "textResourceBindings": {
+          "title": ["stringReplace",
+            ["text", "fileupload-doctype"],
+            "{0}",
+            ["optionLabel", "list", ["dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.source"]]
+          ],
+          "tableTitle": [
+            "if",
+            ["equals", ["component", "sendersName"], "otherTitlesInTable"],
+            "Uploader (single)",
+            "else",
+            "Uploader (one)"
+          ]
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.fileUpload"
+        },
+        "maxFileSizeInMB": 25,
+        "maxNumberOfAttachments": 1,
+        "minNumberOfAttachments": 0,
+        "displayMode": "simple",
+        "hidden": [
+          "dataModel",
+          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+        ]
+      },
+      {
+        "id": "mainUploaderMulti",
+        "type": "FileUpload",
+        "textResourceBindings": {
+          "title": "Multi uploader in repeating group",
+          "tableTitle": [
+            "if",
+            ["equals", ["component", "sendersName"], "otherTitlesInTable"],
+            "Uploader (multi)",
+            "else",
+            "Uploader (many)"
+          ]
+        },
+        "dataModelBindings": {
+          "list": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.fileUploadList"
+        },
+        "maxFileSizeInMB": 25,
+        "maxNumberOfAttachments": 5,
+        "minNumberOfAttachments": 0,
+        "displayMode": "simple",
+        "hidden": [
+          "dataModel",
+          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+        ]
+      },
+      {
+        "id": "source",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "hvor fikk du vite om skjemaet?"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.source"
+        },
+        "optionsId": "list",
+        "required": false,
+        "readOnly": false,
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "md": 6
+        },
+        "preselectedOptionIndex": 0
+      },
+      {
+        "id": "reference",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Referanse"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.reference"
+        },
+        "optionsId": "references",
+        "required": false,
+        "readOnly": false,
+        "secure": false,
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "md": 6
+        },
+        "mapping": {
+          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].source": "source"
+        }
+      },
+      {
+        "id": "main-comments",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Ytterlige kommentarer?"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristKommentar-datadef-37133.value"
+        }
+      },
+      {
+        "id": "cards",
+        "type": "Cards",
+        "color": "neutral",
+        "cards": [
+          {
+            "title": "Kilde",
+            "description": "Vi trodde dette bare var noe interne greier vi brukte til testing. Hvem tipset deg om dette skjemaet?",
+            "children": ["source"]
+          },
+          {
+            "title": "Referanse",
+            "description": "Vi er nysgjerrige på hvem du snakket med før du bestemte deg for å fylle ut dette skjemaet.",
+            "children": ["reference", "main-comments"]
+          }
+        ]
+      },
+      {
+        "id": "subGroup",
+        "type": "RepeatingGroup",
+        "children": [
+          "comments",
+          "subUploader",
+          "nestedDynamics",
+          "nestedOptions",
+          "nested-source",
+          "nested-reference",
+          "hideComment"
+        ],
+        "dataModelBindings": {
+          "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234"
+        },
+        "textResourceBindings": {
+          "title": "Nested group"
+        },
+        "tableHeaders": [
+          "comments",
+          "subUploader",
+          "nestedDynamics",
+          "nestedOptions"
+        ],
+        "validateOnSaveRow": ["All"],
+        "edit": {
+          "openByDefault": true
+        },
+        "hidden": [
+          "and",
+          [
+            "dataModel",
+            "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
+          ],
+          ["greaterThan", ["component", "currentValue"], 100]
+        ],
+        "rowsAfter": [
+          {
+            "header": true,
+            "cells": [{ "text": "Annen informasjon" }, {}, {}, {}]
+          },
+          {
+            "cells": [{ "text": "nested.isParentPrefill" }, {}, {}, {}]
+          }
+        ]
+      },
+      {
+        "id": "nested-source",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": [
+            "concat",
+            "Hvor fikk du vite om skjemaet? Over her valgte du ",
+            ["optionLabel", "list2", ["dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.source"]]
+          ]
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.source"
+        },
+        "optionsId": "list",
+        "required": false,
+        "readOnly": false,
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "md": 6
+        },
+        "preselectedOptionIndex": 0
+      },
+      {
+        "id": "nested-reference",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Referanse"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.reference"
+        },
+        "optionsId": "references",
+        "required": false,
+        "readOnly": false,
+        "secure": false,
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "md": 6
+        },
+        "mapping": {
+          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].nested-grp-1234[{1}].source": "source"
+        }
+      },
+      {
+        "id": "nestedDynamics",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Vis tillegg"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.extraOptionsToggle"
+        },
+        "options": [
+          {
+            "label": "Ja",
+            "value": "Ja"
+          }
+        ],
+        "required": false,
+        "readOnly": false
+      },
+      {
+        "id": "nestedOptions",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Tilleggsopsjoner"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.extraOptions"
+        },
+        "options": [
+          {
+            "label": "Opsjon 11",
+            "value": "o11"
+          },
+          {
+            "label": "Opsjon 1",
+            "value": "o1"
+          },
+          {
+            "label": "Opsjon 111",
+            "value": "o111"
+          }
+        ],
+        "required": false,
+        "readOnly": false
+      },
+      {
+        "id": "comments",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "37133.SkattemeldingEndringEtterFristKommentardatadef37133.Label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.SkattemeldingEndringEtterFristKommentar-datadef-37133.value"
+        },
+        "required": false,
+        "readOnly": false,
+        "labelSettings": { "optionalIndicator": false },
+        "showValidations": ["AllExceptRequired"]
+      },
+      {
+        "id": "hideComment",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Skjul kommentar felt"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.hideComment"
+        },
+        "options": [
+          {
+            "label": "Ja",
+            "value": "Ja"
+          }
+        ],
+        "required": false,
+        "readOnly": false
+      },
+      {
+        "id": "subUploader",
+        "type": "FileUploadWithTag",
+        "textResourceBindings": {
+          "title": "Nested uploader with tags"
+        },
+        "dataModelBindings": {
+          "list": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.fileUploadList"
+        },
+        "maxFileSizeInMB": 25,
+        "maxNumberOfAttachments": 5,
+        "minNumberOfAttachments": 0,
+        "displayMode": "simple",
+        "optionsId": "list"
+      },
+      {
+        "id": "group2",
+        "type": "RepeatingGroup",
+        "dataModelBindings": {
+          "group": "Endringsmelding-grp-9786.Gruppe2"
+        },
+        "textResourceBindings": {
+          "summaryTitle": "Gruppe2",
+          "add_button": "referanse",
+          "title": "Referansegruppe"
+        },
+        "tableHeaders": ["group2-teller", "group2-input"],
+        "children": ["group2-teller", "group2-input"]
+      },
+      {
+        "id": "group2-teller",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Rad-nummer",
+          "description": "Her skal det dukke opp en automatisk teller som viser radnummeret. Hvis du sletter en rad og legger til en ny blir ikke tallene gjenbrukt, siden backend legger til nye rader med nye id-er."
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.Gruppe2.teller"
+        },
+        "readOnly": true
+      },
+      {
+        "id": "group2-input",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Velg element fra den andre gruppen",
+          "tableTitle": "Element fra den andre gruppen"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.Gruppe2.felt1.value"
+        },
+        "grid": {
+          "xs": 6
+        },
+        "required": false,
+        "source": {
+          "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788",
+          "label": "optionsFromRepeatingGroup",
+          "value": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+        }
+      },
+      {
+        "id": "reduxOptions",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Options fra repeterende gruppe"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.Avgiver-grp-9787.KontaktpersonTelefonnummer-datadef-3.value"
+        },
+        "required": false,
+        "source": {
+          "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788",
+          "label": "optionsFromRepeatingGroup",
+          "value": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+        }
+      },
+      {
+        "id": "reduxOptions-expressions",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Options fra repeterende gruppe med dynamiske uttrykk"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.Avgiver-grp-9787.KontaktpersonTelefonnummer-datadef-3.value"
+        },
+        "required": false,
+        "source": {
+          "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788",
+          "label": [
+            "concat",
+            ["text", "optionsFromRepeatingGroup"],
+            ["concat", " ", ["text", "question-1"]]
+          ],
+          "value": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+        }
+      },
+      {
+        "id": "reduxOptions-expressions-radiobuttons",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Radio buttons med dynamiske uttrykk fra repeterende gruppe"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.Avgiver-grp-9787.KontaktpersonTelefonnummer-datadef-3.value"
+        },
+        "required": false,
+        "source": {
+          "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788",
+          "label": [
+            "concat",
+            ["text", "optionsFromRepeatingGroup"],
+            ["concat", " ", ["text", "question-2"]]
+          ],
+          "description": [
+            "concat",
+            ["text", "optionsFromRepeatingGroup"],
+            ["concat", " ", ["text", "question-2"]]
+          ],
+          "helpText": [
+            "concat",
+            ["text", "optionsFromRepeatingGroup"],
+            ["concat", " ", ["text", "question-2"]]
+          ],
+          "value": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+        }
+      },
+      {
+        "id": "hideRepeatingGroupRow",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "number-to-be-greaterThanEq"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "hideRowValue"
+        },
+        "formatting": {
+          "number": {
+            "thousandSeparator": " ",
+            "prefix": "NOK ",
+            "allowNegative": false
+          },
+          "align": "right"
+        },
+        "readOnly": false
+      },
+      {
+        "id": "nav-page-repeating",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "Neste",
+          "back": "Forrige"
+        },
+        "showBackButton": true,
+        "validateOnNext": {
+          "page": "current",
+          "show": ["All"]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+[
+    {
+      "value": "false",
+      "label": "selfDelegate",
+      "helpText": "descriptionSelfDelegate"
+    },
+    {
+        "value": "true",
+        "label": "delegatePerson",
+        "helpText": "descriptionDelegatePerson"
+    }
+]

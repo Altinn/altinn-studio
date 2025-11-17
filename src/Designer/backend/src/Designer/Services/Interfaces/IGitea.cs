@@ -1,8 +1,8 @@
+#nullable disable
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
@@ -105,19 +105,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<Branch> CreateBranch(string org, string repository, string branchName);
 
         /// <summary>
-        /// Gets a file from a filepath
+        /// Gets a file from a filepath at a specific reference (commit/branch/tag).
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">The name of repository</param>
         /// <param name="filePath">Path to a file, may start with full commit sha</param>
-        /// <param name="shortCommitId">The short hash of a commit id</param>
-        /// <returns></returns>
-        Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string shortCommitId);
-
-        /// <summary>
-        /// Gets a file from a filepath at a specific reference (commit/branch/tag).
-        /// </summary>
-        Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken);
+        /// <param name="reference">The short hash of a commit id</param>
+        /// <param name="cancellationToken">The cancellation token</param>
+        Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Takes in a ServiceResource-object and uses it to create a ListviewServiceResource-object that contains some additional fields not stored in the resourceregistry
@@ -174,13 +169,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<bool> DeleteRepository(string org, string repository);
 
         /// <summary>
-        /// Modifies multiple files in the given repository. If a file does not exist, it
-        /// will be created. If it exists, it will be updated.
+        /// Gets the latest commit on a given branch.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+        /// <param name="org">The organization owner of the repository.</param>
         /// <param name="repository">The name of repository.</param>
-        /// <param name="files">The list of files to modify.</param>
+        /// <param name="branchName">The name of the branch. If null or empty, the default branch (master) will be used.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        Task<bool> ModifyMultipleFiles(string org, string repository, GiteaMultipleFilesDto files, CancellationToken cancellationToken = default);
+        /// <returns>The latest commit SHA as a string.</returns>
+        Task<string> GetLatestCommitOnBranch(string org, string repository, string branchName = null, CancellationToken cancellationToken = default);
     }
 }

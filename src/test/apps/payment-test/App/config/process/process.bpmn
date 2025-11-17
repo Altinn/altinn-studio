@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Altinn_SingleDataTask_Process_Definition" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="SingleDataTask" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_start_t1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_start_t1" sourceRef="StartEvent_1" targetRef="Task_1" />
+    <bpmn:task id="Task_1" name="Utfylling">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>data</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_start_t1</bpmn:incoming>
+      <bpmn:incoming>Flow_g1_t1</bpmn:incoming>
+      <bpmn:outgoing>Flow_t1_t2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_t1_t2" sourceRef="Task_1" targetRef="Task_2" />
+    <bpmn:task id="Task_2" name="Betaling">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>payment</altinn:taskType>
+          <altinn:actions>
+            <altinn:action>confirm</altinn:action>
+            <altinn:action>pay</altinn:action>
+            <altinn:action>reject</altinn:action>
+          </altinn:actions>
+          <altinn:paymentConfig>
+            <altinn:paymentDataType>paymentInformation</altinn:paymentDataType>
+            <altinn:paymentReceiptPdfDataType>paymentReceiptPdf</altinn:paymentReceiptPdfDataType>
+          </altinn:paymentConfig>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_t1_t2</bpmn:incoming>
+      <bpmn:outgoing>Flow_t2_g1</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_t2_g1" sourceRef="Task_2" targetRef="Gateway_1" />
+    <bpmn:exclusiveGateway id="Gateway_1">
+      <bpmn:incoming>Flow_t2_g1</bpmn:incoming>
+      <bpmn:outgoing>Flow_g1_t1</bpmn:outgoing>
+      <bpmn:outgoing>Flow_g1_end</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_g1_t1" sourceRef="Gateway_1" targetRef="Task_1">
+      <bpmn:conditionExpression>["equals", ["gatewayAction"], "reject"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_g1_end" sourceRef="Gateway_1" targetRef="EndEvent_1">
+      <bpmn:conditionExpression>["equals", ["gatewayAction"], "confirm"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="EndEvent_1">
+      <bpmn:incoming>Flow_g1_end</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="SingleDataTask">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="156" y="81" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_1_di" bpmnElement="Task_1">
+        <dc:Bounds x="300" y="59" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0gk39og_di" bpmnElement="Task_2">
+        <dc:Bounds x="530" y="59" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0jkfrcw_di" bpmnElement="Gateway_1" isMarkerVisible="true">
+        <dc:Bounds x="685" y="74" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
+        <dc:Bounds x="962" y="81" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1n56yn5_di" bpmnElement="Flow_start_t1">
+        <di:waypoint x="192" y="99" />
+        <di:waypoint x="300" y="99" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1oot28q_di" bpmnElement="Flow_t1_t2">
+        <di:waypoint x="400" y="99" />
+        <di:waypoint x="530" y="99" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ebexaf_di" bpmnElement="Flow_t2_g1">
+        <di:waypoint x="630" y="99" />
+        <di:waypoint x="685" y="99" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1s8sknn_di" bpmnElement="Flow_g1_t1">
+        <di:waypoint x="710" y="74" />
+        <di:waypoint x="710" y="10" />
+        <di:waypoint x="350" y="10" />
+        <di:waypoint x="350" y="59" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_095z53x_di" bpmnElement="Flow_g1_end">
+        <di:waypoint x="735" y="99" />
+        <di:waypoint x="962" y="99" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

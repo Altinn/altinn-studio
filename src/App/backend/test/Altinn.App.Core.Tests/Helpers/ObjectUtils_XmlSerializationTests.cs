@@ -4,7 +4,6 @@ using System.Text.Json.Serialization;
 using System.Xml.Serialization;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
-using Altinn.App.Core.Infrastructure.Clients.Storage;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;

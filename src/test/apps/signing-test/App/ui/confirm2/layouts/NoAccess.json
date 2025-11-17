@@ -1,0 +1,23 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": ["authContext", "sign"],
+    "layout": [
+      {
+        "id": "Header-noaccess",
+        "type": "Header",
+        "size": "L",
+        "textResourceBindings": {
+          "title": "Header-noaccess.title"
+        }
+      },
+      {
+        "id": "Paragraph-noaccess",
+        "type": "Paragraph",
+        "textResourceBindings": {
+            "title": "Paragraph-noaccess.title"
+        }
+      }
+    ]
+  }
+}

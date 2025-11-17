@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://altinn-repositories:3000/ttd/expression-validation-test/App/models/skjema.schema.json",
+  "info": {
+    "rootNode": ""
+  },
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "seres": "http://seres.no/xsd/forvaltningsdata"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "@xsdRootElement": "skjema",
+  "type": "object",
+  "properties": {
+    "root": {
+      "type": "object",
+      "properties": {
+        "fornavn": {
+          "type": "string"
+        },
+        "etternavn": {
+          "type": "string"
+        },
+        "alder": {
+          "type": "integer",
+          "maximum": 76,
+          "minimum": 15
+        },
+        "arbeidserfaring": {
+          "type": "array",
+          "maxItems": 99,
+          "minItems": 0,
+          "items": {
+            "type": "object",
+            "properties": {
+              "arbeidsgiver": {
+                "type": "string"
+              },
+              "fortsattAnsatt": {
+                "type": "boolean"
+              },
+              "fra": {
+                "type": "string"
+              },
+              "til": {
+                "type": "string"
+              },
+              "stilling": {
+                "type": "string"
+              },
+              "beskrivelse": {
+                "type": "string"
+              },
+              "prosjekter": {
+                "type": "array",
+                "maxItems": 99,
+                "minItems": 0,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "tittel": {
+                      "type": "string",
+                      "maxLength": 32
+                    },
+                    "beskrivelse": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "vedlegg": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "epost": {
+          "type": "string",
+          "format": "idn-email"
+        },
+        "telefonnummer": {
+          "type": "integer"
+        },
+        "bosted": {
+          "type": "string"
+        },
+        "kjonn": {
+          "type": "string"
+        },
+        "SF_skjul-felter": {
+          "type": "string"
+        },
+        "SF_skjul-arbeidsgiver": {
+          "type": "string"
+        },
+        "SF_skjul-prosjekt": {
+          "type": "string"
+        },
+        "SF_validate-tags": {
+          "type": "boolean"
+        },
+        "vedlegg": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

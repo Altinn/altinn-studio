@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://altinn-repositories:3000/ttd/subform-test-ds/App/models/moped.schema.json",
+  "info": {
+    "rootNode": ""
+  },
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "seres": "http://seres.no/xsd/forvaltningsdata"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "@xsdRootElement": "moped",
+  "type": "object",
+  "required": [
+    "RegNo",
+    "Merke",
+    "Modell",
+    "Produksjonsaar"
+  ],
+  "properties": {
+    "RegNo": {
+      "type": "string"
+    },
+    "Merke": {
+      "type": "string"
+    },
+    "Modell": {
+      "type": "string"
+    },
+    "EkstraInfoCheck": {
+      "type": "boolean"
+    },
+    "EkstraInfoData": {
+      "type": "string"
+    },
+    "Produksjonsaar": {
+      "type": "integer"
+    }
+  }
+}

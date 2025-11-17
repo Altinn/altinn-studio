@@ -1,0 +1,9 @@
+.previewWrapper {
+  background-color: var(--ds-color-neutral-background-tinted);
+  height: 320px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--ds-size-4);
+  box-sizing: border-box;
+}

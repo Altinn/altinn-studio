@@ -10,9 +10,10 @@ import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplication
 import { getAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { DataPostResponse } from 'src/features/attachments';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { GenericComponent } from 'src/layout/GenericComponent';
-import { fetchApplicationMetadata, fetchInstanceData } from 'src/queries/queries';
+import { doUpdateAttachmentTags, fetchApplicationMetadata, fetchInstanceData } from 'src/queries/queries';
 import { renderGenericComponentTest, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IGetAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
 import type { IRawOption } from 'src/layout/common.generated';
@@ -30,6 +31,10 @@ function getDataElements(props: GetDataProps): IData[] {
 }
 
 describe('File uploading components', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('FileUploadComponent', () => {
     it('should show add attachment button and file counter when number of attachments is less than max', async () => {
       await render({
@@ -55,7 +60,7 @@ describe('File uploading components', () => {
       it('should show loading when file uploaded=false', async () => {
         const { mutations, id } = await render({ attachments: () => [] });
         const attachment = getDataElements({ count: 1, dataType: id })[0];
-        expect(mutations.doAttachmentUploadOld.mock).not.toHaveBeenCalled();
+        expect(mutations.doAttachmentUpload.mock).not.toHaveBeenCalled();
 
         const file = new File(['(⌐□_□)'], attachment?.filename || '', { type: attachment.contentType });
 
@@ -68,13 +73,13 @@ describe('File uploading components', () => {
           expect(screen.getByText('Laster innhold')).toBeInTheDocument();
         });
 
-        mutations.doAttachmentUploadOld.resolve(attachment);
+        mutations.doAttachmentUpload.resolve(mockUploadResponse(attachment));
 
         await waitFor(() => {
           expect(screen.queryByText('Laster innhold')).not.toBeInTheDocument();
         });
 
-        expect(mutations.doAttachmentUploadOld.mock).toHaveBeenCalledTimes(1);
+        expect(mutations.doAttachmentUpload.mock).toHaveBeenCalledTimes(1);
       });
 
       it('should not show loading when file uploaded=true', async () => {
@@ -333,6 +338,17 @@ describe('File uploading components', () => {
   }
 
   describe('FileUploadWithTagComponent', () => {
+    function mockDelayedTagUpdate() {
+      let resolveTagUpdate: ((value: { tags: string[] }) => void) | undefined;
+      const tagUpdatePromise = new Promise<{ tags: string[] }>((resolve) => {
+        resolveTagUpdate = resolve;
+      });
+      jest.mocked(doUpdateAttachmentTags).mockImplementationOnce(async () => tagUpdatePromise);
+      return {
+        resolve: (tags: string[] = ['tag1']) => resolveTagUpdate?.({ tags }),
+      };
+    }
+
     describe('uploaded', () => {
       it('should show spinner when file status has uploaded=false', async () => {
         await renderWithTag({
@@ -357,18 +373,17 @@ describe('File uploading components', () => {
 
     describe('updating', () => {
       it('should show spinner in edit mode when file status has updating=true', async () => {
-        const { mutations } = await renderWithTag({
+        const mock = mockDelayedTagUpdate();
+
+        await renderWithTag({
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
         });
         await selectTag();
 
-        expect(mutations.doAttachmentAddTag.mock).toHaveBeenCalledTimes(1);
+        expect(doUpdateAttachmentTags).toHaveBeenCalledTimes(1);
         expect(screen.getByText('Laster innhold')).toBeInTheDocument();
-        mutations.doAttachmentAddTag.resolve();
 
-        await waitFor(() => expect(mutations.doAttachmentRemoveTag.mock).toHaveBeenCalledTimes(1));
-        mutations.doAttachmentRemoveTag.resolve();
-
+        mock.resolve();
         await waitFor(() => {
           expect(screen.queryByText('Laster innhold')).not.toBeInTheDocument();
         });
@@ -384,14 +399,21 @@ describe('File uploading components', () => {
 
     describe('editing', () => {
       it('should hide dropdown when updating', async () => {
-        const { mutations } = await renderWithTag({
+        const mock = mockDelayedTagUpdate();
+
+        await renderWithTag({
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
         });
         await selectTag();
 
-        expect(mutations.doAttachmentAddTag.mock).toHaveBeenCalledTimes(1);
+        expect(doUpdateAttachmentTags).toHaveBeenCalledTimes(1);
         expect(screen.getByText('Laster innhold')).toBeInTheDocument();
         expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+
+        mock.resolve();
+        await waitFor(() => {
+          expect(screen.queryByText('Laster innhold')).not.toBeInTheDocument();
+        });
       });
 
       it('should not disable dropdown in edit mode when not updating', async () => {
@@ -426,19 +448,26 @@ describe('File uploading components', () => {
           .querySelector('input') as HTMLInputElement;
         await userEvent.upload(dropZone, file);
 
-        await waitFor(() => expect(mutations.doAttachmentUploadOld.mock).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(mutations.doAttachmentUpload.mock).toHaveBeenCalledTimes(1));
         expect(screen.getByText('Laster innhold')).toBeInTheDocument();
         expect(screen.queryByRole('button', { name: 'Lagre' })).not.toBeInTheDocument();
       });
 
       it('should not show save button when attachment.updating=true', async () => {
-        const { mutations } = await renderWithTag({
+        const mock = mockDelayedTagUpdate();
+
+        await renderWithTag({
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
         });
         await selectTag();
 
-        expect(mutations.doAttachmentAddTag.mock).toHaveBeenCalledTimes(1);
+        expect(doUpdateAttachmentTags).toHaveBeenCalledTimes(1);
         expect(screen.queryByRole('button', { name: 'Lagre' })).not.toBeInTheDocument();
+
+        mock.resolve();
+        await waitFor(() => {
+          expect(screen.queryByText('Laster innhold')).not.toBeInTheDocument();
+        });
       });
 
       it('should automatically show attachments in edit mode for attachments without tags', async () => {
@@ -473,7 +502,7 @@ describe('File uploading components', () => {
         });
 
         expect(screen.getByRole('presentation', { name: /attachment-title/i }).textContent).toMatch(
-          'Dra og slipp eller let etter filTillatte filformater er: alle',
+          'Dra og slipp eller finn filTillatte filformater er: alle',
         );
       });
 
@@ -566,3 +595,17 @@ describe('File uploading components', () => {
   const renderWithTag = (props: Omit<Props<'FileUploadWithTag'>, 'type'> = {}) =>
     renderAbstract({ type: 'FileUploadWithTag', ...props });
 });
+
+function mockUploadResponse(newElement: IData, existingAttachments?: IData[]): DataPostResponse {
+  return {
+    newDataElementId: newElement.id,
+    instance: getInstanceDataMock((i) => {
+      if (existingAttachments) {
+        i.data.push(...existingAttachments);
+      }
+      i.data.push(newElement);
+    }),
+    newDataModels: [],
+    validationIssues: [],
+  };
+}

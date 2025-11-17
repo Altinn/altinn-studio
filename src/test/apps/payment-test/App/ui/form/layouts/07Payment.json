@@ -1,0 +1,29 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "navbar7",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "my-paymentSumary",
+        "type": "PaymentDetails",
+        "textResourceBindings": {
+          "title": "Oversikt over betaling",
+          "description": "Her er en oversikt over hva du skal betale for."
+        },
+        "mapping": {
+          "GoodsAndServicesProperties.Inventory.InventoryProperties": "paymentDetails"
+        }
+      },
+      {
+        "id": "next-button",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Til betaling"
+        }
+      }
+    ]
+  }
+}

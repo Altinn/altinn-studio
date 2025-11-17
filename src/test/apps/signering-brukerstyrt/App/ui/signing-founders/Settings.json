@@ -1,0 +1,7 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json",
+  "pages": {
+    "order": ["Side1"],
+    "pdfLayoutName": "pdf"
+  }
+}

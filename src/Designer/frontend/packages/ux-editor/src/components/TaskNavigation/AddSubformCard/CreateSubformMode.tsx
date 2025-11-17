@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
-import { StudioTextfield, StudioTabs, StudioNativeSelect } from '@studio/components-legacy';
-import { StudioButton, StudioParagraph, StudioCard, StudioSpinner } from '@studio/components';
+import { StudioTextfield } from '@studio/components-legacy';
+import {
+  StudioButton,
+  StudioParagraph,
+  StudioCard,
+  StudioSpinner,
+  StudioTabs,
+  StudioSelect,
+} from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './CreateSubformMode.module.css';
 import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
@@ -109,7 +116,7 @@ export const CreateSubformMode = ({
         onChange={(e) => handleSubformName(e.target.value)}
       />
       <StudioTabs
-        size='sm'
+        data-size='sm'
         defaultValue={Tabs.Choose}
         className={classes.subformTabs}
         onChange={handleChangeTab}
@@ -118,16 +125,15 @@ export const CreateSubformMode = ({
           <StudioTabs.Tab value={Tabs.Choose}>{t('general.select')}</StudioTabs.Tab>
           <StudioTabs.Tab value={Tabs.Create}>{t('general.create_new')}</StudioTabs.Tab>
         </StudioTabs.List>
-        <StudioTabs.Content value={Tabs.Choose} className={classes.tabContent}>
-          <StudioNativeSelect
+        <StudioTabs.Panel value={Tabs.Choose} className={classes.tabContent}>
+          <StudioSelect
             label={t('ux_editor.task_card.select_data_model')}
-            size='sm'
             onChange={(e) => handleDataModelName(e.target.value)}
           >
             {RenderDataModelOptions(dataModelIds)}
-          </StudioNativeSelect>
-        </StudioTabs.Content>
-        <StudioTabs.Content value={Tabs.Create} className={classes.tabContent}>
+          </StudioSelect>
+        </StudioTabs.Panel>
+        <StudioTabs.Panel value={Tabs.Create} className={classes.tabContent}>
           <StudioTextfield
             label={t('ux_editor.task_card.new_data_model')}
             value={newSubform.dataModelName}
@@ -135,7 +141,7 @@ export const CreateSubformMode = ({
             onChange={(e) => handleDataModelName(e.target.value, true)}
             error={dataModelError}
           />
-        </StudioTabs.Content>
+        </StudioTabs.Panel>
       </StudioTabs>
       <div className={classes.buttonContainer}>
         <StudioButton

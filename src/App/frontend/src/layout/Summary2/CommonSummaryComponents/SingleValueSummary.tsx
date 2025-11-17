@@ -12,7 +12,7 @@ type SingleValueSummaryProps = {
   title: React.ReactNode;
   errors?: BaseValidation[];
   targetBaseComponentId: string;
-  displayData?: string;
+  displayData?: string | React.ReactNode;
   hideEditButton?: boolean;
   multiline?: boolean;
   isCompact: boolean | undefined;

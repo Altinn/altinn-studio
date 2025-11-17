@@ -1,5 +1,5 @@
 import type {
-  CodeListData,
+  CodeListDataWithTextResources,
   CodeListReference,
   CodeListWithMetadata,
   TextResourceWithLanguage,
@@ -15,7 +15,7 @@ import {
 } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { mapToCodeListDataList } from './utils/mapToCodeListDataList';
-import { StudioPageError, StudioPageSpinner } from '@studio/components-legacy';
+import { StudioPageError, StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
@@ -100,7 +100,8 @@ function AppContentLibraryWithData({
 
   const handleUpload = useUploadOptionList(org, app);
 
-  const codeListDataList: CodeListData[] = mapToCodeListDataList(optionListDataList);
+  const codeListDataList: CodeListDataWithTextResources[] =
+    mapToCodeListDataList(optionListDataList);
 
   const codeListsUsages: CodeListReference[] = mapToCodeListUsages(optionListUsages);
 

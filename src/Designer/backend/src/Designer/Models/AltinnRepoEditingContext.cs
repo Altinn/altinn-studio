@@ -34,5 +34,7 @@ namespace Altinn.Studio.Designer.Models
         {
             return new AltinnRepoEditingContext(org, repo, developer);
         }
+
+        public string Path => System.IO.Path.Join(Developer, Org, Repo);
     }
 }

@@ -1,0 +1,394 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://altinn-repositories:3000/ttd/component-library/App/models/Model.schema.json",
+  "info": {
+    "rootNode": ""
+  },
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "seres": "http://seres.no/xsd/forvaltningsdata"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "@xsdRootElement": "Model",
+  "type": "object",
+  "required": [
+    "streetnr",
+    "postnr"
+  ],
+  "$defs": {
+    "GridExample": {
+      "type": "object",
+      "properties": {
+        "ExampleDate": {
+          "type": "string"
+        },
+        "ExampleDropdown": {
+          "type": "string"
+        },
+        "ExampleMultiSelect": {
+          "type": "string"
+        },
+        "ExampleTextArea": {
+          "type": "string"
+        },
+        "ExampleInput": {
+          "type": "string",
+          "maxLength": 7
+        },
+        "ExampleRadio": {
+          "type": "string"
+        },
+        "ExampleCheckbox": {
+          "type": "string"
+        },
+        "ExampleInputTwo": {
+          "type": "string"
+        },
+        "ExampleInputThree": {
+          "type": "string"
+        },
+        "ExampleRadioTwo": {
+          "type": "string"
+        },
+        "ExampleRadioThree": {
+          "type": "string"
+        },
+        "ExampleCheckboxTwo": {
+          "type": "string"
+        },
+        "ExampleCheckboxThree": {
+          "type": "string"
+        }
+      }
+    },
+    "RepeatingGroupExample": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "points": {
+          "type": "integer",
+          "maximum": 100
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    "RepeatingGroupWithNestedGroup": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "points": {
+          "type": "integer"
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "cars": {
+          "type": "array",
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/NestedGroup"
+          }
+        }
+      }
+    },
+    "NestedGroup": {
+      "type": "object",
+      "properties": {
+        "carBrand": {
+          "type": "string"
+        },
+        "carModel": {
+          "type": "string"
+        },
+        "modelYear": {
+          "type": "integer"
+        }
+      }
+    },
+    "LikertQuestion": {
+      "type": "object",
+      "properties": {
+        "Id": {
+          "type": "string"
+        },
+        "Answer": {
+          "type": "string"
+        }
+      }
+    },
+    "Numbers": {
+      "type": "object",
+      "title": "",
+      "properties": {
+        "TotalGjeld": {
+          "type": "number"
+        },
+        "Gjeldsfordeling": {
+          "type": "object",
+          "properties": {
+            "Prosent": {
+              "type": "number",
+              "maximum": 100,
+              "minimum": 0
+            },
+            "Belop": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    }
+  },
+  "properties": {
+    "inputfield": {
+      "type": "string"
+    },
+    "shortAnswerInput": {
+      "type": "string"
+    },
+    "longAnswerInput": {
+      "type": "string"
+    },
+    "radioButtonInput": {
+      "type": "string"
+    },
+    "checkboxesInput": {
+      "type": "string",
+      "pattern": "[A-Za-z,æøå]*(kjoringISkogen)[A-Za-z,æøå]*"
+    },
+    "nestedInput": {
+      "type": "string"
+    },
+    "nestedInput2": {
+      "type": "string"
+    },
+    "nestedInput3": {
+      "type": "string"
+    },
+    "streetnr": {
+      "type": "string"
+    },
+    "postnr": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "co": {
+      "type": "string"
+    },
+    "street": {
+      "type": "string"
+    },
+    "GridExample": {
+      "$ref": "#/$defs/GridExample"
+    },
+    "dropdown": {
+      "type": "string"
+    },
+    "multipleSelect": {
+      "type": "string"
+    },
+    "repeatingGroup": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/RepeatingGroupExample"
+      }
+    },
+    "nestedRepeatingGroup": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "$ref": "#/$defs/RepeatingGroupWithNestedGroup"
+      }
+    },
+    "list": {
+      "type": "string"
+    },
+    "LikertExample": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/LikertQuestion"
+      }
+    },
+    "DatepickerExample": {
+      "type": "string"
+    },
+    "mapComponent": {
+      "type": "string"
+    },
+    "numberPercentage": {
+      "type": "integer",
+      "maximum": 100
+    },
+    "anyNumber": {
+      "type": "number"
+    },
+    "checkboxForCard": {
+      "type": "string"
+    },
+    "Numbers": {
+      "$ref": "#/$defs/Numbers"
+    },
+    "ListGroupExample": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "age": {
+            "type": "integer"
+          },
+          "profession": {
+            "type": "string"
+          },
+          "surname": {
+            "type": "string"
+          },
+          "Internal": {
+            "type": "object",
+            "properties": {
+              "isChecked": {
+                "type": "boolean"
+              }
+            }
+          },
+          "Name": {
+            "type": "object",
+            "properties": {
+              "firstname": {
+                "type": "string"
+              },
+              "id": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "checkboxesPersons": {
+      "type": "string"
+    },
+    "Dates": {
+      "type": "object",
+      "properties": {
+        "SetDate": {
+          "type": "string"
+        },
+        "String": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "DateTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "DateOnly": {
+          "type": "string",
+          "format": "date"
+        },
+        "FormatStringBackend": {
+          "type": "string"
+        },
+        "FormatDateTimeBackend": {
+          "type": "string"
+        },
+        "FormatDateOnlyBackend": {
+          "type": "string"
+        }
+      }
+    },
+    "CheckboxesGroupExample": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "age": {
+            "type": "integer"
+          },
+          "profession": {
+            "type": "string"
+          },
+          "surname": {
+            "type": "string"
+          },
+          "Internal": {
+            "type": "object",
+            "properties": {
+              "isChecked": {
+                "type": "boolean"
+              }
+            }
+          },
+          "Name": {
+            "type": "object",
+            "properties": {
+              "firstname": {
+                "type": "string"
+              },
+              "id": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "MultiselectGroupExample": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "age": {
+            "type": "integer"
+          },
+          "profession": {
+            "type": "string"
+          },
+          "surname": {
+            "type": "string"
+          },
+          "Internal": {
+            "type": "object",
+            "properties": {
+              "isChecked": {
+                "type": "boolean"
+              }
+            }
+          },
+          "Name": {
+            "type": "object",
+            "properties": {
+              "firstname": {
+                "type": "string"
+              },
+              "id": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "DatepickerMaxDateExample": {
+      "type": "string"
+    },
+    "DatepickerMinDateExample": {
+      "type": "string"
+    }
+  }
+}

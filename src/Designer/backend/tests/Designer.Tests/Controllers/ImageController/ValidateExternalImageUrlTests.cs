@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
@@ -50,11 +51,21 @@ public class ValidateExternalImageUrlTests(
     [Fact]
     public async Task ValidateExternalImageUrl_WhenUrlIsNotFound_ReturnsNotValidIm()
     {
-        string path =
-            $"{VersionPrefix}/{Org}/{EmptyApp}/images/validate?url=http://localhost:38929/notvalidurl";
+        _mockServerFixture.MockApi.Reset();
+        IRequestBuilder notFoundRequest = Request.Create().UsingHead();
+        IResponseBuilder notFoundResponse = Response
+            .Create()
+            .WithStatusCode(404);
+
+        _mockServerFixture.MockApi.Given(notFoundRequest).RespondWith(notFoundResponse);
+
+        string unreachableUrl = _mockServerFixture.MockApi.Url + "/notvalidurl";
+        string path = $"{VersionPrefix}/{Org}/{EmptyApp}/images/validate?url={Uri.EscapeDataString(unreachableUrl)}";
+
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, path);
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string validationResult = await response.Content.ReadAsStringAsync();
+
         Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
         Assert.Equal(ImageUrlValidationResult.NotValidImage.ToString(), validationResult.Trim('"'));
     }

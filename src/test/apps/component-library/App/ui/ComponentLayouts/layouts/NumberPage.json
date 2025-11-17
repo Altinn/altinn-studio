@@ -1,0 +1,150 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": false,
+    "layout": [
+      {
+        "id": "NumberPage-NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "NumberPage-Header",
+        "type": "Header",
+        "size": "h2",
+        "textResourceBindings": {
+          "title": "Number"
+        }
+      },
+
+      {
+        "id": "totalDebt",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "Numbers.TotalGjeld"
+        },
+        "textResourceBindings": {
+          "title": "Total Gjeld"
+        },
+        "formatting": {
+          "currency": "NOK"
+        },
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "creditPercentage",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "Numbers.Gjeldsfordeling.Prosent"
+        },
+        "textResourceBindings": {
+          "title": "Kredittkort prosent"
+        },
+        "formatting": {
+          "unit": "percent"
+        },
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "number1",
+        "type": "Number",
+        "textResourceBindings": {
+          "title": "Total gjeld"
+        },
+        "value": ["dataModel", "Numbers.TotalGjeld"],
+        "direction": "horizontal",
+        "formatting": {
+          "currency": "NOK",
+          "position": "suffix",
+          "number": {
+            "thousandSeparator": " "
+          }
+        },
+        "grid": {
+          "xs": 12
+        }
+      },
+      {
+        "id": "number2",
+        "type": "Number",
+        "textResourceBindings": {
+          "title": "Statisk verdi som tall"
+        },
+        "value": 2000,
+        "direction": "horizontal",
+        "formatting": {
+          "currency": "NOK",
+          "position": "suffix",
+          "number": {
+            "thousandSeparator": " "
+          }
+        },
+        "grid": {
+          "xs": 12
+        }
+      },
+      {
+        "id": "number3",
+        "type": "Number",
+        "textResourceBindings": {
+          "title": "Kredittkort prosent",
+          "description": ""
+        },
+        "value": ["dataModel", "Numbers.Gjeldsfordeling.Prosent"],
+        "direction": "horizontal",
+        "formatting": {
+          "unit": "percent",
+          "position": "suffix",
+          "number": {
+            "thousandSeparator": " "
+          }
+        },
+        "grid": {
+          "xs": 12
+        }
+      },
+      {
+        "id": "number4",
+        "type": "Number",
+        "textResourceBindings": {
+          "title": "Statisk verdi med desimal",
+          "description": "Dette er en beskrivelse",
+          "help": "Dette er en helptext"
+        },
+        "value": 20000.2,
+        "direction": "horizontal",
+        "formatting": {
+          "currency": "NOK",
+          "position": "suffix",
+          "number": {
+            "thousandSeparator": " "
+          }
+        },
+        "grid": {
+          "xs": 12
+        }
+      },
+      {
+        "type": "Cards",
+        "id": "number-Card",
+        "color": "subtle",
+        "cards": [
+          {
+            "title": "Nummerkort",
+            "description": "",
+            "children": ["number1", "number2", "number3", "number4"]
+          }
+        ]
+      },
+      {
+        "id": "Number-NavigationButtons",
+        "type": "NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {}
+      }
+    ]
+  }
+}

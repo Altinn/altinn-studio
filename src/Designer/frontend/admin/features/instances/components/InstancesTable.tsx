@@ -1,9 +1,7 @@
-import { StudioButton, StudioSpinner, StudioTable } from '@studio/components';
+import { StudioButton, StudioSpinner, StudioTable, StudioError } from '@studio/components';
 import classes from './InstancesTable.module.css';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioError } from '@studio/components-legacy';
-import { Link } from 'react-router-dom';
 import { useAppInstancesQuery } from 'admin/hooks/queries/useAppInstancesQuery';
 import type { SimpleInstance } from 'admin/types/InstancesResponse';
 import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
@@ -15,6 +13,7 @@ type InstancesTableProps = {
   app: string;
   currentTask?: string;
   processIsComplete?: boolean;
+  archiveReference?: string;
 };
 
 export const InstancesTable = ({
@@ -23,6 +22,7 @@ export const InstancesTable = ({
   app,
   currentTask,
   processIsComplete,
+  archiveReference,
 }: InstancesTableProps) => {
   const { data, status, fetchNextPage, hasNextPage } = useAppInstancesQuery(
     org,
@@ -30,6 +30,7 @@ export const InstancesTable = ({
     app,
     currentTask,
     processIsComplete,
+    archiveReference,
   );
   const { t } = useTranslation();
 
@@ -79,7 +80,8 @@ const InstancesTableWithData = ({
         {instances.map((instance) => (
           <StudioTable.Row key={instance.id}>
             <StudioTable.Cell>
-              <Link to={`${instance.id}`}>{instance.id}</Link>
+              {/* <Link to={`${instance.id}`}>{instance.id}</Link> */}
+              {instance.id}
             </StudioTable.Cell>
             <StudioTable.Cell>{formatDateAndTime(instance.createdAt)}</StudioTable.Cell>
             <StudioTable.Cell>
@@ -108,15 +110,13 @@ const InstancesTableWithData = ({
 // TODO: These may not be reducable to a single status?
 function getStatus(instance: SimpleInstance) {
   switch (true) {
-    case instance.isSoftDeleted:
-    case instance.isHardDeleted:
+    case instance.softDeletedAt != null:
+    case instance.hardDeletedAt != null:
       return 'Slettet';
-    case instance.isConfirmed:
+    case instance.confirmedAt != null:
       return 'Bekreftet';
-    case instance.isArchived:
+    case instance.archivedAt != null:
       return 'Arkivert';
-    case instance.isComplete:
-      return 'Levert';
     default:
       return 'Aktiv';
   }

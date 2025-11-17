@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://altinn-repositories:3000/ttd/multiple-datamodels-test/App/models/modell2.schema.json",
+  "info": {
+    "rootNode": ""
+  },
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "seres": "http://seres.no/xsd/forvaltningsdata"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "@xsdRootElement": "modell2",
+  "type": "object",
+  "required": [
+    "tekstfelt",
+    "postnummer"
+  ],
+  "properties": {
+    "tekstfelt": {
+      "type": "string",
+      "maxLength": 10
+    },
+    "postnummer": {
+      "type": "string"
+    },
+    "sektor": {
+      "type": "string"
+    },
+    "personer": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "fornavn": {
+            "type": "string"
+          },
+          "etternavn": {
+            "type": "string"
+          },
+          "alder": {
+            "type": "integer"
+          },
+          "fødselsdato": {
+            "type": "string",
+            "format": "date",
+            "formatMinimum": "1900-01-01"
+          },
+          "legitimasjon": {
+            "type": "string"
+          },
+          "vedlegg": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string"
+          },
+          "Answer": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "randomchar": {
+      "type": "string"
+    },
+    "shouldsucceed": {
+      "type": "string"
+    },
+    "selectedperson": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "age": {
+          "type": "string"
+        },
+        "profession": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

@@ -1,6 +1,5 @@
 import React from 'react';
-import { StudioDisplayTile } from '@studio/components-legacy';
-import { StudioSectionHeader } from '@studio/components';
+import { StudioSectionHeader, StudioDisplayTile } from '@studio/components';
 import { useBpmnContext } from '../../contexts/BpmnContext';
 import { ConfigIcon } from '../ConfigPanel/ConfigContent/ConfigIcon';
 import { getConfigTitleHelpTextKey, getConfigTitleKey } from '../../utils/configPanelUtils';

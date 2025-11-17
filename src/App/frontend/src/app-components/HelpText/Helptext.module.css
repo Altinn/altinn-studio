@@ -1,12 +1,9 @@
 .helpTextButton {
   background-color: transparent;
   border-radius: 50px;
-  padding: 0 !important;
+  padding: 0;
   cursor: pointer;
-  display: flex;
   border: none;
-  min-height: 0;
-  height: fit-content;
 }
 
 @media print {
@@ -21,10 +18,8 @@
 
 .helpText-icon {
   color: var(--ds-color-accent-base-default);
-  width: var(--ds-size-9);
-  height: var(--ds-size-9);
-  min-width: var(--ds-size-9);
-  min-height: var(--ds-size-9);
+  height: 26px;
+  width: 26px;
 }
 
 .helpTextButton:where(:hover, :focus, [data-state^='open']) > .helpText-icon {
@@ -38,29 +33,16 @@
 .helpTextContent {
   font: var(--ds-typography-paragraph-md);
   font-family: inherit;
-  width: moz-fit-content;
+  width: fit-content;
   max-width: 700px;
 }
 
-.helpText-sm .helpText-icon {
-  width: var(--ds-size-6);
-  height: var(--ds-size-6);
-}
-
-.helpText-md .helpText-icon {
-  width: var(--ds-size-7);
-  height: var(--ds-size-7);
-}
-
-.helpText-lg .helpText-icon {
-  width: var(--ds-size-8);
-  height: var(--ds-size-8);
-}
 .helpText-focus:focus-visible {
   outline: var(--ds-border-width-focus) solid var(--ds-color-neutral-text-default);
   outline-offset: var(--ds-border-width-focus);
   box-shadow: 0 0 0 var(--ds-border-width-focus) var(--ds-color-neutral-background-default);
 }
+
 .screenReaderOnly {
   border: 0;
   clip: rect(0 0 0 0);

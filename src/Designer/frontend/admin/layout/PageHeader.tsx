@@ -9,7 +9,8 @@ import { useTranslation } from 'react-i18next';
 import type { User } from 'app-shared/types/Repository';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useParams } from 'react-router-dom';
+import classes from './PageHeader.module.css';
 
 type PageHeaderProps = {
   org: Org;
@@ -38,6 +39,7 @@ export const PageHeader = ({ org, user }: PageHeaderProps): ReactElement => {
 
 const CenterContent = (): ReactElement => {
   const { t } = useTranslation();
+  const { org } = useParams();
 
   return (
     <StudioPageHeader.Center>
@@ -45,9 +47,28 @@ const CenterContent = (): ReactElement => {
         color='dark'
         variant='regular'
         renderLink={(props) => (
-          <NavLink to={'/'} {...props}>
-            <span>{t('top_menu.about')}</span>
+          <a href={`/dashboard/app-dashboard/${org}`} {...props}>
+            <span>{t('dashboard.header_item_dashboard')}</span>
+          </a>
+        )}
+      />
+      <StudioPageHeader.HeaderLink
+        color='dark'
+        variant='regular'
+        renderLink={(props) => (
+          <NavLink to={`/${org}/apps`} {...props}>
+            <span className={classes.active}>{t('Publiserte apper')}</span>
           </NavLink>
+        )}
+      />
+      <StudioPageHeader.HeaderLink
+        color='dark'
+        variant='regular'
+        isBeta={true}
+        renderLink={(props) => (
+          <a href={`/dashboard/org-library/${org}`} {...props}>
+            <span>{t('dashboard.header_item_library')}</span>
+          </a>
         )}
       />
     </StudioPageHeader.Center>
