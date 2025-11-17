@@ -14,7 +14,16 @@ class NoResultsError extends Error {}
 
 const taskNames = { Task_1: 'Utfylling' };
 
-function makeInstance(org, app, currentTask, isComplete, isConfirmed, archiveReference = null) {
+function makeInstance(
+  org,
+  app,
+  currentTask,
+  isComplete,
+  isConfirmed,
+  isSoftDeleted,
+  isHardDeleted,
+  archiveReference = null,
+) {
   // Check illogical filters
 
   if (
@@ -33,7 +42,29 @@ function makeInstance(org, app, currentTask, isComplete, isConfirmed, archiveRef
     throw new NoResultsError();
   }
 
+  if (
+    isSoftDeleted === true &&
+    (isConfirmed === false || isComplete === false || currentTask != null)
+  ) {
+    throw new NoResultsError();
+  }
+
+  if (
+    isHardDeleted === true &&
+    (isConfirmed === false || isComplete === false || currentTask != null)
+  ) {
+    throw new NoResultsError();
+  }
+
+  if (isHardDeleted === true && isSoftDeleted === true) {
+    throw new NoResultsError();
+  }
+
   // Perform logical constraints
+
+  if (isSoftDeleted === true || isHardDeleted === true) {
+    isConfirmed = true;
+  }
 
   if (isConfirmed === true) {
     isComplete = true;
@@ -74,8 +105,9 @@ function makeInstance(org, app, currentTask, isComplete, isConfirmed, archiveRef
 
   // Instance is completed
   isConfirmed = isConfirmed == null ? Math.random() < 0.5 : isConfirmed;
-  const isSoftDeleted = isConfirmed && Math.random() < 0.5;
-  const isHardDeleted = isConfirmed && !isSoftDeleted && Math.random() < 0.5;
+  isSoftDeleted = isConfirmed && isSoftDeleted == null ? Math.random() < 0.5 : isSoftDeleted;
+  isHardDeleted =
+    isConfirmed && !isSoftDeleted && isHardDeleted == null ? Math.random() < 0.5 : isHardDeleted;
 
   return {
     id,
@@ -106,6 +138,8 @@ export const storageInstancesRoute = (req, res) => {
   const currentTask = req.query?.['process.currentTask'];
   const isComplete = parseBoolParam(req.query?.['process.isComplete']);
   const isConfirmed = parseBoolParam(req.query?.['confirmed']);
+  const isSoftDeleted = parseBoolParam(req.query?.['status.isSoftDeleted']);
+  const isHardDeleted = parseBoolParam(req.query?.['status.isHardDeleted']);
   const archiveReference = req.query?.['archiveReference'];
   const size = req.query?.['size'] ?? 10;
 
@@ -114,14 +148,33 @@ export const storageInstancesRoute = (req, res) => {
       res.json({
         count: 1,
         next: null,
-        instances: [makeInstance(org, app, currentTask, isComplete, isConfirmed, archiveReference)],
+        instances: [
+          makeInstance(
+            org,
+            app,
+            currentTask,
+            isComplete,
+            isConfirmed,
+            isSoftDeleted,
+            isHardDeleted,
+            archiveReference,
+          ),
+        ],
       });
     } else {
       res.json({
         count: size,
         next: 'next',
         instances: Array.from({ length: size }, () =>
-          makeInstance(org, app, currentTask, isComplete, isConfirmed),
+          makeInstance(
+            org,
+            app,
+            currentTask,
+            isComplete,
+            isConfirmed,
+            isSoftDeleted,
+            isHardDeleted,
+          ),
         ),
       });
     }

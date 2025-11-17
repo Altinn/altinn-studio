@@ -16,6 +16,8 @@ type InstancesTableProps = {
   processIsComplete?: boolean;
   archiveReference?: string;
   confirmed?: boolean;
+  isSoftDeleted?: boolean;
+  isHardDeleted?: boolean;
 };
 
 export const InstancesTable = ({
@@ -26,6 +28,8 @@ export const InstancesTable = ({
   processIsComplete,
   archiveReference,
   confirmed,
+  isSoftDeleted,
+  isHardDeleted,
 }: InstancesTableProps) => {
   const { data, status, fetchNextPage, hasNextPage } = useAppInstancesQuery(
     org,
@@ -35,6 +39,8 @@ export const InstancesTable = ({
     processIsComplete,
     archiveReference,
     confirmed,
+    isSoftDeleted,
+    isHardDeleted,
   );
   const { t } = useTranslation();
 

@@ -44,6 +44,8 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
         bool? processIsCompleteFilter,
         string? archiveReferenceFilter,
         bool? confirmedFilter,
+        bool? isSoftDeletedFilter,
+        bool? isHardDeletedFilter,
         CancellationToken ct
     )
     {
@@ -82,6 +84,24 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
                 uri,
                 "confirmed",
                 confirmedFilter.Value.ToString().ToLowerInvariant()
+            );
+        }
+
+        if (isSoftDeletedFilter != null)
+        {
+            uri = QueryHelpers.AddQueryString(
+                uri,
+                "status.isSoftDeleted",
+                isSoftDeletedFilter.Value.ToString().ToLowerInvariant()
+            );
+        }
+
+        if (isHardDeletedFilter != null)
+        {
+            uri = QueryHelpers.AddQueryString(
+                uri,
+                "status.isHardDeleted",
+                isHardDeletedFilter.Value.ToString().ToLowerInvariant()
             );
         }
 

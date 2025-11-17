@@ -21,6 +21,8 @@ public interface IAltinnStorageInstancesClient
         bool? processIsCompleteFilter,
         string? archiveReferenceFilter,
         bool? confirmedFilter,
+        bool? isSoftDeletedFilter,
+        bool? isHardDeletedFilter,
         CancellationToken ct
     );
 }

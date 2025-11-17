@@ -17,6 +17,8 @@ export const Instances = () => {
   const [currentTask, setCurrentTask] = useQueryParamState<string>('currentTask', undefined);
   const [isComplete, setIsComplete] = useQueryParamState<boolean>('isComplete', undefined);
   const [isConfirmed, setIsConfirmed] = useQueryParamState<boolean>('isConfirmed', undefined);
+  const [isSoftDeleted, setIsSoftDeleted] = useQueryParamState<boolean>('isSoftDeleted', undefined);
+  const [isHardDeleted, setIsHardDeleted] = useQueryParamState<boolean>('isHardDeleted', undefined);
 
   return (
     <div>
@@ -72,6 +74,26 @@ export const Instances = () => {
             { label: 'Nei', value: false },
           ]}
         />
+        <StatusFilter
+          label='Slettet'
+          value={isSoftDeleted}
+          setValue={setIsSoftDeleted}
+          options={[
+            { label: 'Alle', value: undefined },
+            { label: 'Ja', value: true },
+            { label: 'Nei', value: false },
+          ]}
+        />
+        <StatusFilter
+          label='Slettet permanent'
+          value={isHardDeleted}
+          setValue={setIsHardDeleted}
+          options={[
+            { label: 'Alle', value: undefined },
+            { label: 'Ja', value: true },
+            { label: 'Nei', value: false },
+          ]}
+        />
       </div>
       <InstancesTable
         org={org}
@@ -81,6 +103,8 @@ export const Instances = () => {
         processIsComplete={isComplete}
         archiveReference={archiveReference}
         confirmed={isConfirmed}
+        isSoftDeleted={isSoftDeleted}
+        isHardDeleted={isHardDeleted}
       />
     </div>
   );
