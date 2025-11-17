@@ -5,3 +5,4 @@ resources:
   - altinn-repositories.yaml
   - altinn-loadbalancer.yaml
   - kuberneteswrapper.yaml
+  - gitea-runners.yaml
