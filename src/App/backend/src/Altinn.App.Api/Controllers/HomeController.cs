@@ -115,7 +115,7 @@ public class HomeController : Controller
         {
             var statelessAppData = await _initialDataService.GetInitialData(org, app);
             var statelessApphtml = GenerateHtml(org, app, statelessAppData);
-            return Content(statelessApphtml);
+            return Content(statelessApphtml, "text/html; charset=utf-8");
         }
 
         var currentAuth = _authenticationContext.Current;
