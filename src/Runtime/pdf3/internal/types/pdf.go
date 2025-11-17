@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 )
@@ -214,24 +213,6 @@ func RequestTimeout() time.Duration {
 // This is the maximum time users can configure for waiting for page elements.
 func MaxWaitForTimeout() time.Duration {
 	return time.Duration(MaxTimeoutMs) * time.Millisecond
-}
-
-// BrowserRestartInterval returns the interval for periodic browser restarts.
-// Reads from RUNTIME_PDF3_BROWSER_RESTART_INTERVAL environment variable.
-// Defaults to 30 minutes if not set or invalid.
-// Set to "0" to disable periodic restarts.
-func BrowserRestartInterval() time.Duration {
-	envVal := os.Getenv("RUNTIME_PDF3_BROWSER_RESTART_INTERVAL")
-	if envVal == "" {
-		return 30 * time.Minute
-	}
-
-	duration, err := time.ParseDuration(envVal)
-	if err != nil {
-		return 30 * time.Minute
-	}
-
-	return duration
 }
 
 // SessionDrainTimeout is the maximum time to wait for an active request to complete

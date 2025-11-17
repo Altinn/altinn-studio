@@ -7,11 +7,12 @@
     "prettier": "3.6.2"
   },
   "lint-staged": {
-    "src/App/frontend/**/*.{js,jsx,ts,tsx}": [
+    "./src/App/frontend/**/*.{js,jsx,ts,tsx}": [
       "./scripts/pre-commit-check-for-skipped-tests",
       "yarn --cwd src/App/frontend eslint --cache --fix"
     ],
-    "src/App/frontend/**/*.json": "yarn --cwd src/App/frontend eslint --cache --fix",
+    "./src/App/frontend/**/*.json": "yarn --cwd src/App/frontend eslint --cache --fix",
+    "./src/App/frontend/**/*.{css,md}": "prettier -w",
     "*{js,jsx,tsx,ts,css,md}": "prettier -w",
     "./src/Designer/frontend/language/src/*.json": "yarn run sort-texts"
   },
@@ -24,7 +25,8 @@
     "codestyle:fix": "yarn workspace studio-designer-frontend codestyle:fix",
     "setup": "husky && node src/Designer/development/setup.js && yarn run git:ignore-revs",
     "sort-texts": "yarn workspace @altinn-studio/language run sort",
-    "start-app-development": "yarn workspace app-development start"
+    "start-app-development": "yarn workspace app-development start",
+    "prepare": "husky"
   },
   "syncpack": {
     "semverRange": ""
