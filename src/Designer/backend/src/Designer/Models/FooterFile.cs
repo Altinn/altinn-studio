@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using JetBrains.Annotations;
 
 namespace Altinn.Studio.Designer.Models;
+
 public class FooterFile
 {
     [JsonPropertyName("$schema")]

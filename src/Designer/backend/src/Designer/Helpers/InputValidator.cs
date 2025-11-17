@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 
 namespace Altinn.Studio.Designer.Helpers;
+
 public static partial class InputValidator
 {
 
