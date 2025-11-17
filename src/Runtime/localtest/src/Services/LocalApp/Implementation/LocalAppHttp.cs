@@ -52,11 +52,10 @@ namespace LocalTest.Services.LocalApp.Implementation
             // Try to get registered app first
             if (appId != null)
             {
-                var registration = _appRegistryService.GetRegistration(appId);
-                if (registration != null)
+                var appUrl = _appRegistryService.GetUrl(appId);
+                if (appUrl != null)
                 {
-                    var host = registration.Hostname.Contains(':') ? $"[{registration.Hostname}]" : registration.Hostname;
-                    client.BaseAddress = new Uri($"http://{host}:{registration.Port}");
+                    client.BaseAddress = new Uri(appUrl);
                     return client;
                 }
             }
@@ -77,7 +76,21 @@ namespace LocalTest.Services.LocalApp.Implementation
         }
         public async Task<Application?> GetApplicationMetadata(string? appId)
         {
-            appId = appId ?? "dummyOrg/dummyApp";
+            // When the AppPathSelection is null, check if there is exactly one app registered. If there are, that's
+            // the default one (not the one on port 5005)
+            if (string.IsNullOrWhiteSpace(appId))
+            {
+                var registeredApps = _appRegistryService.GetAll();
+                if (registeredApps.Count == 1)
+                {
+                    appId = registeredApps.First().Value.AppId;
+                }
+            }
+
+            // This works because we call with checkOrgApp=false later, and when the app is running on port 5005 it will
+            // respond with the correct org/app id. If, however, the app is a registered one it runs on a dynamic port,
+            // and so we have to look it up from the registry instead.
+            appId ??= "dummyOrg/dummyApp";
             var content = await _cache.GetOrCreateAsync(APPLICATION_METADATA_CACHE_KEY + appId, async cacheEntry =>
             {
                 // Cache with very short duration to not slow down page load, where this file can be accessed many many times
@@ -214,7 +227,7 @@ namespace LocalTest.Services.LocalApp.Implementation
                 // Also try default app (port 5005) as fallback
                 try
                 {
-                    var defaultAppMetadata = await GetApplicationMetadata(null);
+                    var defaultAppMetadata = await GetApplicationMetadata("dummyOrg/dummyApp");
                     if (defaultAppMetadata != null)
                     {
                         var defaultResult = await FetchAndMergeTestData(defaultAppMetadata.Id, $"{defaultAppMetadata.Id}/testData.json", merged);
