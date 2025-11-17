@@ -2,7 +2,7 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
   name: grafana-manifests-repo
-  namespace: grafana
+  namespace: runtime-grafana
 spec:
   interval: 5m
   provider: azure
@@ -15,7 +15,7 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: grafana-manifests
-  namespace: grafana
+  namespace: runtime-grafana
 spec:
   targetNamespace: grafana
   interval: 5m
@@ -28,4 +28,4 @@ spec:
   sourceRef:
     kind: OCIRepository
     name: grafana-manifests-repo
-    namespace: grafana
+    namespace: runtime-grafana
