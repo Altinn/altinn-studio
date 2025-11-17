@@ -48,7 +48,7 @@ jobs:
           cd src/test/apps/component-library/App
           dotnet build --restore
 
-          wait $YARN_BUILD_PID
+          wait $YARN_BUILD_PID || exit 1
 
       - name: Start localtest and component-library
         run: |
@@ -69,6 +69,7 @@ jobs:
             echo "✅ localtest is ready!"
           else
             echo "❌ localtest failed to start within 2 minutes."
+            exit 1
           fi
 
           # Wait for app readiness
