@@ -3,7 +3,7 @@ name: Infra - deploy studio syncroot
 on:
   push:
     branches:
-      - feat/studio-syncroot
+      - main
     paths:
       - infra/studio/syncroot/**
       - .github/workflows/deploy-studio-syncroot.yaml
