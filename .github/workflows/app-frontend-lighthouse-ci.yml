@@ -5,9 +5,11 @@ on:
       - 'main'
     paths:
       - 'src/App/frontend/**'
+      - '.github/workflows/app-frontend-lighthouse-ci.yml'
   pull_request:
     paths:
       - 'src/App/frontend/**'
+      - '.github/workflows/app-frontend-lighthouse-ci.yml'
 jobs:
   lighthouse:
     name: Lighthouse CI
