@@ -396,14 +396,23 @@ describe('useCreateBranchFlow', () => {
     });
 
     it('should call onSuccess callback after successful checkout', async () => {
-      const createBranch = jest.fn().mockImplementation(() => Promise.resolve(mockBranch));
-      const checkoutBranch = jest.fn().mockImplementation(() => Promise.resolve(mockRepoStatus));
+      const createBranch = jest.fn().mockResolvedValue(mockBranch);
+      const checkoutBranch = jest.fn().mockResolvedValue(mockRepoStatus);
 
-      renderHookWithProviders(() => useCreateBranchFlow({ org, app, onSuccess: mockOnSuccess }), {
-        queries: { createBranch, checkoutBranch },
+      const { result } = renderHookWithProviders(
+        () => useCreateBranchFlow({ org, app, onSuccess: mockOnSuccess }),
+        { queries: { createBranch, checkoutBranch } },
+      );
+
+      act(() => {
+        result.current.setBranchName('feature/test');
       });
 
-      await waitFor(() => expect(mockOnSuccess).not.toHaveBeenCalled());
+      act(() => {
+        result.current.handleCreate();
+      });
+
+      await waitFor(() => expect(mockOnSuccess).toHaveBeenCalled());
     });
 
     it('should set error when checkout fails with other error', async () => {
