@@ -196,7 +196,7 @@ public class GetSharedResources(WebApplicationFactory<Program> factory) : Design
         HttpResponseMessage response = await HttpClient.GetAsync(apiUrl);
 
         // Assert
-        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
 
         ProblemDetails problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>();
         Assert.Equal(StatusCodes.Status404NotFound, problemDetails.Status);
