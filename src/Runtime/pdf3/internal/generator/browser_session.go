@@ -18,6 +18,7 @@ import (
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/browser"
 	"altinn.studio/pdf3/internal/cdp"
+	"altinn.studio/pdf3/internal/config"
 	"altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
@@ -46,11 +47,18 @@ type browserSession struct {
 func newBrowserSession(logger *slog.Logger, id int) (*browserSession, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	sessionLogger := logger.With("id", id)
-	sessionLogger.Info("Starting browser session")
+	cfg := config.ReadConfig()
+	sessionLogger.Info("Starting browser session", "queueSize", cfg.QueueSize)
+	var queue chan workerRequest
+	if cfg.QueueSize > 0 {
+		queue = make(chan workerRequest, cfg.QueueSize)
+	} else {
+		queue = make(chan workerRequest)
+	}
 	w := &browserSession{
 		id:     id,
 		logger: sessionLogger,
-		queue:  make(chan workerRequest),
+		queue:  queue,
 		state:  atomic.Uint32{},
 		ctx:    ctx,
 		cancel: cancel,
@@ -98,7 +106,6 @@ func newBrowserSession(logger *slog.Logger, id int) (*browserSession, error) {
 // Returns true if the request was enqueued, false otherwise
 func (w *browserSession) tryEnqueue(req workerRequest) bool {
 	select {
-	// Queue is unbuffered, so if it isn't waiting here yet just return false
 	case w.queue <- req:
 		return true
 	default:
@@ -938,9 +945,13 @@ func (w *browserSession) close() {
 	w.logger.Info("Worker closed")
 }
 
-// isProcessing returns true if a request is currently being processed
+// isProcessing returns true if a request is currently being processed, or if there is a queue
 func (w *browserSession) isProcessing() bool {
-	return w.currentRequest.Load() != nil
+	// NOTE: this should not be racy because we only call this when
+	// the sesions has been "swapped away" during session recycling..
+	// See `waitForDrain` below and `periodicRestart` in the generator
+	queued := len(w.queue)
+	return w.currentRequest.Load() != nil || queued > 0
 }
 
 // waitForDrain waits for active request to complete, up to timeout
