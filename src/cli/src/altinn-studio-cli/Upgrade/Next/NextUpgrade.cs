@@ -1,4 +1,5 @@
 using System.CommandLine;
+using Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis;
 
 namespace Altinn.Studio.Cli.Upgrade.Next;
 
@@ -18,6 +19,9 @@ internal static class NextUpgrade
         {
             projectFolderOption,
         };
+
+        // Add subcommands
+        upgradeCommand.AddCommand(RuleConvertCommand.GetCommand(projectFolderOption));
 
         upgradeCommand.SetHandler(context =>
         {
