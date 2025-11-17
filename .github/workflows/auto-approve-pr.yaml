@@ -21,10 +21,21 @@ jobs:
         id: check-labels
         run: |
           labels=$(gh pr view ${{ github.event.pull_request.number }} --repo "${{ github.repository }}" --json labels --jq '.labels[].name')
-          if echo "$labels" | grep -qE '^(skip-manual-testing|skip-second-approval)$'; then
-            echo "should_approve=true" >> $GITHUB_OUTPUT
-          else
+
+          # Check if PR has the required labels
+          if ! echo "$labels" | grep -qE '^(skip-manual-testing|skip-second-approval)$'; then
             echo "should_approve=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check if already approved by github-actions bot
+          reviews=$(gh pr view ${{ github.event.pull_request.number }} --repo "${{ github.repository }}" --json reviews --jq '.reviews[] | select(.author.login == "github-actions" and .state == "APPROVED")')
+
+          if [ -n "$reviews" ]; then
+            echo "should_approve=false" >> $GITHUB_OUTPUT
+            echo "PR already approved by github-actions bot"
+          else
+            echo "should_approve=true" >> $GITHUB_OUTPUT
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

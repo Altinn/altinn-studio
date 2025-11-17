@@ -11,6 +11,7 @@ import (
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/browser"
 	"altinn.studio/pdf3/internal/cdp"
+	"altinn.studio/pdf3/internal/config"
 	"altinn.studio/pdf3/internal/log"
 	"altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/testing"
@@ -158,7 +159,7 @@ func (g *Custom) periodicRestart() {
 	const recheckInterval = 1 * time.Minute // How often to recheck if restart is disabled
 
 	for {
-		interval := types.BrowserRestartInterval()
+		interval := config.ReadConfig().BrowserRestartInterval
 
 		// If interval is 0 or negative, periodic restart is disabled
 		if interval <= 0 {
