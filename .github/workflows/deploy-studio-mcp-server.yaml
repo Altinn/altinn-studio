@@ -118,6 +118,6 @@ jobs:
 
       - name: tag artifact
         run: |
-          flux tag artifact oci://${{ needs.push-syncroot-artifact.outputs.CONFIG_REPO }} \
+          flux tag artifact oci://${{ needs.push-artifact.outputs.CONFIG_REPO }} \
             --tag ${{ matrix.environment }}
 
