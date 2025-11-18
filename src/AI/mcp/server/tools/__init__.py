@@ -15,28 +15,30 @@ Use these tools to help developers build Altinn Studio applications:
 
 ### Core Development Tools
 
-1. **logic_generator_tool(query: str)** - Generate C# logic code
-   - Use for: Creating validation logic, calculations, business rules
-   - Input: Natural language description of the logic needed
-   - Returns: Generated C# code files for Altinn applications
 
-2. **layout_components_tool(query: str)** - Find relevant UI components
+1.. **layout_components_tool(query: str)** - Find relevant UI components
    - Use for: Discovering existing layout components and UI patterns
    - Input: Description of the UI component or functionality needed
    - Returns: Relevant component JSONs with relevance scores
    - Note: LLM-powered relevance matching, avoid multiple queries without keyword changes
 
-3. **schema_validator_tool(owner: str, repo: str, layout_json: str)** - Validate layout JSON
+2. **schema_validator_tool(owner: str, repo: str, layout_json: str)** - Validate layout JSON
    - Use for: Validating entire layout JSON files against Altinn Studio layout schema definitions
    - Input: Repository owner, repo name, and layout JSON string
    - Returns: Validation status, missing required properties, and detailed error messages
    - Focused on validation only - use for checking layout correctness
 
-4. **layout_properties_tool(owner: str, repo: str, component_type: str)** - Get component schema info
+3. **layout_properties_tool(owner: str, repo: str, component_type: str)** - Get component schema info
    - Use for: Understanding available properties and requirements for component types
    - Input: Repository owner, repo name, and component type (e.g., "Input", "Button")
    - Returns: Allowed properties, required properties, and detailed property specifications
    - Focused on schema discovery - use for understanding component capabilities
+
+
+4. **logic_generator_tool(query: str)** - Generate C# logic code
+   - Use for: Creating validation logic, calculations, business rules
+   - Input: Natural language description of the logic needed
+   - Returns: Generated C# code files for Altinn applications
 
 ### Documentation Tools
 
