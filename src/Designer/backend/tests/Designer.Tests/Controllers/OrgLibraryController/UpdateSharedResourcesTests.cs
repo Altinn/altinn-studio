@@ -51,7 +51,7 @@ public class UpdateSharedResourcesTests(WebApplicationFactory<Program> factory) 
             .Returns(Task.CompletedTask)
             .Verifiable();
 
-        UpdateSharedResourceRequest updateRequest = new (fileMetadata, BaseCommitSha, "Updating shared resources");
+        UpdateSharedResourceRequest updateRequest = new(fileMetadata, BaseCommitSha, "Updating shared resources");
 
         // Act
         HttpResponseMessage response = await HttpClient.PutAsJsonAsync(apiUrl, updateRequest);
@@ -68,7 +68,7 @@ public class UpdateSharedResourcesTests(WebApplicationFactory<Program> factory) 
 
         _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfAnyOrganization()).ReturnsAsync(false);
 
-        UpdateSharedResourceRequest updateRequest = new ([], "someCommitSha", "Updating shared resources");
+        UpdateSharedResourceRequest updateRequest = new([], "someCommitSha", "Updating shared resources");
 
         // Act
         HttpResponseMessage response = await HttpClient.PutAsJsonAsync(apiUrl, updateRequest);
@@ -88,7 +88,7 @@ public class UpdateSharedResourcesTests(WebApplicationFactory<Program> factory) 
         _orgLibraryServiceMock.Setup(s => s.UpdateSharedResourcesByPath(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<UpdateSharedResourceRequest>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException());
 
-        UpdateSharedResourceRequest updateRequest = new ([], "someCommitSha", "Updating shared resources");
+        UpdateSharedResourceRequest updateRequest = new([], "someCommitSha", "Updating shared resources");
 
         // Act
         HttpResponseMessage response = await HttpClient.PutAsJsonAsync(apiUrl, updateRequest);
@@ -108,7 +108,7 @@ public class UpdateSharedResourcesTests(WebApplicationFactory<Program> factory) 
         _orgLibraryServiceMock.Setup(s => s.UpdateSharedResourcesByPath(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<UpdateSharedResourceRequest>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new IllegalCommitMessageException("Illegal commit message"));
 
-        UpdateSharedResourceRequest updateRequest = new ([], "someCommitSha", "some illegal commit message");
+        UpdateSharedResourceRequest updateRequest = new([], "someCommitSha", "some illegal commit message");
 
         // Act
         HttpResponseMessage response = await HttpClient.PutAsJsonAsync(apiUrl, updateRequest);
