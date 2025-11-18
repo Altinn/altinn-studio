@@ -3,7 +3,7 @@ using Acornima.Ast;
 namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.Matchers;
 
 /// <summary>
-/// Matches JavaScript method calls like array.includes(), string.includes(), etc.
+/// Matches JavaScript method calls like string.includes(), etc.
 /// </summary>
 public class CallExpressionMatcher : IExpressionMatcher
 {
@@ -56,6 +56,7 @@ public class CallExpressionMatcher : IExpressionMatcher
         return propertyMethodName switch
         {
             "includes" => HandleIncludes(memberExpr, callExpr, context, debugInfo),
+            "indexOf" => HandleIndexOfStandalone(propertyMethodName, debugInfo),
             _ => HandleUnsupportedMethod(propertyMethodName, debugInfo),
         };
     }
@@ -142,6 +143,18 @@ public class CallExpressionMatcher : IExpressionMatcher
         debugInfo.Add("✅ Successfully converted .includes() to 'contains'");
 
         return new object?[] { "contains", subject, searchValueUnwrapped };
+    }
+
+    /// <summary>
+    /// Handle standalone indexOf() calls (not in comparison context)
+    /// indexOf() by itself can't be converted - it's only valid when compared with -1
+    /// That pattern is handled by BinaryComparisonMatcher
+    /// </summary>
+    private object? HandleIndexOfStandalone(string methodName, List<string> debugInfo)
+    {
+        debugInfo.Add($"❌ indexOf() must be used in comparison with -1 (e.g., indexOf(x) !== -1)");
+        debugInfo.Add($"   Standalone indexOf() calls cannot be converted to expression language");
+        return null;
     }
 
     private object? HandleUnsupportedMethod(string methodName, List<string> debugInfo)

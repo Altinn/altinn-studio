@@ -26,15 +26,16 @@ public class ExpressionConverter
             // Order matters! More specific matchers should come first
             new ParenthesizedExpressionMatcher(), // Unwrap parentheses first
             new ConditionalExpressionMatcher(), // Handle ternary expressions (condition ? true : false)
+            new ObjectExistenceCheckMatcher(), // Handle obj existence checks (must come before comparisons)
             new WindowLocationMatcher(), // Check for window.location.host patterns before generic comparisons
             new TypeofMatcher(), // Handle typeof checks for undefined (before BinaryComparisonMatcher)
-            new CallExpressionMatcher(), // Handle method calls like .includes()
+            new CallExpressionMatcher(), // Handle method calls like .includes() and indexOf()
             new LengthCheckMatcher(), // Must come before PropertyAccessMatcher
-            new UnaryPlusMatcher(), // Handle numeric coercion
+            new UnaryPlusMatcher(), // Handle numeric coercion and negation
             new LiteralMatcher(), // Constants
             new PropertyAccessMatcher(), // Data model lookups
             new IdentifierMatcher(), // Resolve destructured variables
-            new BinaryComparisonMatcher(), // Comparisons
+            new BinaryComparisonMatcher(), // Comparisons (handles indexOf marker)
             new LogicalOperatorMatcher(), // Boolean logic (handles multi-clause and truthiness)
         };
     }
