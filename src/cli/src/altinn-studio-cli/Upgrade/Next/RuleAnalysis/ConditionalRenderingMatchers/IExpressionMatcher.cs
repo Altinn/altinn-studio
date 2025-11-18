@@ -1,6 +1,6 @@
 using Acornima.Ast;
 
-namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.Matchers;
+namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.ConditionalRenderingMatchers;
 
 /// <summary>
 /// Interface for pattern matchers that convert JavaScript AST expressions to expression language

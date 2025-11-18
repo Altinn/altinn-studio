@@ -1,3 +1,4 @@
+using Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.DataProcessingRules;
 using Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.Models;
 
 namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis;
