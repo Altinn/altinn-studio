@@ -9,11 +9,20 @@ public class UnaryPlusMatcher : IExpressionMatcher
 {
     public bool CanMatch(Expression expression)
     {
-        if (expression is not UnaryExpression unary)
-            return false;
+        // Check if this is a UnaryExpression or any of its subclasses
+        if (expression is UnaryExpression unary)
+        {
+            var op = unary.Operator.ToString();
+            return op == "+"
+                || op == "UnaryPlus"
+                || op == "!"
+                || op == "LogicalNot"
+                || op == "-"
+                || op == "UnaryMinus"
+                || op == "UnaryNegation";
+        }
 
-        var op = unary.Operator.ToString();
-        return op == "+" || op == "UnaryPlus" || op == "!" || op == "LogicalNot";
+        return false;
     }
 
     public object? Match(Expression expression, ConversionContext context, List<string> debugInfo)
@@ -37,6 +46,32 @@ public class UnaryPlusMatcher : IExpressionMatcher
 
             debugInfo.Add("✅ Successfully converted negation to 'not'");
             return new object[] { "not", argument };
+        }
+
+        // Handle unary minus for negative numbers
+        if (op == "-" || op == "UnaryMinus" || op == "UnaryNegation")
+        {
+            debugInfo.Add("Converting unary - (negative number)");
+
+            var argument = context.ConvertExpression(unaryExpr.Argument, debugInfo);
+            if (argument == null)
+            {
+                debugInfo.Add("❌ Failed to convert argument of unary - expression");
+                return null;
+            }
+
+            // If the argument is a number, negate it
+            if (argument is int i)
+                return -i;
+            if (argument is long l)
+                return -l;
+            if (argument is double d)
+                return -d;
+            if (argument is float f)
+                return -f;
+
+            debugInfo.Add("⚠️ Unary minus applied to non-numeric value");
+            return null;
         }
 
         // Handle unary plus (numeric coercion)

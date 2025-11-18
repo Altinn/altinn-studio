@@ -275,6 +275,8 @@ public class JavaScriptExpressionParser
             }
         }
 
+        // No return statement found - this could be an implicit return undefined
+        // which is typically used in conditional rendering rules
         return null;
     }
 
@@ -306,8 +308,22 @@ public class JavaScriptExpressionParser
             alternateExpression = BuildConditionalExpression(remainingStatements);
         }
 
+        // If there's no alternate expression (no else, no remaining statements),
+        // this means an implicit return false/undefined
+        // For conditional rendering, if (condition) { return true; } with no else means:
+        // condition ? true : false, which simplifies to just the condition
         if (alternateExpression == null)
-            return null;
+        {
+            // Check if the consequent is a literal true
+            if (consequentExpression is Literal literal && literal.Value is true)
+            {
+                // if (cond) return true; (no else) → just use the condition
+                return condition;
+            }
+
+            // Otherwise, use false as the alternate
+            alternateExpression = new BooleanLiteral(false, "false");
+        }
 
         // Create a ConditionalExpression (ternary operator: condition ? consequent : alternate)
         return new ConditionalExpression(condition, consequentExpression, alternateExpression);
