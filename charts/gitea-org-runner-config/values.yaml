@@ -1,5 +1,37 @@
 chartVersion: ""
 releaseName: ""
 imageTag: ""
-registrationTokenSecretName: ""
 giteaInstanceUrl: "http://altinn-repositories.default.svc.cluster.local:3000"
+environment: "dev"
+
+# Environment-specific runner configurations
+# dev/staging: only ttd
+# prod: ttd, brg, dsb, ssb, ksdigi, pat
+runners:
+  dev:
+    - name: ttd
+      replicas: 1
+      registrationTokenSecretName: altinn-gitea-runner-ttd-secret
+  staging:
+    - name: ttd
+      replicas: 1
+      registrationTokenSecretName: altinn-gitea-runner-ttd-secret
+  prod:
+    - name: ttd
+      replicas: 1
+      registrationTokenSecretName: altinn-gitea-runner-ttd-secret
+    - name: brg
+      replicas: 5
+      registrationTokenSecretName: altinn-gitea-runner-brg-secret
+    - name: dsb
+      replicas: 1
+      registrationTokenSecretName: altinn-gitea-runner-dsb-secret
+    - name: ssb
+      replicas: 5
+      registrationTokenSecretName: altinn-gitea-runner-ssb-secret
+    - name: ksdigi
+      replicas: 1
+      registrationTokenSecretName: altinn-gitea-runner-ksdigi-secret
+    - name: pat
+      replicas: 1
+      registrationTokenSecretName: altinn-gitea-runner-pat-secret
