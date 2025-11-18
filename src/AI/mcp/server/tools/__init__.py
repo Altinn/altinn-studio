@@ -105,12 +105,12 @@ def initialize_mcp(port: int = 8069):
     global mcp
     if mcp is not None:
         return mcp  # Already initialized
-    
+
     mcp = FastMCP(
-        name="altinity_mcp_server", 
+        name="altinity_mcp_server",
         instructions=ALTINITY_INSTRUCTIONS,
-        host="0.0.0.0", 
-        port=port, 
+        host="0.0.0.0",
+        port=port,
         timeout=60,
         version="1.0.5"
     )
@@ -127,7 +127,7 @@ def register_tool(name=None, description=None, title=None, annotations=None):
         f._tool_description = description or f.__doc__ or ""
         f._tool_title = title
         f._tool_annotations = annotations
-        
+
         tool_registry.append(f)
         # FastMCP.tool() doesn't accept 'title' parameter, only name and description
         # Tool will be registered when MCP is initialized
@@ -139,12 +139,12 @@ def register_all_tools():
     global mcp
     if mcp is None:
         raise RuntimeError("MCP instance not initialized. Call initialize_mcp() first.")
-    
+
     for tool_func in tool_registry:
         # Extract tool metadata from function attributes set by register_tool decorator
         name = getattr(tool_func, '_tool_name', tool_func.__name__)
         description = getattr(tool_func, '_tool_description', tool_func.__doc__ or "")
-        
+
         mcp.tool(name=name, description=description)(tool_func)
 
 # Import all tools to register them
@@ -163,4 +163,4 @@ from .prefill_tool import prefill_tool
 from .resource_validator_tool import resource_validator_tool
 from .schema_validator_tool import schema_validator_tool
 from .server_info_tool import server_info
-from .studio_examples_tool import studio_examples_tool
+# from .studio_examples_tool import studio_examples_tool
