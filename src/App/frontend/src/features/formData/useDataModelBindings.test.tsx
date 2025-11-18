@@ -4,11 +4,12 @@ import { afterAll, beforeAll, jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { FD } from 'src/features/formData/FormDataWrite';
+import { IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { IDataModelPatchResponse } from 'src/features/formData/types';
 
 describe('useDataModelBindings', () => {
   beforeAll(() => {
@@ -146,20 +147,26 @@ describe('useDataModelBindings', () => {
 
     // When we simulate a save to server, the invalid value should not be saved
     jest.advanceTimersByTime(1000);
-    await waitFor(() => expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(1));
-    expect(mutations.doPatchFormData.mock).toHaveBeenCalledWith(
-      expect.stringMatching(/\/data\//),
+    await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
+    expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledWith(
+      expect.stringMatching('local.altinn.cloud'),
       expect.objectContaining({
-        patch: [{ op: 'add', path: '/stringyField', value: 'foo bar' }],
+        patches: [expect.objectContaining({ patch: [{ op: 'add', path: '/stringyField', value: 'foo bar' }] })],
       }),
     );
-    const response: IDataModelPatchResponse = {
-      newDataModel: {
-        stringyField: 'foo bar',
-      },
-      validationIssues: {},
+    const response: IDataModelMultiPatchResponse = {
+      newDataModels: [
+        {
+          dataElementId: defaultMockDataElementId,
+          data: {
+            stringyField: 'foo bar',
+          },
+        },
+      ],
+      validationIssues: [],
+      instance: getInstanceDataMock(),
     };
-    mutations.doPatchFormData.resolve({ data: response });
+    mutations.doPatchMultipleFormData.resolve({ data: response });
 
     const fullDecimal = '-1.53';
     await user.type(screen.getByTestId('input-decimal'), fullDecimal.slice(1));
@@ -188,22 +195,28 @@ describe('useDataModelBindings', () => {
 
     // When we simulate a save to server, the invalid value should not be saved
     jest.advanceTimersByTime(1000);
-    await waitFor(() => expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(2));
-    expect(mutations.doPatchFormData.mock).toHaveBeenCalledWith(
-      expect.stringMatching(/\/data\//),
+    await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(2));
+    expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledWith(
+      expect.stringMatching('local.altinn.cloud'),
       expect.objectContaining({
         // But now we expect the decimal value we typed earlier to be saved
-        patch: [{ op: 'add', path: '/decimalField', value: -1.53 }],
+        patches: [expect.objectContaining({ patch: [{ op: 'add', path: '/decimalField', value: -1.53 }] })],
       }),
     );
-    const response2: IDataModelPatchResponse = {
-      newDataModel: {
-        stringyField: 'foo bar',
-        decimalField: -1.53,
-      },
-      validationIssues: {},
+    const response2: IDataModelMultiPatchResponse = {
+      newDataModels: [
+        {
+          dataElementId: defaultMockDataElementId,
+          data: {
+            stringyField: 'foo bar',
+            decimalField: -1.53,
+          },
+        },
+      ],
+      validationIssues: [],
+      instance: getInstanceDataMock(),
     };
-    mutations.doPatchFormData.resolve({ data: response2 });
+    mutations.doPatchMultipleFormData.resolve({ data: response2 });
 
     const fullInteger = '-15 3';
     await user.type(screen.getByTestId('input-integer'), fullInteger.slice(1));
@@ -235,14 +248,18 @@ describe('useDataModelBindings', () => {
     });
     expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(4);
 
-    await waitFor(() => expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(3));
-    expect(mutations.doPatchFormData.mock).toHaveBeenCalledWith(
-      expect.stringMatching(/\/data\//),
+    await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(3));
+    expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledWith(
+      expect.stringMatching('local.altinn.cloud'),
       expect.objectContaining({
         // Now we expect the integer and boolean values to be saved
-        patch: [
-          { op: 'add', path: '/integerField', value: -153 },
-          { op: 'add', path: '/booleanField', value: true },
+        patches: [
+          expect.objectContaining({
+            patch: [
+              { op: 'add', path: '/integerField', value: -153 },
+              { op: 'add', path: '/booleanField', value: true },
+            ],
+          }),
         ],
       }),
     );
