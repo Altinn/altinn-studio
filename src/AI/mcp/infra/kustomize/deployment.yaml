@@ -31,17 +31,17 @@ spec:
             - name: AZURE_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: altinn-mcp-server-secrets
+                  name: altinn-mcp-server-secret
                   key: AZURE_API_KEY
             - name: LANGFUSE_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: altinn-mcp-server-secrets
+                  name: altinn-mcp-server-secret
                   key: LANGFUSE_SECRET_KEY
             - name: LANGFUSE_PUBLIC_KEY
               valueFrom:
                 secretKeyRef:
-                  name: altinn-mcp-server-secrets
+                  name: altinn-mcp-server-secret
                   key: LANGFUSE_PUBLIC_KEY
           # livenessProbe:
           #   httpGet:
