@@ -1,0 +1,223 @@
+using System.Text.Json;
+
+namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.DataProcessingRules;
+
+/// <summary>
+/// Model representing a layout set from layout-sets.json
+/// </summary>
+internal class LayoutSet
+{
+    public string? Id { get; set; }
+    public string? DataType { get; set; }
+}
+
+/// <summary>
+/// Model representing layout-sets.json file
+/// </summary>
+internal class LayoutSetsConfiguration
+{
+    public List<LayoutSet>? Sets { get; set; }
+}
+
+/// <summary>
+/// Model representing a data type from applicationmetadata.json
+/// </summary>
+internal class DataTypeMetadata
+{
+    public string? Id { get; set; }
+    public AppLogic? AppLogic { get; set; }
+}
+
+internal class AppLogic
+{
+    public string? ClassRef { get; set; }
+}
+
+/// <summary>
+/// Model representing applicationmetadata.json file
+/// </summary>
+internal class ApplicationMetadata
+{
+    public List<DataTypeMetadata>? DataTypes { get; set; }
+}
+
+/// <summary>
+/// Resolves data model information for layout sets
+/// </summary>
+internal class DataModelResolver
+{
+    private readonly string _appBasePath;
+    private LayoutSetsConfiguration? _layoutSetsConfig;
+    private ApplicationMetadata? _applicationMetadata;
+
+    public DataModelResolver(string appBasePath)
+    {
+        _appBasePath = appBasePath;
+    }
+
+    /// <summary>
+    /// Load configuration files
+    /// </summary>
+    public void LoadConfiguration()
+    {
+        Console.WriteLine($"[DEBUG] DataModelResolver._appBasePath: {_appBasePath}");
+
+        // Try with App folder first, then without
+        var layoutSetsPath = Path.Combine(_appBasePath, "App", "ui", "layout-sets.json");
+        Console.WriteLine($"[DEBUG] Trying layout-sets.json at: {layoutSetsPath}");
+        Console.WriteLine($"[DEBUG] File exists: {File.Exists(layoutSetsPath)}");
+
+        if (!File.Exists(layoutSetsPath))
+        {
+            layoutSetsPath = Path.Combine(_appBasePath, "ui", "layout-sets.json");
+            Console.WriteLine($"[DEBUG] Trying alternate path: {layoutSetsPath}");
+            Console.WriteLine($"[DEBUG] File exists: {File.Exists(layoutSetsPath)}");
+        }
+
+        var appMetadataPath = Path.Combine(_appBasePath, "App", "config", "applicationmetadata.json");
+        Console.WriteLine($"[DEBUG] Trying applicationmetadata.json at: {appMetadataPath}");
+        Console.WriteLine($"[DEBUG] File exists: {File.Exists(appMetadataPath)}");
+
+        if (!File.Exists(appMetadataPath))
+        {
+            appMetadataPath = Path.Combine(_appBasePath, "config", "applicationmetadata.json");
+            Console.WriteLine($"[DEBUG] Trying alternate path: {appMetadataPath}");
+            Console.WriteLine($"[DEBUG] File exists: {File.Exists(appMetadataPath)}");
+        }
+
+        if (File.Exists(layoutSetsPath))
+        {
+            Console.WriteLine($"[DEBUG] Loading layout-sets.json from: {layoutSetsPath}");
+            var json = File.ReadAllText(layoutSetsPath);
+            _layoutSetsConfig = JsonSerializer.Deserialize<LayoutSetsConfiguration>(
+                json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+            );
+            Console.WriteLine($"[DEBUG] Loaded {_layoutSetsConfig?.Sets?.Count ?? 0} layout sets");
+        }
+        else
+        {
+            Console.WriteLine($"[DEBUG] layout-sets.json not found");
+        }
+
+        if (File.Exists(appMetadataPath))
+        {
+            Console.WriteLine($"[DEBUG] Loading applicationmetadata.json from: {appMetadataPath}");
+            var json = File.ReadAllText(appMetadataPath);
+            _applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(
+                json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+            );
+            Console.WriteLine($"[DEBUG] Loaded {_applicationMetadata?.DataTypes?.Count ?? 0} data types");
+        }
+        else
+        {
+            Console.WriteLine($"[DEBUG] applicationmetadata.json not found");
+        }
+    }
+
+    /// <summary>
+    /// Get the data type name for a layout set
+    /// </summary>
+    public string? GetDataTypeForLayoutSet(string layoutSetName)
+    {
+        if (_layoutSetsConfig?.Sets == null)
+        {
+            return null;
+        }
+
+        var layoutSet = _layoutSetsConfig.Sets.FirstOrDefault(s =>
+            s.Id?.Equals(layoutSetName, StringComparison.OrdinalIgnoreCase) == true
+        );
+
+        return layoutSet?.DataType;
+    }
+
+    /// <summary>
+    /// Get the full class reference (namespace + class name) for a data type
+    /// </summary>
+    public string? GetClassRefForDataType(string dataType)
+    {
+        if (_applicationMetadata?.DataTypes == null)
+        {
+            return null;
+        }
+
+        var dataTypeMetadata = _applicationMetadata.DataTypes.FirstOrDefault(dt =>
+            dt.Id?.Equals(dataType, StringComparison.OrdinalIgnoreCase) == true
+        );
+
+        return dataTypeMetadata?.AppLogic?.ClassRef;
+    }
+
+    /// <summary>
+    /// Get the class name (without namespace) for a data type
+    /// </summary>
+    public string? GetClassNameForDataType(string dataType)
+    {
+        var classRef = GetClassRefForDataType(dataType);
+        if (classRef == null)
+        {
+            return null;
+        }
+
+        // Extract class name from fully qualified name
+        // e.g., "Altinn.App.Models.Model.Model" -> "Model"
+        var parts = classRef.Split('.');
+        return parts.Length > 0 ? parts[^1] : null;
+    }
+
+    /// <summary>
+    /// Get the namespace for a data type
+    /// </summary>
+    public string? GetNamespaceForDataType(string dataType)
+    {
+        var classRef = GetClassRefForDataType(dataType);
+        if (classRef == null)
+        {
+            return null;
+        }
+
+        // Extract namespace from fully qualified name
+        // e.g., "Altinn.App.Models.Model.Model" -> "Altinn.App.Models.Model"
+        var lastDotIndex = classRef.LastIndexOf('.');
+        return lastDotIndex > 0 ? classRef[..lastDotIndex] : null;
+    }
+
+    /// <summary>
+    /// Get complete data model information for a layout set
+    /// </summary>
+    public DataModelInfo? GetDataModelInfo(string layoutSetName)
+    {
+        var dataType = GetDataTypeForLayoutSet(layoutSetName);
+        if (dataType == null)
+        {
+            return null;
+        }
+
+        var classRef = GetClassRefForDataType(dataType);
+        if (classRef == null)
+        {
+            return null;
+        }
+
+        return new DataModelInfo
+        {
+            DataType = dataType,
+            FullClassRef = classRef,
+            ClassName = GetClassNameForDataType(dataType),
+            Namespace = GetNamespaceForDataType(dataType),
+        };
+    }
+}
+
+/// <summary>
+/// Complete information about a data model
+/// </summary>
+internal class DataModelInfo
+{
+    public required string DataType { get; init; }
+    public required string FullClassRef { get; init; }
+    public string? ClassName { get; init; }
+    public string? Namespace { get; init; }
+}
