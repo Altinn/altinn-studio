@@ -1,6 +1,6 @@
 using Acornima.Ast;
 
-namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.Matchers;
+namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.ConditionalRenderingMatchers;
 
 /// <summary>
 /// Matches literal values (strings, numbers, booleans, null) and undefined identifier

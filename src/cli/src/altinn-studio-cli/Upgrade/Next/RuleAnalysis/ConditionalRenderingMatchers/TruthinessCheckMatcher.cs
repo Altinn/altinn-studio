@@ -1,6 +1,6 @@
 using Acornima.Ast;
 
-namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.Matchers;
+namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.ConditionalRenderingMatchers;
 
 /// <summary>
 /// Detects truthiness checks in AND expressions and converts them to null checks

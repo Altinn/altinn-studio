@@ -1,6 +1,6 @@
 using Acornima.Ast;
 
-namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.Matchers;
+namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.ConditionalRenderingMatchers;
 
 /// <summary>
 /// Matches standalone identifier expressions and resolves them through variable mappings

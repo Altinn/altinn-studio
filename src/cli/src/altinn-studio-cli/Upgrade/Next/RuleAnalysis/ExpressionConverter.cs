@@ -1,4 +1,4 @@
-using Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.Matchers;
+using Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.ConditionalRenderingMatchers;
 using Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.Models;
 
 namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis;
