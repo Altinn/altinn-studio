@@ -62,6 +62,7 @@ def resolve_env_placeholder(value: str) -> str:
 # Get GITEA_API_KEY and resolve any environment variable placeholders
 _raw_gitea_key = os.getenv("GITEA_API_KEY", "")
 GITEA_API_KEY = resolve_env_placeholder(_raw_gitea_key)
+GITEA_URL = os.getenv("GITEA_URL", "https://altinn.studio/repos/api/v1")
 STUDIO_ASSISTANT_TEST_REPO = "https://altinn.studio/repos/nlunde/studio-assistant-test.git"
 APP_LIB_REPO = "https://github.com/Altinn/app-lib-dotnet.git"
 
