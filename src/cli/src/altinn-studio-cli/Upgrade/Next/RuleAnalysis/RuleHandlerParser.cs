@@ -36,17 +36,14 @@ internal class RuleHandlerParser
             var parser = new Parser();
             var program = parser.ParseScript(jsContent);
 
-            // Extract conditional rendering functions
             ExtractFunctionsFromObject(program, "conditionalRuleHandlerObject", _conditionalFunctions);
-
-            // Extract data processing functions
             ExtractFunctionsFromObject(program, "ruleHandlerObject", _dataProcessingFunctions);
         }
         catch (Exception ex)
         {
             // Log or handle parsing errors if needed
             // For now, we'll silently fail to maintain backward compatibility
-            Console.WriteLine($"Warning: Failed to parse {_ruleHandlerPath}: {ex.Message}");
+            Console.Error.WriteLine($"[Error] Failed to parse {_ruleHandlerPath}: {ex.Message}");
         }
     }
 
@@ -82,7 +79,7 @@ internal class RuleHandlerParser
             {
                 foreach (var declarator in varDecl.Declarations)
                 {
-                    if (declarator.Id is Identifier id && id.Name == objectName)
+                    if (declarator.Id is Identifier identifier && identifier.Name == objectName)
                     {
                         // Found the object, now extract its functions
                         if (declarator.Init is ObjectExpression objExpr)
@@ -124,16 +121,23 @@ internal class RuleHandlerParser
                     continue;
                 }
 
-                // Check if the value is a function
-                if (prop.Value is FunctionExpression funcExpr)
+                // Check if the value is a function (regular function or arrow function)
+                IFunction? function = prop.Value switch
+                {
+                    FunctionExpression fe => fe,
+                    ArrowFunctionExpression afe => afe,
+                    _ => null,
+                };
+
+                if (function != null)
                 {
                     var paramName =
-                        funcExpr.Params.Count > 0 && funcExpr.Params[0] is Identifier paramId
+                        function.Params.Count > 0 && function.Params[0] is Identifier paramId
                             ? paramId.Name
                             : string.Empty;
 
                     // Reconstruct the function implementation from the AST
-                    var functionImpl = ReconstructFunction(funcExpr);
+                    var functionImpl = ReconstructFunction(function);
 
                     targetDict[functionName] = new JavaScriptFunction
                     {
@@ -147,14 +151,14 @@ internal class RuleHandlerParser
     }
 
     /// <summary>
-    /// Reconstruct a function implementation string from a FunctionExpression AST node
+    /// Reconstruct a function implementation string from a function AST node (FunctionExpression or ArrowFunctionExpression)
     /// </summary>
-    private string ReconstructFunction(FunctionExpression funcExpr)
+    private string ReconstructFunction(IFunction function)
     {
         // Get the original source code for the function
         // Acornima preserves the original range, so we can extract it
-        var start = funcExpr.Range.Start;
-        var end = funcExpr.Range.End;
+        var start = function.Range.Start;
+        var end = function.Range.End;
 
         var jsContent = File.ReadAllText(_ruleHandlerPath);
         return jsContent.Substring(start, end - start);

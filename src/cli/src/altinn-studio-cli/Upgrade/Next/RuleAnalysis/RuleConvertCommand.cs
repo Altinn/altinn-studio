@@ -63,7 +63,7 @@ internal static class RuleConvertCommand
 
             if (!Directory.Exists(uiFolderPath))
             {
-                // Console.Error.WriteLine($"UI folder not found: {uiFolderPath}");
+                Console.Error.WriteLine($"UI folder not found: {uiFolderPath}");
                 Environment.Exit(1);
                 return;
             }
@@ -90,12 +90,14 @@ internal static class RuleConvertCommand
 
             if (!File.Exists(ruleConfigPath))
             {
+                Console.WriteLine($"Layout set '{layoutSetName}' does not contain a RuleConfiguration.json file");
                 continue;
             }
 
             var fileContent = File.ReadAllText(ruleConfigPath).Trim();
             if (string.IsNullOrEmpty(fileContent) || fileContent == "{}" || fileContent == "[]")
             {
+                Console.WriteLine($"Layout set '{layoutSetName}' does not contain any rules");
                 continue;
             }
 
@@ -111,6 +113,11 @@ internal static class RuleConvertCommand
                 {
                     continue;
                 }
+
+                Console.WriteLine($"Analyzing layout set '{layoutSetName}'");
+                Console.WriteLine(
+                    $"Found {conditionalRules.Count} conditional rendering rules and {dataProcessingRules.Count} data processing rules"
+                );
 
                 var jsParser = new RuleHandlerParser(ruleHandlerPath);
                 jsParser.Parse();

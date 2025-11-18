@@ -121,6 +121,9 @@ internal class RuleAnalysisReporter
                 var jsFunction = _jsParser.GetConditionalFunction(rule.SelectedFunction ?? "");
                 if (jsFunction == null)
                 {
+                    Console.WriteLine(
+                        $"[Warning] Rule '{ruleId}' references unknown function '{rule.SelectedFunction}'"
+                    );
                     continue; // Skip if function not found
                 }
 
