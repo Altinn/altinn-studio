@@ -1,6 +1,6 @@
 using Acornima.Ast;
 
-namespace AltinnCLI.Upgrade.Next.RuleAnalysis.Matchers;
+namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.Matchers;
 
 /// <summary>
 /// Matches logical operator expressions (&&, ||, !)
@@ -9,8 +9,16 @@ public class LogicalOperatorMatcher : IExpressionMatcher
 {
     public bool CanMatch(Expression expression)
     {
-        return expression is LogicalExpression
-            || expression is UnaryExpression unary && unary.Operator.ToString() == "!";
+        if (expression is LogicalExpression)
+            return true;
+
+        if (expression is UnaryExpression unary)
+        {
+            var op = unary.Operator.ToString();
+            return op == "!" || op == "LogicalNot";
+        }
+
+        return false;
     }
 
     public object? Match(Expression expression, ConversionContext context, List<string> debugInfo)
@@ -22,9 +30,13 @@ public class LogicalOperatorMatcher : IExpressionMatcher
         }
 
         // Handle unary not (!)
-        if (expression is UnaryExpression unaryExpr && unaryExpr.Operator.ToString() == "!")
+        if (expression is UnaryExpression unaryExpr)
         {
-            return MatchUnaryNot(unaryExpr, context, debugInfo);
+            var op = unaryExpr.Operator.ToString();
+            if (op == "!" || op == "LogicalNot")
+            {
+                return MatchUnaryNot(unaryExpr, context, debugInfo);
+            }
         }
 
         return null;
@@ -41,47 +53,117 @@ public class LogicalOperatorMatcher : IExpressionMatcher
         {
             "&&" => "and",
             "||" => "or",
+            "LogicalAnd" => "and", // Acornima enum name
+            "LogicalOr" => "or", // Acornima enum name
             _ => "",
         };
 
         if (string.IsNullOrEmpty(exprFunction))
         {
-            debugInfo.Add($"⚠️ Unsupported logical operator: {op}");
+            debugInfo.Add($"❌ Unsupported logical operator: {op}");
             return null;
         }
 
-        debugInfo.Add($"Converting logical expression: {op} -> {exprFunction}");
+        // Flatten chains of the same operator (e.g., a || b || c || d)
+        var operands = FlattenLogicalExpression(logicalExpr, op);
 
-        // Convert left side
-        var left = context.ConvertExpression(logicalExpr.Left, debugInfo);
-        if (left == null)
+        // Convert all operands, with special handling for truthiness checks in AND expressions
+        var convertedOperands = new List<object?>();
+        foreach (var operand in operands)
         {
-            debugInfo.Add("⚠️ Failed to convert left side of logical expression");
-            return null;
+            object? converted;
+
+            // For AND expressions, check if this is a truthiness check (e.g., "obj.value &&")
+            if (exprFunction == "and" && TruthinessCheckMatcher.IsTruthinessCheck(operand))
+            {
+                converted = TruthinessCheckMatcher.ConvertTruthinessCheck(operand, context, debugInfo);
+            }
+            else
+            {
+                converted = context.ConvertExpression(operand, debugInfo);
+            }
+
+            if (converted == null)
+                return null;
+
+            // Unwrap null values (they're wrapped in arrays to distinguish from conversion failure)
+            convertedOperands.Add(UnwrapNullValue(converted));
         }
 
-        // Convert right side
-        var right = context.ConvertExpression(logicalExpr.Right, debugInfo);
-        if (right == null)
+        // Build the expression array: ["or", operand1, operand2, operand3, ...]
+        var result = new List<object?> { exprFunction };
+        result.AddRange(convertedOperands);
+        return result.ToArray();
+    }
+
+    /// <summary>
+    /// Unwrap null values that were wrapped to distinguish from conversion failure
+    /// </summary>
+    private static object? UnwrapNullValue(object value)
+    {
+        // Check if this is a wrapped null (single-element array containing null)
+        if (value is object?[] array && array.Length == 1 && array[0] == null)
         {
-            debugInfo.Add("⚠️ Failed to convert right side of logical expression");
             return null;
         }
+        return value;
+    }
 
-        return new object[] { exprFunction, left, right };
+    /// <summary>
+    /// Flatten chains of the same logical operator
+    /// E.g., (a || b) || (c || d) becomes [a, b, c, d]
+    /// </summary>
+    private List<Expression> FlattenLogicalExpression(LogicalExpression expr, string op)
+    {
+        var operands = new List<Expression>();
+
+        // Normalize operator name (handle both enum names and symbols)
+        var normalizedOp = NormalizeOperator(op);
+
+        // Check left side
+        if (
+            expr.Left is LogicalExpression leftLogical
+            && NormalizeOperator(leftLogical.Operator.ToString()) == normalizedOp
+        )
+        {
+            operands.AddRange(FlattenLogicalExpression(leftLogical, op));
+        }
+        else
+        {
+            operands.Add(expr.Left);
+        }
+
+        // Check right side
+        if (
+            expr.Right is LogicalExpression rightLogical
+            && NormalizeOperator(rightLogical.Operator.ToString()) == normalizedOp
+        )
+        {
+            operands.AddRange(FlattenLogicalExpression(rightLogical, op));
+        }
+        else
+        {
+            operands.Add(expr.Right);
+        }
+
+        return operands;
+    }
+
+    private string NormalizeOperator(string op)
+    {
+        return op switch
+        {
+            "&&" or "LogicalAnd" => "and",
+            "||" or "LogicalOr" => "or",
+            _ => op,
+        };
     }
 
     private object? MatchUnaryNot(UnaryExpression unaryExpr, ConversionContext context, List<string> debugInfo)
     {
-        debugInfo.Add("Converting unary not expression: ! -> not");
-
-        // Convert the argument
         var argument = context.ConvertExpression(unaryExpr.Argument, debugInfo);
         if (argument == null)
-        {
-            debugInfo.Add("⚠️ Failed to convert argument of not expression");
             return null;
-        }
 
         return new object[] { "not", argument };
     }

@@ -11,6 +11,7 @@ public class DataProcessingRule
     public string? SelectedFunction { get; set; }
 
     [JsonPropertyName("inputParams")]
+    [JsonConverter(typeof(EmptyStringToNullDictionaryConverter))]
     public Dictionary<string, string>? InputParams { get; set; }
 
     [JsonPropertyName("outParams")]

@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace AltinnCLI.Upgrade.Next.RuleAnalysis.Models;
+namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.Models;
 
 /// <summary>
 /// Result of attempting to convert a JavaScript rule function to an expression
@@ -47,6 +47,12 @@ public class ConversionResult
     /// Whether the expression was inverted due to "Show" action
     /// </summary>
     public bool WasInverted { get; set; }
+
+    /// <summary>
+    /// Whether the conversion requires environment settings to be added to the app
+    /// This is set when window.location checks are converted to frontendSettings
+    /// </summary>
+    public bool RequiresEnvironmentSettings { get; set; }
 
     /// <summary>
     /// Serialize the expression to formatted JSON string

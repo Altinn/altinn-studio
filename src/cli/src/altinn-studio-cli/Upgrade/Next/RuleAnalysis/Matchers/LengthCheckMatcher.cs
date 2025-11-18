@@ -1,6 +1,6 @@
 using Acornima.Ast;
 
-namespace AltinnCLI.Upgrade.Next.RuleAnalysis.Matchers;
+namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.Matchers;
 
 /// <summary>
 /// Matches .length property access and converts to stringLength function
@@ -21,13 +21,11 @@ public class LengthCheckMatcher : IExpressionMatcher
         if (expression is not MemberExpression memberExpr)
             return null;
 
-        debugInfo.Add("Converting .length property access to stringLength function");
-
         // Convert the object being accessed (e.g., obj.value in obj.value.length)
         var targetObject = context.ConvertExpression(memberExpr.Object, debugInfo);
         if (targetObject == null)
         {
-            debugInfo.Add("⚠️ Failed to convert target of .length access");
+            debugInfo.Add("❌ Failed to convert target of .length access");
             return null;
         }
 

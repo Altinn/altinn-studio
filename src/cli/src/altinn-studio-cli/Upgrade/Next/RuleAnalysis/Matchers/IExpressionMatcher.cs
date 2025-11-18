@@ -1,6 +1,6 @@
 using Acornima.Ast;
 
-namespace AltinnCLI.Upgrade.Next.RuleAnalysis.Matchers;
+namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.Matchers;
 
 /// <summary>
 /// Interface for pattern matchers that convert JavaScript AST expressions to expression language
@@ -43,6 +43,12 @@ public class ConversionContext
     public List<IExpressionMatcher> Matchers { get; set; } = new();
 
     /// <summary>
+    /// Flag indicating that the conversion requires environment settings to be added to the app
+    /// This is set by matchers like WindowLocationMatcher when they convert environment checks
+    /// </summary>
+    public bool RequiresEnvironmentSettings { get; set; } = false;
+
+    /// <summary>
     /// Try to convert any expression using the matcher chain
     /// </summary>
     public object? ConvertExpression(Expression expression, List<string> debugInfo)
@@ -51,12 +57,11 @@ public class ConversionContext
         {
             if (matcher.CanMatch(expression))
             {
-                debugInfo.Add($"Matched with {matcher.GetType().Name}");
                 return matcher.Match(expression, this, debugInfo);
             }
         }
 
-        debugInfo.Add($"No matcher found for expression type: {expression.GetType().Name}");
+        debugInfo.Add($"❌ No matcher found for expression type: {expression.GetType().Name}");
         return null;
     }
 }
