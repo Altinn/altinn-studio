@@ -5,7 +5,7 @@ metadata:
 spec:
   allowCrossNamespaceImport: true
   name: Exceptions
-  folderRef: external-grafana-altinn
+  folder: Altinn
   instanceSelector:
     matchLabels:
       dashboards: external-grafana
