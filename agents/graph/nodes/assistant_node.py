@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import mlflow
+from langfuse import get_client
 import re
 import json
 from typing import Dict, Any, List, Optional
@@ -35,21 +35,25 @@ async def handle(state: AgentState) -> AgentState:
     """
     log.info(f"💬 Assistant node: handling query for session {state.session_id}")
     
-    with mlflow.start_span(name="assistant_query", span_type="CHAIN") as main_span:
-        main_span.set_attributes({
+    langfuse = get_client()
+    with langfuse.start_as_current_span(
+        name="assistant_query",
+        metadata={
+            "span_type": "CHAIN",
             "session_id": state.session_id,
             "query_length": len(state.user_goal),
             "has_attachments": bool(state.attachments),
             "attachment_count": len(state.attachments) if state.attachments else 0,
-        })
-        main_span.set_inputs({
+        },
+        input={
             "query": state.user_goal,
             "repo_path": state.repo_path,
             "attachments": [
                 {"name": att.name, "mime_type": att.mime_type}
                 for att in (state.attachments or [])
             ]
-        })
+        }
+    ) as main_span:
         
         try:
             # Step 1: Scan repository for context
@@ -94,7 +98,7 @@ async def handle(state: AgentState) -> AgentState:
             log.info(f"✅ LLM cited {len(cited_sources)}/{len(all_sources)} sources: {[s.get('title') for s in cited_sources]}")
             
             # Set outputs on main span
-            main_span.set_outputs({
+            main_span.update(output={
                 "response_length": len(clean_response),
                 "tools_used": list(tool_results.keys()),
                 "repository_summary": repo_summary,
@@ -143,7 +147,8 @@ async def handle(state: AgentState) -> AgentState:
 
 async def _scan_repository(state: AgentState) -> Dict[str, Any]:
     """Scan repository and extract context."""
-    with mlflow.start_span(name="repository_scan", span_type="TOOL") as span:
+    langfuse = get_client()
+    with langfuse.start_as_current_span(name="repository_scan", metadata={"span_type": "TOOL"}) as span:
         span.set_inputs({"repo_path": state.repo_path})
         
         repo_context = discover_repository_context(state.repo_path)
@@ -154,7 +159,7 @@ async def _scan_repository(state: AgentState) -> Dict[str, Any]:
             "locales": repo_context.available_locales,
         }
         
-        span.set_outputs({"summary": repo_summary})
+        span.update(output={"summary": repo_summary})
         log.info(f"📂 Repository: {len(repo_summary['layouts'])} layouts, {len(repo_summary['locales'])} locales")
         
         return repo_summary
@@ -162,7 +167,8 @@ async def _scan_repository(state: AgentState) -> Dict[str, Any]:
 
 async def _get_available_tools() -> List[str]:
     """Connect to MCP and get available tools."""
-    with mlflow.start_span(name="mcp_connection", span_type="TOOL") as span:
+    langfuse = get_client()
+    with langfuse.start_as_current_span(name="mcp_connection", metadata={"span_type": "TOOL"}) as span:
         mcp_client = get_mcp_client()
         await mcp_client.connect()
         
@@ -172,7 +178,7 @@ async def _get_available_tools() -> List[str]:
             for tool in available_tools
         ]
         
-        span.set_outputs({"tool_count": len(tool_names), "tools": tool_names})
+        span.update(output={"tool_count": len(tool_names), "tools": tool_names})
         log.info(f"🔧 Connected to MCP: {len(tool_names)} tools available")
         
         return tool_names
@@ -185,7 +191,8 @@ async def _select_relevant_tools(
     conversation_history: List[Any] = None
 ) -> List[Dict[str, Any]]:
     """Use LLM to intelligently select relevant tools, always starting with planning_tool."""
-    with mlflow.start_span(name="tool_selection", span_type="AGENT") as span:
+    langfuse = get_client()
+    with langfuse.start_as_current_span(name="tool_selection", metadata={"span_type": "AGENT"}) as span:
         span.set_inputs({
             "query": query,
             "available_tools": tool_names,
@@ -261,7 +268,7 @@ async def _select_relevant_tools(
                     "objective": "Search documentation for relevant information"
                 })
             
-            span.set_outputs({
+            span.update(output={
                 "selected_tools": [t["tool"] for t in tool_plan],
                 "tool_plan": tool_plan,
                 "selection_strategy": "llm_based",
@@ -274,7 +281,7 @@ async def _select_relevant_tools(
         except Exception as e:
             log.warning(f"Tool planning failed: {e}, falling back to planning_tool with semantic query")
             fallback = [{"tool": "planning_tool", "query": semantic_query or query, "objective": "Search documentation"}]
-            span.set_outputs({
+            span.update(output={
                 "selected_tools": ["planning_tool"],
                 "selection_strategy": "fallback",
                 "error": str(e)
@@ -284,7 +291,8 @@ async def _select_relevant_tools(
 
 async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Execute selected MCP tools according to the plan."""
-    with mlflow.start_span(name="tool_execution", span_type="TOOL") as span:
+    langfuse = get_client()
+    with langfuse.start_as_current_span(name="tool_execution", metadata={"span_type": "TOOL"}) as span:
         span.set_inputs({"tool_plan": tool_plan})
         
         mcp_client = get_mcp_client()
@@ -313,7 +321,7 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
                 # layout_components_tool, resource_tool, planning_tool, etc.
                 arguments = {"query": query or ""}
             
-            with mlflow.start_span(name=f"call_{tool_name}", span_type="TOOL") as tool_span:
+            with langfuse.start_as_current_span(name=f"call_{tool_name}", metadata={"span_type": "TOOL"}) as tool_span:
                 tool_span.set_inputs({
                     "tool": tool_name,
                     "arguments": arguments,
@@ -343,7 +351,6 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
                     else:
                         tool_results[tool_name] = result
                     
-                    # Log FULL RESPONSE in MLflow with markdown formatting
                     result_size = len(str(extracted)) if extracted else 0
                     
                     # Extract text content for markdown display
@@ -355,7 +362,7 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
                     else:
                         full_text = str(extracted)
                     
-                    tool_span.set_outputs({
+                    tool_span.update(output={
                         "success": True,
                         "result_size": result_size,
                         "response_markdown": full_text  # Full response as markdown (no truncation)
@@ -365,16 +372,15 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
                 except Exception as e:
                     log.error(f"❌ Failed to call {tool_name}: {e}")
                     tool_results[tool_name] = {"error": str(e)}
-                    tool_span.set_attribute("error", True)
-                    tool_span.set_attribute("error_message", str(e))
-                    tool_span.set_outputs({"success": False, "error": str(e)})
+                    tool_span.update(metadata={"error": True, "error_message": str(e)})
+                    tool_span.update(output={"success": False, "error": str(e)})
         
         success_count = sum(
             1 for r in tool_results.values()
             if not (isinstance(r, dict) and "error" in r)
         )
         
-        span.set_outputs({
+        span.update(output={
             "tools_called": list(tool_results.keys()),
             "success_count": success_count,
             "total_count": len(tool_results)
@@ -688,7 +694,8 @@ async def _generate_response(
     conversation_history: Optional[List[Any]] = None
 ) -> str:
     """Generate natural language response using LLM."""
-    with mlflow.start_span(name="response_generation", span_type="LLM") as span:
+    langfuse = get_client()
+    with langfuse.start_as_current_span(name="response_generation", metadata={"span_type": "LLM"}) as span:
         span.set_inputs({
             "query": query,
             "repo_summary": repo_summary,
@@ -791,7 +798,7 @@ REPOSITORY CONTEXT:
             conversation_history=conversation_history  # Native API support
         )
         
-        span.set_outputs({
+        span.update(output={
             "response_length": len(response),
             "model_used": client.model,
             "temperature_used": client.temperature

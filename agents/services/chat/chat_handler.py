@@ -1,7 +1,7 @@
 """Chat handler for question answering without making changes."""
 
 from typing import List, Dict, Any, Optional
-import mlflow
+from langfuse import get_client
 from agents.services.mcp import get_mcp_client
 from agents.services.repo import discover_repository_context
 from agents.services.llm import LLMClient
@@ -32,16 +32,17 @@ async def handle_chat_query(
     """
     log.info(f"💬 Chat mode: handling query for session {session_id}")
     
-    with mlflow.start_span(name="chat_query", span_type="CHAIN") as span:
-        span.set_attributes({
+    langfuse = get_client()
+    with langfuse.start_as_current_span(name="chat_query", metadata={"span_type": "CHAIN"}) as span:
+        span.update(metadata={
             "session_id": session_id,
             "query_length": len(query),
-            "has_attachments": bool(attachments),
+            "repo_path": repo_path
         })
         
         # Step 1: Scan repository for context
         log.info("📂 Scanning repository for context...")
-        with mlflow.start_span(name="repository_context", span_type="TOOL"):
+        with langfuse.start_as_current_span(name="repository_context", metadata={"span_type": "TOOL"}):
             repo_context = discover_repository_context(repo_path)
             repo_summary = {
                 "layouts": repo_context.layout_pages,
@@ -69,7 +70,7 @@ async def handle_chat_query(
         tool_results = {}
         if relevant_tools:
             log.info(f"📊 Calling {len(relevant_tools)} relevant tools...")
-            with mlflow.start_span(name="tool_execution", span_type="TOOL") as tool_span:
+            with langfuse.start_as_current_span(name="tool_execution", metadata={"span_type": "TOOL"}) as tool_span:
                 for tool_name in relevant_tools:
                     try:
                         result = await mcp_client.call_tool(tool_name, {})
@@ -102,14 +103,14 @@ async def handle_chat_query(
                     1 for r in tool_results.values() 
                     if not (isinstance(r, dict) and "error" in r)
                 )
-                tool_span.set_outputs({
+                tool_span.update(output={
                     "tools_called": list(tool_results.keys()),
                     "success_count": success_count
                 })
         
         # Step 5: Generate response using LLM with context
         log.info("🤖 Generating response...")
-        with mlflow.start_span(name="response_generation", span_type="LLM"):
+        with langfuse.start_as_current_observation(name="response_generation", as_type="generation"):
             response = await _generate_chat_response(
                 query,
                 repo_summary,

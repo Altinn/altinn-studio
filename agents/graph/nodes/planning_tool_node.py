@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import re
-import mlflow
+from langfuse import get_client
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, sink
 from shared.utils.logging_utils import get_logger
@@ -74,9 +74,11 @@ async def handle(state: AgentState) -> AgentState:
     log.info(f"⏱️ [PLANNING_TOOL NODE] Starting at {time.time()}")
     log.info("📋 Planning tool node executing")
     
-    with mlflow.start_span(name="planning_tool_node", span_type="AGENT") as node_span:
-        # Set node-level inputs
-        node_span.set_inputs({
+    langfuse = get_client()
+    with langfuse.start_as_current_span(
+        name="planning_tool_node",
+        metadata={"span_type": "AGENT"},
+        input={
             "user_goal": state.user_goal,
             "has_repo_facts": bool(state.repo_facts),
             "repo_facts_summary": {
@@ -84,7 +86,8 @@ async def handle(state: AgentState) -> AgentState:
                 "models": len(state.repo_facts.get("models", [])) if state.repo_facts else 0,
                 "resources": len(state.repo_facts.get("resources", [])) if state.repo_facts else 0
             }
-        })
+        }
+    ) as node_span:
         
         try:
             from agents.services.mcp import get_mcp_client
@@ -96,25 +99,17 @@ async def handle(state: AgentState) -> AgentState:
             client = get_mcp_client()
             await client.connect()
             
-            with mlflow.start_span(name="planning_tool_mcp_call", span_type="TOOL") as span:
-                # Prepare tool input with focused semantic search query
-                # The query enables TF-IDF semantic search in planning_tool
-                tool_input = {
-                    "query": semantic_query,  # Use generated focused query
-                    "repository_facts": state.repo_facts or {}
-                }
-                
-                log.info(f"🔍 Calling planning_tool with semantic search query: {semantic_query}")
-                
-                span.set_attributes({
+            with langfuse.start_as_current_span(
+                name="planning_tool_mcp_call",
+                metadata={
+                    "span_type": "TOOL",
                     "semantic_query_length": len(semantic_query),
                     "original_goal_length": len(state.user_goal),
                     "has_repo_facts": bool(state.repo_facts),
                     "tool": "planning_tool",
                     "semantic_search_enabled": True
-                })
-                
-                span.set_inputs({
+                },
+                input={
                     "tool": "planning_tool",
                     "semantic_query": semantic_query,  # Focused English query for semantic search
                     "original_user_goal": state.user_goal[:200] + "..." if len(state.user_goal) > 200 else state.user_goal,
@@ -124,7 +119,16 @@ async def handle(state: AgentState) -> AgentState:
                         "models": len(state.repo_facts.get("models", [])) if state.repo_facts else 0,
                         "resources": len(state.repo_facts.get("resources", [])) if state.repo_facts else 0
                     }
-                })
+                }
+            ) as span:
+                # Prepare tool input with focused semantic search query
+                # The query enables TF-IDF semantic search in planning_tool
+                tool_input = {
+                    "query": semantic_query,  # Use generated focused query
+                    "repository_facts": state.repo_facts or {}
+                }
+                
+                log.info(f"🔍 Calling planning_tool with semantic search query: {semantic_query}")
                 
                 # Call planning_tool with enhanced semantic search
                 # Without query: Returns standard planning context
@@ -161,12 +165,12 @@ async def handle(state: AgentState) -> AgentState:
                 # Extract markdown from JSON response for display
                 guidance_markdown = _extract_markdown_from_guidance(planning_guidance)
                 
-                span.set_outputs({
+                span.update(output={
                     "tool_result": {
                         "guidance_length": len(planning_guidance) if planning_guidance else 0,
                         "has_guidance": bool(planning_guidance)
                     },
-                    # Full guidance displayed as markdown in MLflow
+                    # Full guidance displayed as markdown in Langfuse
                     "guidance_markdown": guidance_markdown
                 })
                 
@@ -174,11 +178,11 @@ async def handle(state: AgentState) -> AgentState:
             
             # Set node-level outputs
             guidance_md = _extract_markdown_from_guidance(planning_guidance)
-            node_span.set_outputs({
+            node_span.update(output={
                 "semantic_query": semantic_query,
                 "planning_guidance_length": len(planning_guidance) if planning_guidance else 0,
                 "has_planning_guidance": bool(planning_guidance),
-                # Full guidance displayed as markdown in MLflow
+                # Full guidance displayed as markdown in Langfuse
                 "planning_guidance_markdown": guidance_md
             })
             
@@ -203,7 +207,7 @@ async def handle(state: AgentState) -> AgentState:
             
         except Exception as exc:
             log.error(f"❌ Planning tool node failed: {exc}", exc_info=True)
-            node_span.set_attribute("error", str(exc))
+            node_span.update(metadata={"error": str(exc)})
             # Ensure planning_guidance is at least empty string, not None
             if not hasattr(state, 'planning_guidance') or state.planning_guidance is None:
                 state.planning_guidance = ""

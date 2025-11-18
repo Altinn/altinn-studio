@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import re
-import mlflow
+from langfuse import get_client
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from textwrap import dedent
@@ -13,7 +13,7 @@ from shared.utils.logging_utils import get_logger
 from shared.models import AgentAttachment
 from agents.services.llm import LLMClient
 from agents.prompts import get_prompt_content, render_template
-from agents.services.telemetry import format_as_markdown, is_json
+from agents.services.telemetry import is_json
 from agents.services.repo import ensure_text_resources_in_patch
 
 log = get_logger(__name__)
@@ -98,18 +98,16 @@ async def create_general_plan(user_goal: str, planner_step: Optional[str] = None
         planner_step=planner_step or "No plan generated yet"
     )
 
-    with mlflow.start_span(name="general_planning_llm", span_type="LLM") as span:
-        metadata = client.get_model_metadata()
-        span.set_attributes({**metadata, "user_goal_length": len(user_goal)})
-        span.set_inputs({"user_goal": user_goal, "planner_step_present": bool(planner_step)})
-
+    langfuse = get_client()
+    with langfuse.start_as_current_observation(
+        name="general_planning_llm",
+        as_type="generation",
+        model=client.model,
+        input={"user_goal": user_goal, "planner_step_present": bool(planner_step)},
+        metadata={**client.get_model_metadata(), "user_goal_length": len(user_goal)}
+    ) as span:
         response = client.call_sync(system_prompt, user_prompt, attachments=attachments)
-        span.set_outputs(
-            {
-                "raw_response": response[:5000],
-                "formats": {"text": response, "markdown": "```\n" + response + "\n```"},
-            }
-        )
+        span.update(output={"response": response[:5000]})
 
     return parse_json_response(response, "general plan")
 
@@ -204,23 +202,19 @@ async def create_tool_plan(
         attachments_hint=attachments_hint
     )
 
-    with mlflow.start_span(name="tool_strategy_llm", span_type="LLM") as span:
-        metadata = client.get_model_metadata()
-        span.set_attributes({**metadata, "user_goal_length": len(user_goal)})
-        span.set_inputs(
-            {
-                "general_plan_keys": list(general_plan.keys()),
-                "planner_step_present": bool(planner_step),
-            }
-        )
-
+    langfuse = get_client()
+    with langfuse.start_as_current_observation(
+        name="tool_strategy_llm",
+        as_type="generation",
+        model=client.model,
+        input={
+            "general_plan_keys": list(general_plan.keys()),
+            "planner_step_present": bool(planner_step),
+        },
+        metadata={**client.get_model_metadata(), "user_goal_length": len(user_goal)}
+    ) as span:
         response = client.call_sync(system_prompt, user_prompt, attachments=attachments)
-        span.set_outputs(
-            {
-                "raw_response": response[:5000],
-                "formats": {"text": response, "markdown": "```\n" + response + "\n```"},
-            }
-        )
+        span.update(output={"response": response[:5000]})
 
     tool_plan_data = parse_json_response(response, "tool plan")
 
@@ -301,14 +295,15 @@ async def execute_tool_plan(
     general_plan: Optional[Dict[str, Any]] = None,
 ) -> List[Dict[str, Any]]:
     results: List[Dict[str, Any]] = []
-    with mlflow.start_span(name="tool_execution_phase", span_type="TOOL") as span:
-        span.set_attributes({"tools_requested": len(tool_plan)})
-        span.set_inputs(
-            {
-                "tool_names": [entry.get("tool") for entry in tool_plan],
-                "planner_step_present": bool(planner_step),
-            }
-        )
+    langfuse = get_client()
+    with langfuse.start_as_current_span(
+        name="tool_execution_phase",
+        input={
+            "tool_names": [entry.get("tool") for entry in tool_plan],
+            "planner_step_present": bool(planner_step),
+        },
+        metadata={"span_type": "TOOL", "tools_requested": len(tool_plan)}
+    ) as span:
 
         pending_entries = list(tool_plan)
         datamodel_queries_enqueued: Set[str] = set()
@@ -356,36 +351,32 @@ async def execute_tool_plan(
             entry["arguments"] = arguments
 
             objective = entry.get("objective", "")
-            with mlflow.start_span(name=f"tool::{tool_name}", span_type="TOOL") as tool_span:
-                tool_span.set_attributes({"tool": tool_name, "objective": objective})
-                tool_span.set_inputs({"arguments": arguments})
-
+            with langfuse.start_as_current_span(
+                name=f"tool::{tool_name}",
+                input={"arguments": arguments},
+                metadata={"span_type": "TOOL", "tool": tool_name, "objective": objective}
+            ) as tool_span:
                 result = await mcp_client.call_tool(tool_name, arguments)
                 if isinstance(result, dict) and "error" in result:
                     error_message = result["error"]
-                    tool_span.set_status("ERROR")
-                    tool_span.set_outputs({"success": False, "error": error_message})
+                    tool_span.update(output={"success": False, "error": error_message})
                     raise Exception(f"MCP tool '{tool_name}' failed: {error_message}")
 
                 result_text = extract_tool_text(result)
+                result_summary = result_text[:500] + "..." if len(result_text) > 500 else result_text
+
                 json_payload = None
-                if is_json(result_text):
+                if result_text:
                     try:
                         json_payload = json.loads(result_text)
                     except json.JSONDecodeError:
                         json_payload = None
 
-                tool_span.set_outputs(
-                    {
-                        "success": True,
-                        "raw_result": result_text[:5000],
-                        "formats": {
-                            "text": result_text,
-                            "markdown": format_as_markdown(result_text),
-                            "json": json_payload,
-                        },
-                    }
-                )
+                tool_span.update(output={
+                    "success": True,
+                    "result": json_payload if json_payload else result_text[:5000],
+                    "result_summary": result_summary,
+                })
 
                 results.append(
                     {
@@ -495,19 +486,19 @@ async def create_implementation_plan(
         "planner_step": planner_step,
     }
 
-    with mlflow.start_span(name="implementation_planning_tool", span_type="TOOL") as span:
-        span.set_inputs(
-            {
-                "payload_keys": list(payload.keys()),
-                "files_known": len(repo_facts.get("files", [])) if isinstance(repo_facts, dict) else 0,
-            }
-        )
-
+    langfuse = get_client()
+    with langfuse.start_as_current_span(
+        name="implementation_planning_tool",
+        input={
+            "payload_keys": list(payload.keys()),
+            "files_known": len(repo_facts.get("files", [])) if isinstance(repo_facts, dict) else 0,
+        },
+        metadata={"span_type": "TOOL"}
+    ) as span:
         planning_result = await mcp_client.call_tool("planning_tool", payload)
         if isinstance(planning_result, dict) and "error" in planning_result:
             error_message = planning_result["error"]
-            span.set_status("ERROR")
-            span.set_outputs({"success": False, "error": error_message})
+            span.update(output={"success": False, "error": error_message})
             raise Exception(f"planning_tool failed: {error_message}")
 
         planning_text = extract_tool_text(planning_result)
@@ -522,12 +513,7 @@ async def create_implementation_plan(
                 planning_text, user_goal, repo_facts, tool_results, general_plan, attachments=attachments
             )
 
-        span.set_outputs(
-            {
-                "raw_result": planning_text[:5000],
-                "formats": {"text": planning_text, "markdown": "```\n" + planning_text + "\n```"},
-            }
-        )
+        span.update(output={"result": planning_text[:5000]})
 
     return parse_json_response(planning_text, "implementation plan")
 
@@ -654,23 +640,19 @@ async def synthesize_patch(
         repo_summary=json.dumps(repo_summary, indent=2)
     )
 
-    with mlflow.start_span(name="patch_synthesis", span_type="LLM") as span:
-        metadata = client.get_model_metadata()
-        span.set_attributes({**metadata, "tool_results_count": len(tool_results)})
-        span.set_inputs(
-            {
-                "implementation_plan_keys": list(implementation_plan.keys()),
-                "planner_step_present": bool(planner_step),
-            }
-        )
-
+    langfuse = get_client()
+    with langfuse.start_as_current_observation(
+        name="patch_synthesis",
+        as_type="generation",
+        model=client.model,
+        input={
+            "implementation_plan_keys": list(implementation_plan.keys()),
+            "planner_step_present": bool(planner_step),
+        },
+        metadata={**client.get_model_metadata(), "tool_results_count": len(tool_results)}
+    ) as span:
         response = client.call_sync(system_prompt, user_prompt)
-        span.set_outputs(
-            {
-                "raw_response": response[:5000],
-                "formats": {"text": response, "markdown": "```\n" + response + "\n```"},
-            }
-        )
+        span.update(output={"response": response[:5000]})
 
     patch_data = parse_json_response(response, "patch synthesis")
 

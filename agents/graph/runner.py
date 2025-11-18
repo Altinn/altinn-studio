@@ -80,66 +80,63 @@ def build_graph():
 
 graph = build_graph()
 
-import mlflow
-from shared.utils.mlflow_utils import get_or_create_experiment
+from langfuse import get_client
+from shared.utils.langfuse_utils import init_langfuse, is_langfuse_enabled
 
 async def run_once(state: AgentState, event_sink: EventSink = None):
     """Run one complete workflow loop with unified tracing"""
     if event_sink is None:
         event_sink = sink
 
-    # Set up MLflow experiment
-    experiment_name = get_or_create_experiment()
-    if experiment_name:
-        mlflow.set_experiment(experiment_name)
+    # Initialize Langfuse
+    init_langfuse()
+    langfuse = get_client() if is_langfuse_enabled() else None
 
     # Create single root trace for entire workflow
-    with mlflow.start_span(name="altinity_agent_workflow", span_type="AGENT") as root_span:
-        try:
-            root_span.set_inputs({
+    if langfuse:
+        with langfuse.start_as_current_span(
+            name="altinity_agent_workflow",
+            metadata={"span_type": "AGENT"},
+            input={
                 "user_goal": str(state.user_goal),
                 "repo_path": str(state.repo_path),
                 "session_id": str(state.session_id)
-            })
-        except Exception as e:
-            print(f"MLflow root span input error: {e}")
-
-        try:
-            # Rebuild graph to ensure latest changes are used
-            current_graph = build_graph()
-            # Run the graph workflow asynchronously - all nested operations will be under this trace
-            final_state = await current_graph.ainvoke(state)
-            
+            }
+        ) as root_span:
             try:
-                root_span.set_outputs({
+                # Rebuild graph to ensure latest changes are used
+                current_graph = build_graph()
+                # Run the graph workflow asynchronously - all nested operations will be under this trace
+                final_state = await current_graph.ainvoke(state)
+                
+                root_span.update(output={
                     "success": bool(final_state.get("tests_passed", False)),
                     "changed_files": len(final_state.get("changed_files", [])),
                     "next_action": str(final_state.get("next_action", ""))
                 })
+                    
             except Exception as e:
-                print(f"MLflow root span output error: {e}")
-                
-        except Exception as e:
-            try:
-                root_span.set_attribute("error", str(e))
-            except:
-                pass
-            raise
+                root_span.update(metadata={"error": str(e)})
+                raise
+    else:
+        # Run without tracing if Langfuse is disabled
+        current_graph = build_graph()
+        final_state = await current_graph.ainvoke(state)
 
-        # Send completion event
-        success = final_state.get("tests_passed", False)
-        event_sink.send(AgentEvent(
-            type="status",
-            session_id=final_state.get("session_id", state.session_id),
-            data={
-                "done": True, 
-                "success": success,
-                "status": "completed" if success else "failed",
-                "message": "Task completed successfully" if success else "Task completed with issues"
-            }
-        ))
+    # Send completion event
+    success = final_state.get("tests_passed", False)
+    event_sink.send(AgentEvent(
+        type="status",
+        session_id=final_state.get("session_id", state.session_id),
+        data={
+            "done": True, 
+            "success": success,
+            "status": "completed" if success else "failed",
+            "message": "Task completed successfully" if success else "Task completed with issues"
+        }
+    ))
 
-        return final_state
+    return final_state
 
 
 def run_in_background(state: AgentState, event_sink: EventSink = None):

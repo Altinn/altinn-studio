@@ -6,7 +6,7 @@ import json
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
-import mlflow
+from langfuse import get_client
 
 from agents.services.llm import LLMClient
 from agents.prompts import get_prompt_content, render_template
@@ -44,19 +44,17 @@ def run_intake_pipeline(
     user_prompt = render_template("intake_planning_user", user_goal=user_goal)
 
     client = LLMClient(role="planner")
-    with mlflow.start_span(name="intake_planning_llm", span_type="LLM") as span:
-        metadata = client.get_model_metadata()
-        span.set_attributes({**metadata, "user_goal_length": len(user_goal)})
-        span.set_inputs({"user_goal": user_goal})
+    langfuse = get_client()
+    with langfuse.start_as_current_observation(
+        name="intake_planning_llm",
+        as_type="generation",
+        model=client.model,
+        input={"user_goal": user_goal},
+        metadata={"has_attachments": bool(attachments), **client.get_model_metadata()},
+    ) as span:
 
         response = client.call_sync(system_prompt, user_prompt, attachments=attachments)
-        span.set_outputs({
-            "raw_response": response[:5000],
-            "formats": {
-                "text": response,
-                "markdown": "```\n" + response + "\n```",
-            },
-        })
+        span.update(output={"response": response[:5000]})
 
     return {
         "plan": response.strip(),
