@@ -20,6 +20,12 @@ internal static class RuleConvertCommand
             getDefaultValue: () => "App/ui/"
         );
 
+        var failuresOnlyOption = new Option<bool>(
+            name: "--failures-only",
+            description: "Only show rules that failed to convert",
+            getDefaultValue: () => false
+        );
+
         var command = new Command(
             "rule-convert",
             "Convert rules from RuleConfiguration.json and RuleHandler.js to expression language"
@@ -27,12 +33,14 @@ internal static class RuleConvertCommand
         {
             projectFolderOption,
             uiFolderOption,
+            failuresOnlyOption,
         };
 
         command.SetHandler(context =>
         {
             var projectFolder = context.ParseResult.GetValueForOption(projectFolderOption);
             var uiFolder = context.ParseResult.GetValueForOption(uiFolderOption);
+            var failuresOnly = context.ParseResult.GetValueForOption(failuresOnlyOption);
 
             if (projectFolder is null or "CurrentDirectory")
             {
@@ -55,12 +63,12 @@ internal static class RuleConvertCommand
 
             if (!Directory.Exists(uiFolderPath))
             {
-                Console.Error.WriteLine($"UI folder not found: {uiFolderPath}");
+                // Console.Error.WriteLine($"UI folder not found: {uiFolderPath}");
                 Environment.Exit(1);
                 return;
             }
 
-            AnalyzeRules(uiFolderPath);
+            AnalyzeRules(uiFolderPath, failuresOnly);
             Environment.Exit(0);
         });
 
@@ -70,12 +78,9 @@ internal static class RuleConvertCommand
     /// <summary>
     /// Analyze rules in all layout sets
     /// </summary>
-    private static void AnalyzeRules(string uiFolderPath)
+    private static void AnalyzeRules(string uiFolderPath, bool failuresOnly)
     {
-        Console.WriteLine("Analyzing RuleConfiguration.json and RuleHandler.js files...\n");
-
         var layoutSets = Directory.GetDirectories(uiFolderPath);
-        var hasAnyRules = false;
 
         foreach (var layoutSetPath in layoutSets)
         {
@@ -83,44 +88,40 @@ internal static class RuleConvertCommand
             var ruleConfigPath = Path.Combine(layoutSetPath, "RuleConfiguration.json");
             var ruleHandlerPath = Path.Combine(layoutSetPath, "RuleHandler.js");
 
-            // Skip if no RuleConfiguration.json exists
             if (!File.Exists(ruleConfigPath))
             {
                 continue;
             }
 
-            hasAnyRules = true;
+            var fileContent = File.ReadAllText(ruleConfigPath).Trim();
+            if (string.IsNullOrEmpty(fileContent) || fileContent == "{}" || fileContent == "[]")
+            {
+                continue;
+            }
 
             try
             {
-                // Parse RuleConfiguration.json
                 var configParser = new RuleConfigurationParser(ruleConfigPath);
                 configParser.Parse();
 
                 var conditionalRules = configParser.GetConditionalRenderingRules();
                 var dataProcessingRules = configParser.GetDataProcessingRules();
 
-                // Parse RuleHandler.js
+                if (conditionalRules.Count == 0 && dataProcessingRules.Count == 0)
+                {
+                    continue;
+                }
+
                 var jsParser = new RuleHandlerParser(ruleHandlerPath);
                 jsParser.Parse();
 
-                // Generate report
                 var reporter = new RuleAnalysisReporter(layoutSetName, conditionalRules, dataProcessingRules, jsParser);
-                reporter.GenerateReport();
+                reporter.GenerateReport(failuresOnly);
             }
             catch (Exception ex)
             {
                 Console.Error.WriteLine($"\nError analyzing layout set '{layoutSetName}': {ex.Message}");
             }
-        }
-
-        if (!hasAnyRules)
-        {
-            Console.WriteLine("No RuleConfiguration.json files found in any layout sets.");
-        }
-        else
-        {
-            Console.WriteLine("\nAnalysis complete.");
         }
     }
 }

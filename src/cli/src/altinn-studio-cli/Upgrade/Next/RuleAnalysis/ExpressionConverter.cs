@@ -1,8 +1,7 @@
-using Acornima.Ast;
-using AltinnCLI.Upgrade.Next.RuleAnalysis.Matchers;
-using AltinnCLI.Upgrade.Next.RuleAnalysis.Models;
+using Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.Matchers;
+using Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.Models;
 
-namespace AltinnCLI.Upgrade.Next.RuleAnalysis;
+namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis;
 
 /// <summary>
 /// Main orchestrator for converting JavaScript rule functions to expression language
@@ -18,12 +17,14 @@ public class ExpressionConverter
         _matchers = new List<IExpressionMatcher>
         {
             // Order matters! More specific matchers should come first
+            new ParenthesizedExpressionMatcher(), // Unwrap parentheses first
+            new WindowLocationMatcher(), // Check for window.location.host patterns before generic comparisons
             new LengthCheckMatcher(), // Must come before PropertyAccessMatcher
             new UnaryPlusMatcher(), // Handle numeric coercion
             new LiteralMatcher(), // Constants
             new PropertyAccessMatcher(), // Data model lookups
             new BinaryComparisonMatcher(), // Comparisons
-            new LogicalOperatorMatcher(), // Boolean logic
+            new LogicalOperatorMatcher(), // Boolean logic (handles multi-clause and truthiness)
         };
     }
 
@@ -122,6 +123,7 @@ public class ExpressionConverter
             Warnings = warnings,
             OriginalJavaScript = functionBody,
             WasInverted = shouldInvert,
+            RequiresEnvironmentSettings = context.RequiresEnvironmentSettings,
         };
     }
 

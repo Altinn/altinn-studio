@@ -1,9 +1,7 @@
 using Acornima;
 using Acornima.Ast;
-using Jint;
-using Jint.Native;
 
-namespace AltinnCLI.Upgrade.Next.RuleAnalysis;
+namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis;
 
 /// <summary>
 /// Parses JavaScript function bodies and extracts return expressions for conversion to expression language

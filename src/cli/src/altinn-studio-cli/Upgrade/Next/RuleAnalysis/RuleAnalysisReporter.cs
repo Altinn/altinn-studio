@@ -1,5 +1,4 @@
 using Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.Models;
-using AltinnCLI.Upgrade.Next.RuleAnalysis;
 
 namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis;
 
@@ -31,23 +30,36 @@ internal class RuleAnalysisReporter
     /// <summary>
     /// Generate the report and write to console
     /// </summary>
-    public void GenerateReport()
+    /// <param name="failuresOnly">Only show rules that failed to convert</param>
+    public void GenerateReport(bool failuresOnly = false)
     {
-        Console.WriteLine($"\nLayout Set: {_layoutSetName}");
-        Console.WriteLine(new string('=', 50));
-
         if (_conditionalRules.Any())
         {
-            GenerateConditionalRenderingReport();
+            var output = GenerateConditionalRenderingReport(failuresOnly);
+            if (!string.IsNullOrEmpty(output))
+            {
+                // Only print layout set header if we have output
+                Console.WriteLine($"\nLayout Set: {_layoutSetName}");
+                Console.WriteLine(new string('=', 50));
+                Console.WriteLine(output);
+            }
         }
 
-        if (_dataProcessingRules.Any())
+        if (_dataProcessingRules.Any() && !failuresOnly)
         {
+            // Data processing rules don't have conversions yet, so only show if not failures-only mode
+            if (!_conditionalRules.Any() || string.IsNullOrEmpty(GenerateConditionalRenderingReport(failuresOnly)))
+            {
+                Console.WriteLine($"\nLayout Set: {_layoutSetName}");
+                Console.WriteLine(new string('=', 50));
+            }
             GenerateDataProcessingReport();
         }
 
-        if (!_conditionalRules.Any() && !_dataProcessingRules.Any())
+        if (!failuresOnly && !_conditionalRules.Any() && !_dataProcessingRules.Any())
         {
+            Console.WriteLine($"\nLayout Set: {_layoutSetName}");
+            Console.WriteLine(new string('=', 50));
             Console.WriteLine("  No rules found in this layout set.");
         }
     }
@@ -55,10 +67,11 @@ internal class RuleAnalysisReporter
     /// <summary>
     /// Generate report for conditional rendering rules, grouped by component ID
     /// </summary>
-    private void GenerateConditionalRenderingReport()
+    /// <param name="failuresOnly">Only show rules that failed to convert</param>
+    /// <returns>The generated report output, or empty string if no output</returns>
+    private string GenerateConditionalRenderingReport(bool failuresOnly = false)
     {
-        Console.WriteLine("\nComponents with Conditional Rendering:");
-        Console.WriteLine(new string('-', 50));
+        var output = new System.Text.StringBuilder();
 
         // Group rules by component ID
         var componentRules = new Dictionary<string, List<(string RuleId, ConditionalRenderingRule Rule)>>();
@@ -84,125 +97,169 @@ internal class RuleAnalysisReporter
             }
         }
 
+        // First pass: collect all rule outputs
+        var componentOutputs = new Dictionary<string, List<string>>();
+
         // Output grouped by component
         foreach (var componentEntry in componentRules.OrderBy(c => c.Key))
         {
             var componentId = componentEntry.Key;
             var rules = componentEntry.Value;
 
-            Console.WriteLine($"\nComponent: {componentId}");
+            var ruleOutputs = new List<string>();
 
             foreach (var (ruleId, rule) in rules)
             {
-                Console.WriteLine($"  Rule: {ruleId}");
-                Console.WriteLine($"    Function: {rule.SelectedFunction}");
-                Console.WriteLine($"    Action: {rule.SelectedAction}");
-
                 // Get function implementation from JS parser
                 var jsFunction = _jsParser.GetConditionalFunction(rule.SelectedFunction ?? "");
-                if (jsFunction != null)
+                if (jsFunction == null)
                 {
-                    Console.WriteLine("    Original JavaScript:");
-                    // Indent the function implementation
-                    var lines = jsFunction.Implementation.Split('\n');
-                    foreach (var line in lines)
+                    continue; // Skip if function not found
+                }
+
+                // Try to convert to expression language
+                var inputParams = rule.InputParams ?? new Dictionary<string, string>();
+                var conversionResult = _expressionConverter.Convert(
+                    jsFunction.Implementation,
+                    inputParams,
+                    rule.SelectedAction ?? "Hide"
+                );
+
+                // Skip successful conversions if failuresOnly is true
+                if (
+                    failuresOnly
+                    && conversionResult.Status == ConversionStatus.Success
+                )
+                {
+                    continue;
+                }
+
+                // Build the rule output
+                var ruleOutput = new System.Text.StringBuilder();
+                ruleOutput.AppendLine($"  Rule: {ruleId}");
+                ruleOutput.AppendLine($"    Function: {rule.SelectedFunction}");
+                ruleOutput.AppendLine($"    Action: {rule.SelectedAction}");
+                ruleOutput.AppendLine("    Original JavaScript:");
+                // Indent the function implementation
+                var lines = jsFunction.Implementation.Split('\n');
+                foreach (var line in lines)
+                {
+                    ruleOutput.AppendLine($"      {line}");
+                }
+
+                // Try to convert to expression language
+                ruleOutput.AppendLine();
+                ruleOutput.AppendLine("    === EXPRESSION CONVERSION ===");
+
+                // Output conversion status
+                string statusSymbol = conversionResult.Status switch
+                {
+                    ConversionStatus.Success => "✅",
+                    ConversionStatus.PartialSuccess => "⚠️",
+                    ConversionStatus.Failed => "❌",
+                    _ => "?",
+                };
+
+                ruleOutput.AppendLine($"    Status: {statusSymbol} {conversionResult.Status}");
+                ruleOutput.AppendLine($"    Confidence: {conversionResult.Confidence}");
+
+                if (conversionResult.Status == ConversionStatus.Success)
+                {
+                    ruleOutput.AppendLine();
+                    ruleOutput.AppendLine("    Generated Expression:");
+                    var expressionJson = conversionResult.ExpressionAsJson();
+                    foreach (var line in expressionJson.Split('\n'))
                     {
-                        Console.WriteLine($"      {line}");
+                        ruleOutput.AppendLine($"      {line}");
                     }
 
-                    // Try to convert to expression language
-                    Console.WriteLine();
-                    Console.WriteLine("    === EXPRESSION CONVERSION ===");
-
-                    var inputParams = rule.InputParams ?? new Dictionary<string, string>();
-                    var conversionResult = _expressionConverter.Convert(
-                        jsFunction.Implementation,
-                        inputParams,
-                        rule.SelectedAction ?? "Hide"
-                    );
-
-                    // Output conversion status
-                    string statusSymbol = conversionResult.Status switch
+                    if (conversionResult.WasInverted)
                     {
-                        AltinnCLI.Upgrade.Next.RuleAnalysis.Models.ConversionStatus.Success => "✅",
-                        AltinnCLI.Upgrade.Next.RuleAnalysis.Models.ConversionStatus.PartialSuccess => "⚠️",
-                        AltinnCLI.Upgrade.Next.RuleAnalysis.Models.ConversionStatus.Failed => "❌",
-                        _ => "?",
-                    };
-
-                    Console.WriteLine($"    Status: {statusSymbol} {conversionResult.Status}");
-                    Console.WriteLine($"    Confidence: {conversionResult.Confidence}");
-
-                    if (conversionResult.Status == AltinnCLI.Upgrade.Next.RuleAnalysis.Models.ConversionStatus.Success)
-                    {
-                        Console.WriteLine();
-                        Console.WriteLine("    Generated Expression:");
-                        var expressionJson = conversionResult.ExpressionAsJson();
-                        foreach (var line in expressionJson.Split('\n'))
-                        {
-                            Console.WriteLine($"      {line}");
-                        }
-
-                        if (conversionResult.WasInverted)
-                        {
-                            Console.WriteLine("      [Note: Expression was inverted because action is 'Show']");
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine($"    Failure Reason: {conversionResult.FailureReason}");
+                        ruleOutput.AppendLine("      [Note: Expression was inverted because action is 'Show']");
                     }
 
-                    // Output warnings if any
-                    if (conversionResult.Warnings.Any())
+                    if (conversionResult.RequiresEnvironmentSettings)
                     {
-                        Console.WriteLine("    Warnings:");
-                        foreach (var warning in conversionResult.Warnings)
-                        {
-                            Console.WriteLine($"      ⚠️ {warning}");
-                        }
-                    }
-
-                    // Output debug info
-                    if (conversionResult.DebugInfo.Any())
-                    {
-                        Console.WriteLine();
-                        Console.WriteLine("    Debug Info:");
-                        foreach (var debug in conversionResult.DebugInfo)
-                        {
-                            Console.WriteLine($"      {debug}");
-                        }
+                        ruleOutput.AppendLine("      ⚠️ [Note: This app requires environment settings to be added]");
+                        ruleOutput.AppendLine(
+                            "         The app must include frontendSettings with an 'environment' property"
+                        );
+                        ruleOutput.AppendLine("         (values: 'local', 'staging', or 'production')");
                     }
                 }
                 else
                 {
-                    Console.WriteLine(
-                        $"    Implementation: [Function '{rule.SelectedFunction}' not found in RuleHandler.js]"
-                    );
+                    ruleOutput.AppendLine($"    Failure Reason: {conversionResult.FailureReason}");
                 }
 
-                if (rule.InputParams != null && rule.InputParams.Any())
+                // Output warnings if any
+                if (conversionResult.Warnings.Count > 0)
                 {
-                    Console.WriteLine("    Input Parameters:");
+                    ruleOutput.AppendLine("    Warnings:");
+                    foreach (var warning in conversionResult.Warnings)
+                    {
+                        ruleOutput.AppendLine($"      ⚠️ {warning}");
+                    }
+                }
+
+                // Output debug info
+                if (conversionResult.DebugInfo.Count > 0)
+                {
+                    ruleOutput.AppendLine();
+                    ruleOutput.AppendLine("    Debug Info:");
+                    foreach (var debug in conversionResult.DebugInfo)
+                    {
+                        ruleOutput.AppendLine($"      {debug}");
+                    }
+                }
+
+                if (rule.InputParams != null && rule.InputParams.Count > 0)
+                {
+                    ruleOutput.AppendLine("    Input Parameters:");
                     foreach (var input in rule.InputParams)
                     {
-                        Console.WriteLine($"      {input.Key} -> {input.Value}");
+                        ruleOutput.AppendLine($"      {input.Key} -> {input.Value}");
                     }
                 }
 
                 if (rule.RepeatingGroup != null)
                 {
-                    Console.WriteLine("    Repeating Group:");
-                    Console.WriteLine($"      Group ID: {rule.RepeatingGroup.GroupId}");
+                    ruleOutput.AppendLine("    Repeating Group:");
+                    ruleOutput.AppendLine($"      Group ID: {rule.RepeatingGroup.GroupId}");
                     if (!string.IsNullOrEmpty(rule.RepeatingGroup.ChildGroupId))
                     {
-                        Console.WriteLine($"      Child Group ID: {rule.RepeatingGroup.ChildGroupId}");
+                        ruleOutput.AppendLine($"      Child Group ID: {rule.RepeatingGroup.ChildGroupId}");
                     }
                 }
 
-                Console.WriteLine();
+                ruleOutput.AppendLine();
+                ruleOutputs.Add(ruleOutput.ToString());
+            }
+
+            // Add component output if we have any rules for it
+            if (ruleOutputs.Count > 0)
+            {
+                componentOutputs[componentId] = ruleOutputs;
             }
         }
+
+        // Build final output
+        if (componentOutputs.Count > 0)
+        {
+            output.AppendLine("\nComponents with Conditional Rendering:");
+            output.AppendLine(new string('-', 50));
+
+            foreach (var kvp in componentOutputs.OrderBy(c => c.Key))
+            {
+                output.AppendLine($"\nComponent: {kvp.Key}");
+                foreach (var ruleOut in kvp.Value)
+                {
+                    output.Append(ruleOut);
+                }
+            }
+        }
+
+        return output.ToString();
     }
 
     /// <summary>

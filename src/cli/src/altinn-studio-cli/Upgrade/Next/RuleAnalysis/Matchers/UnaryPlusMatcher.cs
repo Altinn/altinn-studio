@@ -1,6 +1,6 @@
 using Acornima.Ast;
 
-namespace AltinnCLI.Upgrade.Next.RuleAnalysis.Matchers;
+namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.Matchers;
 
 /// <summary>
 /// Matches unary plus operator (+obj.value) used for numeric coercion
@@ -10,7 +10,11 @@ public class UnaryPlusMatcher : IExpressionMatcher
 {
     public bool CanMatch(Expression expression)
     {
-        return expression is UnaryExpression unary && unary.Operator.ToString() == "+";
+        if (expression is not UnaryExpression unary)
+            return false;
+
+        var op = unary.Operator.ToString();
+        return op == "+" || op == "UnaryPlus";
     }
 
     public object? Match(Expression expression, ConversionContext context, List<string> debugInfo)
