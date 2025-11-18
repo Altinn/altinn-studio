@@ -4,6 +4,7 @@
 # Configuration: name:prefix:repo:remote
 SUBTREES := localtest:src/Runtime/localtest:../app-localtest:Altinn/app-localtest \
            frontend:src/App/frontend:../app-frontend-react:Altinn/app-frontend-react \
+           mcp:src/AI/mcp:../altinity-mcp:Simenwai/altinity-mcp \
            backend:src/App/backend:../app-lib-dotnet:Altinn/app-lib-dotnet \
            fileanalyzers:src/App/fileanalyzers:../fileanalyzers-lib-dotnet:Altinn/fileanalyzers-lib-dotnet \
            codelists:src/App/codelists:../codelists-lib-dotnet:Altinn/codelists-lib-dotnet
