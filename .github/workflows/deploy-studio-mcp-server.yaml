@@ -1,9 +1,9 @@
-name: AI - deploy mcp server
+name: Deploy AI MCP server
 
 on:
   push:
     branches:
-      - main
+      - feat/mcp-deploy
     paths:
       - src/AI/mcp/**
       - .github/workflows/deploy-studio-mcp-server.yaml
@@ -26,7 +26,7 @@ jobs:
   construct-environments-array:
     uses: ./.github/workflows/template-construct-environments.yaml
     with:
-      environments: ${{ github.event.inputs.environments || 'dev,staging,prod' }}
+      environments: ${{ github.event.inputs.environments || 'staging' }}
 
   push-artifact:
     name: Push mcp server as OCI artifact
