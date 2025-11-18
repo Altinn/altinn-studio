@@ -11,7 +11,7 @@ export type PolicyAccessPackageArea = {
   urn: string;
   name: string;
   description: string;
-  icon: string;
+  iconUrl: string;
   packages: PolicyAccessPackage[];
 };
 
