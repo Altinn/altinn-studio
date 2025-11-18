@@ -19,11 +19,6 @@ public class ConversionResult
     public object? Expression { get; set; }
 
     /// <summary>
-    /// Confidence level in the conversion
-    /// </summary>
-    public ConfidenceLevel Confidence { get; set; }
-
-    /// <summary>
     /// Detailed debug information about the conversion process
     /// </summary>
     public List<string> DebugInfo { get; set; } = new();
@@ -74,30 +69,7 @@ public enum ConversionStatus
     Success,
 
     /// <summary>
-    /// Partially converted, but may need manual review
-    /// </summary>
-    PartialSuccess,
-
-    /// <summary>
     /// Could not convert automatically
     /// </summary>
     Failed,
-}
-
-public enum ConfidenceLevel
-{
-    /// <summary>
-    /// High confidence - simple, well-understood pattern
-    /// </summary>
-    High,
-
-    /// <summary>
-    /// Medium confidence - converted but with some complexity
-    /// </summary>
-    Medium,
-
-    /// <summary>
-    /// Low confidence - complex pattern, may need verification
-    /// </summary>
-    Low,
 }
