@@ -123,3 +123,6 @@ dmypy.json
 .DS_Store
 
 **/**/.doc_cache
+
+# Test files in root
+/test_*.py
