@@ -8,6 +8,7 @@ using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -22,7 +23,7 @@ public class UpdateSharedResourcesTests(WebApplicationFactory<Program> factory) 
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {
-        base.ConfigureTestServices(services);
+        services.AddSingleton<IGitea, IGiteaMock>();
         services.AddSingleton(_ => _orgLibraryServiceMock.Object);
         services.AddSingleton(_ => _userOrganizationServiceMock.Object);
     }
