@@ -33,7 +33,7 @@ internal static class RuleConvertCommand
         {
             projectFolderOption,
             uiFolderOption,
-            failuresOnlyOption,
+            failuresOnlyOption
         };
 
         command.SetHandler(context =>

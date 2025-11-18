@@ -55,20 +55,10 @@ public class ExpressionConverter
             return new ConversionResult
             {
                 Status = ConversionStatus.Failed,
-                Confidence = ConfidenceLevel.Low,
                 FailureReason = parseResult.ErrorMessage,
                 DebugInfo = debugInfo,
                 OriginalJavaScript = functionBody,
             };
-        }
-
-        debugInfo.Add($"Parse successful. Statement count: {parseResult.StatementCount}");
-
-        // Step 2: Check complexity
-        if (parseResult.IsComplex)
-        {
-            debugInfo.Add($"⚠️ Function is complex ({parseResult.StatementCount} statements)");
-            warnings.Add($"Complex function with {parseResult.StatementCount} statements - may require manual review");
         }
 
         // Step 3: Convert the return expression
@@ -87,7 +77,6 @@ public class ExpressionConverter
             return new ConversionResult
             {
                 Status = ConversionStatus.Failed,
-                Confidence = ConfidenceLevel.Low,
                 FailureReason = "Could not convert return expression to expression language",
                 DebugInfo = debugInfo,
                 Warnings = warnings,
@@ -110,35 +99,16 @@ public class ExpressionConverter
             debugInfo.Add("Action is 'Hide' - using expression as-is");
         }
 
-        // Step 5: Determine confidence
-        var confidence = DetermineConfidence(parseResult, warnings);
-        debugInfo.Add($"Confidence level: {confidence}");
-
         return new ConversionResult
         {
             Status = ConversionStatus.Success,
             Expression = expression,
-            Confidence = confidence,
             DebugInfo = debugInfo,
             Warnings = warnings,
             OriginalJavaScript = functionBody,
             WasInverted = shouldInvert,
             RequiresEnvironmentSettings = context.RequiresEnvironmentSettings,
         };
-    }
-
-    private ConfidenceLevel DetermineConfidence(ParseResult parseResult, List<string> warnings)
-    {
-        // Simple single-statement functions are high confidence
-        if (parseResult.IsSimple && warnings.Count == 0)
-            return ConfidenceLevel.High;
-
-        // Complex functions or those with warnings are lower confidence
-        if (parseResult.IsComplex || warnings.Count > 1)
-            return ConfidenceLevel.Low;
-
-        // Everything else is medium
-        return ConfidenceLevel.Medium;
     }
 
     /// <summary>

@@ -60,16 +60,10 @@ public class JavaScriptExpressionParser
                 Success = false,
                 ErrorMessage = "Empty function body",
                 OriginalCode = originalCode,
-                StatementCount = 0,
             };
         }
 
-        // Count meaningful statements
-        var meaningfulStatements = CountMeaningfulStatements(statements);
-
-        // Find the return statement
         var returnStatement = FindReturnStatement(statements);
-
         if (returnStatement == null)
         {
             return new ParseResult
@@ -77,7 +71,6 @@ public class JavaScriptExpressionParser
                 Success = false,
                 ErrorMessage = "No return statement found",
                 OriginalCode = originalCode,
-                StatementCount = meaningfulStatements,
             };
         }
 
@@ -85,90 +78,9 @@ public class JavaScriptExpressionParser
         {
             Success = true,
             ReturnExpression = returnStatement.Argument,
-            StatementCount = meaningfulStatements,
             OriginalCode = originalCode,
             AllStatements = statements,
         };
-    }
-
-    private ParseResult AnalyzeProgram(Acornima.Ast.Program program, string originalCode)
-    {
-        var statements = program.Body.ToList();
-
-        if (statements.Count == 0)
-        {
-            return new ParseResult
-            {
-                Success = false,
-                ErrorMessage = "Empty function body",
-                OriginalCode = originalCode,
-                StatementCount = 0,
-            };
-        }
-
-        // Count meaningful statements (excluding variable declarations that are just coercion)
-        var meaningfulStatements = CountMeaningfulStatements(statements);
-
-        // Find the return statement
-        var returnStatement = FindReturnStatement(statements);
-
-        if (returnStatement == null)
-        {
-            return new ParseResult
-            {
-                Success = false,
-                ErrorMessage = "No return statement found",
-                OriginalCode = originalCode,
-                StatementCount = meaningfulStatements,
-            };
-        }
-
-        return new ParseResult
-        {
-            Success = true,
-            ReturnExpression = returnStatement.Argument,
-            StatementCount = meaningfulStatements,
-            OriginalCode = originalCode,
-            AllStatements = statements,
-        };
-    }
-
-    private int CountMeaningfulStatements(List<Statement> statements)
-    {
-        int count = 0;
-        foreach (var stmt in statements)
-        {
-            // Return statements are meaningful
-            if (stmt is ReturnStatement)
-            {
-                count++;
-                continue;
-            }
-
-            // Expression statements might be meaningful
-            if (stmt is ExpressionStatement exprStmt)
-            {
-                // Assignment expressions are usually type coercion (obj.value = +obj.value)
-                // We'll count them as meaningful for complexity analysis
-                count++;
-                continue;
-            }
-
-            // If statements, blocks, etc. are complex
-            if (stmt is IfStatement || stmt is BlockStatement)
-            {
-                count++;
-                continue;
-            }
-
-            // Variable declarations
-            if (stmt is VariableDeclaration)
-            {
-                count++;
-                continue;
-            }
-        }
-        return count;
     }
 
     private ReturnStatement? FindReturnStatement(List<Statement> statements)
@@ -224,11 +136,7 @@ public class ParseResult
 {
     public bool Success { get; set; }
     public Expression? ReturnExpression { get; set; }
-    public int StatementCount { get; set; }
     public string? ErrorMessage { get; set; }
     public string OriginalCode { get; set; } = string.Empty;
     public List<Statement>? AllStatements { get; set; }
-
-    public bool IsSimple => Success && StatementCount == 1;
-    public bool IsComplex => Success && StatementCount > 2;
 }

@@ -33,7 +33,7 @@ internal class RuleAnalysisReporter
     /// <param name="failuresOnly">Only show rules that failed to convert</param>
     public void GenerateReport(bool failuresOnly = false)
     {
-        if (_conditionalRules.Any())
+        if (_conditionalRules.Count != 0)
         {
             var output = GenerateConditionalRenderingReport(failuresOnly);
             if (!string.IsNullOrEmpty(output))
@@ -45,10 +45,10 @@ internal class RuleAnalysisReporter
             }
         }
 
-        if (_dataProcessingRules.Any() && !failuresOnly)
+        if (_dataProcessingRules.Count != 0 && !failuresOnly)
         {
             // Data processing rules don't have conversions yet, so only show if not failures-only mode
-            if (!_conditionalRules.Any() || string.IsNullOrEmpty(GenerateConditionalRenderingReport(failuresOnly)))
+            if (_conditionalRules.Count == 0 || string.IsNullOrEmpty(GenerateConditionalRenderingReport(failuresOnly)))
             {
                 Console.WriteLine($"\nLayout Set: {_layoutSetName}");
                 Console.WriteLine(new string('=', 50));
@@ -56,7 +56,7 @@ internal class RuleAnalysisReporter
             GenerateDataProcessingReport();
         }
 
-        if (!failuresOnly && !_conditionalRules.Any() && !_dataProcessingRules.Any())
+        if (!failuresOnly && _conditionalRules.Count == 0 && _dataProcessingRules.Count == 0)
         {
             Console.WriteLine($"\nLayout Set: {_layoutSetName}");
             Console.WriteLine(new string('=', 50));
@@ -89,11 +89,13 @@ internal class RuleAnalysisReporter
             foreach (var field in rule.SelectedFields)
             {
                 var componentId = field.Value;
-                if (!componentRules.ContainsKey(componentId))
+                if (!componentRules.TryGetValue(componentId, out List<(string RuleId, ConditionalRenderingRule Rule)>? value))
                 {
-                    componentRules[componentId] = new List<(string, ConditionalRenderingRule)>();
+                    value = new List<(string, ConditionalRenderingRule)>();
+                    componentRules[componentId] = value;
                 }
-                componentRules[componentId].Add((ruleId, rule));
+
+                value.Add((ruleId, rule));
             }
         }
 
@@ -155,13 +157,11 @@ internal class RuleAnalysisReporter
                 string statusSymbol = conversionResult.Status switch
                 {
                     ConversionStatus.Success => "✅",
-                    ConversionStatus.PartialSuccess => "⚠️",
                     ConversionStatus.Failed => "❌",
                     _ => "?",
                 };
 
                 ruleOutput.AppendLine($"    Status: {statusSymbol} {conversionResult.Status}");
-                ruleOutput.AppendLine($"    Confidence: {conversionResult.Confidence}");
 
                 if (conversionResult.Status == ConversionStatus.Success)
                 {
@@ -296,7 +296,7 @@ internal class RuleAnalysisReporter
                 );
             }
 
-            if (rule.InputParams != null && rule.InputParams.Any())
+            if (rule.InputParams != null && rule.InputParams.Count != 0)
             {
                 Console.WriteLine("  Inputs:");
                 foreach (var input in rule.InputParams)
@@ -305,7 +305,7 @@ internal class RuleAnalysisReporter
                 }
             }
 
-            if (rule.OutParams != null && rule.OutParams.Any())
+            if (rule.OutParams != null && rule.OutParams.Count != 0)
             {
                 Console.WriteLine("  Outputs:");
                 foreach (var output in rule.OutParams)
