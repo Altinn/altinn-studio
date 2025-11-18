@@ -41,7 +41,7 @@ const accessPackageAreaTransport: PolicyAccessPackageArea = {
   urn: 'accesspackage:area:transport',
   name: 'Lagring og transport',
   description: '',
-  icon: 'TruckIcon',
+  iconUrl: 'TruckIcon',
   packages: [sjofartPackage, lufttransportPackage],
 };
 const accessPackageAreaGroupVanlig: PolicyAccessPackageAreaGroup = {
