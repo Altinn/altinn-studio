@@ -89,7 +89,12 @@ internal class RuleAnalysisReporter
             foreach (var field in rule.SelectedFields)
             {
                 var componentId = field.Value;
-                if (!componentRules.TryGetValue(componentId, out List<(string RuleId, ConditionalRenderingRule Rule)>? value))
+                if (
+                    !componentRules.TryGetValue(
+                        componentId,
+                        out List<(string RuleId, ConditionalRenderingRule Rule)>? value
+                    )
+                )
                 {
                     value = new List<(string, ConditionalRenderingRule)>();
                     componentRules[componentId] = value;
@@ -128,10 +133,7 @@ internal class RuleAnalysisReporter
                 );
 
                 // Skip successful conversions if failuresOnly is true
-                if (
-                    failuresOnly
-                    && conversionResult.Status == ConversionStatus.Success
-                )
+                if (failuresOnly && conversionResult.Status == ConversionStatus.Success)
                 {
                     continue;
                 }

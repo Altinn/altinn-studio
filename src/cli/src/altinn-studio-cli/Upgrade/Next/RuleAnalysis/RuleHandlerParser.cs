@@ -1,9 +1,11 @@
+using Acornima;
+using Acornima.Ast;
 using Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.Models;
 
 namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis;
 
 /// <summary>
-/// Parses RuleHandler.js files to extract function implementations
+/// Parses RuleHandler.js files to extract function implementations using Acornima AST parser
 /// </summary>
 internal class RuleHandlerParser
 {
@@ -29,11 +31,23 @@ internal class RuleHandlerParser
 
         var jsContent = File.ReadAllText(_ruleHandlerPath);
 
-        // Extract conditional rendering functions
-        ExtractFunctionsFromObject(jsContent, "conditionalRuleHandlerObject", _conditionalFunctions);
+        try
+        {
+            var parser = new Parser();
+            var program = parser.ParseScript(jsContent);
 
-        // Extract data processing functions
-        ExtractFunctionsFromObject(jsContent, "ruleHandlerObject", _dataProcessingFunctions);
+            // Extract conditional rendering functions
+            ExtractFunctionsFromObject(program, "conditionalRuleHandlerObject", _conditionalFunctions);
+
+            // Extract data processing functions
+            ExtractFunctionsFromObject(program, "ruleHandlerObject", _dataProcessingFunctions);
+        }
+        catch (Exception ex)
+        {
+            // Log or handle parsing errors if needed
+            // For now, we'll silently fail to maintain backward compatibility
+            Console.WriteLine($"Warning: Failed to parse {_ruleHandlerPath}: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -53,228 +67,96 @@ internal class RuleHandlerParser
     }
 
     /// <summary>
-    /// Extract functions from a JavaScript object declaration
+    /// Extract functions from a JavaScript object declaration using AST
     /// </summary>
     private void ExtractFunctionsFromObject(
-        string jsContent,
+        Script program,
         string objectName,
         Dictionary<string, JavaScriptFunction> targetDict
     )
     {
-        // Find the object declaration
-        var objectPattern = $"var {objectName} = {{";
-        var objectStart = jsContent.IndexOf(objectPattern);
-        if (objectStart == -1)
+        // Find the variable declaration for the object
+        foreach (var statement in program.Body)
         {
-            return; // Object not found
-        }
-
-        // Find the closing brace of the object
-        var objectEnd = FindMatchingBrace(jsContent, objectStart + objectPattern.Length - 1);
-        if (objectEnd == -1)
-        {
-            return;
-        }
-
-        var objectContent = jsContent.Substring(
-            objectStart + objectPattern.Length,
-            objectEnd - (objectStart + objectPattern.Length)
-        );
-
-        // Extract each function
-        ExtractFunctions(objectContent, targetDict);
-    }
-
-    /// <summary>
-    /// Extract individual functions from object content
-    /// </summary>
-    private void ExtractFunctions(string objectContent, Dictionary<string, JavaScriptFunction> targetDict)
-    {
-        var pos = 0;
-        while (pos < objectContent.Length)
-        {
-            // Look for pattern: functionName: function(paramName) {
-            var functionMatch = FindNextFunction(objectContent, pos);
-            if (functionMatch == null)
+            if (statement is VariableDeclaration varDecl)
             {
-                break;
-            }
-
-            targetDict[functionMatch.Name] = functionMatch;
-            pos = functionMatch.EndPosition;
-        }
-    }
-
-    /// <summary>
-    /// Find the next function in the content
-    /// </summary>
-    private FunctionMatch? FindNextFunction(string content, int startPos)
-    {
-        // Look for pattern: identifier: function(param) {
-        var colonPos = content.IndexOf(':', startPos);
-        if (colonPos == -1)
-        {
-            return null;
-        }
-
-        // Extract function name (work backwards from colon)
-        var nameStart = colonPos - 1;
-        while (nameStart >= startPos && char.IsWhiteSpace(content[nameStart]))
-        {
-            nameStart--;
-        }
-        var nameEnd = nameStart;
-        while (
-            nameStart >= startPos
-            && (char.IsLetterOrDigit(content[nameStart]) || content[nameStart] == '_' || content[nameStart] == '$')
-        )
-        {
-            nameStart--;
-        }
-        nameStart++;
-
-        if (nameStart > nameEnd || nameStart < startPos)
-        {
-            // Not a valid function name, try next colon
-            return FindNextFunction(content, colonPos + 1);
-        }
-
-        var functionName = content.Substring(nameStart, nameEnd - nameStart + 1);
-
-        // Look for "function(" after the colon
-        var afterColon = colonPos + 1;
-        while (afterColon < content.Length && char.IsWhiteSpace(content[afterColon]))
-        {
-            afterColon++;
-        }
-
-        if (!content.Substring(afterColon).StartsWith("function"))
-        {
-            // Not a function, try next
-            return FindNextFunction(content, colonPos + 1);
-        }
-
-        // Find the opening paren
-        var parenStart = content.IndexOf('(', afterColon);
-        if (parenStart == -1)
-        {
-            return FindNextFunction(content, colonPos + 1);
-        }
-
-        // Find the closing paren to get parameter name
-        var parenEnd = content.IndexOf(')', parenStart);
-        if (parenEnd == -1)
-        {
-            return FindNextFunction(content, colonPos + 1);
-        }
-
-        var paramName = content.Substring(parenStart + 1, parenEnd - parenStart - 1).Trim();
-
-        // Find the opening brace of function body
-        var braceStart = content.IndexOf('{', parenEnd);
-        if (braceStart == -1)
-        {
-            return FindNextFunction(content, colonPos + 1);
-        }
-
-        // Find matching closing brace
-        var braceEnd = FindMatchingBrace(content, braceStart);
-        if (braceEnd == -1)
-        {
-            return FindNextFunction(content, colonPos + 1);
-        }
-
-        // Extract the full function implementation
-        var functionImpl = "function(" + paramName + ") " + content.Substring(braceStart, braceEnd - braceStart + 1);
-
-        return new FunctionMatch
-        {
-            Name = functionName,
-            Implementation = functionImpl,
-            ParameterName = paramName,
-            EndPosition = braceEnd + 1,
-        };
-    }
-
-    /// <summary>
-    /// Find the matching closing brace for an opening brace
-    /// </summary>
-    private int FindMatchingBrace(string content, int openBracePos)
-    {
-        var depth = 1;
-        var pos = openBracePos + 1;
-        var inString = false;
-        var stringChar = '\0';
-        var inComment = false;
-        var inLineComment = false;
-
-        while (pos < content.Length && depth > 0)
-        {
-            var ch = content[pos];
-            var prevCh = pos > 0 ? content[pos - 1] : '\0';
-
-            // Handle string literals
-            if (!inComment && !inLineComment && (ch == '"' || ch == '\''))
-            {
-                if (!inString)
+                foreach (var declarator in varDecl.Declarations)
                 {
-                    inString = true;
-                    stringChar = ch;
-                }
-                else if (ch == stringChar && prevCh != '\\')
-                {
-                    inString = false;
-                }
-            }
-
-            // Handle comments
-            if (!inString)
-            {
-                if (ch == '/' && pos + 1 < content.Length)
-                {
-                    if (content[pos + 1] == '*')
+                    if (declarator.Id is Identifier id && id.Name == objectName)
                     {
-                        inComment = true;
-                        pos++;
-                    }
-                    else if (content[pos + 1] == '/')
-                    {
-                        inLineComment = true;
-                        pos++;
+                        // Found the object, now extract its functions
+                        if (declarator.Init is ObjectExpression objExpr)
+                        {
+                            ExtractFunctionsFromObjectExpression(objExpr, targetDict);
+                        }
+                        return;
                     }
                 }
-                else if (inComment && ch == '*' && pos + 1 < content.Length && content[pos + 1] == '/')
-                {
-                    inComment = false;
-                    pos++;
-                }
-                else if (inLineComment && ch == '\n')
-                {
-                    inLineComment = false;
-                }
             }
-
-            // Count braces only when not in string or comment
-            if (!inString && !inComment && !inLineComment)
-            {
-                if (ch == '{')
-                {
-                    depth++;
-                }
-                else if (ch == '}')
-                {
-                    depth--;
-                }
-            }
-
-            pos++;
         }
-
-        return depth == 0 ? pos - 1 : -1;
     }
 
-    private class FunctionMatch : JavaScriptFunction
+    /// <summary>
+    /// Extract functions from an ObjectExpression AST node
+    /// </summary>
+    private void ExtractFunctionsFromObjectExpression(
+        ObjectExpression objExpr,
+        Dictionary<string, JavaScriptFunction> targetDict
+    )
     {
-        public int EndPosition { get; set; }
+        foreach (var property in objExpr.Properties)
+        {
+            if (property is Property prop)
+            {
+                // Get the function name from the property key
+                string? functionName = null;
+                if (prop.Key is Identifier keyId)
+                {
+                    functionName = keyId.Name;
+                }
+                else if (prop.Key is Literal keyLit && keyLit.Value is string keyStr)
+                {
+                    functionName = keyStr;
+                }
+
+                if (functionName == null)
+                {
+                    continue;
+                }
+
+                // Check if the value is a function
+                if (prop.Value is FunctionExpression funcExpr)
+                {
+                    var paramName =
+                        funcExpr.Params.Count > 0 && funcExpr.Params[0] is Identifier paramId
+                            ? paramId.Name
+                            : string.Empty;
+
+                    // Reconstruct the function implementation from the AST
+                    var functionImpl = ReconstructFunction(funcExpr);
+
+                    targetDict[functionName] = new JavaScriptFunction
+                    {
+                        Name = functionName,
+                        Implementation = functionImpl,
+                        ParameterName = paramName,
+                    };
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Reconstruct a function implementation string from a FunctionExpression AST node
+    /// </summary>
+    private string ReconstructFunction(FunctionExpression funcExpr)
+    {
+        // Get the original source code for the function
+        // Acornima preserves the original range, so we can extract it
+        var start = funcExpr.Range.Start;
+        var end = funcExpr.Range.End;
+
+        var jsContent = File.ReadAllText(_ruleHandlerPath);
+        return jsContent.Substring(start, end - start);
     }
 }
