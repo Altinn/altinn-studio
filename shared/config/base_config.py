@@ -17,6 +17,7 @@ class BaseConfig:
     # Environment
     ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
     DEBUG = os.getenv("DEBUG", "false").lower() == "true"
+    RUNNING_IN_DOCKER = os.getenv("RUNNING_IN_DOCKER", "false").lower() == "true"
 
     # Logging
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")

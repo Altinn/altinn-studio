@@ -44,18 +44,20 @@ class RepoManager:
 
         try:
             parsed = urlparse(repo_url)
+            port = parsed.port
+
             # Insert token as username (common git auth pattern)
             # Format: https://token@host/path or https://username:token@host/path
             if parsed.username:
                 # Already has username, replace with token as password
                 netloc = f"{parsed.username}:{token}@{parsed.hostname}"
-                if parsed.port:
-                    netloc += f":{parsed.port}"
+                if port:
+                    netloc += f":{port}"
             else:
                 # No username, use token as username
                 netloc = f"{token}@{parsed.hostname}"
-                if parsed.port:
-                    netloc += f":{parsed.port}"
+                if port:
+                    netloc += f":{port}"
 
             auth_url = urlunparse(parsed._replace(netloc=netloc))
             log.debug(f"Converted {repo_url} to authenticated URL")
@@ -64,6 +66,44 @@ class RepoManager:
         except Exception as e:
             log.warning(f"Failed to add authentication to URL {repo_url}: {e}")
             return repo_url
+
+    def _normalize_repo_url(self, repo_url: str) -> str:
+        """
+        Normalize repository URL for the current environment.
+        Handles Docker vs local environment differences.
+
+        Args:
+            repo_url: Original repository URL from frontend/user
+
+        Returns:
+            Normalized URL suitable for current environment
+        """
+        # If running in Docker, rewrite studio.localhost URLs to use host.docker.internal
+        if config.RUNNING_IN_DOCKER:
+            parsed = urlparse(repo_url)
+
+            # Rewrite studio.localhost to host.docker.internal for Docker environment
+            if parsed.hostname == "studio.localhost":
+                # Replace hostname
+                netloc = parsed.netloc.replace("studio.localhost", "host.docker.internal")
+
+                # Add port 3000 if not present
+                if ":3000" not in netloc and "@" not in netloc:
+                    # No auth, no port
+                    netloc = f"host.docker.internal:3000"
+                elif "@" in netloc and ":3000" not in netloc:
+                    # Has auth, no port
+                    parts = netloc.split("@")
+                    netloc = f"{parts[0]}@host.docker.internal:3000"
+
+                # Remove /repos prefix from path if present (not part of actual git path)
+                path = parsed.path
+                if path.startswith('/repos/'):
+                    path = '/' + path[7:]
+
+                return urlunparse(parsed._replace(netloc=netloc, path=path))
+
+        return repo_url
 
     def clone_repo_for_session(self, repo_url: str, session_id: str, branch: Optional[str] = None) -> Path:
         """
@@ -116,8 +156,13 @@ class RepoManager:
         log.info(f"Cloning repository {repo_url} to {repo_path}")
 
         try:
-            # Use authenticated URL for cloning
-            auth_url = self._get_auth_url(repo_url)
+            # Normalize URL for current environment (Docker vs local)
+            normalized_url = self._normalize_repo_url(repo_url)
+
+            # Add authentication
+            auth_url = self._get_auth_url(normalized_url)
+
+            # Simple git clone - authentication handled via URL
             cmd = ["git", "clone", auth_url, str(repo_path)]
             result = subprocess.run(cmd, capture_output=True, text=True, check=True)
 
