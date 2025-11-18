@@ -49,6 +49,24 @@ public class ConversionContext
     public bool RequiresEnvironmentSettings { get; set; } = false;
 
     /// <summary>
+    /// Maps destructured variable names to their original property paths
+    /// For example: { "summertRisiko" => "obj.summertRisiko" }
+    /// </summary>
+    public Dictionary<string, string> VariableMappings { get; set; } = new();
+
+    /// <summary>
+    /// Global constants extracted from the JavaScript file (e.g., var ShouldNotParticipate = 0;)
+    /// Maps constant names to their literal values
+    /// </summary>
+    public IReadOnlyDictionary<string, object> GlobalConstants { get; set; } = new Dictionary<string, object>();
+
+    /// <summary>
+    /// Dictionary of available conditional functions for inlining cross-function calls
+    /// Maps function name to its AST representation
+    /// </summary>
+    public Dictionary<string, Acornima.Ast.Expression> AvailableFunctions { get; set; } = new();
+
+    /// <summary>
     /// Try to convert any expression using the matcher chain
     /// </summary>
     public object? ConvertExpression(Expression expression, List<string> debugInfo)

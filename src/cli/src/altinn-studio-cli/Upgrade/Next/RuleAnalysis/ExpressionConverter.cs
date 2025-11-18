@@ -10,20 +10,30 @@ public class ExpressionConverter
 {
     private readonly JavaScriptExpressionParser _parser;
     private readonly List<IExpressionMatcher> _matchers;
+    private readonly IReadOnlyDictionary<string, object> _globalConstants;
+    private readonly Dictionary<string, JavaScriptFunction> _availableFunctions;
 
-    public ExpressionConverter()
+    public ExpressionConverter(
+        IReadOnlyDictionary<string, object>? globalConstants = null,
+        Dictionary<string, JavaScriptFunction>? availableFunctions = null
+    )
     {
         _parser = new JavaScriptExpressionParser();
+        _globalConstants = globalConstants ?? new Dictionary<string, object>();
+        _availableFunctions = availableFunctions ?? new Dictionary<string, JavaScriptFunction>();
         _matchers = new List<IExpressionMatcher>
         {
             // Order matters! More specific matchers should come first
             new ParenthesizedExpressionMatcher(), // Unwrap parentheses first
             new ConditionalExpressionMatcher(), // Handle ternary expressions (condition ? true : false)
             new WindowLocationMatcher(), // Check for window.location.host patterns before generic comparisons
+            new TypeofMatcher(), // Handle typeof checks for undefined (before BinaryComparisonMatcher)
+            new CallExpressionMatcher(), // Handle method calls like .includes()
             new LengthCheckMatcher(), // Must come before PropertyAccessMatcher
             new UnaryPlusMatcher(), // Handle numeric coercion
             new LiteralMatcher(), // Constants
             new PropertyAccessMatcher(), // Data model lookups
+            new IdentifierMatcher(), // Resolve destructured variables
             new BinaryComparisonMatcher(), // Comparisons
             new LogicalOperatorMatcher(), // Boolean logic (handles multi-clause and truthiness)
         };
@@ -64,6 +74,12 @@ public class ExpressionConverter
             InputParams = inputParams,
             ObjectParameterName = "obj",
             Matchers = _matchers,
+            VariableMappings = parseResult.VariableMappings,
+            GlobalConstants = _globalConstants,
+            AvailableFunctions = _availableFunctions
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ReturnExpression!)
+                .Where(kvp => kvp.Value != null)
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value)!,
         };
 
         debugInfo.Add("=== Converting Return Expression ===");

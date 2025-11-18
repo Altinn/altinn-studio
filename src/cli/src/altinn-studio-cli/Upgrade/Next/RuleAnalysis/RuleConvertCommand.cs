@@ -26,6 +26,11 @@ internal static class RuleConvertCommand
             getDefaultValue: () => false
         );
 
+        var foldersOption = new Option<string?>(
+            name: "--folders",
+            description: "Path to a parent folder containing multiple apps to analyze"
+        );
+
         var command = new Command(
             "rule-convert",
             "Convert rules from RuleConfiguration.json and RuleHandler.js to expression language"
@@ -34,6 +39,7 @@ internal static class RuleConvertCommand
             projectFolderOption,
             uiFolderOption,
             failuresOnlyOption,
+            foldersOption,
         };
 
         command.SetHandler(context =>
@@ -41,7 +47,36 @@ internal static class RuleConvertCommand
             var projectFolder = context.ParseResult.GetValueForOption(projectFolderOption);
             var uiFolder = context.ParseResult.GetValueForOption(uiFolderOption);
             var failuresOnly = context.ParseResult.GetValueForOption(failuresOnlyOption);
+            var foldersPath = context.ParseResult.GetValueForOption(foldersOption);
 
+            // Check if --folders mode is enabled
+            if (!string.IsNullOrEmpty(foldersPath))
+            {
+                if (!Path.IsPathRooted(foldersPath))
+                {
+                    foldersPath = Path.Combine(Directory.GetCurrentDirectory(), foldersPath);
+                }
+
+                if (!Directory.Exists(foldersPath))
+                {
+                    Console.Error.WriteLine($"Folders path not found: {foldersPath}");
+                    Environment.Exit(1);
+                    return;
+                }
+
+                if (uiFolder is null)
+                {
+                    Console.Error.WriteLine("UI folder option is required");
+                    Environment.Exit(1);
+                    return;
+                }
+
+                AnalyzeMultipleApps(foldersPath, uiFolder, failuresOnly);
+                Environment.Exit(0);
+                return;
+            }
+
+            // Single app mode (existing behavior)
             if (projectFolder is null or "CurrentDirectory")
             {
                 projectFolder = Directory.GetCurrentDirectory();
@@ -78,9 +113,11 @@ internal static class RuleConvertCommand
     /// <summary>
     /// Analyze rules in all layout sets
     /// </summary>
-    private static void AnalyzeRules(string uiFolderPath, bool failuresOnly)
+    /// <returns>Statistics from the analysis</returns>
+    private static RuleAnalysisStats AnalyzeRules(string uiFolderPath, bool failuresOnly)
     {
         var layoutSets = Directory.GetDirectories(uiFolderPath);
+        var totalStats = new RuleAnalysisStats();
 
         foreach (var layoutSetPath in layoutSets)
         {
@@ -123,12 +160,77 @@ internal static class RuleConvertCommand
                 jsParser.Parse();
 
                 var reporter = new RuleAnalysisReporter(layoutSetName, conditionalRules, dataProcessingRules, jsParser);
-                reporter.GenerateReport(failuresOnly);
+                var stats = reporter.GenerateReport(failuresOnly);
+
+                // Accumulate statistics
+                totalStats.TotalConditionalRules += stats.TotalConditionalRules;
+                totalStats.SuccessfulConversions += stats.SuccessfulConversions;
+                totalStats.FailedConversions += stats.FailedConversions;
             }
             catch (Exception ex)
             {
                 Console.Error.WriteLine($"\nError analyzing layout set '{layoutSetName}': {ex.Message}");
             }
         }
+
+        return totalStats;
+    }
+
+    /// <summary>
+    /// Analyze multiple apps in a parent folder
+    /// </summary>
+    private static void AnalyzeMultipleApps(string parentFolderPath, string uiFolder, bool failuresOnly)
+    {
+        var appFolders = Directory.GetDirectories(parentFolderPath);
+        var totalApps = 0;
+        var appsWithRules = 0;
+        var overallStats = new RuleAnalysisStats();
+
+        foreach (var appFolder in appFolders)
+        {
+            var appName = Path.GetFileName(appFolder);
+            var uiFolderPath = Path.Combine(appFolder, uiFolder);
+
+            if (!Directory.Exists(uiFolderPath))
+            {
+                continue; // Skip folders without UI folder
+            }
+
+            totalApps++;
+            Console.WriteLine($"\n{new string('=', 80)}");
+            Console.WriteLine($"Analyzing app: {appName}");
+            Console.WriteLine(new string('=', 80));
+
+            var appStats = AnalyzeRules(uiFolderPath, failuresOnly);
+
+            if (appStats.TotalConditionalRules > 0)
+            {
+                appsWithRules++;
+            }
+
+            // Accumulate overall statistics
+            overallStats.TotalConditionalRules += appStats.TotalConditionalRules;
+            overallStats.SuccessfulConversions += appStats.SuccessfulConversions;
+            overallStats.FailedConversions += appStats.FailedConversions;
+        }
+
+        // Print summary report
+        Console.WriteLine($"\n\n{new string('=', 80)}");
+        Console.WriteLine("SUMMARY REPORT");
+        Console.WriteLine(new string('=', 80));
+        Console.WriteLine($"Total apps analyzed: {totalApps}");
+        Console.WriteLine($"Apps with conditional rendering rules: {appsWithRules}");
+        Console.WriteLine($"\nTotal conditional rendering rules: {overallStats.TotalConditionalRules}");
+        Console.WriteLine($"Successfully converted to expressions: {overallStats.SuccessfulConversions}");
+        Console.WriteLine($"Failed to convert: {overallStats.FailedConversions}");
+
+        if (overallStats.TotalConditionalRules > 0)
+        {
+            var successPercentage =
+                (double)overallStats.SuccessfulConversions / overallStats.TotalConditionalRules * 100;
+            Console.WriteLine($"\nConversion success rate: {successPercentage:F1}%");
+        }
+
+        Console.WriteLine(new string('=', 80));
     }
 }
