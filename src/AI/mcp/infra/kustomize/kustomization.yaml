@@ -14,4 +14,4 @@ replacements:
       kind: Deployment
       name: altinn-mcp-server
     fieldPaths:
-      - spec.template.spec.containers.[altinn-mcp-server].image
+      - spec.template.spec.containers.[name=altinn-mcp-server].image
