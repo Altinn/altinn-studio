@@ -31,15 +31,29 @@ internal static class RuleConvertCommand
             description: "Path to a parent folder containing multiple apps to analyze"
         );
 
+        var generateProcessorsOption = new Option<bool>(
+            name: "--generate-processors",
+            description: "Generate C# IDataWriteProcessor classes for data processing rules",
+            getDefaultValue: () => false
+        );
+
+        var verifyBuildOption = new Option<bool>(
+            name: "--verify-build",
+            description: "Verify that the app builds successfully after generating processors",
+            getDefaultValue: () => false
+        );
+
         var command = new Command(
             "rule-convert",
-            "Convert rules from RuleConfiguration.json and RuleHandler.js to expression language"
+            "Convert rules from RuleConfiguration.json and RuleHandler.js to expression language or C# code"
         )
         {
             projectFolderOption,
             uiFolderOption,
             failuresOnlyOption,
             foldersOption,
+            generateProcessorsOption,
+            verifyBuildOption,
         };
 
         command.SetHandler(context =>
@@ -48,6 +62,8 @@ internal static class RuleConvertCommand
             var uiFolder = context.ParseResult.GetValueForOption(uiFolderOption);
             var failuresOnly = context.ParseResult.GetValueForOption(failuresOnlyOption);
             var foldersPath = context.ParseResult.GetValueForOption(foldersOption);
+            var generateProcessors = context.ParseResult.GetValueForOption(generateProcessorsOption);
+            var verifyBuild = context.ParseResult.GetValueForOption(verifyBuildOption);
 
             // Check if --folders mode is enabled
             if (!string.IsNullOrEmpty(foldersPath))
@@ -71,7 +87,7 @@ internal static class RuleConvertCommand
                     return;
                 }
 
-                AnalyzeMultipleApps(foldersPath, uiFolder, failuresOnly);
+                AnalyzeMultipleApps(foldersPath, uiFolder, failuresOnly, generateProcessors, verifyBuild);
                 Environment.Exit(0);
                 return;
             }
@@ -103,7 +119,7 @@ internal static class RuleConvertCommand
                 return;
             }
 
-            AnalyzeRules(uiFolderPath, failuresOnly);
+            AnalyzeRules(projectFolder, uiFolderPath, failuresOnly, generateProcessors, verifyBuild);
             Environment.Exit(0);
         });
 
@@ -114,7 +130,13 @@ internal static class RuleConvertCommand
     /// Analyze rules in all layout sets
     /// </summary>
     /// <returns>Statistics from the analysis</returns>
-    private static RuleAnalysisStats AnalyzeRules(string uiFolderPath, bool failuresOnly)
+    private static RuleAnalysisStats AnalyzeRules(
+        string appBasePath,
+        string uiFolderPath,
+        bool failuresOnly,
+        bool generateProcessors,
+        bool verifyBuild
+    )
     {
         var layoutSets = Directory.GetDirectories(uiFolderPath);
         var totalStats = new RuleAnalysisStats();
@@ -166,6 +188,22 @@ internal static class RuleConvertCommand
                 totalStats.TotalConditionalRules += stats.TotalConditionalRules;
                 totalStats.SuccessfulConversions += stats.SuccessfulConversions;
                 totalStats.FailedConversions += stats.FailedConversions;
+                totalStats.TotalDataProcessingRules += stats.TotalDataProcessingRules;
+
+                // Generate C# data processors if requested
+                if (generateProcessors && dataProcessingRules.Count > 0)
+                {
+                    var processorStats = reporter.GenerateAndWriteDataProcessors(appBasePath, verifyBuild);
+                    totalStats.SuccessfulDataProcessingConversions +=
+                        processorStats.SuccessfulDataProcessingConversions;
+                    totalStats.FailedDataProcessingConversions += processorStats.FailedDataProcessingConversions;
+                    totalStats.GeneratedProcessorFiles += processorStats.GeneratedProcessorFiles;
+
+                    if (verifyBuild && processorStats.GeneratedProcessorFiles > 0)
+                    {
+                        totalStats.BuildSucceeded = processorStats.BuildSucceeded;
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -179,12 +217,21 @@ internal static class RuleConvertCommand
     /// <summary>
     /// Analyze multiple apps in a parent folder
     /// </summary>
-    private static void AnalyzeMultipleApps(string parentFolderPath, string uiFolder, bool failuresOnly)
+    private static void AnalyzeMultipleApps(
+        string parentFolderPath,
+        string uiFolder,
+        bool failuresOnly,
+        bool generateProcessors,
+        bool verifyBuild
+    )
     {
         var appFolders = Directory.GetDirectories(parentFolderPath);
         var totalApps = 0;
         var appsWithConditionalRendering = 0;
-        var successsfulApps = 0;
+        var appsWithDataProcessing = 0;
+        var successfulApps = 0;
+        var buildsSucceeded = 0;
+        var buildsFailed = 0;
         var overallStats = new RuleAnalysisStats();
 
         foreach (var appFolder in appFolders)
@@ -199,20 +246,42 @@ internal static class RuleConvertCommand
             totalApps++;
             Console.WriteLine($"Analyzing app: {appName}");
 
-            var appStats = AnalyzeRules(uiFolderPath, failuresOnly);
+            var appStats = AnalyzeRules(appFolder, uiFolderPath, failuresOnly, generateProcessors, verifyBuild);
             if (appStats.TotalConditionalRules > 0)
             {
                 appsWithConditionalRendering++;
+            }
+
+            if (appStats.TotalDataProcessingRules > 0)
+            {
+                appsWithDataProcessing++;
             }
 
             // Accumulate overall statistics
             overallStats.TotalConditionalRules += appStats.TotalConditionalRules;
             overallStats.SuccessfulConversions += appStats.SuccessfulConversions;
             overallStats.FailedConversions += appStats.FailedConversions;
-            successsfulApps +=
+            overallStats.TotalDataProcessingRules += appStats.TotalDataProcessingRules;
+            overallStats.SuccessfulDataProcessingConversions += appStats.SuccessfulDataProcessingConversions;
+            overallStats.FailedDataProcessingConversions += appStats.FailedDataProcessingConversions;
+            overallStats.GeneratedProcessorFiles += appStats.GeneratedProcessorFiles;
+
+            successfulApps +=
                 appStats.SuccessfulConversions == appStats.TotalConditionalRules && appStats.TotalConditionalRules > 0
                     ? 1
                     : 0;
+
+            if (verifyBuild && appStats.GeneratedProcessorFiles > 0)
+            {
+                if (appStats.BuildSucceeded)
+                {
+                    buildsSucceeded++;
+                }
+                else
+                {
+                    buildsFailed++;
+                }
+            }
         }
 
         // Print summary report
@@ -221,17 +290,64 @@ internal static class RuleConvertCommand
         Console.WriteLine(new string('=', 80));
         Console.WriteLine($"Total apps analyzed: {totalApps} apps");
         Console.WriteLine($"Apps with conditional rendering rules: {appsWithConditionalRendering} apps");
-        Console.WriteLine($"Apps that could be fully converted: {successsfulApps} of {appsWithConditionalRendering} apps");
+        Console.WriteLine($"Apps with data processing rules: {appsWithDataProcessing} apps");
+        Console.WriteLine(
+            $"Apps that could be fully converted: {successfulApps} of {appsWithConditionalRendering} apps"
+        );
         Console.WriteLine($"");
-        Console.WriteLine($"Total conditional rendering rules: {overallStats.TotalConditionalRules} rules");
-        Console.WriteLine($"Successfully converted to expressions: {overallStats.SuccessfulConversions} rules");
-        Console.WriteLine($"Failed to convert: {overallStats.FailedConversions} rules");
 
-        var successPercentage = (double)overallStats.SuccessfulConversions / overallStats.TotalConditionalRules * 100;
-        Console.WriteLine($"\nConversion success rate: {successPercentage:F1}%");
+        // Conditional rendering stats
+        Console.WriteLine("Conditional Rendering:");
+        Console.WriteLine($"  Total rules: {overallStats.TotalConditionalRules}");
+        Console.WriteLine($"  Successfully converted to expressions: {overallStats.SuccessfulConversions}");
+        Console.WriteLine($"  Failed to convert: {overallStats.FailedConversions}");
 
-        var successfulAppsPercentage = (double)successsfulApps / appsWithConditionalRendering * 100;
-        Console.WriteLine($"Conversion success rate for fully converted apps: {successfulAppsPercentage:F1}%");
+        if (overallStats.TotalConditionalRules > 0)
+        {
+            var successPercentage =
+                (double)overallStats.SuccessfulConversions / overallStats.TotalConditionalRules * 100;
+            Console.WriteLine($"  Conversion success rate: {successPercentage:F1}%");
+        }
+
+        // Data processing stats
+        if (overallStats.TotalDataProcessingRules > 0)
+        {
+            Console.WriteLine($"\nData Processing:");
+            Console.WriteLine($"  Total rules: {overallStats.TotalDataProcessingRules}");
+
+            if (generateProcessors)
+            {
+                Console.WriteLine(
+                    $"  Successfully converted to C#: {overallStats.SuccessfulDataProcessingConversions}"
+                );
+                Console.WriteLine(
+                    $"  Failed to convert (require manual implementation): {overallStats.FailedDataProcessingConversions}"
+                );
+                Console.WriteLine($"  Generated processor files: {overallStats.GeneratedProcessorFiles}");
+
+                if (overallStats.TotalDataProcessingRules > 0)
+                {
+                    var dpSuccessPercentage =
+                        (double)overallStats.SuccessfulDataProcessingConversions
+                        / overallStats.TotalDataProcessingRules
+                        * 100;
+                    Console.WriteLine($"  Conversion success rate: {dpSuccessPercentage:F1}%");
+                }
+
+                if (verifyBuild && overallStats.GeneratedProcessorFiles > 0)
+                {
+                    Console.WriteLine($"\nBuild Verification:");
+                    Console.WriteLine($"  Successful builds: {buildsSucceeded}");
+                    Console.WriteLine($"  Failed builds: {buildsFailed}");
+
+                    if (buildsSucceeded + buildsFailed > 0)
+                    {
+                        var buildSuccessPercentage = (double)buildsSucceeded / (buildsSucceeded + buildsFailed) * 100;
+                        Console.WriteLine($"  Build success rate: {buildSuccessPercentage:F1}%");
+                    }
+                }
+            }
+        }
 
         Console.WriteLine(new string('=', 80));
     }

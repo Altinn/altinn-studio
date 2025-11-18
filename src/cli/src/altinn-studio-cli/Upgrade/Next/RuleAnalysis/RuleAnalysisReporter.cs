@@ -12,6 +12,10 @@ internal class RuleAnalysisStats
     public int TotalDataProcessingRules { get; set; }
     public int SuccessfulConversions { get; set; }
     public int FailedConversions { get; set; }
+    public int SuccessfulDataProcessingConversions { get; set; }
+    public int FailedDataProcessingConversions { get; set; }
+    public int GeneratedProcessorFiles { get; set; }
+    public bool BuildSucceeded { get; set; }
 }
 
 /// <summary>
@@ -356,5 +360,125 @@ internal class RuleAnalysisReporter
 
             Console.WriteLine();
         }
+    }
+
+    /// <summary>
+    /// Generate and write C# data processor files for data processing rules
+    /// </summary>
+    /// <param name="appBasePath">Base path to the app</param>
+    /// <param name="verifyBuild">Whether to verify the build after generating files</param>
+    /// <returns>Statistics about the generation</returns>
+    public RuleAnalysisStats GenerateAndWriteDataProcessors(string appBasePath, bool verifyBuild = false)
+    {
+        var stats = new RuleAnalysisStats();
+
+        if (_dataProcessingRules.Count == 0)
+        {
+            return stats;
+        }
+
+        stats.TotalDataProcessingRules = _dataProcessingRules.Count;
+
+        // Resolve data model information
+        var dataModelResolver = new DataModelResolver(appBasePath);
+        dataModelResolver.LoadConfiguration();
+        var dataModelInfo = dataModelResolver.GetDataModelInfo(_layoutSetName);
+
+        if (dataModelInfo == null)
+        {
+            Console.WriteLine($"  Warning: Could not resolve data model for layout set '{_layoutSetName}'");
+            Console.WriteLine("  Skipping C# code generation for this layout set.");
+            stats.FailedDataProcessingConversions = _dataProcessingRules.Count;
+            return stats;
+        }
+
+        Console.WriteLine($"\nGenerating C# Data Processor for Layout Set: {_layoutSetName}");
+        Console.WriteLine(new string('-', 50));
+        Console.WriteLine($"  Data Type: {dataModelInfo.DataType}");
+        Console.WriteLine($"  Model Class: {dataModelInfo.FullClassRef}");
+
+        // Generate C# code
+        var generator = new CSharpCodeGenerator(_layoutSetName, dataModelInfo, _dataProcessingRules, _jsParser);
+        var generationResult = generator.Generate();
+
+        stats.SuccessfulDataProcessingConversions = generationResult.SuccessfulConversions;
+        stats.FailedDataProcessingConversions = generationResult.FailedConversions;
+
+        if (!generationResult.Success || generationResult.GeneratedCode == null || generationResult.ClassName == null)
+        {
+            Console.WriteLine("  Failed to generate C# code:");
+            foreach (var error in generationResult.Errors)
+            {
+                Console.WriteLine($"    Error: {error}");
+            }
+            return stats;
+        }
+
+        Console.WriteLine($"  Generated class: {generationResult.ClassName}");
+        Console.WriteLine(
+            $"  Successfully converted: {generationResult.SuccessfulConversions}/{generationResult.TotalRules} rules"
+        );
+
+        if (generationResult.FailedConversions > 0)
+        {
+            Console.WriteLine(
+                $"  Failed conversions: {generationResult.FailedConversions} (will require manual implementation)"
+            );
+        }
+
+        // Write the file
+        var fileWriter = new DataProcessorFileWriter(appBasePath);
+        var filePath = fileWriter.WriteDataProcessor(generationResult.ClassName, generationResult.GeneratedCode);
+        Console.WriteLine($"  Written to: {filePath}");
+        stats.GeneratedProcessorFiles = 1;
+
+        // Register in Program.cs
+        var programUpdater = new ProgramCsUpdater(appBasePath);
+        programUpdater.RegisterDataProcessor(generationResult.ClassName);
+
+        // Optionally verify build
+        if (verifyBuild)
+        {
+            Console.WriteLine("\n  Verifying build...");
+            var buildVerifier = new BuildVerifier(appBasePath);
+            var buildResult = buildVerifier.VerifyBuild();
+
+            if (buildResult.Success)
+            {
+                Console.WriteLine("  Build succeeded!");
+                stats.BuildSucceeded = true;
+            }
+            else
+            {
+                Console.WriteLine("  Build failed:");
+                foreach (var error in buildResult.Errors.Take(10))
+                {
+                    Console.WriteLine($"    {error}");
+                }
+
+                if (buildResult.Errors.Count > 10)
+                {
+                    Console.WriteLine($"    ... and {buildResult.Errors.Count - 10} more errors");
+                }
+
+                stats.BuildSucceeded = false;
+            }
+        }
+
+        // Show generated code preview
+        Console.WriteLine("\n  Generated Code Preview:");
+        Console.WriteLine(new string('-', 50));
+        var codeLines = generationResult.GeneratedCode.Split('\n');
+        foreach (var line in codeLines.Take(50))
+        {
+            Console.WriteLine($"  {line}");
+        }
+
+        if (codeLines.Length > 50)
+        {
+            Console.WriteLine($"  ... ({codeLines.Length - 50} more lines)");
+        }
+
+        return stats;
     }
 }
