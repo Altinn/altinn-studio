@@ -106,6 +106,9 @@ public class JavaScriptExpressionParser
             };
         }
 
+        // Extract variable mappings from destructuring and other declarations
+        var variableMappings = ExtractVariableMappings(statements);
+
         // Try to build a single conditional expression from all statements
         var expression = BuildConditionalExpression(statements);
         if (expression == null)
@@ -124,7 +127,55 @@ public class JavaScriptExpressionParser
             ReturnExpression = expression,
             OriginalCode = originalCode,
             AllStatements = statements,
+            VariableMappings = variableMappings,
         };
+    }
+
+    /// <summary>
+    /// Extract variable mappings from destructuring assignments and variable declarations
+    /// </summary>
+    private Dictionary<string, string> ExtractVariableMappings(List<Statement> statements)
+    {
+        var mappings = new Dictionary<string, string>();
+
+        foreach (var stmt in statements)
+        {
+            if (stmt is not VariableDeclaration varDecl)
+                continue;
+
+            foreach (var declarator in varDecl.Declarations)
+            {
+                // Handle destructuring: const { prop } = obj
+                if (declarator.Id is ObjectPattern objPattern && declarator.Init is Identifier source)
+                {
+                    foreach (var prop in objPattern.Properties)
+                    {
+                        if (prop is Property property)
+                        {
+                            var propName = property.Key switch
+                            {
+                                Identifier id => id.Name,
+                                _ => null,
+                            };
+
+                            var valueName = property.Value switch
+                            {
+                                Identifier id => id.Name,
+                                _ => null,
+                            };
+
+                            if (propName != null && valueName != null)
+                            {
+                                // Map variable name to source.property
+                                mappings[valueName] = $"{source.Name}.{propName}";
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return mappings;
     }
 
     private ReturnStatement? FindReturnStatement(List<Statement> statements)
@@ -297,4 +348,10 @@ public class ParseResult
     public string? ErrorMessage { get; set; }
     public string OriginalCode { get; set; } = string.Empty;
     public List<Statement>? AllStatements { get; set; }
+
+    /// <summary>
+    /// Maps variable names to their source property paths
+    /// For example: { "summertRisiko" => "obj.summertRisiko" }
+    /// </summary>
+    public Dictionary<string, string> VariableMappings { get; set; } = new();
 }

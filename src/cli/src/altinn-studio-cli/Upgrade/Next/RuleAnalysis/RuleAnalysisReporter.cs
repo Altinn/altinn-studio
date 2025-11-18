@@ -3,6 +3,16 @@ using Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.Models;
 namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis;
 
 /// <summary>
+/// Statistics from analyzing rules
+/// </summary>
+internal class RuleAnalysisStats
+{
+    public int TotalConditionalRules { get; set; }
+    public int SuccessfulConversions { get; set; }
+    public int FailedConversions { get; set; }
+}
+
+/// <summary>
 /// Generates reports of rule analysis, grouping conditional rendering by component ID
 /// </summary>
 internal class RuleAnalysisReporter
@@ -24,18 +34,26 @@ internal class RuleAnalysisReporter
         _conditionalRules = conditionalRules;
         _dataProcessingRules = dataProcessingRules;
         _jsParser = jsParser;
-        _expressionConverter = new ExpressionConverter();
+        _expressionConverter = new ExpressionConverter(
+            jsParser.GetGlobalConstants(),
+            jsParser.GetAllConditionalFunctions()
+        );
     }
 
     /// <summary>
     /// Generate the report and write to console
     /// </summary>
     /// <param name="failuresOnly">Only show rules that failed to convert</param>
-    public void GenerateReport(bool failuresOnly = false)
+    /// <returns>Statistics about the analysis</returns>
+    public RuleAnalysisStats GenerateReport(bool failuresOnly = false)
     {
+        var stats = new RuleAnalysisStats();
+
         if (_conditionalRules.Count != 0)
         {
-            var output = GenerateConditionalRenderingReport(failuresOnly);
+            var (output, conditionalStats) = GenerateConditionalRenderingReport(failuresOnly);
+            stats = conditionalStats;
+
             if (!string.IsNullOrEmpty(output))
             {
                 // Only print layout set header if we have output
@@ -48,7 +66,8 @@ internal class RuleAnalysisReporter
         if (_dataProcessingRules.Count != 0 && !failuresOnly)
         {
             // Data processing rules don't have conversions yet, so only show if not failures-only mode
-            if (_conditionalRules.Count == 0 || string.IsNullOrEmpty(GenerateConditionalRenderingReport(failuresOnly)))
+            var (reportOutput, _) = GenerateConditionalRenderingReport(failuresOnly);
+            if (_conditionalRules.Count == 0 || string.IsNullOrEmpty(reportOutput))
             {
                 Console.WriteLine($"\nLayout Set: {_layoutSetName}");
                 Console.WriteLine(new string('=', 50));
@@ -62,16 +81,19 @@ internal class RuleAnalysisReporter
             Console.WriteLine(new string('=', 50));
             Console.WriteLine("  No rules found in this layout set.");
         }
+
+        return stats;
     }
 
     /// <summary>
     /// Generate report for conditional rendering rules, grouped by component ID
     /// </summary>
     /// <param name="failuresOnly">Only show rules that failed to convert</param>
-    /// <returns>The generated report output, or empty string if no output</returns>
-    private string GenerateConditionalRenderingReport(bool failuresOnly = false)
+    /// <returns>The generated report output and statistics</returns>
+    private (string Output, RuleAnalysisStats Stats) GenerateConditionalRenderingReport(bool failuresOnly = false)
     {
         var output = new System.Text.StringBuilder();
+        var stats = new RuleAnalysisStats();
 
         // Group rules by component ID
         var componentRules = new Dictionary<string, List<(string RuleId, ConditionalRenderingRule Rule)>>();
@@ -134,6 +156,17 @@ internal class RuleAnalysisReporter
                     inputParams,
                     rule.SelectedAction ?? "Hide"
                 );
+
+                // Track statistics
+                stats.TotalConditionalRules++;
+                if (conversionResult.Status == ConversionStatus.Success)
+                {
+                    stats.SuccessfulConversions++;
+                }
+                else
+                {
+                    stats.FailedConversions++;
+                }
 
                 // Skip successful conversions if failuresOnly is true
                 if (failuresOnly && conversionResult.Status == ConversionStatus.Success)
@@ -264,7 +297,7 @@ internal class RuleAnalysisReporter
             }
         }
 
-        return output.ToString();
+        return (output.ToString(), stats);
     }
 
     /// <summary>

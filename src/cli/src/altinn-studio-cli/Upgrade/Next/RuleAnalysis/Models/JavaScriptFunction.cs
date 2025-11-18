@@ -1,3 +1,5 @@
+using Acornima.Ast;
+
 namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.Models;
 
 /// <summary>
@@ -19,4 +21,9 @@ public class JavaScriptFunction
     /// Parameter name from function signature (usually 'obj')
     /// </summary>
     public string ParameterName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Parsed return expression AST for inlining into other functions
+    /// </summary>
+    public Expression? ReturnExpression { get; set; }
 }

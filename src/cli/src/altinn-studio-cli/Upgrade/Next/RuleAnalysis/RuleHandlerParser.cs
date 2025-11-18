@@ -12,6 +12,7 @@ internal class RuleHandlerParser
     private readonly string _ruleHandlerPath;
     private readonly Dictionary<string, JavaScriptFunction> _conditionalFunctions = new();
     private readonly Dictionary<string, JavaScriptFunction> _dataProcessingFunctions = new();
+    private readonly Dictionary<string, object> _globalConstants = new();
 
     public RuleHandlerParser(string ruleHandlerPath)
     {
@@ -35,6 +36,9 @@ internal class RuleHandlerParser
         {
             var parser = new Parser();
             var program = parser.ParseScript(jsContent);
+
+            // Extract global constants first (they may be used in function bodies)
+            ExtractGlobalConstants(program);
 
             ExtractFunctionsFromObject(program, "conditionalRuleHandlerObject", _conditionalFunctions);
             ExtractFunctionsFromObject(program, "ruleHandlerObject", _dataProcessingFunctions);
@@ -61,6 +65,22 @@ internal class RuleHandlerParser
     public JavaScriptFunction? GetDataProcessingFunction(string functionName)
     {
         return _dataProcessingFunctions.GetValueOrDefault(functionName);
+    }
+
+    /// <summary>
+    /// Get all global constants extracted from the file
+    /// </summary>
+    public IReadOnlyDictionary<string, object> GetGlobalConstants()
+    {
+        return _globalConstants;
+    }
+
+    /// <summary>
+    /// Get all conditional functions for cross-function inlining
+    /// </summary>
+    public Dictionary<string, JavaScriptFunction> GetAllConditionalFunctions()
+    {
+        return _conditionalFunctions;
     }
 
     /// <summary>
@@ -139,11 +159,15 @@ internal class RuleHandlerParser
                     // Reconstruct the function implementation from the AST
                     var functionImpl = ReconstructFunction(function);
 
+                    // Extract the return expression for potential inlining
+                    var returnExpression = ExtractReturnExpression(function);
+
                     targetDict[functionName] = new JavaScriptFunction
                     {
                         Name = functionName,
                         Implementation = functionImpl,
                         ParameterName = paramName,
+                        ReturnExpression = returnExpression,
                     };
                 }
             }
@@ -161,6 +185,74 @@ internal class RuleHandlerParser
         var end = function.Range.End;
 
         var jsContent = File.ReadAllText(_ruleHandlerPath);
-        return jsContent.Substring(start, end - start);
+        var functionCode = jsContent.Substring(start, end - start);
+
+        // If this is a FunctionExpression (anonymous function), wrap it in parentheses
+        // so it can be parsed as an expression statement
+        if (function is FunctionExpression)
+        {
+            functionCode = $"({functionCode})";
+        }
+
+        return functionCode;
+    }
+
+    /// <summary>
+    /// Extract global constants from variable declarations at the top level of the script
+    /// Only extracts simple literal values (numbers, strings, booleans, null)
+    /// </summary>
+    private void ExtractGlobalConstants(Script program)
+    {
+        foreach (var statement in program.Body)
+        {
+            if (statement is VariableDeclaration varDecl)
+            {
+                foreach (var declarator in varDecl.Declarations)
+                {
+                    // Only extract simple constant assignments: var NAME = value;
+                    if (declarator.Id is Identifier identifier && declarator.Init is Literal literal)
+                    {
+                        var constantName = identifier.Name;
+                        var constantValue = literal.Value;
+
+                        // Only store simple literal values (numbers, strings, booleans, null)
+                        if (constantValue is int or long or double or float or string or bool || constantValue == null)
+                        {
+                            _globalConstants[constantName] = constantValue ?? "null";
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Extract the return expression from a function for inlining purposes
+    /// </summary>
+    private Expression? ExtractReturnExpression(IFunction function)
+    {
+        // Get the function body
+        var body = function.Body;
+
+        // Arrow function with expression body: (obj) => expression
+        if (body is Expression expr)
+        {
+            return expr;
+        }
+
+        // Arrow function or regular function with block body
+        if (body is BlockStatement blockBody)
+        {
+            // Find the return statement
+            foreach (var statement in blockBody.Body)
+            {
+                if (statement is ReturnStatement returnStmt)
+                {
+                    return returnStmt.Argument;
+                }
+            }
+        }
+
+        return null;
     }
 }
