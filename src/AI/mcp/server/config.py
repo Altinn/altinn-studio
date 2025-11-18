@@ -39,6 +39,7 @@ VECTOR_STORE_CONFIG = {
 }
 
 # Repository Configuration
+GITEA_URL = os.getenv("GITEA_URL", "https://altinn.studio/repos/api/v1")
 GITEA_API_KEY = os.getenv("GITEA_API_KEY", "")
 STUDIO_ASSISTANT_TEST_REPO = "https://altinn.studio/repos/nlunde/studio-assistant-test.git"
 APP_LIB_REPO = "https://github.com/Altinn/app-lib-dotnet.git"
@@ -64,7 +65,7 @@ os.makedirs(LOGS_DIR, exist_ok=True)
 # App Fetching Configuration
 APP_FETCHER_CONFIG = {
     "EMBEDDING_API_URL": "http://localhost:8000/appNames",
-    "GITEA_URL": "https://altinn.studio/repos/api/v1",
+    "GITEA_URL": GITEA_URL,
     "DEFAULT_APP_LIST": ["krt-krt-3030a-1", "krt-krt-1009a-1", "krt-krt-1230a-1"],
     "NUM_APPS_TO_FETCH": 3,
     "API_TIMEOUT": 10,
