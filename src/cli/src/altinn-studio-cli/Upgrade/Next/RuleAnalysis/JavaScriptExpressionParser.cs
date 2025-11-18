@@ -8,37 +8,58 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis;
 /// </summary>
 public class JavaScriptExpressionParser
 {
-    public ParseResult ParseFunction(string functionBody)
+    public ParseResult ParseFunction(string functionCode)
     {
         try
         {
-            // Wrap the body in a function to make it valid JavaScript
-            // This allows us to parse return statements properly
-            var wrappedCode = $"(function() {{ {functionBody} }})";
-
-            // Create parser with tolerant mode to handle some syntax variations
             var parser = new Parser();
+            var program = parser.ParseScript(functionCode);
 
-            // Parse as script (not module)
-            var program = parser.ParseScript(wrappedCode);
-
-            // Extract the function body from the wrapped IIFE
-            if (
-                program.Body.Count > 0
-                && program.Body[0] is ExpressionStatement exprStmt
-                && exprStmt.Expression is FunctionExpression funcExpr
-            )
+            // Try to extract function from the parsed AST
+            if (program.Body.Count == 0)
             {
-                var functionStatements = funcExpr.Body.Body.ToList();
-                return AnalyzeFunctionBody(functionStatements, functionBody);
+                return new ParseResult
+                {
+                    Success = false,
+                    ErrorMessage = "Empty program body",
+                    OriginalCode = functionCode,
+                };
             }
 
-            return new ParseResult
+            var firstStatement = program.Body[0];
+            List<Statement>? functionStatements = null;
+
+            // Case 1: ExpressionStatement containing a function
+            if (firstStatement is ExpressionStatement exprStmt)
             {
-                Success = false,
-                ErrorMessage = "Could not extract function body from parsed code",
-                OriginalCode = functionBody,
-            };
+                // Arrow function expression: (obj) => { ... } or (obj) => expr
+                if (exprStmt.Expression is ArrowFunctionExpression arrowFunc)
+                {
+                    functionStatements = ExtractStatementsFromArrowFunction(arrowFunc);
+                }
+                // Regular function expression: function(obj) { ... }
+                else if (exprStmt.Expression is FunctionExpression funcExpr)
+                {
+                    functionStatements = funcExpr.Body.Body.ToList();
+                }
+            }
+            // Case 2: Function declaration: function foo(obj) { ... }
+            else if (firstStatement is FunctionDeclaration funcDecl)
+            {
+                functionStatements = funcDecl.Body.Body.ToList();
+            }
+
+            if (functionStatements == null)
+            {
+                return new ParseResult
+                {
+                    Success = false,
+                    ErrorMessage = "Could not extract function body from parsed code",
+                    OriginalCode = functionCode,
+                };
+            }
+
+            return AnalyzeFunctionBody(functionStatements, functionCode);
         }
         catch (Exception ex)
         {
@@ -46,9 +67,31 @@ public class JavaScriptExpressionParser
             {
                 Success = false,
                 ErrorMessage = $"Failed to parse JavaScript: {ex.Message}",
-                OriginalCode = functionBody,
+                OriginalCode = functionCode,
             };
         }
+    }
+
+    /// <summary>
+    /// Extract statements from an arrow function, handling both block and expression bodies
+    /// </summary>
+    private List<Statement> ExtractStatementsFromArrowFunction(ArrowFunctionExpression arrowFunc)
+    {
+        // Arrow function with block body: (obj) => { statements }
+        if (arrowFunc.Body is BlockStatement blockBody)
+        {
+            return blockBody.Body.ToList();
+        }
+
+        // Arrow function with expression body: (obj) => expression
+        // Wrap the expression in a return statement
+        if (arrowFunc.Body is Expression expr)
+        {
+            var returnStmt = new ReturnStatement(expr);
+            return new List<Statement> { returnStmt };
+        }
+
+        return new List<Statement>();
     }
 
     private ParseResult AnalyzeFunctionBody(List<Statement> statements, string originalCode)
@@ -63,8 +106,9 @@ public class JavaScriptExpressionParser
             };
         }
 
-        var returnStatement = FindReturnStatement(statements);
-        if (returnStatement == null)
+        // Try to build a single conditional expression from all statements
+        var expression = BuildConditionalExpression(statements);
+        if (expression == null)
         {
             return new ParseResult
             {
@@ -77,7 +121,7 @@ public class JavaScriptExpressionParser
         return new ParseResult
         {
             Success = true,
-            ReturnExpression = returnStatement.Argument,
+            ReturnExpression = expression,
             OriginalCode = originalCode,
             AllStatements = statements,
         };
@@ -127,6 +171,120 @@ public class JavaScriptExpressionParser
 
         if (statement is BlockStatement block)
             return FindReturnStatement(block.Body.ToList());
+
+        return null;
+    }
+
+    /// <summary>
+    /// Build a single conditional expression from a list of statements that may contain multiple return paths
+    /// This converts early returns into nested conditional (ternary-like) expressions
+    /// </summary>
+    private Expression? BuildConditionalExpression(List<Statement> statements)
+    {
+        if (statements.Count == 0)
+            return null;
+
+        // Handle single statement case first
+        if (statements.Count == 1)
+        {
+            var stmt = statements[0];
+
+            // Direct return statement
+            if (stmt is ReturnStatement returnStmt)
+            {
+                return returnStmt.Argument;
+            }
+
+            // If statement that contains all the logic
+            if (stmt is IfStatement singleIfStmt)
+            {
+                return BuildIfExpression(singleIfStmt, new List<Statement>());
+            }
+        }
+
+        // Process multiple statements in order
+        for (int i = 0; i < statements.Count; i++)
+        {
+            var stmt = statements[i];
+
+            // Direct return statement
+            if (stmt is ReturnStatement returnStmt)
+            {
+                return returnStmt.Argument;
+            }
+
+            // If statement with potential early returns
+            if (stmt is IfStatement ifStmt)
+            {
+                // Get the remaining statements after this if statement
+                var remainingStatements = statements.Skip(i + 1).ToList();
+
+                // Build a conditional expression: if (condition) then consequent else (rest of code)
+                return BuildIfExpression(ifStmt, remainingStatements);
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Build a conditional expression from an if statement
+    /// This handles the conversion: if (cond) { return X; } ... → cond ? X : (rest)
+    /// </summary>
+    private Expression? BuildIfExpression(IfStatement ifStmt, List<Statement> remainingStatements)
+    {
+        // Get the condition
+        var condition = ifStmt.Test;
+
+        // Process the consequent (if branch)
+        var consequentExpression = ExtractExpressionFromStatement(ifStmt.Consequent, new List<Statement>());
+        if (consequentExpression == null)
+            return null;
+
+        // Process the alternate (else branch) or remaining statements
+        Expression? alternateExpression;
+
+        if (ifStmt.Alternate != null)
+        {
+            // There's an explicit else clause
+            alternateExpression = ExtractExpressionFromStatement(ifStmt.Alternate, remainingStatements);
+        }
+        else
+        {
+            // No else clause - continue with remaining statements
+            alternateExpression = BuildConditionalExpression(remainingStatements);
+        }
+
+        if (alternateExpression == null)
+            return null;
+
+        // Create a ConditionalExpression (ternary operator: condition ? consequent : alternate)
+        return new ConditionalExpression(condition, consequentExpression, alternateExpression);
+    }
+
+    /// <summary>
+    /// Extract an expression from a statement (handles blocks, returns, and nested ifs)
+    /// </summary>
+    private Expression? ExtractExpressionFromStatement(Statement statement, List<Statement> fallbackStatements)
+    {
+        // Direct return statement
+        if (statement is ReturnStatement returnStmt)
+        {
+            return returnStmt.Argument;
+        }
+
+        // Block statement - process the statements inside
+        if (statement is BlockStatement block)
+        {
+            var blockStatements = block.Body.ToList();
+            return BuildConditionalExpression(blockStatements);
+        }
+
+        // Nested if statement
+        if (statement is IfStatement nestedIf)
+        {
+            return BuildIfExpression(nestedIf, fallbackStatements);
+        }
 
         return null;
     }
