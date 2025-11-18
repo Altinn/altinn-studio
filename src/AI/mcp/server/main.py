@@ -105,8 +105,28 @@ def main() -> None:
         print("Starting Altinity MCP server using stdio transport", file=sys.stderr, flush=True)
     else:
         print(f"Starting Altinity MCP server on port {port} using transport {transport}", file=sys.stderr, flush=True)
-    
-    mcp.run(transport=transport)
+
+    # Apply fastmcp-mount middleware if running in SSE mode with a root path
+    import os
+    root_path = os.getenv("MCP_ROOT_PATH", "")
+
+    if transport == "sse" and root_path:
+        try:
+            from fastmcp_mount import FastMCPMount
+            # Wrap the SSE app with middleware to fix paths when mounted under a sub-path
+            print(f"✅ Applying FastMCPMount middleware with root_path={root_path}", file=sys.stderr, flush=True)
+            app = mcp.sse_app()
+            wrapped_app = FastMCPMount(app, root_path=root_path)
+
+            # Run the wrapped app
+            import uvicorn
+            uvicorn.run(wrapped_app, host="0.0.0.0", port=port)
+        except ImportError:
+            print("⚠️  fastmcp-mount not installed, running without path fix middleware", file=sys.stderr)
+            print("⚠️  Install with: pip install fastmcp-mount", file=sys.stderr)
+            mcp.run(transport=transport)
+    else:
+        mcp.run(transport=transport)
 
 
 if __name__ == "__main__":

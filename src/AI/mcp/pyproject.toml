@@ -14,6 +14,7 @@ requires-python = ">=3.12"
 dependencies = [
     "mcp==1.12.1",
     "fastmcp>=2.0.0",
+    "fastmcp-mount>=0.1.0",
     "pydantic==2.11.7",
     "pydantic-core==2.33.2",
     "pydantic-settings==2.10.1",
