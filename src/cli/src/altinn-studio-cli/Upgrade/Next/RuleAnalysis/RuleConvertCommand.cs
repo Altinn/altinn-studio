@@ -183,53 +183,55 @@ internal static class RuleConvertCommand
     {
         var appFolders = Directory.GetDirectories(parentFolderPath);
         var totalApps = 0;
-        var appsWithRules = 0;
+        var appsWithConditionalRendering = 0;
+        var successsfulApps = 0;
         var overallStats = new RuleAnalysisStats();
 
         foreach (var appFolder in appFolders)
         {
             var appName = Path.GetFileName(appFolder);
             var uiFolderPath = Path.Combine(appFolder, uiFolder);
-
             if (!Directory.Exists(uiFolderPath))
             {
-                continue; // Skip folders without UI folder
+                continue;
             }
 
             totalApps++;
-            Console.WriteLine($"\n{new string('=', 80)}");
             Console.WriteLine($"Analyzing app: {appName}");
-            Console.WriteLine(new string('=', 80));
 
             var appStats = AnalyzeRules(uiFolderPath, failuresOnly);
-
             if (appStats.TotalConditionalRules > 0)
             {
-                appsWithRules++;
+                appsWithConditionalRendering++;
             }
 
             // Accumulate overall statistics
             overallStats.TotalConditionalRules += appStats.TotalConditionalRules;
             overallStats.SuccessfulConversions += appStats.SuccessfulConversions;
             overallStats.FailedConversions += appStats.FailedConversions;
+            successsfulApps +=
+                appStats.SuccessfulConversions == appStats.TotalConditionalRules && appStats.TotalConditionalRules > 0
+                    ? 1
+                    : 0;
         }
 
         // Print summary report
         Console.WriteLine($"\n\n{new string('=', 80)}");
         Console.WriteLine("SUMMARY REPORT");
         Console.WriteLine(new string('=', 80));
-        Console.WriteLine($"Total apps analyzed: {totalApps}");
-        Console.WriteLine($"Apps with conditional rendering rules: {appsWithRules}");
-        Console.WriteLine($"\nTotal conditional rendering rules: {overallStats.TotalConditionalRules}");
-        Console.WriteLine($"Successfully converted to expressions: {overallStats.SuccessfulConversions}");
-        Console.WriteLine($"Failed to convert: {overallStats.FailedConversions}");
+        Console.WriteLine($"Total apps analyzed: {totalApps} apps");
+        Console.WriteLine($"Apps with conditional rendering rules: {appsWithConditionalRendering} apps");
+        Console.WriteLine($"Apps that could be fully converted: {successsfulApps} of {appsWithConditionalRendering} apps");
+        Console.WriteLine($"");
+        Console.WriteLine($"Total conditional rendering rules: {overallStats.TotalConditionalRules} rules");
+        Console.WriteLine($"Successfully converted to expressions: {overallStats.SuccessfulConversions} rules");
+        Console.WriteLine($"Failed to convert: {overallStats.FailedConversions} rules");
 
-        if (overallStats.TotalConditionalRules > 0)
-        {
-            var successPercentage =
-                (double)overallStats.SuccessfulConversions / overallStats.TotalConditionalRules * 100;
-            Console.WriteLine($"\nConversion success rate: {successPercentage:F1}%");
-        }
+        var successPercentage = (double)overallStats.SuccessfulConversions / overallStats.TotalConditionalRules * 100;
+        Console.WriteLine($"\nConversion success rate: {successPercentage:F1}%");
+
+        var successfulAppsPercentage = (double)successsfulApps / appsWithConditionalRendering * 100;
+        Console.WriteLine($"Conversion success rate for fully converted apps: {successfulAppsPercentage:F1}%");
 
         Console.WriteLine(new string('=', 80));
     }
