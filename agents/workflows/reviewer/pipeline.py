@@ -5,15 +5,14 @@ from __future__ import annotations
 import json
 import os
 import re
-from textwrap import dedent
 from typing import Dict, List, Optional, Any
 
 from agents.services.llm import LLMClient
 from agents.services.mcp import MCPVerifier, MCPVerificationResult
+from agents.prompts import get_prompt_content, render_template
 from agents.workflows.shared.utils import (
     cleanup_feature_branch,
     cleanup_generated_artifacts,
-    load_system_prompt,
     scan_repository_directly,
 )
 from shared.utils.logging_utils import get_logger
@@ -191,47 +190,17 @@ def reviewer_decision(
 ) -> Dict[str, object]:
     """Call reviewer LLM to decide whether to commit or revert."""
 
-    reviewer_prompt = load_system_prompt("reviewer_prompt")
+    reviewer_prompt = get_prompt_content("reviewer_decision")
 
     plan_context = step_plan[0] if step_plan else "No plan"
-    user_prompt = dedent(
-        f"""
-        FINAL REVIEW:
-
-        ORIGINAL GOAL: {user_goal}
-        IMPLEMENTED STEP: {plan_context}
-        CHANGED FILES: {changed_files}
-        TESTS PASSED: {tests_passed}
-        VERIFICATION NOTES: {verify_notes}
-
-        DECISION GUIDELINES:
-        - COMMIT if: All validations passed, tests passed, and changes appear to implement the goal
-        - REVERT only if: There are clear validation errors, tests failed, or changes are clearly wrong/broken
-
-        IMPORTANT: When everything looks good (validations passed, tests passed), you should COMMIT the changes.
-        The system has already validated the changes extensively - if all checks pass, the changes are ready to commit.
-
-        CRITICAL: If committing, you MUST provide a detailed, specific commit message that clearly describes what was implemented.
-        The commit message should be professional and descriptive, explaining the actual changes made.
-
-        GOOD examples:
-        - "feat: add input validation for payment details"
-        - "fix: correct tab navigation order on main form"
-        - "chore: update localization resources for new fields"
-
-        BAD examples (do not use these):
-        - "Altinity automated change"
-        - "Implement changes"
-        - "Update files"
-
-        Return JSON with commit_message field ALWAYS filled with a descriptive message:
-        {{
-          "decision": "commit|revert",
-          "commit_message": "REQUIRED: Detailed description of what was actually implemented",
-          "reasoning": "explanation of decision"
-        }}
-        """
-    ).strip()
+    user_prompt = render_template(
+        "reviewer_decision_user",
+        user_goal=user_goal,
+        plan_context=plan_context,
+        changed_files=changed_files,
+        tests_passed=tests_passed,
+        verify_notes=verify_notes
+    )
 
     client = LLMClient(role="reviewer")
     response = client.call_sync(reviewer_prompt, user_prompt)

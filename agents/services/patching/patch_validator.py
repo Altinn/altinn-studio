@@ -7,6 +7,8 @@ import logging
 import json
 from pathlib import Path
 
+from agents.services.repo import ensure_text_resources_in_patch
+
 log = logging.getLogger(__name__)
 
 
@@ -26,7 +28,18 @@ class PatchValidator:
         """
         validation_errors = []
         validation_warnings = []
-        
+
+        added_resource_keys = ensure_text_resources_in_patch(
+            patch_data,
+            self.repository_path,
+        )
+        if added_resource_keys:
+            log.info(
+                "Auto-added %d missing text resources during validation: %s",
+                len(added_resource_keys),
+                ", ".join(added_resource_keys[:10]) + ("..." if len(added_resource_keys) > 10 else ""),
+            )
+
         for i, change in enumerate(patch_data.get('changes', [])):
             operation = change.get('operation')
             file_path = change.get('file', '')

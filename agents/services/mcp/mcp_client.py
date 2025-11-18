@@ -1,6 +1,5 @@
-"""
-MCP Client - Streamlined Core Module
-Handles MCP server connection and orchestrates patch generation workflow.
+"""MCP client for interacting with the Altinn MCP server.
+Version: 2025-10-29-debug-v2
 """
 
 import json
@@ -177,9 +176,14 @@ class MCPClient:
             log.error(f"Failed to call MCP tool {tool_name}: {e}")
             return {"error": str(e)}
     
-    async def create_patch_async(self, task_context: str, repository_path: str) -> dict:
+    async def create_patch_async(self, task_context: str, repository_path: str, attachments: list = None) -> dict:
         """
         Main workflow: Create a patch using MCP tools and LLM.
+        
+        Args:
+            task_context: The user goal and high-level plan
+            repository_path: Path to the repository
+            attachments: Optional list of attachments (images, files) for vision analysis
         
         Returns:
             Patch data with files and changes arrays
@@ -194,6 +198,7 @@ class MCPClient:
             mlflow.set_experiment(experiment_name)
         
         # This will be nested under the main workflow trace
+        patch_data = None  # Initialize to avoid UnboundLocalError
         try:
             # Step 1: Scan repository - FIRST to understand what files exist
             with mlflow.start_span(name="repository_scanning", span_type="TOOL") as scan_span:
@@ -251,108 +256,103 @@ class MCPClient:
             # Step 2: Connect to MCP server
             await self.connect()
             
-            # Step 3: Get high-level planning guidance - BEFORE detailed planning
+            # Step 3: Extract planning guidance from task_context
+            # Planning guidance MUST be present - it should come from planning_tool_node
             planning_guidance = None
-            with mlflow.start_span(name="planning_guidance_generation", span_type="TOOL") as planning_span:
-                try:
-                    # Create planning tool input
-                    tool_input = {
-                        "user_goal": task_context,
-                        "repository_facts": repo_facts
-                    }
-                    
-                    # Set detailed attributes
-                    planning_span.set_attributes({
-                        "goal_length": len(task_context),
-                        "tool": "planning_tool"
-                    })
-                    planning_span.set_inputs({
-                        "user_goal": task_context,
-                        "repository_facts_summary": {
-                            "file_count": len(repo_facts.get("layouts", [])) + len(repo_facts.get("models", [])) + len(repo_facts.get("resources", [])),
-                            "directory_count": sum(1 for dir_path in [
-                                Path(repository_path) / "App" / "ui" / "form" / "layouts",
-                                Path(repository_path) / "App" / "models",
-                                Path(repository_path) / "App" / "config" / "texts"
-                            ] if dir_path.exists()),
-                            "layout_count": len(repo_facts.get("layouts", []))
-                        }
-                    })
-                    
-                    # Call planning tool for high-level guidance only
-                    planning_result = await self.call_tool('planning_tool', tool_input)
-                    
-                    # Extract text from MCP response
-                    if planning_result and isinstance(planning_result, list) and len(planning_result) > 0:
-                        if hasattr(planning_result[0], 'text'):
-                            planning_guidance = planning_result[0].text
-                    
-                    # Format the output for multiple views
-                    planning_span.set_outputs({
-                        "full_guidance": planning_guidance,  # Complete guidance text
-                        "guidance_summary": planning_guidance[:200] + "..." if planning_guidance and len(planning_guidance) > 200 else planning_guidance,
-                        "guidance_length": len(str(planning_guidance)) if planning_guidance else 0,
-                        "formats": {
-                            "text": planning_guidance,
-                            "markdown": f"```\n{planning_guidance}\n```" if planning_guidance else None,
-                            "json": json.loads(planning_guidance) if planning_guidance and is_json(planning_guidance) else None
-                        }
-                    })
-                    log.info("Retrieved planning guidance from MCP planning_tool")
-                except Exception as e:
-                    planning_span.set_attribute("error", str(e))
-                    log.warning(f"Could not get planning guidance: {e}")
-                
-                # Step 4: Use actor workflow pipeline to produce patch and intermediates
+            if "PLANNING GUIDANCE:" not in task_context:
+                log.error("❌ CRITICAL: Planning guidance missing from task_context!")
+                log.error("The planning_tool_node must run successfully before create_patch_async is called.")
+                log.error("Planning guidance is a REQUIRED part of the workflow.")
+                raise Exception(
+                    "Planning guidance missing from task_context. "
+                    "Ensure planning_tool_node executes successfully before planner_node. "
+                    "This is a required step in the workflow."
+                )
+            
+            # Extract the planning guidance from task_context
+            log.info("✅ Planning guidance found in task_context (from planning_tool_node)")
+            parts = task_context.split("PLANNING GUIDANCE:")
+            if len(parts) > 1:
+                planning_guidance = parts[1].strip()
+            
+            if not planning_guidance:
+                log.error("❌ Planning guidance section exists but is empty!")
+                raise Exception("Planning guidance section is empty - planning_tool_node may have failed")
+            
+            log.info(f"ℹ️ Using planning guidance ({len(planning_guidance)} chars)")
+            
+            log.info(f"✅ Planning guidance section complete, planning_guidance={'SET (%d chars)' % len(planning_guidance) if planning_guidance else 'NOT SET'}")
+            
+            # Step 4: Use actor workflow pipeline to produce patch and intermediates
+            try:
+                log.info("🔧 Starting patch generation...")
+                log.info(f"📊 About to create PatchGenerator with repository_path={repository_path}")
                 generator = PatchGenerator(self, repository_path)
-                repo_facts_with_context = {
-                    **repo_facts,
-                }
+            except Exception as setup_error:
+                log.error(f"❌ Failed to create PatchGenerator: {setup_error}", exc_info=True)
+                raise
+            repo_facts_with_context = {
+                **repo_facts,
+            }
 
+            try:
                 patch_data = await generator.generate_patch(
                     task_context,
                     repo_facts_with_context,
-                    planner_step=planning_guidance
+                    planner_step=planning_guidance,
+                    attachments=attachments
                 )
-
+                
+                if not patch_data:
+                    log.error("❌ generator.generate_patch() returned None!")
+                    raise Exception("Patch generator returned None - check actor pipeline logs for errors")
+                
+                log.info(f"✅ Patch generated with {len(patch_data.get('changes', []))} changes")
+                
                 if generator.last_output:
                     patch_data.setdefault("workflow", generator.last_output)
+            except Exception as gen_error:
+                log.error(f"❌ Patch generation failed: {gen_error}", exc_info=True)
+                raise
+            
+            # Step 5: Normalize patch structure
+            with mlflow.start_span(name="patch_normalization") as norm_span:
+                patch_data = normalize_patch_structure(patch_data)
+                norm_span.set_outputs({
+                    "files_count": len(patch_data.get('files', [])),
+                    "changes_count": len(patch_data.get('changes', []))
+                })
+            
+            log.info(f"Generated patch: {patch_data.get('summary', 'No summary')}")
+            
+            # Step 6: Validate patch
+            validator = PatchValidator(self, repository_path)
+            
+            log.info(f"Starting validation for {len(patch_data.get('changes', []))} changes")
+            
+            with mlflow.start_span(name="patch_validation") as validation_span:
+                is_valid, errors, warnings = await validator.validate_patch(patch_data)
                 
-                # Step 5: Normalize patch structure
-                with mlflow.start_span(name="patch_normalization") as norm_span:
-                    patch_data = normalize_patch_structure(patch_data)
-                    norm_span.set_outputs({
-                        "files_count": len(patch_data.get('files', [])),
-                        "changes_count": len(patch_data.get('changes', []))
-                    })
+                validation_span.set_outputs({
+                    "is_valid": is_valid,
+                    "errors": errors,
+                    "warnings": warnings
+                })
                 
-                log.info(f"Generated patch: {patch_data.get('summary', 'No summary')}")
+                if errors:
+                    log.error(f"Validation errors remain after auto-fix: {errors}")
                 
-                # Step 6: Validate patch
-                validator = PatchValidator(self, repository_path)
-                
-                log.info(f"Starting validation for {len(patch_data.get('changes', []))} changes")
-                
-                with mlflow.start_span(name="patch_validation") as validation_span:
-                    is_valid, errors, warnings = await validator.validate_patch(patch_data)
-                    
-                    validation_span.set_outputs({
-                        "is_valid": is_valid,
-                        "errors": errors,
-                        "warnings": warnings
-                    })
-                    
-                    if errors:
-                        log.error(f"Validation errors remain after auto-fix: {errors}")
-                    
-                    if warnings:
-                        log.info(f"Validation warnings: {warnings}")
+                if warnings:
+                    log.info(f"Validation warnings: {warnings}")
                 
             # Step 7: Return patch
             duration = time.time() - start_time
-            log.info(f"Agentic MCP workflow completed in {duration:.1f}s: {patch_data.get('summary', 'No summary')}")
-            
-            return patch_data
+            if patch_data:
+                log.info(f"Agentic MCP workflow completed in {duration:.1f}s: {patch_data.get('summary', 'No summary')}")
+                return patch_data
+            else:
+                log.error("Patch generation failed: patch_data is None")
+                raise Exception("Patch generation failed: no patch data was generated")
             
         except Exception as e:
             log.error(f"Agentic patch generation failed: {e}")

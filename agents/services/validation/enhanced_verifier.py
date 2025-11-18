@@ -11,6 +11,7 @@ Enhanced verification with deterministic checks.
 Adds specific validation for binding existence, anchor positioning, type policies, and generated file policies.
 """
 from agents.schemas.plan_schema import PlanStep, suggest_identifier_type, is_numeric_ui_component
+from agents.services.repo import collect_text_resource_bindings, load_resource_key_map
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -263,49 +264,52 @@ class EnhancedVerifier:
     
     def _verify_cross_references(self, patch: Dict, plan_step: PlanStep, result: VerificationResult) -> None:
         """Check 5: Verify cross-file references are consistent across all required locales"""
-        
-        # Extract resource keys by locale and layout references
-        resource_keys_by_locale = {}
-        layout_references = set()
-        
-        # Collect resource keys by locale
-        for change in patch.get('changes', []):
-            file_path = change.get('file', '')
-            if 'resource.' in file_path:
-                # Extract locale from filename (e.g., resource.nb.json -> nb)
-                import re
-                locale_match = re.search(r'resource\.([a-z]{2})\.json$', file_path)
-                if locale_match:
-                    locale = locale_match.group(1)
-                    if change.get('op') == 'insert_json_property' and change.get('path'):
-                        key = change.get('path')[-1]  # Last element is the key
-                        if locale not in resource_keys_by_locale:
-                            resource_keys_by_locale[locale] = set()
-                        resource_keys_by_locale[locale].add(key)
-        
-        # Collect layout references
-        for change in patch.get('changes', []):
-            if 'layout' in change.get('file', ''):
-                component = change.get('value', {})
-                if isinstance(component, dict):
-                    text_bindings = component.get('textResourceBindings', {})
-                    for binding_value in text_bindings.values():
-                        layout_references.add(binding_value)
-        
-        # Check if all layout references exist in all required locales
-        required_locales = plan_step.context.required_locales or plan_step.context.available_locales
-        
-        for locale in required_locales:
-            locale_keys = resource_keys_by_locale.get(locale, set())
-            missing_keys = layout_references - locale_keys
-            
-            if missing_keys:
+
+        def _parse_locale(path: str) -> Optional[str]:
+            match = re.search(r"resource\.([a-z]{2})\.json$", path)
+            return match.group(1) if match else None
+
+        layout_references = collect_text_resource_bindings(patch)
+        if not layout_references:
+            result.add_success("cross_references")
+            return
+
+        required_locales = plan_step.context.required_locales or plan_step.context.available_locales or []
+        locale_key_map = load_resource_key_map(str(self.repo_path))
+
+        pending_keys: Dict[str, Set[str]] = {}
+        for change in patch.get("changes", []):
+            file_path = change.get("file", "")
+            locale = _parse_locale(file_path)
+            if not locale:
+                continue
+            candidate = None
+            for key in ("item", "value", "resource", "content", "details"):
+                if key in change:
+                    candidate = change[key]
+                    break
+            if isinstance(candidate, dict):
+                res_id = candidate.get("id") or candidate.get("resource_id")
+                if isinstance(res_id, str) and res_id:
+                    pending_keys.setdefault(locale, set()).add(res_id)
+
+        missing: Dict[str, Set[str]] = {}
+        locales_to_check = required_locales or sorted(set(locale_key_map.keys()) | set(pending_keys.keys()))
+
+        for binding in layout_references:
+            for locale in locales_to_check:
+                existing_keys = locale_key_map.get(locale, set())
+                if binding in existing_keys or binding in pending_keys.get(locale, set()):
+                    continue
+                missing.setdefault(locale, set()).add(binding)
+
+        if missing:
+            for locale, keys in missing.items():
                 result.add_error(
                     "cross_references",
-                    f"Layout components reference missing resource keys in {locale}: {missing_keys}"
+                    f"Layout components reference missing resource keys in {locale}: {sorted(keys)}",
                 )
-        
-        if not result.errors:
+        else:
             result.add_success("cross_references")
     
     def _load_model_schema(self, model_changes: List[Dict]) -> Dict:

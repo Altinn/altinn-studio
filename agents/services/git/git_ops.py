@@ -91,8 +91,12 @@ def apply(patch: dict, repo_path: str = None):
             elif operation == "insert_json_property":
                 # Generic: Insert a property into a JSON object at a specific path
                 if not file_path.exists():
-                    print(f"Warning: File does not exist: {file_path}")
-                    continue
+                    # Create the file with an empty JSON object structure
+                    file_path.parent.mkdir(parents=True, exist_ok=True)
+                    import json as json_module
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        json_module.dump({}, f, ensure_ascii=False, indent=2)
+                    print(f"Created new JSON file: {file_path}")
                 
                 path = change.get("path", [])  # e.g., ["properties"] or ["data", "layout"]
                 key = change.get("key")
@@ -142,8 +146,32 @@ def apply(patch: dict, repo_path: str = None):
             elif operation == "insert_json_array_item":
                 # Generic: Insert an item into a JSON array at a specific path and index
                 if not file_path.exists():
-                    print(f"Warning: File does not exist: {file_path}")
-                    continue
+                    # Create the file with appropriate initial structure based on file type
+                    file_path.parent.mkdir(parents=True, exist_ok=True)
+                    import json as json_module
+                    
+                    # Determine initial structure based on file path and target path
+                    path = change.get("path", [])
+                    
+                    if "layout" in str(file_path) and path == ["data", "layout"]:
+                        # Layout file: {"data": {"layout": []}}
+                        initial_data = {"data": {"layout": []}}
+                    elif "resource" in str(file_path) and not path:
+                        # Resource file at root: []
+                        initial_data = []
+                    else:
+                        # Generic case: create nested structure based on path
+                        initial_data = {}
+                        target = initial_data
+                        for p in path[:-1]:  # All but the last element
+                            target[p] = {}
+                            target = target[p]
+                        if path:  # Set the final path element to an empty array
+                            target[path[-1]] = []
+                    
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        json_module.dump(initial_data, f, ensure_ascii=False, indent=2)
+                    print(f"Created new JSON file: {file_path}")
                 
                 path = change.get("path", [])  # e.g., ["data", "layout"] or ["resources"]
                 item = change.get("item")

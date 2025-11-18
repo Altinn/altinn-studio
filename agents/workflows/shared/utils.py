@@ -102,15 +102,3 @@ def scan_repository_directly(repo_path: str) -> Dict[str, List[str]]:
         return {"layouts": [], "resources": [], "schemas": [], "error": str(exc)}
 
 
-def load_system_prompt(prompt_name: str) -> str:
-    """Load system prompt from JSON file in `agents/system_prompts/`."""
-
-    prompts_dir = Path(__file__).resolve().parent.parent.parent / "system_prompts"
-
-    try:
-        with open(prompts_dir / f"{prompt_name}.json", "r", encoding="utf-8") as handle:
-            prompt_data = json.load(handle)
-            return prompt_data["content"]
-    except Exception as exc:
-        log.error("Failed to load prompt %s: %s", prompt_name, exc)
-        return f"Error loading {prompt_name} prompt: {exc}"

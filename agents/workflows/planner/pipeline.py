@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import json
 import mlflow
-from textwrap import dedent
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
 from agents.services.llm import LLMClient
+from agents.prompts import get_prompt_content, render_template
+from shared.models import AgentAttachment
 from agents.services.telemetry import is_json
 from shared.utils.logging_utils import get_logger
 
@@ -18,33 +19,17 @@ def generate_initial_plan(
     user_goal: str,
     *,
     planner_step: Optional[str] = None,
+    attachments: Optional[List[AgentAttachment]] = None,
 ) -> Dict[str, Any]:
     """Generate the initial high-level implementation plan from the planner LLM."""
 
     client = LLMClient(role="planner")
-    system_prompt = (
-        "You are the lead strategist for an Altinn multi-agent build system. "
-        "Summarize the requested change, highlight key requirements, identify risks, "
-        "and outline major subtasks. Respond with JSON only."
+    system_prompt = get_prompt_content("planner_initial")
+    user_prompt = render_template(
+        "planner_initial_user",
+        user_goal=user_goal,
+        planner_step=planner_step or "No plan generated yet"
     )
-    user_prompt = dedent(
-        f"""
-        USER GOAL:
-        {user_goal}
-
-        CURRENT PLAN STEP (if any):
-        {planner_step or "No plan generated yet"}
-
-        Return JSON with:
-        {{
-          "goal_summary": "one paragraph",
-          "key_requirements": ["..."],
-          "risks": ["..."],
-          "suggested_subtasks": ["..."],
-          "notes_for_team": "guidance for other agents"
-        }}
-        """
-    ).strip()
 
     with mlflow.start_span(name="initial_planning_llm", span_type="LLM") as span:
         metadata = client.get_model_metadata()
@@ -54,7 +39,7 @@ def generate_initial_plan(
             "planner_step_present": bool(planner_step),
         })
 
-        response = client.call_sync(system_prompt, user_prompt)
+        response = client.call_sync(system_prompt, user_prompt, attachments=attachments)
         span.set_outputs({
             "raw_response": response[:5000],
             "formats": {

@@ -2,6 +2,7 @@
 
 from .app_models import App, AppInfo, FileInfo
 from .common_models import StatusResponse, ChatMessage, ChatResponse, ErrorResponse
+from .attachments import AttachmentUpload, AgentAttachment
 
 __all__ = [
     "App",
@@ -10,5 +11,7 @@ __all__ = [
     "StatusResponse",
     "ChatMessage",
     "ChatResponse",
-    "ErrorResponse"
+    "ErrorResponse",
+    "AttachmentUpload",
+    "AgentAttachment"
 ]

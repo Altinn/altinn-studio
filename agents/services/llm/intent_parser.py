@@ -2,6 +2,7 @@
 # TODO: Not sure if this is necessary at all 
 import asyncio
 from typing import Dict, List, Optional
+from shared.models import AgentAttachment
 from pydantic import BaseModel
 from .llm_client import parse_intent_with_llm, suggest_goals_with_llm
 from shared.utils.logging_utils import get_logger
@@ -21,7 +22,7 @@ class ParsedIntent(BaseModel):
 class IntentParsingError(Exception):
     pass
 
-async def parse_intent_async(goal: str) -> ParsedIntent:
+async def parse_intent_async(goal: str, attachments: Optional[List[AgentAttachment]] = None) -> ParsedIntent:
     """Parse user goal into structured intent using LLM with safety checks"""
     
     # Quick safety check before LLM processing
@@ -37,7 +38,7 @@ async def parse_intent_async(goal: str) -> ParsedIntent:
         )
     
     try:
-        result = await parse_intent_with_llm(goal)
+        result = await parse_intent_with_llm(goal, attachments=attachments)
         
         # Validate LLM response structure
         parsed = ParsedIntent(
@@ -51,8 +52,12 @@ async def parse_intent_async(goal: str) -> ParsedIntent:
         )
         
         # Additional validation - ensure confidence makes sense
-        if parsed.action == "unknown" and parsed.confidence > 0.3:
-            parsed.confidence = 0.3  # Cap confidence for unknown actions
+        if parsed.action == "unknown" and parsed.confidence > 0.5:
+            parsed.confidence = 0.5  # Cap confidence for unknown actions
+            
+        # Log if the intent parser marked something unsafe (should only be security threats now)
+        if not parsed.safe:
+            log.warning(f"Intent parser flagged goal as unsafe: {parsed.reason}")
             
         return parsed
         
@@ -67,7 +72,7 @@ async def parse_intent_async(goal: str) -> ParsedIntent:
             reason=f"Intent parsing failed: {str(e)}"
         )
 
-def parse_intent(goal: str) -> ParsedIntent:
+def parse_intent(goal: str, attachments: Optional[List[AgentAttachment]] = None) -> ParsedIntent:
     """Synchronous wrapper for intent parsing - requires working LLM"""
     try:
         # Check if we're already in an async context
@@ -80,7 +85,7 @@ def parse_intent(goal: str) -> ParsedIntent:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
-                result = loop.run_until_complete(parse_intent_async(goal))
+                result = loop.run_until_complete(parse_intent_async(goal, attachments=attachments))
                 return result
             finally:
                 loop.close()
@@ -98,7 +103,7 @@ def validate_goal_safety(goal: str) -> tuple[bool, Optional[str]]:
     
     try:
         # Full LLM-based parsing and validation
-        parsed = parse_intent(goal)
+        parsed = parse_intent(goal, attachments=attachments)
 
         if not parsed.safe:
             return False, parsed.reason
@@ -122,22 +127,31 @@ def _validate_goal_safety_quick(goal: str) -> tuple[bool, Optional[str]]:
     """Quick safety check for dangerous keywords before LLM processing"""
     goal_lower = goal.lower().strip()
     
-    # Hard safety blocks - these should never be processed
-    dangerous_keywords = {
-        "delete", "remove", "drop", "truncate", "destroy", "wipe", "clear", "reset",
-        "system", "admin", "root", "config", "secret", "key", "password", "token"
-    }
-    
-    for keyword in dangerous_keywords:
+    # Hard safety blocks - focus on truly destructive or security-sensitive patterns
+    dangerous_patterns = [
+        "drop database",
+        "drop table",
+        "truncate table",
+        "truncate database",
+        "destroy server",
+        "destroy environment",
+        "wipe database",
+        "wipe server",
+        "format disk",
+        "shutdown production",
+        "kill process",
+        "disable auth",
+        "exfiltrate"
+    ]
+
+    for pattern in dangerous_patterns:
+        if pattern in goal_lower:
+            return False, f"Contains potentially dangerous pattern: {pattern}"
+
+    credential_keywords = {"api key", "secret", "password", "token", "credential"}
+    for keyword in credential_keywords:
         if keyword in goal_lower:
-            return False, f"Contains potentially dangerous keyword: {keyword}"
-    
-    # Basic sanity checks
-    if len(goal.strip()) < 5:
-        return False, "Goal is too short to be meaningful"
-    
-    if len(goal.strip()) > 500:
-        return False, "Goal is too long and complex"
+            return False, f"Contains sensitive keyword: {keyword}"
     
     return True, None
 
