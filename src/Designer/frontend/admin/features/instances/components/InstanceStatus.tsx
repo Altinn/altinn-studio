@@ -9,10 +9,10 @@ type InstanceStatusProps = {
 };
 
 export const InstanceStatus = ({ instance }: InstanceStatusProps) => {
-  const statuses = getInstanceStatus(instance);
+  const statuses = getInstanceStatuses(instance);
   return (
     <div className={classes.container}>
-      {statuses.map((status: Status) => (
+      {statuses.map((status: InstanceStatuses) => (
         <InstanceStatusChip key={status} status={status} />
       ))}
     </div>
@@ -20,42 +20,43 @@ export const InstanceStatus = ({ instance }: InstanceStatusProps) => {
 };
 
 type InstanceStatusChipProps = {
-  status: Status;
+  status: InstanceStatuses;
 };
 
 const InstanceStatusChip = ({ status }: InstanceStatusChipProps) => {
   switch (status) {
-    case Status.Unread:
+    case InstanceStatuses.Unread:
       return (
         <Tag size='sm' color='warning'>
           Ulest
         </Tag>
       );
-    case Status.Active:
+    case InstanceStatuses.Active:
       return (
         <Tag size='sm' color='first'>
           Aktiv
         </Tag>
       );
-    case Status.Archived:
+    // TODO: Using archivedAt to check if the process is complete may be incorrect?
+    case InstanceStatuses.Archived:
       return (
         <Tag size='sm' color='success'>
           Levert av bruker
         </Tag>
       );
-    case Status.Confirmed:
+    case InstanceStatuses.Confirmed:
       return (
         <Tag size='sm' color='success'>
           Bekreftet mottatt
         </Tag>
       );
-    case Status.SoftDeleted:
+    case InstanceStatuses.SoftDeleted:
       return (
         <Tag size='sm' color='danger'>
           Slettet
         </Tag>
       );
-    case Status.HardDeleted:
+    case InstanceStatuses.HardDeleted:
       return (
         <Tag size='sm' color='danger'>
           Slettet permanent
@@ -64,7 +65,7 @@ const InstanceStatusChip = ({ status }: InstanceStatusChipProps) => {
   }
 };
 
-enum Status {
+enum InstanceStatuses {
   Unread = 'unread',
   Active = 'active',
   Archived = 'archived',
@@ -73,35 +74,38 @@ enum Status {
   HardDeleted = 'hardDeleted',
 }
 
-/*
- * These are the (assumed) possible states an instance can exist in.
- */
-type InstanceStatus =
-  | [Status.Unread]
-  | [Status.Active]
-  | [Status.Archived]
-  | [Status.Archived, Status.Confirmed]
-  | [Status.Archived, Status.Confirmed, Status.SoftDeleted]
-  | [Status.Archived, Status.Confirmed, Status.HardDeleted];
+function getInstanceStatuses(instance: SimpleInstance): InstanceStatuses[] {
+  const statuses: InstanceStatuses[] = [];
+  if (
+    instance.isRead &&
+    !instance.archivedAt &&
+    !instance.confirmedAt &&
+    !instance.softDeletedAt &&
+    !instance.hardDeletedAt
+  ) {
+    statuses.push(InstanceStatuses.Active);
+  }
 
-function getInstanceStatus(instance: SimpleInstance): InstanceStatus {
-  if (instance.archivedAt && instance.confirmedAt && instance.hardDeletedAt) {
-    return [Status.Archived, Status.Confirmed, Status.HardDeleted];
-  }
-  if (instance.archivedAt && instance.confirmedAt && instance.softDeletedAt) {
-    return [Status.Archived, Status.Confirmed, Status.SoftDeleted];
-  }
-  if (instance.archivedAt && instance.confirmedAt) {
-    return [Status.Archived, Status.Confirmed];
-  }
-  if (instance.archivedAt) {
-    return [Status.Archived];
-  }
-  if (instance.isRead) {
-    return [Status.Active];
-  }
+  // Can it be completed and unread?
   if (!instance.isRead) {
-    return [Status.Unread];
+    statuses.push(InstanceStatuses.Unread);
   }
-  throw new Error(`Unknown state for instance:\n${JSON.stringify(instance)}`);
+
+  if (instance.archivedAt) {
+    statuses.push(InstanceStatuses.Archived);
+  }
+
+  if (instance.confirmedAt) {
+    statuses.push(InstanceStatuses.Confirmed);
+  }
+
+  if (instance.softDeletedAt && !instance.hardDeletedAt) {
+    statuses.push(InstanceStatuses.SoftDeleted);
+  }
+
+  if (instance.hardDeletedAt) {
+    statuses.push(InstanceStatuses.HardDeleted);
+  }
+
+  return statuses;
 }

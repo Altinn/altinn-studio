@@ -42,28 +42,14 @@ function makeInstance(
     throw new NoResultsError();
   }
 
-  if (
-    isSoftDeleted === true &&
-    (isConfirmed === false || isComplete === false || currentTask != null)
-  ) {
-    throw new NoResultsError();
-  }
-
-  if (
-    isHardDeleted === true &&
-    (isConfirmed === false || isComplete === false || currentTask != null)
-  ) {
-    throw new NoResultsError();
-  }
-
-  if (isHardDeleted === true && isSoftDeleted === true) {
+  if (isHardDeleted === true && isSoftDeleted === false) {
     throw new NoResultsError();
   }
 
   // Perform logical constraints
 
-  if (isSoftDeleted === true || isHardDeleted === true) {
-    isConfirmed = true;
+  if (isHardDeleted === true) {
+    isSoftDeleted = true;
   }
 
   if (isConfirmed === true) {
@@ -88,33 +74,19 @@ function makeInstance(
       : uuid().slice(0, 24) + archiveReference.toLowerCase()
     : uuid();
 
-  if (currentTask) {
-    const isRead = Math.random() < 0.5;
-
-    return {
-      id,
-      org,
-      app,
-      isRead,
-      currentTaskName: taskNames[currentTask],
-      currentTaskId: currentTask,
-      createdAt: new Date(),
-      lastChangedAt: new Date(),
-    };
-  }
-
-  // Instance is completed
-  isConfirmed = isConfirmed == null ? Math.random() < 0.5 : isConfirmed;
-  isSoftDeleted = isConfirmed && isSoftDeleted == null ? Math.random() < 0.5 : isSoftDeleted;
-  isHardDeleted =
-    isConfirmed && !isSoftDeleted && isHardDeleted == null ? Math.random() < 0.5 : isHardDeleted;
+  const isRead = isComplete || Math.random() < 0.8;
+  isConfirmed = isConfirmed == null ? isComplete && Math.random() < 0.5 : isConfirmed;
+  isHardDeleted = isHardDeleted == null ? Math.random() < 0.25 : isHardDeleted;
+  isSoftDeleted = isSoftDeleted == null ? isHardDeleted || Math.random() < 0.33 : isSoftDeleted;
 
   return {
     id,
     org,
     app,
-    isRead: true,
-    archivedAt: new Date(),
+    isRead,
+    currentTaskName: currentTask ? taskNames[currentTask] : null,
+    currentTaskId: currentTask,
+    archivedAt: isComplete ? new Date() : null,
     confirmedAt: isConfirmed ? new Date() : null,
     softDeletedAt: isSoftDeleted ? new Date() : null,
     hardDeletedAt: isHardDeleted ? new Date() : null,
