@@ -42,12 +42,51 @@ The following diagram groups the available tools by category for easier navigati
 
 ## Installation
 
-### Prerequisites
+### Recommended: Docker Setup
+
+The easiest way to get started is using Docker, which works across all environments:
+
+**Prerequisites:**
+
+- Docker and Docker Compose installed
+
+**Quick Start:**
+
+1. Clone this repository
+2. Copy `.env.example` to `.env` and add your API keys:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Edit `.env` with your keys:
+
+   ```env
+   # LLM API Keys (required for some tools)
+   AZURE_API_KEY=your_azure_api_key_here
+   OPENAI_API_KEY=your_openai_api_key_here  # Optional: Azure is used by default
+
+   # Gitea Access Token (required for repository scanning tools)
+   GITEA_API_KEY=your_gitea_api_key_here
+   ```
+
+4. Start the server:
+   ```bash
+   docker-compose up
+   ```
+
+The server will be available on port 8069 and automatically handle all dependencies.
+
+### Alternative: Local Python Setup
+
+If you prefer running without Docker:
+
+**Prerequisites:**
 
 - Python 3.12 or higher
 - `uv` package manager (recommended) or `pip`
 
-### Install Dependencies
+**Install Dependencies:**
 
 Using `uv` (recommended):
 
@@ -61,26 +100,15 @@ Or using `pip`:
 pip install -e .
 ```
 
-## Configuration
+**Configuration:**
 
-### Environment Variables
+1. Copy `.env.example` to `.env`:
 
-1. Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
 
-```bash
-cp .env.example .env
-```
-
-2. Edit `.env` with your API keys:
-
-```env
-# LLM API Keys (required for some tools)
-AZURE_API_KEY=your_azure_api_key_here
-OPENAI_API_KEY=your_openai_api_key_here  # Optional: Azure is used by default
-
-# Gitea Access Token (required for repository scanning tools)
-GITEA_API_KEY=your_gitea_api_key_here
-```
+2. Edit `.env` with your API keys (same as Docker setup above)
 
 ## Getting Started
 
@@ -90,7 +118,15 @@ GITEA_API_KEY=your_gitea_api_key_here
 
 #### Step 1: Initialize Documentation Index
 
-Run the server once in your terminal to build the documentation cache:
+Run the server once to build the documentation cache:
+
+**Using Docker (recommended):**
+
+```bash
+docker-compose up
+```
+
+**Using Python directly:**
 
 ```bash
 uv run -m server.main
@@ -117,12 +153,74 @@ Press `Ctrl+C` to stop the server after initialization completes.
 
 #### Step 2: Configure MCP Client
 
-Now configure your MCP client (e.g., Windsurf, Claude Desktop) to use the `--skip-doc-init` flag.
+Choose the configuration method based on how you're running the server:
 
-Add the following to your MCP client configuration file:
+##### Option A: Running with Docker (Recommended)
 
-- **Windsurf**: `~/.config/windsurf/config.json`
-- **Claude Desktop**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+When using Docker, the server runs as an HTTP/SSE service. Configure your MCP client to connect to `http://localhost:8069/sse`:
+
+**Cursor** (`~/.cursor/config.json`):
+
+```json
+{
+  "mcpServers": {
+    "altinity-mcp": {
+      "url": "http://localhost:8069/sse"
+    }
+  }
+}
+```
+
+**VS Code** (`settings.json`):
+
+```json
+{
+  "mcpServers": {
+    "altinity-mcp": {
+      "type": "http",
+      "url": "http://localhost:8069/sse"
+    }
+  }
+}
+```
+
+**Windsurf** (`~/.config/windsurf/config.json`):
+
+```json
+{
+  "mcpServers": {
+    "altinity-mcp": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "http://localhost:8069/sse"]
+    }
+  }
+}
+```
+
+**Claude Code** (command line):
+
+```bash
+claude mcp add --scope project --transport http altinity-mcp "http://localhost:8069/sse"
+```
+
+Or manually in config:
+
+```json
+{
+  "mcpServers": {
+    "altinity-mcp": {
+      "type": "http",
+      "url": "http://localhost:8069/sse"
+    }
+  }
+}
+```
+
+##### Option B: Running with Python Directly
+
+When running the server directly with Python, use stdio transport and let the MCP client spawn the server:
+
+**Windsurf/Claude Desktop** (`~/.config/windsurf/config.json` or `~/Library/Application Support/Claude/claude_desktop_config.json`):
 
 ```json
 {
@@ -138,15 +236,23 @@ Add the following to your MCP client configuration file:
 
 **Key Points:**
 
-- Always use `--stdio` when running in MCP clients
-- Always use `--skip-doc-init` to skip documentation indexing (uses cached data)
+- **Docker**: Server runs independently, clients connect via HTTP
+- **Python**: Client spawns the server using stdio, use `--skip-doc-init` flag
 - Replace `/path/to/altinity-mcp` with the actual path to your installation
 
 ## Usage
 
-### Running in Terminal (Testing)
+### Running the Server
 
-For testing and documentation initialization, you have several options:
+#### Recommended: Using Docker
+
+```bash
+docker-compose up
+```
+
+This is the easiest and most reliable way to run the server across all environments. The server will be available on port 8069 with all dependencies handled automatically.
+
+#### Alternative Options
 
 **Option 1: Using the launcher script**
 
@@ -156,7 +262,7 @@ python initiate_mcp.py
 
 This will open a new terminal window and start the MCP server.
 
-**Option 2: Running directly**
+**Option 2: Running directly with Python**
 
 ```bash
 # Default SSE transport on port 8069
@@ -169,15 +275,19 @@ uv run -m server.main --port 8080
 uv run -m server.main --stdio
 ```
 
-**Option 3: Using Docker**
-
-```bash
-docker-compose up
-```
-
 ### Running in MCP Clients
 
-After completing the first-time setup above, simply restart your MCP client (Windsurf, Claude Desktop, etc.). The server will automatically start when the client launches.
+**Using Docker:**
+
+1. Start the server first: `docker-compose up`
+2. The server will run on `http://localhost:8069/sse`
+3. Configure your MCP client to connect to this URL (see Step 2 above)
+4. Restart your MCP client - it will connect to the running server
+
+**Using Python directly:**
+
+- After configuring with stdio transport (Step 2, Option B above)
+- Simply restart your MCP client - it will automatically spawn the server
 
 ### Command-Line Options
 
@@ -237,16 +347,34 @@ app_lib_examples_tool(query="custom instantiation")
 
 ### MCP Client Connection Issues
 
-- Ensure you ran the server in terminal first to build the documentation cache
+**For Docker setup:**
+
+- Ensure the Docker container is running: `docker ps | grep altinity`
+- Verify the server is accessible: `curl http://localhost:8069/sse`
+- Check your MCP client configuration uses the correct URL: `http://localhost:8069/sse`
+- Confirm the server completed documentation indexing (check Docker logs: `docker-compose logs`)
+
+**For Python setup:**
+
+- Ensure you ran the server first to build the documentation cache: `uv run -m server.main`
 - Verify `--skip-doc-init` flag is in your MCP client configuration
-- Check that `--stdio` flag is present for MCP clients
+- Check that `--stdio` flag is present in the client config
 - Confirm the `cwd` path points to your altinity-mcp installation
 
 ### Documentation Not Loading
 
-- Run `uv run -m server.main` in terminal to rebuild the documentation cache
+- Rebuild the documentation cache:
+  - **Docker**: `docker-compose up` (documentation will rebuild automatically)
+  - **Python**: `uv run -m server.main`
 - Check your internet connection (required for initial documentation fetch)
 - Verify the cache directory has write permissions
+
+### Docker Issues
+
+- Ensure Docker and Docker Compose are installed and running
+- Check that port 8069 is not already in use: `lsof -i :8069`
+- Verify `.env` file exists and contains valid API keys
+- Check Docker logs: `docker-compose logs`
 
 ### Missing API Keys
 
