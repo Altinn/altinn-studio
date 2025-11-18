@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OrgLibraryController;
 
-public class GetSharedResources(WebApplicationFactory<Program> factory) : DesignerEndpointsTestsBase<GetSharedResources>(factory), IClassFixture<WebApplicationFactory<Program>>
+public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : DesignerEndpointsTestsBase<GetSharedResourcesTests>(factory), IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<IGitea> _giteaClientMock = new();
     private readonly Mock<IUserOrganizationService> _userOrganizationServiceMock = new();
