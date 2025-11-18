@@ -39,8 +39,29 @@ VECTOR_STORE_CONFIG = {
 }
 
 # Repository Configuration
-GITEA_URL = os.getenv("GITEA_URL", "https://altinn.studio/repos/api/v1")
-GITEA_API_KEY = os.getenv("GITEA_API_KEY", "")
+def resolve_env_placeholder(value: str) -> str:
+    """Resolve environment variable placeholders in the format ${env:VARIABLE_NAME}
+    
+    This handles two cases:
+    1. ${env:ACTUAL_ENV_VAR_NAME} - looks up the environment variable
+    2. ${env:actual_token_value} - extracts the token value directly (for MCP client config)
+    """
+    if isinstance(value, str) and value.startswith("${env:") and value.endswith("}"):
+        content = value[6:-1]  # Extract content from ${env:CONTENT}
+        
+        # First try to get it as an environment variable
+        env_value = os.getenv(content)
+        if env_value:
+            return env_value
+        
+        # If not found as env var, assume the content itself is the token value
+        # This handles cases where MCP client passes ${env:actual_token_value}
+        return content
+    return value
+
+# Get GITEA_API_KEY and resolve any environment variable placeholders
+_raw_gitea_key = os.getenv("GITEA_API_KEY", "")
+GITEA_API_KEY = resolve_env_placeholder(_raw_gitea_key)
 STUDIO_ASSISTANT_TEST_REPO = "https://altinn.studio/repos/nlunde/studio-assistant-test.git"
 APP_LIB_REPO = "https://github.com/Altinn/app-lib-dotnet.git"
 

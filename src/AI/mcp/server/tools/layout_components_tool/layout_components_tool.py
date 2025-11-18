@@ -2,7 +2,7 @@
 
 # Standard library imports
 import json
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 # Third-party imports
 from langchain_openai import AzureChatOpenAI
@@ -54,7 +54,15 @@ def layout_components_tool(query: str) -> dict:
         - message: A detailed message (error message if error)
         - components: A list of selected components
     """
-    return run_component_pipeline(query)
+    # Get headers from FastMCP context for per-request authentication
+    try:
+        from fastmcp.server.dependencies import get_http_headers
+        headers = get_http_headers()
+    except Exception:
+        # Not in HTTP context (e.g., stdio transport or testing)
+        headers = None
+
+    return run_component_pipeline(query, headers)
 
 # Initialize Azure OpenAI LLM for component selection
 component_llm = AzureChatOpenAI(
@@ -226,24 +234,26 @@ def select_components_with_llm(query: str, component_files: List[Dict[str, Any]]
             "message": message
         }
 
-def run_component_pipeline(query: str) -> Dict[str, Any]:
+def run_component_pipeline(query: str, headers: Optional[dict] = None) -> Dict[str, Any]:
     """Run the complete component selection pipeline.
-    
+
     Args:
         query: The user query for component selection
-        
+        headers: Optional HTTP headers for multi-tenant authentication
+
     Returns:
         Dictionary with status, message, and components (if available)
     """
     try:
         print(f"Processing component request: {query}")
-        
+
         # Get all components from the component library
         try:
             all_components = get_directory_files(
-                COMPONENT_SELECTION_CONFIG["REPO_OWNER"], 
-                COMPONENT_SELECTION_CONFIG["REPO_NAME"], 
-                COMPONENT_SELECTION_CONFIG["LAYOUTS_PATH"]
+                COMPONENT_SELECTION_CONFIG["REPO_OWNER"],
+                COMPONENT_SELECTION_CONFIG["REPO_NAME"],
+                COMPONENT_SELECTION_CONFIG["LAYOUTS_PATH"],
+                headers
             )
             if not all_components:
                 return {
@@ -293,5 +303,4 @@ def run_component_pipeline(query: str) -> Dict[str, Any]:
 
 
 
-if __name__ == "__main__":
-    print(run_component_pipeline("test dato velger"))
+# Removed debug code - not for production
