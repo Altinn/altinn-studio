@@ -30,22 +30,24 @@ export const ResourceAdmHeader = ({ organizations, user }: ResourceAdmHeaderProp
   const pageHeaderTitle: string = `${getOrgNameByUsername(org, organizations)}${resourcePath}`;
 
   return (
-    <StudioPageHeader>
-      <StudioPageHeader.Main>
-        <StudioPageHeader.Left title={pageHeaderTitle} showTitle />
-        <StudioPageHeader.Right>
-          <DashboardHeaderMenu organizations={organizations} user={user} />
-        </StudioPageHeader.Right>
-      </StudioPageHeader.Main>
-      <StudioPageHeader.Sub>
-        <GiteaHeader
-          menuOnlyHasRepository
-          rightContentClassName={classes.extraPadding}
-          owner={org}
-          repoName={app}
-        />
-      </StudioPageHeader.Sub>
-    </StudioPageHeader>
+    <div data-color-scheme='dark'>
+      <StudioPageHeader>
+        <StudioPageHeader.Main>
+          <StudioPageHeader.Left title={pageHeaderTitle} showTitle />
+          <StudioPageHeader.Right>
+            <DashboardHeaderMenu organizations={organizations} user={user} />
+          </StudioPageHeader.Right>
+        </StudioPageHeader.Main>
+        <StudioPageHeader.Sub>
+          <GiteaHeader
+            menuOnlyHasRepository
+            rightContentClassName={classes.extraPadding}
+            owner={org}
+            repoName={app}
+          />
+        </StudioPageHeader.Sub>
+      </StudioPageHeader>
+    </div>
   );
 };
 
