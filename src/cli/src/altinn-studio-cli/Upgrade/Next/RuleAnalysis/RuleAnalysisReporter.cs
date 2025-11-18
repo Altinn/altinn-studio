@@ -8,6 +8,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis;
 internal class RuleAnalysisStats
 {
     public int TotalConditionalRules { get; set; }
+    public int TotalDataProcessingRules { get; set; }
     public int SuccessfulConversions { get; set; }
     public int FailedConversions { get; set; }
 }
