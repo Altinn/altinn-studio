@@ -433,8 +433,6 @@ steps:
               value: ${BASE_URL}/notifications/api/v1/
             - name: GeneralSettings__HostName
               value: ${HOST_NAME}
-            - name: PlatformSettings__ApiPdfEndpoint
-              value: ${BASE_URL}/pdf/api/v1/
             - name: AppSettings__OpenIdWellKnownEndpoint
               value: ${BASE_URL}/authentication/api/v1/openid/
             - name: PlatformSettings__SubscriptionKey

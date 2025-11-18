@@ -131,7 +131,6 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
       }),
       fetchBackendValidations: async () => validationIssues,
     },
-    mockFormDataSaving: true,
   });
 }
 
@@ -184,16 +183,16 @@ describe('RepeatingGroupContainer', () => {
         children: ['0:field1', '0:field2', '1:field3', '1:field4'],
       },
     });
-    expect(screen.getAllByRole('row')).toHaveLength(4); // 3 rows, 1 header, 0 edit container
+    expect(screen.getAllByRole('row')).toHaveLength(4); // 3 rows, 1 header, 0 edit containers
     expect(screen.getByTestId('editIndex')).toHaveTextContent('undefined');
 
-    const addButton = screen.getAllByRole('button', {
-      name: /Legg til ny/i,
-    })[0];
-    await userEvent.click(addButton);
+    const editButton = screen.getAllByRole('button', {
+      name: /Rediger/i,
+    })[2];
+    await userEvent.click(editButton);
 
-    await waitFor(() => expect(screen.getAllByRole('row')).toHaveLength(6)); // 4 rows, 1 header, 1 edit container
-    expect(screen.getByTestId('editIndex')).toHaveTextContent('3'); // Editing the last row we just added
+    await waitFor(() => expect(screen.getAllByRole('row')).toHaveLength(5)); // 3 rows, 1 header, 1 edit container
+    expect(screen.getByTestId('editIndex')).toHaveTextContent('2'); // Editing the last row
     const editContainer = screen.getByTestId('group-edit-container');
     expect(editContainer).toBeInTheDocument();
 

@@ -1,0 +1,9 @@
+services:
+  altinity-mcp:
+    build: .
+    image: altinity-mcp
+    container_name: altinity-mcp
+    ports:
+      - "8069:8069"
+    env_file:
+      - .env

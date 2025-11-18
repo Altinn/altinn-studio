@@ -41,7 +41,7 @@ patches:
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
-          name: RUNTIME_PDF3_BROWSER_RESTART_INTERVAL
+          name: PDF3_BROWSER_RESTART_INTERVAL
           value: "2m"
       - op: replace
         path: /spec/template/spec/containers/0/image

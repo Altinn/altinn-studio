@@ -16,6 +16,7 @@ import (
 	"unicode/utf8"
 
 	"altinn.studio/pdf3/internal/assert"
+	ihttp "altinn.studio/pdf3/internal/http"
 	"altinn.studio/pdf3/internal/log"
 	iruntime "altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/telemetry"
@@ -43,7 +44,7 @@ func main() {
 	defer host.Stop()
 
 	// Setup HTTP client for worker communication
-	workerHTTPAddr := os.Getenv("WORKER_HTTP_ADDR")
+	workerHTTPAddr := os.Getenv("PDF3_WORKER_HTTP_ADDR")
 	if workerHTTPAddr == "" {
 		workerHTTPAddr = "http://localhost:5031"
 	}
@@ -136,7 +137,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		if r.Method != http.MethodPost {
-			writeProblemDetails(logger, w, http.StatusMethodNotAllowed, ProblemDetails{
+			ihttp.WriteProblemDetails(logger, w, http.StatusMethodNotAllowed, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.5",
 				Title:  "Method Not Allowed",
 				Status: http.StatusMethodNotAllowed,
@@ -146,7 +147,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 		}
 		ct := strings.ToLower(r.Header.Get("Content-Type"))
 		if !strings.HasPrefix(ct, "application/json") {
-			writeProblemDetails(logger, w, http.StatusUnsupportedMediaType, ProblemDetails{
+			ihttp.WriteProblemDetails(logger, w, http.StatusUnsupportedMediaType, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.13",
 				Title:  "Unsupported Media Type",
 				Status: http.StatusUnsupportedMediaType,
@@ -156,7 +157,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 		}
 		const maxBodySize = 1024 * 64 // 64K should be plenty for the JSON request
 		if r.ContentLength > maxBodySize {
-			writeProblemDetails(logger, w, http.StatusRequestEntityTooLarge, ProblemDetails{
+			ihttp.WriteProblemDetails(logger, w, http.StatusRequestEntityTooLarge, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.11",
 				Title:  "Request Entity Too Large",
 				Status: http.StatusRequestEntityTooLarge,
@@ -165,7 +166,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 			return
 		}
 		if !iruntime.IsTestInternalsMode && r.Header.Get(testing.TestInputHeaderName) != "" {
-			writeProblemDetails(logger, w, http.StatusBadRequest, ProblemDetails{
+			ihttp.WriteProblemDetails(logger, w, http.StatusBadRequest, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
 				Title:  "Bad Request",
 				Status: http.StatusBadRequest,
@@ -179,7 +180,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 
 		var req types.PdfRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			writeProblemDetails(logger, w, http.StatusBadRequest, ProblemDetails{
+			ihttp.WriteProblemDetails(logger, w, http.StatusBadRequest, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
 				Title:  "Bad Request",
 				Status: http.StatusBadRequest,
@@ -190,7 +191,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 
 		// Validate request
 		if err := req.Validate(); err != nil {
-			writeProblemDetails(logger, w, http.StatusBadRequest, ProblemDetails{
+			ihttp.WriteProblemDetails(logger, w, http.StatusBadRequest, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
 				Title:  "Bad Request",
 				Status: http.StatusBadRequest,
@@ -212,7 +213,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 		// Prepare request body
 		reqBody, err := json.Marshal(req)
 		if err != nil {
-			writeProblemDetails(reqLogger, w, http.StatusInternalServerError, ProblemDetails{
+			ihttp.WriteProblemDetails(reqLogger, w, http.StatusInternalServerError, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.6.1",
 				Title:  "Internal Server Error",
 				Status: http.StatusInternalServerError,
@@ -235,7 +236,6 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 				r,
 				w,
 				start,
-				&req,
 				attempt,
 				maxRetries,
 				reqBody,
@@ -262,7 +262,6 @@ func callWorker(
 	r *http.Request,
 	w http.ResponseWriter,
 	start time.Time,
-	req *types.PdfRequest,
 	attempt int,
 	maxRetries int,
 	reqBody []byte,
@@ -270,7 +269,7 @@ func callWorker(
 	// Call worker via HTTP
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, workerEndpoint, bytes.NewReader(reqBody))
 	if err != nil {
-		writeProblemDetails(logger, w, http.StatusInternalServerError, ProblemDetails{
+		ihttp.WriteProblemDetails(logger, w, http.StatusInternalServerError, ihttp.ProblemDetails{
 			Type:   "https://tools.ietf.org/html/rfc7231#section-6.6.1",
 			Title:  "Internal Server Error",
 			Status: http.StatusInternalServerError,
@@ -313,7 +312,7 @@ func callWorker(
 			}
 			return false
 		}
-		writeProblemDetails(logger, w, http.StatusInternalServerError, ProblemDetails{
+		ihttp.WriteProblemDetails(logger, w, http.StatusInternalServerError, ihttp.ProblemDetails{
 			Type:   "https://tools.ietf.org/html/rfc7231#section-6.6.1",
 			Title:  "Internal Server Error",
 			Status: http.StatusInternalServerError,
@@ -396,7 +395,7 @@ func callWorker(
 		w.Header().Set("X-Worker-Id", workerId)
 	}
 
-	writeProblemDetails(logger, w, statusCode, ProblemDetails{
+	ihttp.WriteProblemDetails(logger, w, statusCode, ihttp.ProblemDetails{
 		Type:   problemType,
 		Title:  problemTitle,
 		Status: statusCode,
@@ -409,25 +408,6 @@ func callWorker(
 		"detail", errorDetail,
 	)
 	return true
-}
-
-type ProblemDetails struct {
-	Type       string         `json:"type,omitempty"`
-	Title      string         `json:"title,omitempty"`
-	Status     int            `json:"status,omitempty"`
-	Detail     string         `json:"detail,omitempty"`
-	Instance   string         `json:"instance,omitempty"`
-	Extensions map[string]any `json:"extensions,omitempty"`
-}
-
-func writeProblemDetails(logger *slog.Logger, w http.ResponseWriter, statusCode int, problem ProblemDetails) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-	encoder := json.NewEncoder(w)
-	encoder.SetEscapeHTML(false) // Don't escape <, >, & for cleaner error messages
-	if err := encoder.Encode(problem); err != nil {
-		logger.Error("Failed to encode error response", "error", err)
-	}
 }
 
 func forwardTestOutputRequest(logger *slog.Logger, client *http.Client) func(http.ResponseWriter, *http.Request) {
