@@ -1,12 +1,9 @@
-#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.OrgLibrary;
-using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
@@ -25,6 +22,7 @@ public class UpdateSharedResourcesTests(WebApplicationFactory<Program> factory) 
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {
+        base.ConfigureTestServices(services);
         services.AddSingleton(_ => _orgLibraryServiceMock.Object);
         services.AddSingleton(_ => _userOrganizationServiceMock.Object);
     }
@@ -35,7 +33,6 @@ public class UpdateSharedResourcesTests(WebApplicationFactory<Program> factory) 
         // Arrange
         string org = "ttd";
         string path = "some/path";
-        string repo = $"{org}-content";
         string apiUrl = $"/designer/api/{org}/shared-resources?path={path}";
 
         string baseCommitSha = "abc123";
