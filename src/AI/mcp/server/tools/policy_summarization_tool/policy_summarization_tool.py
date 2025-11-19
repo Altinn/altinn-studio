@@ -1,4 +1,3 @@
-import os
 import json
 import xml.etree.ElementTree as ET
 from typing import Dict, Any, List, Optional
@@ -13,7 +12,7 @@ from server.tools.policy_tool.static import all_roles
     This tool provides a summarization of all authorization rules and access control in different roles have in a Altinn application.
     Use this tool when you need a understandable summary of a the policy file in altinn, or want to know who has what accesses to the application. 
 
-    The tool takes a filepath to the policy file in the application and creates a readable summary of the authorization rules in the policy file.
+    The tool takes the XML content of the policy file and creates a readable summary of the authorization rules.
     
     Always use summarization tool before using policy validation tool, but it is possible to use summarization tool as standalone tool. 
     After every change to the policy.xml file, run summarization tool to update the summary.
@@ -24,36 +23,27 @@ from server.tools.policy_tool.static import all_roles
         readOnlyHint=True
     )
 )
-def policy_summarization_tool(user_goal: str, file_path: str = None) -> dict:
+def policy_summarization_tool(user_goal: str, xml_content: str) -> dict:
     """
     Creates a readable summary of a policy file.
     A comprehensive explanation of the authorization rules in the policy file is generated.
     
     Args:
         user_goal: The EXACT, VERBATIM user prompt or request - do not summarize or paraphrase (mandatory for tracing)
-        file_path: Full path to policy.xml file
+        xml_content: The XML content of the policy.xml file as a string
     
     Returns:
         A dictionary containing the policy summary.
         The summary contains a readable list of all authorization rules in the policy file.
     """
 
-    # Check if file path is provided
-    if not file_path:
-        return {"status": "error", "message": "No file path provided. Please specify a file to validate."}
-    
-    # Check if file exists
-    if not os.path.exists(file_path):
-        return {"status": "error", "message": f"File not found: {file_path}"}
-    
-    # Check file extension
-    _, ext = os.path.splitext(file_path)
-    if ext.lower() != ".xml":
-        return {"status": "error", "message": f"Invalid file type: {ext}. Expected .xml file."}
+    # Check if XML content is provided
+    if not xml_content:
+        return {"status": "error", "message": "No XML content provided. Please specify the policy XML content."}
     
     try:
-        # Parse the XML file
-        summary_results = summarize_policy_file(file_path)
+        # Parse the XML content
+        summary_results = summarize_policy_content(xml_content)
 
         # Check if summary_results has a status key and if it's an error
         if isinstance(summary_results, dict) and "status" in summary_results and summary_results["status"] == "error":
@@ -64,12 +54,12 @@ def policy_summarization_tool(user_goal: str, file_path: str = None) -> dict:
         return {"status": "error", "message": f"Error summarizing policy file: {str(e)}"}
 
 
-def summarize_policy_file(file_path: str) -> List[Dict[str, Any]]:
+def summarize_policy_content(xml_content: str) -> List[Dict[str, Any]]:
     """
-    Summarizes a policy XML file by iterating through its elements and checking for policy rules.
+    Summarizes a policy XML content by iterating through its elements and checking for policy rules.
     
     Args:
-        file_path: Path to the policy XML file.
+        xml_content: The XML content of the policy file as a string.
         
     Returns:
         Dictionary containing policy metadata and rule summaries.
@@ -78,9 +68,8 @@ def summarize_policy_file(file_path: str) -> List[Dict[str, Any]]:
     results = []
     
     try:
-        # Parse the XML file
-        tree = ET.parse(file_path)
-        root = tree.getroot()
+        # Parse the XML content
+        root = ET.fromstring(xml_content)
         
         # Check for basic structure
         if not root.tag.endswith("Policy"):
@@ -261,5 +250,7 @@ def find_role(role_definition_code: str) -> str:
 
 if __name__ == "__main__":
     # For testing purposes
-    result = policy_summarization_tool("/Users/johanne.norland/Documents/intro-prosjekt/konkursbo-faktiskledelseogeier/App/config/authorization/policy.xml")
+    with open("/Users/johanne.norland/Documents/intro-prosjekt/konkursbo-faktiskledelseogeier/App/config/authorization/policy.xml", 'r') as f:
+        xml_content = f.read()
+    result = policy_summarization_tool("test", xml_content)
     print(result)
