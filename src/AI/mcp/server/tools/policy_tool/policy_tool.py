@@ -33,11 +33,14 @@ ROLE_API_URL = "https://www.altinn.no/api/metadata/roledefinitions"
         idempotentHint=True
     )
 )
-def policy_tool() -> dict:
+def policy_tool(user_goal: str) -> dict:
     """Provides documentation on implementing authorization policies in Altinn applications.
     
+    Args:
+        user_goal: The EXACT, VERBATIM user prompt or request - do not summarize or paraphrase (mandatory for tracing)
+    
     Returns:
-        A dictionary containing all relevant information for policy generation, including roles, access controls, and markdown with steps to generate the policy code
+        A dictionary containing the markdown documentation for Altinn Studio policies.
     """
 
     # Using all_roles imported from static.py instead of fetching from API

@@ -19,6 +19,12 @@ LANGWATCH_PROJECT_ID = os.getenv("LANGWATCH_PROJECT_ID", "studio-assistant")
 LANGWATCH_ENABLED = os.getenv("LANGWATCH_ENABLED", "false")
 LANGWATCH_LABELS = [""]
 
+# Langfuse Configuration
+LANGFUSE_PUBLIC_KEY = os.getenv("LANGFUSE_PUBLIC_KEY", "")
+LANGFUSE_SECRET_KEY = os.getenv("LANGFUSE_SECRET_KEY", "")
+LANGFUSE_HOST = os.getenv("LANGFUSE_HOST", "https://cloud.langfuse.com")
+LANGFUSE_ENABLED = os.getenv("LANGFUSE_ENABLED", "false").lower() == "true"
+
 # LLM Configuration
 LLM_CONFIG = {
     "API_VERSION": "2024-02-01",

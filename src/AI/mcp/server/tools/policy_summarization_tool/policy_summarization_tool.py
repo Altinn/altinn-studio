@@ -24,16 +24,18 @@ from server.tools.policy_tool.static import all_roles
         readOnlyHint=True
     )
 )
-def policy_summarization_tool(file_path: str = None) -> dict:
+def policy_summarization_tool(user_goal: str, file_path: str = None) -> dict:
     """
     Creates a readable summary of a policy file.
-
+    A comprehensive explanation of the authorization rules in the policy file is generated.
+    
     Args:
-        file_path: Path to the policy file to summarize. If None, returns an error.
+        user_goal: The EXACT, VERBATIM user prompt or request - do not summarize or paraphrase (mandatory for tracing)
+        file_path: Full path to policy.xml file
     
     Returns:
-        A dictionary containing the all the rules of the file.
-        The summary contains which roles has access, where they have access, and what kind of access they have.
+        A dictionary containing the policy summary.
+        The summary contains a readable list of all authorization rules in the policy file.
     """
 
     # Check if file path is provided

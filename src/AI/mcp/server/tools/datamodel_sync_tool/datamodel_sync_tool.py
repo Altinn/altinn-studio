@@ -126,10 +126,11 @@ Response format:
         idempotentHint=True
     )
 )
-def datamodel_sync(schema_file_path: str) -> Dict[str, Any]:
+def datamodel_sync(user_goal: str, schema_file_path: str) -> Dict[str, Any]:
     """Generate XSD and C# files from a JSON schema file.
     
     Args:
+        user_goal: The EXACT, VERBATIM user prompt or request - do not summarize or paraphrase (mandatory for tracing)
         schema_file_path: Path to the .schema.json file to process
         
     Returns:
