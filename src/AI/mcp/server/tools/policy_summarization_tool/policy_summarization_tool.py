@@ -1,5 +1,6 @@
 import json
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
+from xml.etree.ElementTree import Element  # For type hints only
 from typing import Dict, Any, List, Optional
 from mcp.types import ToolAnnotations
 
@@ -58,8 +59,11 @@ def summarize_policy_content(xml_content: str) -> List[Dict[str, Any]]:
     """
     Summarizes a policy XML content by iterating through its elements and checking for policy rules.
     
+    Security Note: This function uses defusedxml to safely parse potentially untrusted XML input,
+    protecting against XXE (XML External Entity) and billion laughs attacks.
+    
     Args:
-        xml_content: The XML content of the policy file as a string.
+        xml_content: The XML content of the policy file as a string (potentially untrusted).
         
     Returns:
         Dictionary containing policy metadata and rule summaries.
@@ -106,7 +110,7 @@ def summarize_policy_content(xml_content: str) -> List[Dict[str, Any]]:
     except ET.ParseError as e:
         return {"status": "error", "message": f"XML parsing error: {str(e)}"}
 
-def summarize_rule(rule: ET.Element, rule_index: int) -> List[Dict[str, Any]]:
+def summarize_rule(rule: Element, rule_index: int) -> List[Dict[str, Any]]:
     """
     Summarizes a single rule element in the policy file.
     Decomposes rule into role (subject-category:access-subject), 
