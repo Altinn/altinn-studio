@@ -26,7 +26,7 @@ jobs:
   construct-environments-array:
     uses: ./.github/workflows/template-construct-environments.yaml
     with:
-      environments: ${{ github.event.inputs.environments || 'dev,staging,prod' }}
+      environments: ${{ github.event.inputs.environments || 'dev,staging,preapproved-prod' }}
 
   push-artifact:
     name: Push mcp server as OCI artifact
@@ -119,5 +119,5 @@ jobs:
       - name: tag artifact
         run: |
           flux tag artifact oci://${{ needs.push-artifact.outputs.CONFIG_REPO }} \
-            --tag ${{ matrix.environment }}
+            --tag ${{ matrix.environment == 'preapproved-prod' && 'prod' ||  matrix.environment }}
 
