@@ -43,6 +43,8 @@ spec:
                 secretKeyRef:
                   name: altinn-mcp-server-secret
                   key: LANGFUSE_PUBLIC_KEY
+            - name: LANGFUSE_ENABLED
+              value: "true"
           # livenessProbe:
           #   httpGet:
           #     path: /sse
