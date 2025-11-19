@@ -42,9 +42,10 @@ Use of this tool requires subsequent use of the datamodel_tool to create datamod
         readOnlyHint=True
     )
 )
-def layout_components_tool(query: str) -> dict:
+def layout_components_tool(user_goal: str, query: str) -> dict:
     """Find relevant UI components for an Altinn Studio application based on the query.
     Args:
+        user_goal: The EXACT, VERBATIM user prompt or request - do not summarize or paraphrase (mandatory for tracing)
         query: The user query for component selection
 
     Returns:

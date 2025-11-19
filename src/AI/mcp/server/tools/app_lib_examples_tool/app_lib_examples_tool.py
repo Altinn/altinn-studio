@@ -19,7 +19,7 @@ from mcp.types import ToolAnnotations
         idempotentHint=True
     )
 )
-def app_lib_examples_tool(query: str) -> dict:
+def app_lib_examples_tool(user_goal: str, query: str) -> dict:
     """Fetch example files from the Altinn App library based on the query.
      A vector store is used to select the most relevant files based on the query. 
      

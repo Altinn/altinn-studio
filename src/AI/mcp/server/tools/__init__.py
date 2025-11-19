@@ -3,6 +3,7 @@ from mcp.types import (
     ToolAnnotations,
 )
 from typing import Set
+from server.tracing import trace_tool_call
 # Instructions for the Altinity MCP Server
 ALTINITY_INSTRUCTIONS = """
 # Altinity MCP Server - Altinn Studio Assistant
@@ -120,18 +121,25 @@ def initialize_mcp(port: int = 8069):
 tool_registry = []
 
 def register_tool(name=None, description=None, title=None, annotations=None):
-    """Decorator to register an MCP tool and store it in the registry."""
+    """Decorator to register an MCP tool and store it in the registry.
+    
+    Automatically wraps the tool with tracing functionality to log all calls to Langfuse.
+    """
     def decorator(f):
-        # Store the tool metadata on the function
-        f._tool_name = name or f.__name__
-        f._tool_description = description or f.__doc__ or ""
-        f._tool_title = title
-        f._tool_annotations = annotations
+        # Apply tracing decorator first
+        traced_func = trace_tool_call(f)
+        
+        # Store the tool metadata on the traced function
+        traced_func._tool_name = name or f.__name__
+        traced_func._tool_description = description or f.__doc__ or ""
+        traced_func._tool_title = title
+        traced_func._tool_annotations = annotations
+        traced_func._original_func = f  # Keep reference to original
 
-        tool_registry.append(f)
+        tool_registry.append(traced_func)
         # FastMCP.tool() doesn't accept 'title' parameter, only name and description
         # Tool will be registered when MCP is initialized
-        return f
+        return traced_func
     return decorator
 
 def register_all_tools():
@@ -140,16 +148,24 @@ def register_all_tools():
     if mcp is None:
         raise RuntimeError("MCP instance not initialized. Call initialize_mcp() first.")
 
+    # Prefix to add to all tool descriptions for user_goal parameter guidance
+    USER_GOAL_PREFIX = """⚠️ IMPORTANT: The 'user_goal' parameter MUST be the EXACT, VERBATIM user prompt/request. DO NOT summarize, paraphrase, or interpret - pass the original text exactly as the user typed it.
+
+"""
+
     for tool_func in tool_registry:
         # Extract tool metadata from function attributes set by register_tool decorator
         name = getattr(tool_func, '_tool_name', tool_func.__name__)
         description = getattr(tool_func, '_tool_description', tool_func.__doc__ or "")
+        
+        # Prepend user_goal guidance to description
+        full_description = USER_GOAL_PREFIX + description
 
-        mcp.tool(name=name, description=description)(tool_func)
+        mcp.tool(name=name, description=full_description)(tool_func)
 
 # Import all tools to register them
 # from .agent_status_tool import agent_status_tool  # Commented out - empty implementation
-from .app_lib_examples_tool import app_lib_examples_tool
+# from .app_lib_examples_tool import app_lib_examples_tool
 from .datamodel_tool import datamodel_tool
 from .dynamic_expression_tool import dynamic_expression
 # from .fastagent_tool import fastagent_tool  # Commented out - empty implementation
