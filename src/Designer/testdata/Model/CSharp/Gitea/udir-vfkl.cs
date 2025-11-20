@@ -15,66 +15,79 @@ namespace Altinn.App.Models
     [XmlElement("VurderingsType", Order = 1)]
     [JsonProperty("VurderingsType")]
     [JsonPropertyName("VurderingsType")]
+    [Required]
     public string VurderingsType { get; set; }
 
     [XmlElement("brukerID", Order = 2)]
     [JsonProperty("brukerID")]
     [JsonPropertyName("brukerID")]
+    [Required]
     public string brukerID { get; set; }
 
     [XmlElement("Læremiddel", Order = 3)]
     [JsonProperty("Læremiddel")]
     [JsonPropertyName("Læremiddel")]
+    [Required]
     public string Læremiddel { get; set; }
 
     [XmlElement("LæremiddelLeverandør", Order = 4)]
     [JsonProperty("LæremiddelLeverandør")]
     [JsonPropertyName("LæremiddelLeverandør")]
+    [Required]
     public string LæremiddelLeverandør { get; set; }
 
     [XmlElement("Læreplan", Order = 5)]
     [JsonProperty("Læreplan")]
     [JsonPropertyName("Læreplan")]
+    [Required]
     public string Læreplan { get; set; }
 
     [XmlElement("LæreplanKode", Order = 6)]
     [JsonProperty("LæreplanKode")]
     [JsonPropertyName("LæreplanKode")]
+    [Required]
     public string LæreplanKode { get; set; }
 
     [XmlElement("Skolenivå", Order = 7)]
     [JsonProperty("Skolenivå")]
     [JsonPropertyName("Skolenivå")]
+    [Required]
     public string Skolenivå { get; set; }
 
     [XmlElement("Utdanningsprogram", Order = 8)]
     [JsonProperty("Utdanningsprogram")]
     [JsonPropertyName("Utdanningsprogram")]
+    [Required]
     public string Utdanningsprogram { get; set; }
 
     [XmlElement("Programområde", Order = 9)]
     [JsonProperty("Programområde")]
     [JsonPropertyName("Programområde")]
+    [Required]
     public string Programområde { get; set; }
 
     [XmlElement("VurderingsID", Order = 10)]
     [JsonProperty("VurderingsID")]
     [JsonPropertyName("VurderingsID")]
+    [Required]
     public string VurderingsID { get; set; }
 
     [XmlElement("VurderingsFrist", Order = 11)]
     [JsonProperty("VurderingsFrist")]
     [JsonPropertyName("VurderingsFrist")]
+    [Required]
     public string VurderingsFrist { get; set; }
 
     [XmlElement("GruppeVurderingsID", Order = 12)]
     [JsonProperty("GruppeVurderingsID")]
     [JsonPropertyName("GruppeVurderingsID")]
+    [Required]
     public string GruppeVurderingsID { get; set; }
 
     [XmlElement("Navn", Order = 13)]
     [JsonProperty("Navn")]
     [JsonPropertyName("Navn")]
+    [Required]
     public string Navn { get; set; }
 
     [XmlElement("AlleFag", Order = 14)]
@@ -100,6 +113,7 @@ namespace Altinn.App.Models
     [XmlElement("OppsummeringsKommentar", Order = 18)]
     [JsonProperty("OppsummeringsKommentar")]
     [JsonPropertyName("OppsummeringsKommentar")]
+    [Required]
     public string OppsummeringsKommentar { get; set; }
 
     [XmlElement("AppLogikk", Order = 19)]
@@ -133,6 +147,7 @@ namespace Altinn.App.Models
     [XmlElement("onskerIkkeSvare", Order = 1)]
     [JsonProperty("onskerIkkeSvare")]
     [JsonPropertyName("onskerIkkeSvare")]
+    [Required]
     public string onskerIkkeSvare { get; set; }
 
     [XmlElement("paastand1", Order = 2)]
@@ -169,11 +184,13 @@ namespace Altinn.App.Models
     [XmlElement("kommentar", Order = 2)]
     [JsonProperty("kommentar")]
     [JsonPropertyName("kommentar")]
+    [Required]
     public string kommentar { get; set; }
 
     [XmlElement("valgtBortForGruppe", Order = 3)]
     [JsonProperty("valgtBortForGruppe")]
     [JsonPropertyName("valgtBortForGruppe")]
+    [Required]
     public string valgtBortForGruppe { get; set; }
 
   }
@@ -183,6 +200,7 @@ namespace Altinn.App.Models
     [XmlElement("onskerIkkeSvare", Order = 1)]
     [JsonProperty("onskerIkkeSvare")]
     [JsonPropertyName("onskerIkkeSvare")]
+    [Required]
     public string onskerIkkeSvare { get; set; }
 
     [XmlElement("paastand1", Order = 2)]
@@ -222,6 +240,7 @@ namespace Altinn.App.Models
     [XmlElement("onskerIkkeSvare", Order = 1)]
     [JsonProperty("onskerIkkeSvare")]
     [JsonPropertyName("onskerIkkeSvare")]
+    [Required]
     public string onskerIkkeSvare { get; set; }
 
     [XmlElement("paastand1", Order = 2)]
@@ -749,11 +768,13 @@ namespace Altinn.App.Models
     [XmlElement("godtarVilkaar", Order = 1)]
     [JsonProperty("godtarVilkaar")]
     [JsonPropertyName("godtarVilkaar")]
+    [Required]
     public string godtarVilkaar { get; set; }
 
     [XmlElement("valgtBortPaastandFlagg", Order = 2)]
     [JsonProperty("valgtBortPaastandFlagg")]
     [JsonPropertyName("valgtBortPaastandFlagg")]
+    [Required]
     public string valgtBortPaastandFlagg { get; set; }
 
   }

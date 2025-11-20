@@ -172,7 +172,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             else if (element.IsTagContent)
             {
                 classBuilder.AppendLine(Indent(2) + "[XmlText()]");
-                if (required && isValueType) // Why [Required] only on value types?
+                if (required)
                 {
                     classBuilder.AppendLine(Indent(2) + "[Required]");
                 }
@@ -195,7 +195,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 }
                 else
                 {
-                    if (required && isValueType)
+                    if (required)
                     {
                         classBuilder.AppendLine(Indent(2) + "[Required]");
                     }
