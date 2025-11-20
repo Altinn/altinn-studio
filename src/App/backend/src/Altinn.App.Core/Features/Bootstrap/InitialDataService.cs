@@ -1,9 +1,11 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap.Models;
+using Altinn.App.Core.Features.Testing;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
@@ -11,6 +13,8 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Profile.Enums;
+using Altinn.Platform.Register.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
@@ -30,6 +34,7 @@ internal sealed class InitialDataService : IInitialDataService
     private readonly IAuthenticationContext _authenticationContext;
     private readonly IProcessStateService _processStateService;
     private readonly IApplicationLanguage _applicationLanguage;
+    private readonly IMockDataHelper? _mockDataHelper;
     private readonly AppSettings _appSettings;
     private readonly PlatformSettings _platformSettings;
     private readonly GeneralSettings _generalSettings;
@@ -56,7 +61,8 @@ internal sealed class InitialDataService : IInitialDataService
         IOptions<AppSettings> appSettings,
         IOptions<PlatformSettings> platformSettings,
         IOptions<GeneralSettings> generalSettings,
-        IOptions<FrontEndSettings> frontEndSettings
+        IOptions<FrontEndSettings> frontEndSettings,
+        IMockDataHelper? mockDataHelper = null
     )
     {
         _appMetadata = appMetadata;
@@ -68,6 +74,7 @@ internal sealed class InitialDataService : IInitialDataService
         _authenticationContext = authenticationContext;
         _processStateService = processStateService;
         _applicationLanguage = applicationLanguage;
+        _mockDataHelper = mockDataHelper;
         _appSettings = appSettings.Value;
         _platformSettings = platformSettings.Value;
         _generalSettings = generalSettings.Value;
@@ -84,6 +91,7 @@ internal sealed class InitialDataService : IInitialDataService
         CancellationToken cancellationToken = default
     )
     {
+        // Debugger.Break();
         var response = new InitialDataResponse();
         var tasks = new List<Task>();
 
@@ -99,8 +107,9 @@ internal sealed class InitialDataService : IInitialDataService
         var textResourcesTask = GetTextResources(org, app, language, response);
         tasks.Add(textResourcesTask);
 
-        // Get user and party information if authenticated
+        // Get user and party information if authenticated, or mock data if available
         var user = _httpContextAccessor.HttpContext?.User;
+        var mockData = GetMockData();
 
         if (user?.Identity?.IsAuthenticated == true)
         {
@@ -115,6 +124,21 @@ internal sealed class InitialDataService : IInitialDataService
             {
                 var partyTask = GetParty(partyId.Value, response);
                 tasks.Add(partyTask);
+            }
+        }
+        else if (_mockDataHelper != null && mockData != null)
+        {
+            // Even without authentication, create mock data if available
+            if (mockData.ContainsKey("userProfile"))
+            {
+                var mockUserProfileTask = GetMockUserProfile(response);
+                tasks.Add(mockUserProfileTask);
+            }
+
+            if (mockData.ContainsKey("parties") && partyId.HasValue)
+            {
+                var mockPartyTask = GetMockParty(partyId.Value, response);
+                tasks.Add(mockPartyTask);
             }
         }
 
@@ -168,6 +192,19 @@ internal sealed class InitialDataService : IInitialDataService
     private async Task GetApplicationMetadata(InitialDataResponse response, CancellationToken cancellationToken)
     {
         response.ApplicationMetadata = await _appMetadata.GetApplicationMetadata();
+
+        // Debugger.Break();
+
+        // Merge with mock data if available
+        if (_mockDataHelper != null && response.ApplicationMetadata != null)
+        {
+            // Debugger.Break();
+            response.ApplicationMetadata = MergeWithMockData(
+                response.ApplicationMetadata,
+                "applicationMetadata",
+                _mockDataHelper.MergeApplicationMetadata
+            );
+        }
     }
 
     private async Task GetTextResources(string org, string app, string language, InitialDataResponse response)
@@ -180,6 +217,16 @@ internal sealed class InitialDataService : IInitialDataService
         try
         {
             response.UserProfile = await _profileClient.GetUserProfile(userId);
+
+            // Merge with mock data if available
+            if (_mockDataHelper != null && response.UserProfile != null)
+            {
+                response.UserProfile = MergeWithMockData(
+                    response.UserProfile,
+                    "userProfile",
+                    _mockDataHelper.MergeUserProfile
+                );
+            }
         }
         catch
         {
@@ -192,6 +239,25 @@ internal sealed class InitialDataService : IInitialDataService
         try
         {
             response.Party = await _registerClient.GetPartyUnchecked(partyId, CancellationToken.None);
+
+            // Merge with mock data if available
+            if (_mockDataHelper != null && response.Party != null)
+            {
+                var mockData = GetMockData();
+                if (mockData?.TryGetValue("parties", out var partiesMock) == true)
+                {
+                    // Create a temporary list with the real party, merge with mock data, then extract the result
+                    var tempList = new List<Altinn.Platform.Register.Models.Party> { response.Party };
+                    var mergedList = _mockDataHelper.MergeParties(tempList, partiesMock);
+
+                    // Find the merged party with the same ID
+                    var mergedParty = mergedList.FirstOrDefault(p => p.PartyId == partyId);
+                    if (mergedParty != null)
+                    {
+                        response.Party = mergedParty;
+                    }
+                }
+            }
 
             // Check if the party can instantiate using the authentication context
             // Only check for regular users, other auth types will get null
@@ -382,5 +448,126 @@ internal sealed class InitialDataService : IInitialDataService
         {
             // Log error but don't fail the entire request
         }
+    }
+
+    private Task GetMockUserProfile(InitialDataResponse response)
+    {
+        try
+        {
+            // Create a minimal user profile that can be merged with mock data
+            var baseUserProfile = new Altinn.Platform.Profile.Models.UserProfile
+            {
+                UserId = 0, // Default placeholder
+                UserName = "",
+                Email = "",
+                PhoneNumber = "",
+                PartyId = 0,
+                UserType = UserType.SSNIdentified,
+                ProfileSettingPreference = new Altinn.Platform.Profile.Models.ProfileSettingPreference(),
+            };
+
+            // Merge with mock data
+            if (_mockDataHelper != null)
+            {
+                response.UserProfile = MergeWithMockData(
+                    baseUserProfile,
+                    "userProfile",
+                    _mockDataHelper.MergeUserProfile
+                );
+            }
+            else
+            {
+                response.UserProfile = baseUserProfile;
+            }
+        }
+        catch
+        {
+            // Log error but don't fail the entire request
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task GetMockParty(int partyId, InitialDataResponse response)
+    {
+        try
+        {
+            // Create a minimal party that can be merged with mock data
+            var baseParty = new Altinn.Platform.Register.Models.Party
+            {
+                PartyId = partyId,
+                Name = "",
+                PartyTypeName = PartyType.Person,
+                OrgNumber = null,
+                SSN = null,
+                UnitType = null,
+            };
+
+            // Merge with mock data
+            if (_mockDataHelper != null)
+            {
+                var mockData = GetMockData();
+                if (mockData?.TryGetValue("parties", out var partiesMock) == true)
+                {
+                    // Create a temporary list with the base party, merge with mock data, then extract the result
+                    var tempList = new List<Altinn.Platform.Register.Models.Party> { baseParty };
+                    var mergedList = _mockDataHelper.MergeParties(tempList, partiesMock);
+
+                    // Find the merged party with the same ID
+                    var mergedParty = mergedList.FirstOrDefault(p => p.PartyId == partyId);
+                    if (mergedParty != null)
+                    {
+                        response.Party = mergedParty;
+                    }
+                }
+            }
+            else
+            {
+                response.Party = baseParty;
+            }
+        }
+        catch
+        {
+            // Log error but don't fail the entire request
+        }
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Merges mock data with real data using the provided merge function.
+    /// </summary>
+    /// <typeparam name="T">The type of object to merge.</typeparam>
+    /// <param name="realData">The real data from the service.</param>
+    /// <param name="mockDataKey">The key to look for in the mock data dictionary.</param>
+    /// <param name="mergeFunction">The function to use for merging.</param>
+    /// <returns>The merged object, or the original object if no mock data is available.</returns>
+    private T? MergeWithMockData<T>(T? realData, string mockDataKey, Func<T, object?, T>? mergeFunction)
+        where T : class
+    {
+        if (realData == null || mergeFunction == null)
+            return realData;
+
+        var mockData = GetMockData();
+        if (mockData?.TryGetValue(mockDataKey, out var mockValue) == true)
+        {
+            return mergeFunction(realData, mockValue);
+        }
+
+        return realData;
+    }
+
+    /// <summary>
+    /// Retrieves mock data from the HTTP context if available.
+    /// </summary>
+    /// <returns>A dictionary containing mock data, or null if no mock data is available.</returns>
+    private Dictionary<string, object>? GetMockData()
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext?.Items.TryGetValue("MockData", out var mockData) == true)
+        {
+            return mockData as Dictionary<string, object>;
+        }
+        return null;
     }
 }

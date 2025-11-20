@@ -35,7 +35,7 @@ import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
-import { PartyelectionWrapper } from 'src/features/instantiate/containers/PartySelection';
+import { PartySelectionWrapper } from 'src/features/instantiate/containers/PartySelection';
 import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
 import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -92,7 +92,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     {
                       path: '/:org/:app/party-selection',
-                      element: <PartyelectionWrapper />,
+                      element: <PartySelectionWrapper />,
+                      children: [
+                        {
+                          path: '/:org/:app/party-selection/:errorCode',
+                          element: <PartySelectionWrapper />,
+                        },
+                      ],
                     },
 
                     {
@@ -107,11 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
                       children: [
                         {
                           path: 'error',
-                          element: (
-                            <PresentationComponent>
-                              <ErrorPageContent />
-                            </PresentationComponent>
-                          ),
+                          element: <ErrorPageContent />,
                         },
                         {
                           path: ':pageKey',

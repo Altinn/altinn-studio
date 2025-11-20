@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap;
+using Altinn.App.Core.Features.Testing;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
@@ -109,12 +110,15 @@ public class HomeController : Controller
         [FromQuery] bool forceNew = false
     )
     {
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        // Use InitialDataService to get ALL data with mock integration
+        var initialData = await _initialDataService.GetInitialData(org, app);
+        ApplicationMetadata? application = initialData.ApplicationMetadata;
 
-        if (IsStatelessApp(application) && await AllowAnonymous())
+        // Debugger.Break();
+
+        if (application != null && IsStatelessApp(application) && await AllowAnonymous())
         {
-            var statelessAppData = await _initialDataService.GetInitialData(org, app);
-            var statelessApphtml = GenerateHtml(org, app, statelessAppData);
+            var statelessApphtml = GenerateHtml(org, app, initialData);
             return Content(statelessApphtml);
         }
 
@@ -138,31 +142,54 @@ public class HomeController : Controller
             );
         }
 
-        var details = await auth.LoadDetails(validateSelectedParty: false);
+        var realDetails = await auth.LoadDetails(validateSelectedParty: false);
+        var details = MergeDetailsWithMockData(realDetails);
+
+        // Debugger.Break();
+
+        if (details.PartiesAllowedToInstantiate.Count == 0)
+        {
+            return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/error?statusCode=403");
+        }
 
         if (!details.CanRepresentParty(details.Profile.PartyId))
         {
-            if (details.PartiesAllowedToInstantiate.Count == 0)
-            {
-                throw new UnauthorizedAccessException("You have no parties that can use this app");
-            }
-            return Redirect(Request.GetDisplayUrl() + "party-selection/");
+            return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/error?statusCode=403");
         }
 
-        if (details.PartiesAllowedToInstantiate.Count > 1 && !skipPartySelection)
+        Debugger.Break();
+
+        // Correctly overrides the profile doNotPromptForPartyPreference when doNotPromptForPartyPreference=false and appPromptForPartyOverride=never
+
+        if (details.PartiesAllowedToInstantiate.Count > 1 && !skipPartySelection && application != null)
         {
             if (application.PromptForParty == "always")
             {
-                return Redirect(Request.GetDisplayUrl() + "party-selection/");
+                return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/party-selection/explained");
             }
 
-            if (application.PromptForParty != "never" && !details.Profile.ProfileSettingPreference.DoNotPromptForParty)
+            //if (application.PromptForParty == "always")
+            // {
+            //     return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/party-selection/explained");
+            // }
+            Debugger.Break();
+            initialData = await _initialDataService.GetInitialData(org, app);
+
+            if (!details.Profile.ProfileSettingPreference.DoNotPromptForParty)
             {
-                return Redirect(Request.GetDisplayUrl() + "party-selection/");
+                return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/party-selection/explained");
             }
+
+            // application.PromptForParty != "never" &&
+
+            //Debugger.Break();
+
+            // Prompts for party when doNotPromptForParty = false, on instantiation with multiple possible parties
+
+            //return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/party-selection/explained");
         }
 
-        if (IsStatelessApp(application))
+        if (application != null && IsStatelessApp(application))
         {
             var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
             var statelessAppData = await _initialDataService.GetInitialData(
@@ -191,7 +218,7 @@ public class HomeController : Controller
         }
 
         // if (instances.Count > 1 && application.OnEntry?.Show == "select-instance")
-        if (application.OnEntry?.Show == "select-instance")
+        if (application?.OnEntry?.Show == "select-instance")
         {
             return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/instance-selection");
         }
@@ -210,7 +237,8 @@ public class HomeController : Controller
         }
 
         string redirectUrl =
-            $"{Request.GetDisplayUrl()}/instance/{mostRecentInstance.Id}/{currentTask.ElementId}/{firstPageId}";
+            $"{Request.GetDisplayUrl().TrimEnd('/')}/instance/{mostRecentInstance.Id}/{currentTask.ElementId}/{firstPageId}";
+
         return Redirect(redirectUrl);
     }
 
@@ -229,8 +257,15 @@ public class HomeController : Controller
             throw new UnauthorizedAccessException("You need to be logged in to see this page.");
         }
 
-        var details = await auth.LoadDetails(validateSelectedParty: false);
-        var application = await _appMetadata.GetApplicationMetadata();
+        var realDetails = await auth.LoadDetails(validateSelectedParty: false);
+        var details = MergeDetailsWithMockData(realDetails);
+        // var application = await _appMetadata.GetApplicationMetadata();
+
+        var initialData = await _initialDataService.GetInitialData(org, app);
+
+        var application = initialData.ApplicationMetadata;
+
+        // Debugger.Break();
 
         string layoutSetsString = _appResources.GetLayoutSets();
         LayoutSets? layoutSets = null;
@@ -247,8 +282,24 @@ public class HomeController : Controller
             layoutSets,
         };
         var dataJson = JsonSerializer.Serialize(data, _jsonSerializerOptions);
-        var html = GenerateHtmlWithInstances(org, app, dataJson);
+        //var html = GenerateHtmlWithInstances(org, app, dataJson);
+        var html = GenerateHtml(org, app, initialData);
         return Content(html, "text/html; charset=utf-8");
+    }
+
+    /// <summary>
+    /// Shows party selection page with list of parties user can represent (with error code).
+    /// </summary>
+    [HttpGet]
+    [Route("{org}/{app}/party-selection/{errorCode}")]
+    public async Task<IActionResult> PartySelectionWithErrorCode(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] string errorCode
+    )
+    {
+        Debugger.Break();
+        return await PartySelection(org, app);
     }
 
     /// <summary>
@@ -266,7 +317,8 @@ public class HomeController : Controller
             throw new UnauthorizedAccessException("You need to be logged in to see this page.");
         }
 
-        var details = await auth.LoadDetails(validateSelectedParty: false);
+        var realDetails = await auth.LoadDetails(validateSelectedParty: false);
+        var details = MergeDetailsWithMockData(realDetails);
         var application = await _appMetadata.GetApplicationMetadata();
 
         string layoutSetsString = _appResources.GetLayoutSets();
@@ -964,6 +1016,8 @@ public class HomeController : Controller
                           }
                         });
 
+                        debugger;
+
                         if (!response.ok) {
                           const contentType = response.headers.get('content-type');
                           let errorDetail;
@@ -1005,13 +1059,20 @@ public class HomeController : Controller
                         }
 
                         const redirectUrl = '/{{org}}/{{app}}/instance/' + partyId + '/' + instanceGuid + '/' + taskId + '/' + (firstPageId || '');
+                        console.log("redirectUrl", redirectUrl);
+                        debugger;
                         window.location.href = redirectUrl;
+
                       } catch (error) {
                         console.error('Error creating instance:', error);
                         const errorParams = new URLSearchParams({
                           errorType: 'network_error',
                           showContactInfo: 'false'
                         });
+
+
+                        debugger;
+
                         window.location.href = '/{{org}}/{{app}}/error?' + errorParams.toString();
                       }
                     })();
@@ -1075,5 +1136,172 @@ public class HomeController : Controller
             """;
 
         return htmlContent;
+    }
+
+    /// <summary>
+    /// Merges mock data with real user details for testing purposes.
+    /// Only active in development/test environments when mock data headers are present.
+    /// </summary>
+    private Authenticated.User.Details MergeDetailsWithMockData(Authenticated.User.Details realDetails)
+    {
+        // Try to get mock data from HttpContext.Items first (set by MockDataMiddleware)
+        Dictionary<string, object>? mockData = null;
+
+        if (
+            HttpContext.Items.TryGetValue("MockData", out var mockDataObj)
+            && mockDataObj is Dictionary<string, object> itemsMockData
+        )
+        {
+            mockData = itemsMockData;
+        }
+        // If not in Items, try to parse directly from header
+        else if (HttpContext.Request.Headers.TryGetValue("X-Mock-Data", out var headerValue))
+        {
+            try
+            {
+                mockData = JsonSerializer.Deserialize<Dictionary<string, object>>(headerValue.ToString());
+            }
+            catch (JsonException)
+            {
+                // Invalid JSON, ignore and return real details
+                return realDetails;
+            }
+        }
+
+        if (mockData == null)
+        {
+            return realDetails; // No mock data available
+        }
+
+        // Check if there's userDetails mock data
+        if (!mockData.TryGetValue("userDetails", out var userDetailsMock))
+        {
+            return realDetails; // No userDetails mock, return real details
+        }
+
+        try
+        {
+            var userDetailsJson = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(userDetailsMock));
+            var result = realDetails;
+
+            // Apply simple property overrides using 'with' syntax
+            if (userDetailsJson.TryGetProperty("representsSelf", out var rs))
+            {
+                result = result with { RepresentsSelf = rs.GetBoolean() };
+            }
+
+            if (userDetailsJson.TryGetProperty("canRepresent", out var cr))
+            {
+                result = result with { CanRepresent = cr.GetBoolean() };
+            }
+
+            // Handle complex collections first (so we have the merged parties list)
+            var parties = realDetails.Parties.ToList();
+            if (mockData.TryGetValue("parties", out var partiesMock))
+            {
+                parties = ParseMockParties(partiesMock, parties);
+                result = result with { Parties = parties };
+            }
+
+            // Handle partiesAllowedToInstantiate from userDetails
+            if (userDetailsJson.TryGetProperty("partiesAllowedToInstantiate", out var paiMock))
+            {
+                _logger?.LogDebug(
+                    "Found partiesAllowedToInstantiate in mock data. ValueKind: {ValueKind}, RawText: {RawText}",
+                    paiMock.ValueKind,
+                    paiMock.GetRawText()
+                );
+                var partiesAllowed = ParseMockParties(paiMock, new List<Altinn.Platform.Register.Models.Party>());
+                _logger?.LogDebug("Parsed {Count} parties for partiesAllowedToInstantiate", partiesAllowed.Count);
+                result = result with { PartiesAllowedToInstantiate = partiesAllowed };
+            }
+
+            // Handle userProfile mock data merge
+            if (mockData.TryGetValue("userProfile", out var userProfileMock))
+            {
+                Debugger.Break();
+                Console.WriteLine($"=== MOCK DATA DEBUG ===");
+                Console.WriteLine($"Found userProfile mock data: {JsonSerializer.Serialize(userProfileMock)}");
+                Console.WriteLine(
+                    $"Current profile DoNotPromptForParty: {result.Profile.ProfileSettingPreference?.DoNotPromptForParty}"
+                );
+
+                var mockDataHelper = new MockDataHelper();
+                var mergedProfile = mockDataHelper.MergeUserProfile(result.Profile, userProfileMock);
+
+                Console.WriteLine(
+                    $"Merged profile DoNotPromptForParty: {mergedProfile.ProfileSettingPreference?.DoNotPromptForParty}"
+                );
+                Console.WriteLine($"=== END MOCK DATA DEBUG ===");
+
+                result = result with { Profile = mergedProfile };
+                Debugger.Break();
+            }
+
+            // Handle party ID overrides using the merged parties list
+            if (userDetailsJson.TryGetProperty("selectedPartyId", out var spId))
+            {
+                var selectedParty =
+                    parties.FirstOrDefault(p => p.PartyId == spId.GetInt32()) ?? realDetails.SelectedParty;
+                result = result with { SelectedParty = selectedParty };
+            }
+
+            if (userDetailsJson.TryGetProperty("userPartyId", out var upId))
+            {
+                var userParty = parties.FirstOrDefault(p => p.PartyId == upId.GetInt32()) ?? realDetails.UserParty;
+                result = result with { UserParty = userParty };
+            }
+
+            return result;
+        }
+        catch (Exception)
+        {
+            // If parsing fails, return real details to avoid breaking functionality
+            return realDetails;
+        }
+    }
+
+    private List<Altinn.Platform.Register.Models.Party> ParseMockParties(
+        object partiesMock,
+        List<Altinn.Platform.Register.Models.Party> baseParties
+    )
+    {
+        try
+        {
+            var mockPartiesJson = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(partiesMock));
+            if (mockPartiesJson.ValueKind != JsonValueKind.Array)
+                return baseParties;
+
+            var result = baseParties.ToList();
+            foreach (var mockPartyElement in mockPartiesJson.EnumerateArray())
+            {
+                if (!mockPartyElement.TryGetProperty("partyId", out var mockPartyIdProp))
+                    continue;
+
+                var mockPartyId = mockPartyIdProp.GetInt32();
+                var existingIndex = result.FindIndex(p => p.PartyId == mockPartyId);
+
+                var mockParty = new Altinn.Platform.Register.Models.Party
+                {
+                    PartyId = mockPartyId,
+                    Name = mockPartyElement.TryGetProperty("name", out var nameProp)
+                        ? nameProp.GetString() ?? $"Party {mockPartyId}"
+                        : $"Party {mockPartyId}",
+                    PartyTypeName = mockPartyElement.TryGetProperty("partyTypeName", out var typeProp)
+                        ? (Altinn.Platform.Register.Enums.PartyType)typeProp.GetInt32()
+                        : Altinn.Platform.Register.Enums.PartyType.Person,
+                };
+
+                if (existingIndex >= 0)
+                    result[existingIndex] = mockParty;
+                else
+                    result.Add(mockParty);
+            }
+            return result;
+        }
+        catch (Exception)
+        {
+            return baseParties;
+        }
     }
 }

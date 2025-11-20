@@ -1,6 +1,7 @@
 using System;
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
+using Altinn.App.Api.Infrastructure.Middleware;
 using Altinn.App.Core.Features.Auth;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -56,6 +57,15 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
     // Register services required to run this as an Altinn application
     services.AddAltinnAppServices(config, builder.Environment);
 
+    // Register MockDataHelper for development/test environments
+    if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Test"))
+    {
+        services.AddScoped<
+            Altinn.App.Core.Features.Testing.IMockDataHelper,
+            Altinn.App.Core.Features.Testing.MockDataHelper
+        >();
+    }
+
     // Add Swagger support (Swashbuckle)
     services.AddSwaggerGen(c =>
     {
@@ -81,6 +91,12 @@ void Configure()
             c.SwaggerEndpoint($"/{applicationId}/swagger/v1/swagger.json", "Altinn App API");
             c.RoutePrefix = applicationId + "/swagger";
         });
+    }
+
+    // Add MockData middleware early in the pipeline (development/test only)
+    if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
+    {
+        app.UseMiddleware<MockDataMiddleware>();
     }
 
     app.UseAltinnAppCommonConfiguration();

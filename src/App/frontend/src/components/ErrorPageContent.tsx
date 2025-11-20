@@ -2,6 +2,7 @@ import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { AltinnError } from 'src/components/altinnError';
+import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { Lang } from 'src/features/language/Lang';
 
 interface ErrorTypeConfig {
@@ -55,6 +56,14 @@ export function ErrorPageContent() {
 
   // Use statusCode from URL if provided, otherwise use the default from config
   const statusCodeToDisplay = statusCode || (config.statusCodeKey ? <Lang id={config.statusCodeKey} /> : undefined);
+
+  if (statusCode === '403') {
+    return <MissingRolesError />;
+  }
+
+  // if (statusCode == '404') {
+  //   return <MissingRolesError />;
+  // }
 
   return (
     <AltinnError

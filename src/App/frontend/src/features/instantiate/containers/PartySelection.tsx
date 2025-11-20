@@ -1,5 +1,5 @@
 import React, { useEffect, useState as useReactState } from 'react';
-import { useMatch } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import { Checkbox, Heading, Paragraph } from '@digdir/designsystemet-react';
 import { PlusIcon } from '@navikt/aksel-icons';
@@ -20,9 +20,9 @@ import {
 } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import classes from 'src/features/instantiate/containers/PartySelection.module.css';
+import { PartySelectionContainer } from 'src/features/instantiate/containers/PartySelectionContainer';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
@@ -37,7 +37,7 @@ import type { ApplicationMetadata } from 'src/features/applicationMetadata/types
 import type { IParty } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
-export const PartyelectionWrapper = () => (
+export const PartySelectionWrapper = () => (
   <NavigationEffectProvider>
     <OrgsProvider>
       <LayoutSetsProvider>
@@ -53,9 +53,12 @@ export const PartyelectionWrapper = () => (
 
 export const PartySelection = () => {
   changeBodyBackground(AltinnPalette.white);
-  const match = useMatch(`/party-selection/:errorCode`);
-  const errorCode = match?.params.errorCode;
+  // const match = useMatch(`/party-selection/:errorCode`);
+  // const errorCode = match?.params.errorCode;
 
+  const { errorCode } = useParams();
+
+  // debugger;
   // Fetch parties allowed to instantiate
   const { fetchPartiesAllowedToInstantiate } = useAppQueries();
   const {
@@ -195,7 +198,7 @@ export const PartySelection = () => {
   };
 
   return (
-    <InstantiationContainer>
+    <PartySelectionContainer>
       <title>{`${getPageTitle(appName, langAsString('party_selection.header'), appOwner)}`}</title>
       <Flex
         container
@@ -292,7 +295,7 @@ export const PartySelection = () => {
           </Flex>
         )}
       </Flex>
-    </InstantiationContainer>
+    </PartySelectionContainer>
   );
 };
 
