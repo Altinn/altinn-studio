@@ -1,0 +1,113 @@
+name: App Frontend - Lighthouse CI
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'src/App/frontend/**'
+  pull_request:
+    paths:
+      - 'src/App/frontend/**'
+jobs:
+  lighthouse:
+    name: Lighthouse CI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '20.x'
+
+      - name: Installing Frontend Dependencies
+        uses: ./.github/actions/yarn-install
+        with:
+          working-directory: src/App/frontend
+
+      - name: Build localtest
+        working-directory: src/Runtime/localtest
+        run: docker compose build
+
+      - name: Build component-library and frontend
+        working-directory: '.'
+        run: |
+          # Build frontend in background
+          cd src/App/frontend
+          yarn run build & YARN_BUILD_PID=$!
+
+          # Return to workspace root
+          cd $GITHUB_WORKSPACE
+
+          # Build component-library app in foreground
+          cd src/test/apps/component-library/App
+          dotnet build --restore
+
+          wait $YARN_BUILD_PID || exit 1
+
+      - name: Start localtest and component-library
+        run: |
+          # Start the app in background
+          cd src/test/apps/component-library/App
+          nohup dotnet run --no-build > $GITHUB_WORKSPACE/app.log 2>&1 & APP_PID=$!
+
+          # Return to workspace root
+          cd $GITHUB_WORKSPACE
+
+          # Start localtest
+          echo "Starting localtest..."
+          cd src/Runtime/localtest && docker compose up -d
+
+          # Wait for localtest readiness
+          echo "Waiting for localtest at http://local.altinn.cloud/"
+          if timeout 120 bash -c 'until curl -f http://local.altinn.cloud/ > /dev/null 2>&1; do sleep 2; done'; then
+            echo "✅ localtest is ready!"
+          else
+            echo "❌ localtest failed to start within 2 minutes."
+            exit 1
+          fi
+
+          # Wait for app readiness
+          echo "Waiting for app to start listening on port 5005..."
+          if timeout 120 bash -c 'until grep -q "Now listening on: http://\[::]:" $GITHUB_WORKSPACE/app.log 2>/dev/null; do sleep 1; done'; then
+            echo "✅ App is ready!"
+          else
+            echo "❌ App failed to start within 2 minutes."
+            echo "=== App log ==="
+            cat $GITHUB_WORKSPACE/app.log
+            kill $APP_PID 2>/dev/null || true
+            exit 1
+          fi
+
+        env:
+          TEST_DOMAIN: local.altinn.cloud
+          ALTINN3LOCAL_PORT: 80
+      - name: Run Lighthouse CI
+        id: lighthouse-ci
+        working-directory: src/App/frontend
+        run: |
+          set -e # exit on any failure
+          yarn run lhci > lighthouse_output.txt 2>&1
+          cat lighthouse_output.txt
+
+          # Extract the report URL
+          REPORT_URL=$(grep -o 'https://storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/[^[:space:]]*' lighthouse_output.txt || echo "")
+          echo "report_url=$REPORT_URL" >> $GITHUB_OUTPUT
+      - name: Comment PR with Lighthouse Report
+        if: github.event_name == 'pull_request' && steps.lighthouse-ci.outputs.report_url != ''
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        env:
+          REPORT_URL: ${{ steps.lighthouse-ci.outputs.report_url }}
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🔍 **Lighthouse Report**\n\n📊 [View Performance Report](${{ env.REPORT_URL }})'
+            });

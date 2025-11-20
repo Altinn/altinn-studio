@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { Spinner } from '@digdir/designsystemet-react';
 import { CheckmarkIcon, XMarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
+import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';

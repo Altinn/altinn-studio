@@ -1,7 +1,9 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
+import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 import type { ILayoutSettings } from 'src/layout/common.generated';
 import type { ILayoutCollection } from 'src/layout/layout';
+import type { IInstance } from 'src/types/shared';
 
 const appFrontend = new AppFrontend();
 
@@ -51,6 +53,7 @@ describe('Subform test', () => {
       },
     });
 
+    cy.findAllByRole('button', { name: /endre/i }).should('have.length', 2);
     cy.findAllByRole('button', { name: /endre/i }).first().clickAndGone();
     cy.findByRole('textbox', { name: /registreringsnummer/i }).should('have.value', 'ABC123');
 
@@ -97,6 +100,58 @@ describe('Subform test', () => {
         cy.getSummary('Produksjonsår').should('contain.text', '2024');
       },
     });
+  });
+
+  it('should not show "#readyForPrint" if one subform fails', { retries: 0 }, () => {
+    fillTwoSubforms();
+
+    // Wait for page to load
+    cy.get('#finishedLoading').should('exist');
+    cy.waitForNetworkIdle(500);
+
+    // Intercept instance and capture data element id
+    const data = { dataElementIdToBlock: '' };
+    cy.intercept({ method: 'GET', url: '**/instances/*/*', times: 1 }, (req) => {
+      req.on('response', (res) => {
+        const instance: IInstance = res.body;
+        const dataElementToBlock = instance.data.find((data) => data.dataType === 'moped');
+        if (!dataElementToBlock) {
+          throw 'Could not find data element to block';
+        }
+        data.dataElementIdToBlock = dataElementToBlock.id;
+      });
+    });
+
+    // Block subform data element to provoke unknown error, intercept 3 times, 1 (main data) + 2 (subform data)
+    cy.intercept({ method: 'GET', url: '**/data/**includeRowId=true*', times: 3 }, (req) => {
+      if (req.url.includes(data.dataElementIdToBlock)) {
+        req.reply({ statusCode: 404, body: 'Not Found' });
+      }
+    });
+
+    // Visit the PDF page and reload
+    cy.location('href').then((href) => {
+      const regex = getInstanceIdRegExp();
+      const instanceId = regex.exec(href)?.[1];
+      const before = href.split(regex)[0];
+      const visitUrl = `${before}${instanceId}?pdf=1`;
+      cy.visit(visitUrl);
+    });
+    cy.reload();
+
+    // Wait for page to load
+    cy.get('#finishedLoading').should('exist');
+    cy.waitForNetworkIdle(500);
+
+    // Check that we have an error and that #readyForPrint is not present
+    cy.findAllByRole('heading', { name: 'Ukjent feil' }).should('exist');
+    cy.get('#readyForPrint').should('not.exist');
+
+    // To confirm we are on the PDF page, reload (which should now succeed) and check that #readyForPrint is visible
+    cy.reload();
+    cy.waitForNetworkIdle(500);
+    cy.get('#readyForPrint').should('exist');
+    cy.findByRole('heading', { name: 'Ukjent feil' }).should('not.exist');
   });
 
   it('should render PDF with summary2 layoutset with subform and subform table', { retries: 0 }, () => {

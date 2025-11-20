@@ -1,0 +1,4 @@
+.cardActions {
+  padding-inline: var(--ds-size-6);
+  padding-bottom: var(--ds-size-4);
+}

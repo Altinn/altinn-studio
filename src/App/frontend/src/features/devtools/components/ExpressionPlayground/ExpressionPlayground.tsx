@@ -200,7 +200,7 @@ export const ExpressionPlayground = () => {
             <Fieldset.Legend>Dokumentasjon</Fieldset.Legend>
             Les mer om uttrykk{' '}
             <a
-              href='https://docs.altinn.studio/nb/altinn-studio/reference/logic/expressions/'
+              href='https://docs.altinn.studio/nb/altinn-studio/v8/reference/logic/expressions/'
               target='_blank'
               rel='noreferrer'
             >

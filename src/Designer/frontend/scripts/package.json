@@ -8,14 +8,14 @@
     "@typescript-eslint/parser": "7.18.0",
     "eslint": "8.57.1",
     "eslint-plugin-import": "2.32.0",
-    "glob": "11.0.3",
+    "glob": "11.1.0",
     "husky": "9.1.7",
     "jsonpointer": "5.0.1",
     "lint-staged": "15.5.2",
     "prettier": "^3.0.3",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "5.9.2"
+    "typescript": "5.9.3"
   },
   "packageManager": "yarn@4.9.4",
   "private": true,

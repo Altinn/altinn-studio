@@ -70,7 +70,7 @@ logs: ## Stream logs from pdf3 components
 	stern -l component=pdf3 -n runtime-pdf3 -E linkerd-init -E linkerd-proxy --tail -1
 
 loadtest-local: ## Run k6 load tests against local cluster (test-local.ts)
-	@go run ./cmd/tester loadtest-local
+	@go run ./cmd/tester loadtest-local --keep-running
 
 loadtest-env: ## Run k6 browser tests against remote environment (test-env.js)
 	@go run ./cmd/tester loadtest-env

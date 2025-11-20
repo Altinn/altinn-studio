@@ -6,7 +6,6 @@ import {
   StudioSwitch,
   StudioRadio,
   useStudioRadioGroup,
-  StudioSectionHeader,
 } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { FileIcon, InformationIcon, TasklistIcon } from '@studio/icons';
@@ -21,6 +20,8 @@ import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
 import { changeGroupName } from '../../../utils/pageGroupUtils';
 import { EditName } from '../../config/EditName';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import { ConfigPanelHeader } from '../CommonElements/ConfigPanelHeader/ConfigPanelHeader';
+import { MainSettingsHeader } from '../CommonElements/MainSettingsHeader/MainSettingsHeader';
 
 export type GroupConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Group }>;
@@ -72,14 +73,8 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
 
   return (
     <>
-      <StudioSectionHeader
-        data-testid='groupConfigPanel'
-        icon={<FileIcon />}
-        heading={{
-          text: selectedGroup.name,
-          level: 2,
-        }}
-      />
+      <ConfigPanelHeader icon={<FileIcon />} title={selectedGroup.name} />
+      <MainSettingsHeader />
       <div className={classes.configPanel}>
         {selectedGroup.order.length > 1 && (
           <div className={classes.editGroupNameWrapper}>

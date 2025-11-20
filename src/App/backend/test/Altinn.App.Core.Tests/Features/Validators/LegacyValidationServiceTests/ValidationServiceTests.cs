@@ -44,6 +44,7 @@ public sealed class ValidationServiceTests : IDisposable
     {
         Id = _defaultDataElementId.ToString(),
         DataType = "MyType",
+        ContentType = "application/xml",
     };
 
     private static readonly DataType _defaultDataType = new()
@@ -298,8 +299,6 @@ public sealed class ValidationServiceTests : IDisposable
         _dataClientMock
             .Setup(d =>
                 d.GetDataBytes(
-                    DefaultOrg,
-                    DefaultApp,
                     DefaultPartyId,
                     _defaultInstanceId,
                     _defaultDataElementId,

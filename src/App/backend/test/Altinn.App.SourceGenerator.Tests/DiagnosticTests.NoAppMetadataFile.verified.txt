@@ -6,7 +6,7 @@
     Descriptor: {
       Id: ALTINNAPP0002,
       Title: Application metadata error,
-      HelpLink: https://docs.altinn.studio/nb/altinn-studio/reference/analysis/rules/altinnapp0002,
+      HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0002,
       MessageFormat: Error in applicationmetadata.json: {0},
       Category: Metadata,
       DefaultSeverity: Warning,

@@ -1,13 +1,12 @@
-import type { PagesConfig } from '../src/types/PagesProps';
-import type { CodeListData } from '../src';
+import type { PagesConfig, CodeListDataWithTextResources } from '../src';
 import { textResources } from '../src/test-data/textResources';
 
-export const codeListData: CodeListData = {
+export const codeListData: CodeListDataWithTextResources = {
   title: 'CodeList1',
   data: [{ value: 'value', label: 'label' }],
   hasError: false,
 };
-export const codeListsDataMock: CodeListData[] = [codeListData];
+export const codeListsDataMock: CodeListDataWithTextResources[] = [codeListData];
 
 export const mockPagesConfig: PagesConfig = {
   codeListsWithTextResources: {
@@ -20,6 +19,12 @@ export const mockPagesConfig: PagesConfig = {
       onUploadCodeList: () => {},
       codeListsUsages: [],
       textResources,
+    },
+  },
+  codeLists: {
+    props: {
+      codeLists: [],
+      onSave: () => {},
     },
   },
   images: {

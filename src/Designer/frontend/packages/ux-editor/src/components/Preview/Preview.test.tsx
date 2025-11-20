@@ -30,23 +30,6 @@ describe('Preview', () => {
     );
   });
 
-  it('should be able to toggle between mobile and desktop view', async () => {
-    const user = userEvent.setup();
-    render();
-    await waitForElementToBeRemoved(() =>
-      screen.queryByText(textMock('preview.loading_preview_controller')),
-    );
-
-    const switchButton = screen.getByRole('checkbox', {
-      name: textMock('ux_editor.mobilePreview'),
-    });
-
-    expect(switchButton).not.toBeChecked();
-
-    await user.click(switchButton);
-    expect(switchButton).toBeChecked();
-  });
-
   it('should render a message when no page is selected', async () => {
     render({
       appContextProps: {
@@ -161,6 +144,19 @@ describe('Preview', () => {
     );
 
     expect(screen.getByText(/ux_editor.preview.subform_unsupported_warning/i)).toBeInTheDocument();
+  });
+
+  it('should show error message when preview instance creation fails', async () => {
+    render({
+      queries: {
+        createPreviewInstance: jest.fn().mockImplementation(() => Promise.reject('Error')),
+      },
+    });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('preview.loading_preview_controller')),
+    );
+
+    expect(screen.getByText(textMock('general.page_error_title'))).toBeInTheDocument();
   });
 });
 
