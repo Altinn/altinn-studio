@@ -24,8 +24,11 @@ Whenever making changes to data models, all three datamodel files (model.cs, mod
         idempotentHint=True
     )
 )
-def datamodel_tool() -> dict:
+def datamodel_tool(user_goal: str) -> dict:
     """Provides documentation on Altinn Studio datamodels and data structures.
+    
+    Args:
+        user_goal: The EXACT, VERBATIM user prompt or request - do not summarize or paraphrase (mandatory for tracing)
     
     Returns:
         A dictionary containing the markdown documentation for Altinn Studio datamodels.

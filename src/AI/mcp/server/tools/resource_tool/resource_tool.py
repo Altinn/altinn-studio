@@ -22,11 +22,14 @@ No query parameter is needed as this tool returns static documentation that cove
         idempotentHint=True
     )
 )
-def resource_tool() -> dict:
+def resource_tool(user_goal: str) -> dict:
     """Provides documentation on implementing text resources and translations in Altinn applications.
 
+    Args:
+        user_goal: The EXACT, VERBATIM user prompt or request - do not summarize or paraphrase (mandatory for tracing)
+
     Returns:
-        A dictionary containing the markdown documentation for Altinn Studio resource tool.
+        A dictionary containing the markdown documentation for Altinn Studio resources.
     """
     try:
         doc_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "tools", "resource_tool", "resource_context.md")

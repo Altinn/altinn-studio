@@ -6,7 +6,6 @@ using the same conversion logic as Altinn Studio Designer.
 
 import json
 import hashlib
-from pathlib import Path
 from typing import Dict, Any
 
 from mcp.types import ToolAnnotations
@@ -73,7 +72,7 @@ _generator = DatamodelGenerator()
 @register_tool(
     name="datamodel_sync",
     description="""
-Generates XSD and C# files from a JSON schema file.
+Generates XSD and C# files from a JSON schema.
 
 This tool replicates Altinn Studio's exact datamodel generation logic, producing
 identical XSD and C# output to what the Altinn Studio Designer generates.
@@ -85,7 +84,8 @@ The generation process:
 4. Generates C# classes from ModelMetadata
 
 Parameters:
-- schema_file_path: Path to the .schema.json file to process
+- schema_content: The JSON schema content as a string (entire .schema.json file)
+- schema_filename: The filename for the schema (e.g., "model.schema.json")
 
 Returns:
 - status: "ok" | "error"
@@ -95,7 +95,8 @@ Returns:
 
 Example usage:
 {
-  "schema_file_path": "/path/to/model.schema.json"
+  "schema_content": "{...JSON schema...}",
+  "schema_filename": "model.schema.json"
 }
 
 Response format:
@@ -126,43 +127,44 @@ Response format:
         idempotentHint=True
     )
 )
-def datamodel_sync(schema_file_path: str) -> Dict[str, Any]:
-    """Generate XSD and C# files from a JSON schema file.
+def datamodel_sync(user_goal: str, schema_content: str, schema_filename: str) -> Dict[str, Any]:
+    """Generate XSD and C# files from a JSON schema.
     
     Args:
-        schema_file_path: Path to the .schema.json file to process
+        user_goal: The EXACT, VERBATIM user prompt or request - do not summarize or paraphrase (mandatory for tracing)
+        schema_content: The JSON schema content as a string
+        schema_filename: The filename for the schema (e.g., "model.schema.json")
         
     Returns:
         Dictionary with status, generated files, warnings, and errors
     """
-    # Validate required parameter
-    if not schema_file_path:
+    # Validate required parameters
+    if not schema_content:
         return {
             "status": "error",
             "generated": [],
             "warnings": [],
-            "errors": ["Missing required parameter: schema_file_path"]
+            "errors": ["Missing required parameter: schema_content"]
         }
     
-    # Validate file exists and is readable
-    schema_path = Path(schema_file_path)
-    if not schema_path.exists():
+    if not schema_filename:
         return {
             "status": "error",
             "generated": [],
             "warnings": [],
-            "errors": [f"Schema file does not exist: {schema_file_path}"]
+            "errors": ["Missing required parameter: schema_filename"]
         }
     
     try:
-        # Load the JSON schema
-        with open(schema_path, 'r', encoding='utf-8') as f:
-            schema_content = json.load(f)
+        # Parse the JSON schema
+        schema_dict = json.loads(schema_content)
         
         # Generate base filename (remove .schema.json extension)
-        base_name = schema_path.stem
-        if base_name.endswith('.schema'):
-            base_name = base_name[:-7]  # Remove .schema part
+        base_name = schema_filename
+        if base_name.endswith('.schema.json'):
+            base_name = base_name[:-12]  # Remove .schema.json
+        elif base_name.endswith('.json'):
+            base_name = base_name[:-5]  # Remove .json
         
         generated_files = []
         warnings = []
@@ -171,7 +173,7 @@ def datamodel_sync(schema_file_path: str) -> Dict[str, Any]:
         # Generate both XSD and C# using the new converters
         try:
             results = _generator.generate_from_json_schema(
-                schema_content,
+                schema_dict,
                 generate_xsd=True,
                 generate_csharp=True
             )

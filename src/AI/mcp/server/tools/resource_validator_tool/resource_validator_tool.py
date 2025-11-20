@@ -216,6 +216,7 @@ Returns:
     )
 )
 def resource_validator_tool(
+    user_goal: str,
     resource_json: str,
     language: str = "nb",
     layout_files: List[str] = None,

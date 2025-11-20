@@ -41,6 +41,7 @@ Args:
     )
 )
 def schema_validator_tool(
+    user_goal: str,
     json_obj: str,
     schema_path: str
 ) -> Dict[str, Any]:
