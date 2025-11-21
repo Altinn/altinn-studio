@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -11,7 +10,6 @@ using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -304,45 +302,11 @@ public class HomeController : Controller
         [FromRoute] int partyId
     )
     {
-        var instances = await GetInstancesForParty(org, app, partyId);
-        Instance? mostRecentInstance = instances.OrderByDescending(i => i.LastChanged).FirstOrDefault();
+        string layoutSetsString = _appResources.GetLayoutSets();
+        string layoutSetsJson = string.IsNullOrEmpty(layoutSetsString) ? "null" : layoutSetsString;
 
-        if (mostRecentInstance == null)
-        {
-            // No instances found - create new instance
-            string layoutSetsString = _appResources.GetLayoutSets();
-            string layoutSetsJson = string.IsNullOrEmpty(layoutSetsString) ? "null" : layoutSetsString;
-
-            var html = GenerateInstanceCreationHtml(org, app, partyId, layoutSetsJson);
-            return Content(html, "text/html; charset=utf-8");
-        }
-
-        var currentTask = mostRecentInstance.Process.CurrentTask;
-        if (currentTask?.ElementId == null)
-        {
-            return BadRequest("Instance has no active task");
-        }
-
-        var layoutSet = _appResources.GetLayoutSetForTask(currentTask.ElementId);
-        string? firstPageId = null;
-
-        if (layoutSet != null)
-        {
-            var layoutSettings = _appResources.GetLayoutSettingsForSet(layoutSet.Id);
-            if (layoutSettings?.Pages?.Order != null && layoutSettings.Pages.Order.Count > 0)
-            {
-                firstPageId = layoutSettings.Pages.Order[0];
-            }
-        }
-
-        if (string.IsNullOrEmpty(firstPageId))
-        {
-            return NotFound("No initial page id found");
-        }
-
-        var instanceGuid = mostRecentInstance.Id.Split('/').Last();
-        string redirectUrl = $"/{org}/{app}/instance/{partyId}/{instanceGuid}/{currentTask.ElementId}/{firstPageId}";
-        return Redirect(redirectUrl);
+        var html = GenerateInstanceCreationHtml(org, app, partyId, layoutSetsJson);
+        return Content(html, "text/html; charset=utf-8");
     }
 
     /// <summary>

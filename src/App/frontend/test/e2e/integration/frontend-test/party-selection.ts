@@ -171,11 +171,6 @@ describe('Party selection', () => {
     it(`${
       doNotPromptForParty ? 'Does not prompt' : 'Prompts'
     } for party when doNotPromptForParty = ${doNotPromptForParty}, on instantiation with multiple possible parties`, () => {
-      // cyMockResponses({
-      //   allowedToInstantiate: (parties) => [...parties, CyPartyMocks.ExamplePerson1],
-      //   doNotPromptForParty,
-      // });
-
       const mockData = {
         userDetails: {
           partiesAllowedToInstantiate: [
@@ -338,7 +333,7 @@ describe('Party selection', () => {
       ? InvalidOrgPartyLocal // Localtest: Oslos Vakreste borettslag
       : InvalidOrgPartyTT02; // TT02: Søvnig Impulsiv Tiger AS
 
-  it.only('Should be possible to select another party if instantiation fails, and go back to party selection and instantiate again', () => {
+  it('Should be possible to select another party if instantiation fails, and go back to party selection and instantiate again', () => {
     cy.allowFailureOnEnd();
     const mockData = {
       userProfile: {
@@ -377,13 +372,13 @@ describe('Party selection', () => {
     // Try again with another party
     cy.findByRole('link', { name: 'skift aktør her' }).click();
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
-
-    /** We need to wait for the instantiation to be cleared before we can instantiate again.
-     * @see InstantiateContainer */
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(500);
-
-    // The person on the other hand is allowed to instantiate
+    //
+    // /** We need to wait for the instantiation to be cleared before we can instantiate again.
+    //  * @see InstantiateContainer */
+    // // eslint-disable-next-line cypress/no-unnecessary-waiting
+    // cy.wait(500);
+    //
+    // // The person on the other hand is allowed to instantiate
     cy.findAllByText(/personnr\. \d+/)
       .first()
       .click();
