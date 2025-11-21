@@ -30,12 +30,6 @@ public class SimpleInstance
     public required string App { get; set; }
 
     /// <summary>
-    /// The name of the process element, <see cref="ProcessElementInfo"/>.
-    /// </summary>
-    [JsonPropertyName("currentTaskName")]
-    public string? CurrentTaskName { get; set; }
-
-    /// <summary>
     /// If the instance is read.
     /// </summary>
     [JsonPropertyName("isRead")]
@@ -46,6 +40,18 @@ public class SimpleInstance
     /// </summary>
     [JsonPropertyName("currentTaskId")]
     public string? CurrentTaskId { get; set; }
+
+    /// <summary>
+    /// The name of the process element, <see cref="ProcessElementInfo"/>.
+    /// </summary>
+    [JsonPropertyName("currentTaskName")]
+    public string? CurrentTaskName { get; set; }
+
+    /// <summary>
+    /// The date the instance process was completed.
+    /// </summary>
+    [JsonPropertyName("completedAt")]
+    public DateTimeOffset? CompletedAt { get; set; }
 
     /// <summary>
     /// The date the instance was archived.

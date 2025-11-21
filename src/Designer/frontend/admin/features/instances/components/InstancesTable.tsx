@@ -6,6 +6,7 @@ import { useAppInstancesQuery } from 'admin/hooks/queries/useAppInstancesQuery';
 import type { SimpleInstance } from 'admin/types/InstancesResponse';
 import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
 import { useMutation } from '@tanstack/react-query';
+import { InstanceStatus } from './InstanceStatus';
 
 type InstancesTableProps = {
   org: string;
@@ -14,6 +15,9 @@ type InstancesTableProps = {
   currentTask?: string;
   processIsComplete?: boolean;
   archiveReference?: string;
+  confirmed?: boolean;
+  isSoftDeleted?: boolean;
+  isHardDeleted?: boolean;
 };
 
 export const InstancesTable = ({
@@ -23,6 +27,9 @@ export const InstancesTable = ({
   currentTask,
   processIsComplete,
   archiveReference,
+  confirmed,
+  isSoftDeleted,
+  isHardDeleted,
 }: InstancesTableProps) => {
   const { data, status, fetchNextPage, hasNextPage } = useAppInstancesQuery(
     org,
@@ -31,6 +38,9 @@ export const InstancesTable = ({
     currentTask,
     processIsComplete,
     archiveReference,
+    confirmed,
+    isSoftDeleted,
+    isHardDeleted,
   );
   const { t } = useTranslation();
 
@@ -85,9 +95,11 @@ const InstancesTableWithData = ({
             </StudioTable.Cell>
             <StudioTable.Cell>{formatDateAndTime(instance.createdAt)}</StudioTable.Cell>
             <StudioTable.Cell>
-              {instance.currentTaskName ?? instance.currentTaskId ?? 'Avsluttet'}
+              {instance.currentTaskName ?? instance.currentTaskId ?? '-'}
             </StudioTable.Cell>
-            <StudioTable.Cell>{getStatus(instance)}</StudioTable.Cell>
+            <StudioTable.Cell>
+              <InstanceStatus instance={instance} />
+            </StudioTable.Cell>
           </StudioTable.Row>
         ))}
       </StudioTable.Body>
@@ -106,18 +118,3 @@ const InstancesTableWithData = ({
     </StudioTable>
   );
 };
-
-// TODO: These may not be reducable to a single status?
-function getStatus(instance: SimpleInstance) {
-  switch (true) {
-    case instance.softDeletedAt != null:
-    case instance.hardDeletedAt != null:
-      return 'Slettet';
-    case instance.confirmedAt != null:
-      return 'Bekreftet';
-    case instance.archivedAt != null:
-      return 'Arkivert';
-    default:
-      return 'Aktiv';
-  }
-}

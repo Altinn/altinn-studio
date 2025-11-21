@@ -18,11 +18,6 @@ type AppsTableProps = {
   org: string;
 };
 
-type AppsTableState = {
-  search: string;
-  tab: string | undefined;
-};
-
 export const AppsTable = ({ org }: AppsTableProps) => {
   const { data, status } = useRunningAppsQuery(org);
   const { t } = useTranslation();
@@ -50,18 +45,13 @@ function getEnvironmentName(env: string, t: TFunction) {
 
 const AppsTableWithData = ({ runningApps }: AppsTableWithDataProps) => {
   const { t } = useTranslation();
-  const [{ search, tab }, setState] = useQueryParamState<AppsTableState>({
-    search: '',
-    tab: undefined,
-  });
+  const [search, setSearch] = useQueryParamState<string>('search', '');
+  const [tab, setTab] = useQueryParamState<string>('tab', undefined);
 
   const availableEnvironments = Object.keys(runningApps);
 
   return (
-    <StudioTabs
-      value={tab ?? availableEnvironments.at(0)}
-      onChange={(value) => setState({ tab: value })}
-    >
+    <StudioTabs value={tab ?? availableEnvironments.at(0)} onChange={setTab}>
       <StudioTabs.List>
         {availableEnvironments.map((env) => (
           <StudioTabs.Tab key={env} value={env}>
@@ -73,10 +63,8 @@ const AppsTableWithData = ({ runningApps }: AppsTableWithDataProps) => {
         <StudioTabs.Panel key={env} value={env}>
           <StudioSearch
             className={classes.appSearch}
-            value={search}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setState({ search: e.target.value })
-            }
+            value={search ?? ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
             label={t('Søk i apper')}
           />
           <StudioTable>

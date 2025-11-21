@@ -42,6 +42,9 @@ public class InstancesController : ControllerBase
         [FromQuery] string? currentTask,
         [FromQuery] bool? processIsComplete,
         [FromQuery] string? archiveReference,
+        [FromQuery] bool? confirmed,
+        [FromQuery] bool? isSoftDeleted,
+        [FromQuery] bool? isHardDeleted,
         CancellationToken ct
     )
     {
@@ -65,6 +68,9 @@ public class InstancesController : ControllerBase
                 currentTask,
                 processIsComplete,
                 archiveReference,
+                confirmed,
+                isSoftDeleted,
+                isHardDeleted,
                 ct
             );
             return new InstancesResponse()

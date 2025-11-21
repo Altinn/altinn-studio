@@ -19,7 +19,10 @@ public interface IAltinnStorageInstancesClient
         string? continuationToken,
         string? currentTaskFilter,
         bool? processIsCompleteFilter,
-        string? archiveReference,
+        string? archiveReferenceFilter,
+        bool? confirmedFilter,
+        bool? isSoftDeletedFilter,
+        bool? isHardDeletedFilter,
         CancellationToken ct
     );
 }

@@ -8,8 +8,9 @@ export type SimpleInstance = {
   org: string;
   app: string;
   isRead: boolean;
-  currentTaskName?: string;
   currentTaskId?: string;
+  currentTaskName?: string;
+  completedAt?: string;
   archivedAt?: string;
   softDeletedAt?: string;
   hardDeletedAt?: string;

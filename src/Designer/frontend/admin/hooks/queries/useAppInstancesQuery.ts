@@ -12,6 +12,9 @@ export const useAppInstancesQuery = (
   currentTask?: string,
   processIsComplete?: boolean,
   archiveReference?: string,
+  confirmed?: boolean,
+  isSoftDeleted?: boolean,
+  isHardDeleted?: boolean,
 ): UseInfiniteQueryResult<SimpleInstance[]> => {
   return useInfiniteQuery({
     initialPageParam: undefined,
@@ -23,6 +26,9 @@ export const useAppInstancesQuery = (
       currentTask,
       processIsComplete,
       archiveReference,
+      confirmed,
+      isSoftDeleted,
+      isHardDeleted,
     ],
     queryFn: async ({ signal, pageParam = undefined }) =>
       (
@@ -35,6 +41,9 @@ export const useAppInstancesQuery = (
             currentTask,
             processIsComplete,
             archiveReference,
+            confirmed,
+            isSoftDeleted,
+            isHardDeleted,
           ),
           { signal },
         )

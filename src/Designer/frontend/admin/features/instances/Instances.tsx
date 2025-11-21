@@ -3,16 +3,22 @@ import classes from './Instances.module.css';
 import { Link, useParams } from 'react-router-dom';
 import { InstancesTable } from './components/InstancesTable';
 import { StudioBreadcrumbs } from '@studio/components';
-import { ProcessTaskPicker, useProcessTaskPicker } from './components/ProcessTaskPicker';
-import {
-  ArchiveReferenceSearch,
-  useArchiveReferenceSearch,
-} from './components/ArchiveReferenceSearch';
+import { ArchiveReferenceSearch } from './components/ArchiveReferenceSearch';
+import { StatusFilter } from './components/StatusFilter';
+import { useQueryParamState } from 'admin/hooks/useQueryParamState';
+import { ProcessTaskFilter } from './components/ProcessTaskFilter';
 
 export const Instances = () => {
   const { org, env, app } = useParams() as { org: string; env: string; app: string };
-  const processTaskPickerState = useProcessTaskPicker();
-  const [archiveReference, setArchiveReference] = useArchiveReferenceSearch();
+  const [archiveReference, setArchiveReference] = useQueryParamState<string>(
+    'archiveReference',
+    undefined,
+  );
+  const [currentTask, setCurrentTask] = useQueryParamState<string>('currentTask', undefined);
+  const [isComplete, setIsComplete] = useQueryParamState<boolean>('isComplete', undefined);
+  const [isConfirmed, setIsConfirmed] = useQueryParamState<boolean>('isConfirmed', undefined);
+  const [isSoftDeleted, setIsSoftDeleted] = useQueryParamState<boolean>('isSoftDeleted', undefined);
+  const [isHardDeleted, setIsHardDeleted] = useQueryParamState<boolean>('isHardDeleted', undefined);
 
   return (
     <div>
@@ -41,15 +47,64 @@ export const Instances = () => {
       </h1>
       <div className={classes.filterWrapper}>
         <ArchiveReferenceSearch value={archiveReference} setValue={setArchiveReference} />
-        <ProcessTaskPicker org={org} env={env} app={app} state={processTaskPickerState} />
+        <ProcessTaskFilter
+          org={org}
+          env={env}
+          app={app}
+          value={currentTask}
+          setValue={setCurrentTask}
+        />
+        <StatusFilter
+          label='Levert av bruker'
+          value={isComplete}
+          setValue={setIsComplete}
+          options={[
+            { label: 'Alle', value: undefined },
+            { label: 'Ja', value: true },
+            { label: 'Nei', value: false },
+          ]}
+        />
+        <StatusFilter
+          label='Bekreftet mottatt'
+          value={isConfirmed}
+          setValue={setIsConfirmed}
+          options={[
+            { label: 'Alle', value: undefined },
+            { label: 'Ja', value: true },
+            { label: 'Nei', value: false },
+          ]}
+        />
+        <StatusFilter
+          label='Slettet'
+          value={isSoftDeleted}
+          setValue={setIsSoftDeleted}
+          options={[
+            { label: 'Alle', value: undefined },
+            { label: 'Ja', value: true },
+            { label: 'Nei', value: false },
+          ]}
+        />
+        <StatusFilter
+          label='Slettet permanent'
+          value={isHardDeleted}
+          setValue={setIsHardDeleted}
+          options={[
+            { label: 'Alle', value: undefined },
+            { label: 'Ja', value: true },
+            { label: 'Nei', value: false },
+          ]}
+        />
       </div>
       <InstancesTable
         org={org}
         env={env}
         app={app}
-        currentTask={processTaskPickerState.currentTask}
-        processIsComplete={processTaskPickerState.isComplete}
+        currentTask={currentTask}
+        processIsComplete={isComplete}
         archiveReference={archiveReference}
+        confirmed={isConfirmed}
+        isSoftDeleted={isSoftDeleted}
+        isHardDeleted={isHardDeleted}
       />
     </div>
   );
