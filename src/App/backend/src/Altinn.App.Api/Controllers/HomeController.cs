@@ -110,6 +110,8 @@ public class HomeController : Controller
         [FromQuery] bool forceNew = false
     )
     {
+        // var dings = Request.GetDisplayUrl().TrimEnd('/') + "/error?statusCode=403";
+        // Debugger.Break();
         // Use InitialDataService to get ALL data with mock integration
         var initialData = await _initialDataService.GetInitialData(org, app);
         ApplicationMetadata? application = initialData.ApplicationMetadata;
@@ -142,19 +144,16 @@ public class HomeController : Controller
 
         var realDetails = await auth.LoadDetails(validateSelectedParty: false);
 
-
         var details = MergeDetailsWithMockData(realDetails);
-
-        // Debugger.Break();
 
         if (details.PartiesAllowedToInstantiate.Count == 0)
         {
-            return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/error?statusCode=403");
+            return Redirect($"/{org}/{app}/error?statusCode=403");
         }
 
         if (!details.CanRepresentParty(details.Profile.PartyId))
         {
-            return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/error?statusCode=403");
+            return Redirect($"/{org}/{app}/error?statusCode=403");
         }
 
         string layoutSetsString = _appResources.GetLayoutSets();
@@ -162,7 +161,6 @@ public class HomeController : Controller
         var html = GenerateInstanceCreationHtml(org, app, details.SelectedParty.PartyId, layoutSetsJson);
         if (forceNew)
         {
-            Debugger.Break();
             return Content(html, "text/html; charset=utf-8");
         }
 
@@ -170,11 +168,11 @@ public class HomeController : Controller
         {
             if (application.PromptForParty == "always")
             {
-                return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/party-selection/explained");
+                return Redirect($"/{org}/{app}/party-selection/explained");
             }
             if (!details.Profile.ProfileSettingPreference.DoNotPromptForParty)
             {
-                return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/party-selection/explained");
+                return Redirect($"/{org}/{app}/party-selection/explained");
             }
         }
 
@@ -196,7 +194,7 @@ public class HomeController : Controller
 
         if (instances.Count > 1 && application.OnEntry?.Show == "select-instance")
         {
-            return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/instance-selection");
+            return Redirect($"/{org}/{app}/instance-selection");
         }
 
         return Content(html, "text/html; charset=utf-8");
@@ -1162,23 +1160,9 @@ public class HomeController : Controller
             // Handle userProfile mock data merge
             if (mockData.TryGetValue("userProfile", out var userProfileMock))
             {
-                // Debugger.Break();
-                Console.WriteLine($"=== MOCK DATA DEBUG ===");
-                Console.WriteLine($"Found userProfile mock data: {JsonSerializer.Serialize(userProfileMock)}");
-                Console.WriteLine(
-                    $"Current profile DoNotPromptForParty: {result.Profile.ProfileSettingPreference?.DoNotPromptForParty}"
-                );
-
                 var mockDataHelper = new MockDataHelper();
                 var mergedProfile = mockDataHelper.MergeUserProfile(result.Profile, userProfileMock);
-
-                Console.WriteLine(
-                    $"Merged profile DoNotPromptForParty: {mergedProfile.ProfileSettingPreference?.DoNotPromptForParty}"
-                );
-                Console.WriteLine($"=== END MOCK DATA DEBUG ===");
-
                 result = result with { Profile = mergedProfile };
-                // Debugger.Break();
             }
 
             // Handle party ID overrides using the merged parties list
