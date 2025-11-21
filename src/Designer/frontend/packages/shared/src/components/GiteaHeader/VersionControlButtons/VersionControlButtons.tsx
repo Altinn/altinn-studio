@@ -3,6 +3,7 @@ import classes from './VersionControlButtons.module.css';
 import { useRepoMetadataQuery, useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { FetchChangesPopover } from './components/FetchChangesPopover';
 import { ShareChangesPopover } from './components/ShareChangesPopover';
+import { BranchDropdown } from './components/BranchDropdown';
 import { VersionControlButtonsContextProvider } from './context';
 import { useGiteaHeaderContext } from '../context/GiteaHeaderContext';
 
@@ -26,6 +27,7 @@ export const VersionControlButtons = ({
       <div className={classes.headerStyling}>
         <FetchChangesPopover />
         <ShareChangesPopover />
+        <BranchDropdown />
       </div>
     </VersionControlButtonsContextProvider>
   );

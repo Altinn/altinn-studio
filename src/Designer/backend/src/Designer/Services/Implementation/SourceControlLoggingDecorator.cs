@@ -393,6 +393,48 @@ namespace Altinn.Studio.Designer.Services.Implementation
             LogError(ex, method, string.Empty, string.Empty);
         }
 
+        /// <inheritdoc/>
+        public CurrentBranchInfo GetCurrentBranch(string org, string repository)
+        {
+            try
+            {
+                return _decoratedService.GetCurrentBranch(org, repository);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "GetCurrentBranch", org, repository);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<RepoStatus> CheckoutBranchWithValidation(string org, string repository, string branchName)
+        {
+            try
+            {
+                return await _decoratedService.CheckoutBranchWithValidation(org, repository, branchName);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "CheckoutBranchWithValidation", org, repository, repository, branchName);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public RepoStatus DiscardLocalChanges(string org, string repository)
+        {
+            try
+            {
+                return _decoratedService.DiscardLocalChanges(org, repository);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "DiscardLocalChanges", org, repository);
+                throw;
+            }
+        }
+
         private void LogError(Exception ex, string method, string org, string repository)
         {
             LogError(ex, method, org, repository, repository, string.Empty);
