@@ -80,6 +80,35 @@ public abstract class BaseComponent
     }
 
     /// <summary>
+    /// Overridable method to determine if the component is hidden in the given context.
+    /// </summary>
+    public virtual async Task<bool> IsHidden(ComponentContext context)
+    {
+        var isHidden = await context.EvaluateExpression(Hidden);
+        return isHidden.ToBoolLoose(false);
+    }
+
+    /// <summary>
+    /// Overridable method to determine if the component is required in the given context.
+    /// </summary>
+    public virtual async Task<bool> IsRequired(ComponentContext context)
+    {
+        var isRequired = await context.EvaluateExpression(Required);
+        return isRequired.ToBoolLoose(false);
+    }
+
+    /// <summary>
+    /// Overridable method to determine if the component's data should be removed when hidden in the given context.
+    /// </summary>
+    public virtual async Task<bool> ShouldRemoveWhenHidden(ComponentContext context)
+    {
+        var removeWhenHidden = await context.EvaluateExpression(RemoveWhenHidden);
+        // The default return should match AppSettings.RemoveHiddenData,
+        // but currently we only run removal when it is true, so we set it to true here
+        return removeWhenHidden.ToBoolLoose(true);
+    }
+
+    /// <summary>
     /// Parse the Id property from a JsonElement
     /// </summary>
     protected static string ParseId(JsonElement componentElement)
@@ -114,39 +143,43 @@ public abstract class BaseComponent
     /// <summary>
     /// Helper method to parse an expression from a JSON element.
     /// </summary>
-    protected static Expression ParseExpression(JsonElement componentElement, string property)
+    protected static Expression ParseExpression(
+        JsonElement componentElement,
+        string property,
+        ExpressionValue defaultValue
+    )
     {
         if (componentElement.TryGetProperty(property, out var expressionElement))
         {
             return ExpressionConverter.ReadStatic(expressionElement);
         }
 
-        return new Expression(ExpressionValue.Undefined);
+        return new Expression(defaultValue);
     }
 
     /// <summary>
     /// Parses the 'required' expression from a JSON element.
     /// </summary>
     protected static Expression ParseRequiredExpression(JsonElement componentElement) =>
-        ParseExpression(componentElement, "required");
+        ParseExpression(componentElement, "required", ExpressionValue.False);
 
     /// <summary>
     /// Parses the 'readOnly' expression from a JSON element.
     /// </summary>
     protected static Expression ParseReadOnlyExpression(JsonElement componentElement) =>
-        ParseExpression(componentElement, "readOnly");
+        ParseExpression(componentElement, "readOnly", ExpressionValue.False);
 
     /// <summary>
     /// Parses the 'hidden' expression from a JSON element.
     /// </summary>
     protected static Expression ParseHiddenExpression(JsonElement componentElement) =>
-        ParseExpression(componentElement, "hidden");
+        ParseExpression(componentElement, "hidden", ExpressionValue.False);
 
     /// <summary>
     /// Parses the 'removeWhenHidden' expression from a JSON element.
     /// </summary>
     protected static Expression ParseRemoveWhenHiddenExpression(JsonElement componentElement) =>
-        ParseExpression(componentElement, "removeWhenHidden");
+        ParseExpression(componentElement, "removeWhenHidden", ExpressionValue.True);
 
     /// <summary>
     /// Parses the data model bindings from a JSON element.

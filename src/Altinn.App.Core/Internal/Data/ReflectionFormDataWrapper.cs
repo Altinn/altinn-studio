@@ -331,6 +331,12 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
         {
             // Remove row from list
             var propertyValue = property.GetValue(containingObject);
+            if (propertyValue is null)
+            {
+                // Trying to remove row from a property that is already null
+                return;
+            }
+
             if (propertyValue is not System.Collections.IList listValue)
             {
                 throw new ArgumentException(

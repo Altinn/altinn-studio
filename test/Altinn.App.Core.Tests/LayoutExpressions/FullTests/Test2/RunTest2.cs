@@ -46,9 +46,18 @@ public class RunTest2
 
         var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
         hidden
+            .Select(d => d.Field)
             .Should()
             .BeEquivalentTo([
-                new DataReference() { Field = "some.data", DataElementIdentifier = state.GetDefaultDataElementId() },
+                "some.data",
+                "some.data[0]",
+                "some.data[0].binding",
+                "some.data[0].binding2",
+                "some.data[0].binding3",
+                "some.data[1]",
+                "some.data[1].binding",
+                "some.data[1].binding2",
+                "some.data[1].binding3",
             ]);
 
         // Verify before removing data
@@ -82,15 +91,7 @@ public class RunTest2
         );
         var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
 
-        hidden
-            .Should()
-            .BeEquivalentTo([
-                new DataReference()
-                {
-                    Field = "some.data[1].binding2",
-                    DataElementIdentifier = state.GetDefaultDataElementId(),
-                },
-            ]);
+        hidden.Select(d => d.Field).Should().BeEquivalentTo(["some.data[1].binding2"]);
     }
 }
 
