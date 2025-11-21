@@ -7,13 +7,12 @@ import type {
   PolicySubject,
 } from '../../types';
 import { flatMapAreaPackageList } from '../../components/PolicyCardRules/PolicyRule/PolicyAccessPackages/policyAccessPackageUtils';
+import { findSubject } from '..';
 
 export const APP_SUBRESOURCE_DEFAULT_LIMITATIONS = {
   'urn:altinn:org': '[org]',
   'urn:altinn:app': '[app]',
 };
-export const SERVICE_OWNER_SUBJECT_CODE = '[org]';
-export const SERVICE_OWNER_SUBJECT_NAME = 'Tjenesteeier';
 
 /**
  * Get the display name for a subject
@@ -22,13 +21,7 @@ export const SERVICE_OWNER_SUBJECT_NAME = 'Tjenesteeier';
  * @returns The display name for the subject, or the subject itself if no display name is found
  */
 export const getSubjectDisplayName = (subject: string, allSubjects: PolicySubject[]): string => {
-  if (subject.toLowerCase() === SERVICE_OWNER_SUBJECT_CODE) {
-    return SERVICE_OWNER_SUBJECT_NAME;
-  }
-  return (
-    allSubjects.find((sub) => sub.subjectId.toLowerCase() === subject.toLowerCase())
-      ?.subjectTitle || subject
-  );
+  return findSubject(allSubjects, subject)?.name || subject;
 };
 
 /**
@@ -149,21 +142,19 @@ export const extractAllUniqueAccessPackages = (rules: PolicyRuleCard[]): string[
 
 /**
  * Get the display text key for a subject category
- * @param subject The subject to get the category text key for
- * @param subjects The list of all subjects
+ * @param subjectUrn The subject to get the category text key for
  * @returns The text key for the subject category
  */
-export const getSubjectCategoryTextKey = (
-  subject: string,
-  subjects: PolicySubject[],
-): string | undefined => {
-  const source = subjects.find(
-    (sub) => sub.subjectId.toLowerCase() === subject.toLowerCase(),
-  )?.subjectSource;
-  if (!source) {
-    return 'policy_editor.role_category.unknown';
+export const getSubjectCategoryTextKey = (subjectUrn: string): string | undefined => {
+  const s = subjectUrn.toLowerCase();
+  if (s.startsWith('urn:altinn:accesspackage')) {
+    return `policy_editor.role_category.access_package`;
+  } else if (s.startsWith('urn:altinn:rolecode')) {
+    return `policy_editor.role_category.altinn_rolecode`;
+  } else if (s.startsWith('urn:altinn:org')) {
+    return `policy_editor.role_category.altinn_org`;
   }
-  return `policy_editor.role_category.${source.replace(':', '_')}`;
+  return 'policy_editor.role_category.unknown';
 };
 
 /**
