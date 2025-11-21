@@ -60,6 +60,16 @@ jobs:
         with:
           fetch-depth: 0 # Shallow clone
 
+      - name: Set up Docker
+        uses: docker/setup-docker-action@efe9e3891a4f7307e689f2100b33a155b900a608 # v4.5.0
+        with:
+          daemon-config: |
+            {
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
+
       - name: set vars
         id: vars
         run: |
@@ -93,9 +103,9 @@ jobs:
       - name: docker build
         run: |
           set -e
-          docker build -t ${{ steps.vars.outputs.ghcr-image-proxy-repo }} -f Dockerfile.proxy . &
+          docker build --platform linux/amd64,linux/arm64 -t ${{ steps.vars.outputs.ghcr-image-proxy-repo }} -f Dockerfile.proxy . &
           PROXY_PID=$!
-          docker build -t ${{ steps.vars.outputs.ghcr-image-worker-repo }} -f Dockerfile.worker . &
+          docker build --platform linux/amd64,linux/arm64 -t ${{ steps.vars.outputs.ghcr-image-worker-repo }} -f Dockerfile.worker . &
           WORKER_PID=$!
           wait $PROXY_PID
           wait $WORKER_PID
