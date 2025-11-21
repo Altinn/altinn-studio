@@ -49,6 +49,7 @@ def initialize_documentation_search(verbose: bool = False):
     )
 )
 def planning_tool(
+    user_goal: str,
     query: str = "", 
     max_results: int = 3, 
     include_planning_context: bool = True, 
@@ -60,6 +61,7 @@ def planning_tool(
     Gives guidelines on how to structure plans and what tools to use.
     
     Args:
+        user_goal: The EXACT, VERBATIM user prompt or request - do not summarize or paraphrase (mandatory for tracing)
         query: Technical search query (preprocessed by MAS) with terms like
                "conditional rendering hidden expressions" or "RadioButtons datamodel bindings"
         max_results: Maximum number of documentation results to return (default: 3)

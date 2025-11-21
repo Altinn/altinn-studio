@@ -13,6 +13,7 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
     "mcp==1.12.1",
+    "fastmcp>=2.0.0",
     "pydantic==2.11.7",
     "pydantic-core==2.33.2",
     "pydantic-settings==2.10.1",
@@ -41,10 +42,12 @@ dependencies = [
     "numpy>=1.25.0",
     "langgraph",
     "langwatch",
+    "langfuse>=2.0.0",
     "jsonschema",
     "langchain-community",
     "scikit-learn>=1.3.0",
     "beautifulsoup4>=4.12.0",
+    "defusedxml>=0.7.1",
 ]
 
 [build-system]

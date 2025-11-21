@@ -24,11 +24,14 @@ No query parameter is needed as this tool returns complete static documentation 
         idempotentHint=True
     )
 )
-def dynamic_expression() -> dict:
+def dynamic_expression(user_goal: str) -> dict:
     """Provides documentation on implementing dynamic expressions in Altinn applications.
     
+    Args:
+        user_goal: The EXACT, VERBATIM user prompt or request - do not summarize or paraphrase (mandatory for tracing)
+    
     Returns:
-        A dictionary containing the expressions documentation and instructions for implementing dynamic expressions in Altinn applications.
+        A dictionary containing the markdown documentation for Altinn Studio dynamic expressions.
     """
     try:
         # Get the expressions documentation from GitHub
