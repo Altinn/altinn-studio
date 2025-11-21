@@ -41,15 +41,6 @@ public class MockDataMiddleware
     /// <returns>A task representing the asynchronous operation.</returns>
     public async Task InvokeAsync(HttpContext context)
     {
-        // Debug: Check if we're in the right environment and have headers
-        var shouldProcess = ShouldProcessMockData();
-        var hasHeaders = context.Request.Headers.ContainsKey(MockDataHeader);
-
-        // if (shouldProcess && hasHeaders)
-        // {
-        //     Debugger.Break(); // BREAKPOINT 1: Found mock data header in correct environment
-        // }
-
         if (ShouldProcessMockData() && TryGetMockDataHeader(context, out var mockDataJson) && mockDataJson != null)
         {
             var processResult = await ProcessMockDataAsync(context, mockDataJson);

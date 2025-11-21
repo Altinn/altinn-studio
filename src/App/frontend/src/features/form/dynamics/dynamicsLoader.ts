@@ -1,4 +1,5 @@
 import type { LoaderFunctionArgs } from 'react-router-dom';
+import { redirect } from 'react-router-dom';
 
 import type { QueryClient } from '@tanstack/react-query';
 
@@ -33,7 +34,7 @@ function clearExistingRules() {
 export async function dynamicsLoader({ params, context }: DynamicsLoaderProps): Promise<unknown> {
   const { application, layoutSets, instanceId } = context;
 
-  const { taskId } = params;
+  const { org, app, taskId } = params;
 
   const resolvedInstanceId = typeof instanceId === 'function' ? instanceId() : instanceId;
   const resolvedApplication = typeof application === 'function' ? application() : application;
@@ -49,7 +50,8 @@ export async function dynamicsLoader({ params, context }: DynamicsLoaderProps): 
 
   const layoutSetId = layoutSet?.id ?? null;
   if (!layoutSetId) {
-    throw new Error(`layout set id ${layoutSetId} not found in rule loader. This should not happen here.`);
+    // Redirect to error page when layout set is missing
+    throw redirect(`/${org}/${app}/error?errorType=unknown&showContactInfo=true`);
   }
 
   try {
@@ -65,6 +67,8 @@ export async function dynamicsLoader({ params, context }: DynamicsLoaderProps): 
   } catch (e) {
     // eslint-disable-next-line no-console
     console.log(e);
+    // Redirect to error page when rule handler fails
+    throw redirect(`/${org}/${app}/error?errorType=unknown&showContactInfo=true`);
   }
 }
 

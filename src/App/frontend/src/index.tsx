@@ -129,10 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             </InstanceProvider>
                           ),
                           children: [
-                            // {
-                            //   index: true,
-                            //   element: <NavigateToStartUrl />,
-                            // },
                             {
                               path: TaskKeys.ProcessEnd,
                               element: <DefaultReceipt />,

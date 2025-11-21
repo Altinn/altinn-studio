@@ -108,8 +108,6 @@ public class HomeController : Controller
         [FromQuery] bool forceNew = false
     )
     {
-        // var dings = Request.GetDisplayUrl().TrimEnd('/') + "/error?statusCode=403";
-        // Debugger.Break();
         // Use InitialDataService to get ALL data with mock integration
         var initialData = await _initialDataService.GetInitialData(org, app);
         ApplicationMetadata? application = initialData.ApplicationMetadata;

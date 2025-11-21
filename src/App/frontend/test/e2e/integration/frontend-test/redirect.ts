@@ -1,3 +1,4 @@
+import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
 const appFrontend = new AppFrontend();
@@ -29,13 +30,8 @@ describe('Redirect', () => {
       cy.url().should('include', 'statusCode=403');
       cy.url().should('include', 'showContactInfo=true');
 
-      // Verify error content is displayed
-      cy.get(appFrontend.altinnError).should('be.visible');
-      cy.get(appFrontend.altinnError).should('contain.text', 'Du kan ikke starte denne tjenesten');
-
-      // Verify contact info is shown
-      cy.get(appFrontend.altinnError).should('contain.text', 'brukerservice');
-
+      cy.get(appFrontend.instanceErrorCode).should('have.text', 'Feil 403');
+      cy.get(appFrontend.altinnError).should('contain.text', texts.missingRights);
       // Verify that the mutation was only called once (no retries)
       cy.get('@instantiate.all').should('have.length', 1);
     });
@@ -88,15 +84,13 @@ describe('Redirect', () => {
     });
   });
 
-  describe('Other error scenarios', () => {
-    it('User is redirected to unknown error page when API call fails', () => {
-      cy.allowFailureOnEnd();
-      cy.ignoreConsoleMessages([/AxiosError: Request failed with status code 401/]);
-      cy.intercept('GET', '**/api/**', {
-        statusCode: 401,
-      }).as('apiCall');
-      cy.startAppInstance(appFrontend.apps.frontendTest);
-      cy.get(appFrontend.instanceErrorCode).should('have.text', 'Ukjent feil');
-    });
+  it('User is redirected to unknown error page when API call fails', () => {
+    cy.allowFailureOnEnd();
+    cy.ignoreConsoleMessages([/Request failed with status code 401/]);
+    cy.intercept('GET', '**/api/**', {
+      statusCode: 401,
+    }).as('apiCall');
+    cy.startAppInstance(appFrontend.apps.frontendTest);
+    cy.get(appFrontend.instanceErrorCode).should('have.text', 'Ukjent feil');
   });
 });

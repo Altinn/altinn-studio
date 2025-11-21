@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
@@ -91,7 +90,6 @@ internal sealed class InitialDataService : IInitialDataService
         CancellationToken cancellationToken = default
     )
     {
-        // Debugger.Break();
         var response = new InitialDataResponse();
         var tasks = new List<Task>();
 
@@ -192,13 +190,9 @@ internal sealed class InitialDataService : IInitialDataService
     private async Task GetApplicationMetadata(InitialDataResponse response, CancellationToken cancellationToken)
     {
         response.ApplicationMetadata = await _appMetadata.GetApplicationMetadata();
-
-        // Debugger.Break();
-
         // Merge with mock data if available
         if (_mockDataHelper != null && response.ApplicationMetadata != null)
         {
-            // Debugger.Break();
             response.ApplicationMetadata = MergeWithMockData(
                 response.ApplicationMetadata,
                 "applicationMetadata",
