@@ -340,11 +340,6 @@ describe('Party selection', () => {
 
   it.only('Should be possible to select another party if instantiation fails, and go back to party selection and instantiate again', () => {
     cy.allowFailureOnEnd();
-    // cyMockResponses({
-    //   allowedToInstantiate: [invalidParty, CyPartyMocks.ExamplePerson1, CyPartyMocks.ExampleOrgWithSubUnit],
-    //   doNotPromptForParty: false,
-    // });
-
     const mockData = {
       userProfile: {
         profileSettingPreference: {
@@ -360,12 +355,23 @@ describe('Party selection', () => {
       req.headers['X-Mock-Data'] = JSON.stringify(mockData);
     });
 
-    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'accountant' });
+    // Intercept the POST request to instances endpoint to verify it returns 403
+    cy.intercept({
+      method: 'POST',
+      url: '**/instances?instanceOwnerPartyId=500000',
+      times: 1,
+    }).as('instantiationFailed');
 
-    // Select the first organisation. This is not allowed to instantiate in this app, so it will throw an error.
+    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'accountant' });
     cy.findAllByText(/org\.nr\. \d+/)
       .first()
       .click();
+
+    // // Wait for the response and verify it returns 403
+    cy.wait('@instantiationFailed').then((interception) => {
+      expect(interception.response?.statusCode).to.equal(403);
+    });
+
     cy.get(appFrontend.altinnError).should('contain.text', texts.missingRights);
 
     // Try again with another party

@@ -158,9 +158,6 @@ export function cyMockResponses(whatToMock: Mockable) {
             : // eslint-disable-next-line @typescript-eslint/no-explicit-any
               (whatToMock.allowedToInstantiate as any);
 
-        console.log(JSON.stringify(body, null, 2));
-        cy.pause();
-
         res.send(body);
       });
     });

@@ -114,8 +114,6 @@ public class HomeController : Controller
         var initialData = await _initialDataService.GetInitialData(org, app);
         ApplicationMetadata? application = initialData.ApplicationMetadata;
 
-        // Debugger.Break();
-
         if (application != null && IsStatelessApp(application) && await AllowAnonymous())
         {
             var statelessApphtml = GenerateHtml(org, app, initialData);
@@ -143,6 +141,12 @@ public class HomeController : Controller
         }
 
         var realDetails = await auth.LoadDetails(validateSelectedParty: false);
+
+        if (forceNew)
+        {
+            Debugger.Break();
+        }
+
         var details = MergeDetailsWithMockData(realDetails);
 
         // Debugger.Break();
@@ -157,9 +161,18 @@ public class HomeController : Controller
             return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/error?statusCode=403");
         }
 
-        Debugger.Break();
+        //Debugger.Break();
 
         // Correctly overrides the profile doNotPromptForPartyPreference when doNotPromptForPartyPreference=false and appPromptForPartyOverride=never
+
+        string layoutSetsString = _appResources.GetLayoutSets();
+        string layoutSetsJson = string.IsNullOrEmpty(layoutSetsString) ? "null" : layoutSetsString;
+        var html = GenerateInstanceCreationHtml(org, app, details.SelectedParty.PartyId, layoutSetsJson);
+        if (forceNew)
+        {
+            Debugger.Break();
+            return Content(html, "text/html; charset=utf-8");
+        }
 
         if (details.PartiesAllowedToInstantiate.Count > 1 && !skipPartySelection && application != null)
         {
@@ -172,7 +185,7 @@ public class HomeController : Controller
             // {
             //     return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/party-selection/explained");
             // }
-            Debugger.Break();
+            //Debugger.Break();
             initialData = await _initialDataService.GetInitialData(org, app);
 
             if (!details.Profile.ProfileSettingPreference.DoNotPromptForParty)
@@ -207,39 +220,37 @@ public class HomeController : Controller
 
         Instance? mostRecentInstance = instances.OrderByDescending(i => i.LastChanged).FirstOrDefault();
 
-        if (mostRecentInstance == null || forceNew)
-        {
-            // Get layoutSets for instance creation
-            string layoutSetsString = _appResources.GetLayoutSets();
-            string layoutSetsJson = string.IsNullOrEmpty(layoutSetsString) ? "null" : layoutSetsString;
-
-            var html = GenerateInstanceCreationHtml(org, app, details.UserParty.PartyId, layoutSetsJson);
-            return Content(html, "text/html; charset=utf-8");
-        }
+        // Get layoutSets for instance creation
 
         // if (instances.Count > 1 && application.OnEntry?.Show == "select-instance")
-        if (application?.OnEntry?.Show == "select-instance")
+        if (instances.Count > 1 && application.OnEntry?.Show == "select-instance")
         {
             return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/instance-selection");
         }
 
-        var currentTask = mostRecentInstance.Process.CurrentTask;
-        var layoutSet = _appResources.GetLayoutSetForTask(currentTask.ElementId);
-        string? firstPageId = null;
+        // string layoutSetsString = _appResources.GetLayoutSets();
+        // string layoutSetsJson = string.IsNullOrEmpty(layoutSetsString) ? "null" : layoutSetsString;
 
-        if (layoutSet != null)
-        {
-            var layoutSettings = _appResources.GetLayoutSettingsForSet(layoutSet.Id);
-            if (layoutSettings?.Pages?.Order != null && layoutSettings.Pages.Order.Count > 0)
-            {
-                firstPageId = layoutSettings.Pages.Order[0];
-            }
-        }
+        // var html = GenerateInstanceCreationHtml(org, app, details.UserParty.PartyId, layoutSetsJson);
+        return Content(html, "text/html; charset=utf-8");
 
-        string redirectUrl =
-            $"{Request.GetDisplayUrl().TrimEnd('/')}/instance/{mostRecentInstance.Id}/{currentTask.ElementId}/{firstPageId}";
-
-        return Redirect(redirectUrl);
+        // var currentTask = mostRecentInstance.Process.CurrentTask;
+        // var layoutSet = _appResources.GetLayoutSetForTask(currentTask.ElementId);
+        // string? firstPageId = null;
+        //
+        // if (layoutSet != null)
+        // {
+        //     var layoutSettings = _appResources.GetLayoutSettingsForSet(layoutSet.Id);
+        //     if (layoutSettings?.Pages?.Order != null && layoutSettings.Pages.Order.Count > 0)
+        //     {
+        //         firstPageId = layoutSettings.Pages.Order[0];
+        //     }
+        // }
+        //
+        // string redirectUrl =
+        //     $"{Request.GetDisplayUrl().TrimEnd('/')}/instance/{mostRecentInstance.Id}/{currentTask.ElementId}/{firstPageId}";
+        //
+        // return Redirect(redirectUrl);
     }
 
     /// <summary>
@@ -298,7 +309,7 @@ public class HomeController : Controller
         [FromRoute] string errorCode
     )
     {
-        Debugger.Break();
+        //   Debugger.Break();
         return await PartySelection(org, app);
     }
 
@@ -1016,8 +1027,6 @@ public class HomeController : Controller
                           }
                         });
 
-                        debugger;
-
                         if (!response.ok) {
                           const contentType = response.headers.get('content-type');
                           let errorDetail;
@@ -1060,8 +1069,7 @@ public class HomeController : Controller
 
                         const redirectUrl = '/{{org}}/{{app}}/instance/' + partyId + '/' + instanceGuid + '/' + taskId + '/' + (firstPageId || '');
                         console.log("redirectUrl", redirectUrl);
-                        debugger;
-                        window.location.href = redirectUrl;
+                        // window.location.href = redirectUrl;
 
                       } catch (error) {
                         console.error('Error creating instance:', error);
@@ -1069,10 +1077,6 @@ public class HomeController : Controller
                           errorType: 'network_error',
                           showContactInfo: 'false'
                         });
-
-
-                        debugger;
-
                         window.location.href = '/{{org}}/{{app}}/error?' + errorParams.toString();
                       }
                     })();
@@ -1219,7 +1223,7 @@ public class HomeController : Controller
             // Handle userProfile mock data merge
             if (mockData.TryGetValue("userProfile", out var userProfileMock))
             {
-                Debugger.Break();
+                // Debugger.Break();
                 Console.WriteLine($"=== MOCK DATA DEBUG ===");
                 Console.WriteLine($"Found userProfile mock data: {JsonSerializer.Serialize(userProfileMock)}");
                 Console.WriteLine(
@@ -1235,7 +1239,7 @@ public class HomeController : Controller
                 Console.WriteLine($"=== END MOCK DATA DEBUG ===");
 
                 result = result with { Profile = mergedProfile };
-                Debugger.Break();
+                // Debugger.Break();
             }
 
             // Handle party ID overrides using the merged parties list
