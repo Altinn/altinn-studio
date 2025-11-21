@@ -10,8 +10,8 @@ import type { ILayoutSets } from 'src/layout/common.generated';
 import type { CompExternal, ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { LooseAutocomplete } from 'src/types';
 
-export type FrontendTestTask = 'message' | 'changename' | 'group' | 'likert' | 'datalist' | 'confirm';
-export type FillableFrontendTasks = Exclude<FrontendTestTask, 'message' | 'confirm'>;
+export type FrontendTestTask = 'message' | 'changename' | 'group' | 'likert' | 'datalist';
+export type FillableFrontendTasks = Exclude<FrontendTestTask, 'message'>;
 
 export type StartAppInstanceOptions = {
   // User to log in as

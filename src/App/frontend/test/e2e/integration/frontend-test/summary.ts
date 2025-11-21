@@ -470,25 +470,32 @@ describe('Summary', () => {
       cy.findByRole('button', { name: 'Tilbake til oppsummering' }).should('exist');
       cy.gotoNavPage('lastPage');
       cy.get('#some-required-component').should('exist');
+
       assertErrorReport();
+
       cy.findByRole('button', { name: 'Tilbake til oppsummering' }).should('not.exist');
       cy.gotoNavPage('summary');
       cy.get(exampleSummary).should('exist');
+
       assertErrorReport();
       cy.get(`${exampleSummary} button`).click();
       cy.get(appFrontend.changeOfName.newFirstName).should('exist');
+
       assertErrorReport();
       cy.findByRole('button', { name: 'Tilbake til oppsummering' }).click();
       cy.findByRole('button', { name: 'Tilbake til oppsummering' }).should('not.exist');
       cy.get(exampleSummary).should('exist');
+
       assertErrorReport();
       cy.gotoNavPage('lastPage');
       cy.get('#some-required-component').should('exist');
       cy.findByRole('button', { name: 'Tilbake til oppsummering' }).should('not.exist');
       cy.gotoNavPage('summary');
       cy.get(exampleSummary).should('exist');
+
       assertErrorReport();
       cy.findByRole('button', { name: 'Forrige' }).click();
+
       assertErrorReport();
       cy.gotoNavPage('summary');
       cy.get(exampleSummary).should('exist');
