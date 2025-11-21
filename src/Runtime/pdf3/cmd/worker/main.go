@@ -8,13 +8,17 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
 	"altinn.studio/pdf3/internal/assert"
+	"altinn.studio/pdf3/internal/config"
 	"altinn.studio/pdf3/internal/generator"
+	ihttp "altinn.studio/pdf3/internal/http"
 	"altinn.studio/pdf3/internal/log"
-	"altinn.studio/pdf3/internal/runtime"
+	iruntime "altinn.studio/pdf3/internal/runtime"
+	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
 )
@@ -27,9 +31,18 @@ var (
 func main() {
 	baseLogger := log.NewComponent("worker")
 
-	host := runtime.NewHost(
+	baseLogger.Info("Starting", "GOMAXPROCS", runtime.GOMAXPROCS(0), "NumCPU", runtime.NumCPU())
+
+	// Initialize telemetry with Prometheus exporter
+	tel, err := telemetry.New("pdf3-worker")
+	if err != nil {
+		baseLogger.Error("Failed to initialize telemetry", "error", err)
+		os.Exit(1)
+	}
+
+	host := iruntime.NewHost(
 		5*time.Second,
-		50*time.Second,
+		45*time.Second,
 		3*time.Second,
 	)
 	defer host.Stop()
@@ -39,9 +52,9 @@ func main() {
 
 	workerId = hostname
 
-	// Get pod IP from environment variable (set by Kubernetes downward API)
-	workerIP = os.Getenv("POD_IP")
-	assert.AssertWithMessage(workerIP != "", "Worker IP should always be configured", "worker_id", workerId)
+	workerIP, err = discoverLocalIP()
+	assert.AssertWithMessage(err == nil, "Failed to discover local IP", "error", err)
+	assert.AssertWithMessage(workerIP != "", "Worker IP should be available", "worker_id", workerId)
 
 	// Create logger with worker context
 	logger := baseLogger.With("worker_id", workerId, "worker_ip", workerIP)
@@ -89,10 +102,18 @@ func main() {
 		}
 	})
 
-	http.HandleFunc("/generate", generatePdfHandler(logger, gen))
+	cfg := config.ReadConfig()
+	// The localtest harness will run on all dev machines
+	// We can avoid some overhead by just running the single container
+	if cfg.Environment == "localtest" {
+		http.Handle("/pdf", tel.WrapHandler("POST /pdf", generateLocalPdfHandler(logger, gen)))
+	} else {
+		http.Handle("/generate", tel.WrapHandler("POST /generate", generatePdfHandler(logger, gen)))
+	}
+	http.Handle("/metrics", tel.Handler())
 
 	// Only register test output endpoint in test internals mode
-	if runtime.IsTestInternalsMode {
+	if iruntime.IsTestInternalsMode {
 		http.HandleFunc("/testoutput/", getTestOutputHandler(logger))
 	}
 
@@ -123,7 +144,115 @@ func main() {
 		logger.Info("Gracefully shut down HTTP server")
 	}
 
+	// Shutdown telemetry to flush pending metrics
+	logger.Info("Shutting down telemetry")
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := tel.Close(shutdownCtx); err != nil {
+		logger.Warn("Failed to gracefully shut down telemetry", "error", err)
+	}
+
 	logger.Info("Server shut down gracefully")
+}
+
+func generateLocalPdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.HandlerFunc {
+	assert.AssertWithMessage(!iruntime.IsTestInternalsMode, "Localtest env should not run internals test mode")
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			ihttp.WriteProblemDetails(logger, w, http.StatusMethodNotAllowed, ihttp.ProblemDetails{
+				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.5",
+				Title:  "Method Not Allowed",
+				Status: http.StatusMethodNotAllowed,
+				Detail: "Only POST method is allowed",
+			})
+			return
+		}
+
+		ct := strings.ToLower(r.Header.Get("Content-Type"))
+		if !strings.HasPrefix(ct, "application/json") {
+			ihttp.WriteProblemDetails(logger, w, http.StatusUnsupportedMediaType, ihttp.ProblemDetails{
+				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.13",
+				Title:  "Unsupported Media Type",
+				Status: http.StatusUnsupportedMediaType,
+				Detail: "Content-Type must be application/json",
+			})
+			return
+		}
+		const maxBodySize = 1024 * 64 // 64K should be plenty for the JSON request
+		if r.ContentLength > maxBodySize {
+			ihttp.WriteProblemDetails(logger, w, http.StatusRequestEntityTooLarge, ihttp.ProblemDetails{
+				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.11",
+				Title:  "Request Entity Too Large",
+				Status: http.StatusRequestEntityTooLarge,
+				Detail: fmt.Sprintf("Request body too large (max %d bytes)", maxBodySize),
+			})
+			return
+		}
+
+		r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
+		defer func() { _ = r.Body.Close() }()
+
+		var req types.PdfRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			ihttp.WriteProblemDetails(logger, w, http.StatusBadRequest, ihttp.ProblemDetails{
+				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+				Title:  "Bad Request",
+				Status: http.StatusBadRequest,
+				Detail: fmt.Sprintf("Invalid JSON payload: %v", err),
+			})
+			return
+		}
+
+		logger = logger.With("url", req.URL)
+
+		if err := req.Validate(); err != nil {
+			ihttp.WriteProblemDetails(logger, w, http.StatusBadRequest, ihttp.ProblemDetails{
+				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+				Title:  "Bad Request",
+				Status: http.StatusBadRequest,
+				Detail: fmt.Sprintf("Validation error: %v", err),
+			})
+			return
+		}
+
+		requestContext := r.Context()
+		result, pdfErr := gen.Generate(requestContext, req)
+
+		if pdfErr != nil {
+			errStr := pdfErr.Error()
+			errorCode := http.StatusInternalServerError
+
+			problemType := "https://tools.ietf.org/html/rfc7231#section-6.6.1"
+			problemTitle := "Internal Server Error"
+			if pdfErr.Is(types.ErrQueueFull) {
+				problemType = "https://tools.ietf.org/html/rfc6585#section-4"
+				problemTitle = "Too Many Requests"
+				errorCode = http.StatusTooManyRequests
+			}
+
+			ihttp.WriteProblemDetails(logger, w, errorCode, ihttp.ProblemDetails{
+				Type:   problemType,
+				Title:  problemTitle,
+				Status: errorCode,
+				Detail: errStr,
+			})
+			logger.Error(
+				"Error during generation",
+				"status_code", errorCode,
+				"detail", errStr,
+			)
+			return
+		}
+
+		// Success - return PDF bytes
+		w.Header().Set("Content-Type", "application/pdf")
+
+		w.WriteHeader(http.StatusOK)
+		if _, err := w.Write(result.Data); err != nil {
+			logger.Error("Failed to write PDF response", "error", err)
+		}
+	}
 }
 
 func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.HandlerFunc {
@@ -147,7 +276,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 			}
 			return
 		}
-		if !runtime.IsTestInternalsMode && r.Header.Get(testing.TestInputHeaderName) != "" {
+		if !iruntime.IsTestInternalsMode && r.Header.Get(testing.TestInputHeaderName) != "" {
 			w.WriteHeader(http.StatusBadRequest)
 			if _, err := w.Write([]byte("Illegal internals test mode header")); err != nil {
 				logger.Error("Failed to write error response", "error", err)
@@ -169,7 +298,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 		logger = logger.With("url", req.URL)
 
 		requestContext := r.Context()
-		if runtime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
+		if iruntime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
 			testInput := &testing.PdfInternalsTestInput{}
 			testInput.Deserialize(r.Header)
 			testOutput := testing.NewTestOutput(testInput)
@@ -204,9 +333,28 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 	}
 }
 
+// discoverLocalIP finds the first non-loopback IPv4 address on this host.
+// This works in both Kubernetes and regular containers.
+func discoverLocalIP() (string, error) {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return "", err
+	}
+
+	for _, addr := range addrs {
+		if ipNet, ok := addr.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
+			if ipNet.IP.To4() != nil {
+				return ipNet.IP.String(), nil
+			}
+		}
+	}
+
+	return "", fmt.Errorf("no non-loopback IPv4 address found")
+}
+
 func getTestOutputHandler(logger *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		assert.AssertWithMessage(runtime.IsTestInternalsMode, "Test output handler should only be registered in test internals mode")
+		assert.AssertWithMessage(iruntime.IsTestInternalsMode, "Test output handler should only be registered in test internals mode")
 
 		if r.Method != http.MethodGet {
 			w.WriteHeader(http.StatusMethodNotAllowed)

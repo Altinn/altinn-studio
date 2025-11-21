@@ -355,10 +355,9 @@ describe('Expressions shared function tests', () => {
           const data = codeLists[codeListId];
           return { data } as AxiosResponse<IRawOption[], unknown>;
         },
-        fetchDataModelSchema: async () => {
+        fetchDataModelSchema: async () =>
           // Return empty schema for all valid data types
-          return { type: 'object', properties: {} };
-        },
+          ({ type: 'object', properties: {} }),
       };
 
       const { rerender } = stateless

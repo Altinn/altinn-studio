@@ -22,6 +22,7 @@ import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import type {
   doProcessNext,
+  doUpdateAttachmentTags,
   fetchApplicationMetadata,
   fetchInstanceData,
   fetchProcessState,
@@ -99,11 +100,7 @@ window.AltinnAppData = {
   layoutSets: getLayoutSetsMock(),
   applicationMetadata: getIncomingApplicationMetadataMock(),
   footerLayout: null,
-  appLanguages: [
-    { language: 'nb' },
-    { language: 'nn' },
-    { language: 'en' },
-  ],
+  appLanguages: [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
   textResources: {
     language: 'nb',
     resources: getTextResourcesMock(),
@@ -150,4 +147,7 @@ jest.mock('src/queries/queries', () => ({
   doProcessNext: jest.fn<typeof doProcessNext>(async () => ({ data: getProcessDataMock() }) as AxiosResponse<IProcess>),
   fetchUserProfile: jest.fn<typeof fetchUserProfile>(async () => getProfileMock()),
   fetchInstanceData: jest.fn<typeof fetchInstanceData>(async () => getInstanceDataMock()),
+  doUpdateAttachmentTags: jest.fn<typeof doUpdateAttachmentTags>(async ({ setTagsRequest }) => ({
+    tags: setTagsRequest.tags,
+  })),
 }));

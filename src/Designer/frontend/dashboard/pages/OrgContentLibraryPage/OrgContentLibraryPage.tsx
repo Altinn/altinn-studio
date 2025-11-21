@@ -5,6 +5,7 @@ import type {
   CodeListWithMetadata,
   PagesConfig,
   TextResourceWithLanguage,
+  CodeListData,
 } from '@studio/content-library';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import {
@@ -26,6 +27,7 @@ import type { AxiosError } from 'axios';
 import { useDeleteOrgCodeListMutation } from 'app-shared/hooks/mutations/useDeleteOrgCodeListMutation';
 import {
   backendCodeListsToLibraryCodeLists,
+  libraryCodeListsToUpdatePayload,
   textResourcesWithLanguageToLibraryTextResources,
   textResourceWithLanguageToMutationArgs,
 } from './utils';
@@ -46,6 +48,7 @@ import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import { useOrgCodeListsNewQuery } from 'app-shared/hooks/queries/useOrgCodeListsNewQuery';
 import type { CodeListsNewResponse } from 'app-shared/types/api/CodeListsNewResponse';
+import { useOrgCodeListsMutation } from 'app-shared/hooks/mutations/useOrgCodeListsMutation';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -200,8 +203,24 @@ function usePagesFromFeatureFlags(orgName: string): Partial<PagesConfig> {
 
 function useCodeListsProps(orgName: string): PagesConfig['codeLists']['props'] {
   const { data } = useOrgCodeListsNewQuery(orgName);
+  const { mutate } = useOrgCodeListsMutation(orgName);
+  const { t } = useTranslation();
+
   const libraryCodeLists = backendCodeListsToLibraryCodeLists(data);
-  return { codeLists: libraryCodeLists };
+
+  const handleSave = useCallback(
+    (codeListDataList: CodeListData[]): void => {
+      const payload = libraryCodeListsToUpdatePayload(
+        data,
+        codeListDataList,
+        t('org_content_library.code_lists.commit_message_default'),
+      );
+      mutate(payload);
+    },
+    [data, mutate, t],
+  );
+
+  return { codeLists: libraryCodeLists, onSave: handleSave };
 }
 
 function ContextWithoutLibraryAccess(): ReactElement {

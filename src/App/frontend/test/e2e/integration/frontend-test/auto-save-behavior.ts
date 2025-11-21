@@ -9,7 +9,7 @@ type ReqCounter = { count: number };
 describe('Auto save behavior', () => {
   it('onChangeFormData: Should save form data when interacting with form element(checkbox) but not on navigation', () => {
     cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangeFormData' });
-    cy.intercept('PATCH', '**/data/**').as('saveFormData');
+    cy.intercept('PATCH', '**/data?language=*').as('saveFormData');
 
     cy.goto('group');
 
@@ -30,7 +30,7 @@ describe('Auto save behavior', () => {
 
   it('onChangePage: Should not save form when interacting with form element(checkbox), but should save on navigating between pages', () => {
     cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangePage' });
-    cy.intercept('PATCH', '**/data/**').as('saveFormData');
+    cy.intercept('PATCH', '**/data?language=*').as('saveFormData');
     cy.goto('group');
 
     cy.findByRole('checkbox', { name: appFrontend.group.prefill.liten }).check();
@@ -98,7 +98,7 @@ describe('Auto save behavior', () => {
         }
       });
 
-      cy.intercept('PATCH', '**/data/**').as('saveFormData');
+      cy.intercept('PATCH', '**/data?language=*').as('saveFormData');
       cy.goto('changename');
 
       // The newFirstName field has a trigger for single field validation, and it should cause a very specific error
@@ -168,7 +168,7 @@ describe('Auto save behavior', () => {
         }
       });
 
-      cy.intercept('PATCH', '**/data/**').as('saveFormData');
+      cy.intercept('PATCH', '**/data?language=*').as('saveFormData');
       cy.goto('changename');
 
       // The newFirstName field has a trigger for single field validation, and it should cause a very specific error
@@ -230,7 +230,7 @@ describe('Auto save behavior', () => {
   it('new list items from the backend should never trigger runaway saving', () => {
     cy.wrap<ReqCounter>({ count: 0 }).as('formDataReq');
     cy.get<ReqCounter>('@formDataReq').then((formDataReq) => {
-      cy.intercept('PATCH', '**/data/**', () => {
+      cy.intercept('PATCH', '**/data?language=*', () => {
         formDataReq.count++;
       }).as('saveFormData');
     });

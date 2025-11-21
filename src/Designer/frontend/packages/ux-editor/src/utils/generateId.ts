@@ -4,12 +4,23 @@ import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import { containerComponentTypes } from '../data/containerComponentTypes';
 
-export const generateTextResourceId = (
-  layoutName: string,
-  componentId: string,
-  textKey: string,
-) => {
-  return `${layoutName}.${componentId}.${textKey}`;
+type GenerateTextResourceIdProps = {
+  layoutId: string;
+  componentId: string;
+  textKey: string;
+  suffix?: string;
+};
+
+export const generateTextResourceId = ({
+  layoutId,
+  componentId,
+  textKey,
+  suffix,
+}: GenerateTextResourceIdProps) => {
+  if (!suffix) {
+    return `${layoutId}.${componentId}.${textKey}`;
+  }
+  return `${layoutId}.${componentId}.${textKey}.${suffix}`;
 };
 
 export const generateComponentId = (componentType: ComponentType, layouts: IFormLayouts) => {

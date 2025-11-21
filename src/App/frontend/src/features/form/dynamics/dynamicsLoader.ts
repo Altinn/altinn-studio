@@ -2,22 +2,19 @@ import type { LoaderFunctionArgs } from 'react-router-dom';
 
 import type { QueryClient } from '@tanstack/react-query';
 
+import { processApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { getCurrentLayoutSet } from 'src/features/applicationMetadata/appMetadataUtils';
 import { fetchRuleHandler } from 'src/queries/queries';
 import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { ILayoutSets } from 'src/layout/common.generated';
-// import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
-// import type { LayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 
-export interface DynamicsLoaderContext {
-  queryClient: QueryClient;
-  application?: IncomingApplicationMetadata | (() => IncomingApplicationMetadata | undefined);
-  layoutSets?: ILayoutSets | (() => ILayoutSets | undefined);
-}
-
-export interface DynamicsLoaderData {
-  layoutSetId: string | null;
-  preloaded: boolean;
+interface DynamicsLoaderProps extends LoaderFunctionArgs {
+  context: {
+    queryClient: QueryClient;
+    application?: IncomingApplicationMetadata | (() => IncomingApplicationMetadata | undefined);
+    layoutSets?: ILayoutSets | (() => ILayoutSets | undefined);
+    instanceId: string | (() => string | undefined);
+  };
 }
 
 const RULES_SCRIPT_ID = 'rules-script';
@@ -33,22 +30,22 @@ function clearExistingRules() {
  * React Router loader for prefetching form dynamics data.
  * This works alongside the existing DynamicsContext to provide instant data availability.
  */
-export async function dynamicsLoader({
-  params,
-  context,
-}: LoaderFunctionArgs & { context: DynamicsLoaderContext }): Promise<any> {
-  const { application, layoutSets } = context;
+export async function dynamicsLoader({ params, context }: DynamicsLoaderProps): Promise<unknown> {
+  const { application, layoutSets, instanceId } = context;
 
   const { taskId } = params;
 
+  const resolvedInstanceId = typeof instanceId === 'function' ? instanceId() : instanceId;
   const resolvedApplication = typeof application === 'function' ? application() : application;
   const resolvedLayoutSets = typeof layoutSets === 'function' ? layoutSets() : layoutSets;
 
-  const layoutSet = getCurrentLayoutSet({
-    application: resolvedApplication,
-    layoutSets: resolvedLayoutSets?.sets ?? [],
-    taskId,
-  });
+  const layoutSet = resolvedApplication
+    ? getCurrentLayoutSet({
+        application: processApplicationMetadata(resolvedInstanceId, resolvedApplication),
+        layoutSets: resolvedLayoutSets?.sets ?? [],
+        taskId,
+      })
+    : undefined;
 
   const layoutSetId = layoutSet?.id ?? null;
   if (!layoutSetId) {
@@ -66,6 +63,7 @@ export async function dynamicsLoader({
     }
     return {};
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.log(e);
   }
 }
@@ -74,6 +72,6 @@ export async function dynamicsLoader({
  * Helper function to create the loader with access to the required context.
  * Use this in your router configuration.
  */
-export function createDynamicsLoader(context: DynamicsLoaderContext) {
+export function createDynamicsLoader(context: DynamicsLoaderProps['context']) {
   return (args: LoaderFunctionArgs) => dynamicsLoader({ ...args, context });
 }

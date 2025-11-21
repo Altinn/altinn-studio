@@ -23,10 +23,7 @@ describe('AltinnConfirmDialog', () => {
   });
 
   it('should show the dialog when open', async () => {
-    await render();
-
-    const dialog = screen.getByRole('dialog');
-    expect(dialog).toBeInTheDocument();
+    await render({ open: true });
 
     const text = await screen.findByText(descriptionTextMock);
     expect(text).toBeInTheDocument();

@@ -44,10 +44,8 @@ export const AppQueriesProvider = ({
   }
 
   // Preload application metadata into query cache from window data
-  if (window.AltinnAppData?.applicationMetadata) {
-    if (!queryClient.getQueryData(['fetchApplicationMetadata'])) {
-      queryClient.setQueryData(['fetchApplicationMetadata'], window.AltinnAppData.applicationMetadata);
-    }
+  if (window.AltinnAppData?.applicationMetadata && !queryClient.getQueryData(['fetchApplicationMetadata'])) {
+    queryClient.setQueryData(['fetchApplicationMetadata'], window.AltinnAppData.applicationMetadata);
   }
 
   // Lets us access the query client from the console, and inject data into the cache (for example for use in

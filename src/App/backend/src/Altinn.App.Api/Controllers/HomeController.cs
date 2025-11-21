@@ -142,10 +142,6 @@ public class HomeController : Controller
 
         var realDetails = await auth.LoadDetails(validateSelectedParty: false);
 
-        if (forceNew)
-        {
-            Debugger.Break();
-        }
 
         var details = MergeDetailsWithMockData(realDetails);
 
@@ -160,10 +156,6 @@ public class HomeController : Controller
         {
             return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/error?statusCode=403");
         }
-
-        //Debugger.Break();
-
-        // Correctly overrides the profile doNotPromptForPartyPreference when doNotPromptForPartyPreference=false and appPromptForPartyOverride=never
 
         string layoutSetsString = _appResources.GetLayoutSets();
         string layoutSetsJson = string.IsNullOrEmpty(layoutSetsString) ? "null" : layoutSetsString;
@@ -180,26 +172,10 @@ public class HomeController : Controller
             {
                 return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/party-selection/explained");
             }
-
-            //if (application.PromptForParty == "always")
-            // {
-            //     return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/party-selection/explained");
-            // }
-            //Debugger.Break();
-            initialData = await _initialDataService.GetInitialData(org, app);
-
             if (!details.Profile.ProfileSettingPreference.DoNotPromptForParty)
             {
                 return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/party-selection/explained");
             }
-
-            // application.PromptForParty != "never" &&
-
-            //Debugger.Break();
-
-            // Prompts for party when doNotPromptForParty = false, on instantiation with multiple possible parties
-
-            //return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/party-selection/explained");
         }
 
         if (application != null && IsStatelessApp(application))
@@ -218,39 +194,12 @@ public class HomeController : Controller
 
         var instances = await GetInstancesForParty(org, app, details.UserParty.PartyId);
 
-        Instance? mostRecentInstance = instances.OrderByDescending(i => i.LastChanged).FirstOrDefault();
-
-        // Get layoutSets for instance creation
-
-        // if (instances.Count > 1 && application.OnEntry?.Show == "select-instance")
         if (instances.Count > 1 && application.OnEntry?.Show == "select-instance")
         {
             return Redirect(Request.GetDisplayUrl().TrimEnd('/') + "/instance-selection");
         }
 
-        // string layoutSetsString = _appResources.GetLayoutSets();
-        // string layoutSetsJson = string.IsNullOrEmpty(layoutSetsString) ? "null" : layoutSetsString;
-
-        // var html = GenerateInstanceCreationHtml(org, app, details.UserParty.PartyId, layoutSetsJson);
         return Content(html, "text/html; charset=utf-8");
-
-        // var currentTask = mostRecentInstance.Process.CurrentTask;
-        // var layoutSet = _appResources.GetLayoutSetForTask(currentTask.ElementId);
-        // string? firstPageId = null;
-        //
-        // if (layoutSet != null)
-        // {
-        //     var layoutSettings = _appResources.GetLayoutSettingsForSet(layoutSet.Id);
-        //     if (layoutSettings?.Pages?.Order != null && layoutSettings.Pages.Order.Count > 0)
-        //     {
-        //         firstPageId = layoutSettings.Pages.Order[0];
-        //     }
-        // }
-        //
-        // string redirectUrl =
-        //     $"{Request.GetDisplayUrl().TrimEnd('/')}/instance/{mostRecentInstance.Id}/{currentTask.ElementId}/{firstPageId}";
-        //
-        // return Redirect(redirectUrl);
     }
 
     /// <summary>
@@ -270,13 +219,8 @@ public class HomeController : Controller
 
         var realDetails = await auth.LoadDetails(validateSelectedParty: false);
         var details = MergeDetailsWithMockData(realDetails);
-        // var application = await _appMetadata.GetApplicationMetadata();
-
         var initialData = await _initialDataService.GetInitialData(org, app);
-
         var application = initialData.ApplicationMetadata;
-
-        // Debugger.Break();
 
         string layoutSetsString = _appResources.GetLayoutSets();
         LayoutSets? layoutSets = null;
@@ -292,8 +236,6 @@ public class HomeController : Controller
             partiesAllowedToInstantiate = details.PartiesAllowedToInstantiate,
             layoutSets,
         };
-        var dataJson = JsonSerializer.Serialize(data, _jsonSerializerOptions);
-        //var html = GenerateHtmlWithInstances(org, app, dataJson);
         var html = GenerateHtml(org, app, initialData);
         return Content(html, "text/html; charset=utf-8");
     }
@@ -309,7 +251,6 @@ public class HomeController : Controller
         [FromRoute] string errorCode
     )
     {
-        //   Debugger.Break();
         return await PartySelection(org, app);
     }
 
@@ -1068,9 +1009,7 @@ public class HomeController : Controller
                         }
 
                         const redirectUrl = '/{{org}}/{{app}}/instance/' + partyId + '/' + instanceGuid + '/' + taskId + '/' + (firstPageId || '');
-                        console.log("redirectUrl", redirectUrl);
-                        // window.location.href = redirectUrl;
-
+                        window.location.href = redirectUrl;
                       } catch (error) {
                         console.error('Error creating instance:', error);
                         const errorParams = new URLSearchParams({

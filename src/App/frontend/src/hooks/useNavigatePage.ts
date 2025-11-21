@@ -236,7 +236,7 @@ export function useNavigatePage() {
       }
       return orderRef.current.includes(pageId) ?? false;
     },
-    [getTaskType, navParams, orderRef, taskId],
+    [getTaskType, orderRef, taskId],
   );
 
   /**

@@ -25,7 +25,6 @@ import { ComponentRouting, NavigateToStartUrl, ProcessWrapper } from 'src/compon
 import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { ProcessingProvider } from 'src/core/contexts/processingContext';
-import { DisplayErrorProvider } from 'src/core/errorHandling/DisplayErrorProvider';
 import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { VersionErrorOrChildren } from 'src/features/applicationMetadata/VersionErrorOrChildren';
 import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
@@ -48,7 +47,6 @@ import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import { FixWrongReceiptType } from 'src/features/receipt/FixWrongReceiptType';
 import { DefaultReceipt } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
-import { PartyPrefetcher } from 'src/queries/partyPrefetcher';
 import * as queries from 'src/queries/queries';
 
 import 'leaflet/dist/leaflet.css';
@@ -146,6 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 // Use window data when available
                                 application: () => window.AltinnAppData?.applicationMetadata,
                                 layoutSets: () => window.AltinnAppData?.layoutSets,
+                                instanceId: () => window.AltinnAppData?.instance?.id,
                               }),
                               element: (
                                 <FixWrongReceiptType>
@@ -222,11 +221,9 @@ function Root() {
                   <ApplicationSettingsProvider>
                     <PartyProvider>
                       <KeepAliveProvider>
-                        <DisplayErrorProvider>
-                          <ProcessingProvider>
-                            <Outlet />
-                          </ProcessingProvider>
-                        </DisplayErrorProvider>
+                        <ProcessingProvider>
+                          <Outlet />
+                        </ProcessingProvider>
                         <ToastContainer
                           position='top-center'
                           theme='colored'
@@ -238,7 +235,6 @@ function Root() {
                   </ApplicationSettingsProvider>
                 </OrgsProvider>
               </TextResourcesProvider>
-              <PartyPrefetcher />
             </LayoutSetsProvider>
           </GlobalFormDataReadersProvider>
         </VersionErrorOrChildren>

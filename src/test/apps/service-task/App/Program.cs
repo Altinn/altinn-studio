@@ -21,11 +21,6 @@ void RegisterCustomAppServices(
 {
     // Register your apps custom service implementations here.
     services.AddTransient<IServiceTask, FailServiceTask>();
-    services.AddEFormidlingServices2<EFormidlingMetadata, DefaultEFormidlingReceivers>(config);
-    services
-        .AddHttpClient<IEventsSubscription, EventsSubscriptionClient>()
-        .UseMaskinportenAltinnAuthorization("altinn:serviceowner/instances.read");
-    services.ConfigureMaskinportenClient("MaskinportenSettings-TeamApps1");
 }
 
 // ###########################################################################

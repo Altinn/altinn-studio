@@ -1,5 +1,5 @@
 import type { CodeListsResponse } from '../types/api/CodeListsResponse';
-import type { CodeListData } from '@studio/content-library';
+import type { CodeListDataWithTextResources } from '@studio/content-library';
 import {
   description1TextResource,
   description2TextResource,
@@ -12,7 +12,7 @@ import {
   label5TextResource,
 } from 'app-shared/mocks/textResourcesMock';
 
-const codeList1: CodeListData = {
+const codeList1: CodeListDataWithTextResources = {
   title: 'codeList1',
   data: [
     {
@@ -30,7 +30,7 @@ const codeList1: CodeListData = {
   ],
 };
 
-const codeList2: CodeListData = {
+const codeList2: CodeListDataWithTextResources = {
   title: 'codeList2',
   data: [
     { label: label3TextResource.id, value: 'a' },
@@ -39,7 +39,7 @@ const codeList2: CodeListData = {
   ],
 };
 
-const codeListWithError: CodeListData = {
+const codeListWithError: CodeListDataWithTextResources = {
   title: 'codeListWithError',
   hasError: true,
 };

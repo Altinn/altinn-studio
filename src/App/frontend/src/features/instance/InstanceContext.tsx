@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigation } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -10,7 +9,6 @@ import { Loader } from 'src/core/loading/Loader';
 import { FileScanResults } from 'src/features/attachments/types';
 import { removeProcessFromInstance } from 'src/features/instance/instanceUtils';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
-import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { fetchInstanceData } from 'src/queries/queries';
@@ -23,10 +21,9 @@ const InstanceContext = React.createContext<IInstance | null>(null);
 export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
-  const instantiation = useInstantiation();
-  const navigation = useNavigation();
+  // const instantiation = useInstantiation();
 
-  const { isLoading: isLoadingProcess, error: processError } = useProcessQuery();
+  const { isLoading: isLoadingProcess, error: _processError } = useProcessQuery();
 
   const hasPendingScans = useHasPendingScans();
   const { data } = useInstanceDataQuery({ refetchInterval: hasPendingScans ? 5000 : false });
@@ -45,10 +42,6 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   }
   if (isLoadingProcess) {
     return <Loader reason='fetching-process' />;
-  }
-
-  if (navigation.state === 'loading') {
-    return <Loader reason='navigating' />;
   }
 
   return <InstanceContext.Provider value={data}>{children}</InstanceContext.Provider>;

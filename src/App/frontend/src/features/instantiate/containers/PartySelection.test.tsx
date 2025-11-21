@@ -164,12 +164,15 @@ describe('PartySelection', () => {
         });
 
         // Simulate backend updating userProfile.party after successful mutation
-        const selectedParty = parties.find((p) => p.partyId === expectedPartyId || p.childParties?.some((c) => c.partyId === expectedPartyId));
+        const selectedParty = parties.find(
+          (p) => p.partyId === expectedPartyId || p.childParties?.some((c) => c.partyId === expectedPartyId),
+        );
         act(() => {
           if (window.AltinnAppData?.userProfile) {
-            window.AltinnAppData.userProfile.party = selectedParty?.partyId === expectedPartyId
-              ? selectedParty
-              : selectedParty?.childParties?.find((c) => c.partyId === expectedPartyId);
+            window.AltinnAppData.userProfile.party =
+              selectedParty?.partyId === expectedPartyId
+                ? selectedParty
+                : selectedParty?.childParties?.find((c) => c.partyId === expectedPartyId);
           }
           // Force re-render to pick up window changes
           rerender(
