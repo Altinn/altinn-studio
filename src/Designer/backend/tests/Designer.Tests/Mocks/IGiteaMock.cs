@@ -214,7 +214,7 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource, CancellationToken cancellation)
+        public Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ListviewServiceResource serviceResource, CancellationToken cancellation)
         {
             return Task.FromResult(new ListviewServiceResource { CreatedBy = "testUser", Identifier = serviceResource.Identifier, Title = new Dictionary<string, string> { { "test", "test" } }, LastChanged = DateTime.Now, HasPolicy = true });
         }
