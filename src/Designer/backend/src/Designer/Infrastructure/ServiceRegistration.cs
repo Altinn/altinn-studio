@@ -103,6 +103,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IGitOpsConfigurationManager, GitRepoGitOpsConfigurationManager>();
             services.AddTransient<IGitOpsManifestsRenderer, ScribanGitOpsManifestsRenderer>();
             services.AddTransient<ISharedContentClient, AzureSharedContentClient>();
+            services.AddTransient<IOrgLibraryService, OrgLibraryService>();
 
             return services;
         }

@@ -81,7 +81,8 @@ namespace Designer.Tests.Mocks
 
         public Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string reference = null, CancellationToken cancellationToken = default)
         {
-            List<FileSystemObject> fileSystemObjects = new List<FileSystemObject>();
+            List<FileSystemObject> fileSystemObjects = [];
+            reference ??= string.Empty;
             string path = Path.Combine(_unitTestFolder, "..", "..", "..", "_TestData", "FileSystemObjects", org, app, directoryPath.Replace('/', Path.DirectorySeparatorChar), reference, "directoryList.json");
 
             if (File.Exists(path))
@@ -224,6 +225,9 @@ namespace Designer.Tests.Mocks
             return Task.FromResult(new List<FileSystemObject>());
         }
 
-        public Task<string> GetLatestCommitOnBranch(string org, string repository, string branchName = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<string> GetLatestCommitOnBranch(string org, string repository, string branchName = null, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult("baseCommitSha");
+        }
     }
 }
