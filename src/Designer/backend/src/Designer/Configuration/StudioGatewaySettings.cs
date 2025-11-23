@@ -8,8 +8,8 @@ namespace Altinn.Studio.Designer.Configuration
     /// </summary>
     public class StudioGatewaySettings : ISettingsMarker
     {
-        public StudioGatewayEnvSettings Test { get; set; }
-        public StudioGatewayEnvSettings Prod { get; set; }
+        public required StudioGatewayEnvSettings Test { get; set; }
+        public required StudioGatewayEnvSettings Prod { get; set; }
 
         public StudioGatewayEnvSettings GetSettings(string env)
         {

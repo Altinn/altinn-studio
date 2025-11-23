@@ -5,8 +5,8 @@ namespace Altinn.Studio.Designer.Configuration
     /// </summary>
     public class StudioGatewayEnvSettings
     {
-        public string BaseUri { get; set; }
-        public string Token { get; set; }
+        public required string BaseUri { get; set; }
+        public required string Token { get; set; }
 
         public string GetBaseUri(string org)
         {

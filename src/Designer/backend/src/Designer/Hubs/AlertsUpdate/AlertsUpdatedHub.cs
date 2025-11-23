@@ -15,7 +15,7 @@ public class AlertsUpdatedHub : Hub<IAlertsUpdateClient>
         await base.OnConnectedAsync();
     }
 
-    public override async Task OnDisconnectedAsync(Exception exception)
+    public override async Task OnDisconnectedAsync(Exception? exception)
     {
         string connectionId = Context.ConnectionId;
         await Groups.RemoveFromGroupAsync(connectionId, "ttd");
