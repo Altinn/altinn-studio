@@ -1,0 +1,5 @@
+language: "en-GB"
+reviews:
+  pre_merge_checks:
+    docstrings:
+      mode: off

@@ -47,7 +47,8 @@ partial class Telemetry
         ActivitySource
             .StartActivity($"{Prefix}.RunValidator")
             ?.SetTag(InternalLabels.ValidatorType, validator.GetType().Name)
-            .SetTag(InternalLabels.ValidatorSource, validator.ValidationSource);
+            .SetTag(InternalLabels.ValidatorSource, validator.ValidationSource)
+            .SetTag(InternalLabels.ValidatorRemoveHiddenData, validator.ShouldRunAfterRemovingHiddenData);
 
     internal static class Validation
     {

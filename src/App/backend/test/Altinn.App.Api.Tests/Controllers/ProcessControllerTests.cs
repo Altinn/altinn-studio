@@ -50,9 +50,10 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     public ProcessControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
         : base(factory, outputHelper)
     {
+        _formDataValidatorMock.SetupGet(v => v.NoIncrementalValidation).Returns(false);
+        _formDataValidatorMock.SetupGet(v => v.ShouldRunAfterRemovingHiddenData).Returns(false);
         _formDataValidatorMock.Setup(v => v.DataType).Returns("9edd53de-f46f-40a1-bb4d-3efb93dc113d");
         _formDataValidatorMock.Setup(v => v.ValidationSource).Returns("Not a valid validation source");
-        _formDataValidatorMock.SetupGet(fdv => fdv.NoIncrementalValidation).Returns(false);
         OverrideServicesForAllTests = (services) =>
         {
             services.AddSingleton(_dataProcessorMock.Object);
@@ -194,6 +195,34 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     }
 
     [Fact]
+    public async Task RunProcessNext_VerifyUpdatePresentationTextsAndDataValues()
+    {
+        // Pre-assert that pretest does not contain presentation texts or data values
+        var initialInstance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
+        Assert.Null(initialInstance.DataValues);
+        Assert.Null(initialInstance.PresentationTexts);
+
+        // Setup pdf mock to avoid failing due to pof service not running.
+        var pdfMock = SetupPdfGeneratorMock();
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddSingleton(pdfMock.Object);
+        };
+
+        using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
+
+        var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
+        var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(nextResponseContent);
+        nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+
+        // Post assert that after process next the instance contains presentation texts and data values
+        var instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
+        Assert.Equal(new Dictionary<string, string>() { ["tag-with-attribute"] = "tagvalue" }, instance.DataValues);
+        Assert.Equal(new Dictionary<string, string>() { ["Navn"] = "Per Olsen" }, instance.PresentationTexts);
+    }
+
+    [Fact]
     public async Task RunProcessNext_PdfFails_DataIsUnlocked()
     {
         this.OverrideServicesForThisTest = (services) =>
@@ -234,24 +263,22 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         nextResponse.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
         sendAsyncCalled.Should().BeTrue();
 
-        var telemetry = this.Services.GetRequiredService<TelemetrySink>();
-
         // Verify that the instance is not locked after pdf failed
         var unLockedInstanceString = await File.ReadAllTextAsync(dataElementPath);
         var unLockedInstance = JsonSerializer.Deserialize<DataElement>(unLockedInstanceString, JsonSerializerOptions)!;
         unLockedInstance.Locked.Should().BeFalse();
 
-        await telemetry.WaitForServerTelemetry();
-        await Verify(telemetry.GetSnapshot());
+        await Verify(await GetTelemetrySnapshot(numberOfActivities: 1, numberOfMetrics: 1));
     }
 
     [Fact]
     public async Task RunProcessNext_FailingValidator_ReturnsValidationErrors()
     {
         var dataValidator = new Mock<IFormDataValidator>(MockBehavior.Strict);
+        dataValidator.SetupGet(v => v.NoIncrementalValidation).Returns(false);
+        dataValidator.SetupGet(v => v.ShouldRunAfterRemovingHiddenData).Returns(false);
         dataValidator.Setup(v => v.DataType).Returns("*");
         dataValidator.Setup(v => v.ValidationSource).Returns("test-source");
-        dataValidator.SetupGet(v => v.NoIncrementalValidation).Returns(false);
         dataValidator
             .Setup(v =>
                 v.ValidateFormData(
@@ -295,24 +322,21 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                 && p.GetProperty("description").GetString() == "test-description"
             );
 
-        var telemetry = this.Services.GetRequiredService<TelemetrySink>();
-
         // Verify that the instance is not updated
         var instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
         instance.Process.CurrentTask.Should().NotBeNull();
         instance.Process.CurrentTask!.ElementId.Should().Be("Task_1");
 
-        await telemetry.WaitForServerTelemetry();
-        await Verify(telemetry.GetSnapshot());
+        await Verify(await GetTelemetrySnapshot(numberOfActivities: 1, numberOfMetrics: 1));
     }
 
     [Fact]
     public async Task RunProcessNext_FailingValidator_Reject_ReturnsOk()
     {
         var dataValidator = new Mock<IFormDataValidator>(MockBehavior.Strict);
+        dataValidator.SetupGet(v => v.NoIncrementalValidation).Returns(false);
         dataValidator.Setup(v => v.DataType).Returns("*");
         dataValidator.Setup(v => v.ValidationSource).Returns("test-source");
-        dataValidator.SetupGet(v => v.NoIncrementalValidation).Returns(false);
         dataValidator
             .Setup(v =>
                 v.ValidateFormData(
@@ -385,11 +409,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         OverrideAppSetting("AppSettings:RemoveHiddenData", "true");
 
         // Mock pdf generation so that the test does not fail due to pof service not running.
-        var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
-        using var pdfReturnStream = new MemoryStream();
-        pdfMock
-            .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pdfReturnStream);
+        var pdfMock = SetupPdfGeneratorMock();
         OverrideServicesForThisTest = (services) =>
         {
             services.AddSingleton(pdfMock.Object);
@@ -420,6 +440,10 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                     PatchOperation.Add(
                         JsonPointer.Create("melding", "hidden"),
                         JsonNode.Parse("\"value that is hidden\"")
+                    ),
+                    PatchOperation.Add(
+                        JsonPointer.Create("melding", "hiddenNotRemove"),
+                        JsonNode.Parse("\"value that is not removed\"")
                     )
                 ),
                 IgnoredValidators = [],
@@ -439,6 +463,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         OutputHelper.WriteLine("Data before process next:");
         OutputHelper.WriteLine(dataString);
         dataString.Should().Contain("<hidden>value that is hidden</hidden>");
+        dataString.Should().Contain("<hiddenNotRemove>value that is not removed</hiddenNotRemove>");
 
         // Run process next
         var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
@@ -451,6 +476,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         OutputHelper.WriteLine("Data after process next:");
         OutputHelper.WriteLine(dataString);
         dataString.Should().NotContain("<hidden>value that is hidden</hidden>");
+        dataString.Should().Contain("<hiddenNotRemove>value that is not removed</hiddenNotRemove>");
 
         _dataProcessorMock.Verify();
     }
@@ -461,11 +487,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     public async Task RunProcessNext_ShadowFields_GetsRemoved(string? saveToDataType)
     {
         // Mock pdf generation so that the test does not fail due to pof service not running.
-        var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
-        using var pdfReturnStream = new MemoryStream();
-        pdfMock
-            .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pdfReturnStream);
+        var pdfMock = SetupPdfGeneratorMock();
         OverrideServicesForThisTest = (services) =>
         {
             services.AddSingleton(pdfMock.Object);
@@ -560,9 +582,10 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     public async Task RunProcessNext_NonErrorValidations_ReturnsOk()
     {
         var dataValidator = new Mock<IFormDataValidator>(MockBehavior.Strict);
+        dataValidator.SetupGet(v => v.NoIncrementalValidation).Returns(false);
+        dataValidator.SetupGet(v => v.ShouldRunAfterRemovingHiddenData).Returns(false);
         dataValidator.Setup(v => v.DataType).Returns("*");
         dataValidator.Setup(v => v.ValidationSource).Returns("test-source");
-        dataValidator.SetupGet(v => v.NoIncrementalValidation).Returns(false);
         dataValidator
             .Setup(v =>
                 v.ValidateFormData(
@@ -601,11 +624,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                     },
                 }
             );
-        var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
-        using var pdfReturnStream = new MemoryStream();
-        pdfMock
-            .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pdfReturnStream);
+        var pdfMock = SetupPdfGeneratorMock();
         OverrideServicesForThisTest = (services) =>
         {
             services.AddSingleton(dataValidator.Object);
@@ -628,11 +647,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     [Fact]
     public async Task RunCompleteTask_GoesToEndEvent()
     {
-        var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
-        using var pdfReturnStream = new MemoryStream();
-        pdfMock
-            .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pdfReturnStream);
+        var pdfMock = SetupPdfGeneratorMock();
         OverrideServicesForThisTest = (services) =>
         {
             services.AddSingleton(pdfMock.Object);
@@ -652,11 +667,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     [Fact]
     public async Task RunNextWithAction_WhenActionIsNotDefinedInBpmn_ReturnsOk()
     {
-        var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
-        using var pdfReturnStream = new MemoryStream();
-        pdfMock
-            .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pdfReturnStream);
+        var pdfMock = SetupPdfGeneratorMock();
         OverrideServicesForThisTest = (services) =>
         {
             services.AddSingleton(pdfMock.Object);
@@ -681,9 +692,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     [Fact]
     public async Task RunNextWithAction_WhenActionIsNotAuthorized_ReturnsUnauthorized()
     {
-        var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
-        using var pdfReturnStream = new MemoryStream();
-        pdfMock.Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<CancellationToken>())).ReturnsAsync(pdfReturnStream);
+        var pdfMock = SetupPdfGeneratorMock();
         OverrideServicesForThisTest = (services) =>
         {
             services.AddSingleton(pdfMock.Object);
@@ -734,6 +743,15 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             .Be(
                 $$"""{"processHistory":[{"eventType":null,"elementId":"Task_1","occured":null,"started":"{{start}}","ended":null,"performedBy":null}]}"""
             );
+    }
+
+    private static Mock<IPdfGeneratorClient> SetupPdfGeneratorMock()
+    {
+        var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
+        pdfMock
+            .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new MemoryStream());
+        return pdfMock;
     }
 
     //TODO: replace this assertion with a proper one once fluentassertions has a json compare feature scheduled for v7 https://github.com/fluentassertions/fluentassertions/issues/2205

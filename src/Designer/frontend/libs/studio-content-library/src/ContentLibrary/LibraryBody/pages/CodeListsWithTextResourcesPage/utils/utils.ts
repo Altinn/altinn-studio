@@ -1,5 +1,5 @@
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
-import type { CodeListData } from '../CodeListsWithTextResourcesPage';
+import type { CodeListDataWithTextResources } from '../../../../../types/CodeListDataWithTextResources';
 import type { TextResources } from '../../../../../types/TextResources';
 import type { TextResource } from '@studio/components-legacy';
 import type { TextResourceWithLanguage } from '../../../../../types/TextResourceWithLanguage';
@@ -34,10 +34,12 @@ export const getUsageTaskTypeTextKey = (taskType: CodeListUsageTaskType): string
 };
 
 export const filterCodeLists = (
-  codeListsData: CodeListData[],
+  codeListsData: CodeListDataWithTextResources[],
   searchString: string,
-): CodeListData[] =>
-  codeListsData.filter((codeList: CodeListData) => codeListMatch(codeList.title, searchString));
+): CodeListDataWithTextResources[] =>
+  codeListsData.filter((codeList: CodeListDataWithTextResources) =>
+    codeListMatch(codeList.title, searchString),
+  );
 
 function codeListMatch(codeListTitle: string, searchString: string): boolean {
   return caseInsensitiveMatch(codeListTitle, searchString);

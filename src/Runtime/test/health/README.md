@@ -15,12 +15,44 @@ az graph query -h
 ### Usage
 
 ```sh
-# Get status of pdf generator deployment resource in tt02 envs
-go run cmd/main.go status tt02 dep pdf/pdf-generator
+$ make help
+Usage: make [target]
 
-# Get status of pdf generator deployment resource in tt02 envs (use cached clusters metadata from .cache/)
-go run cmd/main.go status -uc tt02 dep pdf/pdf-generator
+Available targets:
+  help            Show this help message
+  build           Build all packages
 
-# Get status of pdf generator flux HelmRelease resource in tt02 envs (use cached clusters metadata from .cache/)
-go run cmd/main.go status -uc tt02 hr pdf/pdf-generator
+CLI usage:
+usage: go run cmd/main.go <command> [arguments]
+
+Available commands:
+  help            Print CLI usage
+  init            Discover clusters and configure credentials
+  status          Check status of resources across clusters
+  set-weight      Update HTTPRoute weights
+  exec            Execute kubectl/helm/flux commands across clusters
+
+Examples:
+  # Discover clusters and fetch credentials (single or multiple environments)
+  go run cmd/main.go init tt02
+  go run cmd/main.go init at22,at24
+  go run cmd/main.go init -s ttd tt02,prod
+
+  # Check resource status
+  go run cmd/main.go status tt02 hr traefik/altinn-traefik
+  go run cmd/main.go status tt02 ks runtime-pdf3/pdf3-app
+  go run cmd/main.go status at22,at24 dep runtime-pdf3/pdf3-proxy
+  go run cmd/main.go status -s ttd tt02,prod ks runtime-pdf3/pdf3-app
+
+  # Update HTTPRoute weights
+  go run cmd/main.go set-weight tt02 pdf/pdf3-migration 50 50
+  go run cmd/main.go set-weight at22,at24 pdf/pdf3-migration 0 100
+  go run cmd/main.go set-weight --dry-run tt02,prod pdf/pdf3-migration 0 100
+
+  # Execute commands across clusters
+  go run cmd/main.go exec tt02 kubectl get pods -n default
+  go run cmd/main.go exec at22,at24 flux get kustomizations -A
+  go run cmd/main.go exec -s ttd prod,tt02 helm list -A
+
+Run 'go run cmd/main.go <command> -h' for more information on a specific command.
 ```

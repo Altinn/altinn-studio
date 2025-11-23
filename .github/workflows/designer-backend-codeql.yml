@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Setup .NET
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
@@ -35,15 +35,15 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@42213152a85ae7569bdb6bec7bcd74cd691bfe41 # v3
+        uses: github/codeql-action/init@c3d42c5d08633d8b33635fbd94b000a0e2585b3c # v3
         with:
           languages: csharp
           queries: +security-and-quality
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@42213152a85ae7569bdb6bec7bcd74cd691bfe41 # v3
+        uses: github/codeql-action/autobuild@c3d42c5d08633d8b33635fbd94b000a0e2585b3c # v3
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@42213152a85ae7569bdb6bec7bcd74cd691bfe41 # v3
+        uses: github/codeql-action/analyze@c3d42c5d08633d8b33635fbd94b000a0e2585b3c # v3
         with:
           category: "/language:csharp"

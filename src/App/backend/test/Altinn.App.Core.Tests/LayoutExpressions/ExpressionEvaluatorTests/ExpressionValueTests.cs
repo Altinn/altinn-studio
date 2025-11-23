@@ -170,13 +170,13 @@ public class ExpressionValueTests
     {
         ExpressionValue undefinedValue = default;
         Assert.Equal(JsonValueKind.Undefined, undefinedValue.ValueKind);
-        Assert.Throws<JsonException>(() => JsonSerializer.Serialize(undefinedValue));
         Assert.Throws<InvalidOperationException>(() => undefinedValue.ToString());
         Assert.Throws<InvalidOperationException>(() => undefinedValue.ToObject());
         Assert.Throws<InvalidCastException>(() => undefinedValue.Bool);
         Assert.Throws<InvalidCastException>(() => undefinedValue.Number);
         Assert.Throws<InvalidCastException>(() => undefinedValue.String);
 
+        Assert.Equal("null", JsonSerializer.Serialize(undefinedValue));
         Assert.Throws<NotImplementedException>(() => undefinedValue.GetHashCode());
         Assert.Throws<NotImplementedException>(() => undefinedValue.Equals(undefinedValue));
         // Assert.Throws<InvalidOperationException>(() => undefinedValue.GetHashCode());

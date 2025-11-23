@@ -1,3 +1,4 @@
+#nullable disable
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 
 namespace Altinn.Studio.Designer.Services.Interfaces

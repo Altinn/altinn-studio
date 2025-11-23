@@ -47,7 +47,7 @@ describe('UI Components', () => {
   });
 
   it('while file upload is in progress, the animation should be visible', () => {
-    cy.intercept({ url: '**/instances/**/data?dataType=fileUpload-changename' }, (req) => {
+    cy.intercept({ url: '**/instances/**/data/fileUpload-changename?*', method: 'POST' }, (req) => {
       req.reply((res) => {
         res.setDelay(500);
       });
@@ -123,8 +123,8 @@ describe('UI Components', () => {
       }
     });
     cy.goto('changename');
-    cy.intercept('POST', '**/tags').as('saveTags');
-    cy.intercept('POST', '**/instances/**/data?dataType=*').as('upload');
+    cy.intercept('PUT', '**/tags?*').as('saveTags');
+    cy.intercept('POST', '**/instances/**/data/*').as('upload');
     cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).should('not.exist');
     cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('test/e2e/fixtures/test.pdf', { force: true });
     cy.wait('@upload');
@@ -152,7 +152,7 @@ describe('UI Components', () => {
 
   it('is possible to download attachments with tags that are uploaded', () => {
     cy.goto('changename');
-    cy.intercept('POST', '**/tags').as('saveTags');
+    cy.intercept('PUT', '**/tags?*').as('saveTags');
     cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).should('not.exist');
     cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('test/e2e/fixtures/test.pdf', {
       force: true,

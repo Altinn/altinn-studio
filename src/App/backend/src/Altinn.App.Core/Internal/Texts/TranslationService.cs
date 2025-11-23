@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Language;
@@ -14,23 +15,26 @@ namespace Altinn.App.Core.Internal.Texts;
 /// <summary>
 /// Translation service
 /// </summary>
-internal class TranslationService : ITranslationService
+internal sealed class TranslationService : ITranslationService
 {
     private readonly string _org;
     private readonly string _app;
     private readonly IAppResources _appResources;
+    private readonly IAppMetadata? _appMetadata;
     private readonly ILogger<TranslationService> _logger;
 
     public TranslationService(
         AppIdentifier appIdentifier,
         IAppResources appResources,
-        ILogger<TranslationService> logger
+        ILogger<TranslationService> logger,
+        IAppMetadata? appMetadata = null
     )
     {
         _org = appIdentifier.Org;
         _app = appIdentifier.App;
         _appResources = appResources;
         _logger = logger;
+        _appMetadata = appMetadata;
     }
 
     /// <summary>
@@ -47,19 +51,38 @@ internal class TranslationService : ITranslationService
     )
     {
         var resourceElement = await GetTextResourceElement(key, language);
-        var value = await ReplaceVariables(resourceElement, null, null, customTextParameters);
+        var value = await ReplaceVariables(resourceElement, state: null, context: null, customTextParameters, language);
         return value;
     }
 
     public async Task<string?> TranslateTextKey(
         string key,
         LayoutEvaluatorState state,
-        ComponentContext context,
+        ComponentContext? context,
         Dictionary<string, string>? customTextParameters = null
     )
     {
-        var resourceElement = await GetTextResourceElement(key, state.GetLanguage());
-        var value = await ReplaceVariables(resourceElement, state, context, customTextParameters);
+        string language = state.GetLanguage();
+        var resourceElement = await GetTextResourceElement(key, language);
+        var value = await ReplaceVariables(resourceElement, state, context, customTextParameters, language);
+        return value;
+    }
+
+    public async Task<string?> TranslateTextKey(
+        string key,
+        IInstanceDataAccessor instanceDataAccessor,
+        ComponentContext? context = null,
+        Dictionary<string, string>? customTextParameters = null
+    )
+    {
+        var resourceElement = await GetTextResourceElement(key, instanceDataAccessor.Language);
+        var value = await ReplaceVariables(
+            resourceElement,
+            instanceDataAccessor.GetLayoutEvaluatorState(),
+            context,
+            customTextParameters,
+            instanceDataAccessor.Language
+        );
         return value;
     }
 
@@ -69,7 +92,8 @@ internal class TranslationService : ITranslationService
         TextResourceElement? resourceElement,
         LayoutEvaluatorState? state,
         ComponentContext? context,
-        Dictionary<string, string>? customTextParameters
+        Dictionary<string, string>? customTextParameters,
+        string? language // language is also available in state, but we pass it explicitly for cases where state is null
     )
     {
         var value = resourceElement?.Value;
@@ -79,8 +103,14 @@ internal class TranslationService : ITranslationService
             foreach (var variable in resourceElement.Variables)
             {
                 var replacement =
-                    await EvaluateTextVariable(resourceElement, variable, state, context, customTextParameters)
-                    ?? variable.DefaultValue;
+                    await EvaluateTextVariable(
+                        resourceElement,
+                        variable,
+                        state,
+                        language,
+                        context,
+                        customTextParameters
+                    ) ?? variable.DefaultValue;
                 value = value.Replace("{" + index + "}", replacement ?? variable.Key);
                 index++;
             }
@@ -93,6 +123,7 @@ internal class TranslationService : ITranslationService
         TextResourceElement resourceElement,
         TextResourceVariable variable,
         LayoutEvaluatorState? state,
+        string? language,
         ComponentContext? context,
         Dictionary<string, string>? customTextParameters
     )
@@ -100,7 +131,7 @@ internal class TranslationService : ITranslationService
         // Do replacements for
         if (variable.DataSource.StartsWith("dataModel.", StringComparison.Ordinal))
         {
-            if (state == null || context == null)
+            if (state == null)
             {
                 _logger.LogWarning(
                     "Text resource variable with dataSource '{DataSource}' is not supported in this context. In text resource with id = {TextResourceId}",
@@ -118,11 +149,30 @@ internal class TranslationService : ITranslationService
 
             var binding = new ModelBinding()
             {
-                DataType = dataModelName == "default" ? null : dataModelName,
+                DataType = dataModelName == "default" ? state.GetDefaultDataType()?.Id : dataModelName,
                 Field = cleanPath,
             };
 
-            return await state.GetModelData(binding, context.DataElementIdentifier, context.RowIndices) as string;
+            try
+            {
+                var fieldValue = ExpressionValue.FromObject(
+                    await state.GetModelData(binding, context?.DataElementIdentifier, context?.RowIndices)
+                );
+
+                return fieldValue.ToStringForText();
+            }
+            catch (Exception e)
+            {
+                // Errors getting data from the data model should not break text resource rendering
+                _logger.LogError(
+                    e,
+                    "Error getting value for text resource variable with dataSource '{DataSource}' and key '{Key}'. In text resource with id = {TextResourceId}",
+                    variable.DataSource,
+                    variable.Key,
+                    resourceElement.Id
+                );
+                return null;
+            }
         }
 
         if (variable.DataSource == "instanceContext")
@@ -160,8 +210,24 @@ internal class TranslationService : ITranslationService
             return customTextParameters?.GetValueOrDefault(variable.Key);
         }
 
+        if (variable.DataSource == "text")
+        {
+            if (variable.Key == resourceElement.Id)
+            {
+                // TODO: Detect bigger cycles?
+                _logger.LogWarning(
+                    "Text resource variable with dataSource 'text' cannot reference itself. In text resource with id = {TextResourceId}",
+                    resourceElement.Id
+                );
+                return null;
+            }
+            return state == null
+                ? await TranslateTextKey(variable.Key, language, customTextParameters)
+                : await TranslateTextKey(variable.Key, state, context, customTextParameters);
+        }
+
         _logger.LogWarning(
-            "Text resource variable with dataSource '{DataSource}' is not supported. Only 'dataModel.*', instanceContext, applicationSettings, and customTextParameters is supported. In text resource with id = {TextResourceId}",
+            "Text resource variable with dataSource '{DataSource}' is not supported. Only 'dataModel.*', instanceContext, applicationSettings, text and customTextParameters is supported. In text resource with id = {TextResourceId}",
             variable.DataSource,
             resourceElement.Id
         );
@@ -178,8 +244,83 @@ internal class TranslationService : ITranslationService
         {
             textResource = await _appResources.GetTexts(_org, _app, LanguageConst.Nb);
         }
+        var resource = textResource?.Resources.Find(resource => resource.Id == key);
+        if (resource is not null)
+        {
+            return resource;
+        }
 
-        return textResource?.Resources.Find(resource => resource.Id == key);
+        if (key == "appName")
+        {
+            // Previous apps might have used "ServiceName" as key for the app name, so we check that as a fallback
+            resource = textResource?.Resources.Find(r => r.Id == "ServiceName");
+            if (resource is not null)
+            {
+                return resource;
+            }
+
+            if (_appMetadata is not null)
+            {
+                var appMetadata = await _appMetadata.GetApplicationMetadata();
+                if (appMetadata?.Title?.Count > 0)
+                {
+                    return appMetadata.Title.TryGetValue(language, out var title)
+                        ? new TextResourceElement() { Id = "appName", Value = title }
+                        : new TextResourceElement() { Id = "appName", Value = appMetadata.Title.First().Value };
+                }
+            }
+            // Fallback to just using the app id as app name
+            return new TextResourceElement() { Id = "appName", Value = _app };
+        }
+
+        return GetBackendFallbackResource(key, language);
+    }
+
+    private static TextResourceElement? GetBackendFallbackResource(string key, string language)
+    {
+        // When the list of backend text resources grows, we might want to have these in a separate file or similar.
+        switch (key)
+        {
+            case "backend.validation_errors.required":
+                return new TextResourceElement()
+                {
+                    Id = "backend.validation_errors.required",
+                    Value = language switch
+                    {
+                        LanguageConst.Nb => "Feltet er påkrevd",
+                        LanguageConst.Nn => "Feltet er påkravd",
+                        _ => "Field is required",
+                    },
+                };
+            case "backend.pdf_default_file_name":
+                return new TextResourceElement()
+                {
+                    Id = "backend.pdf_default_file_name",
+                    Value = "{0}.pdf",
+                    Variables =
+                    [
+                        new TextResourceVariable()
+                        {
+                            Key = "appName",
+                            DataSource = "text",
+                            DefaultValue = "Altinn PDF",
+                        },
+                    ],
+                };
+            case "pdfPreviewText":
+                return new TextResourceElement()
+                {
+                    Id = "pdfPreviewText",
+                    Value = language switch
+                    {
+                        LanguageConst.En => "The document is a preview",
+                        LanguageConst.Nn => "Dokumentet er ein førehandsvisning",
+                        _ => "Dokumentet er en forhåndsvisning",
+                    },
+                };
+        }
+
+        return null;
     }
 
     /// <summary>

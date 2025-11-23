@@ -1,0 +1,50 @@
+{
+    "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+    "data": {
+        "hidden": ["dataModel", "HidePage1"],
+        "layout": [
+            {
+                "id": "mainTitle",
+                "type": "Input",
+                "hidden": ["dataModel", "HideMainTitle"],
+                "dataModelBindings": {
+                    "simpleBinding": "MainTitle"
+                }
+            },
+            {
+                "id": "mainComponentGroup",
+                "type": "RepeatingGroup",
+                "dataModelBindings": {
+                    "group": "MainComponentGroup"
+                },
+                "hidden": ["dataModel", "HideMainComponentGroup"],
+                "hiddenRow": ["dataModel", "MainComponentGroup.HideRow"],
+                "children": [
+                    "mainComponentInput"
+                ]
+            },
+            {
+                "id": "mainComponentInput",
+                "type": "Input",
+                "hidden": ["dataModel", "MainComponentGroup.HideName"],
+                "dataModelBindings": {
+                    "simpleBinding": "MainComponentGroup.Name"
+                }
+            },
+            {
+                "id": "subLayout",
+                "type": "Subform",
+                "layoutSet": "subLayout",
+                "hidden": ["dataModel", "HideSubLayout"],
+                "tableColumns": [
+                    {
+                        "headerContent": "SubModelTitle",
+                        "cellContent": {
+                            "query": "SubModelTitle"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -14,6 +14,7 @@ import type {
   FormCheckboxesComponent,
   FormComponent,
   FormFileUploaderComponent,
+  FormFileUploaderWithTagComponent,
   FormRadioButtonsComponent,
 } from '../../types/FormComponent';
 import type { IDataModelBindingsKeyValue } from '../../types/global';
@@ -40,6 +41,11 @@ const updatedComponent: FormComponent = {
   dataModelBindings,
 };
 const defaultArgs: UpdateFormComponentMutationArgs = { id, updatedComponent };
+const fileUploadWithTagDataType = {
+  id: componentMocks[ComponentType.FileUploadWithTag].id,
+  maxCount: 25,
+  minCount: 1,
+};
 
 jest.mock('bpmn-moddle', () =>
   jest.fn(() => ({
@@ -220,12 +226,91 @@ describe('useUpdateFormComponentMutation', () => {
       },
     );
   });
+
+  describe('Updating dataType for fileupload components in repeating groups', () => {
+    it('Does not update maxCount and minCount when maxCount decreases', async () => {
+      renderAndWaitForData();
+      const updateFormComponentResult = renderHookWithProviders(() =>
+        useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
+      ).result;
+      const newMaxCount = fileUploadWithTagDataType.maxCount - 1;
+      const newMinCount = fileUploadWithTagDataType.minCount + 1;
+      const newComponent = createFileUploaderMutationPayload(
+        componentMocks[ComponentType.FileUploadWithTag].id,
+        newMaxCount,
+        newMinCount,
+      );
+      await updateFormComponentResult.current.mutateAsync({
+        id: componentMocks[ComponentType.FileUploadWithTag].id,
+        updatedComponent: newComponent,
+      });
+      expect(queriesMock.updateAppAttachmentMetadata).toHaveBeenCalledTimes(1);
+      expect(queriesMock.updateAppAttachmentMetadata).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        expect.objectContaining({
+          maxCount: fileUploadWithTagDataType.maxCount,
+          minCount: fileUploadWithTagDataType.minCount,
+        }),
+      );
+    });
+
+    it('Updates maxCount when increasing', async () => {
+      renderAndWaitForData();
+      const updateFormComponentResult = renderHookWithProviders(() =>
+        useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
+      ).result;
+      const newMaxCount = fileUploadWithTagDataType.maxCount + 1;
+      const newMinCount = fileUploadWithTagDataType.minCount - 1;
+      const newComponent = createFileUploaderMutationPayload(
+        componentMocks[ComponentType.FileUploadWithTag].id,
+        newMaxCount,
+        newMinCount,
+      );
+      await updateFormComponentResult.current.mutateAsync({
+        id: componentMocks[ComponentType.FileUploadWithTag].id,
+        updatedComponent: newComponent,
+      });
+      expect(queriesMock.updateAppAttachmentMetadata).toHaveBeenCalledTimes(1);
+      expect(queriesMock.updateAppAttachmentMetadata).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        expect.objectContaining({
+          maxCount: newMaxCount,
+          minCount: fileUploadWithTagDataType.minCount,
+        }),
+      );
+    });
+  });
 });
 
 const renderAndWaitForData = () => {
+  queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], {
+    dataTypes: [fileUploadWithTagDataType],
+  });
   queryClientMock.setQueryData(
     [QueryKey.FormLayouts, org, app, selectedLayoutSet],
     convertExternalLayoutsToInternalFormat(externalLayoutsMock),
   );
   queryClientMock.setQueryData([QueryKey.RuleConfig, org, app, selectedLayoutSet], ruleConfigMock);
 };
+
+function createFileUploaderMutationPayload(
+  id: string,
+  newMaxCount: number,
+  newMinCount: number,
+): FormFileUploaderWithTagComponent {
+  return {
+    ...updatedComponent,
+    id,
+    optionsId: 'test',
+    description: 'test',
+    displayMode: 'test',
+    hasCustomFileEndings: false,
+    maxFileSizeInMB: 100,
+    maxNumberOfAttachments: newMaxCount,
+    minNumberOfAttachments: newMinCount,
+    type: ComponentType.FileUploadWithTag,
+    dataModelBindings: { list: { field: 'some-path', dataType: '' } },
+  };
+}

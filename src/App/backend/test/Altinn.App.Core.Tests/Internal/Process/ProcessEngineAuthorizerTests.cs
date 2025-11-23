@@ -1,19 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using Altinn.App.Core.Features.Auth;
+﻿using System.Security.Claims;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Process;
-using Altinn.App.Core.Internal.Process.Elements;
-using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Internal.Process;
 

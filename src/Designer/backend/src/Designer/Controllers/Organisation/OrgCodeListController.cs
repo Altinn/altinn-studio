@@ -1,11 +1,11 @@
-﻿#nullable enable
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.CodeList;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
@@ -13,6 +13,7 @@ using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Controllers.Organisation;
 
@@ -25,14 +26,17 @@ namespace Altinn.Studio.Designer.Controllers.Organisation;
 public class OrgCodeListController : ControllerBase
 {
     private readonly IOrgCodeListService _orgCodeListService;
+    private readonly ILogger<OrgCodeListController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OrgCodeListController"/> class.
     /// </summary>
     /// <param name="orgCodeListService">The CodeList service for organisation level</param>
-    public OrgCodeListController(IOrgCodeListService orgCodeListService)
+    /// <param name="logger">The logger</param>
+    public OrgCodeListController(IOrgCodeListService orgCodeListService, ILogger<OrgCodeListController> logger)
     {
         _orgCodeListService = orgCodeListService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -99,13 +103,49 @@ public class OrgCodeListController : ControllerBase
         try
         {
             await _orgCodeListService.UpdateCodeListsNew(org, developer, requestBody, cancellationToken);
+            return Ok();
         }
-        catch (Exception ex) when (ex is IllegalFileNameException or IllegalCommitMessageException)
+        catch (Exception ex) when (ex is IllegalFileNameException or IllegalCommitMessageException or ArgumentException)
         {
-            return BadRequest(ex.Message);
+            _logger.LogError(ex, "Invalid request to update codelists for org {Org}.", org);
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid request",
+                Status = StatusCodes.Status400BadRequest
+            });
         }
 
-        return Ok();
+    }
+
+    /// <summary>
+    /// Publishes a code list to shared storage.
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation.</param>
+    /// <param name="requestBody">The publish request containing the code list title and data.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Route("new/publish")]
+    [Authorize(Policy = AltinnPolicy.MustBelongToOrganization)]
+    public async Task<ActionResult> PublishCodeList(string org, [FromBody] PublishCodeListRequest requestBody, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        try
+        {
+            await _orgCodeListService.PublishCodeList(org, requestBody, cancellationToken);
+            return Ok();
+        }
+        catch (Exception ex) when (ex is ArgumentException or IllegalFileNameException or ArgumentNullException)
+        {
+            _logger.LogError(ex, "Invalid request to publish codelist for org {Org}.", org);
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Invalid request",
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
     }
 
     /// <summary>

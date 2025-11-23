@@ -45,6 +45,7 @@ const { Provider, useCtx } = createContext<FormDataWriteProxies>({
     lock: defaultProxy as Proxy<'lock'>,
     nextLock: defaultProxy as Proxy<'nextLock'>,
     requestManualSave: defaultProxy as Proxy<'requestManualSave'>,
+    setLastValidationIssues: defaultProxy as Proxy<'setLastValidationIssues'>,
   },
 });
 

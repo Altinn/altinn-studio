@@ -1,9 +1,10 @@
 import React from 'react';
 
-import { Dialog, Heading, Spinner } from '@digdir/designsystemet-react';
+import { Dialog, Heading } from '@digdir/designsystemet-react';
 import { FilePdfIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
+import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import classes from 'src/features/devtools/components/PDFPreviewButton/PDFPreview.module.css';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';

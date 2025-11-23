@@ -10,14 +10,20 @@ import {
   StudioAlert,
   StudioLink,
 } from '@studio/components';
-import React, { useState } from 'react';
+import React from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import type { TFunction } from 'i18next';
+import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 import { useAlertsQuery } from 'admin/hooks/queries/useAlertsQuery';
 
 type AppsTableProps = {
   org: string;
+};
+
+type AppsTableState = {
+  search: string;
+  tab: string | undefined;
 };
 
 export const AppsTable = ({ org }: AppsTableProps) => {
@@ -48,11 +54,18 @@ function getEnvironmentName(env: string, t: TFunction) {
 
 const AppsTableWithData = ({ org, runningApps }: AppsTableWithDataProps) => {
   const { t } = useTranslation();
+  const [{ search, tab }, setState] = useQueryParamState<AppsTableState>({
+    search: '',
+    tab: undefined,
+  });
 
   const availableEnvironments = Object.keys(runningApps);
 
   return (
-    <StudioTabs defaultValue={availableEnvironments.at(0)}>
+    <StudioTabs
+      value={tab ?? availableEnvironments.at(0)}
+      onChange={(value) => setState({ tab: value })}
+    >
       <StudioTabs.List>
         {availableEnvironments.map((env) => (
           <StudioTabs.Tab key={env} value={env}>
@@ -62,7 +75,14 @@ const AppsTableWithData = ({ org, runningApps }: AppsTableWithDataProps) => {
       </StudioTabs.List>
       {availableEnvironments.map((env) => (
         <StudioTabs.Panel key={env} value={env}>
-          <AppsTableWithDataByEnv key={env} org={org} env={env} runningApps={runningApps} />
+          <AppsTableWithDataByEnv
+            key={env}
+            org={org}
+            env={env}
+            search={search}
+            setState={setState}
+            runningApps={runningApps}
+          />
         </StudioTabs.Panel>
       ))}
     </StudioTabs>
@@ -71,11 +91,18 @@ const AppsTableWithData = ({ org, runningApps }: AppsTableWithDataProps) => {
 
 type AppsTableWithDataByEnvProps = AppsTableWithDataProps & {
   env: string;
+  search: string;
+  setState: (newState: Partial<AppsTableState>) => void;
 };
 
-const AppsTableWithDataByEnv = ({ org, runningApps, env }: AppsTableWithDataByEnvProps) => {
+const AppsTableWithDataByEnv = ({
+  org,
+  env,
+  search,
+  setState,
+  runningApps,
+}: AppsTableWithDataByEnvProps) => {
   const { t } = useTranslation();
-  const [search, setSearch] = useState('');
   const {
     data: alerts,
     isPending: alertsIsPending,
@@ -98,7 +125,7 @@ const AppsTableWithDataByEnv = ({ org, runningApps, env }: AppsTableWithDataByEn
       <StudioSearch
         className={classes.appSearch}
         value={search}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setState({ search: e.target.value })}
         label={t('Søk i apper')}
       />
       <StudioTable>
@@ -117,46 +144,44 @@ const AppsTableWithDataByEnv = ({ org, runningApps, env }: AppsTableWithDataByEn
               return {
                 ...app,
                 alerts: appAlerts,
-                hasAlerts: appAlerts?.length > 0,
+                hasAlerts: appAlerts?.length ?? 0 > 0,
               };
             })
             .sort((a, b) => Number(b.hasAlerts) - Number(a.hasAlerts) || a.app.localeCompare(b.app))
-            .map((app) => {
-              return (
-                <StudioTable.Row key={app.app}>
-                  <StudioTable.Cell>
-                    <Link to={`${env}/${app.app}`}>{app.app}</Link>
-                  </StudioTable.Cell>
-                  <StudioTable.Cell>{app.version}</StudioTable.Cell>
-                  <StudioTable.Cell>
-                    <div className={classes.alertCell}>
-                      {app.alerts?.map((alert) => {
-                        return (
-                          <StudioAlert
-                            key={alert.alertId}
-                            data-color='danger'
-                            data-size='xs'
-                            className={classes.alert}
+            .map((app) => (
+              <StudioTable.Row key={app.app}>
+                <StudioTable.Cell>
+                  <Link to={`${env}/${app.app}`}>{app.app}</Link>
+                </StudioTable.Cell>
+                <StudioTable.Cell>{app.version}</StudioTable.Cell>
+                <StudioTable.Cell>
+                  <div className={classes.alertCell}>
+                    {app.alerts?.map((alert) => {
+                      return (
+                        <StudioAlert
+                          key={alert.alertId}
+                          data-color='danger'
+                          data-size='xs'
+                          className={classes.alert}
+                        >
+                          <span className={classes.alertText}>
+                            {t('admin.alerts.' + alert.type)}
+                          </span>
+                          <StudioLink
+                            href={alert.url}
+                            rel='noopener noreferrer'
+                            target='_blank'
+                            className={classes.alertLink}
                           >
-                            <span className={classes.alertText}>
-                              {t('admin.alerts.' + alert.type)}
-                            </span>
-                            <StudioLink
-                              href={alert.url}
-                              rel='noopener noreferrer'
-                              target='_blank'
-                              className={classes.alertLink}
-                            >
-                              {t('admin.alerts.link')}
-                            </StudioLink>
-                          </StudioAlert>
-                        );
-                      })}
-                    </div>
-                  </StudioTable.Cell>
-                </StudioTable.Row>
-              );
-            })}
+                            {t('admin.alerts.link')}
+                          </StudioLink>
+                        </StudioAlert>
+                      );
+                    })}
+                  </div>
+                </StudioTable.Cell>
+              </StudioTable.Row>
+            ))}
         </StudioTable.Body>
       </StudioTable>
     </>

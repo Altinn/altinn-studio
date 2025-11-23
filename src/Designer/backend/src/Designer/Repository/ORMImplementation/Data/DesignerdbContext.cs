@@ -1,4 +1,5 @@
-﻿using Altinn.Studio.Designer.Repository.ORMImplementation.Data.EntityConfigurations;
+﻿#nullable disable
+using Altinn.Studio.Designer.Repository.ORMImplementation.Data.EntityConfigurations;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Microsoft.EntityFrameworkCore;
 

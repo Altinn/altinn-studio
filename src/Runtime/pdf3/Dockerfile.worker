@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.25-trixie@sha256:03c629da2a724b8978e9b571a40f3afa65ddd30a978464c6de99c4f4c2fe2314 AS builder
+FROM golang:1.25-trixie@sha256:27e1c927a07ed2c7295d39941d6d881424739dbde9ae3055d0d3013699ed35e8 AS builder
 
 WORKDIR /app
 
@@ -8,7 +8,7 @@ COPY go.mod go.sum ./
 
 # Remove the test fixture dependency from go.mod as it's not needed for building binaries
 # The test/harness package is only imported by test files, not by cmd/proxy or cmd/worker
-RUN sed -i '/require altinn.studio\/runtime-fixture/d' go.mod && \
+RUN sed -i '/altinn.studio\/runtime-fixture v/d' go.mod && \
     sed -i '/replace altinn.studio\/runtime-fixture/d' go.mod
 
 RUN go mod download
@@ -21,6 +21,18 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/worker
 
 # Runtime stage
 FROM docker.io/chromedp/headless-shell:stable@sha256:de5b057849de96955de7662023420a46355abfbb24d57aa01282ec7c811aacab
+
+USER root
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections && \
+    sed -i 's/main$/main contrib/' /etc/apt/sources.list.d/debian.sources && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        fontconfig \
+        ttf-mscorefonts-installer && \
+    fc-cache -f -v && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

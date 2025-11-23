@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: altinn-mcp-server
+  annotations:
+    altinn.studio/image: altinn-mcp-server:latest
+    altinn.studio/image-tag: latest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: altinn-mcp-server
+  template:
+    metadata:
+      labels:
+        app: altinn-mcp-server
+    spec:
+      serviceAccountName: altinn-mcp-server-sa
+      containers:
+        - name: altinn-mcp-server
+          image: altinn-mcp-server:latest
+          ports:
+            - containerPort: 8069
+              name: http
+              protocol: TCP
+          env:
+            - name: AZURE_ENDPOINT
+              value: "https://hackathons-resource.openai.azure.com/"
+            - name: GITEA_URL
+              value: "http://altinn-repositories:3000/api/v1"
+            - name: AZURE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: altinn-mcp-server-secret
+                  key: AZURE_API_KEY
+            - name: LANGFUSE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: altinn-mcp-server-secret
+                  key: LANGFUSE_SECRET_KEY
+            - name: LANGFUSE_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: altinn-mcp-server-secret
+                  key: LANGFUSE_PUBLIC_KEY
+            - name: LANGFUSE_ENABLED
+              value: "true"
+          # livenessProbe:
+          #   httpGet:
+          #     path: /sse
+          #     port: 8069
+          #   initialDelaySeconds: 10
+          #   periodSeconds: 10
+          #   timeoutSeconds: 3
+          #   failureThreshold: 3
+          # readinessProbe:
+          #   httpGet:
+          #     path: /sse
+          #     port: 8069
+          #   initialDelaySeconds: 5
+          #   periodSeconds: 5
+          #   timeoutSeconds: 3
+          #   failureThreshold: 3

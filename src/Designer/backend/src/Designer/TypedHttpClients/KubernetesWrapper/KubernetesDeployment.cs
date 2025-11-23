@@ -1,3 +1,4 @@
+#nullable disable
 namespace Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper
 {
     public class KubernetesDeployment
