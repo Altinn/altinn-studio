@@ -31,23 +31,23 @@ export const WebSocketSyncWrapper = ({
     app,
   );
 
-  const { onWSMessageReceived } = useWebSocket({
+  useWebSocket({
     webSocketUrls: [syncEntityUpdateWebSocketHub()],
     clientsName: [SyncEntityClientName.EntityUpdated],
     webSocketConnector: WSConnector,
+    onWSMessageReceived: (message: SyncError | SyncSuccess | EntityUpdated): ReactElement => {
+      if ('resourceName' in message) {
+        entityUpdateInvalidator.invalidateQueriesByResourceName(message.resourceName as string);
+        return;
+      }
+
+      const isErrorMessage = 'errorCode' in message;
+      if (isErrorMessage) {
+        toast.error(t(SyncUtils.getSyncErrorMessage(message)), { toastId: message.errorCode });
+        return;
+      }
+    },
   });
 
-  onWSMessageReceived<SyncError | SyncSuccess | EntityUpdated>((message): ReactElement => {
-    if ('resourceName' in message) {
-      entityUpdateInvalidator.invalidateQueriesByResourceName(message.resourceName as string);
-      return;
-    }
-
-    const isErrorMessage = 'errorCode' in message;
-    if (isErrorMessage) {
-      toast.error(t(SyncUtils.getSyncErrorMessage(message)), { toastId: message.errorCode });
-      return;
-    }
-  });
   return <>{children}</>;
 };

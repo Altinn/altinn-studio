@@ -15,7 +15,7 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import type { EntityUpdated } from 'app-shared/types/api/EntityUpdated';
 import { EntityUpdatedQueriesInvalidator } from 'app-shared/queryInvalidator/EntityUpdatedQueriesInvalidator';
 
-jest.mock('app-development/hooks/useWebSocket', () => ({
+jest.mock('app-shared/hooks/useWebSocket', () => ({
   useWebSocket: jest.fn(),
 }));
 
@@ -32,6 +32,7 @@ describe('WebSocketSyncWrapper', () => {
       clientsName: ['FileSyncSuccess', 'FileSyncError', 'EntityUpdated'],
       webSocketUrls: [syncEntityUpdateWebSocketHub(), syncEventsWebSocketHub()],
       webSocketConnector: WSConnector,
+      onWSMessageReceived: jest.fn(),
     });
   });
 
@@ -50,7 +51,7 @@ describe('WebSocketSyncWrapper', () => {
       .mockImplementation((callback: Function) => callback(syncErrorMock));
 
     (useWebSocket as jest.Mock).mockReturnValue({
-      ...jest.requireActual('app-development/hooks/useWebSocket'),
+      ...jest.requireActual('app-shared/hooks/useWebSocket'),
       onWSMessageReceived: mockOnWSMessageReceived,
     });
 
@@ -76,7 +77,7 @@ describe('WebSocketSyncWrapper', () => {
       .mockImplementation((callback: Function) => callback(syncSuccessMock));
 
     (useWebSocket as jest.Mock).mockReturnValue({
-      ...jest.requireActual('app-development/hooks/useWebSocket'),
+      ...jest.requireActual('app-shared/hooks/useWebSocket'),
       onWSMessageReceived: mockOnWSMessageReceived,
     });
 
@@ -101,7 +102,7 @@ describe('WebSocketSyncWrapper', () => {
       .mockImplementation((callback: Function) => callback(entityUpdateMock));
 
     (useWebSocket as jest.Mock).mockReturnValue({
-      ...jest.requireActual('app-development/hooks/useWebSocket'),
+      ...jest.requireActual('app-shared/hooks/useWebSocket'),
       onWSMessageReceived: mockOnWSMessageReceived,
     });
 

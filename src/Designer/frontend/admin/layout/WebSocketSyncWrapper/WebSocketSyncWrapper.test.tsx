@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { syncEntityUpdateWebSocketHub, syncEventsWebSocketHub } from 'app-shared/api/paths';
@@ -10,12 +10,11 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { app, org } from '@studio/testing/testids';
 import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncSuccessQueriesInvalidator';
 import { WebSocketSyncWrapper } from './WebSocketSyncWrapper';
-import { renderWithProviders } from '../../test/testUtils';
-import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import type { EntityUpdated } from 'app-shared/types/api/EntityUpdated';
 import { EntityUpdatedQueriesInvalidator } from 'app-shared/queryInvalidator/EntityUpdatedQueriesInvalidator';
+import { QueryClientProvider } from '@tanstack/react-query';
 
-jest.mock('app-development/hooks/useWebSocket', () => ({
+jest.mock('app-shared/hooks/useWebSocket', () => ({
   useWebSocket: jest.fn(),
 }));
 
@@ -50,7 +49,7 @@ describe('WebSocketSyncWrapper', () => {
       .mockImplementation((callback: Function) => callback(syncErrorMock));
 
     (useWebSocket as jest.Mock).mockReturnValue({
-      ...jest.requireActual('app-development/hooks/useWebSocket'),
+      ...jest.requireActual('app-shared/hooks/useWebSocket'),
       onWSMessageReceived: mockOnWSMessageReceived,
     });
 
@@ -76,7 +75,7 @@ describe('WebSocketSyncWrapper', () => {
       .mockImplementation((callback: Function) => callback(syncSuccessMock));
 
     (useWebSocket as jest.Mock).mockReturnValue({
-      ...jest.requireActual('app-development/hooks/useWebSocket'),
+      ...jest.requireActual('app-shared/hooks/useWebSocket'),
       onWSMessageReceived: mockOnWSMessageReceived,
     });
 
@@ -101,7 +100,7 @@ describe('WebSocketSyncWrapper', () => {
       .mockImplementation((callback: Function) => callback(entityUpdateMock));
 
     (useWebSocket as jest.Mock).mockReturnValue({
-      ...jest.requireActual('app-development/hooks/useWebSocket'),
+      ...jest.requireActual('app-shared/hooks/useWebSocket'),
       onWSMessageReceived: mockOnWSMessageReceived,
     });
 
@@ -119,8 +118,9 @@ const mockChildren: ReactNode = <div></div>;
 
 const renderWebSocketSyncWrapper = () => {
   const queryClient = createQueryClientMock();
-  return renderWithProviders(<WebSocketSyncWrapper>{mockChildren}</WebSocketSyncWrapper>, {
-    queryClient,
-    startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
-  });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <WebSocketSyncWrapper>{mockChildren}</WebSocketSyncWrapper>
+    </QueryClientProvider>,
+  );
 };
