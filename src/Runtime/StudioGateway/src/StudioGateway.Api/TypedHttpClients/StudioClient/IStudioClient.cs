@@ -1,6 +1,4 @@
-using StudioGateway.Api.Models.Alerts;
-
-namespace StudioGateway.Api.TypedHttpClients.Studio;
+namespace StudioGateway.Api.TypedHttpClients.StudioClient;
 
 public interface IStudioClient
 {

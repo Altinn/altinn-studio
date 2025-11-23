@@ -2,14 +2,14 @@ using System.Net.Http.Headers;
 using Microsoft.Extensions.Options;
 using StudioGateway.Api.Configuration;
 
-namespace StudioGateway.Api.TypedHttpClients.Studio;
+namespace StudioGateway.Api.TypedHttpClients.StudioClient;
 
 public class StudioClient(
     HttpClient httpClient,
-    IOptions<StudioSettings> studioSettings
+    IOptions<StudioClientSettings> studioSettings
     ) : IStudioClient
 {
-    private readonly StudioSettings _studioSettings = studioSettings.Value;
+    private readonly StudioClientSettings _studioSettings = studioSettings.Value;
 
     /// <inheritdoc />
     public async Task UpsertFiringAlertsAsync(string org, string env, CancellationToken cancellationToken)

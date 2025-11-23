@@ -1,10 +1,11 @@
 namespace StudioGateway.Api.Configuration;
 
 /// <summary>
-/// Studio settings
+/// Alerts client settings
 /// </summary>
-public class StudioSettings
+public class AlertsClientSettings
 {
+    public string Provider { get; set; }
     public string BaseUri { get; set; }
     public string Token { get; set; }
 }
