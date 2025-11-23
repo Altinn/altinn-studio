@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Hubs.EntityUpdate;
+using Altinn.Studio.Designer.Hubs.AlertsUpdate;
 using Altinn.Studio.Designer.Models.Alerts;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClient.StudioGateway;
@@ -12,7 +12,7 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class AlertsService(
     IStudioGatewayClient studioGatewayClient,
-    IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext
+    IHubContext<AlertsUpdatedHub, IAlertsUpdateClient> alertsUpdatedHubContext
     ) : IAlertsService
 {
     /// <inheritdoc />
@@ -41,6 +41,6 @@ public class AlertsService(
         CancellationToken cancellationToken
     )
     {
-        await entityUpdatedHubContext.Clients.Group(org).EntityUpdated(new EntityUpdated(EntityConstants.Alert));
+        await alertsUpdatedHubContext.Clients.Group(org).AlertsUpdated(new AlertsUpdated(AlertsConstants.Alert));
     }
 }

@@ -5,14 +5,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 
-namespace Altinn.Studio.Designer.Hubs.EntityUpdate;
+namespace Altinn.Studio.Designer.Hubs.AlertsUpdate;
 
 [Authorize]
-public class EntityUpdatedHub : Hub<IEntityUpdateClient>
+public class AlertsUpdatedHub : Hub<IAlertsUpdateClient>
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public EntityUpdatedHub(IHttpContextAccessor httpContextAccessor)
+    public AlertsUpdatedHub(IHttpContextAccessor httpContextAccessor)
     {
         _httpContextAccessor = httpContextAccessor;
     }
@@ -21,7 +21,7 @@ public class EntityUpdatedHub : Hub<IEntityUpdateClient>
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
         string connectionId = Context.ConnectionId;
-        await Groups.AddToGroupAsync(connectionId, developer);
+        await Groups.AddToGroupAsync(connectionId, "ttd");
         await base.OnConnectedAsync();
     }
 
@@ -29,7 +29,7 @@ public class EntityUpdatedHub : Hub<IEntityUpdateClient>
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
         string connectionId = Context.ConnectionId;
-        await Groups.RemoveFromGroupAsync(connectionId, developer);
+        await Groups.RemoveFromGroupAsync(connectionId, "ttd");
         await base.OnDisconnectedAsync(exception);
     }
 }
