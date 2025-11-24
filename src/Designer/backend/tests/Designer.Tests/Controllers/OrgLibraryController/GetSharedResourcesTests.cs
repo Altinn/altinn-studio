@@ -102,14 +102,14 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
         string baseCommitSha = "abc123";
 
         string rootFileName = "file.txt";
-        string rootFilePath = $"{path}/file.txt";
+        string rootFilePath = $"{path}/{rootFileName}";
         string rootFileContent = "File content";
 
         string folderName = "subfolder";
         string folderPath = $"{path}/{folderName}";
 
         string subFolderFileName = "subFolderFile.txt";
-        string subFolderFilePath = $"{path}/subFolderFile.txt";
+        string subFolderFilePath = $"{path}/{subFolderFileName}";
         string subFolderFileContent = "Sub file content";
 
         _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfAnyOrganization()).ReturnsAsync(true);
