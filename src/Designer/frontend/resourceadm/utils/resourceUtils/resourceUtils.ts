@@ -368,7 +368,8 @@ export const validateResource = (
       links.forEach((link) => {
         const urlMatch = link.match(/\[[^\]]+\]\(([^)]+)\)/);
         const linkUrl = urlMatch?.[1];
-        const isLinkUrlValid = !!linkUrl && /^https?:\/\//.test(linkUrl);
+        const isLinkUrlValid =
+          !!linkUrl && (/^https?:\/\//.test(linkUrl) || /^{[a-z]*}/.test(linkUrl));
         if (!isLinkUrlValid) {
           errors.push({
             field: 'consentText',
