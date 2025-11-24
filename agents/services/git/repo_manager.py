@@ -78,32 +78,12 @@ class RepoManager:
         Returns:
             Normalized URL suitable for current environment
         """
-        # If running in Docker, rewrite studio.localhost URLs to use host.docker.internal
-        if config.RUNNING_IN_DOCKER:
-            parsed = urlparse(repo_url)
+        repo_path_part = urlparse(repo_url).path
 
-            # Rewrite studio.localhost to host.docker.internal for Docker environment
-            if parsed.hostname == "studio.localhost":
-                # Replace hostname
-                netloc = parsed.netloc.replace("studio.localhost", "host.docker.internal")
+        if repo_path_part.startswith('/repos/'):
+            repo_path_part = '/' + repo_path_part[7:]
 
-                # Add port 3000 if not present
-                if ":3000" not in netloc and "@" not in netloc:
-                    # No auth, no port
-                    netloc = f"host.docker.internal:3000"
-                elif "@" in netloc and ":3000" not in netloc:
-                    # Has auth, no port
-                    parts = netloc.split("@")
-                    netloc = f"{parts[0]}@host.docker.internal:3000"
-
-                # Remove /repos prefix from path if present (not part of actual git path)
-                path = parsed.path
-                if path.startswith('/repos/'):
-                    path = '/' + path[7:]
-
-                return urlunparse(parsed._replace(netloc=netloc, path=path))
-
-        return repo_url
+        return f"{config.GITEA_BASE_URL}{repo_path_part}"
 
     def clone_repo_for_session(self, repo_url: str, session_id: str, branch: Optional[str] = None) -> Path:
         """
@@ -156,13 +136,10 @@ class RepoManager:
         log.info(f"Cloning repository {repo_url} to {repo_path}")
 
         try:
-            # Normalize URL for current environment (Docker vs local)
             normalized_url = self._normalize_repo_url(repo_url)
 
-            # Add authentication
+            # Use authenticated URL for cloning
             auth_url = self._get_auth_url(normalized_url)
-
-            # Simple git clone - authentication handled via URL
             cmd = ["git", "clone", auth_url, str(repo_path)]
             result = subprocess.run(cmd, capture_output=True, text=True, check=True)
 
