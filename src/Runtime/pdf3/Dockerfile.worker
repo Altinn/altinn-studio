@@ -39,6 +39,10 @@ RUN mkdir -p ./output
 
 EXPOSE 5031
 
+RUN mkdir -p /tmp/user-home && \
+    chown -R nobody:nogroup /tmp/user-home
+
+ENV HOME=/tmp/user-home
 USER nobody
 
 ENTRYPOINT ["./main"]

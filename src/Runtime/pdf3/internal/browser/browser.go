@@ -65,6 +65,9 @@ func Start(id int) (*Process, error) {
 	cmd := exec.Command(browserPath, args...)
 	debugPortStr := fmt.Sprintf("%d", debugPort)
 	debugBaseURL := fmt.Sprintf("http://127.0.0.1:%d", debugPort)
+	cmdLogger := &cmdToLogger{logger: logger}
+	cmd.Stdout = cmdLogger
+	cmd.Stderr = cmdLogger
 
 	// Start the browser process
 	if err := cmd.Start(); err != nil {
@@ -77,6 +80,15 @@ func Start(id int) (*Process, error) {
 		DebugBaseURL: debugBaseURL,
 		DataDir:      dataDir,
 	}, nil
+}
+
+type cmdToLogger struct {
+	logger *slog.Logger
+}
+
+func (l *cmdToLogger) Write(p []byte) (int, error) {
+	l.logger.Info("Browser process stdout/stderr", "message", string(p))
+	return len(p), nil
 }
 
 // Close terminates the browser process
@@ -111,6 +123,8 @@ func createBrowserArgs() []string {
 		"--disable-prompt-on-repost",
 		"--disable-renderer-backgrounding",
 		"--disable-sync",
+		"--disable-gpu",
+		"--disable-software-rasterizer",
 		"--enable-automation",
 		"--enable-features=NetworkService,NetworkServiceInProcess",
 		"--font-render-hinting=none",
