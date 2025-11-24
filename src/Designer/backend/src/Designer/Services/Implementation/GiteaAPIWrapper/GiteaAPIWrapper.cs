@@ -18,6 +18,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Polly;
@@ -523,6 +524,46 @@ namespace Altinn.Studio.Designer.Services.Implementation
             );
 
             return fileBag.ToList();
+        }
+
+        /// <inheritdoc />
+        public async Task<(FileSystemObject, ProblemDetails)> GetFileAndErrorAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken = default)
+        {
+            string path = $"repos/{org}/{app}/contents/{filePath}";
+            string url = AddRefIfExists(path, reference);
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            using HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
+            switch (response.StatusCode)
+            {
+                case HttpStatusCode.OK:
+                    return (await response.Content.ReadFromJsonAsync<FileSystemObject>(s_jsonOptions, cancellationToken), null);
+                case HttpStatusCode.NotFound:
+                    ProblemDetails notFoundProblem = new()
+                    {
+                        Status = StatusCodes.Status404NotFound,
+                        Title = "File not found",
+                        Detail = $"A file was not found."
+                    };
+                    return (null, notFoundProblem);
+                case HttpStatusCode.Unauthorized:
+                    _logger.LogError("User {Developer} GetFileAsync response failed with statuscode {StatusCode} for {Org}/{App} at path: {FilePath}, ref: {Reference}", developer, response.StatusCode, org, app, filePath, reference);
+                    ProblemDetails hideUnathorizedWithNotFoundProblem = new()
+                    {
+                        Status = StatusCodes.Status404NotFound,
+                        Title = "File not found",
+                        Detail = $"A file was not found."
+                    };
+                    return (null, hideUnathorizedWithNotFoundProblem);
+                default:
+                    _logger.LogError("User {Developer} GetFileAsync response failed with statuscode {StatusCode} for {Org}/{App} at path: {FilePath}, ref: {Reference}", developer, response.StatusCode, org, app, filePath, reference);
+                    ProblemDetails generalProblem = new()
+                    {
+                        Status = StatusCodes.Status500InternalServerError,
+                        Title = "Error retrieving file",
+                        Detail = "An error occurred when trying to retrieve the file."
+                    };
+                    return (null, generalProblem);
+            }
         }
 
         /// <inheritdoc/>

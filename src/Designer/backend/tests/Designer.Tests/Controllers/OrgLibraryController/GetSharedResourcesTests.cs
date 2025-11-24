@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
@@ -39,13 +40,13 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
 
         string baseCommitSha = "abc123";
 
-        string firstFileName = "file1.txt";
-        string firstFilePath = $"{path}/file1.txt";
+        string firstFileName = "file1.json";
+        string firstFilePath = $"{path}/file1.json";
         string firstFileContent = "File content 1";
 
-        string secondFileName = "file2.txt";
-        string secondFilePath = $"{path}/file2.txt";
-        string secondFileUrl = "http://example.com/file2.txt";
+        string secondFileName = "file2.json";
+        string secondFilePath = $"{path}/file2.json";
+        string secondFileContent = "File content 1";
 
         _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(org)).ReturnsAsync(true);
 
@@ -65,18 +66,18 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
             .ReturnsAsync(baseCommitSha);
 
         _giteaClientMock
-            .Setup(wrapper => wrapper.GetFileAsync(org, repo, firstFilePath, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new FileSystemObject { Name = firstFileName, Path = firstFilePath, Type = "file", Content = firstFileContent, Encoding = "utf-8" });
+            .Setup(wrapper => wrapper.GetFileAndErrorAsync(org, repo, firstFilePath, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((new FileSystemObject { Name = firstFileName, Path = firstFilePath, Type = "file", Content = firstFileContent, Encoding = "utf-8" }, null));
 
         _giteaClientMock
-            .Setup(wrapper => wrapper.GetFileAsync(org, repo, secondFilePath, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new FileSystemObject { Name = secondFileName, Path = secondFilePath, Type = "file", HtmlUrl = secondFileUrl });
+            .Setup(wrapper => wrapper.GetFileAndErrorAsync(org, repo, secondFilePath, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((new FileSystemObject { Name = secondFileName, Path = secondFilePath, Type = "file", Content = secondFileContent, Encoding = "utf-8" }, null));
 
         // Arrange - Setup expected response
         List<LibraryFile> files =
         [
-            new(firstFilePath, "text/plain", firstFileContent, null),
-            new(secondFilePath, "text/plain", null, secondFileUrl)
+            new(firstFilePath, ".json", firstFileContent, null),
+            new(secondFilePath, ".json", secondFileContent, null)
         ];
         var expectedResponse = new GetSharedResourcesResponse(files, baseCommitSha);
 
@@ -88,6 +89,19 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
         GetSharedResourcesResponse actualResponse = await response.Content.ReadFromJsonAsync<GetSharedResourcesResponse>();
         Assert.Equal(expectedResponse.CommitSha, actualResponse.CommitSha);
         Assert.Equal(expectedResponse.Files.Count, actualResponse.Files.Count);
+        Assert.Collection(actualResponse.Files.OrderBy(f => f.Path),
+            file =>
+            {
+                Assert.Equal(firstFilePath, file.Path);
+                Assert.Equal(".json", file.ContentType);
+                Assert.Equal(firstFileContent, file.Content);
+            },
+            file =>
+            {
+                Assert.Equal(secondFilePath, file.Path);
+                Assert.Equal(".json", file.ContentType);
+                Assert.Equal(secondFileContent, file.Content);
+            });
     }
 
     [Fact]
@@ -101,14 +115,14 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
 
         string baseCommitSha = "abc123";
 
-        string rootFileName = "file.txt";
+        string rootFileName = "file.json";
         string rootFilePath = $"{path}/{rootFileName}";
         string rootFileContent = "File content";
 
         string folderName = "subfolder";
         string folderPath = $"{path}/{folderName}";
 
-        string subFolderFileName = "subFolderFile.txt";
+        string subFolderFileName = "subFolderFile.json";
         string subFolderFilePath = $"{path}/{subFolderFileName}";
         string subFolderFileContent = "Sub file content";
 
@@ -139,18 +153,18 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
             .ReturnsAsync(baseCommitSha);
 
         _giteaClientMock
-            .Setup(wrapper => wrapper.GetFileAsync(org, repo, rootFilePath, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new FileSystemObject { Name = rootFileName, Path = rootFilePath, Type = "file", Content = rootFileContent, Encoding = "utf-8" });
+            .Setup(wrapper => wrapper.GetFileAndErrorAsync(org, repo, rootFilePath, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((new FileSystemObject { Name = rootFileName, Path = rootFilePath, Type = "file", Content = rootFileContent, Encoding = "utf-8" }, null));
 
         _giteaClientMock
-            .Setup(wrapper => wrapper.GetFileAsync(org, repo, subFolderFilePath, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new FileSystemObject { Name = subFolderFileName, Path = subFolderFilePath, Type = "file", Content = subFolderFileContent, Encoding = "utf-8" });
+            .Setup(wrapper => wrapper.GetFileAndErrorAsync(org, repo, subFolderFilePath, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((new FileSystemObject { Name = subFolderFileName, Path = subFolderFilePath, Type = "file", Content = subFolderFileContent, Encoding = "utf-8" }, null));
 
         // Arrange - Setup expected response
         List<LibraryFile> files =
             [
-                new(rootFilePath, "text/plain", rootFileContent, null),
-                new(subFolderFilePath, "text/plain", subFolderFileContent, null)
+                new(rootFilePath, ".json", rootFileContent, null),
+                new(subFolderFilePath, ".json", subFolderFileContent, null)
             ];
         var expectedResponse = new GetSharedResourcesResponse(files, baseCommitSha);
 
@@ -162,6 +176,19 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
         GetSharedResourcesResponse actualResponse = await response.Content.ReadFromJsonAsync<GetSharedResourcesResponse>();
         Assert.Equal(expectedResponse.CommitSha, actualResponse.CommitSha);
         Assert.Equal(expectedResponse.Files.Count, actualResponse.Files.Count);
+        Assert.Collection(actualResponse.Files.OrderBy(f => f.Path),
+            file =>
+            {
+                Assert.Equal(rootFilePath, file.Path);
+                Assert.Equal(".json", file.ContentType);
+                Assert.Equal(rootFileContent, file.Content);
+            },
+            file =>
+            {
+                Assert.Equal(subFolderFilePath, file.Path);
+                Assert.Equal(".json", file.ContentType);
+                Assert.Equal(subFolderFileContent, file.Content);
+            });
     }
 
     [Fact]

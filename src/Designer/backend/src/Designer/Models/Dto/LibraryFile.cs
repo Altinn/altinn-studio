@@ -1,5 +1,5 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
@@ -7,23 +7,29 @@ public sealed record LibraryFile
 {
     public string Path { get; set; }
     public string ContentType { get; set; }
-
-    [MemberNotNullWhen(true, nameof(Url))]
     public string? Content { get; set; }
-
-    [MemberNotNullWhen(true, nameof(Content))]
     public string? Url { get; set; }
+    public ProblemDetails? Problem { get; set; }
 
-    public LibraryFile(string path, string contentType, string? content, string? url)
+    public LibraryFile(string path, string contentType, string? content, string? url, ProblemDetails? problem = null)
     {
-        if ((content is null && url is null) || (content is not null && url is not null))
+        if(problem is not null && content is null && url is null)
         {
-            throw new ArgumentException("Exactly one of content or url must be provided.");
+            throw new ArgumentException("Cannot provide content or url when there is a problem.");
+        }
+
+        if(problem is null && (BothAreNull(content, url) || BothNotNull(content, url)))
+        {
+            throw new ArgumentException("Either content or url must be provided when there is no problem.");
         }
 
         Path = path;
         ContentType = contentType;
         Content = content;
         Url = url;
+        Problem = problem;
     }
+
+    private static bool BothAreNull(string? first, string? second) => first is null && second is null;
+    private static bool BothNotNull(string? first, string? second) => first is not null && second is not null;
 }

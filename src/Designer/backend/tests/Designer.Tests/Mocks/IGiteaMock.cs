@@ -5,10 +5,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
+using Microsoft.AspNetCore.Mvc;
 using Organization = Altinn.Studio.Designer.RepositoryClient.Model.Organization;
 
 namespace Designer.Tests.Mocks
@@ -228,6 +228,12 @@ namespace Designer.Tests.Mocks
         public Task<string> GetLatestCommitOnBranch(string org, string repository, string branchName = null, CancellationToken cancellationToken = default)
         {
             return Task.FromResult("baseCommitSha");
+        }
+
+        public Task<(FileSystemObject, ProblemDetails)> GetFileAndErrorAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken = default)
+        {
+            Task<FileSystemObject> file = GetFileAsync(org, app, filePath, reference, cancellationToken);
+            return Task.FromResult((file.Result, null as ProblemDetails));
         }
     }
 }

@@ -12,6 +12,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 
@@ -38,8 +39,8 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
                 switch (fileExtension)
                 {
                     case JsonExtension:
-                        FileSystemObject file = await gitea.GetFileAsync(org, repository, fileSystemObject.Path, reference, token);
-                        AddJsonFile(file, libraryFiles);
+                        (FileSystemObject file, ProblemDetails problem) = await gitea.GetFileAndErrorAsync(org, repository, fileSystemObject.Path, reference, token);
+                        AddJsonFileOrProblem(fileSystemObject, libraryFiles, file, problem);
                         break;
                     default:
                         AddOtherFile(fileSystemObject, libraryFiles);
@@ -185,6 +186,25 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
         {
             throw new ArgumentException($"Invalid file path: {filePath}", nameof(filePath));
         }
+    }
+
+    private static void AddJsonFileOrProblem(FileSystemObject fileSystemObject, ConcurrentBag<LibraryFile> libraryFiles, FileSystemObject file, ProblemDetails problem)
+    {
+        if (problem is null)
+        {
+            AddJsonFile(file, libraryFiles);
+        }
+        else
+        {
+            AddProblem(fileSystemObject, problem, libraryFiles);
+        }
+    }
+
+    private static void AddProblem(FileSystemObject fileSystemObject, ProblemDetails problem, ConcurrentBag<LibraryFile> libraryFiles)
+    {
+        string contentType = Path.GetExtension(fileSystemObject.Name);
+        LibraryFile libraryFile = new(fileSystemObject.Path, contentType, null, null, problem);
+        libraryFiles.Add(libraryFile);
     }
 
     private static void AddJsonFile(FileSystemObject jsonFile, ConcurrentBag<LibraryFile> libraryFiles)
