@@ -2,14 +2,11 @@ FROM python:3.12-slim-bookworm
 
 WORKDIR /app
 
-# Install git (required for GitPython)
 RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
-# Configure git user for commits
 RUN git config --system user.name "Altinity Agent" && \
     git config --system user.email "agent@altinity.local"
 
-# Configure git environment
 ENV GIT_CURL_VERBOSE=0
 ENV GIT_TRACE=0
 
