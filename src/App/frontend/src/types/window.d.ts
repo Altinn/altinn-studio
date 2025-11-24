@@ -13,7 +13,7 @@ export type AltinnAppData = {
   layoutSets: ILayoutSets;
   applicationMetadata: IncomingApplicationMetadata;
   footerLayout: IFooterLayout | null;
-  appLanguages: IAppLanguage[];
+  availableLanguages: IAppLanguage[];
   textResources: ITextResourceResult | null;
   frontendSettings: IApplicationSettings;
 };

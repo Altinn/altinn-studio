@@ -18,7 +18,9 @@ export interface AppHeaderProps {
 }
 
 export const AppHeader = ({ logoColor, headerBackgroundColor }: AppHeaderProps) => {
-  const { showLanguageSelector } = usePageSettings();
+  const page = usePageSettings();
+
+  const { showLanguageSelector } = page;
 
   return (
     <header
@@ -36,6 +38,8 @@ export const AppHeader = ({ logoColor, headerBackgroundColor }: AppHeaderProps) 
       <div className={classes.container}>
         <Logo color={logoColor} />
         <div className={classes.wrapper}>
+          <h1>lang:</h1>
+          <pre>{JSON.stringify({ showLanguageSelector }, null, 2)}</pre>
           {showLanguageSelector && <LanguageSelector />}
           <div className={classes.wrapper}>
             <AppHeaderMenu logoColor={logoColor} />

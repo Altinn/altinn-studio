@@ -55,14 +55,19 @@ export const getStatelessDataModelUrl = (dataType: string) =>
   `${appPath}/v1/data?dataType=${dataType}&includeRowId=true`;
 
 export const getStatefulDataModelUrl = (instanceId: string, dataElementId: string) =>
+  // debugger;
   `${appPath}/instances/${instanceId}/data/${dataElementId}?includeRowId=true`;
 
-export const getMultiPatchUrl = (instanceId: string) => `${appPath}/instances/${instanceId}/data`;
+export const getMultiPatchUrl = (instanceId: string) =>
+  //debugger;
+  `${appPath}/instances/${instanceId}/data`;
 
 export const getDataElementIdUrl = (instanceId: string, dataElementId: string) =>
+  //debugger;
   `${appPath}/instances/${instanceId}/data/${dataElementId}`;
 
 export const getDataModelTypeUrl = (instanceId: string, dataType: string) =>
+  //debugger;
   `${appPath}/instances/${instanceId}/data?dataType=${dataType}`;
 
 export const getDataElementUrl = (instanceId: string, dataElementId: string, language: string) =>

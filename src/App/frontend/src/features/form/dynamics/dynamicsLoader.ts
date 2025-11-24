@@ -1,7 +1,5 @@
-import type { LoaderFunctionArgs } from 'react-router-dom';
 import { redirect } from 'react-router-dom';
-
-import type { QueryClient } from '@tanstack/react-query';
+import type { LoaderFunctionArgs } from 'react-router-dom';
 
 import { processApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { getCurrentLayoutSet } from 'src/features/applicationMetadata/appMetadataUtils';
@@ -11,7 +9,6 @@ import type { ILayoutSets } from 'src/layout/common.generated';
 
 interface DynamicsLoaderProps extends LoaderFunctionArgs {
   context: {
-    queryClient: QueryClient;
     application?: IncomingApplicationMetadata | (() => IncomingApplicationMetadata | undefined);
     layoutSets?: ILayoutSets | (() => ILayoutSets | undefined);
     instanceId: string | (() => string | undefined);

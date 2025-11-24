@@ -277,12 +277,12 @@ describe('Expressions shared function tests', () => {
       if (profileSettings?.language) {
         profile.profileSettingPreference.language = profileSettings.language;
         // Also add it to appLanguages so resolveCurrentLanguage() accepts it
-        window.AltinnAppData.appLanguages = [{ language: profileSettings.language }];
+        window.AltinnAppData.availableLanguages = [{ language: profileSettings.language }];
         // Update the profile in window.AltinnAppData since useProfile() reads from there
         window.AltinnAppData.userProfile = profile;
       } else {
         // Reset to defaults when no custom profile settings
-        window.AltinnAppData.appLanguages = [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }];
+        window.AltinnAppData.availableLanguages = [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }];
         window.AltinnAppData.userProfile = profile;
       }
 

@@ -29,6 +29,7 @@ export const LanguageSelector = () => {
   }
 
   if (!appLanguages?.length) {
+    // debugger;
     return null;
   }
 

@@ -299,7 +299,7 @@ public class HomeController : Controller
         [FromRoute] string app,
         [FromRoute] int partyId
     )
-    {
+    {   
         string layoutSetsString = _appResources.GetLayoutSets();
         string layoutSetsJson = string.IsNullOrEmpty(layoutSetsString) ? "null" : layoutSetsString;
 

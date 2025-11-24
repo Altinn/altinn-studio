@@ -47,6 +47,7 @@ import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import { FixWrongReceiptType } from 'src/features/receipt/FixWrongReceiptType';
 import { DefaultReceipt } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
+import { createLanguageLoader } from 'src/language/languageLoader';
 import * as queries from 'src/queries/queries';
 
 import 'leaflet/dist/leaflet.css';
@@ -98,9 +99,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         },
                       ],
                     },
-
                     {
                       path: '/:org/:app/*',
+                      loader: createLanguageLoader({
+                        queryClient: defaultQueryClient,
+                      }),
                       element: (
                         <NavigationEffectProvider>
                           <ErrorBoundary>
@@ -136,8 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             {
                               path: ':taskId',
                               loader: createDynamicsLoader({
-                                queryClient: defaultQueryClient,
-                                // Use window data when available
                                 application: () => window.AltinnAppData?.applicationMetadata,
                                 layoutSets: () => window.AltinnAppData?.layoutSets,
                                 instanceId: () => window.AltinnAppData?.instance?.id,

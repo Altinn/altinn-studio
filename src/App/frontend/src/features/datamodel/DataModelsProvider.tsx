@@ -317,7 +317,6 @@ function LoadInitialData({ dataType, overrideDataElement }: LoaderProps & { over
   });
 
   const { data, error } = useFormDataQuery(url);
-
   useEffect(() => {
     if (!data || !url) {
       return;
