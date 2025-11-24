@@ -80,7 +80,7 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
             await orgLibraryService.UpdateSharedResourcesByPath(org, developer, requestBody, cancellationToken);
             return Ok();
         }
-        catch (Exception ex) when (ex is InvalidOperationException || ex is IllegalCommitMessageException)
+        catch (Exception ex) when (ex is InvalidOperationException or IllegalCommitMessageException)
         {
             logger.LogWarning(ex, "Error updating shared resources for {Org} by {Developer}.", org, developer);
             return BadRequest(new ProblemDetails
