@@ -58,6 +58,13 @@ public class UpdateSharedResourcesTests(WebApplicationFactory<Program> factory) 
 
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+        _orgLibraryServiceMock.Verify(
+            s => s.UpdateSharedResourcesByPath(
+                "ttd",
+                "testUser",
+                It.Is<UpdateSharedResourceRequest>(r => r.BaseCommitSha == "abc123" && r.CommitMessage == "Updating shared resources" && r.Files.Count == 2),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
