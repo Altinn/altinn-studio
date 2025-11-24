@@ -2,13 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
+    <AssemblyName>StudioGateway.Api</AssemblyName>
+    <RootNamespace>StudioGateway.Api</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <PublishAot>true</PublishAot>
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Azure.Monitor.Query" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
   </ItemGroup>
 
