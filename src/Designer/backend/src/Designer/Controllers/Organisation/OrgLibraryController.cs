@@ -23,7 +23,7 @@ namespace Altinn.Studio.Designer.Controllers.Organisation;
 /// <param name="orgLibraryService">The library service.</param>
 /// <param name="logger">The logger.</param>
 [ApiController]
-[Authorize(Policy = AltinnPolicy.MustBelongToOrganization)]
+[Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
 [Route("designer/api/{org}/shared-resources")]
 public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<OrgLibraryController> logger) : ControllerBase
 {
