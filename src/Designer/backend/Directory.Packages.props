@@ -8,7 +8,7 @@
     <PackageVersion Include="Altinn.App.Core" Version="8.0.0" />
     <PackageVersion Include="Altinn.Common.AccessToken" Version="5.0.5" />
     <PackageVersion Include="Altinn.Common.AccessTokenClient" Version="3.0.15" />
-    <PackageVersion Include="Altinn.Platform.Storage.Interface" Version="3.34.0" />
+    <PackageVersion Include="Altinn.Platform.Storage.Interface" Version="4.0.14" />
     <PackageVersion Include="Altinn.Authorization.ABAC" Version="0.0.8" />
     <PackageVersion Include="Altinn.ApiClients.Maskinporten" Version="9.2.1" />
   </ItemGroup>
