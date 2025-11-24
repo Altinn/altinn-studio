@@ -6,7 +6,7 @@ golangci-lint v2.5.0 https://github.com/golangci/golangci-lint/releases/download
 # renovate: datasource=github-releases depName=kubernetes-sigs/kind
 kind v0.29.0 https://github.com/kubernetes-sigs/kind/releases/download/{version}/kind-{os}-{arch}.sha256sum
 # renovate: datasource=github-releases depName=helm/helm
-helm 3.19.2 https://get.helm.sh/helm-{version}-{os}-{arch}.tar.gz.sha256sum
+helm v3.19.2 https://get.helm.sh/helm-{version}-{os}-{arch}.tar.gz.sha256sum
 # renovate: datasource=github-releases depName=kubernetes/kubernetes
 kubectl v1.34.2 https://dl.k8s.io/release/{version}/bin/{os}/{arch}/kubectl.sha256
 # renovate: datasource=github-releases depName=fluxcd/flux2
