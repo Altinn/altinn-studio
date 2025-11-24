@@ -404,5 +404,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             _logger.LogError(ex, $"Failed executing method {method} for user {developer} in org {org} / repository {repository}. Destination: {destinationPath}. Branch: {branch}.");
         }
+
+        public Task CommitAndPushChanges(AltinnRepoEditingContext editingContext, string branchName, string message) => throw new NotImplementedException();
+        LibGit2Sharp.RebaseResult ISourceControl.RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
+        public Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
     }
 }
