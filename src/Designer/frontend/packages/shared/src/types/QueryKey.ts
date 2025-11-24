@@ -61,6 +61,8 @@ export enum QueryKey {
 
   // Admin
   Alerts = 'Alerts',
+  Metrics = 'Metrics',
+  ProcessNext = 'ProcessNext',
   AppInstances = 'AppInstances',
   AppInstanceDetails = 'AppInstanceDetails',
   AppProcessTasks = 'AppProcessTasks',

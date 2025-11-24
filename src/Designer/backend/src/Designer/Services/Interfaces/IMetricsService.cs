@@ -1,19 +1,12 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Models.Alerts;
 using Altinn.Studio.Designer.Models.Metrics;
 
-namespace Altinn.Studio.Designer.TypedHttpClient.StudioGateway;
+namespace Altinn.Studio.Designer.Services.Interfaces;
 
-public interface IStudioGatewayClient
+public interface IMetricsService
 {
-    public Task<IEnumerable<StudioGatewayAlert>> GetFiringAlertsAsync(
-        string org,
-        string env,
-        CancellationToken cancellationToken = default
-    );
-
     public Task<IEnumerable<AppMetric>> GetMetricsAsync(
         string org,
         string env,

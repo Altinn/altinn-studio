@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models.Alerts;
+using Altinn.Studio.Designer.Models.Metrics;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.TypedHttpClient.StudioGateway;
@@ -39,5 +40,55 @@ public class StudioGatewayClient(
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadFromJsonAsync<List<StudioGatewayAlert>>(options, cancellationToken: cancellationToken) ?? [];
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<AppMetric>> GetMetricsAsync(
+        string org,
+        string env,
+        string app,
+        int time,
+        CancellationToken cancellationToken
+    )
+    {
+        StudioGatewayEnvSettings studioGatewaySettings = _studioGatewaySettings.GetSettings(env);
+
+        string apiToken = studioGatewaySettings.Token;
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);
+
+        string baseUri = studioGatewaySettings.GetBaseUri(org);
+        string url = $"{baseUri}/api/v1/metrics?app={app}&time={time}";
+
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
+
+        HttpResponseMessage response = await httpClient.GetAsync(url, cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<List<AppMetric>>(options, cancellationToken: cancellationToken) ?? [];
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<AppMetric>> GetFailedProcessNextRequestsAsync(
+        string org,
+        string env,
+        string app,
+        int time,
+        CancellationToken cancellationToken
+    )
+    {
+        StudioGatewayEnvSettings studioGatewaySettings = _studioGatewaySettings.GetSettings(env);
+
+        string apiToken = studioGatewaySettings.Token;
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);
+
+        string baseUri = studioGatewaySettings.GetBaseUri(org);
+        string url = $"{baseUri}/api/v1/metrics/process-next?app={app}&time={time}";
+
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
+
+        HttpResponseMessage response = await httpClient.GetAsync(url, cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<List<AppMetric>>(options, cancellationToken: cancellationToken) ?? [];
     }
 }
