@@ -13,12 +13,12 @@ public sealed record LibraryFile
 
     public LibraryFile(string path, string contentType, string? content, string? url, ProblemDetails? problem = null)
     {
-        if(problem is not null && content is null && url is null)
+        if (problem is not null && content is null && url is null)
         {
             throw new ArgumentException("Cannot provide content or url when there is a problem.");
         }
 
-        if(problem is null && (BothAreNull(content, url) || BothNotNull(content, url)))
+        if (problem is null && (BothAreNull(content, url) || BothNotNull(content, url)))
         {
             throw new ArgumentException("Either content or url must be provided when there is no problem.");
         }
