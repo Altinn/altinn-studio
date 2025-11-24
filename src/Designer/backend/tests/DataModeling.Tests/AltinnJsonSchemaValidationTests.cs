@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Altinn.Studio.DataModeling.Validator.Json;
 using DataModeling.Tests.BaseClasses;
 using DataModeling.Tests.TestDataClasses;
@@ -36,6 +37,12 @@ namespace DataModeling.Tests
             {
                 Assert.Contains(ValidationResult.ValidationIssues, x => x.ErrorCode == expectedCode && JsonPointer.Parse(x.IssuePointer) == JsonPointer.Parse(expectedPointer));
             }
+        }
+
+        [Fact]
+        public void FailingTestOnWindows()
+        {
+            Assert.Equal('/', Path.DirectorySeparatorChar);
         }
 
         private AltinnJsonSchemaValidationTests LoadedJsonSchemaValidated()
