@@ -7,6 +7,7 @@ import {
 import userEvent from '@testing-library/user-event';
 import { type StudioProfileMenuItem } from './types/StudioProfileMenuItem';
 import { type StudioProfileMenuGroup } from './types/StudioProfileMenuGroup';
+import { StudioPageHeaderContextProvider } from '../context/StudioPageHeaderContext';
 
 const mockImageAlt: string = 'Alt';
 const defaultProfileImage = <img src='profile.jpg' alt={mockImageAlt} />;
@@ -214,5 +215,9 @@ describe('StudioProfileMenu', () => {
 const renderStudioProfileMenu = (
   props?: Partial<StudioPageHeaderProfileMenuProps>,
 ): ReturnType<typeof render> => {
-  return render(<StudioPageHeaderProfileMenu {...defaultProps} {...props} />);
+  return render(
+    <StudioPageHeaderContextProvider variant='regular'>
+      <StudioPageHeaderProfileMenu {...defaultProps} {...props} />
+    </StudioPageHeaderContextProvider>,
+  );
 };

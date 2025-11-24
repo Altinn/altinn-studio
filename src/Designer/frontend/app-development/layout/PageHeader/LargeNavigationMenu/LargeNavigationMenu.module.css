@@ -14,3 +14,7 @@
 .active {
   border-bottom: 2px solid var(--ds-color-text-default);
 }
+
+.menu li a:hover {
+  background-color: var(--studio-designer-header-background-secondary);
+}

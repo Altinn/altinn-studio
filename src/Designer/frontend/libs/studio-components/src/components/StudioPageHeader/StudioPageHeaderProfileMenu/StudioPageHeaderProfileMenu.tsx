@@ -4,6 +4,8 @@ import { StudioDropdown } from '../../StudioDropdown';
 import { useStudioDropdownContext } from '../../StudioDropdown/context/StudioDropdownContext';
 import { type StudioProfileMenuItem } from './types/StudioProfileMenuItem';
 import { type StudioProfileMenuGroup } from './types/StudioProfileMenuGroup';
+import { useStudioPageHeaderContext } from '../context';
+import cn from 'classnames';
 
 export type StudioPageHeaderProfileMenuProps = {
   triggerButtonText?: string;
@@ -16,18 +18,23 @@ export const StudioPageHeaderProfileMenu = ({
   profileImage,
   profileMenuGroups,
 }: StudioPageHeaderProfileMenuProps): ReactElement => {
+  const { variant } = useStudioPageHeaderContext();
+  const isPreview = variant === 'preview';
+
   return (
-    <StudioDropdown
-      triggerButtonVariant='tertiary'
-      placement='bottom-end'
-      data-color='neutral'
-      triggerButtonText={triggerButtonText}
-      icon={profileImage}
-      iconPlacement='right'
-      data-color-scheme='light'
-    >
-      <StudioPageHeaderMenuContent profileMenuGroups={profileMenuGroups} />
-    </StudioDropdown>
+    <div className={cn(classes.wrapper, isPreview && classes.preview)}>
+      <StudioDropdown
+        triggerButtonVariant='tertiary'
+        placement='bottom-end'
+        data-color='neutral'
+        triggerButtonText={triggerButtonText}
+        icon={profileImage}
+        iconPlacement='right'
+        data-color-scheme='light'
+      >
+        <StudioPageHeaderMenuContent profileMenuGroups={profileMenuGroups} />
+      </StudioDropdown>
+    </div>
   );
 };
 

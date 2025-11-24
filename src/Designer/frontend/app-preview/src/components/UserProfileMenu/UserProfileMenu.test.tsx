@@ -7,6 +7,7 @@ import { type Repository, type User } from 'app-shared/types/Repository';
 import { app, org } from '@studio/testing/testids';
 import { repository } from 'app-shared/mocks/mocks';
 import { renderWithProviders } from '../../../test/mocks';
+import { StudioPageHeaderContextProvider } from '@studio/components/src/components/StudioPageHeader/context';
 
 jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
 
@@ -75,5 +76,9 @@ describe('UserProfileMenu', () => {
 });
 
 const renderUserProfileMenu = (props?: Partial<UserProfileMenuProps>) => {
-  return renderWithProviders()(<UserProfileMenu {...defaultProps} {...props} />);
+  return renderWithProviders()(
+    <StudioPageHeaderContextProvider variant='preview'>
+      <UserProfileMenu {...defaultProps} {...props} />
+    </StudioPageHeaderContextProvider>,
+  );
 };

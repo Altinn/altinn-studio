@@ -8,6 +8,7 @@ import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { useNavigate } from 'react-router-dom';
 import { useNavigateFrom } from './useNavigateFrom';
+import classes from './SettingsPageButton.module.css';
 
 export const SettingsPageButton = (): ReactElement => {
   const { t } = useTranslation();
@@ -41,15 +42,17 @@ export const SettingsPageButton = (): ReactElement => {
   };
 
   return (
-    <StudioPageHeader.HeaderButton
-      data-color='neutral'
-      onClick={handleClick}
-      icon={<ButtonIcon isSettingsPage={isSettingsPage} />}
-      variant='tertiary'
-      aria-label={buttonText}
-    >
-      {shouldDisplayText && buttonText}
-    </StudioPageHeader.HeaderButton>
+    <div className={classes.wrapper}>
+      <StudioPageHeader.HeaderButton
+        data-color='neutral'
+        onClick={handleClick}
+        icon={<ButtonIcon isSettingsPage={isSettingsPage} />}
+        variant='tertiary'
+        aria-label={buttonText}
+      >
+        {shouldDisplayText && buttonText}
+      </StudioPageHeader.HeaderButton>
+    </div>
   );
 };
 
