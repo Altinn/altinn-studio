@@ -147,9 +147,10 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
         string repo = GetStaticContentRepo(org);
         AltinnGitRepository altinnOrgGitRepository = altinnGitRepositoryFactory.GetAltinnGitRepository(org, repo, developer);
 
+        ValidateFilePath(fileMetadata.Path);
+
         if (fileMetadata.Encoding?.Equals("base64", StringComparison.OrdinalIgnoreCase) is true)
         {
-            ValidateFilePath(fileMetadata.Path);
             byte[] data = Convert.FromBase64String(fileMetadata.Content);
             using MemoryStream stream = new(data);
             await altinnOrgGitRepository.WriteStreamByRelativePathAsync(fileMetadata.Path, stream, createDirectory: true, cancellationToken);
