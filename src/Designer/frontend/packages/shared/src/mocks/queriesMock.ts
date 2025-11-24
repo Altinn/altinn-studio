@@ -261,6 +261,7 @@ export const queriesMock: ServicesContextProps = {
   generateModels: jest.fn().mockImplementation(() => Promise.resolve()),
   importCodeListFromOrgToApp: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
   logout: jest.fn().mockImplementation(() => Promise.resolve()),
+  publishCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
   pushRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   resetRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   saveDataModel: jest.fn().mockImplementation(() => Promise.resolve()),

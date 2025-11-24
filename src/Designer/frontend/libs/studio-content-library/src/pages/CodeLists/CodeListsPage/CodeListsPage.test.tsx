@@ -9,8 +9,9 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { codeLists, coloursData } from './test-data/codeLists';
 
 // Test data:
+const onPublish = jest.fn();
 const onSave = jest.fn();
-const defaultProps: CodeListsPageProps = { codeLists, onSave };
+const defaultProps: CodeListsPageProps = { codeLists, onPublish, onSave };
 
 describe('CodeListsPage', () => {
   beforeEach(onSave.mockClear);
