@@ -518,7 +518,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     string filePath = $"{CodeListFolderName}/{fileName}";
                     FileSystemObject file = await GetFileAsync(org, repository, filePath, reference, token);
-                    fileBag.Add(file);
+
+                    if (file is null)
+                    {
+                        fileBag.Add(file);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Could not fetch code list file {FileName} from {Org}/{Repo} at reference {Ref}", fileName, org, repository, reference);
+                    }
                 }
             );
 
