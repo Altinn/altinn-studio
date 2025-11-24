@@ -56,7 +56,7 @@
     "@types/leaflet": "1",
     "@types/marked": "6.0.0",
     "@types/mime": "4.0.0",
-    "@types/node": "22.19.0",
+    "@types/node": "24.10.1",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
     "@types/react-router-dom": "5.3.3",
