@@ -149,6 +149,7 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
 
         if (fileMetadata.Encoding?.Equals("base64", StringComparison.OrdinalIgnoreCase) is true)
         {
+            ValidateFilePath(fileMetadata.Path);
             byte[] data = Convert.FromBase64String(fileMetadata.Content);
             using MemoryStream stream = new(data);
             await altinnOrgGitRepository.WriteStreamByRelativePathAsync(fileMetadata.Path, stream, createDirectory: true, cancellationToken);
@@ -172,6 +173,16 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
         if (InputValidator.IsValidGiteaCommitMessage(commitMessage) is false)
         {
             throw new IllegalCommitMessageException("The commit message is invalid. It must be between 1 and 5120 characters and not contain null characters.");
+        }
+    }
+
+    internal static void ValidateFilePath(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath) ||
+            filePath.Contains("..") ||
+            Path.IsPathRooted(filePath))
+        {
+            throw new ArgumentException($"Invalid file path: {filePath}", nameof(filePath));
         }
     }
 
