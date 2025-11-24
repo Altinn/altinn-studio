@@ -45,7 +45,7 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
 
         string secondFileName = "file2.txt";
         string secondFilePath = $"{path}/file2.txt";
-        string secondFileContent = "File content 2";
+        string secondFileUrl = "http://example.com/file2.txt";
 
         _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(org)).ReturnsAsync(true);
 
@@ -70,13 +70,13 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
 
         _giteaClientMock
             .Setup(wrapper => wrapper.GetFileAsync(org, repo, secondFilePath, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new FileSystemObject { Name = secondFileName, Path = secondFilePath, Type = "file", Content = secondFileContent, Encoding = "utf-8" });
+            .ReturnsAsync(new FileSystemObject { Name = secondFileName, Path = secondFilePath, Type = "file", HtmlUrl = secondFileUrl });
 
         // Arrange - Setup expected response
         List<LibraryFile> files =
         [
             new(firstFilePath, "text/plain", firstFileContent, null),
-            new(secondFilePath, "text/plain", secondFileContent, null)
+            new(secondFilePath, "text/plain", null, secondFileUrl)
         ];
         var expectedResponse = new GetSharedResourcesResponse(files, baseCommitSha);
 
