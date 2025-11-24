@@ -167,7 +167,9 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
     [Fact]
     public async Task GetSharedResources_Returns_403Forbidden_When_User_Not_Member_Of_Org()
     {
+        // Arrange
         string apiUrl = $"/designer/api/some-org/shared-resources?path=some/path";
+        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfAnyOrganization()).ReturnsAsync(false);
 
         // Act
         HttpResponseMessage response = await HttpClient.GetAsync(apiUrl);

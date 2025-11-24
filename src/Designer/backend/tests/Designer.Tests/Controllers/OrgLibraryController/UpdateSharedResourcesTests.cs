@@ -47,7 +47,7 @@ public class UpdateSharedResourcesTests(WebApplicationFactory<Program> factory) 
 
         _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfAnyOrganization()).ReturnsAsync(true);
 
-        _orgLibraryServiceMock.Setup(s => s.UpdateSharedResourcesByPath(Org, It.IsAny<string>(), It.IsAny<UpdateSharedResourceRequest>(), It.IsAny<CancellationToken>()))
+        _orgLibraryServiceMock.Setup(s => s.UpdateSharedResourcesByPath(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<UpdateSharedResourceRequest>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask)
             .Verifiable();
 
