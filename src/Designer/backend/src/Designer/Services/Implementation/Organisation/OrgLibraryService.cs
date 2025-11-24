@@ -17,7 +17,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 
 public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory) : IOrgLibraryService
 {
-    private const string DefaultCommitMessage = "Update code lists.";
+    private const string DefaultCommitMessage = "Update shared resources.";
     private const string JsonExtension = ".json";
 
     /// <inheritdoc />
