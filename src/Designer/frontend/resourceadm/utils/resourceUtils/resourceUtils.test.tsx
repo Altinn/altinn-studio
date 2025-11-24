@@ -281,7 +281,7 @@ describe('deepCompare', () => {
       });
 
       it('should allow links in nb consentText field which starts with a metadata value', () => {
-        const invalidLink = '[Link]({metadata})';
+        const validLink = '[Link]({metadata})';
         const resource: Resource = {
           identifier: 'res',
           resourceType: 'Consent',
@@ -290,7 +290,7 @@ describe('deepCompare', () => {
             metadata: { optional: false },
           },
           consentText: {
-            nb: `test ${invalidLink}`,
+            nb: `test ${validLink}`,
             nn: 'test',
             en: 'test',
           },
@@ -302,7 +302,7 @@ describe('deepCompare', () => {
             validationErrors,
             'nb',
             textMock('resourceadm.about_resource_error_consent_text_link_invalid', {
-              link: invalidLink,
+              link: validLink,
               interpolation: { escapeValue: false },
             }),
           ),
