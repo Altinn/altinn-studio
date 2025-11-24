@@ -4,11 +4,17 @@ using StudioGateway.Api.Configuration;
 using StudioGateway.Api.Services.Alerts;
 using StudioGateway.Api.TypedHttpClients.AlertsClient;
 using StudioGateway.Api.TypedHttpClients.StudioClient;
+using StudioGateway.Api.TypedHttpClients.MetricsClient;
+using Azure.Monitor.Query;
+using Azure.Identity;
+using StudioGateway.Api.Services.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<AlertsClientSettings>(builder.Configuration.GetSection("AlertsClientSettings"));
 builder.Services.Configure<StudioClientSettings>(builder.Configuration.GetSection("StudioClientSettings"));
+builder.Services.Configure<MetricsClientSettings>(builder.Configuration.GetSection("MetricsClientSettings"));
+builder.Services.AddSingleton(new LogsQueryClient(new DefaultAzureCredential()));
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -19,7 +25,9 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 builder.Services.AddHttpClient<IStudioClient, StudioClient>();
 builder.Services.AddKeyedTransient<IAlertsClient, GrafanaClient>("grafana");
+builder.Services.AddKeyedTransient<IMetricsClient, AzureMonitorClient>("azuremonitor");
 builder.Services.AddTransient<IAlertsService, AlertsService>();
+builder.Services.AddTransient<IMetricsService, MetricsService>();
 builder.Services.AddControllers();
 
 builder.Services.AddHealthChecks();
