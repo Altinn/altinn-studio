@@ -527,5 +527,9 @@ namespace Designer.Tests.Services
         {
             throw new NotImplementedException();
         }
+
+        public Task CommitAndPushChanges(AltinnRepoEditingContext editingContext, string branchName, string message, string accessToken = "") => throw new NotImplementedException();
+        LibGit2Sharp.RebaseResult ISourceControl.RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
+        public Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName, string accessToken = "") => throw new NotImplementedException();
     }
 }

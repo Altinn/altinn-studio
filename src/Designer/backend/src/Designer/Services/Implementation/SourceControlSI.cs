@@ -161,6 +161,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await CommitAndPushToBranch(org, repository, branchName, localPath, message, accessToken);
         }
 
+        /// <inheritdoc/>
+        public async Task CommitAndPushChanges(AltinnRepoEditingContext editingContext, string branchName, string message)
+        {
+            string localPath = FindLocalRepoLocation(editingContext);
+            await CommitAndPushToBranch(editingContext.Org, editingContext.Repo, branchName, localPath, message);
+        }
+
         /// <summary>
         /// Add all changes in app repo and push to remote
         /// </summary>
@@ -497,18 +504,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext)
+        public RebaseResult RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext)
         {
             using LibGit2Sharp.Repository repo = CreateLocalRepo(editingContext);
 
             Identity identity = GetDefaultIdentity(editingContext.Developer);
             RebaseOptions rebaseOptions = new() { FileConflictStrategy = CheckoutFileConflictStrategy.Ours };
-            Branch upstream = repo.Branches.FirstOrDefault(b => b.FriendlyName.Equals(DefaultBranch));
 
-            if (upstream is null)
-            {
-                throw new InvalidOperationException($"Default branch '{DefaultBranch}' not found locally.");
-            }
+            Branch upstream = repo.Branches.FirstOrDefault(b => b.FriendlyName.Equals(DefaultBranch))
+                ?? throw new InvalidOperationException($"Default branch '{DefaultBranch}' not found locally.");
 
             RebaseResult rebaseResult = repo.Rebase.Start(
                 repo.Head,
@@ -518,11 +522,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 rebaseOptions
             );
 
-
             if (rebaseResult.Status == RebaseStatus.Conflicts)
             {
                 repo.Rebase.Abort();
-                throw new InvalidOperationException("Rebase onto latest commit on default branch failed. Rebase aborted.");
+                _logger.LogError("Rebase onto latest commit on default branch resulted in conflicts for repo at {WorkingDirectory}. Rebase aborted.", repo.Info.WorkingDirectory);
             }
 
             if (rebaseResult.Status == RebaseStatus.Stop)
@@ -530,6 +533,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 repo.Rebase.Abort();
                 throw new InvalidOperationException("Rebase onto latest commit on default branch was stopped by user."); // Should be unreachable code.
             }
+            return rebaseResult;
         }
 
         /// <inheritdoc/>
@@ -561,6 +565,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private static bool LocalBranchIsHead(LibGit2Sharp.Repository repo, string branchName)
         {
             return repo.Head.FriendlyName == branchName;
+        }
+
+        public async Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName)
+        {
+            using LibGit2Sharp.Repository repo = CreateLocalRepo(editingContext);
+            Remote remote = repo.Network.Remotes["origin"];
+            PushOptions options = new()
+            {
+                CredentialsProvider = await GetCredentialsAsync()
+            };
+            string pushRefSpec = $"refs/heads/:{branchName}";
+            repo.Network.Push(remote, pushRefSpec, options);
         }
 
         /// <inheritdoc/>

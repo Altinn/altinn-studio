@@ -2,6 +2,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Constants;
@@ -12,6 +14,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
+using LibGit2Sharp;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
@@ -84,25 +87,42 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
     internal async Task HandleCommit(AltinnRepoEditingContext editingContext, UpdateSharedResourceRequest request, CancellationToken cancellationToken = default)
     {
         sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
+        await sourceControl.PullRemoteChanges(editingContext.Org, editingContext.Repo);
         await UpdateFiles(editingContext, request, cancellationToken);
         sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? DefaultCommitMessage);
     }
 
     internal async Task HandleDivergentCommit(AltinnRepoEditingContext editingContext, UpdateSharedResourceRequest request, CancellationToken cancellationToken = default)
     {
-        string branchName = editingContext.Developer;
+        string branchName = GenerateBranchNameWithHashSuffix(editingContext);
+
         sourceControl.DeleteLocalBranchIfExists(editingContext, branchName);
+        await sourceControl.DeleteRemoteBranchIfExists(editingContext, branchName);
+
         sourceControl.CreateLocalBranch(editingContext, branchName, request.BaseCommitSha);
         sourceControl.CheckoutRepoOnBranch(editingContext, branchName);
 
         await UpdateFiles(editingContext, request, cancellationToken);
-
         sourceControl.CommitToLocalRepo(editingContext, request.CommitMessage ?? DefaultCommitMessage);
-        sourceControl.RebaseOntoDefaultBranch(editingContext);
+
+        await RebaseWithConflictHandling(editingContext, branchName);
         sourceControl.CheckoutRepoOnBranch(editingContext, General.DefaultBranch);
         sourceControl.MergeBranchIntoHead(editingContext, branchName);
         sourceControl.DeleteLocalBranchIfExists(editingContext, branchName);
     }
+
+    private async Task RebaseWithConflictHandling(AltinnRepoEditingContext editingContext, string branchName)
+    {
+        RebaseResult rebaseResult = sourceControl.RebaseOntoDefaultBranch(editingContext);
+        if (rebaseResult.Status == RebaseStatus.Conflicts)
+        {
+            string commitMessage = "Rebase resulted in conflicts. Please resolve manually.";
+            await sourceControl.CommitAndPushChanges(editingContext, branchName, commitMessage);
+            throw new InvalidOperationException($"Rebase onto latest commit on default branch failed during divergent commit handling. Current step: {rebaseResult.CurrentStepInfo}.");
+        }
+    }
+
+    private static string GenerateBranchNameWithHashSuffix(AltinnRepoEditingContext editingContext) => editingContext.Developer + MD5.HashData(Encoding.UTF8.GetBytes(editingContext.Developer))[..5];
 
     internal async Task<List<FileSystemObject>> GetDirectoryContent(string org, string? path = null, string? reference = null, CancellationToken cancellationToken = default)
     {
