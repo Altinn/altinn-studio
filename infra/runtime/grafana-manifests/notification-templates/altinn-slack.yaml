@@ -2,6 +2,7 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaNotificationTemplate
 metadata:
   name: external-grafana-altinn-slack
+  namespace: grafana
 spec:
   allowCrossNamespaceImport: true
   instanceSelector:

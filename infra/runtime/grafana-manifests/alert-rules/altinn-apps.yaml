@@ -2,10 +2,11 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaAlertRuleGroup
 metadata:
   name: external-grafana-altinn-apps
+  namespace: grafana
 spec:
   allowCrossNamespaceImport: true
   name: Exceptions
-  folder: Altinn
+  folderRef: external-grafana-altinn
   instanceSelector:
     matchLabels:
       dashboards: external-grafana

@@ -2,9 +2,10 @@ apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
   name: external-grafana-altinn-apps
+  namespace: grafana
 spec:
   allowCrossNamespaceImport: true
-  folder: Altinn
+  folderRef: external-grafana-altinn
   instanceSelector:
     matchLabels:
       dashboards: external-grafana
