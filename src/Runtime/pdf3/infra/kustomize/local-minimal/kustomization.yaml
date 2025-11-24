@@ -42,7 +42,7 @@ patches:
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
-          name: RUNTIME_PDF3_BROWSER_RESTART_INTERVAL
+          name: PDF3_BROWSER_RESTART_INTERVAL
           value: "2m"
       - op: replace
         path: /spec/template/spec/containers/0/image
@@ -50,7 +50,7 @@ patches:
       - op: replace
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: "Always"
-      - op: replace
+      - op: add
         path: /spec/replicas
         value: 2
   - target:
@@ -68,7 +68,7 @@ patches:
       - op: replace
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: "Always"
-      - op: replace
+      - op: add
         path: /spec/replicas
         value: 2
   # Delete HPA for proxy

@@ -790,6 +790,7 @@ public class ProcessEngine : IProcessEngine
             case "feedback":
             case "pdf":
             case "eFormidling":
+            case "fiksArkiv":
                 return "write";
             case "confirmation":
                 return "confirm";

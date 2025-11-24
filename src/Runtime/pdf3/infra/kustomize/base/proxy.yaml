@@ -98,9 +98,9 @@ spec:
   minReadySeconds: 3
   revisionHistoryLimit: 5
   progressDeadlineSeconds: 60
-  # 1 replica per availability zone by default (hopefully)
-  # See podAntiAffinity and topologySpreadConstraints below
-  replicas: 3
+  # NOTE: we don't specify replicas here as
+  # as that would force flux to override replicas
+  # set by HPA
   strategy:
     # Rolling upgrade of pods
     type: RollingUpdate
@@ -134,24 +134,20 @@ spec:
         # such as topology aware routing
         linkerd.io/inject: enabled
     spec:
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          # Spread pods across different hosts/nodes during scheduling
-          # This prevents multiple replicas from running on the same node
-          # improving fault tolerance if a node fails
-          - weight: 100
-            podAffinityTerm:
-              topologyKey: kubernetes.io/hostname
-              labelSelector:
-                matchLabels:
-                  app: pdf3-proxy
       topologySpreadConstraints:
-        # Ensure that pods are evenly spread across availability zones
-        # a skew of 1 _can_ result in 1 AZ being unused when AZs = 3 and replicas = 3
+        # Try to spread across availability zones first (highest priority)
+        # A skew of 1 can result in 1 AZ being unused when AZs = 3 and replicas = 3
         - maxSkew: 1
           topologyKey: topology.kubernetes.io/zone
           # ScheduleAnyway ensures progress even if distribution is imperfect
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: pdf3-proxy
+        # Try to spread across nodes within zones
+        # Prevents multiple replicas from running on the same node, improving fault tolerance
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
@@ -190,8 +186,24 @@ spec:
               containerPort: 5030
               protocol: TCP
           env:
-          - name: WORKER_HTTP_ADDR
+          - name: PDF3_WORKER_HTTP_ADDR
             value: http://pdf3-worker:80
+          - name: PDF3_UPGRADE_CHANNEL
+            valueFrom:
+              # Configmap is created in syncroot
+              configMapKeyRef:
+                name: runtime-environment
+                key: upgrade_channel
+          - name: PDF3_ENVIRONMENT
+            valueFrom:
+              configMapKeyRef:
+                name: runtime-environment
+                key: environment
+          - name: PDF3_SERVICEOWNER
+            valueFrom:
+              configMapKeyRef:
+                name: runtime-environment
+                key: serviceowner
           # Startup probe allows up to 90 seconds (30 * 3s) for the container to start
           # This prevents the liveness probe from killing slow-starting containers
           # Once startup succeeds, liveness/readiness probes take over

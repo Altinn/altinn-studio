@@ -339,3 +339,45 @@ func Test_CookieIsolation(t *testing.T) {
 	// We now expect from these snapshots that there are just the single default cookie in this snapshot
 	harness.Snapshot(t, []byte(output2.SnapshotString()), "second_request", "json")
 }
+
+func Test_TADForm(t *testing.T) {
+	req := harness.GetDefaultPdfRequest(t)
+	req.URL = harness.TestServerURL + "/app/tad/eur1/"
+	req.WaitFor = nil // Nil here should still wait for 'load' event
+
+	resp, err := harness.RequestNewPDF(t, req)
+	if err != nil {
+		t.Fatalf("Failed to generate PDF: %v", err)
+	}
+
+	if !harness.IsPDF(resp.Data) {
+		t.Error("Response is not a valid PDF")
+	}
+
+	pdf := harness.MakePdfDeterministic(t, resp.Data)
+	harness.Snapshot(t, pdf, "output", "pdf")
+	harness.Snapshot(t, pdf, "output", "txt")
+
+	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
+}
+
+func Test_TADFormWaitFor(t *testing.T) {
+	req := harness.GetDefaultPdfRequest(t)
+	req.URL = harness.TestServerURL + "/app/tad/eur1/"
+	req.WaitFor = types.NewWaitForString("#readyForPrint")
+
+	resp, err := harness.RequestNewPDF(t, req)
+	if err != nil {
+		t.Fatalf("Failed to generate PDF: %v", err)
+	}
+
+	if !harness.IsPDF(resp.Data) {
+		t.Error("Response is not a valid PDF")
+	}
+
+	pdf := harness.MakePdfDeterministic(t, resp.Data)
+	harness.Snapshot(t, pdf, "output", "pdf")
+	harness.Snapshot(t, pdf, "output", "txt")
+
+	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
+}

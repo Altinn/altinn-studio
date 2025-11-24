@@ -5,9 +5,10 @@ import type { PropsWithChildren } from 'react';
 import { Heading } from '@digdir/designsystemet-react';
 
 import { Flex } from 'src/app-components/Flex/Flex';
+import { LoadingEmpty } from 'src/app-components/loading/LoadingEmpty/LoadingEmpty';
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
 import { DummyPresentation } from 'src/components/presentation/Presentation';
-import { BlockPrint, ReadyForPrint } from 'src/components/ReadyForPrint';
+import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { SearchParams } from 'src/core/routing/types';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
@@ -61,7 +62,7 @@ function AutoGeneratePdfFromLayout() {
   const { data: pdfSettings, isFetching: pdfFormatIsLoading } = usePdfFormatQuery(true);
 
   if (pdfFormatIsLoading) {
-    return <BlockPrint />;
+    return <LoadingEmpty />;
   }
 
   return (

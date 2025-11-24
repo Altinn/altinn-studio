@@ -9,11 +9,29 @@ import { repository, searchRepositoryResponse } from 'app-shared/mocks/mocks';
 import { DATA_MODEL_REPO_IDENTIFIER } from '../../constants';
 import { renderWithProviders } from 'dashboard/testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 const renderWithMockServices = (services?: Partial<ServicesContextProps>) => {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.CurrentUser], {
+    id: 1,
+    login: 'testuser',
+    full_name: 'Test User',
+  });
+  queryClient.setQueryData(
+    [QueryKey.Organizations],
+    [
+      {
+        id: 1,
+        username: 'testorg',
+        full_name: 'Test Organization',
+      },
+    ],
+  );
+
   renderWithProviders(<Dashboard organizations={[]} user={{} as User} />, {
     queries: services,
-    queryClient: createQueryClientMock(),
+    queryClient,
   });
 };
 

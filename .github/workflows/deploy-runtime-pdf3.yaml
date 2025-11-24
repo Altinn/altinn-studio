@@ -48,6 +48,7 @@ jobs:
     environment: dev
     permissions:
       id-token: write # Require write permission to Fetch an OIDC token.
+      packages: write # Require write permission to push to GHCR.
     outputs:
       short-sha: ${{ needs.get-short-sha.outputs.short-sha }}
       config-repo: ${{ steps.vars.outputs.config-repo }}
@@ -55,17 +56,26 @@ jobs:
       run:
         working-directory: src/Runtime/pdf3
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0 # Shallow clone
 
       - name: set vars
         id: vars
         run: |
+          SHA=$(git rev-parse --short HEAD)
+          GHCR_BASE="ghcr.io/altinn/altinn-studio"
+          ACR_PREFIX="altinncr.azurecr.io"
+
           echo "registry-name=altinncr" >> $GITHUB_OUTPUT
-          echo "image-proxy-repo=altinncr.azurecr.io/studio-apps/runtime-pdf3-proxy:$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "image-worker-repo=altinncr.azurecr.io/studio-apps/runtime-pdf3-worker:$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "config-repo=altinncr.azurecr.io/studio-apps/runtime-pdf3-repo:$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "ghcr-image-proxy-repo=${GHCR_BASE}/runtime-pdf3-proxy:${SHA}" >> $GITHUB_OUTPUT
+          echo "ghcr-image-worker-repo=${GHCR_BASE}/runtime-pdf3-worker:${SHA}" >> $GITHUB_OUTPUT
+          echo "image-proxy-repo=${ACR_PREFIX}/${GHCR_BASE}/runtime-pdf3-proxy:${SHA}" >> $GITHUB_OUTPUT
+          echo "image-worker-repo=${ACR_PREFIX}/${GHCR_BASE}/runtime-pdf3-worker:${SHA}" >> $GITHUB_OUTPUT
+          echo "config-repo=${ACR_PREFIX}/studio-apps/runtime-pdf3-repo:${SHA}" >> $GITHUB_OUTPUT
+
+      - name: login to ghcr
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: az login
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
@@ -83,9 +93,9 @@ jobs:
       - name: docker build
         run: |
           set -e
-          docker build -t ${{ steps.vars.outputs.image-proxy-repo }} -f Dockerfile.proxy . &
+          docker build -t ${{ steps.vars.outputs.ghcr-image-proxy-repo }} -f Dockerfile.proxy . &
           PROXY_PID=$!
-          docker build -t ${{ steps.vars.outputs.image-worker-repo }} -f Dockerfile.worker . &
+          docker build -t ${{ steps.vars.outputs.ghcr-image-worker-repo }} -f Dockerfile.worker . &
           WORKER_PID=$!
           wait $PROXY_PID
           wait $WORKER_PID
@@ -93,7 +103,7 @@ jobs:
       - name: scan image - proxy
         uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # 0.33.1
         with:
-          image-ref: '${{ steps.vars.outputs.image-proxy-repo }}'
+          image-ref: '${{ steps.vars.outputs.ghcr-image-proxy-repo }}'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
@@ -104,7 +114,7 @@ jobs:
         if: success() || failure()
         uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # 0.33.1
         with:
-          image-ref: '${{ steps.vars.outputs.image-worker-repo }}'
+          image-ref: '${{ steps.vars.outputs.ghcr-image-worker-repo }}'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
@@ -114,9 +124,9 @@ jobs:
       - name: push images
         run: |
           set -e
-          docker push ${{ steps.vars.outputs.image-proxy-repo }} &
+          docker push ${{ steps.vars.outputs.ghcr-image-proxy-repo }} &
           PROXY_PID=$!
-          docker push ${{ steps.vars.outputs.image-worker-repo }} &
+          docker push ${{ steps.vars.outputs.ghcr-image-worker-repo }} &
           WORKER_PID=$!
           wait $PROXY_PID
           wait $WORKER_PID
@@ -153,7 +163,7 @@ jobs:
       matrix:
         include: ${{ fromJson(needs.construct-rings-array.outputs.ringsjson) }}
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0 # Shallow clone
 
