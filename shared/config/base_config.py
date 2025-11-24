@@ -18,9 +18,6 @@ class BaseConfig:
     ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
     DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 
-    # Detect Docker environment
-    RUNNING_IN_DOCKER = "host.docker.internal" in os.getenv("GITEA_URL", "")
-
     # Logging
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
     LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
