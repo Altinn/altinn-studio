@@ -17,7 +17,11 @@ class BaseConfig:
     # Environment
     ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
     DEBUG = os.getenv("DEBUG", "false").lower() == "true"
-    RUNNING_IN_DOCKER = os.getenv("RUNNING_IN_DOCKER", "false").lower() == "true"
+
+    # Detect Docker environment from URLs
+    _mcp_url = os.getenv("MCP_SERVER_URL", "")
+    _gitea_url = os.getenv("GITEA_URL", "")
+    RUNNING_IN_DOCKER = "host.docker.internal" in _mcp_url or "host.docker.internal" in _gitea_url
 
     # Logging
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")

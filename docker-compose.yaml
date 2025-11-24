@@ -1,22 +1,4 @@
-## Assumes `altinity-mcp` and `altinity-agents` are located in the same directory
 services:
-  # altinity-mcp:
-  #   build: ../altinity-mcp
-  #   image: altinity-mcp
-  #   container_name: altinity-mcp
-  #   ports:
-  #     - "8069:8069"
-  #   env_file:
-  #     - ../altinity-mcp/.env
-  #   networks:
-  #     - altinity-network
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8069/sse"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 20
-  #     start_period: 30s
-
   altinity-agents:
     build: .
     image: altinity-agents
@@ -24,15 +6,7 @@ services:
     ports:
       - "8071:8071"
     env_file:
-      - .env
+      - .env.docker
     extra_hosts:
       - "host.docker.internal:host-gateway"
       - "studio.localhost:host-gateway"
-    # networks:
-    #   - altinity-network
-    # depends_on:
-    #   - altinity-mcp
-
-# networks:
-#   altinity-network:
-#     driver: bridge

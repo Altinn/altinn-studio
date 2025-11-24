@@ -1,9 +1,20 @@
+# Environment files
 .env
+.env.local
+.env.docker
+
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
+
+# Application state
 frontend_api/app_state.json
+
+# MLflow
 mlruns
+
+# Claude
 .claude
