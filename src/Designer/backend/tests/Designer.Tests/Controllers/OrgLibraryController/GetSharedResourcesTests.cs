@@ -47,7 +47,7 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
         string secondFilePath = $"{path}/file2.txt";
         string secondFileContent = "File content 2";
 
-        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfAnyOrganization()).ReturnsAsync(true);
+        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(org)).ReturnsAsync(true);
 
         // Arrange - Mock directory content
         List<FileSystemObject> directoryContent =
@@ -75,8 +75,8 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
         // Arrange - Setup expected response
         List<LibraryFile> files =
         [
-            new(firstFilePath, "text/plain", firstFileContent, Url: null),
-            new(secondFilePath, "text/plain", secondFileContent, Url: null)
+            new(firstFilePath, "text/plain", firstFileContent, null),
+            new(secondFilePath, "text/plain", secondFileContent, null)
         ];
         var expectedResponse = new GetSharedResourcesResponse(files, baseCommitSha);
 
@@ -112,7 +112,7 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
         string subFolderFilePath = $"{path}/{subFolderFileName}";
         string subFolderFileContent = "Sub file content";
 
-        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfAnyOrganization()).ReturnsAsync(true);
+        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(org)).ReturnsAsync(true);
 
         // Arrange - Mock directory content
         List<FileSystemObject> directoryContent =
@@ -149,8 +149,8 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
         // Arrange - Setup expected response
         List<LibraryFile> files =
             [
-                new(rootFilePath, "text/plain", rootFileContent, Url: null),
-                new(subFolderFilePath, "text/plain", subFolderFileContent, Url: null)
+                new(rootFilePath, "text/plain", rootFileContent, null),
+                new(subFolderFilePath, "text/plain", subFolderFileContent, null)
             ];
         var expectedResponse = new GetSharedResourcesResponse(files, baseCommitSha);
 
@@ -168,8 +168,9 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
     public async Task GetSharedResources_Returns_403Forbidden_When_User_Not_Member_Of_Org()
     {
         // Arrange
+        string org = "ttd";
         string apiUrl = $"/designer/api/some-org/shared-resources?path=some/path";
-        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfAnyOrganization()).ReturnsAsync(false);
+        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(org)).ReturnsAsync(false);
 
         // Act
         HttpResponseMessage response = await HttpClient.GetAsync(apiUrl);
@@ -187,7 +188,7 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
         string repo = $"{org}-content";
         string apiUrl = $"/designer/api/{org}/shared-resources?path={path}";
 
-        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfAnyOrganization()).ReturnsAsync(true);
+        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(org)).ReturnsAsync(true);
 
         // Arrange - Mock directory content
         _giteaClientMock

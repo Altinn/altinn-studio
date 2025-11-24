@@ -45,7 +45,7 @@ public class UpdateSharedResourcesTests(WebApplicationFactory<Program> factory) 
 
         string apiUrl = ApiUrl();
 
-        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfAnyOrganization()).ReturnsAsync(true);
+        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(Org)).ReturnsAsync(true);
 
         _orgLibraryServiceMock.Setup(s => s.UpdateSharedResourcesByPath(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<UpdateSharedResourceRequest>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask)
@@ -90,7 +90,7 @@ public class UpdateSharedResourcesTests(WebApplicationFactory<Program> factory) 
         // Arrange
         string apiUrl = ApiUrl();
 
-        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfAnyOrganization()).ReturnsAsync(true);
+        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(Org)).ReturnsAsync(true);
 
         _orgLibraryServiceMock.Setup(s => s.UpdateSharedResourcesByPath(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<UpdateSharedResourceRequest>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException());
@@ -110,7 +110,7 @@ public class UpdateSharedResourcesTests(WebApplicationFactory<Program> factory) 
         // Arrange
         string apiUrl = ApiUrl();
 
-        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfAnyOrganization()).ReturnsAsync(true);
+        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(Org)).ReturnsAsync(true);
 
         _orgLibraryServiceMock.Setup(s => s.UpdateSharedResourcesByPath(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<UpdateSharedResourceRequest>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new IllegalCommitMessageException("Illegal commit message"));

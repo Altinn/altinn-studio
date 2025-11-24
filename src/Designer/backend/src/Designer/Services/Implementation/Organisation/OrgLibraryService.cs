@@ -190,24 +190,14 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
     private static void AddJsonFile(FileSystemObject jsonFile, ConcurrentBag<LibraryFile> libraryFiles)
     {
         string contentType = Path.GetExtension(jsonFile.Name);
-        LibraryFile libraryFile = new(
-            Path: jsonFile.Path,
-            ContentType: contentType,
-            Content: jsonFile.Content,
-            Url: null
-        );
+        LibraryFile libraryFile = new(jsonFile.Path, contentType, jsonFile.Content, null);
         libraryFiles.Add(libraryFile);
     }
 
     private static void AddOtherFile(FileSystemObject otherFile, ConcurrentBag<LibraryFile> libraryFiles)
     {
         string contentType = Path.GetExtension(otherFile.Name);
-        LibraryFile libraryFile = new(
-            Path: otherFile.Path,
-            ContentType: contentType,
-            Content: null,
-            Url: otherFile.HtmlUrl
-        );
+        LibraryFile libraryFile = new(otherFile.Path, contentType, null, otherFile.HtmlUrl);
         libraryFiles.Add(libraryFile);
     }
 
