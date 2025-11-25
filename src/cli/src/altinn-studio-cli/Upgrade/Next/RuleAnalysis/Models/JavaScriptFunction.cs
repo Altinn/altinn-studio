@@ -26,4 +26,9 @@ public class JavaScriptFunction
     /// Parsed return expression AST for inlining into other functions
     /// </summary>
     public Expression? ReturnExpression { get; set; }
+
+    /// <summary>
+    /// Full function AST for data processing conversions
+    /// </summary>
+    public IFunction? FunctionAst { get; set; }
 }

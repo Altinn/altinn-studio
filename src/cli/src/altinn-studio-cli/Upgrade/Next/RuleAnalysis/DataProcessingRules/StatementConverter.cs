@@ -1,3 +1,4 @@
+using System.Text;
 using Acornima.Ast;
 
 namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.DataProcessingRules;
@@ -19,11 +20,76 @@ internal class StatementConverter
 {
     private readonly Dictionary<string, string> _inputParams;
     private readonly string _dataVariableName;
+    private readonly Dictionary<string, string> _localVariables = new();
+    private int _tempVarCounter = 0;
 
     public StatementConverter(Dictionary<string, string> inputParams, string dataVariableName = "data")
     {
         _inputParams = inputParams;
         _dataVariableName = dataVariableName;
+    }
+
+    /// <summary>
+    /// Convert a full JavaScript function (IFunction) to C# code
+    /// </summary>
+    public CSharpConversionResult ConvertFunction(IFunction? function)
+    {
+        var result = new CSharpConversionResult();
+
+        if (function == null)
+        {
+            result.Success = false;
+            result.FailureReason = "Function is null";
+            return result;
+        }
+
+        try
+        {
+            var code = new StringBuilder();
+            var body = function.Body;
+
+            if (body is BlockStatement blockBody)
+            {
+                // Convert all statements in the function body
+                foreach (var statement in blockBody.Body)
+                {
+                    if (statement is ReturnStatement returnStmt)
+                    {
+                        // Handle return statement - this should be the final statement
+                        if (returnStmt.Argument != null)
+                        {
+                            var returnCode = ConvertExpression(returnStmt.Argument);
+                            code.Append(returnCode);
+                        }
+                        break; // Stop after return statement
+                    }
+                    else
+                    {
+                        // Convert and append other statements
+                        var stmtCode = ConvertStatement(statement);
+                        if (!string.IsNullOrEmpty(stmtCode))
+                        {
+                            code.AppendLine(stmtCode);
+                        }
+                    }
+                }
+            }
+            else if (body is Expression expr)
+            {
+                // Arrow function with expression body
+                code.Append(ConvertExpression(expr));
+            }
+
+            result.Success = true;
+            result.GeneratedCode = code.ToString().TrimEnd();
+        }
+        catch (Exception ex)
+        {
+            result.Success = false;
+            result.FailureReason = $"Conversion failed: {ex.Message}";
+        }
+
+        return result;
     }
 
     /// <summary>
@@ -53,6 +119,69 @@ internal class StatementConverter
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Convert a JavaScript statement to C# code
+    /// </summary>
+    private string ConvertStatement(Statement statement)
+    {
+        return statement switch
+        {
+            ExpressionStatement exprStmt => ConvertExpressionStatement(exprStmt),
+            VariableDeclaration varDecl => ConvertVariableDeclaration(varDecl),
+            _ => throw new NotSupportedException($"Statement type {statement.Type} not supported for C# conversion"),
+        };
+    }
+
+    private string ConvertExpressionStatement(ExpressionStatement exprStmt)
+    {
+        // Expression statements are typically assignments like: ikkeFordelt = 100 - (tall1 + tall2 + tall3);
+        if (exprStmt.Expression is AssignmentExpression assignment)
+        {
+            return ConvertAssignmentExpression(assignment);
+        }
+
+        throw new NotSupportedException($"Expression statement pattern not supported");
+    }
+
+    private string ConvertVariableDeclaration(VariableDeclaration varDecl)
+    {
+        var code = new StringBuilder();
+
+        foreach (var declarator in varDecl.Declarations)
+        {
+            if (declarator.Id is Identifier identifier)
+            {
+                var varName = identifier.Name;
+                _localVariables[varName] = varName; // Track local variable
+
+                if (declarator.Init != null)
+                {
+                    var initCode = ConvertExpression(declarator.Init);
+                    code.AppendLine($"        var {varName} = {initCode};");
+                }
+                else
+                {
+                    code.AppendLine($"        var {varName};");
+                }
+            }
+        }
+
+        return code.ToString().TrimEnd();
+    }
+
+    private string ConvertAssignmentExpression(AssignmentExpression assignment)
+    {
+        if (assignment.Left is Identifier identifier)
+        {
+            var varName = identifier.Name;
+            _localVariables[varName] = varName; // Track as local variable
+            var rightCode = ConvertExpression(assignment.Right);
+            return $"        var {varName} = {rightCode};";
+        }
+
+        throw new NotSupportedException($"Assignment pattern not supported");
     }
 
     /// <summary>
@@ -132,6 +261,12 @@ internal class StatementConverter
 
     private string ConvertIdentifier(Identifier identifier)
     {
+        // Check if this is a local variable
+        if (_localVariables.ContainsKey(identifier.Name))
+        {
+            return identifier.Name;
+        }
+
         // Check if this is a known input parameter
         if (_inputParams.ContainsKey(identifier.Name))
         {
@@ -189,6 +324,21 @@ internal class StatementConverter
 
     private string ConvertConditionalExpression(ConditionalExpression conditional)
     {
+        // Special pattern: obj.property ? +obj.property : 0
+        // This is JavaScript's way of "convert to number or default to 0"
+        // We can simplify this to just the unary plus conversion
+        if (
+            conditional.Consequent is UnaryExpression unary
+            && unary.Operator.ToString() == "UnaryPlus"
+            && conditional.Alternate is Literal literal
+            && literal.Value is int or long or double
+            && Convert.ToDouble(literal.Value) == 0
+        )
+        {
+            // Just use the unary plus conversion directly, which already handles the fallback to 0
+            return ConvertUnaryPlus(unary.Argument);
+        }
+
         var test = ConvertExpression(conditional.Test);
         var consequent = ConvertExpression(conditional.Consequent);
         var alternate = ConvertExpression(conditional.Alternate);
@@ -204,8 +354,8 @@ internal class StatementConverter
         return operatorStr switch
         {
             "LogicalNot" or "!" => $"(!{argument})",
-            "Plus" or "+" => ConvertUnaryPlus(unary.Argument),
-            "Minus" or "-" => $"(-{argument})",
+            "UnaryPlus" or "Plus" or "+" => ConvertUnaryPlus(unary.Argument),
+            "UnaryMinus" or "Minus" or "-" => $"(-{argument})",
             _ => throw new NotSupportedException($"Unary operator {operatorStr} not supported"),
         };
     }
@@ -216,9 +366,12 @@ internal class StatementConverter
         // In C#, we need explicit conversion
         var expr = ConvertExpression(argument);
 
+        // Generate unique temp variable name
+        var tempVar = $"_temp{_tempVarCounter++}";
+
         // Try to determine if we need decimal or int conversion
         // For now, use decimal for safety
-        return $"(decimal.TryParse({expr}?.ToString(), out var _temp) ? _temp : 0)";
+        return $"(decimal.TryParse({expr}?.ToString(), out var {tempVar}) ? {tempVar} : 0)";
     }
 
     private string ConvertLogicalExpression(LogicalExpression logical)
@@ -244,19 +397,24 @@ internal class StatementConverter
         {
             var obj = ConvertExpression(member.Object);
 
+            // Check if we need null-conditional operator
+            // Local variables don't need it, but data model properties might
+            var isLocalVariable = member.Object is Identifier id && _localVariables.ContainsKey(id.Name);
+            var nullConditional = isLocalVariable ? "" : "?";
+
             switch (methodName.Name)
             {
                 case "toString":
-                    return $"{obj}?.ToString()";
+                    return $"{obj}{nullConditional}.ToString()";
 
                 case "toUpperCase":
-                    return $"{obj}?.ToUpper()";
+                    return $"{obj}{nullConditional}.ToUpper()";
 
                 case "toLowerCase":
-                    return $"{obj}?.ToLower()";
+                    return $"{obj}{nullConditional}.ToLower()";
 
                 case "trim":
-                    return $"{obj}?.Trim()";
+                    return $"{obj}{nullConditional}.Trim()";
 
                 default:
                     throw new NotSupportedException($"Method call {methodName.Name} not supported");

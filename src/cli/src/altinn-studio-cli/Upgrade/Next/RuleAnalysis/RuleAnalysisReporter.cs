@@ -50,12 +50,19 @@ internal class RuleAnalysisReporter
     /// Generate the report and write to console
     /// </summary>
     /// <param name="failuresOnly">Only show rules that failed to convert</param>
+    /// <param name="analyzeConditionalRendering">Whether to analyze conditional rendering rules</param>
+    /// <param name="analyzeDataProcessing">Whether to analyze data processing rules</param>
     /// <returns>Statistics about the analysis</returns>
-    public RuleAnalysisStats GenerateReport(bool failuresOnly = false)
+    public RuleAnalysisStats GenerateReport(
+        bool failuresOnly = false,
+        bool analyzeConditionalRendering = true,
+        bool analyzeDataProcessing = true
+    )
     {
         var stats = new RuleAnalysisStats();
+        var hasOutput = false;
 
-        if (_conditionalRules.Count != 0)
+        if (_conditionalRules.Count != 0 && analyzeConditionalRendering)
         {
             var (output, conditionalStats) = GenerateConditionalRenderingReport(failuresOnly);
             stats = conditionalStats;
@@ -66,26 +73,42 @@ internal class RuleAnalysisReporter
                 Console.WriteLine($"\nLayout Set: {_layoutSetName}");
                 Console.WriteLine(new string('=', 50));
                 Console.WriteLine(output);
+                hasOutput = true;
             }
         }
 
-        if (_dataProcessingRules.Count != 0 && !failuresOnly)
+        // Always set the data processing rule count
+        stats.TotalDataProcessingRules = _dataProcessingRules.Count;
+
+        if (_dataProcessingRules.Count != 0 && analyzeDataProcessing)
         {
-            // Data processing rules don't have conversions yet, so only show if not failures-only mode
-            var (reportOutput, _) = GenerateConditionalRenderingReport(failuresOnly);
-            if (_conditionalRules.Count == 0 || string.IsNullOrEmpty(reportOutput))
+            // Only show data processing rules if not in failures-only mode (since we can't show failures for non-generated rules)
+            if (!failuresOnly)
+            {
+                if (!hasOutput)
+                {
+                    Console.WriteLine($"\nLayout Set: {_layoutSetName}");
+                    Console.WriteLine(new string('=', 50));
+                }
+                GenerateDataProcessingReport();
+                hasOutput = true;
+            }
+        }
+
+        if (!hasOutput && !failuresOnly)
+        {
+            // Only show "no rules" if we're analyzing both types or if there truly are no rules
+            var hasAnyRules = _conditionalRules.Count > 0 || _dataProcessingRules.Count > 0;
+            if (hasAnyRules && (!analyzeConditionalRendering && _conditionalRules.Count > 0))
+            {
+                // We have conditional rendering rules but we're not analyzing them - don't say "no rules"
+            }
+            else if (!hasAnyRules)
             {
                 Console.WriteLine($"\nLayout Set: {_layoutSetName}");
                 Console.WriteLine(new string('=', 50));
+                Console.WriteLine("  No rules found in this layout set.");
             }
-            GenerateDataProcessingReport();
-        }
-
-        if (!failuresOnly && _conditionalRules.Count == 0 && _dataProcessingRules.Count == 0)
-        {
-            Console.WriteLine($"\nLayout Set: {_layoutSetName}");
-            Console.WriteLine(new string('=', 50));
-            Console.WriteLine("  No rules found in this layout set.");
         }
 
         return stats;
@@ -367,8 +390,13 @@ internal class RuleAnalysisReporter
     /// </summary>
     /// <param name="appBasePath">Base path to the app</param>
     /// <param name="verifyBuild">Whether to verify the build after generating files</param>
+    /// <param name="failuresOnly">Only show failures and errors</param>
     /// <returns>Statistics about the generation</returns>
-    public RuleAnalysisStats GenerateAndWriteDataProcessors(string appBasePath, bool verifyBuild = false)
+    public RuleAnalysisStats GenerateAndWriteDataProcessors(
+        string appBasePath,
+        bool verifyBuild = false,
+        bool failuresOnly = false
+    )
     {
         var stats = new RuleAnalysisStats();
         stats.TotalDataProcessingRules = _dataProcessingRules.Count;
@@ -391,10 +419,13 @@ internal class RuleAnalysisReporter
             return stats;
         }
 
-        Console.WriteLine($"\nGenerating C# Data Processor for Layout Set: {_layoutSetName}");
-        Console.WriteLine(new string('-', 50));
-        Console.WriteLine($"  Data Type: {dataModelInfo.DataType}");
-        Console.WriteLine($"  Model Class: {dataModelInfo.FullClassRef}");
+        if (!failuresOnly)
+        {
+            Console.WriteLine($"\nGenerating C# Data Processor for Layout Set: {_layoutSetName}");
+            Console.WriteLine(new string('-', 50));
+            Console.WriteLine($"  Data Type: {dataModelInfo.DataType}");
+            Console.WriteLine($"  Model Class: {dataModelInfo.FullClassRef}");
+        }
 
         // Generate C# code
         var generator = new CSharpCodeGenerator(_layoutSetName, dataModelInfo, _dataProcessingRules, _jsParser);
@@ -405,6 +436,7 @@ internal class RuleAnalysisReporter
 
         if (!generationResult.Success || generationResult.GeneratedCode == null || generationResult.ClassName == null)
         {
+            Console.WriteLine($"\nLayout Set: {_layoutSetName}");
             Console.WriteLine("  Failed to generate C# code:");
             foreach (var error in generationResult.Errors)
             {
@@ -413,13 +445,20 @@ internal class RuleAnalysisReporter
             return stats;
         }
 
-        Console.WriteLine($"  Generated class: {generationResult.ClassName}");
-        Console.WriteLine(
-            $"  Successfully converted: {generationResult.SuccessfulConversions}/{generationResult.TotalRules} rules"
-        );
+        if (!failuresOnly)
+        {
+            Console.WriteLine($"  Generated class: {generationResult.ClassName}");
+            Console.WriteLine(
+                $"  Successfully converted: {generationResult.SuccessfulConversions}/{generationResult.TotalRules} rules"
+            );
+        }
 
         if (generationResult.FailedConversions > 0)
         {
+            if (failuresOnly)
+            {
+                Console.WriteLine($"\nLayout Set: {_layoutSetName}");
+            }
             Console.WriteLine(
                 $"  Failed conversions: {generationResult.FailedConversions} (will require manual implementation)"
             );
@@ -428,7 +467,10 @@ internal class RuleAnalysisReporter
         // Write the file
         var fileWriter = new DataProcessorFileWriter(appBasePath);
         var filePath = fileWriter.WriteDataProcessor(generationResult.ClassName, generationResult.GeneratedCode);
-        Console.WriteLine($"  Written to: {filePath}");
+        if (!failuresOnly)
+        {
+            Console.WriteLine($"  Written to: {filePath}");
+        }
         stats.GeneratedProcessorFiles = 1;
 
         // Register in Program.cs
@@ -438,17 +480,24 @@ internal class RuleAnalysisReporter
         // Optionally verify build
         if (verifyBuild)
         {
-            Console.WriteLine("\n  Verifying build...");
+            if (!failuresOnly)
+            {
+                Console.WriteLine("\n  Verifying build...");
+            }
             var buildVerifier = new BuildVerifier(appBasePath);
             var buildResult = buildVerifier.VerifyBuild();
 
             if (buildResult.Success)
             {
-                Console.WriteLine("  Build succeeded!");
+                if (!failuresOnly)
+                {
+                    Console.WriteLine("  Build succeeded!");
+                }
                 stats.BuildSucceeded = true;
             }
             else
             {
+                Console.WriteLine($"\nLayout Set: {_layoutSetName}");
                 Console.WriteLine("  Build failed:");
                 foreach (var error in buildResult.Errors.Take(10))
                 {
@@ -464,18 +513,21 @@ internal class RuleAnalysisReporter
             }
         }
 
-        // Show generated code preview
-        Console.WriteLine("\n  Generated Code Preview:");
-        Console.WriteLine(new string('-', 50));
-        var codeLines = generationResult.GeneratedCode.Split('\n');
-        foreach (var line in codeLines.Take(50))
+        // Show generated code preview (only if not failures-only)
+        if (!failuresOnly)
         {
-            Console.WriteLine($"  {line}");
-        }
+            Console.WriteLine("\n  Generated Code Preview:");
+            Console.WriteLine(new string('-', 50));
+            var codeLines = generationResult.GeneratedCode.Split('\n');
+            foreach (var line in codeLines.Take(50))
+            {
+                Console.WriteLine($"  {line}");
+            }
 
-        if (codeLines.Length > 50)
-        {
-            Console.WriteLine($"  ... ({codeLines.Length - 50} more lines)");
+            if (codeLines.Length > 50)
+            {
+                Console.WriteLine($"  ... ({codeLines.Length - 50} more lines)");
+            }
         }
 
         return stats;

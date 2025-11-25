@@ -168,6 +168,7 @@ internal class RuleHandlerParser
                         Implementation = functionImpl,
                         ParameterName = paramName,
                         ReturnExpression = returnExpression,
+                        FunctionAst = function,
                     };
                 }
             }
