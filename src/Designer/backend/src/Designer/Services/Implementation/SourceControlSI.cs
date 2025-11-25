@@ -657,7 +657,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private static bool RemoteBranchExists(string branchName, LibGit2Sharp.Repository repo)
         {
-            string remoteBranchName = $"origin/{branchName}";
+            string remoteBranchName = $"refs/remotes/origin/{branchName}";
             Branch remoteBranch = repo.Branches[remoteBranchName];
 
             if (remoteBranch is null)
