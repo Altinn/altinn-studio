@@ -23,20 +23,14 @@ public class EmptyStringToNullDictionaryConverter : JsonConverter<Dictionary<str
         {
             var stringValue = reader.GetString();
             // Treat empty string as null/empty dictionary
-            if (string.IsNullOrEmpty(stringValue))
-            {
-                return new Dictionary<string, string>();
-            }
-
-            throw new JsonException($"Cannot convert string value '{stringValue}' to Dictionary<string, string>");
+            return string.IsNullOrEmpty(stringValue)
+                ? new Dictionary<string, string>()
+                : throw new JsonException($"Cannot convert string value '{stringValue}' to Dictionary<string, string>");
         }
 
-        if (reader.TokenType == JsonTokenType.StartObject)
-        {
-            return JsonSerializer.Deserialize<Dictionary<string, string>>(ref reader, options);
-        }
-
-        throw new JsonException($"Unexpected token type: {reader.TokenType}");
+        return reader.TokenType == JsonTokenType.StartObject
+            ? JsonSerializer.Deserialize<Dictionary<string, string>>(ref reader, options)
+            : throw new JsonException($"Unexpected token type: {reader.TokenType}");
     }
 
     public override void Write(Utf8JsonWriter writer, Dictionary<string, string>? value, JsonSerializerOptions options)

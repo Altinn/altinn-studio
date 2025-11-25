@@ -149,7 +149,6 @@ internal static class RuleConvertCommand
 
             if (!File.Exists(ruleConfigPath))
             {
-                Console.WriteLine($"Layout set '{layoutSetName}' does not contain a RuleConfiguration.json file");
                 continue;
             }
 
@@ -173,9 +172,8 @@ internal static class RuleConvertCommand
                     continue;
                 }
 
-                Console.WriteLine($"Analyzing layout set '{layoutSetName}'");
                 Console.WriteLine(
-                    $"Found {conditionalRules.Count} conditional rendering rules and {dataProcessingRules.Count} data processing rules"
+                    $"Found {conditionalRules.Count} conditional rendering rules and {dataProcessingRules.Count} data processing rules in {layoutSetName}"
                 );
 
                 var jsParser = new RuleHandlerParser(ruleHandlerPath);

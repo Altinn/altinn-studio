@@ -12,7 +12,6 @@ internal class BuildVerificationResult
     public string? Output { get; set; }
     public string? ErrorOutput { get; set; }
     public List<string> Errors { get; } = new();
-    public List<string> Warnings { get; } = new();
 }
 
 /// <summary>
@@ -105,46 +104,6 @@ internal class BuildVerifier
         return result;
     }
 
-    /// <summary>
-    /// Run dotnet restore before build
-    /// </summary>
-    public bool RunRestore(int timeoutSeconds = 60)
-    {
-        try
-        {
-            var processStartInfo = new ProcessStartInfo
-            {
-                FileName = "dotnet",
-                Arguments = "restore",
-                WorkingDirectory = _appBasePath,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-            };
-
-            using var process = Process.Start(processStartInfo);
-            if (process == null)
-            {
-                return false;
-            }
-
-            var completed = process.WaitForExit(timeoutSeconds * 1000);
-
-            if (!completed)
-            {
-                process.Kill();
-                return false;
-            }
-
-            return process.ExitCode == 0;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
     private void ParseBuildOutput(string? output, BuildVerificationResult result)
     {
         if (string.IsNullOrEmpty(output))
@@ -166,15 +125,6 @@ internal class BuildVerifier
             )
             {
                 result.Errors.Add(trimmed);
-            }
-            // Look for warning patterns
-            else if (
-                trimmed.Contains("warning CS")
-                || trimmed.Contains("warning MSB")
-                || (trimmed.Contains("warning") && trimmed.Contains(":"))
-            )
-            {
-                result.Warnings.Add(trimmed);
             }
         }
     }

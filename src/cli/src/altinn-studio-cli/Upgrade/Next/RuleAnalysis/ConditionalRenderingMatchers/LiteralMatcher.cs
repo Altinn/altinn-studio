@@ -14,16 +14,13 @@ public class LiteralMatcher : IExpressionMatcher
             return true;
 
         // Also match 'undefined' identifier (treat as null synonym)
-        if (expression is Identifier identifier && identifier.Name == "undefined")
-            return true;
-
-        return false;
+        return expression is Identifier { Name: "undefined" };
     }
 
     public object? Match(Expression expression, ConversionContext context, List<string> debugInfo)
     {
         // Handle undefined identifier (treat as null)
-        if (expression is Identifier identifier && identifier.Name == "undefined")
+        if (expression is Identifier { Name: "undefined" })
         {
             // Wrap null in an array so it's distinguishable from "conversion failed"
             return new object?[] { null };
@@ -32,14 +29,6 @@ public class LiteralMatcher : IExpressionMatcher
         if (expression is not Literal literal)
             return null;
 
-        // Handle null literal - wrap it so it's distinguishable from "conversion failed"
-        if (literal.Value == null)
-        {
-            return new object?[] { null };
-        }
-
-        // Return the literal value directly
-        // Expression language uses JSON-compatible primitives
-        return literal.Value;
+        return literal.Value ?? new object?[] { null };
     }
 }

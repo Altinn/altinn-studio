@@ -140,49 +140,4 @@ internal class ProgramCsUpdater
 
         return true;
     }
-
-    /// <summary>
-    /// Check if a data processor is already registered in Program.cs
-    /// </summary>
-    public bool IsDataProcessorRegistered(string className)
-    {
-        var programCsPath = Path.Combine(_appBasePath, "Program.cs");
-
-        if (!File.Exists(programCsPath))
-        {
-            return false;
-        }
-
-        var content = File.ReadAllText(programCsPath);
-        var registrationLine = $"services.AddTransient<IDataWriteProcessor, {className}>();";
-
-        return content.Contains(registrationLine);
-    }
-
-    /// <summary>
-    /// Remove a data processor registration from Program.cs
-    /// </summary>
-    public bool UnregisterDataProcessor(string className)
-    {
-        var programCsPath = Path.Combine(_appBasePath, "Program.cs");
-
-        if (!File.Exists(programCsPath))
-        {
-            return false;
-        }
-
-        var content = File.ReadAllText(programCsPath);
-        var registrationPattern = $@"\s*services\.AddTransient<IDataWriteProcessor,\s*{Regex.Escape(className)}>\(\);";
-
-        var updatedContent = Regex.Replace(content, registrationPattern, "");
-
-        if (updatedContent != content)
-        {
-            File.WriteAllText(programCsPath, updatedContent);
-            Console.WriteLine($"  Unregistered {className} from Program.cs");
-            return true;
-        }
-
-        return false;
-    }
 }
