@@ -10,7 +10,6 @@ import { AppDevelopmentHeader } from '../../components/AppDevelopmentHeader';
 import { DataModelPage } from '../../pages/DataModelPage';
 import { GiteaPage } from '../../pages/GiteaPage';
 import { type BpmnTaskType } from '../../types/BpmnTaskType';
-import { AppNames } from '../../enum/AppNames';
 
 // Variables used in the tests
 let randomGeneratedId: string = null;
@@ -123,7 +122,7 @@ test('that the changes made to the bpmn process are uploaded to Gitea', async ({
   await giteaPage.verifyThatTheNewTaskIsVisible(randomGeneratedId, dataTask);
 
   await giteaPage.verifySequenceFlowDirection(randomGeneratedId, initialId);
-  await verifyTaskIdInDataModel(request, newDataModel, randomGeneratedId);
+  await verifyTaskIdInDataModel(request, testAppName, newDataModel, randomGeneratedId);
 });
 
 // --------------------- Helper Functions ---------------------
@@ -171,10 +170,11 @@ const navigateToDataModelAndCreateNewDataModel = async (
 
 async function verifyTaskIdInDataModel(
   request: APIRequestContext,
+  app: string,
   dataModelName: string,
   taskId: string,
 ): Promise<void> {
-  const gitea = new Gitea({ app: AppNames.PROCESS_EDITOR_APP });
+  const gitea = new Gitea({ app });
   const getAppMetadataResponse = await request.get(gitea.getAppFilePath(appMetadataFilePath));
   const appMetadata = await getAppMetadataResponse.json();
   expect(appMetadata).toMatchObject({
