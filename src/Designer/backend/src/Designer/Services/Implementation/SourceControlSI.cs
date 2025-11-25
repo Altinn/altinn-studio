@@ -585,9 +585,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         public async Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName)
         {
-            using LibGit2Sharp.Repository repo = CreateLocalRepo(editingContext);
-
             await FetchRemoteChanges(editingContext.Org, editingContext.Repo);
+
+            using LibGit2Sharp.Repository repo = CreateLocalRepo(editingContext);
 
             if (RemoteBranchExists(branchName, repo) is false)
             {
