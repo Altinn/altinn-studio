@@ -58,6 +58,10 @@
   </Target>
 
   <ItemGroup>
+    <EmbeddedResource Include="Scripts\instance-creation.js" />
+  </ItemGroup>
+
+  <ItemGroup>
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
     <InternalsVisibleTo Include="Altinn.App.Benchmarks" />
     <InternalsVisibleTo Include="Altinn.App.Tests.Common" />

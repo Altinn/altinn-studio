@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Configuration;
@@ -102,14 +103,14 @@ public class HomeController : Controller
     /// <param name="org">The application owner short name</param>
     /// <param name="app">The name of the app</param>
     /// <param name="skipPartySelection">If true, skips party selection prompt even when PromptForParty is 'always'.</param>
-    /// <param name="forceNew">If true, forces creation of a new instance even when existing instances are found.</param>
+    /// <param name="forceNewInstance">If true, forces creation of a new instance even when existing instances are found.</param>
     [HttpGet]
     [Route("{org}/{app}/")]
     public async Task<IActionResult> Index(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromQuery] bool skipPartySelection = false,
-        [FromQuery] bool forceNew = false
+        [FromQuery] bool forceNewInstance = false
     )
     {
         // Use InitialDataService to get ALL data with mock integration
@@ -150,10 +151,16 @@ public class HomeController : Controller
 
         string layoutSetsString = _appResources.GetLayoutSets();
         string layoutSetsJson = string.IsNullOrEmpty(layoutSetsString) ? "null" : layoutSetsString;
-        var html = GenerateInstanceCreationHtml(org, app, details.SelectedParty.PartyId, layoutSetsJson);
-        if (forceNew)
+        var instanceCreationHtml = GenerateInstanceCreationHtml(
+            org,
+            app,
+            details.SelectedParty.PartyId,
+            layoutSetsJson
+        );
+
+        if (forceNewInstance)
         {
-            return Content(html, "text/html; charset=utf-8");
+            return Content(instanceCreationHtml, "text/html; charset=utf-8");
         }
 
         if (details.PartiesAllowedToInstantiate.Count > 1 && !skipPartySelection)
@@ -189,7 +196,7 @@ public class HomeController : Controller
             return Redirect($"/{org}/{app}/instance-selection");
         }
 
-        return Content(html, "text/html; charset=utf-8");
+        return Content(instanceCreationHtml, "text/html; charset=utf-8");
     }
 
     /// <summary>
@@ -794,6 +801,30 @@ public class HomeController : Controller
         return null;
     }
 
+    private static string GetEmbeddedJavaScript(string resourceName)
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        var fullResourceName = $"Altinn.App.Api.Scripts.{resourceName}";
+
+        using var stream = assembly.GetManifestResourceStream(fullResourceName);
+        if (stream is null)
+        {
+            throw new InvalidOperationException($"Could not find embedded resource: {fullResourceName}");
+        }
+
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
+    }
+
+    private static string GetInstanceCreationScript(string org, string app, int partyId)
+    {
+        var template = GetEmbeddedJavaScript("instance-creation.js");
+        return template
+            .Replace("{{ORG}}", org)
+            .Replace("{{APP}}", app)
+            .Replace("{{PARTY_ID}}", partyId.ToString(CultureInfo.InvariantCulture));
+    }
+
     private string GenerateInstanceCreationHtml(string org, string app, int partyId, string layoutSetsJson)
     {
         _logger.LogInformation(
@@ -804,6 +835,7 @@ public class HomeController : Controller
         );
 
         string nonce = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(16));
+        var jsContent = GetInstanceCreationScript(org, app, partyId);
 
         var htmlContent = $$"""
             <!DOCTYPE html>
@@ -830,90 +862,8 @@ public class HomeController : Controller
                 </div>
                 <script nonce='{{nonce}}'>
                     window.AltinnLayoutSets = {{layoutSetsJson}};
-                    window.org = '{{org}}';
-                    window.app = '{{app}}';
 
-                    (async function() {
-                      try {
-                        // Debug: Log all cookies
-                        console.log('All cookies:', document.cookie);
-
-                        const xsrfToken = document.cookie
-                          .split('; ')
-                          .find(row => row.startsWith('XSRF-TOKEN='))
-                          ?.split('=')[1];
-
-                        console.log('XSRF Token found:', xsrfToken ? 'yes' : 'no');
-
-                        if (!xsrfToken) {
-                          const errorParams = new URLSearchParams({
-                            errorType: 'xsrf_token_missing',
-                            statusCode: '403'
-                          });
-                          window.location.href = '/{{org}}/{{app}}/error?' + errorParams.toString();
-                          return;
-                        }
-
-                        console.log('Attempting to create instance...');
-                        const response = await fetch('/{{org}}/{{app}}/instances?instanceOwnerPartyId={{partyId}}', {
-                          method: 'POST',
-                          headers: {
-                            'X-XSRF-TOKEN': xsrfToken,
-                            'Content-Type': 'application/json'
-                          }
-                        });
-
-                        if (!response.ok) {
-                          const contentType = response.headers.get('content-type');
-                          let errorDetail;
-                          if (contentType && contentType.includes('application/json')) {
-                            errorDetail = await response.json();
-                            console.error('Error response (JSON):', errorDetail);
-                          } else {
-                            errorDetail = await response.text();
-                            console.error('Error response (text):', errorDetail);
-                          }
-
-                          const errorParams = new URLSearchParams({
-                            errorType: response.status >= 500 ? 'server_error' : 'instance_creation_failed',
-                            statusCode: response.status.toString(),
-                            showContactInfo: 'true'
-                          });
-                          window.location.href = '/{{org}}/{{app}}/error?' + errorParams.toString();
-                          return;
-                        }
-
-                        const instance = await response.json();
-                        const [partyId, instanceGuid] = instance.id.split('/');
-                        const taskId = instance.process.currentTask.elementId;
-
-                        let firstPageId = null;
-                        if (window.AltinnLayoutSets && window.AltinnLayoutSets.sets) {
-                          const layoutSet = window.AltinnLayoutSets.sets.find(set =>
-                            set.tasks && set.tasks.includes(taskId)
-                          );
-                          if (layoutSet && layoutSet.id) {
-                            const settingsResponse = await fetch('/{{org}}/{{app}}/api/layoutsettings/' + layoutSet.id);
-                            if (settingsResponse.ok) {
-                              const settings = await settingsResponse.json();
-                              if (settings.pages && settings.pages.order && settings.pages.order.length > 0) {
-                                firstPageId = settings.pages.order[0];
-                              }
-                            }
-                          }
-                        }
-
-                        const redirectUrl = '/{{org}}/{{app}}/instance/' + partyId + '/' + instanceGuid + '/' + taskId + '/' + (firstPageId || '');
-                        window.location.href = redirectUrl;
-                      } catch (error) {
-                        console.error('Error creating instance:', error);
-                        const errorParams = new URLSearchParams({
-                          errorType: 'network_error',
-                          showContactInfo: 'false'
-                        });
-                        window.location.href = '/{{org}}/{{app}}/error?' + errorParams.toString();
-                      }
-                    })();
+                    {{jsContent}}
                 </script>
             </body>
             </html>
