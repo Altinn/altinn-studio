@@ -536,7 +536,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
             switch (response.StatusCode)
             {
                 case HttpStatusCode.OK:
-                    return (await response.Content.ReadFromJsonAsync<FileSystemObject>(s_jsonOptions, cancellationToken), null);
+                    FileSystemObject fileSystemObject = await response.Content.ReadFromJsonAsync<FileSystemObject>(s_jsonOptions, cancellationToken);
+                    if (fileSystemObject is null)
+                    {
+                        _logger.LogError("User {Developer} GetFileAsync received null content in 200 OK response for {Org}/{App} at path: {FilePath}, ref: {Reference}", developer, org, app, filePath, reference);
+                        ProblemDetails unexpectedNullProblem = new()
+                        {
+                            Status = StatusCodes.Status500InternalServerError,
+                            Title = "Unexpected response format",
+                            Detail = "The file service returned an invalid response."
+                        };
+                        return (null, unexpectedNullProblem);
+                    }
+                    return (fileSystemObject, null);
                 case HttpStatusCode.NotFound:
                     ProblemDetails notFoundProblem = new()
                     {
