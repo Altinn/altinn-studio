@@ -122,7 +122,12 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
         }
     }
 
-    private static string GenerateBranchNameWithHashSuffix(AltinnRepoEditingContext editingContext) => editingContext.Developer + MD5.HashData(Encoding.UTF8.GetBytes(editingContext.Developer))[..5];
+    internal static string GenerateBranchNameWithHashSuffix(AltinnRepoEditingContext editingContext)
+    {
+        byte[] hashBytes = MD5.HashData(Encoding.UTF8.GetBytes(editingContext.Developer));
+        string hashSuffix = Convert.ToHexString(hashBytes)[..5];
+        return $"{editingContext.Developer}-{hashSuffix}";
+    }
 
     internal async Task<List<FileSystemObject>> GetDirectoryContent(string org, string? path = null, string? reference = null, CancellationToken cancellationToken = default)
     {

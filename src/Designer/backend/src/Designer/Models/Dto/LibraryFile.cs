@@ -13,7 +13,7 @@ public sealed record LibraryFile
 
     public LibraryFile(string path, string contentType, string? content, string? url, ProblemDetails? problem = null)
     {
-        if (problem is not null && content is null && url is null)
+        if (problem is not null && AtLeastOneHasValue(content, url))
         {
             throw new ArgumentException("Cannot provide content or url when there is a problem.");
         }
@@ -30,6 +30,7 @@ public sealed record LibraryFile
         Problem = problem;
     }
 
+    private static bool AtLeastOneHasValue(string? first, string? second) => first is not null || second is not null;
     private static bool BothAreNull(string? first, string? second) => first is null && second is null;
     private static bool BothNotNull(string? first, string? second) => first is not null && second is not null;
 }

@@ -40,7 +40,7 @@ public sealed record UpdateSharedResourceRequest(List<FileMetadata> Files, strin
     {
         var hash = new HashCode();
         hash.Add(BaseCommitSha, StringComparer.Ordinal);
-        hash.Add(CommitMessage, StringComparer.Ordinal);
+        hash.Add(CommitMessage ?? string.Empty, StringComparer.Ordinal);
 
         foreach (FileMetadata fileMetadata in Files)
         {

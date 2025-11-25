@@ -333,11 +333,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext)
+        public LibGit2Sharp.RebaseResult RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext)
         {
             try
             {
-                _decoratedService.RebaseOntoDefaultBranch(editingContext);
+                return _decoratedService.RebaseOntoDefaultBranch(editingContext);
             }
             catch (Exception ex)
             {
@@ -388,6 +388,32 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        public async Task CommitAndPushChanges(AltinnRepoEditingContext editingContext, string branchName, string message)
+        {
+            try
+            {
+                await _decoratedService.CommitAndPushChanges(editingContext, branchName, message);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, nameof(CommitAndPushChanges), editingContext.Org, editingContext.Repo);
+                throw;
+            }
+        }
+
+        public async Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName)
+        {
+            try
+            {
+                await _decoratedService.DeleteRemoteBranchIfExists(editingContext, branchName);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, nameof(DeleteRemoteBranchIfExists), editingContext.Org, editingContext.Repo);
+                throw;
+            }
+        }
+
         private void LogError(Exception ex, string method)
         {
             LogError(ex, method, string.Empty, string.Empty);
@@ -404,9 +430,5 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             _logger.LogError(ex, $"Failed executing method {method} for user {developer} in org {org} / repository {repository}. Destination: {destinationPath}. Branch: {branch}.");
         }
-
-        public Task CommitAndPushChanges(AltinnRepoEditingContext editingContext, string branchName, string message) => throw new NotImplementedException();
-        LibGit2Sharp.RebaseResult ISourceControl.RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
-        public Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
     }
 }

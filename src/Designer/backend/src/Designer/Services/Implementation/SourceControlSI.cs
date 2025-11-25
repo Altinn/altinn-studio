@@ -575,7 +575,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 CredentialsProvider = await GetCredentialsAsync()
             };
-            string pushRefSpec = $"refs/heads/:{branchName}";
+            string pushRefSpec = $":refs/heads/{branchName}";
             repo.Network.Push(remote, pushRefSpec, options);
         }
 
