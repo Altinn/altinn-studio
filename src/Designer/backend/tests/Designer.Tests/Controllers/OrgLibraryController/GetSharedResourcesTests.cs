@@ -124,7 +124,7 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
         string folderPath = $"{path}/{folderName}";
 
         string subFolderFileName = "subFolderFile.json";
-        string subFolderFilePath = $"{path}/{subFolderFileName}";
+        string subFolderFilePath = $"{folderPath}/{subFolderFileName}";
         string subFolderFileContent = "Sub file content";
 
         _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(It.IsAny<string>())).ReturnsAsync(true);
@@ -210,7 +210,7 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
     }
 
     [Fact]
-    public async Task GetSharedResources_Returns_400BadRequest_WhenDirectoryNotFound()
+    public async Task GetSharedResources_Returns_404NotFound_WhenDirectoryNotFound()
     {
         // Arrange
         string org = "ttd";
