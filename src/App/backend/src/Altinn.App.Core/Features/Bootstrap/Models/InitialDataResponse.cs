@@ -17,7 +17,7 @@ public sealed class InitialDataResponse
     /// Application metadata.
     /// </summary>
     [JsonPropertyName("applicationMetadata")]
-    public ApplicationMetadata? ApplicationMetadata { get; set; }
+    public required ApplicationMetadata ApplicationMetadata { get; set; }
 
     /// <summary>
     /// Current instance data if applicable.
@@ -41,7 +41,7 @@ public sealed class InitialDataResponse
     /// Whether the current party is allowed to instantiate new instances.
     /// </summary>
     [JsonPropertyName("canInstantiate")]
-    public bool? CanInstantiate { get; set; }
+    public required bool CanInstantiate { get; set; }
 
     /// <summary>
     /// Text resources for the current language.
@@ -71,19 +71,19 @@ public sealed class InitialDataResponse
     /// Current language code.
     /// </summary>
     [JsonPropertyName("language")]
-    public string? Language { get; set; }
+    public required string Language { get; set; }
 
     /// <summary>
     /// Available language options.
     /// </summary>
     [JsonPropertyName("availableLanguages")]
-    public List<ApplicationLanguage>? AvailableLanguages { get; set; }
+    public required List<ApplicationLanguage> AvailableLanguages { get; set; }
 
     /// <summary>
     /// Frontend feature flags.
     /// </summary>
     [JsonPropertyName("featureFlags")]
-    public Dictionary<string, bool>? FeatureFlags { get; set; }
+    public required Dictionary<string, bool> FeatureFlags { get; set; }
 
     /// <summary>
     /// Application settings visible to frontend.
@@ -95,7 +95,7 @@ public sealed class InitialDataResponse
     /// Platform settings.
     /// </summary>
     [JsonPropertyName("platformSettings")]
-    public FrontendPlatformSettings? PlatformSettings { get; set; }
+    public required FrontendPlatformSettings PlatformSettings { get; set; }
 
     /// <summary>
     /// Process state information if instance is available.
@@ -113,7 +113,7 @@ public sealed class InitialDataResponse
     /// Frontend settings
     /// </summary>
     [JsonPropertyName("frontendSettings")]
-    public object? FrontendSettings { get; set; }
+    public required FrontEndSettings FrontendSettings { get; set; }
 }
 
 /// <summary>
