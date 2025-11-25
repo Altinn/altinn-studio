@@ -1,6 +1,6 @@
 import { test } from '../../extenders/testExtend';
-import { APIRequestContext, expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
+import { expect } from '@playwright/test';
+import type { APIRequestContext, Page } from '@playwright/test';
 import { Gitea } from '../../helpers/Gitea';
 import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
