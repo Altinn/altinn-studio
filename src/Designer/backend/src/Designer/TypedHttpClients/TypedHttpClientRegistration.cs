@@ -7,6 +7,7 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClient.StudioGateway;
 using Altinn.Studio.Designer.TypedHttpclients.DelegatingHandlers;
 using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
@@ -67,6 +68,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddTransient<PlatformSubscriptionAuthDelegatingHandler>();
             services.AddMaskinportenHttpClient();
             services.AddSlackClient(config);
+            services.AddStudioGatewayClient();
 
             return services;
         }
@@ -188,5 +190,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
             }).AddHttpMessageHandler<EnsureSuccessHandler>();
         }
+
+        private static IHttpClientBuilder AddStudioGatewayClient(this IServiceCollection services)
+        => services.AddHttpClient<IStudioGatewayClient, StudioGatewayClient>()
+                .AddHttpMessageHandler<EnsureSuccessHandler>();
     }
 }

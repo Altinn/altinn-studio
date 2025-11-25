@@ -1,8 +1,10 @@
 import { Link, useParams } from 'react-router-dom';
 import { StudioBreadcrumbs } from '@studio/components';
+import { Metrics } from './metrics/Metrics';
 
 export const AppsDetails = () => {
   const { org, env, app } = useParams() as { org: string; env: string; app: string };
+
   return (
     <div>
       <StudioBreadcrumbs>
@@ -26,6 +28,7 @@ export const AppsDetails = () => {
       <p>
         Gå til <Link to='instances'>instanser</Link>.
       </p>
+      <Metrics />
     </div>
   );
 };
