@@ -36,10 +36,7 @@ class RepoManager:
             return 80
 
     def _strip_repos_prefix(self, repo_url: str) -> str:
-        repo_path = urlparse(repo_url).path
-        if repo_path.startswith('/repos/'):
-            repo_path = '/' + repo_path[7:]
-        return f"{config.GITEA_BASE_URL}{repo_path}"
+        return repo_url.replace('/repos', '')
 
     def _get_auth_url(self, repo_url: str) -> str:
         """
