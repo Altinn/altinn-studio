@@ -5,10 +5,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
 RUN git config --system user.name "Altinity Agent" && \
-    git config --system user.email "agent@altinity.local"
-
-ENV GIT_CURL_VERBOSE=0
-ENV GIT_TRACE=0
+    git config --system user.email "agent@altinn.studio"
 
 COPY requirements.txt ./
 

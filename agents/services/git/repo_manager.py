@@ -27,6 +27,20 @@ class RepoManager:
         self.temp_dir.mkdir(exist_ok=True)
         self.active_repos: Dict[str, Path] = {}  # session_id -> repo_path
 
+    def _get_port(self, parsed_url) -> int:
+        if parsed_url.port:
+            return parsed_url.port
+        elif parsed_url.scheme == 'https':
+            return 443
+        else:
+            return 80
+
+    def _strip_repos_prefix(self, repo_url: str) -> str:
+        repo_path = urlparse(repo_url).path
+        if repo_path.startswith('/repos/'):
+            repo_path = '/' + repo_path[7:]
+        return f"{config.GITEA_BASE_URL}{repo_path}"
+
     def _get_auth_url(self, repo_url: str) -> str:
         """
         Convert a repo URL to include authentication token if available.
@@ -44,20 +58,16 @@ class RepoManager:
 
         try:
             parsed = urlparse(repo_url)
-            port = parsed.port
+            port = self._get_port(parsed)
 
             # Insert token as username (common git auth pattern)
-            # Format: https://token@host/path or https://username:token@host/path
+            # Format: https://token@host:port/path or https://username:token@host:port/path
             if parsed.username:
                 # Already has username, replace with token as password
-                netloc = f"{parsed.username}:{token}@{parsed.hostname}"
-                if port:
-                    netloc += f":{port}"
+                netloc = f"{parsed.username}:{token}@{parsed.hostname}:{port}"
             else:
                 # No username, use token as username
-                netloc = f"{token}@{parsed.hostname}"
-                if port:
-                    netloc += f":{port}"
+                netloc = f"{token}@{parsed.hostname}:{port}"
 
             auth_url = urlunparse(parsed._replace(netloc=netloc))
             log.debug(f"Converted {repo_url} to authenticated URL")
@@ -71,18 +81,8 @@ class RepoManager:
         """
         Normalize repository URL for the current environment.
         Handles Docker vs local environment differences.
-
-        Args:
-            repo_url: Original repository URL from frontend/user
-
-        Returns:
-            Normalized URL suitable for current environment
         """
         repo_path_part = urlparse(repo_url).path
-
-        if repo_path_part.startswith('/repos/'):
-            repo_path_part = '/' + repo_path_part[7:]
-
         return f"{config.GITEA_BASE_URL}{repo_path_part}"
 
     def clone_repo_for_session(self, repo_url: str, session_id: str, branch: Optional[str] = None) -> Path:
@@ -137,6 +137,7 @@ class RepoManager:
 
         try:
             normalized_url = self._normalize_repo_url(repo_url)
+            normalized_url = self._strip_repos_prefix(normalized_url)
 
             # Use authenticated URL for cloning
             auth_url = self._get_auth_url(normalized_url)

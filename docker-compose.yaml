@@ -7,6 +7,3 @@ services:
       - "8071:8071"
     env_file:
       - .env.docker
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-      - "studio.localhost:host-gateway"
