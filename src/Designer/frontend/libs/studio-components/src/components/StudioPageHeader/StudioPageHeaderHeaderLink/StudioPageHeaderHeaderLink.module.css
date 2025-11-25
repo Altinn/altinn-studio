@@ -1,6 +1,6 @@
 .link {
   padding: var(--ds-size-3);
   border-radius: var(--ds-border-radius-default);
-  color: var(--ds-color-neutral-background-default);
+  color: var(--ds-color-text-default);
   text-decoration: none;
 }
