@@ -4,6 +4,16 @@ using Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.Models;
 namespace Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis.DataProcessingRules;
 
 /// <summary>
+/// Information about a failed rule conversion
+/// </summary>
+internal class FailedRuleInfo
+{
+    public string RuleName { get; set; } = string.Empty;
+    public string Reason { get; set; } = string.Empty;
+    public string? JavaScriptSource { get; set; }
+}
+
+/// <summary>
 /// Result of generating a data processor class
 /// </summary>
 internal class DataProcessorGenerationResult
@@ -15,6 +25,7 @@ internal class DataProcessorGenerationResult
     public int SuccessfulConversions { get; set; }
     public int FailedConversions { get; set; }
     public List<string> Errors { get; } = new();
+    public List<FailedRuleInfo> FailedRules { get; } = new();
 }
 
 /// <summary>
@@ -206,26 +217,62 @@ internal class CSharpCodeGenerator
                         }
                         else
                         {
-                            GenerateTodoStub(code, rule, "Could not extract property name from output path");
+                            var reason = "Could not extract property name from output path";
+                            GenerateTodoStub(code, rule, reason, jsFunction.Implementation);
                             result.FailedConversions++;
+                            result.FailedRules.Add(
+                                new FailedRuleInfo
+                                {
+                                    RuleName = rule.SelectedFunction ?? ruleId,
+                                    Reason = reason,
+                                    JavaScriptSource = jsFunction.Implementation,
+                                }
+                            );
                         }
                     }
                     else
                     {
-                        GenerateTodoStub(code, rule, "No output parameter defined");
+                        var reason = "No output parameter defined";
+                        GenerateTodoStub(code, rule, reason, jsFunction.Implementation);
                         result.FailedConversions++;
+                        result.FailedRules.Add(
+                            new FailedRuleInfo
+                            {
+                                RuleName = rule.SelectedFunction ?? ruleId,
+                                Reason = reason,
+                                JavaScriptSource = jsFunction.Implementation,
+                            }
+                        );
                     }
                 }
                 else
                 {
-                    GenerateTodoStub(code, rule, conversionResult.FailureReason ?? "Conversion failed");
+                    var reason = conversionResult.FailureReason ?? "Conversion failed";
+                    GenerateTodoStub(code, rule, reason, jsFunction.Implementation);
                     result.FailedConversions++;
+                    result.FailedRules.Add(
+                        new FailedRuleInfo
+                        {
+                            RuleName = rule.SelectedFunction ?? ruleId,
+                            Reason = reason,
+                            JavaScriptSource = jsFunction.Implementation,
+                        }
+                    );
                 }
             }
             else
             {
-                GenerateTodoStub(code, rule, "JavaScript function not found in RuleHandler.js");
+                var reason = "JavaScript function not found in RuleHandler.js";
+                GenerateTodoStub(code, rule, reason);
                 result.FailedConversions++;
+                result.FailedRules.Add(
+                    new FailedRuleInfo
+                    {
+                        RuleName = rule.SelectedFunction ?? ruleId,
+                        Reason = reason,
+                        JavaScriptSource = null,
+                    }
+                );
             }
 
             code.AppendLine("        await Task.CompletedTask;");
@@ -234,7 +281,7 @@ internal class CSharpCodeGenerator
         }
     }
 
-    private void GenerateTodoStub(StringBuilder code, DataProcessingRule rule, string reason)
+    private void GenerateTodoStub(StringBuilder code, DataProcessingRule rule, string reason, string? jsSource = null)
     {
         code.AppendLine($"        // TODO: Manual conversion required - {reason}");
 

@@ -203,10 +203,6 @@ internal static class RuleConvertCommand
                     continue;
                 }
 
-                Console.WriteLine(
-                    $"Found {conditionalRules.Count} conditional rendering rules and {dataProcessingRules.Count} data processing rules in {layoutSetName}"
-                );
-
                 var jsParser = new RuleHandlerParser(ruleHandlerPath);
                 jsParser.Parse();
 

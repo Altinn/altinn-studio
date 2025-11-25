@@ -130,6 +130,8 @@ internal class StatementConverter
         {
             ExpressionStatement exprStmt => ConvertExpressionStatement(exprStmt),
             VariableDeclaration varDecl => ConvertVariableDeclaration(varDecl),
+            IfStatement ifStmt => ConvertIfStatement(ifStmt),
+            EmptyStatement => string.Empty, // Empty statements (just semicolons) can be ignored
             _ => throw new NotSupportedException($"Statement type {statement.Type} not supported for C# conversion"),
         };
     }
@@ -171,6 +173,91 @@ internal class StatementConverter
         return code.ToString().TrimEnd();
     }
 
+    private string ConvertIfStatement(IfStatement ifStmt)
+    {
+        var code = new StringBuilder();
+        var condition = ConvertExpression(ifStmt.Test);
+
+        code.AppendLine($"        if ({condition})");
+        code.AppendLine("        {");
+
+        // Convert the consequent (then branch)
+        if (ifStmt.Consequent is BlockStatement block)
+        {
+            foreach (var stmt in block.Body)
+            {
+                var stmtCode = ConvertStatementInBlock(stmt);
+                if (!string.IsNullOrEmpty(stmtCode))
+                {
+                    code.AppendLine($"    {stmtCode}");
+                }
+            }
+        }
+        else
+        {
+            var stmtCode = ConvertStatementInBlock(ifStmt.Consequent);
+            if (!string.IsNullOrEmpty(stmtCode))
+            {
+                code.AppendLine($"    {stmtCode}");
+            }
+        }
+
+        code.AppendLine("        }");
+
+        // Handle else clause if present
+        if (ifStmt.Alternate != null)
+        {
+            code.AppendLine("        else");
+            code.AppendLine("        {");
+
+            if (ifStmt.Alternate is BlockStatement elseBlock)
+            {
+                foreach (var stmt in elseBlock.Body)
+                {
+                    var stmtCode = ConvertStatementInBlock(stmt);
+                    if (!string.IsNullOrEmpty(stmtCode))
+                    {
+                        code.AppendLine($"    {stmtCode}");
+                    }
+                }
+            }
+            else if (ifStmt.Alternate is IfStatement elseIf)
+            {
+                // Handle else if
+                var elseIfCode = ConvertIfStatement(elseIf);
+                code.AppendLine($"    {elseIfCode.TrimStart()}");
+            }
+            else
+            {
+                var stmtCode = ConvertStatementInBlock(ifStmt.Alternate);
+                if (!string.IsNullOrEmpty(stmtCode))
+                {
+                    code.AppendLine($"    {stmtCode}");
+                }
+            }
+
+            code.AppendLine("        }");
+        }
+
+        return code.ToString().TrimEnd();
+    }
+
+    private string ConvertStatementInBlock(Statement statement)
+    {
+        if (statement is ReturnStatement returnStmt)
+        {
+            // Return statements in if blocks need special handling
+            if (returnStmt.Argument != null)
+            {
+                var returnCode = ConvertExpression(returnStmt.Argument);
+                return $"return {returnCode};";
+            }
+            return "return;";
+        }
+
+        return ConvertStatement(statement);
+    }
+
     private string ConvertAssignmentExpression(AssignmentExpression assignment)
     {
         if (assignment.Left is Identifier identifier)
@@ -179,6 +266,14 @@ internal class StatementConverter
             _localVariables[varName] = varName; // Track as local variable
             var rightCode = ConvertExpression(assignment.Right);
             return $"        var {varName} = {rightCode};";
+        }
+
+        // Handle member expression assignments like obj.property = value
+        if (assignment.Left is MemberExpression memberExpr)
+        {
+            var leftSide = ConvertMemberExpression(memberExpr);
+            var rightCode = ConvertExpression(assignment.Right);
+            return $"        {leftSide} = {rightCode};";
         }
 
         throw new NotSupportedException($"Assignment pattern not supported");
@@ -195,12 +290,92 @@ internal class StatementConverter
             BinaryExpression binary => ConvertBinaryExpression(binary),
             MemberExpression member => ConvertMemberExpression(member),
             Identifier identifier => ConvertIdentifier(identifier),
-            Literal literal => ConvertLiteral(literal),
             ConditionalExpression conditional => ConvertConditionalExpression(conditional),
             UnaryExpression unary => ConvertUnaryExpression(unary),
             CallExpression call => ConvertCallExpression(call),
+            ArrowFunctionExpression arrow => ConvertArrowFunctionExpression(arrow),
+            ChainExpression chain => ConvertChainExpression(chain),
+            RegExpLiteral regex => ConvertRegExpLiteral(regex),
+            TemplateLiteral template => ConvertTemplateLiteral(template),
+            Literal literal => ConvertLiteral(literal), // Must come after more specific literal types
             _ => throw new NotSupportedException($"Expression type {expr.Type} not supported for C# conversion"),
         };
+    }
+
+    private string ConvertTemplateLiteral(TemplateLiteral template)
+    {
+        // Template literals like `hello ${name}` need to be converted to C# string interpolation
+        // For now, we'll use a simplified approach
+        if (template.Expressions.Count == 0)
+        {
+            // Simple template literal with no expressions - just a string
+            return template.Quasis.Count > 0 && template.Quasis[0].Value.Cooked != null
+                ? $"\"{EscapeString(template.Quasis[0].Value.Cooked)}\""
+                : "\"\"";
+        }
+
+        // Template literal with expressions - convert to string interpolation
+        var result = new StringBuilder("$\"");
+        for (int i = 0; i < template.Quasis.Count; i++)
+        {
+            if (template.Quasis[i].Value.Cooked != null)
+            {
+                result.Append(EscapeString(template.Quasis[i].Value.Cooked));
+            }
+
+            if (i < template.Expressions.Count)
+            {
+                var expr = ConvertExpression(template.Expressions[i]);
+                result.Append($"{{{expr}}}");
+            }
+        }
+        result.Append("\"");
+        return result.ToString();
+    }
+
+    private string ConvertRegExpLiteral(RegExpLiteral regex)
+    {
+        // RegExpLiteral in Acornima needs to be inspected for the correct properties
+        // For now, we'll throw an unsupported exception as regex conversion is complex
+        // and may require looking at the Raw property to extract the pattern
+        throw new NotSupportedException("Regular expression literals require manual conversion");
+    }
+
+    private string ConvertChainExpression(ChainExpression chain)
+    {
+        // ChainExpression wraps optional chaining expressions like obj?.prop
+        // The actual expression is in chain.Expression
+        return ConvertExpression(chain.Expression);
+    }
+
+    private string ConvertArrowFunctionExpression(ArrowFunctionExpression arrow)
+    {
+        // Arrow functions in data processing rules are typically used as inline functions
+        // For now, we'll convert the body and return it as a lambda expression
+        // This is a simplified implementation and may need enhancement for complex cases
+
+        if (arrow.Body is Expression bodyExpr)
+        {
+            // Simple arrow function: x => expression
+            var body = ConvertExpression(bodyExpr);
+
+            if (arrow.Params.Count == 1 && arrow.Params[0] is Identifier param)
+            {
+                return $"({param.Name} => {body})";
+            }
+
+            // Multiple parameters
+            var paramList = string.Join(", ", arrow.Params.OfType<Identifier>().Select(p => p.Name));
+            return $"(({paramList}) => {body})";
+        }
+        else if (arrow.Body is BlockStatement blockStmt)
+        {
+            // Arrow function with block body: x => { statements }
+            // This is more complex and may need to be converted to a full method
+            throw new NotSupportedException("Arrow functions with block statements are not yet supported");
+        }
+
+        throw new NotSupportedException("Unsupported arrow function pattern");
     }
 
     private string ConvertBinaryExpression(BinaryExpression binary)
@@ -261,6 +436,17 @@ internal class StatementConverter
 
     private string ConvertIdentifier(Identifier identifier)
     {
+        // Handle special JavaScript global identifiers
+        if (identifier.Name == "Infinity")
+        {
+            return "double.PositiveInfinity";
+        }
+
+        if (identifier.Name == "undefined")
+        {
+            return "null";
+        }
+
         // Check if this is a local variable
         if (_localVariables.ContainsKey(identifier.Name))
         {
@@ -356,6 +542,7 @@ internal class StatementConverter
             "LogicalNot" or "!" => $"(!{argument})",
             "UnaryPlus" or "Plus" or "+" => ConvertUnaryPlus(unary.Argument),
             "UnaryMinus" or "Minus" or "-" => $"(-{argument})",
+            "UnaryNegation" or "~" => $"(~{argument})",
             _ => throw new NotSupportedException($"Unary operator {operatorStr} not supported"),
         };
     }
@@ -382,8 +569,9 @@ internal class StatementConverter
 
         var op = operatorStr switch
         {
-            "And" or "&&" => "&&",
-            "Or" or "||" => "||",
+            "And" or "&&" or "LogicalAnd" => "&&",
+            "Or" or "||" or "LogicalOr" => "||",
+            "NullishCoalescing" or "??" => "??",
             _ => throw new NotSupportedException($"Logical operator {operatorStr} not supported"),
         };
 
@@ -392,6 +580,66 @@ internal class StatementConverter
 
     private string ConvertCallExpression(CallExpression call)
     {
+        // Handle global function calls (no object)
+        if (call.Callee is Identifier globalFunc)
+        {
+            switch (globalFunc.Name)
+            {
+                case "parseInt":
+                    if (call.Arguments.Count > 0)
+                    {
+                        var value = ConvertExpression(call.Arguments[0]);
+                        return $"int.Parse({value})";
+                    }
+                    throw new NotSupportedException("parseInt requires an argument");
+
+                case "parseFloat":
+                    if (call.Arguments.Count > 0)
+                    {
+                        var value = ConvertExpression(call.Arguments[0]);
+                        return $"double.Parse({value})";
+                    }
+                    throw new NotSupportedException("parseFloat requires an argument");
+
+                case "isNaN":
+                    if (call.Arguments.Count > 0)
+                    {
+                        var value = ConvertExpression(call.Arguments[0]);
+                        return $"double.IsNaN({value})";
+                    }
+                    throw new NotSupportedException("isNaN requires an argument");
+
+                case "isFinite":
+                    if (call.Arguments.Count > 0)
+                    {
+                        var value = ConvertExpression(call.Arguments[0]);
+                        return $"(!double.IsInfinity({value}) && !double.IsNaN({value}))";
+                    }
+                    throw new NotSupportedException("isFinite requires an argument");
+
+                case "Number":
+                    // Number(x) converts to number, similar to parseFloat but handles more cases
+                    if (call.Arguments.Count > 0)
+                    {
+                        var value = ConvertExpression(call.Arguments[0]);
+                        return $"Convert.ToDouble({value})";
+                    }
+                    return "0"; // Number() with no args returns 0
+
+                case "String":
+                    // String(x) converts to string
+                    if (call.Arguments.Count > 0)
+                    {
+                        var value = ConvertExpression(call.Arguments[0]);
+                        return $"Convert.ToString({value})";
+                    }
+                    return "\"\""; // String() with no args returns empty string
+
+                default:
+                    throw new NotSupportedException($"Global function {globalFunc.Name} not supported");
+            }
+        }
+
         // Handle specific method calls
         if (call.Callee is MemberExpression member && member.Property is Identifier methodName)
         {
@@ -415,6 +663,78 @@ internal class StatementConverter
 
                 case "trim":
                     return $"{obj}{nullConditional}.Trim()";
+
+                case "split":
+                    // Handle split with arguments
+                    if (call.Arguments.Count > 0)
+                    {
+                        var separator = ConvertExpression(call.Arguments[0]);
+                        return $"{obj}{nullConditional}.Split({separator})";
+                    }
+                    return $"{obj}{nullConditional}.Split()";
+
+                case "includes":
+                    // Handle includes (Contains in C#)
+                    if (call.Arguments.Count > 0)
+                    {
+                        var searchValue = ConvertExpression(call.Arguments[0]);
+                        return $"{obj}{nullConditional}.Contains({searchValue})";
+                    }
+                    throw new NotSupportedException("includes method requires an argument");
+
+                case "round":
+                    // Math.round() -> Math.Round()
+                    if (call.Arguments.Count > 0)
+                    {
+                        var value = ConvertExpression(call.Arguments[0]);
+                        return $"Math.Round({value})";
+                    }
+                    throw new NotSupportedException("round method requires an argument");
+
+                case "toFixed":
+                    // number.toFixed(decimals) -> Math.Round(number, decimals)
+                    if (call.Arguments.Count > 0)
+                    {
+                        var decimals = ConvertExpression(call.Arguments[0]);
+                        return $"Math.Round({obj} ?? 0, {decimals})";
+                    }
+                    return $"Math.Round({obj} ?? 0, 0)";
+
+                case "parseInt":
+                    // parseInt(str) -> int.Parse(str)
+                    if (call.Arguments.Count > 0)
+                    {
+                        var value = ConvertExpression(call.Arguments[0]);
+                        return $"int.Parse({value})";
+                    }
+                    throw new NotSupportedException("parseInt requires an argument");
+
+                case "parseFloat":
+                    // parseFloat(str) -> double.Parse(str)
+                    if (call.Arguments.Count > 0)
+                    {
+                        var value = ConvertExpression(call.Arguments[0]);
+                        return $"double.Parse({value})";
+                    }
+                    throw new NotSupportedException("parseFloat requires an argument");
+
+                case "test":
+                    // regex.test(str) -> Regex.IsMatch(str, pattern)
+                    // Note: obj should be a regex literal, but we'll handle it as a pattern string
+                    if (call.Arguments.Count > 0)
+                    {
+                        var testString = ConvertExpression(call.Arguments[0]);
+                        // For now, assume obj is a regex literal that needs to be extracted
+                        // This is a simplified implementation
+                        return $"System.Text.RegularExpressions.Regex.IsMatch({testString}, {obj})";
+                    }
+                    throw new NotSupportedException("test method requires an argument");
+
+                case "forEach":
+                    // forEach is complex and often requires restructuring
+                    throw new NotSupportedException(
+                        "forEach method requires manual conversion - use a foreach loop instead"
+                    );
 
                 default:
                     throw new NotSupportedException($"Method call {methodName.Name} not supported");

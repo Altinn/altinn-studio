@@ -462,6 +462,27 @@ internal class RuleAnalysisReporter
             Console.WriteLine(
                 $"  Failed conversions: {generationResult.FailedConversions} (will require manual implementation)"
             );
+
+            // Print detailed information about each failed rule
+            foreach (var failedRule in generationResult.FailedRules)
+            {
+                Console.WriteLine($"\n    Rule: {failedRule.RuleName}");
+                Console.WriteLine($"    Reason: {failedRule.Reason}");
+
+                if (!string.IsNullOrEmpty(failedRule.JavaScriptSource))
+                {
+                    Console.WriteLine($"    JavaScript Source:");
+                    var jsLines = failedRule.JavaScriptSource.Split('\n');
+                    foreach (var line in jsLines)
+                    {
+                        Console.WriteLine($"      {line}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"    JavaScript Source: Not available");
+                }
+            }
         }
 
         // Write the file

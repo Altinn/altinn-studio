@@ -44,22 +44,6 @@ internal class ProgramCsUpdater
         var registrationLine = $"services.AddTransient<IDataWriteProcessor, {className}>();";
         if (content.Contains(registrationLine))
         {
-            // Even if registered, add the using statement if it's missing
-            if (needsUsingStatement)
-            {
-                var firstUsingPattern = @"^using\s+.*;";
-                var firstUsingMatch = Regex.Match(content, firstUsingPattern, RegexOptions.Multiline);
-
-                if (firstUsingMatch.Success)
-                {
-                    var insertPosition = firstUsingMatch.Index + firstUsingMatch.Length;
-                    content = content.Insert(insertPosition, "\nusing Altinn.App.Logic;");
-                    File.WriteAllText(programCsPath, content);
-                    Console.WriteLine($"  Added using Altinn.App.Logic; to Program.cs");
-                }
-            }
-
-            Console.WriteLine($"  {className} is already registered in Program.cs");
             return true;
         }
 
@@ -121,7 +105,7 @@ internal class ProgramCsUpdater
             }
         }
 
-        // Add the using statement if needed (was checked earlier)
+        // Add the using statement if needed
         if (needsUsingStatement)
         {
             var firstUsingPattern = @"^using\s+.*;";
