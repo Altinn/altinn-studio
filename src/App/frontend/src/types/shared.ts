@@ -197,7 +197,7 @@ export interface IProcess {
   currentTask?: ITask;
   ended?: string | null;
   endEvent?: string | null;
-  processTasks?: Pick<ITask, 'altinnTaskType' | 'elementId'>[];
+  processTasks?: IProcessTask[];
 }
 
 export interface IProfile {
@@ -237,13 +237,16 @@ export const ELEMENT_TYPE = {
 
 type ElementType = (typeof ELEMENT_TYPE)[keyof typeof ELEMENT_TYPE];
 
-export type ITask = {
+interface IProcessTask {
+  altinnTaskType: string;
+  elementId: string;
+  elementType?: ElementType; // Appears in versions after https://github.com/Altinn/app-lib-dotnet/pull/745
+}
+
+export interface ITask extends IProcessTask {
   flow: number;
   started: string;
-  elementId: string;
   name: string;
-  altinnTaskType: string;
-  elementType?: ElementType;
   ended?: string | null;
   validated?: IValidated | null;
 
@@ -251,7 +254,7 @@ export type ITask = {
   write?: boolean | null;
   actions?: IProcessActions | null;
   userActions?: IUserAction[];
-};
+}
 
 export type IProcessActions = {
   [k in IActionType]?: boolean;

@@ -6,7 +6,6 @@ import { useAppContext, useGetLayoutSetByName } from '../../hooks';
 import { useChecksum } from '../../hooks/useChecksum.ts';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/designsystemet-react';
-import { SidebarRightIcon, SidebarLeftIcon } from '@studio/icons';
 import {
   StudioCenter,
   StudioAlert,
@@ -34,7 +33,6 @@ export const Preview = ({ collapsed, onCollapseToggle, hidePreview }: PreviewPro
 
   return collapsed ? (
     <PreviewActions
-      toggleIcon={<SidebarRightIcon aria-hidden />}
       toggleTitle={t('ux_editor.open_preview')}
       className={classes.toolbarCollapsed}
       onCollapseToggle={onCollapseToggle}
@@ -42,7 +40,6 @@ export const Preview = ({ collapsed, onCollapseToggle, hidePreview }: PreviewPro
   ) : (
     <div className={classes.root}>
       <PreviewActions
-        toggleIcon={<SidebarLeftIcon aria-hidden />}
         toggleTitle={t('ux_editor.close_preview')}
         className={classes.toolbar}
         onCollapseToggle={onCollapseToggle}

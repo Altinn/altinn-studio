@@ -8,11 +8,13 @@ export const instancesListPath = (
   continuationToken?: string,
   currentTask?: string,
   processIsComplete?: boolean,
+  archiveReference?: string,
 ) => {
   const queryString = getQueryStringFromObject({
     continuationToken,
     currentTask,
     processIsComplete: typeof processIsComplete === 'boolean' ? String(processIsComplete) : null,
+    archiveReference,
   });
   return `${adminApiBasePath}/instances/${org}/${env}/${app}${queryString}`; // Get
 };

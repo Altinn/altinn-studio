@@ -3,10 +3,13 @@ import {
   createCodeListMap,
   deleteCodeListFromMap,
   updateCodeListDataInMap,
+  validateCodeListMap,
 } from './utils';
-import { codeListMap, coloursKey } from './test-data/codeListMap';
-import type { CodeListData } from './types/CodeListData';
-import { codeLists } from './test-data/codeLists';
+import { codeListMap, coloursKey, countriesKey, fruitsKey } from './test-data/codeListMap';
+import type { CodeListData } from '../../../../types/CodeListData';
+import { codeLists, coloursData, countriesData, fruitsData } from './test-data/codeLists';
+import type { CodeListMapError } from './types/CodeListMapError';
+import type { CodeListMap } from './types/CodeListMap';
 
 describe('CodeListsPage utils', () => {
   describe('createCodeListMap', () => {
@@ -44,6 +47,46 @@ describe('CodeListsPage utils', () => {
       const result = deleteCodeListFromMap(codeListMap, coloursKey);
       expect(result.size).toBe(codeListMap.size - 1);
       expect(result.has(coloursKey)).toBe(false);
+    });
+  });
+
+  describe('validateCodeListMap', () => {
+    it('Returns an empty array when there are no validation errors', () => {
+      const result = validateCodeListMap(codeListMap);
+      expect(result).toEqual([]);
+    });
+
+    it('Includes the missing name keyword when a code list has a missing name', () => {
+      const map: CodeListMap = new Map<string, CodeListData>([
+        [countriesKey, { ...countriesData, name: '' }],
+        [fruitsKey, fruitsData],
+        [coloursKey, coloursData],
+      ]);
+      const result = validateCodeListMap(map);
+      const expectedResult: CodeListMapError[] = ['missing_name'];
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('Includes the duplicate name keyword when two code lists have the same name', () => {
+      const map: CodeListMap = new Map<string, CodeListData>([
+        [countriesKey, countriesData],
+        [fruitsKey, fruitsData],
+        [coloursKey, { ...coloursData, name: fruitsData.name }],
+      ]);
+      const result = validateCodeListMap(map);
+      const expectedResult: CodeListMapError[] = ['duplicate_name'];
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('Includes all errors when multiple validation errors are present', () => {
+      const map: CodeListMap = new Map<string, CodeListData>([
+        [countriesKey, { ...countriesData, name: '' }],
+        [fruitsKey, fruitsData],
+        [coloursKey, { ...coloursData, name: fruitsData.name }],
+      ]);
+      const result = validateCodeListMap(map);
+      const expectedResult: CodeListMapError[] = ['missing_name', 'duplicate_name'];
+      expect(result).toEqual(expectedResult);
     });
   });
 });

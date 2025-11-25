@@ -1,4 +1,4 @@
-﻿using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -106,7 +106,7 @@ internal sealed class ProcessEngineAuthorizer : IProcessEngineAuthorizer
     {
         return taskType switch
         {
-            "data" or "feedback" => ["write"],
+            "data" or "feedback" or "pdf" or "eFormidling" or "fiksArkiv" => ["write"],
             "payment" => ["pay", "write"],
             "confirmation" => ["confirm"],
             "signing" => ["sign", "write"],

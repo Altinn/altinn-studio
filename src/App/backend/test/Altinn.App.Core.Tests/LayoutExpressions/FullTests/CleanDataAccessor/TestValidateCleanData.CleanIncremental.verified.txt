@@ -114,6 +114,7 @@
               DataElement: {
                 Id: Guid_4,
                 DataType: mainLayout_dataType,
+                ContentType: application/xml,
                 Locked: false,
                 IsRead: true
               },
@@ -136,7 +137,8 @@
                 EnablePdfCreation: true,
                 EnableFileScan: false,
                 ValidationErrorOnPendingFileScan: false
-              }
+              },
+              ContentType: application/xml
             },
             {
               PreviousFormData: {
@@ -162,6 +164,7 @@
               DataElement: {
                 Id: Guid_5,
                 DataType: subLayout_dataType,
+                ContentType: application/xml,
                 Locked: false,
                 IsRead: true
               },
@@ -185,7 +188,8 @@
                 EnablePdfCreation: true,
                 EnableFileScan: false,
                 ValidationErrorOnPendingFileScan: false
-              }
+              },
+              ContentType: application/xml
             },
             {
               PreviousFormData: {
@@ -221,6 +225,7 @@
               DataElement: {
                 Id: Guid_7,
                 DataType: subLayout_dataType,
+                ContentType: application/xml,
                 Locked: false,
                 IsRead: true
               },
@@ -244,7 +249,8 @@
                 EnablePdfCreation: true,
                 EnableFileScan: false,
                 ValidationErrorOnPendingFileScan: false
-              }
+              },
+              ContentType: application/xml
             }
           ]
         },
@@ -258,18 +264,21 @@
               {
                 Id: Guid_4,
                 DataType: mainLayout_dataType,
+                ContentType: application/xml,
                 Locked: false,
                 IsRead: true
               },
               {
                 Id: Guid_5,
                 DataType: subLayout_dataType,
+                ContentType: application/xml,
                 Locked: false,
                 IsRead: true
               },
               {
                 Id: Guid_7,
                 DataType: subLayout_dataType,
+                ContentType: application/xml,
                 Locked: false,
                 IsRead: true
               }
@@ -333,18 +342,21 @@
               {
                 Id: Guid_4,
                 DataType: mainLayout_dataType,
+                ContentType: application/xml,
                 Locked: false,
                 IsRead: true
               },
               {
                 Id: Guid_5,
                 DataType: subLayout_dataType,
+                ContentType: application/xml,
                 Locked: false,
                 IsRead: true
               },
               {
                 Id: Guid_7,
                 DataType: subLayout_dataType,
+                ContentType: application/xml,
                 Locked: false,
                 IsRead: true
               }

@@ -14,8 +14,6 @@ import (
 )
 
 func Test_Validation_MissingURL(t *testing.T) {
-	t.Parallel()
-
 	req := &types.PdfRequest{
 		URL: "", // Invalid: empty URL
 		Options: types.PdfOptions{
@@ -38,8 +36,6 @@ func Test_Validation_MissingURL(t *testing.T) {
 }
 
 func Test_Validation_InvalidFormat(t *testing.T) {
-	t.Parallel()
-
 	req := harness.GetDefaultPdfRequest(t)
 	req.Options.Format = "InvalidFormat" // Invalid format
 
@@ -58,8 +54,6 @@ func Test_Validation_InvalidFormat(t *testing.T) {
 }
 
 func Test_Validation_InvalidWaitForTimeout(t *testing.T) {
-	t.Parallel()
-
 	req := harness.GetDefaultPdfRequest(t)
 	req.WaitFor = types.NewWaitForTimeout(-100) // Invalid: negative timeout
 
@@ -78,8 +72,6 @@ func Test_Validation_InvalidWaitForTimeout(t *testing.T) {
 }
 
 func Test_Validation_InvalidWaitForEmptyString(t *testing.T) {
-	t.Parallel()
-
 	req := harness.GetDefaultPdfRequest(t)
 	req.WaitFor = types.NewWaitForString("") // Invalid: empty string
 
@@ -98,8 +90,6 @@ func Test_Validation_InvalidWaitForEmptyString(t *testing.T) {
 }
 
 func Test_Validation_InvalidWaitForSelector(t *testing.T) {
-	t.Parallel()
-
 	req := harness.GetDefaultPdfRequest(t)
 	req.WaitFor = types.NewWaitForOptions(types.WaitForOptions{
 		Selector: "", // Invalid: empty selector
@@ -120,8 +110,6 @@ func Test_Validation_InvalidWaitForSelector(t *testing.T) {
 }
 
 func Test_Validation_InvalidCookieMissingName(t *testing.T) {
-	t.Parallel()
-
 	req := harness.GetDefaultPdfRequest(t)
 	req.Cookies = []types.Cookie{
 		{
@@ -145,8 +133,6 @@ func Test_Validation_InvalidCookieMissingName(t *testing.T) {
 }
 
 func Test_Validation_InvalidCookieMissingValue(t *testing.T) {
-	t.Parallel()
-
 	req := harness.GetDefaultPdfRequest(t)
 	req.Cookies = []types.Cookie{
 		{
@@ -170,8 +156,6 @@ func Test_Validation_InvalidCookieMissingValue(t *testing.T) {
 }
 
 func Test_Validation_InvalidCookieSameSite(t *testing.T) {
-	t.Parallel()
-
 	req := harness.GetDefaultPdfRequest(t)
 	req.Cookies = []types.Cookie{
 		{
@@ -196,8 +180,6 @@ func Test_Validation_InvalidCookieSameSite(t *testing.T) {
 }
 
 func Test_Validation_AllValidFormats(t *testing.T) {
-	t.Parallel()
-
 	for _, format := range types.ValidFormats {
 		t.Run("format_"+format, func(t *testing.T) {
 			req := harness.GetDefaultPdfRequest(t)

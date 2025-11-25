@@ -24,21 +24,21 @@ These are some of the required steps, tips, and tricks when it comes to running 
     - Also
       install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (
       f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp))
-4. Tooling to run containers:  
+4. Tooling to run containers:
     - [Podman](https://podman.io)* (optionally with [Podman Desktop](https://podman-desktop.io))
-    - [Docker Desktop](https://www.docker.com/products/docker-desktop) (Windows and Mac) This might require you to purchase a license. 
+    - [Docker Desktop](https://www.docker.com/products/docker-desktop) (Windows and Mac) This might require you to purchase a license.
     - Linux/WSL users can also use native Docker.
-  
- > [!NOTE] 
+
+ > [!NOTE]
  > On Mac with Apple silicone (M-series CPU), [vfkit](https://github.com/crc-org/vfkit?tab=readme-ov-file#installation) might be needed - consult the install guide/requirements for your container toolkit
 
 
 > [!WARNING]
 > *Podman on Windows/WSL2 can be tricky. If faced with the same issue as described in https://github.com/Altinn/app-localtest/issues/84, please apply the following (tested on Podman 4.9.2 and 5.1.1):
 > * Install the Podman Machine with "user-mode networking" enabled (the setting for root/rootless seems not to have an impact)
-> * Apply local updates to `podman-compose.yml` and `src\appsettings.Podman.json` replacing `host.docker.internal` with `<your-hostname>.local` (obtained by running `hostname` in the windows host commandline).  
+> * Apply local updates to `podman-compose.yml` and `src\appsettings.Podman.json` replacing `host.docker.internal` with `<your-hostname>.local` (obtained by running `hostname` in the windows host commandline).
 >   e.g. in `src\appsettings.Podman.json` the config `"LocalAppUrl": "http://host.docker.internal:5005",` becomes `"LocalAppUrl": "http://AAD-123456789.local:5005",` if your hostname is `AAD-123456789`
-> 
+>
 > If you have special networking needs (VPN), additional settings might be needed in WSL2/Podman. Please consult their respective doc/forums. https://learn.microsoft.com/en-us/windows/wsl/wsl-config#wslconfig and https://github.com/containers/podman/blob/main/docs/tutorials/basic_networking.md are good starting-ponts.
 
 ### Setup
@@ -55,11 +55,11 @@ cd app-localtest
 This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `podman stop localtest` and follow the instructions below to run LocalTest locally outside Docker/Podman.
 
 > [!IMPORTANT]
-> If you are using an mac with either a M1, M2 or M3 chip you may need to use `applehv` instead of `qemu` as the podman machine driver. 
+> If you are using an mac with either a M1, M2 or M3 chip you may need to use `applehv` instead of `qemu` as the podman machine driver.
 > This can be done by setting the environment variable `CONTAINERS_MACHINE_PROVIDER` to `applehv` before running the command below.
 > To add this to your zsh profile run the following command: `echo "export CONTAINERS_MACHINE_PROVIDER=applehv" >> ~/.zprofile`
 > If you are using Podman Desktop you also need to add these lines in `~/.config/containers/containers.conf` (check if the `[machine]` section already exists):
->  
+>
 > ```
 > [machine]
 >   provider = "applehv"
@@ -74,27 +74,33 @@ podman compose --file podman-compose.yml up -d --build
 Optionally, if you want access to Grafana and a local monitoring setup based on OpenTelemetry:
 
 ```shell
-podman compose --file podman-compose.yml --profile "monitoring" up -d --build
+podman compose --file podman-compose.yml --profile monitoring up -d --build
 # Grafana should be available at http://local.altinn.cloud:8000/grafana
 # Remember to enable the 'UseOpenTelemetry' configuration flag in the appsettings.json of the app
 ```
 
+Optionally, if you want to run all the test apps in a container (useful when running automated tests for app-frontend):
+
+```shell
+podman compose --file podman-compose.yml --profile test-apps up -d --build
+```
+
 > [!NOTE]
 > If you are using linux or mac you can use the Makefile to build and run the containers.
-> 
+>
 > ```shell
 > make podman-start-localtest
 > ```
 
 > [!IMPORTANT]
 > Are you running podman version < 4.7.0 you need to use the following command instead:
-> 
+>
 > ```shell
 > podman-compose --file podman-compose.yml up -d --build
 > ```
-> 
+>
 > or the make command:
-> 
+>
 > ```shell
 > make podman-compose-start-localtest
 > ```
@@ -112,14 +118,20 @@ docker compose up -d --build
 Optionally, if you want access to Grafana and a local monitoring setup based on OpenTelemetry:
 
 ```shell
-docker compose --profile "monitoring" up -d --build
+docker compose --profile monitoring up -d --build
 # Grafana should be available at http://local.altinn.cloud/grafana
 # Remember to enable the 'UseOpenTelemetry' configuration flag in the appsettings.json of the app
 ```
-   
+
+Optionally, if you want to run all the test apps in a container (useful when running automated tests for app-frontend):
+
+```shell
+docker compose --profile test-apps up -d --build
+```
+
 > [!NOTE]
 > If you are using linux or mac you can use the Makefile to build and run the containers.
-> 
+>
 > ```shell
 > make docker-start-localtest
 > ```
@@ -283,7 +295,7 @@ cp k6/loadtest.sample.js k6/loadtest.js
 
 # To run, either
 ./run.cmd k6
-# or 
+# or
 docker run --rm -i --net=host grafana/k6:master-with-browser run - <k6/loadtest.js
 ```
 
