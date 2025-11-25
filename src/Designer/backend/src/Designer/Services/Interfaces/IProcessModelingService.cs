@@ -31,7 +31,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <param name="dataTypeId">Id for the added data type</param>
         /// <param name="taskId">Id for the task that the data type is connected to</param>
-        /// /// <param name="allowedContributors">Allowed allowed contributeres</param>
+        /// <param name="allowedContributors">Allowed allowed contributors</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         Task AddDataTypeToApplicationMetadataAsync(AltinnRepoEditingContext altinnRepoEditingContext,
             string dataTypeId, string taskId, List<string> allowedContributors, CancellationToken cancellationToken = default);
