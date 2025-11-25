@@ -2,51 +2,75 @@
 
 - Status: Proposed
 - Deciders: Task Force Frontend Next
-- Date:
+- Date: 2025-11-25
 
 ## Result
 
-1. We implement LHCI as synthetic testing in CI with a custom LHCI server for monitoring changes over time. We will not use the GitHub App yet. This is because we don't have assertions as this does not make sense before our metrics are above a certain threshold.
+1. **Initial load testing**
+
+   We implement LHCI as synthetic testing in CI with a custom LHCI server for monitoring changes in the initial load performance metrics over time. We will set thresholds to fail builds, as we are not yet above those thresholds.
+
    See [synthetic data monitoring proposal](#synthetic-data-monitoring-proposal) further down.
-2. We will implement load testing through K6/Playwright.
-3. We will not be implementing RUM yet, as it is not of high significance for the Frontend Next initiative since we will not have real users before the initiative is merged and rolled out to real users.
-4. The same goes for OTel in addition to OTel for browsers still being experimental.
+
+2. **Load and performance testing**
+
+   To begin with, we will implement load testing of a complex app through K6/Playwright.
+
+   More research will be done into K6 vs Playwright and what it gives us in terms of performance testing support and data visualization. This testing will possibly include load testing with many users to assert that it also performs reasonably well under those conditions.
+
+3. **RUM**
+
+   We will not be implementing RUM yet, as it is not of high significance for the Frontend Next initiative since we will not have real users before the initiative is merged and rolled out to real users.
+
+4. **OTel**
+
+   The same goes for OTel in addition to OTel for browsers still being experimental.
 
 ## Problem context
 
 As we implement Frontend Next, a major refactoring initiative, we need to define what performance data to collect, where to collect it, and how to monitor it. Currently, we lack systematic performance data collection, making it difficult to validate that our refactoring efforts deliver the expected performance gains and to prevent performance degradations from reaching production. Such data collection is also useful for detecting errors before deploy or in production without our users having to report them. This again facilitates quicker recovery and more thorough stability across our apps.
 
-# Context
-
 ## Types of monitoring data
 
-## 1. Synthetic data
+## 1. Initial load synthetic testing
 
 Robots in a browser run your app from fixed locations.
 
 ### Why synthetic data?
 
-Used for uptime & basic perf: “Can I load / and click X without errors?” Test already in CI to mitigate changes of major performance regressions.
+Used for load time performance metrics like TTFB and LCP, but also accessibility and SEO.
 
 ### Limitations
 
-Only synthetic data with a fixed set of devices, browsers and geolocations.
+Only synthetic data with a fixed set of devices, browsers and geolocations. Only data about the initial load, not the actual usage of an application.
 
-### Synthetic Testing Tools
+### Initial Load Testing Tools
 
-Lighthouse CI, k6 browser, Playwright synthetic tests, Grafana Synthetic Monitoring.
+Lighthouse CI.
 
-## 2. Real User Monitoring
+## 2. Load and performance testing
+
+Still synthetic, but focused on pushing the system. Pushing the system in our case can be having many users, but maybe more relevant, testing very complex applications with lots of dynamics and repeating group. The purpose of this is to extract performance metrics of the use of an application, not only the initial load.
+
+### Why load/performance testing?
+
+Simulate many users loading and interacting in parallel. See that very complex applications still have acceptable performance.
+
+### Limitations
+
+Also synthetic. Only testing what we can think of.
+
+### Load/Performance Testing Tools
+
+Browser-based load tests (k6 browser, Playwright + k6) hit real frontend flows.
+
+## 3. Real User Monitoring
 
 Metrics from real users regardless of browser, network or geographic location, like: core Web Vitals, page loads, errors, device/geo, interactions.
 
-- RUM with or without OTel.
-
-- RUM vs. Synthetic data
-
 ### Why RUM?
 
-Understanding long-term trends for real users. Can monitor errors and and enable the team to fix them before users report them.
+Understanding long-term trends for real users. Can monitor errors and enable the team to fix them before users report them.
 
 ### Limitations
 
@@ -55,22 +79,6 @@ More setup. Not able to catch regressions before they reach users.
 ### RUM Tools
 
 Grafana Faro Web SDK, basic RUM (Boomerang JS + ClickHouse + Grafana + Traefik), or Boomerang JS + Prometheus + Grafana
-
-## 3. Load testing
-
-Still synthetic, but focused on pushing the system (many concurrent “users”).
-
-### Why load testing?
-
-Simulate many users loading and interacting in parallel, revealing issues with rendering performance, asset delivery, client–server coordination, and frontend bottlenecks that real-user traffic or single-user tests would never expose before production.
-
-### Limitations
-
-Also synthetic. Resource intensive, so cannot be run in every PR => regressions caught late.
-
-### Load Testing Tools
-
-Browser-based load tests (k6 browser, Playwright + k6, Lighthouse CI loops) hit real frontend flows.
 
 ## 4. Open Telemetry from the browser
 
@@ -100,7 +108,7 @@ OTel is still experimental for browsers. Do we want to implement something that 
   - Product analytics / events
   - UX feedback widgets
 
-## Synthetic Data Monitoring Proposal
+# Synthetic Data Monitoring Proposal
 
 We have implemented LHCI to run in GitHub Actions on every change to app frontend. We now need a way to monitor the results of this service over time.
 One way to do this is through our own [Lighthouse Server](https://googlechrome.github.io/lighthouse-ci/docs/server.html#deployment).
@@ -111,7 +119,7 @@ A server in the Studio cluster. This is going to be taken over by Platform in th
 
 ### Domain
 
-The LHCI server works best when it has full control over the host, but can also be configured to run on a specific path.
+The LHCI server works best when it has full control over the host, but can also be configured to [run on a specific path](https://googlechrome.github.io/lighthouse-ci/docs/recipes/lhci-server-vpn-proxy/).
 
 Suggestions:
 
