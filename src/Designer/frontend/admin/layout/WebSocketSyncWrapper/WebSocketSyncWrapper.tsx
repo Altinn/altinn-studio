@@ -1,4 +1,3 @@
-import type { ReactElement } from 'react';
 import React from 'react';
 import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
@@ -8,12 +7,12 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useTranslation } from 'react-i18next';
 import type { SyncError, SyncSuccess } from 'app-shared/types/api/SyncResponses';
 import { SyncUtils } from 'app-shared/utils/SyncUtils.ts';
-import { syncEntityUpdateWebSocketHub } from 'app-shared/api/paths';
-import type { EntityUpdated } from 'app-shared/types/api/EntityUpdated';
-import { EntityUpdatedQueriesInvalidator } from 'app-shared/queryInvalidator/EntityUpdatedQueriesInvalidator';
+import { syncAlertsUpdateWebSocketHub } from 'app-shared/api/paths';
+import type { AlertsUpdated } from 'app-shared/types/api/AlertsUpdated';
+import { AlertsUpdatedQueriesInvalidator } from 'app-shared/queryInvalidator/AlertsUpdatedQueriesInvalidator';
 
-enum SyncEntityClientName {
-  EntityUpdated = 'EntityUpdated',
+enum SyncAlertsClientName {
+  AlertsUpdated = 'AlertsUpdated',
 }
 
 type WebSocketSyncWrapperProps = {
@@ -23,21 +22,17 @@ export const WebSocketSyncWrapper = ({
   children,
 }: WebSocketSyncWrapperProps): React.ReactElement => {
   const { t } = useTranslation();
-  const { org, app } = useStudioEnvironmentParams();
+  const { org } = useStudioEnvironmentParams();
   const queryClient = useQueryClient();
-  const entityUpdateInvalidator = EntityUpdatedQueriesInvalidator.getInstance(
-    queryClient,
-    org,
-    app,
-  );
+  const alertsUpdateInvalidator = AlertsUpdatedQueriesInvalidator.getInstance(queryClient, org);
 
   useWebSocket({
-    webSocketUrls: [syncEntityUpdateWebSocketHub()],
-    clientsName: [SyncEntityClientName.EntityUpdated],
+    webSocketUrls: [syncAlertsUpdateWebSocketHub()],
+    clientsName: [SyncAlertsClientName.AlertsUpdated],
     webSocketConnector: WSConnector,
-    onWSMessageReceived: (message: SyncError | SyncSuccess | EntityUpdated): ReactElement => {
-      if ('resourceName' in message) {
-        entityUpdateInvalidator.invalidateQueriesByResourceName(message.resourceName as string);
+    onWSMessageReceived: (message: SyncError | SyncSuccess | AlertsUpdated): void => {
+      if ('environment' in message) {
+        alertsUpdateInvalidator.invalidateQueries(message.environment as string);
         return;
       }
 

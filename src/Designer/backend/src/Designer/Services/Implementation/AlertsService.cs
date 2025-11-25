@@ -41,6 +41,6 @@ public class AlertsService(
         CancellationToken cancellationToken
     )
     {
-        await alertsUpdatedHubContext.Clients.Group(org).AlertsUpdated(new AlertsUpdated(AlertsConstants.Alert));
+        await alertsUpdatedHubContext.Clients.Group(org).AlertsUpdated(new AlertsUpdated(env));
     }
 }

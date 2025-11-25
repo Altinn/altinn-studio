@@ -22,7 +22,6 @@ export class EntityUpdatedQueriesInvalidator extends Queue {
   // This can be extended to include additional entities and their respective cache keys.
   private readonly entityNameCacheKeysMap: Record<string, Array<Array<QueryKey | string>>> = {
     Deployment: [[QueryKey.AppDeployments, '[org]', '[app]']],
-    Alert: [[QueryKey.Alerts, '[org]']],
   };
 
   constructor(queryClient: QueryClient, org: string, app: string) {

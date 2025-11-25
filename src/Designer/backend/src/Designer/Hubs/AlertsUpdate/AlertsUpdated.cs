@@ -1,3 +1,3 @@
 namespace Altinn.Studio.Designer.Hubs.AlertsUpdate;
 
-public record AlertsUpdated(string ResourceName);
+public record AlertsUpdated(string Environment);
