@@ -581,19 +581,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
             repo.CreateBranch(branchName, commit);
         }
 
-        private static bool LocalBranchExists(LibGit2Sharp.Repository repo, string branchName)
-        {
-            return repo.Branches.Any(branch => branch.FriendlyName == branchName);
-        }
-
-        private static bool LocalBranchIsHead(LibGit2Sharp.Repository repo, string branchName)
-        {
-            return repo.Head.FriendlyName == branchName;
-        }
-
         public async Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName)
         {
             using LibGit2Sharp.Repository repo = CreateLocalRepo(editingContext);
+
+            await FetchRemoteChanges(editingContext.Org, editingContext.Repo);
+
+            if (RemoteBranchExists(branchName, repo) is false)
+            {
+                return; // Nothing to delete
+            }
+
             Remote remote = repo.Network.Remotes["origin"];
             PushOptions options = new()
             {
@@ -643,6 +641,29 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 repo.Reset(ResetMode.Hard, repo.Head.Tip);
                 throw new InvalidOperationException("Merge failed; repository reset to pre-merge HEAD.");
             }
+        }
+
+        private static bool LocalBranchExists(LibGit2Sharp.Repository repo, string branchName)
+        {
+            return repo.Branches.Any(branch => branch.FriendlyName == branchName);
+        }
+
+        private static bool LocalBranchIsHead(LibGit2Sharp.Repository repo, string branchName)
+        {
+            return repo.Head.FriendlyName == branchName;
+        }
+
+        private static bool RemoteBranchExists(string branchName, LibGit2Sharp.Repository repo)
+        {
+            string remoteBranchName = $"origin/{branchName}";
+            Branch remoteBranch = repo.Branches[remoteBranchName];
+
+            if (remoteBranch is null)
+            {
+                return false;
+            }
+
+            return remoteBranch.IsRemote;
         }
 
         /// <summary>
