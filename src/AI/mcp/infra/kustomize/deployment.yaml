@@ -5,6 +5,8 @@ metadata:
   annotations:
     altinn.studio/image: altinn-mcp-server:latest
     altinn.studio/image-tag: latest
+  labels:
+    release: altinn-mcp-server
 spec:
   replicas: 1
   selector:
