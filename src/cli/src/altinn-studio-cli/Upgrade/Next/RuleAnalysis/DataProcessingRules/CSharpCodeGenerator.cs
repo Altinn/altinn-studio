@@ -14,7 +14,6 @@ internal class DataProcessorGenerationResult
     public int TotalRules { get; set; }
     public int SuccessfulConversions { get; set; }
     public int FailedConversions { get; set; }
-    public List<string> Warnings { get; } = new();
     public List<string> Errors { get; } = new();
 }
 
@@ -70,16 +69,9 @@ internal class CSharpCodeGenerator
         code.AppendLine($"public class {className} : IDataWriteProcessor");
         code.AppendLine("{");
 
-        // Generate ProcessDataWrite method
         GenerateProcessDataWriteMethod(code, result);
-
-        // Generate helper method for change detection
-        GenerateHasChangedMethod(code);
-
-        // Generate rule methods
         GenerateRuleMethods(code, result);
 
-        // Close class
         code.AppendLine("}");
 
         result.GeneratedCode = code.ToString();
@@ -122,11 +114,7 @@ internal class CSharpCodeGenerator
         code.AppendLine("        }");
         code.AppendLine();
         code.AppendLine($"        var data = ({dataClassName})change.CurrentFormData;");
-        code.AppendLine($"        var prev = ({dataClassName})change.PreviousFormData;");
         code.AppendLine();
-
-        // Generate rule invocations based on input parameter changes
-        code.AppendLine("        // Execute rules when their input parameters change");
 
         foreach (var ruleEntry in _rules)
         {
@@ -135,49 +123,14 @@ internal class CSharpCodeGenerator
 
             if (rule.InputParams == null || rule.InputParams.Count == 0)
             {
+                Console.WriteLine($"[Warning] Rule '{ruleId}' has no input parameters - cannot generate invocation");
                 continue;
             }
 
             var functionName = SanitizeFunctionName(rule.SelectedFunction ?? ruleId);
-
-            // Generate condition to check if any input has changed
-            code.Append("        if (");
-
-            var conditions = new List<string>();
-            foreach (var inputParamPath in rule.InputParams.Values)
-            {
-                var propertyPath = ExtractPropertyNameFromPath(inputParamPath);
-                if (propertyPath != null)
-                {
-                    conditions.Add($"HasChanged(data.{propertyPath}, prev?.{propertyPath})");
-                }
-            }
-
-            if (conditions.Count > 0)
-            {
-                code.Append(string.Join(" || ", conditions));
-                code.AppendLine(")");
-                code.AppendLine("        {");
-                code.AppendLine($"            await Rule_{functionName}(data);");
-                code.AppendLine("        }");
-                code.AppendLine();
-            }
-            else
-            {
-                // If we can't extract valid property paths, skip this rule invocation
-                // The rule method will still be generated as a stub
-            }
+            code.AppendLine($"        await Rule_{functionName}(data);");
         }
 
-        code.AppendLine("    }");
-        code.AppendLine();
-    }
-
-    private void GenerateHasChangedMethod(StringBuilder code)
-    {
-        code.AppendLine("    private bool HasChanged<T>(T current, T? previous)");
-        code.AppendLine("    {");
-        code.AppendLine("        return !EqualityComparer<T>.Default.Equals(current, previous);");
         code.AppendLine("    }");
         code.AppendLine();
     }
@@ -227,32 +180,26 @@ internal class CSharpCodeGenerator
                         }
                         else
                         {
-                            GenerateTodoStub(
-                                code,
-                                rule,
-                                jsFunction,
-                                "Could not extract property name from output path"
-                            );
+                            GenerateTodoStub(code, rule, "Could not extract property name from output path");
                             result.FailedConversions++;
                         }
                     }
                     else
                     {
-                        GenerateTodoStub(code, rule, jsFunction, "No output parameter defined");
+                        GenerateTodoStub(code, rule, "No output parameter defined");
                         result.FailedConversions++;
                     }
                 }
                 else
                 {
-                    GenerateTodoStub(code, rule, jsFunction, conversionResult.FailureReason ?? "Conversion failed");
+                    GenerateTodoStub(code, rule, conversionResult.FailureReason ?? "Conversion failed");
                     result.FailedConversions++;
                 }
             }
             else
             {
-                GenerateTodoStub(code, rule, null, "JavaScript function not found in RuleHandler.js");
+                GenerateTodoStub(code, rule, "JavaScript function not found in RuleHandler.js");
                 result.FailedConversions++;
-                result.Warnings.Add($"Function '{rule.SelectedFunction}' referenced in rule '{ruleId}' not found");
             }
 
             code.AppendLine("        await Task.CompletedTask;");
@@ -261,12 +208,7 @@ internal class CSharpCodeGenerator
         }
     }
 
-    private void GenerateTodoStub(
-        StringBuilder code,
-        DataProcessingRule rule,
-        JavaScriptFunction? jsFunction,
-        string reason
-    )
+    private void GenerateTodoStub(StringBuilder code, DataProcessingRule rule, string reason)
     {
         code.AppendLine($"        // TODO: Manual conversion required - {reason}");
 
@@ -334,22 +276,5 @@ internal class CSharpCodeGenerator
         // The C# model generator removes hyphens but keeps letters, digits, and underscores
         // This matches the auto-generated model property naming convention
         return new string(propertyName.Where(c => char.IsLetterOrDigit(c) || c == '_').ToArray());
-    }
-
-    private bool IsValidCSharpIdentifier(string identifier)
-    {
-        if (string.IsNullOrEmpty(identifier))
-        {
-            return false;
-        }
-
-        // Must start with a letter or underscore
-        if (!char.IsLetter(identifier[0]) && identifier[0] != '_')
-        {
-            return false;
-        }
-
-        // All characters must be letters, digits, or underscores
-        return identifier.All(c => char.IsLetterOrDigit(c) || c == '_');
     }
 }

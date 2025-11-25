@@ -46,7 +46,7 @@ public class ConversionContext
     /// Flag indicating that the conversion requires environment settings to be added to the app
     /// This is set by matchers like WindowLocationMatcher when they convert environment checks
     /// </summary>
-    public bool RequiresEnvironmentSettings { get; set; } = false;
+    public bool RequiresEnvironmentSettings { get; set; }
 
     /// <summary>
     /// Maps destructured variable names to their original property paths

@@ -75,10 +75,7 @@ public class WindowLocationMatcher : IExpressionMatcher
             return false;
 
         // Check if object is window
-        if (locationExpr.Object is not Identifier windowId || windowId.Name != "window")
-            return false;
-
-        return true;
+        return locationExpr.Object is Identifier windowId && windowId.Name == "window";
     }
 
     /// <summary>

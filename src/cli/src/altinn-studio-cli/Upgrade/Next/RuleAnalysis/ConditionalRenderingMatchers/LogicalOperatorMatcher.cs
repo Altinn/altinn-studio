@@ -162,9 +162,6 @@ public class LogicalOperatorMatcher : IExpressionMatcher
     private object? MatchUnaryNot(UnaryExpression unaryExpr, ConversionContext context, List<string> debugInfo)
     {
         var argument = context.ConvertExpression(unaryExpr.Argument, debugInfo);
-        if (argument == null)
-            return null;
-
-        return new object[] { "not", argument };
+        return argument == null ? null : new[] { "not", argument };
     }
 }

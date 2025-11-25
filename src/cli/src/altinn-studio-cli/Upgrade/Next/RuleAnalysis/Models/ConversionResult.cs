@@ -54,10 +54,9 @@ public class ConversionResult
     /// </summary>
     public string ExpressionAsJson()
     {
-        if (Expression == null)
-            return "null";
-
-        return JsonSerializer.Serialize(Expression, new JsonSerializerOptions { WriteIndented = true });
+        return Expression == null
+            ? "null"
+            : JsonSerializer.Serialize(Expression, new JsonSerializerOptions { WriteIndented = true });
     }
 }
 

@@ -9,7 +9,6 @@ internal class CSharpConversionResult
 {
     public bool Success { get; set; }
     public string? GeneratedCode { get; set; }
-    public List<string> Warnings { get; } = new();
     public string? FailureReason { get; set; }
 }
 
@@ -20,15 +19,12 @@ internal class StatementConverter
 {
     private readonly Dictionary<string, string> _inputParams;
     private readonly string _dataVariableName;
-    private readonly List<string> _debugInfo = new();
 
     public StatementConverter(Dictionary<string, string> inputParams, string dataVariableName = "data")
     {
         _inputParams = inputParams;
         _dataVariableName = dataVariableName;
     }
-
-    public List<string> DebugInfo => _debugInfo;
 
     /// <summary>
     /// Convert a JavaScript function body to C# code
@@ -54,7 +50,6 @@ internal class StatementConverter
         {
             result.Success = false;
             result.FailureReason = $"Conversion failed: {ex.Message}";
-            _debugInfo.Add($"Exception during conversion: {ex}");
         }
 
         return result;

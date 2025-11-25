@@ -41,34 +41,4 @@ internal class DataProcessorFileWriter
 
         return filePath;
     }
-
-    /// <summary>
-    /// Check if a data processor file already exists
-    /// </summary>
-    public bool DataProcessorExists(string className)
-    {
-        var logicDir = Path.Combine(_appBasePath, "logic");
-        var fileName = $"{className}.cs";
-        var filePath = Path.Combine(logicDir, fileName);
-
-        return File.Exists(filePath);
-    }
-
-    /// <summary>
-    /// Delete a data processor file
-    /// </summary>
-    public bool DeleteDataProcessor(string className)
-    {
-        var logicDir = Path.Combine(_appBasePath, "logic");
-        var fileName = $"{className}.cs";
-        var filePath = Path.Combine(logicDir, fileName);
-
-        if (File.Exists(filePath))
-        {
-            File.Delete(filePath);
-            return true;
-        }
-
-        return false;
-    }
 }

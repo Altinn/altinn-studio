@@ -371,13 +371,12 @@ internal class RuleAnalysisReporter
     public RuleAnalysisStats GenerateAndWriteDataProcessors(string appBasePath, bool verifyBuild = false)
     {
         var stats = new RuleAnalysisStats();
+        stats.TotalDataProcessingRules = _dataProcessingRules.Count;
 
         if (_dataProcessingRules.Count == 0)
         {
             return stats;
         }
-
-        stats.TotalDataProcessingRules = _dataProcessingRules.Count;
 
         // Resolve data model information
         var dataModelResolver = new DataModelResolver(appBasePath);
