@@ -163,7 +163,17 @@ internal class CSharpCodeGenerator
 
                 // Try to convert to C#
                 var converter = new StatementConverter(rule.InputParams ?? new Dictionary<string, string>(), "data");
-                var conversionResult = converter.ConvertFunctionBody(jsFunction.ReturnExpression);
+                CSharpConversionResult conversionResult;
+
+                // Try to convert the full function if available, otherwise fall back to return expression
+                if (jsFunction.FunctionAst != null)
+                {
+                    conversionResult = converter.ConvertFunction(jsFunction.FunctionAst);
+                }
+                else
+                {
+                    conversionResult = converter.ConvertFunctionBody(jsFunction.ReturnExpression);
+                }
 
                 if (conversionResult.Success && conversionResult.GeneratedCode != null)
                 {
@@ -175,7 +185,23 @@ internal class CSharpCodeGenerator
                         var propertyPath = ExtractPropertyNameFromPath(outputParam.Value.Value);
                         if (propertyPath != null)
                         {
-                            code.AppendLine($"        data.{propertyPath} = {conversionResult.GeneratedCode};");
+                            // The generated code contains statements + the final return expression
+                            // Split by newlines to separate statements from the return value
+                            var lines = conversionResult.GeneratedCode.Split(
+                                new[] { '\n', '\r' },
+                                StringSplitOptions.RemoveEmptyEntries
+                            );
+
+                            // All lines except the last are statements (variable declarations)
+                            for (int i = 0; i < lines.Length - 1; i++)
+                            {
+                                code.AppendLine(lines[i]);
+                            }
+
+                            // The last line is the return expression, assign it to the output property
+                            var returnExpr =
+                                lines.Length > 0 ? lines[^1].Trim() : conversionResult.GeneratedCode.Trim();
+                            code.AppendLine($"        data.{propertyPath} = {returnExpr};");
                             result.SuccessfulConversions++;
                         }
                         else

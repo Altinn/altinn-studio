@@ -60,59 +60,24 @@ internal class DataModelResolver
     /// </summary>
     public void LoadConfiguration()
     {
-        Console.WriteLine($"[DEBUG] DataModelResolver._appBasePath: {_appBasePath}");
-
-        // Try with App folder first, then without
         var layoutSetsPath = Path.Combine(_appBasePath, "App", "ui", "layout-sets.json");
-        Console.WriteLine($"[DEBUG] Trying layout-sets.json at: {layoutSetsPath}");
-        Console.WriteLine($"[DEBUG] File exists: {File.Exists(layoutSetsPath)}");
-
-        if (!File.Exists(layoutSetsPath))
-        {
-            layoutSetsPath = Path.Combine(_appBasePath, "ui", "layout-sets.json");
-            Console.WriteLine($"[DEBUG] Trying alternate path: {layoutSetsPath}");
-            Console.WriteLine($"[DEBUG] File exists: {File.Exists(layoutSetsPath)}");
-        }
-
         var appMetadataPath = Path.Combine(_appBasePath, "App", "config", "applicationmetadata.json");
-        Console.WriteLine($"[DEBUG] Trying applicationmetadata.json at: {appMetadataPath}");
-        Console.WriteLine($"[DEBUG] File exists: {File.Exists(appMetadataPath)}");
-
-        if (!File.Exists(appMetadataPath))
-        {
-            appMetadataPath = Path.Combine(_appBasePath, "config", "applicationmetadata.json");
-            Console.WriteLine($"[DEBUG] Trying alternate path: {appMetadataPath}");
-            Console.WriteLine($"[DEBUG] File exists: {File.Exists(appMetadataPath)}");
-        }
-
         if (File.Exists(layoutSetsPath))
         {
-            Console.WriteLine($"[DEBUG] Loading layout-sets.json from: {layoutSetsPath}");
             var json = File.ReadAllText(layoutSetsPath);
             _layoutSetsConfig = JsonSerializer.Deserialize<LayoutSetsConfiguration>(
                 json,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
             );
-            Console.WriteLine($"[DEBUG] Loaded {_layoutSetsConfig?.Sets?.Count ?? 0} layout sets");
-        }
-        else
-        {
-            Console.WriteLine($"[DEBUG] layout-sets.json not found");
         }
 
         if (File.Exists(appMetadataPath))
         {
-            Console.WriteLine($"[DEBUG] Loading applicationmetadata.json from: {appMetadataPath}");
             var json = File.ReadAllText(appMetadataPath);
             _applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(
                 json,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
             );
-            Console.WriteLine($"[DEBUG] Loaded {_applicationMetadata?.DataTypes?.Count ?? 0} data types");
-        }
-        else
-        {
-            Console.WriteLine($"[DEBUG] applicationmetadata.json not found");
         }
     }
 
