@@ -20,5 +20,10 @@ namespace Altinn.Studio.Designer.Models
         /// Gets or sets the repository name
         /// </summary>
         public string Repository { get; set; }
+
+        /// <summary>
+        /// Gets or sets the branch name to commit to
+        /// </summary>
+        public string BranchName { get; set; }
     }
 }
