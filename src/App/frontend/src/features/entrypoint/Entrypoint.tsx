@@ -17,14 +17,14 @@ import { useIsAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import type { ShowTypes } from 'src/features/applicationMetadata/types';
 
 const ShowOrInstantiate: React.FC<{ show: ShowTypes }> = ({ show }) => {
-  if (show === 'select-instance') {
-    return (
-      <Navigate
-        to='/instance-selection'
-        replace={true}
-      />
-    );
-  }
+  // if (show === 'select-instance') {
+  //   return (
+  //     <Navigate
+  //       to='/instance-selection'
+  //       replace={true}
+  //     />
+  //   );
+  // }
 
   if (show === 'new-instance') {
     return <InstantiateContainer />;
@@ -45,6 +45,7 @@ export const Entrypoint = () => {
     promptForParty,
   } = useApplicationMetadata();
   const profile = useProfile();
+  //debugger;
   const validParties = useValidParties();
   const partyIsValid = useSelectedPartyIsValid();
   const userHasSelectedParty = useHasSelectedParty();

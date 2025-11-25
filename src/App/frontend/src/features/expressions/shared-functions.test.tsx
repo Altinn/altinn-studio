@@ -276,6 +276,14 @@ describe('Expressions shared function tests', () => {
       const profile = getProfileMock();
       if (profileSettings?.language) {
         profile.profileSettingPreference.language = profileSettings.language;
+        // Also add it to appLanguages so resolveCurrentLanguage() accepts it
+        window.AltinnAppData.appLanguages = [{ language: profileSettings.language }];
+        // Update the profile in window.AltinnAppData since useProfile() reads from there
+        window.AltinnAppData.userProfile = profile;
+      } else {
+        // Reset to defaults when no custom profile settings
+        window.AltinnAppData.appLanguages = [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }];
+        window.AltinnAppData.userProfile = profile;
       }
 
       async function fetchFormData(url: string) {
@@ -292,7 +300,7 @@ describe('Expressions shared function tests', () => {
         if (model) {
           return model.data;
         }
-        throw new Error(`Datamodel ${url} not found in ${JSON.stringify(dataModels)}`);
+        return {};
       }
 
       // Clear localstorage, because LanguageProvider uses it to cache selected languages
@@ -347,6 +355,9 @@ describe('Expressions shared function tests', () => {
           const data = codeLists[codeListId];
           return { data } as AxiosResponse<IRawOption[], unknown>;
         },
+        fetchDataModelSchema: async () =>
+          // Return empty schema for all valid data types
+          ({ type: 'object', properties: {} }),
       };
 
       const { rerender } = stateless

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryOptions } from '@tanstack/react-query';
 
 import { delayedContext } from 'src/core/contexts/delayedContext';
@@ -12,28 +12,39 @@ import { useNavigationParam } from 'src/hooks/navigation';
 import { fetchApplicationMetadata } from 'src/queries/queries';
 import type { ApplicationMetadata, IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 
+export function processApplicationMetadata(
+  instanceGuid: string | undefined,
+  data: IncomingApplicationMetadata,
+): ApplicationMetadata {
+  const onEntry = data.onEntry ?? { show: 'new-instance' };
+
+  return {
+    ...data,
+    isValidVersion: true, // TODO: Add version check when we know the next version (v9 or v10?)
+    onEntry,
+    isStatelessApp: isStatelessApp(!!instanceGuid, onEntry.show),
+    logoOptions: data.logo,
+  };
+}
+
 // Also used for prefetching @see appPrefetcher.ts
 export function getApplicationMetadataQueryDef(instanceGuid: string | undefined) {
   return {
     queryKey: ['fetchApplicationMetadata'],
     queryFn: fetchApplicationMetadata,
-    select: (data) => {
-      const onEntry = data.onEntry ?? { show: 'new-instance' };
-
-      return {
-        ...data,
-        isValidVersion: true, // TODO: Add version check when we know the next version (v9 or v10?)
-        onEntry,
-        isStatelessApp: isStatelessApp(!!instanceGuid, onEntry.show),
-        logoOptions: data.logo,
-      };
-    },
+    select: (data) => processApplicationMetadata(instanceGuid, data),
   } satisfies UseQueryOptions<IncomingApplicationMetadata, Error, ApplicationMetadata>;
 }
 
 const useApplicationMetadataQuery = () => {
   const instanceGuid = useNavigationParam('instanceGuid');
-  const query = useQuery(getApplicationMetadataQueryDef(instanceGuid));
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    ...getApplicationMetadataQueryDef(instanceGuid),
+    // Use initialData from cache to avoid loading state when data is prefilled
+    initialData: () => queryClient.getQueryData<IncomingApplicationMetadata>(['fetchApplicationMetadata']),
+  });
 
   useEffect(() => {
     query.error && window.logError('Fetching application metadata failed:\n', query.error);
