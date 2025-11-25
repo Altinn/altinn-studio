@@ -22,10 +22,17 @@ The easiest way to get started is using Docker, which works across all environme
 **Quick Start:**
 
 1. Clone this repository
+
 2. Copy `.env.example` to `.env.docker` and add your API keys and paths:
 
    ```bash
    cp .env.example .env.docker
+   ```
+
+3. Start the Altinity MCP Server (required background service):
+   ```bash
+   # In a separate terminal, follow instructions at:
+   # https://github.com/Simenwai/altinity-mcp
    ```
 
 3. Start the server:
