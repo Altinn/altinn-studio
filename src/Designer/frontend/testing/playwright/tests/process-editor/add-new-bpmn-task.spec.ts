@@ -1,5 +1,5 @@
 import { test } from '../../extenders/testExtend';
-import { expect } from '@playwright/test';
+import { APIRequestContext, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { Gitea } from '../../helpers/Gitea';
 import { DesignerApi } from '../../helpers/DesignerApi';
@@ -10,6 +10,7 @@ import { AppDevelopmentHeader } from '../../components/AppDevelopmentHeader';
 import { DataModelPage } from '../../pages/DataModelPage';
 import { GiteaPage } from '../../pages/GiteaPage';
 import { type BpmnTaskType } from '../../types/BpmnTaskType';
+import { AppNames } from '../../enum/AppNames';
 
 // Variables used in the tests
 let randomGeneratedId: string = null;
@@ -111,6 +112,7 @@ test('that the user can add a sequence arrow between two tasks', async ({ page, 
 test('that the changes made to the bpmn process are uploaded to Gitea', async ({
   page,
   testAppName,
+  request,
 }) => {
   await setupAndVerifyProcessEditorPage(page, testAppName);
   const header = new AppDevelopmentHeader(page, { app: testAppName });
@@ -121,10 +123,7 @@ test('that the changes made to the bpmn process are uploaded to Gitea', async ({
   await giteaPage.verifyThatTheNewTaskIsVisible(randomGeneratedId, dataTask);
 
   await giteaPage.verifySequenceFlowDirection(randomGeneratedId, initialId);
-  const numblerBackToConfig: number = 2;
-  await giteaPage.goBackNPages(numblerBackToConfig);
-  await giteaPage.clickOnApplicationMetadataFile();
-  await giteaPage.verifyIdInDataModel(randomGeneratedId, newDataModel);
+  await verifyTaskIdInDataModel(request, newDataModel, randomGeneratedId);
 });
 
 // --------------------- Helper Functions ---------------------
@@ -169,3 +168,18 @@ const navigateToDataModelAndCreateNewDataModel = async (
   await header.clickOnNavigateToPageInTopMenuHeader('process_editor');
   await processEditorPage.verifyProcessEditorPage();
 };
+
+async function verifyTaskIdInDataModel(
+  request: APIRequestContext,
+  dataModelName: string,
+  taskId: string,
+): Promise<void> {
+  const gitea = new Gitea({ app: AppNames.PROCESS_EDITOR_APP });
+  const getAppMetadataResponse = await request.get(gitea.getAppFilePath(appMetadataFilePath));
+  const appMetadata = await getAppMetadataResponse.json();
+  expect(appMetadata).toMatchObject({
+    dataTypes: expect.arrayContaining([expect.objectContaining({ id: dataModelName, taskId })]),
+  });
+}
+
+const appMetadataFilePath = 'App/config/applicationmetadata.json';
