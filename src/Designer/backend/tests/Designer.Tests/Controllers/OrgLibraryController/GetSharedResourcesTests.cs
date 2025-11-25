@@ -46,7 +46,7 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
 
         string secondFileName = "file2.json";
         string secondFilePath = $"{path}/file2.json";
-        string secondFileContent = "File content 1";
+        string secondFileContent = "File content 2";
 
         _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(It.IsAny<string>())).ReturnsAsync(true);
 
