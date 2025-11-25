@@ -64,15 +64,15 @@ namespace Designer.Tests.Controllers.ProcessModelingController
 
         [Theory]
         [InlineData("ttd", "empty-app", "testUser", "paymentInformation-1234", "task_1", new[] { "app:owned" })]
-        public async Task AddDataTypeWithAllowedContributersToApplicationMetadata_ShouldAddDataTypeAndReturnOK(
+        public async Task AddDataTypeWithAllowedContributorsToApplicationMetadata_ShouldAddDataTypeAndReturnOK(
             string org, string app,
-            string developer, string dataTypeId, string taskId, string[] allowedContributers)
+            string developer, string dataTypeId, string taskId, string[] allowedContributors)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
             string url = VersionPrefix(org, targetRepository, dataTypeId, taskId);
 
-            string jsonPayload = JsonSerializer.Serialize(allowedContributers.ToList());
+            string jsonPayload = JsonSerializer.Serialize(allowedContributors.ToList());
             var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
             using var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
             using var response = await HttpClient.SendAsync(request);
@@ -97,7 +97,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
                 ValidationErrorOnPendingFileScan = false,
                 EnabledFileAnalysers = new List<string>(),
                 EnabledFileValidators = new List<string>(),
-                AllowedContributers = new List<string> { "app:owned" }
+                AllowedContributors = new List<string> { "app:owned" }
             };
 
             Assert.Equal(2, appMetadata.DataTypes.Count);
