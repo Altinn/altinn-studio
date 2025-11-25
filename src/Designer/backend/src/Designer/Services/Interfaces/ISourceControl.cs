@@ -53,14 +53,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message, string accessToken = "");
 
         /// <summary>
-        /// Commits all changes in repo and pushe them to the provided branch
-        /// </summary>
-        /// <param name="editingContext">The altinn repo editing context</param>
-        /// <param name="branchName">The name of the branch to push changes to</param>
-        /// <param name="message">Commit message</param>
-        Task CommitAndPushChanges(AltinnRepoEditingContext editingContext, string branchName, string message);
-
-        /// <summary>
         /// Pull remote changes
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
@@ -218,5 +210,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="editingContext">The altinn repo editing context</param>
         /// <param name="branchName">The name of the branch</param>
         Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName);
+
+        /// <summary>
+        /// Publishes branch to remote.
+        /// </summary>
+        /// <param name="editingContext">The altinn repo editing context</param>
+        /// <param name="branchName">The name of the branch</param>
+        Task PublishBranch(AltinnRepoEditingContext editingContext, string branchName);
     }
 }

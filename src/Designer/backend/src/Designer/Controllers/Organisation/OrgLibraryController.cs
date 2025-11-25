@@ -7,6 +7,7 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
+using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -86,6 +87,15 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
             return BadRequest(new ProblemDetails
             {
                 Status = StatusCodes.Status400BadRequest,
+                Title = "Unable to update shared resources",
+                Detail = ex.Message
+            });
+        }
+        catch (Exception ex) when (ex is NonFastForwardException)
+        {
+            return Conflict(new ProblemDetails
+            {
+                Status = StatusCodes.Status409Conflict,
                 Title = "Unable to update shared resources",
                 Detail = ex.Message
             });

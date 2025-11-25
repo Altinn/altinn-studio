@@ -116,9 +116,8 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
         RebaseResult rebaseResult = sourceControl.RebaseOntoDefaultBranch(editingContext);
         if (rebaseResult.Status == RebaseStatus.Conflicts)
         {
-            string commitMessage = "Rebase resulted in conflicts. Please resolve manually.";
-            await sourceControl.CommitAndPushChanges(editingContext, branchName, commitMessage);
-            throw new InvalidOperationException($"Rebase onto latest commit on default branch failed during divergent commit handling. Current step: {rebaseResult.CurrentStepInfo}.");
+            await sourceControl.PublishBranch(editingContext, branchName);
+            throw new NonFastForwardException("Rebase onto latest commit on default branch failed during divergent commit handling.");
         }
     }
 
@@ -126,7 +125,7 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
     {
         byte[] hashBytes = MD5.HashData(Encoding.UTF8.GetBytes(editingContext.Developer));
         string hashSuffix = Convert.ToHexString(hashBytes)[..5];
-        return $"{editingContext.Developer}-{hashSuffix}";
+        return $"{editingContext.Developer}-{hashSuffix}-MergeConflict";
     }
 
     internal async Task<List<FileSystemObject>> GetDirectoryContent(string org, string? path = null, string? reference = null, CancellationToken cancellationToken = default)

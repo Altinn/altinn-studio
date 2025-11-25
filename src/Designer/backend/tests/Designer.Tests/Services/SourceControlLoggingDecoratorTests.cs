@@ -529,7 +529,7 @@ namespace Designer.Tests.Services
         }
 
         LibGit2Sharp.RebaseResult ISourceControl.RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
-        public Task CommitAndPushChanges(AltinnRepoEditingContext editingContext, string branchName, string message) => throw new NotImplementedException();
+        public Task PublishBranch(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
         public Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName) => throw new NotImplementedException();
     }
 }

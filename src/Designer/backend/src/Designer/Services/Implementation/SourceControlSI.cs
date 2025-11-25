@@ -161,13 +161,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await CommitAndPushToBranch(org, repository, branchName, localPath, message, accessToken);
         }
 
-        /// <inheritdoc/>
-        public async Task CommitAndPushChanges(AltinnRepoEditingContext editingContext, string branchName, string message)
-        {
-            string localPath = FindLocalRepoLocation(editingContext);
-            await CommitAndPushToBranch(editingContext.Org, editingContext.Repo, branchName, localPath, message);
-        }
-
         /// <summary>
         /// Add all changes in app repo and push to remote
         /// </summary>
@@ -483,6 +476,37 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 repo.Network.Push(b, options);
                 repo.Network.Push(remote, "refs/notes/commits", options);
             }
+        }
+
+        public async Task PublishBranch(AltinnRepoEditingContext editingContext, string branchName)
+        {
+            using LibGit2Sharp.Repository repo = CreateLocalRepo(editingContext);
+            string remoteUrl = FindRemoteRepoLocation(editingContext.Org, editingContext.Repo);
+            Remote remote = repo.Network.Remotes["origin"];
+            if (!remote.PushUrl.Equals(remoteUrl))
+            {
+                // This is relevant when we switch between running designer in local or in docker. The remote URL changes.
+                // Requires administrator access to update files.
+                repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
+            }
+
+            Branch branch = repo.Branches[branchName];
+
+            repo.Branches.Update(
+                branch,
+                updater =>
+                {
+                    updater.Remote = "origin";
+                    updater.UpstreamBranch = $"refs/heads/{branchName}";
+                }
+            );
+
+            PushOptions options = new()
+            {
+                CredentialsProvider = await GetCredentialsAsync()
+            };
+            repo.Network.Push(branch, options);
+            repo.Network.Push(remote, "refs/notes/commits", options);
         }
 
         /// <inheritdoc/>

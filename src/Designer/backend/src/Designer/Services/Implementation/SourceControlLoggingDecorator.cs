@@ -388,15 +388,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        public async Task CommitAndPushChanges(AltinnRepoEditingContext editingContext, string branchName, string message)
+        public async Task PublishBranch(AltinnRepoEditingContext editingContext, string branchName)
         {
             try
             {
-                await _decoratedService.CommitAndPushChanges(editingContext, branchName, message);
+                await _decoratedService.PublishBranch(editingContext, branchName);
             }
             catch (Exception ex)
             {
-                LogError(ex, nameof(CommitAndPushChanges), editingContext.Org, editingContext.Repo);
+                LogError(ex, nameof(PublishBranch), editingContext.Org, editingContext.Repo);
                 throw;
             }
         }
