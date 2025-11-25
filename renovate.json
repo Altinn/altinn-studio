@@ -3,6 +3,7 @@
   "extends": ["local>Altinn/renovate-config", ":prHourlyLimit4"],
   "separateMinorPatch": true,
   "separateMultipleMajor": true,
+  "prCreation": "not-pending",
   "packageRules": [
     {
       "groupName": "LibGit2Sharp dependency",
@@ -95,5 +96,6 @@
       ],
       "versioningTemplate": "semver"
     }
-  ]
+  ],
+  "schedule": []
 }
