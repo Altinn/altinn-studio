@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.OrgLibrary;
+using Altinn.Studio.Designer.Exceptions.SourceControl;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models.Dto;
@@ -59,6 +60,11 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
                 Detail = ex.Message
             });
         }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unexpected error fetching shared resources for {Org}.", org);
+            throw;
+        }
     }
 
     /// <summary>
@@ -97,9 +103,23 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
             return Conflict(new ProblemDetails
             {
                 Status = StatusCodes.Status409Conflict,
-                Title = "Unable to update shared resources",
+                Title = "Merge conflict when updating shared resources",
                 Detail = ex.Message
             });
+        }
+        catch (Exception ex) when (ex is BranchNotFoundException)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "The local branch was not found",
+                Detail = ex.Message
+            });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unexpected error updating shared resources for {Org} by {Developer}.", org, developer);
+            throw;
         }
     }
 }

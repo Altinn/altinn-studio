@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
+using Altinn.Studio.Designer.Exceptions.SourceControl;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
@@ -478,6 +479,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        /// <inheritdoc/>
         public async Task PublishBranch(AltinnRepoEditingContext editingContext, string branchName)
         {
             using LibGit2Sharp.Repository repo = CreateLocalRepo(editingContext);
@@ -490,7 +492,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
             }
 
-            Branch branch = repo.Branches[branchName];
+            Branch branch = repo.Branches[branchName] ?? throw new BranchNotFoundException($"Branch '{branchName}' not found in local repository. Cannot publish non-existing branch.");
 
             repo.Branches.Update(
                 branch,
