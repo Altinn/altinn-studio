@@ -246,7 +246,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 repositoryResourceList = await _repository.GetServiceResources(org, repository, "", cancellationToken);
             }
-            
+
             if (skipGiteaFields)
             {
                 resources = repositoryResourceList.Select(resource => new ListviewServiceResource
