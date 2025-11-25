@@ -54,7 +54,7 @@ func Start(id int) (*Process, error) {
 			args[i] = fmt.Sprintf("--remote-debugging-port=%d", debugPort)
 		}
 	}
-	assert.AssertWithMessage(dataDir != "", "Should always initialize dataDir", "id", id)
+	assert.That(dataDir != "", "Should always initialize dataDir", "id", id)
 
 	// Add about:blank argument to create default page target
 	args = append(args, "about:blank")
@@ -141,7 +141,7 @@ func (p *Process) Close() error {
 	}
 
 	err := removeDataDirWithRetry(p.DataDir, logger)
-	assert.AssertWithMessage(err == nil, "couldn't remove dataDir", "dataDir", p.DataDir, "error", err)
+	assert.That(err == nil, "couldn't remove dataDir", "dataDir", p.DataDir, "error", err)
 	return nil
 }
 
@@ -211,6 +211,6 @@ func logArgs(logger *slog.Logger, id int, args []string) {
 	copy(sortedArgs, args)
 	sort.Strings(sortedArgs)
 	argsAsJson, err := json.MarshalIndent(sortedArgs, "", "  ")
-	assert.AssertWithMessage(err == nil, "Failed to marshal browser args to JSON", "id", id, "error", err)
+	assert.That(err == nil, "Failed to marshal browser args to JSON", "id", id, "error", err)
 	logger.Info("Browser args", "args", string(argsAsJson))
 }
