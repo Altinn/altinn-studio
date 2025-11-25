@@ -100,6 +100,7 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
         }
         catch (Exception ex) when (ex is NonFastForwardException)
         {
+            logger.LogWarning(ex, "Merge conflict when updating shared resources for {Org} by {Developer}.", org, developer);
             return Conflict(new ProblemDetails
             {
                 Status = StatusCodes.Status409Conflict,
@@ -109,6 +110,7 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
         }
         catch (Exception ex) when (ex is BranchNotFoundException)
         {
+            logger.LogWarning(ex, "Branch not found when updating shared resources for {Org} by {Developer}.", org, developer);
             return BadRequest(new ProblemDetails
             {
                 Status = StatusCodes.Status400BadRequest,
