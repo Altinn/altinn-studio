@@ -20,7 +20,7 @@
 
 3. **RUM**
 
-   We will not be implementing RUM yet, as it is not of high significance for the Frontend Next initiative since we will not have real users before the initiative is merged and rolled out to real users.
+   We will not be implementing RUM yet, as it is not of high significance for the Frontend Next initiative, since we will not have real users before the initiative is merged and rolled out to real users.
 
 4. **OTel**
 
@@ -58,7 +58,7 @@ Simulate many users loading and interacting in parallel. See that very complex a
 
 ### Limitations
 
-Also synthetic. Only testing what we can think of.
+Also synthetic, only testing what we can think of.
 
 ### Load/Performance Testing Tools
 
@@ -66,7 +66,7 @@ Browser-based load tests (k6 browser, Playwright + k6) hit real frontend flows.
 
 ## 3. Real User Monitoring
 
-Metrics from real users regardless of browser, network or geographic location, like: core Web Vitals, page loads, errors, device/geo, interactions.
+Metrics from real users regardless of browser, network or geographic location, such as core Web Vitals, page loads, errors, device/geo, interactions.
 
 ### Why RUM?
 
@@ -113,11 +113,11 @@ OTel is still experimental for browsers. Do we want to implement something that 
 We have implemented LHCI to run in GitHub Actions on every change to app frontend. We now need a way to monitor the results of this service over time.
 One way to do this is through our own [Lighthouse Server](https://googlechrome.github.io/lighthouse-ci/docs/server.html#deployment).
 
-### Deployment
+## Deployment
 
-A server in the Studio cluster. This is going to be taken over by Platform in the future, but still far away.
+A server in the Studio cluster. This will be taken over by Platform in the future, but still far away.
 
-### Domain
+## Domain
 
 The LHCI server works best when it has full control over the host, but can also be configured to [run on a specific path](https://googlechrome.github.io/lighthouse-ci/docs/recipes/lhci-server-vpn-proxy/).
 
@@ -126,13 +126,14 @@ Suggestions:
 - lhci.altinn.studio.no, or
 - altinn.studio.no/lhci-reports
 
-### DB
+## DB
 
-Works with sqlite, mysql and postgresql. Only requirement for us is that the storage is persistent (not lost on server failure/restart). This can be achieved in many different ways will all previously listed databases.
+Works with sqlite, mysql and postgresql. The only requirement for us is that the storage is persistent (not lost on server failure/restart). This can be achieved in many different ways with all previously listed databases.
 
-### Auth
+## Auth
 
 Auth is implemented through build and admin tokens, in addition to support for basic auth and or firewall rules. See the [Lighthouse CI docs](https://googlechrome.github.io/lighthouse-ci/docs/server.html#build--admin-tokens) for more info.
 
-Next steps:
+## Next steps
+
 When this LHCI server is implemented, we can run [LHCI Compare GH Action](https://github.com/adevinta/actions-lighthouseci-compare).
