@@ -35,7 +35,7 @@ class RepoManager:
         else:
             return 80
 
-    def _strip_repos_prefix(self, repo_url: str) -> str:
+    def _strip_repos_from_path(self, repo_url: str) -> str:
         return repo_url.replace('/repos', '')
 
     def _get_auth_url(self, repo_url: str) -> str:
@@ -134,7 +134,7 @@ class RepoManager:
 
         try:
             normalized_url = self._normalize_repo_url(repo_url)
-            normalized_url = self._strip_repos_prefix(normalized_url)
+            normalized_url = self._strip_repos_from_path(normalized_url)
 
             # Use authenticated URL for cloning
             auth_url = self._get_auth_url(normalized_url)
