@@ -48,7 +48,7 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
         string secondFilePath = $"{path}/file2.json";
         string secondFileContent = "File content 1";
 
-        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(org)).ReturnsAsync(true);
+        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(It.IsAny<string>())).ReturnsAsync(true);
 
         // Arrange - Mock directory content
         List<FileSystemObject> directoryContent =
@@ -102,6 +102,7 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
                 Assert.Equal(".json", file.ContentType);
                 Assert.Equal(secondFileContent, file.Content);
             });
+        _userOrganizationServiceMock.Verify(s => s.UserIsMemberOfOrganization("ttd"), Times.AtLeastOnce);
     }
 
     [Fact]
@@ -126,7 +127,7 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
         string subFolderFilePath = $"{path}/{subFolderFileName}";
         string subFolderFileContent = "Sub file content";
 
-        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(org)).ReturnsAsync(true);
+        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(It.IsAny<string>())).ReturnsAsync(true);
 
         // Arrange - Mock directory content
         List<FileSystemObject> directoryContent =
@@ -189,21 +190,23 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
                 Assert.Equal(".json", file.ContentType);
                 Assert.Equal(subFolderFileContent, file.Content);
             });
+        _userOrganizationServiceMock.Verify(s => s.UserIsMemberOfOrganization("ttd"), Times.AtLeastOnce);
     }
 
     [Fact]
     public async Task GetSharedResources_Returns_403Forbidden_When_User_Not_Member_Of_Org()
     {
         // Arrange
-        string org = "ttd";
-        string apiUrl = $"/designer/api/some-org/shared-resources?path=some/path";
-        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(org)).ReturnsAsync(false);
+        string apiUrl = $"/designer/api/ttd/shared-resources?path=some/path";
+        const bool IsMemberOfTheOrganisation = false;
+        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(It.IsAny<string>())).ReturnsAsync(IsMemberOfTheOrganisation);
 
         // Act
         HttpResponseMessage response = await HttpClient.GetAsync(apiUrl);
 
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.Forbidden, response.StatusCode);
+        _userOrganizationServiceMock.Verify(s => s.UserIsMemberOfOrganization("ttd"), Times.AtLeastOnce);
     }
 
     [Fact]
@@ -215,7 +218,7 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
         string repo = $"{org}-content";
         string apiUrl = $"/designer/api/{org}/shared-resources?path={path}";
 
-        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(org)).ReturnsAsync(true);
+        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(It.IsAny<string>())).ReturnsAsync(true);
 
         // Arrange - Mock directory content
         _giteaClientMock
@@ -231,5 +234,6 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
         ProblemDetails problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>();
         Assert.Equal(StatusCodes.Status404NotFound, problemDetails.Status);
         Assert.Equal("Directory not found", problemDetails.Title);
+        _userOrganizationServiceMock.Verify(s => s.UserIsMemberOfOrganization("ttd"), Times.AtLeastOnce);
     }
 }
