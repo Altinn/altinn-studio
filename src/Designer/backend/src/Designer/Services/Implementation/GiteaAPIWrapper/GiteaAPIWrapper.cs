@@ -559,13 +559,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     return (null, notFoundProblem);
                 case HttpStatusCode.Unauthorized:
                     _logger.LogError("User {Developer} GetFileAsync response failed with statuscode {StatusCode} for {Org}/{App} at path: {FilePath}, ref: {Reference}", developer, response.StatusCode, org, app, filePath, reference);
-                    ProblemDetails hideUnathorizedWithNotFoundProblem = new()
+                    ProblemDetails hideUnauthorizedWithNotFoundProblem = new()
                     {
                         Status = StatusCodes.Status404NotFound,
                         Title = "File not found",
                         Detail = $"A file was not found."
                     };
-                    return (null, hideUnathorizedWithNotFoundProblem);
+                    return (null, hideUnauthorizedWithNotFoundProblem);
                 default:
                     _logger.LogError("User {Developer} GetFileAsync response failed with statuscode {StatusCode} for {Org}/{App} at path: {FilePath}, ref: {Reference}", developer, response.StatusCode, org, app, filePath, reference);
                     ProblemDetails generalProblem = new()
