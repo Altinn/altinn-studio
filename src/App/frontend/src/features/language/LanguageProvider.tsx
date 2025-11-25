@@ -51,7 +51,9 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
 
   const { data: appLanguages, error, isFetching } = useGetAppLanguageQuery(shouldFetchAppLanguages === true);
 
-  console.log('appLanguages', appLanguages);
+  console.log('🟡 LANGUAGE PROVIDER: appLanguages from query:', appLanguages);
+  console.log('🟡 LANGUAGE PROVIDER: shouldFetchAppLanguages:', shouldFetchAppLanguages);
+  console.log('🟡 LANGUAGE PROVIDER: isFetching:', isFetching);
 
   // TODO(Error handling): Should failing to fetch app languages cause PDF generation to fail?
 
@@ -65,7 +67,10 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
     languageFromProfile,
   });
 
-  console.log('current', current);
+  console.log('🟡 LANGUAGE PROVIDER: resolved current language:', current);
+  console.log('🟡 LANGUAGE PROVIDER: languageFromSelector:', languageFromSelector);
+  console.log('🟡 LANGUAGE PROVIDER: languageFromUrl:', languageFromUrl);
+  console.log('🟡 LANGUAGE PROVIDER: languageFromProfile:', languageFromProfile);
 
   const languageResolved = !isFetching; //shouldFetchAppLanguages !== IsLoading && !isFetching;
 

@@ -24,6 +24,9 @@ export const LanguageSelector = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   function updateLanguage(lang: string) {
+    console.log('🟢 LANGUAGE SELECTOR: User selected language:', lang);
+    console.log('🟢 LANGUAGE SELECTOR: Previous current language:', currentLanguage);
+    console.log('🟢 LANGUAGE SELECTOR: Available app languages:', appLanguages);
     setIsOpen(false);
     setWithLanguageSelector(lang);
   }

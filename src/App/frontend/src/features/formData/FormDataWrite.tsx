@@ -279,8 +279,14 @@ function useFormDataSaveMutation() {
           return;
         }
 
+        const patchUrl = getUrlWithLanguage(multiPatchUrl, currentLanguage.current);
+        console.log('🔵 FORM DATA WRITE: multiPatchUrl (base):', multiPatchUrl);
+        console.log('🔵 FORM DATA WRITE: currentLanguage.current:', currentLanguage.current);
+        console.log('🔵 FORM DATA WRITE: final patchUrl:', patchUrl);
+        console.log('🔵 FORM DATA WRITE: patches being sent:', patches);
+
         const { newDataModels, validationIssues, instance } = (
-          await doPatchMultipleFormData(getUrlWithLanguage(multiPatchUrl, currentLanguage.current), {
+          await doPatchMultipleFormData(patchUrl, {
             patches,
             // Ignore validations that require layout parsing in the backend which will slow down requests significantly
             ignoredValidators: IgnoredValidators,

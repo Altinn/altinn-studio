@@ -38,8 +38,8 @@ export const AppHeader = ({ logoColor, headerBackgroundColor }: AppHeaderProps) 
       <div className={classes.container}>
         <Logo color={logoColor} />
         <div className={classes.wrapper}>
-          <h1>lang:</h1>
-          <pre>{JSON.stringify({ showLanguageSelector }, null, 2)}</pre>
+          {/*<h1>lang:</h1>*/}
+          {/*<pre>{JSON.stringify({ showLanguageSelector }, null, 2)}</pre>*/}
           {showLanguageSelector && <LanguageSelector />}
           <div className={classes.wrapper}>
             <AppHeaderMenu logoColor={logoColor} />
