@@ -196,6 +196,7 @@ internal sealed class InitialDataService : IInitialDataService
         try
         {
             var userId = user.GetUserIdAsInt();
+            // Merge with mock data if available
             if (user?.Identity?.IsAuthenticated == true && userId.HasValue)
             {
                 var userProfile = await _profileClient.GetUserProfile(userId.Value);
@@ -206,7 +207,6 @@ internal sealed class InitialDataService : IInitialDataService
 
                 return MergeWithMockData(userProfile, "userProfile", _mockDataHelper.MergeUserProfile);
             }
-            // Merge with mock data if available
             return GetMockUserProfile();
         }
         catch
@@ -303,70 +303,6 @@ internal sealed class InitialDataService : IInitialDataService
         }
     }
 
-    private LayoutSets? GetLayoutSets()
-    {
-        try
-        {
-            // Get layout sets
-            var layoutSetsJson = _appResources.GetLayoutSets();
-            if (!string.IsNullOrEmpty(layoutSetsJson))
-            {
-                return JsonSerializer.Deserialize<LayoutSets>(layoutSetsJson, _jsonSerializerOptions);
-            }
-
-            return null;
-        }
-        catch
-        {
-            return null;
-            // TODO: Log error but don't fail the entire request
-        }
-    }
-
-    // TODO: try catch
-    private object? GetLayoutSettings()
-    {
-        try
-        {
-            var layoutSettingsJson = _appResources.GetLayoutSettingsString();
-            if (!string.IsNullOrEmpty(layoutSettingsJson))
-            {
-                return JsonSerializer.Deserialize<object>(layoutSettingsJson, _jsonSerializerOptions);
-            }
-
-            return null;
-        }
-        catch
-        {
-            return null;
-            // TODO: Log error but don't fail the entire request
-        }
-    }
-
-    private object? GetLayout(LayoutSets? layoutSets)
-    {
-        try
-        {
-            // Get initial layout if available
-            var initialLayoutSetId = layoutSets?.Sets?.FirstOrDefault()?.Id;
-            if (!string.IsNullOrEmpty(initialLayoutSetId))
-            {
-                var layoutJson = _appResources.GetLayoutsForSet(initialLayoutSetId);
-                if (!string.IsNullOrEmpty(layoutJson))
-                {
-                    return JsonSerializer.Deserialize<object>(layoutJson, _jsonSerializerOptions);
-                }
-            }
-        }
-        catch
-        {
-            return null;
-            // Log error but don't fail the entire request
-        }
-
-        return null;
-    }
-
     private string GetLanguageFromContext()
     {
         var acceptLanguageHeader = _httpContextAccessor.HttpContext?.Request.Headers["Accept-Language"].ToString();
@@ -385,7 +321,7 @@ internal sealed class InitialDataService : IInitialDataService
         return "nb"; // Default to Norwegian Bokmål
     }
 
-    private async Task<List<Altinn.App.Core.Models.ApplicationLanguage>> GetAvailableLanguages()
+    private async Task<List<Core.Models.ApplicationLanguage>> GetAvailableLanguages()
     {
         return await _applicationLanguage.GetApplicationLanguages();
     }
@@ -425,6 +361,49 @@ internal sealed class InitialDataService : IInitialDataService
         return null;
     }
 
+    private LayoutSets? GetLayoutSets()
+    {
+        var layoutSetsJson = _appResources.GetLayoutSets();
+        return TryDeserialize<LayoutSets>(layoutSetsJson);
+    }
+
+    private object? GetLayoutSettings()
+    {
+        var layoutSettingsJson = _appResources.GetLayoutSettingsString();
+        return TryDeserialize<object>(layoutSettingsJson);
+    }
+
+    private static object? GetLayout(LayoutSets? layoutSets)
+    {
+        var initialLayoutSetId = layoutSets?.Sets?.FirstOrDefault()?.Id;
+        return TryDeserialize<object>(initialLayoutSetId);
+    }
+
+    private async Task<object?> GetFooterLayout()
+    {
+        var footerJson = await _appResources.GetFooter();
+        return TryDeserialize<object>(footerJson);
+    }
+
+    private static T? TryDeserialize<T>(string? json)
+        where T : class
+    {
+        if (string.IsNullOrEmpty(json))
+        {
+            return null;
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<T>(json, _jsonSerializerOptions);
+        }
+        catch
+        {
+            // TODO: Log error
+            return null;
+        }
+    }
+
     private async Task<bool> CanPartyInstantiate(int? partyId)
     {
         if (!partyId.HasValue)
@@ -443,24 +422,6 @@ internal sealed class InitialDataService : IInitialDataService
 
         var details = await auth.LoadDetails(validateSelectedParty: false);
         return details.CanInstantiateAsParty(partyId.Value);
-    }
-
-    private async Task<object?> GetFooterLayout()
-    {
-        try
-        {
-            var footerJson = await _appResources.GetFooter();
-            if (!string.IsNullOrEmpty(footerJson))
-            {
-                return JsonSerializer.Deserialize<object>(footerJson, _jsonSerializerOptions);
-            }
-            return null;
-        }
-        catch
-        {
-            return null;
-            // Log error but don't fail the entire request
-        }
     }
 
     private FrontEndSettings GetFrontendSettings()
