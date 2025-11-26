@@ -27,7 +27,7 @@ export function useCurrentLayoutSet(_taskId?: string) {
   const taskId = _taskId ?? processTaskId;
   const overriddenLayoutSetId = useTaskOverrides()?.layoutSetId;
 
-  if (application === ContextNotProvided || layoutSets === ContextNotProvided) {
+  if (layoutSets === ContextNotProvided) {
     return undefined;
   }
 

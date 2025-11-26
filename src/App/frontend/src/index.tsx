@@ -25,7 +25,6 @@ import { ComponentRouting, NavigateToStartUrl, ProcessWrapper } from 'src/compon
 import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { ProcessingProvider } from 'src/core/contexts/processingContext';
-import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { VersionErrorOrChildren } from 'src/features/applicationMetadata/VersionErrorOrChildren';
 import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { createDynamicsLoader } from 'src/features/form/dynamics/dynamicsLoader';
@@ -93,33 +92,31 @@ document.addEventListener('DOMContentLoaded', () => {
                         element: (
                           <NavigationEffectProvider>
                             <ErrorBoundary>
-                              <ApplicationMetadataProvider>
-                                <VersionErrorOrChildren>
-                                  <GlobalFormDataReadersProvider>
-                                    <LayoutSetsProvider>
-                                      <TextResourcesProvider>
-                                        <OrgsProvider>
-                                          <ApplicationSettingsProvider>
-                                            <PartyProvider>
-                                              <KeepAliveProvider>
-                                                <ProcessingProvider>
-                                                  <Outlet />
-                                                </ProcessingProvider>
-                                                <ToastContainer
-                                                  position='top-center'
-                                                  theme='colored'
-                                                  transition={Slide}
-                                                  draggable={false}
-                                                />
-                                              </KeepAliveProvider>
-                                            </PartyProvider>
-                                          </ApplicationSettingsProvider>
-                                        </OrgsProvider>
-                                      </TextResourcesProvider>
-                                    </LayoutSetsProvider>
-                                  </GlobalFormDataReadersProvider>
-                                </VersionErrorOrChildren>
-                              </ApplicationMetadataProvider>
+                              <VersionErrorOrChildren>
+                                <GlobalFormDataReadersProvider>
+                                  <LayoutSetsProvider>
+                                    <TextResourcesProvider>
+                                      <OrgsProvider>
+                                        <ApplicationSettingsProvider>
+                                          <PartyProvider>
+                                            <KeepAliveProvider>
+                                              <ProcessingProvider>
+                                                <Outlet />
+                                              </ProcessingProvider>
+                                              <ToastContainer
+                                                position='top-center'
+                                                theme='colored'
+                                                transition={Slide}
+                                                draggable={false}
+                                              />
+                                            </KeepAliveProvider>
+                                          </PartyProvider>
+                                        </ApplicationSettingsProvider>
+                                      </OrgsProvider>
+                                    </TextResourcesProvider>
+                                  </LayoutSetsProvider>
+                                </GlobalFormDataReadersProvider>
+                              </VersionErrorOrChildren>
                             </ErrorBoundary>
                           </NavigationEffectProvider>
                         ),

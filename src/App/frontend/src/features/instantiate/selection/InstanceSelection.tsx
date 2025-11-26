@@ -11,10 +11,7 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import {
-  ApplicationMetadataProvider,
-  useApplicationMetadata,
-} from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useActiveInstancesQuery } from 'src/features/instantiate/selection/ActiveInstancesProvider';
 import classes from 'src/features/instantiate/selection/InstanceSelection.module.css';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
@@ -45,13 +42,13 @@ export const InstanceSelectionWrapper = () => (
   <NavigationEffectProvider>
     <OrgsProvider>
       {/*<LayoutSetsProvider>*/}
-      <ApplicationMetadataProvider>
-        {/*<DataModelsProvider>*/}
-        <PresentationComponent>
-          <InstanceSelection />
-        </PresentationComponent>
-        {/*</DataModelsProvider>*/}
-      </ApplicationMetadataProvider>
+
+      {/*<DataModelsProvider>*/}
+      <PresentationComponent>
+        <InstanceSelection />
+      </PresentationComponent>
+      {/*</DataModelsProvider>*/}
+
       {/*</LayoutSetsProvider>*/}
     </OrgsProvider>
   </NavigationEffectProvider>

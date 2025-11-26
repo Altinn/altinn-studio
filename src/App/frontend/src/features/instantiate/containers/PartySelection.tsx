@@ -14,10 +14,7 @@ import { useAppMutations, useAppQueries } from 'src/core/contexts/AppQueriesProv
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import {
-  ApplicationMetadataProvider,
-  useApplicationMetadata,
-} from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
@@ -41,11 +38,9 @@ export const PartySelectionWrapper = () => (
   <NavigationEffectProvider>
     <OrgsProvider>
       <LayoutSetsProvider>
-        <ApplicationMetadataProvider>
-          <DataModelsProvider>
-            <PartySelection />
-          </DataModelsProvider>
-        </ApplicationMetadataProvider>
+        <DataModelsProvider>
+          <PartySelection />
+        </DataModelsProvider>
       </LayoutSetsProvider>
     </OrgsProvider>
   </NavigationEffectProvider>
