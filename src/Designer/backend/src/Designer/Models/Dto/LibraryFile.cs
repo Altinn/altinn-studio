@@ -11,7 +11,7 @@ public sealed record LibraryFile
     public string? Url { get; set; }
     public ProblemDetails? Problem { get; set; }
 
-    public LibraryFile(string path, string contentType, string? content, string? url, ProblemDetails? problem = null)
+    public LibraryFile(string path, string contentType, string? content = null, string? url = null, ProblemDetails? problem = null)
     {
         if (problem is not null && AtLeastOneHasValue(content, url))
         {

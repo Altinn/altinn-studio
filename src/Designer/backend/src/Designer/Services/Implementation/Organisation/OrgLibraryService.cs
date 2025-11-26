@@ -36,17 +36,19 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
 
         ParallelOptions options = new() { MaxDegreeOfParallelism = 25, CancellationToken = cancellationToken };
         await Parallel.ForEachAsync(directoryContent, options,
-            async (FileSystemObject fileSystemObject, CancellationToken token) =>
+            async (FileSystemObject fileMetadata, CancellationToken token) =>
             {
-                string? fileExtension = Path.GetExtension(fileSystemObject.Name);
+                string fileExtension = Path.GetExtension(fileMetadata.Name);
                 switch (fileExtension)
                 {
                     case JsonExtension:
-                        (FileSystemObject file, ProblemDetails problem) = await gitea.GetFileAndErrorAsync(org, repository, fileSystemObject.Path, reference, token);
-                        AddJsonFileOrProblem(fileSystemObject, libraryFiles, file, problem);
+                        (FileSystemObject? file, ProblemDetails? problem) = await gitea.GetFileAndErrorAsync(org, repository, fileMetadata.Path, reference, token);
+                        LibraryFile jsonFileResult = PrepareJsonFileOrProblem(fileMetadata, file, problem);
+                        libraryFiles.Add(jsonFileResult);
                         break;
                     default:
-                        AddOtherFile(fileSystemObject, libraryFiles);
+                        LibraryFile otherFile = PrepareOtherFile(fileMetadata);
+                        libraryFiles.Add(otherFile);
                         break;
                 }
             }
@@ -212,37 +214,44 @@ public class OrgLibraryService(IGitea gitea, ISourceControl sourceControl, IAlti
         }
     }
 
-    private static void AddJsonFileOrProblem(FileSystemObject fileSystemObject, ConcurrentBag<LibraryFile> libraryFiles, FileSystemObject file, ProblemDetails problem)
+    private static LibraryFile PrepareJsonFileOrProblem(FileSystemObject fileMetadata, FileSystemObject? file, ProblemDetails? problem)
     {
         if (problem is null)
         {
-            AddJsonFile(file, libraryFiles);
+            return file is not null ? PrepareJsonFile(file) : throw new InvalidModelStateException($"{nameof(file)} is in invalid state, cannot be null when {nameof(problem)} is null.");
         }
-        else
-        {
-            AddProblem(fileSystemObject, problem, libraryFiles);
-        }
+
+        return PrepareProblem(fileMetadata, problem);
     }
 
-    private static void AddProblem(FileSystemObject fileSystemObject, ProblemDetails problem, ConcurrentBag<LibraryFile> libraryFiles)
+    private static LibraryFile PrepareProblem(FileSystemObject fileSystemObject, ProblemDetails problem)
     {
         string contentType = Path.GetExtension(fileSystemObject.Name);
-        LibraryFile libraryFile = new(fileSystemObject.Path, contentType, null, null, problem);
-        libraryFiles.Add(libraryFile);
+        return new LibraryFile(
+            path: fileSystemObject.Path,
+            contentType: contentType,
+            problem: problem
+        );
     }
 
-    private static void AddJsonFile(FileSystemObject jsonFile, ConcurrentBag<LibraryFile> libraryFiles)
+    private static LibraryFile PrepareJsonFile(FileSystemObject jsonFile)
     {
         string contentType = Path.GetExtension(jsonFile.Name);
-        LibraryFile libraryFile = new(jsonFile.Path, contentType, jsonFile.Content, null);
-        libraryFiles.Add(libraryFile);
+        return new LibraryFile(
+            path: jsonFile.Path,
+            contentType: contentType,
+            content: jsonFile.Content
+        );
     }
 
-    private static void AddOtherFile(FileSystemObject otherFile, ConcurrentBag<LibraryFile> libraryFiles)
+    private static LibraryFile PrepareOtherFile(FileSystemObject otherFile)
     {
         string contentType = Path.GetExtension(otherFile.Name);
-        LibraryFile libraryFile = new(otherFile.Path, contentType, null, otherFile.HtmlUrl);
-        libraryFiles.Add(libraryFile);
+        return new LibraryFile(
+            path: otherFile.Path,
+            contentType: contentType,
+            url: otherFile.HtmlUrl
+        );
     }
 
     private static string GetStaticContentRepo(string org)
