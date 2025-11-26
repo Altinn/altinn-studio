@@ -18,11 +18,4 @@ public class MetricsController(
         IEnumerable<AppMetric> metrics = await _metricsService.GetMetricsAsync(app, time, cancellationToken);
         return Ok(metrics);
     }
-
-    [HttpGet("process-next")]
-    public async Task<ActionResult<IEnumerable<AppMetric>>> GetFailedProcessNextRequestsAsync(string app, int time, CancellationToken cancellationToken)
-    {
-        IEnumerable<AppMetric> metrics = await _metricsService.GetFailedProcessNextRequestsAsync(app, time, cancellationToken);
-        return Ok(metrics);
-    }
 }
