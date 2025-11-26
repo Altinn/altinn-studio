@@ -23,6 +23,8 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
     private readonly Mock<IGitea> _giteaClientMock = new();
     private readonly Mock<IUserOrganizationService> _userOrganizationServiceMock = new();
 
+    private const string Org = "ttd";
+
     protected override void ConfigureTestServices(IServiceCollection services)
     {
         services.AddSingleton(_ => _giteaClientMock.Object);
@@ -33,10 +35,9 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
     public async Task GetSharedResources_Returns_200Ok_When_Resources_Exist()
     {
         // Arrange
-        string org = "ttd";
         string path = "some/path";
-        string repo = $"{org}-content";
-        string apiUrl = $"/designer/api/{org}/shared-resources?path={path}";
+        string repo = $"{Org}-content";
+        string apiUrl = ApiUrl(path);
 
         string baseCommitSha = "abc123";
 
@@ -48,30 +49,37 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
         string secondFilePath = $"{path}/file2.json";
         string secondFileContent = "File content 2";
 
-        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(It.IsAny<string>())).ReturnsAsync(true);
+        _userOrganizationServiceMock
+            .Setup(s => s.UserIsMemberOfOrganization(Org))
+            .ReturnsAsync(true)
+            .Verifiable();
 
         // Arrange - Mock directory content
         List<FileSystemObject> directoryContent =
         [
-            new FileSystemObject { Name = firstFileName, Path = firstFilePath, Type = "file" },
-            new FileSystemObject { Name = secondFileName, Path = secondFilePath, Type = "file" },
+            new() { Name = firstFileName, Path = firstFilePath, Type = "file" },
+            new() { Name = secondFileName, Path = secondFilePath, Type = "file" },
         ];
 
         _giteaClientMock
-            .Setup(wrapper => wrapper.GetDirectoryAsync(org, repo, path, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(directoryContent);
+            .Setup(wrapper => wrapper.GetDirectoryAsync(Org, repo, path, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(directoryContent)
+            .Verifiable();
 
         _giteaClientMock
-            .Setup(wrapper => wrapper.GetLatestCommitOnBranch(org, repo, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(baseCommitSha);
+            .Setup(wrapper => wrapper.GetLatestCommitOnBranch(Org, repo, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(baseCommitSha)
+            .Verifiable();
 
         _giteaClientMock
-            .Setup(wrapper => wrapper.GetFileAndErrorAsync(org, repo, firstFilePath, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((new FileSystemObject { Name = firstFileName, Path = firstFilePath, Type = "file", Content = firstFileContent, Encoding = "utf-8" }, null));
+            .Setup(wrapper => wrapper.GetFileAndErrorAsync(Org, repo, firstFilePath, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((new FileSystemObject { Name = firstFileName, Path = firstFilePath, Type = "file", Content = firstFileContent, Encoding = "utf-8" }, null))
+            .Verifiable();
 
         _giteaClientMock
-            .Setup(wrapper => wrapper.GetFileAndErrorAsync(org, repo, secondFilePath, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((new FileSystemObject { Name = secondFileName, Path = secondFilePath, Type = "file", Content = secondFileContent, Encoding = "utf-8" }, null));
+            .Setup(wrapper => wrapper.GetFileAndErrorAsync(Org, repo, secondFilePath, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((new FileSystemObject { Name = secondFileName, Path = secondFilePath, Type = "file", Content = secondFileContent, Encoding = "utf-8" }, null))
+            .Verifiable();
 
         // Arrange - Setup expected response
         List<LibraryFile> files =
@@ -92,27 +100,28 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
         Assert.Collection(actualResponse.Files.OrderBy(f => f.Path),
             file =>
             {
-                Assert.Equal(firstFilePath, file.Path);
+                Assert.Equal("some/path/file1.json", file.Path);
                 Assert.Equal(".json", file.ContentType);
-                Assert.Equal(firstFileContent, file.Content);
+                Assert.Equal("File content 1", file.Content);
             },
             file =>
             {
-                Assert.Equal(secondFilePath, file.Path);
+                Assert.Equal("some/path/file2.json", file.Path);
                 Assert.Equal(".json", file.ContentType);
-                Assert.Equal(secondFileContent, file.Content);
-            });
-        _userOrganizationServiceMock.Verify(s => s.UserIsMemberOfOrganization("ttd"), Times.AtLeastOnce);
+                Assert.Equal("File content 2", file.Content);
+            }
+        );
+        _userOrganizationServiceMock.VerifyAll();
+        _giteaClientMock.VerifyAll();
     }
 
     [Fact]
     public async Task GetSharedResources_WithMultiLevelDirectories_Traverses_Recursively_Returns_200Ok()
     {
         // Arrange
-        string org = "ttd";
         string path = "some/path";
-        string repo = $"{org}-content";
-        string apiUrl = $"/designer/api/{org}/shared-resources?path={path}";
+        string repo = $"{Org}-content";
+        string apiUrl = ApiUrl(path);
 
         string baseCommitSha = "abc123";
 
@@ -127,39 +136,47 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
         string subFolderFilePath = $"{folderPath}/{subFolderFileName}";
         string subFolderFileContent = "Sub file content";
 
-        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(It.IsAny<string>())).ReturnsAsync(true);
+        _userOrganizationServiceMock
+            .Setup(s => s.UserIsMemberOfOrganization(Org))
+            .ReturnsAsync(true)
+            .Verifiable();
 
         // Arrange - Mock directory content
         List<FileSystemObject> directoryContent =
         [
-            new FileSystemObject { Name = rootFileName, Path = rootFilePath, Type = "file" },
-            new FileSystemObject { Name = folderName, Path = folderPath, Type = "dir" },
+            new() { Name = rootFileName, Path = rootFilePath, Type = "file" },
+            new() { Name = folderName, Path = folderPath, Type = "dir" },
         ];
 
         List<FileSystemObject> subFolderContent =
         [
-            new FileSystemObject { Name = subFolderFileName, Path = subFolderFilePath, Type = "file" },
+            new() { Name = subFolderFileName, Path = subFolderFilePath, Type = "file" },
         ];
 
         _giteaClientMock
-            .Setup(wrapper => wrapper.GetDirectoryAsync(org, repo, path, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(directoryContent);
+            .Setup(wrapper => wrapper.GetDirectoryAsync(Org, repo, path, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(directoryContent)
+            .Verifiable();
 
         _giteaClientMock
-            .Setup(wrapper => wrapper.GetDirectoryAsync(org, repo, folderPath, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(subFolderContent);
+            .Setup(wrapper => wrapper.GetDirectoryAsync(Org, repo, folderPath, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(subFolderContent)
+            .Verifiable();
 
         _giteaClientMock
-            .Setup(wrapper => wrapper.GetLatestCommitOnBranch(org, repo, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(baseCommitSha);
+            .Setup(wrapper => wrapper.GetLatestCommitOnBranch(Org, repo, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(baseCommitSha)
+            .Verifiable();
 
         _giteaClientMock
-            .Setup(wrapper => wrapper.GetFileAndErrorAsync(org, repo, rootFilePath, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((new FileSystemObject { Name = rootFileName, Path = rootFilePath, Type = "file", Content = rootFileContent, Encoding = "utf-8" }, null));
+            .Setup(wrapper => wrapper.GetFileAndErrorAsync(Org, repo, rootFilePath, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((new FileSystemObject { Name = rootFileName, Path = rootFilePath, Type = "file", Content = rootFileContent, Encoding = "utf-8" }, null))
+            .Verifiable();
 
         _giteaClientMock
-            .Setup(wrapper => wrapper.GetFileAndErrorAsync(org, repo, subFolderFilePath, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((new FileSystemObject { Name = subFolderFileName, Path = subFolderFilePath, Type = "file", Content = subFolderFileContent, Encoding = "utf-8" }, null));
+            .Setup(wrapper => wrapper.GetFileAndErrorAsync(Org, repo, subFolderFilePath, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((new FileSystemObject { Name = subFolderFileName, Path = subFolderFilePath, Type = "file", Content = subFolderFileContent, Encoding = "utf-8" }, null))
+            .Verifiable();
 
         // Arrange - Setup expected response
         List<LibraryFile> files =
@@ -180,24 +197,26 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
         Assert.Collection(actualResponse.Files.OrderBy(f => f.Path),
             file =>
             {
-                Assert.Equal(rootFilePath, file.Path);
+                Assert.Equal("some/path/file.json", file.Path);
                 Assert.Equal(".json", file.ContentType);
-                Assert.Equal(rootFileContent, file.Content);
+                Assert.Equal("File content", file.Content);
             },
             file =>
             {
-                Assert.Equal(subFolderFilePath, file.Path);
+                Assert.Equal("some/path/subfolder/subFolderFile.json", file.Path);
                 Assert.Equal(".json", file.ContentType);
-                Assert.Equal(subFolderFileContent, file.Content);
+                Assert.Equal("Sub file content", file.Content);
             });
-        _userOrganizationServiceMock.Verify(s => s.UserIsMemberOfOrganization("ttd"), Times.AtLeastOnce);
+        _userOrganizationServiceMock.VerifyAll();
+        _giteaClientMock.VerifyAll();
     }
 
     [Fact]
     public async Task GetSharedResources_Returns_403Forbidden_When_User_Not_Member_Of_Org()
     {
         // Arrange
-        string apiUrl = $"/designer/api/ttd/shared-resources?path=some/path";
+        string path = "some/path";
+        string apiUrl = ApiUrl(path);
         const bool IsMemberOfTheOrganisation = false;
         _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(It.IsAny<string>())).ReturnsAsync(IsMemberOfTheOrganisation);
 
@@ -213,16 +232,15 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
     public async Task GetSharedResources_Returns_404NotFound_WhenDirectoryNotFound()
     {
         // Arrange
-        string org = "ttd";
         string path = "non/existing/path";
-        string repo = $"{org}-content";
-        string apiUrl = $"/designer/api/{org}/shared-resources?path={path}";
+        string repo = $"{Org}-content";
+        string apiUrl = ApiUrl(path);
 
         _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(It.IsAny<string>())).ReturnsAsync(true);
 
         // Arrange - Mock directory content
         _giteaClientMock
-            .Setup(wrapper => wrapper.GetDirectoryAsync(org, repo, path, null, It.IsAny<CancellationToken>()))
+            .Setup(wrapper => wrapper.GetDirectoryAsync(Org, repo, path, null, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new DirectoryNotFoundException());
 
         // Act
@@ -236,4 +254,6 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
         Assert.Equal("Directory not found", problemDetails.Title);
         _userOrganizationServiceMock.Verify(s => s.UserIsMemberOfOrganization("ttd"), Times.AtLeastOnce);
     }
+
+    private static string ApiUrl(string path) => $"/designer/api/{Org}/shared-resources?{path}";
 }
