@@ -220,7 +220,7 @@ export class UiEditorPage extends BasePage {
       name: this.textMock('ux_editor.input_popover_save_button'),
     });
 
-    await expect(saveButton).toBeHidden();
+    await expect(saveButton).toBeDisabled();
   }
 
   public async waitForTreeItemToGetNewLabel(label: string): Promise<void> {
