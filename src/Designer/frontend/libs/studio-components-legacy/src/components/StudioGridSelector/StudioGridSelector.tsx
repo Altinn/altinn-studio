@@ -46,6 +46,8 @@ export const StudioGridSelector = ({
 
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  /* istanbul ignore next */
+  // The following function is not covered by tests because it uses functions that are not supported by our test tools, and it impacts styling only
   const handleHover = (event: MouseEvent<HTMLInputElement>) => {
     const dataListElement = inputRef.current?.list;
     const optionPositionsX: OptionData[] = calculateOptionPositionsX(dataListElement);
