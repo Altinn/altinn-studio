@@ -51,6 +51,17 @@ internal sealed class ProjectFileRewriter
         await Save();
     }
 
+    /// <summary>
+    /// Removes a package reference from the project file
+    /// </summary>
+    /// <param name="packageName">The name of the package to remove</param>
+    public async Task RemovePackageReference(string packageName)
+    {
+        var packageElements = GetPackageReferenceElement(packageName);
+        packageElements?.ForEach(e => e.Remove());
+        await Save();
+    }
+
     private void IgnoreWarnings(params string[] warnings)
     {
         var noWarn = _doc.Root?.Elements("PropertyGroup").Elements("NoWarn").ToList();
@@ -97,6 +108,15 @@ internal sealed class ProjectFileRewriter
     private List<XElement>? GetTargetFrameworkElement()
     {
         return _doc.Root?.Elements("PropertyGroup").Elements("TargetFramework").ToList();
+    }
+
+    private List<XElement>? GetPackageReferenceElement(string packageName)
+    {
+        return _doc
+            .Root?.Elements("ItemGroup")
+            .Elements("PackageReference")
+            .Where(x => x.Attribute("Include")?.Value == packageName)
+            .ToList();
     }
 
     private async Task Save()

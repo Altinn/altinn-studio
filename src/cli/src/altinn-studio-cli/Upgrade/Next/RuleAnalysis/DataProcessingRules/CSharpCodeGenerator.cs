@@ -65,10 +65,33 @@ internal class CSharpCodeGenerator
             return result;
         }
 
+        // Check for JS functions used by multiple rules
+        var functionUsageCount = new Dictionary<string, List<string>>();
+        foreach (var ruleEntry in _rules)
+        {
+            var ruleId = ruleEntry.Key;
+            var rule = ruleEntry.Value;
+            var functionName = rule.SelectedFunction ?? "";
+
+            if (!string.IsNullOrEmpty(functionName))
+            {
+                if (!functionUsageCount.ContainsKey(functionName))
+                {
+                    functionUsageCount[functionName] = new List<string>();
+                }
+                functionUsageCount[functionName].Add(ruleId);
+            }
+        }
+
+        // Find functions used by multiple rules
+        var sharedFunctions = functionUsageCount
+            .Where(kvp => kvp.Value.Count > 1)
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
         var className = SanitizeClassName(_layoutSetName) + "DataProcessor";
         result.ClassName = className;
 
-        var code = new StringBuilder();
+        var code = new IndentedStringBuilder();
 
         // Generate using statements
         GenerateUsingStatements(code);
@@ -78,12 +101,13 @@ internal class CSharpCodeGenerator
         code.AppendLine("namespace Altinn.App.Logic;");
         code.AppendLine();
         code.AppendLine($"public class {className} : IDataWriteProcessor");
-        code.AppendLine("{");
+        code.OpenBrace();
 
         GenerateProcessDataWriteMethod(code, result);
-        GenerateRuleMethods(code, result);
+        GenerateSharedHelperMethods(code, result, sharedFunctions);
+        GenerateRuleMethods(code, result, sharedFunctions);
 
-        code.AppendLine("}");
+        code.CloseBrace();
 
         result.GeneratedCode = code.ToString();
         result.Success = result.Errors.Count == 0;
@@ -91,7 +115,7 @@ internal class CSharpCodeGenerator
         return result;
     }
 
-    private void GenerateUsingStatements(StringBuilder code)
+    private void GenerateUsingStatements(IndentedStringBuilder code)
     {
         code.AppendLine("using System;");
         code.AppendLine("using System.Collections.Generic;");
@@ -106,25 +130,28 @@ internal class CSharpCodeGenerator
         }
     }
 
-    private void GenerateProcessDataWriteMethod(StringBuilder code, DataProcessorGenerationResult result)
+    private void GenerateProcessDataWriteMethod(IndentedStringBuilder code, DataProcessorGenerationResult result)
     {
         var dataClassName = _dataModelInfo?.ClassName ?? "UNKNOWN_DATA_MODEL";
 
-        code.AppendLine("    public async Task ProcessDataWrite(");
-        code.AppendLine("        IInstanceDataMutator instanceDataMutator,");
-        code.AppendLine("        string taskId,");
-        code.AppendLine("        DataElementChanges changes,");
-        code.AppendLine("        string? language)");
-        code.AppendLine("    {");
+        code.AppendLine("public async Task ProcessDataWrite(");
+        code.Indent();
+        code.AppendLine("IInstanceDataMutator instanceDataMutator,");
+        code.AppendLine("string taskId,");
+        code.AppendLine("DataElementChanges changes,");
+        code.AppendLine("string? language)");
+        code.Unindent();
+        code.OpenBrace();
+
         code.AppendLine(
-            $"        var change = changes.FormDataChanges.FirstOrDefault(c => c.CurrentFormData is {dataClassName});"
+            $"var change = changes.FormDataChanges.FirstOrDefault(c => c.CurrentFormData is {dataClassName});"
         );
-        code.AppendLine("        if (change == null)");
-        code.AppendLine("        {");
-        code.AppendLine("            return;");
-        code.AppendLine("        }");
+        code.AppendLine("if (change == null)");
+        code.OpenBrace();
+        code.AppendLine("return;");
+        code.CloseBrace();
         code.AppendLine();
-        code.AppendLine($"        var data = ({dataClassName})change.CurrentFormData;");
+        code.AppendLine($"var data = ({dataClassName})change.CurrentFormData;");
         code.AppendLine();
 
         foreach (var ruleEntry in _rules)
@@ -138,45 +165,150 @@ internal class CSharpCodeGenerator
                 continue;
             }
 
-            var functionName = SanitizeFunctionName(rule.SelectedFunction ?? ruleId);
-            code.AppendLine($"        await Rule_{functionName}(data);");
+            var methodName = SanitizeFunctionName(ruleId);
+            code.AppendLine($"await Rule_{methodName}(data);");
         }
 
-        code.AppendLine("    }");
+        code.CloseBrace();
         code.AppendLine();
     }
 
-    private void GenerateRuleMethods(StringBuilder code, DataProcessorGenerationResult result)
+    private void GenerateSharedHelperMethods(
+        IndentedStringBuilder code,
+        DataProcessorGenerationResult result,
+        Dictionary<string, List<string>> sharedFunctions
+    )
     {
-        var dataClassName = _dataModelInfo?.ClassName ?? "UNKNOWN_DATA_MODEL";
-
-        foreach (var ruleEntry in _rules)
+        if (sharedFunctions.Count == 0)
         {
-            var ruleId = ruleEntry.Key;
-            var rule = ruleEntry.Value;
+            return;
+        }
 
-            var functionName = SanitizeFunctionName(rule.SelectedFunction ?? ruleId);
-            var jsFunction = _jsParser.GetDataProcessingFunction(rule.SelectedFunction ?? "");
+        code.AppendLine("// Shared helper methods for functions used by multiple rules");
+        code.AppendLine();
 
-            code.AppendLine($"    private async Task Rule_{functionName}({dataClassName} data)");
-            code.AppendLine("    {");
+        foreach (var sharedFunctionEntry in sharedFunctions)
+        {
+            var functionName = sharedFunctionEntry.Key;
+            var jsFunction = _jsParser.GetDataProcessingFunction(functionName);
 
-            if (jsFunction != null)
+            if (jsFunction == null)
             {
-                // Add original JavaScript as comment
-                code.AppendLine($"        // Original JavaScript function: {rule.SelectedFunction}");
-                var jsLines = jsFunction.Implementation.Split('\n');
-                foreach (var line in jsLines)
+                code.AppendLine($"// WARNING: Could not find JavaScript function '{functionName}'");
+                code.AppendLine();
+                continue;
+            }
+
+            var methodName = SanitizeFunctionName(functionName);
+            code.AppendLine($"// Shared helper for JS function '{functionName}'");
+            code.AppendLine($"// Used by rules: {string.Join(", ", sharedFunctionEntry.Value)}");
+
+            code.AppendLine($"private object? Helper_{methodName}(Dictionary<string, object?> obj)");
+            code.OpenBrace();
+
+            // Add original JavaScript as comment
+            code.AppendLine($"// Original JavaScript function: {functionName}");
+            var jsLines = jsFunction.Implementation.Split('\n');
+            foreach (var line in jsLines)
+            {
+                code.AppendLine($"// {line}");
+            }
+            code.AppendLine();
+
+            // Try to convert the function using a special "dictionary mode"
+            // Extract all property names used in the JS function
+            var allPossibleKeys = new HashSet<string>();
+
+            // First, add all keys that are used by any rule calling this function
+            foreach (var ruleId in sharedFunctionEntry.Value)
+            {
+                if (_rules.TryGetValue(ruleId, out var ruleForFunction) && ruleForFunction.InputParams != null)
                 {
-                    code.AppendLine($"        // {line}");
+                    foreach (var key in ruleForFunction.InputParams.Keys)
+                    {
+                        allPossibleKeys.Add(key);
+                    }
+                }
+            }
+
+            // Also extract property names from the JS function implementation itself
+            // Look for patterns like "obj.propertyName"
+            var jsCode = jsFunction.Implementation;
+            var propertyMatches = System.Text.RegularExpressions.Regex.Matches(
+                jsCode,
+                @"obj\.([a-z_][a-z0-9_]*)\b",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase
+            );
+            foreach (System.Text.RegularExpressions.Match match in propertyMatches)
+            {
+                if (match.Groups.Count > 1)
+                {
+                    allPossibleKeys.Add(match.Groups[1].Value);
+                }
+            }
+
+            // Detect which properties are used with string/array methods (includes, contains, etc.)
+            var stringArrayKeys = new HashSet<string>();
+            foreach (var key in allPossibleKeys)
+            {
+                // Check if property is used with .includes() or other string/array methods
+                if (
+                    System.Text.RegularExpressions.Regex.IsMatch(
+                        jsCode,
+                        $@"\b{key}\.includes\b",
+                        System.Text.RegularExpressions.RegexOptions.IgnoreCase
+                    )
+                )
+                {
+                    stringArrayKeys.Add(key);
+                }
+            }
+
+            // Generate code manually for common patterns
+            // Try to detect if this is a simple arithmetic function
+            var implLower = jsFunction.Implementation.ToLower();
+            var isSimpleArithmetic =
+                implLower.Contains("return")
+                && (
+                    implLower.Contains("+")
+                    || implLower.Contains("-")
+                    || implLower.Contains("*")
+                    || implLower.Contains("/")
+                );
+
+            if (isSimpleArithmetic && allPossibleKeys.Count > 0 && allPossibleKeys.Count <= 10)
+            {
+                // Generate code to parse and default each parameter
+                foreach (var key in allPossibleKeys.OrderBy(k => k))
+                {
+                    // Check if this property is used with string/array methods
+                    if (stringArrayKeys.Contains(key))
+                    {
+                        // Keep as object? for string/array operations
+                        code.AppendLine(
+                            $"var {key} = obj.TryGetValue(\"{key}\", out var _{key}Val) ? _{key}Val : null;"
+                        );
+                    }
+                    else
+                    {
+                        // Parse as decimal for numeric operations
+                        code.AppendLine(
+                            $"var {key} = obj.TryGetValue(\"{key}\", out var _{key}Val) && _{key}Val != null"
+                        );
+                        code.Indent();
+                        code.AppendLine(
+                            $"? (decimal.TryParse(_{key}Val.ToString(), out var _{key}Parsed) ? _{key}Parsed : 0)"
+                        );
+                        code.AppendLine(": 0;");
+                        code.Unindent();
+                    }
                 }
                 code.AppendLine();
 
-                // Try to convert to C#
-                var converter = new StatementConverter(rule.InputParams ?? new Dictionary<string, string>(), "data");
+                // Try to convert the return expression
+                var converter = new StatementConverter(new Dictionary<string, string>(), "");
                 CSharpConversionResult conversionResult;
 
-                // Try to convert the full function if available, otherwise fall back to return expression
                 if (jsFunction.FunctionAst != null)
                 {
                     conversionResult = converter.ConvertFunction(jsFunction.FunctionAst);
@@ -188,51 +320,161 @@ internal class CSharpCodeGenerator
 
                 if (conversionResult.Success && conversionResult.GeneratedCode != null)
                 {
-                    // Get the output parameter
-                    var outputParam = rule.OutParams?.FirstOrDefault();
-                    if (outputParam.HasValue && !string.IsNullOrEmpty(outputParam.Value.Value))
+                    // The conversion generated code with `obj.a`, `obj.b`, etc. or possibly just `.A`, `.B`, etc.
+                    // We want to replace these with our local variables `a`, `b`, etc.
+                    var convertedCode = conversionResult.GeneratedCode;
+
+                    // Replace obj.propertyName with just propertyName (case-insensitive)
+                    foreach (var key in allPossibleKeys)
                     {
-                        // Extract property path from data model path (returns dotted path like "Grp1.Grp2.Prop")
-                        var propertyPath = ExtractPropertyNameFromPath(outputParam.Value.Value);
-                        if (propertyPath != null)
-                        {
-                            // The generated code contains statements + the final return expression
-                            // Split by newlines to separate statements from the return value
-                            var lines = conversionResult.GeneratedCode.Split(
-                                new[] { '\n', '\r' },
-                                StringSplitOptions.RemoveEmptyEntries
-                            );
+                        // Replace obj.key (case-insensitive)
+                        convertedCode = System.Text.RegularExpressions.Regex.Replace(
+                            convertedCode,
+                            $@"\bobj\.{key}\b",
+                            key,
+                            System.Text.RegularExpressions.RegexOptions.IgnoreCase
+                        );
 
-                            // All lines except the last are statements (variable declarations)
-                            for (int i = 0; i < lines.Length - 1; i++)
-                            {
-                                code.AppendLine(lines[i]);
-                            }
+                        // Also replace standalone .KEY (uppercase version from failed conversion)
+                        var keyUpper = key.ToUpper();
+                        convertedCode = System.Text.RegularExpressions.Regex.Replace(
+                            convertedCode,
+                            $@"\.{keyUpper}\b",
+                            key
+                        );
 
-                            // The last line is the return expression, assign it to the output property
-                            var returnExpr =
-                                lines.Length > 0 ? lines[^1].Trim() : conversionResult.GeneratedCode.Trim();
-                            code.AppendLine($"        data.{propertyPath} = {returnExpr};");
-                            result.SuccessfulConversions++;
-                        }
-                        else
+                        // For string/array keys, fix up Contains calls to add ToString()
+                        // Replace patterns like "checkboxlist?.Contains(" with "checkboxlist?.ToString()?.Contains("
+                        if (stringArrayKeys.Contains(key))
                         {
-                            var reason = "Could not extract property name from output path";
-                            GenerateTodoStub(code, rule, reason, jsFunction.Implementation);
-                            result.FailedConversions++;
-                            result.FailedRules.Add(
-                                new FailedRuleInfo
-                                {
-                                    RuleName = rule.SelectedFunction ?? ruleId,
-                                    Reason = reason,
-                                    JavaScriptSource = jsFunction.Implementation,
-                                }
+                            convertedCode = System.Text.RegularExpressions.Regex.Replace(
+                                convertedCode,
+                                $@"\b{key}\?\.Contains\(",
+                                $"{key}?.ToString()?.Contains(",
+                                System.Text.RegularExpressions.RegexOptions.IgnoreCase
                             );
                         }
                     }
+
+                    var lines = convertedCode.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var line in lines)
+                    {
+                        var trimmedLine = line.TrimEnd();
+                        // Skip lines that are just variable assignments from the function body
+                        // (we already generated those above with TryGetValue)
+                        // Also skip lines that start with a property access like ".A =" which are broken conversions
+                        if (
+                            !string.IsNullOrWhiteSpace(trimmedLine)
+                            && !System.Text.RegularExpressions.Regex.IsMatch(
+                                trimmedLine,
+                                @"^\s*[a-z]\s*=\s*\(decimal\.TryParse"
+                            )
+                            && !System.Text.RegularExpressions.Regex.IsMatch(trimmedLine, @"^\s*\.[A-Z]")
+                        )
+                        {
+                            code.AppendLine(trimmedLine);
+                        }
+                    }
+                }
+                else
+                {
+                    code.AppendLine("// TODO: Automatic conversion failed");
+                    code.AppendLine(
+                        "throw new NotImplementedException(\"Shared helper function requires manual implementation\");"
+                    );
+                }
+            }
+            else
+            {
+                code.AppendLine("// TODO: Implement this shared helper function");
+                code.AppendLine("// This function is called by multiple rules with different parameter mappings");
+                code.AppendLine(
+                    "throw new NotImplementedException(\"Shared helper function requires manual implementation\");"
+                );
+            }
+
+            code.CloseBrace();
+            code.AppendLine();
+        }
+    }
+
+    private void GenerateRuleMethods(
+        IndentedStringBuilder code,
+        DataProcessorGenerationResult result,
+        Dictionary<string, List<string>> sharedFunctions
+    )
+    {
+        var dataClassName = _dataModelInfo?.ClassName ?? "UNKNOWN_DATA_MODEL";
+
+        foreach (var ruleEntry in _rules)
+        {
+            var ruleId = ruleEntry.Key;
+            var rule = ruleEntry.Value;
+
+            var methodName = SanitizeFunctionName(ruleId);
+            var jsFunction = _jsParser.GetDataProcessingFunction(rule.SelectedFunction ?? "");
+
+            code.AppendLine($"private async Task Rule_{methodName}({dataClassName} data)");
+            code.OpenBrace();
+
+            if (jsFunction != null)
+            {
+                // Check if this function is shared
+                var functionName = rule.SelectedFunction ?? "";
+                var isSharedFunction = sharedFunctions.ContainsKey(functionName);
+
+                if (isSharedFunction)
+                {
+                    // For shared functions, generate code that calls the helper method
+                    code.AppendLine($"// Calls shared helper: {functionName}");
+                    code.AppendLine();
+
+                    // Get the output parameter
+                    var outputParam = rule.OutParams?.FirstOrDefault();
+                    string? outputFieldPath = null;
+
+                    if (outputParam.HasValue && !string.IsNullOrEmpty(outputParam.Value.Value))
+                    {
+                        outputFieldPath = outputParam.Value.Value;
+                    }
                     else
                     {
-                        var reason = "No output parameter defined";
+                        outputFieldPath = InferOutputFieldFromRuleName(ruleId, rule.SelectedFunction);
+                    }
+
+                    var propertyPath = !string.IsNullOrEmpty(outputFieldPath)
+                        ? ExtractPropertyNameFromPath(outputFieldPath)
+                        : null;
+
+                    if (propertyPath != null && rule.InputParams != null && rule.InputParams.Count > 0)
+                    {
+                        // Create a dictionary with the input parameter mappings
+                        code.AppendLine("var inputObj = new Dictionary<string, object?>");
+                        code.OpenBrace();
+                        foreach (var inputParam in rule.InputParams)
+                        {
+                            var fieldPath = ExtractPropertyNameFromPath(inputParam.Value);
+                            if (fieldPath != null)
+                            {
+                                code.AppendLine($"[\"{inputParam.Key}\"] = data.{fieldPath},");
+                            }
+                        }
+                        code.Unindent();
+                        code.AppendLine("};");
+                        code.AppendLine();
+
+                        // Call the helper method
+                        var helperMethodName = SanitizeFunctionName(functionName);
+                        code.AppendLine($"var result = Helper_{helperMethodName}(inputObj);");
+                        // Cast result to dynamic to allow implicit conversion to target property type
+                        code.AppendLine($"data.{propertyPath} = (dynamic?)result;");
+
+                        result.SuccessfulConversions++;
+                    }
+                    else
+                    {
+                        var reason =
+                            propertyPath == null ? "Could not determine output field" : "No input parameters defined";
                         GenerateTodoStub(code, rule, reason, jsFunction.Implementation);
                         result.FailedConversions++;
                         result.FailedRules.Add(
@@ -247,17 +489,164 @@ internal class CSharpCodeGenerator
                 }
                 else
                 {
-                    var reason = conversionResult.FailureReason ?? "Conversion failed";
-                    GenerateTodoStub(code, rule, reason, jsFunction.Implementation);
-                    result.FailedConversions++;
-                    result.FailedRules.Add(
-                        new FailedRuleInfo
-                        {
-                            RuleName = rule.SelectedFunction ?? ruleId,
-                            Reason = reason,
-                            JavaScriptSource = jsFunction.Implementation,
-                        }
+                    // For non-shared functions, use the original inline conversion
+                    // Add original JavaScript as comment
+                    code.AppendLine($"// Original JavaScript function: {rule.SelectedFunction}");
+                    var jsLines = jsFunction.Implementation.Split('\n');
+                    foreach (var line in jsLines)
+                    {
+                        code.AppendLine($"// {line}");
+                    }
+                    code.AppendLine();
+
+                    // Try to convert to C#
+                    var converter = new StatementConverter(
+                        rule.InputParams ?? new Dictionary<string, string>(),
+                        "data"
                     );
+                    CSharpConversionResult conversionResult;
+
+                    // Try to convert the full function if available, otherwise fall back to return expression
+                    if (jsFunction.FunctionAst != null)
+                    {
+                        conversionResult = converter.ConvertFunction(jsFunction.FunctionAst);
+                    }
+                    else
+                    {
+                        conversionResult = converter.ConvertFunctionBody(jsFunction.ReturnExpression);
+                    }
+
+                    if (conversionResult.Success && conversionResult.GeneratedCode != null)
+                    {
+                        // Get the output parameter
+                        var outputParam = rule.OutParams?.FirstOrDefault();
+                        string? outputFieldPath = null;
+
+                        if (outputParam.HasValue && !string.IsNullOrEmpty(outputParam.Value.Value))
+                        {
+                            outputFieldPath = outputParam.Value.Value;
+                        }
+                        else
+                        {
+                            // Try to infer output field from rule connection name
+                            // Pattern: {target-field}-{function-name} -> extract target-field
+                            outputFieldPath = InferOutputFieldFromRuleName(ruleId, rule.SelectedFunction);
+                        }
+
+                        if (!string.IsNullOrEmpty(outputFieldPath))
+                        {
+                            // Extract property path from data model path (returns dotted path like "Grp1.Grp2.Prop")
+                            var propertyPath = ExtractPropertyNameFromPath(outputFieldPath);
+                            if (propertyPath != null)
+                            {
+                                // The generated code already has proper indentation from IndentedStringBuilder
+                                // Split by newlines to process statements and replace return statements with assignments
+                                var lines = conversionResult.GeneratedCode.Split(
+                                    new[] { '\n', '\r' },
+                                    StringSplitOptions.RemoveEmptyEntries
+                                );
+
+                                // Process each line and replace return statements with assignments
+                                for (int i = 0; i < lines.Length; i++)
+                                {
+                                    var line = lines[i].TrimEnd();
+                                    var trimmedLine = line.Trim();
+
+                                    // If this line is a return statement, convert it to an assignment
+                                    if (trimmedLine.StartsWith("return ") && trimmedLine.EndsWith(";"))
+                                    {
+                                        var returnExpr = trimmedLine.Substring(7, trimmedLine.Length - 8); // Extract expression between "return " and ";"
+                                        // Preserve the original indentation
+                                        var indent =
+                                            line.Length > trimmedLine.Length
+                                                ? line.Substring(0, line.IndexOf(trimmedLine))
+                                                : "";
+                                        code.AppendLine($"{indent}data.{propertyPath} = {returnExpr};");
+                                    }
+                                    else if (trimmedLine == "return;")
+                                    {
+                                        // Empty return statement - just skip it
+                                        continue;
+                                    }
+                                    else if (trimmedLine.StartsWith("return "))
+                                    {
+                                        // Multi-line return statement - collect all lines until we find the semicolon
+                                        var returnParts = new System.Text.StringBuilder();
+                                        returnParts.Append(trimmedLine.Substring(7)); // Remove "return "
+
+                                        // Save original indentation from first line
+                                        var indent =
+                                            line.Length > trimmedLine.Length
+                                                ? line.Substring(0, line.IndexOf(trimmedLine))
+                                                : "";
+
+                                        while (i + 1 < lines.Length && !line.Contains(";"))
+                                        {
+                                            i++;
+                                            line = lines[i].TrimEnd();
+                                            returnParts.Append(" ");
+                                            returnParts.Append(line.Trim());
+                                        }
+
+                                        var returnExpr = returnParts.ToString();
+                                        if (returnExpr.EndsWith(";"))
+                                        {
+                                            returnExpr = returnExpr.Substring(0, returnExpr.Length - 1);
+                                        }
+                                        code.AppendLine($"{indent}data.{propertyPath} = {returnExpr};");
+                                    }
+                                    else if (!string.IsNullOrWhiteSpace(line))
+                                    {
+                                        // Output the line as-is since it already has no indentation from the converter
+                                        code.AppendLine(line);
+                                    }
+                                }
+                                result.SuccessfulConversions++;
+                            }
+                            else
+                            {
+                                var reason = "Could not extract property name from output path";
+                                GenerateTodoStub(code, rule, reason, jsFunction.Implementation);
+                                result.FailedConversions++;
+                                result.FailedRules.Add(
+                                    new FailedRuleInfo
+                                    {
+                                        RuleName = rule.SelectedFunction ?? ruleId,
+                                        Reason = reason,
+                                        JavaScriptSource = jsFunction.Implementation,
+                                    }
+                                );
+                            }
+                        }
+                        else
+                        {
+                            var reason = "No output parameter defined";
+                            GenerateTodoStub(code, rule, reason, jsFunction.Implementation);
+                            result.FailedConversions++;
+                            result.FailedRules.Add(
+                                new FailedRuleInfo
+                                {
+                                    RuleName = rule.SelectedFunction ?? ruleId,
+                                    Reason = reason,
+                                    JavaScriptSource = jsFunction.Implementation,
+                                }
+                            );
+                        }
+                    }
+                    else
+                    {
+                        var reason = conversionResult.FailureReason ?? "Conversion failed";
+                        GenerateTodoStub(code, rule, reason, jsFunction.Implementation);
+                        result.FailedConversions++;
+                        result.FailedRules.Add(
+                            new FailedRuleInfo
+                            {
+                                RuleName = rule.SelectedFunction ?? ruleId,
+                                Reason = reason,
+                                JavaScriptSource = jsFunction.Implementation,
+                            }
+                        );
+                    }
                 }
             }
             else
@@ -275,36 +664,41 @@ internal class CSharpCodeGenerator
                 );
             }
 
-            code.AppendLine("        await Task.CompletedTask;");
-            code.AppendLine("    }");
+            code.AppendLine("await Task.CompletedTask;");
+            code.CloseBrace();
             code.AppendLine();
         }
     }
 
-    private void GenerateTodoStub(StringBuilder code, DataProcessingRule rule, string reason, string? jsSource = null)
+    private void GenerateTodoStub(
+        IndentedStringBuilder code,
+        DataProcessingRule rule,
+        string reason,
+        string? jsSource = null
+    )
     {
-        code.AppendLine($"        // TODO: Manual conversion required - {reason}");
+        code.AppendLine($"// TODO: Manual conversion required - {reason}");
 
         if (rule.InputParams != null && rule.InputParams.Count > 0)
         {
-            code.AppendLine("        // Input parameters:");
+            code.AppendLine("// Input parameters:");
             foreach (var input in rule.InputParams)
             {
-                code.AppendLine($"        //   {input.Key} -> {input.Value}");
+                code.AppendLine($"//   {input.Key} -> {input.Value}");
             }
         }
 
         if (rule.OutParams != null && rule.OutParams.Count > 0)
         {
-            code.AppendLine("        // Output parameters:");
+            code.AppendLine("// Output parameters:");
             foreach (var output in rule.OutParams)
             {
-                code.AppendLine($"        //   {output.Key} -> {output.Value}");
+                code.AppendLine($"//   {output.Key} -> {output.Value}");
             }
         }
 
         code.AppendLine();
-        code.AppendLine("        throw new NotImplementedException(\"This rule requires manual conversion\");");
+        code.AppendLine("throw new NotImplementedException(\"This rule requires manual conversion\");");
     }
 
     private string SanitizeClassName(string name)
@@ -330,6 +724,32 @@ internal class CSharpCodeGenerator
         return char.ToUpper(input[0]) + input[1..];
     }
 
+    private string? InferOutputFieldFromRuleName(string ruleConnectionName, string? functionName)
+    {
+        // Try to infer output field from rule connection name
+        // Pattern: {target-field}-{function-name} -> extract target-field
+        // Example: "02-gjester-sum" with function "sum" -> "02-gjester"
+
+        if (string.IsNullOrEmpty(functionName))
+        {
+            return null;
+        }
+
+        // Try to remove "-{functionName}" suffix from the rule connection name
+        var suffix = $"-{functionName}";
+        if (ruleConnectionName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+        {
+            var targetField = ruleConnectionName.Substring(0, ruleConnectionName.Length - suffix.Length);
+            if (!string.IsNullOrEmpty(targetField))
+            {
+                // Return the inferred field name (it will be sanitized by ExtractPropertyNameFromPath)
+                return targetField;
+            }
+        }
+
+        return null;
+    }
+
     private string? ExtractPropertyNameFromPath(string dataModelPath)
     {
         // Data model paths are like "Group-grp-123.SubGroup-grp-456.PropertyName-datadef-789.value"
@@ -348,6 +768,15 @@ internal class CSharpCodeGenerator
     {
         // The C# model generator removes hyphens but keeps letters, digits, and underscores
         // This matches the auto-generated model property naming convention
-        return new string(propertyName.Where(c => char.IsLetterOrDigit(c) || c == '_').ToArray());
+        var sanitized = new string(propertyName.Where(c => char.IsLetterOrDigit(c) || c == '_').ToArray());
+
+        // C# identifiers cannot start with a digit. If the sanitized name starts with a digit,
+        // prefix it with an underscore (common convention in auto-generated code)
+        if (!string.IsNullOrEmpty(sanitized) && char.IsDigit(sanitized[0]))
+        {
+            sanitized = "_" + sanitized;
+        }
+
+        return sanitized;
     }
 }
