@@ -123,6 +123,7 @@ internal class CSharpCodeGenerator
         code.AppendLine("using System.Threading.Tasks;");
         code.AppendLine("using Altinn.App.Core.Features;");
         code.AppendLine("using Altinn.App.Core.Models;");
+        code.AppendLine("using Altinn.App.Core.Internal.Data;");
 
         if (_dataModelInfo?.Namespace != null)
         {
@@ -151,7 +152,7 @@ internal class CSharpCodeGenerator
         code.AppendLine("return;");
         code.CloseBrace();
         code.AppendLine();
-        code.AppendLine($"var data = ({dataClassName})change.CurrentFormData;");
+        code.AppendLine("var wrapper = change.CurrentFormDataWrapper;");
         code.AppendLine();
 
         foreach (var ruleEntry in _rules)
@@ -166,7 +167,7 @@ internal class CSharpCodeGenerator
             }
 
             var methodName = SanitizeFunctionName(ruleId);
-            code.AppendLine($"await Rule_{methodName}(data);");
+            code.AppendLine($"await Rule_{methodName}(wrapper);");
         }
 
         code.CloseBrace();
@@ -414,7 +415,7 @@ internal class CSharpCodeGenerator
             var methodName = SanitizeFunctionName(ruleId);
             var jsFunction = _jsParser.GetDataProcessingFunction(rule.SelectedFunction ?? "");
 
-            code.AppendLine($"private async Task Rule_{methodName}({dataClassName} data)");
+            code.AppendLine($"private async Task Rule_{methodName}(IFormDataWrapper wrapper)");
             code.OpenBrace();
 
             if (jsFunction != null)
@@ -442,22 +443,18 @@ internal class CSharpCodeGenerator
                         outputFieldPath = InferOutputFieldFromRuleName(ruleId, rule.SelectedFunction);
                     }
 
-                    var propertyPath = !string.IsNullOrEmpty(outputFieldPath)
-                        ? ExtractPropertyNameFromPath(outputFieldPath)
-                        : null;
-
-                    if (propertyPath != null && rule.InputParams != null && rule.InputParams.Count > 0)
+                    if (
+                        !string.IsNullOrEmpty(outputFieldPath)
+                        && rule.InputParams != null
+                        && rule.InputParams.Count > 0
+                    )
                     {
                         // Create a dictionary with the input parameter mappings
                         code.AppendLine("var inputObj = new Dictionary<string, object?>");
                         code.OpenBrace();
                         foreach (var inputParam in rule.InputParams)
                         {
-                            var fieldPath = ExtractPropertyNameFromPath(inputParam.Value);
-                            if (fieldPath != null)
-                            {
-                                code.AppendLine($"[\"{inputParam.Key}\"] = data.{fieldPath},");
-                            }
+                            code.AppendLine($"[\"{inputParam.Key}\"] = wrapper.Get(\"{inputParam.Value}\"),");
                         }
                         code.Unindent();
                         code.AppendLine("};");
@@ -466,15 +463,16 @@ internal class CSharpCodeGenerator
                         // Call the helper method
                         var helperMethodName = SanitizeFunctionName(functionName);
                         code.AppendLine($"var result = Helper_{helperMethodName}(inputObj);");
-                        // Cast result to dynamic to allow implicit conversion to target property type
-                        code.AppendLine($"data.{propertyPath} = (dynamic?)result;");
+                        // Set the result using wrapper.Set()
+                        code.AppendLine($"wrapper.Set(\"{outputFieldPath}\", result);");
 
                         result.SuccessfulConversions++;
                     }
                     else
                     {
-                        var reason =
-                            propertyPath == null ? "Could not determine output field" : "No input parameters defined";
+                        var reason = string.IsNullOrEmpty(outputFieldPath)
+                            ? "Could not determine output field"
+                            : "No input parameters defined";
                         GenerateTodoStub(code, rule, reason, jsFunction.Implementation);
                         result.FailedConversions++;
                         result.FailedRules.Add(
@@ -502,7 +500,8 @@ internal class CSharpCodeGenerator
                     // Try to convert to C#
                     var converter = new StatementConverter(
                         rule.InputParams ?? new Dictionary<string, string>(),
-                        "data"
+                        "wrapper",
+                        useFormDataWrapper: true
                     );
                     CSharpConversionResult conversionResult;
 
@@ -535,88 +534,69 @@ internal class CSharpCodeGenerator
 
                         if (!string.IsNullOrEmpty(outputFieldPath))
                         {
-                            // Extract property path from data model path (returns dotted path like "Grp1.Grp2.Prop")
-                            var propertyPath = ExtractPropertyNameFromPath(outputFieldPath);
-                            if (propertyPath != null)
-                            {
-                                // The generated code already has proper indentation from IndentedStringBuilder
-                                // Split by newlines to process statements and replace return statements with assignments
-                                var lines = conversionResult.GeneratedCode.Split(
-                                    new[] { '\n', '\r' },
-                                    StringSplitOptions.RemoveEmptyEntries
-                                );
+                            // The generated code already has proper indentation from IndentedStringBuilder
+                            // Split by newlines to process statements and replace return statements with assignments
+                            var lines = conversionResult.GeneratedCode.Split(
+                                new[] { '\n', '\r' },
+                                StringSplitOptions.RemoveEmptyEntries
+                            );
 
-                                // Process each line and replace return statements with assignments
-                                for (int i = 0; i < lines.Length; i++)
+                            // Process each line and replace return statements with wrapper.Set() calls
+                            for (int i = 0; i < lines.Length; i++)
+                            {
+                                var line = lines[i].TrimEnd();
+                                var trimmedLine = line.Trim();
+
+                                // If this line is a return statement, convert it to a wrapper.Set() call
+                                if (trimmedLine.StartsWith("return ") && trimmedLine.EndsWith(";"))
                                 {
-                                    var line = lines[i].TrimEnd();
-                                    var trimmedLine = line.Trim();
-
-                                    // If this line is a return statement, convert it to an assignment
-                                    if (trimmedLine.StartsWith("return ") && trimmedLine.EndsWith(";"))
-                                    {
-                                        var returnExpr = trimmedLine.Substring(7, trimmedLine.Length - 8); // Extract expression between "return " and ";"
-                                        // Preserve the original indentation
-                                        var indent =
-                                            line.Length > trimmedLine.Length
-                                                ? line.Substring(0, line.IndexOf(trimmedLine))
-                                                : "";
-                                        code.AppendLine($"{indent}data.{propertyPath} = {returnExpr};");
-                                    }
-                                    else if (trimmedLine == "return;")
-                                    {
-                                        // Empty return statement - just skip it
-                                        continue;
-                                    }
-                                    else if (trimmedLine.StartsWith("return "))
-                                    {
-                                        // Multi-line return statement - collect all lines until we find the semicolon
-                                        var returnParts = new System.Text.StringBuilder();
-                                        returnParts.Append(trimmedLine.Substring(7)); // Remove "return "
-
-                                        // Save original indentation from first line
-                                        var indent =
-                                            line.Length > trimmedLine.Length
-                                                ? line.Substring(0, line.IndexOf(trimmedLine))
-                                                : "";
-
-                                        while (i + 1 < lines.Length && !line.Contains(";"))
-                                        {
-                                            i++;
-                                            line = lines[i].TrimEnd();
-                                            returnParts.Append(" ");
-                                            returnParts.Append(line.Trim());
-                                        }
-
-                                        var returnExpr = returnParts.ToString();
-                                        if (returnExpr.EndsWith(";"))
-                                        {
-                                            returnExpr = returnExpr.Substring(0, returnExpr.Length - 1);
-                                        }
-                                        code.AppendLine($"{indent}data.{propertyPath} = {returnExpr};");
-                                    }
-                                    else if (!string.IsNullOrWhiteSpace(line))
-                                    {
-                                        // Output the line as-is since it already has no indentation from the converter
-                                        code.AppendLine(line);
-                                    }
+                                    var returnExpr = trimmedLine.Substring(7, trimmedLine.Length - 8); // Extract expression between "return " and ";"
+                                    // Preserve the original indentation
+                                    var indent =
+                                        line.Length > trimmedLine.Length
+                                            ? line.Substring(0, line.IndexOf(trimmedLine))
+                                            : "";
+                                    code.AppendLine($"{indent}wrapper.Set(\"{outputFieldPath}\", {returnExpr});");
                                 }
-                                result.SuccessfulConversions++;
-                            }
-                            else
-                            {
-                                var reason = "Could not extract property name from output path";
-                                GenerateTodoStub(code, rule, reason, jsFunction.Implementation);
-                                result.FailedConversions++;
-                                result.FailedRules.Add(
-                                    new FailedRuleInfo
+                                else if (trimmedLine == "return;")
+                                {
+                                    // Empty return statement - just skip it
+                                    continue;
+                                }
+                                else if (trimmedLine.StartsWith("return "))
+                                {
+                                    // Multi-line return statement - collect all lines until we find the semicolon
+                                    var returnParts = new System.Text.StringBuilder();
+                                    returnParts.Append(trimmedLine.Substring(7)); // Remove "return "
+
+                                    // Save original indentation from first line
+                                    var indent =
+                                        line.Length > trimmedLine.Length
+                                            ? line.Substring(0, line.IndexOf(trimmedLine))
+                                            : "";
+
+                                    while (i + 1 < lines.Length && !line.Contains(";"))
                                     {
-                                        RuleName = rule.SelectedFunction ?? ruleId,
-                                        Reason = reason,
-                                        JavaScriptSource = jsFunction.Implementation,
+                                        i++;
+                                        line = lines[i].TrimEnd();
+                                        returnParts.Append(" ");
+                                        returnParts.Append(line.Trim());
                                     }
-                                );
+
+                                    var returnExpr = returnParts.ToString();
+                                    if (returnExpr.EndsWith(";"))
+                                    {
+                                        returnExpr = returnExpr.Substring(0, returnExpr.Length - 1);
+                                    }
+                                    code.AppendLine($"{indent}wrapper.Set(\"{outputFieldPath}\", {returnExpr});");
+                                }
+                                else if (!string.IsNullOrWhiteSpace(line))
+                                {
+                                    // Output the line as-is since it already has no indentation from the converter
+                                    code.AppendLine(line);
+                                }
                             }
+                            result.SuccessfulConversions++;
                         }
                         else
                         {
