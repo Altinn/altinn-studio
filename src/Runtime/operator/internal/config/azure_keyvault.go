@@ -32,7 +32,7 @@ func loadSecretsFromKeyVault(ctx context.Context, environment string, cfg *Confi
 		return fmt.Errorf("error getting credentials for loading secrets: %w", err)
 	}
 
-	url := fmt.Sprintf("https://altinn-%s-operator-kv.vault.azure.net", environment)
+	url := fmt.Sprintf("https://mpo-%s-kv.vault.azure.net/", environment)
 	client, err := azsecrets.NewClient(url, cred, nil)
 	if err != nil {
 		return fmt.Errorf("error building client for Azure KV: %w", err)

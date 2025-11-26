@@ -40,6 +40,9 @@ spec:
   force: false
   wait: true
   path: ./${ENVIRONMENT}
+  postBuild:
+    substitute:
+      OPERATOR_ENTRA_CLIENT_ID: ${STUDIO_OPERATOR_CLIENT_ID}
   sourceRef:
     kind: OCIRepository
     name: operator-app-repo

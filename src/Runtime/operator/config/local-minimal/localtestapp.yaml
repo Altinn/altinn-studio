@@ -37,7 +37,7 @@ spec:
     ipv6:
       enabled: false
     linkerd:
-      enabled: false
+      enabled: true
     volumeMounts: []
     volumes: []
     ingressRoute:
