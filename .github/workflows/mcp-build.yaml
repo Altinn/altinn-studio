@@ -1,0 +1,39 @@
+name: MCP Build
+
+on:
+  pull_request:
+    paths:
+      - 'src/AI/mcp**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v5
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      working-directory: src/AI/mcp
+      run: uv pip install --system .
+
+    - name: Start MCP server
+      working-directory: src/AI/mcp
+      run: |
+        uv run -m server.main > server.log 2>&1 &
+      env:
+        AZURE_API_KEY: ${{ secrets.AZURE_AI_KEY }}
+
+    - name: Wait for docs indexing to complete
+      working-directory: src/AI/mcp
+      timeout-minutes: 3
+      run: |
+        until grep -q "Application startup complete" server.log; do
+          echo "Waiting for indexing to complete..."
+          sleep 2
+        done
