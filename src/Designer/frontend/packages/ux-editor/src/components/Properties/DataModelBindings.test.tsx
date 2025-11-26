@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DataModelBindings } from './DataModelBindings';
 import { FormItemContext } from '../../containers/FormItemContext';
@@ -292,6 +292,9 @@ describe('DataModelBindings', () => {
     const dataModelFieldSelector = screen.getByRole('combobox', {
       name: textMock('ux_editor.modal_properties_data_model_field_binding'),
     });
+    await waitFor(() => {
+      expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalled();
+    });
     const option = screen.getByRole('option', { name: defaultModel });
     await user.selectOptions(dataModelFieldSelector, option);
 
@@ -300,8 +303,8 @@ describe('DataModelBindings', () => {
     });
     await user.click(saveButton);
 
-    expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);
-    expect(formItemContextProviderMock.debounceSave).toHaveBeenCalledTimes(1);
+    expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(2);
+    expect(formItemContextProviderMock.debounceSave).toHaveBeenCalledTimes(2);
   });
 });
 

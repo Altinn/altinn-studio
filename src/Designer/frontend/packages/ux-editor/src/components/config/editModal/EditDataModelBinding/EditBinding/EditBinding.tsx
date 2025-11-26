@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 import type { FormItem } from '../../../../../types/FormItem';
 import { SelectDataModelBinding } from './SelectDataModelBinding';
 import { SelectDataFieldBinding } from './SelectDataFieldBinding';
 import {
+  getDataModelFields,
   getMaxOccursFromDataModelFields,
   getMinOccursFromDataModelFields,
   getXsdDataTypeFromDataModelFields,
@@ -40,46 +41,88 @@ export const EditBinding = ({
   const { t } = useTranslation();
   const { updateLayoutsForPreview } = useAppContext();
   const { layoutSet } = useUxEditorParams();
-  const { dataModelMetadata, isLoadingDataModels } = useValidDataModels(
+  const { dataModelMetadata, isLoadingDataModels, selectedDataModel } = useValidDataModels(
     internalBindingFormat?.dataType,
   );
 
-  const handleBindingChange = (updatedBinding?: ExplicitDataModelBinding) => {
-    const selectedDataFieldElement = updatedBinding?.field;
-
-    const value =
-      updatedBinding ??
-      formItemConfigs[component.type]?.defaultProperties?.['dataModelBindings']?.[bindingKey];
-
-    const dataModelBindings = { ...component.dataModelBindings };
-    if (value === undefined || value === null) {
-      delete dataModelBindings[bindingKey];
-    } else {
-      dataModelBindings[bindingKey] = value;
-    }
-
-    handleComponentChange(
-      {
-        ...component,
-        dataModelBindings: Object.keys(dataModelBindings).length ? dataModelBindings : undefined,
-        required: getMinOccursFromDataModelFields(selectedDataFieldElement, dataModelMetadata),
-        timeStamp: getXsdDataTypeFromDataModelFields(
-          component.type,
-          selectedDataFieldElement,
-          dataModelMetadata,
-        ),
-        maxCount: getMaxOccursFromDataModelFields(
-          component.type,
-          selectedDataFieldElement,
-          dataModelMetadata,
-        ),
-      } as FormItem,
-      {
-        onSuccess: async () => {
-          await updateLayoutsForPreview(layoutSet, true);
+  const saveBinding = useCallback(
+    (updatedBinding?: ExplicitDataModelBinding) => {
+      const selectedDataFieldElement = updatedBinding?.field;
+      const value =
+        updatedBinding ??
+        formItemConfigs[component.type]?.defaultProperties?.['dataModelBindings']?.[bindingKey];
+      const dataModelBindings = { ...component.dataModelBindings };
+      if (value === undefined || value === null) {
+        delete dataModelBindings[bindingKey];
+      } else {
+        dataModelBindings[bindingKey] = value;
+      }
+      handleComponentChange(
+        {
+          ...component,
+          dataModelBindings: Object.keys(dataModelBindings).length ? dataModelBindings : undefined,
+          required: getMinOccursFromDataModelFields(selectedDataFieldElement, dataModelMetadata),
+          timeStamp: getXsdDataTypeFromDataModelFields(
+            component.type,
+            selectedDataFieldElement,
+            dataModelMetadata,
+          ),
+          maxCount: getMaxOccursFromDataModelFields(
+            component.type,
+            selectedDataFieldElement,
+            dataModelMetadata,
+          ),
+        } as FormItem,
+        {
+          onSuccess: async () => {
+            await updateLayoutsForPreview(layoutSet, true);
+          },
         },
-      },
-    );
+      );
+    },
+    [
+      component,
+      bindingKey,
+      dataModelMetadata,
+      handleComponentChange,
+      layoutSet,
+      updateLayoutsForPreview,
+    ],
+  );
+
+  const handleAutoSave = useCallback(() => {
+    const dataModelFields = getDataModelFields({
+      componentType: component.type,
+      bindingKey,
+      dataModelMetadata,
+    });
+    const firstField = dataModelFields[0];
+    const dataTypeToUse = binding?.dataType || selectedDataModel;
+
+    if (dataTypeToUse && dataModelMetadata && !binding?.field && firstField?.value) {
+      const autoBinding = {
+        field: firstField.value,
+        dataType: dataTypeToUse,
+      };
+      setBinding(autoBinding);
+      saveBinding(autoBinding);
+    }
+  }, [
+    selectedDataModel,
+    dataModelMetadata,
+    binding?.field,
+    binding?.dataType,
+    component.type,
+    bindingKey,
+    saveBinding,
+  ]);
+
+  useEffect(() => {
+    handleAutoSave();
+  }, [handleAutoSave]);
+
+  const handleBindingChange = (updatedBinding?: ExplicitDataModelBinding) => {
+    saveBinding(updatedBinding);
     onSetDataModelSelectVisible(false);
   };
 

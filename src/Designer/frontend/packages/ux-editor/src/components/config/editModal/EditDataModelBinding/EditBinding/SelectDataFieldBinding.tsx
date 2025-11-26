@@ -40,6 +40,9 @@ export const SelectDataFieldBinding = ({
   );
   const componentPropertyHelpText = useComponentPropertyHelpText();
 
+  const selectedDataField =
+    currentDataModelField || (dataModelFields.length > 0 ? dataModelFields[0]?.value : '');
+
   const handleDataModelFieldChange = (updatedDataModelField: string) => {
     const updatedDataModelBinding = {
       field: updatedDataModelField,
@@ -58,7 +61,7 @@ export const SelectDataFieldBinding = ({
     <FormField
       id={`selectDataModelField-${bindingKey}`}
       onChange={handleDataModelFieldChange}
-      value={isBindingError ? '' : currentDataModelField}
+      value={isBindingError ? '' : selectedDataField}
       propertyPath={propertyPath}
       helpText={componentPropertyHelpText(`data_model_bindings.${bindingKey}`)}
       label={t('ux_editor.modal_properties_data_model_field_binding')}
