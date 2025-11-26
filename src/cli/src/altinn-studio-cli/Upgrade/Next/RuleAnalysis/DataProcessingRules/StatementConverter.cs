@@ -45,7 +45,7 @@ internal class StatementConverter
 
         try
         {
-            var code = new StringBuilder();
+            var code = new IndentedStringBuilder();
             var body = function.Body;
 
             if (body is BlockStatement blockBody)
@@ -59,25 +59,25 @@ internal class StatementConverter
                         if (returnStmt.Argument != null)
                         {
                             var returnCode = ConvertExpression(returnStmt.Argument);
-                            code.Append(returnCode);
+                            code.AppendLine($"return {returnCode};");
+                        }
+                        else
+                        {
+                            code.AppendLine("return null;");
                         }
                         break; // Stop after return statement
                     }
                     else
                     {
                         // Convert and append other statements
-                        var stmtCode = ConvertStatement(statement);
-                        if (!string.IsNullOrEmpty(stmtCode))
-                        {
-                            code.AppendLine(stmtCode);
-                        }
+                        ConvertStatementWithIndent(statement, code);
                     }
                 }
             }
             else if (body is Expression expr)
             {
                 // Arrow function with expression body
-                code.Append(ConvertExpression(expr));
+                code.AppendLine($"return {ConvertExpression(expr)};");
             }
 
             result.Success = true;
@@ -122,35 +122,158 @@ internal class StatementConverter
     }
 
     /// <summary>
-    /// Convert a JavaScript statement to C# code
+    /// Convert a JavaScript statement to C# code and write it with proper indentation
     /// </summary>
-    private string ConvertStatement(Statement statement)
+    private void ConvertStatementWithIndent(Statement statement, IndentedStringBuilder code)
     {
-        return statement switch
+        switch (statement)
         {
-            ExpressionStatement exprStmt => ConvertExpressionStatement(exprStmt),
-            VariableDeclaration varDecl => ConvertVariableDeclaration(varDecl),
-            IfStatement ifStmt => ConvertIfStatement(ifStmt),
-            EmptyStatement => string.Empty, // Empty statements (just semicolons) can be ignored
-            _ => throw new NotSupportedException($"Statement type {statement.Type} not supported for C# conversion"),
-        };
+            case ExpressionStatement exprStmt:
+                ConvertExpressionStatement(exprStmt, code);
+                break;
+            case VariableDeclaration varDecl:
+                ConvertVariableDeclaration(varDecl, code);
+                break;
+            case IfStatement ifStmt:
+                ConvertIfStatement(ifStmt, code);
+                break;
+            case ReturnStatement returnStmt:
+                if (returnStmt.Argument != null)
+                {
+                    var returnCode = ConvertExpression(returnStmt.Argument);
+                    code.AppendLine($"return {returnCode};");
+                }
+                else
+                {
+                    code.AppendLine("return null;");
+                }
+                break;
+            case EmptyStatement:
+                // Empty statements (just semicolons) can be ignored
+                break;
+            default:
+                throw new NotSupportedException($"Statement type {statement.Type} not supported for C# conversion");
+        }
     }
 
-    private string ConvertExpressionStatement(ExpressionStatement exprStmt)
+    private void ConvertExpressionStatement(ExpressionStatement exprStmt, IndentedStringBuilder code)
     {
         // Expression statements are typically assignments like: ikkeFordelt = 100 - (tall1 + tall2 + tall3);
         if (exprStmt.Expression is AssignmentExpression assignment)
         {
-            return ConvertAssignmentExpression(assignment);
+            ConvertAssignmentExpression(assignment, code);
+            return;
+        }
+
+        // Handle forEach calls
+        if (exprStmt.Expression is CallExpression call)
+        {
+            ConvertCallExpressionStatement(call, code);
+            return;
+        }
+
+        // Handle standalone conditional expressions that don't assign to anything
+        // These are typically side-effect-free expressions like: obj.prodVareMat ? obj.prodVareMat : 0;
+        // In JavaScript, these don't do anything useful, so we can safely skip them
+        if (exprStmt.Expression is ConditionalExpression)
+        {
+            // Skip these no-op expressions
+            return;
         }
 
         throw new NotSupportedException($"Expression statement pattern not supported");
     }
 
-    private string ConvertVariableDeclaration(VariableDeclaration varDecl)
+    private void ConvertCallExpressionStatement(CallExpression call, IndentedStringBuilder code)
     {
-        var code = new StringBuilder();
+        // Handle forEach method calls
+        if (call.Callee is MemberExpression member && member.Property is Identifier methodName)
+        {
+            if (methodName.Name == "forEach")
+            {
+                // Convert array.forEach(callback) to foreach loop
+                ConvertForEachToForeach(member.Object, call, code);
+                return;
+            }
+        }
 
+        throw new NotSupportedException($"Call expression statement not supported");
+    }
+
+    private void ConvertForEachToForeach(Expression arrayExpr, CallExpression forEachCall, IndentedStringBuilder code)
+    {
+        // Expects: array.forEach(item => { ... })
+        if (forEachCall.Arguments.Count == 0)
+        {
+            throw new NotSupportedException("forEach requires a callback function");
+        }
+
+        var callback = forEachCall.Arguments[0];
+
+        // Extract the parameter name and body from the arrow function
+        string paramName;
+        Statement[]? bodyStatements = null;
+        Expression? bodyExpression = null;
+
+        if (callback is ArrowFunctionExpression arrow)
+        {
+            if (arrow.Params.Count != 1 || arrow.Params[0] is not Identifier param)
+            {
+                throw new NotSupportedException("forEach callback must have exactly one parameter");
+            }
+            paramName = param.Name;
+
+            if (arrow.Body is BlockStatement blockBody)
+            {
+                bodyStatements = blockBody.Body.ToArray();
+            }
+            else if (arrow.Body is Expression expr)
+            {
+                bodyExpression = expr;
+            }
+            else
+            {
+                throw new NotSupportedException("forEach callback body not supported");
+            }
+        }
+        else
+        {
+            throw new NotSupportedException("forEach callback must be an arrow function");
+        }
+
+        // Track the parameter as a local variable
+        _localVariables[paramName] = paramName;
+
+        // Convert the array expression
+        var arrayCode = ConvertExpression(arrayExpr);
+
+        // Generate the foreach loop
+        code.AppendLine($"foreach (var {paramName} in {arrayCode})");
+        code.OpenBrace();
+
+        if (bodyStatements != null)
+        {
+            // Convert each statement in the block
+            foreach (var stmt in bodyStatements)
+            {
+                ConvertStatementWithIndent(stmt, code);
+            }
+        }
+        else if (bodyExpression != null)
+        {
+            // Convert single expression
+            var exprCode = ConvertExpression(bodyExpression);
+            code.AppendLine($"{exprCode};");
+        }
+
+        code.CloseBrace();
+
+        // Remove the parameter from local variables after the loop
+        _localVariables.Remove(paramName);
+    }
+
+    private void ConvertVariableDeclaration(VariableDeclaration varDecl, IndentedStringBuilder code)
+    {
         foreach (var declarator in varDecl.Declarations)
         {
             if (declarator.Id is Identifier identifier)
@@ -161,111 +284,201 @@ internal class StatementConverter
                 if (declarator.Init != null)
                 {
                     var initCode = ConvertExpression(declarator.Init);
-                    code.AppendLine($"        var {varName} = {initCode};");
+                    code.AppendLine($"var {varName} = {initCode};");
                 }
                 else
                 {
-                    code.AppendLine($"        var {varName};");
+                    code.AppendLine($"var {varName};");
                 }
             }
         }
-
-        return code.ToString().TrimEnd();
     }
 
-    private string ConvertIfStatement(IfStatement ifStmt)
+    private void ConvertIfStatement(IfStatement ifStmt, IndentedStringBuilder code)
     {
-        var code = new StringBuilder();
         var condition = ConvertExpression(ifStmt.Test);
-
-        code.AppendLine($"        if ({condition})");
-        code.AppendLine("        {");
+        code.AppendLine($"if ({condition})");
+        code.OpenBrace();
 
         // Convert the consequent (then branch)
         if (ifStmt.Consequent is BlockStatement block)
         {
             foreach (var stmt in block.Body)
             {
-                var stmtCode = ConvertStatementInBlock(stmt);
-                if (!string.IsNullOrEmpty(stmtCode))
-                {
-                    code.AppendLine($"    {stmtCode}");
-                }
+                ConvertStatementWithIndent(stmt, code);
             }
         }
         else
         {
-            var stmtCode = ConvertStatementInBlock(ifStmt.Consequent);
-            if (!string.IsNullOrEmpty(stmtCode))
-            {
-                code.AppendLine($"    {stmtCode}");
-            }
+            ConvertStatementWithIndent(ifStmt.Consequent, code);
         }
 
-        code.AppendLine("        }");
+        code.CloseBrace();
 
         // Handle else clause if present
         if (ifStmt.Alternate != null)
         {
-            code.AppendLine("        else");
-            code.AppendLine("        {");
-
-            if (ifStmt.Alternate is BlockStatement elseBlock)
+            if (ifStmt.Alternate is IfStatement elseIf)
             {
-                foreach (var stmt in elseBlock.Body)
+                // Handle else if - write it on the same indentation level
+                code.Append("else ");
+                var elseIfCondition = ConvertExpression(elseIf.Test);
+                code.AppendLine($"if ({elseIfCondition})");
+                code.OpenBrace();
+
+                if (elseIf.Consequent is BlockStatement elseIfBlock)
                 {
-                    var stmtCode = ConvertStatementInBlock(stmt);
-                    if (!string.IsNullOrEmpty(stmtCode))
+                    foreach (var stmt in elseIfBlock.Body)
                     {
-                        code.AppendLine($"    {stmtCode}");
+                        ConvertStatementWithIndent(stmt, code);
+                    }
+                }
+                else
+                {
+                    ConvertStatementWithIndent(elseIf.Consequent, code);
+                }
+
+                code.CloseBrace();
+
+                // Handle any further else/else if
+                if (elseIf.Alternate != null)
+                {
+                    // Temporarily create an if statement for recursion
+                    var tempIf = new IfStatement(elseIf.Test, elseIf.Consequent, elseIf.Alternate);
+                    // Manually handle the alternate without the initial if
+                    if (elseIf.Alternate is IfStatement furtherElseIf)
+                    {
+                        code.Append("else ");
+                        ConvertElseIfChain(furtherElseIf, code);
+                    }
+                    else
+                    {
+                        code.AppendLine("else");
+                        code.OpenBrace();
+                        if (elseIf.Alternate is BlockStatement finalElseBlock)
+                        {
+                            foreach (var stmt in finalElseBlock.Body)
+                            {
+                                ConvertStatementWithIndent(stmt, code);
+                            }
+                        }
+                        else
+                        {
+                            ConvertStatementWithIndent(elseIf.Alternate, code);
+                        }
+                        code.CloseBrace();
                     }
                 }
             }
-            else if (ifStmt.Alternate is IfStatement elseIf)
+            else
             {
-                // Handle else if
-                var elseIfCode = ConvertIfStatement(elseIf);
-                code.AppendLine($"    {elseIfCode.TrimStart()}");
+                code.AppendLine("else");
+                code.OpenBrace();
+
+                if (ifStmt.Alternate is BlockStatement elseBlock)
+                {
+                    foreach (var stmt in elseBlock.Body)
+                    {
+                        ConvertStatementWithIndent(stmt, code);
+                    }
+                }
+                else
+                {
+                    ConvertStatementWithIndent(ifStmt.Alternate, code);
+                }
+
+                code.CloseBrace();
+            }
+        }
+    }
+
+    private void ConvertElseIfChain(IfStatement elseIf, IndentedStringBuilder code)
+    {
+        var condition = ConvertExpression(elseIf.Test);
+        code.AppendLine($"if ({condition})");
+        code.OpenBrace();
+
+        if (elseIf.Consequent is BlockStatement block)
+        {
+            foreach (var stmt in block.Body)
+            {
+                ConvertStatementWithIndent(stmt, code);
+            }
+        }
+        else
+        {
+            ConvertStatementWithIndent(elseIf.Consequent, code);
+        }
+
+        code.CloseBrace();
+
+        if (elseIf.Alternate != null)
+        {
+            if (elseIf.Alternate is IfStatement furtherElseIf)
+            {
+                code.Append("else ");
+                ConvertElseIfChain(furtherElseIf, code);
             }
             else
             {
-                var stmtCode = ConvertStatementInBlock(ifStmt.Alternate);
-                if (!string.IsNullOrEmpty(stmtCode))
+                code.AppendLine("else");
+                code.OpenBrace();
+                if (elseIf.Alternate is BlockStatement elseBlock)
                 {
-                    code.AppendLine($"    {stmtCode}");
+                    foreach (var stmt in elseBlock.Body)
+                    {
+                        ConvertStatementWithIndent(stmt, code);
+                    }
                 }
+                else
+                {
+                    ConvertStatementWithIndent(elseIf.Alternate, code);
+                }
+                code.CloseBrace();
             }
-
-            code.AppendLine("        }");
         }
-
-        return code.ToString().TrimEnd();
     }
 
-    private string ConvertStatementInBlock(Statement statement)
+    private void ConvertAssignmentExpression(AssignmentExpression assignment, IndentedStringBuilder code)
     {
-        if (statement is ReturnStatement returnStmt)
-        {
-            // Return statements in if blocks need special handling
-            if (returnStmt.Argument != null)
-            {
-                var returnCode = ConvertExpression(returnStmt.Argument);
-                return $"return {returnCode};";
-            }
-            return "return;";
-        }
+        var operatorStr = assignment.Operator.ToString();
 
-        return ConvertStatement(statement);
-    }
-
-    private string ConvertAssignmentExpression(AssignmentExpression assignment)
-    {
         if (assignment.Left is Identifier identifier)
         {
             var varName = identifier.Name;
-            _localVariables[varName] = varName; // Track as local variable
             var rightCode = ConvertExpression(assignment.Right);
-            return $"        var {varName} = {rightCode};";
+
+            // Check if this is a compound assignment (+=, -=, *=, /=, etc.) or simple assignment (=)
+            if (operatorStr == "Assign" || operatorStr == "Assignment" || operatorStr == "=")
+            {
+                // Simple assignment - check if variable already exists
+                if (_localVariables.ContainsKey(varName))
+                {
+                    // Variable already declared, just assign
+                    code.AppendLine($"{varName} = {rightCode};");
+                }
+                else
+                {
+                    // New variable declaration
+                    _localVariables[varName] = varName;
+                    code.AppendLine($"var {varName} = {rightCode};");
+                }
+            }
+            else
+            {
+                // Compound assignment (+=, -=, etc.)
+                var op = operatorStr switch
+                {
+                    "AdditionAssignment" or "PlusAssignment" or "PlusAssign" or "+=" => "+=",
+                    "SubtractionAssignment" or "MinusAssignment" or "MinusAssign" or "-=" => "-=",
+                    "MultiplicationAssignment" or "TimesAssignment" or "TimesAssign" or "*=" => "*=",
+                    "DivisionAssignment" or "DivideAssignment" or "DivideAssign" or "/=" => "/=",
+                    "RemainderAssignment" or "ModuloAssignment" or "ModuloAssign" or "%=" => "%=",
+                    _ => throw new NotSupportedException($"Assignment operator {operatorStr} not supported"),
+                };
+                code.AppendLine($"{varName} {op} {rightCode};");
+            }
+            return;
         }
 
         // Handle member expression assignments like obj.property = value
@@ -273,7 +486,26 @@ internal class StatementConverter
         {
             var leftSide = ConvertMemberExpression(memberExpr);
             var rightCode = ConvertExpression(assignment.Right);
-            return $"        {leftSide} = {rightCode};";
+
+            // Check if this is a compound assignment or simple assignment
+            if (operatorStr == "Assign" || operatorStr == "Assignment" || operatorStr == "=")
+            {
+                code.AppendLine($"{leftSide} = {rightCode};");
+            }
+            else
+            {
+                var op = operatorStr switch
+                {
+                    "AdditionAssignment" or "PlusAssignment" or "PlusAssign" or "+=" => "+=",
+                    "SubtractionAssignment" or "MinusAssignment" or "MinusAssign" or "-=" => "-=",
+                    "MultiplicationAssignment" or "TimesAssignment" or "TimesAssign" or "*=" => "*=",
+                    "DivisionAssignment" or "DivideAssignment" or "DivideAssign" or "/=" => "/=",
+                    "RemainderAssignment" or "ModuloAssignment" or "ModuloAssign" or "%=" => "%=",
+                    _ => throw new NotSupportedException($"Assignment operator {operatorStr} not supported"),
+                };
+                code.AppendLine($"{leftSide} {op} {rightCode};");
+            }
+            return;
         }
 
         throw new NotSupportedException($"Assignment pattern not supported");
@@ -335,10 +567,40 @@ internal class StatementConverter
 
     private string ConvertRegExpLiteral(RegExpLiteral regex)
     {
-        // RegExpLiteral in Acornima needs to be inspected for the correct properties
-        // For now, we'll throw an unsupported exception as regex conversion is complex
-        // and may require looking at the Raw property to extract the pattern
-        throw new NotSupportedException("Regular expression literals require manual conversion");
+        // Extract the pattern and flags from the regex literal
+        // The Raw property contains the full regex literal like "/^\d+$/i"
+        var raw = regex.Raw ?? "";
+
+        // Extract pattern between the first / and last /
+        var lastSlash = raw.LastIndexOf('/');
+        if (lastSlash <= 0)
+        {
+            throw new NotSupportedException($"Invalid regex literal: {raw}");
+        }
+
+        var pattern = raw.Substring(1, lastSlash - 1);
+        var flags = lastSlash < raw.Length - 1 ? raw.Substring(lastSlash + 1) : "";
+
+        // Escape quotes in the pattern for C# string
+        var escapedPattern = pattern.Replace("\\", "\\\\").Replace("\"", "\\\"");
+
+        // Convert flags to C# RegexOptions
+        var options = new List<string>();
+        if (flags.Contains('i'))
+        {
+            options.Add("System.Text.RegularExpressions.RegexOptions.IgnoreCase");
+        }
+        if (flags.Contains('m'))
+        {
+            options.Add("System.Text.RegularExpressions.RegexOptions.Multiline");
+        }
+        if (flags.Contains('s'))
+        {
+            options.Add("System.Text.RegularExpressions.RegexOptions.Singleline");
+        }
+
+        // Return the pattern as a string - the caller (test method) will use it with Regex.IsMatch
+        return $"\"{escapedPattern}\"";
     }
 
     private string ConvertChainExpression(ChainExpression chain)
@@ -407,10 +669,39 @@ internal class StatementConverter
 
     private string ConvertMemberExpression(MemberExpression member)
     {
+        // Handle computed member access: obj[key] or obj[expression]
+        if (member.Computed)
+        {
+            var objCode = ConvertExpression(member.Object);
+            var propertyCode = ConvertExpression(member.Property);
+
+            // In C#, we need to use reflection or a dynamic approach for computed property access
+            // For now, we'll assume the object is a Dictionary-like structure
+            // This will need to be adjusted based on the actual data model structure
+            return $"{objCode}[{propertyCode}]";
+        }
+
         // Handle obj.property -> data.Property
         if (member.Object is Identifier objId && member.Property is Identifier propId)
         {
+            var objectName = objId.Name;
             var propertyName = propId.Name;
+
+            // Handle JavaScript Number constants
+            if (objectName == "Number")
+            {
+                return propertyName switch
+                {
+                    "MAX_SAFE_INTEGER" => "9007199254740991", // 2^53 - 1
+                    "MIN_SAFE_INTEGER" => "-9007199254740991", // -(2^53 - 1)
+                    "MAX_VALUE" => "double.MaxValue",
+                    "MIN_VALUE" => "double.Epsilon",
+                    "POSITIVE_INFINITY" => "double.PositiveInfinity",
+                    "NEGATIVE_INFINITY" => "double.NegativeInfinity",
+                    "NaN" => "double.NaN",
+                    _ => throw new NotSupportedException($"Number.{propertyName} not supported"),
+                };
+            }
 
             // Check if this property is a known input parameter
             if (_inputParams.ContainsKey(propertyName))
@@ -422,13 +713,27 @@ internal class StatementConverter
                 var propertyPath = ExtractPropertyNameFromPath(dataModelPath);
                 if (propertyPath != null)
                 {
-                    return $"{_dataVariableName}.{propertyPath}";
+                    // Only add data variable name if it's not empty
+                    return string.IsNullOrEmpty(_dataVariableName)
+                        ? propertyPath
+                        : $"{_dataVariableName}.{propertyPath}";
                 }
             }
 
+            // Check if the object is a local variable (like "obj" in helper functions)
+            // If so, just return the property name as a local variable reference
+            if (_localVariables.ContainsKey(objectName) || objectName == "obj")
+            {
+                // In helper functions with dictionary parameters, obj.property should be treated as a local variable
+                return propertyName;
+            }
+
             // Fallback: convert to Pascal case for C# property names
+            // Only add data variable name if it's not empty
             var csharpPropertyName = ToPascalCase(propertyName);
-            return $"{_dataVariableName}.{csharpPropertyName}";
+            return string.IsNullOrEmpty(_dataVariableName)
+                ? csharpPropertyName
+                : $"{_dataVariableName}.{csharpPropertyName}";
         }
 
         throw new NotSupportedException($"Member expression pattern not supported: {member}");
@@ -542,8 +847,8 @@ internal class StatementConverter
             "LogicalNot" or "!" => $"(!{argument})",
             "UnaryPlus" or "Plus" or "+" => ConvertUnaryPlus(unary.Argument),
             "UnaryMinus" or "Minus" or "-" => $"(-{argument})",
-            "UnaryNegation" or "~" => $"(~{argument})",
-            _ => throw new NotSupportedException($"Unary operator {operatorStr} not supported"),
+            "UnaryNegation" or "BitwiseNot" or "~" => $"(~{argument})",
+            _ => throw new NotSupportedException($"Unary operator '{operatorStr}' not supported"),
         };
     }
 
@@ -678,7 +983,17 @@ internal class StatementConverter
                     if (call.Arguments.Count > 0)
                     {
                         var searchValue = ConvertExpression(call.Arguments[0]);
-                        return $"{obj}{nullConditional}.Contains({searchValue})";
+                        // When using null-conditional operator, Contains returns bool? which needs == true for logical operations
+                        // For local variables that might be object?, we need to convert to string first
+                        if (isLocalVariable)
+                        {
+                            // Local variable - check if it needs ToString() for object? type
+                            return $"({obj}?.ToString()?.Contains({searchValue}) == true)";
+                        }
+                        else
+                        {
+                            return $"({obj}?.Contains({searchValue}) == true)";
+                        }
                     }
                     throw new NotSupportedException("includes method requires an argument");
 
@@ -693,12 +1008,14 @@ internal class StatementConverter
 
                 case "toFixed":
                     // number.toFixed(decimals) -> Math.Round(number, decimals)
+                    // Note: toFixed in JS converts to string, but we'll use Math.Round for numeric result
                     if (call.Arguments.Count > 0)
                     {
                         var decimals = ConvertExpression(call.Arguments[0]);
-                        return $"Math.Round({obj} ?? 0, {decimals})";
+                        // Don't add ?? 0 here as it may cause type conflicts when obj is already non-nullable
+                        return $"Math.Round({obj}, {decimals})";
                     }
-                    return $"Math.Round({obj} ?? 0, 0)";
+                    return $"Math.Round({obj}, 0)";
 
                 case "parseInt":
                     // parseInt(str) -> int.Parse(str)
@@ -731,9 +1048,10 @@ internal class StatementConverter
                     throw new NotSupportedException("test method requires an argument");
 
                 case "forEach":
-                    // forEach is complex and often requires restructuring
+                    // forEach when used as an expression (not statement) is not supported
+                    // It should be used as a statement instead
                     throw new NotSupportedException(
-                        "forEach method requires manual conversion - use a foreach loop instead"
+                        "forEach as an expression is not supported - it should be used as a statement"
                     );
 
                 default:

@@ -35,6 +35,18 @@ internal class BuildVerifier
 
         try
         {
+            // First, run dotnet restore
+            var restoreResult = RunDotnetCommand("restore", timeoutSeconds / 2);
+            if (!restoreResult.Success)
+            {
+                result.Success = false;
+                result.Errors.AddRange(restoreResult.Errors);
+                result.Output = restoreResult.Output;
+                result.ErrorOutput = restoreResult.ErrorOutput;
+                return result;
+            }
+
+            // Then run the build
             var processStartInfo = new ProcessStartInfo
             {
                 FileName = "dotnet",
@@ -99,6 +111,81 @@ internal class BuildVerifier
         {
             result.Success = false;
             result.Errors.Add($"Exception during build: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    private BuildVerificationResult RunDotnetCommand(string command, int timeoutSeconds)
+    {
+        var result = new BuildVerificationResult();
+
+        try
+        {
+            var processStartInfo = new ProcessStartInfo
+            {
+                FileName = "dotnet",
+                Arguments = command,
+                WorkingDirectory = _appBasePath,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+
+            var outputBuilder = new StringBuilder();
+            var errorBuilder = new StringBuilder();
+
+            using var process = new Process { StartInfo = processStartInfo };
+
+            process.OutputDataReceived += (sender, args) =>
+            {
+                if (args.Data != null)
+                {
+                    outputBuilder.AppendLine(args.Data);
+                }
+            };
+
+            process.ErrorDataReceived += (sender, args) =>
+            {
+                if (args.Data != null)
+                {
+                    errorBuilder.AppendLine(args.Data);
+                }
+            };
+
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+
+            var completed = process.WaitForExit(timeoutSeconds * 1000);
+
+            if (!completed)
+            {
+                process.Kill();
+                result.Success = false;
+                result.Errors.Add($"Command '{command}' timed out after {timeoutSeconds} seconds");
+                return result;
+            }
+
+            result.Output = outputBuilder.ToString();
+            result.ErrorOutput = errorBuilder.ToString();
+
+            // Parse output for errors
+            ParseBuildOutput(result.Output, result);
+            ParseBuildOutput(result.ErrorOutput, result);
+
+            result.Success = process.ExitCode == 0;
+
+            if (!result.Success && result.Errors.Count == 0)
+            {
+                result.Errors.Add($"Command '{command}' failed with exit code {process.ExitCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            result.Success = false;
+            result.Errors.Add($"Exception during '{command}': {ex.Message}");
         }
 
         return result;
