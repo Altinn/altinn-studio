@@ -35,6 +35,7 @@ import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvi
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { PartySelectionWrapper } from 'src/features/instantiate/containers/PartySelection';
+import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
 import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
 import { LanguageProvider } from 'src/features/language/LanguageProvider';
 import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
@@ -85,10 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
                   router={createBrowserRouter(
                     [
                       {
-                        path: '/:org/:app/instance-selection',
-                        element: <div>hello</div>, //<InstanceSelectionWrapper />,
-                      },
-                      {
                         path: '/:org/:app/*',
                         loader: createLanguageLoader({
                           queryClient: defaultQueryClient,
@@ -127,6 +124,10 @@ document.addEventListener('DOMContentLoaded', () => {
                           </NavigationEffectProvider>
                         ),
                         children: [
+                          {
+                            path: 'instance-selection',
+                            element: <InstanceSelectionWrapper />,
+                          },
                           {
                             path: 'party-selection',
                             element: <PartySelectionWrapper />,
