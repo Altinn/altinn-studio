@@ -7,7 +7,7 @@ import { type BackendValidationIssue } from '..';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { useAsRef } from 'src/hooks/useAsRef';
 import type { fetchBackendValidations } from 'src/http-client/queries';
 

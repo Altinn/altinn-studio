@@ -4,8 +4,8 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useQueryWithStaleData } from 'src/core/queries/useQueryWithStaleData';
-import { useCurrentLanguage, useIsCurrentLanguageResolved } from 'src/features/language/LanguageProvider';
 import { resourcesAsMap } from 'src/features/language/textResources/resourcesAsMap';
+import { useCurrentLanguage, useIsCurrentLanguageResolved } from 'src/features/language/useAppLanguages';
 import type { ITextResourceResult, TextResourceMap } from 'src/features/language/textResources/index';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
@@ -48,23 +48,3 @@ const { Provider, useCtx, useHasProvider } = delayedContext(() =>
 export const TextResourcesProvider = Provider;
 export const useTextResources = () => useCtx();
 export const useHasTextResources = () => useHasProvider();
-
-// import { useMemo } from 'react';
-// import type { PropsWithChildren } from 'react';
-//
-// import { resourcesAsMap } from 'src/features/language/textResources/resourcesAsMap';
-// import type { TextResourceMap } from 'src/features/language/textResources/index';
-//
-// export const useTextResources = (): TextResourceMap =>
-//   useMemo(() => {
-//     const data = window.AltinnAppData?.textResources;
-//     if (!data) {
-//       return {};
-//     }
-//     return resourcesAsMap(data.resources);
-//   }, []);
-//
-// export const useHasTextResources = () => true;
-//
-// // Legacy export for backward compatibility
-// export const TextResourcesProvider = ({ children }: PropsWithChildren) => children;

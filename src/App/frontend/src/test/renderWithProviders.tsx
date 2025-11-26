@@ -28,7 +28,6 @@ import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvi
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider, instanceQueries } from 'src/features/instance/InstanceContext';
-import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
 import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
@@ -302,27 +301,27 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
       {...queries}
       queryClient={queryClient}
     >
-      <LangToolsStoreProvider>
-        <UiConfigProvider>
-          <PageNavigationProvider>
-            <Router>
-              <NavigationEffectProvider>
-                <GlobalFormDataReadersProvider>
-                  <OrgsProvider>
-                    <ApplicationSettingsProvider>
-                      <LayoutSetsProvider>
-                        <PartyProvider>
-                          <TextResourcesProvider>{children}</TextResourcesProvider>
-                        </PartyProvider>
-                      </LayoutSetsProvider>
-                    </ApplicationSettingsProvider>
-                  </OrgsProvider>
-                </GlobalFormDataReadersProvider>
-              </NavigationEffectProvider>
-            </Router>
-          </PageNavigationProvider>
-        </UiConfigProvider>
-      </LangToolsStoreProvider>
+      {/*<LangToolsStoreProvider>*/}
+      <UiConfigProvider>
+        <PageNavigationProvider>
+          <Router>
+            <NavigationEffectProvider>
+              <GlobalFormDataReadersProvider>
+                <OrgsProvider>
+                  <ApplicationSettingsProvider>
+                    <LayoutSetsProvider>
+                      <PartyProvider>
+                        <TextResourcesProvider>{children}</TextResourcesProvider>
+                      </PartyProvider>
+                    </LayoutSetsProvider>
+                  </ApplicationSettingsProvider>
+                </OrgsProvider>
+              </GlobalFormDataReadersProvider>
+            </NavigationEffectProvider>
+          </Router>
+        </PageNavigationProvider>
+      </UiConfigProvider>
+      {/*</LangToolsStoreProvider>*/}
     </AppQueriesProvider>
   );
 }
@@ -347,11 +346,11 @@ function MinimalProviders({ children, queries, queryClient, Router = DefaultRout
       {...queries}
       queryClient={queryClient}
     >
-      <LangToolsStoreProvider>
-        <Router>
-          <NavigationEffectProvider>{children}</NavigationEffectProvider>
-        </Router>
-      </LangToolsStoreProvider>
+      {/*<LangToolsStoreProvider>*/}
+      <Router>
+        <NavigationEffectProvider>{children}</NavigationEffectProvider>
+      </Router>
+      {/*</LangToolsStoreProvider>*/}
     </AppQueriesProvider>
   );
 }

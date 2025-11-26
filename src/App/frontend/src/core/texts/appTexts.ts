@@ -2,8 +2,8 @@ import {
   useApplicationMetadata,
   useHasApplicationMetadata,
 } from 'src/features/applicationMetadata/useApplicationMetadata';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useHasTextResources } from 'src/features/language/textResources/TextResourcesProvider';
+import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useHasOrgs, useOrgs } from 'src/features/orgs/OrgsProvider';
 

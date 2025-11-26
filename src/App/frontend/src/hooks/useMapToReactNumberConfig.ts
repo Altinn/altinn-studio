@@ -1,6 +1,6 @@
 import type { NumericFormatProps, PatternFormatProps } from 'react-number-format';
 
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { formatNumber } from 'src/utils/formattingUtils';
 import type { CompInternal } from 'src/layout/layout';

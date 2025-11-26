@@ -6,11 +6,7 @@ import cn from 'classnames';
 
 import classes from 'src/components/presentation/LanguageSelector.module.css';
 import { Lang } from 'src/features/language/Lang';
-import {
-  useAppLanguages,
-  useCurrentLanguage,
-  useSetLanguageWithSelector,
-} from 'src/features/language/LanguageProvider';
+import { useAppLanguages, useCurrentLanguage, useSetLanguageWithSelector } from 'src/features/language/useAppLanguages';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 

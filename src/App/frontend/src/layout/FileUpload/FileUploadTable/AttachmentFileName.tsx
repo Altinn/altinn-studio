@@ -5,7 +5,7 @@ import { FileCsvIcon, FileExcelIcon, FileIcon, FilePdfIcon, FileWordIcon } from 
 
 import { isAttachmentUploaded } from 'src/features/attachments';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import classes from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName.module.css';
 import { getFileEnding, removeFileEnding } from 'src/layout/FileUpload/utils/fileEndings';

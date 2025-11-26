@@ -1,12 +1,13 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
+import { createContext } from 'src/core/contexts/context';
 import { useLaxApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { useDataModelReaders } from 'src/features/formData/FormDataReaders';
 import { useInstanceDataSources } from 'src/features/instance/InstanceContext';
-import { useLangToolsDataSources, useSetLangToolsDataSources } from 'src/features/language/LangToolsStore';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
+import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
+import { useStateDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { type FixedLanguageList, getLanguageFromCode } from 'src/language/languages';
 import type { TextResourceMap } from 'src/features/language/textResources';
 import type { TextResourceVariablesDataSources } from 'src/features/language/useLanguage';
@@ -21,13 +22,23 @@ export interface LangDataSources extends LimitedTextResourceVariablesDataSources
   language: FixedLanguageList;
 }
 
+interface Context {
+  dataSources: LangDataSources | undefined;
+  setDataSources: React.Dispatch<React.SetStateAction<LangDataSources | undefined>>;
+}
+
+const { Provider, useCtx } = createContext<Context>({
+  name: 'LangDataSourcesProvider',
+  required: true,
+});
+
 export const LangDataSourcesProvider = ({ children }: PropsWithChildren) => {
   const textResources = useTextResources();
   const selectedAppLanguage = useCurrentLanguage();
   const dataModels = useDataModelReaders();
   const applicationSettings = useLaxApplicationSettings();
   const instanceDataSources = useInstanceDataSources();
-  const setDataSources = useSetLangToolsDataSources();
+  const [dataSources, setDataSources] = useStateDeepEqual<LangDataSources | undefined>(undefined);
 
   // This LangDataSourcesProvider is re-rendered very often, and will always 'move' around in the DOM tree wherever
   // RenderStart is rendered. This means that we cannot rely on the memoization of the data sources, as the hooks
@@ -53,15 +64,39 @@ export const LangDataSourcesProvider = ({ children }: PropsWithChildren) => {
         applicationSettings,
         instanceDataSources,
         customTextParameters: null,
+        dataSources,
       };
     });
-  }, [textResources, selectedAppLanguage, dataModels, applicationSettings, instanceDataSources, setDataSources]);
+  }, [
+    textResources,
+    selectedAppLanguage,
+    dataModels,
+    applicationSettings,
+    instanceDataSources,
+    setDataSources,
+    dataSources,
+  ]);
 
-  const current = useLangToolsDataSources();
-  if (!current) {
+  // const current = useLangToolsDataSources();
+  if (!dataSources) {
     // We cannot render <Loader /> here, as that would lead to an infinite loop
     return null;
   }
 
-  return children;
+  return (
+    <Provider
+      value={{
+        dataSources,
+        setDataSources,
+      }}
+    >
+      {children}
+    </Provider>
+  );
+
+  // return children;
 };
+
+export const useLangToolsDataSources = () => useCtx().dataSources;
+
+//export const useSetLangToolsDataSources = () => useCtx().dataSources;

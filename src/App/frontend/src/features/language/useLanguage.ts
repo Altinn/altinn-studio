@@ -6,7 +6,7 @@ import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { DataModelReaders } from 'src/features/formData/FormDataReaders';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
-import { useLangToolsDataSources } from 'src/features/language/LangToolsStore';
+import { useLangToolsDataSources } from 'src/features/language/LangDataSourcesProvider';
 import { type FixedLanguageList, getLanguageFromCode } from 'src/language/languages';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
 import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';

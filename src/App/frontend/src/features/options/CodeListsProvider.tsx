@@ -7,7 +7,7 @@ import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { useMarkAsLoading } from 'src/core/loading/LoadingRegistry';
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { useGetOptionsQuery } from 'src/features/options/useGetOptionsQuery';
 import { getOptionsUrl } from 'src/utils/urls/appUrlHelper';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';

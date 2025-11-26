@@ -19,7 +19,7 @@ import {
   useOptimisticallyRemoveDataElement,
   useOptimisticallyUpdateDataElement,
 } from 'src/features/instance/InstanceContext';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { backendValidationIssueGroupListToObject } from 'src/features/validation';
 import { useUpdateIncrementalValidations } from 'src/features/validation/backendValidation/useUpdateIncrementalValidations';
