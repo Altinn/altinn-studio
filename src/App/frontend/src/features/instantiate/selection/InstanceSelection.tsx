@@ -41,15 +41,9 @@ function getDateDisplayString(timeStamp: string) {
 export const InstanceSelectionWrapper = () => (
   <NavigationEffectProvider>
     <OrgsProvider>
-      {/*<LayoutSetsProvider>*/}
-
-      {/*<DataModelsProvider>*/}
       <PresentationComponent>
         <InstanceSelection />
       </PresentationComponent>
-      {/*</DataModelsProvider>*/}
-
-      {/*</LayoutSetsProvider>*/}
     </OrgsProvider>
   </NavigationEffectProvider>
 );
