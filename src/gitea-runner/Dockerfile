@@ -1,6 +1,6 @@
 FROM gitea/act_runner:0.2.13@sha256:8477d5b61b655caad4449888bae39f1f34bebd27db56cb15a62dccb3dcf3a944 AS gitea-basic
 
-FROM ghcr.io/renovatebot/renovate:37.440.7@sha256:1ee424e0ed4d8e64e5bb2d442d6bc72b3809bb9d0cf804f4b7180caa47d6002a AS renovate
+FROM ghcr.io/renovatebot/renovate:42.24.0@sha256:41bf2eda2ab3f055a1ba53f1fb604572fd79623c3bb5dcc73b9c9a8d35324c4a AS renovate
 
 FROM gitea/runner-images:ubuntu-latest@sha256:aa3ed75f3903fb8bbb10b5ca945821fa4e196a501ae9c0033aff9cb3529faf3b AS final
 
