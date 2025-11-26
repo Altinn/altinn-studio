@@ -3,8 +3,6 @@ IMG ?= runtime-operator-controller:latest
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.30.0
 
-# Go build cache is written inside the repo to work in sandboxed environments.
-export GOCACHE ?= $(shell pwd)/.gocache
 benchtime ?= 1s
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
@@ -186,7 +184,7 @@ GOLANGCI_LINT = $(LOCALBIN)/golangci-lint-$(GOLANGCI_LINT_VERSION)
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v5.4.1
-CONTROLLER_TOOLS_VERSION ?= v0.15.0
+CONTROLLER_TOOLS_VERSION ?= v0.17.0
 ENVTEST_VERSION ?= release-0.18
 GOLANGCI_LINT_VERSION ?= v1.57.2
 

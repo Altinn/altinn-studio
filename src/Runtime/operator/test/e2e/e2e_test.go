@@ -9,7 +9,11 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/rest"
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal/config"
@@ -20,6 +24,68 @@ import (
 const namespace = "runtime-operator"
 
 var Runtime *kind.KindContainerRuntime
+
+// createStateFetcher creates a FetchStateFunc for a given MaskinportenClient name and namespace
+func createStateFetcher(k8sClient *rest.RESTClient, name, secretName, namespace string) FetchStateFunc {
+	return func() (*resourcesv1alpha1.MaskinportenClient, *corev1.Secret, error) {
+		// Fetch MaskinportenClient
+		var client *resourcesv1alpha1.MaskinportenClient
+		clientObj := &resourcesv1alpha1.MaskinportenClient{}
+		err := k8sClient.Get().
+			Resource("maskinportenclients").
+			Namespace(namespace).
+			Name(name).
+			Do(context.Background()).
+			Into(clientObj)
+		if err != nil {
+			if apierrors.IsNotFound(err) {
+				// Resource deleted - return nil client
+				client = nil
+			} else {
+				return nil, nil, fmt.Errorf("failed to fetch MaskinportenClient: %w", err)
+			}
+		} else {
+			client = clientObj
+		}
+
+		// Fetch associated Secret
+		var secret *corev1.Secret
+		secretObj := &corev1.Secret{}
+		err = k8sClient.Get().
+			Resource("secrets").
+			Namespace(namespace).
+			Name(secretName).
+			Do(context.Background()).
+			Into(secretObj)
+		if err != nil {
+			// Secret might not exist (deleted or not created yet)
+			secret = nil
+		} else {
+			secret = secretObj
+		}
+
+		return client, secret, nil
+	}
+}
+
+// stateIsReconciled checks if the MaskinportenClient is in reconciled state
+func stateIsReconciled(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) error {
+	if client == nil {
+		return fmt.Errorf("MaskinportenClient does not exist")
+	}
+	if client.Status.State != "reconciled" {
+		return fmt.Errorf("MaskinportenClient not reconciled yet: state=%s", client.Status.State)
+	}
+	return nil
+}
+
+// stateIsDeleted checks if the MaskinportenClient has been deleted
+func stateIsDeleted(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) error {
+	if client != nil {
+		return fmt.Errorf("MaskinportenClient still exists")
+	}
+	return nil
+}
 
 var _ = Describe("controller", Ordered, func() {
 	BeforeAll(func() {
@@ -32,6 +98,45 @@ var _ = Describe("controller", Ordered, func() {
 	})
 
 	Context("Operator", func() {
+		BeforeAll(func() {
+			k8sClient, err := utils.GetK8sClient()
+			Expect(err).To(Succeed())
+
+			const clientName = "ttd-localtestapp"
+			const clientNamespace = "default"
+			const secretName = "ttd-localtestapp-deployment-secrets"
+
+			By("cleaning up any existing MaskinportenClient")
+			_ = k8sClient.Delete().
+				Resource("maskinportenclients").
+				Namespace(clientNamespace).
+				Name(clientName).
+				Do(context.Background()).
+				Error()
+
+			By("clearing any existing secret data")
+			patch := []byte(`{"data": null}`)
+			_ = k8sClient.Patch(types.MergePatchType).
+				Resource("secrets").
+				Namespace(clientNamespace).
+				Name(secretName).
+				Body(patch).
+				Do(context.Background()).
+				Error()
+
+			By("waiting for cleanup to complete")
+			Eventually(func() bool {
+				client := &resourcesv1alpha1.MaskinportenClient{}
+				err := k8sClient.Get().
+					Resource("maskinportenclients").
+					Namespace(clientNamespace).
+					Name(clientName).
+					Do(context.Background()).
+					Into(client)
+				return apierrors.IsNotFound(err)
+			}, time.Second*10, time.Second).Should(BeTrue())
+		})
+
 		It("should run successfully", func() {
 			var controllerPodName string
 
@@ -73,16 +178,19 @@ var _ = Describe("controller", Ordered, func() {
 		})
 
 		It("should respond to MaskinportenClient", func() {
-
 			By("constructing k8s client")
 			k8sClient, err := utils.GetK8sClient()
 			Expect(err).To(Succeed())
 
+			const clientName = "ttd-localtestapp"
+			const clientNamespace = "default"
+			const secretName = "ttd-localtestapp-deployment-secrets"
+
 			By("creating MaskinportenClient resource")
 			maskinportenClient := &resourcesv1alpha1.MaskinportenClient{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "ttd-localtestapp",
-					Namespace: "default",
+					Name:      clientName,
+					Namespace: clientNamespace,
 					Labels: map[string]string{
 						"app": "ttd-localtestapp-deployment",
 					},
@@ -94,39 +202,86 @@ var _ = Describe("controller", Ordered, func() {
 
 			err = k8sClient.Post().
 				Resource("maskinportenclients").
-				Namespace("default").
+				Namespace(clientNamespace).
 				Body(maskinportenClient).
 				Do(context.Background()).
 				Error()
 			Expect(err).To(Succeed())
 
-			By("validating that the corresponding status is updated after reconcile")
-			verifyStatusUpdated := func() error {
-				maskinportenClient := &resourcesv1alpha1.MaskinportenClient{}
-				err := k8sClient.Get().
-					Resource("maskinportenclients").
-					Namespace("default").
-					Name("ttd-localtestapp").
-					Do(context.Background()).
-					Into(maskinportenClient)
+			By("waiting for reconciliation and snapshotting state")
+			EventuallyWithSnapshot(
+				createStateFetcher(k8sClient, clientName, secretName, clientNamespace),
+				stateIsReconciled,
+				time.Second*5,
+				time.Second,
+				"step1-reconciled",
+			)
+		})
 
-				if err != nil {
-					return err
-				}
+		It("should handle scope removal", func() {
+			k8sClient, err := utils.GetK8sClient()
+			Expect(err).To(Succeed())
 
-				state := maskinportenClient.Status.State
-				if state != "reconciled" {
-					return fmt.Errorf("MaskinportenClient resource in %s status", state)
-				}
+			const clientName = "ttd-localtestapp"
+			const clientNamespace = "default"
+			const secretName = "ttd-localtestapp-deployment-secrets"
 
-				return nil
-			}
-			EventuallyWithOffset(
-				1,
-				verifyStatusUpdated,
-			).WithTimeout(time.Second * 5).
-				WithPolling(time.Second).
-				Should(Succeed())
+			By("fetching current MaskinportenClient")
+			client := &resourcesv1alpha1.MaskinportenClient{}
+			err = k8sClient.Get().
+				Resource("maskinportenclients").
+				Namespace(clientNamespace).
+				Name(clientName).
+				Do(context.Background()).
+				Into(client)
+			Expect(err).To(Succeed())
+
+			By("updating MaskinportenClient to remove one scope")
+			client.Spec.Scopes = []string{"altinn:serviceowner/instances.read"}
+			err = k8sClient.Put().
+				Resource("maskinportenclients").
+				Namespace(clientNamespace).
+				Name(clientName).
+				Body(client).
+				Do(context.Background()).
+				Error()
+			Expect(err).To(Succeed())
+
+			By("waiting for reconciliation after scope removal")
+			EventuallyWithSnapshot(
+				createStateFetcher(k8sClient, clientName, secretName, clientNamespace),
+				stateIsReconciled,
+				time.Second*5,
+				time.Second,
+				"step2-scope-removed",
+			)
+		})
+
+		It("should clean up on deletion", func() {
+			k8sClient, err := utils.GetK8sClient()
+			Expect(err).To(Succeed())
+
+			const clientName = "ttd-localtestapp"
+			const clientNamespace = "default"
+			const secretName = "ttd-localtestapp-deployment-secrets"
+
+			By("deleting MaskinportenClient")
+			err = k8sClient.Delete().
+				Resource("maskinportenclients").
+				Namespace(clientNamespace).
+				Name(clientName).
+				Do(context.Background()).
+				Error()
+			Expect(err).To(Succeed())
+
+			By("waiting for MaskinportenClient to be deleted")
+			EventuallyWithSnapshot(
+				createStateFetcher(k8sClient, clientName, secretName, clientNamespace),
+				stateIsDeleted,
+				time.Second*10,
+				time.Second,
+				"step3-deleted",
+			)
 		})
 	})
 })
