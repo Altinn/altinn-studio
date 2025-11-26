@@ -5,10 +5,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
+using Microsoft.AspNetCore.Mvc;
 using Organization = Altinn.Studio.Designer.RepositoryClient.Model.Organization;
 
 namespace Designer.Tests.Mocks
@@ -81,7 +81,8 @@ namespace Designer.Tests.Mocks
 
         public Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string reference = null, CancellationToken cancellationToken = default)
         {
-            List<FileSystemObject> fileSystemObjects = new List<FileSystemObject>();
+            List<FileSystemObject> fileSystemObjects = [];
+            reference ??= string.Empty;
             string path = Path.Combine(_unitTestFolder, "..", "..", "..", "_TestData", "FileSystemObjects", org, app, directoryPath.Replace('/', Path.DirectorySeparatorChar), reference, "directoryList.json");
 
             if (File.Exists(path))
@@ -224,6 +225,15 @@ namespace Designer.Tests.Mocks
             return Task.FromResult(new List<FileSystemObject>());
         }
 
-        public Task<string> GetLatestCommitOnBranch(string org, string repository, string branchName = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<string> GetLatestCommitOnBranch(string org, string repository, string branchName = null, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult("baseCommitSha");
+        }
+
+        public Task<(FileSystemObject, ProblemDetails)> GetFileAndErrorAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken = default)
+        {
+            Task<FileSystemObject> file = GetFileAsync(org, app, filePath, reference, cancellationToken);
+            return Task.FromResult((file.Result, null as ProblemDetails));
+        }
     }
 }

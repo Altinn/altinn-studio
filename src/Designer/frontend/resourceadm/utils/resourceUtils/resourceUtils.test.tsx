@@ -279,6 +279,35 @@ describe('deepCompare', () => {
           ),
         ).toBeTruthy();
       });
+
+      it('should allow links in nb consentText field which starts with a metadata value', () => {
+        const validLink = '[Link]({metadata})';
+        const resource: Resource = {
+          identifier: 'res',
+          resourceType: 'Consent',
+          title: null,
+          consentMetadata: {
+            metadata: { optional: false },
+          },
+          consentText: {
+            nb: `test ${validLink}`,
+            nn: 'test',
+            en: 'test',
+          },
+        };
+        const validationErrors = validateResource(resource, textMock);
+
+        expect(
+          hasConsentFieldError(
+            validationErrors,
+            'nb',
+            textMock('resourceadm.about_resource_error_consent_text_link_invalid', {
+              link: validLink,
+              interpolation: { escapeValue: false },
+            }),
+          ),
+        ).toBeFalsy();
+      });
     });
 
     it('should show empty errors for contactPoints and resourceReferences', () => {

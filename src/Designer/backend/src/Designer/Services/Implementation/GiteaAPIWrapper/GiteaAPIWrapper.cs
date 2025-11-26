@@ -1,10 +1,12 @@
 #nullable disable
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -16,6 +18,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Polly;
@@ -463,7 +466,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             using HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadAsAsync<FileSystemObject>(cancellationToken);
+                return await response.Content.ReadFromJsonAsync<FileSystemObject>(s_jsonOptions, cancellationToken);
             }
 
             return null;
@@ -478,13 +481,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             using HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadAsAsync<List<FileSystemObject>>(cancellationToken);
+                return await response.Content.ReadFromJsonAsync<List<FileSystemObject>>(s_jsonOptions, cancellationToken);
             }
 
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
                 string suffix = string.IsNullOrWhiteSpace(reference) ? string.Empty : $" at reference {reference}";
-                throw new DirectoryNotFoundException($"Directory {directoryPath} not found in repository {org}/{app}{suffix}");
+                DirectoryNotFoundException ex = new($"Directory {directoryPath} not found in repository {org}/{app}{suffix}");
+                _logger.LogWarning(ex, "Directory not found for org {Org} in repository {App}, at directory path {DirPath} and reference {Ref}", org, app, directoryPath, reference);
+                throw ex;
             }
 
             return [];
@@ -493,38 +498,84 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(string org, string repository, string reference = null, CancellationToken cancellationToken = default)
         {
-            List<FileSystemObject> directoryFiles;
+            List<FileSystemObject> directoryContent;
             try
             {
-                directoryFiles = await GetDirectoryAsync(org, repository, CodeListFolderName, reference, cancellationToken);
+                directoryContent = await GetDirectoryAsync(org, repository, CodeListFolderName, reference, cancellationToken);
             }
             catch (DirectoryNotFoundException)
             {
                 return [];
             }
 
-            SemaphoreSlim semaphore = new(25); // Limit to 25 concurrent requests
-            List<Task<FileSystemObject>> tasks = [];
+            ConcurrentBag<FileSystemObject> fileBag = [];
+            IEnumerable<string> directoryFileNames = directoryContent
+                .Where(f => string.Equals(f.Type, "file", StringComparison.OrdinalIgnoreCase))
+                .Select(f => f.Name);
 
-            foreach (FileSystemObject directoryFile in directoryFiles.Where(f => string.Equals(f.Type, "file", StringComparison.OrdinalIgnoreCase)))
-            {
-                string filePath = $"{CodeListFolderName}/{directoryFile.Name}";
-                tasks.Add(Task.Run(async () =>
+            ParallelOptions options = new() { MaxDegreeOfParallelism = 25, CancellationToken = cancellationToken };
+            await Parallel.ForEachAsync(directoryFileNames, options,
+                async (string fileName, CancellationToken token) =>
                 {
-                    await semaphore.WaitAsync(cancellationToken);
-                    try
-                    {
-                        return await GetFileAsync(org, repository, filePath, reference, cancellationToken);
-                    }
-                    finally
-                    {
-                        semaphore.Release();
-                    }
-                }, cancellationToken));
-            }
+                    string filePath = $"{CodeListFolderName}/{fileName}";
+                    FileSystemObject file = await GetFileAsync(org, repository, filePath, reference, token);
+                    fileBag.Add(file);
+                }
+            );
 
-            FileSystemObject[] files = await Task.WhenAll(tasks);
-            return [.. files.Where(file => file is not null)];
+            return fileBag.ToList();
+        }
+
+        /// <inheritdoc />
+        public async Task<(FileSystemObject, ProblemDetails)> GetFileAndErrorAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken = default)
+        {
+            string path = $"repos/{org}/{app}/contents/{filePath}";
+            string url = AddRefIfExists(path, reference);
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            using HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
+            switch (response.StatusCode)
+            {
+                case HttpStatusCode.OK:
+                    FileSystemObject fileSystemObject = await response.Content.ReadFromJsonAsync<FileSystemObject>(s_jsonOptions, cancellationToken);
+                    if (fileSystemObject is null)
+                    {
+                        _logger.LogError("User {Developer} GetFileAsync received null content in 200 OK response for {Org}/{App} at path: {FilePath}, ref: {Reference}", developer, org, app, filePath, reference);
+                        ProblemDetails unexpectedNullProblem = new()
+                        {
+                            Status = StatusCodes.Status500InternalServerError,
+                            Title = "Unexpected response format",
+                            Detail = "The file service returned an invalid response."
+                        };
+                        return (null, unexpectedNullProblem);
+                    }
+                    return (fileSystemObject, null);
+                case HttpStatusCode.NotFound:
+                    ProblemDetails notFoundProblem = new()
+                    {
+                        Status = StatusCodes.Status404NotFound,
+                        Title = "File not found",
+                        Detail = $"A file was not found."
+                    };
+                    return (null, notFoundProblem);
+                case HttpStatusCode.Unauthorized:
+                    _logger.LogError("User {Developer} GetFileAsync response failed with statuscode {StatusCode} for {Org}/{App} at path: {FilePath}, ref: {Reference}", developer, response.StatusCode, org, app, filePath, reference);
+                    ProblemDetails hideUnauthorizedWithNotFoundProblem = new()
+                    {
+                        Status = StatusCodes.Status404NotFound,
+                        Title = "File not found",
+                        Detail = $"A file was not found."
+                    };
+                    return (null, hideUnauthorizedWithNotFoundProblem);
+                default:
+                    _logger.LogError("User {Developer} GetFileAsync response failed with statuscode {StatusCode} for {Org}/{App} at path: {FilePath}, ref: {Reference}", developer, response.StatusCode, org, app, filePath, reference);
+                    ProblemDetails generalProblem = new()
+                    {
+                        Status = StatusCodes.Status500InternalServerError,
+                        Title = "Error retrieving file",
+                        Detail = "An error occurred when trying to retrieve the file."
+                    };
+                    return (null, generalProblem);
+            }
         }
 
         /// <inheritdoc/>
@@ -554,7 +605,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             using HttpResponseMessage response = await _httpClient.GetAsync(url.ToString(), cancellationToken);
             if (response.IsSuccessStatusCode)
             {
-                List<GiteaCommit> commits = await response.Content.ReadAsAsync<List<GiteaCommit>>(cancellationToken);
+                List<GiteaCommit> commits = await response.Content.ReadFromJsonAsync<List<GiteaCommit>>(s_jsonOptions, cancellationToken);
                 return commits?.FirstOrDefault()?.Sha;
             }
 

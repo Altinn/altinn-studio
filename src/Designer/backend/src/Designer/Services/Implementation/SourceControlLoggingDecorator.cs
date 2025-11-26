@@ -333,11 +333,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext)
+        public LibGit2Sharp.RebaseResult RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext)
         {
             try
             {
-                _decoratedService.RebaseOntoDefaultBranch(editingContext);
+                return _decoratedService.RebaseOntoDefaultBranch(editingContext);
             }
             catch (Exception ex)
             {
@@ -384,6 +384,32 @@ namespace Altinn.Studio.Designer.Services.Implementation
             catch (Exception ex)
             {
                 LogError(ex, "MergeBranchIntoHead", editingContext.Org, editingContext.Repo);
+                throw;
+            }
+        }
+
+        public async Task PublishBranch(AltinnRepoEditingContext editingContext, string branchName)
+        {
+            try
+            {
+                await _decoratedService.PublishBranch(editingContext, branchName);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, nameof(PublishBranch), editingContext.Org, editingContext.Repo);
+                throw;
+            }
+        }
+
+        public async Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName)
+        {
+            try
+            {
+                await _decoratedService.DeleteRemoteBranchIfExists(editingContext, branchName);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, nameof(DeleteRemoteBranchIfExists), editingContext.Org, editingContext.Repo);
                 throw;
             }
         }

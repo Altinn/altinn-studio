@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Exceptions.CodeList;
+using Altinn.Studio.Designer.Exceptions.OrgLibrary;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -575,7 +576,7 @@ public class OrgCodeListServiceTests : IDisposable
             )
         ];
         // Act and Assert
-        Assert.Throws<IllegalFileNameException>(() => OrgCodeListService.ValidateCodeListTitles(wrappers));
+        Assert.Throws<IllegalCodeListTitleException>(() => OrgCodeListService.ValidateCodeListTitles(wrappers));
     }
 
     [Fact]
