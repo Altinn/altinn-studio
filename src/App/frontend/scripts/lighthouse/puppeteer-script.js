@@ -14,6 +14,8 @@ module.exports = async (browser) => {
   await page.goto(BASE_URL, { waitUntil: 'networkidle0' });
   console.log('📝 Filling login form...');
 
+  // Wait max 10s for login elements to be present before interacting
+  await page.waitForSelector('select#UserSelect', { timeout: 10000 });
   await page.select('select#UserSelect', TEST_USER_ID);
   console.log(`✅ Selected user: ${TEST_USER_ID}`);
 
