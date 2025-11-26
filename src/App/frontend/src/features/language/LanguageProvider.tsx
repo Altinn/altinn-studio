@@ -49,7 +49,9 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
   const languageFromUrl = getLanguageFromUrl();
   const [languageFromSelector, setWithLanguageSelector] = useLocalStorageState(['selectedLanguage', userId], null);
 
-  const { data: appLanguages, error, isFetching } = useGetAppLanguageQuery(shouldFetchAppLanguages === true);
+  const { data: appLanguages, error, isFetching } = useGetAppLanguageQuery(shouldFetchAppLanguages === false);
+
+  // debugger;
 
   console.log('🟡 LANGUAGE PROVIDER: appLanguages from query:', appLanguages);
   console.log('🟡 LANGUAGE PROVIDER: shouldFetchAppLanguages:', shouldFetchAppLanguages);
@@ -73,6 +75,8 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
   console.log('🟡 LANGUAGE PROVIDER: languageFromProfile:', languageFromProfile);
 
   const languageResolved = !isFetching; //shouldFetchAppLanguages !== IsLoading && !isFetching;
+
+  //const languageResolved = shouldFetchAppLanguages !== IsLoading && !isFetching;
 
   return (
     <Provider

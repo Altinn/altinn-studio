@@ -15,8 +15,6 @@ import {
   ApplicationMetadataProvider,
   useApplicationMetadata,
 } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
-import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useActiveInstancesQuery } from 'src/features/instantiate/selection/ActiveInstancesProvider';
 import classes from 'src/features/instantiate/selection/InstanceSelection.module.css';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
@@ -46,15 +44,15 @@ function getDateDisplayString(timeStamp: string) {
 export const InstanceSelectionWrapper = () => (
   <NavigationEffectProvider>
     <OrgsProvider>
-      <LayoutSetsProvider>
-        <ApplicationMetadataProvider>
-          <DataModelsProvider>
-            <PresentationComponent>
-              <InstanceSelection />
-            </PresentationComponent>
-          </DataModelsProvider>
-        </ApplicationMetadataProvider>
-      </LayoutSetsProvider>
+      {/*<LayoutSetsProvider>*/}
+      <ApplicationMetadataProvider>
+        {/*<DataModelsProvider>*/}
+        <PresentationComponent>
+          <InstanceSelection />
+        </PresentationComponent>
+        {/*</DataModelsProvider>*/}
+      </ApplicationMetadataProvider>
+      {/*</LayoutSetsProvider>*/}
     </OrgsProvider>
   </NavigationEffectProvider>
 );

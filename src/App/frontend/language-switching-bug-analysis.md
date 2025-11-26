@@ -9,7 +9,19 @@ When users switch languages in the frontend test app, text translations work for
 ## Root Cause Analysis
 
 ### The Issue
-The language switching functionality uses the wrong API endpoint structure for refreshing label data bindings. The system sends PATCH requests to a multi-patch endpoint that doesn't include specific data element IDs, preventing the backend from knowing which data elements need their labels refreshed for the new language.
+The language switching functionality fails due to **data loading initialization changes** that prevent proper useEffect triggering. The system has transitioned from a simple React Query approach to a complex HTML-based data initialization with conditional fetching, which breaks the reactive updates needed for language switching.
+
+### Data Loading Architecture Changes
+**Main Branch (Working)**:
+- Simple `useGetAppLanguageQuery()` without parameters - always enabled
+- Direct `useProfileQuery()` integration
+- Immediate reactive updates when language changes
+
+**Current Branch (Broken)**:
+- Complex `useGetAppLanguageQuery(enabled: boolean)` with conditional fetching
+- HTML-based initialization via `languageLoader.ts` and `window.AltinnAppData`
+- `setShouldFetchAppLanguages` state management preventing reactive updates
+- `useProfile()` instead of `useProfileQuery()` with different loading behavior
 
 ### URL Structure Comparison
 - **Working URL**: `/instances/{instanceId}/data/{dataElementId}?language=en`
@@ -72,12 +84,41 @@ export const getDataElementIdUrl = (instanceId: string, dataElementId: string) =
   `${appPath}/instances/${instanceId}/data/${dataElementId}`;
 ```
 
+### Critical useEffect Breaking Changes
+
+#### LanguageProvider.tsx Changes
+**Main Branch (Working)**:
+```typescript
+const { data: profile, isLoading: isProfileLoading } = useProfileQuery();
+const { data: appLanguages, error, isFetching } = useGetAppLanguageQuery();
+const languageResolved = !isProfileLoading && !isFetching;
+```
+
+**Current Branch (Broken)**:
+```typescript
+const [shouldFetchAppLanguages, setShouldFetchAppLanguages] = useState<Loading<boolean>>(IsLoading);
+const { data: appLanguages, error, isFetching } = useGetAppLanguageQuery(shouldFetchAppLanguages === true);
+const languageResolved = !isFetching; // Missing profile loading check!
+```
+
+#### useGetAppLanguagesQuery.ts Changes
+**Main Branch**: `useGetAppLanguageQuery()` - always enabled, immediate reactivity
+**Current Branch**: `useGetAppLanguageQuery(enabled: boolean)` - conditional, breaks reactive updates
+
+### The Real Issue: Conditional Query Execution
+The new architecture prevents the language query from re-executing when the language changes because:
+1. `shouldFetchAppLanguages` state is only set once during initialization
+2. Language changes don't trigger `setShouldFetchAppLanguages(true)`
+3. The query remains disabled, preventing fresh data fetches
+4. Label data bindings aren't refetched with the new language parameter
+
 ### Debug Output Confirmation
 Console logs confirmed:
 1. Language context switches correctly (`nb` → `en`)
 2. Available languages load properly
 3. Patches are created with correct `dataElementId`s
-4. **Issue**: PATCH URL lacks specific data element ID
+4. **Primary Issue**: Query is disabled after initial load, preventing language-triggered refetches
+5. **Secondary Issue**: PATCH URL lacks specific data element ID
 
 ## Solution Strategy
 
