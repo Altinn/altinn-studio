@@ -20,13 +20,19 @@ internal class StatementConverter
 {
     private readonly Dictionary<string, string> _inputParams;
     private readonly string _dataVariableName;
+    private readonly bool _useFormDataWrapper;
     private readonly Dictionary<string, string> _localVariables = new();
     private int _tempVarCounter = 0;
 
-    public StatementConverter(Dictionary<string, string> inputParams, string dataVariableName = "data")
+    public StatementConverter(
+        Dictionary<string, string> inputParams,
+        string dataVariableName = "data",
+        bool useFormDataWrapper = false
+    )
     {
         _inputParams = inputParams;
         _dataVariableName = dataVariableName;
+        _useFormDataWrapper = useFormDataWrapper;
     }
 
     /// <summary>
@@ -484,8 +490,49 @@ internal class StatementConverter
         // Handle member expression assignments like obj.property = value
         if (assignment.Left is MemberExpression memberExpr)
         {
-            var leftSide = ConvertMemberExpression(memberExpr);
             var rightCode = ConvertExpression(assignment.Right);
+
+            // Check if this is an assignment to a data model property (when using FormDataWrapper)
+            if (
+                _useFormDataWrapper
+                && memberExpr.Object is Identifier objId
+                && memberExpr.Property is Identifier propId
+            )
+            {
+                var propertyName = propId.Name;
+
+                // Check if this property is a known input parameter (which means it's a data model path)
+                if (_inputParams.ContainsKey(propertyName))
+                {
+                    var dataModelPath = _inputParams[propertyName];
+
+                    // Check if this is a compound assignment or simple assignment
+                    if (operatorStr == "Assign" || operatorStr == "Assignment" || operatorStr == "=")
+                    {
+                        code.AppendLine($"{_dataVariableName}.Set(\"{dataModelPath}\", {rightCode});");
+                    }
+                    else
+                    {
+                        // For compound assignments, we need to get the current value first
+                        var op = operatorStr switch
+                        {
+                            "AdditionAssignment" or "PlusAssignment" or "PlusAssign" or "+=" => "+",
+                            "SubtractionAssignment" or "MinusAssignment" or "MinusAssign" or "-=" => "-",
+                            "MultiplicationAssignment" or "TimesAssignment" or "TimesAssign" or "*=" => "*",
+                            "DivisionAssignment" or "DivideAssignment" or "DivideAssign" or "/=" => "/",
+                            "RemainderAssignment" or "ModuloAssignment" or "ModuloAssign" or "%=" => "%",
+                            _ => throw new NotSupportedException($"Assignment operator {operatorStr} not supported"),
+                        };
+                        code.AppendLine(
+                            $"{_dataVariableName}.Set(\"{dataModelPath}\", {_dataVariableName}.Get(\"{dataModelPath}\") {op} {rightCode});"
+                        );
+                    }
+                    return;
+                }
+            }
+
+            // Fallback to standard property access
+            var leftSide = ConvertMemberExpression(memberExpr);
 
             // Check if this is a compound assignment or simple assignment
             if (operatorStr == "Assign" || operatorStr == "Assignment" || operatorStr == "=")
@@ -664,6 +711,29 @@ internal class StatementConverter
             _ => throw new NotSupportedException($"Binary operator {operatorStr} not supported"),
         };
 
+        // Handle string concatenation with FormDataWrapper
+        // When using + operator with wrapper.Get() and a string literal, we need to cast to string
+        if (_useFormDataWrapper && op == "+")
+        {
+            var leftIsWrapper = left.Contains("wrapper.Get(");
+            var rightIsWrapper = right.Contains("wrapper.Get(");
+            var leftIsString = binary.Left is Literal lit1 && lit1.Value is string;
+            var rightIsString = binary.Right is Literal lit2 && lit2.Value is string;
+
+            // If one side is wrapper.Get() and the other is a string literal, cast wrapper.Get() to string
+            if ((leftIsWrapper && rightIsString) || (rightIsWrapper && leftIsString))
+            {
+                if (leftIsWrapper)
+                {
+                    left = $"({left} as string)";
+                }
+                if (rightIsWrapper)
+                {
+                    right = $"({right} as string)";
+                }
+            }
+        }
+
         return $"({left} {op} {right})";
     }
 
@@ -709,14 +779,22 @@ internal class StatementConverter
                 // Get the full data model path for this parameter
                 var dataModelPath = _inputParams[propertyName];
 
-                // Convert the path to C# property access
-                var propertyPath = ExtractPropertyNameFromPath(dataModelPath);
-                if (propertyPath != null)
+                if (_useFormDataWrapper)
                 {
-                    // Only add data variable name if it's not empty
-                    return string.IsNullOrEmpty(_dataVariableName)
-                        ? propertyPath
-                        : $"{_dataVariableName}.{propertyPath}";
+                    // Use FormDataWrapper.Get() with the original JS path
+                    return $"{_dataVariableName}.Get(\"{dataModelPath}\")";
+                }
+                else
+                {
+                    // Convert the path to C# property access
+                    var propertyPath = ExtractPropertyNameFromPath(dataModelPath);
+                    if (propertyPath != null)
+                    {
+                        // Only add data variable name if it's not empty
+                        return string.IsNullOrEmpty(_dataVariableName)
+                            ? propertyPath
+                            : $"{_dataVariableName}.{propertyPath}";
+                    }
                 }
             }
 
@@ -764,11 +842,19 @@ internal class StatementConverter
             // Get the full data model path for this parameter
             var dataModelPath = _inputParams[identifier.Name];
 
-            // Convert the path to C# property access
-            var propertyPath = ExtractPropertyNameFromPath(dataModelPath);
-            if (propertyPath != null)
+            if (_useFormDataWrapper)
             {
-                return $"{_dataVariableName}.{propertyPath}";
+                // Use FormDataWrapper.Get() with the original JS path
+                return $"{_dataVariableName}.Get(\"{dataModelPath}\")";
+            }
+            else
+            {
+                // Convert the path to C# property access
+                var propertyPath = ExtractPropertyNameFromPath(dataModelPath);
+                if (propertyPath != null)
+                {
+                    return $"{_dataVariableName}.{propertyPath}";
+                }
             }
         }
 
@@ -955,18 +1041,37 @@ internal class StatementConverter
             var isLocalVariable = member.Object is Identifier id && _localVariables.ContainsKey(id.Name);
             var nullConditional = isLocalVariable ? "" : "?";
 
+            // When using FormDataWrapper, wrapper.Get() returns object?, so we need to cast to string for string methods
+            var needsStringCast = _useFormDataWrapper && !isLocalVariable;
+
             switch (methodName.Name)
             {
                 case "toString":
+                    if (needsStringCast)
+                    {
+                        return $"({obj}?.ToString())";
+                    }
                     return $"{obj}{nullConditional}.ToString()";
 
                 case "toUpperCase":
+                    if (needsStringCast)
+                    {
+                        return $"(({obj} as string)?.ToUpper())";
+                    }
                     return $"{obj}{nullConditional}.ToUpper()";
 
                 case "toLowerCase":
+                    if (needsStringCast)
+                    {
+                        return $"(({obj} as string)?.ToLower())";
+                    }
                     return $"{obj}{nullConditional}.ToLower()";
 
                 case "trim":
+                    if (needsStringCast)
+                    {
+                        return $"(({obj} as string)?.Trim())";
+                    }
                     return $"{obj}{nullConditional}.Trim()";
 
                 case "split":
@@ -974,7 +1079,15 @@ internal class StatementConverter
                     if (call.Arguments.Count > 0)
                     {
                         var separator = ConvertExpression(call.Arguments[0]);
+                        if (needsStringCast)
+                        {
+                            return $"(({obj} as string)?.Split({separator}))";
+                        }
                         return $"{obj}{nullConditional}.Split({separator})";
+                    }
+                    if (needsStringCast)
+                    {
+                        return $"(({obj} as string)?.Split())";
                     }
                     return $"{obj}{nullConditional}.Split()";
 
@@ -984,8 +1097,12 @@ internal class StatementConverter
                     {
                         var searchValue = ConvertExpression(call.Arguments[0]);
                         // When using null-conditional operator, Contains returns bool? which needs == true for logical operations
-                        // For local variables that might be object?, we need to convert to string first
-                        if (isLocalVariable)
+                        if (needsStringCast)
+                        {
+                            // FormDataWrapper returns object?, cast to string
+                            return $"(({obj} as string)?.Contains({searchValue}) == true)";
+                        }
+                        else if (isLocalVariable)
                         {
                             // Local variable - check if it needs ToString() for object? type
                             return $"({obj}?.ToString()?.Contains({searchValue}) == true)";
@@ -1041,6 +1158,12 @@ internal class StatementConverter
                     if (call.Arguments.Count > 0)
                     {
                         var testString = ConvertExpression(call.Arguments[0]);
+                        // If testString is from FormDataWrapper, it needs to be cast to string
+                        // Check if testString looks like a wrapper.Get() call
+                        if (_useFormDataWrapper && testString.Contains("wrapper.Get("))
+                        {
+                            testString = $"({testString} as string)";
+                        }
                         // For now, assume obj is a regex literal that needs to be extracted
                         // This is a simplified implementation
                         return $"System.Text.RegularExpressions.Regex.IsMatch({testString}, {obj})";
