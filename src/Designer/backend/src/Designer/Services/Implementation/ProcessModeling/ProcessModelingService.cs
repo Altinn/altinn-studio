@@ -1,4 +1,3 @@
-#nullable enable
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -51,7 +50,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
         }
 
         public async Task AddDataTypeToApplicationMetadataAsync(AltinnRepoEditingContext altinnRepoEditingContext,
-            string dataTypeId, string taskId, List<string>? allowedContributers,
+            string dataTypeId, string taskId, List<string>? allowedContributors,
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -72,9 +71,9 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
                     EnablePdfCreation = false,
                 };
 
-                if (allowedContributers?.Count > 0)
+                if (allowedContributors?.Count > 0)
                 {
-                    dataTypeToAdd.AllowedContributers = allowedContributers;
+                    dataTypeToAdd.AllowedContributors = allowedContributors;
                 }
 
                 applicationMetadata.DataTypes.Add(dataTypeToAdd);

@@ -19,7 +19,7 @@ public sealed class ComponentContext
         LayoutEvaluatorState state,
         BaseComponent? component,
         int[]? rowIndices,
-        DataElementIdentifier dataElementIdentifier,
+        DataElementIdentifier? dataElementIdentifier,
         List<ComponentContext>? childContexts = null
     )
     {
@@ -135,6 +135,8 @@ public sealed class ComponentContext
         return _removeWhenHidden.Value;
     }
 
+    internal async Task<DataReference> AddIndexes(ModelBinding binding) => await State.AddInidicies(binding, this);
+
     /// <summary>
     /// Indicates whether this context was initialized with child contexts
     /// </summary>
@@ -158,7 +160,7 @@ public sealed class ComponentContext
     /// <summary>
     /// The Id of the default data element in this context
     /// </summary>
-    public DataElementIdentifier DataElementIdentifier { get; }
+    public DataElementIdentifier? DataElementIdentifier { get; }
 
     /// <summary>
     /// Get all children and children of children of this componentContext (not including this)
@@ -197,7 +199,7 @@ public sealed class ComponentContext
         public BaseComponent? Component => _context.Component;
         public ComponentContext? Parent => _context.Parent;
         public bool? IsHidden => _context._isHidden;
-        public Guid DataElementId => _context.DataElementIdentifier.Guid;
+        public Guid? DataElementId => _context.DataElementIdentifier?.Guid;
         public int[]? RowIndices => _context.RowIndices;
 
         public DebuggerEvaluatedExpression HiddenExpression =>
@@ -218,9 +220,9 @@ public sealed class ComponentContext
             public IEnumerable<DebuggerEvaluatedExpression>? Args =>
                 _expression.Args?.Select(e => new DebuggerEvaluatedExpression(e, _context));
             public Task<ExpressionValue> EvaluationResult =>
-                _expression.IsFunctionExpression
-                    ? ExpressionEvaluator.EvaluateExpression_internal(_context.State, _expression, _context, null)
-                    : Task.FromResult(_expression.ValueUnion);
+                _expression.IsLiteralValue
+                    ? Task.FromResult(_expression.ValueUnion)
+                    : ExpressionEvaluator.EvaluateExpression_internal(_context.State, _expression, _context, null);
 
             public override string ToString()
             {

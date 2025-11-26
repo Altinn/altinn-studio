@@ -7,8 +7,8 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import classes from './Elements.module.css';
 
 import { StudioSpinner } from '@studio/components-legacy';
-import { StudioButton, StudioError } from '@studio/components';
-import { ShrinkIcon } from '@studio/icons';
+import { StudioButton, StudioError, StudioHeading } from '@studio/components';
+import { SidebarLeftIcon } from '@studio/icons';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useTranslation } from 'react-i18next';
 import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
@@ -82,28 +82,14 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
   const shouldShowConfPageToolbar: boolean = Boolean(configToolbarMode);
 
   if (collapsed) {
-    return (
-      <StudioButton
-        variant='secondary'
-        className={classes.openElementsButton}
-        onClick={onCollapseToggle}
-        title={t('left_menu.open_components')}
-      >
-        {t('left_menu.open_components')}
-      </StudioButton>
-    );
+    return <TogglePanelButton onClick={onCollapseToggle} isCollapsed={collapsed} />;
   }
 
   return (
     <div className={classes.root}>
       <div className={classes.componentsHeader}>
-        <Heading size='xxsmall'>{t('left_menu.components')}</Heading>
-        <StudioButton
-          variant='tertiary'
-          icon={<ShrinkIcon title='1' fontSize='1.5rem' />}
-          title={t('left_menu.close_components')}
-          onClick={onCollapseToggle}
-        ></StudioButton>
+        <StudioHeading data-size='2xs'>{t('left_menu.components')}</StudioHeading>
+        <TogglePanelButton onClick={onCollapseToggle} isCollapsed={collapsed} />
       </div>
       {hideComponents ? (
         <Paragraph className={classes.noPageSelected} size='small'>
@@ -115,5 +101,26 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
         <DefaultToolbar />
       )}
     </div>
+  );
+};
+
+type TogglePanelButtonProps = {
+  onClick: () => void;
+  isCollapsed: boolean;
+};
+
+const TogglePanelButton = ({ onClick, isCollapsed }: TogglePanelButtonProps) => {
+  const { t } = useTranslation();
+  const title = isCollapsed ? t('left_menu.open_components') : t('left_menu.close_components');
+
+  return (
+    <StudioButton
+      variant='tertiary'
+      data-color='neutral'
+      onClick={onClick}
+      title={title}
+      icon={<SidebarLeftIcon />}
+      className={isCollapsed ? classes.collapsedPanel : undefined}
+    />
   );
 };

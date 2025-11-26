@@ -1,7 +1,8 @@
+#nullable disable
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using Altinn.Studio.Designer.Models;
+using LibGit2Sharp;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
 {
@@ -80,7 +81,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository</param>
         /// <returns>List of commits</returns>
-        List<Commit> Log(string org, string repository);
+        List<Designer.Models.Commit> Log(string org, string repository);
 
         /// <summary>
         /// Gets the latest commit for current user
@@ -88,7 +89,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository</param>
         /// <returns>The latest commit</returns>
-        Commit GetLatestCommitForCurrentUser(string org, string repository);
+        Designer.Models.Commit GetLatestCommitForCurrentUser(string org, string repository);
 
         /// <summary>
         /// Gives the complete repository status
@@ -179,7 +180,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Rebases local branch onto default remote branch.
         /// </summary>
         /// <param name="editingContext">The altinn repo editing context</param>
-        void RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext);
+        RebaseResult RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext);
 
         /// <summary>
         /// Deletes a local branch based on the specified name.
@@ -202,5 +203,19 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="editingContext">The altinn repo editing context</param>
         /// <param name="featureBranch">The name of the feature branch</param>
         void MergeBranchIntoHead(AltinnRepoEditingContext editingContext, string featureBranch);
+
+        /// <summary>
+        /// Deletes a remote branch based on the specified name, if it exists.
+        /// </summary>
+        /// <param name="editingContext">The altinn repo editing context</param>
+        /// <param name="branchName">The name of the branch</param>
+        Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName);
+
+        /// <summary>
+        /// Publishes branch to remote.
+        /// </summary>
+        /// <param name="editingContext">The altinn repo editing context</param>
+        /// <param name="branchName">The name of the branch</param>
+        Task PublishBranch(AltinnRepoEditingContext editingContext, string branchName);
     }
 }

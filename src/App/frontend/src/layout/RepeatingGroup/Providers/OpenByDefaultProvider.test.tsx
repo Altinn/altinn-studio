@@ -4,9 +4,10 @@ import { afterAll, beforeAll, jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { ALTINN_ROW_ID } from 'src/features/formData/types';
+import { ALTINN_ROW_ID, IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import {
   RepeatingGroupProvider,
   RepGroupContext,
@@ -134,20 +135,28 @@ describe('openByDefault', () => {
   async function waitUntil({ state, mutations, expectedPatch, newModelAfterSave, expectedWarning }: WaitForStateProps) {
     if (newModelAfterSave && mutations) {
       await waitFor(() => {
-        expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(1);
+        expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1);
       });
 
-      expect(mutations.doPatchFormData.mock).toHaveBeenCalledWith(
-        expect.anything(),
-        expectedPatch ? expect.objectContaining({ patch: expectedPatch }) : expect.anything(),
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledWith(
+        expect.stringContaining('local.altinn.cloud'),
+        expectedPatch
+          ? expect.objectContaining({ patches: [expect.objectContaining({ patch: expectedPatch })] })
+          : expect.anything(),
       );
-      mutations.doPatchFormData.resolve({
+      mutations.doPatchMultipleFormData.resolve({
         data: {
-          validationIssues: {},
-          newDataModel: newModelAfterSave,
-        },
+          validationIssues: [],
+          newDataModels: [
+            {
+              dataElementId: defaultMockDataElementId,
+              data: newModelAfterSave,
+            },
+          ],
+          instance: getInstanceDataMock(),
+        } satisfies IDataModelMultiPatchResponse,
       });
-      (mutations.doPatchFormData.mock as jest.Mock).mockClear();
+      (mutations.doPatchMultipleFormData.mock as jest.Mock).mockClear();
     }
 
     // Ensure state is as expected
@@ -157,7 +166,7 @@ describe('openByDefault', () => {
     // the state doesn't change again.
     await new Promise((resolve) => setTimeout(resolve, 300));
     expect(getState()).toEqual(state);
-    expect(mutations?.doPatchFormData.mock).not.toHaveBeenCalled();
+    expect(mutations?.doPatchMultipleFormData.mock).not.toHaveBeenCalled();
 
     if (expectedWarning) {
       await waitFor(() => expect(window.logWarn).toHaveBeenCalled());

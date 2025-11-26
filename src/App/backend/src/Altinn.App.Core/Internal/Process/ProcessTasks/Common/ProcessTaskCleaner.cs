@@ -20,7 +20,6 @@ internal sealed class ProcessTaskCleaner : IProcessTaskCleaner
     /// <inheritdoc/>
     public async Task RemoveAllDataElementsGeneratedFromTask(Instance instance, string taskId)
     {
-        AppIdentifier appIdentifier = new(instance.AppId);
         InstanceIdentifier instanceIdentifier = new(instance);
         var dataElements =
             instance
@@ -39,8 +38,6 @@ internal sealed class ProcessTaskCleaner : IProcessTaskCleaner
                 dataElement.BlobStoragePath
             );
             await _dataClient.DeleteData(
-                appIdentifier.Org,
-                appIdentifier.App,
                 instanceIdentifier.InstanceOwnerPartyId,
                 instanceIdentifier.InstanceGuid,
                 Guid.Parse(dataElement.Id),

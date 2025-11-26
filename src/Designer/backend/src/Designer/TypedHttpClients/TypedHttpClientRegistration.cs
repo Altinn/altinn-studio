@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -55,6 +56,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 <IAltinnAuthorizationPolicyClient, AltinnAuthorizationPolicyClient>();
             services.AddAuthenticatedAltinnPlatformTypedHttpClient
                 <IAltinnStorageTextResourceClient, AltinnStorageTextResourceClient>();
+            services.AddAuthenticatedAltinnPlatformTypedHttpClient
+                <IAltinnStorageInstancesClient, AltinnStorageInstancesClient>();
             services.AddKubernetesWrapperTypedHttpClient();
             services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
             services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();

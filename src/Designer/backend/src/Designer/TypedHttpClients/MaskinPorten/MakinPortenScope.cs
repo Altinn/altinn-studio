@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿#nullable disable
+using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
 

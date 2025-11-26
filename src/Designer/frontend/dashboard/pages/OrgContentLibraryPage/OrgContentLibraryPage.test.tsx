@@ -9,6 +9,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type {
+  CodeListData as LibraryCodeListData,
   ContentLibraryConfig,
   PagesConfig,
   ResourceContentLibraryImpl,
@@ -29,6 +30,8 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import userEvent from '@testing-library/user-event';
 import { FeatureFlag } from '@studio/feature-flags';
+import { codeListsNewResponse } from './test-data/codeListsNewResponse';
+import type { UpdateOrgCodeListsPayload } from 'app-shared/types/api/UpdateOrgCodeListsPayload';
 
 // Test data:
 const orgName: string = 'org';
@@ -40,6 +43,7 @@ const repositoryName = `${orgName}-content`;
 const repoStatusQueryKey: string[] = [QueryKey.RepoStatus, orgName, repositoryName];
 const orgCodeListsQueryKey: string[] = [QueryKey.OrgCodeLists, orgName];
 const orgTextResourcesQueryKey: string[] = [QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE];
+const orgCodeListsNewQueryKey: string[] = [QueryKey.OrgCodeListsNew, orgName];
 
 // Mocks:
 jest.mock('@studio/content-library', () => ({
@@ -276,7 +280,10 @@ describe('OrgContentLibraryPage', () => {
     const user = userEvent.setup();
     renderOrgContentLibraryWithData();
     await user.click(screen.getByRole('button', { name: /Gi tilbakemelding/ }));
-    expect(screen.getByRole('dialog', { name: /Gi tilbakemelding om biblioteket/ })).toBeVisible();
+    expect(screen.getByRole('dialog')).toBeVisible();
+    expect(
+      screen.getByRole('heading', { name: /Gi tilbakemelding om biblioteket/ }),
+    ).toBeInTheDocument();
   });
 
   it('Renders with the organisation library heading', () => {
@@ -295,6 +302,39 @@ describe('OrgContentLibraryPage', () => {
     const pagesConfig = retrievePagesConfig();
     expect(pagesConfig).toHaveProperty('codeLists');
   });
+
+  it('Renders with code lists on the new code list page', () => {
+    renderOrgContentLibraryWithData({ featureFlags: [FeatureFlag.NewCodeLists] });
+    const pagesConfig = retrievePagesConfig();
+    const { codeLists } = pagesConfig.codeLists.props;
+    expect(codeLists).toHaveLength(codeListsNewResponse.codeListWrappers.length);
+  });
+
+  it('Calls updateOrgCodeLists with correct data when code list saving is triggered on the new code list page', async () => {
+    const updateOrgCodeLists = jest.fn();
+    renderOrgContentLibraryWithData({
+      featureFlags: [FeatureFlag.NewCodeLists],
+      queries: { updateOrgCodeLists },
+    });
+
+    const newCodeLists: LibraryCodeListData[] = [
+      { name: 'list-1', codes: [{ value: '8', label: { nb: 'Åtte' } }] },
+      { name: 'list-2', codes: [{ value: '9', label: { en: 'Nine' } }] },
+    ];
+    retrievePagesConfig().codeLists.props.onSave(newCodeLists);
+    await waitFor(expect(updateOrgCodeLists).toHaveBeenCalled);
+
+    const expectedPayload: UpdateOrgCodeListsPayload = {
+      baseCommitSha: codeListsNewResponse.commitSha,
+      codeListWrappers: expect.arrayContaining([
+        { title: newCodeLists[0].name, codeList: { codes: newCodeLists[0].codes } },
+        { title: newCodeLists[1].name, codeList: { codes: newCodeLists[1].codes } },
+      ]),
+      commitMessage: textMock('org_content_library.code_lists.commit_message_default'),
+    };
+    expect(updateOrgCodeLists).toHaveBeenCalledTimes(1);
+    expect(updateOrgCodeLists).toHaveBeenCalledWith(orgName, expectedPayload);
+  });
 });
 
 function renderOrgContentLibraryWithData(providerData: ProviderData = {}): void {
@@ -307,6 +347,7 @@ function createQueryClientWithData(): QueryClient {
   queryClient.setQueryData(orgCodeListsQueryKey, codeListDataList);
   queryClient.setQueryData(orgTextResourcesQueryKey, textResourcesWithLanguage);
   queryClient.setQueryData(repoStatusQueryKey, repoStatus);
+  queryClient.setQueryData(orgCodeListsNewQueryKey, codeListsNewResponse);
   return queryClient;
 }
 
@@ -320,6 +361,7 @@ function createQueryClientWithMissingTextResources(): QueryClient {
   queryClient.setQueryData(orgCodeListsQueryKey, codeListDataList);
   queryClient.setQueryData(orgTextResourcesQueryKey, null);
   queryClient.setQueryData(repoStatusQueryKey, repoStatus);
+  queryClient.setQueryData(orgCodeListsNewQueryKey, codeListsNewResponse);
   return queryClient;
 }
 

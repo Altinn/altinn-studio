@@ -119,7 +119,7 @@ public sealed class Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper
     #endregion AltinnRowIds
     public static global::System.ReadOnlySpan<char> ParseSegment(global::System.ReadOnlySpan<char> path, int offset, out int nextOffset, out int literalIndex)
     {
-        if (offset < 0 || offset >= path.Length)
+        if (offset < 0 || offset > path.Length)
         {
             throw new global::System.ArgumentOutOfRangeException(nameof(offset));
         }
@@ -153,7 +153,11 @@ public sealed class Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper
             throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException($"Missing closing bracket ']' in {path}.");
         }
 
-        if (!int.TryParse(segment[..bracketOffset], out var index))
+        if (!int.TryParse(
+            segment[..bracketOffset],
+            global::System.Globalization.NumberStyles.None,
+            global::System.Globalization.CultureInfo.InvariantCulture,
+            out var index))
         {
             throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException($"Invalid index in {path}.");
         }
@@ -163,11 +167,19 @@ public sealed class Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper
             throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException($"Invalid negative index in {path}.");
         }
 
-        nextOffset = offset + bracketOffset + 2;
-        if (nextOffset >= path.Length)
+        if (offset + bracketOffset + 1 == path.Length)
         {
+            // End of path
             nextOffset = -1;
+            return index;
         }
+
+        if (path[offset + bracketOffset + 1] != '.')
+        {
+            throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException($"Invalid character after closing bracket ']' in {path}. Expected '.' or end of path.");
+        }
+
+        nextOffset = offset + bracketOffset + 2;
 
         return index;
     }
@@ -187,4 +199,5 @@ public sealed class Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper
 //   "JsonName": "",
 //   "CSharpName": "",
 //   "TypeName": "global::Altinn.App.SourceGenerator.Tests.Empty",
+//   "IsJsonValueType": false,
 // }

@@ -6,10 +6,10 @@ namespace Altinn.App.Core.Models.Process;
 /// <summary>
 /// Class that defines the request for moving the process to the next task
 /// </summary>
-public class ProcessNextRequest
+public sealed record ProcessNextRequest
 {
     /// <summary>
-    /// The instance to be moved to the next task
+    /// The instance that is being processed
     /// </summary>
     public required Instance Instance { get; init; }
 

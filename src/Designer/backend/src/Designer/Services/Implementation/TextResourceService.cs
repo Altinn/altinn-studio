@@ -1,5 +1,7 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
@@ -45,8 +47,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             cancellationToken.ThrowIfCancellationRequested();
             string textResourcesPath = GetTextResourceDirectoryPath();
-            List<FileSystemObject> folder = await _giteaApiWrapper.GetDirectoryAsync(org, app, textResourcesPath, shortCommitId);
-            if (folder == null)
+
+            List<FileSystemObject> folder = [];
+            try
+            {
+                folder = await _giteaApiWrapper.GetDirectoryAsync(org, app, textResourcesPath, shortCommitId);
+            }
+            catch (DirectoryNotFoundException ex)
+            {
+                _logger.LogWarning(ex,
+                    $" // TextResourceService // UpdateTextResourcesAsync // No text resource folder found for {org}/{app} at commit {shortCommitId} ");
+            }
+
+            if (folder.Count == 0)
             {
                 return;
             }

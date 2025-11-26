@@ -8,12 +8,13 @@ import type { FormItem } from '../../../types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { EditLayoutSetForSubform } from './EditLayoutSetForSubform';
 import { ComponentMainConfig } from './ComponentMainConfig';
-import { HeaderMainConfig } from './HeaderMainConfig';
 import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
 import { useComponentSchemaQuery } from '@altinn/ux-editor/hooks/queries/useComponentSchemaQuery';
 import { TextResourceMainConfig } from './TextResourceMainConfig';
 import { DataModelMainConfig } from './DataModelMainConfig';
-import { StudioAlert, StudioSectionHeader } from '@studio/components';
+import { StudioAlert } from '@studio/components';
+import { ConfigPanelHeader } from '../CommonElements/ConfigPanelHeader/ConfigPanelHeader';
+import { MainSettingsHeader } from '../CommonElements/MainSettingsHeader/MainSettingsHeader';
 
 export type PropertiesHeaderProps = {
   formItem: FormItem;
@@ -34,12 +35,9 @@ export const PropertiesHeader = ({
 
   return (
     <>
-      <StudioSectionHeader
+      <ConfigPanelHeader
         icon={<Icon />}
-        heading={{
-          text: t(`ux_editor.component_title.${formItem.type}`),
-          level: 2,
-        }}
+        title={t(`ux_editor.component_title.${formItem.type}`)}
         helpText={{
           text: getComponentHelperTextByComponentType(formItem.type, t),
           title: t('ux_editor.component_help_text_general_title'),
@@ -50,6 +48,7 @@ export const PropertiesHeader = ({
           {t(`ux_editor.component_properties.deprecated.${formItem.type}`)}
         </StudioAlert>
       )}
+      {!hideMainConfig && <MainSettingsHeader />}
       <div className={classes.mainContent}>
         {formItem.type === ComponentType.Subform && (
           <EditLayoutSetForSubform
@@ -57,7 +56,6 @@ export const PropertiesHeader = ({
             handleComponentChange={handleComponentUpdate}
           />
         )}
-        {!hideMainConfig && <HeaderMainConfig />}
         {!hideMainConfig && (
           <>
             <EditComponentIdRow

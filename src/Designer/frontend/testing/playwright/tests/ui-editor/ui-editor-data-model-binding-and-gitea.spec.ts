@@ -187,6 +187,8 @@ test('That it is possible to navigate back to ui-editor page and add the newly a
   await uiEditorPage.clickOnAddDataModelButton(ComponentType.Input);
   await uiEditorPage.clickOnDataModelBindingCombobox();
   await uiEditorPage.clickOnDataModelPropertyOption(newDataModel);
+  await uiEditorPage.clickOnDataModelFieldBindingCombobox();
+  await uiEditorPage.clickOnDataModelFieldPropertyOption(dataModelBindingName);
   await uiEditorPage.clickOnSaveDataModel();
   await uiEditorPage.waitForDataModelToBeSelected();
 });

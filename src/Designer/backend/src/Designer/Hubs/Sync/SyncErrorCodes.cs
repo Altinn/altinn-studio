@@ -1,3 +1,4 @@
+#nullable disable
 namespace Altinn.Studio.Designer.Hubs.Sync;
 
 public static class SyncErrorCodes

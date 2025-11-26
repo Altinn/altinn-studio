@@ -1,9 +1,10 @@
+#nullable disable
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
 {
@@ -147,6 +148,17 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(string org, string repository, string reference = null, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Gets a file from a filepath at a specific reference (commit/branch/tag) along
+        /// with any error that might occur during the fetch.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">The name of repository</param>
+        /// <param name="filePath">Path to a file, may start with full commit sha</param>
+        /// <param name="reference">The short hash of a commit id</param>
+        /// <param name="cancellationToken">The cancellation token</param>
+        Task<(FileSystemObject, ProblemDetails)> GetFileAndErrorAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Returns list of the teams the user is member of.
         /// </summary>
         /// <returns></returns>
@@ -167,16 +179,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository.</param>
         Task<bool> DeleteRepository(string org, string repository);
-
-        /// <summary>
-        /// Modifies multiple files in the given repository. If a file does not exist, it
-        /// will be created. If it exists, it will be updated.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
-        /// <param name="repository">The name of repository.</param>
-        /// <param name="files">The list of files to modify.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        Task<bool> ModifyMultipleFiles(string org, string repository, GiteaMultipleFilesDto files, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the latest commit on a given branch.

@@ -5,9 +5,9 @@
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-      <PackageReference Include="Altinn.App.Api.Experimental" Version="8.9.0-pr.2672.pdf-service-task.73b8d83f" />
-      <PackageReference Include="Altinn.App.Core.Experimental" Version="8.9.0-pr.2672.pdf-service-task.73b8d83f" />
-      <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
+    <ProjectReference Include="../../../../App/backend/src/Altinn.App.Api/Altinn.App.Api.csproj" />
+    <ProjectReference Include="../../../../App/backend/src/Altinn.App.Core/Altinn.App.Core.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\css\" />
