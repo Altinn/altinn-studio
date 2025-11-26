@@ -248,15 +248,16 @@ internal class CSharpCodeGenerator
                 }
             }
 
-            // Detect which properties are used with string/array methods (includes, contains, etc.)
+            // Detect which properties are used with string/array methods (includes, contains, split, etc.)
             var stringArrayKeys = new HashSet<string>();
             foreach (var key in allPossibleKeys)
             {
-                // Check if property is used with .includes() or other string/array methods
+                // Check if property is used with .includes(), .split(), or other string/array methods
+                // Also check for optional chaining (?.) since that's common in JS
                 if (
                     System.Text.RegularExpressions.Regex.IsMatch(
                         jsCode,
-                        $@"\b{key}\.includes\b",
+                        $@"\b{key}(\?)?\.(?:includes|split|trim|substring|indexOf|charAt|match|replace)\b",
                         System.Text.RegularExpressions.RegexOptions.IgnoreCase
                     )
                 )
@@ -292,13 +293,13 @@ internal class CSharpCodeGenerator
                     }
                     else
                     {
-                        // Parse as decimal for numeric operations
+                        // Parse as double for numeric operations (JS numbers are floating point and can be Infinity/NaN)
                         code.AppendLine(
                             $"var {key} = obj.TryGetValue(\"{key}\", out var _{key}Val) && _{key}Val != null"
                         );
                         code.Indent();
                         code.AppendLine(
-                            $"? (decimal.TryParse(_{key}Val.ToString(), out var _{key}Parsed) ? _{key}Parsed : 0)"
+                            $"? (double.TryParse(_{key}Val.ToString(), out var _{key}Parsed) ? _{key}Parsed : 0)"
                         );
                         code.AppendLine(": 0;");
                         code.Unindent();
@@ -308,6 +309,10 @@ internal class CSharpCodeGenerator
 
                 // Try to convert the return expression
                 var converter = new StatementConverter(new Dictionary<string, string>(), "");
+
+                // Mark the parameter variables as already declared to avoid redeclaration
+                converter.MarkVariablesAsDeclared(allPossibleKeys);
+
                 CSharpConversionResult conversionResult;
 
                 if (jsFunction.FunctionAst != null)
