@@ -80,6 +80,7 @@ describe('StudioCodeListEditorReducer', () => {
       });
 
       const actualTextResource = result.textResources.find((item) => item.id === textResourceId);
+      expect(actualTextResource).toBeDefined();
       expect(actualTextResource?.value).toEqual(newValue);
     });
   });

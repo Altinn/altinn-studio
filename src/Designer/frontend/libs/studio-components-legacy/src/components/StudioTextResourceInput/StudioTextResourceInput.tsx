@@ -58,7 +58,7 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
     const [textResources, setTextResources] = usePropState<TextResource[]>(givenTextResources);
     const [mode, setMode] = useState<Mode>(Mode.EditValue);
 
-    const handleChangeCurrentId = (id: string): void => {
+    const handleChangeCurrentId = (id: string | null): void => {
       setCurrentId(id);
       onChangeCurrentId(id);
     };
