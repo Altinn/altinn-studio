@@ -193,6 +193,7 @@ func runStart() {
 
 	options := kind.KindContainerRuntimeOptions{
 		IncludeMonitoring: *includeMonitoring,
+		IncludeTestserver: true,
 	}
 
 	_, err := setupRuntime(variant, options)
@@ -270,7 +271,9 @@ func runTest() {
 			os.Exit(1)
 		}
 	} else {
-		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantMinimal, kind.DefaultOptions())
+		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantMinimal, kind.KindContainerRuntimeOptions{
+			IncludeTestserver: true,
+		})
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to setup runtime: %v\n", err)
 			os.Exit(1)
@@ -601,7 +604,9 @@ func runLoadtestLocal() {
 			os.Exit(1)
 		}
 	} else {
-		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantStandard, kind.DefaultOptions())
+		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantStandard, kind.KindContainerRuntimeOptions{
+			IncludeTestserver: true,
+		})
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to setup runtime: %v\n", err)
 			os.Exit(1)

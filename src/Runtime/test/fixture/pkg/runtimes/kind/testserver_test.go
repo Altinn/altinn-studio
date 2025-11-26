@@ -25,11 +25,6 @@ func TestNew_TestserverInBothVariants(t *testing.T) {
 				t.Fatalf("New() error = %v", err)
 			}
 
-			// Verify testserver.yaml exists
-			if _, err := os.Stat(runtime.testserverPath); err != nil {
-				t.Fatalf("testserver.yaml not found for %s variant: %v", tt.name, err)
-			}
-
 			// Read and verify it has content
 			content, err := os.ReadFile(runtime.testserverPath)
 			if err != nil {
