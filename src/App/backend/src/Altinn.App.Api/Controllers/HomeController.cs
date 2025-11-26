@@ -281,11 +281,7 @@ public class HomeController : Controller
     /// <param name="partyId">The party identifier.</param>
     [HttpGet]
     [Route("{org}/{app}/instance/{partyId}")]
-    public async Task<IActionResult> InstanceByParty(
-        [FromRoute] string org,
-        [FromRoute] string app,
-        [FromRoute] int partyId
-    )
+    public IActionResult InstanceByParty([FromRoute] string org, [FromRoute] string app, [FromRoute] int partyId)
     {
         string layoutSetsString = _appResources.GetLayoutSets();
         string layoutSetsJson = string.IsNullOrEmpty(layoutSetsString) ? "null" : layoutSetsString;
