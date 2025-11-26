@@ -29,13 +29,11 @@ import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataRea
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider, instanceQueries } from 'src/features/instance/InstanceContext';
 import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
-import { LanguageProvider } from 'src/features/language/LanguageProvider';
 import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { fetchInstanceData } from 'src/http-client/queries';
-// import { ProfileProvider } from 'src/features/profile/ProfileProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { PageNavigationRouter } from 'src/test/routerUtils';
 import type { IFooterLayout } from 'src/features/footer/types';
@@ -304,29 +302,27 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
       {...queries}
       queryClient={queryClient}
     >
-      <LanguageProvider>
-        <LangToolsStoreProvider>
-          <UiConfigProvider>
-            <PageNavigationProvider>
-              <Router>
-                <NavigationEffectProvider>
-                  <GlobalFormDataReadersProvider>
-                    <OrgsProvider>
-                      <ApplicationSettingsProvider>
-                        <LayoutSetsProvider>
-                          <PartyProvider>
-                            <TextResourcesProvider>{children}</TextResourcesProvider>
-                          </PartyProvider>
-                        </LayoutSetsProvider>
-                      </ApplicationSettingsProvider>
-                    </OrgsProvider>
-                  </GlobalFormDataReadersProvider>
-                </NavigationEffectProvider>
-              </Router>
-            </PageNavigationProvider>
-          </UiConfigProvider>
-        </LangToolsStoreProvider>
-      </LanguageProvider>
+      <LangToolsStoreProvider>
+        <UiConfigProvider>
+          <PageNavigationProvider>
+            <Router>
+              <NavigationEffectProvider>
+                <GlobalFormDataReadersProvider>
+                  <OrgsProvider>
+                    <ApplicationSettingsProvider>
+                      <LayoutSetsProvider>
+                        <PartyProvider>
+                          <TextResourcesProvider>{children}</TextResourcesProvider>
+                        </PartyProvider>
+                      </LayoutSetsProvider>
+                    </ApplicationSettingsProvider>
+                  </OrgsProvider>
+                </GlobalFormDataReadersProvider>
+              </NavigationEffectProvider>
+            </Router>
+          </PageNavigationProvider>
+        </UiConfigProvider>
+      </LangToolsStoreProvider>
     </AppQueriesProvider>
   );
 }

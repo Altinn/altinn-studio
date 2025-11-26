@@ -30,7 +30,7 @@ describe('Dynamics', () => {
     cy.get(appFrontend.changeOfName.reasons).should('be.visible');
   });
 
-  it.only('Should save the labels of multiple chosen options and radio buttons', () => {
+  it('Should save the labels of multiple chosen options and radio buttons', () => {
     cy.gotoHiddenPage('label-data-bindings');
     cy.findByRole('checkbox', { name: 'Blå' }).click();
     cy.findByRole('checkbox', { name: 'Grønn' }).click();

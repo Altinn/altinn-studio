@@ -68,7 +68,7 @@ jest.mock('src/features/instance/useProcessQuery', () => ({
   })),
 }));
 
-jest.mock('src/features/applicationMetadata/ApplicationMetadataProvider', () => ({
+jest.mock('src/features/applicationMetadata/useApplicationMetadata', () => ({
   useApplicationMetadata: jest.fn(() => ({
     dataTypes: mockDataTypes,
   })),

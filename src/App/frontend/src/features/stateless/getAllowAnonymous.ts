@@ -1,5 +1,5 @@
-import { useLaxApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { getDataTypeByLayoutSetId } from 'src/features/applicationMetadata/appMetadataUtils';
+import { useLaxApplicationMetadata } from 'src/features/applicationMetadata/useApplicationMetadata';
 import { useLayoutSetsQuery } from 'src/features/form/layoutSets/LayoutSetsProvider';
 
 export const useAllowAnonymous = () => {

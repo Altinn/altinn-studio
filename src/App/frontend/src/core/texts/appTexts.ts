@@ -1,7 +1,7 @@
 import {
   useApplicationMetadata,
   useHasApplicationMetadata,
-} from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+} from 'src/features/applicationMetadata/useApplicationMetadata';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useHasTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { useLanguage } from 'src/features/language/useLanguage';

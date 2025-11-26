@@ -1,4 +1,3 @@
-//
 import { onEntryValuesThatHaveState } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useNavigationParam } from 'src/hooks/navigation';
 import type { ApplicationMetadata, IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';

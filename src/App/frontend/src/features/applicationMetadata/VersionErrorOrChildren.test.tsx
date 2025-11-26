@@ -4,11 +4,11 @@ import { jest } from '@jest/globals';
 import { render, screen } from '@testing-library/react';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/useApplicationMetadata';
 import { VersionErrorOrChildren } from 'src/features/applicationMetadata/VersionErrorOrChildren';
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
 
-jest.mock('src/features/applicationMetadata/ApplicationMetadataProvider');
+jest.mock('src/features/applicationMetadata/useApplicationMetadata');
 jest.mock('src/features/instantiate/containers/InstantiationErrorPage');
 
 describe('VerifyMinimumVersion', () => {

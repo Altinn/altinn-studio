@@ -265,24 +265,10 @@ public class HomeController : Controller
 
         var realDetails = await auth.LoadDetails(validateSelectedParty: false);
         var details = MergeDetailsWithMockData(realDetails);
-        var application = await _appMetadata.GetApplicationMetadata();
+        var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
 
-        string layoutSetsString = _appResources.GetLayoutSets();
-        LayoutSets? layoutSets = null;
-        if (!string.IsNullOrEmpty(layoutSetsString))
-        {
-            layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions);
-        }
-
-        var data = new
-        {
-            applicationMetadata = application,
-            userProfile = details.Profile,
-            layoutSets,
-        };
-
-        var dataJson = JsonSerializer.Serialize(data, _jsonSerializerOptions);
-        var html = GenerateHtmlWithInstances(org, app, dataJson);
+        var initialData = await _initialDataService.GetInitialData(org, app, null, details.Profile.PartyId, language);
+        var html = GenerateHtml(org, app, initialData);
         return Content(html, "text/html; charset=utf-8");
     }
 

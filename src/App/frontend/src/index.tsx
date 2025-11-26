@@ -36,7 +36,6 @@ import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { PartySelectionWrapper } from 'src/features/instantiate/containers/PartySelection';
 import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
 import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
-import { LanguageProvider } from 'src/features/language/LanguageProvider';
 import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
@@ -77,151 +76,149 @@ document.addEventListener('DOMContentLoaded', () => {
       queryClient={defaultQueryClient}
     >
       <ErrorBoundary>
-        <LanguageProvider>
-          <LangToolsStoreProvider>
-            <ViewportWrapper>
-              <UiConfigProvider>
-                <RouterProvider
-                  router={createBrowserRouter(
-                    [
-                      {
-                        path: '/:org/:app/*',
-                        loader: createLanguageLoader({
-                          queryClient: defaultQueryClient,
-                        }),
-                        element: (
-                          <NavigationEffectProvider>
-                            <ErrorBoundary>
-                              <VersionErrorOrChildren>
-                                <GlobalFormDataReadersProvider>
-                                  <LayoutSetsProvider>
-                                    <TextResourcesProvider>
-                                      <OrgsProvider>
-                                        <ApplicationSettingsProvider>
-                                          <PartyProvider>
-                                            <KeepAliveProvider>
-                                              <ProcessingProvider>
-                                                <Outlet />
-                                              </ProcessingProvider>
-                                              <ToastContainer
-                                                position='top-center'
-                                                theme='colored'
-                                                transition={Slide}
-                                                draggable={false}
-                                              />
-                                            </KeepAliveProvider>
-                                          </PartyProvider>
-                                        </ApplicationSettingsProvider>
-                                      </OrgsProvider>
-                                    </TextResourcesProvider>
-                                  </LayoutSetsProvider>
-                                </GlobalFormDataReadersProvider>
-                              </VersionErrorOrChildren>
-                            </ErrorBoundary>
-                          </NavigationEffectProvider>
-                        ),
-                        children: [
-                          {
-                            path: 'instance-selection',
-                            element: <InstanceSelectionWrapper />,
-                          },
-                          {
-                            path: 'party-selection',
-                            element: <PartySelectionWrapper />,
-                            children: [
-                              {
-                                path: ':errorCode',
-                                element: <PartySelectionWrapper />,
-                              },
-                            ],
-                          },
-                          {
-                            path: 'error',
-                            element: <ErrorPageContent />,
-                          },
-                          {
-                            path: ':pageKey',
-                            element: (
-                              <PresentationComponent>
-                                <Form />
-                              </PresentationComponent>
-                            ),
-                          },
-                          {
-                            path: 'instance/:instanceOwnerPartyId/:instanceGuid',
-                            element: (
-                              <InstanceProvider>
-                                <Outlet />
-                              </InstanceProvider>
-                            ),
-                            children: [
-                              {
-                                path: TaskKeys.ProcessEnd,
-                                element: <DefaultReceipt />,
-                              },
-                              {
-                                path: ':taskId',
-                                loader: createDynamicsLoader({
-                                  application: () => window.AltinnAppData?.applicationMetadata,
-                                  layoutSets: () => window.AltinnAppData?.layoutSets,
-                                  instanceId: () => window.AltinnAppData?.instance?.id,
-                                }),
-                                element: (
-                                  <FixWrongReceiptType>
-                                    <ProcessWrapper>
-                                      <FormProvider>
-                                        <Outlet />
-                                      </FormProvider>
-                                    </ProcessWrapper>
-                                  </FixWrongReceiptType>
-                                ),
-                                children: [
-                                  {
-                                    index: true,
-                                    element: <NavigateToStartUrl forceCurrentTask={false} />,
-                                  },
-                                  {
-                                    path: ':pageKey',
-                                    children: [
-                                      {
-                                        index: true,
-                                        element: (
-                                          <PdfWrapper>
-                                            <PresentationComponent>
-                                              <Form />
-                                            </PresentationComponent>
-                                          </PdfWrapper>
-                                        ),
-                                      },
-                                      {
-                                        path: ':componentId',
-                                        element: <ComponentRouting />,
-                                      },
-                                      {
-                                        path: '*',
-                                        element: <ComponentRouting />,
-                                      },
-                                    ],
-                                  },
-                                ],
-                              },
-                            ],
-                          },
-                        ],
-                      },
-                    ],
+        <LangToolsStoreProvider>
+          <ViewportWrapper>
+            <UiConfigProvider>
+              <RouterProvider
+                router={createBrowserRouter(
+                  [
                     {
-                      future: {
-                        v7_relativeSplatPath: true,
-                      },
+                      path: '/:org/:app/*',
+                      loader: createLanguageLoader({
+                        queryClient: defaultQueryClient,
+                      }),
+                      element: (
+                        <NavigationEffectProvider>
+                          <ErrorBoundary>
+                            <VersionErrorOrChildren>
+                              <GlobalFormDataReadersProvider>
+                                <LayoutSetsProvider>
+                                  <TextResourcesProvider>
+                                    <OrgsProvider>
+                                      <ApplicationSettingsProvider>
+                                        <PartyProvider>
+                                          <KeepAliveProvider>
+                                            <ProcessingProvider>
+                                              <Outlet />
+                                            </ProcessingProvider>
+                                            <ToastContainer
+                                              position='top-center'
+                                              theme='colored'
+                                              transition={Slide}
+                                              draggable={false}
+                                            />
+                                          </KeepAliveProvider>
+                                        </PartyProvider>
+                                      </ApplicationSettingsProvider>
+                                    </OrgsProvider>
+                                  </TextResourcesProvider>
+                                </LayoutSetsProvider>
+                              </GlobalFormDataReadersProvider>
+                            </VersionErrorOrChildren>
+                          </ErrorBoundary>
+                        </NavigationEffectProvider>
+                      ),
+                      children: [
+                        {
+                          path: 'instance-selection',
+                          element: <InstanceSelectionWrapper />,
+                        },
+                        {
+                          path: 'party-selection',
+                          element: <PartySelectionWrapper />,
+                          children: [
+                            {
+                              path: ':errorCode',
+                              element: <PartySelectionWrapper />,
+                            },
+                          ],
+                        },
+                        {
+                          path: 'error',
+                          element: <ErrorPageContent />,
+                        },
+                        {
+                          path: ':pageKey',
+                          element: (
+                            <PresentationComponent>
+                              <Form />
+                            </PresentationComponent>
+                          ),
+                        },
+                        {
+                          path: 'instance/:instanceOwnerPartyId/:instanceGuid',
+                          element: (
+                            <InstanceProvider>
+                              <Outlet />
+                            </InstanceProvider>
+                          ),
+                          children: [
+                            {
+                              path: TaskKeys.ProcessEnd,
+                              element: <DefaultReceipt />,
+                            },
+                            {
+                              path: ':taskId',
+                              loader: createDynamicsLoader({
+                                application: () => window.AltinnAppData?.applicationMetadata,
+                                layoutSets: () => window.AltinnAppData?.layoutSets,
+                                instanceId: () => window.AltinnAppData?.instance?.id,
+                              }),
+                              element: (
+                                <FixWrongReceiptType>
+                                  <ProcessWrapper>
+                                    <FormProvider>
+                                      <Outlet />
+                                    </FormProvider>
+                                  </ProcessWrapper>
+                                </FixWrongReceiptType>
+                              ),
+                              children: [
+                                {
+                                  index: true,
+                                  element: <NavigateToStartUrl forceCurrentTask={false} />,
+                                },
+                                {
+                                  path: ':pageKey',
+                                  children: [
+                                    {
+                                      index: true,
+                                      element: (
+                                        <PdfWrapper>
+                                          <PresentationComponent>
+                                            <Form />
+                                          </PresentationComponent>
+                                        </PdfWrapper>
+                                      ),
+                                    },
+                                    {
+                                      path: ':componentId',
+                                      element: <ComponentRouting />,
+                                    },
+                                    {
+                                      path: '*',
+                                      element: <ComponentRouting />,
+                                    },
+                                  ],
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
                     },
-                  )}
-                  future={{ v7_startTransition: true }}
-                />
-              </UiConfigProvider>
-            </ViewportWrapper>
-          </LangToolsStoreProvider>
-        </LanguageProvider>
+                  ],
+                  {
+                    future: {
+                      v7_relativeSplatPath: true,
+                    },
+                  },
+                )}
+                future={{ v7_startTransition: true }}
+              />
+            </UiConfigProvider>
+          </ViewportWrapper>
+        </LangToolsStoreProvider>
       </ErrorBoundary>
     </AppQueriesProvider>,
   );
