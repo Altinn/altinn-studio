@@ -255,5 +255,5 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
         _userOrganizationServiceMock.Verify(s => s.UserIsMemberOfOrganization("ttd"), Times.AtLeastOnce);
     }
 
-    private static string ApiUrl(string path) => $"/designer/api/{Org}/shared-resources?{path}";
+    private static string ApiUrl(string path) => $"/designer/api/{Org}/shared-resources?path={path}";
 }
