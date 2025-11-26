@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable disable
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.ResourceRegistry.Core.Models.Altinn2;

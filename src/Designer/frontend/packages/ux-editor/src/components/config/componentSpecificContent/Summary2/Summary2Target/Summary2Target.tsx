@@ -1,6 +1,5 @@
 import { Summary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
-import { StudioNativeSelect } from '@studio/components-legacy';
-import { StudioParagraph, StudioHeading, StudioTextfield } from '@studio/components';
+import { StudioParagraph, StudioHeading, StudioSelect, StudioTextfield } from '@studio/components';
 import React from 'react';
 import classes from './Summary2Target.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -74,30 +73,28 @@ export const Summary2Target = ({ target, onChange, className }: Summary2TargetPr
       <StudioParagraph spacing>
         {t('ux_editor.component_properties.target_description')}
       </StudioParagraph>
-      <StudioNativeSelect
-        size='sm'
+      <StudioSelect
         label={t('ux_editor.component_properties.target_layoutSet_id')}
         value={target.taskId}
         onChange={(e) => handleLayoutSetChange(e.target.value)}
       >
         {layoutSetOptions.map((set) => (
-          <option key={set.id} value={set.id === layoutSet ? '' : set.task.id}>
+          <StudioSelect.Option key={set.id} value={set.id === layoutSet ? '' : set.task.id}>
             {set.id}
-          </option>
+          </StudioSelect.Option>
         ))}
-      </StudioNativeSelect>
-      <StudioNativeSelect
-        size='sm'
+      </StudioSelect>
+      <StudioSelect
         label={t('ux_editor.component_properties.target_type')}
         value={target.type}
         onChange={handleTypeChange}
       >
         {targetTypes.map((type) => (
-          <option key={type.value} value={type.value}>
+          <StudioSelect.Option key={type.value} value={type.value}>
             {type.label}
-          </option>
+          </StudioSelect.Option>
         ))}
-      </StudioNativeSelect>
+      </StudioSelect>
       {target.type === 'page' && (
         <Summary2ComponentReferenceSelector
           key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed

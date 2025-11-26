@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿#nullable disable
+using System.Net;
 using Altinn.Studio.DataModeling.Converter.Csharp;
 using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Metadata;

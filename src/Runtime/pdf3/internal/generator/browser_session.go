@@ -6,9 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/url"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -17,6 +18,7 @@ import (
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/browser"
 	"altinn.studio/pdf3/internal/cdp"
+	"altinn.studio/pdf3/internal/config"
 	"altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
@@ -24,15 +26,14 @@ import (
 
 type browserSession struct {
 	id       int
+	logger   *slog.Logger
 	browser  *browser.Process
 	conn     cdp.Connection
 	targetID string
 
-	queue chan workerRequest
-	state atomic.Uint32
-
-	// Current request
-	currentUrl string
+	queue          chan workerRequest
+	state          atomic.Uint32
+	currentRequest atomic.Pointer[workerRequest]
 
 	// Error tracking for current request
 	consoleErrors atomic.Int32
@@ -43,11 +44,21 @@ type browserSession struct {
 	cancel context.CancelFunc
 }
 
-func newBrowserSession(id int) (*browserSession, error) {
+func newBrowserSession(logger *slog.Logger, id int) (*browserSession, error) {
 	ctx, cancel := context.WithCancel(context.Background())
+	sessionLogger := logger.With("id", id)
+	cfg := config.ReadConfig()
+	sessionLogger.Info("Starting browser session", "queueSize", cfg.QueueSize)
+	var queue chan workerRequest
+	if cfg.QueueSize > 0 {
+		queue = make(chan workerRequest, cfg.QueueSize)
+	} else {
+		queue = make(chan workerRequest)
+	}
 	w := &browserSession{
 		id:     id,
-		queue:  make(chan workerRequest),
+		logger: sessionLogger,
+		queue:  queue,
 		state:  atomic.Uint32{},
 		ctx:    ctx,
 		cancel: cancel,
@@ -64,7 +75,7 @@ func newBrowserSession(id int) (*browserSession, error) {
 	w.conn, w.targetID, err = cdp.Connect(ctx, id, w.browser.DebugBaseURL, w.handleEvent)
 	if err != nil {
 		if closeErr := w.browser.Close(); closeErr != nil {
-			log.Printf("ERROR: Worker %d failed to connect AND failed to close browser: %v - process is lingering!\n", id, closeErr)
+			w.logger.Error("Failed to connect AND failed to close browser", "error", closeErr)
 		}
 		return nil, fmt.Errorf("failed to connect to browser: %w", err)
 	}
@@ -87,7 +98,7 @@ func newBrowserSession(id int) (*browserSession, error) {
 
 	go w.handleRequests()
 
-	log.Printf("Browser worker %d initialized successfully\n", id)
+	w.logger.Info("Browser worker initialized successfully")
 	return w, nil
 }
 
@@ -95,7 +106,6 @@ func newBrowserSession(id int) (*browserSession, error) {
 // Returns true if the request was enqueued, false otherwise
 func (w *browserSession) tryEnqueue(req workerRequest) bool {
 	select {
-	// Queue is unbuffered, so if it isn't waiting here yet just return false
 	case w.queue <- req:
 		return true
 	default:
@@ -109,7 +119,7 @@ func (w *browserSession) handleEvent(method string, params any) {
 		if p, ok := params.(map[string]any); ok {
 			if apiType, ok := p["type"].(string); ok && apiType == "error" {
 				w.consoleErrors.Add(1)
-				log.Printf("[%d, %s] console error: %v\n", w.id, w.currentUrl, p)
+				w.logger.Warn("Console error", "details", p)
 			}
 		}
 	case "Log.entryAdded":
@@ -117,7 +127,7 @@ func (w *browserSession) handleEvent(method string, params any) {
 			if entry, ok := p["entry"].(map[string]any); ok {
 				if level, ok := entry["level"].(string); ok && level == "error" {
 					w.browserErrors.Add(1)
-					log.Printf("[%d, %s] log error: %v\n", w.id, w.currentUrl, entry)
+					w.logger.Warn("Log error", "details", entry)
 				}
 			}
 		}
@@ -126,17 +136,17 @@ func (w *browserSession) handleEvent(method string, params any) {
 
 func (w *browserSession) handleRequests() {
 	defer func() {
-		assert.AssertWithMessage(w.ctx.Err() != nil, "Exited worker loop, but process isn't shutting down")
+		w.assert(w.ctx.Err() != nil, "Exited worker loop, but process isn't shutting down")
 	}()
 
 	for {
 		select {
 		case <-w.ctx.Done():
-			log.Printf("Worker %d: request processing loop shutting down (context cancellation)\n", w.id)
+			w.logger.Info("Request processing loop shutting down (context cancellation)")
 			return
 		case req, ok := <-w.queue:
 			if !ok {
-				assert.AssertWithMessage(w.ctx.Err() != nil, "Queue channel closed, but process is not shutting down")
+				w.assert(w.ctx.Err() != nil, "Queue channel closed, but process is not shutting down")
 				return
 			}
 
@@ -145,13 +155,17 @@ func (w *browserSession) handleRequests() {
 			w.browserErrors.Store(0)
 			w.tryUpdateTestModeOutput(&req, "Before", false)
 
-			w.currentUrl = req.request.URL
+			w.currentRequest.Store(&req)
+			rootLogger := w.logger
+			w.logger = w.logger.With("url", req.request.URL)
 			w.handleRequest(&req)
-			w.currentUrl = ""
+			w.logger = rootLogger
+			w.currentRequest.Store(nil)
 
-			if !req.hasResponded() {
-				log.Fatalf("[%d, %s] did not respond to request\n", w.id, w.currentUrl)
-			}
+			w.assertA(
+				req.hasResponded(),
+				"Did not respond to request", "url", req.request.URL,
+			)
 
 			w.tryUpdateTestModeOutput(&req, "After", true)
 		}
@@ -159,17 +173,17 @@ func (w *browserSession) handleRequests() {
 }
 
 func (w *browserSession) handleRequest(req *workerRequest) {
-	log.Printf("[%d, %s] processing PDF request\n", w.id, w.currentUrl)
+	w.logger.Info("Processing PDF request")
 	start := time.Now()
 
 	defer func() {
 		if r := recover(); r != nil {
-			log.Printf("[%d, %s] recovered from panic: %v\n", w.id, w.currentUrl, r)
+			w.logger.Error("Recovered from panic", "error", r)
 			req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, req.request.URL, fmt.Errorf("%v", r)))
 		}
 
 		duration := time.Since(start)
-		log.Printf("[%d, %s] completed PDF request in %s\n", w.id, w.currentUrl, duration)
+		w.logger.Info("Completed PDF request", "duration", duration)
 	}()
 
 	if req.ctx.Err() != nil {
@@ -203,7 +217,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		w.tryUpdateTestModeOutput(req, "BeforeCleanup", false)
 
 		if !startedProcessing {
-			log.Printf("[%d, %s] never started processing, skipping cleanup\n", w.id, w.currentUrl)
+			w.logger.Info("Never started processing, skipping cleanup")
 			req.cleanedUp = true
 			return
 		}
@@ -219,14 +233,16 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			if err == nil {
 				break
 			}
-			log.Printf("[%d, %s] failed to navigate back to about:blank, retrying...\n", w.id, w.currentUrl)
+			w.logger.Warn("Failed to navigate back to about:blank, retrying")
 		}
-		if err != nil {
-			assert.AssertWithMessage(false, fmt.Sprintf("failed to navigate back to about:blank during cleanup: %v", err))
-		}
+		w.assertA(
+			err == nil,
+			"failed to navigate back to about:blank during cleanup",
+			"error", err,
+		)
 
 		if testInput := req.tryGetTestModeInput(); testInput != nil && testInput.CleanupDelaySeconds > 0 {
-			log.Printf("[%d, %s] waiting for %d seconds\n", w.id, w.currentUrl, testInput.CleanupDelaySeconds)
+			w.logger.Info("Waiting for cleanup delay", "seconds", testInput.CleanupDelaySeconds)
 			time.Sleep(time.Duration(testInput.CleanupDelaySeconds) * time.Second)
 		}
 
@@ -235,7 +251,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 
 		// Retry cleanup if it failed
 		if !req.cleanedUp {
-			log.Printf("[%d, %s] failed to cleanup storage, retrying...\n", w.id, w.currentUrl)
+			w.logger.Warn("Failed to cleanup storage, retrying")
 			for range 3 {
 				w.cleanupBrowser(req)
 				if req.cleanedUp {
@@ -243,13 +259,14 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 				}
 			}
 
-			if !req.cleanedUp {
-				log.Fatalf("[%d, %s] failed to cleanup storage, we're in an unsafe state and can't proceed", w.id, w.currentUrl)
-			}
+			w.assert(
+				req.cleanedUp,
+				"Failed to cleanup storage, we're in an unsafe state and can't proceed",
+			)
 		}
 
 		duration := time.Since(start)
-		log.Printf("[%d, %s] cleanup completed in %s\n", w.id, w.currentUrl, duration)
+		w.logger.Info("Cleanup completed", "duration", duration)
 	}()
 
 	if req.ctx.Err() != nil {
@@ -320,16 +337,15 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		return nil
 	}
 
-	// Wait for element if specified
-	if request.WaitFor != nil {
-		if req.hasResponded() {
-			return nil
-		}
-		if req.ctx.Err() != nil {
-			req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
-			return nil
-		}
+	if req.hasResponded() {
+		return nil
+	}
+	if req.ctx.Err() != nil {
+		req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
+		return nil
+	}
 
+	if request.WaitFor != nil {
 		const maxWaitMs int32 = types.MaxTimeoutMs
 		if selector, ok := request.WaitFor.AsString(); ok {
 			// Simple string selector - wait for element existence only
@@ -339,7 +355,12 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			}
 		} else if timeout, ok := request.WaitFor.AsTimeout(); ok {
 			// Simple timeout delay
-			time.Sleep(time.Duration(timeout) * time.Millisecond)
+			select {
+			case <-time.After(time.Duration(timeout) * time.Millisecond):
+			case <-req.ctx.Done():
+				req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
+				return nil
+			}
 		} else if opts, ok := request.WaitFor.AsOptions(); ok {
 			// Full options with selector, visible, hidden, timeout
 			timeoutMs := maxWaitMs // default timeout
@@ -354,6 +375,26 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 				return nil
 			}
 		}
+	} else {
+		// No waitFor specified - just wait for page load event
+		const maxWaitMs int32 = types.MaxTimeoutMs
+		expression := fmt.Sprintf("(function(timeoutMs){ return %s; })(%d)", loadWaitSnippet(), maxWaitMs)
+		resp, err := w.conn.SendCommand(req.ctx, "Runtime.evaluate", map[string]any{
+			"expression":    expression,
+			"awaitPromise":  true,
+			"returnByValue": true,
+		})
+		if err != nil {
+			w.logger.Warn("Failed to wait for page load event", "error", err)
+			req.tryRespondError(contextErrorToPDFError(err, types.ErrGenerationFail, "page load"))
+			return nil
+		}
+
+		err = w.processWaitResult(req, resp)
+		if err != nil {
+			return err
+		}
+		w.logger.Info("Page load event completed")
 	}
 
 	if req.hasResponded() {
@@ -389,7 +430,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			pdfParams["paperWidth"] = dimensions.width
 			pdfParams["paperHeight"] = dimensions.height
 		} else {
-			log.Printf("[%d, %s] unknown paper format %q, using default\n", w.id, w.currentUrl, request.Options.Format)
+			w.logger.Warn("Unknown paper format, using default", "format", request.Options.Format)
 		}
 	}
 
@@ -463,7 +504,7 @@ func (w *browserSession) waitForElement(req *workerRequest, selector string, tim
 	needsVisibilityCheck := checkVisible || checkHidden
 
 	if needsVisibilityCheck {
-		assert.AssertWithMessage(
+		w.assert(
 			checkVisible != checkHidden,
 			// Is caught during validation
 			"Can't check for both hidden and visible at the same time",
@@ -481,43 +522,114 @@ func (w *browserSession) waitForElement(req *workerRequest, selector string, tim
 		"returnByValue": true,
 	})
 	if err != nil {
-		log.Printf("[%d, %s] failed to wait for element %q: %v\n", w.id, w.currentUrl, selector, err)
+		w.logger.Warn("Failed to wait for element", "selector", selector, "error", err)
 		req.tryRespondError(contextErrorToPDFError(err, types.ErrElementNotReady, fmt.Sprintf("element %q", selector)))
 		return err
 	}
 
-	// Expect a boolean result indicating whether the element was found within timeout
-	if result, ok := resp.Result.(map[string]any); ok {
-		if resultObj, ok := result["result"].(map[string]any); ok {
-			if value, ok := resultObj["value"].(bool); ok {
-				if !value {
-					log.Printf("[%d, %s] failed to wait for element %q: timeout\n", w.id, w.currentUrl, selector)
-					err := fmt.Errorf("timeout")
-					req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", selector), err))
-					return err
-				}
-			} else {
-				log.Printf("[%d, %s] unexpected evaluation result type waiting for %q\n", w.id, w.currentUrl, selector)
-			}
-		}
+	err = w.processWaitResult(req, resp)
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
+func (w *browserSession) processWaitResult(req *workerRequest, resp *cdp.CDPResponse) error {
+	result, ok := resp.Result.(map[string]any)
+	if !ok {
+		return w.handleWaitError(req, "invalid response format", resp.Result, "malformed CDP response")
+	}
+
+	if errorObj, ok := result["exceptionDetails"]; ok {
+		return w.handleWaitError(req, "JavaScript exception during wait", errorObj, "exception in wait expression")
+	}
+
+	resultObj, ok := result["result"].(map[string]any)
+	if !ok {
+		return w.handleWaitError(req, "missing or invalid result object", result, "malformed result object")
+	}
+
+	value, ok := resultObj["value"].(bool)
+	if !ok {
+		return w.handleWaitError(req, "result value is not boolean", resultObj, "expected boolean result")
+	}
+
+	if !value {
+		waitForData := waitForToJson(req.request.WaitFor)
+		w.logger.Warn("Wait condition not satisfied within timeout", "waitFor", waitForData)
+		err := fmt.Errorf("timeout")
+		req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, "failed waiting for condition", err))
+		return err
+	}
+
+	return nil
+}
+
+// handleWaitError logs and responds with an error for wait failures
+func (w *browserSession) handleWaitError(req *workerRequest, logMsg string, data any, errDetail string) error {
+	waitForData := waitForToJson(req.request.WaitFor)
+
+	// Marshal the data for logging
+	dataBytes, err := json.Marshal(data)
+	if err != nil {
+		dataBytes = []byte(fmt.Sprintf("(marshal error: %v)", err))
+	}
+
+	w.logger.Error(logMsg, "waitFor", waitForData, "data", string(dataBytes))
+
+	err = fmt.Errorf("%s", errDetail)
+	req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, "failed waiting for condition", err))
+	return err
+}
+
+func waitForToJson(waitFor *types.WaitFor) string {
+	waitForData := ""
+	if waitFor != nil {
+		waitForDataBytes, err := json.Marshal(waitFor)
+		if err != nil {
+			waitForData = err.Error()
+		} else {
+			waitForData = string(waitForDataBytes)
+		}
+	}
+
+	return waitForData
+}
+
+// loadWaitSnippet returns JavaScript code that creates a promise which resolves when the page load event fires.
+// This can be used in Promise.all() to ensure load event completes along with other conditions.
+func loadWaitSnippet() string {
+	return `(document.readyState === 'complete' ? Promise.resolve(true) : new Promise(r => {
+	let timeoutId;
+	let resolveSuccess;
+	const resolve = (success) => {
+		if (timeoutId !== undefined) clearTimeout(timeoutId);
+		window.removeEventListener('load', resolveSuccess);
+		r(success);
+	};
+	resolveSuccess = () => resolve(true);
+	window.addEventListener('load', resolveSuccess, { once: true });
+	if (document.readyState === 'complete') resolveSuccess();
+	timeoutId = setTimeout(() => resolve(false), timeoutMs);
+  }))`
+}
+
 // buildSimpleWaitExpression generates JavaScript for simple element existence checking.
 // Uses MutationObserver only, no polling (original behavior).
+// Also waits for the page 'load' event to ensure the page is fully loaded.
 func (w *browserSession) buildSimpleWaitExpression(selector string, timeoutMs int32) string {
 	if htmlIDSelectorPattern.MatchString(selector) {
 		// ID-optimized path
 		id := selector[1:]
 		return fmt.Sprintf(`(function(){
 		  const id = %q; const timeoutMs = %d;
-		  return new Promise((resolve) => {
+		  const loadWait = %s;
+		  const elementWait = new Promise((resolve) => {
 		    const e = document.getElementById(id);
 		    if (e) return requestAnimationFrame(() => resolve(true));
-		    let obs;
-		    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} requestAnimationFrame(() => resolve(v)); };
+		    let obs, timeoutId;
+		    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} if (timeoutId !== undefined) clearTimeout(timeoutId); requestAnimationFrame(() => resolve(v)); };
 		    obs = new MutationObserver(recs => {
 		      for (const m of recs) {
 		        if (m.type === 'attributes' && m.attributeName === 'id' && m.target.id === id) { return done(true); }
@@ -531,29 +643,33 @@ func (w *browserSession) buildSimpleWaitExpression(selector string, timeoutMs in
 		      }
 		    });
 		    obs.observe(document, {subtree:true, childList:true, attributes:true, attributeFilter:['id']});
-		    setTimeout(() => done(false), timeoutMs);
+		    timeoutId = setTimeout(() => done(false), timeoutMs);
 		  });
-		})()`, id, timeoutMs)
+		  return Promise.all([loadWait, elementWait]).then(([loaded, found]) => loaded && found);
+		})()`, id, timeoutMs, loadWaitSnippet())
 	}
 
 	// General selector path
 	return fmt.Sprintf(`(function(){
 	  const selector = %q; const timeoutMs = %d;
-	  return new Promise((resolve) => {
+	  const loadWait = %s;
+	  const elementWait = new Promise((resolve) => {
 	    if (document.querySelector(selector)) return requestAnimationFrame(() => resolve(true));
-	    let obs;
-	    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} requestAnimationFrame(() => resolve(v)); };
+	    let obs, timeoutId;
+	    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} if (timeoutId !== undefined) clearTimeout(timeoutId); requestAnimationFrame(() => resolve(v)); };
 	    obs = new MutationObserver(() => {
 	      if (document.querySelector(selector)) done(true);
 	    });
 	    obs.observe(document, {subtree:true, childList:true, attributes:true});
-	    setTimeout(() => done(false), timeoutMs);
+	    timeoutId = setTimeout(() => done(false), timeoutMs);
 	  });
-	})()`, selector, timeoutMs)
+	  return Promise.all([loadWait, elementWait]).then(([loaded, found]) => loaded && found);
+	})()`, selector, timeoutMs, loadWaitSnippet())
 }
 
 // buildVisibilityWaitExpression generates JavaScript for visibility checking with polling fallback.
 // Uses MutationObserver for attribute changes + polling for CSS rule changes.
+// Also waits for the page 'load' event to ensure the page is fully loaded.
 func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutMs int32, checkVisible, checkHidden bool) string {
 	// Visibility helper function
 	visibilityHelper := `
@@ -583,13 +699,15 @@ func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutM
 		  const id = %q; const timeoutMs = %d;
 		  %s
 		  %s
-		  return new Promise((resolve) => {
+		  const loadWait = %s;
+		  const elementWait = new Promise((resolve) => {
 		    const e = document.getElementById(id);
 		    if (checkElement(e)) return requestAnimationFrame(() => resolve(true));
-		    let obs, pollInterval;
+		    let obs, pollInterval, timeoutId;
 		    const done = (v) => {
 		      try { obs && obs.disconnect(); } catch(e){}
-		      if (pollInterval) clearInterval(pollInterval);
+		      if (pollInterval !== undefined) clearInterval(pollInterval);
+		      if (timeoutId !== undefined) clearTimeout(timeoutId);
 		      requestAnimationFrame(() => resolve(v));
 		    };
 		    const check = () => {
@@ -612,9 +730,10 @@ func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutM
 		    obs.observe(document, {subtree:true, childList:true, attributes:true, attributeFilter:['id', 'style', 'class']});
 		    // Fallback polling for visibility changes via CSS rules (media queries, animations, etc.)
 		    pollInterval = setInterval(check, 100);
-		    setTimeout(() => done(false), timeoutMs);
+		    timeoutId = setTimeout(() => done(false), timeoutMs);
 		  });
-		})()`, id, timeoutMs, visibilityHelper, checkElementDef)
+		  return Promise.all([loadWait, elementWait]).then(([loaded, found]) => loaded && found);
+		})()`, id, timeoutMs, visibilityHelper, checkElementDef, loadWaitSnippet())
 	}
 
 	// General selector path with visibility checking
@@ -622,13 +741,15 @@ func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutM
 	  const selector = %q; const timeoutMs = %d;
 	  %s
 	  %s
-	  return new Promise((resolve) => {
+	  const loadWait = %s;
+	  const elementWait = new Promise((resolve) => {
 	    const e = document.querySelector(selector);
 	    if (checkElement(e)) return requestAnimationFrame(() => resolve(true));
-	    let obs, pollInterval;
+	    let obs, pollInterval, timeoutId;
 	    const done = (v) => {
 	      try { obs && obs.disconnect(); } catch(e){}
-	      if (pollInterval) clearInterval(pollInterval);
+	      if (pollInterval !== undefined) clearInterval(pollInterval);
+	      if (timeoutId !== undefined) clearTimeout(timeoutId);
 	      requestAnimationFrame(() => resolve(v));
 	    };
 	    const check = () => {
@@ -641,15 +762,16 @@ func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutM
 	    obs.observe(document, {subtree:true, childList:true, attributes:true, attributeFilter:['style', 'class']});
 	    // Fallback polling for visibility changes via CSS rules (media queries, animations, etc.)
 	    pollInterval = setInterval(check, 100);
-	    setTimeout(() => done(false), timeoutMs);
+	    timeoutId = setTimeout(() => done(false), timeoutMs);
 	  });
-	})()`, selector, timeoutMs, visibilityHelper, checkElementDef)
+	  return Promise.all([loadWait, elementWait]).then(([loaded, found]) => loaded && found);
+	})()`, selector, timeoutMs, visibilityHelper, checkElementDef, loadWaitSnippet())
 }
 
 func (w *browserSession) getCookies() ([]map[string]any, error) {
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	w.assert(runtime.IsTestInternalsMode, "Should only run as part of testing")
 
-	resp, err := w.conn.SendCommand(w.ctx, "Network.getCookies", map[string]any{})
+	resp, err := w.conn.SendCommand(w.ctx, "Storage.getCookies", map[string]any{})
 	if err != nil {
 		return nil, err
 	}
@@ -675,28 +797,41 @@ func (w *browserSession) getCookies() ([]map[string]any, error) {
 }
 
 func (w *browserSession) getBrowserState(state string) testing.BrowserState {
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	w.assert(runtime.IsTestInternalsMode, "Should only run as part of testing")
 
 	cookies, err := w.getCookies()
 	if err != nil {
 		return testing.BrowserState{
 			State:            state,
-			Cookies:          []string{},
+			Cookies:          []testing.CookieInfo{},
 			ConsoleErrorLogs: int(w.consoleErrors.Load()),
 			BrowserErrors:    int(w.browserErrors.Load()),
 		}
 	}
 
-	cookieNames := make([]string, 0, len(cookies))
+	cookieInfos := make([]testing.CookieInfo, 0, len(cookies))
 	for _, cookie := range cookies {
-		if name, ok := cookie["name"].(string); ok {
-			cookieNames = append(cookieNames, name)
+		name, hasName := cookie["name"].(string)
+		domain, _ := cookie["domain"].(string)
+		if hasName {
+			cookieInfos = append(cookieInfos, testing.CookieInfo{
+				Name:   name,
+				Domain: domain,
+			})
 		}
 	}
 
+	// Sort for deterministic ordering (prevents snapshot flakiness)
+	sort.SliceStable(cookieInfos, func(i, j int) bool {
+		if cookieInfos[i].Name != cookieInfos[j].Name {
+			return cookieInfos[i].Name < cookieInfos[j].Name
+		}
+		return cookieInfos[i].Domain < cookieInfos[j].Domain
+	})
+
 	return testing.BrowserState{
 		State:            state,
-		Cookies:          cookieNames,
+		Cookies:          cookieInfos,
 		ConsoleErrorLogs: int(w.consoleErrors.Load()),
 		BrowserErrors:    int(w.browserErrors.Load()),
 	}
@@ -710,7 +845,7 @@ func (w *browserSession) tryUpdateTestModeOutput(req *workerRequest, state strin
 		return
 	}
 
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	w.assert(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	browserState := w.getBrowserState(state)
 	testing.UpdateTestOutput(testInput.ID, func(output *testing.PdfInternalsTestOutput) {
 		output.BrowserStates = append(output.BrowserStates, browserState)
@@ -726,20 +861,21 @@ func (w *browserSession) cleanupBrowser(req *workerRequest) {
 	}
 
 	u, err := url.ParseRequestURI(req.request.URL)
-	assert.AssertWithMessage(err == nil, "URL should be validated at API layer")
+	w.assert(err == nil, "URL should be validated at API layer")
 
 	now := time.Now()
-	log.Printf("Worker %d sending cleanup batch command...\n", w.id)
+	w.logger.Info("Sending cleanup batch command")
 	// Not using request context here, the client might have dropped out already and we should always complete cleanup
 	responses := w.conn.SendCommandBatch(w.ctx, []cdp.Command{
 		{Method: "Storage.clearDataForOrigin", Params: map[string]any{
 			"origin":       fmt.Sprintf("%s://%s", u.Scheme, u.Host),
 			"storageTypes": "all",
 		}},
+		{Method: "Storage.clearCookies", Params: nil},
 		{Method: "Network.clearBrowserCache", Params: nil},
 		{Method: "Page.resetNavigationHistory", Params: nil},
 	})
-	log.Printf("Worker %d cleanup batch command completed in %s\n", w.id, time.Since(now))
+	w.logger.Info("Cleanup batch command completed", "duration", time.Since(now))
 
 	var errors strings.Builder
 	for _, response := range responses {
@@ -755,14 +891,37 @@ func (w *browserSession) cleanupBrowser(req *workerRequest) {
 	}
 
 	if errors.Len() != 0 {
-		assert.AssertWithMessage(false, fmt.Sprintf("Errors from browser cleanup:\n%s", errors.String()))
+		w.assertA(false, "Errors from browser cleanup", "error", errors.String())
 	}
 
 	req.cleanedUp = true
 }
 
+func (w *browserSession) assert(condition bool, message string) {
+	if req := w.currentRequest.Load(); req != nil {
+		assert.AssertWithMessage(condition, message, "id", w.id, "url", req.request.URL)
+	} else {
+		assert.AssertWithMessage(condition, message, "id", w.id)
+	}
+}
+
+func (w *browserSession) assertA(condition bool, message string, userArgs ...any) {
+	if req := w.currentRequest.Load(); req != nil {
+		args := make([]any, 0, 2+2+len(userArgs))
+		args = append(args, "id", w.id)
+		args = append(args, "url", req.request.URL)
+		args = append(args, userArgs...)
+		assert.AssertWithMessage(condition, message, args...)
+	} else {
+		args := make([]any, 0, 2+len(userArgs))
+		args = append(args, "id", w.id)
+		args = append(args, userArgs...)
+		assert.AssertWithMessage(condition, message, args...)
+	}
+}
+
 func (w *browserSession) close() {
-	log.Printf("Worker %d closing...\n", w.id)
+	w.logger.Info("Closing worker")
 
 	if w.cancel != nil {
 		w.cancel()
@@ -773,17 +932,40 @@ func (w *browserSession) close() {
 
 	if w.conn != nil {
 		if err := w.conn.Close(); err != nil {
-			log.Printf("Worker %d: Failed to close connection: %v\n", w.id, err)
+			w.logger.Error("Failed to close connection", "error", err)
 		}
 	}
 
 	if w.browser != nil {
 		if err := w.browser.Close(); err != nil {
-			log.Printf("ERROR: Worker %d failed to close browser: %v\n", w.id, err)
+			w.logger.Error("Failed to close browser", "error", err)
 		}
 	}
 
-	log.Printf("Worker %d closed\n", w.id)
+	w.logger.Info("Worker closed")
+}
+
+// isProcessing returns true if a request is currently being processed, or if there is a queue
+func (w *browserSession) isProcessing() bool {
+	// NOTE: this should not be racy because we only call this when
+	// the sesions has been "swapped away" during session recycling..
+	// See `waitForDrain` below and `periodicRestart` in the generator
+	queued := len(w.queue)
+	return w.currentRequest.Load() != nil || queued > 0
+}
+
+// waitForDrain waits for active request to complete, up to timeout
+func (w *browserSession) waitForDrain(timeout time.Duration) {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		if !w.isProcessing() {
+			w.logger.Info("Session drained successfully")
+			return // Drained successfully
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	// Timeout - log warning but don't crash
+	w.logger.Warn("Session drain timeout, forcing close", "timeout", timeout)
 }
 
 // paperFormats defines standard paper sizes in inches (compatible with Puppeteer)
@@ -840,7 +1022,6 @@ func convertMargin(margin string) float64 {
 	// Parse the numeric value
 	value, err := strconv.ParseFloat(strings.TrimSpace(valueStr), 64)
 	if err != nil {
-		log.Printf("Failed to parse margin value %q: %v, using 0\n", margin, err)
 		return 0.0
 	}
 

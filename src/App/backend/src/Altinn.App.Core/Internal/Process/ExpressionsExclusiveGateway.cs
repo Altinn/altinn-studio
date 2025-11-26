@@ -88,10 +88,14 @@ public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
                 dataTypeId = layoutSet?.DataType;
             }
             var expression = GetExpressionFromCondition(sequenceFlow.ConditionExpression);
-            DataElementIdentifier dataElement =
-                instance.Data.Find(d => d.DataType == dataTypeId) ?? new DataElementIdentifier();
+            DataElementIdentifier? dataElement = instance.Data.Find(d => d.DataType == dataTypeId);
 
-            var componentContext = new ComponentContext(component: null, rowIndices: null, dataElement);
+            var componentContext = new ComponentContext(
+                state,
+                component: null,
+                rowIndices: null,
+                dataElementIdentifier: dataElement
+            );
             var result = await ExpressionEvaluator.EvaluateExpression(state, expression, componentContext);
             if (result is true)
             {

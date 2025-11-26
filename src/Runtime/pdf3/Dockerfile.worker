@@ -1,38 +1,48 @@
-# Build stage
-FROM golang:1.25-trixie@sha256:03c629da2a724b8978e9b571a40f3afa65ddd30a978464c6de99c4f4c2fe2314 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.25-trixie@sha256:a02d35efc036053fdf0da8c15919276bf777a80cbfda6a35c5e9f087e652adfc AS builder
+ARG TARGETOS
+ARG TARGETARCH
 
 WORKDIR /app
 
-# Copy go mod files first for better dependency caching
 COPY go.mod go.sum ./
 
 # Remove the test fixture dependency from go.mod as it's not needed for building binaries
 # The test/harness package is only imported by test files, not by cmd/proxy or cmd/worker
-RUN sed -i '/require altinn.studio\/runtime-fixture/d' go.mod && \
+RUN sed -i '/altinn.studio\/runtime-fixture v/d' go.mod && \
     sed -i '/replace altinn.studio\/runtime-fixture/d' go.mod
 
 RUN go mod download
 
-# Copy source code
 COPY . .
 
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/worker
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -a -installsuffix cgo -o main ./cmd/worker
 
-# Runtime stage
 FROM docker.io/chromedp/headless-shell:stable@sha256:de5b057849de96955de7662023420a46355abfbb24d57aa01282ec7c811aacab
+
+USER root
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections && \
+    sed -i 's/main$/main contrib/' /etc/apt/sources.list.d/debian.sources && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        fontconfig \
+        ttf-mscorefonts-installer && \
+    fc-cache -f -v && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy the binary from builder stage
 COPY --from=builder /app/main .
 
-# Create output directory and pre-download Chrome
 RUN mkdir -p ./output
 
 EXPOSE 5031
 
+RUN mkdir -p /tmp/user-home && \
+    chown -R nobody:nogroup /tmp/user-home
+
+ENV HOME=/tmp/user-home
 USER nobody
 
-# Run the service
 ENTRYPOINT ["./main"]

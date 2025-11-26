@@ -3,9 +3,33 @@ kind: Kustomization
 resources:
   - ../base
 patches:
+  # - Configure dashboard ConfigMap for kube-prometheus-stack sidecar discovery
+  - target:
+      kind: ConfigMap
+      name: pdf3-dashboard
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: "monitoring"
+      - op: add
+        path: /metadata/labels
+        value:
+          grafana_dashboard: "1"
+      - op: add
+        path: /metadata/annotations
+        value:
+          grafana_folder: "Altinn"
+  # - Delete GrafanaDashboard CRD (only used in remote environments)
+  - patch: |-
+      $patch: delete
+      apiVersion: grafana.integreatly.org/v1beta1
+      kind: GrafanaDashboard
+      metadata:
+        name: pdf3-dashboard
   # - Add TEST_INTERNALS_MODE environment variable for local/test environment
   # - Set image and image pull policy
   # - Downscale replicas
+  # - Set browser restart interval for local testing
   - target:
       kind: Deployment
       name: pdf3-worker
@@ -15,13 +39,18 @@ patches:
         value:
           name: TEST_INTERNALS_MODE
           value: "true"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: PDF3_BROWSER_RESTART_INTERVAL
+          value: "2m"
       - op: replace
         path: /spec/template/spec/containers/0/image
         value: "localhost:5001/runtime-pdf3-worker:latest"
       - op: replace
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: "Always"
-      - op: replace
+      - op: add
         path: /spec/replicas
         value: 2
   - target:
@@ -39,7 +68,7 @@ patches:
       - op: replace
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: "Always"
-      - op: replace
+      - op: add
         path: /spec/replicas
         value: 2
   # Delete HPA for proxy

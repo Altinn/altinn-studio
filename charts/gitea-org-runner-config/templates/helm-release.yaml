@@ -27,18 +27,24 @@ spec:
       tag: "{{ .Values.imageTag }}"
     nameOverride: {{ .Values.releaseName }}
     fullnameOverride: {{ .Values.releaseName }}
-    environmentVariables:
+    runners:
+    {{- $giteaUrl := .Values.giteaInstanceUrl }}
+    {{- range index .Values.runners .Values.environment }}
+    - name: {{ .name }}
+      replicas: {{ .replicas }}
+      environmentVariables:
       - name: GITEA_INSTANCE_URL
-        value: {{ .Values.giteaInstanceUrl }}
+        value: "{{ $giteaUrl }}"
       - name: GITEA_RUNNER_EPHEMERAL
         value: "1"
       - name: GITEA_RUNNER_LABELS
-        value: ubuntu-latest:host
+        value: "ubuntu-latest:host"
       - name: GITEA_RUNNER_REGISTRATION_TOKEN
         valueFrom:
           secretKeyRef:
-            name: {{ .Values.registrationTokenSecretName }}
+            name: {{ .registrationTokenSecretName }}
             key: token
+    {{- end }}
     tolerations:
       - key: "purpose"
         operator: "Equal"

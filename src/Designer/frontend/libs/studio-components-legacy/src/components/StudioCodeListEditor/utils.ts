@@ -93,7 +93,7 @@ export function isCodeLimitReached(
 }
 
 type UpdateCodeListArgs = {
-  newValue: string | null;
+  newValue: string;
   codeItemIndex: number;
   property: CodeListItemTextProperty;
 };

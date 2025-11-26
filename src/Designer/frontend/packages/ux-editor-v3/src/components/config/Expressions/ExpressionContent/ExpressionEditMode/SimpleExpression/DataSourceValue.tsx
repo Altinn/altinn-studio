@@ -11,8 +11,7 @@ import {
 import { useText } from '../../../../../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../../../../hooks/useAppContext';
-import { StudioNativeSelect } from '@studio/components-legacy';
-import { StudioTextfield } from '@studio/components';
+import { StudioSelect, StudioTextfield } from '@studio/components';
 import { ToggleGroup } from '@digdir/designsystemet-react';
 
 export interface DataSourceValueProps {
@@ -60,33 +59,33 @@ export const DataSourceValue = ({
     }
   };
 
+  const label = isComparableValue
+    ? t('right_menu.expressions_data_source_comparable_value')
+    : t('right_menu.expressions_data_source_value');
+
   switch (currentDataSource) {
     case DataSource.Component:
     case DataSource.DataModel:
     case DataSource.InstanceContext:
     case DataSource.ApplicationSettings:
       return (
-        <StudioNativeSelect
+        <StudioSelect
           id={`data-source-value-select${currentDataSource}`}
-          label={
-            isComparableValue
-              ? t('right_menu.expressions_data_source_comparable_value')
-              : t('right_menu.expressions_data_source_value')
-          }
+          label={label}
           onChange={(event: ChangeEvent<HTMLSelectElement>) =>
             specifyDataSourceValue(event.target.value, isComparableValue)
           }
           value={(currentValue as string) || 'default'}
         >
-          <option key={''} value={'default'}>
+          <StudioSelect.Option key={''} value={'default'}>
             {t('right_menu.expressions_data_source_select')}
-          </option>
+          </StudioSelect.Option>
           {getCorrespondingDataSourceValues(currentDataSource).map((option) => (
-            <option key={option.value} value={option.value}>
+            <StudioSelect.Option key={option.value} value={option.value}>
               {option.label}
-            </option>
+            </StudioSelect.Option>
           ))}
-        </StudioNativeSelect>
+        </StudioSelect>
       );
     case DataSource.String:
       return (

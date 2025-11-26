@@ -4,25 +4,30 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
+	"sync/atomic"
 	"time"
 
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/browser"
 	"altinn.studio/pdf3/internal/cdp"
+	"altinn.studio/pdf3/internal/config"
+	"altinn.studio/pdf3/internal/log"
 	"altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
 )
 
 type Custom struct {
+	logger         *slog.Logger
 	browserVersion types.BrowserVersion
 
-	session *browserSession
+	activeSession    atomic.Pointer[browserSession]
+	sessionIDCounter atomic.Int32
 }
 
 // getBrowserVersion starts a temporary browser and retrieves its version information
-func getBrowserVersion() (types.BrowserVersion, error) {
+func getBrowserVersion(logger *slog.Logger) (types.BrowserVersion, error) {
 	// Start temporary browser instance
 	browserProc, err := browser.Start(-1)
 	if err != nil {
@@ -30,7 +35,7 @@ func getBrowserVersion() (types.BrowserVersion, error) {
 	}
 	defer func() {
 		if err := browserProc.Close(); err != nil {
-			log.Printf("WARNING: Failed to close temporary browser: %v - process may be lingering\n", err)
+			logger.Error("Failed to close temporary browser", "error", err)
 		}
 	}()
 
@@ -54,56 +59,59 @@ func getBrowserVersion() (types.BrowserVersion, error) {
 }
 
 func New() (*Custom, error) {
-	const workerCount int = 1
-	log.Printf("Starting Custom CDP with %d browser workers\n", workerCount)
+	logger := log.NewComponent("generator")
+	logger.Info("Starting PDF generator")
 
-	generator := &Custom{}
+	generator := &Custom{
+		logger: logger,
+	}
 
 	go func() {
-		log.Printf("Initializing Custom CDP\n")
+		defer func() {
+			r := recover()
+			assert.AssertWithMessage(r == nil, "Generator initialization panicked", "error", r)
+		}()
+
+		logger.Info("Initializing Custom CDP")
 
 		// Get and set browser version
-		version, err := getBrowserVersion()
-		if err != nil {
-			log.Fatalf("Failed to get browser version: %v", err)
-		}
+		version, err := getBrowserVersion(logger)
+		assert.AssertWithMessage(err == nil, "Failed to get browser version", "error", err)
 
 		generator.browserVersion = version
-		log.Printf(
-			"Chrome version: %s (revision: %s, protocol: %s)\n",
-			version.Product,
-			version.Revision,
-			version.ProtocolVersion,
+		logger.Info("Chrome version",
+			"product", version.Product,
+			"revision", version.Revision,
+			"protocol", version.ProtocolVersion,
 		)
 
-		init := func(i int, sessions chan<- *browserSession) {
-			log.Printf("Starting browser worker %d\n", i)
+		init := func(id int) *browserSession {
+			logger.Info("Starting browser worker", "id", id)
 
-			session, err := newBrowserSession(i)
-			if err != nil {
-				log.Fatalf("Failed to create worker %d: %v", i, err)
-			}
+			session, err := newBrowserSession(logger, id)
+			assert.AssertWithMessage(err == nil, "Failed to create worker", "id", id, "error", err)
 
-			sessions <- session
+			return session
 		}
 
-		sessions := make(chan *browserSession, workerCount)
+		generator.sessionIDCounter.Store(1)
+		firstSession := init(1)
+		generator.activeSession.Store(firstSession)
 
-		go init(workerCount, sessions)
-
-		generator.session = <-sessions
+		go generator.periodicRestart()
 	}()
 
 	return generator, nil
 }
 
 func (g *Custom) IsReady() bool {
-	return g.session != nil
+	return g.activeSession.Load() != nil
 }
 
 func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types.PdfResult, *types.PDFError) {
-	assert.AssertWithMessage(g.session != nil, "The worker should not call the generator unless it is ready")
-	assert.AssertWithMessage(request.Validate() == nil, "Invalid request passed through to worker")
+	session := g.activeSession.Load()
+	assert.AssertWithMessage(session != nil, "The worker should not call the generator unless it is ready", "url", request.URL)
+	assert.AssertWithMessage(request.Validate() == nil, "Invalid request passed through to worker", "url", request.URL)
 
 	responder := make(chan workerResponse, 1)
 	req := workerRequest{
@@ -111,12 +119,13 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 		responder: responder,
 		ctx:       ctx,
 		cleanedUp: false,
+		logger:    g.logger.With("url", request.URL),
 	}
 
-	if g.session.tryEnqueue(req) {
-		// Successfully enqueued to browserA
+	if session.tryEnqueue(req) {
+		// Successfully enqueued
 	} else {
-		log.Printf("Request queue full, rejecting request for URL: %s\n", request.URL)
+		g.logger.Warn("Request queue full, rejecting request", "url", request.URL)
 		return nil, types.NewPDFError(types.ErrQueueFull, "", nil)
 	}
 
@@ -132,16 +141,64 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 	case <-ctx.Done():
 		return nil, types.NewPDFError(types.ErrClientDropped, "", ctx.Err())
 	case <-time.After(types.RequestTimeout()):
-		assert.AssertWithMessage(false, "generator failed to respond to request, something must be stuck")
+		assert.AssertWithMessage(false, "generator failed to respond to request, something must be stuck", "url", request.URL)
 		return nil, types.NewPDFError(types.ErrGenerationFail, "internal request timeout", nil)
 	}
 }
 
 func (g *Custom) Close() error {
-	if g.session != nil {
-		g.session.close()
+	g.logger.Info("Closing PDF generator")
+	session := g.activeSession.Load()
+	if session != nil {
+		session.close()
 	}
 	return nil
+}
+
+func (g *Custom) periodicRestart() {
+	const recheckInterval = 1 * time.Minute // How often to recheck if restart is disabled
+
+	for {
+		interval := config.ReadConfig().BrowserRestartInterval
+
+		// If interval is 0 or negative, periodic restart is disabled
+		if interval <= 0 {
+			g.logger.Info("Periodic browser restart is disabled, will recheck", "recheck_in", recheckInterval)
+			time.Sleep(recheckInterval)
+			continue
+		}
+
+		g.logger.Info("Periodic browser restart enabled", "interval", interval)
+		ticker := time.NewTicker(interval)
+
+		// Wait for first tick
+		<-ticker.C
+		ticker.Stop()
+
+		// Perform restart
+		g.logger.Info("Starting periodic browser restart")
+
+		nextID := int(g.sessionIDCounter.Add(1))
+
+		g.logger.Info("Creating new browser session for restart", "id", nextID)
+		newSession, err := newBrowserSession(g.logger, nextID)
+		if err != nil {
+			g.logger.Error("Failed to create new browser session, keeping old session", "id", nextID, "error", err)
+			// Wait a bit before retrying to avoid tight loop on persistent errors
+			time.Sleep(1 * time.Minute)
+			continue
+		}
+
+		oldSession := g.activeSession.Swap(newSession)
+		g.logger.Info("Swapped to new browser session", "old_id", oldSession.id, "new_id", nextID)
+
+		oldSession.waitForDrain(types.SessionDrainTimeout)
+
+		oldSession.close()
+		g.logger.Info("Browser restart complete", "old_id", oldSession.id, "new_id", nextID)
+
+		// Loop back to recheck interval (allows dynamic config changes)
+	}
 }
 
 type workerRequest struct {
@@ -149,6 +206,7 @@ type workerRequest struct {
 	responder chan workerResponse
 	ctx       context.Context
 	cleanedUp bool
+	logger    *slog.Logger
 }
 
 func (r *workerRequest) tryGetTestModeInput() *testing.PdfInternalsTestInput {
@@ -174,10 +232,10 @@ func (r *workerRequest) tryRespondOk(data []byte) {
 		}
 		select {
 		case r.responder <- response:
-			log.Printf("Worker: responded successfully for URL: %s, data size: %d bytes\n", r.request.URL, len(data))
+			r.logger.Info("Responded successfully", "data_size", len(data))
 			break
 		default:
-			log.Printf("Worker: client abandoned request (likely timed out), dropping response for URL: %s\n", r.request.URL)
+			r.logger.Warn("Client abandoned request (likely timed out), dropping response")
 		}
 		r.responder = nil
 	}
@@ -191,10 +249,10 @@ func (r *workerRequest) tryRespondError(err *types.PDFError) {
 		}
 		select {
 		case r.responder <- response:
-			log.Printf("Worker: responded with error for URL: %s\n", r.request.URL)
+			r.logger.Info("Responded with error", "error", err)
 			break
 		default:
-			log.Printf("Worker: client abandoned request (likely timed out), dropping response for URL: %s\n", r.request.URL)
+			r.logger.Warn("Client abandoned request (likely timed out), dropping response")
 		}
 		r.responder = nil
 	}

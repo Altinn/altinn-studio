@@ -192,7 +192,7 @@ internal sealed class SigningCallToActionService(
                 communicationConfig?.ReminderNotification?.Sms?.BodyTextResourceKey,
                 language
             );
-            appName = await translationService.TranslateFirstMatchingTextKey(language, "appName", "ServiceName");
+            appName = await translationService.TranslateTextKey("appName", language);
         }
         catch (Exception e)
         {

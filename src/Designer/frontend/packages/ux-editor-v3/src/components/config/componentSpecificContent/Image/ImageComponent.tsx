@@ -5,8 +5,7 @@ import { TextResource } from '../../../TextResource';
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
-import { StudioNativeSelect } from '@studio/components-legacy';
-import { StudioTextfield } from '@studio/components';
+import { StudioSelect, StudioTextfield } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export const ImageComponent = ({
@@ -120,13 +119,13 @@ export const ImageComponent = ({
           value={selectedPlacement?.[0]?.value}
           propertyPath={`${component.propertyPath}/properties/image/properties/align`}
           renderField={({ fieldProps }) => (
-            <StudioNativeSelect {...fieldProps} id={placementSelectId}>
+            <StudioSelect {...fieldProps} id={placementSelectId}>
               {alignOptions.map((option) => (
-                <option key={option.value} value={option.value}>
+                <StudioSelect.Option key={option.value} value={option.value}>
                   {option.label}
-                </option>
+                </StudioSelect.Option>
               ))}
-            </StudioNativeSelect>
+            </StudioSelect>
           )}
         />
       </div>
@@ -135,7 +134,7 @@ export const ImageComponent = ({
           <a
             target='_blank'
             rel='noopener noreferrer'
-            href={altinnDocsUrl({ relativeUrl: 'altinn-studio/reference/ux/components/image/' })}
+            href={altinnDocsUrl({ relativeUrl: 'altinn-studio/v8/reference/ux/components/image/' })}
           >
             {t('ux_editor.modal_properties_image_read_more')}
           </a>

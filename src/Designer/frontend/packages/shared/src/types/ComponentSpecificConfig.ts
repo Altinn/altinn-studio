@@ -60,7 +60,7 @@ type DataModelBindingsPersonLookup = {
 
 type Option<T extends string | boolean | number = string | boolean | number> = {
   label: string;
-  value: T;
+  value?: T;
   description?: string;
   helpText?: string;
 };
@@ -93,6 +93,17 @@ type FileUploadComponentBase = {
   minNumberOfAttachments: number;
   validFileEndings?: string;
   alertOnDelete?: BooleanExpression;
+};
+
+type CricleCropProps = {
+  shape: 'circle';
+  diameter?: number;
+};
+
+type RectangleCropProps = {
+  shape: 'rectangle';
+  width?: number;
+  height?: number;
 };
 
 type FormComponentProps = {
@@ -246,9 +257,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     };
   };
   [ComponentType.ImageUpload]: {
-    cropShape?: 'circle' | 'square';
-    cropWidth?: number;
-    cropHeight?: number;
+    crop?: CricleCropProps | RectangleCropProps;
   };
   [ComponentType.Input]: FormComponentProps &
     SummarizableComponentProps &
@@ -411,7 +420,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     hideEmptyFields?: boolean;
     overrides?: Summary2OverrideConfig[];
   };
-  [ComponentType.Text]: { value: string };
+  [ComponentType.Text]: { value: StringExpression };
   [ComponentType.TextArea]: FormComponentProps &
     SummarizableComponentProps &
     LabeledComponentProps & {

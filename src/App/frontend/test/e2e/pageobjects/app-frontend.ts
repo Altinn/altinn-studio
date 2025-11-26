@@ -2,38 +2,41 @@ import texts from 'test/e2e/fixtures/texts.json';
 
 export class AppFrontend {
   public apps = {
-    /** @see https://dev.altinn.studio/repos/ttd/frontend-test */
-    frontendTest: 'frontend-test',
-
-    /** @see https://dev.altinn.studio/repos/ttd/stateless-app */
-    stateless: 'stateless-app',
-
     /** @see https://dev.altinn.studio/repos/ttd/anonymous-stateless-app */
     anonymousStateless: 'anonymous-stateless-app',
-
-    /** @see https://dev.altinn.studio/repos/ttd/signing-test */
-    signingTest: 'signing-test',
-
-    /** @see https://dev.altinn.studio/repos/ttd/expression-validation-test */
-    expressionValidationTest: 'expression-validation-test',
-
-    /** @see https://dev.altinn.studio/repos/ttd/payment-test */
-    paymentTest: 'payment-test',
 
     /** @see https://altinn.studio/repos/ttd/component-library.git */
     componentLibrary: 'component-library',
 
+    /** @see https://dev.altinn.studio/repos/ttd/expression-validation-test */
+    expressionValidationTest: 'expression-validation-test',
+
+    /** @see https://dev.altinn.studio/repos/ttd/frontend-test */
+    frontendTest: 'frontend-test',
+
     /** @see https://dev.altinn.studio/repos/ttd/multiple-datamodels-test */
     multipleDatamodelsTest: 'multiple-datamodels-test',
-
-    /** @see https://dev.altinn.studio/repos/ttd/subform-test */
-    subformTest: 'subform-test',
 
     /** @see https://dev.altinn.studio/repos/ttd/navigation-test-subform */
     navigationTestSubform: 'navigation-test-subform',
 
-    /** @see https://dev.altinn.studio/repos/ttd/signering-brukerstyrt */
+    /** @see https://dev.altinn.studio/repos/ttd/payment-test */
+    paymentTest: 'payment-test',
+
+    /** @see https://altinn.studio/repos/ttd/service-task */
+    serviceTask: 'service-task',
+
+    /** @see https://altinn.studio/repos/ttd/signering-brukerstyrt */
     signeringBrukerstyrt: 'signering-brukerstyrt',
+
+    /** @see https://dev.altinn.studio/repos/ttd/signing-test */
+    signingTest: 'signing-test',
+
+    /** @see https://dev.altinn.studio/repos/ttd/stateless-app */
+    stateless: 'stateless-app',
+
+    /** @see https://dev.altinn.studio/repos/ttd/subform-test */
+    subformTest: 'subform-test',
   };
 
   //Start app instance page

@@ -72,6 +72,7 @@ import {
   allAccessListsPath,
   orgTextLanguagesPath,
   canUseFeaturePath,
+  orgCodeListsNewPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -116,6 +117,7 @@ import type { LibraryContentType } from 'app-shared/enums/LibraryContentType';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 import type { FeatureName } from 'app-shared/enums/CanUseFeature';
+import type { CodeListsNewResponse } from 'app-shared/types/api/CodeListsNewResponse';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -181,7 +183,7 @@ export const getPolicySubjects = (org: string, repo: string) => get<PolicySubjec
 export const getAccessPackages = (org: string, repo: string) => get<PolicyAccessPackageAreaGroup[]>(resourceAccessPackagesPath(org, repo));
 export const getAccessPackageServices = (accessPackageUrn: string, env: string) => get<AccessPackageResource[]>(resourceAccessPackageServicesPath(accessPackageUrn, env));
 export const getResource = (org: string, repo: string, id: string) => get<Resource>(resourceSinglePath(org, repo, id));
-export const getResourceList = (org: string, skipGiteaFields = false) => get<ResourceListItem[]>(resourceListPath(org, skipGiteaFields));
+export const getResourceList = (org: string, skipGiteaFields = false, skipParseJson = false) => get<ResourceListItem[]>(resourceListPath(org, skipGiteaFields, skipParseJson));
 export const getResourcePublishStatus = (org: string, repo: string, id: string) => get<ResourceVersionStatus>(resourcePublishStatusPath(org, repo, id));
 export const getValidatePolicy = (org: string, repo: string, id: string) => get<Validation>(resourceValidatePolicyPath(org, repo, id));
 export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));
@@ -204,5 +206,6 @@ export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());
 
 // Organisation library
 export const getOrgCodeLists = (org: string) => get<CodeListsResponse>(orgCodeListsPath(org));
+export const getOrgCodeListsNew = (org: string) => get<CodeListsNewResponse>(orgCodeListsNewPath(org));
 export const getOrgTextLanguages = (org: string): Promise<string[] | null> => get<string[] | null>(orgTextLanguagesPath(org));
 export const getOrgTextResources = (org: string, language: string): Promise<ITextResourcesWithLanguage | null> => get<ITextResourcesWithLanguage | null>(orgTextResourcesPath(org, language));

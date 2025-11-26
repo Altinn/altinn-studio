@@ -1,3 +1,4 @@
+#nullable disable
 using System.Net;
 using Altinn.Studio.Designer.Exceptions.Options;
 using Microsoft.AspNetCore.Mvc;

@@ -5,8 +5,7 @@ import { FormField } from '../../FormField';
 import { Combobox } from '@digdir/designsystemet-react';
 import { useComponentPropertyLabel } from '../../../hooks/useComponentPropertyLabel';
 import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks/useComponentPropertyEnumValue';
-import { StudioNativeSelect } from '@studio/components-legacy';
-import { StudioTextfield } from '@studio/components';
+import { StudioSelect, StudioTextfield } from '@studio/components';
 import { useComponentPropertyHelpText } from '../../../hooks';
 
 const NO_VALUE_SELECTED_IN_NATIVE_SELECT: string = 'NO_VALUE';
@@ -70,7 +69,7 @@ export const EditStringValue = ({
               ))}
             </Combobox>
           ) : (
-            <StudioNativeSelect
+            <StudioSelect
               label={fieldProps.label}
               value={fieldProps?.value ?? NO_VALUE_SELECTED_IN_NATIVE_SELECT}
               onChange={(e) => {
@@ -80,13 +79,12 @@ export const EditStringValue = ({
                 );
               }}
               id={`component-${propertyKey}-select${component.id}`}
-              size='sm'
             >
               <NoValueSelectOption
                 disabled={fieldProps?.value !== NO_VALUE_SELECTED_IN_NATIVE_SELECT}
               />
               <SelectOptions enumOptionsList={enumValues} componentEnumValue={componentEnumValue} />
-            </StudioNativeSelect>
+            </StudioSelect>
           )
         ) : (
           <StudioTextfield
@@ -108,9 +106,9 @@ const NoValueSelectOption = ({ disabled }: NoValueSelectOptionProps): ReactEleme
   const { t } = useTranslation();
 
   return (
-    <option value={NO_VALUE_SELECTED_IN_NATIVE_SELECT} disabled={disabled}>
+    <StudioSelect.Option value={NO_VALUE_SELECTED_IN_NATIVE_SELECT} disabled={disabled}>
       {t('ux_editor.edit_component.select_value')}
-    </option>
+    </StudioSelect.Option>
   );
 };
 
@@ -123,8 +121,8 @@ const SelectOptions = ({
   componentEnumValue,
 }: SelectOptionsProps): ReactElement[] => {
   return enumOptionsList.map((value) => (
-    <option key={value} value={value}>
+    <StudioSelect.Option key={value} value={value}>
       {componentEnumValue(value)}
-    </option>
+    </StudioSelect.Option>
   ));
 };

@@ -1,3 +1,4 @@
+#nullable disable
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using Altinn.Studio.Designer.Controllers;

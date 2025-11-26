@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -5,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
+using Altinn.Studio.Designer.Exceptions.SourceControl;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
@@ -104,7 +106,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     Tree head = repo.Head.Tip.Tree;
                     MergeResult mergeResult = Commands.Pull(
                         repo,
-                        new LibGit2Sharp.Signature("my name", "my email", DateTimeOffset.Now), // I dont want to provide these
+                        GetDeveloperSignature(),
                         pullOptions);
 
                     TreeChanges treeChanges = repo.Diff.Compare<TreeChanges>(head, mergeResult.Commit?.Tree);
@@ -478,6 +480,38 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
+        public async Task PublishBranch(AltinnRepoEditingContext editingContext, string branchName)
+        {
+            using LibGit2Sharp.Repository repo = CreateLocalRepo(editingContext);
+            string remoteUrl = FindRemoteRepoLocation(editingContext.Org, editingContext.Repo);
+            Remote remote = repo.Network.Remotes["origin"];
+            if (!remote.PushUrl.Equals(remoteUrl))
+            {
+                // This is relevant when we switch between running designer in local or in docker. The remote URL changes.
+                // Requires administrator access to update files.
+                repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
+            }
+
+            Branch branch = repo.Branches[branchName] ?? throw new BranchNotFoundException($"Branch '{branchName}' not found in local repository. Cannot publish non-existing branch.");
+
+            repo.Branches.Update(
+                branch,
+                updater =>
+                {
+                    updater.Remote = "origin";
+                    updater.UpstreamBranch = $"refs/heads/{branchName}";
+                }
+            );
+
+            PushOptions options = new()
+            {
+                CredentialsProvider = await GetCredentialsAsync()
+            };
+            repo.Network.Push(branch, options);
+            repo.Network.Push(remote, "refs/notes/commits", options);
+        }
+
+        /// <inheritdoc/>
         public void CommitToLocalRepo(AltinnRepoEditingContext editingContext, string message)
         {
             using LibGit2Sharp.Repository repo = CreateLocalRepo(editingContext);
@@ -496,18 +530,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext)
+        public RebaseResult RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext)
         {
             using LibGit2Sharp.Repository repo = CreateLocalRepo(editingContext);
 
             Identity identity = GetDefaultIdentity(editingContext.Developer);
             RebaseOptions rebaseOptions = new() { FileConflictStrategy = CheckoutFileConflictStrategy.Ours };
-            Branch upstream = repo.Branches.FirstOrDefault(b => b.FriendlyName.Equals(DefaultBranch));
 
-            if (upstream is null)
-            {
-                throw new InvalidOperationException($"Default branch '{DefaultBranch}' not found locally.");
-            }
+            Branch upstream = repo.Branches.FirstOrDefault(b => b.FriendlyName.Equals(DefaultBranch))
+                ?? throw new InvalidOperationException($"Default branch '{DefaultBranch}' not found locally.");
 
             RebaseResult rebaseResult = repo.Rebase.Start(
                 repo.Head,
@@ -517,11 +548,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 rebaseOptions
             );
 
-
             if (rebaseResult.Status == RebaseStatus.Conflicts)
             {
                 repo.Rebase.Abort();
-                throw new InvalidOperationException("Rebase onto latest commit on default branch failed. Rebase aborted.");
+                _logger.LogError("Rebase onto latest commit on default branch resulted in conflicts for repo at {WorkingDirectory}. Rebase aborted.", repo.Info.WorkingDirectory);
             }
 
             if (rebaseResult.Status == RebaseStatus.Stop)
@@ -529,6 +559,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 repo.Rebase.Abort();
                 throw new InvalidOperationException("Rebase onto latest commit on default branch was stopped by user."); // Should be unreachable code.
             }
+            return rebaseResult;
         }
 
         /// <inheritdoc/>
@@ -552,14 +583,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
             repo.CreateBranch(branchName, commit);
         }
 
-        private static bool LocalBranchExists(LibGit2Sharp.Repository repo, string branchName)
+        public async Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName)
         {
-            return repo.Branches.Any(branch => branch.FriendlyName == branchName);
-        }
+            await FetchRemoteChanges(editingContext.Org, editingContext.Repo);
 
-        private static bool LocalBranchIsHead(LibGit2Sharp.Repository repo, string branchName)
-        {
-            return repo.Head.FriendlyName == branchName;
+            using LibGit2Sharp.Repository repo = CreateLocalRepo(editingContext);
+
+            if (RemoteBranchExists(branchName, repo) is false)
+            {
+                return; // Nothing to delete
+            }
+
+            Remote remote = repo.Network.Remotes["origin"];
+            PushOptions options = new()
+            {
+                CredentialsProvider = await GetCredentialsAsync()
+            };
+            string pushRefSpec = $":refs/heads/{branchName}";
+            repo.Network.Push(remote, pushRefSpec, options);
         }
 
         /// <inheritdoc/>
@@ -602,6 +643,29 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 repo.Reset(ResetMode.Hard, repo.Head.Tip);
                 throw new InvalidOperationException("Merge failed; repository reset to pre-merge HEAD.");
             }
+        }
+
+        private static bool LocalBranchExists(LibGit2Sharp.Repository repo, string branchName)
+        {
+            return repo.Branches.Any(branch => branch.FriendlyName == branchName);
+        }
+
+        private static bool LocalBranchIsHead(LibGit2Sharp.Repository repo, string branchName)
+        {
+            return repo.Head.FriendlyName == branchName;
+        }
+
+        private static bool RemoteBranchExists(string branchName, LibGit2Sharp.Repository repo)
+        {
+            string remoteBranchName = $"refs/remotes/origin/{branchName}";
+            Branch remoteBranch = repo.Branches[remoteBranchName];
+
+            if (remoteBranch is null)
+            {
+                return false;
+            }
+
+            return remoteBranch.IsRemote;
         }
 
         /// <summary>

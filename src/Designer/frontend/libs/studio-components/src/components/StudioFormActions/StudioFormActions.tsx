@@ -2,6 +2,7 @@ import React, { forwardRef, type Ref } from 'react';
 import { StudioButton } from '../StudioButton';
 import classes from './StudioFormActions.module.css';
 import { StudioCancelIcon, StudioSaveIcon } from '@studio/icons';
+import cn from 'classnames';
 
 type actionProps = {
   label: string;
@@ -17,10 +18,11 @@ export type StudioFormActionsProps = {
   secondary: SecondaryProps;
   isLoading: boolean;
   iconOnly?: boolean;
+  className?: string;
 };
 
 function StudioFormActions(
-  { primary, secondary, isLoading, iconOnly = false }: StudioFormActionsProps,
+  { primary, secondary, isLoading, className, iconOnly = false }: StudioFormActionsProps,
   ref: Ref<HTMLDivElement>,
 ): React.ReactElement {
   const isPrimaryButtonDisabled = primary.disabled || isLoading;
@@ -28,7 +30,7 @@ function StudioFormActions(
   const shouldDisplayLabel = !iconOnly;
 
   return (
-    <div className={classes.buttonGroup} ref={ref}>
+    <div className={cn(classes.buttonGroup, className)} ref={ref}>
       <StudioButton
         onClick={primary.onClick}
         disabled={isPrimaryButtonDisabled}

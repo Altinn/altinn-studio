@@ -1,3 +1,4 @@
+#nullable disable
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,10 +1,10 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;
-using Altinn.App.Core.Models.Layout.Components;
 
 namespace Altinn.App.Core.Internal.Expressions;
 
@@ -14,7 +14,7 @@ namespace Altinn.App.Core.Internal.Expressions;
 public static class ExpressionEvaluator
 {
     /// <summary>
-    /// Shortcut for evaluating a boolean expression on a given property on a <see cref="BaseComponent" />
+    /// Shortcut for evaluating a boolean expression on a given property on a <see cref="Models.Layout.Components.Base.BaseComponent" />
     /// </summary>
     public static async Task<bool> EvaluateBooleanExpression(
         LayoutEvaluatorState state,
@@ -30,6 +30,7 @@ public static class ExpressionEvaluator
             {
                 "hidden" => context.Component.Hidden,
                 "required" => context.Component.Required,
+                "removeWhenHidden" => context.Component.RemoveWhenHidden,
                 _ => throw new ExpressionEvaluatorTypeErrorException($"unknown boolean expression property {property}"),
             };
 
@@ -40,6 +41,7 @@ public static class ExpressionEvaluator
                 JsonValueKind.True => true,
                 JsonValueKind.False => false,
                 JsonValueKind.Null => defaultReturn,
+                JsonValueKind.Undefined => defaultReturn,
                 _ => throw new ExpressionEvaluatorTypeErrorException(
                     $"Return was not boolean. Was {result} of type {result.ValueKind}"
                 ),
@@ -72,19 +74,20 @@ public static class ExpressionEvaluator
     /// <summary>
     /// private implementation in order to change the types of positional arguments without breaking change.
     /// </summary>
-    private static async Task<ExpressionValue> EvaluateExpression_internal(
+    internal static async Task<ExpressionValue> EvaluateExpression_internal(
         LayoutEvaluatorState state,
         Expression expr,
         ComponentContext context,
         ExpressionValue[]? positionalArguments = null
     )
     {
-        if (!expr.IsFunctionExpression)
+        if (expr.IsLiteralValue)
         {
             return expr.ValueUnion;
         }
+
         ValidateExpressionArgs(expr);
-        var args = new ExpressionValue[expr.Args.Count];
+        var args = new ExpressionValue[expr.Args.Length];
         for (var i = 0; i < args.Length; i++)
         {
             args[i] = await EvaluateExpression_internal(state, expr.Args[i], context, positionalArguments);
@@ -92,6 +95,7 @@ public static class ExpressionEvaluator
 
         ExpressionValue ret = expr.Function switch
         {
+            //ExpressionFunction.LITERAL_VALUE => expr.ValueUnion, // Handled above
             ExpressionFunction.dataModel => await DataModel(args, context, state),
             ExpressionFunction.component => await Component(args, context, state),
             ExpressionFunction.countDataElements => CountDataElements(args, state),
@@ -128,27 +132,31 @@ public static class ExpressionEvaluator
             ExpressionFunction.argv => Argv(args, positionalArguments),
             ExpressionFunction.gatewayAction => state.GetGatewayAction(),
             ExpressionFunction.language => state.GetLanguage(),
-            _ => throw new ExpressionEvaluatorTypeErrorException("Function not implemented", expr.Function, args),
+            ExpressionFunction.INVALID => throw new ExpressionEvaluatorTypeErrorException(
+                $"Function {expr.Args.FirstOrDefault()} not implemented in backend {expr}"
+            ),
+            _ => throw new UnreachableException($"Function {(int)expr.Function} not a valid enum value {expr}"),
         };
         return ret;
     }
 
     private static void ValidateExpressionArgs(Expression expr)
     {
+        // Some functions have restrictions that arguments must be literal values and not subexpressions.
         switch (expr)
         {
-            case { Function: ExpressionFunction.dataModel, Args: [_, { IsFunctionExpression: true }] }:
+            case { Function: ExpressionFunction.dataModel, Args: [_, { IsLiteralValue: false }] }:
                 throw new ExpressionEvaluatorTypeErrorException(
                     "The data type must be a string (expressions cannot be used here)"
                 );
-            case { Function: ExpressionFunction.@if, Args: [_, _, { IsFunctionExpression: true }, _] }:
+            case { Function: ExpressionFunction.@if, Args: [_, _, { IsLiteralValue: false }, _] }:
                 throw new ExpressionEvaluatorTypeErrorException("Expected third argument to be \"else\"");
-            case { Function: ExpressionFunction.compare, Args: [_, { IsFunctionExpression: true }, _] }:
-            case { Function: ExpressionFunction.compare, Args: [_, _, { IsFunctionExpression: true }, _] }:
+            case { Function: ExpressionFunction.compare, Args: [_, { IsLiteralValue: false }, _] }:
+            case { Function: ExpressionFunction.compare, Args: [_, _, { IsLiteralValue: false }, _] }:
                 throw new ExpressionEvaluatorTypeErrorException(
                     "Invalid operator (it cannot be an expression or null)"
                 );
-            case { Function: ExpressionFunction.compare, Args: [_, { IsFunctionExpression: true }, _, _] }:
+            case { Function: ExpressionFunction.compare, Args: [_, { IsLiteralValue: false }, _, _] }:
                 throw new ExpressionEvaluatorTypeErrorException(
                     "Second argument must be \"not\" when providing 4 arguments in total"
                 );
@@ -213,7 +221,7 @@ public static class ExpressionEvaluator
 
     private static async Task<ExpressionValue> DataModel(
         ModelBinding key,
-        DataElementIdentifier defaultDataElementIdentifier,
+        DataElementIdentifier? defaultDataElementIdentifier,
         int[]? indexes,
         LayoutEvaluatorState state
     )
@@ -244,12 +252,12 @@ public static class ExpressionEvaluator
             ),
         };
 
-        if (context?.Component is null)
+        if (context is null)
         {
             throw new ArgumentException("The component expression requires a component context");
         }
 
-        var targetContext = await state.GetComponentContext(context.Component.PageId, componentId, context.RowIndices);
+        var targetContext = await state.GetComponentContext(context.Component?.PageId, componentId, context.RowIndices);
 
         if (targetContext is null)
         {
@@ -259,16 +267,16 @@ public static class ExpressionEvaluator
             throw new ArgumentException($"Unable to find component with identifier {componentId}{rowIndexInfo}");
         }
 
-        if (targetContext.Component is GroupComponent)
+        if (targetContext.HasChildContexts)
         {
-            throw new NotImplementedException("Component lookup for components in groups not implemented");
+            throw new NotImplementedException("Component lookup for components that are groups is not implemented");
         }
 
         if (targetContext.Component?.DataModelBindings.TryGetValue("simpleBinding", out var binding) != true)
         {
             throw new ArgumentException("component lookup requires the target component to have a simpleBinding");
         }
-        if (await targetContext.IsHidden(state))
+        if (await targetContext.IsHidden(evaluateRemoveWhenHidden: false))
         {
             return ExpressionValue.Null;
         }
@@ -332,7 +340,7 @@ public static class ExpressionEvaluator
             date = TimeZoneInfo.ConvertTime(date.Value, timezone);
         }
 
-        string? language = state.GetLanguage();
+        string language = state.GetLanguage();
         return UnicodeDateTimeTokenConverter.Format(
             date,
             args.Length == 2 ? args[1].ToStringForEquals() : null,
@@ -652,12 +660,7 @@ public static class ExpressionEvaluator
             );
         }
 
-        var number = PrepareNumericArg(args[0]);
-
-        if (number is null)
-        {
-            number = 0;
-        }
+        var number = PrepareNumericArg(args[0]) ?? 0;
 
         int precision = 0;
 
@@ -666,7 +669,7 @@ public static class ExpressionEvaluator
             precision = (int)(PrepareNumericArg(args[1]) ?? 0);
         }
 
-        return number.Value.ToString($"N{precision}", CultureInfo.InvariantCulture);
+        return number.ToString($"N{precision}", CultureInfo.InvariantCulture);
     }
 
     private static string? UpperCase(ExpressionValue[] args)
@@ -769,9 +772,17 @@ public static class ExpressionEvaluator
             throw new ExpressionEvaluatorTypeErrorException("Expected 1+ argument(s), got 0");
         }
 
-        var preparedArgs = args.Select(arg => PrepareBooleanArg(arg)).ToArray();
-        // Ensure all args gets converted, because they might throw an Exception
-        return preparedArgs.All(a => a);
+        var all = true;
+        foreach (var arg in args)
+        {
+            // the LINQ All() method would short-circuit and not evaluate all args, so we do it manually to ensure exceptions are thrown correctly
+            if (!PrepareBooleanArg(arg))
+            {
+                all = false;
+            }
+        }
+
+        return all;
     }
 
     private static async Task<string?> Text(
@@ -803,9 +814,17 @@ public static class ExpressionEvaluator
             throw new ExpressionEvaluatorTypeErrorException("Expected 1+ argument(s), got 0");
         }
 
-        var preparedArgs = args.Select(arg => PrepareBooleanArg(arg)).ToArray();
-        // Ensure all args gets converted, because they might throw an Exception
-        return preparedArgs.Any(a => a);
+        bool any = false;
+        foreach (var arg in args)
+        {
+            // the LINQ Any() method would short-circuit and not evaluate all args, so we do it manually to ensure exceptions are thrown correctly
+            if (PrepareBooleanArg(arg))
+            {
+                any = true;
+            }
+        }
+
+        return any;
     }
 
     private static bool? Not(ExpressionValue[] args)
