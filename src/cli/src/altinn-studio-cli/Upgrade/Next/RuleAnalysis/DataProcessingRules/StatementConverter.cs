@@ -36,6 +36,17 @@ internal class StatementConverter
     }
 
     /// <summary>
+    /// Mark variables as already declared to avoid redeclaration
+    /// </summary>
+    public void MarkVariablesAsDeclared(IEnumerable<string> variableNames)
+    {
+        foreach (var varName in variableNames)
+        {
+            _localVariables[varName] = varName;
+        }
+    }
+
+    /// <summary>
     /// Convert a full JavaScript function (IFunction) to C# code
     /// </summary>
     public CSharpConversionResult ConvertFunction(IFunction? function)
@@ -303,6 +314,38 @@ internal class StatementConverter
     private void ConvertIfStatement(IfStatement ifStmt, IndentedStringBuilder code)
     {
         var condition = ConvertExpression(ifStmt.Test);
+
+        // In JavaScript, any value can be used as a condition (truthy/falsy)
+        // In C#, we need an explicit boolean expression
+        if (TestNeedsBooleanConversion(ifStmt.Test))
+        {
+            // If condition contains wrapper.Get(), we need to convert to double first
+            if (condition.Contains("wrapper.Get("))
+            {
+                condition = $"(Convert.ToDouble({condition}) != 0.0)";
+            }
+            else
+            {
+                condition = $"({condition} != 0.0)";
+            }
+        }
+
+        // Scan for variables assigned in the if block that aren't already declared
+        // These need to be hoisted to prevent scoping issues in C#
+        var variablesToHoist = new HashSet<string>();
+        CollectAssignedVariables(ifStmt.Consequent, variablesToHoist);
+        if (ifStmt.Alternate != null)
+        {
+            CollectAssignedVariables(ifStmt.Alternate, variablesToHoist);
+        }
+
+        // Declare variables that will be assigned in if/else blocks
+        foreach (var varName in variablesToHoist.Where(v => !_localVariables.ContainsKey(v)))
+        {
+            code.AppendLine($"var {varName} = 0.0;");
+            _localVariables[varName] = varName; // Mark as declared
+        }
+
         code.AppendLine($"if ({condition})");
         code.OpenBrace();
 
@@ -329,6 +372,13 @@ internal class StatementConverter
                 // Handle else if - write it on the same indentation level
                 code.Append("else ");
                 var elseIfCondition = ConvertExpression(elseIf.Test);
+
+                // Apply boolean conversion if needed
+                if (TestNeedsBooleanConversion(elseIf.Test))
+                {
+                    elseIfCondition = $"({elseIfCondition} != 0.0)";
+                }
+
                 code.AppendLine($"if ({elseIfCondition})");
                 code.OpenBrace();
 
@@ -395,6 +445,33 @@ internal class StatementConverter
 
                 code.CloseBrace();
             }
+        }
+    }
+
+    private void CollectAssignedVariables(Statement statement, HashSet<string> variables)
+    {
+        // Recursively collect variable names that are assigned (but not declared) in a statement
+        switch (statement)
+        {
+            case ExpressionStatement exprStmt when exprStmt.Expression is AssignmentExpression assignment:
+                if (assignment.Left is Identifier id && !_localVariables.ContainsKey(id.Name))
+                {
+                    variables.Add(id.Name);
+                }
+                break;
+            case BlockStatement block:
+                foreach (var stmt in block.Body)
+                {
+                    CollectAssignedVariables(stmt, variables);
+                }
+                break;
+            case IfStatement ifStmt:
+                CollectAssignedVariables(ifStmt.Consequent, variables);
+                if (ifStmt.Alternate != null)
+                {
+                    CollectAssignedVariables(ifStmt.Alternate, variables);
+                }
+                break;
         }
     }
 
@@ -711,25 +788,73 @@ internal class StatementConverter
             _ => throw new NotSupportedException($"Binary operator {operatorStr} not supported"),
         };
 
-        // Handle string concatenation with FormDataWrapper
-        // When using + operator with wrapper.Get() and a string literal, we need to cast to string
-        if (_useFormDataWrapper && op == "+")
+        // Handle FormDataWrapper type conversions
+        if (_useFormDataWrapper)
         {
             var leftIsWrapper = left.Contains("wrapper.Get(");
             var rightIsWrapper = right.Contains("wrapper.Get(");
-            var leftIsString = binary.Left is Literal lit1 && lit1.Value is string;
-            var rightIsString = binary.Right is Literal lit2 && lit2.Value is string;
 
-            // If one side is wrapper.Get() and the other is a string literal, cast wrapper.Get() to string
-            if ((leftIsWrapper && rightIsString) || (rightIsWrapper && leftIsString))
+            // String concatenation - when + operator is used with wrapper.Get() and a string literal
+            if (op == "+")
             {
-                if (leftIsWrapper)
+                var leftIsString = binary.Left is Literal lit1 && lit1.Value is string;
+                var rightIsString = binary.Right is Literal lit2 && lit2.Value is string;
+
+                // If one side is wrapper.Get() and the other is a string literal, cast wrapper.Get() to string
+                if ((leftIsWrapper && rightIsString) || (rightIsWrapper && leftIsString))
                 {
-                    left = $"({left} as string)";
+                    if (leftIsWrapper)
+                    {
+                        left = $"({left} as string)";
+                    }
+                    if (rightIsWrapper)
+                    {
+                        right = $"({right} as string)";
+                    }
                 }
-                if (rightIsWrapper)
+            }
+
+            // Numeric operations - arithmetic and comparisons need double conversion
+            // This includes: +, -, *, /, %, >, <, >=, <=
+            var isNumericOp = op is "+" or "-" or "*" or "/" or "%" or ">" or "<" or ">=" or "<=";
+            // Comparison operations also need type conversion: ==, !=
+            var isComparisonOp = op is "==" or "!=";
+
+            if (isNumericOp || isComparisonOp)
+            {
+                // Check if right side is a numeric literal
+                var rightIsNumeric =
+                    binary.Right is Literal lit && (lit.Value is int or long or double or float or bool);
+                // Check if left side is a numeric literal
+                var leftIsNumeric =
+                    binary.Left is Literal lit2 && (lit2.Value is int or long or double or float or bool);
+
+                // Convert wrapper.Get() to appropriate type for operations
+                if (leftIsWrapper && !left.Contains(" as string"))
                 {
-                    right = $"({right} as string)";
+                    // For comparisons with numeric literals, convert to double
+                    if (rightIsNumeric || isComparisonOp)
+                    {
+                        left = $"Convert.ToDouble({left})";
+                    }
+                    else if (isNumericOp)
+                    {
+                        // For arithmetic ops, always convert to double
+                        left = $"Convert.ToDouble({left})";
+                    }
+                }
+                if (rightIsWrapper && !right.Contains(" as string"))
+                {
+                    // For comparisons with numeric literals, convert to double
+                    if (leftIsNumeric || isComparisonOp)
+                    {
+                        right = $"Convert.ToDouble({right})";
+                    }
+                    else if (isNumericOp)
+                    {
+                        // For numeric operations, always convert to double
+                        right = $"Convert.ToDouble({right})";
+                    }
                 }
             }
         }
@@ -762,8 +887,8 @@ internal class StatementConverter
             {
                 return propertyName switch
                 {
-                    "MAX_SAFE_INTEGER" => "9007199254740991", // 2^53 - 1
-                    "MIN_SAFE_INTEGER" => "-9007199254740991", // -(2^53 - 1)
+                    "MAX_SAFE_INTEGER" => "9007199254740991.0", // 2^53 - 1, as double to avoid int overflow
+                    "MIN_SAFE_INTEGER" => "-9007199254740991.0", // -(2^53 - 1), as double
                     "MAX_VALUE" => "double.MaxValue",
                     "MIN_VALUE" => "double.Epsilon",
                     "POSITIVE_INFINITY" => "double.PositiveInfinity",
@@ -892,11 +1017,63 @@ internal class StatementConverter
 
         return literal.Value switch
         {
-            string str => $"\"{EscapeString(str)}\"",
+            string str => ConvertStringLiteral(str),
             bool b => b ? "true" : "false",
-            int or long or double or float => literal.Raw ?? literal.Value.ToString() ?? "0",
+            int or long or double or float => ConvertNumericLiteral(literal.Value),
             _ => literal.Raw ?? literal.Value.ToString() ?? "null",
         };
+    }
+
+    private string ConvertNumericLiteral(object value)
+    {
+        // Convert all JavaScript numbers to C# doubles since JavaScript doesn't distinguish
+        // between integer and floating-point numbers
+        var doubleValue = Convert.ToDouble(value);
+
+        // Check if it's a whole number
+        if (doubleValue == Math.Floor(doubleValue) && !double.IsInfinity(doubleValue) && !double.IsNaN(doubleValue))
+        {
+            // For small whole numbers (1-20) that are commonly used as method parameters
+            // (precision, count, index), use the integer form to avoid ambiguous overloads
+            // But exclude 0 since it's often used as an accumulator initial value
+            if (doubleValue >= 1 && doubleValue <= 20 && doubleValue == Math.Floor(doubleValue))
+            {
+                return ((int)doubleValue).ToString();
+            }
+
+            // For large numbers that don't fit in int (> int.MaxValue), use double format with .0
+            if (Math.Abs(doubleValue) > int.MaxValue)
+            {
+                return $"{doubleValue:0.0}";
+            }
+
+            // For all other whole numbers (including 0), append .0 to ensure double type
+            return $"{doubleValue:0}.0";
+        }
+
+        // For fractional numbers, use standard representation
+        return doubleValue.ToString();
+    }
+
+    private string ConvertStringLiteral(string str)
+    {
+        // Check if this is a numeric string literal like "0", "1", "0.5", etc.
+        // In JavaScript, these can be used interchangeably with numbers in many contexts,
+        // but in C#, we need to be more careful about types.
+        // For now, we'll convert simple numeric strings to their numeric equivalents
+        // to avoid type mismatches when assigned to numeric variables.
+        if (double.TryParse(str, out var numValue))
+        {
+            // It's a valid number - return it as a numeric literal
+            // But only if it's a "simple" number (no special formatting)
+            if (str == numValue.ToString() || str == numValue.ToString("0.##############"))
+            {
+                return str; // Return as numeric literal without quotes
+            }
+        }
+
+        // Otherwise, treat it as a string literal
+        return $"\"{EscapeString(str)}\"";
     }
 
     private string ConvertConditionalExpression(ConditionalExpression conditional)
@@ -920,7 +1097,66 @@ internal class StatementConverter
         var consequent = ConvertExpression(conditional.Consequent);
         var alternate = ConvertExpression(conditional.Alternate);
 
+        // In JavaScript, any value can be used as a condition (truthy/falsy)
+        // In C#, we need an explicit boolean expression
+        // Check if the test might be a numeric value that needs explicit != 0 check
+        var testNeedsBooleanConversion = TestNeedsBooleanConversion(conditional.Test);
+        if (testNeedsBooleanConversion)
+        {
+            // If test contains wrapper.Get(), convert to double for comparison
+            if (_useFormDataWrapper && test.Contains("wrapper.Get("))
+            {
+                test = $"(Convert.ToDouble({test}) != 0.0)";
+            }
+            else
+            {
+                test = $"({test} != 0.0)";
+            }
+        }
+
+        // Handle nullable ternary operator - in JS, numbers can be null/undefined
+        // but in C#, we can't use ? on non-nullable types like double
+        // If consequent or alternate contains numeric operations that result in double,
+        // the ternary operator itself should work with doubles (not double?)
+        // The issue arises when we try to apply ? operator to a double literal or expression
+
+        // Check if this is a pattern like: something ? 123.0 : 0.0
+        // In this case, both branches are non-nullable doubles, so the result is double (not double?)
+        // No special handling needed - C# will infer the correct type
+
         return $"({test} ? {consequent} : {alternate})";
+    }
+
+    private bool TestNeedsBooleanConversion(Expression expr)
+    {
+        // Check if the expression is likely to produce a numeric result that needs != 0 check
+        return expr switch
+        {
+            Identifier _ => true, // Variables might be numeric
+            UnaryExpression unary => unary.Operator.ToString() == "UnaryPlus", // Unary + always returns number
+            MemberExpression _ => true, // Property access might be numeric
+            CallExpression call => !IsCallExpressionReturningBoolean(call), // Some functions return bool
+            Literal lit => lit.Value is int or long or double or float, // Numeric literals
+            _ => false, // For logical/comparison expressions, assume they already return boolean
+        };
+    }
+
+    private bool IsCallExpressionReturningBoolean(CallExpression call)
+    {
+        // Check if this is a call expression that returns boolean
+        // These should NOT be converted with != 0
+        if (call.Callee is Identifier globalFunc)
+        {
+            return globalFunc.Name is "isNaN" or "isFinite";
+        }
+
+        if (call.Callee is MemberExpression member && member.Property is Identifier methodName)
+        {
+            // Methods that return boolean
+            return methodName.Name is "includes" or "test";
+        }
+
+        return false;
     }
 
     private string ConvertUnaryExpression(UnaryExpression unary)
@@ -933,9 +1169,29 @@ internal class StatementConverter
             "LogicalNot" or "!" => $"(!{argument})",
             "UnaryPlus" or "Plus" or "+" => ConvertUnaryPlus(unary.Argument),
             "UnaryMinus" or "Minus" or "-" => $"(-{argument})",
-            "UnaryNegation" or "BitwiseNot" or "~" => $"(~{argument})",
+            "UnaryNegation" or "BitwiseNot" or "~" => ConvertBitwiseNot(argument), // Handle bitwise NOT
             _ => throw new NotSupportedException($"Unary operator '{operatorStr}' not supported"),
         };
+    }
+
+    private string ConvertBitwiseNot(string argument)
+    {
+        // Bitwise NOT in JavaScript: ~x
+        // In C#, we need to cast to int, but some values like Number.MAX_SAFE_INTEGER are too large for int
+        // Check if the argument is a large number that won't fit in int
+        var argTrimmed = argument.Trim();
+
+        // Check if this is Number.MAX_SAFE_INTEGER or other large constant
+        if (double.TryParse(argTrimmed, out double numValue) && Math.Abs(numValue) > int.MaxValue)
+        {
+            // For large numbers, we can't use bitwise NOT with int cast
+            // JavaScript ~9007199254740991 would be -9007199254740992
+            // We'll use long instead, or just negate and subtract 1
+            return $"(~(long){argument})";
+        }
+
+        // For normal-sized numbers, cast to int
+        return $"(~(int){argument})";
     }
 
     private string ConvertUnaryPlus(Expression argument)
@@ -947,9 +1203,10 @@ internal class StatementConverter
         // Generate unique temp variable name
         var tempVar = $"_temp{_tempVarCounter++}";
 
-        // Try to determine if we need decimal or int conversion
-        // For now, use decimal for safety
-        return $"(decimal.TryParse({expr}?.ToString(), out var {tempVar}) ? {tempVar} : 0)";
+        // Use double instead of decimal because JavaScript numbers are floating point
+        // and can be Infinity or NaN, which decimal doesn't support
+        // We wrap in (object) cast to avoid issues with value types and ?. operator
+        return $"(double.TryParse(((object){expr})?.ToString() ?? \"\", out var {tempVar}) ? {tempVar} : 0)";
     }
 
     private string ConvertLogicalExpression(LogicalExpression logical)
@@ -962,11 +1219,73 @@ internal class StatementConverter
         {
             "And" or "&&" or "LogicalAnd" => "&&",
             "Or" or "||" or "LogicalOr" => "||",
-            "NullishCoalescing" or "??" => "??",
+            "NullishCoalescing" or "??" => HandleNullishCoalescing(logical, left, right),
             _ => throw new NotSupportedException($"Logical operator {operatorStr} not supported"),
         };
 
+        // If HandleNullishCoalescing returned a full expression, return it directly
+        if (operatorStr is "NullishCoalescing" or "??")
+        {
+            return op;
+        }
+
+        // For && and || operators, we need to ensure both sides are boolean expressions
+        // In JavaScript, any value can be used in logical operations (truthy/falsy)
+        // In C#, we need explicit boolean conversions
+        if (op is "&&" or "||")
+        {
+            // Check if left side needs boolean conversion
+            if (TestNeedsBooleanConversion(logical.Left))
+            {
+                // If it's a wrapper.Get() call, we need to handle it specially
+                if (_useFormDataWrapper && left.Contains("wrapper.Get("))
+                {
+                    left = $"(Convert.ToDouble({left}) != 0.0)";
+                }
+                else if (logical.Left is not BinaryExpression && logical.Left is not LogicalExpression)
+                {
+                    // For other numeric expressions, add != 0 check
+                    left = $"({left} != 0.0)";
+                }
+            }
+
+            // Check if right side needs boolean conversion
+            if (TestNeedsBooleanConversion(logical.Right))
+            {
+                // If it's a wrapper.Get() call, we need to handle it specially
+                if (_useFormDataWrapper && right.Contains("wrapper.Get("))
+                {
+                    right = $"(Convert.ToDouble({right}) != 0.0)";
+                }
+                else if (logical.Right is not BinaryExpression && logical.Right is not LogicalExpression)
+                {
+                    // For other numeric expressions, add != 0 check
+                    right = $"({right} != 0.0)";
+                }
+            }
+        }
+
         return $"({left} {op} {right})";
+    }
+
+    private string HandleNullishCoalescing(LogicalExpression logical, string left, string right)
+    {
+        // In JavaScript, ?? checks for null/undefined
+        // For non-nullable numeric types in C#, this translates to checking for 0 (falsy)
+        // e.g., a ?? b becomes (a != 0 ? a : b)
+
+        // Check if both operands are likely numeric (non-nullable)
+        bool leftIsNumeric = TestNeedsBooleanConversion(logical.Left);
+        bool rightIsNumeric = TestNeedsBooleanConversion(logical.Right);
+
+        if (leftIsNumeric && rightIsNumeric)
+        {
+            // Convert a ?? b to (a != 0 ? a : b)
+            return $"(({left} != 0) ? {left} : {right})";
+        }
+
+        // For other cases, use standard ?? operator
+        return $"({left} ?? {right})";
     }
 
     private string ConvertCallExpression(CallExpression call)
@@ -988,7 +1307,9 @@ internal class StatementConverter
                     if (call.Arguments.Count > 0)
                     {
                         var value = ConvertExpression(call.Arguments[0]);
-                        return $"double.Parse({value})";
+                        // Convert.ToDouble works on any object type (including strings, doubles, objects)
+                        // whereas double.Parse only works on strings
+                        return $"Convert.ToDouble({value})";
                     }
                     throw new NotSupportedException("parseFloat requires an argument");
 
@@ -996,6 +1317,7 @@ internal class StatementConverter
                     if (call.Arguments.Count > 0)
                     {
                         var value = ConvertExpression(call.Arguments[0]);
+                        // isNaN returns bool in C#, not a number
                         return $"double.IsNaN({value})";
                     }
                     throw new NotSupportedException("isNaN requires an argument");
@@ -1004,6 +1326,7 @@ internal class StatementConverter
                     if (call.Arguments.Count > 0)
                     {
                         var value = ConvertExpression(call.Arguments[0]);
+                        // isFinite returns bool in C#, not a number
                         return $"(!double.IsInfinity({value}) && !double.IsNaN({value}))";
                     }
                     throw new NotSupportedException("isFinite requires an argument");
@@ -1047,9 +1370,23 @@ internal class StatementConverter
             switch (methodName.Name)
             {
                 case "toString":
+                    // Check if obj is a complex expression (contains operators) that results in a value type
+                    // If so, we can't use ?. operator and should just call .ToString() directly
+                    var objIsComplexExpression =
+                        obj.Contains('+')
+                        || obj.Contains('-')
+                        || obj.Contains('*')
+                        || obj.Contains('/')
+                        || obj.Contains('(');
+
                     if (needsStringCast)
                     {
                         return $"({obj}?.ToString())";
+                    }
+                    if (objIsComplexExpression)
+                    {
+                        // For complex expressions that result in value types (like arithmetic), just call .ToString()
+                        return $"({obj}).ToString()";
                     }
                     return $"{obj}{nullConditional}.ToString()";
 
@@ -1079,23 +1416,59 @@ internal class StatementConverter
                     if (call.Arguments.Count > 0)
                     {
                         var separator = ConvertExpression(call.Arguments[0]);
+                        // In C#, Split() requires a char, char[], or string (not int/double)
+                        // Check if separator is a numeric literal and convert to char
+                        // Handle both integer and double formats (10, 10.0)
+                        var separatorTrimmed = separator.Trim();
+                        if (double.TryParse(separatorTrimmed, out double numValue))
+                        {
+                            int charCode = (int)numValue;
+                            if (charCode >= 0 && charCode <= 127)
+                            {
+                                // Convert ASCII code to character
+                                separator = $"(char){charCode}";
+                            }
+                        }
                         if (needsStringCast)
                         {
                             return $"(({obj} as string)?.Split({separator}))";
                         }
                         return $"{obj}{nullConditional}.Split({separator})";
                     }
+                    // Split() with no arguments is not valid in C# - use default whitespace split
                     if (needsStringCast)
                     {
-                        return $"(({obj} as string)?.Split())";
+                        return $"(({obj} as string)?.Split(new[] {{ ' ', '\\t', '\\n', '\\r' }}, StringSplitOptions.RemoveEmptyEntries))";
                     }
-                    return $"{obj}{nullConditional}.Split()";
+                    return $"{obj}{nullConditional}.Split(new[] {{ ' ', '\\t', '\\n', '\\r' }}, StringSplitOptions.RemoveEmptyEntries)";
 
                 case "includes":
                     // Handle includes (Contains in C#)
                     if (call.Arguments.Count > 0)
                     {
                         var searchValue = ConvertExpression(call.Arguments[0]);
+
+                        // Check if searchValue is a numeric literal - if so, convert to string
+                        // In JavaScript, array.includes(0) checks if 0 is in the array
+                        // In C# string.Contains, we need to convert numeric args to strings
+                        var searchValueTrimmed = searchValue.Trim();
+                        if (double.TryParse(searchValueTrimmed, out double _))
+                        {
+                            // It's a numeric literal - wrap in ToString() for string Contains
+                            // or convert to char for single digit
+                            int intValue = (int)double.Parse(searchValueTrimmed);
+                            if (intValue >= 0 && intValue <= 9)
+                            {
+                                // Single digit - can be used as char
+                                searchValue = $"'{intValue}'";
+                            }
+                            else
+                            {
+                                // Multi-digit or non-char - convert to string
+                                searchValue = $"\"{intValue}\"";
+                            }
+                        }
+
                         // When using null-conditional operator, Contains returns bool? which needs == true for logical operations
                         if (needsStringCast)
                         {
@@ -1144,11 +1517,12 @@ internal class StatementConverter
                     throw new NotSupportedException("parseInt requires an argument");
 
                 case "parseFloat":
-                    // parseFloat(str) -> double.Parse(str)
+                    // parseFloat(str) -> Convert.ToDouble(str)
+                    // Convert.ToDouble works on any object type, whereas double.Parse only works on strings
                     if (call.Arguments.Count > 0)
                     {
                         var value = ConvertExpression(call.Arguments[0]);
-                        return $"double.Parse({value})";
+                        return $"Convert.ToDouble({value})";
                     }
                     throw new NotSupportedException("parseFloat requires an argument");
 
