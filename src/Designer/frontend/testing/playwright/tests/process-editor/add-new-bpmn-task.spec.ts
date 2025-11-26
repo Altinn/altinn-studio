@@ -1,6 +1,6 @@
 import { test } from '../../extenders/testExtend';
 import { expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
+import type { APIRequestContext, Page } from '@playwright/test';
 import { Gitea } from '../../helpers/Gitea';
 import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
@@ -111,6 +111,7 @@ test('that the user can add a sequence arrow between two tasks', async ({ page, 
 test('that the changes made to the bpmn process are uploaded to Gitea', async ({
   page,
   testAppName,
+  request,
 }) => {
   await setupAndVerifyProcessEditorPage(page, testAppName);
   const header = new AppDevelopmentHeader(page, { app: testAppName });
@@ -121,10 +122,7 @@ test('that the changes made to the bpmn process are uploaded to Gitea', async ({
   await giteaPage.verifyThatTheNewTaskIsVisible(randomGeneratedId, dataTask);
 
   await giteaPage.verifySequenceFlowDirection(randomGeneratedId, initialId);
-  const numblerBackToConfig: number = 2;
-  await giteaPage.goBackNPages(numblerBackToConfig);
-  await giteaPage.clickOnApplicationMetadataFile();
-  await giteaPage.verifyIdInDataModel(randomGeneratedId, newDataModel);
+  await verifyTaskIdInDataModel(request, testAppName, newDataModel, randomGeneratedId);
 });
 
 // --------------------- Helper Functions ---------------------
@@ -169,3 +167,19 @@ const navigateToDataModelAndCreateNewDataModel = async (
   await header.clickOnNavigateToPageInTopMenuHeader('process_editor');
   await processEditorPage.verifyProcessEditorPage();
 };
+
+async function verifyTaskIdInDataModel(
+  request: APIRequestContext,
+  app: string,
+  dataModelName: string,
+  taskId: string,
+): Promise<void> {
+  const gitea = new Gitea({ app });
+  const getAppMetadataResponse = await request.get(gitea.getAppFilePath(appMetadataFilePath));
+  const appMetadata = await getAppMetadataResponse.json();
+  expect(appMetadata).toMatchObject({
+    dataTypes: expect.arrayContaining([expect.objectContaining({ id: dataModelName, taskId })]),
+  });
+}
+
+const appMetadataFilePath = 'App/config/applicationmetadata.json';
