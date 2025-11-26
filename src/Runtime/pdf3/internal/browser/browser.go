@@ -8,6 +8,8 @@ import (
 	"os/exec"
 	"sort"
 	"strings"
+	"syscall"
+	"time"
 
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/log"
@@ -63,8 +65,12 @@ func Start(id int) (*Process, error) {
 	}
 
 	cmd := exec.Command(browserPath, args...)
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	debugPortStr := fmt.Sprintf("%d", debugPort)
 	debugBaseURL := fmt.Sprintf("http://127.0.0.1:%d", debugPort)
+	cmdLogger := &cmdToLogger{logger: logger}
+	cmd.Stdout = cmdLogger
+	cmd.Stderr = cmdLogger
 
 	// Start the browser process
 	if err := cmd.Start(); err != nil {
@@ -79,17 +85,84 @@ func Start(id int) (*Process, error) {
 	}, nil
 }
 
-// Close terminates the browser process
+type cmdToLogger struct {
+	logger *slog.Logger
+}
+
+func (l *cmdToLogger) Write(p []byte) (int, error) {
+	l.logger.Info("Browser process stdout/stderr", "message", string(p))
+	return len(p), nil
+}
+
+// Close terminates the browser process and removes its data directory
 func (p *Process) Close() error {
+	logger := log.NewComponent("browser").With("dataDir", p.DataDir)
+	logger.Info("Closing browser process")
+
 	if p.Cmd != nil && p.Cmd.Process != nil {
-		err := p.Cmd.Process.Kill()
-		assert.AssertWithMessage(err == nil, "couldn't kill browser process", "error", err)
-		// Wait() error is expected (killed processes return error), so we can ignore it
-		_ = p.Cmd.Wait()
+		pgid, err := syscall.Getpgid(p.Cmd.Process.Pid)
+		if err != nil {
+			logger.Info("Failed to get process group ID", "error", err)
+			pgid = 0
+		} else {
+			logger.Info("Got process group ID", "pgid", pgid)
+		}
+
+		if pgid > 0 {
+			_ = syscall.Kill(-pgid, syscall.SIGTERM)
+		} else {
+			_ = p.Cmd.Process.Signal(syscall.SIGTERM)
+		}
+
+		done := make(chan error, 1)
+		go func() {
+			err := p.Cmd.Wait()
+			done <- err
+			logger.Info("Browser exited", "error", err)
+		}()
+
+		select {
+		case <-done:
+			logger.Info("Browser exited gracefully after SIGTERM")
+		case <-time.After(100 * time.Millisecond):
+			logger.Info("Browser did not exit after SIGTERM, sending SIGKILL")
+			if pgid > 0 {
+				_ = syscall.Kill(-pgid, syscall.SIGKILL)
+			} else {
+				_ = p.Cmd.Process.Kill()
+			}
+			select {
+			case <-done:
+				logger.Info("Browser exited after SIGKILL")
+			case <-time.After(100 * time.Millisecond):
+				logger.Info("Did not observe browser exit after SIGKILL")
+			}
+		}
 	}
-	err := os.RemoveAll(p.DataDir)
+
+	err := removeDataDirWithRetry(p.DataDir, logger)
 	assert.AssertWithMessage(err == nil, "couldn't remove dataDir", "dataDir", p.DataDir, "error", err)
 	return nil
+}
+
+// removeDataDirWithRetry attempts to remove the data directory with retries
+// to handle race conditions where child processes may still hold file handles
+func removeDataDirWithRetry(dataDir string, logger *slog.Logger) error {
+	const maxRetries = 5
+	const retryDelay = 10 * time.Millisecond
+
+	var lastErr error
+	for i := range maxRetries {
+		lastErr = os.RemoveAll(dataDir)
+		if lastErr == nil {
+			return nil
+		}
+		if i < maxRetries-1 {
+			logger.Info("Failed to remove dataDir, retrying", "attempt", i+1, "error", lastErr)
+		}
+		time.Sleep(retryDelay)
+	}
+	return lastErr
 }
 
 // createBrowserArgs returns the Chrome/Chromium arguments for headless PDF generation
@@ -111,6 +184,8 @@ func createBrowserArgs() []string {
 		"--disable-prompt-on-repost",
 		"--disable-renderer-backgrounding",
 		"--disable-sync",
+		"--disable-gpu",
+		"--disable-software-rasterizer",
 		"--enable-automation",
 		"--enable-features=NetworkService,NetworkServiceInProcess",
 		"--font-render-hinting=none",
