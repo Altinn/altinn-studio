@@ -12,9 +12,9 @@ import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
+import type { fetchOptions } from 'src/http-client/queries';
 import type { IRawOption, ISelectionComponentFull } from 'src/layout/common.generated';
 import type { ILayout } from 'src/layout/layout';
-import type { fetchOptions } from 'src/queries/queries';
 
 interface RenderProps {
   type: 'single' | 'multi';

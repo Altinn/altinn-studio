@@ -10,8 +10,6 @@ interface LanguageLoaderProps extends LoaderFunctionArgs {
 
 export async function languageLoader({ context }): Promise<unknown> {
   const { queryClient } = context;
-  console.log('🔴 LANGUAGE LOADER: Setting availableLanguages from HTML:', window.AltinnAppData.availableLanguages);
-  console.log('🔴 LANGUAGE LOADER: textResources in HTML:', window.AltinnAppData.textResources);
   queryClient.setQueryData(['fetchAppLanguages'], window.AltinnAppData.availableLanguages);
   queryClient.setQueryData(['fetchTextResources'], window.AltinnAppData?.textResources);
   return null;

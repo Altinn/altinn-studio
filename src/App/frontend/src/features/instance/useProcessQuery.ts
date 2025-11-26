@@ -4,7 +4,7 @@ import { useApplicationMetadata } from 'src/features/applicationMetadata/Applica
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
-import { fetchProcessState } from 'src/queries/queries';
+import { fetchProcessState } from 'src/http-client/queries';
 import { isProcessTaskType, ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
 import type { LooseAutocomplete } from 'src/types';

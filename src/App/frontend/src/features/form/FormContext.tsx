@@ -9,7 +9,6 @@ import { LayoutsProvider } from 'src/features/form/layout/LayoutsContext';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
 import { LayoutSettingsProvider } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
-import { SetShouldFetchAppLanguages } from 'src/features/language/LanguageProvider';
 import { CodeListsProvider } from 'src/features/options/CodeListsProvider';
 import { OrderDetailsProvider } from 'src/features/payment/OrderDetailsProvider';
 import { PaymentInformationProvider } from 'src/features/payment/PaymentInformationProvider';
@@ -49,7 +48,6 @@ export function FormProvider({ children, readOnly = false }: React.PropsWithChil
   return (
     <LoadingRegistryProvider>
       <LayoutsProvider>
-        <SetShouldFetchAppLanguages />
         <CodeListsProvider>
           <DataModelsProvider>
             <LayoutSettingsProvider>

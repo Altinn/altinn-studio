@@ -35,17 +35,17 @@ import { TextResourcesProvider } from 'src/features/language/textResources/TextR
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
+import { fetchInstanceData } from 'src/http-client/queries';
 // import { ProfileProvider } from 'src/features/profile/ProfileProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
-import { fetchInstanceData } from 'src/queries/queries';
 import { PageNavigationRouter } from 'src/test/routerUtils';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { FormDataMethods } from 'src/features/formData/FormDataWriteStateMachine';
+import type { AppMutations, AppQueries, AppQueriesContext } from 'src/http-client/types';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { CompExternal, CompExternalExact, CompTypes } from 'src/layout/layout';
-import type { AppMutations, AppQueries, AppQueriesContext } from 'src/queries/types';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   renderer: (() => React.ReactElement) | React.ReactElement;
@@ -446,7 +446,7 @@ const renderBase = async ({
   // Application metadata: call the globally-mocked query and set in query cache
   // Note: fetchApplicationMetadata is mocked globally in tests but excluded from AppQueries
   try {
-    const { fetchApplicationMetadata } = await import('src/queries/queries');
+    const { fetchApplicationMetadata } = await import('src/http-client/queries');
     const applicationMetadata = await fetchApplicationMetadata();
     if (applicationMetadata && window.AltinnAppData) {
       window.AltinnAppData.applicationMetadata = applicationMetadata;
@@ -483,7 +483,7 @@ const renderBase = async ({
 
   // Process state: preload if mocked (useProcessQuery reads from window.AltinnAppData.processState when no instanceId)
   try {
-    const { fetchProcessState } = await import('src/queries/queries');
+    const { fetchProcessState } = await import('src/http-client/queries');
     if (jest.isMockFunction(fetchProcessState)) {
       try {
         const processState = await fetchProcessState('dummy-owner/dummy-guid');

@@ -9,7 +9,7 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useAsRef } from 'src/hooks/useAsRef';
-import type { fetchBackendValidations } from 'src/queries/queries';
+import type { fetchBackendValidations } from 'src/http-client/queries';
 
 /**
  * The same queryKey must be used for all of the functions below

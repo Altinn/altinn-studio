@@ -13,7 +13,7 @@ import { useUpdateInitialValidations } from 'src/features/validation/backendVali
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { Validation } from 'src/features/validation/validationContext';
 import { TaskKeys, useNavigateToTask } from 'src/hooks/useNavigatePage';
-import { doProcessNext } from 'src/queries/queries';
+import { doProcessNext } from 'src/http-client/queries';
 import type { BackendValidationIssue } from 'src/features/validation';
 import type { IActionType, IProcess, ProblemDetails } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';

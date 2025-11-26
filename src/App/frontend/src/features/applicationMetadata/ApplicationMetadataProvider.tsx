@@ -9,7 +9,7 @@ import { createQueryContext } from 'src/core/contexts/queryContext';
 import { onEntryValuesThatHaveState } from 'src/features/applicationMetadata/appMetadataUtils';
 import { VersionErrorOrChildren } from 'src/features/applicationMetadata/VersionErrorOrChildren';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { fetchApplicationMetadata } from 'src/queries/queries';
+import { fetchApplicationMetadata } from 'src/http-client/queries';
 import type { ApplicationMetadata, IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 
 export function processApplicationMetadata(

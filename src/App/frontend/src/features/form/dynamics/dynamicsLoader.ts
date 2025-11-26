@@ -3,7 +3,7 @@ import type { LoaderFunctionArgs } from 'react-router-dom';
 
 import { processApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { getCurrentLayoutSet } from 'src/features/applicationMetadata/appMetadataUtils';
-import { fetchRuleHandler } from 'src/queries/queries';
+import { fetchRuleHandler } from 'src/http-client/queries';
 import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { ILayoutSets } from 'src/layout/common.generated';
 

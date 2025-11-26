@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { createContext } from 'src/core/contexts/context';
-import type { AppMutations, AppQueries, AppQueriesContext } from 'src/queries/types';
+import type { AppMutations, AppQueries, AppQueriesContext } from 'src/http-client/types';
 
 export interface AppQueriesProps extends AppQueriesContext {
   queryClient?: QueryClient;

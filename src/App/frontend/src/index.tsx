@@ -47,8 +47,8 @@ import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import { FixWrongReceiptType } from 'src/features/receipt/FixWrongReceiptType';
 import { DefaultReceipt } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
+import * as queries from 'src/http-client/queries';
 import { createLanguageLoader } from 'src/language/languageLoader';
-import * as queries from 'src/queries/queries';
 
 import 'leaflet/dist/leaflet.css';
 import 'react-toastify/dist/ReactToastify.css';

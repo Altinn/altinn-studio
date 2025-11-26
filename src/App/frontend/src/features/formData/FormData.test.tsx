@@ -22,7 +22,7 @@ import { FD, FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { fetchApplicationMetadata } from 'src/queries/queries';
+import { fetchApplicationMetadata } from 'src/http-client/queries';
 import {
   makeFormDataMethodProxies,
   renderWithInstanceAndLayout,

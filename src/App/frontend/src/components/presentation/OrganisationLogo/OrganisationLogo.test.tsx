@@ -5,7 +5,7 @@ import { screen } from '@testing-library/react';
 
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
-import { fetchApplicationMetadata } from 'src/queries/queries';
+import { fetchApplicationMetadata } from 'src/http-client/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 

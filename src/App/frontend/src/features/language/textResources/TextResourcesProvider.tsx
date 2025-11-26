@@ -20,10 +20,6 @@ const useTextResourcesQuery = () => {
 
   // This makes sure to await potential profile fetching before fetching text resources
   const enabled = useIsCurrentLanguageResolved();
-
-  console.log('enabled', enabled);
-  console.log('selectedLanguage', selectedLanguage);
-
   const utils = {
     ...useQueryWithStaleData<TextResourceMap, HttpClientError>({
       enabled,

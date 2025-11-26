@@ -19,8 +19,13 @@ import {
   isRepeatingComponent,
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
-import { fetchApplicationMetadata, fetchInstanceData, fetchProcessState, fetchUserProfile } from 'src/queries/queries';
-import { AppQueries } from 'src/queries/types';
+import {
+  fetchApplicationMetadata,
+  fetchInstanceData,
+  fetchProcessState,
+  fetchUserProfile,
+} from 'src/http-client/queries';
+import { AppQueries } from 'src/http-client/types';
 import {
   renderWithInstanceAndLayout,
   renderWithoutInstanceAndLayout,
