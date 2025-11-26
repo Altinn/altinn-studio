@@ -165,11 +165,6 @@ func RequestNewPDFWithTestInput(t *testing.T, req *types.PdfRequest, testInput *
 	return RequestPDFWithHost(t, req, "pdf3-proxy.runtime-pdf3.svc.cluster.local", testInput)
 }
 
-// requestOldPDF sends a PDF generation request to the old PDF generator solution
-func RequestOldPDF(t *testing.T, req *types.PdfRequest) (*PdfResponse, error) {
-	return RequestPDFWithHost(t, req, "pdf-generator.pdf.svc.cluster.local", nil)
-}
-
 // requestPDF sends a PDF generation request to the proxy
 func RequestPDFWithHost(t *testing.T, req *types.PdfRequest, overrideHost string, testInput *ptesting.PdfInternalsTestInput) (*PdfResponse, error) {
 	reqBody, err := json.Marshal(req)

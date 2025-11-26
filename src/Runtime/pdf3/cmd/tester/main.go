@@ -613,20 +613,11 @@ func runLoadtestLocal() {
 	fmt.Println("\n=== Waiting for deployments to be ready ===")
 
 	var depWg sync.WaitGroup
-	depWg.Add(3)
+	depWg.Add(2)
 
 	go func() {
 		defer depWg.Done()
-		fmt.Println("Waiting for pdf-generator deployment (old service)...")
-		if err := runtime.KubernetesClient.RolloutStatus("pdf-generator", "pdf", 2*time.Minute); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed waiting for pdf-generator deployment: %v\n", err)
-			os.Exit(1)
-		}
-	}()
-
-	go func() {
-		defer depWg.Done()
-		fmt.Println("Waiting for pdf3-proxy deployment (new service)...")
+		fmt.Println("Waiting for pdf3-proxy deployment...")
 		if err := runtime.KubernetesClient.RolloutStatus("pdf3-proxy", "runtime-pdf3", 2*time.Minute); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed waiting for pdf3-proxy deployment: %v\n", err)
 			os.Exit(1)
@@ -635,7 +626,7 @@ func runLoadtestLocal() {
 
 	go func() {
 		defer depWg.Done()
-		fmt.Println("Waiting for pdf3-worker deployment (new service)...")
+		fmt.Println("Waiting for pdf3-worker deployment...")
 		if err := runtime.KubernetesClient.RolloutStatus("pdf3-worker", "runtime-pdf3", 2*time.Minute); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed waiting for pdf3-worker deployment: %v\n", err)
 			os.Exit(1)
