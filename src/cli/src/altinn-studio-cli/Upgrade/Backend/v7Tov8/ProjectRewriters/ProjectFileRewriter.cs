@@ -62,6 +62,134 @@ internal sealed class ProjectFileRewriter
         await Save();
     }
 
+    /// <summary>
+    /// Converts package references to project references for local development and updates target framework
+    /// </summary>
+    /// <param name="appProjectFolder">The folder containing the App.csproj file</param>
+    public async Task ConvertToProjectReferences(string appProjectFolder)
+    {
+        var projectDir = Path.GetDirectoryName(_projectFilePath);
+        if (projectDir == null)
+        {
+            throw new InvalidOperationException($"Could not determine directory for project file: {_projectFilePath}");
+        }
+
+        // Get the repository root (where src/App is located)
+        // First try to find it from the CLI assembly location (when running from source)
+        // Then fall back to environment variable ALTINN_STUDIO_ROOT
+        var repoRoot = FindRepositoryRootFromCli() ?? Environment.GetEnvironmentVariable("ALTINN_STUDIO_ROOT");
+
+        if (repoRoot == null || !Directory.Exists(Path.Combine(repoRoot, "src", "App")))
+        {
+            throw new InvalidOperationException(
+                "Could not find repository root containing src/App. "
+                    + "Please set the ALTINN_STUDIO_ROOT environment variable to the altinn-studio repository root directory."
+            );
+        }
+
+        // Update target framework
+        GetTargetFrameworkElement()?.ForEach(t => t.SetValue(_targetFramework));
+        IgnoreWarnings("1591", "1998"); // Require xml doc and await in async methods
+
+        // Define the packages to convert and their relative project paths
+        var packagesInfo = new[]
+        {
+            (
+                Package: "Altinn.App.Core",
+                RelPath: new[] { "src", "App", "backend", "src", "Altinn.App.Core", "Altinn.App.Core.csproj" }
+            ),
+            (
+                Package: "Altinn.App.Api",
+                RelPath: new[] { "src", "App", "backend", "src", "Altinn.App.Api", "Altinn.App.Api.csproj" }
+            ),
+            (
+                Package: "Altinn.Codelists",
+                RelPath: new[] { "src", "App", "codelists", "src", "Altinn.Codelists", "Altinn.Codelists.csproj" }
+            ),
+            (
+                Package: "Altinn.FileAnalyzers",
+                RelPath: new[]
+                {
+                    "src",
+                    "App",
+                    "fileanalyzers",
+                    "src",
+                    "Altinn.FileAnalyzers",
+                    "Altinn.FileAnalyzers.csproj",
+                }
+            ),
+        };
+
+        var itemGroup = _doc.Root?.Elements("ItemGroup").FirstOrDefault(ig => ig.Elements("PackageReference").Any());
+
+        if (itemGroup == null)
+        {
+            // Create a new ItemGroup if none exists
+            itemGroup = new XElement("ItemGroup");
+            _doc.Root?.Add(itemGroup);
+        }
+
+        foreach (var (packageName, relPath) in packagesInfo)
+        {
+            // Check if package reference exists
+            var packageElements = GetPackageReferenceElement(packageName);
+            if (packageElements != null && packageElements.Any())
+            {
+                // Build the full project path
+                var projectPath = Path.Combine(repoRoot, Path.Combine(relPath));
+
+                // Check if the project file actually exists
+                if (!File.Exists(projectPath))
+                {
+                    Console.WriteLine($"Warning: Project file not found: {projectPath}. Skipping {packageName}.");
+                    continue;
+                }
+
+                // Calculate relative path from the app project to the library project
+                var relativePath = Path.GetRelativePath(projectDir, projectPath);
+
+                // Remove package reference
+                packageElements.ForEach(e => e.Remove());
+
+                // Add project reference
+                var projectReference = new XElement("ProjectReference", new XAttribute("Include", relativePath));
+                itemGroup.Add(projectReference);
+
+                Console.WriteLine(
+                    $"Converted {packageName} from package reference to project reference: {relativePath}"
+                );
+            }
+        }
+
+        await Save();
+    }
+
+    /// <summary>
+    /// Finds the repository root containing src/App by looking at the CLI assembly location
+    /// </summary>
+    /// <returns>The repository root path or null if not found</returns>
+    private static string? FindRepositoryRootFromCli()
+    {
+        // Get the location of the currently executing assembly
+        var assemblyLocation = System.Reflection.Assembly.GetExecutingAssembly().Location;
+        if (string.IsNullOrEmpty(assemblyLocation))
+        {
+            return null;
+        }
+
+        var currentDir = new DirectoryInfo(Path.GetDirectoryName(assemblyLocation)!);
+        while (currentDir != null)
+        {
+            var srcAppPath = Path.Combine(currentDir.FullName, "src", "App");
+            if (Directory.Exists(srcAppPath))
+            {
+                return currentDir.FullName;
+            }
+            currentDir = currentDir.Parent;
+        }
+        return null;
+    }
+
     private void IgnoreWarnings(params string[] warnings)
     {
         var noWarn = _doc.Root?.Elements("PropertyGroup").Elements("NoWarn").ToList();

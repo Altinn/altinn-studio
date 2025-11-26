@@ -22,11 +22,6 @@ internal static class NextUpgrade
             description: "The project file to read relative to --folder",
             getDefaultValue: () => "App/App.csproj"
         );
-        var targetVersionOption = new Option<string>(
-            name: "--target-version",
-            description: "The target version to upgrade to",
-            getDefaultValue: () => "8.9.0-preview.3"
-        );
         var targetFrameworkOption = new Option<string>(
             name: "--target-framework",
             description: "The target dotnet framework version to upgrade to",
@@ -42,7 +37,6 @@ internal static class NextUpgrade
         {
             projectFolderOption,
             projectFileOption,
-            targetVersionOption,
             targetFrameworkOption,
             skipCsprojUpgradeOption,
         };
@@ -55,7 +49,6 @@ internal static class NextUpgrade
         {
             var projectFolder = context.ParseResult.GetValueForOption(projectFolderOption);
             var projectFile = context.ParseResult.GetValueForOption(projectFileOption);
-            var targetVersion = context.ParseResult.GetValueForOption(targetVersionOption);
             var targetFramework = context.ParseResult.GetValueForOption(targetFrameworkOption);
             var skipCsprojUpgrade = context.ParseResult.GetValueForOption(skipCsprojUpgradeOption);
 
@@ -64,9 +57,6 @@ internal static class NextUpgrade
 
             if (projectFile is null)
                 ExitWithError("Project file option is required but was not provided");
-
-            if (targetVersion is null)
-                ExitWithError("Target version option is required but was not provided");
 
             if (targetFramework is null)
                 ExitWithError("Target framework option is required but was not provided");
@@ -102,10 +92,10 @@ internal static class NextUpgrade
                 );
             }
 
-            // Job 1: Upgrade project file (csproj)
+            // Job 1: Convert to project references and upgrade target framework
             if (!skipCsprojUpgrade && returnCode == 0)
             {
-                returnCode = await UpgradeProjectFile(projectFile, targetVersion, targetFramework);
+                returnCode = await ConvertToProjectReferences(projectFile, projectFolder, targetFramework);
             }
 
             // Job 2: Remove Swashbuckle.AspNetCore dependency
@@ -132,20 +122,30 @@ internal static class NextUpgrade
         return upgradeCommand;
     }
 
-    static async Task<int> UpgradeProjectFile(string projectFile, string targetVersion, string targetFramework)
-    {
-        var rewriter = new ProjectFileRewriter(projectFile, targetVersion, targetFramework);
-        await rewriter.Upgrade();
-        await Console.Out.WriteLineAsync("Nuget versions upgraded");
-        return 0;
-    }
-
     static async Task<int> RemoveSwashbucklePackage(string projectFile)
     {
         var rewriter = new ProjectFileRewriter(projectFile);
         await rewriter.RemovePackageReference("Swashbuckle.AspNetCore");
         await Console.Out.WriteLineAsync("Swashbuckle.AspNetCore package reference removed");
         return 0;
+    }
+
+    static async Task<int> ConvertToProjectReferences(string projectFile, string projectFolder, string targetFramework)
+    {
+        try
+        {
+            var rewriter = new ProjectFileRewriter(projectFile, targetFramework: targetFramework);
+            await rewriter.ConvertToProjectReferences(projectFolder);
+            await Console.Out.WriteLineAsync(
+                "Package references converted to project references and target framework updated"
+            );
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            await Console.Error.WriteLineAsync($"Error converting to project references: {ex.Message}");
+            return 1;
+        }
     }
 
     [DoesNotReturn]
