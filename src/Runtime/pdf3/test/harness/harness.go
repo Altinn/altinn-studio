@@ -275,6 +275,7 @@ func FindProjectRoot() (string, error) {
 // SetupCluster starts the Kind container runtime with all dependencies
 func SetupCluster(
 	variant kind.KindContainerRuntimeVariant,
+	options kind.KindContainerRuntimeOptions,
 	registryStartedEvent chan<- error,
 	ingressReadyEvent chan<- error,
 ) (*kind.KindContainerRuntime, error) {
@@ -291,7 +292,7 @@ func SetupCluster(
 	absoluteCachePath := filepath.Join(projectRoot, cachePath)
 
 	// Create Kind container runtime
-	Runtime, err = kind.New(variant, absoluteCachePath)
+	Runtime, err = kind.New(variant, absoluteCachePath, options)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kind runtime: %w", err)
 	}

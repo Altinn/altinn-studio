@@ -20,7 +20,7 @@ func TestNew_TestserverInBothVariants(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cachePath := filepath.Join(t.TempDir(), ".cache")
 
-			runtime, err := New(tt.variant, cachePath)
+			runtime, err := New(tt.variant, cachePath, DefaultOptions())
 			if err != nil {
 				t.Fatalf("New() error = %v", err)
 			}

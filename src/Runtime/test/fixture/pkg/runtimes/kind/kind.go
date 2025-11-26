@@ -43,6 +43,9 @@ var testserverManifest []byte
 //go:embed config/base-infrastructure.yaml
 var baseInfrastructureManifest []byte
 
+//go:embed config/monitoring-infrastructure.yaml
+var monitoringInfrastructureManifest []byte
+
 type KindContainerRuntimeVariant int
 
 const (
@@ -50,8 +53,24 @@ const (
 	KindContainerRuntimeVariantMinimal
 )
 
+// KindContainerRuntimeOptions holds configuration options for the Kind runtime
+type KindContainerRuntimeOptions struct {
+	// IncludeMonitoring controls whether the Prometheus/Grafana stack is deployed.
+	// When false (default), only prometheus-operator-crds are installed for CRD support.
+	// When true, the full kube-prometheus-stack is deployed.
+	IncludeMonitoring bool
+}
+
+// DefaultOptions returns the default options for the Kind runtime
+func DefaultOptions() KindContainerRuntimeOptions {
+	return KindContainerRuntimeOptions{
+		IncludeMonitoring: false,
+	}
+}
+
 type KindContainerRuntime struct {
 	variant        KindContainerRuntimeVariant
+	options        KindContainerRuntimeOptions
 	cachePath      string
 	clusterName    string
 	configPath     string
@@ -76,11 +95,12 @@ func logDuration(stepName string, start time.Time) {
 }
 
 // New creates a new KindContainerRuntime instance
-func New(variant KindContainerRuntimeVariant, cachePath string) (*KindContainerRuntime, error) {
+func New(variant KindContainerRuntimeVariant, cachePath string, options KindContainerRuntimeOptions) (*KindContainerRuntime, error) {
 	r, clusters, err := initialize(cachePath, false)
 	if err != nil {
 		return nil, err
 	}
+	r.options = options
 	err = newInternal(r, clusters, variant, cachePath, false)
 	if err != nil {
 		return nil, err
@@ -115,11 +135,12 @@ func New(variant KindContainerRuntimeVariant, cachePath string) (*KindContainerR
 	return r, nil
 }
 
-func Load(variant KindContainerRuntimeVariant, cachePath string) (*KindContainerRuntime, error) {
+func Load(variant KindContainerRuntimeVariant, cachePath string, options KindContainerRuntimeOptions) (*KindContainerRuntime, error) {
 	r, clusters, err := initialize(cachePath, true)
 	if err != nil {
 		return nil, err
 	}
+	r.options = options
 	err = newInternal(r, clusters, variant, cachePath, true)
 	if err != nil {
 		return nil, err

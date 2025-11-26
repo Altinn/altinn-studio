@@ -54,9 +54,12 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "  loadtest-local   Run k6 load tests - locally")
 	fmt.Fprintln(os.Stderr, "  loadtest-env     Run k6 load tests - against env")
 	fmt.Fprintln(os.Stderr, "")
-	fmt.Fprintln(os.Stderr, "Start argument:")
-	fmt.Fprintln(os.Stderr, "  standard")
-	fmt.Fprintln(os.Stderr, "  minimal")
+	fmt.Fprintln(os.Stderr, "Start arguments:")
+	fmt.Fprintln(os.Stderr, "  standard         Use standard variant (more nodes)")
+	fmt.Fprintln(os.Stderr, "  minimal          Use minimal variant (fewer resources)")
+	fmt.Fprintln(os.Stderr, "Start flags:")
+	fmt.Fprintln(os.Stderr, "  --monitoring      Include Prometheus/Grafana monitoring stack")
+	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "Test flags:")
 	fmt.Fprintln(os.Stderr, "  --smoke           Run smoke tests only")
 	fmt.Fprintln(os.Stderr, "  --simple          Run simple tests only")
@@ -69,7 +72,7 @@ func printUsage() {
 }
 
 // setupRuntime sets up the Kind cluster, builds images, and deploys pdf3
-func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainerRuntime, error) {
+func setupRuntime(variant kind.KindContainerRuntimeVariant, options kind.KindContainerRuntimeOptions) (*kind.KindContainerRuntime, error) {
 	fmt.Println("=== Setting Up Runtime ===")
 
 	// Step 1: Setup cluster
@@ -79,7 +82,7 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainer
 	ingressReadyEvent := make(chan error, 1)
 	runtimeResult := make(chan Result[*kind.KindContainerRuntime], 1)
 	go func() {
-		runtime, err := harness.SetupCluster(variant, registryStartedEvent, ingressReadyEvent)
+		runtime, err := harness.SetupCluster(variant, options, registryStartedEvent, ingressReadyEvent)
 		runtimeResult <- NewResult(runtime, err)
 	}()
 
@@ -165,20 +168,34 @@ func runStart() {
 		fmt.Fprintf(os.Stderr, "Not enough arguments. Must specify 'standard' or 'minimal' for the start command\n")
 		os.Exit(1)
 	}
-	arg := os.Args[2]
+
+	// Parse flags after the variant argument
+	startFlags := flag.NewFlagSet("start", flag.ExitOnError)
+	includeMonitoring := startFlags.Bool("monitoring", false, "Include Prometheus/Grafana monitoring stack")
+
+	// First positional arg is variant, rest are flags
+	variantArg := os.Args[2]
+	if err := startFlags.Parse(os.Args[3:]); err != nil {
+		fmt.Fprintf(os.Stderr, "Error parsing flags: %v\n", err)
+		os.Exit(1)
+	}
 
 	var variant kind.KindContainerRuntimeVariant
-	switch arg {
+	switch variantArg {
 	case "standard":
 		variant = kind.KindContainerRuntimeVariantStandard
 	case "minimal":
 		variant = kind.KindContainerRuntimeVariantMinimal
 	default:
-		fmt.Fprintf(os.Stderr, "Invalid arg '%s'. Must specify 'standard' or 'minimal' for the start command\n", arg)
+		fmt.Fprintf(os.Stderr, "Invalid arg '%s'. Must specify 'standard' or 'minimal' for the start command\n", variantArg)
 		os.Exit(1)
 	}
 
-	_, err := setupRuntime(variant)
+	options := kind.KindContainerRuntimeOptions{
+		IncludeMonitoring: *includeMonitoring,
+	}
+
+	_, err := setupRuntime(variant, options)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to start runtime: %v\n", err)
 		os.Exit(1)
@@ -253,7 +270,7 @@ func runTest() {
 			os.Exit(1)
 		}
 	} else {
-		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantMinimal)
+		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantMinimal, kind.DefaultOptions())
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to setup runtime: %v\n", err)
 			os.Exit(1)
@@ -584,7 +601,7 @@ func runLoadtestLocal() {
 			os.Exit(1)
 		}
 	} else {
-		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantStandard)
+		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantStandard, kind.DefaultOptions())
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to setup runtime: %v\n", err)
 			os.Exit(1)
