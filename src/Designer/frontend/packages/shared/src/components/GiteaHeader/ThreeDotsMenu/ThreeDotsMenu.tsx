@@ -19,7 +19,7 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
   const toggleClonePopoverOpen = () => setClonePopoverOpen((oldValue) => !oldValue);
 
   const handleClick = () => {
-    window.open(repositoryPath(owner, repoName), '_blank', 'noopener,noreferrer');
+    window.location.href = repositoryPath(owner, repoName);
   };
 
   return (
