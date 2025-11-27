@@ -44,10 +44,6 @@ function StudioToggleableTextfield(
     if (onIsViewMode) onIsViewMode(isViewMode);
   }, [isViewMode, onIsViewMode]);
 
-  useEffect(() => {
-    setCurrentValue(String(value ?? defaultValue ?? ''));
-  }, [value, defaultValue]);
-
   const toggleViewMode = (): void => {
     setIsViewMode((prevMode) => !prevMode);
   };
@@ -99,7 +95,6 @@ function StudioToggleableTextfield(
       ref={ref}
       title={title}
       value={currentValue}
-      defaultValue={defaultValue}
       onClick={onClick}
       {...rest}
     />
