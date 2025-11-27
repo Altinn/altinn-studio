@@ -223,12 +223,39 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("designer/api/{org}/resources/resourcelist")]
-        public async Task<ActionResult<List<ListviewServiceResource>>> GetRepositoryResourceList(string org, [FromQuery] bool includeEnvResources = false, [FromQuery] bool skipGiteaFields = false, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<List<ListviewServiceResource>>> GetRepositoryResourceList(string org, [FromQuery] bool includeEnvResources = false, [FromQuery] bool skipGiteaFields = false, [FromQuery] bool skipParseJson = false, CancellationToken cancellationToken = default)
         {
             string repository = GetRepositoryName(org);
-            List<ListviewServiceResource> repositoryResourceList = await _repository.GetServiceResources(org, repository, "", cancellationToken);
+            IEnumerable<ListviewServiceResource> resources;
+            List<ListviewServiceResource> repositoryResourceList;
+            List<ListviewServiceResource> listviewServiceResources = new List<ListviewServiceResource>();
 
-            if (skipGiteaFields != true)
+            if (skipParseJson)
+            {
+                List<FileSystemObject> resourceFiles = _repository.GetContents(org, repository);
+                repositoryResourceList = resourceFiles.Where(file => file.Type.Equals("Dir") && !file.Name.StartsWith(".")).Select(file =>
+                {
+                    return new ListviewServiceResource
+                    {
+                        Identifier = file.Name,
+                        Title = new Dictionary<string, string>()
+                    };
+                }).ToList();
+            }
+            else
+            {
+                repositoryResourceList = await _repository.GetServiceResources(org, repository, "", cancellationToken);
+            }
+
+            if (skipGiteaFields)
+            {
+                resources = repositoryResourceList.Select(resource => new ListviewServiceResource
+                {
+                    Identifier = resource.Identifier,
+                    Title = resource.Title,
+                });
+            }
+            else
             {
                 using SemaphoreSlim semaphore = new(25); // Limit to 25 concurrent requests
 
