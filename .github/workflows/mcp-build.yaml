@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'src/AI/mcp/**'
+  workflow_dispatch:
 
 jobs:
   build:
