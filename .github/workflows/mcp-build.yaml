@@ -36,3 +36,8 @@ jobs:
     - name: Verify documentation indexing completes
       working-directory: src/AI/mcp
       run: timeout 180 bash -c 'until grep -q "Application startup complete" server.log; do sleep 1; done'
+
+    - name: Output server logs on failure
+      if: failure()
+      working-directory: src/AI/mcp
+      run: cat server.log
