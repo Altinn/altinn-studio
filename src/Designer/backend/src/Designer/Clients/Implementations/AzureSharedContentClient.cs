@@ -67,7 +67,7 @@ public class AzureSharedContentClient : ISharedContentClient
 
     public async Task<string> PublishCodeList(string orgName, string codeListId, CodeList codeList, CancellationToken cancellationToken = default)
     {
-        BlobContainerClient containerClient = GetContainerClient();
+        BlobContainerClient containerClient = _blobContainerClientFactory.GetContainerClient();
         await ThrowIfUnhealthy(containerClient, cancellationToken);
 
         string resourceTypeIndexPrefix = orgName;
@@ -307,10 +307,5 @@ public class AzureSharedContentClient : ISharedContentClient
 
         int version = versions.Max();
         CurrentVersion = (version + 1).ToString();
-    }
-
-    private BlobContainerClient GetContainerClient()
-    {
-        return _blobContainerClientFactory.GetContainerClient();
     }
 }
