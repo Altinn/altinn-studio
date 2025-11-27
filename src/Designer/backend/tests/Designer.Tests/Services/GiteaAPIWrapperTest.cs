@@ -753,7 +753,7 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public async Task GetCodeListDirectoryContentAsync_SomeFilesNull_FiltersOutNullFiles()
+        public async Task GetCodeListDirectoryContentAsync_SomeFilesNull_DoesNotFilterOutNullFiles()
         {
             // Arrange
             List<FileSystemObject> directoryFiles =
@@ -816,8 +816,7 @@ namespace Designer.Tests.Services
 
             // Assert
             Assert.NotNull(actual);
-            Assert.Single(actual); // Only the valid file should be returned
-            Assert.Equal("valid-file.json", actual[0].Name);
+            Assert.Equal(2, actual.Count); // We do not filter out empty files, so the invalid file is still included
             handlerMock.VerifyAll();
         }
 

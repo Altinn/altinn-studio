@@ -1,7 +1,6 @@
 import React, { type ReactElement } from 'react';
 import classes from './DeployDropdown.module.css';
-import { StudioCombobox } from '@studio/components-legacy';
-import { StudioSpinner, StudioError } from '@studio/components';
+import { StudioSuggestion, StudioSpinner, StudioError } from '@studio/components';
 import type { ImageOption } from '../../ImageOption';
 import { useTranslation } from 'react-i18next';
 import { useAppReleasesQuery } from 'app-development/hooks/queries';
@@ -44,29 +43,37 @@ export const DeployDropdown = ({
   const successfullyBuiltAppReleases: AppRelease[] = filterSucceededReleases(releases);
   const imageOptions: ImageOption[] = mapAppReleasesToImageOptions(successfullyBuiltAppReleases, t);
 
-  const hasSelectedImageTag = selectedImageTag && imageOptions?.length > 0;
-  const selectedVersion = hasSelectedImageTag ? [selectedImageTag] : undefined;
+  const selectedItems = selectedImageTag
+    ? imageOptions.filter((option) => option.value === selectedImageTag)
+    : [];
+
+  const handleSelectedChange = (items: { value: string }[]) => {
+    if (!disabled) {
+      setSelectedImageTag(items[0]?.value || '');
+    }
+  };
 
   return (
     <div className={classes.deployDropDown}>
-      <StudioCombobox
-        size='small'
-        value={selectedVersion}
+      <StudioSuggestion
+        selected={selectedItems}
         label={t('app_deployment.choose_version')}
-        onValueChange={(selectedImageOptions: string[]) =>
-          setSelectedImageTag(selectedImageOptions[0])
-        }
-        disabled={disabled}
+        emptyText={t('app_deployment.no_versions')}
+        filter={() => true}
+        onSelectedChange={handleSelectedChange}
       >
         {imageOptions.map((imageOption: ImageOption) => {
           return (
-            <StudioCombobox.Option key={imageOption.value} value={imageOption.value}>
+            <StudioSuggestion.Option
+              key={imageOption.value}
+              value={imageOption.value}
+              label={imageOption.label}
+            >
               {imageOption.label}
-            </StudioCombobox.Option>
+            </StudioSuggestion.Option>
           );
         })}
-        <StudioCombobox.Empty>{t('app_deployment.no_versions')}</StudioCombobox.Empty>
-      </StudioCombobox>
+      </StudioSuggestion>
       <div className={classes.deployButton}>
         <DeployPopover
           appDeployedVersion={appDeployedVersion}
