@@ -49,7 +49,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
     data: resourceListData,
     isPending: resourceListPending,
     isRefetching: refetchingList,
-  } = useGetResourceListQuery(org, true);
+  } = useGetResourceListQuery(org);
 
   const filteredResourceList = filterTableData(searchValue, resourceListData ?? []);
 
