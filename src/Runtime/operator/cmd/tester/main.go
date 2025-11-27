@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/test/harness"
 	"altinn.studio/runtime-fixture/pkg/kubernetes"
 	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
@@ -220,7 +221,7 @@ func runStop() {
 	fmt.Println("=== Operator Runtime Stop ===")
 
 	// Find project root
-	projectRoot, err := harness.FindProjectRoot()
+	projectRoot, err := config.TryFindProjectRootByGoMod()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		os.Exit(1)
@@ -255,7 +256,7 @@ func runTest() {
 	}
 
 	// Find project root for logs directory
-	projectRoot, err := harness.FindProjectRoot()
+	projectRoot, err := config.TryFindProjectRootByGoMod()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		os.Exit(1)

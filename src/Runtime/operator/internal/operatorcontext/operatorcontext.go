@@ -71,11 +71,7 @@ func Discover(ctx context.Context, environment string, orgRegistry *orgs.OrgRegi
 		if org, ok := orgRegistry.Get(serviceOwnerId); ok {
 			serviceOwnerOrgNo = org.OrgNr
 		} else {
-			if environment != EnvironmentLocal {
-				return nil, errors.Errorf("could not find org for service owner id %s", serviceOwnerId)
-			} else {
-				serviceOwnerOrgNo = "991825827"
-			}
+			return nil, errors.Errorf("could not find org for service owner id %s", serviceOwnerId)
 		}
 	}
 

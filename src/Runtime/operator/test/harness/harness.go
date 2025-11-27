@@ -1,13 +1,13 @@
 package harness
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"time"
 
+	"altinn.studio/operator/internal/config"
 	"altinn.studio/runtime-fixture/pkg/checksum"
 	"altinn.studio/runtime-fixture/pkg/flux"
 	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
@@ -18,49 +18,6 @@ var (
 	cachePath string
 	IsCI      = os.Getenv("CI") == "true"
 )
-
-var projectRoot string
-
-// FindProjectRoot searches upward for a directory containing go.mod
-// It starts from the current working directory and checks up to maxIterations parent directories
-func FindProjectRoot() (string, error) {
-	if projectRoot != "" {
-		return projectRoot, nil
-	}
-
-	const maxIterations = 10
-
-	// Get current working directory
-	dir, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	// Track the previous directory to detect when we've reached the filesystem root
-	prevDir := ""
-
-	for i := 0; i < maxIterations; i++ {
-		// Check if go.mod exists in current directory
-		goModPath := filepath.Join(dir, "go.mod")
-		if _, err := os.Stat(goModPath); err == nil {
-			projectRoot = dir
-			return dir, nil
-		}
-
-		// Move to parent directory
-		parentDir := filepath.Dir(dir)
-
-		// Check if we've reached the filesystem root (dir == parentDir on Unix, or checking against previous)
-		if parentDir == dir || parentDir == prevDir {
-			return "", errors.New("reached filesystem root without finding go.mod")
-		}
-
-		prevDir = dir
-		dir = parentDir
-	}
-
-	return "", errors.New("exceeded maximum iterations searching for go.mod")
-}
 
 // LogDuration logs the duration of an operation
 // Usage: defer LogDuration("Operation name", time.Now())
@@ -75,7 +32,7 @@ func SetupCluster(
 	registryStartedEvent chan error,
 	ingressReadyEvent chan error,
 ) (*kind.KindContainerRuntime, error) {
-	projectRoot, err := FindProjectRoot()
+	projectRoot, err := config.TryFindProjectRootByGoMod()
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +66,7 @@ func SetupCluster(
 // BuildAndPushImage builds the operator controller image and pushes it to the local registry
 // Returns true if image was rebuilt, false if skipped due to no changes
 func BuildAndPushImage() (bool, error) {
-	projectRoot, err := FindProjectRoot()
+	projectRoot, err := config.TryFindProjectRootByGoMod()
 	if err != nil {
 		return false, err
 	}
@@ -171,7 +128,7 @@ func BuildAndPushImage() (bool, error) {
 // BuildAndPushFakesImage builds the fakes image and pushes it to the local registry
 // Returns true if image was rebuilt, false if skipped due to no changes
 func BuildAndPushFakesImage() (bool, error) {
-	projectRoot, err := FindProjectRoot()
+	projectRoot, err := config.TryFindProjectRootByGoMod()
 	if err != nil {
 		return false, err
 	}
@@ -238,7 +195,7 @@ func BuildAndPushFakesImage() (bool, error) {
 // PushKustomizeArtifact pushes the kustomize directory as an OCI artifact
 // Returns true if artifact was pushed, false if skipped due to no changes
 func PushKustomizeArtifact() (bool, error) {
-	projectRoot, err := FindProjectRoot()
+	projectRoot, err := config.TryFindProjectRootByGoMod()
 	if err != nil {
 		return false, err
 	}
@@ -288,7 +245,7 @@ func PushKustomizeArtifact() (bool, error) {
 // DownloadAndPushDeploymentChart clones altinn-studio-charts and pushes the deployment chart to OCI registry
 // Returns true if chart was pushed, false if skipped due to no changes
 func DownloadAndPushDeploymentChart() (bool, error) {
-	projectRoot, err := FindProjectRoot()
+	projectRoot, err := config.TryFindProjectRootByGoMod()
 	if err != nil {
 		return false, err
 	}
@@ -395,7 +352,7 @@ func DownloadAndPushDeploymentChart() (bool, error) {
 // BuildAndPushLocaltestappImage builds the localtestapp image and pushes it to the local registry
 // Returns true if image was rebuilt, false if skipped due to no changes
 func BuildAndPushLocaltestappImage() (bool, error) {
-	projectRoot, err := FindProjectRoot()
+	projectRoot, err := config.TryFindProjectRootByGoMod()
 	if err != nil {
 		return false, err
 	}
@@ -455,7 +412,7 @@ func BuildAndPushLocaltestappImage() (bool, error) {
 
 // DeployLocaltestappViaFlux deploys the localtestapp using Flux HelmRelease
 func DeployLocaltestappViaFlux(imageChanged, chartChanged bool) error {
-	projectRoot, err := FindProjectRoot()
+	projectRoot, err := config.TryFindProjectRootByGoMod()
 	if err != nil {
 		return err
 	}
@@ -517,7 +474,7 @@ func DeployLocaltestappViaFlux(imageChanged, chartChanged bool) error {
 
 // DeployOperatorViaFlux deploys the operator using Flux
 func DeployOperatorViaFlux(imagesChanged, kustomizeChanged bool) error {
-	projectRoot, err := FindProjectRoot()
+	projectRoot, err := config.TryFindProjectRootByGoMod()
 	if err != nil {
 		return err
 	}

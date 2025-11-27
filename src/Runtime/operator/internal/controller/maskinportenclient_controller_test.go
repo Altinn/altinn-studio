@@ -110,7 +110,7 @@ var _ = Describe("MaskinportenClient Controller", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resource.Status.State).To(Equal("reconciled"))
 			Expect(resource.Status.ObservedGeneration).To(Equal(int64(1)))
-			Expect(resource.Status.Authority).To(Equal(rt.GetConfig().MaskinportenApi.AuthorityUrl))
+			Expect(resource.Status.Authority).To(Equal(rt.GetConfigMonitor().Get().MaskinportenApi.AuthorityUrl))
 
 			secret := &corev1.Secret{}
 			err = k8sClient.Get(ctx, typeNamespacedSecretName, secret)
@@ -120,7 +120,7 @@ var _ = Describe("MaskinportenClient Controller", func() {
 			secretState, err := maskinporten.DeserializeSecretStateContent(secret)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(secretState.ClientId).NotTo(BeEmpty())
-			Expect(secretState.Authority).To(Equal(rt.GetConfig().MaskinportenApi.AuthorityUrl))
+			Expect(secretState.Authority).To(Equal(rt.GetConfigMonitor().Get().MaskinportenApi.AuthorityUrl))
 			Expect(secretState.Jwk).NotTo(BeNil())
 			Expect(secretState.Jwks).NotTo(BeNil())
 			Expect(secretState.Jwks.Keys).NotTo(BeEmpty())

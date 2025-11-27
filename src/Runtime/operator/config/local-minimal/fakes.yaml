@@ -70,3 +70,30 @@ spec:
           limits:
             cpu: 100m
             memory: 64Mi
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: fakes-strip-prefix
+  namespace: runtime-operator
+spec:
+  stripPrefix:
+    prefixes:
+    - /fakes
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: fakes-ingress
+  namespace: runtime-operator
+spec:
+  entryPoints:
+  - traefik
+  routes:
+  - kind: Rule
+    match: PathPrefix(`/fakes`)
+    services:
+    - name: fakes
+      port: 8051
+    middlewares:
+    - name: fakes-strip-prefix

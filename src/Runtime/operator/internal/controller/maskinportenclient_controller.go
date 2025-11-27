@@ -21,6 +21,7 @@ import (
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal/assert"
+	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/internal/crypto"
 	"altinn.studio/operator/internal/maskinporten"
 	rt "altinn.studio/operator/internal/runtime"
@@ -83,6 +84,8 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 	// * Returning result with RequeueAfter set will requeue after the specified duration
 	// * Returning result with Requeue set will requeue immediately
 
+	configValue := r.runtime.GetConfigMonitor().Get()
+
 	req, err := r.mapRequest(ctx, kreq)
 	if err != nil {
 		span.SetStatus(codes.Error, "mapRequest failed")
@@ -106,7 +109,7 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 		return ctrl.Result{}, notFoundIgnored
 	}
 	instance := req.Instance
-
+	log.Info("Loaded info", "request_kind", req.Kind.String(), "generation", instance.GetGeneration())
 	span.SetAttributes(
 		attribute.String("request_kind", req.Kind.String()),
 		attribute.Int64("generation", instance.GetGeneration()),
@@ -118,13 +121,13 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 		if _, ok := err.(*maskinporten.MissingSecretError); ok {
 			log.Info("App secret not found yet, will retry later", "app", req.AppId)
 			// Requeue with a delay without logging as error
-			return ctrl.Result{RequeueAfter: r.getRequeueAfter()}, nil
+			return ctrl.Result{RequeueAfter: r.getRequeueAfter(configValue)}, nil
 		}
 		r.updateStatusWithError(ctx, err, "fetchCurrentState failed", instance, nil)
 		return ctrl.Result{}, err
 	}
 
-	executedCommands, err := r.reconcile(ctx, currentState)
+	executedCommands, err := r.reconcile(ctx, configValue, currentState)
 	if err != nil {
 		r.updateStatusWithError(ctx, err, "reconcile failed", instance, executedCommands)
 		return ctrl.Result{}, err
@@ -133,6 +136,26 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 	if len(executedCommands) == 0 {
 		log.Info("No actions taken")
 		span.SetStatus(codes.Ok, "reconciled successfully")
+		if req.Kind == RequestDeleteKind {
+			// If we are deleting and no actions were needed, we can still remove the finalizer
+			err = r.updateStatus(ctx, req, instance, "deleted", "No actions needed during deletion", executedCommands)
+			if err != nil {
+				span.SetStatus(codes.Error, "updateStatus failed")
+				span.RecordError(err)
+				log.Error(err, "Failed to update MaskinportenClient status during deletion")
+				return ctrl.Result{}, err
+			}
+			log.Info("Deleted MaskinportenClient, finalizer removed")
+		} else {
+			// Still update status to acknowledge the new generation even if no actions were needed
+			err = r.updateStatus(ctx, req, instance, "reconciled", "No actions needed", executedCommands)
+			if err != nil {
+				span.SetStatus(codes.Error, "updateStatus failed")
+				span.RecordError(err)
+				log.Error(err, "Failed to update MaskinportenClient status")
+				return ctrl.Result{}, err
+			}
+		}
 		return ctrl.Result{}, nil
 	}
 
@@ -148,11 +171,11 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 	log.Info("Reconciled MaskinportenClient")
 
 	span.SetStatus(codes.Ok, "reconciled successfully")
-	return ctrl.Result{RequeueAfter: r.getRequeueAfter()}, nil
+	return ctrl.Result{RequeueAfter: r.getRequeueAfter(configValue)}, nil
 }
 
-func (r *MaskinportenClientReconciler) getRequeueAfter() time.Duration {
-	return r.randomizeDuration(r.runtime.GetConfig().Controller.RequeueAfter, 10.0)
+func (r *MaskinportenClientReconciler) getRequeueAfter(configValue *config.Config) time.Duration {
+	return r.randomizeDuration(configValue.Controller.RequeueAfter, 10.0)
 }
 
 func (r *MaskinportenClientReconciler) randomizeDuration(d time.Duration, perc float64) time.Duration {
@@ -354,16 +377,16 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 
 func (r *MaskinportenClientReconciler) reconcile(
 	ctx context.Context,
+	configValue *config.Config,
 	currentState *maskinporten.ClientState,
 ) (maskinporten.CommandList, error) {
 	ctx, span := r.runtime.Tracer().Start(ctx, "Reconcile.reconcile")
 	defer span.End()
 
 	context := r.runtime.GetOperatorContext()
-	config := r.runtime.GetConfig()
 	crypto := r.runtime.GetCrypto()
 	clock := r.runtime.GetClock()
-	commands, err := currentState.Reconcile(context, config, crypto, clock)
+	commands, err := currentState.Reconcile(context, configValue, crypto, clock)
 	if err != nil {
 		return nil, err
 	}

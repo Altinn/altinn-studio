@@ -11,7 +11,7 @@ import (
 )
 
 type Runtime interface {
-	GetConfig() *config.Config
+	GetConfigMonitor() *config.ConfigMonitor
 	GetOperatorContext() *operatorcontext.Context
 	GetCrypto() *crypto.CryptoService
 	GetMaskinportenApiClient() *maskinporten.HttpApiClient

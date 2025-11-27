@@ -44,13 +44,14 @@ func TestConfigTestEnvLoadsOk(t *testing.T) {
 
 	ctx := context.Background()
 	environment := operatorcontext.EnvironmentLocal
-	cfg, err := GetConfig(ctx, environment, "")
+	config, err := GetConfig(ctx, environment, "")
 	Expect(err).NotTo(HaveOccurred())
-	Expect(cfg).NotTo(BeNil())
-	Expect(cfg.MaskinportenApi.ClientId).To(Equal("altinn_apps_supplier_client"))
-	Expect(cfg.MaskinportenApi.AuthorityUrl).To(Equal("http://localhost:8050"))
-	Expect(cfg.MaskinportenApi.Jwk).NotTo(BeNil())
-	Expect(cfg.OrgRegistry.URL).To(Equal("http://localhost:8052/orgs/altinn-orgs.json"))
+	Expect(config).NotTo(BeNil())
+	configValue := config.Get()
+	Expect(configValue.MaskinportenApi.ClientId).To(Equal("altinn_apps_supplier_client"))
+	Expect(configValue.MaskinportenApi.AuthorityUrl).To(Equal("http://localhost:8050"))
+	Expect(configValue.MaskinportenApi.Jwk).NotTo(BeNil())
+	Expect(configValue.OrgRegistry.URL).To(Equal("http://localhost:8052/orgs/altinn-orgs.json"))
 }
 
 func TestSafeLogValueRedactsSecrets(t *testing.T) {
@@ -58,12 +59,13 @@ func TestSafeLogValueRedactsSecrets(t *testing.T) {
 
 	ctx := context.Background()
 	environment := operatorcontext.EnvironmentLocal
-	cfg, err := GetConfig(ctx, environment, "")
+	config, err := GetConfig(ctx, environment, "")
 	Expect(err).NotTo(HaveOccurred())
-	Expect(cfg).NotTo(BeNil())
+	Expect(config).NotTo(BeNil())
+	configValue := config.Get()
 
 	// Get safe log value
-	safeLog := cfg.SafeLogValue()
+	safeLog := configValue.SafeLogValue()
 
 	// Verify the JWK is redacted in the safe log output
 	maskinportenApi, ok := safeLog["maskinporten_api"].(map[string]any)
@@ -75,6 +77,6 @@ func TestSafeLogValueRedactsSecrets(t *testing.T) {
 	Expect(maskinportenApi["authority_url"]).To(Equal("http://localhost:8050"))
 
 	// Verify the actual config still has the real JWK
-	Expect(cfg.MaskinportenApi.Jwk).NotTo(Equal("[REDACTED]"))
-	Expect(cfg.MaskinportenApi.Jwk).NotTo(BeEmpty())
+	Expect(configValue.MaskinportenApi.Jwk).NotTo(Equal("[REDACTED]"))
+	Expect(configValue.MaskinportenApi.Jwk).NotTo(BeEmpty())
 }

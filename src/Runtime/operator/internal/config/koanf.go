@@ -28,20 +28,24 @@ func loadFromKoanf(ctx context.Context, configFilePath string) (*Config, error) 
 	_, span := tracer.Start(ctx, "GetConfig.Koanf")
 	defer span.End()
 
-	// Determine config file path
 	if configFilePath == "" {
+		// Env var is set from Dockerfile, k8s manifests
 		if envPath := os.Getenv("OPERATOR_CONFIG_FILE"); envPath != "" {
 			configFilePath = envPath
+		} else {
+			// If we are running locally, try to find project root
+			rootDir, err := TryFindProjectRootByGoMod()
+			if err != nil {
+				return nil, fmt.Errorf("error loading config from koanf: %w", err)
+			}
+			if rootDir != "" {
+				configFilePath = path.Join(rootDir, "localtest.env")
+			} else {
+				return nil, fmt.Errorf("no config file path provided and OPERATOR_CONFIG_FILE not set")
+			}
 		}
 	}
 
-	// If still empty, fall back to localtest.env in project root (for local development)
-	if configFilePath == "" {
-		rootDir := TryFindProjectRoot()
-		configFilePath = path.Join(rootDir, "localtest.env")
-	}
-
-	// Check file exists
 	if _, err := os.Stat(configFilePath); os.IsNotExist(err) {
 		return nil, fmt.Errorf("config file does not exist: '%s'", configFilePath)
 	}

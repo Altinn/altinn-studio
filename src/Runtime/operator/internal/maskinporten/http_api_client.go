@@ -45,37 +45,37 @@ type WellKnownResponse struct {
 //   - Dev self service API: https://api.samarbeid.digdir.dev/swagger-ui/index.html
 //   - Dev auth/token API: https://maskinporten.dev
 type HttpApiClient struct {
-	config      *config.MaskinportenApiConfig
-	context     *operatorcontext.Context
-	client      http.Client
-	jwk         crypto.Jwk
-	hydrated    bool
-	wellKnown   caching.CachedAtom[WellKnownResponse]
-	accessToken caching.CachedAtom[TokenResponse]
-	tracer      trace.Tracer
-	clock       clockwork.Clock
+	configMonitor *config.ConfigMonitor
+	context       *operatorcontext.Context
+	client        http.Client
+	hydrated      bool
+	wellKnown     caching.CachedAtom[WellKnownResponse]
+	accessToken   caching.CachedAtom[TokenResponse]
+	tracer        trace.Tracer
+	clock         clockwork.Clock
 
 	clientNamePrefix string
 }
 
 func NewHttpApiClient(
-	config *config.MaskinportenApiConfig,
+	configMonitor *config.ConfigMonitor,
 	context *operatorcontext.Context,
 	clock clockwork.Clock,
 ) (*HttpApiClient, error) {
+	// Validate initial config
+	cfg := configMonitor.Get()
 	jwk := crypto.Jwk{}
-	if err := json.Unmarshal([]byte(config.Jwk), &jwk); err != nil {
+	if err := json.Unmarshal([]byte(cfg.MaskinportenApi.Jwk), &jwk); err != nil {
 		return nil, err
 	}
 
 	client := &HttpApiClient{
-		config:   config,
-		context:  context,
-		client:   http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)},
-		jwk:      jwk,
-		hydrated: false,
-		tracer:   otel.Tracer(telemetry.ServiceName),
-		clock:    clock,
+		configMonitor: configMonitor,
+		context:       context,
+		client:        http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)},
+		hydrated:      false,
+		tracer:        otel.Tracer(telemetry.ServiceName),
+		clock:         clock,
 
 		clientNamePrefix: getClientNamePrefix(context),
 	}
@@ -84,6 +84,21 @@ func NewHttpApiClient(
 	client.accessToken = caching.NewCachedAtom(1*time.Minute, clock, client.accessTokenFetcher)
 
 	return client, nil
+}
+
+// getConfig returns the current MaskinportenApi config from the monitor.
+func (c *HttpApiClient) getConfig() *config.MaskinportenApiConfig {
+	return &c.configMonitor.Get().MaskinportenApi
+}
+
+// getJwk parses and returns the current JWK from config.
+func (c *HttpApiClient) getJwk() (*crypto.Jwk, error) {
+	cfg := c.getConfig()
+	jwk := crypto.Jwk{}
+	if err := json.Unmarshal([]byte(cfg.Jwk), &jwk); err != nil {
+		return nil, err
+	}
+	return &jwk, nil
 }
 
 func (c *HttpApiClient) createReq(
@@ -128,7 +143,7 @@ func (c *HttpApiClient) GetAllClients(ctx context.Context) ([]ClientResponse, er
 	ctx, span := c.tracer.Start(ctx, "GetAllClients")
 	defer span.End()
 
-	url, err := url.JoinPath(c.config.SelfServiceUrl, "/api/v1/altinn/admin/clients")
+	url, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients")
 
 	if err != nil {
 		return nil, err
@@ -180,7 +195,7 @@ func (c *HttpApiClient) GetClient(
 	ctx, span := c.tracer.Start(ctx, "GetClient")
 	defer span.End()
 
-	url, err := url.JoinPath(c.config.SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId)
+	url, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -229,7 +244,7 @@ func (c *HttpApiClient) getClientJwks(ctx context.Context, clientId string) (*cr
 		return nil, errors.New("missing ID on client info")
 	}
 
-	url, err := url.JoinPath(c.config.SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId, "jwks")
+	url, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId, "jwks")
 	if err != nil {
 		return nil, err
 	}
@@ -271,7 +286,7 @@ func (c *HttpApiClient) CreateClient(
 		return nil, errors.New("can't create maskinporten client without JWKS initialized")
 	}
 
-	url, err := url.JoinPath(c.config.SelfServiceUrl, "/api/v1/altinn/admin/clients")
+	url, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients")
 	if err != nil {
 		return nil, err
 	}
@@ -330,7 +345,7 @@ func (c *HttpApiClient) UpdateClient(
 		)
 	}
 
-	url, err := url.JoinPath(c.config.SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId)
+	url, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId)
 	if err != nil {
 		return nil, err
 	}
@@ -381,7 +396,7 @@ func (c *HttpApiClient) CreateClientJwks(ctx context.Context, clientId string, j
 		}
 	}
 
-	url, err := url.JoinPath(c.config.SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId, "jwks")
+	url, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId, "jwks")
 	if err != nil {
 		return err
 	}
@@ -414,7 +429,7 @@ func (c *HttpApiClient) DeleteClient(ctx context.Context, clientId string) error
 	ctx, span := c.tracer.Start(ctx, "DeleteClient")
 	defer span.End()
 
-	url, err := url.JoinPath(c.config.SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId)
+	url, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId)
 	if err != nil {
 		return err
 	}
@@ -445,12 +460,18 @@ func (c *HttpApiClient) createGrant(ctx context.Context) (*string, error) {
 		return nil, err
 	}
 
+	jwk, err := c.getJwk()
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := c.getConfig()
 	exp := c.clock.Now().Add(60 * time.Second)
 
-	signedToken, err := c.jwk.NewJWT(
+	signedToken, err := jwk.NewJWT(
 		[]string{wellKnown.Issuer},
-		c.config.ClientId,
-		c.config.Scope,
+		cfg.ClientId,
+		cfg.Scope,
 		exp,
 		c.clock,
 	)
@@ -467,7 +488,7 @@ func (c *HttpApiClient) accessTokenFetcher(ctx context.Context) (*TokenResponse,
 		return nil, err
 	}
 
-	endpoint, err := url.JoinPath(c.config.AuthorityUrl, "/token")
+	endpoint, err := url.JoinPath(c.getConfig().AuthorityUrl, "/token")
 	if err != nil {
 		return nil, err
 	}
@@ -510,7 +531,7 @@ type TokenResponse struct {
 }
 
 func (c *HttpApiClient) wellKnownFetcher(ctx context.Context) (*WellKnownResponse, error) {
-	endpoint, err := url.JoinPath(c.config.AuthorityUrl, "/.well-known/oauth-authorization-server")
+	endpoint, err := url.JoinPath(c.getConfig().AuthorityUrl, "/.well-known/oauth-authorization-server")
 	if err != nil {
 		return nil, err
 	}
@@ -571,8 +592,6 @@ func (c *HttpApiClient) handleErrorResponse(resp *http.Response) error {
 func (c *HttpApiClient) retryableHTTPDo(req *http.Request) (*http.Response, error) {
 	var resp *http.Response
 	var err error
-
-	req.Header.Add("X-Altinn-Operator-RunId", c.context.RunId)
 
 	// TODO: different strategy??
 

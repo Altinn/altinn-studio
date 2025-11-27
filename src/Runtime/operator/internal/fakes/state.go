@@ -3,7 +3,6 @@ package fakes
 import (
 	"encoding/json"
 	"log"
-	"net/http"
 	"sync"
 
 	"altinn.studio/operator/internal/config"
@@ -12,47 +11,35 @@ import (
 )
 
 type State struct {
-	Db   map[string]*Db
-	Cfg  *config.Config
+	db   *Db
+	cfg  *config.Config
 	lock sync.Mutex
 }
 
-func (s *State) GetAll() map[string][]ClientRecord {
+func (s *State) GetAll() []ClientRecord {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	res := make(map[string][]ClientRecord)
-	for runId, db := range s.Db {
-		records := db.Query(func(ocr *ClientRecord) bool {
-			return true
-		})
-		res[runId] = records
-	}
-	return res
+	return s.db.Query(func(ocr *ClientRecord) bool {
+		return true
+	})
 }
 
-func (s *State) GetDb(req *http.Request) *Db {
-	runId := req.Header.Get("X-Altinn-Operator-RunId")
-	if runId == "" {
-		log.Fatalf("Missing X-Altinn-Operator-RunId header in request: %v", req)
-	}
-
+func (s *State) Reset() {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	var db *Db
-	if existingDb, ok := s.Db[runId]; !ok {
-		db = s.initDb()
-		s.Db[runId] = db
-	} else {
-		db = existingDb
-	}
+	s.db = s.initDb()
+}
 
-	return db
+func (s *State) GetDb() *Db {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	return s.db
 }
 
 func (s *State) initDb() *Db {
 	db := NewDb()
 	jwk := crypto.Jwk{}
-	if err := json.Unmarshal([]byte(s.Cfg.MaskinportenApi.Jwk), &jwk); err != nil {
+	if err := json.Unmarshal([]byte(s.cfg.MaskinportenApi.Jwk), &jwk); err != nil {
 		log.Fatalf("couldn't unmarshal JWK: %v", err)
 	}
 	publicJwk := jwk.Public()
@@ -63,16 +50,16 @@ func (s *State) initDb() *Db {
 	orgNo := "991825827"
 	jwks := crypto.NewJwks(publicJwk)
 	_, err := db.Insert(&maskinporten.AddClientRequest{
-		ClientName:  &s.Cfg.MaskinportenApi.ClientId,
+		ClientName:  &s.cfg.MaskinportenApi.ClientId,
 		ClientOrgno: &orgNo,
 		GrantTypes: []maskinporten.GrantType{
 			maskinporten.GrantTypeJwtBearer,
 		},
-		Scopes:                  []string{s.Cfg.MaskinportenApi.Scope},
+		Scopes:                  []string{s.cfg.MaskinportenApi.Scope},
 		IntegrationType:         &integrationType,
 		ApplicationType:         &appType,
 		TokenEndpointAuthMethod: &tokenEndpointMethod,
-	}, jwks, s.Cfg.MaskinportenApi.ClientId)
+	}, jwks, s.cfg.MaskinportenApi.ClientId)
 	if err != nil {
 		log.Fatalf("couldn't insert supplier client: %v", err)
 	}
@@ -81,9 +68,10 @@ func (s *State) initDb() *Db {
 }
 
 func NewState(cfg *config.Config) *State {
-	return &State{
-		Db:   make(map[string]*Db),
-		Cfg:  cfg,
+	s := &State{
+		cfg:  cfg,
 		lock: sync.Mutex{},
 	}
+	s.db = s.initDb()
+	return s
 }

@@ -12,7 +12,7 @@ import (
 var InvalidClientName = errors.Errorf("invalid client ID")
 var ClientAlreadyExists = errors.Errorf("client already exists")
 
-const SupplierOrgNo string = "11111111"
+const SupplierOrgNo string = "991825827"
 
 type Db struct {
 	Clients       []ClientRecord
@@ -114,8 +114,14 @@ func (d *Db) Delete(clientId string) bool {
 
 	delete(d.ClientIdIndex, clientId)
 
-	d.Clients[i] = d.Clients[len(d.Clients)-1]
-	d.Clients = d.Clients[:len(d.Clients)-1]
+	// If we're not deleting the last element, swap with last and update index
+	lastIdx := len(d.Clients) - 1
+	if i != lastIdx {
+		movedClient := d.Clients[lastIdx]
+		d.Clients[i] = movedClient
+		d.ClientIdIndex[movedClient.ClientId] = i
+	}
+	d.Clients = d.Clients[:lastIdx]
 	return true
 }
 
