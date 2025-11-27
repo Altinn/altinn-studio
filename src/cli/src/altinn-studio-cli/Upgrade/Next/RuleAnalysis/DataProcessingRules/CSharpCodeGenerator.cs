@@ -37,18 +37,21 @@ internal class CSharpCodeGenerator
     private readonly DataModelInfo? _dataModelInfo;
     private readonly Dictionary<string, DataProcessingRule> _rules;
     private readonly RuleHandlerParser _jsParser;
+    private readonly DataModelTypeResolver? _typeResolver;
 
     public CSharpCodeGenerator(
         string layoutSetName,
         DataModelInfo? dataModelInfo,
         Dictionary<string, DataProcessingRule> rules,
-        RuleHandlerParser jsParser
+        RuleHandlerParser jsParser,
+        DataModelTypeResolver? typeResolver = null
     )
     {
         _layoutSetName = layoutSetName;
         _dataModelInfo = dataModelInfo;
         _rules = rules;
         _jsParser = jsParser;
+        _typeResolver = typeResolver;
     }
 
     /// <summary>
@@ -95,6 +98,10 @@ internal class CSharpCodeGenerator
 
         // Generate using statements
         GenerateUsingStatements(code);
+
+        // Enable nullable reference types
+        code.AppendLine();
+        code.AppendLine("#nullable enable");
 
         // Generate namespace and class declaration
         code.AppendLine();
@@ -286,22 +293,22 @@ internal class CSharpCodeGenerator
                     // Check if this property is used with string/array methods
                     if (stringArrayKeys.Contains(key))
                     {
-                        // Keep as object? for string/array operations
+                        // Cast to string for string/array operations
                         code.AppendLine(
-                            $"var {key} = obj.TryGetValue(\"{key}\", out var _{key}Val) ? _{key}Val : null;"
+                            $"var {key} = obj.TryGetValue(\"{key}\", out var _{key}Val) ? _{key}Val as string : null;"
                         );
                     }
                     else
                     {
-                        // Parse as double for numeric operations (JS numbers are floating point and can be Infinity/NaN)
+                        // Parse as decimal for numeric operations (Altinn data models typically use decimal)
                         code.AppendLine(
                             $"var {key} = obj.TryGetValue(\"{key}\", out var _{key}Val) && _{key}Val != null"
                         );
                         code.Indent();
                         code.AppendLine(
-                            $"? (double.TryParse(_{key}Val.ToString(), out var _{key}Parsed) ? _{key}Parsed : 0)"
+                            $"? (decimal.TryParse(_{key}Val.ToString(), out var _{key}Parsed) ? _{key}Parsed : 0m)"
                         );
-                        code.AppendLine(": 0;");
+                        code.AppendLine(": 0m;");
                         code.Unindent();
                     }
                 }
@@ -410,8 +417,6 @@ internal class CSharpCodeGenerator
         Dictionary<string, List<string>> sharedFunctions
     )
     {
-        var dataClassName = _dataModelInfo?.ClassName ?? "UNKNOWN_DATA_MODEL";
-
         foreach (var ruleEntry in _rules)
         {
             var ruleId = ruleEntry.Key;
@@ -432,7 +437,25 @@ internal class CSharpCodeGenerator
                 if (isSharedFunction)
                 {
                     // For shared functions, generate code that calls the helper method
-                    code.AppendLine($"// Calls shared helper: {functionName}");
+                    // Add rule configuration information
+                    code.AppendLine($"// Rule configuration:");
+                    code.AppendLine($"//   SelectedFunction: {rule.SelectedFunction}");
+                    if (rule.InputParams != null && rule.InputParams.Count > 0)
+                    {
+                        code.AppendLine("//   InputParams:");
+                        foreach (var inputParam in rule.InputParams)
+                        {
+                            code.AppendLine($"//     {inputParam.Key} = {inputParam.Value}");
+                        }
+                    }
+                    if (rule.OutParams != null && rule.OutParams.Count > 0)
+                    {
+                        code.AppendLine("//   OutParams:");
+                        foreach (var outParam in rule.OutParams)
+                        {
+                            code.AppendLine($"//     {outParam.Key} = {outParam.Value}");
+                        }
+                    }
                     code.AppendLine();
 
                     // Get the output parameter
@@ -459,7 +482,8 @@ internal class CSharpCodeGenerator
                         code.OpenBrace();
                         foreach (var inputParam in rule.InputParams)
                         {
-                            code.AppendLine($"[\"{inputParam.Key}\"] = wrapper.Get(\"{inputParam.Value}\"),");
+                            var getCall = GenerateTypedGetCall(inputParam.Value);
+                            code.AppendLine($"[\"{inputParam.Key}\"] = {getCall},");
                         }
                         code.Unindent();
                         code.AppendLine("};");
@@ -493,6 +517,27 @@ internal class CSharpCodeGenerator
                 else
                 {
                     // For non-shared functions, use the original inline conversion
+                    // Add rule configuration information
+                    code.AppendLine($"// Rule configuration:");
+                    code.AppendLine($"//   SelectedFunction: {rule.SelectedFunction}");
+                    if (rule.InputParams != null && rule.InputParams.Count > 0)
+                    {
+                        code.AppendLine("//   InputParams:");
+                        foreach (var inputParam in rule.InputParams)
+                        {
+                            code.AppendLine($"//     {inputParam.Key} = {inputParam.Value}");
+                        }
+                    }
+                    if (rule.OutParams != null && rule.OutParams.Count > 0)
+                    {
+                        code.AppendLine("//   OutParams:");
+                        foreach (var outputParam in rule.OutParams)
+                        {
+                            code.AppendLine($"//     {outputParam.Key} = {outputParam.Value}");
+                        }
+                    }
+                    code.AppendLine();
+
                     // Add original JavaScript as comment
                     code.AppendLine($"// Original JavaScript function: {rule.SelectedFunction}");
                     var jsLines = jsFunction.Implementation.Split('\n');
@@ -503,11 +548,33 @@ internal class CSharpCodeGenerator
                     code.AppendLine();
 
                     // Try to convert to C#
+                    // Pass empty dictionaries so that input params are treated as local variables
+                    // instead of generating wrapper.Get()/Set() calls throughout the function
                     var converter = new StatementConverter(
-                        rule.InputParams ?? new Dictionary<string, string>(),
-                        "wrapper",
-                        useFormDataWrapper: true
+                        new Dictionary<string, string>(),
+                        "",
+                        useFormDataWrapper: false
                     );
+
+                    // Generate local variable declarations for input parameters
+                    // This allows the function body to treat them as local variables
+                    // matching JavaScript semantics where obj.property acts like a local variable
+                    if (rule.InputParams != null && rule.InputParams.Count > 0)
+                    {
+                        foreach (var inputParam in rule.InputParams)
+                        {
+                            // Use addDefaultValue: true to automatically add ?? 0m for nullable decimals
+                            // This prevents type conflicts in arithmetic operations
+                            var getCall = GenerateTypedGetCall(inputParam.Value, addDefaultValue: true);
+                            code.AppendLine($"var {inputParam.Key} = {getCall};");
+
+                            // Mark the variable type so the converter knows if it's a string or numeric type
+                            var resolvedType = _typeResolver?.ResolveType(inputParam.Value);
+                            var isString = resolvedType == "string?" || resolvedType == "string";
+                            converter.MarkVariableType(inputParam.Key, isString);
+                        }
+                        code.AppendLine();
+                    }
                     CSharpConversionResult conversionResult;
 
                     // Try to convert the full function if available, otherwise fall back to return expression
@@ -763,5 +830,52 @@ internal class CSharpCodeGenerator
         }
 
         return sanitized;
+    }
+
+    /// <summary>
+    /// Generate a typed Get call for a JSON path, using type resolution if available
+    /// </summary>
+    /// <param name="jsonPath">The JSON path to get</param>
+    /// <param name="addDefaultValue">If true and the type is nullable numeric, add ?? 0m to default to zero</param>
+    /// <returns>The C# code for the Get call with cast if type is known</returns>
+    private string GenerateTypedGetCall(string jsonPath, bool addDefaultValue = false)
+    {
+        // Try to resolve the type for this path
+        var resolvedType = _typeResolver?.ResolveType(jsonPath);
+
+        if (resolvedType != null)
+        {
+            // Generate cast to the resolved type
+            var getCall = $"({resolvedType})wrapper.Get(\"{jsonPath}\")";
+
+            // If addDefaultValue is true, add appropriate default based on type
+            if (addDefaultValue)
+            {
+                // For nullable decimal, append ?? 0m
+                // This ensures the variable is non-nullable decimal, avoiding type conflicts in arithmetic
+                if (resolvedType == "decimal?")
+                {
+                    return $"{getCall} ?? 0m";
+                }
+                // For nullable string, append ?? ""
+                // This ensures the variable is non-nullable string, avoiding null-check issues
+                else if (resolvedType == "string?")
+                {
+                    return $"{getCall} ?? \"\"";
+                }
+                // For nullable bool, append ?? false
+                else if (resolvedType == "bool?")
+                {
+                    return $"{getCall} ?? false";
+                }
+            }
+
+            return getCall;
+        }
+        else
+        {
+            // Fallback to untyped Get() call
+            return $"wrapper.Get(\"{jsonPath}\")";
+        }
     }
 }
