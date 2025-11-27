@@ -9,7 +9,7 @@ import {
   StudioDisplayTile,
   StudioDialog,
   StudioHeading,
-  StudioToggleableTextfield
+  StudioToggleableTextfield,
 } from '@studio/components';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
