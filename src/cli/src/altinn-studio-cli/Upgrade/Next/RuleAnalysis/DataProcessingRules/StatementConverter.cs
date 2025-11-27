@@ -22,6 +22,7 @@ internal class StatementConverter
     private readonly string _dataVariableName;
     private readonly bool _useFormDataWrapper;
     private readonly Dictionary<string, string> _localVariables = new();
+    private readonly Dictionary<string, bool> _localVariableTypes = new(); // true = string, false = double
     private int _tempVarCounter = 0;
 
     public StatementConverter(
@@ -44,6 +45,17 @@ internal class StatementConverter
         {
             _localVariables[varName] = varName;
         }
+    }
+
+    /// <summary>
+    /// Mark a variable as declared with a specific type
+    /// </summary>
+    /// <param name="variableName">The variable name</param>
+    /// <param name="isString">True if the variable is a string type, false if numeric</param>
+    public void MarkVariableType(string variableName, bool isString)
+    {
+        _localVariables[variableName] = variableName;
+        _localVariableTypes[variableName] = isString;
     }
 
     /// <summary>
@@ -301,11 +313,15 @@ internal class StatementConverter
                 if (declarator.Init != null)
                 {
                     var initCode = ConvertExpression(declarator.Init);
+                    // Detect if this is a string type initialization
+                    var isString = IsExpressionStringType(declarator.Init);
+                    _localVariableTypes[varName] = isString;
                     code.AppendLine($"var {varName} = {initCode};");
                 }
                 else
                 {
                     code.AppendLine($"var {varName};");
+                    _localVariableTypes[varName] = false; // Default to double
                 }
             }
         }
@@ -319,15 +335,8 @@ internal class StatementConverter
         // In C#, we need an explicit boolean expression
         if (TestNeedsBooleanConversion(ifStmt.Test))
         {
-            // If condition contains wrapper.Get(), we need to convert to double first
-            if (condition.Contains("wrapper.Get("))
-            {
-                condition = $"(Convert.ToDouble({condition}) != 0.0)";
-            }
-            else
-            {
-                condition = $"({condition} != 0.0)";
-            }
+            // Don't wrap wrapper.Get() with Convert.ToDecimal - let it fail at compile time if types don't match
+            condition = $"({condition} != 0m)";
         }
 
         // Scan for variables assigned in the if block that aren't already declared
@@ -345,8 +354,9 @@ internal class StatementConverter
         {
             // Determine the type based on the assignments
             var isString = variableTypes.TryGetValue(varName, out var type) && type;
-            code.AppendLine(isString ? $"var {varName} = \"\";" : $"var {varName} = 0.0;");
+            code.AppendLine(isString ? $"var {varName} = \"\";" : $"var {varName} = 0m;");
             _localVariables[varName] = varName; // Mark as declared
+            _localVariableTypes[varName] = isString; // Track the type
         }
 
         code.AppendLine($"if ({condition})");
@@ -379,7 +389,8 @@ internal class StatementConverter
                 // Apply boolean conversion if needed
                 if (TestNeedsBooleanConversion(elseIf.Test))
                 {
-                    elseIfCondition = $"({elseIfCondition} != 0.0)";
+                    // Don't wrap wrapper.Get() with Convert.ToDecimal - let it fail at compile time if types don't match
+                    elseIfCondition = $"({elseIfCondition} != 0m)";
                 }
 
                 code.AppendLine($"if ({elseIfCondition})");
@@ -470,9 +481,11 @@ internal class StatementConverter
                     if (variableTypes != null)
                     {
                         var isString = IsExpressionStringType(assignment.Right);
-                        // If we've seen this variable before, keep it as string if either assignment is a string
+                        // Use an OR approach: if ANY assignment is a string, treat the variable as string
+                        // This handles cases like: x = ""; later x = someValue;
                         if (variableTypes.TryGetValue(id.Name, out var existingType))
                         {
+                            // If existing is true (string) OR this assignment is true (string), it's a string
                             variableTypes[id.Name] = existingType || isString;
                         }
                         else
@@ -507,13 +520,15 @@ internal class StatementConverter
             TemplateLiteral => true,
             CallExpression call
                 when call.Callee is MemberExpression member && member.Property is Identifier methodName =>
-                methodName.Name is "toString" or "toUpperCase" or "toLowerCase" or "trim",
+                methodName.Name is "toString" or "toUpperCase" or "toLowerCase" or "trim" or "split",
             CallExpression call when call.Callee is Identifier globalFunc => globalFunc.Name is "String",
-            BinaryExpression binary when binary.Operator.ToString() is "Addition" or "+" => IsExpressionStringType(
-                binary.Left
-            ) || IsExpressionStringType(binary.Right), // String concatenation
-            ConditionalExpression conditional => IsExpressionStringType(conditional.Consequent)
-                || IsExpressionStringType(conditional.Alternate),
+            BinaryExpression binary when binary.Operator.ToString() is "Addition" or "+" =>
+            // Only treat as string if BOTH sides are strings (not mixed string + number)
+            IsExpressionStringType(binary.Left) && IsExpressionStringType(binary.Right),
+            ConditionalExpression conditional =>
+            // If either branch is a string, treat the whole ternary as string
+            // This handles cases like: x ? x : "" or x ? "" : x
+            IsExpressionStringType(conditional.Consequent) || IsExpressionStringType(conditional.Alternate),
             _ => false, // Default to number for other expressions
         };
     }
@@ -577,16 +592,30 @@ internal class StatementConverter
             // Check if this is a compound assignment (+=, -=, *=, /=, etc.) or simple assignment (=)
             if (operatorStr == "Assign" || operatorStr == "Assignment" || operatorStr == "=")
             {
+                // Check if this is a self-assignment (e.g., tall1 = tall1)
+                // These are no-ops generated from JS patterns like "tall1 = obj.tall1 ? +obj.tall1 : 0"
+                // where the input param is already defaulted to 0 at declaration
+                if (rightCode == varName)
+                {
+                    // Skip self-assignment - it's a no-op
+                    return;
+                }
+
                 // Simple assignment - check if variable already exists
                 if (_localVariables.ContainsKey(varName))
                 {
                     // Variable already declared, just assign
                     code.AppendLine($"{varName} = {rightCode};");
+                    // Update type if this is a string assignment
+                    var isString = IsExpressionStringType(assignment.Right);
+                    _localVariableTypes[varName] = isString;
                 }
                 else
                 {
                     // New variable declaration
                     _localVariables[varName] = varName;
+                    var isString = IsExpressionStringType(assignment.Right);
+                    _localVariableTypes[varName] = isString;
                     code.AppendLine($"var {varName} = {rightCode};");
                 }
             }
@@ -649,6 +678,15 @@ internal class StatementConverter
                     }
                     return;
                 }
+                else
+                {
+                    // Property is not in input params - this might be an error in the rule configuration
+                    // Skip this assignment and add a comment
+                    code.AppendLine(
+                        $"// Warning: Property '{propertyName}' not found in input parameters - skipping assignment"
+                    );
+                    return;
+                }
             }
 
             // Fallback to standard property access
@@ -657,6 +695,14 @@ internal class StatementConverter
             // Check if this is a compound assignment or simple assignment
             if (operatorStr == "Assign" || operatorStr == "Assignment" || operatorStr == "=")
             {
+                // Check if this is a self-assignment (e.g., ansatte = ansatte)
+                // Skip these no-op assignments
+                if (leftSide == rightCode)
+                {
+                    // Skip self-assignment - it's a no-op
+                    return;
+                }
+
                 code.AppendLine($"{leftSide} = {rightCode};");
             }
             else
@@ -837,7 +883,9 @@ internal class StatementConverter
             var leftIsWrapper = left.Contains("wrapper.Get(");
             var rightIsWrapper = right.Contains("wrapper.Get(");
 
-            // String concatenation - when + operator is used with wrapper.Get() and a string literal
+            // Don't add Convert.ToDouble() around wrapper.Get() calls
+            // wrapper.Get() returns the actual type from the data model, so we want compile errors if types don't match
+            // Only handle string concatenation special case
             if (op == "+")
             {
                 var leftIsString = binary.Left is Literal lit1 && lit1.Value is string;
@@ -856,49 +904,39 @@ internal class StatementConverter
                     }
                 }
             }
+        }
 
-            // Numeric operations - arithmetic and comparisons need double conversion
-            // This includes: +, -, *, /, %, >, <, >=, <=
-            var isNumericOp = op is "+" or "-" or "*" or "/" or "%" or ">" or "<" or ">=" or "<=";
-            // Comparison operations also need type conversion: ==, !=
-            var isComparisonOp = op is "==" or "!=";
+        // Check if right side is a numeric literal
+        var rightIsNumeric = binary.Right is Literal lit3 && (lit3.Value is int or long or double or float);
+        // Check if left side is a numeric literal
+        var leftIsNumeric = binary.Left is Literal lit4 && (lit4.Value is int or long or double or float);
 
-            if (isNumericOp || isComparisonOp)
+        // Check if left or right is a local variable (not from wrapper.Get())
+        var leftIsLocalVar = binary.Left is Identifier leftIdent && _localVariables.ContainsKey(leftIdent.Name);
+        var rightIsLocalVar = binary.Right is Identifier rightIdent && _localVariables.ContainsKey(rightIdent.Name);
+
+        // Comparison operations need type conversion: ==, !=
+        var isComparisonOp = op is "==" or "!=";
+
+        // If comparing a numeric literal with a local variable that is a string,
+        // convert the numeric literal to string
+        if (isComparisonOp && leftIsLocalVar && rightIsNumeric)
+        {
+            // Left is a local variable, right is numeric - convert right to string if left is string
+            var leftIdForCheck = binary.Left.As<Identifier>();
+            if (_localVariableTypes.TryGetValue(leftIdForCheck.Name, out var leftIsString) && leftIsString)
             {
-                // Check if right side is a numeric literal
-                var rightIsNumeric =
-                    binary.Right is Literal lit && (lit.Value is int or long or double or float or bool);
-                // Check if left side is a numeric literal
-                var leftIsNumeric =
-                    binary.Left is Literal lit2 && (lit2.Value is int or long or double or float or bool);
+                right = $"\"{binary.Right.As<Literal>().Value}\"";
+            }
+        }
 
-                // Convert wrapper.Get() to appropriate type for operations
-                if (leftIsWrapper && !left.Contains(" as string"))
-                {
-                    // For comparisons with numeric literals, convert to double
-                    if (rightIsNumeric || isComparisonOp)
-                    {
-                        left = $"Convert.ToDouble({left})";
-                    }
-                    else if (isNumericOp)
-                    {
-                        // For arithmetic ops, always convert to double
-                        left = $"Convert.ToDouble({left})";
-                    }
-                }
-                if (rightIsWrapper && !right.Contains(" as string"))
-                {
-                    // For comparisons with numeric literals, convert to double
-                    if (leftIsNumeric || isComparisonOp)
-                    {
-                        right = $"Convert.ToDouble({right})";
-                    }
-                    else if (isNumericOp)
-                    {
-                        // For numeric operations, always convert to double
-                        right = $"Convert.ToDouble({right})";
-                    }
-                }
+        if (isComparisonOp && rightIsLocalVar && leftIsNumeric)
+        {
+            // Right is a local variable, left is numeric - convert left to string if right is string
+            var rightIdForCheck = binary.Right.As<Identifier>();
+            if (_localVariableTypes.TryGetValue(rightIdForCheck.Name, out var rightIsString) && rightIsString)
+            {
+                left = $"\"{binary.Left.As<Literal>().Value}\"";
             }
         }
 
@@ -961,8 +999,8 @@ internal class StatementConverter
             {
                 return propertyName switch
                 {
-                    "MAX_SAFE_INTEGER" => "9007199254740991.0", // 2^53 - 1, as double to avoid int overflow
-                    "MIN_SAFE_INTEGER" => "-9007199254740991.0", // -(2^53 - 1), as double
+                    "MAX_SAFE_INTEGER" => "9007199254740991", // 2^53 - 1, as double to avoid int overflow
+                    "MIN_SAFE_INTEGER" => "-9007199254740991", // -(2^53 - 1), as double
                     "MAX_VALUE" => "double.MaxValue",
                     "MIN_VALUE" => "double.Epsilon",
                     "POSITIVE_INFINITY" => "double.PositiveInfinity",
@@ -1100,8 +1138,8 @@ internal class StatementConverter
 
     private string ConvertNumericLiteral(object value)
     {
-        // Convert all JavaScript numbers to C# doubles since JavaScript doesn't distinguish
-        // between integer and floating-point numbers
+        // Convert JavaScript numbers to C# decimals since many Altinn data models use decimal types
+        // JavaScript doesn't distinguish between integer and floating-point numbers
         var doubleValue = Convert.ToDouble(value);
 
         // Check if it's a whole number
@@ -1115,38 +1153,26 @@ internal class StatementConverter
                 return ((int)doubleValue).ToString();
             }
 
-            // For large numbers that don't fit in int (> int.MaxValue), use double format with .0
+            // For large numbers that don't fit in int (> int.MaxValue), use decimal format with m suffix
             if (Math.Abs(doubleValue) > int.MaxValue)
             {
-                return $"{doubleValue:0.0}";
+                return $"{doubleValue:0.0}m";
             }
 
-            // For all other whole numbers (including 0), append .0 to ensure double type
-            return $"{doubleValue:0}.0";
+            // For all other whole numbers (including 0), use decimal literal with m suffix
+            // This avoids type conflicts when comparing with decimal? fields from data models
+            return $"{doubleValue:0}m";
         }
 
-        // For fractional numbers, use standard representation
-        return doubleValue.ToString();
+        // For fractional numbers, use decimal format with m suffix
+        return $"{doubleValue}m";
     }
 
     private string ConvertStringLiteral(string str)
     {
-        // Check if this is a numeric string literal like "0", "1", "0.5", etc.
-        // In JavaScript, these can be used interchangeably with numbers in many contexts,
-        // but in C#, we need to be more careful about types.
-        // For now, we'll convert simple numeric strings to their numeric equivalents
-        // to avoid type mismatches when assigned to numeric variables.
-        if (double.TryParse(str, out var numValue))
-        {
-            // It's a valid number - return it as a numeric literal
-            // But only if it's a "simple" number (no special formatting)
-            if (str == numValue.ToString() || str == numValue.ToString("0.##############"))
-            {
-                return str; // Return as numeric literal without quotes
-            }
-        }
-
-        // Otherwise, treat it as a string literal
+        // Always treat string literals as strings in C#
+        // JavaScript's automatic type coercion between strings and numbers
+        // doesn't translate directly to C#, so we preserve the string type
         return $"\"{EscapeString(str)}\"";
     }
 
@@ -1171,21 +1197,48 @@ internal class StatementConverter
         var consequent = ConvertExpression(conditional.Consequent);
         var alternate = ConvertExpression(conditional.Alternate);
 
+        // Check if this is a mixed-type ternary (one branch is string, the other is not)
+        var consequentIsString = IsExpressionStringType(conditional.Consequent);
+        var alternateIsString = IsExpressionStringType(conditional.Alternate);
+
+        // If one branch is string and the other is not, convert the non-string branch to string
+        if (consequentIsString && !alternateIsString)
+        {
+            // Consequent is string, alternate is not - convert alternate to string
+            // Special case: if alternate is wrapper.Get(), cast it with ToString()
+            if (_useFormDataWrapper && alternate.Contains("wrapper.Get("))
+            {
+                alternate = $"({alternate}?.ToString() ?? \"\")";
+            }
+            else if (!alternate.Trim().StartsWith("\""))
+            {
+                // It's not already a string literal
+                alternate = $"({alternate}?.ToString() ?? \"\")";
+            }
+        }
+        else if (!consequentIsString && alternateIsString)
+        {
+            // Alternate is string, consequent is not - convert consequent to string
+            // Special case: if consequent is wrapper.Get(), cast it with ToString()
+            if (_useFormDataWrapper && consequent.Contains("wrapper.Get("))
+            {
+                consequent = $"({consequent}?.ToString() ?? \"\")";
+            }
+            else if (!consequent.Trim().StartsWith("\""))
+            {
+                // It's not already a string literal
+                consequent = $"({consequent}?.ToString() ?? \"\")";
+            }
+        }
+
         // In JavaScript, any value can be used as a condition (truthy/falsy)
         // In C#, we need an explicit boolean expression
         // Check if the test might be a numeric value that needs explicit != 0 check
         var testNeedsBooleanConversion = TestNeedsBooleanConversion(conditional.Test);
         if (testNeedsBooleanConversion)
         {
-            // If test contains wrapper.Get(), convert to double for comparison
-            if (_useFormDataWrapper && test.Contains("wrapper.Get("))
-            {
-                test = $"(Convert.ToDouble({test}) != 0.0)";
-            }
-            else
-            {
-                test = $"({test} != 0.0)";
-            }
+            // Don't wrap wrapper.Get() with Convert.ToDecimal - let it fail at compile time if types don't match
+            test = $"({test} != 0m)";
         }
 
         // Handle nullable ternary operator - in JS, numbers can be null/undefined
@@ -1206,13 +1259,37 @@ internal class StatementConverter
         // Check if the expression is likely to produce a numeric result that needs != 0 check
         return expr switch
         {
-            Identifier _ => true, // Variables might be numeric
+            Identifier id => !IsIdentifierStringType(id), // Only convert if not a string variable
             UnaryExpression unary => unary.Operator.ToString() == "UnaryPlus", // Unary + always returns number
-            MemberExpression _ => true, // Property access might be numeric
+            MemberExpression member => !IsMemberExpressionStringType(member), // Only convert if not a string property
             CallExpression call => !IsCallExpressionReturningBoolean(call), // Some functions return bool
             Literal lit => lit.Value is int or long or double or float, // Numeric literals
             _ => false, // For logical/comparison expressions, assume they already return boolean
         };
+    }
+
+    private bool IsIdentifierStringType(Identifier id)
+    {
+        // Check if this identifier is a known string-typed local variable
+        if (_localVariableTypes.TryGetValue(id.Name, out var isString))
+        {
+            return isString;
+        }
+        return false;
+    }
+
+    private bool IsMemberExpressionStringType(MemberExpression member)
+    {
+        // Check if this member expression refers to a string-typed property
+        // For obj.property patterns where property is a local variable
+        if (member.Object is Identifier && member.Property is Identifier propId)
+        {
+            if (_localVariableTypes.TryGetValue(propId.Name, out var isString))
+            {
+                return isString;
+            }
+        }
+        return false;
     }
 
     private bool IsCallExpressionReturningBoolean(CallExpression call)
@@ -1242,8 +1319,8 @@ internal class StatementConverter
         {
             "LogicalNot" or "!" => $"(!{argument})",
             "UnaryPlus" or "Plus" or "+" => ConvertUnaryPlus(unary.Argument),
-            "UnaryMinus" or "Minus" or "-" => $"(-{argument})",
-            "UnaryNegation" or "BitwiseNot" or "~" => ConvertBitwiseNot(argument), // Handle bitwise NOT
+            "UnaryMinus" or "Minus" or "-" or "UnaryNegation" => $"(-{argument})", // UnaryNegation is also unary minus
+            "BitwiseNot" or "~" => ConvertBitwiseNot(argument), // Handle bitwise NOT
             _ => throw new NotSupportedException($"Unary operator '{operatorStr}' not supported"),
         };
     }
@@ -1274,13 +1351,36 @@ internal class StatementConverter
         // In C#, we need explicit conversion
         var expr = ConvertExpression(argument);
 
+        // Check if the argument is a simple identifier that's already a local variable
+        // If the variable is already declared (e.g., as a function parameter with ?? 0m),
+        // we can just use the variable directly since it's already defaulted to 0m
+        if (argument is Identifier id && _localVariables.ContainsKey(id.Name))
+        {
+            // Local variable that's already declared - just use it directly
+            // The ?? 0m at declaration already handles the defaulting
+            return expr;
+        }
+
+        // For member expressions like obj.property where property is an input param
+        if (
+            argument is MemberExpression member
+            && member.Object is Identifier objId
+            && member.Property is Identifier propId
+            && _localVariables.ContainsKey(propId.Name)
+        )
+        {
+            // This is obj.property where property is a local variable (input param)
+            // Just use the property name directly since it's already defaulted
+            return propId.Name;
+        }
+
+        // For complex expressions or wrapper.Get() calls, use TryParse pattern
         // Generate unique temp variable name
         var tempVar = $"_temp{_tempVarCounter++}";
 
-        // Use double instead of decimal because JavaScript numbers are floating point
-        // and can be Infinity or NaN, which decimal doesn't support
-        // We wrap in (object) cast to avoid issues with value types and ?. operator
-        return $"(double.TryParse(((object){expr})?.ToString() ?? \"\", out var {tempVar}) ? {tempVar} : 0)";
+        // Use decimal instead of double to match Altinn data model types
+        // Most numeric fields in Altinn data models are decimal or decimal?
+        return $"(decimal.TryParse({expr}?.ToString() ?? \"\", out var {tempVar}) ? {tempVar} : 0m)";
     }
 
     private string ConvertLogicalExpression(LogicalExpression logical)
@@ -1311,30 +1411,22 @@ internal class StatementConverter
             // Check if left side needs boolean conversion
             if (TestNeedsBooleanConversion(logical.Left))
             {
-                // If it's a wrapper.Get() call, we need to handle it specially
-                if (_useFormDataWrapper && left.Contains("wrapper.Get("))
-                {
-                    left = $"(Convert.ToDouble({left}) != 0.0)";
-                }
-                else if (logical.Left is not BinaryExpression && logical.Left is not LogicalExpression)
+                // Don't wrap wrapper.Get() with Convert.ToDouble - let it fail at compile time if types don't match
+                if (logical.Left is not BinaryExpression && logical.Left is not LogicalExpression)
                 {
                     // For other numeric expressions, add != 0 check
-                    left = $"({left} != 0.0)";
+                    left = $"({left} != 0m)";
                 }
             }
 
             // Check if right side needs boolean conversion
             if (TestNeedsBooleanConversion(logical.Right))
             {
-                // If it's a wrapper.Get() call, we need to handle it specially
-                if (_useFormDataWrapper && right.Contains("wrapper.Get("))
-                {
-                    right = $"(Convert.ToDouble({right}) != 0.0)";
-                }
-                else if (logical.Right is not BinaryExpression && logical.Right is not LogicalExpression)
+                // Don't wrap wrapper.Get() with Convert.ToDecimal - let it fail at compile time if types don't match
+                if (logical.Right is not BinaryExpression && logical.Right is not LogicalExpression)
                 {
                     // For other numeric expressions, add != 0 check
-                    right = $"({right} != 0.0)";
+                    right = $"({right} != 0m)";
                 }
             }
         }
@@ -1381,9 +1473,9 @@ internal class StatementConverter
                     if (call.Arguments.Count > 0)
                     {
                         var value = ConvertExpression(call.Arguments[0]);
-                        // Convert.ToDouble works on any object type (including strings, doubles, objects)
-                        // whereas double.Parse only works on strings
-                        return $"Convert.ToDouble({value})";
+                        // Use decimal.Parse to match Altinn data model types
+                        // If the type doesn't match, we want a compile error
+                        return $"decimal.Parse({value})";
                     }
                     throw new NotSupportedException("parseFloat requires an argument");
 
@@ -1410,7 +1502,8 @@ internal class StatementConverter
                     if (call.Arguments.Count > 0)
                     {
                         var value = ConvertExpression(call.Arguments[0]);
-                        return $"Convert.ToDouble({value})";
+                        // Use double.Parse to get compile-time type checking
+                        return $"double.Parse({value})";
                     }
                     return "0"; // Number() with no args returns 0
 
@@ -1551,9 +1644,20 @@ internal class StatementConverter
 
                         if (needsDictionaryCast)
                         {
+                            // In .NET 6+, Split with char[] on nullable string requires StringSplitOptions
+                            // Use StringSplitOptions.None to maintain default behavior
+                            if (separator.StartsWith("new[] {"))
+                            {
+                                return $"(({obj} as string)?.Split({separator}, StringSplitOptions.None))";
+                            }
                             return $"(({obj} as string)?.Split({separator}))";
                         }
 
+                        // In .NET 6+, Split with char[] on nullable string requires StringSplitOptions
+                        if (nullConditional == "?" && separator.StartsWith("new[] {"))
+                        {
+                            return $"{obj}{nullConditional}.Split({separator}, StringSplitOptions.None)";
+                        }
                         return $"{obj}{nullConditional}.Split({separator})";
                     }
                     // Split() with no arguments is not valid in C# - use default whitespace split
@@ -1638,12 +1742,12 @@ internal class StatementConverter
                     throw new NotSupportedException("parseInt requires an argument");
 
                 case "parseFloat":
-                    // parseFloat(str) -> Convert.ToDouble(str)
-                    // Convert.ToDouble works on any object type, whereas double.Parse only works on strings
+                    // parseFloat(str) -> double.Parse(str)
+                    // Use double.Parse to get compile-time type checking
                     if (call.Arguments.Count > 0)
                     {
                         var value = ConvertExpression(call.Arguments[0]);
-                        return $"Convert.ToDouble({value})";
+                        return $"double.Parse({value})";
                     }
                     throw new NotSupportedException("parseFloat requires an argument");
 

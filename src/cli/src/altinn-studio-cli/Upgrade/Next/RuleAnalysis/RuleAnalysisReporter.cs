@@ -427,8 +427,23 @@ internal class RuleAnalysisReporter
             Console.WriteLine($"  Model Class: {dataModelInfo.FullClassRef}");
         }
 
+        // Create and initialize type resolver for generating typed Get<T>() calls
+        var typeResolver = new DataModelTypeResolver(appBasePath);
+        var typeResolverLoaded = typeResolver.LoadDataModelType(dataModelInfo);
+
+        if (!typeResolverLoaded && !failuresOnly)
+        {
+            Console.WriteLine("  [Info] Type resolution unavailable - generated code will use untyped Get() calls");
+        }
+
         // Generate C# code
-        var generator = new CSharpCodeGenerator(_layoutSetName, dataModelInfo, _dataProcessingRules, _jsParser);
+        var generator = new CSharpCodeGenerator(
+            _layoutSetName,
+            dataModelInfo,
+            _dataProcessingRules,
+            _jsParser,
+            typeResolverLoaded ? typeResolver : null
+        );
         var generationResult = generator.Generate();
 
         stats.SuccessfulDataProcessingConversions = generationResult.SuccessfulConversions;
@@ -512,22 +527,19 @@ internal class RuleAnalysisReporter
             {
                 if (!failuresOnly)
                 {
-                    Console.WriteLine("  Build succeeded!");
+                    Console.WriteLine("  Build succeeded! (No issues in DataProcessor files)");
                 }
                 stats.BuildSucceeded = true;
             }
             else
             {
                 Console.WriteLine($"\nLayout Set: {_layoutSetName}");
-                Console.WriteLine("  Build failed:");
-                foreach (var error in buildResult.Errors.Take(10))
-                {
-                    Console.WriteLine($"    {error}");
-                }
+                Console.WriteLine("  Build output for DataProcessor files:");
 
-                if (buildResult.Errors.Count > 10)
+                // Show all lines containing DataProcessor file paths
+                foreach (var line in buildResult.Errors)
                 {
-                    Console.WriteLine($"    ... and {buildResult.Errors.Count - 10} more errors");
+                    Console.WriteLine($"    {line}");
                 }
 
                 stats.BuildSucceeded = false;

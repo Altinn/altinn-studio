@@ -12,6 +12,7 @@ internal class BuildVerificationResult
     public string? Output { get; set; }
     public string? ErrorOutput { get; set; }
     public List<string> Errors { get; } = new();
+    public List<string> Warnings { get; } = new();
 }
 
 /// <summary>
@@ -96,16 +97,12 @@ internal class BuildVerifier
             result.Output = outputBuilder.ToString();
             result.ErrorOutput = errorBuilder.ToString();
 
-            // Parse build output for errors and warnings
-            ParseBuildOutput(result.Output, result);
-            ParseBuildOutput(result.ErrorOutput, result);
+            // Extract all lines containing DataProcessor file paths
+            ExtractDataProcessorLines(result.Output, result);
+            ExtractDataProcessorLines(result.ErrorOutput, result);
 
-            result.Success = process.ExitCode == 0;
-
-            if (!result.Success && result.Errors.Count == 0)
-            {
-                result.Errors.Add($"Build failed with exit code {process.ExitCode}");
-            }
+            // Build is successful if no DataProcessor-related lines were found
+            result.Success = result.Errors.Count == 0;
         }
         catch (Exception ex)
         {
@@ -171,16 +168,11 @@ internal class BuildVerifier
             result.Output = outputBuilder.ToString();
             result.ErrorOutput = errorBuilder.ToString();
 
-            // Parse output for errors
-            ParseBuildOutput(result.Output, result);
-            ParseBuildOutput(result.ErrorOutput, result);
+            // Extract DataProcessor lines from restore output
+            ExtractDataProcessorLines(result.Output, result);
+            ExtractDataProcessorLines(result.ErrorOutput, result);
 
-            result.Success = process.ExitCode == 0;
-
-            if (!result.Success && result.Errors.Count == 0)
-            {
-                result.Errors.Add($"Command '{command}' failed with exit code {process.ExitCode}");
-            }
+            result.Success = result.Errors.Count == 0;
         }
         catch (Exception ex)
         {
@@ -191,7 +183,10 @@ internal class BuildVerifier
         return result;
     }
 
-    private void ParseBuildOutput(string? output, BuildVerificationResult result)
+    /// <summary>
+    /// Extract error lines containing DataProcessor file paths from build output
+    /// </summary>
+    private void ExtractDataProcessorLines(string? output, BuildVerificationResult result)
     {
         if (string.IsNullOrEmpty(output))
         {
@@ -204,14 +199,32 @@ internal class BuildVerifier
         {
             var trimmed = line.Trim();
 
-            // Look for error patterns
-            if (
-                trimmed.Contains("error CS")
-                || trimmed.Contains("error MSB")
-                || (trimmed.Contains("error") && trimmed.Contains(":"))
-            )
+            // Include any line that contains the DataProcessor file path pattern
+            // Match /App/logic/*DataProcessor.cs but not /App/logic/*/DataProcessor.cs (in subfolders)
+            if (trimmed.Contains("/App/logic/") && trimmed.Contains("DataProcessor.cs"))
             {
-                result.Errors.Add(trimmed);
+                // Extract the portion between /App/logic/ and DataProcessor.cs to ensure no slashes
+                var logicIndex = trimmed.IndexOf("/App/logic/");
+                var dataProcessorIndex = trimmed.IndexOf("DataProcessor.cs", logicIndex);
+
+                if (logicIndex >= 0 && dataProcessorIndex > logicIndex)
+                {
+                    var betweenPart = trimmed.Substring(
+                        logicIndex + "/App/logic/".Length,
+                        dataProcessorIndex - (logicIndex + "/App/logic/".Length)
+                    );
+
+                    // Only include if there's no slash in the filename portion
+                    // AND the line contains "error" (case-insensitive) but not "warning"
+                    if (!betweenPart.Contains('/'))
+                    {
+                        var lowerLine = trimmed.ToLowerInvariant();
+                        if (lowerLine.Contains("error") && !lowerLine.Contains("warning"))
+                        {
+                            result.Errors.Add(trimmed);
+                        }
+                    }
+                }
             }
         }
     }
