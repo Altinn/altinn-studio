@@ -333,16 +333,19 @@ internal class StatementConverter
         // Scan for variables assigned in the if block that aren't already declared
         // These need to be hoisted to prevent scoping issues in C#
         var variablesToHoist = new HashSet<string>();
-        CollectAssignedVariables(ifStmt.Consequent, variablesToHoist);
+        var variableTypes = new Dictionary<string, bool>(); // true = string, false = double
+        CollectAssignedVariables(ifStmt.Consequent, variablesToHoist, variableTypes);
         if (ifStmt.Alternate != null)
         {
-            CollectAssignedVariables(ifStmt.Alternate, variablesToHoist);
+            CollectAssignedVariables(ifStmt.Alternate, variablesToHoist, variableTypes);
         }
 
         // Declare variables that will be assigned in if/else blocks
         foreach (var varName in variablesToHoist.Where(v => !_localVariables.ContainsKey(v)))
         {
-            code.AppendLine($"var {varName} = 0.0;");
+            // Determine the type based on the assignments
+            var isString = variableTypes.TryGetValue(varName, out var type) && type;
+            code.AppendLine(isString ? $"var {varName} = \"\";" : $"var {varName} = 0.0;");
             _localVariables[varName] = varName; // Mark as declared
         }
 
@@ -448,31 +451,71 @@ internal class StatementConverter
         }
     }
 
-    private void CollectAssignedVariables(Statement statement, HashSet<string> variables)
+    private void CollectAssignedVariables(
+        Statement statement,
+        HashSet<string> variables,
+        Dictionary<string, bool>? variableTypes = null
+    )
     {
         // Recursively collect variable names that are assigned (but not declared) in a statement
+        // variableTypes: if provided, tracks whether variables are strings (true) or numbers (false)
         switch (statement)
         {
             case ExpressionStatement exprStmt when exprStmt.Expression is AssignmentExpression assignment:
                 if (assignment.Left is Identifier id && !_localVariables.ContainsKey(id.Name))
                 {
                     variables.Add(id.Name);
+
+                    // Determine if this assignment is to a string or number
+                    if (variableTypes != null)
+                    {
+                        var isString = IsExpressionStringType(assignment.Right);
+                        // If we've seen this variable before, keep it as string if either assignment is a string
+                        if (variableTypes.TryGetValue(id.Name, out var existingType))
+                        {
+                            variableTypes[id.Name] = existingType || isString;
+                        }
+                        else
+                        {
+                            variableTypes[id.Name] = isString;
+                        }
+                    }
                 }
                 break;
             case BlockStatement block:
                 foreach (var stmt in block.Body)
                 {
-                    CollectAssignedVariables(stmt, variables);
+                    CollectAssignedVariables(stmt, variables, variableTypes);
                 }
                 break;
             case IfStatement ifStmt:
-                CollectAssignedVariables(ifStmt.Consequent, variables);
+                CollectAssignedVariables(ifStmt.Consequent, variables, variableTypes);
                 if (ifStmt.Alternate != null)
                 {
-                    CollectAssignedVariables(ifStmt.Alternate, variables);
+                    CollectAssignedVariables(ifStmt.Alternate, variables, variableTypes);
                 }
                 break;
         }
+    }
+
+    private bool IsExpressionStringType(Expression expr)
+    {
+        // Determine if an expression evaluates to a string
+        return expr switch
+        {
+            Literal lit => lit.Value is string,
+            TemplateLiteral => true,
+            CallExpression call
+                when call.Callee is MemberExpression member && member.Property is Identifier methodName =>
+                methodName.Name is "toString" or "toUpperCase" or "toLowerCase" or "trim",
+            CallExpression call when call.Callee is Identifier globalFunc => globalFunc.Name is "String",
+            BinaryExpression binary when binary.Operator.ToString() is "Addition" or "+" => IsExpressionStringType(
+                binary.Left
+            ) || IsExpressionStringType(binary.Right), // String concatenation
+            ConditionalExpression conditional => IsExpressionStringType(conditional.Consequent)
+                || IsExpressionStringType(conditional.Alternate),
+            _ => false, // Default to number for other expressions
+        };
     }
 
     private void ConvertElseIfChain(IfStatement elseIf, IndentedStringBuilder code)
@@ -870,9 +913,40 @@ internal class StatementConverter
             var objCode = ConvertExpression(member.Object);
             var propertyCode = ConvertExpression(member.Property);
 
-            // In C#, we need to use reflection or a dynamic approach for computed property access
-            // For now, we'll assume the object is a Dictionary-like structure
-            // This will need to be adjusted based on the actual data model structure
+            // Check if this is accessing a FormDataWrapper-based object with computed property
+            // When using FormDataWrapper, obj[key] should use wrapper.Get() with dynamic path
+            if (_useFormDataWrapper && member.Object is Identifier computedObjId)
+            {
+                // If the object is from input params (not a local variable like loop iterators),
+                // we need to use wrapper.Get() with a dynamic path
+                var isLocalVariable = _localVariables.ContainsKey(computedObjId.Name);
+
+                if (!isLocalVariable)
+                {
+                    // This is likely a reference to the data model
+                    // For computed property access, we use wrapper.Get() with string interpolation
+                    // Example: obj[key] becomes wrapper.Get($"SkjemaData.{key}")
+
+                    // Try to find a base path from input params
+                    string basePath = "SkjemaData"; // Default base path
+
+                    // Look through input params to find a common base path
+                    if (_inputParams.Count > 0)
+                    {
+                        var firstPath = _inputParams.First().Value;
+                        var pathParts = firstPath.Split('.');
+                        if (pathParts.Length > 0)
+                        {
+                            basePath = pathParts[0]; // Use the first part as base (typically "SkjemaData")
+                        }
+                    }
+
+                    // Use wrapper.Get() with dynamic path
+                    return $"{_dataVariableName}.Get($\"{basePath}.{{{propertyCode}}}\")";
+                }
+            }
+
+            // For non-wrapper contexts or local variables, use dictionary-style access
             return $"{objCode}[{propertyCode}]";
         }
 
@@ -1377,16 +1451,32 @@ internal class StatementConverter
                         || obj.Contains('-')
                         || obj.Contains('*')
                         || obj.Contains('/')
-                        || obj.Contains('(');
+                        || obj.Contains('(')
+                        || obj.Contains('?'); // Ternary operator
+
+                    // Also check if the member.Object is a value-type expression (ternary, arithmetic, etc.)
+                    var memberObjIsValueType = member.Object switch
+                    {
+                        ConditionalExpression => true, // Ternary expressions that return doubles
+                        BinaryExpression => true, // Arithmetic operations
+                        UnaryExpression => true, // Unary operations like +, -
+                        CallExpression callExpr
+                            when callExpr.Callee is MemberExpression callMember
+                                && callMember.Property is Identifier callMethodName
+                                && callMethodName.Name is "round" or "toFixed" => true, // Math operations
+                        _ => false,
+                    };
+
+                    // Check for value types FIRST, before applying nullable operators
+                    if (objIsComplexExpression || memberObjIsValueType)
+                    {
+                        // For complex expressions that result in value types (like arithmetic), just call .ToString()
+                        return $"({obj}).ToString()";
+                    }
 
                     if (needsStringCast)
                     {
                         return $"({obj}?.ToString())";
-                    }
-                    if (objIsComplexExpression)
-                    {
-                        // For complex expressions that result in value types (like arithmetic), just call .ToString()
-                        return $"({obj}).ToString()";
                     }
                     return $"{obj}{nullConditional}.ToString()";
 
@@ -1416,7 +1506,7 @@ internal class StatementConverter
                     if (call.Arguments.Count > 0)
                     {
                         var separator = ConvertExpression(call.Arguments[0]);
-                        // In C#, Split() requires a char, char[], or string (not int/double)
+                        // In C#, Split() requires a char, char[], or string[] (not int/double or string)
                         // Check if separator is a numeric literal and convert to char
                         // Handle both integer and double formats (10, 10.0)
                         var separatorTrimmed = separator.Trim();
@@ -1429,10 +1519,41 @@ internal class StatementConverter
                                 separator = $"(char){charCode}";
                             }
                         }
+                        // Check if separator is a single-character string literal like "," or "\n"
+                        // and convert to char array for C# compatibility
+                        else if (separatorTrimmed.StartsWith('"') && separatorTrimmed.EndsWith('"'))
+                        {
+                            var stringContent = separatorTrimmed.Substring(1, separatorTrimmed.Length - 2);
+                            // Handle escape sequences
+                            stringContent = stringContent
+                                .Replace("\\n", "\n")
+                                .Replace("\\r", "\r")
+                                .Replace("\\t", "\t")
+                                .Replace("\\\\", "\\");
+
+                            if (stringContent.Length == 1)
+                            {
+                                // Single character - use char array for Split (required in some .NET versions with nullable)
+                                separator = $"new[] {{ '{stringContent}' }}";
+                            }
+                        }
+
+                        // When using FormDataWrapper, wrapper.Get() returns object? and needs casting
                         if (needsStringCast)
                         {
                             return $"(({obj} as string)?.Split({separator}))";
                         }
+
+                        // When NOT using FormDataWrapper but using Dictionary<string, object?>,
+                        // variables from the dictionary are also object? and need casting
+                        // In dictionary mode, all local variables are potentially object? from dict access
+                        var needsDictionaryCast = !_useFormDataWrapper && isLocalVariable;
+
+                        if (needsDictionaryCast)
+                        {
+                            return $"(({obj} as string)?.Split({separator}))";
+                        }
+
                         return $"{obj}{nullConditional}.Split({separator})";
                     }
                     // Split() with no arguments is not valid in C# - use default whitespace split
