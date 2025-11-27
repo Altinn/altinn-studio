@@ -303,7 +303,7 @@ type ErrorsProps = {
   errorMap: ValueErrorMap;
 };
 
-function Errors({ errorMap }: ErrorsProps): ReactElement {
+function Errors({ errorMap }: ErrorsProps): React.ReactNode {
   const {
     texts: { generalError },
   } = useStudioCodeListEditorContext();
