@@ -17,7 +17,7 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-error-boundary": "6.0.0",
-    "react-i18next": "15.6.1",
+    "react-i18next": "16.3.5",
     "react-router-dom": "6.30.1",
     "react-toastify": "11.0.5"
   },
@@ -49,7 +49,7 @@
     "jest-fail-on-console": "3.3.1",
     "jest-junit": "16.0.0",
     "lightningcss": "^1.29.3",
-    "lint-staged": "15.5.2",
+    "lint-staged": "16.2.7",
     "mini-css-extract-plugin": "2.9.4",
     "prettier": "3.6.2",
     "source-map-loader": "5.0.0",

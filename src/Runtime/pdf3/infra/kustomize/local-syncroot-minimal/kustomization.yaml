@@ -5,14 +5,14 @@ resources:
   - ../../../../../../infra/runtime/syncroot/base/pdf.yaml
   - ../../../../../../infra/runtime/syncroot/base/pdf3.yaml
 patches:
-  # pdf-generator minimal replicas configuration
+  # pdf-generator disabled (old generator decommissioned, but keep HelmRelease for infrastructure)
   - target:
       kind: HelmRelease
       name: pdf-generator
     patch: |-
       - op: replace
         path: /spec/values/replicaCount
-        value: 1
+        value: 0
       - op: replace
         path: /spec/values/environment
         value: local
@@ -63,15 +63,4 @@ patches:
         upgrade_channel: local
         environment: local
         serviceowner: ttd
-  - target:
-      kind: HTTPRoute
-      name: pdf3-migration
-      namespace: pdf
-    patch: |-
-      - op: replace
-        path: /spec/rules/0/backendRefs/0/weight
-        value: 100
-      - op: replace
-        path: /spec/rules/0/backendRefs/1/weight
-        value: 0
 

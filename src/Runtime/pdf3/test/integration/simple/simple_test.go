@@ -68,32 +68,22 @@ func Test_Networking(t *testing.T) {
 	harness.Snapshot(t, []byte(content), "error", "txt")
 }
 
+// Test_CompareOldAndNew generates a PDF and saves snapshots.
+// Historical note: This test previously compared output from the old pdf-generator
+// against the new pdf3 generator. The old generator has been decommissioned, but
+// old snapshots are kept in _snapshots/ for manual reference if needed.
 func Test_CompareOldAndNew(t *testing.T) {
-	err := harness.Runtime.KubernetesClient.RolloutStatus("pdf-generator", "pdf", 2*time.Minute)
-	if err != nil {
-		t.Fatalf("Error waiting for old PDF generator: %v", err)
-	}
-
 	req := harness.GetDefaultPdfRequest(t)
 	req.URL = harness.TestServerURL + "/app/?render=light"
 
-	newResp, newErr := harness.RequestNewPDF(t, req)
-	oldResp, oldErr := harness.RequestOldPDF(t, req)
-	if newErr != nil {
-		t.Errorf("New PDF generator failure: %v", newErr)
-	}
-	if oldErr != nil {
-		t.Errorf("Old PDF generator failure: %v", oldErr)
-	}
-	if newErr != nil || oldErr != nil {
-		return
+	newResp, err := harness.RequestNewPDF(t, req)
+	if err != nil {
+		t.Fatalf("PDF generator failure: %v", err)
 	}
 
 	newPdf := harness.MakePdfDeterministic(t, newResp.Data)
-	oldPdf := harness.MakePdfDeterministic(t, oldResp.Data)
-	harness.Snapshot(t, oldPdf, "old", "pdf")
+
 	harness.Snapshot(t, newPdf, "new", "pdf")
-	harness.Snapshot(t, oldPdf, "old", "txt")
 	harness.Snapshot(t, newPdf, "new", "txt")
 
 	output, err := newResp.LoadOutput(t)
@@ -103,7 +93,7 @@ func Test_CompareOldAndNew(t *testing.T) {
 		harness.Snapshot(t, []byte(output.SnapshotString()), "testoutput", "json")
 	}
 
-	t.Logf("Generated PDF sizes: %d and %d bytes", len(newResp.Data), len(oldResp.Data))
+	t.Logf("Generated PDF size: %d bytes", len(newResp.Data))
 }
 
 func Test_WithConsoleErrors(t *testing.T) {
