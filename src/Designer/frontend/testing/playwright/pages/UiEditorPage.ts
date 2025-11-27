@@ -193,11 +193,11 @@ export class UiEditorPage extends BasePage {
   }
 
   public async clickOnDataModelFieldPropertyOption(option: string): Promise<void> {
-    await this.page
-      .getByRole('combobox', {
-        name: this.textMock('ux_editor.modal_properties_data_model_field_binding'),
-      })
-      .selectOption(option);
+    const combobox = this.page.getByRole('combobox', {
+      name: this.textMock('ux_editor.modal_properties_data_model_field_binding'),
+    });
+    await combobox.selectOption(option);
+    await expect(combobox).toHaveValue(option);
   }
 
   public async clickOnDataModelPropertyOption(option: string): Promise<void> {
@@ -207,12 +207,12 @@ export class UiEditorPage extends BasePage {
   }
 
   public async clickOnSaveDataModel(): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('general.save'),
-        exact: true,
-      })
-      .click();
+    const saveButton = this.page.getByRole('button', {
+      name: this.textMock('general.save'),
+      exact: true,
+    });
+    await expect(saveButton).toBeEnabled();
+    await saveButton.click();
   }
 
   public async waitForDataModelToBeSelected(): Promise<void> {
@@ -220,7 +220,7 @@ export class UiEditorPage extends BasePage {
       name: this.textMock('ux_editor.input_popover_save_button'),
     });
 
-    await expect(saveButton).toBeHidden();
+    await expect(saveButton).toBeDisabled();
   }
 
   public async waitForTreeItemToGetNewLabel(label: string): Promise<void> {

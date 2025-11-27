@@ -6,7 +6,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { layoutSet1NameMock } from '../../../../../testing/layoutSetsMock';
@@ -147,7 +147,7 @@ describe('EditBinding', () => {
     expect(dataModelFieldSelector).toBeInTheDocument();
   });
 
-  it('should display default data model and "choose datafield" when no bindings', async () => {
+  it('should display default data model and auto-select first field when no bindings', async () => {
     renderEditBinding({
       editBindingProps: {
         ...defaultEditBinding,
@@ -170,13 +170,14 @@ describe('EditBinding', () => {
       name: textMock('ux_editor.modal_properties_data_model_binding'),
     });
     expect(dataModelSelector).toHaveValue(defaultDataModel);
-
-    const chooseDataFieldOption: HTMLOptionElement = screen.getByRole('option', {
-      name: textMock('ux_editor.modal_properties_data_model_field_choose'),
+    await screen.findByRole('combobox', {
+      name: textMock('ux_editor.modal_properties_data_model_field_binding'),
     });
 
-    expect(chooseDataFieldOption).toHaveValue('');
-    expect(chooseDataFieldOption.selected).toBe(true);
+    const dataFieldSelector = screen.getByRole('combobox', {
+      name: textMock('ux_editor.modal_properties_data_model_field_binding'),
+    });
+    expect(dataFieldSelector).toHaveValue(defaultDataModelField);
   });
 
   it('should render error message when data model is not valid', async () => {
@@ -314,6 +315,9 @@ describe('EditBinding', () => {
     const dataFieldSelector = screen.getByRole('combobox', {
       name: textMock('ux_editor.modal_properties_data_model_field_binding'),
     });
+    await waitFor(() => {
+      expect(dataFieldSelector).toHaveValue(defaultDataModelField);
+    });
     const secondDataFieldOption = screen.getByRole('option', { name: secondDataModelField });
     await user.selectOptions(dataFieldSelector, secondDataFieldOption);
 
@@ -323,8 +327,8 @@ describe('EditBinding', () => {
 
     await user.click(saveButton);
 
-    expect(handleComponentChange).toHaveBeenCalledTimes(1);
-    expect(handleComponentChange).toHaveBeenCalledWith(
+    expect(handleComponentChange).toHaveBeenCalledTimes(2);
+    expect(handleComponentChange).toHaveBeenLastCalledWith(
       expect.objectContaining({
         dataModelBindings: expect.objectContaining({
           [defaultEditBinding.bindingKey]: expect.objectContaining({

@@ -129,7 +129,6 @@ test('That it is possible to navigate back to ui-editor page and add the data mo
   await uiEditorPage.verifyThatThereAreOptionsInTheDataModelFieldList();
 
   await uiEditorPage.clickOnDataModelFieldPropertyOption(dataModelBindingName);
-  await uiEditorPage.clickOnSaveDataModel();
   await uiEditorPage.waitForDataModelToBeSelected();
 });
 
@@ -189,7 +188,6 @@ test('That it is possible to navigate back to ui-editor page and add the newly a
   await uiEditorPage.clickOnDataModelPropertyOption(newDataModel);
   await uiEditorPage.clickOnDataModelFieldBindingCombobox();
   await uiEditorPage.clickOnDataModelFieldPropertyOption(dataModelBindingName);
-  await uiEditorPage.clickOnSaveDataModel();
   await uiEditorPage.waitForDataModelToBeSelected();
 });
 
