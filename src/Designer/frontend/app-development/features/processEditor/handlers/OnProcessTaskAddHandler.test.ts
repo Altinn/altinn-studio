@@ -108,12 +108,12 @@ describe('OnProcessTaskAddHandler', () => {
     });
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledTimes(2);
     expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(1, {
-      allowedContributers: [AllowedContributor.AppOwned],
+      allowedContributors: [AllowedContributor.AppOwned],
       dataTypeId: 'paymentInformation-1234',
       taskId: 'testElementId',
     });
     expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(2, {
-      allowedContributers: [AllowedContributor.AppOwned],
+      allowedContributors: [AllowedContributor.AppOwned],
       dataTypeId: 'paymentReceiptPdf-1234',
       taskId: 'testElementId',
     });
@@ -140,7 +140,7 @@ describe('OnProcessTaskAddHandler', () => {
     });
 
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
-      allowedContributers: [AllowedContributor.AppOwned],
+      allowedContributors: [AllowedContributor.AppOwned],
       dataTypeId: 'signatureInformation-1234',
       taskId: 'testElementId',
     });
@@ -167,7 +167,7 @@ describe('OnProcessTaskAddHandler', () => {
     });
 
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
-      allowedContributers: [AllowedContributor.AppOwned],
+      allowedContributors: [AllowedContributor.AppOwned],
       dataTypeId: 'signatureInformation-1234',
       taskId: 'testElementId',
     });
