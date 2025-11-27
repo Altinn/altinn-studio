@@ -12,7 +12,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Designer.Tests.Services;
 
