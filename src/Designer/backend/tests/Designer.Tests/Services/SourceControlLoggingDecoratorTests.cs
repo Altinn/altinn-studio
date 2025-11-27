@@ -18,7 +18,7 @@ namespace Designer.Tests.Services;
 
 public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceControlLoggingDecorator> webApplicationFactory, ITestOutputHelper outputHelper) : IClassFixture<WebApplicationFactory<SourceControlLoggingDecorator>>
 {
-    private WebApplicationFactory<SourceControlLoggingDecorator> _webApplicationFactory = webApplicationFactory;
+    private readonly WebApplicationFactory<SourceControlLoggingDecorator> _webApplicationFactory = webApplicationFactory;
     private ITestOutputHelper _outputHelper = outputHelper;
 
     [Fact]
