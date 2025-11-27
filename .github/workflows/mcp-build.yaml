@@ -1,4 +1,4 @@
-name: MCP Build
+name: MCP - Build
 
 on:
   pull_request:
