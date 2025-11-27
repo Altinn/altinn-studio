@@ -3,7 +3,7 @@ name: MCP Build
 on:
   pull_request:
     paths:
-      - 'src/AI/mcp**'
+      - 'src/AI/mcp/**'
 
 jobs:
   build:
@@ -17,6 +17,9 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.12'
+
+    - name: Install uv
+      run: pip install uv
 
     - name: Install dependencies
       working-directory: src/AI/mcp
