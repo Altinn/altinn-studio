@@ -18,7 +18,7 @@ public class AltinnStudioSettings
     [JsonPropertyName("imports")]
     public ImportedResources Imports { get; set; }
     /// <summary>
-    /// Whether to add nullable? to reference types in models.
+    /// Toggle nullable for reference types.
     /// </summary>
     [JsonPropertyName("useNullableReferenceTypes")]
     public bool UseNullableReferenceTypes { get; set; }

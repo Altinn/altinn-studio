@@ -62,7 +62,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
         /// <param name="parentElement">The parent Element</param>
         /// <param name="serviceMetadata">Model metadata</param>
         /// <param name="targetNamespace">Target namespace in xsd schema.</param>
-        /// <param name="useNullableReferenceTypes">Whether to add nullable? to reference types</param>
+        /// <param name="useNullableReferenceTypes">Toggle nullable for reference types.</param>
         private void CreateModelFromMetadataRecursive(Dictionary<string, string> classes, ElementMetadata parentElement, ModelMetadata serviceMetadata, string targetNamespace, bool useNullableReferenceTypes)
         {
             List<ElementMetadata> referredTypes = new List<ElementMetadata>();
