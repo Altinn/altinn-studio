@@ -16,13 +16,11 @@ import { Loader } from 'src/core/loading/Loader';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/useApplicationMetadata';
 import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
-import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import classes from 'src/features/instantiate/containers/PartySelection.module.css';
 import { PartySelectionContainer } from 'src/features/instantiate/containers/PartySelectionContainer';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
@@ -35,15 +33,11 @@ import type { IParty } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 export const PartySelectionWrapper = () => (
-  <NavigationEffectProvider>
-    <OrgsProvider>
-      <LayoutSetsProvider>
-        <DataModelsProvider>
-          <PartySelection />
-        </DataModelsProvider>
-      </LayoutSetsProvider>
-    </OrgsProvider>
-  </NavigationEffectProvider>
+  <OrgsProvider>
+    <DataModelsProvider>
+      <PartySelection />
+    </DataModelsProvider>
+  </OrgsProvider>
 );
 
 export const PartySelection = () => {

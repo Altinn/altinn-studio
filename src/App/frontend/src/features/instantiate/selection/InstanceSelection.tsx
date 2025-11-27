@@ -17,7 +17,6 @@ import classes from 'src/features/instantiate/selection/InstanceSelection.module
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
@@ -39,13 +38,11 @@ function getDateDisplayString(timeStamp: string) {
 }
 
 export const InstanceSelectionWrapper = () => (
-  <NavigationEffectProvider>
-    <OrgsProvider>
-      <PresentationComponent>
-        <InstanceSelection />
-      </PresentationComponent>
-    </OrgsProvider>
-  </NavigationEffectProvider>
+  <OrgsProvider>
+    <PresentationComponent>
+      <InstanceSelection />
+    </PresentationComponent>
+  </OrgsProvider>
 );
 
 export function InstanceSelection() {

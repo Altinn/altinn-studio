@@ -181,39 +181,41 @@ function DataModelsLoader() {
 
   // Find all data types referenced in dataModelBindings in the layout
   useEffect(() => {
-    const referencedDataTypes = getAllReferencedDataTypes(layouts, defaultDataType);
-    const allValidDataTypes: string[] = [];
-    const writableDataTypes: string[] = [];
+    if (layouts) {
+      const referencedDataTypes = getAllReferencedDataTypes(layouts, defaultDataType);
+      const allValidDataTypes: string[] = [];
+      const writableDataTypes: string[] = [];
 
-    // Verify that referenced data types are defined in application metadata, have a classRef, and have a corresponding data element in the instance data
-    for (const dataType of referencedDataTypes) {
-      const typeDef = applicationMetadata.dataTypes.find((dt) => dt.id === dataType);
+      // Verify that referenced data types are defined in application metadata, have a classRef, and have a corresponding data element in the instance data
+      for (const dataType of referencedDataTypes) {
+        const typeDef = applicationMetadata.dataTypes.find((dt) => dt.id === dataType);
 
-      if (!typeDef) {
-        const error = new MissingDataTypeException(dataType);
-        window.logErrorOnce(error.message);
-        continue;
+        if (!typeDef) {
+          const error = new MissingDataTypeException(dataType);
+          window.logErrorOnce(error.message);
+          continue;
+        }
+        if (!typeDef?.appLogic?.classRef) {
+          const error = new MissingClassRefException(dataType);
+          window.logErrorOnce(error.message);
+          continue;
+        }
+
+        if (!isStateless && !dataElements?.find((dt) => dt.dataType === dataType)) {
+          const error = new MissingDataElementException(dataType);
+          window.logErrorOnce(error.message);
+          continue;
+        }
+
+        allValidDataTypes.push(dataType);
+
+        if (isDataTypeWritable(dataType, isStateless, dataElements ?? [])) {
+          writableDataTypes.push(dataType);
+        }
       }
-      if (!typeDef?.appLogic?.classRef) {
-        const error = new MissingClassRefException(dataType);
-        window.logErrorOnce(error.message);
-        continue;
-      }
 
-      if (!isStateless && !dataElements?.find((dt) => dt.dataType === dataType)) {
-        const error = new MissingDataElementException(dataType);
-        window.logErrorOnce(error.message);
-        continue;
-      }
-
-      allValidDataTypes.push(dataType);
-
-      if (isDataTypeWritable(dataType, isStateless, dataElements ?? [])) {
-        writableDataTypes.push(dataType);
-      }
+      setDataTypes(allValidDataTypes, writableDataTypes, defaultDataType, layoutSetId);
     }
-
-    setDataTypes(allValidDataTypes, writableDataTypes, defaultDataType, layoutSetId);
   }, [applicationMetadata, defaultDataType, isStateless, layouts, setDataTypes, dataElements, layoutSetId]);
 
   // We should load form data and schema for all referenced data models, schema is used for dataModelBinding validation which we want to do even if it is readonly
@@ -350,7 +352,6 @@ function LoadSchema({ dataType }: LoaderProps) {
 
   useEffect(() => {
     if (data) {
-      debugger;
       setDataModelSchema(dataType, data.schema, data.lookupTool);
     }
   }, [data, dataType, setDataModelSchema]);

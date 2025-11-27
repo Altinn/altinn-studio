@@ -7,7 +7,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
-import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
 import { Lang } from 'src/features/language/Lang';
 import { fetchApplicationMetadata, fetchInstanceData } from 'src/http-client/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -104,12 +103,7 @@ async function render(props: TestProps) {
   }
 
   const utils = await renderWithInstanceAndLayout({
-    renderer: () => (
-      <>
-        <DataModelFetcher />
-        <TestComponent {...props} />
-      </>
-    ),
+    renderer: () => <TestComponent {...props} />,
     instanceId: instanceData.id,
     queries: {
       fetchLayoutSets: async () => {

@@ -38,7 +38,7 @@ export const useSetLanguageWithSelector = () => {
  * This unfortunately means that the value is not reactive, and will not update
  * if this query param changes after initial load.
  */
-function getLanguageFromUrl() {
+export function getLanguageFromUrl() {
   const params = new URLSearchParams(window.location.hash.split('?')[1]);
   return params.get('lang');
 }

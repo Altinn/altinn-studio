@@ -20,19 +20,12 @@ import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
 import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
-import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { FormProvider } from 'src/features/form/FormContext';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
-import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { instanceQueries } from 'src/features/instance/instanceQuery';
-import { LangDataSourcesProvider } from 'src/features/language/LangDataSourcesProvider';
-import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
-import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
-import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { fetchInstanceData } from 'src/http-client/queries';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { PageNavigationRouter } from 'src/test/routerUtils';
@@ -302,27 +295,13 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
       {...queries}
       queryClient={queryClient}
     >
-      <LangDataSourcesProvider>
-        <UiConfigProvider>
-          <PageNavigationProvider>
-            <Router>
-              <NavigationEffectProvider>
-                <GlobalFormDataReadersProvider>
-                  <OrgsProvider>
-                    <ApplicationSettingsProvider>
-                      <LayoutSetsProvider>
-                        <PartyProvider>
-                          <TextResourcesProvider>{children}</TextResourcesProvider>
-                        </PartyProvider>
-                      </LayoutSetsProvider>
-                    </ApplicationSettingsProvider>
-                  </OrgsProvider>
-                </GlobalFormDataReadersProvider>
-              </NavigationEffectProvider>
-            </Router>
-          </PageNavigationProvider>
-        </UiConfigProvider>
-      </LangDataSourcesProvider>
+      <UiConfigProvider>
+        <PageNavigationProvider>
+          <Router>
+            <OrgsProvider>{children}</OrgsProvider>
+          </Router>
+        </PageNavigationProvider>
+      </UiConfigProvider>
     </AppQueriesProvider>
   );
 }
@@ -345,11 +324,7 @@ function MinimalProviders({ children, queries, queryClient, Router = DefaultRout
       {...queries}
       queryClient={queryClient}
     >
-      {/*<LangToolsStoreProvider>*/}
-      <Router>
-        <NavigationEffectProvider>{children}</NavigationEffectProvider>
-      </Router>
-      {/*</LangToolsStoreProvider>*/}
+      <Router>{children}</Router>
     </AppQueriesProvider>
   );
 }

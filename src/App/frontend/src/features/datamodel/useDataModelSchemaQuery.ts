@@ -24,6 +24,8 @@ export function useDataModelSchemaQueryDef(enabled: boolean, dataTypeId?: string
 export const useDataModelSchemaQuery = (enabled: boolean, dataTypeId: string) => {
   const dataType = useDataModelType(dataTypeId);
 
+  console.log('dataType', dataType);
+
   const queryDef = useDataModelSchemaQueryDef(enabled, dataTypeId);
   const utils = useQuery({
     ...queryDef,

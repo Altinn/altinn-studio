@@ -10,7 +10,6 @@ import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
-import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import { useRefetchInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
@@ -18,7 +17,6 @@ import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
 import { ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
 import { useHiddenPages } from 'src/utils/layout/hidden';
-import type { NavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import type { NodeRefValidation } from 'src/features/validation';
 
 /**
@@ -48,24 +46,21 @@ export enum TaskKeys {
  */
 
 const useOurNavigate = () => {
-  const storeCallback = useSetNavigationEffect();
+  // const storeCallback = useSetNavigationEffect();
   const setReturnToView = useSetReturnToView();
   const setSummaryNodeOfOrigin = useSetSummaryNodeOfOrigin();
   const navigate = useNavigate();
 
   return useCallback(
-    (path: string, ourOptions?: NavigateToPageOptions, theirOptions?: NavigateOptions, effect?: NavigationEffect) => {
+    (path: string, ourOptions?: NavigateToPageOptions, theirOptions?: NavigateOptions) => {
       const resetReturnToView = ourOptions?.resetReturnToView ?? true;
       if (resetReturnToView) {
         setReturnToView?.(undefined);
         setSummaryNodeOfOrigin?.(undefined);
       }
-      if (effect) {
-        storeCallback(effect);
-      }
       navigate(path, theirOptions);
     },
-    [navigate, setReturnToView, setSummaryNodeOfOrigin, storeCallback],
+    [navigate, setReturnToView, setSummaryNodeOfOrigin],
   );
 };
 
@@ -165,7 +160,6 @@ export function useNavigateToTask() {
 
   return useCallback(
     (newTaskId: string, options?: NavigateOptions & { runEffect?: boolean }) => {
-      const { runEffect = true } = options ?? {};
       const { instanceOwnerPartyId, instanceGuid, taskId } = navParams.current;
       if (newTaskId === taskId) {
         return;
@@ -180,12 +174,7 @@ export function useNavigateToTask() {
       const url = prependBasePath(
         `/instance/${instanceOwnerPartyId}/${instanceGuid}/${realTaskId}${queryKeysRef.current}`,
       );
-      navigate(
-        url,
-        undefined,
-        options,
-        runEffect ? { callback: () => focusMainContent(options), targetLocation: url, matchStart: true } : undefined,
-      );
+      navigate(url, undefined, options);
     },
     [navParams, navigate, queryKeysRef, layoutSets],
   );
@@ -280,7 +269,7 @@ export function useNavigatePage() {
       const searchParams = options?.searchParams ? `?${options.searchParams.toString()}` : '';
       if (isStatelessApp) {
         const url = prependBasePath(`/${page}${searchParams}`);
-        return navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
+        return navigate(url, options, { replace });
       }
 
       const { instanceOwnerPartyId, instanceGuid, taskId, mainPageKey, componentId, dataElementId } = navParams.current;
@@ -290,11 +279,11 @@ export function useNavigatePage() {
         const url = prependBasePath(
           `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}/${componentId}/${dataElementId}/${page}${searchParams}`,
         );
-        return navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
+        return navigate(url, options, { replace });
       }
 
       const url = prependBasePath(`/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page}${searchParams}`);
-      navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
+      navigate(url, options, { replace });
     },
     [orderRef, isStatelessApp, navParams, navigate, maybeSaveOnPageChange, refetchInitialValidations],
   );
@@ -386,7 +375,7 @@ export function useNavigatePage() {
 
     await maybeSaveOnPageChange();
     refetchInitialValidations();
-    return navigate(url, undefined, undefined, { targetLocation: url, callback: () => focusMainContent() });
+    return navigate(url, undefined, undefined);
   };
 
   return {

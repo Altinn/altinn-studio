@@ -1,4 +1,3 @@
-import { ContextNotProvided } from 'src/core/contexts/context';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { getCurrentLayoutSet } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useLaxApplicationMetadata } from 'src/features/applicationMetadata/useApplicationMetadata';
@@ -27,7 +26,7 @@ export function useCurrentLayoutSet(_taskId?: string) {
   const taskId = _taskId ?? processTaskId;
   const overriddenLayoutSetId = useTaskOverrides()?.layoutSetId;
 
-  if (layoutSets === ContextNotProvided) {
+  if (!layoutSets) {
     return undefined;
   }
 

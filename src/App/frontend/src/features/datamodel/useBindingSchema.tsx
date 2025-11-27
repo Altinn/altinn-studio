@@ -157,7 +157,6 @@ export function useCurrentDataModelType() {
 
 export function useDataModelType(dataType: string) {
   const application = useApplicationMetadata();
-
   return application.dataTypes.find((dt) => dt.id === dataType);
 }
 

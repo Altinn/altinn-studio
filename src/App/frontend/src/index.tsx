@@ -26,20 +26,13 @@ import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { ProcessingProvider } from 'src/core/contexts/processingContext';
 import { VersionErrorOrChildren } from 'src/features/applicationMetadata/VersionErrorOrChildren';
-import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { createDynamicsLoader } from 'src/features/form/dynamics/dynamicsLoader';
 import { FormProvider } from 'src/features/form/FormContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
-import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { createInstanceLoader } from 'src/features/instance/instanceLoader';
 import { PartySelectionWrapper } from 'src/features/instantiate/containers/PartySelection';
 import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
-import { LangDataSourcesProvider } from 'src/features/language/LangDataSourcesProvider';
-import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
-import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
-import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import { FixWrongReceiptType } from 'src/features/receipt/FixWrongReceiptType';
@@ -87,37 +80,23 @@ document.addEventListener('DOMContentLoaded', () => {
                       queryClient: defaultQueryClient,
                     }),
                     element: (
-                      <LangDataSourcesProvider>
-                        <NavigationEffectProvider>
-                          <ErrorBoundary>
-                            <VersionErrorOrChildren>
-                              <GlobalFormDataReadersProvider>
-                                <LayoutSetsProvider>
-                                  <TextResourcesProvider>
-                                    <OrgsProvider>
-                                      <ApplicationSettingsProvider>
-                                        <PartyProvider>
-                                          <KeepAliveProvider>
-                                            <ProcessingProvider>
-                                              <Outlet />
-                                            </ProcessingProvider>
-                                            <ToastContainer
-                                              position='top-center'
-                                              theme='colored'
-                                              transition={Slide}
-                                              draggable={false}
-                                            />
-                                          </KeepAliveProvider>
-                                        </PartyProvider>
-                                      </ApplicationSettingsProvider>
-                                    </OrgsProvider>
-                                  </TextResourcesProvider>
-                                </LayoutSetsProvider>
-                              </GlobalFormDataReadersProvider>
-                            </VersionErrorOrChildren>
-                          </ErrorBoundary>
-                        </NavigationEffectProvider>
-                      </LangDataSourcesProvider>
+                      <ErrorBoundary>
+                        <VersionErrorOrChildren>
+                          <OrgsProvider>
+                            <KeepAliveProvider>
+                              <ProcessingProvider>
+                                <Outlet />
+                              </ProcessingProvider>
+                              <ToastContainer
+                                position='top-center'
+                                theme='colored'
+                                transition={Slide}
+                                draggable={false}
+                              />
+                            </KeepAliveProvider>
+                          </OrgsProvider>
+                        </VersionErrorOrChildren>
+                      </ErrorBoundary>
                     ),
                     children: [
                       {
@@ -152,11 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
                           queryClient: defaultQueryClient,
                           instance: window.AltinnAppData.instance,
                         }),
-                        element: (
-                          // <InstanceProvider>
-                          <Outlet />
-                          // </InstanceProvider>
-                        ),
+                        element: <Outlet />,
                         children: [
                           {
                             path: TaskKeys.ProcessEnd,

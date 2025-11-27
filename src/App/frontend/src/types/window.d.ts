@@ -14,7 +14,7 @@ export type AltinnAppData = {
   applicationMetadata: IncomingApplicationMetadata;
   footerLayout: IFooterLayout | null;
   availableLanguages: IAppLanguage[];
-  textResources: ITextResourceResult | null;
+  textResources: ITextResourceResult;
   frontendSettings: IApplicationSettings;
 };
 declare global {
