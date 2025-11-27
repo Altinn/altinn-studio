@@ -6,7 +6,6 @@ import { screen } from '@testing-library/react';
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
-import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
 import { getSummaryDataObject, ReceiptContainer } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
@@ -103,11 +102,7 @@ const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender
   jest.mocked(fetchInstanceData).mockImplementation(async () => buildInstance(hasPdf));
 
   return await renderWithoutInstanceAndLayout({
-    renderer: () => (
-      <InstanceProvider>
-        <ReceiptContainer />
-      </InstanceProvider>
-    ),
+    renderer: () => <ReceiptContainer />,
     router: ({ children }) => (
       <InstanceRouter
         instanceId={exampleInstanceId}

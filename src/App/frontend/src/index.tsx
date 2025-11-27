@@ -32,7 +32,7 @@ import { FormProvider } from 'src/features/form/FormContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
-import { InstanceProvider } from 'src/features/instance/InstanceContext';
+import { createInstanceLoader } from 'src/features/instance/instanceLoader';
 import { PartySelectionWrapper } from 'src/features/instantiate/containers/PartySelection';
 import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
 import { LangDataSourcesProvider } from 'src/features/language/LangDataSourcesProvider';
@@ -148,10 +148,14 @@ document.addEventListener('DOMContentLoaded', () => {
                       },
                       {
                         path: 'instance/:instanceOwnerPartyId/:instanceGuid',
+                        loader: createInstanceLoader({
+                          queryClient: defaultQueryClient,
+                          instance: window.AltinnAppData.instance,
+                        }),
                         element: (
-                          <InstanceProvider>
-                            <Outlet />
-                          </InstanceProvider>
+                          // <InstanceProvider>
+                          <Outlet />
+                          // </InstanceProvider>
                         ),
                         children: [
                           {

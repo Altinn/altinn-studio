@@ -10,7 +10,6 @@ import { getPartyMock, getServiceOwnerPartyMock } from 'src/__mocks__/getPartyMo
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { FormProvider } from 'src/features/form/FormContext';
-import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
 import { fetchApplicationMetadata, fetchInstanceData, fetchProcessState } from 'src/http-client/queries';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -50,15 +49,13 @@ const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>)
 
   return await renderWithoutInstanceAndLayout({
     renderer: () => (
-      <InstanceProvider>
-        <FormProvider>
-          <PdfWrapper>
-            <PresentationComponent>
-              <Form />
-            </PresentationComponent>
-          </PdfWrapper>
-        </FormProvider>
-      </InstanceProvider>
+      <FormProvider>
+        <PdfWrapper>
+          <PresentationComponent>
+            <Form />
+          </PresentationComponent>
+        </PdfWrapper>
+      </FormProvider>
     ),
     router: ({ children }) => (
       <InstanceRouter

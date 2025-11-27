@@ -27,7 +27,8 @@ import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
-import { InstanceProvider, instanceQueries } from 'src/features/instance/InstanceContext';
+import { instanceQueries } from 'src/features/instance/instanceQuery';
+import { LangDataSourcesProvider } from 'src/features/language/LangDataSourcesProvider';
 import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
@@ -301,27 +302,27 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
       {...queries}
       queryClient={queryClient}
     >
-      {/*<LangToolsStoreProvider>*/}
-      <UiConfigProvider>
-        <PageNavigationProvider>
-          <Router>
-            <NavigationEffectProvider>
-              <GlobalFormDataReadersProvider>
-                <OrgsProvider>
-                  <ApplicationSettingsProvider>
-                    <LayoutSetsProvider>
-                      <PartyProvider>
-                        <TextResourcesProvider>{children}</TextResourcesProvider>
-                      </PartyProvider>
-                    </LayoutSetsProvider>
-                  </ApplicationSettingsProvider>
-                </OrgsProvider>
-              </GlobalFormDataReadersProvider>
-            </NavigationEffectProvider>
-          </Router>
-        </PageNavigationProvider>
-      </UiConfigProvider>
-      {/*</LangToolsStoreProvider>*/}
+      <LangDataSourcesProvider>
+        <UiConfigProvider>
+          <PageNavigationProvider>
+            <Router>
+              <NavigationEffectProvider>
+                <GlobalFormDataReadersProvider>
+                  <OrgsProvider>
+                    <ApplicationSettingsProvider>
+                      <LayoutSetsProvider>
+                        <PartyProvider>
+                          <TextResourcesProvider>{children}</TextResourcesProvider>
+                        </PartyProvider>
+                      </LayoutSetsProvider>
+                    </ApplicationSettingsProvider>
+                  </OrgsProvider>
+                </GlobalFormDataReadersProvider>
+              </NavigationEffectProvider>
+            </Router>
+          </PageNavigationProvider>
+        </UiConfigProvider>
+      </LangDataSourcesProvider>
     </AppQueriesProvider>
   );
 }
@@ -332,11 +333,9 @@ interface InstanceProvidersProps extends PropsWithChildren {
 
 function InstanceFormAndLayoutProviders({ children, formDataProxies }: InstanceProvidersProps) {
   return (
-    <InstanceProvider>
-      <FormDataWriteProxyProvider value={formDataProxies}>
-        <FormProvider>{children}</FormProvider>
-      </FormDataWriteProxyProvider>
-    </InstanceProvider>
+    <FormDataWriteProxyProvider value={formDataProxies}>
+      <FormProvider>{children}</FormProvider>
+    </FormDataWriteProxyProvider>
   );
 }
 
@@ -748,9 +747,11 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
     };
 
     return (
-      <FormComponentContextProvider value={{ baseComponentId: realComponentDef.id }}>
-        {renderer(props)}
-      </FormComponentContextProvider>
+      <InstanceRouter>
+        <FormComponentContextProvider value={{ baseComponentId: realComponentDef.id }}>
+          {renderer(props)}
+        </FormComponentContextProvider>
+      </InstanceRouter>
     );
   };
 

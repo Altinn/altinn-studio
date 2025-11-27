@@ -77,7 +77,6 @@ export const LangDataSourcesProvider = ({ children }: PropsWithChildren) => {
     dataSources,
   ]);
 
-  // const current = useLangToolsDataSources();
   if (!dataSources) {
     // We cannot render <Loader /> here, as that would lead to an infinite loop
     return null;
@@ -93,10 +92,6 @@ export const LangDataSourcesProvider = ({ children }: PropsWithChildren) => {
       {children}
     </Provider>
   );
-
-  // return children;
 };
 
 export const useLangToolsDataSources = () => useCtx().dataSources;
-
-//export const useSetLangToolsDataSources = () => useCtx().dataSources;

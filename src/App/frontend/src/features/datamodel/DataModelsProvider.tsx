@@ -27,11 +27,8 @@ import {
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
-import {
-  instanceQueries,
-  useInstanceDataElements,
-  useInstanceDataQueryArgs,
-} from 'src/features/instance/InstanceContext';
+import { useInstanceDataElements, useInstanceDataQuery } from 'src/features/instance/InstanceContext';
+import { instanceQueries } from 'src/features/instance/instanceQuery';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { isAxiosError } from 'src/utils/isAxiosError';
@@ -161,10 +158,17 @@ function DataModelsLoader() {
   const defaultDataType = useCurrentDataModelName();
   const isStateless = useApplicationMetadata().isStatelessApp;
   const queryClient = useQueryClient();
-  const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
+  const instance = useInstanceDataQuery().data;
+
+  if (!instance?.instanceOwner.party) {
+    throw new Error('instanceOwnerParty is required at this point, something is wrong.');
+  }
+  const instanceOwnerPartyId = `${instance.instanceOwner.party}`;
 
   const dataElements =
-    queryClient.getQueryData(instanceQueries.instanceData({ instanceOwnerPartyId, instanceGuid }).queryKey)?.data ??
+    queryClient.getQueryData(
+      instanceQueries.instanceData({ instanceOwnerPartyId, instanceGuid: instance?.id }).queryKey,
+    )?.data ??
     window.AltinnAppData?.instance?.data ??
     emptyArray;
 
@@ -346,6 +350,7 @@ function LoadSchema({ dataType }: LoaderProps) {
 
   useEffect(() => {
     if (data) {
+      debugger;
       setDataModelSchema(dataType, data.schema, data.lookupTool);
     }
   }, [data, dataType, setDataModelSchema]);
@@ -397,6 +402,9 @@ export const DataModels = {
     // Using a static selector to avoid re-rendering. While the state can update later, we don't need
     // to re-run data model validations, etc.
     const { schemaLookup, allDataTypes } = useStaticSelector((state) => state);
+
+    console.log('schemaLookup', schemaLookup);
+
     return useMemo(() => {
       if (allDataTypes?.every((dt) => schemaLookup[dt])) {
         return (reference: IDataModelReference) => schemaLookup[reference.dataType].getSchemaForPath(reference.field);
