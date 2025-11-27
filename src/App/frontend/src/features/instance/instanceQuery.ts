@@ -2,17 +2,20 @@ import { queryOptions, skipToken } from '@tanstack/react-query';
 
 import { fetchInstanceData } from 'src/http-client/queries';
 
+type InstanceDataParams = {
+  instanceOwnerPartyId: string | undefined;
+  instanceGuid: string | undefined;
+};
+
+export function instanceDataQueryKey({ instanceOwnerPartyId, instanceGuid }: InstanceDataParams) {
+  return ['instanceData', { instanceOwnerPartyId, instanceGuid }] as const;
+}
+
 export const instanceQueries = {
   all: () => ['instanceData'] as const,
-  instanceData: ({
-    instanceOwnerPartyId,
-    instanceGuid,
-  }: {
-    instanceOwnerPartyId: string | undefined;
-    instanceGuid: string | undefined;
-  }) =>
+  instanceData: ({ instanceOwnerPartyId, instanceGuid }: InstanceDataParams) =>
     queryOptions({
-      queryKey: [...instanceQueries.all(), { instanceOwnerPartyId, instanceGuid }] as const,
+      queryKey: instanceDataQueryKey({ instanceOwnerPartyId, instanceGuid }),
       queryFn:
         !instanceOwnerPartyId || !instanceGuid
           ? skipToken

@@ -13,27 +13,6 @@ interface LanguageLoaderProps extends LoaderFunctionArgs {
   };
 }
 
-/*export async function languageLoader({ context }): Promise<unknown> {
-  const { queryClient } = context;
-
-  queryClient.setQueryData(['fetchAppLanguages'], window.AltinnAppData.availableLanguages);
-
-  const profile = window.AltinnAppData.userProfile;
-
-  if (profile.profileSettingPreference.language === window.AltinnAppData.textResources.language) {
-    queryClient.setQueryData(
-      ['fetchTextResources', window.AltinnAppData.textResources.language],
-      window.AltinnAppData.textResources,
-    );
-  } else {
-    console.log('ITS NOT THE SAAAME!!!');
-  }
-
-  console.log('window.AltinnAppData.textResources.language', window.AltinnAppData.textResources.language);
-
-  return null;
-}*/
-
 export function getLang(
   appLanguages: string[] | undefined,
   {
@@ -114,15 +93,11 @@ export async function languageLoader({ context, params }: LanguageLoaderProps): 
   queryClient.setQueryData(['fetchAppLanguages'], window.AltinnAppData.availableLanguages);
 
   const profile = window.AltinnAppData.userProfile;
-  const profileLang = profile.profileSettingPreference.language;
+
   const bootstrapText = window.AltinnAppData.textResources;
   const bootstrapLang = bootstrapText.language;
-
   const languageFromUrl = getLanguageFromUrl();
   const languageFromProfile = profile?.profileSettingPreference.language;
-
-  // const langFromLocalStorage = localStorage.getItem(`${org}/${app}/${profile.userId}/selectedLanguage`);
-
   const raw = localStorage.getItem(`${org}/${app}/${profile.userId}/selectedLanguage`);
   const languageFromSelector = raw ? JSON.parse(raw) : null;
 
@@ -137,9 +112,7 @@ export async function languageLoader({ context, params }: LanguageLoaderProps): 
 
   queryClient.setQueryData<TextResourceMap>(['fetchTextResources', bootstrapLang], convertResult(bootstrapText));
 
-  // debugger;
   if (currentLangString && currentLangString !== bootstrapLang) {
-    // Hydrate cache from server-rendered/bootstrapped data
     await queryClient.ensureQueryData<TextResourceMap>({
       queryKey: ['fetchTextResources', currentLangString],
       queryFn: async () => convertResult(await fetchTextResources(currentLangString)),

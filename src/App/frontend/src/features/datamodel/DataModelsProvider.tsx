@@ -160,10 +160,11 @@ function DataModelsLoader() {
   const queryClient = useQueryClient();
   const instance = useInstanceDataQuery().data;
 
-  if (!instance?.instanceOwner.party) {
+  if (!instance?.instanceOwner.partyId) {
+    // debugger;
     throw new Error('instanceOwnerParty is required at this point, something is wrong.');
   }
-  const instanceOwnerPartyId = `${instance.instanceOwner.party}`;
+  const instanceOwnerPartyId = `${instance.instanceOwner.partyId}`;
 
   const dataElements =
     queryClient.getQueryData(
