@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import classes from './ThreeDotsMenu.module.css';
 import { TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
-import { StudioLinkButton, StudioList, StudioPopover } from '@studio/components';
+import { StudioPopover, StudioDropdown } from '@studio/components';
 import { LocalChangesModal } from './LocalChangesModal';
 import { ClonePopoverContent } from './ClonePopoverContent';
 import { useGiteaHeaderContext } from '../context/GiteaHeaderContext';
@@ -19,25 +18,24 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
 
   const toggleClonePopoverOpen = () => setClonePopoverOpen((oldValue) => !oldValue);
 
+  const handleClick = () => {
+    window.open(repositoryPath(owner, repoName), '_blank', 'noopener,noreferrer');
+  };
+
   return (
-    <StudioPopover.TriggerContext>
-      <StudioPopover.Trigger
-        icon={<MenuElipsisVerticalIcon />}
-        title={t('sync_header.gitea_menu')}
-        variant='tertiary'
-      />
-      <StudioPopover
-        data-color-scheme='light'
-        className={classes.popover}
-        onClose={() => setClonePopoverOpen(false)}
-      >
-        <StudioList.Root className={classes.menuItems}>
-          {isClonePossible && (
+    <StudioDropdown
+      icon={<MenuElipsisVerticalIcon title={t('sync_header.gitea_menu')} />}
+      triggerButtonAriaLabel={t('sync_header.gitea_menu')}
+      triggerButtonVariant='tertiary'
+      data-color-scheme='light'
+    >
+      <StudioDropdown.List>
+        {isClonePossible && (
+          <StudioDropdown.Item>
             <StudioPopover.TriggerContext>
               <StudioPopover.Trigger
                 onClick={toggleClonePopoverOpen}
                 variant='tertiary'
-                className={classes.menuButton}
                 icon={<TabsIcon />}
               >
                 {t('sync_header.clone')}
@@ -46,21 +44,17 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
                 {clonePopoverOpen && <ClonePopoverContent />}
               </StudioPopover>
             </StudioPopover.TriggerContext>
-          )}
-          <StudioLinkButton
-            className={classes.link}
-            data-color=''
-            data-size='sm'
-            href={repositoryPath(owner, repoName)}
-            icon={<GiteaIcon />}
-            rel='noopener noreferrer'
-            variant='tertiary'
-          >
+          </StudioDropdown.Item>
+        )}
+        <StudioDropdown.Item>
+          <StudioDropdown.Button icon={<GiteaIcon />} onClick={handleClick}>
             {t('sync_header.repository')}
-          </StudioLinkButton>
-          <LocalChangesModal triggerClassName={classes.menuButton} />
-        </StudioList.Root>
-      </StudioPopover>
-    </StudioPopover.TriggerContext>
+          </StudioDropdown.Button>
+        </StudioDropdown.Item>
+        <StudioDropdown.Item>
+          <LocalChangesModal />
+        </StudioDropdown.Item>
+      </StudioDropdown.List>
+    </StudioDropdown>
   );
 };

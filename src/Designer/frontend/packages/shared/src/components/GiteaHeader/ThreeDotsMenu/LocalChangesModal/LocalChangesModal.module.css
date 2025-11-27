@@ -1,0 +1,20 @@
+.dialog > :first-child {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: var(--ds-size-2);
+}
+
+.dialog > :first-child > button {
+  width: fit-content;
+}
+
+.headerBlock {
+  padding-left: var(--ds-size-1);
+}
+
+.headerBlock > h2 {
+  font-weight: bold;
+  font-size: var(--ds-font-size-3);
+  color: var(--ds-color-natural-text-default);
+}
