@@ -171,7 +171,7 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task PublishCodeList(string org, PublishCodeListRequest request, CancellationToken cancellationToken = default)
+    public async Task<string> PublishCodeList(string org, PublishCodeListRequest request, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         Guard.AssertValidateOrganization(org);
@@ -183,7 +183,7 @@ public class OrgCodeListService : IOrgCodeListService
             throw new IllegalCodeListTitleException("The code list title contains invalid characters.");
         }
 
-        await _sharedContentClient.PublishCodeList(org, codeListId, codeList, cancellationToken);
+        return await _sharedContentClient.PublishCodeList(org, codeListId, codeList, cancellationToken);
     }
 
     internal async Task HandleCommit(AltinnRepoEditingContext editingContext, UpdateCodeListRequest request, CancellationToken cancellationToken = default)

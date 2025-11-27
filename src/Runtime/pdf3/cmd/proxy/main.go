@@ -226,7 +226,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 
 		attempt := 1
 		for {
-			assert.AssertWithMessage(attempt <= maxRetries, "Overflowed retry attempts")
+			assert.That(attempt <= maxRetries, "Overflowed retry attempts")
 
 			ret := callWorker(
 				reqLogger,
@@ -332,7 +332,7 @@ func callWorker(
 		// In test internals mode, pass back the worker IP to the client
 		// so they can route test output requests to the correct worker pod
 		if iruntime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
-			assert.AssertWithMessage(workerIP != "", "Worker IP should always be set in test internals mode")
+			assert.That(workerIP != "", "Worker IP should always be set in test internals mode")
 			w.Header().Set("X-Worker-IP", workerIP)
 			w.Header().Set("X-Worker-Id", workerId)
 			logger.Debug("Returning worker info", "worker_ip", workerIP)
@@ -390,7 +390,7 @@ func callWorker(
 	// In test internals mode, pass back the worker IP even on errors
 	// so tests can still fetch test output from the correct worker
 	if iruntime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
-		assert.Assert(workerIP != "")
+		assert.That(workerIP != "", "Worker IP should always be set in test internals mode")
 		w.Header().Set("X-Worker-IP", workerIP)
 		w.Header().Set("X-Worker-Id", workerId)
 	}
@@ -412,14 +412,14 @@ func callWorker(
 
 func forwardTestOutputRequest(logger *slog.Logger, client *http.Client) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		assert.AssertWithMessage(iruntime.IsTestInternalsMode, "Test output endpoint should only be registered in test internals mode")
+		assert.That(iruntime.IsTestInternalsMode, "Test output endpoint should only be registered in test internals mode")
 
 		// Extract test ID from URL path: /testoutput/{id}
 		testID := strings.TrimPrefix(r.URL.Path, "/testoutput/")
 
 		// Client should provide the worker IP via header to ensure we hit the right pod
 		targetWorkerIP := r.Header.Get("X-Target-Worker-IP")
-		assert.AssertWithMessage(targetWorkerIP != "", "X-Target-Worker-IP header is required in test internals mode")
+		assert.That(targetWorkerIP != "", "X-Target-Worker-IP header is required in test internals mode")
 
 		// Route directly to the specified worker pod IP
 		workerEndpoint := fmt.Sprintf("http://%s:5031%s", targetWorkerIP, r.URL.Path)
