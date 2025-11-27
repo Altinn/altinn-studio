@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -117,6 +117,31 @@ export const DesignView = (): ReactNode => {
     () => findLayoutsContainingDuplicateComponents(layouts),
     [layouts],
   );
+
+  const firstPageId = useMemo(() => {
+    if (!pagesModel) return undefined;
+    if (isPagesModelWithGroups(pagesModel)) {
+      const firstGroup = pagesModel.groups?.[0];
+      return firstGroup?.order?.[0]?.id;
+    }
+    return pagesModel.pages?.[0]?.id;
+  }, [pagesModel]);
+
+  useEffect(() => {
+    if (!pagesQueryPending && firstPageId && !selectedFormLayoutName) {
+      setSelectedFormLayoutName(firstPageId);
+      setSelectedItem({
+        type: ItemType.Page,
+        id: firstPageId,
+      });
+    }
+  }, [
+    pagesQueryPending,
+    firstPageId,
+    selectedFormLayoutName,
+    setSelectedFormLayoutName,
+    setSelectedItem,
+  ]);
 
   if (pagesQueryPending) return <StudioSpinner aria-label={t('general.loading')} />;
 
