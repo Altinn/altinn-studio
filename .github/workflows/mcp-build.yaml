@@ -4,11 +4,6 @@ on:
   pull_request:
     paths:
       - 'src/AI/mcp/**'
-  push:
-    branches:
-      - mcp-build-workflow
-    paths:
-      - 'src/AI/mcp/**'
 
 jobs:
   build:
