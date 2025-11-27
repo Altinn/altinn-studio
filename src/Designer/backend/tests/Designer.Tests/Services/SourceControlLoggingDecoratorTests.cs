@@ -356,8 +356,8 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
         {
             builder.ConfigureTestServices(services =>
             {
-                services.AddSingleton<ILoggerFactory>(loggerFactoryMock.Object);
-                services.AddSingleton<IHttpContextAccessor>(httpContextAccessorMock.Object);
+                services.AddSingleton(loggerFactoryMock.Object);
+                services.AddSingleton(httpContextAccessorMock.Object);
                 services.AddTransient<ISourceControl, SourceControlStub>();
                 services.Decorate<ISourceControl, SourceControlLoggingDecorator>();
             });
