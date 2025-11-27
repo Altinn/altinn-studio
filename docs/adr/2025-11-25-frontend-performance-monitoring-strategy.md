@@ -8,7 +8,7 @@
 
 1. **Initial load testing**
 
-   We implement LHCI as synthetic testing in CI with a custom LHCI server for monitoring changes in the initial load performance metrics over time. We will set thresholds to fail builds, as we are not yet above those thresholds.
+   We implement Lighthouse CI (LHCI) as synthetic testing in CI with a custom LHCI server for monitoring changes in the initial load performance metrics over time. We will set thresholds to fail builds, as we are not yet above those thresholds.
 
    See [synthetic data monitoring proposal](#synthetic-data-monitoring-proposal) further down.
 
@@ -18,11 +18,11 @@
 
    More research will be done into K6 vs Playwright and what it gives us in terms of performance testing support and data visualization. This testing will possibly include load testing with many users to assert that it also performs reasonably well under those conditions.
 
-3. **RUM**
+3. **Real User Monitoring (RUM)**
 
    We will not be implementing RUM yet, as it is not of high significance for the Frontend Next initiative, since we will not have real users before the initiative is merged and rolled out to real users.
 
-4. **OTel**
+4. **Open Telemetry (OTel)**
 
    The same goes for OTel in addition to OTel for browsers still being experimental.
 
@@ -38,7 +38,7 @@ Robots in a browser run your app from fixed locations.
 
 ### Why synthetic data?
 
-Used for load time performance metrics like TTFB and LCP, but also accessibility and SEO.
+Used for load time performance metrics like Time to Interactive (TTI) and Largest Contentful Paint (LCP), but also accessibility, best practices and Search Engine Optimization (SEO).
 
 ### Limitations
 
