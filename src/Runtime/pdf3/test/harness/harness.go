@@ -114,8 +114,8 @@ func (r *PdfResponse) LoadOutput(t *testing.T) (*ptesting.PdfInternalsTestOutput
 
 // getTestOutput fetches a test output from the proxy by ID (which forwards to worker)
 func getTestOutput(_ *testing.T, id string, workerIP string) (*ptesting.PdfInternalsTestOutput, error) {
-	assert.Assert(id != "")
-	assert.Assert(workerIP != "")
+	assert.That(id != "", "Test output ID is required")
+	assert.That(workerIP != "", "Worker IP should always be set in test internals mode")
 	url := JumpboxURL + "/testoutput/" + id
 
 	client := &http.Client{
