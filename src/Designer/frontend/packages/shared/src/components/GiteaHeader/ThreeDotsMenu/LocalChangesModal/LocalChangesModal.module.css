@@ -15,6 +15,6 @@
 
 .headerBlock > h2 {
   font-weight: bold;
-  font-size: var(--ds-font-size-3);
+  font-size: var(--ds-font-size-4);
   color: var(--ds-color-natural-text-default);
 }
