@@ -13,7 +13,6 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/rest"
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal/config"
@@ -21,50 +20,50 @@ import (
 	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
 )
 
-const namespace = "runtime-operator"
-
-var Runtime *kind.KindContainerRuntime
-
 // createStateFetcher creates a FetchStateFunc for a given MaskinportenClient name and namespace
-func createStateFetcher(k8sClient *rest.RESTClient, name, secretName, namespace string) FetchStateFunc {
+func createStateFetcher(k8sClient *utils.K8sClient, name, secretName, ns string) FetchStateFunc {
 	return func() (*resourcesv1alpha1.MaskinportenClient, *corev1.Secret, error) {
+		ctx := context.Background()
+
 		// Fetch MaskinportenClient
-		var client *resourcesv1alpha1.MaskinportenClient
+		var mpClient *resourcesv1alpha1.MaskinportenClient
 		clientObj := &resourcesv1alpha1.MaskinportenClient{}
-		err := k8sClient.Get().
+		err := k8sClient.CRD.Get().
 			Resource("maskinportenclients").
-			Namespace(namespace).
+			Namespace(ns).
 			Name(name).
-			Do(context.Background()).
+			Do(ctx).
 			Into(clientObj)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
-				// Resource deleted - return nil client
-				client = nil
+				mpClient = nil
 			} else {
 				return nil, nil, fmt.Errorf("failed to fetch MaskinportenClient: %w", err)
 			}
 		} else {
-			client = clientObj
+			mpClient = clientObj
 		}
 
 		// Fetch associated Secret
 		var secret *corev1.Secret
 		secretObj := &corev1.Secret{}
-		err = k8sClient.Get().
+		err = k8sClient.Core.Get().
 			Resource("secrets").
-			Namespace(namespace).
+			Namespace(ns).
 			Name(secretName).
-			Do(context.Background()).
+			Do(ctx).
 			Into(secretObj)
 		if err != nil {
-			// Secret might not exist (deleted or not created yet)
-			secret = nil
+			if apierrors.IsNotFound(err) {
+				secret = nil
+			} else {
+				return nil, nil, fmt.Errorf("failed to fetch Secret: %w", err)
+			}
 		} else {
 			secret = secretObj
 		}
 
-		return client, secret, nil
+		return mpClient, secret, nil
 	}
 }
 
@@ -75,6 +74,10 @@ func stateIsReconciled(client *resourcesv1alpha1.MaskinportenClient, secret *cor
 	}
 	if client.Status.State != "reconciled" {
 		return fmt.Errorf("MaskinportenClient not reconciled yet: state=%s", client.Status.State)
+	}
+	if client.Status.ObservedGeneration != client.Generation {
+		return fmt.Errorf("reconciliation pending: observedGeneration=%d, generation=%d",
+			client.Status.ObservedGeneration, client.Generation)
 	}
 	return nil
 }
@@ -88,51 +91,68 @@ func stateIsDeleted(client *resourcesv1alpha1.MaskinportenClient, secret *corev1
 }
 
 var _ = Describe("controller", Ordered, func() {
+	const (
+		namespace       = "runtime-operator"
+		clientName      = "ttd-localtestapp"
+		clientNamespace = "default"
+		secretName      = "ttd-localtestapp-deployment-secrets"
+	)
+
+	var Runtime *kind.KindContainerRuntime
+	var Client *utils.K8sClient
+
 	BeforeAll(func() {
 		By("loading kind runtime")
 
 		var err error
-		projectRoot := config.TryFindProjectRoot()
+		projectRoot, err := config.TryFindProjectRootByGoMod()
+		ExpectWithOffset(2, err).NotTo(HaveOccurred())
 		Runtime, err = kind.LoadCurrent(filepath.Join(projectRoot, ".cache"))
+		ExpectWithOffset(2, err).NotTo(HaveOccurred())
+		Client, err = utils.CreateK8sClient(Runtime.GetContextName())
 		ExpectWithOffset(2, err).NotTo(HaveOccurred())
 	})
 
 	Context("Operator", func() {
 		BeforeAll(func() {
-			k8sClient, err := utils.GetK8sClient()
-			Expect(err).To(Succeed())
+			ResetConsistencyState()
 
-			const clientName = "ttd-localtestapp"
-			const clientNamespace = "default"
-			const secretName = "ttd-localtestapp-deployment-secrets"
+			By("resetting fakes state for deterministic test runs")
+			err := ResetFakesState()
+			Expect(err).NotTo(HaveOccurred())
+
+			k8sClient := Client
+			Expect(k8sClient).NotTo(BeNil())
+
+			ctx := context.Background()
 
 			By("cleaning up any existing MaskinportenClient")
-			_ = k8sClient.Delete().
+			_ = k8sClient.CRD.Delete().
 				Resource("maskinportenclients").
 				Namespace(clientNamespace).
 				Name(clientName).
-				Do(context.Background()).
+				Do(ctx).
 				Error()
 
 			By("clearing any existing secret data")
 			patch := []byte(`{"data": null}`)
-			_ = k8sClient.Patch(types.MergePatchType).
+			_ = k8sClient.Core.Patch(types.MergePatchType).
 				Resource("secrets").
 				Namespace(clientNamespace).
 				Name(secretName).
 				Body(patch).
-				Do(context.Background()).
+				Do(ctx).
 				Error()
 
 			By("waiting for cleanup to complete")
 			Eventually(func() bool {
-				client := &resourcesv1alpha1.MaskinportenClient{}
-				err := k8sClient.Get().
+				mpClient := &resourcesv1alpha1.MaskinportenClient{}
+				err := k8sClient.CRD.Get().
 					Resource("maskinportenclients").
 					Namespace(clientNamespace).
 					Name(clientName).
-					Do(context.Background()).
-					Into(client)
+					Do(ctx).
+					Into(mpClient)
 				return apierrors.IsNotFound(err)
 			}, time.Second*10, time.Second).Should(BeTrue())
 		})
@@ -177,14 +197,23 @@ var _ = Describe("controller", Ordered, func() {
 			EventuallyWithOffset(1, verifyControllerUp, time.Minute, time.Second).Should(Succeed())
 		})
 
-		It("should respond to MaskinportenClient", func() {
+		It("should snapshot initial state before MaskinportenClient exists", func() {
 			By("constructing k8s client")
-			k8sClient, err := utils.GetK8sClient()
-			Expect(err).To(Succeed())
+			k8sClient := Client
+			Expect(k8sClient).NotTo(BeNil())
 
-			const clientName = "ttd-localtestapp"
-			const clientNamespace = "default"
-			const secretName = "ttd-localtestapp-deployment-secrets"
+			By("snapshotting initial state (CR does not exist, secret is empty)")
+			mpClient, secret, err := createStateFetcher(k8sClient, clientName, secretName, clientNamespace)()
+			Expect(err).To(Succeed())
+			db, err := FetchFakesDb()
+			Expect(err).To(Succeed())
+			SnapshotState(mpClient, secret, db, "step0-initial")
+		})
+
+		It("should reconcile MaskinportenClient", func() {
+			By("constructing k8s client")
+			k8sClient := Client
+			Expect(k8sClient).NotTo(BeNil())
 
 			By("creating MaskinportenClient resource")
 			maskinportenClient := &resourcesv1alpha1.MaskinportenClient{
@@ -200,7 +229,7 @@ var _ = Describe("controller", Ordered, func() {
 				},
 			}
 
-			err = k8sClient.Post().
+			err := k8sClient.CRD.Post().
 				Resource("maskinportenclients").
 				Namespace(clientNamespace).
 				Body(maskinportenClient).
@@ -211,72 +240,71 @@ var _ = Describe("controller", Ordered, func() {
 			By("waiting for reconciliation and snapshotting state")
 			EventuallyWithSnapshot(
 				createStateFetcher(k8sClient, clientName, secretName, clientNamespace),
+				FetchFakesDb,
 				stateIsReconciled,
-				time.Second*5,
+				time.Second*10,
 				time.Second,
 				"step1-reconciled",
 			)
 		})
 
 		It("should handle scope removal", func() {
-			k8sClient, err := utils.GetK8sClient()
-			Expect(err).To(Succeed())
+			k8sClient := Client
+			Expect(k8sClient).NotTo(BeNil())
 
-			const clientName = "ttd-localtestapp"
-			const clientNamespace = "default"
-			const secretName = "ttd-localtestapp-deployment-secrets"
+			ctx := context.Background()
 
 			By("fetching current MaskinportenClient")
-			client := &resourcesv1alpha1.MaskinportenClient{}
-			err = k8sClient.Get().
+			mpClient := &resourcesv1alpha1.MaskinportenClient{}
+			err := k8sClient.CRD.Get().
 				Resource("maskinportenclients").
 				Namespace(clientNamespace).
 				Name(clientName).
-				Do(context.Background()).
-				Into(client)
+				Do(ctx).
+				Into(mpClient)
 			Expect(err).To(Succeed())
 
 			By("updating MaskinportenClient to remove one scope")
-			client.Spec.Scopes = []string{"altinn:serviceowner/instances.read"}
-			err = k8sClient.Put().
+			mpClient.Spec.Scopes = []string{"altinn:serviceowner/instances.read"}
+			err = k8sClient.CRD.Put().
 				Resource("maskinportenclients").
 				Namespace(clientNamespace).
 				Name(clientName).
-				Body(client).
-				Do(context.Background()).
+				Body(mpClient).
+				Do(ctx).
 				Error()
 			Expect(err).To(Succeed())
 
 			By("waiting for reconciliation after scope removal")
 			EventuallyWithSnapshot(
 				createStateFetcher(k8sClient, clientName, secretName, clientNamespace),
+				FetchFakesDb,
 				stateIsReconciled,
-				time.Second*5,
+				time.Second*10,
 				time.Second,
 				"step2-scope-removed",
 			)
 		})
 
 		It("should clean up on deletion", func() {
-			k8sClient, err := utils.GetK8sClient()
-			Expect(err).To(Succeed())
+			k8sClient := Client
+			Expect(k8sClient).NotTo(BeNil())
 
-			const clientName = "ttd-localtestapp"
-			const clientNamespace = "default"
-			const secretName = "ttd-localtestapp-deployment-secrets"
+			ctx := context.Background()
 
 			By("deleting MaskinportenClient")
-			err = k8sClient.Delete().
+			err := k8sClient.CRD.Delete().
 				Resource("maskinportenclients").
 				Namespace(clientNamespace).
 				Name(clientName).
-				Do(context.Background()).
+				Do(ctx).
 				Error()
 			Expect(err).To(Succeed())
 
 			By("waiting for MaskinportenClient to be deleted")
 			EventuallyWithSnapshot(
 				createStateFetcher(k8sClient, clientName, secretName, clientNamespace),
+				FetchFakesDb,
 				stateIsDeleted,
 				time.Second*10,
 				time.Second,

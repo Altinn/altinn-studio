@@ -1,0 +1,42 @@
+
+[controller Operator should reconcile MaskinportenClient - 1]
+{
+ "apiVersion": "resources.altinn.studio/v1alpha1",
+ "kind": "MaskinportenClient",
+ "metadata": {
+  "creationTimestamp": "2024-01-01T00:00:00Z",
+  "finalizers": [
+   "client.altinn.operator/finalizer"
+  ],
+  "generation": 1,
+  "labels": {
+   "app": "ttd-localtestapp-deployment"
+  },
+  "name": "ttd-localtestapp",
+  "namespace": "default",
+  "resourceVersion": "<sanitized-resource-version>",
+  "uid": "<sanitized-uid>"
+ },
+ "spec": {
+  "scopes": [
+   "altinn:serviceowner/instances.read",
+   "altinn:serviceowner/instances.write"
+  ]
+ },
+ "status": {
+  "authority": "http://fakes:8050",
+  "clientId": "<sanitized-client-id>",
+  "keyIds": [
+   "<key-id-0>"
+  ],
+  "lastActions": [
+   "CreateClientInApiCommand",
+   "UpdateSecretContentCommand"
+  ],
+  "lastSynced": "2024-01-01T00:00:00Z",
+  "observedGeneration": 1,
+  "reason": "Reconciled 2 resources",
+  "state": "reconciled"
+ }
+}
+---

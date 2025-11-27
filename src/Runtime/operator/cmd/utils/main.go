@@ -104,11 +104,12 @@ func getToken() {
 	environment := operatorcontext.ResolveEnvironment("")
 
 	// Load configuration from env file
-	cfg, err := config.GetConfig(ctx, environment, envFile)
+	config, err := config.GetConfig(ctx, environment, envFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load config from %s: %v\n", envFile, err)
 		os.Exit(1)
 	}
+	configValue := config.Get()
 
 	// Create operator context
 	operatorCtx, err := operatorcontext.Discover(ctx, environment, nil)
@@ -120,16 +121,16 @@ func getToken() {
 	// Print configuration information if verbose
 	if verbose {
 		fmt.Fprintf(os.Stderr, "Configuration loaded from: %s\n", envFile)
-		fmt.Fprintf(os.Stderr, "Authority URL: %s\n", cfg.MaskinportenApi.AuthorityUrl)
-		fmt.Fprintf(os.Stderr, "Self Service URL: %s\n", cfg.MaskinportenApi.SelfServiceUrl)
-		fmt.Fprintf(os.Stderr, "Client ID: %s\n", cfg.MaskinportenApi.ClientId)
-		fmt.Fprintf(os.Stderr, "Scope: %s\n", cfg.MaskinportenApi.Scope)
+		fmt.Fprintf(os.Stderr, "Authority URL: %s\n", configValue.MaskinportenApi.AuthorityUrl)
+		fmt.Fprintf(os.Stderr, "Self Service URL: %s\n", configValue.MaskinportenApi.SelfServiceUrl)
+		fmt.Fprintf(os.Stderr, "Client ID: %s\n", configValue.MaskinportenApi.ClientId)
+		fmt.Fprintf(os.Stderr, "Scope: %s\n", configValue.MaskinportenApi.Scope)
 		fmt.Fprintf(os.Stderr, "---\n")
 	}
 
 	// Create HTTP API client
 	clock := clockwork.NewRealClock()
-	client, err := maskinporten.NewHttpApiClient(&cfg.MaskinportenApi, operatorCtx, clock)
+	client, err := maskinporten.NewHttpApiClient(config, operatorCtx, clock)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create Maskinporten client: %v\n", err)
 		os.Exit(1)
@@ -248,7 +249,7 @@ func setupMaskinportenClient(envFile string) (context.Context, *config.Config, *
 	ctx := context.Background()
 	environment := operatorcontext.ResolveEnvironment("")
 
-	cfg, err := config.GetConfig(ctx, environment, envFile)
+	config, err := config.GetConfig(ctx, environment, envFile)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to load config from %s: %w", envFile, err)
 	}
@@ -259,12 +260,12 @@ func setupMaskinportenClient(envFile string) (context.Context, *config.Config, *
 	}
 
 	clock := clockwork.NewRealClock()
-	client, err := maskinporten.NewHttpApiClient(&cfg.MaskinportenApi, operatorCtx, clock)
+	client, err := maskinporten.NewHttpApiClient(config, operatorCtx, clock)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to create Maskinporten client: %w", err)
 	}
 
-	return ctx, cfg, client, nil
+	return ctx, config.Get(), client, nil
 }
 
 func createJwk() {

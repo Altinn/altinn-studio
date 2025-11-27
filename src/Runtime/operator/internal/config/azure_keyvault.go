@@ -10,13 +10,60 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
-// loadSecretsFromKeyVault loads sensitive configuration (client_id, jwk) from Azure Key Vault
-// and overlays them onto the existing config. Other configuration values come from the config file.
-func loadSecretsFromKeyVault(ctx context.Context, environment string, cfg *Config) error {
+type azureKeyVaultClient struct {
+	tracer trace.Tracer
+	client *azsecrets.Client
+}
+
+// LoadSecrets loads sensitive configuration (client_id, jwk) from Azure Key Vault
+// and overlays them onto the provided config.
+func (a *azureKeyVaultClient) LoadSecrets(ctx context.Context, cfg *Config) error {
+	ctx, span := a.tracer.Start(ctx, "AzureKeyVaultClient.LoadSecrets")
+	defer span.End()
+
+	clientId, err := a.tryGetSecret(ctx, "MaskinportenApi--ClientId")
+	if err != nil {
+		return err
+	}
+	if clientId != "" {
+		cfg.MaskinportenApi.ClientId = clientId
+	}
+
+	jwk, err := a.tryGetSecret(ctx, "MaskinportenApi--Jwk")
+	if err != nil {
+		return err
+	}
+	if jwk != "" {
+		cfg.MaskinportenApi.Jwk = jwk
+	}
+
+	return nil
+}
+
+func (a *azureKeyVaultClient) tryGetSecret(ctx context.Context, name string) (string, error) {
+	ctx, span := a.tracer.Start(ctx, "AzureKeyVaultClient.tryGetSecret")
+	defer span.End()
+
+	secretResp, err := a.client.GetSecret(ctx, name, "", nil)
+	if err != nil {
+		if respErr, ok := err.(*azcore.ResponseError); ok {
+			if respErr.StatusCode == 404 || respErr.StatusCode == 204 {
+				return "", nil
+			}
+			return "", fmt.Errorf("error getting secret %s: %w", name, err)
+		}
+		return "", fmt.Errorf("error getting secret %s: %w", name, err)
+	}
+
+	return *secretResp.Value, nil
+}
+
+func NewAzureKeyVaultClient(ctx context.Context, environment string) (*azureKeyVaultClient, error) {
 	tracer := otel.Tracer(telemetry.ServiceName)
-	ctx, span := tracer.Start(ctx, "GetConfig.AzureKeyVault")
+	_, span := tracer.Start(ctx, "NewAzureKeyVaultClient")
 	defer span.End()
 
 	var cred azcore.TokenCredential
@@ -29,28 +76,17 @@ func loadSecretsFromKeyVault(ctx context.Context, environment string, cfg *Confi
 	}
 
 	if err != nil {
-		return fmt.Errorf("error getting credentials for loading secrets: %w", err)
+		return nil, fmt.Errorf("error getting credentials for Azure Key Vault: %w", err)
 	}
 
 	url := fmt.Sprintf("https://mpo-%s-kv.vault.azure.net/", environment)
 	client, err := azsecrets.NewClient(url, cred, nil)
 	if err != nil {
-		return fmt.Errorf("error building client for Azure KV: %w", err)
+		return nil, fmt.Errorf("error building client for Azure Key Vault: %w", err)
 	}
 
-	// Load client_id
-	clientIdSecret, err := client.GetSecret(ctx, "MaskinportenApi.ClientId", "", nil)
-	if err != nil {
-		return fmt.Errorf("error getting secret MaskinportenApi.ClientId: %w", err)
-	}
-	cfg.MaskinportenApi.ClientId = *clientIdSecret.Value
-
-	// Load jwk
-	jwkSecret, err := client.GetSecret(ctx, "MaskinportenApi.Jwk", "", nil)
-	if err != nil {
-		return fmt.Errorf("error getting secret MaskinportenApi.Jwk: %w", err)
-	}
-	cfg.MaskinportenApi.Jwk = *jwkSecret.Value
-
-	return nil
+	return &azureKeyVaultClient{
+		tracer: tracer,
+		client: client,
+	}, nil
 }

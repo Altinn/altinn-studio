@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
+	"altinn.studio/operator/internal/config"
 	. "github.com/onsi/ginkgo/v2" //nolint:golint,revive
 	"golang.org/x/exp/rand"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -23,7 +24,7 @@ import (
 func Run(cmd *exec.Cmd, dir string) ([]byte, error) {
 	var err error
 	if dir == "" {
-		dir, err = GetProjectDir()
+		dir, err = config.TryFindProjectRootByGoMod()
 		if err != nil {
 			return nil, err
 		}
@@ -59,38 +60,21 @@ func GetNonEmptyLines(output string) []string {
 	return res
 }
 
-// GetProjectDir will return the directory where the project is
-func GetProjectDir() (string, error) {
-	for {
-		if _, err := os.Stat("go.mod"); err == nil {
-			if wd, err := os.Getwd(); err != nil {
-				return "", err
-			} else {
-				return wd, nil
-			}
-		}
-
-		if err := os.Chdir(".."); err != nil {
-			return "", err
-		}
-	}
+// K8sClient provides REST clients for both CRDs and core resources
+type K8sClient struct {
+	CRD  *rest.RESTClient
+	Core *rest.RESTClient
 }
 
-var k8sClient *rest.RESTClient
+// CreateK8sClient returns a client configured for the specified kubectl context.
+// contextName should be the kind cluster context (e.g., "kind-runtime-fixture-kind-standard").
+func CreateK8sClient(contextName string) (*K8sClient, error) {
+	kubeconfig := filepath.Join(homedir.HomeDir(), ".kube", "config")
 
-// GetK8sClient will construct a k8s API client
-func GetK8sClient() (*rest.RESTClient, error) {
-	if k8sClient != nil {
-		return k8sClient, nil
-	}
-
-	home := homedir.HomeDir()
-	if home == "" {
-		return nil, fmt.Errorf("Could not get KUBECONFIG")
-	}
-	kubeconfig := filepath.Join(home, ".kube", "config")
-
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfig},
+		&clientcmd.ConfigOverrides{CurrentContext: contextName},
+	).ClientConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -100,21 +84,36 @@ func GetK8sClient() (*rest.RESTClient, error) {
 		return nil, err
 	}
 
+	codecFactory := serializer.NewCodecFactory(scheme.Scheme)
+
+	// CRD client
 	crdConfig := *config
 	crdConfig.ContentConfig.GroupVersion = &schema.GroupVersion{
 		Group:   resourcesv1alpha1.GroupVersion.Group,
 		Version: resourcesv1alpha1.GroupVersion.Version,
 	}
 	crdConfig.APIPath = "/apis"
-	crdConfig.NegotiatedSerializer = serializer.NewCodecFactory(scheme.Scheme)
+	crdConfig.NegotiatedSerializer = codecFactory
 	crdConfig.UserAgent = rest.DefaultKubernetesUserAgent()
 
-	k8sClient, err = rest.UnversionedRESTClientFor(&crdConfig)
+	crdClient, err := rest.UnversionedRESTClientFor(&crdConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	return k8sClient, nil
+	// Core client
+	coreConfig := *config
+	coreConfig.ContentConfig.GroupVersion = &schema.GroupVersion{Group: "", Version: "v1"}
+	coreConfig.APIPath = "/api"
+	coreConfig.NegotiatedSerializer = codecFactory
+	coreConfig.UserAgent = rest.DefaultKubernetesUserAgent()
+
+	coreClient, err := rest.UnversionedRESTClientFor(&coreConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return &K8sClient{CRD: crdClient, Core: coreClient}, nil
 }
 
 type deterministicRand struct {

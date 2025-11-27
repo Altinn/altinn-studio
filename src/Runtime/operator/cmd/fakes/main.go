@@ -42,10 +42,10 @@ func main() {
 	var wg sync.WaitGroup
 
 	environment := operatorcontext.ResolveEnvironment("")
-	cfg := config.GetConfigOrDie(ctx, environment, "")
+	monitor := config.GetConfigOrDie(ctx, environment, "")
 	_ = operatorcontext.DiscoverOrDie(ctx, environment, nil)
 
-	state := fakes.NewState(cfg)
+	state := fakes.NewState(monitor.Get())
 	ctx = context.WithValue(ctx, StateKey, state)
 
 	wg.Add(3)
@@ -130,7 +130,7 @@ func runMaskinportenApi(ctx context.Context, wg *sync.WaitGroup) {
 				return
 			}
 
-			clients := state.GetDb(r).Query(func(ocr *fakes.ClientRecord) bool {
+			clients := state.GetDb().Query(func(ocr *fakes.ClientRecord) bool {
 				if ocr.Jwks == nil {
 					return false
 				}
@@ -258,7 +258,7 @@ func selfServiceAuth(r *http.Request) *FakeToken {
 	return &token
 }
 
-func handleDumpPlease(w http.ResponseWriter, r *http.Request) {
+func handleTestDump(w http.ResponseWriter, r *http.Request) {
 	state := r.Context().Value(StateKey).(*fakes.State)
 	assert.Assert(state != nil)
 
@@ -269,6 +269,21 @@ func handleDumpPlease(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 		log.Printf("couldn't write response: %v\n", errors.Wrap(err, 0))
 	}
+}
+
+func handleTestReset(w http.ResponseWriter, r *http.Request) {
+	if r.Method != POST {
+		w.WriteHeader(405)
+		return
+	}
+
+	state := r.Context().Value(StateKey).(*fakes.State)
+	assert.Assert(state != nil)
+
+	// Clear all state to ensure deterministic test runs
+	state.Reset()
+
+	w.WriteHeader(200)
 }
 
 func handleClients(w http.ResponseWriter, r *http.Request) {
@@ -284,7 +299,7 @@ func handleClients(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Add("Content-Type", "application/json")
 		encoder := json.NewEncoder(w)
-		records := state.GetDb(r).Clients
+		records := state.GetDb().Clients
 		clients := make([]*maskinporten.ClientResponse, len(records))
 		for i, record := range records {
 			clients[i] = record.Client
@@ -316,7 +331,7 @@ func handleClients(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		clientRecord, err := state.GetDb(r).Insert(&client, nil, "")
+		clientRecord, err := state.GetDb().Insert(&client, nil, "")
 		if err != nil {
 			w.WriteHeader(400)
 			log.Printf("couldn't insert client: %v\n", errors.Wrap(err, 0))
@@ -356,7 +371,7 @@ func handleClientByID(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		clientRecord := state.GetDb(r).Get(clientId)
+		clientRecord := state.GetDb().Get(clientId)
 		if clientRecord == nil {
 			w.WriteHeader(404)
 			return
@@ -389,7 +404,7 @@ func handleClientByID(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		deleted := state.GetDb(r).Delete(clientId)
+		deleted := state.GetDb().Delete(clientId)
 		if !deleted {
 			w.WriteHeader(400)
 			log.Printf(
@@ -422,7 +437,7 @@ func handleClientByID(w http.ResponseWriter, r *http.Request) {
 			SsoDisabled:                       client.SsoDisabled,
 			CodeChallengeMethod:               client.CodeChallengeMethod,
 		}
-		updatedRecord, err := state.GetDb(r).Insert(addReq, nil, clientId)
+		updatedRecord, err := state.GetDb().Insert(addReq, nil, clientId)
 		if err != nil {
 			w.WriteHeader(400)
 			log.Printf("couldn't insert client: %v\n", errors.Wrap(err, 0))
@@ -443,6 +458,13 @@ func handleClientByID(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(401)
 			return
 		}
+
+		deleted := state.GetDb().Delete(clientId)
+		if !deleted {
+			w.WriteHeader(404)
+			return
+		}
+		w.WriteHeader(200)
 
 	default:
 		if selfServiceAuth(r) == nil {
@@ -468,7 +490,7 @@ func handleClientJwks(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Add("Content-Type", "application/json")
 
-		clientRecord := state.GetDb(r).Get(clientId)
+		clientRecord := state.GetDb().Get(clientId)
 		if clientRecord == nil {
 			w.WriteHeader(404)
 			return
@@ -496,7 +518,7 @@ func handleClientJwks(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err = state.GetDb(r).UpdateJwks(clientId, &jwks)
+		err = state.GetDb().UpdateJwks(clientId, &jwks)
 		if err != nil {
 			w.WriteHeader(400)
 			log.Printf("couldn't update JWKS: %v\n", errors.Wrap(err, 0))
@@ -519,7 +541,8 @@ func runSelfServiceApi(ctx context.Context, wg *sync.WaitGroup) {
 	addr := ":8051"
 
 	serve(ctx, name, addr, func(mux *http.ServeMux) {
-		mux.HandleFunc("/dump/please", handleDumpPlease)
+		mux.HandleFunc("/test/dump", handleTestDump)
+		mux.HandleFunc("/test/reset", handleTestReset)
 		mux.HandleFunc("/api/v1/altinn/admin/clients", handleClients)
 		mux.HandleFunc("/api/v1/altinn/admin/clients/{clientId}", handleClientByID)
 		mux.HandleFunc("/api/v1/altinn/admin/clients/{clientId}/jwks", handleClientJwks)
@@ -545,7 +568,7 @@ func handleOrgRegistry(w http.ResponseWriter, r *http.Request) {
 	fakeOrgs := map[string]orgs.Org{
 		"ttd": {
 			Name:  orgs.OrgName{En: "Test Department", Nb: "Testdepartementet", Nn: "Testdepartementet"},
-			OrgNr: "991825827",
+			OrgNr: "405003309",
 		},
 		"digdir": {
 			Name:  orgs.OrgName{En: "Norwegian Digitalisation Agency", Nb: "Digitaliseringsdirektoratet", Nn: "Digitaliseringsdirektoratet"},

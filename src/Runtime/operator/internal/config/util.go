@@ -4,38 +4,41 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
-func TryFindProjectRoot() string {
-	for {
-		if fileExists("./go.mod") || fileExists("./*.env") {
-			currentDir, err := os.Getwd()
-			if err != nil {
-				return ""
+var projectRoot string
+var projectRootError error
+var once sync.Once
+
+func TryFindProjectRootByGoMod() (string, error) {
+	tryFindProjectRoot := func() (string, error) {
+		basePath, err := os.Getwd()
+		if err != nil {
+			return "", fmt.Errorf("error getting project root: %w", err)
+		}
+
+		for range 100 {
+			goModPath := filepath.Join(basePath, "go.mod")
+			_, err := os.Stat(goModPath)
+			if err == nil {
+				return basePath, nil
+			} else if !os.IsNotExist(err) {
+				return "", fmt.Errorf("error getting project root: %w", err)
 			}
-			return currentDir
+
+			parentPath := filepath.Dir(basePath)
+			if parentPath == basePath {
+				return "", fmt.Errorf("error getting project root: reached root of file system")
+			}
+			basePath = parentPath
 		}
 
-		if err := os.Chdir(".."); err != nil {
-			return ""
-		}
-	}
-}
-
-func fileExists(pattern string) bool {
-	matches, err := filepath.Glob(pattern)
-	if err != nil {
-		return false
+		return "", fmt.Errorf("error getting project root, reached max directory traversal")
 	}
 
-	return len(matches) > 0
-}
-
-func GetConfigFilePathForEnv(env string) string {
-	rootDir := TryFindProjectRoot()
-	if rootDir == "" {
-		return ""
-	}
-
-	return filepath.Join(rootDir, fmt.Sprintf("%s.env", env))
+	once.Do(func() {
+		projectRoot, projectRootError = tryFindProjectRoot()
+	})
+	return projectRoot, projectRootError
 }

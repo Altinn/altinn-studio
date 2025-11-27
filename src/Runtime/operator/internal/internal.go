@@ -19,7 +19,7 @@ import (
 )
 
 type runtime struct {
-	config                config.Config
+	config                *config.ConfigMonitor
 	operatorContext       operatorcontext.Context
 	crypto                crypto.CryptoService
 	maskinportenApiClient *maskinporten.HttpApiClient
@@ -44,19 +44,21 @@ func NewRuntime(ctx context.Context, env string, log *logr.Logger) (rt.Runtime, 
 		)
 	}
 
-	cfg, err := config.GetConfig(ctx, environment, "")
+	config, err := config.GetConfig(ctx, environment, "")
 	if err != nil {
 		return nil, err
 	}
 
+	configValue := config.Get()
+
 	if log != nil {
 		log.Info(
 			"Starting runtime - configuration loaded",
-			"Config", cfg.SafeLogValue(),
+			"Config", configValue.SafeLogValue(),
 		)
 	}
 
-	orgRegistry, err := orgs.NewOrgRegistry(ctx, cfg.OrgRegistry.URL)
+	orgRegistry, err := orgs.NewOrgRegistry(ctx, configValue.OrgRegistry.URL)
 	if err != nil {
 		return nil, err
 	}
@@ -86,13 +88,13 @@ func NewRuntime(ctx context.Context, env string, log *logr.Logger) (rt.Runtime, 
 		cryptoRand,
 	)
 
-	maskinportenApiClient, err := maskinporten.NewHttpApiClient(&cfg.MaskinportenApi, operatorContext, clock)
+	maskinportenApiClient, err := maskinporten.NewHttpApiClient(config, operatorContext, clock)
 	if err != nil {
 		return nil, err
 	}
 
 	rt := &runtime{
-		config:                *cfg,
+		config:                config,
 		operatorContext:       *operatorContext,
 		crypto:                *crypto,
 		maskinportenApiClient: maskinportenApiClient,
@@ -104,8 +106,8 @@ func NewRuntime(ctx context.Context, env string, log *logr.Logger) (rt.Runtime, 
 	return rt, nil
 }
 
-func (r *runtime) GetConfig() *config.Config {
-	return &r.config
+func (r *runtime) GetConfigMonitor() *config.ConfigMonitor {
+	return r.config
 }
 
 func (r *runtime) GetOperatorContext() *operatorcontext.Context {

@@ -27,14 +27,19 @@ type testApi struct {
 func getMaskinportenApiFixture(
 	g *gomega.WithT,
 	generateApis func(cfg *config.Config) (apis []testApi),
-) (*httptest.Server, *config.Config, *operatorcontext.Context) {
+) (*httptest.Server, *config.ConfigMonitor, *operatorcontext.Context) {
 	ctx := context.Background()
 	environment := operatorcontext.EnvironmentLocal
-	cfg := config.GetConfigOrDie(ctx, environment, "")
+	configMonitor := config.GetConfigOrDie(ctx, environment, "")
+	configValue := configMonitor.Get()
 	operatorContext := operatorcontext.DiscoverOrDie(ctx, environment, nil)
 
+	// Create modified config that will be updated with the server URL
+	modifiedConfigValue := *configValue
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		apis := generateApis(cfg)
+		// Use the modified config which has the test server URL
+		apis := generateApis(&modifiedConfigValue)
 		for _, api := range apis {
 			if api.path != r.URL.Path {
 				continue
@@ -52,8 +57,11 @@ func getMaskinportenApiFixture(
 		w.WriteHeader(http.StatusNotFound)
 	}))
 
-	cfg.MaskinportenApi.AuthorityUrl = server.URL
-	return server, cfg, operatorContext
+	// Update the modified config with the test server URL
+	modifiedConfigValue.MaskinportenApi.AuthorityUrl = server.URL
+	testConfigMonitor := config.NewConfigMonitorForTesting(&modifiedConfigValue)
+
+	return server, testConfigMonitor, operatorContext
 }
 
 func okWellKnownHandler(g *gomega.WithT, cfg *config.Config) testApi {
@@ -74,7 +82,7 @@ func okWellKnownHandler(g *gomega.WithT, cfg *config.Config) testApi {
 func getMaskinportenApiWellKnownFixture(
 	g *gomega.WithT,
 	statusCode int,
-) (*httptest.Server, *config.Config, *operatorcontext.Context) {
+) (*httptest.Server, *config.ConfigMonitor, *operatorcontext.Context) {
 	return getMaskinportenApiFixture(
 		g,
 		func(cfg *config.Config) (apis []testApi) {
@@ -97,8 +105,8 @@ func TestFixtureIsNotRemote(t *testing.T) {
 	server, configAfter, _ := getMaskinportenApiWellKnownFixture(g, http.StatusOK)
 	defer server.Close()
 
-	g.Expect(configAfter.MaskinportenApi.AuthorityUrl).NotTo(Equal(configBefore.MaskinportenApi.AuthorityUrl))
-	g.Expect(configAfter.MaskinportenApi.AuthorityUrl).To(ContainSubstring("http://127.0.0.1"))
+	g.Expect(configAfter.Get().MaskinportenApi.AuthorityUrl).NotTo(Equal(configBefore.Get().MaskinportenApi.AuthorityUrl))
+	g.Expect(configAfter.Get().MaskinportenApi.AuthorityUrl).To(ContainSubstring("http://127.0.0.1"))
 }
 
 func TestWellKnownConfigOk(t *testing.T) {
@@ -106,18 +114,18 @@ func TestWellKnownConfigOk(t *testing.T) {
 	ctx := context.Background()
 	clock := clockwork.NewFakeClock()
 
-	server, cfg, opCtx := getMaskinportenApiWellKnownFixture(g, http.StatusOK)
+	server, config, opCtx := getMaskinportenApiWellKnownFixture(g, http.StatusOK)
 	defer server.Close()
 
-	apiClient, err := NewHttpApiClient(&cfg.MaskinportenApi, opCtx, clock)
+	apiClient, err := NewHttpApiClient(config, opCtx, clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	config, err := apiClient.GetWellKnownConfiguration(ctx)
+	cfg, err := apiClient.GetWellKnownConfiguration(ctx)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(config).NotTo(BeNil())
-	tokenEndpoint, err := url.JoinPath(cfg.MaskinportenApi.AuthorityUrl, "/token")
+	g.Expect(cfg).NotTo(BeNil())
+	tokenEndpoint, err := url.JoinPath(config.Get().MaskinportenApi.AuthorityUrl, "/token")
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(config.TokenEndpoint).To(Equal(tokenEndpoint))
+	g.Expect(cfg.TokenEndpoint).To(Equal(tokenEndpoint))
 }
 
 func TestWellKnownConfigNotFound(t *testing.T) {
@@ -125,15 +133,15 @@ func TestWellKnownConfigNotFound(t *testing.T) {
 	ctx := context.Background()
 	clock := clockwork.NewFakeClock()
 
-	server, cfg, opCtx := getMaskinportenApiWellKnownFixture(g, http.StatusNotFound)
+	server, config, opCtx := getMaskinportenApiWellKnownFixture(g, http.StatusNotFound)
 	defer server.Close()
 
-	apiClient, err := NewHttpApiClient(&cfg.MaskinportenApi, opCtx, clock)
+	apiClient, err := NewHttpApiClient(config, opCtx, clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	config, err := apiClient.GetWellKnownConfiguration(ctx)
+	cfg, err := apiClient.GetWellKnownConfiguration(ctx)
 	g.Expect(err).To(HaveOccurred())
-	g.Expect(config).To(BeNil())
+	g.Expect(cfg).To(BeNil())
 }
 
 func TestWellKnownConfigCaches(t *testing.T) {
@@ -141,10 +149,10 @@ func TestWellKnownConfigCaches(t *testing.T) {
 	ctx := context.Background()
 	clock := clockwork.NewFakeClock()
 
-	server, cfg, opCtx := getMaskinportenApiWellKnownFixture(g, http.StatusOK)
+	server, config, opCtx := getMaskinportenApiWellKnownFixture(g, http.StatusOK)
 	defer server.Close()
 
-	apiClient, err := NewHttpApiClient(&cfg.MaskinportenApi, opCtx, clock)
+	apiClient, err := NewHttpApiClient(config, opCtx, clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	config1, err := apiClient.GetWellKnownConfiguration(ctx)
@@ -171,10 +179,10 @@ func TestCreateGrant(t *testing.T) {
 	ctx := context.Background()
 	clock := clockwork.NewFakeClock()
 
-	server, cfg, opCtx := getMaskinportenApiWellKnownFixture(g, http.StatusOK)
+	server, config, opCtx := getMaskinportenApiWellKnownFixture(g, http.StatusOK)
 	defer server.Close()
 
-	client, err := NewHttpApiClient(&cfg.MaskinportenApi, opCtx, clock)
+	client, err := NewHttpApiClient(config, opCtx, clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	grant, err := client.createGrant(ctx)
@@ -185,10 +193,10 @@ func TestCreateGrant(t *testing.T) {
 func getMaskinportenApiAccessTokenFixture(
 	g *gomega.WithT,
 	statusCode int,
-) (*httptest.Server, *config.Config, *operatorcontext.Context, string) {
+) (*httptest.Server, *config.ConfigMonitor, *operatorcontext.Context, string) {
 	accessToken := uuid.NewString()
 
-	server, cfg, opCtx := getMaskinportenApiFixture(
+	server, config, opCtx := getMaskinportenApiFixture(
 		g,
 		func(cfg *config.Config) (apis []testApi) {
 			var body string
@@ -205,7 +213,7 @@ func getMaskinportenApiAccessTokenFixture(
 		},
 	)
 
-	return server, cfg, opCtx, accessToken
+	return server, config, opCtx, accessToken
 }
 
 func TestFetchAccessToken(t *testing.T) {
@@ -213,10 +221,10 @@ func TestFetchAccessToken(t *testing.T) {
 	ctx := context.Background()
 	clock := clockwork.NewFakeClock()
 
-	server, cfg, opCtx, accessToken := getMaskinportenApiAccessTokenFixture(g, http.StatusOK)
+	server, config, opCtx, accessToken := getMaskinportenApiAccessTokenFixture(g, http.StatusOK)
 	defer server.Close()
 
-	client, err := NewHttpApiClient(&cfg.MaskinportenApi, opCtx, clock)
+	client, err := NewHttpApiClient(config, opCtx, clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	token, err := client.accessTokenFetcher(ctx)
@@ -232,9 +240,9 @@ func TestFetchAccessTokenReal(t *testing.T) {
 	clock := clockwork.NewFakeClock()
 
 	environment := operatorcontext.EnvironmentLocal
-	cfg := config.GetConfigOrDie(ctx, environment, "")
+	config := config.GetConfigOrDie(ctx, environment, "")
 	operatorContext := operatorcontext.DiscoverOrDie(ctx, environment, nil)
-	client, err := NewHttpApiClient(&cfg.MaskinportenApi, operatorContext, clock)
+	client, err := NewHttpApiClient(config, operatorContext, clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	tokenResponse, err := client.accessTokenFetcher(ctx)

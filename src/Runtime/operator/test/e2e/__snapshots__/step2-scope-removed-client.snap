@@ -1,0 +1,40 @@
+
+[controller Operator should handle scope removal - 1]
+{
+ "apiVersion": "resources.altinn.studio/v1alpha1",
+ "kind": "MaskinportenClient",
+ "metadata": {
+  "creationTimestamp": "2024-01-01T00:00:00Z",
+  "finalizers": [
+   "client.altinn.operator/finalizer"
+  ],
+  "generation": 2,
+  "labels": {
+   "app": "ttd-localtestapp-deployment"
+  },
+  "name": "ttd-localtestapp",
+  "namespace": "default",
+  "resourceVersion": "<sanitized-resource-version>",
+  "uid": "<sanitized-uid>"
+ },
+ "spec": {
+  "scopes": [
+   "altinn:serviceowner/instances.read"
+  ]
+ },
+ "status": {
+  "authority": "http://fakes:8050",
+  "clientId": "<sanitized-client-id>",
+  "keyIds": [
+   "<key-id-0>"
+  ],
+  "lastActions": [
+   "UpdateClientInApiCommand"
+  ],
+  "lastSynced": "2024-01-01T00:00:00Z",
+  "observedGeneration": 2,
+  "reason": "Reconciled 1 resources",
+  "state": "reconciled"
+ }
+}
+---

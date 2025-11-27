@@ -34,5 +34,6 @@ WORKDIR /
 COPY --from=builder /workspace/fakes .
 COPY --from=builder /workspace/localtest.env .
 USER 65532:65532
+ENV OPERATOR_CONFIG_FILE=/localtest.env
 
 ENTRYPOINT ["/fakes"]
