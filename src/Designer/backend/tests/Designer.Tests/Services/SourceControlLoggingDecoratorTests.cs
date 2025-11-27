@@ -25,9 +25,9 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
         var loggerMock = new Mock<ILogger<SourceControlLoggingDecorator>>();
         var loggerFactoryMock = new Mock<ILoggerFactory>();
         loggerFactoryMock.Setup(f => f.CreateLogger(It.IsAny<string>())).Returns(loggerMock.Object);
-        var serviceProvider = GetServiceProvider(loggerFactoryMock);
+        IServiceProvider serviceProvider = GetServiceProvider(loggerFactoryMock);
 
-        var service = serviceProvider.GetService<ISourceControl>();
+        ISourceControl service = serviceProvider.GetService<ISourceControl>();
 
         Assert.IsType<SourceControlLoggingDecorator>(service);
     }
@@ -325,7 +325,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
         // Since the system under test is a logging decorator class, we
         // want to make sure it actually logs and that it doesn't crash
         // while collecting additional information to put in the logs.
-        var loggerMock = new Mock<ILogger<SourceControlLoggingDecorator>>();
+        Mock<ILogger<SourceControlLoggingDecorator>> loggerMock = new();
         loggerMock
             .Setup(l => l.Log(
             It.Is<LogLevel>(l => l == LogLevel.Error),
@@ -335,10 +335,10 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
             It.Is<Func<It.IsAnyType, Exception, string>>((v, t) => true)))
             .Verifiable();
 
-        var loggerFactoryMock = new Mock<ILoggerFactory>();
+        Mock<ILoggerFactory> loggerFactoryMock = new();
         loggerFactoryMock.Setup(f => f.CreateLogger(It.IsAny<string>())).Returns(loggerMock.Object);
-        var serviceProvider = GetServiceProvider(loggerFactoryMock);
-        var service = serviceProvider.GetService<ISourceControl>();
+        IServiceProvider serviceProvider = GetServiceProvider(loggerFactoryMock);
+        ISourceControl service = serviceProvider.GetService<ISourceControl>();
 
         return (service, loggerMock);
     }
@@ -352,7 +352,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
         Environment.SetEnvironmentVariable("OidcLoginSettings__ClientId", "test");
         Environment.SetEnvironmentVariable("OidcLoginSettings__ClientSecret", "test");
 
-        var services = _webApplicationFactory.WithWebHostBuilder(builder =>
+        IServiceProvider services = _webApplicationFactory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureTestServices(services =>
             {
