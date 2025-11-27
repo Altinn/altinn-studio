@@ -10,10 +10,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.SharedContent;
 using Azure;
-using Azure.Identity;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
 
@@ -25,6 +25,7 @@ public class AzureSharedContentClient : ISharedContentClient
     private readonly ILogger<AzureSharedContentClient> _logger;
     private readonly SharedContentClientSettings _sharedContentClientSettings;
     private readonly string _sharedContentBaseUri;
+    private readonly IBlobContainerClientFactory _blobContainerClientFactory;
 
     private const string InitialVersion = "1";
     private const string CodeListsSegment = "code_lists";
@@ -43,11 +44,16 @@ public class AzureSharedContentClient : ISharedContentClient
         AllowTrailingCommas = true
     };
 
-    public AzureSharedContentClient(HttpClient httpClient, ILogger<AzureSharedContentClient> logger, SharedContentClientSettings sharedContentClientSettings)
+    public AzureSharedContentClient(
+        HttpClient httpClient,
+        ILogger<AzureSharedContentClient> logger,
+        SharedContentClientSettings sharedContentClientSettings,
+        IBlobContainerClientFactory blobContainerClientFactory)
     {
         _httpClient = httpClient;
         _logger = logger;
         _sharedContentClientSettings = sharedContentClientSettings;
+        _blobContainerClientFactory = blobContainerClientFactory;
 
         string storageAccountUrl = sharedContentClientSettings.StorageAccountUrl;
         string storageContainerName = sharedContentClientSettings.StorageContainerName;
@@ -59,9 +65,9 @@ public class AzureSharedContentClient : ISharedContentClient
         _sharedContentBaseUri = CombineWithDelimiter(storageAccountUrl, storageContainerName);
     }
 
-    public async Task PublishCodeList(string orgName, string codeListId, CodeList codeList, CancellationToken cancellationToken = default)
+    public async Task<string> PublishCodeList(string orgName, string codeListId, CodeList codeList, CancellationToken cancellationToken = default)
     {
-        BlobContainerClient containerClient = GetContainerClient();
+        BlobContainerClient containerClient = _blobContainerClientFactory.GetContainerClient();
         await ThrowIfUnhealthy(containerClient, cancellationToken);
 
         string resourceTypeIndexPrefix = orgName;
@@ -78,6 +84,7 @@ public class AzureSharedContentClient : ISharedContentClient
         CreateCodeListFiles(codeList, codeListFolderPath, versionIndexPrefix);
 
         await UploadBlobs(containerClient, cancellationToken);
+        return CurrentVersion;
     }
 
     internal async Task PrepareOrganisationIndexFile(string orgName, CancellationToken cancellationToken = default)
@@ -300,13 +307,5 @@ public class AzureSharedContentClient : ISharedContentClient
 
         int version = versions.Max();
         CurrentVersion = (version + 1).ToString();
-    }
-
-    private BlobContainerClient GetContainerClient()
-    {
-        string storageContainerName = _sharedContentClientSettings.StorageContainerName;
-        string storageAccountUrl = _sharedContentClientSettings.StorageAccountUrl;
-        BlobServiceClient blobServiceClient = new(new Uri(storageAccountUrl), new DefaultAzureCredential());
-        return blobServiceClient.GetBlobContainerClient(storageContainerName);
     }
 }

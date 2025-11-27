@@ -125,18 +125,22 @@ public class OrgCodeListController : ControllerBase
     /// <param name="requestBody">The publish request containing the code list title and data.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(PublishedVersionResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [Route("new/publish")]
     [Authorize(Policy = AltinnPolicy.MustBelongToOrganization)]
-    public async Task<ActionResult> PublishCodeList(string org, [FromBody] PublishCodeListRequest requestBody, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<PublishedVersionResponse>> PublishCodeList(string org, [FromBody] PublishCodeListRequest requestBody, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         try
         {
-            await _orgCodeListService.PublishCodeList(org, requestBody, cancellationToken);
-            return Ok();
+            string publishedVersion = await _orgCodeListService.PublishCodeList(org, requestBody, cancellationToken);
+            PublishedVersionResponse response = new()
+            {
+                PublishedVersion = publishedVersion
+            };
+            return Ok(response);
         }
         catch (Exception ex) when (ex is ArgumentException or IllegalCodeListTitleException or ArgumentNullException)
         {
