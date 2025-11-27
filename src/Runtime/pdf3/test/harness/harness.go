@@ -165,11 +165,6 @@ func RequestNewPDFWithTestInput(t *testing.T, req *types.PdfRequest, testInput *
 	return RequestPDFWithHost(t, req, "pdf3-proxy.runtime-pdf3.svc.cluster.local", testInput)
 }
 
-// requestOldPDF sends a PDF generation request to the old PDF generator solution
-func RequestOldPDF(t *testing.T, req *types.PdfRequest) (*PdfResponse, error) {
-	return RequestPDFWithHost(t, req, "pdf-generator.pdf.svc.cluster.local", nil)
-}
-
 // requestPDF sends a PDF generation request to the proxy
 func RequestPDFWithHost(t *testing.T, req *types.PdfRequest, overrideHost string, testInput *ptesting.PdfInternalsTestInput) (*PdfResponse, error) {
 	reqBody, err := json.Marshal(req)
@@ -280,6 +275,7 @@ func FindProjectRoot() (string, error) {
 // SetupCluster starts the Kind container runtime with all dependencies
 func SetupCluster(
 	variant kind.KindContainerRuntimeVariant,
+	options kind.KindContainerRuntimeOptions,
 	registryStartedEvent chan<- error,
 	ingressReadyEvent chan<- error,
 ) (*kind.KindContainerRuntime, error) {
@@ -296,7 +292,7 @@ func SetupCluster(
 	absoluteCachePath := filepath.Join(projectRoot, cachePath)
 
 	// Create Kind container runtime
-	Runtime, err = kind.New(variant, absoluteCachePath)
+	Runtime, err = kind.New(variant, absoluteCachePath, options)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kind runtime: %w", err)
 	}
