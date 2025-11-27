@@ -347,7 +347,7 @@ public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceCont
     {
         HttpContext httpContext = new DefaultHttpContext();
 
-        Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+        Mock<IHttpContextAccessor> httpContextAccessorMock = new();
         httpContextAccessorMock.Setup(s => s.HttpContext).Returns(httpContext);
         Environment.SetEnvironmentVariable("OidcLoginSettings__ClientId", "test");
         Environment.SetEnvironmentVariable("OidcLoginSettings__ClientSecret", "test");
