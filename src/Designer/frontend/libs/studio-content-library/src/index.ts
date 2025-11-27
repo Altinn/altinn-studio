@@ -4,10 +4,11 @@ export type {
   CodeListWithMetadata,
   CodeListIdSource,
   CodeListReference,
-} from './ContentLibrary/LibraryBody/pages';
+} from './pages/CodeListsWithTextResources/CodeListsWithTextResourcesPage';
 export type { TextResource } from './types/TextResource';
 export type { TextResourceWithLanguage } from './types/TextResourceWithLanguage';
 export type { TextResources } from './types/TextResources';
 export type { PagesConfig } from './types/PagesProps';
 export { CodeListUsageTaskType } from './types/CodeListUsageTaskType';
 export type { CodeListDataWithTextResources } from './types/CodeListDataWithTextResources';
+export type { CodeListData } from './types/CodeListData';

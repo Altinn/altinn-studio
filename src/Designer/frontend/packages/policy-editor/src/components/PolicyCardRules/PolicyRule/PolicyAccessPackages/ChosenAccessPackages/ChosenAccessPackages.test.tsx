@@ -42,7 +42,7 @@ const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
     name: 'Area 1',
     urn: 'urn:area1',
     description: '',
-    icon: '',
+    iconUrl: '',
     packages: [package1, package2],
   },
   {
@@ -50,7 +50,7 @@ const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
     name: 'Area 2',
     urn: 'urn:area2',
     description: '',
-    icon: '',
+    iconUrl: '',
     packages: [package3],
   },
 ];

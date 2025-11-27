@@ -1,3 +1,4 @@
 .wrapper {
   margin-inline: var(--ds-size-5);
+  border-color: var(--ds-color-neutral-border-subtle);
 }

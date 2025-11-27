@@ -3,6 +3,7 @@
   "extends": ["local>Altinn/renovate-config", ":prHourlyLimit4"],
   "separateMinorPatch": true,
   "separateMultipleMajor": true,
+  "prCreation": "not-pending",
   "packageRules": [
     {
       "groupName": "LibGit2Sharp dependency",
@@ -27,6 +28,11 @@
       "matchFileNames": ["src/Runtime/localtest/**"],
       "additionalBranchPrefix": "localtest/",
       "commitMessageSuffix": " (localtest)"
+    },
+    {
+      "matchFileNames": ["src/Runtime/pdf3/**"],
+      "additionalBranchPrefix": "pdf3/",
+      "commitMessageSuffix": " (pdf3)"
     },
     {
       "matchFileNames": ["src/App/**"],
@@ -91,5 +97,5 @@
       "versioningTemplate": "semver"
     }
   ],
-  "schedule": ["before 07:00 on Monday"]
+  "schedule": []
 }

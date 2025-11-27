@@ -161,8 +161,7 @@ function localLogin({ authenticationLevel, appName, ...rest }: LocalLoginParams)
       });
   }
 
-  cy.findByRole('combobox', { name: /select app to test/i })
-    .select(`ttd/${appName}`);
+  cy.findByRole('combobox', { name: /select app to test/i }).select(`ttd/${appName}`);
 
   cy.findByRole('combobox', { name: /authentication level/i })
     .should('exist')

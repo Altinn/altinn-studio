@@ -335,7 +335,7 @@ describe('StudioInputTable', () => {
             renderSingleNumberfieldCell({
               label: 'test',
               onChange: (value: number) =>
-                onChange({ target: { value } } as unknown as FormEvent<HTMLInputElement>),
+                onChange?.({ target: { value } } as unknown as FormEvent<HTMLInputElement>),
             }),
           action: (user) => user.type(screen.getByRole('textbox'), '1'),
         },

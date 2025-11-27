@@ -1,7 +1,6 @@
 .root {
   display: flex;
   flex-direction: column;
-  gap: var(--studio-legacy-property-fieldset-spacing);
 }
 
 .id {

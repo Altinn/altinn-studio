@@ -39,16 +39,15 @@ describe('TextResourceValueEditor', () => {
   it('Displays textbox with given value', async () => {
     renderTextResource({}, textResources);
 
-    const textboxLabel = textMock('ux_editor.text_resource_binding_text');
-
-    const textbox = screen.getByRole('textbox', { name: textboxLabel });
+    const textbox = screen.getByRole('textbox');
     expect(textbox).toHaveValue(textResources[0].value);
   });
 
   it('Calls onTextChange when value is changed', async () => {
     renderTextResource({}, textResources);
-    const textboxLabel = textMock('ux_editor.text_resource_binding_text');
-    const textbox = screen.getByRole('textbox', { name: textboxLabel });
+    const textbox = screen.getByRole('textbox', {
+      name: textMock('ux_editor.text_resource_binding_text'),
+    });
     await user.type(textbox, 'a');
     expect(mockOnTextChange).toHaveBeenCalled();
     const lastCall = mockOnTextChange.mock.calls[mockOnTextChange.mock.calls.length - 1];
