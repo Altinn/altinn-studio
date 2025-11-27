@@ -416,7 +416,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		"pageRanges":              "",
 		"preferCSSPageSize":       false,
 		"omitBackground":          false,
-		"generateTaggedPDF":       false,
+		"generateTaggedPDF":       true,
 		"generateDocumentOutline": false,
 		"paperWidth":              8.5,
 		"paperHeight":             11.0,
