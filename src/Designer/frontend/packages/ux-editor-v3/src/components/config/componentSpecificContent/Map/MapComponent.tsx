@@ -6,8 +6,7 @@ import { useText } from '../../../../hooks';
 import { stringToArray, arrayToString } from '../../../../utils/stringUtils';
 import classes from './MapComponent.module.css';
 import type { MapLayer } from 'app-shared/types/MapLayer';
-import { StudioProperty, StudioButton } from '@studio/components';
-import { StudioTextfield } from '@studio/components-legacy';
+import { StudioProperty, StudioButton, StudioTextfield } from '@studio/components';
 
 export const MapComponent = ({
   component,
@@ -37,7 +36,7 @@ export const MapComponent = ({
           <FormField
             id={component.id}
             label={t('ux_editor.latitude_label')}
-            value={component.centerLocation?.latitude}
+            value={component.centerLocation?.latitude ?? ''}
             onChange={(value: number) => handleCenterLocationChange(value, 'latitude')}
             propertyPath={`${component.propertyPath}/properties/centerLocation/properties/latitude`}
             customValidationMessages={(errorCode: string) => {
@@ -57,7 +56,7 @@ export const MapComponent = ({
           <FormField
             id={component.id}
             label={t('ux_editor.longitude_label')}
-            value={component.centerLocation?.longitude}
+            value={component.centerLocation?.longitude ?? ''}
             onChange={(value: number) => handleCenterLocationChange(value, 'longitude')}
             propertyPath={`${component.propertyPath}/properties/centerLocation/properties/longitude`}
             customValidationMessages={(errorCode: string) => {
@@ -80,7 +79,7 @@ export const MapComponent = ({
         <FormField
           id={component.id}
           label={t('ux_editor.adjust_zoom')}
-          value={component.zoom}
+          value={component.zoom ?? ''}
           onChange={(value: number) => handleNumberInputChange(value, 'zoom')}
           propertyPath={`${component.propertyPath}/properties/zoom`}
           customValidationMessages={(errorCode: string) => {

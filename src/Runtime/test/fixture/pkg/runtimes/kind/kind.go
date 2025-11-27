@@ -43,6 +43,9 @@ var testserverManifest []byte
 //go:embed config/base-infrastructure.yaml
 var baseInfrastructureManifest []byte
 
+//go:embed config/monitoring-infrastructure.yaml
+var monitoringInfrastructureManifest []byte
+
 type KindContainerRuntimeVariant int
 
 const (
@@ -50,8 +53,30 @@ const (
 	KindContainerRuntimeVariantMinimal
 )
 
+// KindContainerRuntimeOptions holds configuration options for the Kind runtime
+type KindContainerRuntimeOptions struct {
+	// IncludeMonitoring controls whether the Prometheus/Grafana stack is deployed.
+	// When false (default), only prometheus-operator-crds are installed for CRD support.
+	// When true, the full kube-prometheus-stack is deployed.
+	IncludeMonitoring bool
+
+	// IncludeTestserver controls whether the testserver deployment is deployed.
+	// When false (default), no testserver is deployed.
+	// When true, the testserver (nginx with test pages) is deployed for integration testing.
+	IncludeTestserver bool
+}
+
+// DefaultOptions returns the default options for the Kind runtime
+func DefaultOptions() KindContainerRuntimeOptions {
+	return KindContainerRuntimeOptions{
+		IncludeMonitoring: false,
+		IncludeTestserver: false,
+	}
+}
+
 type KindContainerRuntime struct {
 	variant        KindContainerRuntimeVariant
+	options        KindContainerRuntimeOptions
 	cachePath      string
 	clusterName    string
 	configPath     string
@@ -76,11 +101,12 @@ func logDuration(stepName string, start time.Time) {
 }
 
 // New creates a new KindContainerRuntime instance
-func New(variant KindContainerRuntimeVariant, cachePath string) (*KindContainerRuntime, error) {
+func New(variant KindContainerRuntimeVariant, cachePath string, options KindContainerRuntimeOptions) (*KindContainerRuntime, error) {
 	r, clusters, err := initialize(cachePath, false)
 	if err != nil {
 		return nil, err
 	}
+	r.options = options
 	err = newInternal(r, clusters, variant, cachePath, false)
 	if err != nil {
 		return nil, err
@@ -107,19 +133,22 @@ func New(variant KindContainerRuntimeVariant, cachePath string) (*KindContainerR
 		return nil, fmt.Errorf("failed to write certificates: %w", err)
 	}
 
-	// Write testserver manifest to disk
-	if err := os.WriteFile(r.testserverPath, testserverManifest, 0644); err != nil {
-		return nil, fmt.Errorf("failed to write testserver manifest: %w", err)
+	// Write testserver manifest to disk (only if needed)
+	if options.IncludeTestserver {
+		if err := os.WriteFile(r.testserverPath, testserverManifest, 0644); err != nil {
+			return nil, fmt.Errorf("failed to write testserver manifest: %w", err)
+		}
 	}
 
 	return r, nil
 }
 
-func Load(variant KindContainerRuntimeVariant, cachePath string) (*KindContainerRuntime, error) {
+func Load(variant KindContainerRuntimeVariant, cachePath string, options KindContainerRuntimeOptions) (*KindContainerRuntime, error) {
 	r, clusters, err := initialize(cachePath, true)
 	if err != nil {
 		return nil, err
 	}
+	r.options = options
 	err = newInternal(r, clusters, variant, cachePath, true)
 	if err != nil {
 		return nil, err
@@ -425,18 +454,20 @@ func (r *KindContainerRuntime) installInfra() error {
 	fmt.Println("✓ Base infra ready")
 	logDuration("Reconcile base infra", start)
 
-	// Step 10: Apply testserver manifest
-	fmt.Println("\n10. Applying testserver manifest...")
-	start = time.Now()
-	testserverYaml := string(testserverManifest)
-	if r.variant == KindContainerRuntimeVariantMinimal {
-		testserverYaml = strings.ReplaceAll(testserverYaml, "replicas: 3", "replicas: 1")
+	// Step 10: Apply testserver manifest (only if enabled)
+	if r.options.IncludeTestserver {
+		fmt.Println("\n10. Applying testserver manifest...")
+		start = time.Now()
+		testserverYaml := string(testserverManifest)
+		if r.variant == KindContainerRuntimeVariantMinimal {
+			testserverYaml = strings.ReplaceAll(testserverYaml, "replicas: 3", "replicas: 1")
+		}
+		if _, err := r.KubernetesClient.ApplyManifest(testserverYaml); err != nil {
+			return fmt.Errorf("failed to apply testserver manifest: %w", err)
+		}
+		fmt.Println("✓ Testserver manifest applied")
+		logDuration("Apply testserver manifest", start)
 	}
-	if _, err := r.KubernetesClient.ApplyManifest(testserverYaml); err != nil {
-		return fmt.Errorf("failed to apply testserver manifest: %w", err)
-	}
-	fmt.Println("✓ Testserver manifest applied")
-	logDuration("Apply testserver manifest", start)
 
 	return nil
 }

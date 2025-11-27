@@ -3,13 +3,12 @@ import React, { useCallback, useState, useMemo } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import classes from './StringRestrictions.module.css';
-import { Fieldset, Label, Switch } from '@digdir/designsystemet-react';
+import { Fieldset, Switch } from '@digdir/designsystemet-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { makeDomFriendlyID } from '../../../../utils/ui-schema-utils';
 import { useTranslation } from 'react-i18next';
-import { StudioTextfield } from '@studio/components-legacy';
-import { StudioSelect } from '@studio/components';
+import { StudioSelect, StudioTextfield } from '@studio/components';
 import { ItemWrapper } from '../ItemWrapper';
 import {
   isDateOrTimeFormat,
@@ -31,7 +30,11 @@ export function StringRestrictions({
 }: RestrictionItemProps) {
   const translation = useTranslation();
   const t = (key: string) => translation.t('schema_editor.' + key);
+  const restrictionMinLength = restrictions[StrRestrictionKey.minLength] || '';
+  const restrictionMaxLength = restrictions[StrRestrictionKey.maxLength] || '';
   const [regexTestValue, setRegexTestValue] = useState<string>('');
+  const [minLength, setMinLength] = useState<string>(restrictionMinLength);
+  const [maxLength, setMaxLength] = useState<string>(restrictionMaxLength);
   const pattern = restrictions[StrRestrictionKey.pattern] || '';
   const regexTestValueSplitByMatches = splitStringByMatches(pattern, regexTestValue);
   const regexTestValueMatchesRegex = regexTestValueSplitByMatches.some(({ match }) => match);
@@ -102,20 +105,22 @@ export function StringRestrictions({
           <StudioTextfield
             type='number'
             label={t(StrRestrictionKey.minLength)}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setMinLength(e.target.value)}
+            onBlur={(e: React.FocusEvent<HTMLInputElement>) =>
               setRestriction(StrRestrictionKey.minLength, e.target.value)
             }
-            value={restrictions[StrRestrictionKey.minLength] || ''}
+            value={minLength}
           />
         </div>
         <div className={classes.lengthField}>
           <StudioTextfield
             type='number'
             label={t(StrRestrictionKey.maxLength)}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setMaxLength(e.target.value)}
+            onBlur={(e: React.FocusEvent<HTMLInputElement>) =>
               setRestriction(StrRestrictionKey.maxLength, e.target.value)
             }
-            value={restrictions[StrRestrictionKey.maxLength] || ''}
+            value={maxLength}
           />
         </div>
       </div>
@@ -129,7 +134,6 @@ export function StringRestrictions({
         />
         <div className={classes.regexTest}>
           <div className={classes.regexTestLabel}>
-            <Label htmlFor={fieldId}>{t('pattern_test_field')}</Label>
             {pattern &&
               (regexTestValueMatchesRegex ? (
                 <span className={classes.regexTestMatchIndicatorTrue}>{t('pattern_matches')}</span>
@@ -150,13 +154,16 @@ export function StringRestrictions({
                 </span>
               ))}
             </div>
-            <StudioTextfield
-              id={fieldId}
-              onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                handleValueChange(event.target.value)
-              }
-              value={regexTestValue}
-            />
+            <div className={classes.lengthField}>
+              <StudioTextfield
+                label={t('pattern_test_field')}
+                id={fieldId}
+                onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                  handleValueChange(event.target.value)
+                }
+                value={regexTestValue}
+              />
+            </div>
           </div>
         </div>
       </Fieldset>

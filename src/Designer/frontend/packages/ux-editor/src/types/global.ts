@@ -8,7 +8,7 @@ import type React from 'react';
 
 export interface IOption {
   label: string;
-  value: any;
+  value?: any;
 }
 
 export type ITextResourceBindings = KeyValuePairs<string>;
