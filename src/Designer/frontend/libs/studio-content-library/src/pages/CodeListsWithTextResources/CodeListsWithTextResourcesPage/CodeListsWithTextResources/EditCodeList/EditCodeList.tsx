@@ -3,12 +3,13 @@ import type {
   CodeListEditorTexts,
   TextResource,
 } from '@studio/components-legacy';
-import { StudioCodeListEditor, StudioToggleableTextfield } from '@studio/components-legacy';
+import { StudioCodeListEditor } from '@studio/components-legacy';
 import {
   StudioDeleteButton,
   StudioDisplayTile,
   StudioDialog,
   StudioHeading,
+  StudioToggleableTextfield,
 } from '@studio/components';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
