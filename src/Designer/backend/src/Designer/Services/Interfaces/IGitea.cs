@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
 {
@@ -145,6 +146,17 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A list of <see cref="FileSystemObject"/>.</returns>
         Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(string org, string repository, string reference = null, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets a file from a filepath at a specific reference (commit/branch/tag) along
+        /// with any error that might occur during the fetch.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">The name of repository</param>
+        /// <param name="filePath">Path to a file, may start with full commit sha</param>
+        /// <param name="reference">The short hash of a commit id</param>
+        /// <param name="cancellationToken">The cancellation token</param>
+        Task<(FileSystemObject, ProblemDetails)> GetFileAndErrorAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns list of the teams the user is member of.

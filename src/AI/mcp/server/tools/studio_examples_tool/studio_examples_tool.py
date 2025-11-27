@@ -21,7 +21,7 @@ from mcp.types import ToolAnnotations
         idempotentHint=True
     )
 )
-def studio_examples_tool(query: str) -> dict:
+def studio_examples_tool(user_goal: str, query: str) -> dict:
     """Fetch example files from existing Altinn Studio applications based on the query.
      A vector store is used to select the most relevant files based on the query. 
      

@@ -23,7 +23,7 @@ export class OnProcessTaskAddHandler {
     private readonly addDataTypeToAppMetadata: (data: {
       dataTypeId: string;
       taskId: string;
-      allowedContributers?: Array<string>;
+      allowedContributors?: Array<string>;
     }) => void,
   ) {}
 
@@ -70,7 +70,7 @@ export class OnProcessTaskAddHandler {
     this.addDataTypeToAppMetadata({
       dataTypeId,
       taskId: taskMetadata.taskEvent.element.id,
-      allowedContributers: [AllowedContributor.AppOwned],
+      allowedContributors: [AllowedContributor.AppOwned],
     });
 
     const receiptPdfDataTypeId = studioModeler.getReceiptPdfDataTypeIdFromBusinessObject(
@@ -80,7 +80,7 @@ export class OnProcessTaskAddHandler {
     this.addDataTypeToAppMetadata({
       dataTypeId: receiptPdfDataTypeId,
       taskId: taskMetadata.taskEvent.element.id,
-      allowedContributers: [AllowedContributor.AppOwned],
+      allowedContributors: [AllowedContributor.AppOwned],
     });
 
     const paymentPolicyBuilder = new PaymentPolicyBuilder(this.org, this.app);
@@ -132,7 +132,7 @@ export class OnProcessTaskAddHandler {
     this.addDataTypeToAppMetadata({
       dataTypeId,
       taskId: taskMetadata.taskEvent.element.id,
-      allowedContributers: [AllowedContributor.AppOwned],
+      allowedContributors: [AllowedContributor.AppOwned],
     });
   }
 
@@ -145,7 +145,7 @@ export class OnProcessTaskAddHandler {
         taskMetadata.taskEvent.element.businessObject,
       ),
       taskId: taskMetadata.taskEvent.element.id,
-      allowedContributers: [AllowedContributor.AppOwned],
+      allowedContributors: [AllowedContributor.AppOwned],
     });
   }
 }
