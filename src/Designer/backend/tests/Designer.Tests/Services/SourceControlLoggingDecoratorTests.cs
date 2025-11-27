@@ -16,10 +16,9 @@ using Xunit.Abstractions;
 
 namespace Designer.Tests.Services;
 
-public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceControlLoggingDecorator> webApplicationFactory, ITestOutputHelper outputHelper) : IClassFixture<WebApplicationFactory<SourceControlLoggingDecorator>>
+public class SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceControlLoggingDecorator> webApplicationFactory) : IClassFixture<WebApplicationFactory<SourceControlLoggingDecorator>>
 {
     private readonly WebApplicationFactory<SourceControlLoggingDecorator> _webApplicationFactory = webApplicationFactory;
-    private ITestOutputHelper _outputHelper = outputHelper;
 
     [Fact]
     public void Container_DecoratesISourceControlService_ReturnsDecoratorClass()
