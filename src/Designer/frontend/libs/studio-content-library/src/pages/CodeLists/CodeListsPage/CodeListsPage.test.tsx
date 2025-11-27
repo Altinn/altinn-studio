@@ -14,7 +14,10 @@ const onSave = jest.fn();
 const defaultProps: CodeListsPageProps = { codeLists, onPublish, onSave };
 
 describe('CodeListsPage', () => {
-  beforeEach(onSave.mockClear);
+  beforeEach(() => {
+    onPublish.mockClear();
+    onSave.mockClear();
+  });
 
   it('Renders with the given code lists', () => {
     renderCodeListPage();

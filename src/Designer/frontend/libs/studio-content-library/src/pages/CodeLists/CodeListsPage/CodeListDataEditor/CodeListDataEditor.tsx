@@ -49,6 +49,8 @@ export function CodeListDataEditor({
 
   const handlePublish = useCallback((): void => onPublish(data), [data, onPublish]);
 
+  const canPublish = !!data.name;
+
   return (
     <StudioDetails>
       <StudioDetails.Summary>
@@ -64,7 +66,12 @@ export function CodeListDataEditor({
         <StudioDeleteButton className={classes.deleteButton} onDelete={onDelete}>
           {t('general.delete')}
         </StudioDeleteButton>
-        <StudioButton className={classes.publishButton} onClick={handlePublish} variant='secondary'>
+        <StudioButton
+          className={classes.publishButton}
+          disabled={!canPublish}
+          onClick={handlePublish}
+          variant='secondary'
+        >
           {t('app_content_library.code_lists.publish')}
         </StudioButton>
         <StudioCodeListEditor

@@ -78,6 +78,12 @@ describe('CodeListDataEditor', () => {
     expect(onPublish).toHaveBeenCalledTimes(1);
     expect(onPublish).toHaveBeenCalledWith(data);
   });
+
+  it('Disables the publish button when no name is given', () => {
+    renderCodeListDataEditor({ data: { ...data, name: '' } });
+    const publishButtonName = textMock('app_content_library.code_lists.publish');
+    expect(screen.getByRole('button', { name: publishButtonName })).toBeDisabled();
+  });
 });
 
 function renderCodeListDataEditor(props: Partial<CodeListDataEditorProps> = {}): RenderResult {
