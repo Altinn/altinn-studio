@@ -23,7 +23,6 @@ public class AzureSharedContentClient : ISharedContentClient
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<AzureSharedContentClient> _logger;
-    private readonly SharedContentClientSettings _sharedContentClientSettings;
     private readonly string _sharedContentBaseUri;
     private readonly IBlobContainerClientFactory _blobContainerClientFactory;
 
@@ -52,7 +51,6 @@ public class AzureSharedContentClient : ISharedContentClient
     {
         _httpClient = httpClient;
         _logger = logger;
-        _sharedContentClientSettings = sharedContentClientSettings;
         _blobContainerClientFactory = blobContainerClientFactory;
 
         string storageAccountUrl = sharedContentClientSettings.StorageAccountUrl;
