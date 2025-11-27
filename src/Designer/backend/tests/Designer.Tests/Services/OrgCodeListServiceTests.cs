@@ -595,17 +595,23 @@ public class OrgCodeListServiceTests : IDisposable
         // Arrange
         const string OrgName = "ttd";
         const string CodeListId = "myList";
+        const string PublishedVersion = "1";
         Mock<ISharedContentClient> sharedContentClientMock = new();
+        sharedContentClientMock
+            .Setup(c => c.PublishCodeList(OrgName, CodeListId, It.IsAny<CodeList>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(PublishedVersion);
+
         OrgCodeListService service = GetOrgCodeListService(sharedContentClientMock);
 
         CodeList codeList = SetupCodeList();
         PublishCodeListRequest req = new(Title: CodeListId, CodeList: codeList);
 
         // Act
-        await service.PublishCodeList(OrgName, req, CancellationToken.None);
+        string result = await service.PublishCodeList(OrgName, req, CancellationToken.None);
 
         // Assert
         sharedContentClientMock.Verify(c => c.PublishCodeList(OrgName, CodeListId, codeList, It.IsAny<CancellationToken>()), Times.Once);
+        Assert.Equal("1", result);
     }
 
     private static CodeList SetupCodeList()
