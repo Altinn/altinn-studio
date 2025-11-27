@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import type { AppConfig } from 'app-shared/types/AppConfig';
