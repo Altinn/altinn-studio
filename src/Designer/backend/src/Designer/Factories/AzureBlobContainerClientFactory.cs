@@ -4,6 +4,7 @@ using Azure.Identity;
 using Azure.Storage.Blobs;
 
 namespace Altinn.Studio.Designer.Factories;
+
 public class AzureBlobContainerClientFactory(SharedContentClientSettings settings) : IBlobContainerClientFactory
 {
     private readonly SharedContentClientSettings _settings = settings;
