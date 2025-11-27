@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.CodeList;
+using Altinn.Studio.Designer.Exceptions.OrgLibrary;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
@@ -105,7 +106,7 @@ public class OrgCodeListController : ControllerBase
             await _orgCodeListService.UpdateCodeListsNew(org, developer, requestBody, cancellationToken);
             return Ok();
         }
-        catch (Exception ex) when (ex is IllegalFileNameException or IllegalCommitMessageException or ArgumentException)
+        catch (Exception ex) when (ex is IllegalCodeListTitleException or IllegalCommitMessageException or ArgumentException)
         {
             _logger.LogError(ex, "Invalid request to update codelists for org {Org}.", org);
             return BadRequest(new ProblemDetails
@@ -137,7 +138,7 @@ public class OrgCodeListController : ControllerBase
             await _orgCodeListService.PublishCodeList(org, requestBody, cancellationToken);
             return Ok();
         }
-        catch (Exception ex) when (ex is ArgumentException or IllegalFileNameException or ArgumentNullException)
+        catch (Exception ex) when (ex is ArgumentException or IllegalCodeListTitleException or ArgumentNullException)
         {
             _logger.LogError(ex, "Invalid request to publish codelist for org {Org}.", org);
             return BadRequest(new ProblemDetails
