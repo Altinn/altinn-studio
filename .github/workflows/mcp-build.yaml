@@ -29,14 +29,10 @@ jobs:
       working-directory: src/AI/mcp
       run: |
         uv run -m server.main > server.log 2>&1 &
+        timeout 60 bash -c 'until grep -q "Initializing documentation search" server.log; do sleep 1; done'
       env:
         AZURE_API_KEY: ${{ secrets.AZURE_AI_KEY }}
 
-    - name: Wait for docs indexing to complete
+    - name: Verify documentation indexing completes
       working-directory: src/AI/mcp
-      timeout-minutes: 3
-      run: |
-        until grep -q "Application startup complete" server.log; do
-          echo "Waiting for indexing to complete..."
-          sleep 2
-        done
+      run: timeout 180 bash -c 'until grep -q "Application startup complete" server.log; do sleep 1; done'
