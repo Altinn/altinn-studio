@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import type { IGenericEditComponent } from '../../../../componentConfig';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner, StudioTextfield } from '@studio/components-legacy';
-import { StudioAlert, StudioParagraph } from '@studio/components';
+import { StudioAlert, StudioParagraph, StudioTextfield, StudioSpinner } from '@studio/components';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -17,7 +16,7 @@ export function ReferenceTab({
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds, isPending } = useOptionListIdsQuery(org, app);
   const [referenceId, setReferenceId] = useState<string>(
-    isOptionsIdReferenceId(optionListIds, component.optionsId) ? component.optionsId : undefined,
+    isOptionsIdReferenceId(optionListIds, component.optionsId) ? component.optionsId : '',
   );
 
   const handleOptionsIdChange = (optionsId: string) => {
@@ -35,7 +34,7 @@ export function ReferenceTab({
   if (isPending) {
     return (
       <StudioSpinner
-        showSpinnerTitle={false}
+        aria-label={t('global.loading')}
         spinnerTitle={t('ux_editor.modal_properties_loading')}
       />
     );
