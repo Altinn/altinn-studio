@@ -8,6 +8,12 @@ import { StatusFilter } from './components/StatusFilter';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 import { ProcessTaskFilter } from './components/ProcessTaskFilter';
 
+const YES_NO_ALL_OPTIONS = [
+  { label: 'Alle', value: undefined },
+  { label: 'Ja', value: true },
+  { label: 'Nei', value: false },
+];
+
 export const Instances = () => {
   const { org, env, app } = useParams() as { org: string; env: string; app: string };
   const [archiveReference, setArchiveReference] = useQueryParamState<string>(
@@ -57,31 +63,19 @@ export const Instances = () => {
           label='Levert av bruker'
           value={isArchived}
           setValue={setIsArchived}
-          options={[
-            { label: 'Alle', value: undefined },
-            { label: 'Ja', value: true },
-            { label: 'Nei', value: false },
-          ]}
+          options={YES_NO_ALL_OPTIONS}
         />
         <StatusFilter
           label='Bekreftet mottatt'
           value={isConfirmed}
           setValue={setIsConfirmed}
-          options={[
-            { label: 'Alle', value: undefined },
-            { label: 'Ja', value: true },
-            { label: 'Nei', value: false },
-          ]}
+          options={YES_NO_ALL_OPTIONS}
         />
         <StatusFilter
           label='Slettet'
           value={isSoftDeleted}
           setValue={setIsSoftDeleted}
-          options={[
-            { label: 'Alle', value: undefined },
-            { label: 'Ja', value: true },
-            { label: 'Nei', value: false },
-          ]}
+          options={YES_NO_ALL_OPTIONS}
         />
       </div>
       <InstancesTable
