@@ -1,4 +1,7 @@
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.DataProcessingRules;
 
@@ -15,7 +18,7 @@ internal class ProgramCsUpdater
     }
 
     /// <summary>
-    /// Register a data processor in Program.cs
+    /// Register a data processor in Program.cs using Roslyn
     /// </summary>
     /// <param name="className">The class name (e.g., "ChangenameDataProcessor")</param>
     /// <returns>True if registration was added or already exists, false if Program.cs not found</returns>
@@ -36,98 +39,59 @@ internal class ProgramCsUpdater
 
         var content = File.ReadAllText(programCsPath);
 
-        // Ensure the using statement for Altinn.App.Logic.ConvertedLegacyRules is present
-        var usingLogicPattern = @"^\s*using\s+Altinn\.App\.Logic\.ConvertedLegacyRules\s*;";
-        var needsUsingStatement = !Regex.IsMatch(content, usingLogicPattern, RegexOptions.Multiline);
+        // Parse the file using Roslyn
+        var tree = CSharpSyntaxTree.ParseText(content);
+        var root = tree.GetRoot();
 
-        // Check if already registered
-        var registrationLine = $"services.AddTransient<IDataWriteProcessor, {className}>();";
-        if (content.Contains(registrationLine))
+        // Use the rewriter to add the registration
+        var rewriter = new ProgramCsRewriter(className);
+        var newRoot = rewriter.Visit(root);
+
+        if (!rewriter.RegistrationAdded)
         {
-            return true;
+            Console.WriteLine($"Warning: Could not find RegisterCustomAppServices method in {programCsPath}");
+            Console.WriteLine($"Please manually add: services.AddTransient<IDataWriteProcessor, {className}>();");
+            return false;
         }
 
-        // Find the best place to add the registration
-        // Look for existing IDataWriteProcessor registrations
-        var dataProcessorPattern = @"services\.AddTransient<IDataWriteProcessor,\s*\w+>\(\);";
-        var match = Regex.Match(content, dataProcessorPattern);
-
-        string updatedContent;
-
-        if (match.Success)
+        // Check if the using statement needs to be added
+        var compilationUnit = newRoot as CompilationUnitSyntax;
+        if (compilationUnit != null)
         {
-            // Add after existing IDataWriteProcessor registration
-            // Extract the indentation from the matched line
-            var lineStart = content.LastIndexOf('\n', match.Index) + 1;
-            var matchedLine = content.Substring(lineStart, match.Index - lineStart + match.Length);
-            var indent = matchedLine.Substring(0, matchedLine.Length - matchedLine.TrimStart().Length);
-
-            var insertPosition = match.Index + match.Length;
-            updatedContent = content.Insert(
-                insertPosition,
-                $"\n{indent}services.AddTransient<IDataWriteProcessor, {className}>();"
+            var hasUsingStatement = compilationUnit.Usings.Any(u =>
+                u.Name?.ToString() == "Altinn.App.Logic.ConvertedLegacyRules"
             );
-        }
-        else
-        {
-            // Look for the services registration section
-            // Try to find "void RegisterCustomAppServices" or similar
-            var customServicesPattern = @"void\s+RegisterCustomAppServices\s*\([^)]*\)\s*\{";
-            var customServicesMatch = Regex.Match(content, customServicesPattern);
 
-            if (customServicesMatch.Success)
+            if (!hasUsingStatement)
             {
-                // Insert at the beginning of RegisterCustomAppServices
-                var insertPosition = customServicesMatch.Index + customServicesMatch.Length;
-                updatedContent = content.Insert(
-                    insertPosition,
-                    $"\n    services.AddTransient<IDataWriteProcessor, {className}>();"
-                );
-            }
-            else
-            {
-                // Last resort: try to find where services are being configured
-                var servicesPattern = @"services\.Add";
-                var servicesMatch = Regex.Match(content, servicesPattern);
-
-                if (servicesMatch.Success)
-                {
-                    // Add before the first services.Add line
-                    var insertPosition = servicesMatch.Index;
-                    updatedContent = content.Insert(
-                        insertPosition,
-                        $"services.AddTransient<IDataWriteProcessor, {className}>();\n"
+                // Add the using statement - copy trivia from an existing using statement
+                var newUsing = SyntaxFactory
+                    .UsingDirective(SyntaxFactory.ParseName("Altinn.App.Logic.ConvertedLegacyRules"))
+                    .WithUsingKeyword(
+                        SyntaxFactory.Token(SyntaxKind.UsingKeyword).WithTrailingTrivia(SyntaxFactory.Space)
                     );
+
+                // If there are existing usings, copy the trivia pattern from the last one
+                if (compilationUnit.Usings.Count > 0)
+                {
+                    var lastUsing = compilationUnit.Usings[^1];
+                    newUsing = newUsing
+                        .WithLeadingTrivia(lastUsing.GetLeadingTrivia())
+                        .WithTrailingTrivia(lastUsing.GetTrailingTrivia());
                 }
                 else
                 {
-                    Console.WriteLine(
-                        $"Warning: Could not find appropriate place to register {className} in Program.cs"
-                    );
-                    Console.WriteLine($"Please manually add: {registrationLine}");
-                    return false;
+                    newUsing = newUsing.WithTrailingTrivia(SyntaxFactory.LineFeed);
                 }
-            }
-        }
 
-        // Add the using statement if needed
-        if (needsUsingStatement)
-        {
-            var firstUsingPattern = @"^using\s+.*;";
-            var firstUsingMatch = Regex.Match(updatedContent, firstUsingPattern, RegexOptions.Multiline);
-
-            if (firstUsingMatch.Success)
-            {
-                var insertPosition = firstUsingMatch.Index + firstUsingMatch.Length;
-                updatedContent = updatedContent.Insert(
-                    insertPosition,
-                    "\nusing Altinn.App.Logic.ConvertedLegacyRules;"
-                );
+                compilationUnit = compilationUnit.AddUsings(newUsing);
+                newRoot = compilationUnit;
             }
         }
 
         // Write back the updated content
-        File.WriteAllText(programCsPath, updatedContent);
+        // Use ToFullString() to preserve original formatting as much as possible
+        File.WriteAllText(programCsPath, newRoot.ToFullString());
         Console.WriteLine($"  Registered {className} in Program.cs");
 
         return true;

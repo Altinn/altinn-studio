@@ -123,13 +123,16 @@ internal sealed class ProjectFileRewriter
 
         var itemGroup = _doc.Root?.Elements("ItemGroup").FirstOrDefault(ig => ig.Elements("PackageReference").Any());
 
+        bool createdNewItemGroup = false;
         if (itemGroup == null)
         {
             // Create a new ItemGroup if none exists
             itemGroup = new XElement("ItemGroup");
             _doc.Root?.Add(itemGroup);
+            createdNewItemGroup = true;
         }
 
+        bool addedAnyProjectReferences = false;
         foreach (var (packageName, relPath) in packagesInfo)
         {
             // Check if package reference exists
@@ -155,11 +158,18 @@ internal sealed class ProjectFileRewriter
                 // Add project reference
                 var projectReference = new XElement("ProjectReference", new XAttribute("Include", relativePath));
                 itemGroup.Add(projectReference);
+                addedAnyProjectReferences = true;
 
                 Console.WriteLine(
                     $"Converted {packageName} from package reference to project reference: {relativePath}"
                 );
             }
+        }
+
+        // If we created a new ItemGroup but didn't add anything to it, remove it
+        if (createdNewItemGroup && !addedAnyProjectReferences)
+        {
+            itemGroup.Remove();
         }
 
         await Save();
