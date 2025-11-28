@@ -59,7 +59,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="repositorySettings">The settings for the app repository</param>
         /// <param name="generalSettings">The current general settings</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
-        /// <param name="giteaClient">gitea</param>
+        /// <param name="giteaClient">The gitea client</param>
         /// <param name="sourceControl">the source control</param>
         /// <param name="logger">The logger</param>
         /// <param name="altinnGitRepositoryFactory">Factory class that knows how to create types of <see cref="AltinnGitRepository"/></param>
