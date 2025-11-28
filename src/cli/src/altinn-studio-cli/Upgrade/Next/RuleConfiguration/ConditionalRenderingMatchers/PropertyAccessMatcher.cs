@@ -18,24 +18,22 @@ public class PropertyAccessMatcher : IExpressionMatcher
             return null;
 
         // Check if this is accessing the object parameter
-        if (memberExpr.Object is Identifier identifier && identifier.Name == context.ObjectParameterName)
+        if (
+            memberExpr.Object is Identifier identifier
+            && identifier.Name == context.ObjectParameterName
+            && memberExpr.Property is Identifier propIdentifier
+        )
         {
-            // Get the property name
-            if (memberExpr.Property is Identifier propIdentifier)
-            {
-                var propertyName = propIdentifier.Name;
+            var propertyName = propIdentifier.Name;
 
-                // Map to data model path using inputParams
-                if (context.InputParams.TryGetValue(propertyName, out var dataModelPath))
-                {
-                    return new object[] { "dataModel", dataModelPath };
-                }
-                else
-                {
-                    debugInfo.Add($"❌ Property '{propertyName}' not found in inputParams");
-                    return null;
-                }
+            // Map to data model path using inputParams
+            if (context.InputParams.TryGetValue(propertyName, out var dataModelPath))
+            {
+                return new object[] { "dataModel", dataModelPath };
             }
+
+            debugInfo.Add($"❌ Property '{propertyName}' not found in inputParams");
+            return null;
         }
 
         var propertyPath = ExtractPropertyPath(memberExpr);

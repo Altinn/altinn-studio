@@ -14,7 +14,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingM
 public class WindowLocationMatcher : IExpressionMatcher
 {
     // Map of domain patterns to environment names
-    private static readonly Dictionary<string, string> DomainToEnvironment = new()
+    private static readonly Dictionary<string, string> _domainToEnvironment = new()
     {
         { "local.altinn.cloud", "local" },
         { "tt02.altinn.no", "staging" },
@@ -114,7 +114,7 @@ public class WindowLocationMatcher : IExpressionMatcher
         }
 
         // Determine which side is window.location.host
-        Expression? domainLiteral = null;
+        Expression? domainLiteral;
         if (IsWindowLocationHostAccess(binaryExpr.Left) && binaryExpr.Right is Literal)
         {
             domainLiteral = binaryExpr.Right;
@@ -138,10 +138,10 @@ public class WindowLocationMatcher : IExpressionMatcher
         }
 
         // Map domain to environment
-        if (!DomainToEnvironment.TryGetValue(domain, out var environment))
+        if (!_domainToEnvironment.TryGetValue(domain, out var environment))
         {
             debugInfo.Add($"⚠️ Unknown domain '{domain}' - cannot map to environment");
-            debugInfo.Add($"   Known domains: {string.Join(", ", DomainToEnvironment.Keys)}");
+            debugInfo.Add($"   Known domains: {string.Join(", ", _domainToEnvironment.Keys)}");
             return null;
         }
 
@@ -176,7 +176,7 @@ public class WindowLocationMatcher : IExpressionMatcher
         // Map suffix to environment
         // Look for exact match or any domain ending with this suffix
         string? environment = null;
-        foreach (var kvp in DomainToEnvironment)
+        foreach (var kvp in _domainToEnvironment)
         {
             if (kvp.Key == suffix || kvp.Key.EndsWith(suffix, StringComparison.Ordinal))
             {
@@ -188,7 +188,7 @@ public class WindowLocationMatcher : IExpressionMatcher
         if (environment == null)
         {
             debugInfo.Add($"⚠️ Unknown domain suffix '{suffix}' - cannot map to environment");
-            debugInfo.Add($"   Known domains: {string.Join(", ", DomainToEnvironment.Keys)}");
+            debugInfo.Add($"   Known domains: {string.Join(", ", _domainToEnvironment.Keys)}");
             return null;
         }
 

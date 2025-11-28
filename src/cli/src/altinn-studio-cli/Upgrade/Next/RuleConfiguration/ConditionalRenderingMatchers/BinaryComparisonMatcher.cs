@@ -7,7 +7,7 @@ namespace Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingM
 /// </summary>
 public class BinaryComparisonMatcher : IExpressionMatcher
 {
-    private static readonly Dictionary<string, string> OperatorMap = new()
+    private static readonly Dictionary<string, string> _operatorMap = new()
     {
         // Symbol operators
         { "===", "equals" },
@@ -35,7 +35,7 @@ public class BinaryComparisonMatcher : IExpressionMatcher
         if (expression is BinaryExpression binaryExpr)
         {
             var op = binaryExpr.Operator.ToString();
-            return OperatorMap.ContainsKey(op);
+            return _operatorMap.ContainsKey(op);
         }
 
         return false;
@@ -47,7 +47,7 @@ public class BinaryComparisonMatcher : IExpressionMatcher
             return null;
 
         var op = binaryExpr.Operator.ToString();
-        if (!OperatorMap.TryGetValue(op, out var exprFunction))
+        if (!_operatorMap.TryGetValue(op, out var exprFunction))
         {
             debugInfo.Add($"❌ Unsupported binary operator: {op}");
             return null;

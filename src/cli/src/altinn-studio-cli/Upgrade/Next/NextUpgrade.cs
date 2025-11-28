@@ -175,11 +175,9 @@ internal static class NextUpgrade
 
             var converter = new ConditionalRenderingConverter(projectFolder);
             var stats = converter.ConvertAllLayoutSets();
-
             if (stats.TotalRules == 0)
             {
                 await Console.Out.WriteLineAsync("No conditional rendering rules found to convert");
-                return 0;
             }
 
             return 0;
