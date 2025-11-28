@@ -1,13 +1,10 @@
 """
-Enhanced tool execution with better MLflow tracing.
+Enhanced tool execution with better langfuse tracing.
 """
 import json
-import mlflow
 from typing import Dict, Any, List, Optional
+from langfuse import get_client
 from agents.services.mcp.mcp_client import get_mcp_client
-from agents.services.telemetry import (
-    SpanTypes, capture_tool_output, create_tool_span, format_as_markdown, is_json
-)
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -15,7 +12,7 @@ log = get_logger(__name__)
 
 async def execute_tool(tool_name: str, tool_input: Dict[str, Any], display_name: str = None):
     """
-    Execute a tool with enhanced MLflow tracing
+    Execute a tool with enhanced Langfuse tracing
     
     Args:
         tool_name: Name of the tool to execute
@@ -27,11 +24,12 @@ async def execute_tool(tool_name: str, tool_input: Dict[str, Any], display_name:
     """
     span_name = display_name or f"{tool_name.replace('_tool', '')}_generation"
     
-    with mlflow.start_span(name=span_name, span_type="TOOL") as span:
+    langfuse = get_client()
+    with langfuse.start_as_current_span(name=span_name, metadata={"span_type": "TOOL"}) as span:
         client = get_mcp_client()
         
-        # Set detailed attributes
-        span.set_attributes({
+        # Set detailed metadata
+        span.update(metadata={
             "tool_name": tool_name,
             "parameter_count": len(tool_input)
         })
@@ -49,14 +47,8 @@ async def execute_tool(tool_name: str, tool_input: Dict[str, Any], display_name:
             
             # Format the output for multiple views
             result_str = str(result)
-            span.set_outputs({
-                "raw_result": result,
-                "formats": {
-                    "text": result_str,
-                    "markdown": format_as_markdown(result),
-                    "json": result if isinstance(result, dict) else 
-                           (json.loads(result_str) if is_json(result_str) else None)
-                },
+            span.update(output={
+                "result": result,
                 "result_length": len(result_str),
                 "success": True
             })
@@ -64,8 +56,7 @@ async def execute_tool(tool_name: str, tool_input: Dict[str, Any], display_name:
             return result
             
         except Exception as e:
-            span.set_status("ERROR")
-            span.set_outputs({
+            span.update(level="ERROR", output={
                 "error": str(e),
                 "success": False
             })

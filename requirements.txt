@@ -11,5 +11,6 @@ langchain-core>=0.3.78
 langchain-openai>=0.3.35
 openai>=1.57.2
 langchain-community>=0.3.7
+langfuse>=3.0.0
 mlflow>=3.4.0
 fastmcp>=2.0.0

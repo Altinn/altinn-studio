@@ -3,15 +3,12 @@ MCP-based verification service that calls validation tools.
 Similar to patch_generator.py but for verification phase.
 """
 import json
-import mlflow
 from pathlib import Path
+from langfuse import get_client
 from typing import Dict, List, Any
 from agents.services.mcp.mcp_client import get_mcp_client
 from agents.services.llm import LLMClient
 from agents.schemas.plan_schema import PlanStep
-from agents.services.telemetry import (
-    SpanTypes, capture_tool_output, create_tool_span, format_as_markdown, is_json
-)
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -47,10 +44,11 @@ class MCPVerifier:
     async def verify_with_tools(self, patch: Dict, plan_step: PlanStep) -> MCPVerificationResult:
         """
         Run verification using MCP validation tools.
-        This will show up in MLflow traces as tool calls.
+        This will show up in Langfuse traces as tool calls.
         """
-        with mlflow.start_span(name="verification_phase") as main_span:
-            main_span.set_attributes({
+        langfuse = get_client()
+        with langfuse.start_as_current_span(name="verification_phase", metadata={"span_type": "TOOL"}) as main_span:
+            main_span.update(metadata={
                 "changed_files_count": len([f.get('file', '') for f in patch.get('changes', [])]),
                 "plan_step_id": plan_step.id if hasattr(plan_step, "id") else "unknown"
             })
@@ -92,7 +90,7 @@ class MCPVerifier:
             log.info(f"✅ MCP verification complete: {len(result.errors)} errors, {len(result.warnings)} warnings")
             
             # Add final verification summary
-            main_span.set_outputs({
+            main_span.update(output={
                 "verification_summary": {
                     "success": result.passed,
                     "error_count": len(result.errors),
@@ -107,8 +105,7 @@ class MCPVerifier:
             log.error(f"MCP verification failed: {e}")
             result.add_error("mcp_verification", f"Tool execution failed: {e}")
             if 'main_span' in locals():
-                main_span.set_status("ERROR")
-                main_span.set_outputs({
+                main_span.update(level="ERROR", output={
                     "error": str(e),
                     "verification_summary": {
                         "success": False,
@@ -120,7 +117,8 @@ class MCPVerifier:
     
     async def _verify_layout(self, mcp_client, layout_files: List[Dict], plan_step: PlanStep, result: MCPVerificationResult):
         """Call schema_validator_tool for layout validation"""
-        with mlflow.start_span(name="layout_schema_validation", span_type="TOOL") as span:
+        langfuse = get_client()
+        with langfuse.start_as_current_span(name="layout_schema_validation", metadata={"span_type": "TOOL"}) as span:
             try:
                 # Read the layout file content
                 layout_file_path = Path(self.repo_path) / layout_files[0]['file']
@@ -132,8 +130,8 @@ class MCPVerifier:
                     "schema_path": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json"
                 }
                 
-                # Set detailed inputs
-                span.set_attributes({
+                # Set detailed metadata
+                span.update(metadata={
                     "file_path": layout_files[0]['file'],
                     "validation_type": "layout_schema",
                     "tool": "schema_validator_tool"
@@ -167,13 +165,8 @@ class MCPVerifier:
                     result_text = str(layout_result)
                     result_json = layout_result if isinstance(layout_result, dict) else None
                     
-                span.set_outputs({
-                    "raw_result": result_text,
-                    "formats": {
-                        "text": result_text,
-                        "markdown": format_as_markdown(result_text),
-                        "json": result_json
-                    }
+                span.update(output={
+                    "result": result_json if result_json else result_text
                 })
                 result.tool_results.append({"tool": "schema_validator_tool", "result": layout_result})
                 
@@ -203,7 +196,8 @@ class MCPVerifier:
     
     async def _verify_resources(self, mcp_client, resource_files: List[Dict], plan_step: PlanStep, result: MCPVerificationResult):
         """Call resource_validator_tool"""
-        with mlflow.start_span(name="resource_text_validation", span_type="TOOL") as span:
+        langfuse = get_client()
+        with langfuse.start_as_current_span(name="resource_text_validation", metadata={"span_type": "TOOL"}) as span:
             try:
                 # Read the resource file content
                 resource_file_path = Path(self.repo_path) / resource_files[0]['file']
@@ -224,8 +218,8 @@ class MCPVerifier:
                     "repo_path": self.repo_path
                 }
                 
-                # Set detailed inputs
-                span.set_attributes({
+                # Set detailed metadata
+                span.update(metadata={
                     "file_path": resource_files[0]['file'],
                     "validation_type": "resource_text",
                     "tool": "resource_validator_tool",
@@ -260,13 +254,8 @@ class MCPVerifier:
                     result_text = str(resource_result)
                     result_json = resource_result if isinstance(resource_result, dict) else None
                     
-                span.set_outputs({
-                    "raw_result": result_text,
-                    "formats": {
-                        "text": result_text,
-                        "markdown": format_as_markdown(result_text),
-                        "json": result_json
-                    }
+                span.update(output={
+                    "result": result_json if result_json else result_text
                 })
                 result.tool_results.append({"tool": "resource_validator_tool", "result": resource_result})
                 
@@ -293,7 +282,8 @@ class MCPVerifier:
     
     async def _verify_policies(self, mcp_client, patch: Dict, plan_step: PlanStep, result: MCPVerificationResult):
         """Call policy_validation_tool for generated files and constraint checks"""
-        with mlflow.start_span(name="policy_validation", span_type="TOOL") as span:
+        langfuse = get_client()
+        with langfuse.start_as_current_span(name="policy_validation", metadata={"span_type": "TOOL"}) as span:
             try:
                 tool_input = {
                     "changed_files": [f['file'] for f in patch.get('changes', [])],
@@ -317,7 +307,7 @@ class MCPVerifier:
                 else:
                     policy_data = policy_result
                 
-                span.set_outputs({"result": policy_data})
+                span.update(output={"result": policy_data})
                 result.tool_results.append({"tool": "policy_validation_tool", "result": policy_data})
                 
                 if policy_data.get("valid", True):
@@ -333,7 +323,7 @@ class MCPVerifier:
 async def run_mcp_verification(patch: Dict, plan_step: PlanStep, repository_path: str) -> MCPVerificationResult:
     """
     Main entry point for MCP-based verification.
-    This will show tool calls in MLflow traces.
+    This will show tool calls in Langfuse traces.
     """
     verifier = MCPVerifier(repository_path)
     return await verifier.verify_with_tools(patch, plan_step)

@@ -135,13 +135,13 @@ async def _sync_single_file(
     
     log.debug(f"Calling datamodel_sync with: {sync_request}")
     
-    # Call MCP tool with MLflow tracking
-    import mlflow
-    with mlflow.start_span(name="tool_datamodel_sync", span_type="TOOL") as span:
+    # Call MCP tool with langfuse tracking
+    from langfuse import get_client
+    langfuse = get_client()
+    with langfuse.start_as_current_span(name="tool_datamodel_sync", metadata={"span_type": "TOOL"}, input=sync_request) as span:
         try:
-            span.set_inputs(sync_request)
             result = await mcp_client.call_tool("datamodel_sync", sync_request)
-            span.set_outputs({"result": result})
+            span.update(output={"result": result})
             
             # Handle CallToolResult objects with structured_content
             if hasattr(result, 'structured_content') and result.structured_content:

@@ -2,12 +2,9 @@
 Function to plan a single atomic step for the user goal.
 """
 import json
-import mlflow
 from typing import Dict, Any, List, Optional
+from langfuse import get_client
 from agents.services.mcp.mcp_client import get_mcp_client
-from agents.services.telemetry import (
-    SpanTypes, capture_tool_output, format_as_markdown, is_json
-)
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -19,7 +16,8 @@ async def plan_atomic_step(user_goal, facts):
     This function gets general guidance, not a detailed plan.
     The detailed plan will be created after gathering tool information.
     """
-    with mlflow.start_span(name="planning_guidance_generation", span_type="TOOL") as span:
+    langfuse = get_client()
+    with langfuse.start_as_current_span(name="planning_guidance_generation", metadata={"span_type": "TOOL"}) as span:
         client = get_mcp_client()
         
         # Create planning tool input for high-level guidance
@@ -29,8 +27,8 @@ async def plan_atomic_step(user_goal, facts):
             "guidance_type": "high_level"  # Request high-level guidance only
         }
         
-        # Set detailed inputs
-        span.set_attributes({
+        # Set detailed metadata
+        span.update(metadata={
             "goal_length": len(user_goal),
             "facts_count": len(facts) if isinstance(facts, list) else 1,
             "tool": "planning_tool",
@@ -51,15 +49,10 @@ async def plan_atomic_step(user_goal, facts):
             guidance_text = str(response)
         
         # Format the output for multiple views
-        span.set_outputs({
-            "full_guidance": guidance_text,  # Complete guidance text
+        span.update(output={
+            "guidance": guidance_text,
             "guidance_summary": guidance_text[:200] + "..." if len(guidance_text) > 200 else guidance_text,
-            "guidance_length": len(guidance_text),
-            "formats": {
-                "text": guidance_text,
-                "markdown": f"```\n{guidance_text}\n```",
-                "json": json.loads(guidance_text) if is_json(guidance_text) else None
-            }
+            "guidance_length": len(guidance_text)
         })
         
         # Return high-level guidance, not a detailed plan

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import mlflow
+from langfuse import get_client
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent
 from agents.services.events import sink
@@ -23,15 +23,17 @@ async def handle(state: AgentState) -> AgentState:
 
         client = get_mcp_client()
 
-        with mlflow.start_span(name="detailed_planning_phase") as planning_span:
-            planning_span.set_attributes({
+        langfuse = get_client()
+        with langfuse.start_as_current_span(
+            name="detailed_planning_phase",
+            metadata={
                 "implementation_plan_length": len(state.implementation_plan) if state.implementation_plan else 0,
                 "repo_facts_count": len(state.repo_facts.get("files", [])) if state.repo_facts else 0,
                 "has_planning_guidance": bool(state.planning_guidance),
                 "has_attachments": bool(state.attachments),
                 "attachment_count": len(state.attachments) if state.attachments else 0,
-            })
-            planning_span.set_inputs({
+            },
+            input={
                 "implementation_plan": state.implementation_plan,
                 "planning_guidance_length": len(state.planning_guidance) if state.planning_guidance else 0,
                 "repo_facts_summary": {
@@ -40,7 +42,8 @@ async def handle(state: AgentState) -> AgentState:
                 }
                 if state.repo_facts
                 else None,
-            })
+            }
+        ) as planning_span:
 
             # Build task context with planning guidance if available
             task_context = f"{state.user_goal}\n\nHIGH-LEVEL PLAN:\n{state.step_plan}"

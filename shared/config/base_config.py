@@ -89,11 +89,13 @@ class BaseConfig:
     _DEFAULT_ATTACHMENTS_PATH = Path(tempfile.gettempdir()) / "altinity_agent_attachments"
     ATTACHMENTS_ROOT = Path(os.getenv("AGENT_ATTACHMENTS_PATH", str(_DEFAULT_ATTACHMENTS_PATH)))
 
-    # MLflow configuration
-    MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", str(PROJECT_ROOT / "mlruns"))
-    MLFLOW_EXPERIMENT_NAME = os.getenv("MLFLOW_EXPERIMENT_NAME", "Altinity_Agentic_Workflow")
-    MLFLOW_ENABLED = os.getenv("MLFLOW_ENABLED", "true").lower() == "true"
-    MLFLOW_UI_PORT = int(os.getenv("MLFLOW_UI_PORT", "5000"))
+    # Langfuse configuration
+    LANGFUSE_SECRET_KEY = os.getenv("LANGFUSE_SECRET_KEY")
+    LANGFUSE_PUBLIC_KEY = os.getenv("LANGFUSE_PUBLIC_KEY")
+    LANGFUSE_HOST = os.getenv("LANGFUSE_HOST", "https://cloud.langfuse.com")  # Use cloud by default, or self-hosted URL
+    LANGFUSE_ENABLED = os.getenv("LANGFUSE_ENABLED", "true").lower() == "true"
+    LANGFUSE_RELEASE = os.getenv("LANGFUSE_RELEASE", "altinity-agents-v1")  # Version/release tag for traces
+    LANGFUSE_ENVIRONMENT = os.getenv("LANGFUSE_ENVIRONMENT", ENVIRONMENT)  # Inherit from general environment
 
 
 def get_config() -> BaseConfig:

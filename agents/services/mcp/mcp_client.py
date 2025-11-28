@@ -3,15 +3,11 @@ Version: 2025-10-29-debug-v2
 """
 
 import json
-import mlflow
 import os
 import time
 import uuid
 from pathlib import Path
 from typing import Dict, Any, List, Optional
-from agents.services.telemetry import (
-    SpanTypes, capture_tool_output, create_tool_span, format_as_markdown, is_json
-)
 from shared.utils.logging_utils import get_logger
 
 from agents.services.mcp.patch_generator import PatchGenerator
@@ -191,18 +187,16 @@ class MCPClient:
         
         start_time = time.time()
         
-        # Set up MLflow experiment
-        from shared.utils.mlflow_utils import get_or_create_experiment
-        experiment_name = get_or_create_experiment()
-        if experiment_name:
-            mlflow.set_experiment(experiment_name)
+        # Get Langfuse client for tracing
+        from langfuse import get_client
+        langfuse = get_client()
         
         # This will be nested under the main workflow trace
         patch_data = None  # Initialize to avoid UnboundLocalError
         try:
             # Step 1: Scan repository - FIRST to understand what files exist
-            with mlflow.start_span(name="repository_scanning", span_type="TOOL") as scan_span:
-                scan_span.set_attributes({
+            with langfuse.start_as_current_span(name="repository_scanning", metadata={"span_type": "TOOL"}) as scan_span:
+                scan_span.update(metadata={
                     "repository_path": repository_path,
                     "tool": "repository_scanner"
                 })
@@ -234,24 +228,7 @@ class MCPClient:
                     except Exception as e:
                         log.warning(f"Could not load layout context: {e}")
                 
-                # Format the output for multiple views
-                scan_span.set_outputs({
-                    "raw_result": repo_facts,
-                    "formats": {
-                        "text": str(repo_facts),
-                        "markdown": format_as_markdown(repo_facts),
-                        "json": repo_facts
-                    },
-                    "summary": {
-                        "file_count": len(repo_facts.get("layouts", [])) + len(repo_facts.get("models", [])) + len(repo_facts.get("resources", [])),
-                        "directory_count": sum(1 for dir_path in [
-                            Path(repository_path) / "App" / "ui" / "form" / "layouts",
-                            Path(repository_path) / "App" / "models",
-                            Path(repository_path) / "App" / "config" / "texts"
-                        ] if dir_path.exists()),  # Actually count existing Altinn directories
-                        "layout_count": len(repo_facts.get("layouts", []))
-                    }
-                })
+                scan_span.update(output={"repo_facts": repo_facts})
             
             # Step 2: Connect to MCP server
             await self.connect()
@@ -316,9 +293,9 @@ class MCPClient:
                 raise
             
             # Step 5: Normalize patch structure
-            with mlflow.start_span(name="patch_normalization") as norm_span:
+            with langfuse.start_as_current_span(name="patch_normalization", metadata={"span_type": "TOOL"}) as norm_span:
                 patch_data = normalize_patch_structure(patch_data)
-                norm_span.set_outputs({
+                norm_span.update(output={
                     "files_count": len(patch_data.get('files', [])),
                     "changes_count": len(patch_data.get('changes', []))
                 })
@@ -330,10 +307,10 @@ class MCPClient:
             
             log.info(f"Starting validation for {len(patch_data.get('changes', []))} changes")
             
-            with mlflow.start_span(name="patch_validation") as validation_span:
+            with langfuse.start_as_current_span(name="patch_validation", metadata={"span_type": "TOOL"}) as validation_span:
                 is_valid, errors, warnings = await validator.validate_patch(patch_data)
                 
-                validation_span.set_outputs({
+                validation_span.update(output={
                     "is_valid": is_valid,
                     "errors": errors,
                     "warnings": warnings

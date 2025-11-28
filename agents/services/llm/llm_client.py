@@ -1,7 +1,7 @@
 """LLM client for Altinity agents"""
 import json
 import asyncio
-import mlflow
+from langfuse import get_client
 from typing import Dict, Any, Optional, List, Tuple
 from langchain_openai import (
     AzureChatOpenAI,
@@ -349,16 +349,21 @@ class LLMClient:
         Returns:
             Response text
         """
-        with mlflow.start_span(name=f"llm_call_{self.role}", span_type="LLM") as span:
-            # Set inputs
-            span.set_inputs({
+        langfuse = get_client()
+        with langfuse.start_as_current_observation(
+            name=f"llm_call_{self.role}",
+            as_type="generation",
+            model=self.model,
+            input={
                 "system_message": system_message,
                 "user_message": user_message,
                 "role": self.role,
                 "model_metadata": self.get_model_metadata(),
                 "attachment_count": len(attachments) if attachments else 0,
                 "attachment_names": [att.name for att in attachments] if attachments else []
-            })
+            },
+            metadata={"role": self.role}
+        ) as span:
 
             try:
                 if self.use_responses:
@@ -397,29 +402,38 @@ class LLMClient:
                     response = self.llm.invoke(messages)
                     response_text = response.content
                 
-                # Set outputs
-                span.set_outputs({"response": response_text})
-                
-                # Set attributes for better tracing
-                span.set_attribute("request_length", len(system_message) + len(user_message))
-                span.set_attribute("response_length", len(response_text))
+                # Set outputs and usage details
+                usage_details = {}
                 if self.use_responses:
                     usage = getattr(response, "usage", None)
                     if usage:
-                        span.set_attribute("tokens_prompt", getattr(usage, "input_tokens", 0))
-                        span.set_attribute("tokens_completion", getattr(usage, "output_tokens", 0))
-                        span.set_attribute("tokens_total", getattr(usage, "total_tokens", 0))
+                        usage_details = {
+                            "input_tokens": getattr(usage, "input_tokens", 0),
+                            "output_tokens": getattr(usage, "output_tokens", 0),
+                            "total_tokens": getattr(usage, "total_tokens", 0)
+                        }
                 elif hasattr(response, 'response_metadata'):
                     if 'token_usage' in response.response_metadata:
                         usage = response.response_metadata['token_usage']
-                        span.set_attribute("tokens_prompt", usage.get('prompt_tokens', 0))
-                        span.set_attribute("tokens_completion", usage.get('completion_tokens', 0))
-                        span.set_attribute("tokens_total", usage.get('total_tokens', 0))
+                        usage_details = {
+                            "input_tokens": usage.get('prompt_tokens', 0),
+                            "output_tokens": usage.get('completion_tokens', 0),
+                            "total_tokens": usage.get('total_tokens', 0)
+                        }
+                
+                span.update(
+                    output={"response": response_text},
+                    usage_details=usage_details if usage_details else None,
+                    metadata={
+                        "request_length": len(system_message) + len(user_message),
+                        "response_length": len(response_text)
+                    }
+                )
                 
                 return response_text
                 
             except Exception as e:
-                span.set_attribute("error", str(e))
+                span.update(metadata={"error": str(e)})
                 raise
 
 

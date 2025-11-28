@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import mlflow
+from langfuse import get_client
 from agents.services.llm import LLMClient
 from agents.prompts import get_prompt_content, render_template
 from shared.utils.logging_utils import get_logger
@@ -28,24 +28,29 @@ async def extract_semantic_query(user_input: str, context: str = "general") -> s
         Input: "For noen skjemaer kan det være ønskelig at virksomhet kan fylle ut skjema uavhengig av rolle"
         Output: "authorization policy configuration skip role requirement organization access"
     """
-    with mlflow.start_span(name="semantic_query_extraction", span_type="LLM") as span:
-        llm = LLMClient(role="planner")
-        
-        system_prompt = get_prompt_content("semantic_query_extraction")
-        user_prompt = render_template("semantic_query_user", user_input=user_input)
-        
-        span.set_inputs({
+    langfuse = get_client()
+    llm = LLMClient(role="planner")
+    
+    system_prompt = get_prompt_content("semantic_query_extraction")
+    user_prompt = render_template("semantic_query_user", user_input=user_input)
+    
+    with langfuse.start_as_current_observation(
+        name="semantic_query_extraction",
+        as_type="generation",
+        input={
             "user_input": user_input,
             "context": context,
             "system_prompt": system_prompt,
             "user_prompt": user_prompt
-        })
+        },
+        metadata={"context": context}
+    ) as span:
         
         try:
             semantic_query = await llm.call_async(system_prompt, user_prompt)
             semantic_query = semantic_query.strip()
             
-            span.set_outputs({
+            span.update(output={
                 "semantic_query": semantic_query,
                 "query_length": len(semantic_query),
                 "original_length": len(user_input)
@@ -56,7 +61,7 @@ async def extract_semantic_query(user_input: str, context: str = "general") -> s
             
         except Exception as e:
             log.warning(f"Semantic query extraction failed: {e}, using original input")
-            span.set_outputs({
+            span.update(output={
                 "error": str(e),
                 "fallback_query": user_input
             })
