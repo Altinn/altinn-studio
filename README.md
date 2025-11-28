@@ -6,38 +6,71 @@ An intelligent AI agent system that makes sophisticated code changes to Altinn S
 
 ## Prerequisites
 
-- Python 3.11+
-- Git
 - Azure OpenAI or OpenAI API access
 - **[Altinity MCP Server](https://github.com/Simenwai/altinity-mcp)** running in the background
 
-## Quick Start
+## Installation
 
-1. **Install dependencies:**
+### Recommended: Docker Setup
 
-```bash
-pip install -r requirements.txt
-```
+The easiest way to get started is using Docker, which works across all environments:
 
-2. **Configure environment:**
+**Prerequisites:**
 
-```bash
-cp .env.example .env
-# Edit .env with your API keys and paths
-```
+- Docker and Docker Compose installed
 
-3. **Start the Altinity MCP Server** (required background service):
+**Quick Start:**
 
-```bash
-# In a separate terminal, follow instructions at:
-# https://github.com/Simenwai/altinity-mcp
-```
+1. Clone this repository
 
-4. **Start Altinity:**
+2. Copy `.env.example` to `.env.docker` and add your API keys and paths:
 
-```bash
-python -m uvicorn frontend_api.main:app --host 0.0.0.0 --port 8071 --reload
-```
+   ```bash
+   cp .env.example .env.docker
+   ```
+
+3. Start the Altinity MCP Server (required background service):
+   ```bash
+   # In a separate terminal, follow instructions at:
+   # https://github.com/Simenwai/altinity-mcp
+   ```
+
+3. Start the server:
+   ```bash
+   docker-compose up
+   ```
+
+The server will be available on port 8071 and automatically handle all dependencies.
+
+### Alternative: Local Python Setup
+
+If you prefer running without Docker:
+
+**Prerequisites**
+
+- Python 3.11+
+- Git
+
+1. Install dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+2. Copy `.env.example` to `.env` and add your API keys and paths::
+    ```bash
+    cp .env.example .env
+    ```
+
+3. Start the Altinity MCP Server (required background service):
+    ```bash
+    # In a separate terminal, follow instructions at:
+    # https://github.com/Simenwai/altinity-mcp
+    ```
+
+4. Start Altinity:
+    ```bash
+    python -m uvicorn frontend_api.main:app --host 0.0.0.0 --port 8071 --reload
+    ```
 
 ## Features
 

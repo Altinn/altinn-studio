@@ -27,6 +27,17 @@ class RepoManager:
         self.temp_dir.mkdir(exist_ok=True)
         self.active_repos: Dict[str, Path] = {}  # session_id -> repo_path
 
+    def _get_port(self, parsed_url) -> int:
+        if parsed_url.port:
+            return parsed_url.port
+        elif parsed_url.scheme == 'https':
+            return 443
+        else:
+            return 80
+
+    def _strip_repos_from_path(self, repo_url: str) -> str:
+        return repo_url.replace('/repos', '')
+
     def _get_auth_url(self, repo_url: str) -> str:
         """
         Convert a repo URL to include authentication token if available.
@@ -44,18 +55,16 @@ class RepoManager:
 
         try:
             parsed = urlparse(repo_url)
+            port = self._get_port(parsed)
+
             # Insert token as username (common git auth pattern)
-            # Format: https://token@host/path or https://username:token@host/path
+            # Format: https://token@host:port/path or https://username:token@host:port/path
             if parsed.username:
                 # Already has username, replace with token as password
-                netloc = f"{parsed.username}:{token}@{parsed.hostname}"
-                if parsed.port:
-                    netloc += f":{parsed.port}"
+                netloc = f"{parsed.username}:{token}@{parsed.hostname}:{port}"
             else:
                 # No username, use token as username
-                netloc = f"{token}@{parsed.hostname}"
-                if parsed.port:
-                    netloc += f":{parsed.port}"
+                netloc = f"{token}@{parsed.hostname}:{port}"
 
             auth_url = urlunparse(parsed._replace(netloc=netloc))
             log.debug(f"Converted {repo_url} to authenticated URL")
@@ -64,6 +73,14 @@ class RepoManager:
         except Exception as e:
             log.warning(f"Failed to add authentication to URL {repo_url}: {e}")
             return repo_url
+
+    def _normalize_repo_url(self, repo_url: str) -> str:
+        """
+        Normalize repository URL for the current environment.
+        Handles Docker vs local environment differences.
+        """
+        repo_path_part = urlparse(repo_url).path
+        return f"{config.GITEA_BASE_URL}{repo_path_part}"
 
     def clone_repo_for_session(self, repo_url: str, session_id: str, branch: Optional[str] = None) -> Path:
         """
@@ -116,8 +133,11 @@ class RepoManager:
         log.info(f"Cloning repository {repo_url} to {repo_path}")
 
         try:
+            normalized_url = self._normalize_repo_url(repo_url)
+            normalized_url = self._strip_repos_from_path(normalized_url)
+
             # Use authenticated URL for cloning
-            auth_url = self._get_auth_url(repo_url)
+            auth_url = self._get_auth_url(normalized_url)
             cmd = ["git", "clone", auth_url, str(repo_path)]
             result = subprocess.run(cmd, capture_output=True, text=True, check=True)
 
