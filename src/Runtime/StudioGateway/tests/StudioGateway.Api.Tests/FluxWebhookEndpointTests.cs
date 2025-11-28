@@ -10,6 +10,7 @@ public class FluxWebhookEndpointTests : IClassFixture<WebApplicationFactory<Prog
 
     public FluxWebhookEndpointTests(WebApplicationFactory<Program> factory)
     {
+        Assert.NotNull(factory);
         _client = factory.CreateClient();
     }
 
@@ -23,9 +24,13 @@ public class FluxWebhookEndpointTests : IClassFixture<WebApplicationFactory<Prog
     public async Task FluxWebhook_WithValidFluxEvent_ReturnsOk(string testDataFile)
     {
         var jsonContent = await File.ReadAllTextAsync(testDataFile, TestContext.Current.CancellationToken);
-        var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, MediaTypeNames.Application.Json);
+        using var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, MediaTypeNames.Application.Json);
 
-        var response = await _client.PostAsync("/flux/webhook", content, TestContext.Current.CancellationToken);
+        using var response = await _client.PostAsync(
+            new Uri("/api/v1/flux/webhook", UriKind.Relative),
+            content,
+            TestContext.Current.CancellationToken
+        );
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
