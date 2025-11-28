@@ -50,6 +50,12 @@ dependencies = [
     "defusedxml>=0.7.1",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.0.0",
+    "pytest-cov>=6.0.0",
+]
+
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
@@ -59,3 +65,9 @@ include = ["server*", "codegen*"]
 
 [project.scripts]
 altinity-mcp = "server.main:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = [
+    "-v",
+]
