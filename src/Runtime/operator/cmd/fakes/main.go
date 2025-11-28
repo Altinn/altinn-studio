@@ -300,9 +300,12 @@ func handleClients(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 		encoder := json.NewEncoder(w)
 		records := state.GetDb().Clients
-		clients := make([]*maskinporten.ClientResponse, len(records))
-		for i, record := range records {
-			clients[i] = record.Client
+		clients := make([]*maskinporten.ClientResponse, 0, len(records))
+		for _, record := range records {
+			if *record.Client.ClientName == "altinn_apps_supplier_client" {
+				continue // Real API does not return the supplier client (only those the supplier client has created)
+			}
+			clients = append(clients, record.Client)
 		}
 
 		err := encoder.Encode(clients)
@@ -330,6 +333,16 @@ func handleClients(w http.ResponseWriter, r *http.Request) {
 			log.Printf("clients cannot request idporten:dcr.altinn scope\n")
 			return
 		}
+		if client.SupplierOrgno != nil && *client.SupplierOrgno != "" {
+			w.WriteHeader(400)
+			log.Printf("clients cannot set supplier orgno in self-service\n")
+			return
+		}
+		if client.ClientOrgno == nil || *client.ClientOrgno == "" {
+			w.WriteHeader(400)
+			log.Printf("clients must set client orgno in self-service\n")
+			return
+		}
 
 		clientRecord, err := state.GetDb().Insert(&client, nil, "")
 		if err != nil {
@@ -338,12 +351,11 @@ func handleClients(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		w.WriteHeader(200)
 		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(201)
 		encoder := json.NewEncoder(w)
 		err = encoder.Encode(clientRecord.Client)
 		if err != nil {
-			w.WriteHeader(500)
 			log.Printf("couldn't write response: %v\n", errors.Wrap(err, 0))
 			return
 		}
@@ -366,23 +378,8 @@ func handleClientByID(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case GET:
-		if selfServiceAuth(r) == nil {
-			w.WriteHeader(401)
-			return
-		}
-
-		clientRecord := state.GetDb().Get(clientId)
-		if clientRecord == nil {
-			w.WriteHeader(404)
-			return
-		}
-		w.Header().Add("Content-Type", "application/json")
-		encoder := json.NewEncoder(w)
-		err := encoder.Encode(clientRecord.Client)
-		if err != nil {
-			w.WriteHeader(500)
-			log.Printf("couldn't write response: %v\n", errors.Wrap(err, 0))
-		}
+		w.WriteHeader(500) // As of manual testing, it just returns 500 here (even though the endopint doesnt exist)
+		return
 	case PUT:
 		if selfServiceAuth(r) == nil {
 			w.WriteHeader(401)
@@ -464,7 +461,7 @@ func handleClientByID(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(404)
 			return
 		}
-		w.WriteHeader(200)
+		w.WriteHeader(204)
 
 	default:
 		if selfServiceAuth(r) == nil {
@@ -568,7 +565,7 @@ func handleOrgRegistry(w http.ResponseWriter, r *http.Request) {
 	fakeOrgs := map[string]orgs.Org{
 		"ttd": {
 			Name:  orgs.OrgName{En: "Test Department", Nb: "Testdepartementet", Nn: "Testdepartementet"},
-			OrgNr: "405003309",
+			OrgNr: "405003309", // NOTE: this matches the org nr in the registry testdata in localtest, keep in sync
 		},
 		"digdir": {
 			Name:  orgs.OrgName{En: "Norwegian Digitalisation Agency", Nb: "Digitaliseringsdirektoratet", Nn: "Digitaliseringsdirektoratet"},

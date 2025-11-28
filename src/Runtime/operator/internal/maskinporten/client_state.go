@@ -154,7 +154,7 @@ func NewClientState(
 		}
 		state.Api = &ApiState{
 			ClientId: api.ClientId,
-			Req:      mapClientResponseToAddRequest(api),
+			Req:      MapClientResponseToAddRequest(api),
 			Jwks:     apiJwks,
 		}
 	}
@@ -435,7 +435,7 @@ type DeleteClientInApiCommand struct {
 type DeleteSecretContentCommand struct {
 }
 
-func mapClientResponseToAddRequest(api *ClientResponse) *AddClientRequest {
+func MapClientResponseToAddRequest(api *ClientResponse) *AddClientRequest {
 	grantTypes := make([]GrantType, len(api.GrantTypes))
 	copy(grantTypes, api.GrantTypes)
 	req := &AddClientRequest{

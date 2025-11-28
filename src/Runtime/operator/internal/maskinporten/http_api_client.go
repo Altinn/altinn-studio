@@ -175,11 +175,11 @@ func (c *HttpApiClient) GetAllClients(ctx context.Context) ([]ClientResponse, er
 	result := make([]ClientResponse, 0, 16)
 	for _, cl := range dtos {
 		if cl.ClientName == nil {
-			continue
+			return nil, fmt.Errorf("client with ID %s has no name", cl.ClientId)
 		}
 		clientName := strings.TrimPrefix(*cl.ClientName, c.clientNamePrefix)
 		if clientName == *cl.ClientName {
-			continue
+			return nil, fmt.Errorf("client with ID %s has invalid name (expected our prefix): %s", cl.ClientId, *cl.ClientName)
 		}
 
 		result = append(result, cl)
@@ -195,37 +195,22 @@ func (c *HttpApiClient) GetClient(
 	ctx, span := c.tracer.Start(ctx, "GetClient")
 	defer span.End()
 
-	url, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId)
+	// The API does not currently have an endpoint for returning by ID
+	clients, err := c.GetAllClients(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	req, err := c.createReq(ctx, url, "GET", nil)
-	if err != nil {
-		return nil, nil, err
+	var client *ClientResponse
+	for i := range clients {
+		if clients[i].ClientId == clientId {
+			client = &clients[i]
+			break
+		}
 	}
 
-	req.Header.Set("Accept", "application/json")
-	resp, err := c.retryableHTTPDo(req)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if resp.StatusCode != 200 {
-		return nil, nil, c.handleErrorResponse(resp)
-	}
-
-	dto, err := deserialize[ClientResponse](resp)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if dto.ClientName == nil {
-		return nil, nil, errors.New("client name is nil")
-	}
-	clientName := strings.TrimPrefix(*dto.ClientName, c.clientNamePrefix)
-	if clientName == *dto.ClientName {
-		return nil, nil, errors.New(fmt.Errorf("unexpected client name: %s", *dto.ClientName))
+	if client == nil {
+		return nil, nil, fmt.Errorf("client not found: %s", clientId)
 	}
 
 	jwks, err := c.getClientJwks(ctx, clientId)
@@ -233,7 +218,7 @@ func (c *HttpApiClient) GetClient(
 		return nil, nil, err
 	}
 
-	return &dto, jwks, nil
+	return client, jwks, nil
 }
 
 func (c *HttpApiClient) getClientJwks(ctx context.Context, clientId string) (*crypto.Jwks, error) {
@@ -308,7 +293,8 @@ func (c *HttpApiClient) CreateClient(
 		return nil, err
 	}
 
-	if resp.StatusCode != 200 {
+	// NOTE: as of writing, actual response code does not match OpenAPI spec
+	if resp.StatusCode != 201 {
 		return nil, c.handleErrorResponse(resp)
 	}
 
@@ -444,7 +430,8 @@ func (c *HttpApiClient) DeleteClient(ctx context.Context, clientId string) error
 		return err
 	}
 
-	if resp.StatusCode != 200 {
+	// NOTE: as of writing, actual response code does not match OpenAPI spec
+	if resp.StatusCode != 204 {
 		return c.handleErrorResponse(resp)
 	}
 
@@ -601,7 +588,7 @@ func (c *HttpApiClient) retryableHTTPDo(req *http.Request) (*http.Response, erro
 			return err // Network error, retry.
 		}
 		if resp.StatusCode >= 500 { // Retrying on 5xx server errors.
-			return fmt.Errorf("server error: %v", resp.Status)
+			return c.handleErrorResponse(resp)
 		}
 		return nil // No retry needed - success or client side error
 	}
@@ -609,8 +596,8 @@ func (c *HttpApiClient) retryableHTTPDo(req *http.Request) (*http.Response, erro
 	backoffStrategy := backoff.NewExponentialBackOff()
 	// Default setting is to 1.5x the time interval for every failure
 	backoffStrategy.InitialInterval = 1 * time.Second
-	backoffStrategy.MaxInterval = 30 * time.Second
-	backoffStrategy.MaxElapsedTime = 2 * time.Minute
+	backoffStrategy.MaxInterval = 5 * time.Second
+	backoffStrategy.MaxElapsedTime = 15 * time.Second
 
 	err = backoff.Retry(operation, backoffStrategy)
 	if err != nil {
