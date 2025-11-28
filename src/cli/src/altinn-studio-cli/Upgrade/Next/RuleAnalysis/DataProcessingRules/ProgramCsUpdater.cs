@@ -36,8 +36,8 @@ internal class ProgramCsUpdater
 
         var content = File.ReadAllText(programCsPath);
 
-        // Ensure the using statement for Altinn.App.Logic is present (exact match, not a sub-namespace)
-        var usingLogicPattern = @"^\s*using\s+Altinn\.App\.Logic\s*;";
+        // Ensure the using statement for Altinn.App.Logic.ConvertedLegacyRules is present
+        var usingLogicPattern = @"^\s*using\s+Altinn\.App\.Logic\.ConvertedLegacyRules\s*;";
         var needsUsingStatement = !Regex.IsMatch(content, usingLogicPattern, RegexOptions.Multiline);
 
         // Check if already registered
@@ -114,7 +114,10 @@ internal class ProgramCsUpdater
             if (firstUsingMatch.Success)
             {
                 var insertPosition = firstUsingMatch.Index + firstUsingMatch.Length;
-                updatedContent = updatedContent.Insert(insertPosition, "\nusing Altinn.App.Logic;");
+                updatedContent = updatedContent.Insert(
+                    insertPosition,
+                    "\nusing Altinn.App.Logic.ConvertedLegacyRules;"
+                );
             }
         }
 

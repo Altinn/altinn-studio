@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.ProjectRewriters;
+using Altinn.Studio.Cli.Upgrade.Next.ConditionalRenderingRules;
 using Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis;
 
 namespace Altinn.Studio.Cli.Upgrade.Next;
@@ -104,7 +105,17 @@ internal static class NextUpgrade
                 returnCode = await RemoveSwashbucklePackage(projectFile);
             }
 
-            // TODO: Add more upgrade jobs here (frontend, rules, etc.)
+            // Job 3: Convert conditional rendering rules to layout hidden expressions
+            if (returnCode == 0)
+            {
+                returnCode = await ConvertConditionalRenderingRules(projectFolder);
+            }
+
+            // Job 4: Cleanup legacy rule files
+            if (returnCode == 0)
+            {
+                returnCode = await CleanupLegacyRuleFiles(projectFolder);
+            }
 
             if (returnCode == 0)
             {
@@ -144,6 +155,63 @@ internal static class NextUpgrade
         catch (Exception ex)
         {
             await Console.Error.WriteLineAsync($"Error converting to project references: {ex.Message}");
+            return 1;
+        }
+    }
+
+    /// <summary>
+    /// Job 3: Convert conditional rendering rules to layout hidden expressions
+    /// </summary>
+    static async Task<int> ConvertConditionalRenderingRules(string projectFolder)
+    {
+        try
+        {
+            await Console.Out.WriteLineAsync("Converting conditional rendering rules to layout hidden expressions...");
+
+            var converter = new ConditionalRenderingConverter(projectFolder);
+            var stats = converter.ConvertAllLayoutSets();
+
+            if (stats.TotalRules == 0)
+            {
+                await Console.Out.WriteLineAsync("No conditional rendering rules found to convert");
+                return 0;
+            }
+
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            await Console.Error.WriteLineAsync($"Error converting conditional rendering rules: {ex.Message}");
+            return 1;
+        }
+    }
+
+    /// <summary>
+    /// Job 4: Cleanup legacy rule files after conversion
+    /// </summary>
+    static async Task<int> CleanupLegacyRuleFiles(string projectFolder)
+    {
+        try
+        {
+            await Console.Out.WriteLineAsync("Cleaning up legacy rule files...");
+
+            var cleanup = new LegacyRuleFileCleanup(projectFolder);
+            var stats = cleanup.CleanupAllLayoutSets();
+
+            if (stats.RuleConfigFilesDeleted == 0 && stats.RuleHandlerFilesDeleted == 0)
+            {
+                await Console.Out.WriteLineAsync("No legacy rule files found to cleanup");
+                return 0;
+            }
+
+            await Console.Out.WriteLineAsync($"Deleted {stats.RuleConfigFilesDeleted} RuleConfiguration.json files");
+            await Console.Out.WriteLineAsync($"Deleted {stats.RuleHandlerFilesDeleted} RuleHandler.js files");
+
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            await Console.Error.WriteLineAsync($"Error cleaning up legacy rule files: {ex.Message}");
             return 1;
         }
     }

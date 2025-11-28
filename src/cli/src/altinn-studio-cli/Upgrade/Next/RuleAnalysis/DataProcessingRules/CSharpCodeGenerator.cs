@@ -105,7 +105,7 @@ internal class CSharpCodeGenerator
 
         // Generate namespace and class declaration
         code.AppendLine();
-        code.AppendLine("namespace Altinn.App.Logic;");
+        code.AppendLine("namespace Altinn.App.Logic.ConvertedLegacyRules;");
         code.AppendLine();
         code.AppendLine($"public class {className} : IDataWriteProcessor");
         code.OpenBrace();
