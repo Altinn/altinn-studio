@@ -29,7 +29,7 @@ namespace Altinn.Studio.Designer.Clients.Implementations;
 
 /// <summary>
 /// Implementation of the <see cref="IGitea"/> interface.
-/// Connects to Gitea API to perform operations related to repositories..
+/// Connects to Gitea API to perform operations related to repositories.
 /// </summary>
 /// <param name="repositorySettings">the repository settings</param>
 /// <param name="httpContextAccessor">the http context accessor</param>
