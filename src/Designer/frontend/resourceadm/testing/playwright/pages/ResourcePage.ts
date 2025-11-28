@@ -43,7 +43,7 @@ export class ResourcePage extends ResourceEnvironment {
     super(environment);
     this.resourceId = resourceId;
     this.resourceTypeRadio = this.page.getByRole('radio', {
-      name: textMock('resourceadm.about_resource_resource_type_generic_access_resource'),
+      name: textMock('dashboard.resource_type_generic_access_resource'),
     });
     this.titleTextField = this.page.getByRole('textbox', {
       name: textMock('resourceadm.about_resource_resource_title_label'),
