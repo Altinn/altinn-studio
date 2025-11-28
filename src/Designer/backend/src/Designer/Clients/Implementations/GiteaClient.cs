@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Polly;
+using Polly.Wrap;
 
 namespace Altinn.Studio.Designer.Clients.Implementations;
 
@@ -92,7 +93,7 @@ public class GiteaClient(
     /// <inheritdoc />
     public async Task<RepositoryClient.Model.Repository> CreateRepository(string org, CreateRepoOption options)
     {
-        var repository = new RepositoryClient.Model.Repository();
+        RepositoryClient.Model.Repository repository = new RepositoryClient.Model.Repository();
         string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
         string urlEnd = developer == org ? "user/repos" : $"org/{org}/repos";
         HttpResponseMessage response = await httpClient.PostAsJsonAsync(urlEnd, options);
@@ -157,12 +158,12 @@ public class GiteaClient(
     /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
     public async Task<IList<RepositoryClient.Model.Repository>> GetStarred()
     {
-        var starredRepos = new List<RepositoryClient.Model.Repository>();
+        List<RepositoryClient.Model.Repository> starredRepos = new List<RepositoryClient.Model.Repository>();
 
         HttpResponseMessage response = await httpClient.GetAsync("user/starred?limit=100");
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            var repos = await response.Content.ReadAsAsync<List<RepositoryClient.Model.Repository>>();
+            List<RepositoryClient.Model.Repository> repos = await response.Content.ReadAsAsync<List<RepositoryClient.Model.Repository>>();
             starredRepos.AddRange(repos);
         }
 
@@ -419,7 +420,7 @@ public class GiteaClient(
         // In quite a few cases we have experienced that we get a 404 back
         // when doing a POST to this endpoint, hence we do a simple retry
         // with a specified wait time.
-        var retryPolicy = Policy.HandleResult<HttpResponseMessage>(response => response.StatusCode != HttpStatusCode.Created)
+        AsyncPolicyWrap<HttpResponseMessage> retryPolicy = Policy.HandleResult<HttpResponseMessage>(response => response.StatusCode != HttpStatusCode.Created)
             .FallbackAsync(ct =>
             {
                 logger.LogError($"//GiteaAPIWrapper // CreateBranch occured when creating branch {branchName} for repo {org}/{repository}");
@@ -584,7 +585,7 @@ public class GiteaClient(
     /// <inheritdoc/>
     public async Task<string> GetLatestCommitOnBranch(string org, string repository, string branchName = null, CancellationToken cancellationToken = default)
     {
-        var url = new StringBuilder($"repos/{org}/{repository}/commits?limit=1&stat=false&verification=false&files=false");
+        StringBuilder url = new StringBuilder($"repos/{org}/{repository}/commits?limit=1&stat=false&verification=false&files=false");
         if (!string.IsNullOrWhiteSpace(branchName))
         {
             url.Append($"&sha={HttpUtility.UrlEncode(branchName)}");
@@ -637,7 +638,7 @@ public class GiteaClient(
     private async Task<string> GetCachedUserFullName(string username)
     {
         string cacheKey = $"giteauser_fullname:{username}";
-        var cacheEntryOptions = new MemoryCacheEntryOptions();
+        MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions();
         if (!memoryCache.TryGetValue(cacheKey, out string giteaUserFullName))
         {
             HttpResponseMessage response = await httpClient.GetAsync($"users/{username}/");
@@ -678,7 +679,7 @@ public class GiteaClient(
             }
 
             // Keep in cache for this time, reset time if accessed.
-            var cacheEntryOptions = new MemoryCacheEntryOptions()
+            MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions()
             .SetSlidingExpiration(TimeSpan.FromSeconds(3600));
 
             // Save data in cache.
