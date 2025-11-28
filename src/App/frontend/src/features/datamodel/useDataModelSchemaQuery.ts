@@ -14,6 +14,11 @@ import type { SchemaLookupResult } from 'src/features/datamodel/SimpleSchemaTrav
 // Also used for prefetching @see formPrefetcher.ts
 export function useDataModelSchemaQueryDef(enabled: boolean, dataTypeId?: string): QueryDefinition<JSONSchema7> {
   const { fetchDataModelSchema } = useAppQueries();
+
+  const enabledDebug = enabled && !!dataTypeId;
+  console.log('enabled', enabled);
+  console.log('enabledDebug', enabledDebug);
+  console.log('dataTypeId', dataTypeId);
   return {
     queryKey: ['fetchDataModelSchemas', dataTypeId],
     queryFn: dataTypeId ? () => fetchDataModelSchema(dataTypeId) : skipToken,

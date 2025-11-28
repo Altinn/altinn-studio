@@ -280,10 +280,6 @@ function useFormDataSaveMutation() {
         }
 
         const patchUrl = getUrlWithLanguage(multiPatchUrl, currentLanguage.current);
-        console.log('🔵 FORM DATA WRITE: multiPatchUrl (base):', multiPatchUrl);
-        console.log('🔵 FORM DATA WRITE: currentLanguage.current:', currentLanguage.current);
-        console.log('🔵 FORM DATA WRITE: final patchUrl:', patchUrl);
-        console.log('🔵 FORM DATA WRITE: patches being sent:', patches);
 
         const { newDataModels, validationIssues, instance } = (
           await doPatchMultipleFormData(patchUrl, {

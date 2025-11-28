@@ -629,6 +629,7 @@ export const createFormDataWriteStore = (
   createStore<FormDataContext>()(
     immer((set) => {
       const actions = makeActions(set, changeInstance, ruleConnections, schemaLookup);
+
       for (const name of Object.keys(actions)) {
         const fnName = name as keyof FormDataMethods;
         const original = actions[fnName];

@@ -62,8 +62,6 @@ export async function dynamicsLoader({ params, context }: DynamicsLoaderProps): 
     }
     return {};
   } catch (e) {
-    // eslint-disable-next-line no-console
-    console.log(e);
     // Redirect to error page when rule handler fails
     throw redirect(`/${org}/${app}/error?errorType=unknown&showContactInfo=true`);
   }

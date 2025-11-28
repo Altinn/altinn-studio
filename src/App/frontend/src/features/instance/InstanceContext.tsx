@@ -127,7 +127,7 @@ const useOptimisticInstanceUpdate = () => {
   const queryClient = useQueryClient();
   const instance = useInstanceDataQuery().data;
   const instanceOwnerPartyId = instance?.instanceOwner.partyId;
-  const instanceGuid = instance?.id;
+  const instanceGuid = instance?.id.split('/')[1];
 
   const queryKey =
     !instanceOwnerPartyId || !instanceGuid
@@ -141,6 +141,7 @@ const useOptimisticInstanceUpdate = () => {
     queryKey &&
       queryClient.setQueryData(queryKey, (oldData: IInstance | undefined) => {
         if (!oldData) {
+          /*debugger;*/
           throw new Error('Cannot update instance data cache when there is not cached data');
         }
         return updater(oldData);

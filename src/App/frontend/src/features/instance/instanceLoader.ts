@@ -14,16 +14,6 @@ interface InstanceLoaderProps extends LoaderFunctionArgs {
 
 export async function instanceLoader(params: InstanceLoaderProps): Promise<unknown> {
   const { queryClient, instance } = params.context;
-  // const queryKey = instanceQueries.instanceData({
-  //   instanceOwnerPartyId: instance.instanceOwner.partyId,
-  //   instanceGuid: instance.id,
-  // }).queryKey;
-
-  const queryKey = instanceDataQueryKey({
-    instanceOwnerPartyId: instance.instanceOwner.partyId,
-    instanceGuid: instance.id.split('/')[1],
-  });
-
   queryClient.setQueryData(
     instanceDataQueryKey({
       instanceOwnerPartyId: instance.instanceOwner.partyId,
@@ -32,6 +22,11 @@ export async function instanceLoader(params: InstanceLoaderProps): Promise<unkno
     instance,
   );
 
+  // const temp = {
+  //   instanceOwnerPartyId: instance.instanceOwner.partyId,
+  //   instanceGuid: instance.id.split('/')[1],
+  // };
+  //
   // debugger;
 
   return null;

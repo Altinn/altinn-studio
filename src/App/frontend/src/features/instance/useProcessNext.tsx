@@ -78,8 +78,8 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
     onSuccess: async ([processData, validationIssues]) => {
       if (processData) {
         optimisticallyUpdateProcess(processData);
-        refetchProcessData();
-        reFetchInstanceData();
+        await Promise.all([refetchProcessData(), reFetchInstanceData()]);
+        await invalidateFormDataQueries(queryClient);
         await invalidateFormDataQueries(queryClient);
 
         const task = getTargetTaskFromProcess(processData);

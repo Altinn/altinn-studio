@@ -153,15 +153,20 @@ function DataModelsLoader() {
   const applicationMetadata = useApplicationMetadata();
   const setDataTypes = useSelector((state) => state.setDataTypes);
   const allDataTypes = useSelector((state) => state.allDataTypes);
+
+  console.log('allDataTypes', allDataTypes);
+
   const writableDataTypes = useSelector((state) => state.writableDataTypes);
   const layouts = useLayouts();
+
+  console.log('layouts', layouts);
+
   const defaultDataType = useCurrentDataModelName();
   const isStateless = useApplicationMetadata().isStatelessApp;
   const queryClient = useQueryClient();
   const instance = useInstanceDataQuery().data;
 
   if (!instance?.instanceOwner.partyId) {
-    // debugger;
     throw new Error('instanceOwnerParty is required at this point, something is wrong.');
   }
   const instanceOwnerPartyId = `${instance.instanceOwner.partyId}`;
@@ -405,11 +410,20 @@ export const DataModels = {
     // to re-run data model validations, etc.
     const { schemaLookup, allDataTypes } = useStaticSelector((state) => state);
 
-    console.log('schemaLookup', schemaLookup);
-
     return useMemo(() => {
+      // if (allDataTypes && allDataTypes?.length > 0 && allDataTypes?.every((dt) => schemaLookup[dt])) {
+
+      const hasAllDataTypes = allDataTypes?.every((dt) => schemaLookup[dt]);
+
       if (allDataTypes?.every((dt) => schemaLookup[dt])) {
-        return (reference: IDataModelReference) => schemaLookup[reference.dataType].getSchemaForPath(reference.field);
+        return (reference: IDataModelReference) =>
+          // if (!schemaLookup[reference.dataType]) {
+          //   console.log('hasAllDataTypes', hasAllDataTypes);
+          //   debugger;
+          //   // return false;
+          // }
+
+          schemaLookup[reference.dataType].getSchemaForPath(reference.field);
       }
       return undefined;
     }, [allDataTypes, schemaLookup]);
