@@ -7,6 +7,7 @@
     "libs/studio-assistant",
     "libs/studio-browser-storage",
     "libs/studio-components",
+    "libs/studio-components-legacy",
     "libs/studio-content-library/src/ContentLibrary/LibraryBody/pages/CodeListsPage",
     "libs/studio-feature-flags",
     "libs/studio-hooks",
