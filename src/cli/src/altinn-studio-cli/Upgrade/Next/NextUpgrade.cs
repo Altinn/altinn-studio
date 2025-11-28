@@ -3,6 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.ProjectRewriters;
 using Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration;
 using Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingRules;
+using Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.DataProcessingRules;
+using Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.Models;
 
 namespace Altinn.Studio.Cli.Upgrade.Next;
 
@@ -41,9 +43,6 @@ internal static class NextUpgrade
             targetFrameworkOption,
             skipCsprojUpgradeOption,
         };
-
-        // Add subcommands
-        upgradeCommand.AddCommand(RuleConvertCommand.GetCommand(projectFolderOption));
 
         int returnCode = 0;
         upgradeCommand.SetHandler(async context =>
@@ -111,7 +110,13 @@ internal static class NextUpgrade
                 returnCode = await ConvertConditionalRenderingRules(projectFolder);
             }
 
-            // Job 4: Cleanup legacy rule files
+            // Job 4: Generate data processors for data processing rules
+            if (returnCode == 0)
+            {
+                returnCode = await GenerateDataProcessors(projectFolder);
+            }
+
+            // Job 5: Cleanup legacy rule files
             if (returnCode == 0)
             {
                 returnCode = await CleanupLegacyRuleFiles(projectFolder);
@@ -187,7 +192,142 @@ internal static class NextUpgrade
     }
 
     /// <summary>
-    /// Job 4: Cleanup legacy rule files after conversion
+    /// Job 4: Generate data processors for data processing rules
+    /// </summary>
+    static async Task<int> GenerateDataProcessors(string projectFolder)
+    {
+        try
+        {
+            await Console.Out.WriteLineAsync("Generating data processors for data processing rules...");
+
+            var uiPath = Path.Combine(projectFolder, "App", "ui");
+            if (!Directory.Exists(uiPath))
+            {
+                uiPath = Path.Combine(projectFolder, "ui");
+                if (!Directory.Exists(uiPath))
+                {
+                    await Console.Out.WriteLineAsync("No UI directory found, skipping data processor generation");
+                    return 0;
+                }
+            }
+
+            var layoutSetDirectories = Directory.GetDirectories(uiPath);
+            var totalProcessed = 0;
+
+            foreach (var layoutSetPath in layoutSetDirectories)
+            {
+                var layoutSetName = Path.GetFileName(layoutSetPath);
+                var ruleConfigPath = Path.Combine(layoutSetPath, "RuleConfiguration.json");
+
+                if (!File.Exists(ruleConfigPath))
+                {
+                    continue;
+                }
+
+                // Parse rule configuration
+                var configParser = new RuleConfigurationParser(ruleConfigPath);
+                configParser.Parse();
+                var dataProcessingRules = configParser.GetDataProcessingRules();
+
+                if (dataProcessingRules.Count == 0)
+                {
+                    continue;
+                }
+
+                // Parse JavaScript handler
+                var ruleHandlerPath = Path.Combine(layoutSetPath, "RuleHandler.js");
+                if (!File.Exists(ruleHandlerPath))
+                {
+                    await Console.Error.WriteLineAsync(
+                        $"Warning: RuleHandler.js not found for layout set '{layoutSetName}', skipping data processor generation"
+                    );
+                    continue;
+                }
+
+                var jsParser = new RuleHandlerParser(ruleHandlerPath);
+                jsParser.Parse();
+
+                // Resolve data model
+                var dataModelResolver = new DataModelResolver(projectFolder);
+                dataModelResolver.LoadConfiguration();
+                var dataModelInfo = dataModelResolver.GetDataModelInfo(layoutSetName);
+
+                if (dataModelInfo == null)
+                {
+                    await Console.Error.WriteLineAsync(
+                        $"Warning: Could not resolve data model for layout set '{layoutSetName}', skipping data processor generation"
+                    );
+                    continue;
+                }
+
+                // Initialize type resolver
+                var typeResolver = new DataModelTypeResolver(projectFolder);
+                var typeResolverLoaded = typeResolver.LoadDataModelType(dataModelInfo);
+
+                // Generate C# code
+                var generator = new CSharpCodeGenerator(
+                    layoutSetName,
+                    dataModelInfo,
+                    dataProcessingRules,
+                    jsParser,
+                    typeResolverLoaded ? typeResolver : null
+                );
+                var generationResult = generator.Generate();
+
+                if (
+                    !generationResult.Success
+                    || generationResult.GeneratedCode == null
+                    || generationResult.ClassName == null
+                )
+                {
+                    await Console.Error.WriteLineAsync(
+                        $"Failed to generate data processor for layout set '{layoutSetName}'"
+                    );
+                    foreach (var error in generationResult.Errors)
+                    {
+                        await Console.Error.WriteLineAsync($"  Error: {error}");
+                    }
+                    continue;
+                }
+
+                // Write the file
+                var fileWriter = new DataProcessorFileWriter(projectFolder);
+                var filePath = fileWriter.WriteDataProcessor(
+                    generationResult.ClassName,
+                    generationResult.GeneratedCode
+                );
+                await Console.Out.WriteLineAsync($"Generated data processor: {filePath}");
+
+                // Register in Program.cs
+                var programUpdater = new ProgramCsUpdater(projectFolder);
+                programUpdater.RegisterDataProcessor(generationResult.ClassName);
+
+                if (generationResult.FailedConversions > 0)
+                {
+                    await Console.Out.WriteLineAsync(
+                        $"  Warning: {generationResult.FailedConversions} of {generationResult.TotalRules} rules require manual implementation"
+                    );
+                }
+
+                totalProcessed++;
+            }
+
+            if (totalProcessed == 0)
+            {
+                await Console.Out.WriteLineAsync("No data processing rules found to convert");
+            }
+
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            await Console.Error.WriteLineAsync($"Error generating data processors: {ex.Message}");
+            return 1;
+        }
+    }
+
+    /// <summary>
+    /// Job 5: Cleanup legacy rule files after conversion
     /// </summary>
     static async Task<int> CleanupLegacyRuleFiles(string projectFolder)
     {
