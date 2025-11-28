@@ -7,7 +7,7 @@ internal static class FluxWebhookEndpoints
 {
     public static WebApplication MapFluxWebhookEndpoint(this WebApplication app)
     {
-        app.MapPost("/flux/webhook", HandleFluxWebhook)
+        app.MapPost("/api/v1/flux/webhook", HandleFluxWebhook)
             .WithName("FluxWebhook")
             .WithSummary("Receive Flux CD webhook notifications")
             .WithDescription("Endpoint for receiving event notifications from Flux CD controllers")
