@@ -10,6 +10,7 @@ namespace Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.ProjectRewriters;
 internal sealed class ProjectFileRewriter
 {
     private readonly XDocument _doc;
+    private readonly XDocument _originalDoc;
     private readonly string _projectFilePath;
     private readonly string _targetVersion;
     private readonly string _targetFramework;
@@ -30,6 +31,7 @@ internal sealed class ProjectFileRewriter
         _targetVersion = targetVersion;
         var xmlString = File.ReadAllText(projectFilePath);
         _doc = XDocument.Parse(xmlString);
+        _originalDoc = XDocument.Parse(xmlString);
         _targetFramework = targetFramework;
     }
 
@@ -249,6 +251,13 @@ internal sealed class ProjectFileRewriter
 
     private async Task Save()
     {
+        // Compare the current document with the original to detect actual changes
+        // This comparison ignores formatting differences and only checks semantic changes
+        if (XNode.DeepEquals(_doc, _originalDoc))
+        {
+            return;
+        }
+
         XmlWriterSettings xws = new XmlWriterSettings();
         xws.Async = true;
         xws.OmitXmlDeclaration = true;
@@ -257,5 +266,6 @@ internal sealed class ProjectFileRewriter
         await using XmlWriter xw = XmlWriter.Create(_projectFilePath, xws);
         await _doc.WriteToAsync(xw, CancellationToken.None);
         await xw.FlushAsync();
+        Console.WriteLine($"Saved changes to {Path.GetFileName(_projectFilePath)}");
     }
 }

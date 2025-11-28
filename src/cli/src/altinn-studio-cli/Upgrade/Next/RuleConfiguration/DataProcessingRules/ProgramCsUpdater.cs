@@ -57,10 +57,15 @@ internal class ProgramCsUpdater
         if (match.Success)
         {
             // Add after existing IDataWriteProcessor registration
+            // Extract the indentation from the matched line
+            var lineStart = content.LastIndexOf('\n', match.Index) + 1;
+            var matchedLine = content.Substring(lineStart, match.Index - lineStart + match.Length);
+            var indent = matchedLine.Substring(0, matchedLine.Length - matchedLine.TrimStart().Length);
+
             var insertPosition = match.Index + match.Length;
             updatedContent = content.Insert(
                 insertPosition,
-                $"\nservices.AddTransient<IDataWriteProcessor, {className}>();"
+                $"\n{indent}services.AddTransient<IDataWriteProcessor, {className}>();"
             );
         }
         else

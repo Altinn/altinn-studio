@@ -223,8 +223,12 @@ internal class ConditionalRenderingConverter
 
             foreach (var field in rule.SelectedFields ?? new Dictionary<string, string>())
             {
-                // Strip legacy placeholders {0} and {1} from component IDs
-                var componentId = field.Value.Replace("{0}", "").Replace("{1}", "");
+                // Strip legacy placeholders [{0}], [{1}], {0}, and {1} from component IDs
+                var componentId = field
+                    .Value.Replace("[{0}]", "")
+                    .Replace("[{1}]", "")
+                    .Replace("{0}", "")
+                    .Replace("{1}", "");
                 var injector = new ComponentHiddenExpressionInjector(layoutManager);
                 var result = injector.InjectHiddenExpression(componentId, failureResult, ruleId, null, ruleConfigJson);
                 results.Add(result);
@@ -245,8 +249,12 @@ internal class ConditionalRenderingConverter
         // Inject into each component, passing the JS function body and rule config for context
         foreach (var field in rule.SelectedFields ?? new Dictionary<string, string>())
         {
-            // Strip legacy placeholders {0} and {1} from component IDs
-            var componentId = field.Value.Replace("{0}", "").Replace("{1}", "");
+            // Strip legacy placeholders [{0}], [{1}], {0}, and {1} from component IDs
+            var componentId = field
+                .Value.Replace("[{0}]", "")
+                .Replace("[{1}]", "")
+                .Replace("{0}", "")
+                .Replace("{1}", "");
             var injector = new ComponentHiddenExpressionInjector(layoutManager);
             var result = injector.InjectHiddenExpression(
                 componentId,
