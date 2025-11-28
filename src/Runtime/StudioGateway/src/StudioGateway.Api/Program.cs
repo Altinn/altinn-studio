@@ -26,6 +26,6 @@ app.MapHealthChecks("/health/ready");
 
 app.MapFluxWebhookEndpoint();
 
-app.Run();
+await app.RunAsync();
 
 public partial class Program { }

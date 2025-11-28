@@ -3,7 +3,7 @@ namespace StudioGateway.Api.Flux.Contracts;
 /// <summary>
 /// Kubernetes ObjectReference identifies an API object.
 /// </summary>
-public record ObjectReference
+internal sealed record ObjectReference
 {
     /// <summary>
     /// Kind is the type of resource being referenced.
