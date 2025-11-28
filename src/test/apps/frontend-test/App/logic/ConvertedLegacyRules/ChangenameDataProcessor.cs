@@ -49,14 +49,16 @@ public class ChangenameDataProcessor : IDataWriteProcessor
         //         return obj.fornavn + obj.mellomnavn + obj.etternavn;
         //     })
 
-        var fornavn = wrapper.Get("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonFornavnNytt-datadef-34758.value");
-        var mellomnavn = wrapper.Get("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value");
-        var etternavn = wrapper.Get("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonEtternavnNytt-datadef-34757.value");
+        var fornavn = (string)(wrapper.Get("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonFornavnNytt-datadef-34758.value") ?? "");
+        var mellomnavn = (string)(wrapper.Get("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value") ??
+                         "");
+        var etternavn = (string)(wrapper.Get("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonEtternavnNytt-datadef-34757.value") ??
+                        "");
 
-        fornavn = ((fornavn != 0m) ? ((fornavn + " ")?.ToString() ?? "") : "");
-        mellomnavn = ((mellomnavn != 0m) ? ((mellomnavn + " ")?.ToString() ?? "") : "");
-        etternavn = ((etternavn != 0m) ? (etternavn?.ToString() ?? "") : "");
-        wrapper.Set("Innledning-grp-9309.NavneendringenGjelderFor-grp-9310.SubjektFornavnFolkeregistrert-datadef-34730.value", ((fornavn + mellomnavn) + etternavn));
+        fornavn = fornavn != "" ? fornavn + " " ?? "" : "";
+        mellomnavn = mellomnavn != "" ? mellomnavn + " " ?? "" : "";
+        etternavn = etternavn != "" ? etternavn ?? "" : "";
+        wrapper.Set("Innledning-grp-9309.NavneendringenGjelderFor-grp-9310.SubjektFornavnFolkeregistrert-datadef-34730.value", fornavn + mellomnavn + etternavn);
         await Task.CompletedTask;
     }
 

@@ -49,10 +49,9 @@ public class GroupDataProcessor : IDataWriteProcessor
 
         var values = (string?)wrapper.Get("PrefillValues") ?? "";
         var shadow = (string?)wrapper.Get("PrefillValuesShadow") ?? "";
-        var enabled = (bool)wrapper.Get("PrefillValuesEnabled");
+        var enabled = (bool)(wrapper.Get("PrefillValuesEnabled") ?? false);
 
-        var enabled = ((((enabled == "true") || (enabled == true)) || (enabled == null)) || (enabled == null));
-        wrapper.Set("PrefillValuesShadow", ((enabled != 0m) ? shadow : values));
+        wrapper.Set("PrefillValuesShadow", enabled ? values : shadow);
         await Task.CompletedTask;
     }
 
