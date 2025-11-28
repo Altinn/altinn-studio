@@ -7,7 +7,7 @@ import {
 import { HeaderMenuGroupKey } from '../../enums/HeaderMenuGroupKey';
 import { HeaderMenuItemKey } from '../../enums/HeaderMenuItemKey';
 import type { NavigationMenuGroup } from '../../types/NavigationMenuGroup';
-import type { StudioProfileMenuGroup } from '@studio/components-legacy';
+import type { StudioProfileMenuGroup } from '@studio/components';
 import type { NavigationMenuItem } from '../../types/NavigationMenuItem';
 
 describe('headerMenuUtils', () => {

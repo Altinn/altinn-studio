@@ -1,8 +1,11 @@
 import React, { type ReactNode, type ReactElement } from 'react';
 import classes from './StudioPageHeaderProfileMenu.module.css';
 import { StudioDropdown } from '../../StudioDropdown';
+import { useStudioDropdownContext } from '../../StudioDropdown/context/StudioDropdownContext';
 import { type StudioProfileMenuItem } from './types/StudioProfileMenuItem';
 import { type StudioProfileMenuGroup } from './types/StudioProfileMenuGroup';
+import { useStudioPageHeaderContext } from '../context';
+import cn from 'classnames';
 
 export type StudioPageHeaderProfileMenuProps = {
   triggerButtonText?: string;
@@ -15,33 +18,41 @@ export const StudioPageHeaderProfileMenu = ({
   profileImage,
   profileMenuGroups,
 }: StudioPageHeaderProfileMenuProps): ReactElement => {
+  const { variant } = useStudioPageHeaderContext();
+  const isPreview = variant === 'preview';
+
   return (
-    <StudioDropdown
-      triggerButtonVariant='tertiary'
-      placement='bottom-end'
-      data-color='neutral'
-      triggerButtonText={triggerButtonText}
-      icon={profileImage}
-      iconPlacement='right'
-      data-color-scheme='light'
-    >
-      <StudioPageHeaderMenuContent profileMenuGroups={profileMenuGroups} onClickItem={close} />
-    </StudioDropdown>
+    <div className={cn(classes.wrapper, isPreview && classes.preview)}>
+      <StudioDropdown
+        triggerButtonVariant='tertiary'
+        placement='bottom-end'
+        data-color='neutral'
+        triggerButtonText={triggerButtonText}
+        icon={profileImage}
+        iconPlacement='right'
+        data-color-scheme='light'
+      >
+        <StudioPageHeaderMenuContent profileMenuGroups={profileMenuGroups} />
+      </StudioDropdown>
+    </div>
   );
 };
 
 type StudioPageHeaderMenuContentProps = {
   profileMenuGroups: StudioProfileMenuGroup[];
-  onClickItem: () => void;
 };
 const StudioPageHeaderMenuContent = ({
   profileMenuGroups,
-  onClickItem,
 }: StudioPageHeaderMenuContentProps): ReactElement => {
+  const { setOpen } = useStudioDropdownContext();
   return (
     <StudioDropdown.List>
       {profileMenuGroups.map((group: StudioProfileMenuGroup, index: number) => (
-        <StudioPageHeaderMenuContentGroup key={index} group={group} onClickItem={onClickItem} />
+        <StudioPageHeaderMenuContentGroup
+          key={index}
+          group={group}
+          onClickItem={() => setOpen(false)}
+        />
       ))}
     </StudioDropdown.List>
   );
@@ -56,11 +67,11 @@ const StudioPageHeaderMenuContentGroup = ({
   onClickItem,
 }: StudioPageHeaderMenuContentGroupProps): ReactElement => {
   return (
-    <StudioDropdown.Item className={classes.dropDownMenuGroup}>
+    <div className={classes.dropDownMenuGroup}>
       {group.items.map((item: StudioProfileMenuItem) => (
         <StudioProfileMenuGroupItem key={item.itemName} item={item} onClickItem={onClickItem} />
       ))}
-    </StudioDropdown.Item>
+    </div>
   );
 };
 
@@ -114,6 +125,10 @@ type StudioProfileMenuLinkProps = {
 
 const StudioProfileMenuLink = ({ item }: StudioProfileMenuLinkProps): ReactElement => {
   const { href, openInNewTab } = item.action;
+  const { setOpen } = useStudioDropdownContext();
+
+  const handleClick = (): void => setOpen(false);
+
   return (
     <StudioDropdown.Item>
       <StudioDropdown.Button asChild>
@@ -121,6 +136,8 @@ const StudioProfileMenuLink = ({ item }: StudioProfileMenuLinkProps): ReactEleme
           href={href}
           target={openInNewTab ? '_blank' : undefined}
           rel={openInNewTab ? 'noopener noreferrer' : undefined}
+          role='menuitem'
+          onClick={handleClick}
         >
           {item.itemName}
         </a>

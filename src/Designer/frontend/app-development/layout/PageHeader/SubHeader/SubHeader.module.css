@@ -1,4 +1,5 @@
 .buttonWrapper {
   display: flex;
   gap: var(--fds-spacing-2);
+  align-items: center;
 }
