@@ -22,7 +22,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="OrganizationController"/> class.
         /// </summary>
-        /// <param name="giteaClient">the gitea wrapper</param>
+        /// <param name="giteaClient">the gitea client</param>
         public OrganizationController(IGitea giteaClient)
         {
             _giteaClient = giteaClient;
