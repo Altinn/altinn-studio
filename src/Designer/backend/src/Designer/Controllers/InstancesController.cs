@@ -40,8 +40,11 @@ public class InstancesController : ControllerBase
         string app,
         [FromQuery] string? continuationToken,
         [FromQuery] string? currentTask,
-        [FromQuery] bool? processIsComplete,
+        [FromQuery] bool? isArchived,
         [FromQuery] string? archiveReference,
+        [FromQuery] bool? confirmed,
+        [FromQuery] bool? isSoftDeleted,
+        [FromQuery] bool? isHardDeleted,
         CancellationToken ct
     )
     {
@@ -63,8 +66,11 @@ public class InstancesController : ControllerBase
                 app,
                 continuationToken,
                 currentTask,
-                processIsComplete,
+                isArchived,
                 archiveReference,
+                confirmed,
+                isSoftDeleted,
+                isHardDeleted,
                 ct
             );
             return new InstancesResponse()
