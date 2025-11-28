@@ -70,6 +70,9 @@ func Discover(ctx context.Context, environment string, orgRegistry *orgs.OrgRegi
 	if orgRegistry != nil {
 		if org, ok := orgRegistry.Get(serviceOwnerId); ok {
 			serviceOwnerOrgNo = org.OrgNr
+		} else if serviceOwnerId == "ttd" && environment != EnvironmentLocal {
+			// The fake org registry has the env number set, but the altinn-orgs.json in CDN does not have org nr for ttd (it's not real)
+			serviceOwnerOrgNo = "405003309" // NOTE: this matches the org nr in the registry testdata in localtest, keep in sync
 		} else {
 			return nil, errors.Errorf("could not find org for service owner id %s", serviceOwnerId)
 		}

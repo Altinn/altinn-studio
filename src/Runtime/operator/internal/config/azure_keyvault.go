@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"altinn.studio/operator/internal/operatorcontext"
 	"altinn.studio/operator/internal/telemetry"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
@@ -66,14 +65,7 @@ func NewAzureKeyVaultClient(ctx context.Context, environment string) (*azureKeyV
 	_, span := tracer.Start(ctx, "NewAzureKeyVaultClient")
 	defer span.End()
 
-	var cred azcore.TokenCredential
-	var err error
-
-	if environment == operatorcontext.EnvironmentLocal {
-		cred, err = azidentity.NewDefaultAzureCredential(nil)
-	} else {
-		cred, err = azidentity.NewWorkloadIdentityCredential(nil)
-	}
+	cred, err := azidentity.NewDefaultAzureCredential(nil)
 
 	if err != nil {
 		return nil, fmt.Errorf("error getting credentials for Azure Key Vault: %w", err)
