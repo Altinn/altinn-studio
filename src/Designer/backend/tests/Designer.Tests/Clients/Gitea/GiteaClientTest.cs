@@ -84,7 +84,7 @@ public class GiteaClientTest
         GiteaClient sut = GetServiceForTest(httpClient);
 
         // Act
-        await Assert.ThrowsAsync<GiteaApiWrapperException>(() => sut.CreateBranch("ttd", "apps-test-2021", "master"));
+        await Assert.ThrowsAsync<GiteaClientException>(() => sut.CreateBranch("ttd", "apps-test-2021", "master"));
         handlerMock.VerifyAll();
     }
 

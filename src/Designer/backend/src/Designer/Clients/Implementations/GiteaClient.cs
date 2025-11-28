@@ -423,7 +423,7 @@ public class GiteaClient(
             .FallbackAsync(ct =>
             {
                 logger.LogError($"//GiteaAPIWrapper // CreateBranch occured when creating branch {branchName} for repo {org}/{repository}");
-                throw new GiteaApiWrapperException($"Failed to create branch {branchName} in Gitea after 4 retries.");
+                throw new GiteaClientException($"Failed to create branch {branchName} in Gitea after 4 retries.");
             })
             .WrapAsync(
                 Policy.HandleResult<HttpResponseMessage>(httpResponse => httpResponse.StatusCode == HttpStatusCode.NotFound)
