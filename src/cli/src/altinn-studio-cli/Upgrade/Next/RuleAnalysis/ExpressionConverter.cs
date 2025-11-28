@@ -56,6 +56,12 @@ public class ExpressionConverter
         debugInfo.Add($"Action: {selectedAction}");
         debugInfo.Add($"Input Parameters: {string.Join(", ", inputParams.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
 
+        // Strip legacy placeholders [{0}] and [{1}] from input parameter values
+        var cleanedInputParams = inputParams.ToDictionary(
+            kvp => kvp.Key,
+            kvp => kvp.Value.Replace("[{0}]", "").Replace("[{1}]", "")
+        );
+
         // Step 1: Parse the JavaScript function and extract its body using AST
         var parseResult = _parser.ParseFunction(functionBody);
         if (!parseResult.Success)
@@ -72,7 +78,7 @@ public class ExpressionConverter
         // Step 2: Convert the return expression
         var context = new ConversionContext
         {
-            InputParams = inputParams,
+            InputParams = cleanedInputParams,
             ObjectParameterName = "obj",
             Matchers = _matchers,
             VariableMappings = parseResult.VariableMappings,

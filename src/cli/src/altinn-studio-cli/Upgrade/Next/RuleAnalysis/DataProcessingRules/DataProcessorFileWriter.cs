@@ -13,7 +13,7 @@ internal class DataProcessorFileWriter
     }
 
     /// <summary>
-    /// Write a generated data processor class to the logic folder
+    /// Write a generated data processor class to the logic/ConvertedLegacyRules folder
     /// </summary>
     /// <param name="className">The class name (e.g., "ChangenameDataProcessor")</param>
     /// <param name="code">The generated C# code</param>
@@ -21,13 +21,13 @@ internal class DataProcessorFileWriter
     public string WriteDataProcessor(string className, string code)
     {
         // Try with App folder first, then without
-        var logicDir = Path.Combine(_appBasePath, "App", "logic");
+        var logicDir = Path.Combine(_appBasePath, "App", "logic", "ConvertedLegacyRules");
         if (!Directory.Exists(Path.Combine(_appBasePath, "App")))
         {
-            logicDir = Path.Combine(_appBasePath, "logic");
+            logicDir = Path.Combine(_appBasePath, "logic", "ConvertedLegacyRules");
         }
 
-        // Create logic directory if it doesn't exist
+        // Create logic/ConvertedLegacyRules directory if it doesn't exist
         if (!Directory.Exists(logicDir))
         {
             Directory.CreateDirectory(logicDir);

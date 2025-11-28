@@ -27,6 +27,14 @@ internal class RuleConfigurationParser
         }
 
         var jsonContent = File.ReadAllText(_ruleConfigPath);
+
+        // Handle empty or whitespace-only files
+        if (string.IsNullOrWhiteSpace(jsonContent))
+        {
+            _ruleConfig = null;
+            return;
+        }
+
         _ruleConfig = JsonSerializer.Deserialize<RuleConfiguration>(
             jsonContent,
             new JsonSerializerOptions
