@@ -28,13 +28,21 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// <summary>
 /// Implementation of the gitea wrapper service.
 /// </summary>
-public class GiteaAPIWrapper : IGitea
+/// <remarks>
+/// Initializes a new instance of the <see cref="GiteaAPIWrapper"/> class
+/// </remarks>
+/// <param name="repositorySettings">the repository settings</param>
+/// <param name="httpContextAccessor">the http context accessor</param>
+/// <param name="memoryCache">The configured memory cache</param>
+/// <param name="logger">The configured logger</param>
+/// <param name="httpClient">System.Net.Http.HttpClient</param>
+public class GiteaAPIWrapper(
+    ServiceRepositorySettings repositorySettings,
+    IHttpContextAccessor httpContextAccessor,
+    IMemoryCache memoryCache,
+    ILogger<GiteaAPIWrapper> logger,
+    HttpClient httpClient) : IGitea
 {
-    private readonly ServiceRepositorySettings _settings;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IMemoryCache _cache;
-    private readonly ILogger _logger;
-    private readonly HttpClient _httpClient;
     private const string CodeListFolderName = "CodeLists";
 
     private static readonly JsonSerializerOptions s_jsonOptions = new()
@@ -44,39 +52,17 @@ public class GiteaAPIWrapper : IGitea
         AllowTrailingCommas = true,
     };
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="GiteaAPIWrapper"/> class
-    /// </summary>
-    /// <param name="repositorySettings">the repository settings</param>
-    /// <param name="httpContextAccessor">the http context accessor</param>
-    /// <param name="memoryCache">The configured memory cache</param>
-    /// <param name="logger">The configured logger</param>
-    /// <param name="httpClient">System.Net.Http.HttpClient</param>
-    public GiteaAPIWrapper(
-        ServiceRepositorySettings repositorySettings,
-        IHttpContextAccessor httpContextAccessor,
-        IMemoryCache memoryCache,
-        ILogger<GiteaAPIWrapper> logger,
-        HttpClient httpClient)
-    {
-        _settings = repositorySettings;
-        _httpContextAccessor = httpContextAccessor;
-        _cache = memoryCache;
-        _logger = logger;
-        _httpClient = httpClient;
-    }
-
     /// <inheritdoc/>
     public async Task<User> GetCurrentUser()
     {
-        HttpResponseMessage response = await _httpClient.GetAsync("user");
+        HttpResponseMessage response = await httpClient.GetAsync("user");
         if (response.StatusCode == HttpStatusCode.OK)
         {
             return await response.Content.ReadAsAsync<User>();
         }
 
-        _logger.LogError(
-            "User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) +
+        logger.LogError(
+            "User " + AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext) +
             " Get current user failed with statuscode " + response.StatusCode);
 
         return null;
@@ -88,7 +74,7 @@ public class GiteaAPIWrapper : IGitea
         List<Team> teams = new();
 
         string url = "user/teams";
-        HttpResponseMessage response = await _httpClient.GetAsync(url);
+        HttpResponseMessage response = await httpClient.GetAsync(url);
         if (response.StatusCode == HttpStatusCode.OK)
         {
             string jsonString = await response.Content.ReadAsStringAsync();
@@ -96,7 +82,7 @@ public class GiteaAPIWrapper : IGitea
         }
         else
         {
-            _logger.LogError("Could not retrieve teams for user " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetTeams failed with status code " + response.StatusCode);
+            logger.LogError("Could not retrieve teams for user " + AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext) + " GetTeams failed with status code " + response.StatusCode);
         }
 
         return teams;
@@ -106,9 +92,9 @@ public class GiteaAPIWrapper : IGitea
     public async Task<RepositoryClient.Model.Repository> CreateRepository(string org, CreateRepoOption options)
     {
         var repository = new RepositoryClient.Model.Repository();
-        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+        string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
         string urlEnd = developer == org ? "user/repos" : $"org/{org}/repos";
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync(urlEnd, options);
+        HttpResponseMessage response = await httpClient.PostAsJsonAsync(urlEnd, options);
 
         if (response.StatusCode == HttpStatusCode.Created)
         {
@@ -123,12 +109,12 @@ public class GiteaAPIWrapper : IGitea
         else if (response.StatusCode == HttpStatusCode.Forbidden)
         {
             // The user is not part of a team with repo-creation permissions, 403 from Gitea API
-            _logger.LogError($"User {developer} - Create repository failed with statuscode {response.StatusCode} for {org} and repo-name {options.Name}. If this was not expected try updating team settings in gitea.");
+            logger.LogError($"User {developer} - Create repository failed with statuscode {response.StatusCode} for {org} and repo-name {options.Name}. If this was not expected try updating team settings in gitea.");
             repository.RepositoryCreatedStatus = HttpStatusCode.Forbidden;
         }
         else
         {
-            _logger.LogError($"User {developer} - Create repository failed with statuscode {response.StatusCode} for {org} and repo-name {options.Name}.");
+            logger.LogError($"User {developer} - Create repository failed with statuscode {response.StatusCode} for {org} and repo-name {options.Name}.");
             repository.RepositoryCreatedStatus = response.StatusCode;
         }
 
@@ -140,7 +126,7 @@ public class GiteaAPIWrapper : IGitea
     {
         IList<RepositoryClient.Model.Repository> repos = new List<RepositoryClient.Model.Repository>();
 
-        HttpResponseMessage response = await _httpClient.GetAsync("user/repos?limit=50");
+        HttpResponseMessage response = await httpClient.GetAsync("user/repos?limit=50");
         if (response.StatusCode == HttpStatusCode.OK)
         {
             repos = await response.Content.ReadAsAsync<IList<RepositoryClient.Model.Repository>>();
@@ -172,7 +158,7 @@ public class GiteaAPIWrapper : IGitea
     {
         var starredRepos = new List<RepositoryClient.Model.Repository>();
 
-        HttpResponseMessage response = await _httpClient.GetAsync("user/starred?limit=100");
+        HttpResponseMessage response = await httpClient.GetAsync("user/starred?limit=100");
         if (response.StatusCode == HttpStatusCode.OK)
         {
             var repos = await response.Content.ReadAsAsync<List<RepositoryClient.Model.Repository>>();
@@ -186,7 +172,7 @@ public class GiteaAPIWrapper : IGitea
     public async Task<bool> PutStarred(string org, string repository)
     {
         using HttpRequestMessage request = new(HttpMethod.Put, $"user/starred/{org}/{repository}");
-        using HttpResponseMessage response = await _httpClient.SendAsync(request);
+        using HttpResponseMessage response = await httpClient.SendAsync(request);
 
         return response.StatusCode == HttpStatusCode.NoContent;
     }
@@ -195,7 +181,7 @@ public class GiteaAPIWrapper : IGitea
     public async Task<bool> DeleteStarred(string org, string repository)
     {
         using HttpRequestMessage request = new(HttpMethod.Delete, $"user/starred/{org}/{repository}");
-        using HttpResponseMessage response = await _httpClient.SendAsync(request);
+        using HttpResponseMessage response = await httpClient.SendAsync(request);
 
         return response.StatusCode == HttpStatusCode.NoContent;
     }
@@ -205,7 +191,7 @@ public class GiteaAPIWrapper : IGitea
     {
         IList<RepositoryClient.Model.Repository> repos = new List<RepositoryClient.Model.Repository>();
 
-        HttpResponseMessage response = await _httpClient.GetAsync($"orgs/{org}/repos?limit=50");
+        HttpResponseMessage response = await httpClient.GetAsync($"orgs/{org}/repos?limit=50");
         if (response.StatusCode == HttpStatusCode.OK)
         {
             repos = await response.Content.ReadAsAsync<IList<RepositoryClient.Model.Repository>>();
@@ -225,7 +211,7 @@ public class GiteaAPIWrapper : IGitea
 
         string resourceFolder = serviceResource.Identifier;
 
-        HttpResponseMessage fileResponse = await _httpClient.GetAsync($"repos/{org}/{repo}/commits?path={resourceFolder}&stat=false&verification=false&files=false", cancellationToken);
+        HttpResponseMessage fileResponse = await httpClient.GetAsync($"repos/{org}/{repo}/commits?path={resourceFolder}&stat=false&verification=false&files=false", cancellationToken);
 
         if (fileResponse.StatusCode == HttpStatusCode.OK)
         {
@@ -262,7 +248,7 @@ public class GiteaAPIWrapper : IGitea
         string giteaSearchUriString = BuildSearchQuery(searchOption);
 
         SearchResults searchResults = null;
-        HttpResponseMessage response = await _httpClient.GetAsync(giteaSearchUriString);
+        HttpResponseMessage response = await httpClient.GetAsync(giteaSearchUriString);
         if (response.StatusCode == HttpStatusCode.OK)
         {
             searchResults = await response.Content.ReadAsAsync<SearchResults>();
@@ -296,7 +282,7 @@ public class GiteaAPIWrapper : IGitea
         }
         else
         {
-            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " SearchRepository failed with statuscode " + response.StatusCode);
+            logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext) + " SearchRepository failed with statuscode " + response.StatusCode);
         }
 
         return searchResults;
@@ -306,7 +292,7 @@ public class GiteaAPIWrapper : IGitea
     {
         if (searchOption.Limit < 1)
         {
-            searchOption.Limit = _settings.RepoSearchPageCount;
+            searchOption.Limit = repositorySettings.RepoSearchPageCount;
         }
 
         string giteaSearchUriString = $"repos/search?limit={searchOption.Limit}";
@@ -352,14 +338,14 @@ public class GiteaAPIWrapper : IGitea
         RepositoryClient.Model.Repository returnRepository = null;
 
         string giteaUrl = $"repos/{org}/{repository}";
-        HttpResponseMessage response = await _httpClient.GetAsync(giteaUrl);
+        HttpResponseMessage response = await httpClient.GetAsync(giteaUrl);
         if (response.StatusCode == HttpStatusCode.OK)
         {
             returnRepository = await response.Content.ReadAsAsync<RepositoryClient.Model.Repository>();
         }
         else
         {
-            _logger.LogWarning($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching app {org}/{repository} failed with responsecode {response.StatusCode}");
+            logger.LogWarning($"User {AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext)} fetching app {org}/{repository} failed with responsecode {response.StatusCode}");
         }
 
         if (!string.IsNullOrEmpty(returnRepository?.Owner?.Login))
@@ -379,13 +365,13 @@ public class GiteaAPIWrapper : IGitea
     /// <inheritdoc />
     public async Task<List<Organization>> GetUserOrganizations()
     {
-        HttpResponseMessage response = await _httpClient.GetAsync("user/orgs");
+        HttpResponseMessage response = await httpClient.GetAsync("user/orgs");
         if (response.StatusCode == HttpStatusCode.OK)
         {
             return await response.Content.ReadAsAsync<List<Organization>>();
         }
 
-        _logger.LogError($"User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " Get Organizations failed with statuscode " + response.StatusCode);
+        logger.LogError($"User " + AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext) + " Get Organizations failed with statuscode " + response.StatusCode);
 
         return null;
     }
@@ -397,13 +383,13 @@ public class GiteaAPIWrapper : IGitea
         Guard.AssertValidAppRepoName(repository);
         Guard.AssertValidRepoBranchName(branch);
 
-        HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{repository}/branches/{branch}");
+        HttpResponseMessage response = await httpClient.GetAsync($"repos/{org}/{repository}/branches/{branch}");
         if (response.StatusCode == HttpStatusCode.OK)
         {
             return await response.Content.ReadAsAsync<Branch>();
         }
 
-        _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetBranch response failed with statuscode " + response.StatusCode + " for " + org + " / " + repository + " branch: " + branch);
+        logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext) + " GetBranch response failed with statuscode " + response.StatusCode + " for " + org + " / " + repository + " branch: " + branch);
 
 
         return null;
@@ -415,13 +401,13 @@ public class GiteaAPIWrapper : IGitea
         Guard.AssertValidateOrganization(org);
         Guard.AssertValidAppRepoName(repository);
 
-        HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{repository}/branches");
+        HttpResponseMessage response = await httpClient.GetAsync($"repos/{org}/{repository}/branches");
         if (response.StatusCode == HttpStatusCode.OK)
         {
             return await response.Content.ReadAsAsync<List<Branch>>();
         }
 
-        _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetBranches response failed with statuscode " + response.StatusCode + " for " + org + " / " + repository);
+        logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext) + " GetBranches response failed with statuscode " + response.StatusCode + " for " + org + " / " + repository);
 
         return null;
     }
@@ -435,7 +421,7 @@ public class GiteaAPIWrapper : IGitea
         var retryPolicy = Policy.HandleResult<HttpResponseMessage>(response => response.StatusCode != HttpStatusCode.Created)
             .FallbackAsync(ct =>
             {
-                _logger.LogError($"//GiteaAPIWrapper // CreateBranch occured when creating branch {branchName} for repo {org}/{repository}");
+                logger.LogError($"//GiteaAPIWrapper // CreateBranch occured when creating branch {branchName} for repo {org}/{repository}");
                 throw new GiteaApiWrapperException($"Failed to create branch {branchName} in Gitea after 4 retries.");
             })
             .WrapAsync(
@@ -455,7 +441,7 @@ public class GiteaAPIWrapper : IGitea
         using HttpRequestMessage message = new(HttpMethod.Post, $"repos/{org}/{repository}/branches");
         message.Content = new StringContent(content, Encoding.UTF8, "application/json");
 
-        return await _httpClient.SendAsync(message);
+        return await httpClient.SendAsync(message);
     }
 
     /// <inheritdoc />
@@ -463,7 +449,7 @@ public class GiteaAPIWrapper : IGitea
     {
         string path = $"repos/{org}/{app}/contents/{filePath}";
         string url = AddRefIfExists(path, reference);
-        using HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
+        using HttpResponseMessage response = await httpClient.GetAsync(url, cancellationToken);
         if (response.IsSuccessStatusCode)
         {
             return await response.Content.ReadFromJsonAsync<FileSystemObject>(s_jsonOptions, cancellationToken);
@@ -478,7 +464,7 @@ public class GiteaAPIWrapper : IGitea
         string path = $"repos/{org}/{app}/contents/{directoryPath}";
         string url = AddRefIfExists(path, reference);
 
-        using HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
+        using HttpResponseMessage response = await httpClient.GetAsync(url, cancellationToken);
         if (response.IsSuccessStatusCode)
         {
             return await response.Content.ReadFromJsonAsync<List<FileSystemObject>>(s_jsonOptions, cancellationToken);
@@ -488,7 +474,7 @@ public class GiteaAPIWrapper : IGitea
         {
             string suffix = string.IsNullOrWhiteSpace(reference) ? string.Empty : $" at reference {reference}";
             DirectoryNotFoundException ex = new($"Directory {directoryPath} not found in repository {org}/{app}{suffix}");
-            _logger.LogWarning(ex, "Directory not found for org {Org} in repository {App}, at directory path {DirPath} and reference {Ref}", org, app, directoryPath, reference);
+            logger.LogWarning(ex, "Directory not found for org {Org} in repository {App}, at directory path {DirPath} and reference {Ref}", org, app, directoryPath, reference);
             throw ex;
         }
 
@@ -531,15 +517,15 @@ public class GiteaAPIWrapper : IGitea
     {
         string path = $"repos/{org}/{app}/contents/{filePath}";
         string url = AddRefIfExists(path, reference);
-        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-        using HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
+        string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+        using HttpResponseMessage response = await httpClient.GetAsync(url, cancellationToken);
         switch (response.StatusCode)
         {
             case HttpStatusCode.OK:
                 FileSystemObject fileSystemObject = await response.Content.ReadFromJsonAsync<FileSystemObject>(s_jsonOptions, cancellationToken);
                 if (fileSystemObject is null)
                 {
-                    _logger.LogError("User {Developer} GetFileAsync received null content in 200 OK response for {Org}/{App} at path: {FilePath}, ref: {Reference}", developer, org, app, filePath, reference);
+                    logger.LogError("User {Developer} GetFileAsync received null content in 200 OK response for {Org}/{App} at path: {FilePath}, ref: {Reference}", developer, org, app, filePath, reference);
                     ProblemDetails unexpectedNullProblem = new()
                     {
                         Status = StatusCodes.Status500InternalServerError,
@@ -558,7 +544,7 @@ public class GiteaAPIWrapper : IGitea
                 };
                 return (null, notFoundProblem);
             case HttpStatusCode.Unauthorized:
-                _logger.LogError("User {Developer} GetFileAsync response failed with statuscode {StatusCode} for {Org}/{App} at path: {FilePath}, ref: {Reference}", developer, response.StatusCode, org, app, filePath, reference);
+                logger.LogError("User {Developer} GetFileAsync response failed with statuscode {StatusCode} for {Org}/{App} at path: {FilePath}, ref: {Reference}", developer, response.StatusCode, org, app, filePath, reference);
                 ProblemDetails hideUnauthorizedWithNotFoundProblem = new()
                 {
                     Status = StatusCodes.Status404NotFound,
@@ -567,7 +553,7 @@ public class GiteaAPIWrapper : IGitea
                 };
                 return (null, hideUnauthorizedWithNotFoundProblem);
             default:
-                _logger.LogError("User {Developer} GetFileAsync response failed with statuscode {StatusCode} for {Org}/{App} at path: {FilePath}, ref: {Reference}", developer, response.StatusCode, org, app, filePath, reference);
+                logger.LogError("User {Developer} GetFileAsync response failed with statuscode {StatusCode} for {Org}/{App} at path: {FilePath}, ref: {Reference}", developer, response.StatusCode, org, app, filePath, reference);
                 ProblemDetails generalProblem = new()
                 {
                     Status = StatusCodes.Status500InternalServerError,
@@ -582,7 +568,7 @@ public class GiteaAPIWrapper : IGitea
     public async Task<bool> CreatePullRequest(string org, string repository, CreatePullRequestOption createPullRequestOption)
     {
         string content = JsonSerializer.Serialize(createPullRequestOption);
-        using HttpResponseMessage response = await _httpClient.PostAsync($"repos/{org}/{repository}/pulls", new StringContent(content, Encoding.UTF8, "application/json"));
+        using HttpResponseMessage response = await httpClient.PostAsync($"repos/{org}/{repository}/pulls", new StringContent(content, Encoding.UTF8, "application/json"));
 
         return response.IsSuccessStatusCode;
     }
@@ -590,7 +576,7 @@ public class GiteaAPIWrapper : IGitea
     /// <inheritdoc/>
     public async Task<bool> DeleteRepository(string org, string repository)
     {
-        HttpResponseMessage response = await _httpClient.DeleteAsync($"repos/{org}/{repository}");
+        HttpResponseMessage response = await httpClient.DeleteAsync($"repos/{org}/{repository}");
         return response.IsSuccessStatusCode;
     }
 
@@ -602,33 +588,33 @@ public class GiteaAPIWrapper : IGitea
         {
             url.Append($"&sha={HttpUtility.UrlEncode(branchName)}");
         }
-        using HttpResponseMessage response = await _httpClient.GetAsync(url.ToString(), cancellationToken);
+        using HttpResponseMessage response = await httpClient.GetAsync(url.ToString(), cancellationToken);
         if (response.IsSuccessStatusCode)
         {
             List<GiteaCommit> commits = await response.Content.ReadFromJsonAsync<List<GiteaCommit>>(s_jsonOptions, cancellationToken);
             return commits?.FirstOrDefault()?.Sha;
         }
 
-        _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetLatestCommitOnBranch response failed with statuscode " + response.StatusCode + " for " + org + " / " + repository + " branch: " + branchName);
+        logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext) + " GetLatestCommitOnBranch response failed with statuscode " + response.StatusCode + " for " + org + " / " + repository + " branch: " + branchName);
         return null;
     }
 
     private async Task<Organization> GetOrganization(string name)
     {
-        HttpResponseMessage response = await _httpClient.GetAsync($"orgs/{name}");
+        HttpResponseMessage response = await httpClient.GetAsync($"orgs/{name}");
         if (response.StatusCode == HttpStatusCode.OK)
         {
             return await response.Content.ReadAsAsync<Organization>();
         }
 
-        _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetOrganization failed with statuscode " + response.StatusCode + "for " + name);
+        logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext) + " GetOrganization failed with statuscode " + response.StatusCode + "for " + name);
 
         return null;
     }
 
     private bool IsLocalRepo(string org, string app)
     {
-        string localAppRepoFolder = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+        string localAppRepoFolder = repositorySettings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
         if (Directory.Exists(localAppRepoFolder))
         {
             try
@@ -651,12 +637,12 @@ public class GiteaAPIWrapper : IGitea
     {
         string cacheKey = $"giteauser_fullname:{username}";
         var cacheEntryOptions = new MemoryCacheEntryOptions();
-        if (!_cache.TryGetValue(cacheKey, out string giteaUserFullName))
+        if (!memoryCache.TryGetValue(cacheKey, out string giteaUserFullName))
         {
-            HttpResponseMessage response = await _httpClient.GetAsync($"users/{username}/");
+            HttpResponseMessage response = await httpClient.GetAsync($"users/{username}/");
             GiteaUser giteaUser = await response.Content.ReadAsAsync<GiteaUser>();
             giteaUserFullName = string.IsNullOrEmpty(giteaUser.FullName) ? username : giteaUser.FullName;
-            _cache.Set(cacheKey, giteaUserFullName, cacheEntryOptions);
+            memoryCache.Set(cacheKey, giteaUserFullName, cacheEntryOptions);
         }
 
         return giteaUserFullName;
@@ -667,7 +653,7 @@ public class GiteaAPIWrapper : IGitea
         Organization organisation = null;
         string cachekey = "org_" + org;
 
-        if (!_cache.TryGetValue(cachekey, out organisation))
+        if (!memoryCache.TryGetValue(cachekey, out organisation))
         {
             try
             {
@@ -695,7 +681,7 @@ public class GiteaAPIWrapper : IGitea
             .SetSlidingExpiration(TimeSpan.FromSeconds(3600));
 
             // Save data in cache.
-            _cache.Set(cachekey, organisation, cacheEntryOptions);
+            memoryCache.Set(cachekey, organisation, cacheEntryOptions);
         }
 
         return organisation;
