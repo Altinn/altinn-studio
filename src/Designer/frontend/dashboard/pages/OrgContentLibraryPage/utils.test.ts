@@ -1,5 +1,6 @@
 import {
   backendCodeListsToLibraryCodeLists,
+  libraryCodeListDataToBackendCodeListData,
   libraryCodeListsToUpdatePayload,
   textResourcesWithLanguageToLibraryTextResources,
   textResourceWithLanguageToMutationArgs,
@@ -16,6 +17,7 @@ import { codeListsNewResponse } from './test-data/codeListsNewResponse';
 import { codeLists } from './test-data/codeLists';
 import type { CodeListsNewResponse } from 'app-shared/types/api/CodeListsNewResponse';
 import type { UpdateOrgCodeListsPayload } from 'app-shared/types/api/UpdateOrgCodeListsPayload';
+import type { CodeListDataNew } from 'app-shared/types/CodeListDataNew';
 
 describe('utils', () => {
   describe('textResourceWithLanguageToMutationArgs', () => {
@@ -134,6 +136,21 @@ describe('utils', () => {
         codeListWrappers: [{ title: 'animals', codeList: { codes: codeLists.animals } }],
         baseCommitSha: originalData.commitSha,
         commitMessage,
+      };
+      expect(result).toEqual(expectedResult);
+    });
+  });
+
+  describe('libraryCodeListDataToBackendCodeListData', () => {
+    it('Converts library code list data to backend code list data', () => {
+      const libraryCodeListData: CodeListData = {
+        name: 'animals',
+        codes: codeLists.animals,
+      };
+      const result = libraryCodeListDataToBackendCodeListData(libraryCodeListData);
+      const expectedResult: CodeListDataNew = {
+        title: 'animals',
+        codeList: { codes: codeLists.animals },
       };
       expect(result).toEqual(expectedResult);
     });

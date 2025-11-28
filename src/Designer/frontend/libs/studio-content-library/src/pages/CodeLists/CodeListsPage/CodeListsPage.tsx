@@ -19,10 +19,11 @@ import { Errors } from './Errors';
 
 export type CodeListsPageProps = {
   codeLists: CodeListData[];
+  onPublish: (data: CodeListData) => void;
   onSave: (data: CodeListData[]) => void;
 };
 
-export function CodeListsPage({ codeLists, onSave }: CodeListsPageProps): ReactElement {
+export function CodeListsPage({ codeLists, onPublish, onSave }: CodeListsPageProps): ReactElement {
   const { t } = useTranslation();
   const [codeListMap, setCodeListMap] = useState<CodeListMap>(createCodeListMap(codeLists));
   const [errors, setErrors] = useState<CodeListMapError[]>([]);
@@ -73,6 +74,7 @@ export function CodeListsPage({ codeLists, onSave }: CodeListsPageProps): ReactE
       <ListOfCodeLists
         codeListMap={codeListMap}
         onDeleteCodeList={handleDeleteCodeList}
+        onPublish={onPublish}
         onUpdateCodeListData={handleUpdateCodeListData}
       />
       <Errors errors={errors} />
@@ -86,12 +88,14 @@ export function CodeListsPage({ codeLists, onSave }: CodeListsPageProps): ReactE
 type ListOfCodeListsProps = Readonly<{
   codeListMap: CodeListMap;
   onDeleteCodeList: (key: string) => void;
+  onPublish: (data: CodeListData) => void;
   onUpdateCodeListData: (key: string, newData: CodeListData) => void;
 }>;
 
 function ListOfCodeLists({
   codeListMap,
   onDeleteCodeList,
+  onPublish,
   onUpdateCodeListData,
 }: ListOfCodeListsProps): ReactElement {
   const { t } = useTranslation();
@@ -107,6 +111,7 @@ function ListOfCodeLists({
             data={data}
             key={key}
             onDelete={() => onDeleteCodeList(key)}
+            onPublish={onPublish}
             onUpdate={(newData) => onUpdateCodeListData(key, newData)}
           />
         ))}

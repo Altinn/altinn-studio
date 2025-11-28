@@ -29,6 +29,7 @@
   "app_content_library.code_lists.errors": "Kan ikke lagre kodelistene på grunn av følgende feil:",
   "app_content_library.code_lists.name": "Navn",
   "app_content_library.code_lists.page_name": "Kodelister (ny)",
+  "app_content_library.code_lists.publish": "Publiser",
   "app_content_library.code_lists.unnamed": "Uten navn",
   "app_content_library.code_lists_with_text_resources.add_new_code_list": "Legg til kodeliste",
   "app_content_library.code_lists_with_text_resources.code_list_delete": "Slett kodeliste",

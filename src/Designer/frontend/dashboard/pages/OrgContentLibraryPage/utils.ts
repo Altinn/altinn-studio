@@ -56,10 +56,17 @@ export function libraryCodeListsToUpdatePayload(
 }
 
 function mapUpdatedLists(updatedCodeLists: LibraryCodeListData[]): DeletableCodeListData[] {
-  return updatedCodeLists.map(({ name, codes }) => ({
+  return updatedCodeLists.map(libraryCodeListDataToBackendCodeListData);
+}
+
+export function libraryCodeListDataToBackendCodeListData({
+  name,
+  codes,
+}: LibraryCodeListData): Required<Pick<CodeListDataNew, 'title' | 'codeList'>> {
+  return {
     title: name,
     codeList: { codes },
-  }));
+  };
 }
 
 function extractDeletedLists(

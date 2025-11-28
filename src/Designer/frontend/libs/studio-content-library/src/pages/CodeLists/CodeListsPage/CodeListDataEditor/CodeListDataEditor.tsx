@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import type { ChangeEventHandler, ReactElement, ReactNode } from 'react';
 import { useCodeListEditorTexts } from '../useCodeListEditorTexts';
 import {
+  StudioButton,
   StudioCodeListEditor,
   StudioDeleteButton,
   StudioDetails,
@@ -15,13 +16,15 @@ import classes from './CodeListDataEditor.module.css';
 
 export type CodeListDataEditorProps = Readonly<{
   data: CodeListData;
-  onUpdate: (newData: CodeListData) => void;
   onDelete: () => void;
+  onPublish: (data: CodeListData) => void;
+  onUpdate: (newData: CodeListData) => void;
 }>;
 
 export function CodeListDataEditor({
   data,
   onDelete,
+  onPublish,
   onUpdate,
 }: CodeListDataEditorProps): ReactElement {
   const texts = useCodeListEditorTexts();
@@ -44,6 +47,10 @@ export function CodeListDataEditor({
     [data, onUpdate],
   );
 
+  const handlePublish = useCallback((): void => onPublish(data), [data, onPublish]);
+
+  const canPublish = !!data.name;
+
   return (
     <StudioDetails>
       <StudioDetails.Summary>
@@ -59,6 +66,14 @@ export function CodeListDataEditor({
         <StudioDeleteButton className={classes.deleteButton} onDelete={onDelete}>
           {t('general.delete')}
         </StudioDeleteButton>
+        <StudioButton
+          className={classes.publishButton}
+          disabled={!canPublish}
+          onClick={handlePublish}
+          variant='secondary'
+        >
+          {t('app_content_library.code_lists.publish')}
+        </StudioButton>
         <StudioCodeListEditor
           className={classes.codes}
           codeList={data.codes}
