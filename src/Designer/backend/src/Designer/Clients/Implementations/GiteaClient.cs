@@ -73,7 +73,7 @@ public class GiteaClient(
     /// <inheritdoc />
     public async Task<List<Team>> GetTeams()
     {
-        List<Team> teams = new();
+        List<Team> teams = [];
 
         string url = "user/teams";
         HttpResponseMessage response = await httpClient.GetAsync(url);
@@ -93,7 +93,7 @@ public class GiteaClient(
     /// <inheritdoc />
     public async Task<RepositoryClient.Model.Repository> CreateRepository(string org, CreateRepoOption options)
     {
-        RepositoryClient.Model.Repository repository = new RepositoryClient.Model.Repository();
+        RepositoryClient.Model.Repository repository = new();
         string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
         string urlEnd = developer == org ? "user/repos" : $"org/{org}/repos";
         HttpResponseMessage response = await httpClient.PostAsJsonAsync(urlEnd, options);
@@ -126,7 +126,7 @@ public class GiteaClient(
     /// <inheritdoc/>
     public async Task<IList<RepositoryClient.Model.Repository>> GetUserRepos()
     {
-        IList<RepositoryClient.Model.Repository> repos = new List<RepositoryClient.Model.Repository>();
+        IList<RepositoryClient.Model.Repository> repos = [];
 
         HttpResponseMessage response = await httpClient.GetAsync("user/repos?limit=50");
         if (response.StatusCode == HttpStatusCode.OK)
@@ -158,7 +158,7 @@ public class GiteaClient(
     /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
     public async Task<IList<RepositoryClient.Model.Repository>> GetStarred()
     {
-        List<RepositoryClient.Model.Repository> starredRepos = new List<RepositoryClient.Model.Repository>();
+        List<RepositoryClient.Model.Repository> starredRepos = [];
 
         HttpResponseMessage response = await httpClient.GetAsync("user/starred?limit=100");
         if (response.StatusCode == HttpStatusCode.OK)
@@ -191,7 +191,7 @@ public class GiteaClient(
     /// <inheritdoc/>
     public async Task<IList<RepositoryClient.Model.Repository>> GetOrgRepos(string org)
     {
-        IList<RepositoryClient.Model.Repository> repos = new List<RepositoryClient.Model.Repository>();
+        IList<RepositoryClient.Model.Repository> repos = [];
 
         HttpResponseMessage response = await httpClient.GetAsync($"orgs/{org}/repos?limit=50");
         if (response.StatusCode == HttpStatusCode.OK)
@@ -205,7 +205,7 @@ public class GiteaClient(
     /// <inheritdoc/>
     public async Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource, CancellationToken cancellationToken)
     {
-        ListviewServiceResource listviewResource = new ListviewServiceResource
+        ListviewServiceResource listviewResource = new()
         {
             Identifier = serviceResource.Identifier,
             Title = serviceResource.Title,
@@ -264,7 +264,7 @@ public class GiteaClient(
                 LinkHeader linkHeader = LinkHeader.LinksFromHeader(linkValues.First());
                 if (!string.IsNullOrEmpty(linkHeader.LastLink))
                 {
-                    Uri linkUri = new Uri(linkHeader.LastLink);
+                    Uri linkUri = new(linkHeader.LastLink);
                     string page = HttpUtility.ParseQueryString(linkUri.Query).Get("page");
                     if (int.TryParse(page, out int lastPage))
                     {
@@ -585,7 +585,7 @@ public class GiteaClient(
     /// <inheritdoc/>
     public async Task<string> GetLatestCommitOnBranch(string org, string repository, string branchName = null, CancellationToken cancellationToken = default)
     {
-        StringBuilder url = new StringBuilder($"repos/{org}/{repository}/commits?limit=1&stat=false&verification=false&files=false");
+        StringBuilder url = new($"repos/{org}/{repository}/commits?limit=1&stat=false&verification=false&files=false");
         if (!string.IsNullOrWhiteSpace(branchName))
         {
             url.Append($"&sha={HttpUtility.UrlEncode(branchName)}");
@@ -638,7 +638,7 @@ public class GiteaClient(
     private async Task<string> GetCachedUserFullName(string username)
     {
         string cacheKey = $"giteauser_fullname:{username}";
-        MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions();
+        MemoryCacheEntryOptions cacheEntryOptions = new();
         if (!memoryCache.TryGetValue(cacheKey, out string giteaUserFullName))
         {
             HttpResponseMessage response = await httpClient.GetAsync($"users/{username}/");
