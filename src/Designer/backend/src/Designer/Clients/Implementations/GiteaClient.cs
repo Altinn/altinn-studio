@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Exceptions.Gitea;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
@@ -23,7 +24,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Polly;
 
-namespace Altinn.Studio.Designer.Services.Implementation;
+namespace Altinn.Studio.Designer.Clients.Implementations;
 
 /// <summary>
 /// Implementation of the gitea wrapper service.
