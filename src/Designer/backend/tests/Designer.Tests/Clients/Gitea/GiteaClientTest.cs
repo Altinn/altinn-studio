@@ -20,7 +20,7 @@ using Moq;
 using Moq.Protected;
 using Xunit;
 
-namespace Designer.Tests.Services
+namespace Designer.Tests.Clients.Gitea
 {
     public class GiteaClientTest
     {
