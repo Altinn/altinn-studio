@@ -44,7 +44,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <remarks>
         /// Initializes a new instance of the <see cref="RepositoryController"/> class.
         /// </remarks>
-        /// <param name="giteaClient">the gitea wrapper</param>
+        /// <param name="giteaClient">the gitea client</param>
         /// <param name="sourceControl">the source control</param>
         /// <param name="repository">the repository control</param>
         /// <param name="syncHub">websocket syncHub</param>
