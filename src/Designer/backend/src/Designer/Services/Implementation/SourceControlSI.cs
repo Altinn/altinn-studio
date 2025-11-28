@@ -33,7 +33,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="repositorySettings">The settings for the service repository.</param>
         /// <param name="httpContextAccessor">the http context accessor.</param>
-        /// <param name="giteaClient">gitea.</param>
+        /// <param name="giteaClient">The gitea client.</param>
         /// <param name="logger">the log handler.</param>
         public SourceControlSI(
             ServiceRepositorySettings repositorySettings,
