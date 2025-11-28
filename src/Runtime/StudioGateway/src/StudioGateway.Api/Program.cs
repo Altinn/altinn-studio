@@ -1,7 +1,10 @@
 using StudioGateway.Api;
 using StudioGateway.Api.Flux;
+using StudioGateway.Api.Hosting;
 
 var builder = WebApplication.CreateSlimBuilder(args);
+
+builder.AddHostingConfiguration();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -14,8 +17,8 @@ builder.Services.AddOpenApi("v1");
 
 var app = builder.Build();
 
-// OpenApi UI is served as a static file under /openapi.html
-app.UseStaticFiles();
+app.UseHsts();
+app.UseForwardedHeaders();
 
 app.MapOpenApi();
 app.UseSwaggerUI(options =>
