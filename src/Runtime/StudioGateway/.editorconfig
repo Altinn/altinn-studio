@@ -170,6 +170,9 @@ dotnet_diagnostic.CA1873.severity = suggestion
 # CA2007: Consider calling ConfigureAwait on the awaited task
 dotnet_diagnostic.CA2007.severity = none
 
+# CA1031: Do not catch general exception types
+dotnet_diagnostic.CA1031.severity = suggestion
+
 [*.{yml,yaml}]
 indent_size = 2
 end_of_line = lf
