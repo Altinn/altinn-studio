@@ -35,7 +35,7 @@ export const ImageUploadComponent = ({
     );
   }
 
-  const handleSaveChanges = (cropToBeSaved: ExternalCrop) => {
+  const handleSaveChanges = (cropToBeSaved: ExternalCrop | null) => {
     handleComponentChange({
       ...component,
       crop: cropToBeSaved,
