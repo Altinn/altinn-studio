@@ -47,7 +47,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
-            GiteaAPIWrapper sut = GetServiceForTest(httpClient);
+            GiteaClient sut = GetServiceForTest(httpClient);
 
             // Act
             Branch actual = await sut.CreateBranch("ttd", "apps-test-2021", "master");
@@ -80,7 +80,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
-            GiteaAPIWrapper sut = GetServiceForTest(httpClient);
+            GiteaClient sut = GetServiceForTest(httpClient);
 
             // Act
             await Assert.ThrowsAsync<GiteaApiWrapperException>(() => sut.CreateBranch("ttd", "apps-test-2021", "master"));
@@ -118,7 +118,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
-            GiteaAPIWrapper giteaApi = GetServiceForTest(httpClient);
+            GiteaClient giteaApi = GetServiceForTest(httpClient);
 
             SearchResults result = await giteaApi.SearchRepo(GetSearchOptions());
 
@@ -161,7 +161,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
-            GiteaAPIWrapper giteaApi = GetServiceForTest(httpClient);
+            GiteaClient giteaApi = GetServiceForTest(httpClient);
 
             SearchOptions searchOptions = GetSearchOptions();
             searchOptions.Limit = 10;
@@ -196,7 +196,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
-            GiteaAPIWrapper giteaApi = GetServiceForTest(httpClient);
+            GiteaClient giteaApi = GetServiceForTest(httpClient);
 
             SearchResults result = await giteaApi.SearchRepo(GetSearchOptions());
 
@@ -231,7 +231,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/designer/api/user/starred")
             };
 
-            GiteaAPIWrapper giteaApi = GetServiceForTest(httpClient);
+            GiteaClient giteaApi = GetServiceForTest(httpClient);
 
             await giteaApi.GetStarred();
             Assert.Equal(10, repositories.Count);
@@ -264,7 +264,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/designer/api/user/starred")
             };
 
-            GiteaAPIWrapper giteaApi = GetServiceForTest(httpClient);
+            GiteaClient giteaApi = GetServiceForTest(httpClient);
 
             bool result = await giteaApi.PutStarred("org", "repository");
 
@@ -298,7 +298,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/designer/api/user/starred")
             };
 
-            GiteaAPIWrapper giteaApi = GetServiceForTest(httpClient);
+            GiteaClient giteaApi = GetServiceForTest(httpClient);
 
             bool result = await giteaApi.DeleteStarred("org", "repository");
 
@@ -353,7 +353,7 @@ namespace Designer.Tests.Services
             };
 
             // Passing the test specific mock setup in, sprinkles a bit more mock setup and returns a valid GiteaAPIWrapper
-            GiteaAPIWrapper giteaApi = GetServiceForTest(httpClient);
+            GiteaClient giteaApi = GetServiceForTest(httpClient);
 
             // Act
             Repository result = await giteaApi.GetRepository("ttd", "repo");
@@ -394,7 +394,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
-            GiteaAPIWrapper sut = GetServiceForTest(httpClient);
+            GiteaClient sut = GetServiceForTest(httpClient);
 
             // Act
             List<FileSystemObject> actual = await sut.GetDirectoryAsync("ttd", "apps-test-2021", "src/models");
@@ -436,7 +436,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
-            GiteaAPIWrapper sut = GetServiceForTest(httpClient);
+            GiteaClient sut = GetServiceForTest(httpClient);
 
             // Act
             List<FileSystemObject> actual = await sut.GetDirectoryAsync("ttd", "apps-test-2021", "config", "feature-branch");
@@ -470,7 +470,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
-            GiteaAPIWrapper sut = GetServiceForTest(httpClient);
+            GiteaClient sut = GetServiceForTest(httpClient);
 
             // Act & Assert
             DirectoryNotFoundException exception = await Assert.ThrowsAsync<DirectoryNotFoundException>(
@@ -502,7 +502,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
-            GiteaAPIWrapper sut = GetServiceForTest(httpClient);
+            GiteaClient sut = GetServiceForTest(httpClient);
 
             // Act & Assert
             DirectoryNotFoundException exception = await Assert.ThrowsAsync<DirectoryNotFoundException>(
@@ -534,7 +534,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
-            GiteaAPIWrapper sut = GetServiceForTest(httpClient);
+            GiteaClient sut = GetServiceForTest(httpClient);
 
             // Act
             List<FileSystemObject> actual = await sut.GetDirectoryAsync("ttd", "apps-test-2021", "src");
@@ -570,7 +570,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
-            GiteaAPIWrapper sut = GetServiceForTest(httpClient);
+            GiteaClient sut = GetServiceForTest(httpClient);
 
             // Act
             List<FileSystemObject> actual = await sut.GetDirectoryAsync("ttd", "apps-test-2021", "empty-directory");
@@ -639,7 +639,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
-            GiteaAPIWrapper sut = GetServiceForTest(httpClient);
+            GiteaClient sut = GetServiceForTest(httpClient);
 
             // Act
             List<FileSystemObject> actual = await sut.GetCodeListDirectoryContentAsync("ttd", "apps-test-2021");
@@ -705,7 +705,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
-            GiteaAPIWrapper sut = GetServiceForTest(httpClient);
+            GiteaClient sut = GetServiceForTest(httpClient);
 
             // Act
             List<FileSystemObject> actual = await sut.GetCodeListDirectoryContentAsync("ttd", "apps-test-2021");
@@ -741,7 +741,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
-            GiteaAPIWrapper sut = GetServiceForTest(httpClient);
+            GiteaClient sut = GetServiceForTest(httpClient);
 
             // Act
             List<FileSystemObject> actual = await sut.GetCodeListDirectoryContentAsync("ttd", "apps-test-2021");
@@ -809,7 +809,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
-            GiteaAPIWrapper sut = GetServiceForTest(httpClient);
+            GiteaClient sut = GetServiceForTest(httpClient);
 
             // Act
             List<FileSystemObject> actual = await sut.GetCodeListDirectoryContentAsync("ttd", "apps-test-2021");
@@ -842,7 +842,7 @@ namespace Designer.Tests.Services
             {
                 BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
-            GiteaAPIWrapper sut = GetServiceForTest(httpClient);
+            GiteaClient sut = GetServiceForTest(httpClient);
 
             List<FileSystemObject> actual = await sut.GetDirectoryAsync("ttd", "apps-test-2021", "src/models");
             Assert.Empty(actual);
@@ -873,7 +873,7 @@ namespace Designer.Tests.Services
             return codeList;
         }
 
-        private static GiteaAPIWrapper GetServiceForTest(HttpClient client, ILogger<GiteaAPIWrapper> logger = null)
+        private static GiteaClient GetServiceForTest(HttpClient client, ILogger<GiteaClient> logger = null)
         {
             HttpContext context = new DefaultHttpContext();
 
@@ -886,11 +886,11 @@ namespace Designer.Tests.Services
                 RepositoryLocation = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories")
             };
 
-            GiteaAPIWrapper service = new(
+            GiteaClient service = new(
                 repoSettings,
                 httpContextAccessorMock.Object,
                 new MemoryCache(new MemoryCacheOptions()),
-                logger ?? new Mock<ILogger<GiteaAPIWrapper>>().Object,
+                logger ?? new Mock<ILogger<GiteaClient>>().Object,
                 client);
 
             return service;

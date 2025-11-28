@@ -93,7 +93,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
 
         private static IHttpClientBuilder AddGiteaTypedHttpClient(this IServiceCollection services,
             IConfiguration config)
-            => services.AddHttpClient<IGitea, GiteaAPIWrapper>((_, httpClient) =>
+            => services.AddHttpClient<IGitea, GiteaClient>((_, httpClient) =>
                 {
                     ServiceRepositorySettings serviceRepoSettings =
                         config.GetSection(nameof(ServiceRepositorySettings)).Get<ServiceRepositorySettings>();
@@ -112,7 +112,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             IConfiguration config)
         {
             // Register the named HTTP client (for direct IHttpClientFactory usage)
-            var builder = services.AddHttpClient<IGitea, GiteaAPIWrapper>("bot-auth", (_, httpClient) =>
+            var builder = services.AddHttpClient<IGitea, GiteaClient>("bot-auth", (_, httpClient) =>
                 {
                     ServiceRepositorySettings serviceRepoSettings =
                         config.GetSection(nameof(ServiceRepositorySettings)).Get<ServiceRepositorySettings>();
@@ -139,9 +139,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                     .GetSection(nameof(ServiceRepositorySettings)).Get<ServiceRepositorySettings>();
                 var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
                 var memoryCache = sp.GetRequiredService<IMemoryCache>();
-                var logger = sp.GetRequiredService<ILogger<GiteaAPIWrapper>>();
+                var logger = sp.GetRequiredService<ILogger<GiteaClient>>();
 
-                return new GiteaAPIWrapper(serviceRepoSettings, httpContextAccessor, memoryCache, logger, namedClient);
+                return new GiteaClient(serviceRepoSettings, httpContextAccessor, memoryCache, logger, namedClient);
             });
 
             return builder;

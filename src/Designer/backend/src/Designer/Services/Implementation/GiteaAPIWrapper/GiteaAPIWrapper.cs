@@ -29,18 +29,18 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// Implementation of the gitea wrapper service.
 /// </summary>
 /// <remarks>
-/// Initializes a new instance of the <see cref="GiteaAPIWrapper"/> class
+/// Initializes a new instance of the <see cref="GiteaClient"/> class
 /// </remarks>
 /// <param name="repositorySettings">the repository settings</param>
 /// <param name="httpContextAccessor">the http context accessor</param>
 /// <param name="memoryCache">The configured memory cache</param>
 /// <param name="logger">The configured logger</param>
 /// <param name="httpClient">System.Net.Http.HttpClient</param>
-public class GiteaAPIWrapper(
+public class GiteaClient(
     ServiceRepositorySettings repositorySettings,
     IHttpContextAccessor httpContextAccessor,
     IMemoryCache memoryCache,
-    ILogger<GiteaAPIWrapper> logger,
+    ILogger<GiteaClient> logger,
     HttpClient httpClient) : IGitea
 {
     private const string CodeListFolderName = "CodeLists";
