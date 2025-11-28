@@ -36,7 +36,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// Constructor
         /// </summary>
         /// <param name="deploymentService">IDeploymentService</param>
-        /// <param name="giteaClient">IGiteaClient</param>
+        /// <param name="giteaClient">IGitea</param>
         /// <param name="kubernetesDeploymentsService">IKubernetesDeploymentsService</param>
         public DeploymentsController(IDeploymentService deploymentService, IGitea giteaClient, IKubernetesDeploymentsService kubernetesDeploymentsService)
         {
