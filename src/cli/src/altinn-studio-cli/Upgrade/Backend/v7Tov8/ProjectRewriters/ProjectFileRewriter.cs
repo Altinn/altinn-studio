@@ -91,7 +91,6 @@ internal sealed class ProjectFileRewriter
 
         // Update target framework
         GetTargetFrameworkElement()?.ForEach(t => t.SetValue(_targetFramework));
-        IgnoreWarnings("1591", "1998"); // Require xml doc and await in async methods
 
         // Define the packages to convert and their relative project paths
         var packagesInfo = new[]
