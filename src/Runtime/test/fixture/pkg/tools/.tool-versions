@@ -2,7 +2,7 @@
 # Format: <tool-name> <version> <checksum-url-template>
 # URL templates support {os}, {arch}, {version}, {version_no_v} placeholders
 # renovate: datasource=github-releases depName=golangci/golangci-lint
-golangci-lint v2.5.0 https://github.com/golangci/golangci-lint/releases/download/{version}/golangci-lint-{version_no_v}-checksums.txt
+golangci-lint v2.6.2 https://github.com/golangci/golangci-lint/releases/download/{version}/golangci-lint-{version_no_v}-checksums.txt
 # renovate: datasource=github-releases depName=kubernetes-sigs/kind
 kind v0.29.0 https://github.com/kubernetes-sigs/kind/releases/download/{version}/kind-{os}-{arch}.sha256sum
 # renovate: datasource=github-releases depName=helm/helm
