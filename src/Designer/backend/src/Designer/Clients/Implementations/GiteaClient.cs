@@ -63,9 +63,8 @@ public class GiteaClient(
             return await response.Content.ReadAsAsync<User>();
         }
 
-        logger.LogError(
-            "User " + AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext) +
-            " Get current user failed with statuscode " + response.StatusCode);
+        string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+        logger.LogError("User {Developer}, method {MethodName} failed with statuscode {StatusCode}", developer, nameof(GetCurrentUser), response.StatusCode);
 
         return null;
     }
@@ -84,7 +83,8 @@ public class GiteaClient(
         }
         else
         {
-            logger.LogError("Could not retrieve teams for user " + AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext) + " GetTeams failed with status code " + response.StatusCode);
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+            logger.LogError("User {Developer}, method {MethodName} failed with statuscode {StatusCode}", developer, nameof(GetTeams), response.StatusCode);
         }
 
         return teams;
@@ -111,12 +111,12 @@ public class GiteaClient(
         else if (response.StatusCode == HttpStatusCode.Forbidden)
         {
             // The user is not part of a team with repo-creation permissions, 403 from Gitea API
-            logger.LogError($"User {developer} - Create repository failed with statuscode {response.StatusCode} for {org} and repo-name {options.Name}. If this was not expected try updating team settings in gitea.");
+            logger.LogError("User {Developer}, method {MethodName} failed with statuscode {StatusCode} for {Org} and repo-name {RepoName}. If this was unexpected try updating team settings in gitea.", developer, nameof(CreateRepository), response.StatusCode, org, options.Name);
             repository.RepositoryCreatedStatus = HttpStatusCode.Forbidden;
         }
         else
         {
-            logger.LogError($"User {developer} - Create repository failed with statuscode {response.StatusCode} for {org} and repo-name {options.Name}.");
+            logger.LogError("User {Developer}, method {MethodName} failed with statuscode {StatusCode} for {Org} and repo-name {RepoName}.", developer, nameof(CreateRepository), response.StatusCode, org, options.Name);
             repository.RepositoryCreatedStatus = response.StatusCode;
         }
 
@@ -148,6 +148,11 @@ public class GiteaClient(
                 }
             }
         }
+        else
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+            logger.LogError("User {Developer}, method {MethodName} failed with statuscode {StatusCode}", developer, nameof(GetUserRepos), response.StatusCode);
+        }
 
         return repos;
     }
@@ -165,6 +170,11 @@ public class GiteaClient(
         {
             List<RepositoryClient.Model.Repository> repos = await response.Content.ReadAsAsync<List<RepositoryClient.Model.Repository>>();
             starredRepos.AddRange(repos);
+        }
+        else
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+            logger.LogError("User {Developer}, method {MethodName} failed with statuscode {StatusCode}", developer, nameof(GetStarred), response.StatusCode);
         }
 
         return starredRepos;
@@ -197,6 +207,11 @@ public class GiteaClient(
         if (response.StatusCode == HttpStatusCode.OK)
         {
             repos = await response.Content.ReadAsAsync<IList<RepositoryClient.Model.Repository>>();
+        }
+        else
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+            logger.LogError("User {Developer}, method {MethodName} failed with statuscode {StatusCode} for org {Org}", developer, nameof(GetOrgRepos), response.StatusCode, org);
         }
 
         return repos;
@@ -239,6 +254,11 @@ public class GiteaClient(
                 listviewResource.CreatedBy = userFullName;
                 listviewResource.LastChanged = DateTime.Parse(commitResponse.FirstOrDefault().Created);
             }
+        }
+        else
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+            logger.LogError("User {Developer}, method {MethodName} failed with statuscode {StatusCode} for {Org}/{Repo} and resource folder {ResourceFolder}", developer, nameof(MapServiceResourceToListViewResource), fileResponse.StatusCode, org, repo, resourceFolder);
         }
 
         return listviewResource;
@@ -284,7 +304,8 @@ public class GiteaClient(
         }
         else
         {
-            logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext) + " SearchRepository failed with statuscode " + response.StatusCode);
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+            logger.LogError("User {Developer}, method {MethodName} failed with statuscode {StatusCode}", developer, nameof(SearchRepo), response.StatusCode);
         }
 
         return searchResults;
@@ -347,7 +368,8 @@ public class GiteaClient(
         }
         else
         {
-            logger.LogWarning($"User {AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext)} fetching app {org}/{repository} failed with responsecode {response.StatusCode}");
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+            logger.LogError("User {Developer}, method {MethodName} failed with statuscode {StatusCode}", developer, nameof(GetRepository), response.StatusCode);
         }
 
         if (!string.IsNullOrEmpty(returnRepository?.Owner?.Login))
@@ -373,7 +395,8 @@ public class GiteaClient(
             return await response.Content.ReadAsAsync<List<Organization>>();
         }
 
-        logger.LogError($"User " + AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext) + " Get Organizations failed with statuscode " + response.StatusCode);
+        string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+        logger.LogError("User {Developer}, method {MethodName} failed with statuscode {StatusCode}", developer, nameof(GetUserOrganizations), response.StatusCode);
 
         return null;
     }
@@ -391,8 +414,8 @@ public class GiteaClient(
             return await response.Content.ReadAsAsync<Branch>();
         }
 
-        logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext) + " GetBranch response failed with statuscode " + response.StatusCode + " for " + org + " / " + repository + " branch: " + branch);
-
+        string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+        logger.LogError("User {Developer}, method {MethodName} failed with statuscode {StatusCode}", developer, nameof(GetBranch), response.StatusCode);
 
         return null;
     }
@@ -409,7 +432,8 @@ public class GiteaClient(
             return await response.Content.ReadAsAsync<List<Branch>>();
         }
 
-        logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext) + " GetBranches response failed with statuscode " + response.StatusCode + " for " + org + " / " + repository);
+        string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+        logger.LogError("User {Developer}, method {MethodName} failed with statuscode {StatusCode} for {Org}/{Repo}", developer, nameof(GetBranches), response.StatusCode, org, repository);
 
         return null;
     }
@@ -423,7 +447,8 @@ public class GiteaClient(
         AsyncPolicyWrap<HttpResponseMessage> retryPolicy = Policy.HandleResult<HttpResponseMessage>(response => response.StatusCode != HttpStatusCode.Created)
             .FallbackAsync(ct =>
             {
-                logger.LogError($"//GiteaAPIWrapper // CreateBranch occured when creating branch {branchName} for repo {org}/{repository}");
+                string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+                logger.LogError("User {Developer}, method {MethodName} failed for branch {BranchName} on repo {Org}/{Repo}", developer, nameof(CreateBranch), branchName, org, repository);
                 throw new GiteaClientException($"Failed to create branch {branchName} in Gitea after 4 retries.");
             })
             .WrapAsync(
@@ -597,7 +622,8 @@ public class GiteaClient(
             return commits?.FirstOrDefault()?.Sha;
         }
 
-        logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext) + " GetLatestCommitOnBranch response failed with statuscode " + response.StatusCode + " for " + org + " / " + repository + " branch: " + branchName);
+        string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+        logger.LogError("User {Developer}, method {MethodName} failed with statuscode {StatusCode} for branch {BranchName} on repo {Org}/{Repo}", developer, nameof(GetLatestCommitOnBranch), response.StatusCode, branchName, org, repository);
         return null;
     }
 
@@ -609,7 +635,8 @@ public class GiteaClient(
             return await response.Content.ReadAsAsync<Organization>();
         }
 
-        logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext) + " GetOrganization failed with statuscode " + response.StatusCode + "for " + name);
+        string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+        logger.LogError("User {Developer}, method {MethodName} failed with statuscode {StatusCode} for organisation {OrgName}", developer, nameof(GetOrganization), response.StatusCode, name);
 
         return null;
     }
