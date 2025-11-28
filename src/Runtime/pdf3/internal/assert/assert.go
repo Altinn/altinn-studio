@@ -11,13 +11,7 @@ import (
 
 var logger *slog.Logger = log.NewComponent("assert")
 
-func Assert(condition bool) {
-	if !condition {
-		panicking("")
-	}
-}
-
-func AssertWithMessage(condition bool, message string, args ...any) {
+func That(condition bool, message string, args ...any) {
 	if !condition {
 		panicking(message, args...)
 	}

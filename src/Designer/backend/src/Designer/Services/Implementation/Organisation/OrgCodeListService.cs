@@ -11,6 +11,7 @@ using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Exceptions.CodeList;
 using Altinn.Studio.Designer.Exceptions.Options;
+using Altinn.Studio.Designer.Exceptions.OrgLibrary;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -170,7 +171,7 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task PublishCodeList(string org, PublishCodeListRequest request, CancellationToken cancellationToken = default)
+    public async Task<string> PublishCodeList(string org, PublishCodeListRequest request, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         Guard.AssertValidateOrganization(org);
@@ -179,10 +180,10 @@ public class OrgCodeListService : IOrgCodeListService
         CodeList codeList = request.CodeList;
         if (InputValidator.IsInvalidCodeListTitle(codeListId))
         {
-            throw new IllegalFileNameException("The code list title contains invalid characters.");
+            throw new IllegalCodeListTitleException("The code list title contains invalid characters.");
         }
 
-        await _sharedContentClient.PublishCodeList(org, codeListId, codeList, cancellationToken);
+        return await _sharedContentClient.PublishCodeList(org, codeListId, codeList, cancellationToken);
     }
 
     internal async Task HandleCommit(AltinnRepoEditingContext editingContext, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
@@ -227,7 +228,7 @@ public class OrgCodeListService : IOrgCodeListService
     {
         if (codeListWrappers.Exists(clw => InputValidator.IsInvalidCodeListTitle(clw.Title)))
         {
-            throw new IllegalFileNameException("One or more code list titles contains invalid characters.");
+            throw new IllegalCodeListTitleException("One or more code list titles contains invalid characters.");
         }
     }
 

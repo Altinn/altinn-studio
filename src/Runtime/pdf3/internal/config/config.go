@@ -20,7 +20,7 @@ type Config struct {
 
 func ReadConfig() *Config {
 	environment := os.Getenv("PDF3_ENVIRONMENT")
-	assert.AssertWithMessage(
+	assert.That(
 		environment != "",
 		"PDF3_ENVIRONMENT environment variable must be set",
 	)

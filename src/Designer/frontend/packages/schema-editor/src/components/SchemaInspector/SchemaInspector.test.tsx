@@ -87,7 +87,8 @@ describe('SchemaInspector', () => {
     await user.tab();
 
     expect(saveDataModel).toHaveBeenCalled();
-    let updatedModel = getSavedModel(saveDataModel, 3);
+    const minLengthCallCount = saveDataModel.mock.calls.length;
+    let updatedModel = getSavedModel(saveDataModel, minLengthCallCount - 1);
     let updatedNode = updatedModel.getNodeBySchemaPointer(schemaPointer) as FieldNode;
     expect(updatedNode.restrictions.minLength).toEqual(parseInt(minLength));
 
@@ -96,7 +97,8 @@ describe('SchemaInspector', () => {
     await user.type(maxLengthTextField, maxLength);
     await user.tab();
 
-    updatedModel = getSavedModel(saveDataModel, 7);
+    const maxLengthCallCount = saveDataModel.mock.calls.length;
+    updatedModel = getSavedModel(saveDataModel, maxLengthCallCount - 1);
     updatedNode = updatedModel.getNodeBySchemaPointer(schemaPointer) as FieldNode;
     expect(updatedNode.restrictions.maxLength).toEqual(parseInt(maxLength));
   });

@@ -1,8 +1,13 @@
 import React, { forwardRef, useState } from 'react';
 import classes from './DeleteModal.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner, StudioTextfield } from '@studio/components-legacy';
-import { StudioButton, StudioDialog, StudioHeading } from '@studio/components';
+import {
+  StudioButton,
+  StudioDialog,
+  StudioHeading,
+  StudioSpinner,
+  StudioTextfield,
+} from '@studio/components';
 import { useForwardedRef } from '@studio/hooks';
 import { TrashIcon } from '@studio/icons';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
@@ -61,7 +66,7 @@ export const DeleteModal = forwardRef<HTMLDialogElement, DeleteModalProps>(
           <div className={classes.buttonWrapper}>
             {isPendingDeleteLocalChanges ? (
               <StudioSpinner
-                showSpinnerTitle={false}
+                aria-hidden
                 spinnerTitle={t('local_changes.modal_loading_delete_local_changes')}
               />
             ) : (

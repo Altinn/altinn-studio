@@ -1,0 +1,107 @@
+# https://docs.altinn.studio/en llms.txt
+
+- [Altinn 3 Correspondence Roadmap](https://docs.altinn.studio/en/correspondence/news-and-plans): Details migration schedule, new UI, storage, authorization, deprecated batch messaging, upcoming API modifications.
+- [Altinn Template Architecture](https://docs.altinn.studio/en/app-template/architecture): Explains dual frontend-backend design, Single SPA UI, API-driven configuration, cloud-native tech.
+- [SmartCloud System User Integration](https://docs.altinn.studio/en/authorization/reference/referenceimplementations/smartcloud): Guide and code reference detailing SmartCloud Maskinporten token generation, system user requests, and API invocation.
+- [Redux State Management](https://docs.altinn.studio/en/technology/tools/react/redux): Provides overview of Redux state handling, action-reducer flow and centralized store benefits.
+- [TypeScript in Altinn Studio](https://docs.altinn.studio/en/technology/tools/typescript): Explains TypeScript's type safety, compilation to JavaScript, usage example, and external resources.
+- [Altinn Studio Overview](https://docs.altinn.studio/en/altinn-studio): Serves as landing index for Altinn Studio docs, offering search and GitHub contributions.
+- [Altinn App Validation Endpoints](https://docs.altinn.studio/en/api/apps/validation): Explains REST endpoints to validate stored instances, data elements, and uploaded model data.
+- [Altinn Authorization Migration Notices](https://docs.altinn.studio/en/authorization/migration/informasjon-sent): Provides links to letters for service owners on API resource delegation and proposed access packages.
+- [Altinn Authentication Overview](https://docs.altinn.studio/en/authorization/getting-started/authentication): Explains Altinn authentication flow, external IdP integration, JWT generation and token-exchange APIs.
+- [Dialogporten Service Overview](https://docs.altinn.studio/en/dialogporten/about-dialogporten): Details Dialogporten metadata model, exclusion of content, read-only user access, platform integration for developers.
+- [Altinn Authorization Overview](https://docs.altinn.studio/en/authorization): Entry page outlining Altinn Authorization components, setup, guides, technical references, and migration roadmap.
+- [Altinn 2-3 Broker Transition](https://docs.altinn.studio/en/broker/broker-transition/technical-overview): Architecture for routing Altinn 2 broker requests to Altinn 3; covers authentication, limits, receipts.
+- [Altinn Platform TTP Log](https://docs.altinn.studio/en/technology/solutions/altinn-platform/ttplog): Overview of Altinn platform TTP logging component for authentication and authorization events.
+- [Altinn Nginx Load Balancer](https://docs.altinn.studio/en/technology/tools/nginx): Explains Altinn Studio’s Docker-based Nginx setup for routing traffic between Repos and Designer.
+- [Docker in Altinn](https://docs.altinn.studio/en/technology/tools/docker): Explains Docker container usage across Altinn Studio, Apps and Platform hosting environments.
+- [Altinn 3 Architecture Capabilities](https://docs.altinn.studio/en/technology/architecture/capabilities): Introduces Altinn 3 logical architecture building blocks, divided into runtime and DevOps capabilities.
+- [Altinn App Testing](https://docs.altinn.studio/en/altinn-studio/v8/reference/testing): Explains procedures for testing Altinn Studio applications locally and in the Altinn test environment.
+- [Altinn 3 Presentations Archive](https://docs.altinn.studio/en/community/presentations): Repository of Altinn-kaffe slide decks covering platform introduction, status updates, roadmap and themed sessions.
+- [Altinn Studio CLI](https://docs.altinn.studio/en/altinn-studio/v8/reference/cli): Command-line utility fixing breaking changes upgrading Altinn Apps backend v7→v8, frontend v3→v4, plus installation instructions.
+- [Altinn Event Subject Authorization](https://docs.altinn.studio/en/events/explanation/subject_authorization): Explains subject selection, supported types, and Altinn authorization flow for publishing and consuming events.
+- [Altinn Studio System User API](https://docs.altinn.studio/en/api/authentication/systemuserapi): Describes endpoints for registering resources, vendor systems, handling system user requests and retrieval.
+- [Altinn Studio Core Concepts](https://docs.altinn.studio/en/altinn-studio/v8/concepts): Provides brief definitions and links for data modelling, payment, prefill, signing, and unpublishing.
+- [Altinn System Vendor Integration](https://docs.altinn.studio/en/authorization/guides/system-vendor): Guides vendors integrating Altinn 3 authorization, covering consent workflows and system user setup.
+- [Altinn Studio API Overview](https://docs.altinn.studio/en/altinn-studio/v8/reference/api): Explains accessing generic and app-specific OpenAPI docs, authentication, consumption, exposure, instance APIs.
+- [Hugo for Altinn Docs](https://docs.altinn.studio/en/technology/tools/hugo): Details Hugo static-site setup powering Altinn documentation from Markdown and linked repositories.
+- [Terraform in Altinn Studio](https://docs.altinn.studio/en/technology/tools/terraform): Describes Altinn Studio's Terraform-based Infrastructure as Code for Kubernetes cluster provisioning with resource links.
+- [Altinn API Integration Guides](https://docs.altinn.studio/en/api/guides/appownerintegration): Offers guidance for service owners on integrating with Altinn 3 APIs and retrieving submitted data.
+- [Altinn System User API](https://docs.altinn.studio/en/authorization/reference/referenceimplementations/systemuserapi): Demonstrates Logistics and Salary APIs using Altinn PDP for system-user resource authorization.
+- [Altinn 3 Community Overview](https://docs.altinn.studio/en/community): Entry hub for Altinn 3 community resources: contribution guides, changelog, roadmap, DevOps practices.
+- [Pre-v3 App NuGet Changelog](https://docs.altinn.studio/en/community/changelog/app-nuget/older): Summarizes breaking changes and new features for Altinn App NuGet packages preceding version 3.
+- [Altinn Studio Material UI](https://docs.altinn.studio/en/technology/tools/material-ui): Details Material UI use in Altinn Studio, rationale, component theming, responsive design, routing links.
+- [Altinn Studio Git Repositories](https://docs.altinn.studio/en/altinn-studio/v8/repos): Explains Git-based storage, versioning, lifecycle management and repository structure for Altinn Studio applications.
+- [Altinn Access Management APIs](https://docs.altinn.studio/en/api/accessmanagement): Altinn 3 access management APIs overview with OpenAPI links for apps and resource owners.
+- [Altinn Platform Authentication Component](https://docs.altinn.studio/en/authorization/reference/architecture/authentication): Describes deployment architecture, API controllers, ports and dependencies for Altinn authentication microservice.
+- [Altinn Studio Logic](https://docs.altinn.studio/en/altinn-studio/v8/reference/logic): Guides developers on adding events, validation, calculations, dynamics, notifications, instantiation and services logic.
+- [Altinn Studio Repository API](https://docs.altinn.studio/en/api/studio): Offers developers the Swagger OpenAPI specification for accessing Altinn Studio repository services.
+- [Altinn 3 Consent API](https://docs.altinn.studio/en/authorization/guides/system-vendor/consent): Covers prerequisites, endpoints and sample payloads for data consumers handling consent requests.
+- [Altinn CLI Configuration](https://docs.altinn.studio/en/technology/solutions/cli/configuration): Details configuring Altinn CLI via appsettings.json: base URLs, folders, Maskinporten auth, instantiation mapping.
+- [Altinn 3 Broker Overview](https://docs.altinn.studio/en/broker): Landing page linking migration guidance, concepts, APIs, and tutorials for secure large-file transfer.
+- [Altinn Authorization End-User Guides](https://docs.altinn.studio/en/authorization/guides/end-user): Index of guides for creating API schemes, resources, and system-user integrations in Altinn Authorization.
+- [Page](https://docs.altinn.studio/en/correspondence/reference): No description available
+- [Prometheus Monitoring Toolkit](https://docs.altinn.studio/en/technology/tools/prometheus): Introduces Prometheus usage in Altinn Studio, listing official resources for monitoring and alerting.
+- [Altinn 3 App API](https://docs.altinn.studio/en/api/apps): Explains Altinn app API base URLs and endpoints for metadata, instances, data, process, validation.
+- [Altinn Notifications Overview](https://docs.altinn.studio/en/notifications/what-do-you-get): Details features, channel options, recipient lookup, SMS/email constraints, and conditional sending via API.
+- [Altinn Events Overview](https://docs.altinn.studio/en/events): Overview of Altinn Events Pub/Sub API, design goals, benefits, limitations, JSON CloudEvents format.
+- [Dialogporten Activity Entity](https://docs.altinn.studio/en/dialogporten/reference/entities/activity): Schema and property reference for Dialogporten v1 Activity entity, including types, timestamps and actor fields.
+- [BPMN 2.0 Modeling Guide](https://docs.altinn.studio/en/technology/tools/bpmn): Explains BPMN 2.0 standard, XML extensions, interoperability, and bpmn.io integration/customization examples.
+- [Altinn 3 Broker Reference](https://docs.altinn.studio/en/broker/reference): Index linking terminology, interfaces, capabilities, rate limits, architecture and security for Altinn 3 Broker.
+- [Altinn 3 Authorization API](https://docs.altinn.studio/en/api/authorization): Explains integrating Altinn 3 APIs via Maskinporten or ID-porten authentication, with OpenAPI specification.
+- [Altinn Access Control Architecture](https://docs.altinn.studio/en/authorization/reference/architecture/accesscontrol): Details Altinn's ASP.NET Core access control service, Decision API, PDP, PRP and PIP integrations.
+- [Altinn 3 Correspondence API](https://docs.altinn.studio/en/api/correspondence): Describes endpoints for managing Altinn 3 correspondence; includes OpenAPI specification for integration.
+- [Maskinporten Client Setup](https://docs.altinn.studio/en/authorization/getting-started/maskinportenclient): Guide to register, configure keys, scopes and authenticate Maskinporten client for Altinn APIs.
+- [Altinn Studio Development Handbook](https://docs.altinn.studio/en/community/contributing/handbook): Comprehensive contributor guide detailing setup, Git workflow, coding conventions, infrastructure deployment and security.
+- [Altinn Runtime Capabilities](https://docs.altinn.studio/en/technology/architecture/capabilities/runtime): Details Altinn Studio runtime architecture, mapping build, data, integration, UI, processing, security capabilities.
+- [Altinn 3 Platform Overview](https://docs.altinn.studio/en/community/about): Explains Altinn 3's modular Studio, Apps, Platform layers, scalability, deployment, and open-source model.
+- [Altinn System User Integration](https://docs.altinn.studio/en/authorization/getting-started/systemuser): Explains new machine-to-machine System User model, Maskinporten token flow, system register, provider-driven onboarding.
+- [Altinn Architecture Requirements](https://docs.altinn.studio/en/technology/architecture/requirements): Introduces functional and non-functional requirements guiding Altinn Studio's architectural principles and patterns.
+- [Altinn Roslyn Analyzer](https://docs.altinn.studio/en/altinn-studio/v8/reference/analysis): Details Altinn v8 Roslyn analyzer, availability, and diagnostic rule against IHttpContextAccessor misuse.
+- [Altinn API Authentication Guide](https://docs.altinn.studio/en/api/scenarios/authentication): Guides developers on Maskinporten/ID-porten scopes, client setup, and JWT token exchange.
+- [React Redux Architecture Guidelines](https://docs.altinn.studio/en/technology/tools/react/architecture): Explains optimal Redux data flow, selector memoization, and HOC usage to minimize re-renders.
+- [Altinn Broker Transition Usage](https://docs.altinn.studio/en/broker/broker-transition/usage): Overview of REST and SOAP operational differences when migrating from Altinn 2 to 3.
+- [Altinn Studio Security](https://docs.altinn.studio/en/security): Central hub linking Altinn Studio security documentation, including DPIA guidance and Altinn 3 whitepaper.
+- [Altinn 3 Correspondence Overview](https://docs.altinn.studio/en/correspondence): Landing page outlining secure messaging features, migration timelines, concepts, APIs, and integration setup.
+- [Altinn Platform Overview](https://docs.altinn.studio/en/technology/solutions/altinn-platform): Summarizes microservice-based authentication, authorization, storage, events, notifications, PDF, profile and receipt components.
+- [Page](https://docs.altinn.studio/en/app-template): No description available
+- [Page](https://docs.altinn.studio/en/authorization/what-do-you-get): No description available
+- [Altinn Studio Prefill](https://docs.altinn.studio/en/altinn-studio/v8/concepts/prefill): Guides pre-populating Altinn Studio forms through static configuration, backend API fetching, or startup requests.
+- [Altinn Correspondence Migration](https://docs.altinn.studio/en/correspondence/transition/data-migration): Details automated transfer of correspondence from Altinn 2 to 3, volumes, criteria, synchronization, MigrationController endpoint
+- [Altinn Authorization Overview](https://docs.altinn.studio/en/authorization/about): Introduces Altinn authorization components, resource registration, access policies, delegation UI, and integration APIs.
+- [Dialogporten Authorization Attributes](https://docs.altinn.studio/en/dialogporten/getting-started/authorization/attributes): Explains defining fine-grained authorization attributes for Dialogporten actions, states and transmissions.
+- [Altinn Apps Infrastructure Overview](https://docs.altinn.studio/en/technology/solutions/altinn-apps): Explains Altinn Studio's Kubernetes-based infrastructure for deploying scalable, containerized Altinn applications using isolated clusters.
+- [Altinn Studio StyleCop Setup](https://docs.altinn.studio/en/technology/tools/stylecop): Guides installing StyleCop, linking Altinn ruleset, enforcing errors in Debug, and toggling individual rules.
+- [Altinn Solutions Overview](https://docs.altinn.studio/en/technology/solutions): Introduces Altinn Studio, Apps, Platform, App Template and CLI for cloud-based service development.
+- [Altinn Architecture Components](https://docs.altinn.studio/en/technology/architecture/components): Overview of Altinn Studio's application, data, platform and cloud infrastructure components and relationships.
+- [Git in Altinn Studio](https://docs.altinn.studio/en/technology/tools/git): Introduces Git, repository locations, and reference links for version control in Altinn Studio.
+- [Altinn Studio App Configuration](https://docs.altinn.studio/en/altinn-studio/v8/reference/configuration): Catalog of v8 configuration options for Altinn Studio apps: UI, process, auth, deployment.
+- [Altinn Resource Registry Architecture](https://docs.altinn.studio/en/authorization/reference/architecture/resourceregistry): Describes ASP.NET Core 6 resource registry component, APIs, PostgreSQL/Azure storage schema, CI/CD pipeline.
+- [Altinn App Metadata API](https://docs.altinn.studio/en/api/apps/metadata): Explains GET endpoints for application metadata, localized texts, and model JSON schemas.
+- [Altinn Cloud-Native Architecture](https://docs.altinn.studio/en/technology/architecture): Documentation hub detailing Altinn’s cloud-native architecture requirements, principles, patterns, capabilities, and components.
+- [Altinn Service Migration Plan](https://docs.altinn.studio/en/authorization/migration/servicemigrationplan): Outlines timelines, feature gaps, API impacts for moving services from Altinn 2 to 3.
+- [Alpine Linux Container Base](https://docs.altinn.studio/en/technology/tools/alpine-linux): Outlines Alpine Linux adoption as secure, lightweight foundation for Altinn container images.
+- [Altinn 3 Changelog](https://docs.altinn.studio/en/community/changelog): Central index linking to component-specific changelogs: app frontend, NuGet packages, deployment, storage interfaces.
+- [Altinn Register Service Architecture](https://docs.altinn.studio/en/authorization/reference/architecture/register): Explains Register microservice’s API, proxy to Altinn2, planned local storage, architecture, database diagrams.
+- [Altinn System Register API](https://docs.altinn.studio/en/api/authentication/systemuserapi/systemregister): Describes bearer-secured endpoints for creating, retrieving, updating systems, rights and access packages via Maskinporten tokens.
+- [Altinn Auth Reference Implementations](https://docs.altinn.studio/en/authorization/reference/referenceimplementations): Catalog of example services showing systemuser API usage, Maskinporten token validation, and system register administration.
+- [Dialogporten OpenAPI Specification Links](https://docs.altinn.studio/en/dialogporten/reference/openapi): Provides environment-specific Swagger URLs for Dialogporten API and references schemas and authentication guides.
+- [Altinn System User API](https://docs.altinn.studio/en/api/authentication/systemuserapi/systemuser): Documentation for retrieving system user data, scopes, Maskinporten bearer authentication, and endpoint references.
+- [Kubernetes in Altinn Studio](https://docs.altinn.studio/en/technology/tools/kubernetes): Explains how Altinn Studio leverages Kubernetes to orchestrate numerous Docker container applications.
+- [React in Altinn Studio](https://docs.altinn.studio/en/technology/tools/react): Explains React's modular component model and state management patterns with and without Redux.
+- [Altinn Studio Getting Started](https://docs.altinn.studio/en/altinn-studio/v8/getting-started): Introduces developers to Altinn Studio, covering account setup, workspace navigation and basic form service creation.
+- [Altinn Integration Components](https://docs.altinn.studio/en/technology/architecture/components/platform/integration): Overview of integration layer using Azure gateway, API management, data and integration libraries.
+- [Altinn Architecture Patterns](https://docs.altinn.studio/en/technology/architecture/patterns): Documents Altinn's cloud-native architectural patterns, detailing microservice and layered approaches, benefits and risks.
+- [Altinn Authorization API Migration](https://docs.altinn.studio/en/authorization/migration/api-migration): Outlines migration strategies from Altinn 2 to 3 authorization APIs, deprecating SOAP, adopting REST/Maskinporten.
+- [Altinn Studio Docs Sitemap](https://docs.altinn.studio/en/sitemap.xml): XML sitemap enumerating English Altinn Studio documentation URLs and last-modified timestamps for indexing.
+- [Altinn OpenTelemetry Monitoring](https://docs.altinn.studio/en/altinn-studio/v8/reference/monitoring): Guides developers through configuring, instrumenting, visualizing Altinn 3 telemetry via OpenTelemetry, retaining Application Insights.
+- [Altinn Studio v8 Overview](https://docs.altinn.studio/en/altinn-studio/v8): Entry page outlining Altinn Studio v8 features, onboarding guides, service creation and roadmap.
+- [Altinn Studio Overview](https://docs.altinn.studio/en/altinn-studio/v8/about): Describes Altinn Studio capabilities, hybrid coding, secure infrastructure, integrations, open standards, governance.
+- [Altinn Studio Production Deployment](https://docs.altinn.studio/en/altinn-studio/v8/reference/deployment): Explains provisioning production clusters and self-service app deployment workflow, access roles, form registration.
+- [Altinn 3 Broker API](https://docs.altinn.studio/en/api/broker): Documentation landing page linking OpenAPI spec for Altinn 3 message broker endpoints.
+- [Altinn Studio Node.js](https://docs.altinn.studio/en/technology/tools/node-js): Introduces Node.js usage in Altinn Studio, ecosystem dependencies, design system package, resource links.
+- [Altinn Studio Gitea Service](https://docs.altinn.studio/en/technology/tools/gitea): Overview of Gitea git service powering Altinn Studio Repos, plus documentation, source and Docker links.
+- [Altinn Integration Capabilities](https://docs.altinn.studio/en/technology/architecture/capabilities/runtime/integration): Explains Altinn 3 integration hub, standard APIs, custom endpoints, events and data transport mechanisms.
+- [Dialogporten Write Actions](https://docs.altinn.studio/en/dialogporten/getting-started/write-actions): Explains enabling state-changing Dialogporten GUI actions with dialog-token write actions without full-page navigation.
+- [Altinn 3 Broker Concepts](https://docs.altinn.studio/en/broker/explanation): Introduces Altinn 3 Broker terminology and guidelines for enabling transfers of files over 2 GB.
+- [Altinn Studio Payment](https://docs.altinn.studio/en/altinn-studio/v8/concepts/payment): Describes configuring fee-based service payment steps, data storage, Nets Easy integration, extensibility.

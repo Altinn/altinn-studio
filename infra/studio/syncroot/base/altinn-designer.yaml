@@ -1,0 +1,43 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: OCIRepository
+metadata:
+  name: altinn-designer
+  namespace: default
+spec:
+  interval: 5m
+  url: oci://altinntjenestercontainerregistry.azurecr.io/configs/altinn-designer-${ENVIRONMENT}
+  provider: azure
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: altinn-designer
+  namespace: default
+spec:
+  interval: 5m
+  targetNamespace: default
+  sourceRef:
+    kind: OCIRepository
+    name: altinn-designer
+    namespace: default
+  path: ./
+  prune: true
+  timeout: 1m
+---
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Alert
+metadata:
+  name: grafana-annotation-altinn-designer
+  namespace: default
+spec:
+  eventMetadata:
+    env: ${ENVIRONMENT}
+    cluster: studio-${ENVIRONMENT}-aks
+    app: altinn-designer
+  eventSeverity: info
+  eventSources:
+    - kind: HelmRelease
+      name: altinn-designer
+  providerRef:
+    name: grafana
+

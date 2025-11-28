@@ -1,6 +1,7 @@
 import React from 'react';
-import { StudioCombobox } from '@studio/components-legacy';
+import { StudioSuggestion } from '@studio/components';
 import { useTranslation } from 'react-i18next';
+import classes from './Summary2ComponentReferenceSelector.module.css';
 
 type Summary2ComponentTargetIdProps = {
   label: string;
@@ -22,27 +23,31 @@ export const Summary2ComponentReferenceSelector = ({
   const requiredMessage = !value && t('ux_editor.component_properties.enum_Required');
   const errorMessage = invalidMessage || requiredMessage || false;
 
+  const selectedItems = value ? [{ value, label: value }] : [];
+
+  const handleSelectedChange = (items: { value: string }[]) => onValueChange(items[0]?.value || '');
+
   return (
-    <StudioCombobox
-      size='small'
+    <StudioSuggestion
       label={label}
-      value={value ? [value] : []}
-      onValueChange={(v) => onValueChange(v[0])}
+      emptyText={t('ux_editor.component_properties.target_empty')}
+      selected={selectedItems}
+      onSelectedChange={handleSelectedChange}
       error={errorMessage}
     >
-      <StudioCombobox.Empty>
-        {t('ux_editor.component_properties.target_empty')}
-      </StudioCombobox.Empty>
       {options.map((option) => (
-        <StudioCombobox.Option value={option.id} key={option.id} description={option.description}>
-          {option.id}
-        </StudioCombobox.Option>
+        <StudioSuggestion.Option value={option.id} key={option.id} label={option.id}>
+          <div>
+            <div>{option.id}</div>
+            <div className={classes.optionDescription}>{option.description}</div>
+          </div>
+        </StudioSuggestion.Option>
       ))}
       {value && invalidOption && (
-        <StudioCombobox.Option disabled value={value} key={value}>
+        <StudioSuggestion.Option disabled value={value} key={value} label={value}>
           {value}
-        </StudioCombobox.Option>
+        </StudioSuggestion.Option>
       )}
-    </StudioCombobox>
+    </StudioSuggestion>
   );
 };

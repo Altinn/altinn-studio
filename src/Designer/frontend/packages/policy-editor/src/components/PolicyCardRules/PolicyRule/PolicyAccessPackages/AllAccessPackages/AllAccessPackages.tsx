@@ -21,7 +21,7 @@ export const AllAccessPackages = ({
   return accessPackagesToRender.map((area) => (
     <PolicyAccordion
       key={`${searchValue}-${area.id}`}
-      icon={<PolicyAccordionIcon icon={area.icon} />}
+      icon={<PolicyAccordionIcon icon={area.iconUrl} />}
       title={area.name}
       subTitle={area.description}
       defaultOpen={!!searchValue}

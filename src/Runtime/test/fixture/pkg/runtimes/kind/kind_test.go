@@ -26,7 +26,7 @@ func TestNew_CreatesRequiredFiles(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cachePath := filepath.Join(t.TempDir(), ".cache")
 
-			runtime, err := New(tt.variant, cachePath)
+			runtime, err := New(tt.variant, cachePath, DefaultOptions())
 			if err != nil {
 				t.Fatalf("New() error = %v", err)
 			}
@@ -107,7 +107,7 @@ func TestNew_KindConfigContent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cachePath := filepath.Join(t.TempDir(), ".cache")
 
-			runtime, err := New(tt.variant, cachePath)
+			runtime, err := New(tt.variant, cachePath, DefaultOptions())
 			if err != nil {
 				t.Fatalf("New() error = %v", err)
 			}
@@ -138,7 +138,7 @@ func TestNew_KindConfigContent(t *testing.T) {
 func TestNew_CertificateContent(t *testing.T) {
 	cachePath := filepath.Join(t.TempDir(), ".cache")
 
-	runtime, err := New(KindContainerRuntimeVariantStandard, cachePath)
+	runtime, err := New(KindContainerRuntimeVariantStandard, cachePath, DefaultOptions())
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
 	}
@@ -254,7 +254,7 @@ func TestNew_CachePathValidation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cachePath := tt.setup(t)
 
-			_, err := New(KindContainerRuntimeVariantStandard, cachePath)
+			_, err := New(KindContainerRuntimeVariantStandard, cachePath, DefaultOptions())
 
 			if tt.wantErr {
 				if err == nil {
@@ -275,7 +275,7 @@ func TestNew_InvalidVariant(t *testing.T) {
 	cachePath := filepath.Join(t.TempDir(), ".cache")
 
 	// Use an invalid variant (99)
-	_, err := New(KindContainerRuntimeVariant(99), cachePath)
+	_, err := New(KindContainerRuntimeVariant(99), cachePath, DefaultOptions())
 
 	if err == nil {
 		t.Error("New() with invalid variant should return error")
@@ -290,7 +290,7 @@ func TestNew_IdempotentFileWrites(t *testing.T) {
 	cachePath := filepath.Join(t.TempDir(), ".cache")
 
 	// Create runtime first time
-	runtime1, err := New(KindContainerRuntimeVariantStandard, cachePath)
+	runtime1, err := New(KindContainerRuntimeVariantStandard, cachePath, DefaultOptions())
 	if err != nil {
 		t.Fatalf("First New() error = %v", err)
 	}
@@ -307,7 +307,7 @@ func TestNew_IdempotentFileWrites(t *testing.T) {
 	}
 
 	// Create runtime second time (should overwrite)
-	runtime2, err := New(KindContainerRuntimeVariantStandard, cachePath)
+	runtime2, err := New(KindContainerRuntimeVariantStandard, cachePath, DefaultOptions())
 	if err != nil {
 		t.Fatalf("Second New() error = %v", err)
 	}

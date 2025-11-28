@@ -41,6 +41,8 @@ func roundToNearestMiB(bytes int64) int64 {
 }
 
 func Test_ImageSizes(t *testing.T) {
+	t.Skip("Size reporting is a little different between overlayfs and the new containerd image store which becomes default in v29")
+
 	proxyImage := "localhost:5001/runtime-pdf3-proxy:latest"
 	workerImage := "localhost:5001/runtime-pdf3-worker:latest"
 

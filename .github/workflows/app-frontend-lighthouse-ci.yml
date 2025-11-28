@@ -5,15 +5,18 @@ on:
       - 'main'
     paths:
       - 'src/App/frontend/**'
+      - '.github/workflows/app-frontend-lighthouse-ci.yml'
   pull_request:
     paths:
       - 'src/App/frontend/**'
+      - '.github/workflows/app-frontend-lighthouse-ci.yml'
+  workflow_dispatch:
 jobs:
   lighthouse:
     name: Lighthouse CI
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Setup .NET
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
@@ -21,7 +24,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '20.x'
 
@@ -92,15 +95,15 @@ jobs:
         working-directory: src/App/frontend
         run: |
           set -e # exit on any failure
-          yarn run lhci > lighthouse_output.txt 2>&1
-          cat lighthouse_output.txt
+          set -o pipefail # preserve exit codes in pipes
+          yarn run lhci 2>&1 | tee lighthouse_output.txt
 
           # Extract the report URL
           REPORT_URL=$(grep -o 'https://storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/[^[:space:]]*' lighthouse_output.txt || echo "")
           echo "report_url=$REPORT_URL" >> $GITHUB_OUTPUT
       - name: Comment PR with Lighthouse Report
         if: github.event_name == 'pull_request' && steps.lighthouse-ci.outputs.report_url != ''
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         env:
           REPORT_URL: ${{ steps.lighthouse-ci.outputs.report_url }}
         with:

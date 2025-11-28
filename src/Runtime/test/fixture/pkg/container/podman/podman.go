@@ -1,6 +1,7 @@
 package podman
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os/exec"
@@ -31,7 +32,11 @@ func (p *Cli) Push(image string) error {
 
 func (p *Cli) Run(args ...string) error {
 	cmd := exec.Command(p.Name(), args...)
-	return cmd.Run()
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("podman run failed: %w\nOutput: %s", err, string(output))
+	}
+	return nil
 }
 
 func (p *Cli) Inspect(target, format string) (string, error) {
@@ -60,19 +65,33 @@ func (p *Cli) ImageInspect(image, format string) (string, error) {
 func (p *Cli) Exec(container string, args ...string) error {
 	execArgs := append([]string{"exec", container}, args...)
 	cmd := exec.Command(p.Name(), execArgs...)
-	return cmd.Run()
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("podman exec failed: %w\nOutput: %s", err, string(output))
+	}
+	return nil
 }
 
 func (p *Cli) ExecWithStdin(container string, stdin io.Reader, args ...string) error {
 	execArgs := append([]string{"exec", "-i", container}, args...)
 	cmd := exec.Command(p.Name(), execArgs...)
 	cmd.Stdin = stdin
-	return cmd.Run()
+	var output bytes.Buffer
+	cmd.Stdout = &output
+	cmd.Stderr = &output
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("podman exec failed: %w\nOutput: %s", err, output.String())
+	}
+	return nil
 }
 
 func (p *Cli) NetworkConnect(network, container string) error {
 	cmd := exec.Command(p.Name(), "network", "connect", network, container)
-	return cmd.Run()
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("podman network connect failed: %w\nOutput: %s", err, string(output))
+	}
+	return nil
 }
 
 func (p *Cli) RunInteractive(stdin io.Reader, stdout, stderr io.Writer, args ...string) error {

@@ -1,4 +1,5 @@
-import React, { type ElementType, forwardRef, type ReactElement } from 'react';
+import React, { forwardRef } from 'react';
+import type { ComponentProps, ComponentPropsWithoutRef, ElementType, ReactElement } from 'react';
 import classes from '../common.module.css';
 import { StudioButton, type StudioButtonProps } from '../../StudioButton';
 import { type StudioPageHeaderColor } from '../types/StudioPageHeaderColor';
@@ -16,7 +17,12 @@ export type StudioPageHeaderHeaderButtonProps = {
 export const StudioPageHeaderHeaderButton: OverridableComponent<
   StudioPageHeaderHeaderButtonProps,
   HTMLButtonElement
-> = forwardRef(
+> = forwardRef<
+  ComponentProps<OverridableComponent<StudioPageHeaderHeaderButtonProps, HTMLButtonElement>>['ref'],
+  ComponentPropsWithoutRef<
+    OverridableComponent<StudioPageHeaderHeaderButtonProps, HTMLButtonElement>
+  >
+>(
   <As extends ElementType = 'button'>(
     {
       color,

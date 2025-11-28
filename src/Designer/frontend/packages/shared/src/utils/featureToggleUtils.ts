@@ -14,6 +14,7 @@ export enum FeatureFlag {
   AppMetadata = 'appMetadata',
   ImageUpload = 'imageUpload',
   HideGiteaFieldsInResourceList = 'hideGiteaFieldsInResourceList',
+  SkipJsonParseJsonInResourceList = 'skipJsonParseJsonInResourceList',
 }
 
 /*

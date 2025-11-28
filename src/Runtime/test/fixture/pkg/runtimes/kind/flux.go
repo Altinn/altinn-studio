@@ -136,8 +136,10 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 	if err := r.FluxClient.ReconcileHelmRelease("linkerd-control-plane", "linkerd", true, syncOpts); err != nil {
 		return fmt.Errorf("failed to reconcile base infra: %w", err)
 	}
-	if err := r.FluxClient.ReconcileHelmRelease("kube-prometheus-stack", "monitoring", true, syncOpts); err != nil {
-		return fmt.Errorf("failed to reconcile base infra: %w", err)
+	if r.options.IncludeMonitoring {
+		if err := r.FluxClient.ReconcileHelmRelease("kube-prometheus-stack", "monitoring", true, syncOpts); err != nil {
+			return fmt.Errorf("failed to reconcile base infra: %w", err)
+		}
 	}
 
 	fmt.Println("✓ Base infra reconciled")
@@ -185,6 +187,14 @@ func (r *KindContainerRuntime) applyBaseInfrastructure() error {
 		return fmt.Errorf("failed to apply base infrastructure: %w", err)
 	}
 	fmt.Println("✓ Base infrastructure manifest applied")
+
+	if r.options.IncludeMonitoring {
+		fmt.Println("Applying monitoring infrastructure manifest...")
+		if _, err := r.KubernetesClient.ApplyManifest(string(monitoringInfrastructureManifest)); err != nil {
+			return fmt.Errorf("failed to apply monitoring infrastructure: %w", err)
+		}
+		fmt.Println("✓ Monitoring infrastructure manifest applied")
+	}
 
 	return nil
 }

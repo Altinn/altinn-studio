@@ -31,11 +31,11 @@ export class TextResourceUtils {
     return Object.fromEntries(entries);
   }
 
-  public get(id: string): TextResource | undefined {
-    return this.textResources.get(id);
+  public get(id?: string | null): TextResource | undefined {
+    return id == null ? undefined : this.textResources.get(id);
   }
 
-  public getValueIfExists(id: string): string | null {
+  public getValueIfExists(id?: string | null): string | null {
     const textResource = this.get(id);
     return textResource ? textResource.value : null;
   }

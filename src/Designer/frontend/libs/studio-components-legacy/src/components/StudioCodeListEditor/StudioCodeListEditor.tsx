@@ -23,9 +23,7 @@ import { PlusIcon } from '@studio/icons';
 import { areThereCodeListErrors, findCodeListErrors, isCodeListValid } from './validation';
 import type { ValueErrorMap } from './types/ValueErrorMap';
 import { StudioFieldset } from '../StudioFieldset';
-// This ESLint disable comment is needed to avoid a circular dependency issue until we remove the entire component StudioCodeListEditor from studio-components-legacy
-// eslint-disable-next-line no-restricted-imports
-import { StudioValidationMessage } from '@studio/components';
+import { ErrorMessage } from '@digdir/designsystemet-react';
 import type { TextResource } from '../../types/TextResource';
 import { usePropState } from '@studio/hooks';
 import { StudioParagraph } from '../StudioParagraph';
@@ -305,12 +303,12 @@ type ErrorsProps = {
   errorMap: ValueErrorMap;
 };
 
-function Errors({ errorMap }: ErrorsProps): ReactElement {
+function Errors({ errorMap }: ErrorsProps): React.ReactNode {
   const {
     texts: { generalError },
   } = useStudioCodeListEditorContext();
   if (areThereCodeListErrors(errorMap)) {
-    return <StudioValidationMessage>{generalError}</StudioValidationMessage>;
+    return <ErrorMessage>{generalError}</ErrorMessage>;
   } else {
     return null;
   }

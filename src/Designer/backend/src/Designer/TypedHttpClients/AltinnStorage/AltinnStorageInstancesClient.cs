@@ -41,8 +41,11 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
         string app,
         string? continuationToken,
         string? currentTaskFilter,
-        bool? processIsCompleteFilter,
-        string? archiveReference,
+        bool? isArchivedFilter,
+        string? archiveReferenceFilter,
+        bool? confirmedFilter,
+        bool? isSoftDeletedFilter,
+        bool? isHardDeletedFilter,
         CancellationToken ct
     )
     {
@@ -61,18 +64,45 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
             uri = QueryHelpers.AddQueryString(uri, "process.currentTask", currentTaskFilter);
         }
 
-        if (processIsCompleteFilter != null)
+        if (isArchivedFilter != null)
         {
             uri = QueryHelpers.AddQueryString(
                 uri,
-                "process.isComplete",
-                processIsCompleteFilter.Value.ToString().ToLowerInvariant()
+                "status.isArchived",
+                isArchivedFilter.Value.ToString().ToLowerInvariant()
             );
         }
 
-        if (!string.IsNullOrEmpty(archiveReference))
+        if (!string.IsNullOrEmpty(archiveReferenceFilter))
         {
-            uri = QueryHelpers.AddQueryString(uri, "archiveReference", archiveReference);
+            uri = QueryHelpers.AddQueryString(uri, "archiveReference", archiveReferenceFilter);
+        }
+
+        if (confirmedFilter != null)
+        {
+            uri = QueryHelpers.AddQueryString(
+                uri,
+                "confirmed",
+                confirmedFilter.Value.ToString().ToLowerInvariant()
+            );
+        }
+
+        if (isSoftDeletedFilter != null)
+        {
+            uri = QueryHelpers.AddQueryString(
+                uri,
+                "status.isSoftDeleted",
+                isSoftDeletedFilter.Value.ToString().ToLowerInvariant()
+            );
+        }
+
+        if (isHardDeletedFilter != null)
+        {
+            uri = QueryHelpers.AddQueryString(
+                uri,
+                "status.isHardDeleted",
+                isHardDeletedFilter.Value.ToString().ToLowerInvariant()
+            );
         }
 
         using var response = await _httpClient.GetAsync(uri, ct);

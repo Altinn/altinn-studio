@@ -160,34 +160,6 @@ export class GiteaPage extends BasePage {
       .click();
   }
 
-  public async verifyIdInDataModel(id: string, dataModel: string): Promise<void> {
-    const text = `
-      "id": "${dataModel}",
-      "allowedContentTypes": [
-        "application/xml"
-      ],
-      "appLogic": {
-        "autoCreate": true,
-        "classRef": "Altinn.App.Models.${dataModel}.${dataModel}",
-        "allowAnonymousOnStateless": false,
-        "autoDeleteOnProcessEnd": false,
-        "allowUserCreate": false,
-        "allowUserDelete": false,
-        "allowInSubform": false
-      },
-      "taskId": "${id}",
-      "maxCount": 1,
-      "minCount": 1,
-      "enablePdfCreation": true,
-      "enableFileScan": false,
-      "validationErrorOnPendingFileScan": false,
-      "enabledFileAnalysers": [],
-      "enabledFileValidators": []
-    `;
-    const textLocator = this.page.getByText(text);
-    expect(textLocator).toBeVisible();
-  }
-
   public async verifyThatActionIsVisible(action: string): Promise<void> {
     await this.page.getByText(`<altinn:action>${action}</altinn:action>`).isVisible();
   }

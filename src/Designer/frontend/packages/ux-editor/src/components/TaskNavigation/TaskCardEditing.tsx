@@ -1,10 +1,10 @@
-import { StudioTextfield } from '@studio/components-legacy';
 import {
   StudioButton,
   StudioParagraph,
   StudioCard,
   StudioSpinner,
   StudioSelect,
+  StudioTextfield,
 } from '@studio/components';
 import { useUpdateLayoutSetIdMutation } from 'app-development/hooks/mutations/useUpdateLayoutSetIdMutation';
 import { useUpdateProcessDataTypesMutation } from 'app-development/hooks/mutations/useUpdateProcessDataTypesMutation';

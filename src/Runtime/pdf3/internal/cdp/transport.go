@@ -93,7 +93,7 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 	}
 
 	// Chrome should always return at least one target (the page we created)
-	assert.AssertWithMessage(len(targets) > 0, "Chrome returned zero targets - browser in invalid state", "id", id)
+	assert.That(len(targets) > 0, "Chrome returned zero targets - browser in invalid state", "id", id)
 
 	// Debug: print available targets
 	logger.Debug("Found targets", "count", len(targets))
@@ -109,7 +109,7 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 			break
 		}
 	}
-	assert.AssertWithMessage(target != nil, "no page target found", "id", id)
+	assert.That(target != nil, "no page target found", "id", id)
 	targetID := target.ID
 
 	// Connect to the page's WebSocket
@@ -118,7 +118,7 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 		return nil, "", fmt.Errorf("no webSocketDebuggerUrl in response")
 	}
 	// Chrome page targets must have a WebSocket URL - this is a protocol invariant
-	assert.AssertWithMessage(wsURL != "", "Page target missing WebSocketDebuggerURL - protocol violation", "id", id)
+	assert.That(wsURL != "", "Page target missing WebSocketDebuggerURL - protocol violation", "id", id)
 
 	// Add debugging to understand what URL we're trying to connect to
 	logger.Info("Attempting to connect to WebSocket", "url", wsURL)
@@ -140,7 +140,7 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 		wsConn, _, err = dialer.Dial(wsURL, nil)
 		if err == nil {
 			wsConn.SetCloseHandler(func(code int, text string) error {
-				assert.AssertWithMessage(
+				assert.That(
 					// We check ctx here as it is tied to host shutdown.
 					// It's OK to close if the host is shutting down, but NOT OK otherwise
 					ctx.Err() != nil,
@@ -165,7 +165,7 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 		return nil, "", fmt.Errorf("failed to dial WebSocket: %w", err)
 	}
 	// Successful dial must return a valid connection
-	assert.AssertWithMessage(wsConn != nil, "WebSocket dial succeeded but returned nil connection", "id", id)
+	assert.That(wsConn != nil, "WebSocket dial succeeded but returned nil connection", "id", id)
 
 	// Create connection wrapper
 	conn := &connection{
@@ -192,14 +192,14 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 }
 
 func (c *connection) assert(condition bool, message string) {
-	assert.AssertWithMessage(condition, message, "id", c.id)
+	assert.That(condition, message, "id", c.id)
 }
 
 func (c *connection) assertA(condition bool, message string, userArgs ...any) {
 	args := make([]any, 0, 2+len(userArgs))
 	args = append(args, "id", c.id)
 	args = append(args, userArgs...)
-	assert.AssertWithMessage(condition, message, args...)
+	assert.That(condition, message, args...)
 }
 
 func (c *connection) watchdog() {

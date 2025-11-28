@@ -416,7 +416,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		"pageRanges":              "",
 		"preferCSSPageSize":       false,
 		"omitBackground":          false,
-		"generateTaggedPDF":       false,
+		"generateTaggedPDF":       true,
 		"generateDocumentOutline": false,
 		"paperWidth":              8.5,
 		"paperHeight":             11.0,
@@ -899,9 +899,9 @@ func (w *browserSession) cleanupBrowser(req *workerRequest) {
 
 func (w *browserSession) assert(condition bool, message string) {
 	if req := w.currentRequest.Load(); req != nil {
-		assert.AssertWithMessage(condition, message, "id", w.id, "url", req.request.URL)
+		assert.That(condition, message, "id", w.id, "url", req.request.URL)
 	} else {
-		assert.AssertWithMessage(condition, message, "id", w.id)
+		assert.That(condition, message, "id", w.id)
 	}
 }
 
@@ -911,12 +911,12 @@ func (w *browserSession) assertA(condition bool, message string, userArgs ...any
 		args = append(args, "id", w.id)
 		args = append(args, "url", req.request.URL)
 		args = append(args, userArgs...)
-		assert.AssertWithMessage(condition, message, args...)
+		assert.That(condition, message, args...)
 	} else {
 		args := make([]any, 0, 2+len(userArgs))
 		args = append(args, "id", w.id)
 		args = append(args, userArgs...)
-		assert.AssertWithMessage(condition, message, args...)
+		assert.That(condition, message, args...)
 	}
 }
 

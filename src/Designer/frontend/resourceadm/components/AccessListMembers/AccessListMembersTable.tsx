@@ -7,7 +7,7 @@ import {
   StudioValidationMessage,
   StudioTableLocalPagination,
 } from '@studio/components';
-import type { Columns } from '@studio/components-legacy';
+import type { Columns } from '@studio/components';
 import classes from './AccessListMembers.module.css';
 import { PlusCircleIcon, MinusCircleIcon } from '@studio/icons';
 import { stringNumberToAriaLabel } from '../../utils/stringUtils';

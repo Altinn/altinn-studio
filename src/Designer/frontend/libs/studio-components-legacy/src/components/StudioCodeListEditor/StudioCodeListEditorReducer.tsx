@@ -6,7 +6,7 @@ import { TextResourceUtils } from '@studio/pure-functions';
 
 export type ReducerState = {
   codeList: CodeListWithTextResources;
-  textResources?: TextResource[];
+  textResources: TextResource[];
 };
 
 export enum ReducerActionType {

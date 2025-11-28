@@ -48,19 +48,19 @@ func main() {
 	defer host.Stop()
 
 	hostname, err := os.Hostname()
-	assert.AssertWithMessage(err == nil, "Could not read hostname", "error", err)
+	assert.That(err == nil, "Could not read hostname", "error", err)
 
 	workerId = hostname
 
 	workerIP, err = discoverLocalIP()
-	assert.AssertWithMessage(err == nil, "Failed to discover local IP", "error", err)
-	assert.AssertWithMessage(workerIP != "", "Worker IP should be available", "worker_id", workerId)
+	assert.That(err == nil, "Failed to discover local IP", "error", err)
+	assert.That(workerIP != "", "Worker IP should be available", "worker_id", workerId)
 
 	// Create logger with worker context
 	logger := baseLogger.With("worker_id", workerId, "worker_ip", workerIP)
 
 	gen, err := generator.New()
-	assert.AssertWithMessage(err == nil, "Failed to create PDF generator", "error", err)
+	assert.That(err == nil, "Failed to create PDF generator", "error", err)
 	defer func() {
 		// Closing PDF generator during shutdown
 		if err := gen.Close(); err != nil {
@@ -156,7 +156,7 @@ func main() {
 }
 
 func generateLocalPdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.HandlerFunc {
-	assert.AssertWithMessage(!iruntime.IsTestInternalsMode, "Localtest env should not run internals test mode")
+	assert.That(!iruntime.IsTestInternalsMode, "Localtest env should not run internals test mode")
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -354,7 +354,7 @@ func discoverLocalIP() (string, error) {
 
 func getTestOutputHandler(logger *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		assert.AssertWithMessage(iruntime.IsTestInternalsMode, "Test output handler should only be registered in test internals mode")
+		assert.That(iruntime.IsTestInternalsMode, "Test output handler should only be registered in test internals mode")
 
 		if r.Method != http.MethodGet {
 			w.WriteHeader(http.StatusMethodNotAllowed)

@@ -63,7 +63,7 @@ const accessPackageAreaSkatt: PolicyAccessPackageArea = {
   urn: 'accesspackage:area:skatt_avgift_regnskap_og_toll',
   name: 'Skatt',
   description: '',
-  icon: '',
+  iconUrl: '',
   packages: [skattPackage],
 };
 
@@ -72,7 +72,7 @@ const accessPackageAreaTransport: PolicyAccessPackageArea = {
   urn: 'accesspackage:area:transport',
   name: 'Lagring og transport',
   description: '',
-  icon: 'TruckIcon',
+  iconUrl: 'TruckIcon',
   packages: [sjofartPackage, lufttransportPackage],
 };
 
@@ -81,7 +81,7 @@ const accessPackageAreaOther: PolicyAccessPackageArea = {
   urn: 'accesspackage:area:annet',
   name: 'Annet',
   description: '',
-  icon: 'TruckIcon',
+  iconUrl: 'TruckIcon',
   packages: [revisorPackage, revisorNonDelegablePackage],
 };
 
