@@ -2,20 +2,24 @@ package e2e
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal/fakes"
+	"altinn.studio/operator/test/utils"
 )
 
 // ConsistencyState tracks values that should remain consistent across test steps
@@ -407,6 +411,112 @@ func ResetFakesState() error {
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("fakes reset returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	return nil
+}
+
+// TokenResponse represents the response from the testapp /token endpoint
+type TokenResponse struct {
+	Success bool         `json:"success"`
+	Claims  *TokenClaims `json:"claims,omitempty"`
+	Error   string       `json:"error,omitempty"`
+}
+
+// TokenClaims represents the decoded token claims from the fake Maskinporten
+type TokenClaims struct {
+	Scopes   []string `json:"scopes"`
+	ClientId string   `json:"client_id"`
+}
+
+// FetchToken calls the testapp token endpoint to generate a Maskinporten token
+func FetchToken(scope string) (*TokenResponse, error) {
+	tokenUrl := fmt.Sprintf("http://localhost:8020/ttd/localtestapp/token?scope=%s", url.QueryEscape(scope))
+	resp, err := http.Get(tokenUrl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch token: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read token response: %w", err)
+	}
+
+	var tokenResp TokenResponse
+	if err := json.Unmarshal(body, &tokenResp); err != nil {
+		return nil, fmt.Errorf("failed to decode token response: %w (body: %s)", err, string(body))
+	}
+
+	return &tokenResp, nil
+}
+
+// SanitizeTokenResponse sanitizes token claims for deterministic snapshots
+func SanitizeTokenResponse(resp map[string]any) {
+	if claims, ok := resp["claims"].(map[string]any); ok {
+		if claims["client_id"] != nil {
+			claims["client_id"] = sanitizedClientId
+		}
+	}
+}
+
+// SnapshotTokenResponse takes a sanitized snapshot of a token response
+func SnapshotTokenResponse(resp *TokenResponse, name string) {
+	data, err := json.Marshal(resp)
+	gomega.Expect(err).NotTo(gomega.HaveOccurred(), "failed to marshal TokenResponse")
+
+	var obj map[string]any
+	err = json.Unmarshal(data, &obj)
+	gomega.Expect(err).NotTo(gomega.HaveOccurred(), "failed to unmarshal TokenResponse")
+
+	SanitizeTokenResponse(obj)
+
+	sanitized, err := marshalJSONNoEscape(obj)
+	gomega.Expect(err).NotTo(gomega.HaveOccurred(), "failed to marshal sanitized TokenResponse")
+
+	snaps.WithConfig(snaps.Filename(name)).MatchJSON(ginkgo.GinkgoT(), sanitized)
+}
+
+// TriggerPodSecretSync patches pod annotations to force immediate secret volume sync.
+// When a secret is updated, Kubernetes doesn't immediately sync the mounted volume.
+// By patching a pod's annotation, we trigger the kubelet to reconcile the pod,
+// which includes syncing the mounted secret volumes. This happens in <1 second
+// instead of the default 60-90 second periodic sync.
+// See: https://ahmet.im/blog/kubernetes-secret-volumes-delay/
+func TriggerPodSecretSync(k8sClient *utils.K8sClient, namespace, appLabel string) error {
+	ctx := context.Background()
+
+	// Get pods matching the app label
+	podList := &corev1.PodList{}
+	err := k8sClient.Core.Get().
+		Resource("pods").
+		Namespace(namespace).
+		Param("labelSelector", fmt.Sprintf("app=%s", appLabel)).
+		Do(ctx).
+		Into(podList)
+	if err != nil {
+		return fmt.Errorf("failed to list pods: %w", err)
+	}
+
+	if len(podList.Items) == 0 {
+		return fmt.Errorf("no pods found with label app=%s in namespace %s", appLabel, namespace)
+	}
+
+	// Patch each pod's annotation to trigger resync
+	timestamp := time.Now().Format(time.RFC3339Nano)
+	patch := []byte(fmt.Sprintf(`{"metadata":{"annotations":{"altinn.studio/test-e2e-secret-sync":"%s"}}}`, timestamp))
+
+	for _, pod := range podList.Items {
+		err := k8sClient.Core.Patch(types.MergePatchType).
+			Resource("pods").
+			Namespace(namespace).
+			Name(pod.Name).
+			Body(patch).
+			Do(ctx).
+			Error()
+		if err != nil {
+			return fmt.Errorf("failed to patch pod %s: %w", pod.Name, err)
+		}
 	}
 
 	return nil
