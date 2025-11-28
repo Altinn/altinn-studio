@@ -43,12 +43,12 @@ spec:
     ingressRoute:
       name: localtestapp-ingress
       entryPoints:
-        - web
+        - traefik
       routes:
-        - match: PathPrefix(`/localtestapp`)
+        - match: PathPrefix(`/ttd/localtestapp`)
           kind: Rule
           services:
-            - name: localtestapp
+            - name: ttd-localtestapp-deployment
               port: 80
     resources:
       requests:

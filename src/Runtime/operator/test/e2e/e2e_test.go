@@ -246,6 +246,36 @@ var _ = Describe("controller", Ordered, func() {
 				time.Second,
 				"step1-reconciled",
 			)
+
+			By("triggering pod secret volume sync")
+			err = TriggerPodSecretSync(k8sClient, clientNamespace, "ttd-localtestapp-deployment")
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should generate token using reconciled credentials", func() {
+			By("calling testapp token endpoint")
+			var tokenResp *TokenResponse
+			Eventually(func() error {
+				resp, err := FetchToken("altinn:serviceowner/instances.read")
+				if err != nil {
+					fmt.Fprintf(GinkgoWriter, "FetchToken error: %v\n", err)
+					return err
+				}
+				if !resp.Success {
+					fmt.Fprintf(GinkgoWriter, "Token request failed: %s\n", resp.Error)
+					return fmt.Errorf("token request failed: %s", resp.Error)
+				}
+				fmt.Fprintf(GinkgoWriter, "Token request succeeded, clientId: %s, scopes: %v\n", resp.Claims.ClientId, resp.Claims.Scopes)
+				tokenResp = resp
+				return nil
+			}, time.Second*10, time.Second).Should(Succeed())
+
+			By("verifying token claims")
+			Expect(tokenResp.Claims).NotTo(BeNil())
+			Expect(tokenResp.Claims.Scopes).To(ContainElement("altinn:serviceowner/instances.read"))
+
+			By("snapshotting token response")
+			SnapshotTokenResponse(tokenResp, "step1b-token")
 		})
 
 		It("should handle scope removal", func() {
@@ -284,6 +314,10 @@ var _ = Describe("controller", Ordered, func() {
 				time.Second,
 				"step2-scope-removed",
 			)
+
+			By("triggering pod secret volume sync")
+			err = TriggerPodSecretSync(k8sClient, clientNamespace, "ttd-localtestapp-deployment")
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should clean up on deletion", func() {

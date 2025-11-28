@@ -174,6 +174,15 @@ func (c *HttpApiClient) GetAllClients(ctx context.Context) ([]ClientResponse, er
 
 	result := make([]ClientResponse, 0, 16)
 	for _, cl := range dtos {
+		if cl.ClientId == "" {
+			return nil, fmt.Errorf("found client with empty ID")
+		}
+		if c.context.ServiceOwnerId == "digdir" && cl.ClientId == c.getConfig().ClientId {
+			// If this operator is running as digdir, the supplier client is also defined there
+			// so we need to skip it (we should never change or process the supplier client from here)
+			// TODO: unless we want to rotate JWKS automatically from the operator? o_O
+			continue
+		}
 		if cl.ClientName == nil {
 			return nil, fmt.Errorf("client with ID %s has no name", cl.ClientId)
 		}
