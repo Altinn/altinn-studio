@@ -13,6 +13,8 @@ github.com/fluxcd/helm-controller/api v1.4.4 h1:3IFAvJxOBaF2xXItUynqlbgw/2YzTjkL
 github.com/fluxcd/helm-controller/api v1.4.4/go.mod h1:rCgx3qhjjtoIH+1EbzFC2vN71/pp0PgMDrZnGCZX5XY=
 github.com/fluxcd/kustomize-controller/api v1.7.2 h1:E+UwgztwYCwgOgpMuIZZfntCEYIer+hl2NH5O+tL8hs=
 github.com/fluxcd/kustomize-controller/api v1.7.2/go.mod h1:77OSly9kxQli7Nmcln0OqZDjVpRMc6eLKED0CiJHYz8=
+github.com/fluxcd/kustomize-controller/api v1.7.3 h1:g+C9Il+H33DQi/ZiQ8KpTvL9KXebXnS4oM/0uJ/C8Gw=
+github.com/fluxcd/kustomize-controller/api v1.7.3/go.mod h1:Yj80JyfQpBUgLhsUZ/c86qcvPGO2+P1VCKsb8fL+L/k=
 github.com/fluxcd/pkg/apis/kustomize v1.13.0 h1:GGf0UBVRIku+gebY944icVeEIhyg1P/KE3IrhOyJJnE=
 github.com/fluxcd/pkg/apis/kustomize v1.13.0/go.mod h1:TLKVqbtnzkhDuhWnAsN35977HvRfIjs+lgMuNro/LEc=
 github.com/fluxcd/pkg/apis/kustomize v1.14.0 h1:PmWqMpRX0v7/aCAUNWfohe4o1qa9G3Cg/vVr5PCedI4=
