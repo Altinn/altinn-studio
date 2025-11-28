@@ -7,10 +7,10 @@ on:
 
 jobs:
   add-to-project:
-    name: Add issue to Team Apps project
+    name: Add issue to Team Altinn Studio project
     runs-on: ubuntu-latest
     steps:
       - uses: actions/add-to-project@main
         with:
-          project-url: https://github.com/orgs/Altinn/projects/39
+          project-url: https://github.com/orgs/Altinn/projects/164
           github-token: ${{ secrets.ASSIGN_PROJECT_TOKEN }}
