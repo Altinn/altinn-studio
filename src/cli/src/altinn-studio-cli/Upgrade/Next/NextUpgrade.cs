@@ -1,8 +1,8 @@
 using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.ProjectRewriters;
-using Altinn.Studio.Cli.Upgrade.Next.ConditionalRenderingRules;
-using Altinn.Studio.Cli.Upgrade.Next.RuleAnalysis;
+using Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration;
+using Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingRules;
 
 namespace Altinn.Studio.Cli.Upgrade.Next;
 
