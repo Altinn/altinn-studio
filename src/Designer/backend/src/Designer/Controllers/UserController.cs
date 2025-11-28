@@ -27,7 +27,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="UserController"/> class.
         /// </summary>
-        /// <param name="giteaClient">the gitea wrapper</param>
+        /// <param name="giteaClient">the gitea client</param>
         /// <param name="antiforgery">Access to the antiforgery system in .NET Core</param>
         /// <param name="userService">User service</param>
         public UserController(IGitea giteaClient, IAntiforgery antiforgery, IUserService userService)
