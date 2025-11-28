@@ -679,10 +679,9 @@ public class GiteaClient(
 
     private async Task<Organization> GetCachedOrg(string org)
     {
-        Organization organisation = null;
         string cachekey = "org_" + org;
 
-        if (!memoryCache.TryGetValue(cachekey, out organisation))
+        if (!memoryCache.TryGetValue(cachekey, out Organization organisation))
         {
             try
             {
