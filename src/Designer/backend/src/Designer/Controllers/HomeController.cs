@@ -21,7 +21,7 @@ namespace Altinn.Studio.Designer.Controllers
     [Route("[controller]/[action]/{id?}")]
     public class HomeController : Controller
     {
-        private readonly IGitea _giteaApi;
+        private readonly IGitea _giteaClient;
         private readonly ILogger<HomeController> _logger;
         private readonly ServiceRepositorySettings _settings;
         private readonly ISourceControl _sourceControl;
@@ -34,14 +34,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="logger">The logger</param>
         /// <param name="repositorySettings">settings for the repository</param>
         /// <param name="generalSettings">the general settings</param>
-        /// <param name="giteaWrapper">the gitea wrapper</param>
+        /// <param name="giteaClient">the gitea wrapper</param>
         /// <param name="sourceControl">the source control</param>
         /// <param name="applicationInsightsSettings">An <see cref="ApplicationInsightsSettings"/></param>
         public HomeController(
             ILogger<HomeController> logger,
             ServiceRepositorySettings repositorySettings,
             GeneralSettings generalSettings,
-            IGitea giteaWrapper,
+            IGitea giteaClient,
             ISourceControl sourceControl,
             ApplicationInsightsSettings applicationInsightsSettings
         )
@@ -49,7 +49,7 @@ namespace Altinn.Studio.Designer.Controllers
             _logger = logger;
             _settings = repositorySettings;
             _generalSettings = generalSettings;
-            _giteaApi = giteaWrapper;
+            _giteaClient = giteaClient;
             _sourceControl = sourceControl;
             _applicationInsightsSettings = applicationInsightsSettings;
         }

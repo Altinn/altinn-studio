@@ -12,11 +12,11 @@ namespace Designer.Tests.Services
 {
     public class UserServiceTests
     {
-        private readonly Mock<IGitea> _giteaApi;
+        private readonly Mock<IGitea> _giteaClient;
 
         public UserServiceTests()
         {
-            _giteaApi = new Mock<IGitea>();
+            _giteaClient = new Mock<IGitea>();
         }
 
         [Theory]
@@ -32,9 +32,9 @@ namespace Designer.Tests.Services
                 }
             };
 
-            _giteaApi.Setup(api => api.GetTeams()).ReturnsAsync(teams);
+            _giteaClient.Setup(api => api.GetTeams()).ReturnsAsync(teams);
 
-            var userService = new UserService(_giteaApi.Object);
+            var userService = new UserService(_giteaClient.Object);
 
             AltinnOrgEditingContext altinnOrgEditingContext = AltinnOrgEditingContext.FromOrgDeveloper(org, "developer");
             var result = await userService.GetUserOrgPermission(altinnOrgEditingContext);

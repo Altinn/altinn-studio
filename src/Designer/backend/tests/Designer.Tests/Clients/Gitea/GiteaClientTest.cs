@@ -119,9 +119,9 @@ public class GiteaClientTest
             BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
         };
 
-        GiteaClient giteaApi = GetServiceForTest(httpClient);
+        GiteaClient giteaClient = GetServiceForTest(httpClient);
 
-        SearchResults result = await giteaApi.SearchRepo(GetSearchOptions());
+        SearchResults result = await giteaClient.SearchRepo(GetSearchOptions());
 
         Assert.Equal(searchResult.Data.Count, result.TotalCount);
         Assert.Equal(1, result.TotalPages);
@@ -162,11 +162,11 @@ public class GiteaClientTest
             BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
         };
 
-        GiteaClient giteaApi = GetServiceForTest(httpClient);
+        GiteaClient giteaClient = GetServiceForTest(httpClient);
 
         SearchOptions searchOptions = GetSearchOptions();
         searchOptions.Limit = 10;
-        SearchResults result = await giteaApi.SearchRepo(searchOptions);
+        SearchResults result = await giteaClient.SearchRepo(searchOptions);
         Assert.Equal(searchResult.Data.Count, result.TotalCount);
         Assert.Equal(27, result.TotalPages);
         handlerMock.VerifyAll();
@@ -197,9 +197,9 @@ public class GiteaClientTest
             BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
         };
 
-        GiteaClient giteaApi = GetServiceForTest(httpClient);
+        GiteaClient giteaClient = GetServiceForTest(httpClient);
 
-        SearchResults result = await giteaApi.SearchRepo(GetSearchOptions());
+        SearchResults result = await giteaClient.SearchRepo(GetSearchOptions());
 
         Assert.Null(result);
         handlerMock.VerifyAll();
@@ -232,9 +232,9 @@ public class GiteaClientTest
             BaseAddress = new Uri("http://studio.localhost/designer/api/user/starred")
         };
 
-        GiteaClient giteaApi = GetServiceForTest(httpClient);
+        GiteaClient giteaClient = GetServiceForTest(httpClient);
 
-        await giteaApi.GetStarred();
+        await giteaClient.GetStarred();
         Assert.Equal(10, repositories.Count);
         handlerMock.VerifyAll();
     }
@@ -265,9 +265,9 @@ public class GiteaClientTest
             BaseAddress = new Uri("http://studio.localhost/designer/api/user/starred")
         };
 
-        GiteaClient giteaApi = GetServiceForTest(httpClient);
+        GiteaClient giteaClient = GetServiceForTest(httpClient);
 
-        bool result = await giteaApi.PutStarred("org", "repository");
+        bool result = await giteaClient.PutStarred("org", "repository");
 
         Assert.Equal(expectedResult, result);
         handlerMock.VerifyAll();
@@ -299,9 +299,9 @@ public class GiteaClientTest
             BaseAddress = new Uri("http://studio.localhost/designer/api/user/starred")
         };
 
-        GiteaClient giteaApi = GetServiceForTest(httpClient);
+        GiteaClient giteaClient = GetServiceForTest(httpClient);
 
-        bool result = await giteaApi.DeleteStarred("org", "repository");
+        bool result = await giteaClient.DeleteStarred("org", "repository");
 
         Assert.Equal(expectedResult, result);
         handlerMock.VerifyAll();
@@ -353,11 +353,11 @@ public class GiteaClientTest
             BaseAddress = new Uri("http://studio.localhost/designer/api/")
         };
 
-        // Passing the test specific mock setup in, sprinkles a bit more mock setup and returns a valid GiteaAPIWrapper
-        GiteaClient giteaApi = GetServiceForTest(httpClient);
+        // Passing the test specific mock setup in, sprinkles a bit more mock setup and returns a valid client
+        GiteaClient giteaClient = GetServiceForTest(httpClient);
 
         // Act
-        Repository result = await giteaApi.GetRepository("ttd", "repo");
+        Repository result = await giteaClient.GetRepository("ttd", "repo");
 
         // Assert
         Assert.Equal(1769, result.Id);

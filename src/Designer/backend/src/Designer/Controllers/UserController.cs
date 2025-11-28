@@ -20,19 +20,19 @@ namespace Altinn.Studio.Designer.Controllers
     [Route("designer/api/user")]
     public class UserController : ControllerBase
     {
-        private readonly IGitea _giteaApi;
+        private readonly IGitea _giteaClient;
         private readonly IAntiforgery _antiforgery;
         private readonly IUserService _userService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UserController"/> class.
         /// </summary>
-        /// <param name="giteaWrapper">the gitea wrapper</param>
+        /// <param name="giteaClient">the gitea wrapper</param>
         /// <param name="antiforgery">Access to the antiforgery system in .NET Core</param>
         /// <param name="userService">User service</param>
-        public UserController(IGitea giteaWrapper, IAntiforgery antiforgery, IUserService userService)
+        public UserController(IGitea giteaClient, IAntiforgery antiforgery, IUserService userService)
         {
-            _giteaApi = giteaWrapper;
+            _giteaClient = giteaClient;
             _antiforgery = antiforgery;
             _userService = userService;
         }
@@ -52,7 +52,7 @@ namespace Altinn.Studio.Designer.Controllers
                 HttpOnly = false // Make this cookie readable by Javascript.
             });
 
-            return await _giteaApi.GetCurrentUser();
+            return await _giteaClient.GetCurrentUser();
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repos")]
         public Task<IList<RepositoryClient.Model.Repository>> UserRepos()
         {
-            return _giteaApi.GetUserRepos();
+            return _giteaClient.GetUserRepos();
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("starred")]
         public async Task<IList<RepositoryClient.Model.Repository>> GetStarredRepos()
         {
-            return await _giteaApi.GetStarred();
+            return await _giteaClient.GetStarred();
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("starred/{org}/{repository}")]
         public async Task<IActionResult> PutStarred(string org, string repository)
         {
-            var success = await _giteaApi.PutStarred(org, repository);
+            var success = await _giteaClient.PutStarred(org, repository);
             return success ? NoContent() : StatusCode(418);
         }
 
@@ -105,7 +105,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("starred/{org}/{repository}")]
         public async Task<IActionResult> DeleteStarred(string org, string repository)
         {
-            var success = await _giteaApi.DeleteStarred(org, repository);
+            var success = await _giteaClient.DeleteStarred(org, repository);
             return success ? NoContent() : StatusCode(418);
         }
     }
