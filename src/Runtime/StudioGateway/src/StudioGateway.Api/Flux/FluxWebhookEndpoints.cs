@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using StudioGateway.Api.Flux.Contracts;
 
 namespace StudioGateway.Api.Flux;
