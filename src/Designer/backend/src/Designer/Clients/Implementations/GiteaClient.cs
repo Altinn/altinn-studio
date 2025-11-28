@@ -28,11 +28,9 @@ using Polly.Wrap;
 namespace Altinn.Studio.Designer.Clients.Implementations;
 
 /// <summary>
-/// Implementation of the gitea wrapper service.
+/// Implementation of the <see cref="IGitea"/> interface.
+/// Connects to Gitea API to perform operations related to repositories..
 /// </summary>
-/// <remarks>
-/// Initializes a new instance of the <see cref="GiteaClient"/> class
-/// </remarks>
 /// <param name="repositorySettings">the repository settings</param>
 /// <param name="httpContextAccessor">the http context accessor</param>
 /// <param name="memoryCache">The configured memory cache</param>
