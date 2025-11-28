@@ -1,5 +1,8 @@
+using System;
 using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Threading.Tasks;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.ProjectRewriters;
 using Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration;
 using Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.ConditionalRenderingRules;
@@ -124,9 +127,7 @@ internal static class NextUpgrade
 
             if (returnCode == 0)
             {
-                Console.WriteLine(
-                    "Upgrade completed without errors. Please verify that the application is still working as expected."
-                );
+                Console.WriteLine("Please verify that the application is still working as expected.");
             }
             else
             {

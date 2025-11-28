@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
 using Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration;
 using Altinn.Studio.Cli.Upgrade.Next.RuleConfiguration.Models;
@@ -160,7 +163,7 @@ internal class ConditionalRenderingConverter
                 if (injectionResult.Status == InjectionStatus.ComponentNotFound)
                 {
                     result.ComponentsNotFound++;
-                    Console.WriteLine(
+                    Console.Error.WriteLine(
                         $"Failed to find component '{injectionResult.ComponentId}' in layouts when converting conditional rendering rules"
                     );
                 }
