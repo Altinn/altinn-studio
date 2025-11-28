@@ -15,10 +15,9 @@ export const Instances = () => {
     undefined,
   );
   const [currentTask, setCurrentTask] = useQueryParamState<string>('currentTask', undefined);
-  const [isComplete, setIsComplete] = useQueryParamState<boolean>('isComplete', undefined);
+  const [isArchived, setIsArchived] = useQueryParamState<boolean>('isArchived', undefined);
   const [isConfirmed, setIsConfirmed] = useQueryParamState<boolean>('isConfirmed', undefined);
   const [isSoftDeleted, setIsSoftDeleted] = useQueryParamState<boolean>('isSoftDeleted', undefined);
-  const [isHardDeleted, setIsHardDeleted] = useQueryParamState<boolean>('isHardDeleted', undefined);
 
   return (
     <div>
@@ -56,8 +55,8 @@ export const Instances = () => {
         />
         <StatusFilter
           label='Levert av bruker'
-          value={isComplete}
-          setValue={setIsComplete}
+          value={isArchived}
+          setValue={setIsArchived}
           options={[
             { label: 'Alle', value: undefined },
             { label: 'Ja', value: true },
@@ -84,27 +83,16 @@ export const Instances = () => {
             { label: 'Nei', value: false },
           ]}
         />
-        <StatusFilter
-          label='Slettet permanent'
-          value={isHardDeleted}
-          setValue={setIsHardDeleted}
-          options={[
-            { label: 'Alle', value: undefined },
-            { label: 'Ja', value: true },
-            { label: 'Nei', value: false },
-          ]}
-        />
       </div>
       <InstancesTable
         org={org}
         env={env}
         app={app}
         currentTask={currentTask}
-        processIsComplete={isComplete}
+        isArchived={isArchived}
         archiveReference={archiveReference}
         confirmed={isConfirmed}
         isSoftDeleted={isSoftDeleted}
-        isHardDeleted={isHardDeleted}
       />
     </div>
   );

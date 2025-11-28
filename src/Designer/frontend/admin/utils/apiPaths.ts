@@ -7,7 +7,7 @@ export const instancesListPath = (
   app: string,
   continuationToken?: string,
   currentTask?: string,
-  processIsComplete?: boolean,
+  isArchived?: boolean,
   archiveReference?: string,
   confirmed?: boolean,
   isSoftDeleted?: boolean,
@@ -16,7 +16,7 @@ export const instancesListPath = (
   const queryString = getQueryStringFromObject({
     continuationToken,
     currentTask,
-    processIsComplete: typeof processIsComplete === 'boolean' ? String(processIsComplete) : null,
+    isArchived: typeof isArchived === 'boolean' ? String(isArchived) : null,
     archiveReference,
     confirmed: typeof confirmed === 'boolean' ? String(confirmed) : null,
     isSoftDeleted: typeof isSoftDeleted === 'boolean' ? String(isSoftDeleted) : null,

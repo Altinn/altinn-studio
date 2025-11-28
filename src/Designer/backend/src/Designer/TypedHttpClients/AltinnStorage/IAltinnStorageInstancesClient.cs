@@ -18,7 +18,7 @@ public interface IAltinnStorageInstancesClient
         string app,
         string? continuationToken,
         string? currentTaskFilter,
-        bool? processIsCompleteFilter,
+        bool? isArchivedFilter,
         string? archiveReferenceFilter,
         bool? confirmedFilter,
         bool? isSoftDeletedFilter,

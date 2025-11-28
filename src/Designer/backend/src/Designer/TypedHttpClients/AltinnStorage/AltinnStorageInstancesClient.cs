@@ -41,7 +41,7 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
         string app,
         string? continuationToken,
         string? currentTaskFilter,
-        bool? processIsCompleteFilter,
+        bool? isArchivedFilter,
         string? archiveReferenceFilter,
         bool? confirmedFilter,
         bool? isSoftDeletedFilter,
@@ -64,12 +64,12 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
             uri = QueryHelpers.AddQueryString(uri, "process.currentTask", currentTaskFilter);
         }
 
-        if (processIsCompleteFilter != null)
+        if (isArchivedFilter != null)
         {
             uri = QueryHelpers.AddQueryString(
                 uri,
-                "process.isComplete",
-                processIsCompleteFilter.Value.ToString().ToLowerInvariant()
+                "status.isArchived",
+                isArchivedFilter.Value.ToString().ToLowerInvariant()
             );
         }
 

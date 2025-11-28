@@ -13,7 +13,7 @@ type InstancesTableProps = {
   env: string;
   app: string;
   currentTask?: string;
-  processIsComplete?: boolean;
+  isArchived?: boolean;
   archiveReference?: string;
   confirmed?: boolean;
   isSoftDeleted?: boolean;
@@ -25,7 +25,7 @@ export const InstancesTable = ({
   env,
   app,
   currentTask,
-  processIsComplete,
+  isArchived,
   archiveReference,
   confirmed,
   isSoftDeleted,
@@ -36,7 +36,7 @@ export const InstancesTable = ({
     env,
     app,
     currentTask,
-    processIsComplete,
+    isArchived,
     archiveReference,
     confirmed,
     isSoftDeleted,

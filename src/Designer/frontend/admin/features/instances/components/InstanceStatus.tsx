@@ -37,7 +37,6 @@ const InstanceStatusChip = ({ status }: InstanceStatusChipProps) => {
           Aktiv
         </Tag>
       );
-    // TODO: Using archivedAt to check if the process is complete may be incorrect?
     case InstanceStatuses.Archived:
       return (
         <Tag size='sm' color='success'>
@@ -56,12 +55,6 @@ const InstanceStatusChip = ({ status }: InstanceStatusChipProps) => {
           Slettet
         </Tag>
       );
-    case InstanceStatuses.HardDeleted:
-      return (
-        <Tag size='sm' color='danger'>
-          Slettet permanent
-        </Tag>
-      );
   }
 };
 
@@ -71,18 +64,11 @@ enum InstanceStatuses {
   Archived = 'archived',
   Confirmed = 'confirmed',
   SoftDeleted = 'softDeleted',
-  HardDeleted = 'hardDeleted',
 }
 
 function getInstanceStatuses(instance: SimpleInstance): InstanceStatuses[] {
   const statuses: InstanceStatuses[] = [];
-  if (
-    instance.isRead &&
-    !instance.archivedAt &&
-    !instance.confirmedAt &&
-    !instance.softDeletedAt &&
-    !instance.hardDeletedAt
-  ) {
+  if (instance.isRead && !instance.archivedAt && !instance.confirmedAt && !instance.softDeletedAt) {
     statuses.push(InstanceStatuses.Active);
   }
 
@@ -99,12 +85,8 @@ function getInstanceStatuses(instance: SimpleInstance): InstanceStatuses[] {
     statuses.push(InstanceStatuses.Confirmed);
   }
 
-  if (instance.softDeletedAt && !instance.hardDeletedAt) {
+  if (instance.softDeletedAt) {
     statuses.push(InstanceStatuses.SoftDeleted);
-  }
-
-  if (instance.hardDeletedAt) {
-    statuses.push(InstanceStatuses.HardDeleted);
   }
 
   return statuses;
