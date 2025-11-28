@@ -85,6 +85,17 @@ func (c *FluxClient) PushArtifact(url, path, source, revision string) error {
 	return nil
 }
 
+// ReconcileHelmRepository reconciles a HelmRepository source
+func (c *FluxClient) ReconcileHelmRepository(name, namespace string, opts ReconcileOptions) error {
+	args := []string{
+		"reconcile", "source", "helm",
+		name,
+		"-n", namespace,
+	}
+
+	return c.runReconcile("HelmRepository", name, namespace, args, opts)
+}
+
 // ReconcileHelmRelease reconciles a HelmRelease resource
 func (c *FluxClient) ReconcileHelmRelease(name, namespace string, withSource bool, opts ReconcileOptions) error {
 	args := []string{

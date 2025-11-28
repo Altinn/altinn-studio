@@ -1,0 +1,6 @@
+
+[controller Operator should snapshot initial state before MaskinportenClient exists - 1]
+{
+ "status": "does not exist"
+}
+---

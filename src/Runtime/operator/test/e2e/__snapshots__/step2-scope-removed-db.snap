@@ -1,0 +1,65 @@
+
+[controller Operator should handle scope removal - 1]
+{
+ "clients": [
+  {
+   "Client": {
+    "active": true,
+    "application_type": "web",
+    "client_id": "<client-id-0>",
+    "client_name": "altinn_apps_supplier_client",
+    "client_orgno": "991825827",
+    "created": "2024-01-01T00:00:00Z",
+    "grant_types": [
+     "urn:ietf:params:oauth:grant-type:jwt-bearer"
+    ],
+    "integration_type": "maskinporten",
+    "jwks_uri": "",
+    "last_updated": "2024-01-01T00:00:00Z",
+    "scopes": [
+     "idporten:dcr.altinn"
+    ],
+    "supplier_orgno": "991825827",
+    "token_endpoint_auth_method": "private_key_jwt"
+   },
+   "ClientId": "<client-id-0>",
+   "Jwks": {
+    "keys": [
+     {
+      "alg": "RS512",
+      "e": "AQAB",
+      "kid": "<key-id-0-0>",
+      "kty": "RSA",
+      "n": "<rsa-modulus>",
+      "use": "sig"
+     }
+    ]
+   }
+  },
+  {
+   "Client": {
+    "active": true,
+    "application_type": "web",
+    "client_id": "<client-id-1>",
+    "client_name": "altinnoperator-ttd-localtest-localtestapp",
+    "client_orgno": "405003309",
+    "created": "2024-01-01T00:00:00Z",
+    "description": "Altinn Operator managed client for ttd/localtest/localtestapp",
+    "grant_types": [
+     "urn:ietf:params:oauth:grant-type:jwt-bearer"
+    ],
+    "integration_type": "maskinporten",
+    "jwks_uri": "",
+    "last_updated": "2024-01-01T00:00:00Z",
+    "scopes": [
+     "altinn:serviceowner/instances.read"
+    ],
+    "supplier_orgno": "991825827",
+    "token_endpoint_auth_method": "private_key_jwt"
+   },
+   "ClientId": "<client-id-1>",
+   "Jwks": null
+  }
+ ]
+}
+---

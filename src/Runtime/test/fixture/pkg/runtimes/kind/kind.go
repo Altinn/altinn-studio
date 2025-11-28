@@ -507,4 +507,9 @@ func (r *KindContainerRuntime) Stop() error {
 	return nil
 }
 
+// GetContextName returns the kubectl context name for this cluster
+func (r *KindContainerRuntime) GetContextName() string {
+	return fmt.Sprintf("kind-%s", r.clusterName)
+}
+
 var _ runtimes.ContainerRuntime = (*KindContainerRuntime)(nil)
