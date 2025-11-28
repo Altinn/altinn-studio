@@ -247,7 +247,7 @@ public class GiteaClient(
                 // Not pushed to git
             }
 
-            if (commitResponse != null)
+            if (commitResponse is not null)
             {
                 string commitUserName = commitResponse.LastOrDefault().Commit?.Author?.Name;
                 string userFullName = await GetCachedUserFullName(commitUserName);
@@ -327,7 +327,7 @@ public class GiteaClient(
 
         // Search in description. To prevent DataModelsRepoList from displaying repos with '-datamodels' only in the description,
         // we exclude description searches containing this keyword.
-        if (searchOption.Keyword != null && !searchOption.Keyword.Contains("-datamodels"))
+        if (searchOption.Keyword is not null && !searchOption.Keyword.Contains("-datamodels"))
         {
             giteaSearchUriString += "&includeDesc=true";
         }
@@ -696,13 +696,7 @@ public class GiteaClient(
             }
 
             // Null value is not cached. so set id property to -1
-            if (organisation == null)
-            {
-                organisation = new Organization
-                {
-                    Id = -1
-                };
-            }
+            organisation ??= new Organization { Id = -1 };
 
             // Keep in cache for this time, reset time if accessed.
             MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions()
