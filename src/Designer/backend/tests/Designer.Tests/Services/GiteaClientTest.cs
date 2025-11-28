@@ -22,7 +22,7 @@ using Xunit;
 
 namespace Designer.Tests.Services
 {
-    public class GiteaAPIWrapperTest
+    public class GiteaClientTest
     {
         [Fact]
         public async Task CreateBranch_Successful_BranchReturned()
@@ -881,7 +881,7 @@ namespace Designer.Tests.Services
             Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             httpContextAccessorMock.Setup(s => s.HttpContext).Returns(context);
 
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(GiteaAPIWrapperTest).Assembly.Location).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(GiteaClientTest).Assembly.Location).LocalPath);
             var repoSettings = new ServiceRepositorySettings
             {
                 RepositoryLocation = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories")
@@ -899,7 +899,7 @@ namespace Designer.Tests.Services
 
         private static List<Repository> GetRepositories()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(GiteaAPIWrapperTest).Assembly.Location).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(GiteaClientTest).Assembly.Location).LocalPath);
             string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "RepoCollection", "repositories.json");
             if (File.Exists(path))
             {
