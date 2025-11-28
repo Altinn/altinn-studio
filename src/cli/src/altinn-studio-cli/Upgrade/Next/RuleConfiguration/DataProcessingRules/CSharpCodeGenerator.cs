@@ -460,7 +460,7 @@ internal class CSharpCodeGenerator
 
                     // Get the output parameter
                     var outputParam = rule.OutParams?.FirstOrDefault();
-                    string? outputFieldPath = null;
+                    string? outputFieldPath;
 
                     if (outputParam.HasValue && !string.IsNullOrEmpty(outputParam.Value.Value))
                     {
@@ -591,7 +591,7 @@ internal class CSharpCodeGenerator
                     {
                         // Get the output parameter
                         var outputParam = rule.OutParams?.FirstOrDefault();
-                        string? outputFieldPath = null;
+                        string? outputFieldPath;
 
                         if (outputParam.HasValue && !string.IsNullOrEmpty(outputParam.Value.Value))
                         {
@@ -800,36 +800,6 @@ internal class CSharpCodeGenerator
         }
 
         return null;
-    }
-
-    private string? ExtractPropertyNameFromPath(string dataModelPath)
-    {
-        // Data model paths are like "Group-grp-123.SubGroup-grp-456.PropertyName-datadef-789.value"
-        // We need to convert this to "Groupgrp123.SubGroupgrp456.PropertyNamedatadef789.value"
-        var parts = dataModelPath.Split('.');
-
-        // Sanitize each part (removes hyphens and invalid characters)
-        // Note: "value" at the end is a valid property name and should be kept
-        var sanitizedParts = parts.Select(SanitizePropertyName).Where(p => !string.IsNullOrEmpty(p)).ToArray();
-
-        // Join with dots to create nested property access
-        return sanitizedParts.Length > 0 ? string.Join(".", sanitizedParts) : null;
-    }
-
-    private string SanitizePropertyName(string propertyName)
-    {
-        // The C# model generator removes hyphens but keeps letters, digits, and underscores
-        // This matches the auto-generated model property naming convention
-        var sanitized = new string(propertyName.Where(c => char.IsLetterOrDigit(c) || c == '_').ToArray());
-
-        // C# identifiers cannot start with a digit. If the sanitized name starts with a digit,
-        // prefix it with an underscore (common convention in auto-generated code)
-        if (!string.IsNullOrEmpty(sanitized) && char.IsDigit(sanitized[0]))
-        {
-            sanitized = "_" + sanitized;
-        }
-
-        return sanitized;
     }
 
     /// <summary>

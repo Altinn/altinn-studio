@@ -48,16 +48,6 @@ public class ConversionResult
     /// This is set when window.location checks are converted to frontendSettings
     /// </summary>
     public bool RequiresEnvironmentSettings { get; set; }
-
-    /// <summary>
-    /// Serialize the expression to formatted JSON string
-    /// </summary>
-    public string ExpressionAsJson()
-    {
-        return Expression == null
-            ? "null"
-            : JsonSerializer.Serialize(Expression, new JsonSerializerOptions { WriteIndented = true });
-    }
 }
 
 public enum ConversionStatus

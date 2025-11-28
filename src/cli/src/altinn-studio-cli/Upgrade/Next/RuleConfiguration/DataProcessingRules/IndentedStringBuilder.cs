@@ -87,26 +87,6 @@ internal class IndentedStringBuilder
         AppendLine("}");
     }
 
-    /// <summary>
-    /// Execute an action within an indented block
-    /// </summary>
-    public void WithIndent(Action action)
-    {
-        Indent();
-        action();
-        Unindent();
-    }
-
-    /// <summary>
-    /// Execute an action within braces and indentation
-    /// </summary>
-    public void WithBraces(Action action)
-    {
-        OpenBrace();
-        action();
-        CloseBrace();
-    }
-
     private void AppendIndent()
     {
         for (int i = 0; i < _indentLevel; i++)

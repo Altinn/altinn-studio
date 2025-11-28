@@ -216,14 +216,11 @@ internal class StatementConverter
     private void ConvertCallExpressionStatement(CallExpression call, IndentedStringBuilder code)
     {
         // Handle forEach method calls
-        if (call.Callee is MemberExpression member && member.Property is Identifier methodName)
+        if (call.Callee is MemberExpression { Property: Identifier { Name: "forEach" } } member)
         {
-            if (methodName.Name == "forEach")
-            {
-                // Convert array.forEach(callback) to foreach loop
-                ConvertForEachToForeach(member.Object, call, code);
-                return;
-            }
+            // Convert array.forEach(callback) to foreach loop
+            ConvertForEachToForeach(member.Object, call, code);
+            return;
         }
 
         throw new NotSupportedException($"Call expression statement not supported");
@@ -1282,12 +1279,12 @@ internal class StatementConverter
     {
         // Check if this member expression refers to a string-typed property
         // For obj.property patterns where property is a local variable
-        if (member.Object is Identifier && member.Property is Identifier propId)
+        if (
+            member is { Object: Identifier, Property: Identifier propId }
+            && _localVariableTypes.TryGetValue(propId.Name, out var isString)
+        )
         {
-            if (_localVariableTypes.TryGetValue(propId.Name, out var isString))
-            {
-                return isString;
-            }
+            return isString;
         }
         return false;
     }
@@ -1409,25 +1406,27 @@ internal class StatementConverter
         if (op is "&&" or "||")
         {
             // Check if left side needs boolean conversion
-            if (TestNeedsBooleanConversion(logical.Left))
+            // Don't wrap wrapper.Get() with Convert.ToDouble - let it fail at compile time if types don't match
+            if (
+                TestNeedsBooleanConversion(logical.Left)
+                && logical.Left is not BinaryExpression
+                && logical.Left is not LogicalExpression
+            )
             {
-                // Don't wrap wrapper.Get() with Convert.ToDouble - let it fail at compile time if types don't match
-                if (logical.Left is not BinaryExpression && logical.Left is not LogicalExpression)
-                {
-                    // For other numeric expressions, add != 0 check
-                    left = $"({left} != 0m)";
-                }
+                // For other numeric expressions, add != 0 check
+                left = $"({left} != 0m)";
             }
 
             // Check if right side needs boolean conversion
-            if (TestNeedsBooleanConversion(logical.Right))
+            // Don't wrap wrapper.Get() with Convert.ToDecimal - let it fail at compile time if types don't match
+            if (
+                TestNeedsBooleanConversion(logical.Right)
+                && logical.Right is not BinaryExpression
+                && logical.Right is not LogicalExpression
+            )
             {
-                // Don't wrap wrapper.Get() with Convert.ToDecimal - let it fail at compile time if types don't match
-                if (logical.Right is not BinaryExpression && logical.Right is not LogicalExpression)
-                {
-                    // For other numeric expressions, add != 0 check
-                    right = $"({right} != 0m)";
-                }
+                // For other numeric expressions, add != 0 check
+                right = $"({right} != 0m)";
             }
         }
 

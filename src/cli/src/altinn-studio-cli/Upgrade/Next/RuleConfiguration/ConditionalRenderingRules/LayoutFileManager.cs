@@ -168,12 +168,4 @@ internal class LayoutFileManager
             File.WriteAllText(filePath, jsonText);
         }
     }
-
-    /// <summary>
-    /// Get all layout filenames
-    /// </summary>
-    public IEnumerable<string> GetLayoutFiles()
-    {
-        return _layoutFiles.Keys;
-    }
 }
