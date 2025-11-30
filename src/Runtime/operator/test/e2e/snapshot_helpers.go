@@ -141,6 +141,13 @@ func SanitizeMaskinportenClientStatus(status map[string]any) {
 			keyIds[i] = fmt.Sprintf("<key-id-%d>", i)
 		}
 	}
+	if actionHistory, ok := status["actionHistory"].([]any); ok {
+		for _, action := range actionHistory {
+			if actionMap, ok := action.(map[string]any); ok {
+				SanitizeActionRecord(actionMap)
+			}
+		}
+	}
 	if conditions, ok := status["conditions"].([]any); ok {
 		for _, cond := range conditions {
 			if condMap, ok := cond.(map[string]any); ok {
@@ -165,6 +172,18 @@ func sanitizeConditionMessage(msg string) string {
 	// Replace UUIDs (e.g., "Client created with ID f75f4e9c-f896-413d-9291-8490bb10d7d5")
 	uuidPattern := regexp.MustCompile(`[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`)
 	return uuidPattern.ReplaceAllString(msg, sanitizedClientId)
+}
+
+// SanitizeActionRecord sanitizes an ActionRecord for deterministic snapshots
+func SanitizeActionRecord(action map[string]any) {
+	if action["timestamp"] != nil {
+		action["timestamp"] = sanitizedTimestamp
+	}
+	if details, ok := action["details"].(string); ok {
+		// Replace clientId UUIDs in details string
+		uuidPattern := regexp.MustCompile(`[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`)
+		action["details"] = uuidPattern.ReplaceAllString(details, sanitizedClientId)
+	}
 }
 
 // SanitizeJwk replaces non-deterministic JWK fields with placeholders

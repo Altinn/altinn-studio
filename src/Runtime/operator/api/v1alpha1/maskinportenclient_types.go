@@ -16,6 +16,19 @@ type MaskinportenClientSpec struct {
 	Scopes []string `json:"scopes,omitempty"`
 }
 
+// ActionRecord represents a single executed command with its result
+type ActionRecord struct {
+	// Command is the type of command that was executed
+	Command string `json:"command"`
+	// Result describes the outcome (e.g., "created", "updated", "deleted", "synced", "cleared")
+	Result string `json:"result"`
+	// Timestamp when the action was executed
+	Timestamp metav1.Time `json:"timestamp"`
+	// Details contains command-specific information (clientId, keyCount, etc.)
+	// +optional
+	Details string `json:"details,omitempty"`
+}
+
 // MaskinportenClientStatus defines the observed state of MaskinportenClient
 type MaskinportenClientStatus struct {
 	// ClientId is the client id of the client in Maskinporten API
@@ -26,7 +39,9 @@ type MaskinportenClientStatus struct {
 	// +kubebuilder:validation:Format=date-time
 	LastSynced         *metav1.Time `json:"lastSynced,omitempty"`
 	ObservedGeneration int64        `json:"observedGeneration,omitempty"`
-	LastActions        []string     `json:"lastActions,omitempty"`
+	// ActionHistory contains up to 10 recent actions, ordered oldest to newest
+	// +optional
+	ActionHistory []ActionRecord `json:"actionHistory,omitempty"`
 	// Conditions represent the latest available observations of the resource's state
 	// +listType=map
 	// +listMapKey=type

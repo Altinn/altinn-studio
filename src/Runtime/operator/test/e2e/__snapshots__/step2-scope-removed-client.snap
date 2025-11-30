@@ -23,6 +23,26 @@
   ]
  },
  "status": {
+  "actionHistory": [
+   {
+    "command": "CreateClientInApiCommand",
+    "details": "clientId: <sanitized-client-id>, scopes: 2",
+    "result": "created",
+    "timestamp": "2024-01-01T00:00:00Z"
+   },
+   {
+    "command": "UpdateSecretContentCommand",
+    "details": "keys: 1",
+    "result": "synced",
+    "timestamp": "2024-01-01T00:00:00Z"
+   },
+   {
+    "command": "UpdateClientInApiCommand",
+    "details": "scopes: 1, jwks: false",
+    "result": "updated",
+    "timestamp": "2024-01-01T00:00:00Z"
+   }
+  ],
   "authority": "http://fakes:8050",
   "clientId": "<sanitized-client-id>",
   "conditions": [
@@ -53,9 +73,6 @@
   ],
   "keyIds": [
    "<key-id-0>"
-  ],
-  "lastActions": [
-   "UpdateClientInApiCommand"
   ],
   "lastSynced": "2024-01-01T00:00:00Z",
   "observedGeneration": 2

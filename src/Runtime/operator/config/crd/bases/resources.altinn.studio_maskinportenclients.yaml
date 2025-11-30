@@ -50,6 +50,34 @@ spec:
           status:
             description: MaskinportenClientStatus defines the observed state of MaskinportenClient
             properties:
+              actionHistory:
+                description: ActionHistory contains up to 10 recent actions, ordered
+                  oldest to newest
+                items:
+                  description: ActionRecord represents a single executed command with
+                    its result
+                  properties:
+                    command:
+                      description: Command is the type of command that was executed
+                      type: string
+                    details:
+                      description: Details contains command-specific information (clientId,
+                        keyCount, etc.)
+                      type: string
+                    result:
+                      description: Result describes the outcome (e.g., "created",
+                        "updated", "deleted", "synced", "cleared")
+                      type: string
+                    timestamp:
+                      description: Timestamp when the action was executed
+                      format: date-time
+                      type: string
+                  required:
+                  - command
+                  - result
+                  - timestamp
+                  type: object
+                type: array
               authority:
                 type: string
               clientId:
@@ -118,10 +146,6 @@ spec:
                 - type
                 x-kubernetes-list-type: map
               keyIds:
-                items:
-                  type: string
-                type: array
-              lastActions:
                 items:
                   type: string
                 type: array

@@ -216,18 +216,10 @@ func (s *ClientState) Reconcile(
 	if s.Crd.DeletionTimestamp != nil {
 		// The CRD is being deleted, which means we need to cleanup all associated resources
 		if s.Secret.Content != nil {
-			commands = append(commands, Command{
-				Data:     &DeleteSecretContentCommand{},
-				Callback: nil,
-			})
+			commands = append(commands, NewDeleteSecretContentCommand())
 		}
 		if s.Api != nil {
-			commands = append(commands, Command{
-				Data: &DeleteClientInApiCommand{
-					ClientId: s.Api.ClientId,
-				},
-				Callback: nil,
-			})
+			commands = append(commands, NewDeleteClientInApiCommand(s.Api.ClientId))
 		}
 	} else if s.Api == nil {
 		// The initial case, where we have to create everything
@@ -254,23 +246,13 @@ func (s *ClientState) Reconcile(
 			Jwks:      jwks,
 			Jwk:       jwks.Keys[0],
 		}
-		commands = append(commands, Command{
-			Data: &CreateClientInApiCommand{
-				Api: apiState,
-			},
-			Callback: func(respObj any) error {
-				resp := respObj.(*CreateClientInApiCommandResponse)
-				apiState.ClientId = resp.Resp.ClientId
-				secretStateContent.ClientId = resp.Resp.ClientId
-				return nil
-			},
-		})
-		commands = append(commands, Command{
-			Data: &UpdateSecretContentCommand{
-				SecretContent: secretStateContent,
-			},
-			Callback: nil,
-		})
+		commands = append(commands, NewCreateClientInApiCommand(apiState, func(respObj any) error {
+			resp := respObj.(*CreateClientInApiCommandResponse)
+			apiState.ClientId = resp.Resp.ClientId
+			secretStateContent.ClientId = resp.Resp.ClientId
+			return nil
+		}))
+		commands = append(commands, NewUpdateSecretContentCommand(secretStateContent))
 	} else {
 		if s.Secret.Content == nil {
 			// In this case, there are two possible scenarios
@@ -291,11 +273,7 @@ func (s *ClientState) Reconcile(
 				Req:      nil, // signals no update
 				Jwks:     publicJwks,
 			}
-			commands = append(commands, Command{
-				Data: &UpdateClientInApiCommand{
-					Api: apiState,
-				},
-			})
+			commands = append(commands, NewUpdateClientInApiCommand(apiState))
 			assert.That(len(jwks.Keys) > 0, "JWKS must have at least one key", "appId", s.AppId)
 			secretStateContent := &SecretStateContent{
 				ClientId:  s.Api.ClientId,
@@ -303,12 +281,7 @@ func (s *ClientState) Reconcile(
 				Jwks:      jwks,
 				Jwk:       jwks.Keys[0],
 			}
-			commands = append(commands, Command{
-				Data: &UpdateSecretContentCommand{
-					SecretContent: secretStateContent,
-				},
-				Callback: nil,
-			})
+			commands = append(commands, NewUpdateSecretContentCommand(secretStateContent))
 		} else {
 			authorityChanged := config.MaskinportenApi.AuthorityUrl != s.Secret.Content.Authority
 			scopesChanged := !reflect.DeepEqual(s.Crd.Spec.Scopes, s.Api.Req.Scopes)
@@ -332,14 +305,9 @@ func (s *ClientState) Reconcile(
 					Jwks:      jwks,
 					Jwk:       jwks.Keys[0],
 				}
-				commands = append(commands, Command{
-					// TODO: what happens if we succeed in updating the secret but fail in updating the client in API?
-					// Update API before secret
-					Data: &UpdateSecretContentCommand{
-						SecretContent: secretStateContent,
-					},
-					Callback: nil,
-				})
+				// TODO: what happens if we succeed in updating the secret but fail in updating the client in API?
+				// Update API before secret
+				commands = append(commands, NewUpdateSecretContentCommand(secretStateContent))
 			}
 
 			// Handle client JWKS endpoint state changes
@@ -353,11 +321,7 @@ func (s *ClientState) Reconcile(
 					Req:      nil, // signals no update
 					Jwks:     publicJwks,
 				}
-				commands = append(commands, Command{
-					Data: &UpdateClientInApiCommand{
-						Api: apiState,
-					},
-				})
+				commands = append(commands, NewUpdateClientInApiCommand(apiState))
 			}
 
 			// Handle client endpoint state changes
@@ -367,11 +331,7 @@ func (s *ClientState) Reconcile(
 					Req:      s.buildApiReq(context), // this reads scopes from CRD
 					Jwks:     nil,                    // signals no update
 				}
-				commands = append(commands, Command{
-					Data: &UpdateClientInApiCommand{
-						Api: apiState,
-					},
-				})
+				commands = append(commands, NewUpdateClientInApiCommand(apiState))
 			}
 		}
 
@@ -445,6 +405,144 @@ type DeleteClientInApiCommand struct {
 	ClientId string
 }
 type DeleteSecretContentCommand struct {
+}
+
+func NewCreateClientInApiCommand(api *ApiState, callback func(respObj any) error) Command {
+	assert.That(api != nil, "CreateClientInApiCommand requires non-nil Api")
+	return Command{
+		Data:     &CreateClientInApiCommand{Api: api},
+		Callback: callback,
+	}
+}
+
+func NewUpdateClientInApiCommand(api *ApiState) Command {
+	assert.That(api != nil, "UpdateClientInApiCommand requires non-nil Api")
+	return Command{
+		Data:     &UpdateClientInApiCommand{Api: api},
+		Callback: nil,
+	}
+}
+
+func NewUpdateSecretContentCommand(content *SecretStateContent) Command {
+	assert.That(content != nil, "UpdateSecretContentCommand requires non-nil SecretContent")
+	return Command{
+		Data:     &UpdateSecretContentCommand{SecretContent: content},
+		Callback: nil,
+	}
+}
+
+func NewDeleteClientInApiCommand(clientId string) Command {
+	assert.That(clientId != "", "DeleteClientInApiCommand requires non-empty ClientId")
+	return Command{
+		Data:     &DeleteClientInApiCommand{ClientId: clientId},
+		Callback: nil,
+	}
+}
+
+func NewDeleteSecretContentCommand() Command {
+	return Command{
+		Data:     &DeleteSecretContentCommand{},
+		Callback: nil,
+	}
+}
+
+// ErrSkipped indicates a command was not executed because a previous command failed
+var ErrSkipped = fmt.Errorf("skipped: previous command failed")
+
+// CommandResult types - one per command type
+
+type CreateClientInApiCommandResult struct {
+	ClientId string
+	Scopes   int
+	Err      error
+}
+
+type UpdateClientInApiCommandResult struct {
+	ClientId string
+	Scopes   int
+	HasJwks  bool
+	Err      error
+}
+
+type UpdateSecretContentCommandResult struct {
+	Authority string
+	KeyIds    []string
+	Err       error
+}
+
+type DeleteClientInApiCommandResult struct {
+	ClientId string
+	Err      error
+}
+
+type DeleteSecretContentCommandResult struct {
+	Err error
+}
+
+// CommandResult wraps a command with its execution result
+type CommandResult struct {
+	Command   any // One of the *Command types
+	Result    any // One of the *CommandResult types
+	Timestamp time.Time
+}
+
+type CommandResultList []CommandResult
+
+// CommandResultBuilder accumulates fields for building a CommandResult.
+// Call Build() to get the final result with assertions.
+type CommandResultBuilder struct {
+	command   any
+	result    any
+	timestamp time.Time
+}
+
+func NewCommandResultBuilder(cmd any, timestamp time.Time) *CommandResultBuilder {
+	assert.That(cmd != nil, "CommandResultBuilder requires non-nil command")
+	assert.That(!timestamp.IsZero(), "CommandResultBuilder requires valid timestamp")
+	return &CommandResultBuilder{
+		command:   cmd,
+		timestamp: timestamp,
+	}
+}
+
+func (b *CommandResultBuilder) WithCreateClientInApiResult(result *CreateClientInApiCommandResult) *CommandResultBuilder {
+	_, ok := b.command.(*CreateClientInApiCommand)
+	assert.That(ok, "Command type mismatch: expected CreateClientInApiCommand")
+	b.result = result
+	return b
+}
+
+func (b *CommandResultBuilder) WithUpdateClientInApiResult(result *UpdateClientInApiCommandResult) *CommandResultBuilder {
+	_, ok := b.command.(*UpdateClientInApiCommand)
+	assert.That(ok, "Command type mismatch: expected UpdateClientInApiCommand")
+	b.result = result
+	return b
+}
+
+func (b *CommandResultBuilder) WithUpdateSecretContentResult(result *UpdateSecretContentCommandResult) *CommandResultBuilder {
+	_, ok := b.command.(*UpdateSecretContentCommand)
+	assert.That(ok, "Command type mismatch: expected UpdateSecretContentCommand")
+	b.result = result
+	return b
+}
+
+func (b *CommandResultBuilder) WithDeleteClientInApiResult(result *DeleteClientInApiCommandResult) *CommandResultBuilder {
+	_, ok := b.command.(*DeleteClientInApiCommand)
+	assert.That(ok, "Command type mismatch: expected DeleteClientInApiCommand")
+	b.result = result
+	return b
+}
+
+func (b *CommandResultBuilder) WithDeleteSecretContentResult(result *DeleteSecretContentCommandResult) *CommandResultBuilder {
+	_, ok := b.command.(*DeleteSecretContentCommand)
+	assert.That(ok, "Command type mismatch: expected DeleteSecretContentCommand")
+	b.result = result
+	return b
+}
+
+func (b *CommandResultBuilder) Build() CommandResult {
+	assert.That(b.result != nil, "CommandResult requires non-nil Result")
+	return CommandResult{Command: b.command, Result: b.result, Timestamp: b.timestamp}
 }
 
 func MapClientResponseToAddRequest(api *ClientResponse) *AddClientRequest {
