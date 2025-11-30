@@ -14,9 +14,16 @@ import (
 	"altinn.studio/operator/internal/operatorcontext"
 	"github.com/jonboulle/clockwork"
 	corev1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 const JsonFileName = "maskinporten-settings.json"
+
+// Annotation to trigger manual JWK rotation (value must be "true")
+const AnnotationRotateJwk = "altinn.studio/maskinporten-rotate-jwk"
+
+// FinalizerName is used to ensure cleanup before deletion
+const FinalizerName = "altinn.studio/maskinporten-finalizer"
 
 // Condition types for MaskinportenClient status
 const (
@@ -189,6 +196,7 @@ func (s *ClientState) Reconcile(
 	// TODO: consider producing k8s events as well? From observability pov
 	//
 	// Order of operations
+	// 0. Ensure finalizer is present
 	// 1. CRD is created
 	// 2. Create initial JWKS
 	// 3. Create client in Maskinporten API
@@ -213,6 +221,12 @@ func (s *ClientState) Reconcile(
 	// n. ???
 
 	commands := make([]Command, 0, 4)
+
+	// Ensure finalizer is present before any other operations
+	if s.Crd.DeletionTimestamp == nil && !controllerutil.ContainsFinalizer(s.Crd, FinalizerName) {
+		commands = append(commands, NewAddFinalizerCommand())
+	}
+
 	if s.Crd.DeletionTimestamp != nil {
 		// The CRD is being deleted, which means we need to cleanup all associated resources
 		if s.Secret.Content != nil {
@@ -221,10 +235,12 @@ func (s *ClientState) Reconcile(
 		if s.Api != nil {
 			commands = append(commands, NewDeleteClientInApiCommand(s.Api.ClientId))
 		}
+		commands = append(commands, NewRemoveFinalizerCommand())
 	} else if s.Api == nil {
 		// The initial case, where we have to create everything
 		// There may be the case that the `api` resource is null,
 		// but the secret output exists, in which case we just overwrite it
+		// TODO: handle if someone deleted the API but the secret exists? I.e. blunder in self-service portal?
 		req := s.buildApiReq(context)
 		jwks, err := crypto.CreateJwks(s.AppId, s.getNotAfter(clock))
 		if err != nil {
@@ -285,11 +301,15 @@ func (s *ClientState) Reconcile(
 		} else {
 			authorityChanged := config.MaskinportenApi.AuthorityUrl != s.Secret.Content.Authority
 			scopesChanged := !reflect.DeepEqual(s.Crd.Spec.Scopes, s.Api.Req.Scopes)
-			jwks, err := crypto.RotateIfNeeded(s.AppId, s.getNotAfter(clock), s.Secret.Content.Jwks)
+			forceRotate := s.Crd.Annotations[AnnotationRotateJwk] == "true"
+			jwks, err := crypto.RotateIfNeeded(s.AppId, s.getNotAfter(clock), s.Secret.Content.Jwks, forceRotate)
 			if err != nil {
 				return nil, err
 			}
 			jwksChanged := jwks != nil
+			if forceRotate {
+				assert.That(jwksChanged, "forced JWK rotation requested but no rotation occurred", "appId", s.AppId)
+			}
 
 			// Handle state changes that are contained in the secret
 			if authorityChanged || jwksChanged {
@@ -333,8 +353,12 @@ func (s *ClientState) Reconcile(
 				}
 				commands = append(commands, NewUpdateClientInApiCommand(apiState))
 			}
-		}
 
+			// Remove rotation annotation after successful forced rotation
+			if forceRotate && jwksChanged {
+				commands = append(commands, NewRemoveRotateAnnotationCommand())
+			}
+		}
 	}
 
 	return commands, nil
@@ -406,6 +430,12 @@ type DeleteClientInApiCommand struct {
 }
 type DeleteSecretContentCommand struct {
 }
+type RemoveRotateAnnotationCommand struct {
+}
+type RemoveFinalizerCommand struct {
+}
+type AddFinalizerCommand struct {
+}
 
 func NewCreateClientInApiCommand(api *ApiState, callback func(respObj any) error) Command {
 	assert.That(api != nil, "CreateClientInApiCommand requires non-nil Api")
@@ -446,6 +476,27 @@ func NewDeleteSecretContentCommand() Command {
 	}
 }
 
+func NewRemoveRotateAnnotationCommand() Command {
+	return Command{
+		Data:     &RemoveRotateAnnotationCommand{},
+		Callback: nil,
+	}
+}
+
+func NewRemoveFinalizerCommand() Command {
+	return Command{
+		Data:     &RemoveFinalizerCommand{},
+		Callback: nil,
+	}
+}
+
+func NewAddFinalizerCommand() Command {
+	return Command{
+		Data:     &AddFinalizerCommand{},
+		Callback: nil,
+	}
+}
+
 // ErrSkipped indicates a command was not executed because a previous command failed
 var ErrSkipped = fmt.Errorf("skipped: previous command failed")
 
@@ -479,6 +530,18 @@ type DeleteSecretContentCommandResult struct {
 	Err error
 }
 
+type RemoveRotateAnnotationCommandResult struct {
+	Err error
+}
+
+type RemoveFinalizerCommandResult struct {
+	Err error
+}
+
+type AddFinalizerCommandResult struct {
+	Err error
+}
+
 // CommandResult wraps a command with its execution result
 type CommandResult struct {
 	Command   any // One of the *Command types
@@ -487,6 +550,17 @@ type CommandResult struct {
 }
 
 type CommandResultList []CommandResult
+
+// FinalizerRemoved returns true if a RemoveFinalizerCommand was executed successfully.
+// When this returns true, the CRD object has been deleted and status updates will fail.
+func (l CommandResultList) FinalizerRemoved() bool {
+	for _, r := range l {
+		if result, ok := r.Result.(*RemoveFinalizerCommandResult); ok {
+			return result.Err == nil
+		}
+	}
+	return false
+}
 
 // CommandResultBuilder accumulates fields for building a CommandResult.
 // Call Build() to get the final result with assertions.
@@ -536,6 +610,27 @@ func (b *CommandResultBuilder) WithDeleteClientInApiResult(result *DeleteClientI
 func (b *CommandResultBuilder) WithDeleteSecretContentResult(result *DeleteSecretContentCommandResult) *CommandResultBuilder {
 	_, ok := b.command.(*DeleteSecretContentCommand)
 	assert.That(ok, "Command type mismatch: expected DeleteSecretContentCommand")
+	b.result = result
+	return b
+}
+
+func (b *CommandResultBuilder) WithRemoveRotateAnnotationResult(result *RemoveRotateAnnotationCommandResult) *CommandResultBuilder {
+	_, ok := b.command.(*RemoveRotateAnnotationCommand)
+	assert.That(ok, "Command type mismatch: expected RemoveRotateAnnotationCommand")
+	b.result = result
+	return b
+}
+
+func (b *CommandResultBuilder) WithRemoveFinalizerResult(result *RemoveFinalizerCommandResult) *CommandResultBuilder {
+	_, ok := b.command.(*RemoveFinalizerCommand)
+	assert.That(ok, "Command type mismatch: expected RemoveFinalizerCommand")
+	b.result = result
+	return b
+}
+
+func (b *CommandResultBuilder) WithAddFinalizerResult(result *AddFinalizerCommandResult) *CommandResultBuilder {
+	_, ok := b.command.(*AddFinalizerCommand)
+	assert.That(ok, "Command type mismatch: expected AddFinalizerCommand")
 	b.result = result
 	return b
 }

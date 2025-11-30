@@ -6,7 +6,7 @@
  "metadata": {
   "creationTimestamp": "2024-01-01T00:00:00Z",
   "finalizers": [
-   "client.altinn.operator/finalizer"
+   "altinn.studio/maskinporten-finalizer"
   ],
   "generation": 2,
   "labels": {
@@ -24,6 +24,11 @@
  },
  "status": {
   "actionHistory": [
+   {
+    "command": "AddFinalizerCommand",
+    "result": "added",
+    "timestamp": "2024-01-01T00:00:00Z"
+   },
    {
     "command": "CreateClientInApiCommand",
     "details": "clientId: <sanitized-client-id>, scopes: 2",
@@ -66,13 +71,13 @@
     "lastTransitionTime": "2024-01-01T00:00:00Z",
     "message": "Reconciled 1 resources",
     "observedGeneration": 2,
-    "reason": "reconciled",
+    "reason": "Reconciled",
     "status": "True",
     "type": "Ready"
    }
   ],
   "keyIds": [
-   "<key-id-0>"
+   "<key-uuid>.0"
   ],
   "lastSynced": "2024-01-01T00:00:00Z",
   "observedGeneration": 2

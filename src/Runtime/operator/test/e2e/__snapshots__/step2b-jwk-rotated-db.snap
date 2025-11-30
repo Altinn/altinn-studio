@@ -1,5 +1,5 @@
 
-[controller Operator should reconcile MaskinportenClient - 1]
+[controller Operator should handle manual JWK rotation via annotation - 1]
 {
  "clients": [
   {
@@ -52,8 +52,7 @@
     "jwks_uri": "",
     "last_updated": "2024-01-01T00:00:00Z",
     "scopes": [
-     "altinn:serviceowner/instances.read",
-     "altinn:serviceowner/instances.write"
+     "altinn:serviceowner/instances.read"
     ],
     "supplier_orgno": "991825827",
     "token_endpoint_auth_method": "private_key_jwt"
@@ -61,6 +60,14 @@
    "ClientId": "<client-id-1>",
    "Jwks": {
     "keys": [
+     {
+      "alg": "RS512",
+      "e": "AQAB",
+      "kid": "<key-uuid>.1",
+      "kty": "RSA",
+      "n": "<rsa-modulus>",
+      "use": "sig"
+     },
      {
       "alg": "RS512",
       "e": "AQAB",

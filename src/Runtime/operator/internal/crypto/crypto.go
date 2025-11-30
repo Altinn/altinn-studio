@@ -152,6 +152,7 @@ func (s *CryptoService) RotateIfNeeded(
 	certCommonName string,
 	notAfter time.Time,
 	currentJwks *Jwks,
+	force bool,
 ) (*Jwks, error) {
 	if currentJwks == nil {
 		return nil, fmt.Errorf("cant rotate cert for JWKS, JWKS was null")
@@ -190,7 +191,7 @@ func (s *CryptoService) RotateIfNeeded(
 	}
 
 	rotationThreshold := s.clock.Now().UTC().Add(time.Hour * 24 * 7)
-	if activeKey.Certificates()[0].NotAfter.After(rotationThreshold) {
+	if !force && activeKey.Certificates()[0].NotAfter.After(rotationThreshold) {
 		return nil, nil
 	} else {
 		keyParts := strings.Split(activeKey.KeyID(), ".")

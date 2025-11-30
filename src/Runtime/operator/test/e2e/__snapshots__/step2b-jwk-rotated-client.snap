@@ -1,5 +1,5 @@
 
-[controller Operator should reconcile MaskinportenClient - 1]
+[controller Operator should handle manual JWK rotation via annotation - 1]
 {
  "apiVersion": "resources.altinn.studio/v1alpha1",
  "kind": "MaskinportenClient",
@@ -8,7 +8,7 @@
   "finalizers": [
    "altinn.studio/maskinporten-finalizer"
   ],
-  "generation": 1,
+  "generation": 2,
   "labels": {
    "app": "ttd-localtestapp-deployment"
   },
@@ -19,8 +19,7 @@
  },
  "spec": {
   "scopes": [
-   "altinn:serviceowner/instances.read",
-   "altinn:serviceowner/instances.write"
+   "altinn:serviceowner/instances.read"
   ]
  },
  "status": {
@@ -41,6 +40,29 @@
     "details": "keys: 1",
     "result": "synced",
     "timestamp": "2024-01-01T00:00:00Z"
+   },
+   {
+    "command": "UpdateClientInApiCommand",
+    "details": "scopes: 1, jwks: false",
+    "result": "updated",
+    "timestamp": "2024-01-01T00:00:00Z"
+   },
+   {
+    "command": "UpdateSecretContentCommand",
+    "details": "keys: 2",
+    "result": "synced",
+    "timestamp": "2024-01-01T00:00:00Z"
+   },
+   {
+    "command": "UpdateClientInApiCommand",
+    "details": "scopes: 0, jwks: true",
+    "result": "updated",
+    "timestamp": "2024-01-01T00:00:00Z"
+   },
+   {
+    "command": "RemoveRotateAnnotationCommand",
+    "result": "removed",
+    "timestamp": "2024-01-01T00:00:00Z"
    }
   ],
   "authority": "http://fakes:8050",
@@ -48,16 +70,16 @@
   "conditions": [
    {
     "lastTransitionTime": "2024-01-01T00:00:00Z",
-    "message": "Client created with ID <sanitized-client-id>",
-    "observedGeneration": 1,
-    "reason": "Created",
+    "message": "Client updated: <sanitized-client-id>",
+    "observedGeneration": 2,
+    "reason": "Updated",
     "status": "True",
     "type": "ClientRegistered"
    },
    {
     "lastTransitionTime": "2024-01-01T00:00:00Z",
-    "message": "Secret updated with 1 keys",
-    "observedGeneration": 1,
+    "message": "Secret updated with 2 keys",
+    "observedGeneration": 2,
     "reason": "Updated",
     "status": "True",
     "type": "SecretSynced"
@@ -65,17 +87,18 @@
    {
     "lastTransitionTime": "2024-01-01T00:00:00Z",
     "message": "Reconciled 3 resources",
-    "observedGeneration": 1,
+    "observedGeneration": 2,
     "reason": "Reconciled",
     "status": "True",
     "type": "Ready"
    }
   ],
   "keyIds": [
+   "<key-uuid>.1",
    "<key-uuid>.0"
   ],
   "lastSynced": "2024-01-01T00:00:00Z",
-  "observedGeneration": 1
+  "observedGeneration": 2
  }
 }
 ---

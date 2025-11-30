@@ -221,7 +221,7 @@ func (c *HttpApiClient) GetClient(
 	}
 
 	if client == nil {
-		return nil, nil, fmt.Errorf("client not found: %s", clientId)
+		return nil, nil, fmt.Errorf("%w: %s", ErrClientNotFound, clientId)
 	}
 
 	jwks, err := c.getClientJwks(ctx, clientId)
@@ -271,6 +271,7 @@ func (c *HttpApiClient) getClientJwks(ctx context.Context, clientId string) (*cr
 }
 
 var ErrFailedToCreateJwks = errors.New("created Maskinporten client, but failed to create associated JWKS")
+var ErrClientNotFound = errors.New("maskinporten client not found")
 
 func (c *HttpApiClient) CreateClient(
 	ctx context.Context,

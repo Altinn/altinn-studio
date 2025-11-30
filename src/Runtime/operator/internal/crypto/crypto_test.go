@@ -41,19 +41,19 @@ func TestRotateJwks(t *testing.T) {
 
 	// We have only just created the cert
 	clock.Advance(time.Hour * 1)
-	newJwks, err := service.RotateIfNeeded(appId, getNotAfter(clock), jwks)
+	newJwks, err := service.RotateIfNeeded(appId, getNotAfter(clock), jwks, false)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(newJwks).To(BeNil())
 
 	// This should be before the rotation threshold
 	clock.Advance(time.Hour * 24 * 18)
-	newJwks, err = service.RotateIfNeeded(appId, getNotAfter(clock), jwks)
+	newJwks, err = service.RotateIfNeeded(appId, getNotAfter(clock), jwks, false)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(newJwks).To(BeNil())
 
 	// Now we've advanced past the treshold and should have rotated
 	clock.Advance(time.Hour * 24 * 7)
-	newJwks, err = service.RotateIfNeeded(appId, getNotAfter(clock), jwks)
+	newJwks, err = service.RotateIfNeeded(appId, getNotAfter(clock), jwks, false)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(newJwks).NotTo(BeNil())
 	g.Expect(newJwks.Keys).To(HaveLen(2))
@@ -63,7 +63,7 @@ func TestRotateJwks(t *testing.T) {
 
 	// We should rotate again
 	clock.Advance(time.Hour * 24 * 25)
-	newerJwks, err := service.RotateIfNeeded(appId, getNotAfter(clock), newJwks)
+	newerJwks, err := service.RotateIfNeeded(appId, getNotAfter(clock), newJwks, false)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(newerJwks).NotTo(BeNil())
 	g.Expect(newerJwks.Keys).To(HaveLen(2))

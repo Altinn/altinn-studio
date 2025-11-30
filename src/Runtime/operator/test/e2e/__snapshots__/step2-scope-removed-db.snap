@@ -28,7 +28,7 @@
      {
       "alg": "RS512",
       "e": "AQAB",
-      "kid": "<key-id-0-0>",
+      "kid": "<key-uuid>.0",
       "kty": "RSA",
       "n": "<rsa-modulus>",
       "use": "sig"

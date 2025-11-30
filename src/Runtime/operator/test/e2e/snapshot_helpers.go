@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gkampitakis/go-snaps/snaps"
@@ -25,8 +27,9 @@ import (
 
 // ConsistencyState tracks values that should remain consistent across test steps
 type ConsistencyState struct {
-	ClientID string   // Should not change once set (client not recreated)
-	KeyIDs   []string // Should not change unless keys are rotated
+	ClientID    string   // Should not change once set (client not recreated)
+	KeyIDs      []string // All keys ever seen (old keys retained, new keys prepended)
+	MaxKeyIndex int      // Highest key index seen (monotonically increasing)
 }
 
 var consistencyState *ConsistencyState
@@ -34,6 +37,15 @@ var consistencyState *ConsistencyState
 // ResetConsistencyState clears the tracked state (call in BeforeAll)
 func ResetConsistencyState() {
 	consistencyState = nil
+}
+
+// parseKeyIndex extracts the numeric suffix from a key ID (e.g., "uuid.1" -> 1)
+func parseKeyIndex(keyId string) (int, error) {
+	parts := strings.Split(keyId, ".")
+	if len(parts) < 2 {
+		return 0, fmt.Errorf("invalid key ID format: %s", keyId)
+	}
+	return strconv.Atoi(parts[len(parts)-1])
 }
 
 // CaptureConsistency records initial values from the first successful reconciliation
@@ -44,24 +56,73 @@ func CaptureConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *co
 	if client.Status.ClientId == "" {
 		return // Not yet reconciled
 	}
+
+	maxIdx := -1
+	for _, keyId := range client.Status.KeyIds {
+		if idx, err := parseKeyIndex(keyId); err == nil && idx > maxIdx {
+			maxIdx = idx
+		}
+	}
+
 	consistencyState = &ConsistencyState{
-		ClientID: client.Status.ClientId,
-		KeyIDs:   client.Status.KeyIds,
+		ClientID:    client.Status.ClientId,
+		KeyIDs:      client.Status.KeyIds,
+		MaxKeyIndex: maxIdx,
 	}
 }
 
-// AssertConsistency verifies values haven't changed from the captured state
-// Also verifies the Secret's maskinporten-settings.json matches the CR
+// AssertConsistency verifies key rotation invariants:
+// - ClientID never changes
+// - All previously seen keys are still present
+// - New keys can only be prepended with higher index suffix
+// - Secret matches CR state
 func AssertConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) {
 	if consistencyState == nil || client == nil {
 		return // Nothing to verify
 	}
 
-	// Verify CR consistency across steps
+	// Verify clientId never changes
 	gomega.Expect(client.Status.ClientId).To(gomega.Equal(consistencyState.ClientID),
 		"clientId changed unexpectedly - client may have been recreated")
-	gomega.Expect(client.Status.KeyIds).To(gomega.Equal(consistencyState.KeyIDs),
-		"keyIds changed unexpectedly - keys may have been rotated")
+
+	// Build set of current keys for lookup
+	currentKeys := make(map[string]bool)
+	for _, keyId := range client.Status.KeyIds {
+		currentKeys[keyId] = true
+	}
+
+	// Verify all previously seen keys are still present
+	for _, expectedKeyId := range consistencyState.KeyIDs {
+		gomega.Expect(currentKeys).To(gomega.HaveKey(expectedKeyId),
+			fmt.Sprintf("previously seen key %s was removed", expectedKeyId))
+	}
+
+	// Verify new keys have higher index than previously seen max
+	newMaxIdx := consistencyState.MaxKeyIndex
+	for _, keyId := range client.Status.KeyIds {
+		alreadySeen := false
+		for _, seenKeyId := range consistencyState.KeyIDs {
+			if keyId == seenKeyId {
+				alreadySeen = true
+				break
+			}
+		}
+		if !alreadySeen {
+			idx, err := parseKeyIndex(keyId)
+			gomega.Expect(err).NotTo(gomega.HaveOccurred(),
+				fmt.Sprintf("failed to parse key index from %s", keyId))
+			gomega.Expect(idx).To(gomega.BeNumerically(">", consistencyState.MaxKeyIndex),
+				fmt.Sprintf("new key %s has index %d not greater than previous max %d",
+					keyId, idx, consistencyState.MaxKeyIndex))
+			if idx > newMaxIdx {
+				newMaxIdx = idx
+			}
+		}
+	}
+
+	// Update state with newly seen keys
+	consistencyState.KeyIDs = client.Status.KeyIds
+	consistencyState.MaxKeyIndex = newMaxIdx
 
 	// Verify Secret matches CR (cross-resource consistency)
 	if secret != nil && secret.Data != nil {
@@ -73,7 +134,7 @@ func AssertConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *cor
 					gomega.Expect(secretClientId).To(gomega.Equal(consistencyState.ClientID),
 						"Secret clientId doesn't match CR clientId")
 				}
-				// Verify key IDs in jwks match
+				// Verify key IDs in jwks match CR
 				if jwks, ok := settings["jwks"].(map[string]any); ok {
 					if keys, ok := jwks["keys"].([]any); ok {
 						var secretKeyIds []string
@@ -84,7 +145,7 @@ func AssertConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *cor
 								}
 							}
 						}
-						gomega.Expect(secretKeyIds).To(gomega.Equal(consistencyState.KeyIDs),
+						gomega.Expect(secretKeyIds).To(gomega.ConsistOf(client.Status.KeyIds),
 							"Secret keyIds don't match CR keyIds")
 					}
 				}
@@ -137,8 +198,14 @@ func SanitizeMaskinportenClientStatus(status map[string]any) {
 		status["clientId"] = sanitizedClientId
 	}
 	if keyIds, ok := status["keyIds"].([]any); ok {
-		for i := range keyIds {
-			keyIds[i] = fmt.Sprintf("<key-id-%d>", i)
+		for i, kid := range keyIds {
+			if kidStr, ok := kid.(string); ok {
+				if idx, err := parseKeyIndex(kidStr); err == nil {
+					keyIds[i] = fmt.Sprintf("<key-uuid>.%d", idx)
+					continue
+				}
+			}
+			keyIds[i] = fmt.Sprintf("<key-uuid>.%d", i)
 		}
 	}
 	if actionHistory, ok := status["actionHistory"].([]any); ok {
@@ -186,11 +253,18 @@ func SanitizeActionRecord(action map[string]any) {
 	}
 }
 
-// SanitizeJwk replaces non-deterministic JWK fields with placeholders
-func SanitizeJwk(keyMap map[string]any, index string) {
-	keyMap["kid"] = fmt.Sprintf("<key-id-%s>", index)
+// SanitizeJwk replaces non-deterministic JWK fields with placeholders.
+// Preserves the key suffix (e.g., .1, .2) from kid since it's deterministic.
+func SanitizeJwk(keyMap map[string]any) {
+	if kid, ok := keyMap["kid"].(string); ok {
+		if idx, err := parseKeyIndex(kid); err == nil {
+			keyMap["kid"] = fmt.Sprintf("<key-uuid>.%d", idx)
+		} else {
+			keyMap["kid"] = "<key-uuid>"
+		}
+	}
 	if keyMap["x5c"] != nil {
-		keyMap["x5c"] = []string{fmt.Sprintf("<certificate-%s>", index)}
+		keyMap["x5c"] = []string{"<certificate>"}
 	}
 	// Replace private key fields with placeholders (shows they exist)
 	for _, field := range []string{"d", "p", "q", "dp", "dq", "qi"} {
@@ -211,16 +285,16 @@ func SanitizeSecretContent(data map[string]any) {
 	}
 	if jwks, ok := data["jwks"].(map[string]any); ok {
 		if keys, ok := jwks["keys"].([]any); ok {
-			for i, key := range keys {
+			for _, key := range keys {
 				if keyMap, ok := key.(map[string]any); ok {
-					SanitizeJwk(keyMap, fmt.Sprintf("%d", i))
+					SanitizeJwk(keyMap)
 				}
 			}
 		}
 	}
 	if data["jwk"] != nil {
 		if jwk, ok := data["jwk"].(map[string]any); ok {
-			SanitizeJwk(jwk, "active")
+			SanitizeJwk(jwk)
 		}
 	}
 }
@@ -397,9 +471,9 @@ func SanitizeFakesDb(db []fakes.ClientRecord) any {
 		// Sanitize JWKS
 		if jwks, ok := recordMap["Jwks"].(map[string]any); ok {
 			if keys, ok := jwks["keys"].([]any); ok {
-				for j, key := range keys {
+				for _, key := range keys {
 					if keyMap, ok := key.(map[string]any); ok {
-						SanitizeJwk(keyMap, fmt.Sprintf("%d-%d", i, j))
+						SanitizeJwk(keyMap)
 					}
 				}
 			}
