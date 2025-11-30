@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net"
@@ -17,8 +18,6 @@ import (
 	"sync"
 	"syscall"
 	"time"
-
-	"github.com/go-errors/errors"
 
 	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/config"
@@ -172,7 +171,7 @@ func runMaskinportenApi(ctx context.Context, wg *sync.WaitGroup) {
 			jwt, err := crypto.ParseJWT(assertion)
 			if err != nil {
 				w.WriteHeader(400)
-				log.Printf("couldn't parse JWT: %v\n", errors.Wrap(err, 0))
+				log.Printf("couldn't parse JWT: %v\n", err)
 				return
 			}
 
@@ -204,7 +203,7 @@ func runMaskinportenApi(ctx context.Context, wg *sync.WaitGroup) {
 			claims, err := jwt.DecodeClaims(client.Jwks.Keys[0])
 			if err != nil {
 				w.WriteHeader(400)
-				log.Printf("couldn't validate JWT: %v\n", errors.Wrap(err, 0))
+				log.Printf("couldn't validate JWT: %v\n", err)
 				return
 			}
 
@@ -243,7 +242,7 @@ func runMaskinportenApi(ctx context.Context, wg *sync.WaitGroup) {
 			tokenJson, err := json.Marshal(fakeToken)
 			if err != nil {
 				w.WriteHeader(500)
-				log.Printf("couldn't encode scopes: %v\n", errors.Wrap(err, 0))
+				log.Printf("couldn't encode scopes: %v\n", err)
 				return
 			}
 			base64Token := base64.StdEncoding.EncodeToString(tokenJson)
@@ -257,7 +256,7 @@ func runMaskinportenApi(ctx context.Context, wg *sync.WaitGroup) {
 			})
 			if err != nil {
 				w.WriteHeader(500)
-				log.Printf("couldn't write response: %v\n", errors.Wrap(err, 0))
+				log.Printf("couldn't write response: %v\n", err)
 			}
 		})
 		mux.HandleFunc("/.well-known/oauth-authorization-server", func(w http.ResponseWriter, r *http.Request) {
@@ -277,7 +276,7 @@ func runMaskinportenApi(ctx context.Context, wg *sync.WaitGroup) {
 			})
 			if err != nil {
 				w.WriteHeader(500)
-				log.Printf("couldn't write response: %v\n", errors.Wrap(err, 0))
+				log.Printf("couldn't write response: %v\n", err)
 			}
 		})
 	})
@@ -320,7 +319,7 @@ func handleTestDump(w http.ResponseWriter, r *http.Request) {
 	err := encoder.Encode(state.GetAll())
 	if err != nil {
 		w.WriteHeader(500)
-		log.Printf("couldn't write response: %v\n", errors.Wrap(err, 0))
+		log.Printf("couldn't write response: %v\n", err)
 	}
 }
 
@@ -364,7 +363,7 @@ func handleClients(w http.ResponseWriter, r *http.Request) {
 		err := encoder.Encode(clients)
 		if err != nil {
 			w.WriteHeader(500)
-			log.Printf("couldn't write response: %v\n", errors.Wrap(err, 0))
+			log.Printf("couldn't write response: %v\n", err)
 		}
 	case POST:
 		if selfServiceAuth(r) == nil {
@@ -377,7 +376,7 @@ func handleClients(w http.ResponseWriter, r *http.Request) {
 		err := decoder.Decode(&client)
 		if err != nil {
 			w.WriteHeader(400)
-			log.Printf("couldn't read request: %v\n", errors.Wrap(err, 0))
+			log.Printf("couldn't read request: %v\n", err)
 			return
 		}
 
@@ -400,7 +399,7 @@ func handleClients(w http.ResponseWriter, r *http.Request) {
 		clientRecord, err := state.GetDb().Insert(&client, nil, "")
 		if err != nil {
 			w.WriteHeader(400)
-			log.Printf("couldn't insert client: %v\n", errors.Wrap(err, 0))
+			log.Printf("couldn't insert client: %v\n", err)
 			return
 		}
 
@@ -409,7 +408,7 @@ func handleClients(w http.ResponseWriter, r *http.Request) {
 		encoder := json.NewEncoder(w)
 		err = encoder.Encode(clientRecord.Client)
 		if err != nil {
-			log.Printf("couldn't write response: %v\n", errors.Wrap(err, 0))
+			log.Printf("couldn't write response: %v\n", err)
 			return
 		}
 
@@ -444,7 +443,7 @@ func handleClientByID(w http.ResponseWriter, r *http.Request) {
 		err := decoder.Decode(&client)
 		if err != nil {
 			w.WriteHeader(400)
-			log.Printf("couldn't read request: %v\n", errors.Wrap(err, 0))
+			log.Printf("couldn't read request: %v\n", err)
 			return
 		}
 
@@ -490,7 +489,7 @@ func handleClientByID(w http.ResponseWriter, r *http.Request) {
 		updatedRecord, err := state.GetDb().Insert(addReq, nil, clientId)
 		if err != nil {
 			w.WriteHeader(400)
-			log.Printf("couldn't insert client: %v\n", errors.Wrap(err, 0))
+			log.Printf("couldn't insert client: %v\n", err)
 			return
 		}
 
@@ -500,7 +499,7 @@ func handleClientByID(w http.ResponseWriter, r *http.Request) {
 		err = encoder.Encode(updatedRecord.Client)
 		if err != nil {
 			w.WriteHeader(500)
-			log.Printf("couldn't write response: %v\n", errors.Wrap(err, 0))
+			log.Printf("couldn't write response: %v\n", err)
 			return
 		}
 	case DELETE:
@@ -550,7 +549,7 @@ func handleClientJwks(w http.ResponseWriter, r *http.Request) {
 		err := encoder.Encode(clientRecord.Jwks)
 		if err != nil {
 			w.WriteHeader(500)
-			log.Printf("couldn't write response: %v\n", errors.Wrap(err, 0))
+			log.Printf("couldn't write response: %v\n", err)
 		}
 
 	case POST:
@@ -564,14 +563,14 @@ func handleClientJwks(w http.ResponseWriter, r *http.Request) {
 		err := decoder.Decode(&jwks)
 		if err != nil {
 			w.WriteHeader(400)
-			log.Printf("couldn't read request: %v\n", errors.Wrap(err, 0))
+			log.Printf("couldn't read request: %v\n", err)
 			return
 		}
 
 		err = state.GetDb().UpdateJwks(clientId, &jwks)
 		if err != nil {
 			w.WriteHeader(400)
-			log.Printf("couldn't update JWKS: %v\n", errors.Wrap(err, 0))
+			log.Printf("couldn't update JWKS: %v\n", err)
 			return
 		}
 		w.WriteHeader(201)
@@ -629,7 +628,7 @@ func handleOrgRegistry(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(fakeOrgs); err != nil {
 		w.WriteHeader(500)
-		log.Printf("couldn't write response: %v\n", errors.Wrap(err, 0))
+		log.Printf("couldn't write response: %v\n", err)
 	}
 }
 

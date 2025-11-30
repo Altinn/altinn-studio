@@ -4,9 +4,9 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/json"
+	"errors"
 	"time"
 
-	"github.com/go-errors/errors"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/jonboulle/clockwork"
 )

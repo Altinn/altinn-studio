@@ -9,7 +9,6 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets v1.1.0
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/gkampitakis/go-snaps v0.5.7
-	github.com/go-errors/errors v1.5.1
 	github.com/go-jose/go-jose/v4 v4.0.4
 	github.com/go-logr/logr v1.4.2
 	github.com/go-playground/validator/v10 v10.19.0

@@ -1,17 +1,17 @@
 package fakes
 
 import (
+	"errors"
 	"time"
 
 	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/crypto"
 	"altinn.studio/operator/internal/maskinporten"
-	"github.com/go-errors/errors"
 	"github.com/google/uuid"
 )
 
-var InvalidClientName = errors.Errorf("invalid client ID")
-var ClientAlreadyExists = errors.Errorf("client already exists")
+var InvalidClientName = errors.New("invalid client ID")
+var ClientAlreadyExists = errors.New("client already exists")
 
 const SupplierOrgNo string = "991825827"
 
@@ -39,7 +39,7 @@ func (d *Db) Insert(
 	overrideClientId string,
 ) (*ClientRecord, error) {
 	if req.ClientName == nil || *req.ClientName == "" {
-		return nil, errors.New(InvalidClientName)
+		return nil, InvalidClientName
 	}
 	var clientId string
 	if overrideClientId != "" {
@@ -49,7 +49,7 @@ func (d *Db) Insert(
 	}
 	_, ok := d.ClientIdIndex[clientId]
 	if ok {
-		return nil, errors.New(ClientAlreadyExists)
+		return nil, ClientAlreadyExists
 	}
 
 	supplierOrg := SupplierOrgNo

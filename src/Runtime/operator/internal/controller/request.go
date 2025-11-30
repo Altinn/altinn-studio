@@ -50,7 +50,7 @@ func (r *MaskinportenClientReconciler) mapRequest(
 
 	nameSplit := strings.Split(req.Name, "-")
 	if len(nameSplit) < 2 {
-		return nil, fmt.Errorf("unexpected name format for MaskinportenClient resource: %s", req.Name)
+		return nil, fmt.Errorf("mapRequest: unexpected name format for MaskinportenClient resource: %s", req.Name)
 	}
 	appId := nameSplit[1]
 

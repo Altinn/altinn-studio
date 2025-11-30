@@ -1,11 +1,11 @@
 package crypto
 
 import (
+	"errors"
 	"slices"
 	"time"
 
 	"altinn.studio/operator/internal/assert"
-	"github.com/go-errors/errors"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/go-jose/go-jose/v4/jwt"
 	"github.com/google/uuid"

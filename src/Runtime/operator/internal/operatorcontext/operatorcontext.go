@@ -2,9 +2,8 @@ package operatorcontext
 
 import (
 	"context"
+	"fmt"
 	"os"
-
-	"github.com/go-errors/errors"
 
 	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/orgs"
@@ -55,14 +54,14 @@ func Discover(ctx context.Context, environment string, orgRegistry *orgs.OrgRegi
 
 	if environment != EnvironmentLocal {
 		if orgRegistry == nil {
-			return nil, errors.Errorf("OrgRegistry is needed for %s", environment)
+			return nil, fmt.Errorf("OrgRegistry is needed for %s", environment)
 		}
 	}
 
 	serviceOwnerId := os.Getenv("OPERATOR_SERVICEOWNER")
 	if serviceOwnerId == "" {
 		if environment != EnvironmentLocal {
-			return nil, errors.New("OPERATOR_SERVICEOWNER environment variable is not set")
+			return nil, fmt.Errorf("OPERATOR_SERVICEOWNER environment variable is not set")
 		}
 		serviceOwnerId = "ttd"
 	}
@@ -75,7 +74,7 @@ func Discover(ctx context.Context, environment string, orgRegistry *orgs.OrgRegi
 			// The fake org registry has the env number set, but the altinn-orgs.json in CDN does not have org nr for ttd (it's not real)
 			serviceOwnerOrgNo = "405003309" // NOTE: this matches the org nr in the registry testdata in localtest, keep in sync
 		} else {
-			return nil, errors.Errorf("could not find org for service owner id %s", serviceOwnerId)
+			return nil, fmt.Errorf("could not find org for service owner id %s", serviceOwnerId)
 		}
 	}
 
@@ -97,6 +96,7 @@ func Discover(ctx context.Context, environment string, orgRegistry *orgs.OrgRegi
 func DiscoverOrDie(ctx context.Context, environment string, orgRegistry *orgs.OrgRegistry) *Context {
 	context, err := Discover(ctx, environment, orgRegistry)
 	assert.That(err == nil, "Discover failed", "error", err)
+	assert.That(context != nil, "Discover returned nil context without error")
 	return context
 }
 

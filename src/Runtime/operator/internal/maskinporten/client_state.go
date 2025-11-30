@@ -8,10 +8,10 @@ import (
 	"time"
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
+	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/internal/crypto"
 	"altinn.studio/operator/internal/operatorcontext"
-	"github.com/go-errors/errors"
 	"github.com/jonboulle/clockwork"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -73,7 +73,7 @@ type SecretStateContent struct {
 
 func (c *SecretStateContent) SerializeTo(secret *corev1.Secret) error {
 	if secret == nil {
-		return errors.Errorf("cant serialize to nil secret")
+		return fmt.Errorf("cant serialize to nil secret")
 	}
 	data, err := json.Marshal(c)
 	if err != nil {
@@ -93,7 +93,7 @@ func DeleteSecretStateContent(secret *corev1.Secret) {
 
 func DeserializeSecretStateContent(secret *corev1.Secret) (*SecretStateContent, error) {
 	if secret == nil {
-		return nil, errors.Errorf("cant deserialize from nil secret")
+		return nil, fmt.Errorf("cant deserialize from nil secret")
 	}
 	if secret.Data == nil {
 		return nil, nil
@@ -120,7 +120,7 @@ func NewClientState(
 	secretStateContent *SecretStateContent,
 ) (*ClientState, error) {
 	if crd == nil {
-		return nil, errors.New("tried to hydrate client state without CRD")
+		return nil, fmt.Errorf("tried to hydrate client state without CRD")
 	}
 	// Secret may be nil if the app hasn't been deployed yet or secret was deleted
 	// This is a recoverable condition - we'll wait for the secret to be created
@@ -128,12 +128,12 @@ func NewClientState(
 		return nil, &MissingSecretError{AppName: crd.Name}
 	}
 	if api == nil && apiJwks != nil {
-		return nil, errors.New("unexpected condition, api resource was not created but api JWKS was")
+		return nil, fmt.Errorf("unexpected condition, api resource was not created but api JWKS was")
 	}
 
 	nameSplit := strings.Split(crd.Name, "-")
 	if len(nameSplit) < 2 {
-		return nil, errors.Errorf("unexpected name format for MaskinportenClient resource: %s", crd.Name)
+		return nil, fmt.Errorf("unexpected name format for MaskinportenClient resource: %s", crd.Name)
 	}
 	appId := nameSplit[1]
 
@@ -150,7 +150,7 @@ func NewClientState(
 
 	if api != nil {
 		if api.ClientId == "" {
-			return nil, errors.Errorf("received empty ClientId when building client state")
+			return nil, fmt.Errorf("received empty ClientId when building client state")
 		}
 		state.Api = &ApiState{
 			ClientId: api.ClientId,
@@ -239,6 +239,7 @@ func (s *ClientState) Reconcile(
 			Req:      req,
 			Jwks:     publicJwks,
 		}
+		assert.That(len(jwks.Keys) > 0, "JWKS must have at least one key", "appId", s.AppId)
 		secretStateContent := &SecretStateContent{
 			ClientId:  "", // set via the callback below
 			Authority: config.MaskinportenApi.AuthorityUrl,
@@ -287,6 +288,7 @@ func (s *ClientState) Reconcile(
 					Api: apiState,
 				},
 			})
+			assert.That(len(jwks.Keys) > 0, "JWKS must have at least one key", "appId", s.AppId)
 			secretStateContent := &SecretStateContent{
 				ClientId:  s.Api.ClientId,
 				Authority: config.MaskinportenApi.AuthorityUrl,
@@ -313,6 +315,8 @@ func (s *ClientState) Reconcile(
 				if !jwksChanged {
 					jwks = s.Secret.Content.Jwks
 				}
+				assert.That(jwks != nil, "JWKS must be non-nil", "appId", s.AppId)
+				assert.That(len(jwks.Keys) > 0, "JWKS must have at least one key", "appId", s.AppId)
 
 				secretStateContent := &SecretStateContent{
 					ClientId:  s.Api.ClientId,

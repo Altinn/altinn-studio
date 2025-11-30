@@ -13,7 +13,6 @@ import (
 
 	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/operatorcontext"
-	"github.com/go-errors/errors"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/google/uuid"
 	"github.com/jonboulle/clockwork"
@@ -68,7 +67,7 @@ func NewDefaultService(
 func (s *CryptoService) CreateJwks(certCommonName string, notAfter time.Time) (*Jwks, error) {
 	cert, rsaKey, err := s.createCert(certCommonName, notAfter)
 	if err != nil {
-		return nil, errors.WrapPrefix(err, "error creating JWKS cert", 0)
+		return nil, fmt.Errorf("error creating JWKS cert: %w", err)
 	}
 
 	return s.createJWKS(cert, rsaKey, 0)
@@ -109,17 +108,17 @@ func (s *CryptoService) createCert(
 ) (*x509.Certificate, *rsa.PrivateKey, error) {
 	rsaKey, err := rsa.GenerateKey(s.random, s.keySizeBits)
 	if err != nil {
-		return nil, nil, errors.WrapPrefix(err, "error generating RSA key for jwks", 0)
+		return nil, nil, fmt.Errorf("error generating RSA key for jwks: %w", err)
 	}
 
 	serial, err := s.generateCertSerialNumber()
 	if err != nil {
-		return nil, nil, errors.WrapPrefix(err, "error generating serial number for jwks", 0)
+		return nil, nil, fmt.Errorf("error generating serial number for jwks: %w", err)
 	}
 
 	now := s.clock.Now().UTC()
 	if now.Equal(notAfter) || now.After(notAfter) {
-		return nil, nil, errors.Errorf("notAfter (%s) must be after current time (%s)", notAfter, now)
+		return nil, nil, fmt.Errorf("notAfter (%s) must be after current time (%s)", notAfter, now)
 	}
 
 	certTemplate := x509.Certificate{
@@ -139,11 +138,11 @@ func (s *CryptoService) createCert(
 
 	derBytes, err := x509.CreateCertificate(s.random, &certTemplate, &certTemplate, &rsaKey.PublicKey, rsaKey)
 	if err != nil {
-		return nil, nil, errors.WrapPrefix(err, "error generating cert for jwks", 0)
+		return nil, nil, fmt.Errorf("error generating cert for jwks: %w", err)
 	}
 	cert, err := x509.ParseCertificate(derBytes)
 	if err != nil {
-		return nil, nil, errors.WrapPrefix(err, "error parsing generated cert for jwks", 0)
+		return nil, nil, fmt.Errorf("error parsing generated cert for jwks: %w", err)
 	}
 
 	return cert, rsaKey, nil
@@ -155,7 +154,7 @@ func (s *CryptoService) RotateIfNeeded(
 	currentJwks *Jwks,
 ) (*Jwks, error) {
 	if currentJwks == nil {
-		return nil, errors.New("cant rotate cert for JWKS, JWKS was null")
+		return nil, fmt.Errorf("cant rotate cert for JWKS, JWKS was null")
 	}
 
 	var activeKey *Jwk
@@ -165,7 +164,7 @@ func (s *CryptoService) RotateIfNeeded(
 			activeKey = currentJwks.Keys[i]
 			certificateCount := len(activeKey.Certificates())
 			if certificateCount != 1 {
-				return nil, errors.Errorf(
+				return nil, fmt.Errorf(
 					"unexpected number of certificates for key '%s': '%d'",
 					activeKey.KeyID(),
 					certificateCount,
@@ -178,7 +177,7 @@ func (s *CryptoService) RotateIfNeeded(
 			certificates := key.Certificates()
 			certificateCount := len(certificates)
 			if certificateCount != 1 {
-				return nil, errors.Errorf("unexpected number of certificates for key '%s': '%d'", key.KeyID(), certificateCount)
+				return nil, fmt.Errorf("unexpected number of certificates for key '%s': '%d'", key.KeyID(), certificateCount)
 			}
 
 			cert := certificates[0]
@@ -198,11 +197,11 @@ func (s *CryptoService) RotateIfNeeded(
 		currentIndexStr := keyParts[len(keyParts)-1]
 		currentIndex, err := strconv.Atoi(currentIndexStr)
 		if err != nil {
-			return nil, errors.Errorf("invalid key format: %s", activeKey.KeyID())
+			return nil, fmt.Errorf("invalid key format: %s", activeKey.KeyID())
 		}
 		cert, rsaKey, err := s.createCert(certCommonName, notAfter)
 		if err != nil {
-			return nil, errors.WrapPrefix(err, "error creating JWKS cert", 0)
+			return nil, fmt.Errorf("error creating JWKS cert: %w", err)
 		}
 
 		newJwks, err := s.createJWKS(cert, rsaKey, currentIndex+1)

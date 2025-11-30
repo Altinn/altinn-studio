@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,8 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-errors/errors"
-
+	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/caching"
 	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/internal/crypto"
@@ -204,6 +204,8 @@ func (c *HttpApiClient) GetClient(
 	ctx, span := c.tracer.Start(ctx, "GetClient")
 	defer span.End()
 
+	assert.That(clientId != "", "GetClient: clientId must be non-empty")
+
 	// The API does not currently have an endpoint for returning by ID
 	clients, err := c.GetAllClients(ctx)
 	if err != nil {
@@ -262,11 +264,13 @@ func (c *HttpApiClient) getClientJwks(ctx context.Context, clientId string) (*cr
 	if err != nil {
 		return nil, err
 	}
+	// TODO: what is the invariant here?
+	// assert.That(len(jwks.Keys) > 0, "getClientJwks: JWKS must have at least one key", "clientId", clientId)
 
 	return &jwks, nil
 }
 
-var ErrFailedToCreateJwks = errors.Errorf("Created Maskinporten client, but failed to create associated JWKS")
+var ErrFailedToCreateJwks = errors.New("created Maskinporten client, but failed to create associated JWKS")
 
 func (c *HttpApiClient) CreateClient(
 	ctx context.Context,
@@ -311,11 +315,12 @@ func (c *HttpApiClient) CreateClient(
 	if err != nil {
 		return nil, err
 	}
+	assert.That(result.ClientId != "", "CreateClient: response must have ClientId")
 
 	err = c.CreateClientJwks(ctx, result.ClientId, jwks)
 	if err != nil {
 		// TODO: hmm, delete client?
-		return nil, errors.Errorf("error creating client: %w, %w", ErrFailedToCreateJwks, err)
+		return nil, fmt.Errorf("error creating client: %w, %w", ErrFailedToCreateJwks, err)
 	}
 
 	return &result, nil
@@ -334,7 +339,7 @@ func (c *HttpApiClient) UpdateClient(
 		if client.ClientName != nil {
 			clientName = *client.ClientName
 		}
-		return nil, errors.Errorf(
+		return nil, fmt.Errorf(
 			"tried to update maskinporten client with empty ID for client name: %s",
 			clientName,
 		)
@@ -387,7 +392,7 @@ func (c *HttpApiClient) CreateClientJwks(ctx context.Context, clientId string, j
 	for _, jwk := range jwks.Keys {
 		// jwk.Certificates
 		if !jwk.IsPublic() {
-			return errors.Errorf("tried to upload private key JWKS to Maskinporten for: %s", clientId)
+			return fmt.Errorf("tried to upload private key JWKS to Maskinporten for: %s", clientId)
 		}
 	}
 
@@ -455,6 +460,7 @@ func (c *HttpApiClient) createGrant(ctx context.Context) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
+	assert.That(wellKnown.Issuer != "", "WellKnown.Issuer must be non-empty")
 
 	jwk, err := c.getJwk()
 	if err != nil {
@@ -515,6 +521,7 @@ func (c *HttpApiClient) accessTokenFetcher(ctx context.Context) (*TokenResponse,
 	if err != nil {
 		return nil, err
 	}
+	assert.That(tokenResp.AccessToken != "", "TokenResponse.AccessToken must be non-empty")
 
 	return &tokenResp, nil
 }

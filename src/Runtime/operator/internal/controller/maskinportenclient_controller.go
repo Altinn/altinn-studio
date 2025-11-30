@@ -85,6 +85,7 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 	// * Returning result with Requeue set will requeue immediately
 
 	configValue := r.runtime.GetConfigMonitor().Get()
+	assert.That(configValue != nil, "ConfigMonitor.Get() returned nil")
 
 	req, err := r.mapRequest(ctx, kreq)
 	if err != nil {
@@ -231,9 +232,10 @@ func (r *MaskinportenClientReconciler) updateStatus(
 
 	updatedFinalizers := false
 	if req != nil {
-		if req.Kind == RequestCreateKind {
+		switch req.Kind {
+		case RequestCreateKind, RequestUpdateKind:
 			updatedFinalizers = controllerutil.AddFinalizer(instance, FinalizerName)
-		} else if req.Kind == RequestDeleteKind {
+		case RequestDeleteKind:
 			updatedFinalizers = controllerutil.RemoveFinalizer(instance, FinalizerName)
 		}
 	}
@@ -280,7 +282,7 @@ func (r *MaskinportenClientReconciler) loadInstance(
 
 	instance := &resourcesv1alpha1.MaskinportenClient{}
 	if err := r.Get(ctx, req.NamespacedName, instance); err != nil {
-		return fmt.Errorf("failed to get MaskinportenClient: %w", err)
+		return fmt.Errorf("loadInstance: failed to get MaskinportenClient: %w", err)
 	}
 
 	req.Instance = instance
@@ -289,7 +291,7 @@ func (r *MaskinportenClientReconciler) loadInstance(
 		if !controllerutil.ContainsFinalizer(instance, FinalizerName) {
 			req.Kind = RequestCreateKind
 			if err := r.updateStatus(ctx, req, instance, "recorded", "", nil); err != nil {
-				return err
+				return fmt.Errorf("loadInstance: failed to update status: %w", err)
 			}
 		} else {
 			req.Kind = RequestUpdateKind
@@ -313,17 +315,17 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 	var secrets corev1.SecretList
 	err := r.List(ctx, &secrets, client.InNamespace(req.Namespace), client.MatchingLabels{"app": req.AppLabel})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("fetchCurrentState: failed to list secrets: %w", err)
 	}
 	if len(secrets.Items) > 1 {
-		return nil, fmt.Errorf("unexpected number of secrets found: %d", len(secrets.Items))
+		return nil, fmt.Errorf("fetchCurrentState: unexpected number of secrets found: %d", len(secrets.Items))
 	}
 
 	var secret *corev1.Secret
 	if len(secrets.Items) == 1 {
 		secret = &secrets.Items[0]
 		if secret.Type != corev1.SecretTypeOpaque {
-			return nil, fmt.Errorf("unexpected secret type: %s (expected Opaque)", secret.Type)
+			return nil, fmt.Errorf("fetchCurrentState: unexpected secret type: %s (expected Opaque)", secret.Type)
 		}
 	}
 
@@ -334,7 +336,7 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 	if secret != nil {
 		secretStateContent, err = maskinporten.DeserializeSecretStateContent(secret)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("fetchCurrentState: error getting secret state: %w", err)
 		}
 	}
 
@@ -342,7 +344,7 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 		if secretStateContent.ClientId != "" {
 			client, jwks, err = apiClient.GetClient(ctx, secretStateContent.ClientId)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("fetchCurrentState: error getting client: %w", err)
 			}
 		}
 	} else {
@@ -352,7 +354,7 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 
 		allClients, err := apiClient.GetAllClients(ctx)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("fetchCurrentState: error getting all clients: %w", err)
 		}
 
 		clientName := maskinporten.GetClientName(r.runtime.GetOperatorContext(), req.AppId)
@@ -360,7 +362,7 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 			if c.ClientName != nil && *c.ClientName == clientName {
 				client, jwks, err = apiClient.GetClient(ctx, c.ClientId)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("fetchCurrentState: error getting client: %w", err)
 				}
 				break
 			}
@@ -369,7 +371,7 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 
 	clientState, err := maskinporten.NewClientState(req.Instance, client, jwks, secret, secretStateContent)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("fetchCurrentState: error creating client state domain model: %w", err)
 	}
 
 	return clientState, nil
@@ -388,7 +390,7 @@ func (r *MaskinportenClientReconciler) reconcile(
 	clock := r.runtime.GetClock()
 	commands, err := currentState.Reconcile(context, configValue, crypto, clock)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("reconcile: error generating reconciliation commands: %w", err)
 	}
 
 	executedCommands := make(maskinporten.CommandList, 0, len(commands))
@@ -397,6 +399,7 @@ func (r *MaskinportenClientReconciler) reconcile(
 
 	for i := 0; i < len(commands); i++ {
 		cmd := &commands[i]
+		assert.That(cmd.Data != nil, "Command.Data must be non-nil")
 
 		switch data := cmd.Data.(type) {
 		case *maskinporten.CreateClientInApiCommand:
@@ -428,6 +431,10 @@ func (r *MaskinportenClientReconciler) reconcile(
 				data.SecretContent.ClientId != "",
 				"UpdateSecretContentCommand should always have client ID",
 			)
+			assert.That(
+				currentState.Secret.Manifest != nil,
+				"Secret.Manifest must exist for UpdateSecretContentCommand",
+			)
 			updatedSecret := currentState.Secret.Manifest.DeepCopy()
 			err := data.SecretContent.SerializeTo(updatedSecret)
 			if err != nil {
@@ -443,6 +450,10 @@ func (r *MaskinportenClientReconciler) reconcile(
 				return executedCommands, err
 			}
 		case *maskinporten.DeleteSecretContentCommand:
+			assert.That(
+				currentState.Secret.Manifest != nil,
+				"Secret.Manifest must exist for DeleteSecretContentCommand",
+			)
 			updatedSecret := currentState.Secret.Manifest.DeepCopy()
 			maskinporten.DeleteSecretStateContent(updatedSecret)
 
