@@ -104,6 +104,7 @@ spec:
         __dashboardUid__: AltinnApps
         __panelId__: "14"
       labels:
+        RuleId: failed-process-next-requests
         Type: Altinn
       isPaused: false
     - uid: processes-started
