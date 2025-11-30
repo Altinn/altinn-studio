@@ -83,7 +83,8 @@ func (j *Jwt) DecodeClaims(jwk *Jwk) (*Claims, error) {
 }
 
 func (j *Jwt) KeyID() string {
-	assert.AssertWith(len(j.token.Headers) == 1, "unexpected number of headers in JWT")
+	headerCount := len(j.token.Headers)
+	assert.That(headerCount == 1, "unexpected number of headers in JWT", "count", headerCount)
 	return j.token.Headers[0].KeyID
 }
 

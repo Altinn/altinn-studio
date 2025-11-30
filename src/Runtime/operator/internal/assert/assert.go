@@ -2,19 +2,36 @@ package assert
 
 import (
 	"fmt"
-	"log"
+	"os"
+	"runtime"
 
-	"github.com/go-errors/errors"
+	"github.com/go-logr/logr"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func Assert(ok bool) {
-	if !ok {
-		log.Fatalln(errors.New("assertion failed"))
+var logger logr.Logger = ctrl.Log.WithName("assert")
+
+func That(condition bool, message string, args ...any) {
+	if !condition {
+		panicking(message, args...)
 	}
 }
 
-func AssertWith(ok bool, format string, a ...any) {
-	if !ok {
-		log.Fatalln(errors.Errorf("assertion failed: %s", fmt.Sprintf(format, a...)))
+//go:noinline
+func panicking(message string, userArgs ...any) {
+	buf := make([]byte, 1<<16)
+	n := runtime.Stack(buf, false)
+	stackTrace := string(buf[:n])
+
+	var args []any
+	if message != "" {
+		args = make([]any, 0, 2+len(userArgs))
+		args = append(args, "message", message)
+	} else {
+		args = make([]any, 0, len(userArgs))
 	}
+	args = append(args, userArgs...)
+	logger.Error(nil, "Assertion failed", args...)
+	_, _ = fmt.Fprintln(os.Stderr, stackTrace)
+	os.Exit(1)
 }

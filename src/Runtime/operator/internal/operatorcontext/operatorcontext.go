@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-errors/errors"
 
+	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/orgs"
 	"altinn.studio/operator/internal/telemetry"
 	"github.com/google/uuid"
@@ -95,9 +96,7 @@ func Discover(ctx context.Context, environment string, orgRegistry *orgs.OrgRegi
 
 func DiscoverOrDie(ctx context.Context, environment string, orgRegistry *orgs.OrgRegistry) *Context {
 	context, err := Discover(ctx, environment, orgRegistry)
-	if err != nil {
-		panic(err)
-	}
+	assert.That(err == nil, "Discover failed", "error", err)
 	return context
 }
 

@@ -38,11 +38,11 @@ func NewService(
 	x509SignatureAlgo x509.SignatureAlgorithm,
 	keySizeBits int,
 ) *CryptoService {
-	assert.AssertWith(x509SignatureAlgo != x509.UnknownSignatureAlgorithm, "x509 signature algorithm must be provided")
-	assert.AssertWith(keySizeBits > 0, "key size in bits must be positive")
+	assert.That(x509SignatureAlgo != x509.UnknownSignatureAlgorithm, "x509 signature algorithm must be provided")
+	assert.That(keySizeBits > 0, "key size in bits must be positive")
 
 	signatureAlgo, ok := signatureAlgorithmFromX509(x509SignatureAlgo)
-	assert.AssertWith(ok, "unsupported x509 signature algorithm: %v", x509SignatureAlgo)
+	assert.That(ok, "unsupported x509 signature algorithm", "algorithm", x509SignatureAlgo)
 
 	return &CryptoService{
 		ctx:               ctx,
@@ -97,9 +97,9 @@ func (s *CryptoService) generateCertSerialNumber() (*big.Int, error) {
 	if err != nil {
 		return nil, err
 	}
-	assert.AssertWith(n == len(serialBytes), "Read should always fill slice when err is nil")
+	assert.That(n == len(serialBytes), "Read should always fill slice when err is nil")
 	serial.SetBytes(serialBytes[:])
-	assert.AssertWith(serial.Sign() != -1, "SetBytes should treat bytes as an unsigned integer")
+	assert.That(serial.Sign() != -1, "SetBytes should treat bytes as an unsigned integer")
 	return serial, nil
 }
 
@@ -231,7 +231,7 @@ func SignatureAlgorithmNameFromX509(algo x509.SignatureAlgorithm) (string, bool)
 
 func DefaultSignatureAlgorithmName() string {
 	name, ok := SignatureAlgorithmNameFromX509(DefaultX509SignatureAlgo)
-	assert.AssertWith(ok, "default x509 signature algorithm must map to a JOSE signature algorithm")
+	assert.That(ok, "default x509 signature algorithm must map to a JOSE signature algorithm")
 	return name
 }
 

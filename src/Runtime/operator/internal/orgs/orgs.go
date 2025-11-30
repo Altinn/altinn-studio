@@ -112,7 +112,7 @@ func (r *OrgRegistry) startPeriodicRefresh(ctx context.Context, interval time.Du
 		logger.Info("starting OrgRegistry loop")
 		defer func() {
 			logger.Info("exiting OrgRegistry loop")
-			assert.AssertWith(ctx.Err() != nil, "exited OrgRegistry loop without context cancellation")
+			assert.That(ctx.Err() != nil, "exited OrgRegistry loop without context cancellation")
 		}()
 
 		for {

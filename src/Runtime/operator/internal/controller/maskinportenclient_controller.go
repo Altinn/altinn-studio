@@ -424,7 +424,7 @@ func (r *MaskinportenClientReconciler) reconcile(
 				}
 			}
 		case *maskinporten.UpdateSecretContentCommand:
-			assert.AssertWith(
+			assert.That(
 				data.SecretContent.ClientId != "",
 				"UpdateSecretContentCommand should always have client ID",
 			)
@@ -451,7 +451,7 @@ func (r *MaskinportenClientReconciler) reconcile(
 				return executedCommands, err
 			}
 		default:
-			assert.AssertWith(false, "unhandled command: %s", reflect.TypeOf(cmd.Data).Name())
+			assert.That(false, "unhandled command", "type", reflect.TypeOf(cmd.Data).Name())
 		}
 
 		executedCommands = append(executedCommands, *cmd)

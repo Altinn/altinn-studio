@@ -95,7 +95,7 @@ func runMaskinportenApi(ctx context.Context, wg *sync.WaitGroup) {
 	addr := ":8050"
 
 	state := ctx.Value(StateKey).(*fakes.State)
-	assert.Assert(state != nil)
+	assert.That(state != nil, "State must be present in context")
 
 	serve(ctx, name, addr, func(mux *http.ServeMux) {
 		mux.HandleFunc("/token", func(w http.ResponseWriter, r *http.Request) {
@@ -260,7 +260,7 @@ func selfServiceAuth(r *http.Request) *FakeToken {
 
 func handleTestDump(w http.ResponseWriter, r *http.Request) {
 	state := r.Context().Value(StateKey).(*fakes.State)
-	assert.Assert(state != nil)
+	assert.That(state != nil, "State must be present in context")
 
 	w.Header().Add("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
@@ -278,7 +278,7 @@ func handleTestReset(w http.ResponseWriter, r *http.Request) {
 	}
 
 	state := r.Context().Value(StateKey).(*fakes.State)
-	assert.Assert(state != nil)
+	assert.That(state != nil, "State must be present in context")
 
 	// Clear all state to ensure deterministic test runs
 	state.Reset()
@@ -288,7 +288,7 @@ func handleTestReset(w http.ResponseWriter, r *http.Request) {
 
 func handleClients(w http.ResponseWriter, r *http.Request) {
 	state := r.Context().Value(StateKey).(*fakes.State)
-	assert.Assert(state != nil)
+	assert.That(state != nil, "State must be present in context")
 
 	switch r.Method {
 	case GET:
@@ -372,7 +372,7 @@ func handleClients(w http.ResponseWriter, r *http.Request) {
 
 func handleClientByID(w http.ResponseWriter, r *http.Request) {
 	state := r.Context().Value(StateKey).(*fakes.State)
-	assert.Assert(state != nil)
+	assert.That(state != nil, "State must be present in context")
 
 	clientId := r.PathValue("clientId")
 
@@ -475,7 +475,7 @@ func handleClientByID(w http.ResponseWriter, r *http.Request) {
 
 func handleClientJwks(w http.ResponseWriter, r *http.Request) {
 	state := r.Context().Value(StateKey).(*fakes.State)
-	assert.Assert(state != nil)
+	assert.That(state != nil, "State must be present in context")
 
 	clientId := r.PathValue("clientId")
 

@@ -3,6 +3,7 @@ package fakes
 import (
 	"time"
 
+	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/crypto"
 	"altinn.studio/operator/internal/maskinporten"
 	"github.com/go-errors/errors"
@@ -132,9 +133,7 @@ func (d *Db) Get(clientId string) *ClientRecord {
 	}
 
 	client := &d.Clients[i]
-	if client.ClientId != clientId {
-		panic("inconsistent state")
-	}
+	assert.That(client.ClientId == clientId, "inconsistent fake db state", "expected", clientId, "actual", client.ClientId)
 
 	return client
 }

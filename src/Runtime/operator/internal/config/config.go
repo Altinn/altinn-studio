@@ -42,7 +42,7 @@ func (m *ConfigMonitor) start(ctx context.Context) {
 		logger.Info("starting ConfigMonitor loop")
 		defer func() {
 			logger.Info("exiting ConfigMonitor loop")
-			assert.AssertWith(ctx.Err() != nil, "exited ConfigMonitor without context cancellation")
+			assert.That(ctx.Err() != nil, "exited ConfigMonitor without context cancellation")
 		}()
 
 		for {
@@ -182,9 +182,7 @@ func GetConfig(ctx context.Context, environment string, configFilePath string) (
 
 func GetConfigOrDie(ctx context.Context, environment string, configFilePath string) *ConfigMonitor {
 	monitor, err := GetConfig(ctx, environment, configFilePath)
-	if err != nil {
-		panic(err)
-	}
+	assert.That(err == nil, "GetConfig failed", "error", err)
 	return monitor
 }
 
