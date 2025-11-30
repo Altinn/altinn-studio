@@ -25,11 +25,13 @@ namespace Altinn.App.Models
     [XmlElement("stationtype", Order = 3)]
     [JsonProperty("stationtype")]
     [JsonPropertyName("stationtype")]
+    [Required]
     public string stationtype { get; set; }
 
     [XmlElement("stationid", Order = 4)]
     [JsonProperty("stationid")]
     [JsonPropertyName("stationid")]
+    [Required]
     public string stationid { get; set; }
 
     [XmlElement("longitude", Order = 5)]
@@ -58,6 +60,7 @@ namespace Altinn.App.Models
     [XmlElement("sampledate", Order = 8)]
     [JsonProperty("sampledate")]
     [JsonPropertyName("sampledate")]
+    [Required]
     public string sampledate { get; set; }
 
     [Range(Double.MinValue,Double.MaxValue)]
