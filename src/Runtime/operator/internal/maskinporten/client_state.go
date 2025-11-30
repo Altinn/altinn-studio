@@ -18,6 +18,14 @@ import (
 
 const JsonFileName = "maskinporten-settings.json"
 
+// Condition types for MaskinportenClient status
+const (
+	ConditionTypeReady            = "Ready"
+	ConditionTypeClientRegistered = "ClientRegistered"
+	ConditionTypeSecretSynced     = "SecretSynced"
+	ConditionTypeDeleting         = "Deleting"
+)
+
 // MissingSecretError is returned when the app secret doesn't exist yet
 // This is a recoverable error that should be handled gracefully
 type MissingSecretError struct {

@@ -11,6 +11,7 @@ import (
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 	corev1 "k8s.io/api/core/v1"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -189,8 +190,8 @@ func (r *MaskinportenClientReconciler) updateStatus(
 	ctx context.Context,
 	req *maskinportenClientRequest,
 	instance *resourcesv1alpha1.MaskinportenClient,
-	state string,
-	reason string,
+	readyReason string,
+	readyMessage string,
 	commands maskinporten.CommandList,
 ) error {
 	ctx, span := r.runtime.Tracer().Start(ctx, "Reconcile.updateStatus")
@@ -198,10 +199,8 @@ func (r *MaskinportenClientReconciler) updateStatus(
 
 	log := log.FromContext(ctx)
 
-	instance.Status.State = state
 	timestamp := metav1.Now()
 	instance.Status.LastSynced = &timestamp
-	instance.Status.Reason = reason
 	if commands != nil {
 		instance.Status.LastActions = commands.Strings()
 	} else {
@@ -209,26 +208,80 @@ func (r *MaskinportenClientReconciler) updateStatus(
 	}
 	instance.Status.ObservedGeneration = instance.GetGeneration()
 
+	isDeleting := req != nil && req.Kind == RequestDeleteKind
+
 	for _, cmd := range commands {
-		// log.Info("Executed command", "command", cmd.String())
 		switch data := cmd.Data.(type) {
 		case *maskinporten.CreateClientInApiCommand:
 			instance.Status.ClientId = data.Api.ClientId
+			apimeta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
+				Type:               maskinporten.ConditionTypeClientRegistered,
+				Status:             metav1.ConditionTrue,
+				ObservedGeneration: instance.GetGeneration(),
+				Reason:             "Created",
+				Message:            fmt.Sprintf("Client created with ID %s", data.Api.ClientId),
+			})
 		case *maskinporten.UpdateClientInApiCommand:
 			instance.Status.ClientId = data.Api.ClientId
+			apimeta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
+				Type:               maskinporten.ConditionTypeClientRegistered,
+				Status:             metav1.ConditionTrue,
+				ObservedGeneration: instance.GetGeneration(),
+				Reason:             "Updated",
+				Message:            fmt.Sprintf("Client updated: %s", data.Api.ClientId),
+			})
 		case *maskinporten.DeleteClientInApiCommand:
 			instance.Status.ClientId = ""
+			apimeta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
+				Type:               maskinporten.ConditionTypeClientRegistered,
+				Status:             metav1.ConditionFalse,
+				ObservedGeneration: instance.GetGeneration(),
+				Reason:             "Deleted",
+				Message:            "Client deleted from Maskinporten API",
+			})
 		case *maskinporten.UpdateSecretContentCommand:
 			instance.Status.Authority = data.SecretContent.Authority
 			instance.Status.KeyIds = make([]string, len(data.SecretContent.Jwks.Keys))
 			for i, key := range data.SecretContent.Jwks.Keys {
 				instance.Status.KeyIds[i] = key.KeyID()
 			}
+			apimeta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
+				Type:               maskinporten.ConditionTypeSecretSynced,
+				Status:             metav1.ConditionTrue,
+				ObservedGeneration: instance.GetGeneration(),
+				Reason:             "Updated",
+				Message:            fmt.Sprintf("Secret updated with %d keys", len(data.SecretContent.Jwks.Keys)),
+			})
 		case *maskinporten.DeleteSecretContentCommand:
 			instance.Status.Authority = ""
 			instance.Status.KeyIds = nil
+			apimeta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
+				Type:               maskinporten.ConditionTypeSecretSynced,
+				Status:             metav1.ConditionFalse,
+				ObservedGeneration: instance.GetGeneration(),
+				Reason:             "Deleted",
+				Message:            "Secret content removed",
+			})
 		}
 	}
+
+	if isDeleting {
+		apimeta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
+			Type:               maskinporten.ConditionTypeDeleting,
+			Status:             metav1.ConditionTrue,
+			ObservedGeneration: instance.GetGeneration(),
+			Reason:             readyReason,
+			Message:            readyMessage,
+		})
+	}
+
+	apimeta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
+		Type:               maskinporten.ConditionTypeReady,
+		Status:             metav1.ConditionTrue,
+		ObservedGeneration: instance.GetGeneration(),
+		Reason:             readyReason,
+		Message:            readyMessage,
+	})
 
 	updatedFinalizers := false
 	if req != nil {
@@ -270,7 +323,24 @@ func (r *MaskinportenClientReconciler) updateStatusWithError(
 	origSpan.SetStatus(codes.Error, msg)
 	origSpan.RecordError(origError)
 
-	_ = r.updateStatus(ctx, nil, instance, "error", msg, commands)
+	timestamp := metav1.Now()
+	instance.Status.LastSynced = &timestamp
+	if commands != nil {
+		instance.Status.LastActions = commands.Strings()
+	}
+	instance.Status.ObservedGeneration = instance.GetGeneration()
+
+	apimeta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
+		Type:               maskinporten.ConditionTypeReady,
+		Status:             metav1.ConditionFalse,
+		ObservedGeneration: instance.GetGeneration(),
+		Reason:             "Error",
+		Message:            fmt.Sprintf("%s: %v", msg, origError),
+	})
+
+	if err := r.Status().Update(ctx, instance); err != nil {
+		log.Error(err, "Failed to update MaskinportenClient error status")
+	}
 }
 
 func (r *MaskinportenClientReconciler) loadInstance(

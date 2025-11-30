@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"time"
 
 	"github.com/gkampitakis/go-snaps/snaps"
@@ -140,6 +141,30 @@ func SanitizeMaskinportenClientStatus(status map[string]any) {
 			keyIds[i] = fmt.Sprintf("<key-id-%d>", i)
 		}
 	}
+	if conditions, ok := status["conditions"].([]any); ok {
+		for _, cond := range conditions {
+			if condMap, ok := cond.(map[string]any); ok {
+				SanitizeCondition(condMap)
+			}
+		}
+	}
+}
+
+// SanitizeCondition sanitizes a metav1.Condition for deterministic snapshots
+func SanitizeCondition(cond map[string]any) {
+	if cond["lastTransitionTime"] != nil {
+		cond["lastTransitionTime"] = sanitizedTimestamp
+	}
+	if msg, ok := cond["message"].(string); ok {
+		cond["message"] = sanitizeConditionMessage(msg)
+	}
+}
+
+// sanitizeConditionMessage replaces dynamic parts of condition messages (UUIDs, client IDs)
+func sanitizeConditionMessage(msg string) string {
+	// Replace UUIDs (e.g., "Client created with ID f75f4e9c-f896-413d-9291-8490bb10d7d5")
+	uuidPattern := regexp.MustCompile(`[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`)
+	return uuidPattern.ReplaceAllString(msg, sanitizedClientId)
 }
 
 // SanitizeJwk replaces non-deterministic JWK fields with placeholders

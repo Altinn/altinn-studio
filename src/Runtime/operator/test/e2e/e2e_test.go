@@ -11,11 +11,13 @@ import (
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal/config"
+	"altinn.studio/operator/internal/maskinporten"
 	"altinn.studio/operator/test/utils"
 	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
 )
@@ -72,8 +74,12 @@ func stateIsReconciled(client *resourcesv1alpha1.MaskinportenClient, secret *cor
 	if client == nil {
 		return fmt.Errorf("MaskinportenClient does not exist")
 	}
-	if client.Status.State != "reconciled" {
-		return fmt.Errorf("MaskinportenClient not reconciled yet: state=%s", client.Status.State)
+	if !apimeta.IsStatusConditionTrue(client.Status.Conditions, maskinporten.ConditionTypeReady) {
+		cond := apimeta.FindStatusCondition(client.Status.Conditions, maskinporten.ConditionTypeReady)
+		if cond != nil {
+			return fmt.Errorf("MaskinportenClient not ready: reason=%s message=%s", cond.Reason, cond.Message)
+		}
+		return fmt.Errorf("MaskinportenClient not ready: no Ready condition")
 	}
 	if client.Status.ObservedGeneration != client.Generation {
 		return fmt.Errorf("reconciliation pending: observedGeneration=%d, generation=%d",

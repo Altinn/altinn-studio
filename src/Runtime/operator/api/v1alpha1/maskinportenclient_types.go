@@ -18,21 +18,19 @@ type MaskinportenClientSpec struct {
 
 // MaskinportenClientStatus defines the observed state of MaskinportenClient
 type MaskinportenClientStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// ClientId is the client id of the client posted to Maskinporten API
+	// ClientId is the client id of the client in Maskinporten API
 	ClientId  string   `json:"clientId,omitempty"`
 	Authority string   `json:"authority,omitempty"`
 	KeyIds    []string `json:"keyIds,omitempty"`
 	// LastSynced is the timestamp of the last successful sync towards Maskinporten API
-	//
-	// +kubebuilder:validation:Format: date-time
+	// +kubebuilder:validation:Format=date-time
 	LastSynced         *metav1.Time `json:"lastSynced,omitempty"`
-	State              string       `json:"state,omitempty"`
-	Reason             string       `json:"reason,omitempty"`
 	ObservedGeneration int64        `json:"observedGeneration,omitempty"`
 	LastActions        []string     `json:"lastActions,omitempty"`
+	// Conditions represent the latest available observations of the resource's state
+	// +listType=map
+	// +listMapKey=type
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true

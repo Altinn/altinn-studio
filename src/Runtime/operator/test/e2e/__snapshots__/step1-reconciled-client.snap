@@ -26,6 +26,32 @@
  "status": {
   "authority": "http://fakes:8050",
   "clientId": "<sanitized-client-id>",
+  "conditions": [
+   {
+    "lastTransitionTime": "2024-01-01T00:00:00Z",
+    "message": "Client created with ID <sanitized-client-id>",
+    "observedGeneration": 1,
+    "reason": "Created",
+    "status": "True",
+    "type": "ClientRegistered"
+   },
+   {
+    "lastTransitionTime": "2024-01-01T00:00:00Z",
+    "message": "Secret updated with 1 keys",
+    "observedGeneration": 1,
+    "reason": "Updated",
+    "status": "True",
+    "type": "SecretSynced"
+   },
+   {
+    "lastTransitionTime": "2024-01-01T00:00:00Z",
+    "message": "Reconciled 2 resources",
+    "observedGeneration": 1,
+    "reason": "reconciled",
+    "status": "True",
+    "type": "Ready"
+   }
+  ],
   "keyIds": [
    "<key-id-0>"
   ],
@@ -34,9 +60,7 @@
    "UpdateSecretContentCommand"
   ],
   "lastSynced": "2024-01-01T00:00:00Z",
-  "observedGeneration": 1,
-  "reason": "Reconciled 2 resources",
-  "state": "reconciled"
+  "observedGeneration": 1
  }
 }
 ---

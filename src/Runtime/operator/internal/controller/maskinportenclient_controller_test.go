@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/api/errors"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
@@ -108,7 +109,7 @@ var _ = Describe("MaskinportenClient Controller", func() {
 			resource := &resourcesv1alpha1.MaskinportenClient{}
 			err = k8sClient.Get(ctx, typeNamespacedName, resource)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(resource.Status.State).To(Equal("reconciled"))
+			Expect(apimeta.IsStatusConditionTrue(resource.Status.Conditions, maskinporten.ConditionTypeReady)).To(BeTrue())
 			Expect(resource.Status.ObservedGeneration).To(Equal(int64(1)))
 			Expect(resource.Status.Authority).To(Equal(rt.GetConfigMonitor().Get().MaskinportenApi.AuthorityUrl))
 
