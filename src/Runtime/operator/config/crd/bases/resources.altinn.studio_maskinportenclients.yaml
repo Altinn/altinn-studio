@@ -72,6 +72,10 @@ spec:
                       description: Timestamp when the action was executed
                       format: date-time
                       type: string
+                    traceId:
+                      description: TraceId is the OTel trace ID for correlating with
+                        observability backends
+                      type: string
                   required:
                   - command
                   - result

@@ -48,15 +48,15 @@
     "timestamp": "2024-01-01T00:00:00Z"
    },
    {
-    "command": "UpdateSecretContentCommand",
-    "details": "keys: 2",
-    "result": "synced",
-    "timestamp": "2024-01-01T00:00:00Z"
-   },
-   {
     "command": "UpdateClientInApiCommand",
     "details": "scopes: 0, jwks: true",
     "result": "updated",
+    "timestamp": "2024-01-01T00:00:00Z"
+   },
+   {
+    "command": "UpdateSecretContentCommand",
+    "details": "keys: 2",
+    "result": "synced",
     "timestamp": "2024-01-01T00:00:00Z"
    },
    {

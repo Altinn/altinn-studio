@@ -210,7 +210,11 @@ func (r *MaskinportenClientReconciler) updateStatus(
 
 	// Map CommandResultList to ActionHistory
 	if len(results) > 0 {
-		newRecords := mapCommandResultsToActionRecords(results)
+		var traceId string
+		if sc := trace.SpanFromContext(ctx).SpanContext(); sc.HasTraceID() {
+			traceId = sc.TraceID().String()
+		}
+		newRecords := mapCommandResultsToActionRecords(results, traceId)
 		instance.Status.ActionHistory = append(instance.Status.ActionHistory, newRecords...)
 		if len(instance.Status.ActionHistory) > maxActionHistorySize {
 			instance.Status.ActionHistory = instance.Status.ActionHistory[len(instance.Status.ActionHistory)-maxActionHistorySize:]
@@ -330,7 +334,11 @@ func (r *MaskinportenClientReconciler) updateStatusWithError(
 
 	// Map CommandResultList to ActionHistory (includes failed commands)
 	if len(results) > 0 {
-		newRecords := mapCommandResultsToActionRecords(results)
+		var traceId string
+		if sc := origSpan.SpanContext(); sc.HasTraceID() {
+			traceId = sc.TraceID().String()
+		}
+		newRecords := mapCommandResultsToActionRecords(results, traceId)
 		instance.Status.ActionHistory = append(instance.Status.ActionHistory, newRecords...)
 		if len(instance.Status.ActionHistory) > maxActionHistorySize {
 			instance.Status.ActionHistory = instance.Status.ActionHistory[len(instance.Status.ActionHistory)-maxActionHistorySize:]
@@ -350,12 +358,13 @@ func (r *MaskinportenClientReconciler) updateStatusWithError(
 	}
 }
 
-func mapCommandResultsToActionRecords(results maskinporten.CommandResultList) []resourcesv1alpha1.ActionRecord {
+func mapCommandResultsToActionRecords(results maskinporten.CommandResultList, traceId string) []resourcesv1alpha1.ActionRecord {
 	records := make([]resourcesv1alpha1.ActionRecord, len(results))
 	for i, cmdResult := range results {
 		record := resourcesv1alpha1.ActionRecord{
 			Command:   reflect.ValueOf(cmdResult.Command).Elem().Type().Name(),
 			Timestamp: metav1.NewTime(cmdResult.Timestamp),
+			TraceId:   traceId,
 		}
 
 		switch result := cmdResult.Result.(type) {

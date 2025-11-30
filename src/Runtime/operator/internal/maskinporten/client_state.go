@@ -146,7 +146,7 @@ func NewClientState(
 		return nil, fmt.Errorf("unexpected condition, api resource was not created but api JWKS was")
 	}
 
-	nameSplit := strings.Split(crd.Name, "-")
+	nameSplit := strings.SplitN(crd.Name, "-", 2)
 	if len(nameSplit) < 2 {
 		return nil, fmt.Errorf("unexpected name format for MaskinportenClient resource: %s", crd.Name)
 	}
@@ -184,7 +184,7 @@ func (s *ClientState) getNotAfter(clock clockwork.Clock) time.Time {
 func (s *ClientState) Reconcile(
 	context *operatorcontext.Context,
 	config *config.Config,
-	crypto *crypto.CryptoService,
+	cryptoService *crypto.CryptoService,
 	clock clockwork.Clock,
 ) (CommandList, error) {
 	// ClientState keeps the state of Maskinporten-related config
@@ -242,7 +242,7 @@ func (s *ClientState) Reconcile(
 		// but the secret output exists, in which case we just overwrite it
 		// TODO: handle if someone deleted the API but the secret exists? I.e. blunder in self-service portal?
 		req := s.buildApiReq(context)
-		jwks, err := crypto.CreateJwks(s.AppId, s.getNotAfter(clock))
+		jwks, err := cryptoService.CreateJwks(s.AppId, s.getNotAfter(clock))
 		if err != nil {
 			return nil, err
 		}
@@ -276,7 +276,7 @@ func (s *ClientState) Reconcile(
 			// * Someone else created the API client
 
 			// Since the private JWKS is stored in the secret, it has been lost and we need to create a new one
-			jwks, err := crypto.CreateJwks(s.AppId, s.getNotAfter(clock))
+			jwks, err := cryptoService.CreateJwks(s.AppId, s.getNotAfter(clock))
 			if err != nil {
 				return nil, err
 			}
@@ -300,20 +300,63 @@ func (s *ClientState) Reconcile(
 			commands = append(commands, NewUpdateSecretContentCommand(secretStateContent))
 		} else {
 			authorityChanged := config.MaskinportenApi.AuthorityUrl != s.Secret.Content.Authority
-			scopesChanged := !reflect.DeepEqual(s.Crd.Spec.Scopes, s.Api.Req.Scopes)
+			scopesChanged := !scopesEqual(s.Crd.Spec.Scopes, s.Api.Req.Scopes)
 			forceRotate := s.Crd.Annotations[AnnotationRotateJwk] == "true"
-			jwks, err := crypto.RotateIfNeeded(s.AppId, s.getNotAfter(clock), s.Secret.Content.Jwks, forceRotate)
+			jwks, err := cryptoService.RotateIfNeeded(s.AppId, s.getNotAfter(clock), s.Secret.Content.Jwks, forceRotate)
 			if err != nil {
 				return nil, err
 			}
-			jwksChanged := jwks != nil
+			jwksRotated := jwks != nil
 			if forceRotate {
-				assert.That(jwksChanged, "forced JWK rotation requested but no rotation occurred", "appId", s.AppId)
+				assert.That(jwksRotated, "forced JWK rotation requested but no rotation occurred", "appId", s.AppId)
 			}
 
-			// Handle state changes that are contained in the secret
-			if authorityChanged || jwksChanged {
-				if !jwksChanged {
+			// Check if self service API public JWKS drifted from what we have in secret
+			// (e.g., manual modification via self-service portal)
+			apiJwksDrifted := false
+			if !jwksRotated && s.Api.Jwks != nil {
+				secretPublicJwks, err := s.Secret.Content.Jwks.ToPublic()
+				if err != nil {
+					return nil, err
+				}
+				apiJwksDrifted = !jwksEqual(s.Api.Jwks, secretPublicJwks)
+			}
+
+			jwksChanged := jwksRotated || apiJwksDrifted
+
+			// API updates must come before secret updates to ensure apps don't try
+			// to use keys that Maskinporten doesn't know about yet
+
+			// Handle API state changes (JWKS and/or scopes)
+			if jwksChanged || scopesChanged {
+				var apiPublicJwks *crypto.Jwks
+				if jwksChanged {
+					if jwksRotated {
+						apiPublicJwks, err = jwks.ToPublic()
+					} else {
+						apiPublicJwks, err = s.Secret.Content.Jwks.ToPublic()
+					}
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				var req *AddClientRequest
+				if scopesChanged {
+					req = s.buildApiReq(context)
+				}
+
+				apiState := &ApiState{
+					ClientId: s.Api.ClientId,
+					Req:      req,
+					Jwks:     apiPublicJwks,
+				}
+				commands = append(commands, NewUpdateClientInApiCommand(apiState))
+			}
+
+			// Handle state changes that are contained in the secret (after API updates)
+			if authorityChanged || jwksRotated {
+				if !jwksRotated {
 					jwks = s.Secret.Content.Jwks
 				}
 				assert.That(jwks != nil, "JWKS must be non-nil", "appId", s.AppId)
@@ -325,43 +368,48 @@ func (s *ClientState) Reconcile(
 					Jwks:      jwks,
 					Jwk:       jwks.Keys[0],
 				}
-				// TODO: what happens if we succeed in updating the secret but fail in updating the client in API?
-				// Update API before secret
 				commands = append(commands, NewUpdateSecretContentCommand(secretStateContent))
 			}
 
-			// Handle client JWKS endpoint state changes
-			if jwksChanged {
-				publicJwks, err := jwks.ToPublic()
-				if err != nil {
-					return nil, err
-				}
-				apiState := &ApiState{
-					ClientId: s.Api.ClientId,
-					Req:      nil, // signals no update
-					Jwks:     publicJwks,
-				}
-				commands = append(commands, NewUpdateClientInApiCommand(apiState))
-			}
-
-			// Handle client endpoint state changes
-			if scopesChanged {
-				apiState := &ApiState{
-					ClientId: s.Api.ClientId,
-					Req:      s.buildApiReq(context), // this reads scopes from CRD
-					Jwks:     nil,                    // signals no update
-				}
-				commands = append(commands, NewUpdateClientInApiCommand(apiState))
-			}
-
 			// Remove rotation annotation after successful forced rotation
-			if forceRotate && jwksChanged {
+			if forceRotate && jwksRotated {
 				commands = append(commands, NewRemoveRotateAnnotationCommand())
 			}
 		}
 	}
 
 	return commands, nil
+}
+
+// scopesEqual compares two scope slices, treating nil and empty as equal
+func scopesEqual(a, b []string) bool {
+	if len(a) == 0 && len(b) == 0 {
+		return true
+	}
+	return reflect.DeepEqual(a, b)
+}
+
+// jwksEqual compares two JWKS by their key IDs
+func jwksEqual(a, b *crypto.Jwks) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	if len(a.Keys) != len(b.Keys) {
+		return false
+	}
+	aKeyIds := make(map[string]bool, len(a.Keys))
+	for _, key := range a.Keys {
+		aKeyIds[key.KeyID()] = true
+	}
+	for _, key := range b.Keys {
+		if !aKeyIds[key.KeyID()] {
+			return false
+		}
+	}
+	return true
 }
 
 func getClientNamePrefix(context *operatorcontext.Context) string {

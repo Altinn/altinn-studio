@@ -78,6 +78,8 @@ func (s *CryptoService) createJWKS(
 	rsaKey *rsa.PrivateKey,
 	index int,
 ) (*Jwks, error) {
+	// NOTE: ID being constructed from UUID is being relied upon
+	// in logic elsewhere (for example in client_state.go, where we check for JWKS equality based on KeyID)
 	id, err := uuid.NewRandomFromReader(s.random)
 	if err != nil {
 		return nil, err

@@ -1,0 +1,146 @@
+
+[TestReconcile_FreshCreate - 1]
+[
+ {"type":"CreateClientInApi","scopes":["altinn:test/scope.read"],"keyIds":["c57d3869-e899-4fe2-ae69-ff8cf6d32207.0"]},
+ {"type":"UpdateSecretContent","authority":"https://test.maskinporten.no","keyIds":["c57d3869-e899-4fe2-ae69-ff8cf6d32207.0"]}
+]
+---
+
+[TestReconcile_ApiExistsSecretLost - 1]
+[
+ {"type":"UpdateClientInApi","clientId":"test-client-id-123","keyIds":["840f9b1e-b67f-42ed-beea-090fff756bb2.0"]},
+ {"type":"UpdateSecretContent","clientId":"test-client-id-123","authority":"https://test.maskinporten.no","keyIds":["840f9b1e-b67f-42ed-beea-090fff756bb2.0"]}
+]
+---
+
+[TestReconcile_ScopesChanged - 1]
+[
+ {"type":"UpdateClientInApi","clientId":"test-client-id-123","scopes":["altinn:new/scope.write"]}
+]
+---
+
+[TestReconcile_AuthorityChanged - 1]
+[
+ {"type":"UpdateSecretContent","clientId":"test-client-id-123","authority":"https://test.maskinporten.no","keyIds":["c57d3869-e899-4fe2-ae69-ff8cf6d32207.0"]}
+]
+---
+
+[TestReconcile_ScopesAndAuthorityChanged - 1]
+[
+ {"type":"UpdateClientInApi","clientId":"test-client-id-123","scopes":["altinn:new/scope.write"]},
+ {"type":"UpdateSecretContent","clientId":"test-client-id-123","authority":"https://test.maskinporten.no","keyIds":["c57d3869-e899-4fe2-ae69-ff8cf6d32207.0"]}
+]
+---
+
+[TestReconcile_ScopesAndJwksRotation - 1]
+[
+ {"type":"UpdateClientInApi","clientId":"test-client-id-123","scopes":["altinn:new/scope.write"],"keyIds":["840f9b1e-b67f-42ed-beea-090fff756bb2.1","c57d3869-e899-4fe2-ae69-ff8cf6d32207.0"]},
+ {"type":"UpdateSecretContent","clientId":"test-client-id-123","authority":"https://test.maskinporten.no","keyIds":["840f9b1e-b67f-42ed-beea-090fff756bb2.1","c57d3869-e899-4fe2-ae69-ff8cf6d32207.0"]}
+]
+---
+
+[TestReconcile_AuthorityAndJwksRotation - 1]
+[
+ {"type":"UpdateClientInApi","clientId":"test-client-id-123","keyIds":["840f9b1e-b67f-42ed-beea-090fff756bb2.1","c57d3869-e899-4fe2-ae69-ff8cf6d32207.0"]},
+ {"type":"UpdateSecretContent","clientId":"test-client-id-123","authority":"https://test.maskinporten.no","keyIds":["840f9b1e-b67f-42ed-beea-090fff756bb2.1","c57d3869-e899-4fe2-ae69-ff8cf6d32207.0"]}
+]
+---
+
+[TestReconcile_Deletion - 1]
+[
+ {"type":"DeleteSecretContent"},
+ {"type":"DeleteClientInApi","clientId":"test-client-id-123"},
+ {"type":"RemoveFinalizer"}
+]
+---
+
+[TestReconcile_DeletionApiAlreadyGone - 1]
+[
+ {"type":"DeleteSecretContent"},
+ {"type":"RemoveFinalizer"}
+]
+---
+
+[TestReconcile_DeletionNoSecretContent - 1]
+[
+ {"type":"DeleteClientInApi","clientId":"test-client-id-123"},
+ {"type":"RemoveFinalizer"}
+]
+---
+
+[TestReconcile_DeletionNoApiNoSecretContent - 1]
+[
+ {"type":"RemoveFinalizer"}
+]
+---
+
+[TestForcedRotation_IgnoredDuringDeletion - 1]
+[
+ {"type":"DeleteSecretContent"},
+ {"type":"DeleteClientInApi","clientId":"test-client-id-123"},
+ {"type":"RemoveFinalizer"}
+]
+---
+
+[TestReconcile_NoChanges - 1]
+[]
+---
+
+[TestReconcile_ApiJwksMismatchSecret - 1]
+[
+ {"type":"UpdateClientInApi","clientId":"test-client-id-123","keyIds":["c57d3869-e899-4fe2-ae69-ff8cf6d32207.0"]}
+]
+---
+
+[TestJwkRotation_NotNeededYet - 1]
+[]
+---
+
+[TestJwkRotation_TriggeredAtThreshold - 1]
+[
+ {"type":"UpdateClientInApi","clientId":"test-client-id-123","keyIds":["840f9b1e-b67f-42ed-beea-090fff756bb2.1","c57d3869-e899-4fe2-ae69-ff8cf6d32207.0"]},
+ {"type":"UpdateSecretContent","clientId":"test-client-id-123","authority":"https://test.maskinporten.no","keyIds":["840f9b1e-b67f-42ed-beea-090fff756bb2.1","c57d3869-e899-4fe2-ae69-ff8cf6d32207.0"]}
+]
+---
+
+[TestJwkRotation_SecondRotation - 1]
+[
+ {"type":"UpdateClientInApi","clientId":"test-client-id-123","keyIds":["85a2f6cb-055e-45de-a6c1-7d5a3119245b.2","840f9b1e-b67f-42ed-beea-090fff756bb2.1"]},
+ {"type":"UpdateSecretContent","clientId":"test-client-id-123","authority":"https://test.maskinporten.no","keyIds":["85a2f6cb-055e-45de-a6c1-7d5a3119245b.2","840f9b1e-b67f-42ed-beea-090fff756bb2.1"]}
+]
+---
+
+[TestForcedRotation_ViaAnnotation - 1]
+[
+ {"type":"UpdateClientInApi","clientId":"test-client-id-123","keyIds":["840f9b1e-b67f-42ed-beea-090fff756bb2.1","c57d3869-e899-4fe2-ae69-ff8cf6d32207.0"]},
+ {"type":"UpdateSecretContent","clientId":"test-client-id-123","authority":"https://test.maskinporten.no","keyIds":["840f9b1e-b67f-42ed-beea-090fff756bb2.1","c57d3869-e899-4fe2-ae69-ff8cf6d32207.0"]},
+ {"type":"RemoveRotateAnnotation"}
+]
+---
+
+[TestForcedRotation_AnnotationValueNotTrue - 1]
+[]
+---
+
+[TestReconcile_EmptyScopes - 1]
+[]
+---
+
+[TestReconcile_NilVsEmptyScopes - 1]
+[]
+---
+
+[TestReconcile_AddsFinalizer - 1]
+[
+ {"type":"AddFinalizer"},
+ {"type":"CreateClientInApi","scopes":["altinn:test/scope.read"],"keyIds":["c57d3869-e899-4fe2-ae69-ff8cf6d32207.0"]},
+ {"type":"UpdateSecretContent","authority":"https://test.maskinporten.no","keyIds":["c57d3869-e899-4fe2-ae69-ff8cf6d32207.0"]}
+]
+---
+
+[TestReconcile_AllChangesAtOnce - 1]
+[
+ {"type":"UpdateClientInApi","clientId":"test-client-id-123","scopes":["altinn:new/scope.write"],"keyIds":["840f9b1e-b67f-42ed-beea-090fff756bb2.1","c57d3869-e899-4fe2-ae69-ff8cf6d32207.0"]},
+ {"type":"UpdateSecretContent","clientId":"test-client-id-123","authority":"https://test.maskinporten.no","keyIds":["840f9b1e-b67f-42ed-beea-090fff756bb2.1","c57d3869-e899-4fe2-ae69-ff8cf6d32207.0"]}
+]
+---

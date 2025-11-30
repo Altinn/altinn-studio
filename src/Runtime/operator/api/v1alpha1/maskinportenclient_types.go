@@ -27,6 +27,9 @@ type ActionRecord struct {
 	// Details contains command-specific information (clientId, keyCount, etc.)
 	// +optional
 	Details string `json:"details,omitempty"`
+	// TraceId is the OTel trace ID for correlating with observability backends
+	// +optional
+	TraceId string `json:"traceId,omitempty"`
 }
 
 // MaskinportenClientStatus defines the observed state of MaskinportenClient
