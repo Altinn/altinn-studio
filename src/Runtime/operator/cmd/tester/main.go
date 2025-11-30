@@ -6,10 +6,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/test/harness"
+	"altinn.studio/runtime-fixture/pkg/container"
 	"altinn.studio/runtime-fixture/pkg/kubernetes"
 	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
 )
@@ -28,7 +30,9 @@ func main() {
 	case "stop":
 		runStop()
 	case "test":
-		runTest()
+		runUnitTest()
+	case "test-e2e":
+		runE2ETest()
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown subcommand: %s\n\n", subcommand)
 		printUsage()
@@ -42,10 +46,118 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "Commands:")
 	fmt.Fprintln(os.Stderr, "  start            Start the runtime fixture/cluster")
 	fmt.Fprintln(os.Stderr, "  stop             Stop the runtime fixture/cluster")
-	fmt.Fprintln(os.Stderr, "  test             Run integration tests")
+	fmt.Fprintln(os.Stderr, "  test             Run unit tests (with docker-compose and envtest)")
+	fmt.Fprintln(os.Stderr, "  test-e2e         Run e2e tests (with Kind cluster)")
 	fmt.Fprintln(os.Stderr, "")
-	fmt.Fprintln(os.Stderr, "Test flags:")
+	fmt.Fprintln(os.Stderr, "test flags:")
+	fmt.Fprintln(os.Stderr, "  --envtest-k8s-version  Kubernetes version for envtest (required)")
+	fmt.Fprintln(os.Stderr, "")
+	fmt.Fprintln(os.Stderr, "test-e2e flags:")
 	fmt.Fprintln(os.Stderr, "  --keep-running, --kr  Keep cluster running after tests complete")
+}
+
+func runUnitTest() {
+	// Parse flags
+	testFlags := flag.NewFlagSet("test", flag.ExitOnError)
+	envtestK8sVersion := testFlags.String("envtest-k8s-version", "", "Kubernetes version for envtest (required)")
+	err := testFlags.Parse(os.Args[2:])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error parsing flags: %v\n", err)
+		os.Exit(1)
+	}
+
+	if *envtestK8sVersion == "" {
+		fmt.Fprintln(os.Stderr, "Error: --envtest-k8s-version is required")
+		os.Exit(1)
+	}
+
+	fmt.Println("=== Unit Tests ===")
+
+	// Find project root
+	projectRoot, err := config.TryFindProjectRootByGoMod()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Step 1: Detect container runtime and start compose
+	containerClient, err := container.Detect()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to detect container runtime: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("Starting %s compose...\n", containerClient.Name())
+	composeCmd := exec.Command(containerClient.Name(), "compose", "up", "-d", "--build")
+	composeCmd.Dir = projectRoot
+	composeCmd.Stdout = os.Stdout
+	composeCmd.Stderr = os.Stderr
+	if err := composeCmd.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to start %s compose: %v\n", containerClient.Name(), err)
+		os.Exit(1)
+	}
+	fmt.Printf("✓ %s compose started\n", containerClient.Name())
+
+	// Step 2: Setup envtest binaries
+	fmt.Println("Setting up envtest binaries...")
+	localBin := filepath.Join(projectRoot, "bin")
+	envtestBin := filepath.Join(localBin, "setup-envtest")
+
+	// Check if setup-envtest exists
+	if _, err := os.Stat(envtestBin); os.IsNotExist(err) {
+		fmt.Fprintf(os.Stderr, "setup-envtest not found at %s\n", envtestBin)
+		fmt.Fprintln(os.Stderr, "Run 'make envtest' first to install it")
+		os.Exit(1)
+	}
+
+	// Run setup-envtest to get the assets path
+	setupCmd := exec.Command(envtestBin, "use", *envtestK8sVersion, "--bin-dir", localBin, "-p", "path")
+	setupCmd.Dir = projectRoot
+	assetsPath, err := setupCmd.Output()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to setup envtest: %v\n", err)
+		os.Exit(1)
+	}
+	kubebuilderAssets := strings.TrimSpace(string(assetsPath))
+	fmt.Printf("✓ envtest assets: %s\n", kubebuilderAssets)
+
+	// Step 3: Run tests (excluding e2e)
+	fmt.Println("Running unit tests...")
+
+	// Get list of packages excluding e2e
+	listCmd := exec.Command("go", "list", "./...")
+	listCmd.Dir = projectRoot
+	output, err := listCmd.Output()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to list packages: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Filter out e2e packages
+	var packages []string
+	for _, pkg := range strings.Split(strings.TrimSpace(string(output)), "\n") {
+		if pkg != "" && !strings.Contains(pkg, "/e2e") {
+			packages = append(packages, pkg)
+		}
+	}
+
+	// Build test command
+	args := []string{"test", "-count=1"}
+	args = append(args, packages...)
+	args = append(args, "-coverprofile", "cover.out")
+
+	testCmd := exec.Command("go", args...)
+	testCmd.Dir = projectRoot
+	testCmd.Env = append(os.Environ(), "KUBEBUILDER_ASSETS="+kubebuilderAssets)
+	testCmd.Stdout = os.Stdout
+	testCmd.Stderr = os.Stderr
+
+	if err := testCmd.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "\n=== Unit Tests FAILED ===\n")
+		os.Exit(1)
+	}
+
+	fmt.Println("\n=== Unit Tests PASSED ===")
 }
 
 // Result is a generic type for passing results through channels
@@ -244,7 +356,7 @@ func runStop() {
 	fmt.Println("=== Runtime Stopped ===")
 }
 
-func runTest() {
+func runE2ETest() {
 	// Parse test flags
 	testFlags := flag.NewFlagSet("test", flag.ExitOnError)
 	keepRunning := testFlags.Bool("keep-running", false, "Keep cluster running after tests complete")
@@ -306,7 +418,7 @@ func runTest() {
 	// Run tests
 	fmt.Println("Running e2e tests...")
 	testExitCode := 0
-	if err := runTests(projectRoot, "./test/e2e/..."); err != nil {
+	if err := runTests(projectRoot, "./test/e2e/"); err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {
 			testExitCode = exitErr.ExitCode()
 		} else {
@@ -333,7 +445,7 @@ func runTest() {
 }
 
 func runTests(projectRoot, packagePath string) error {
-	cmd := exec.Command("go", "test", "-count=1", "-timeout", "5m", packagePath)
+	cmd := exec.Command("go", "test", "-tags=e2e", packagePath, "-v", "-ginkgo.v")
 	cmd.Dir = projectRoot
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

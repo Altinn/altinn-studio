@@ -129,7 +129,7 @@ func TestPublicJwksConversion(t *testing.T) {
 	// TODO: assert that private key fields are not present in JWK
 }
 
-func createService() (*CryptoService, clockwork.FakeClock) {
+func createService() (*CryptoService, *clockwork.FakeClock) {
 	operatorContext := operatorcontext.DiscoverOrDie(context.Background(), operatorcontext.EnvironmentLocal, nil)
 	clock := clockwork.NewFakeClockAt(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC))
 	random := utils.NewDeterministicRand()
@@ -141,7 +141,7 @@ func getNotAfter(clock clockwork.Clock) time.Time {
 	return clock.Now().UTC().Add(time.Hour * 24 * 30)
 }
 
-func createTestJwks() (*Jwks, *CryptoService, clockwork.FakeClock, error) {
+func createTestJwks() (*Jwks, *CryptoService, *clockwork.FakeClock, error) {
 	service, clock := createService()
 
 	jwks, err := service.CreateJwks(appId, getNotAfter(clock))

@@ -148,9 +148,8 @@ That way we don't get stuck on old versions of the scaffold forever..
 Example for v3 -> v4 upgrade of CLI:
 
 ```sh
-mkdir altinn-studio2
-cd altinn-studio2/src/Runtime/operator
-kubebuilder init --plugins go/v4 --domain altinn.studio --owner "Altinn" --repo "github.com/Altinn/altinn-studio" --project-name "altinn-studio-operator"
+# Make a new dir somewhere and scaffold a new project
+kubebuilder init --domain altinn.studio --repo altinn.studio/operator --project-name operator
 kubebuilder create api --group resources --version v1alpha1 --kind MaskinportenClient
 make manifests
 ```
