@@ -1,6 +1,7 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -26,7 +27,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.Diagnostics;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -447,7 +447,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     {
                         sw.Stop();
                         _logger.LogError(ex, "Failed to read/deserialize resource file {ResourcePath} (name={ResourceName}) after {ElapsedMs} ms", resourceFile.Path, resourceFile.Name, sw.ElapsedMilliseconds);
-                        return null;
+                        throw;
                     }
                 }
                 finally
