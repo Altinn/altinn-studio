@@ -10,8 +10,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-simple:
-    name: Build and test - simple
+  test:
+    name: Build and test
     runs-on: ubuntu-latest
 
     defaults:
@@ -35,35 +35,42 @@ jobs:
       - name: Run tests
         run: make test
 
-  # test-e2e:
-  #   name: Build and test - e2e
-  #   runs-on: ubuntu-latest
+  test-e2e:
+    name: Build and test - e2e
+    runs-on: ubuntu-latest
 
-  #   defaults:
-  #     run:
-  #       working-directory: src/Runtime/operator
+    defaults:
+      run:
+        working-directory: src/Runtime/operator
 
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-  #       with:
-  #         fetch-depth: 0
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
 
-  #     - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6
-  #       with:
-  #         go-version-file: src/Runtime/operator/go.mod
-  #         cache-dependency-path: src/Runtime/operator/go.sum
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6
+        with:
+          go-version-file: src/Runtime/operator/go.mod
+          cache-dependency-path: src/Runtime/operator/go.sum
 
-  #     - name: Cache CLI tools
-  #       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-  #       with:
-  #         path: src/Runtime/operator/.cache/bin
-  #         key: operator-tools-${{ runner.os }}-${{ hashFiles('src/Runtime/test/fixture/pkg/tools/.tool-versions') }}
-  #         restore-keys: |
-  #           operator-tools-${{ runner.os }}-
+      - name: Cache CLI tools
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: src/Runtime/operator/.cache/bin
+          key: operator-tools-${{ runner.os }}-${{ hashFiles('src/Runtime/test/fixture/pkg/tools/.tool-versions') }}
+          restore-keys: |
+            operator-tools-${{ runner.os }}-
 
-  #     - name: Start fixture
-  #       run: go run cmd/tester/main.go start minimal
+      - name: Run e2e tests
+        run: make start
 
-  #     - name: Run tests
-  #       run: go run cmd/tester/main.go test -kr
+      - name: Run e2e tests
+        run: make test-e2e
+
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: runtime-operator-test-logs
+          path: src/Runtime/operator/test/logs/
