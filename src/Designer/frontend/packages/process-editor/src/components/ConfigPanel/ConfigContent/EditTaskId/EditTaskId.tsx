@@ -3,9 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { StudioToggleableTextfield } from '@studio/components';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPanelContext';
-import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type { MetadataForm } from 'app-shared/types/BpmnMetadataForm';
 import { useValidateBpmnTaskId } from '../../../../hooks/useValidateBpmnId';
+import type { CommandStack } from 'bpmn-js/lib/features/modeling/Modeling';
 
 export const EditTaskId = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -14,12 +14,14 @@ export const EditTaskId = (): React.ReactElement => {
   const { validateBpmnTaskId } = useValidateBpmnTaskId();
 
   const modelerInstance = modelerRef.current;
-  const modeling: Modeling = modelerInstance.get('modeling');
+  const commandStack: CommandStack = modelerInstance.get('commandStack');
 
   const updateId = (value: string): void => {
-    modeling.updateProperties(bpmnDetails.element, {
-      id: value,
+    commandStack.execute('updateTaskId', {
+      element: bpmnDetails.element,
+      newId: value,
     });
+
     setBpmnDetails({
       ...bpmnDetails,
       id: value,
@@ -38,6 +40,7 @@ export const EditTaskId = (): React.ReactElement => {
       },
     };
     metadataFormRef.current = Object.assign({}, metadataFormRef.current, newMetadata);
+
     updateId(newId);
   };
 
