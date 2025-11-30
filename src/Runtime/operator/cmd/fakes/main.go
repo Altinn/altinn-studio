@@ -2,9 +2,11 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -14,6 +16,7 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/go-errors/errors"
 
@@ -30,10 +33,59 @@ type contextKey string
 
 const StateKey contextKey = "state"
 
+const bodyMaxLen = 200
+
+func summarizeBody(body []byte) string {
+	if len(body) == 0 {
+		return ""
+	}
+	s := strings.TrimSpace(string(body))
+	if len(s) > bodyMaxLen {
+		return " " + s[:bodyMaxLen] + "..."
+	}
+	return " " + s
+}
+
 const POST = "POST"
 const GET = "GET"
 const PUT = "PUT"
 const DELETE = "DELETE"
+
+type responseRecorder struct {
+	http.ResponseWriter
+	status int
+	body   bytes.Buffer
+}
+
+func (r *responseRecorder) WriteHeader(code int) {
+	r.status = code
+	r.ResponseWriter.WriteHeader(code)
+}
+
+func (r *responseRecorder) Write(b []byte) (int, error) {
+	r.body.Write(b)
+	return r.ResponseWriter.Write(b)
+}
+
+func loggingMiddleware(name string, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+
+		var reqBody []byte
+		if r.Body != nil {
+			reqBody, _ = io.ReadAll(r.Body)
+			r.Body = io.NopCloser(bytes.NewReader(reqBody))
+		}
+
+		log.Printf("[%s] --> %s %s%s", name, r.Method, r.URL.Path, summarizeBody(reqBody))
+
+		rec := &responseRecorder{ResponseWriter: w, status: 200}
+		next.ServeHTTP(rec, r)
+
+		duration := time.Since(start)
+		log.Printf("[%s] <-- %s %s %d (%s)%s", name, r.Method, r.URL.Path, rec.status, duration, summarizeBody(rec.body.Bytes()))
+	})
+}
 
 func main() {
 	log.SetOutput(os.Stdout)
@@ -67,9 +119,10 @@ func serve(ctx context.Context, name string, addr string, registerHandlers func(
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", healthEndpoint)
 	registerHandlers(mux)
+	handler := loggingMiddleware(name, mux)
 	server := &http.Server{
 		Addr:    addr,
-		Handler: mux,
+		Handler: handler,
 		BaseContext: func(l net.Listener) context.Context {
 			return ctx
 		},
