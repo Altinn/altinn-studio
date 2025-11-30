@@ -12,7 +12,7 @@ spec:
       dashboards: external-grafana
   interval: 5m
   rules:
-    - uid: ff3lr1r4537y8e
+    - uid: failed-process-next-requests
       title: Failed process/next requests
       condition: C
       data:
@@ -106,7 +106,7 @@ spec:
       labels:
         Type: Altinn
       isPaused: false
-    - uid: af40fm1flb8cge
+    - uid: processes-started
       title: Processes started
       condition: C
       data:
@@ -197,7 +197,7 @@ spec:
       labels:
         Type: Altinn
       isPaused: false
-    - uid: fezx7fvy20k5cb
+    - uid: 5xx-failed-requests
       title: 5xx failed requests
       condition: C
       data:
@@ -320,7 +320,7 @@ spec:
       labels:
         Type: Altinn
       isPaused: true
-    - uid: aezx7i0inylfkd
+    - uid: server-exceptions
       title: Server exceptions
       condition: C
       data:
@@ -429,7 +429,7 @@ spec:
       labels:
         Type: Altinn
       isPaused: true
-    - uid: aezx7gzgep4aob
+    - uid: server-response-time
       title: Server response time
       condition: C
       data:
@@ -538,7 +538,7 @@ spec:
       labels:
         Type: Altinn
       isPaused: true
-    - uid: dezx79y99vj7kb
+    - uid: server-requests
       title: Server requests
       condition: C
       data:
@@ -647,7 +647,7 @@ spec:
       labels:
         Type: Altinn
       isPaused: true
-    - uid: fezx7j424lj40c
+    - uid: memory-usage
       title: Memory usage
       condition: C
       data:
@@ -751,7 +751,7 @@ spec:
       labels:
         Type: Altinn
       isPaused: true
-    - uid: aezx7k0328cn4f
+    - uid: cpu-usage
       title: CPU usage
       condition: C
       data:
@@ -857,7 +857,7 @@ spec:
       labels:
         Type: Altinn
       isPaused: true
-    - uid: eezx7l7eytm9se
+    - uid: availability
       title: Availability
       condition: C
       data:

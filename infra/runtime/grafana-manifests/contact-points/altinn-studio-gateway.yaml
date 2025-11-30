@@ -12,12 +12,8 @@ spec:
       dashboards: external-grafana
   settings:
     httpMethod: POST
+    url: "http://localhost:5062/api/v1/alerts"
   valuesFrom:
-    - targetPath: url
-      valueFrom:
-        secretKeyRef:
-          name: external-grafana-altinn-studio-gateway-url
-          key: url
     - targetPath: token
       valueFrom:
         secretKeyRef:
