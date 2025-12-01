@@ -1,0 +1,17 @@
+{
+  "name": "app-load-tests",
+  "version": "1.0.0",
+  "description": "k6 browser load tests for Altinn App",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "setup": "node scripts/setup.js"
+  },
+  "devDependencies": {
+    "@puppeteer/browsers": "2.4.1",
+    "tar": "7.5.2"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

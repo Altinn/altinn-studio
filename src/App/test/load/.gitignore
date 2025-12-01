@@ -1,0 +1,9 @@
+# Tool cache
+.cache/
+
+# Dependencies
+node_modules/
+
+# Yarn
+.yarn/
+.pnp.*

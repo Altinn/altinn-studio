@@ -1,0 +1,9 @@
+# Tool versions for load tests
+# Format: <tool-name> <version> <checksum-url-template>
+# URL templates support {os}, {arch}, {version}, {version_no_v} placeholders
+
+# renovate: datasource=github-releases depName=grafana/k6
+k6 v1.4.0 https://github.com/grafana/k6/releases/download/{version}/k6-{version}-checksums.txt
+
+# Chromium browser via @puppeteer/browsers
+chromium stable puppeteer
