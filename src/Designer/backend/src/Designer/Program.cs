@@ -183,7 +183,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.ConfigureResourceRegistryIntegrationSettings(configuration.GetSection("ResourceRegistryIntegrationSettings"));
     services.ConfigureMaskinportenIntegrationSettings(configuration.GetSection("MaskinportenClientSettings"));
 
-    services.Configure<SharedContentClientSettings>(configuration.GetSection("SharedContentClientSettings"));
     services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
     var maskinPortenClientName = "MaskinportenClient";
     services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(maskinPortenClientName, configuration.GetSection("MaskinportenClientSettings"));

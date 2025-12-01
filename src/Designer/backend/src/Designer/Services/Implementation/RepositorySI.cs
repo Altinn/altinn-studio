@@ -1,6 +1,7 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -43,7 +44,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly ServiceRepositorySettings _settings;
         private readonly GeneralSettings _generalSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IGitea _gitea;
+        private readonly IGitea _giteaClient;
         private readonly ISourceControl _sourceControl;
         private readonly ILogger _logger;
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
@@ -59,7 +60,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="repositorySettings">The settings for the app repository</param>
         /// <param name="generalSettings">The current general settings</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
-        /// <param name="gitea">gitea</param>
+        /// <param name="giteaClient">The gitea client</param>
         /// <param name="sourceControl">the source control</param>
         /// <param name="logger">The logger</param>
         /// <param name="altinnGitRepositoryFactory">Factory class that knows how to create types of <see cref="AltinnGitRepository"/></param>
@@ -71,7 +72,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             ServiceRepositorySettings repositorySettings,
             GeneralSettings generalSettings,
             IHttpContextAccessor httpContextAccessor,
-            IGitea gitea,
+            IGitea giteaClient,
             ISourceControl sourceControl,
             ILogger<RepositorySI> logger,
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
@@ -83,7 +84,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _settings = repositorySettings;
             _generalSettings = generalSettings;
             _httpContextAccessor = httpContextAccessor;
-            _gitea = gitea;
+            _giteaClient = giteaClient;
             _sourceControl = sourceControl;
             _logger = logger;
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
@@ -335,7 +336,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>The newly created repository</returns>
         public async Task<RepositoryClient.Model.Repository> CreateRemoteRepository(string org, CreateRepoOption options)
         {
-            return await _gitea.CreateRepository(org, options);
+            return await _giteaClient.CreateRepository(org, options);
         }
 
         // IKKE SLETT
@@ -429,8 +430,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 try
                 {
                     string fullPath = Path.Combine(repopath, resourceFile.Path);
-                    using var stream = File.OpenRead(fullPath);
-                    return await System.Text.Json.JsonSerializer.DeserializeAsync<ServiceResource>(stream, _serializerOptions, cancellationToken);
+
+                    var sw = Stopwatch.StartNew();
+                    try
+                    {
+                        using FileStream stream = File.OpenRead(fullPath);
+                        ServiceResource result = await System.Text.Json.JsonSerializer.DeserializeAsync<ServiceResource>(stream, _serializerOptions, cancellationToken);
+
+                        sw.Stop();
+                        // Structured log: file path, file name and elapsed ms
+                        _logger.LogInformation("Read resource file {ResourcePath} (name={ResourceName}) in {ElapsedMs} ms", resourceFile.Path, resourceFile.Name, sw.ElapsedMilliseconds);
+
+                        return result;
+                    }
+                    catch (Exception ex)
+                    {
+                        sw.Stop();
+                        _logger.LogError(ex, "Failed to read/deserialize resource file {ResourcePath} (name={ResourceName}) after {ElapsedMs} ms", resourceFile.Path, resourceFile.Name, sw.ElapsedMilliseconds);
+                        throw;
+                    }
                 }
                 finally
                 {
