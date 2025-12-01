@@ -13,6 +13,7 @@ public class DesignerdbContext : DbContext
     }
 
     public virtual DbSet<DeploymentDbModel> Deployments { get; set; }
+    public virtual DbSet<DeployEventDbModel> DeployEvents { get; set; }
     public virtual DbSet<ReleaseDbModel> Releases { get; set; }
     public virtual DbSet<AppScopesDbModel> AppScopes { get; set; }
 
@@ -21,6 +22,7 @@ public class DesignerdbContext : DbContext
         modelBuilder.UseSerialColumns();
         modelBuilder.ApplyConfiguration(new BuildConfiguration());
         modelBuilder.ApplyConfiguration(new DeploymentConfiguration());
+        modelBuilder.ApplyConfiguration(new DeployEventConfiguration());
         modelBuilder.ApplyConfiguration(new ReleaseConfiguration());
         modelBuilder.ApplyConfiguration(new AppScopesConfiguration());
         base.OnModelCreating(modelBuilder);

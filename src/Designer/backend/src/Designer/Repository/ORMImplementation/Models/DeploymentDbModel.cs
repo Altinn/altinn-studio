@@ -1,5 +1,6 @@
 ﻿#nullable disable
 using System;
+using System.Collections.Generic;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 
@@ -30,6 +31,8 @@ public partial class DeploymentDbModel
     public DeploymentType DeploymentType { get; set; } = DeploymentType.Deploy;
 
     public BuildDbModel Build { get; set; } = null!;
+
+    public ICollection<DeployEventDbModel> Events { get; set; } = new List<DeployEventDbModel>();
 }
 
 public enum DeploymentType
