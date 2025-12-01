@@ -39,8 +39,11 @@ spec:
   prune: false
   force: false
   wait: true
-  path: ./
+  path: ./${ENVIRONMENT}
   sourceRef:
     kind: OCIRepository
     name: studio-gateway-repo
     namespace: runtime-gateway
+  postBuild:
+    substitute:
+      SERVICEOWNER_ID: ${SERVICEOWNER_ID}

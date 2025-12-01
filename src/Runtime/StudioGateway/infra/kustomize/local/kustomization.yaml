@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../base
+patches:
+  - target:
+      kind: IngressRoute
+      name: studio-gateway
+    patch: |-
+      - op: replace
+        path: /spec/entryPoints
+        value:
+          - traefik
+      - op: replace
+        path: /spec/routes/0/match
+        value: PathPrefix(`/runtime/gateway/api/v1`)
