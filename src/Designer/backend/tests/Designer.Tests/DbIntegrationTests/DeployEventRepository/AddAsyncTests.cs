@@ -37,9 +37,16 @@ public class AddAsyncTests : DbIntegrationTestsBase
         await repository.AddAsync(org, deploymentEntity.Build.Id, deployEvent);
 
         // Assert
+        var deploymentSequenceNo = await DbFixture.DbContext.Deployments
+            .Include(d => d.Build)
+            .AsNoTracking()
+            .Where(d => d.Org == org && d.Build.ExternalId == deploymentEntity.Build.Id)
+            .Select(d => d.Sequenceno)
+            .SingleAsync();
+
         var dbEvent = await DbFixture.DbContext.DeployEvents
             .AsNoTracking()
-            .FirstOrDefaultAsync(e => e.EventType == DeployEventType.DeploymentCreated.ToString());
+            .FirstOrDefaultAsync(e => e.DeploymentSequenceNo == deploymentSequenceNo);
 
         Assert.NotNull(dbEvent);
         Assert.Equal(deployEvent.Message, dbEvent.Message);
