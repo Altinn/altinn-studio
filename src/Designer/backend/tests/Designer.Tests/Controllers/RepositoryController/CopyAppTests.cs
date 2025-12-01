@@ -143,5 +143,22 @@ namespace Designer.Tests.Controllers.RepositoryController
             Assert.Contains("is an invalid repository name", actual);
         }
 
+        [Fact]
+        public async Task CopyApp_InvalidTargetOrgName_BadRequest()
+        {
+            // Arrange
+            string invalidTargetOrgName = "org*with#invalid+chars";
+            string uri = $"{VersionPrefix}/repo/ttd/copy-app?sourceRepository=apps-test&targetRepository=cloned-app&targetOrg={invalidTargetOrgName}";
+
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+
+            // Act
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
+            string actual = await res.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+            Assert.Contains("is not a valid name for an organization", actual);
+        }
     }
 }
