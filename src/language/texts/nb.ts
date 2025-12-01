@@ -362,7 +362,7 @@ export function nb() {
     'receipt.receipt': 'Kvittering',
     'receipt.ref_num': 'Referansenummer',
     'receipt.sender': 'Avsender',
-    'receipt.subtitle': 'Kopi av din kvittering er sendt til ditt arkiv',
+    'receipt.subtitle': 'Din kvittering er lagret og tilgjengelig i din innboks',
     'receipt.title': 'Skjemaet er sendt inn',
     'receipt.title_submitted': 'Følgende er sendt inn:',
     'receipt_platform.attachments': 'Vedlegg',

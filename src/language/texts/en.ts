@@ -357,7 +357,7 @@ export function en() {
     'receipt.receipt': 'Receipt',
     'receipt.ref_num': 'Reference number',
     'receipt.sender': 'Sender',
-    'receipt.subtitle': 'A copy of your receipt has been sent to your archive',
+    'receipt.subtitle': 'Your receipt has been saved and is available in your inbox',
     'receipt.title': 'The form is submitted',
     'receipt.title_submitted': 'The following is submitted:',
     'receipt_platform.attachments': 'Attachments',

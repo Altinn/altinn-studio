@@ -359,7 +359,7 @@ export function nn() {
     'receipt.receipt': 'Kvittering',
     'receipt.ref_num': 'Referansenummer',
     'receipt.sender': 'Avsendar',
-    'receipt.subtitle': 'Kopi av kvitteringa di er sendt til ditt arkiv',
+    'receipt.subtitle': 'Kvitteringa di er lagra og tilgjengeleg i innboksen din',
     'receipt.title': 'Skjemaet er sendt inn',
     'receipt.title_submitted': 'Følgjande er sendt inn:',
     'receipt_platform.attachments': 'Vedlegg',
