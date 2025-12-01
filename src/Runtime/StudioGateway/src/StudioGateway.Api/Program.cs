@@ -1,10 +1,12 @@
 using StudioGateway.Api;
+using StudioGateway.Api.Authentication;
 using StudioGateway.Api.Flux;
 using StudioGateway.Api.Hosting;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.AddHostingConfiguration();
+builder.AddMaskinportenAuthentication();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -19,6 +21,9 @@ var app = builder.Build();
 
 app.UseHsts();
 app.UseForwardedHeaders();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapOpenApi();
 app.UseSwaggerUI(options =>
