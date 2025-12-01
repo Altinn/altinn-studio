@@ -31,3 +31,5 @@ jobs:
     - name: Run MCP unit tests
       working-directory: src/AI/mcp
       run: python -m pytest
+      env:
+        AZURE_API_KEY: ${{ secrets.AZURE_AI_KEY }}
