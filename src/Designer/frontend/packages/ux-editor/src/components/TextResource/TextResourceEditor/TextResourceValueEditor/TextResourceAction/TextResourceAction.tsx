@@ -1,111 +1,105 @@
-import {
-  StudioButton,
-  StudioFieldset,
-  StudioDeleteButton,
-  StudioHeading,
-} from '@studio/components';
+import { StudioConfigCard } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import React, { useEffect, useState } from 'react';
-import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
-import { TextResourceEditor } from '../../TextResourceEditor';
-import classes from './TextResourceAction.module.css';
+import React, { useEffect, useMemo, useState } from 'react';
+import { TextResourceEditor, TextResourceTab } from '../../TextResourceEditor';
 import type { TranslationKey } from '@altinn-studio/language/type';
-import { useTextResourceValue } from '../../../hooks/useTextResourceValue';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { type GenerateTextResourceIdOptions } from '../../../TextResource';
+import { useUpsertTextResourceMutation } from '../../../../../hooks/mutations/useUpsertTextResourceMutation';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useTextResourceValue } from '../../../hooks/useTextResourceValue';
+import { generateId } from './TextResourceActionUtils';
 
 export type TextResourceActionProps = {
-  legend: TranslationKey | string;
-  textResourceId: string;
-  onReferenceChange?: (id: string) => void;
-  onSave: (textResourceId: string, value: string) => void;
-  onCancel: () => void;
-  onDelete: () => void;
+  label: TranslationKey | string;
+  textResourceId?: string;
+  generateIdOptions?: GenerateTextResourceIdOptions;
   disableSearch?: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  handleIdChange: (id: string) => void;
+  handleRemoveTextResource?: () => void;
 };
 
-enum TextResourceTab {
-  Type = 'type',
-  Search = 'search',
-}
-
 export const TextResourceAction = ({
-  legend,
+  label,
   textResourceId,
-  onSave,
-  onCancel,
-  onDelete,
-  onReferenceChange,
+  generateIdOptions,
   disableSearch,
+  setIsOpen,
+  handleIdChange,
+  handleRemoveTextResource,
 }: TextResourceActionProps) => {
   const { t } = useTranslation();
-  const initialValue = useTextResourceValue(textResourceId);
-  const [textResourceValue, setTextResourceValue] = useState(initialValue);
+  const defaultId = useMemo(() => generateId(generateIdOptions), [generateIdOptions]);
+  const { org, app } = useStudioEnvironmentParams();
+  const { mutate: upsertTextResourceMutation } = useUpsertTextResourceMutation(org, app);
   const [activeTab, setActiveTab] = useState<TextResourceTab>(TextResourceTab.Type);
+  const [currentTextResourceId, setCurrentTextResourceId] = useState<string>(
+    textResourceId || defaultId,
+  );
+  const initialValue = useTextResourceValue(textResourceId);
+  const textValue = useTextResourceValue(currentTextResourceId);
+  const [textResourceValue, setTextResourceValue] = useState(textValue);
 
   useEffect(() => {
-    setTextResourceValue(initialValue);
-  }, [initialValue, textResourceId]);
+    setTextResourceValue(textValue);
+  }, [textValue]);
 
-  const handleTextChange = (newValue: string) => setTextResourceValue(newValue);
+  const handleReferenceChange = (id: string) => {
+    setCurrentTextResourceId(id || defaultId);
+  };
 
-  const handleSave = () => onSave(textResourceId, textResourceValue);
+  const handleSave = () => {
+    handleIdChange(currentTextResourceId);
+    upsertTextResourceMutation({
+      textId: currentTextResourceId,
+      language: DEFAULT_LANGUAGE,
+      translation: textResourceValue,
+    });
+    setIsOpen(false);
+  };
 
   const handleCancel = () => {
-    setTextResourceValue(initialValue);
-    onCancel();
+    setIsOpen(false);
   };
 
   const handleDelete = () => {
-    onDelete();
-    onCancel();
+    handleRemoveTextResource?.();
+    setIsOpen(false);
   };
 
   const shouldShowButtons = !(activeTab === TextResourceTab.Search && disableSearch);
+  const isSaveButtonDisabled = !textResourceValue?.trim() || textResourceValue === initialValue;
 
   return (
-    <StudioFieldset
-      aria-label={legend}
-      className={classes.fieldset}
-      legend={
-        <div className={classes.header}>
-          <StudioHeading>
-            {legend} ({t('language.' + DEFAULT_LANGUAGE)})
-          </StudioHeading>
-          <StudioDeleteButton
-            disabled={!(initialValue && initialValue.trim() !== '')}
-            confirmMessage={t('ux_editor.text_resource_bindings.delete_confirm_question')}
-            onDelete={handleDelete}
-          >
-            {t('general.delete')}
-          </StudioDeleteButton>
-        </div>
-      }
-    >
-      <TextResourceEditor
-        textResourceId={textResourceId}
-        onTextChange={handleTextChange}
-        onReferenceChange={onReferenceChange}
-        disableSearch={disableSearch}
-        textResourceValue={textResourceValue}
-        onTabChange={setActiveTab}
+    <StudioConfigCard>
+      <StudioConfigCard.Header
+        cardLabel={`${label} (${t('language.' + DEFAULT_LANGUAGE)})`}
+        deleteAriaLabel={t('general.delete')}
+        confirmDeleteMessage={t('ux_editor.text_resource_bindings.delete_confirm_question')}
+        onDelete={handleDelete}
+        isDeleteDisabled={!textResourceId}
       />
-      <div className={classes.buttonGroup}>
-        {shouldShowButtons && (
-          <>
-            <StudioButton
-              variant='primary'
-              onClick={handleSave}
-              icon={<CheckmarkIcon />}
-              disabled={!textResourceValue?.trim() && !(activeTab === TextResourceTab.Search)}
-            >
-              {t('general.save')}
-            </StudioButton>
-            <StudioButton variant='secondary' onClick={handleCancel} icon={<XMarkIcon />}>
-              {t('general.cancel')}
-            </StudioButton>
-          </>
-        )}
-      </div>
-    </StudioFieldset>
+      <StudioConfigCard.Body>
+        <TextResourceEditor
+          textResourceId={currentTextResourceId}
+          onTextChange={setTextResourceValue}
+          onReferenceChange={handleReferenceChange}
+          disableSearch={disableSearch}
+          textResourceValue={textResourceValue}
+          onTabChange={setActiveTab}
+        />
+      </StudioConfigCard.Body>
+      {shouldShowButtons && (
+        <StudioConfigCard.Footer
+          saveLabel={t('general.save')}
+          cancelLabel={t('general.cancel')}
+          onCancel={handleCancel}
+          onSave={handleSave}
+          isLoading={false}
+          isDisabled={isSaveButtonDisabled}
+        />
+      )}
+    </StudioConfigCard>
   );
 };

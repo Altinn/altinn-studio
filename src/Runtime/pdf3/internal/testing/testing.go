@@ -24,7 +24,7 @@ type PdfInternalsTestInput struct {
 
 // NewTestInput creates a new test input with a generated UUID
 func NewTestInput(cleanupDelaySeconds int) *PdfInternalsTestInput {
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	return &PdfInternalsTestInput{
 		ID:                  uuid.New().String(),
 		CleanupDelaySeconds: cleanupDelaySeconds,
@@ -32,7 +32,7 @@ func NewTestInput(cleanupDelaySeconds int) *PdfInternalsTestInput {
 }
 
 func NewTestInputFrom(other *PdfInternalsTestInput) *PdfInternalsTestInput {
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	return &PdfInternalsTestInput{
 		ID:                  uuid.New().String(),
 		CleanupDelaySeconds: other.CleanupDelaySeconds,
@@ -40,7 +40,7 @@ func NewTestInputFrom(other *PdfInternalsTestInput) *PdfInternalsTestInput {
 }
 
 func NewDefaultTestInput() *PdfInternalsTestInput {
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	return &PdfInternalsTestInput{
 		ID: uuid.NewString(),
 	}
@@ -54,40 +54,40 @@ func TestInputContextKey() contextKey {
 }
 
 func HasTestHeader(headers http.Header) bool {
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	return headers.Get(TestInputHeaderName) != ""
 }
 
 func (i *PdfInternalsTestInput) Serialize(headers http.Header) {
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	json, err := json.Marshal(i)
-	assert.AssertWithMessage(err == nil, "Should be able to serialize input")
+	assert.That(err == nil, "Should be able to serialize input")
 	value := base64.StdEncoding.EncodeToString(json)
 	headers.Add(TestInputHeaderName, value)
 }
 
 func (i *PdfInternalsTestInput) String() string {
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	json, err := json.MarshalIndent(i, "", "  ")
-	assert.AssertWithMessage(err == nil, "Should be able to JSON serialize")
+	assert.That(err == nil, "Should be able to JSON serialize")
 	return string(json)
 }
 
 func (i *PdfInternalsTestInput) Deserialize(headers http.Header) {
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
-	assert.Assert(i != nil)
+	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	assert.That(i != nil, "Test input should not be nil")
 	header := headers.Get(TestInputHeaderName)
 	if header != "" {
 		value, err := base64.StdEncoding.DecodeString(string(header))
-		assert.AssertWithMessage(err == nil, "Should be able to decode input")
+		assert.That(err == nil, "Should be able to decode input")
 		err = json.Unmarshal(value, i)
-		assert.AssertWithMessage(err == nil, "Should be able to deserialize input")
-		assert.AssertWithMessage(i.ID != "", "Test input ID is required")
+		assert.That(err == nil, "Should be able to deserialize input")
+		assert.That(i.ID != "", "Test input ID is required")
 	}
 }
 
 func CopyTestInput(dst http.Header, src http.Header) {
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	header := src.Get(TestInputHeaderName)
 	if header != "" {
 		dst.Set(TestInputHeaderName, header)
@@ -114,9 +114,9 @@ type PdfInternalsTestOutput struct {
 
 // NewTestOutput creates a new test output with the ID from the input
 func NewTestOutput(input *PdfInternalsTestInput) *PdfInternalsTestOutput {
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
-	assert.Assert(input != nil)
-	assert.AssertWithMessage(input.ID != "", "Test input ID is required")
+	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	assert.That(input != nil, "Test input should not be nil")
+	assert.That(input.ID != "", "Test input ID is required")
 	return &PdfInternalsTestOutput{
 		ID:            input.ID,
 		BrowserStates: make([]BrowserState, 0),
@@ -126,7 +126,7 @@ func NewTestOutput(input *PdfInternalsTestInput) *PdfInternalsTestOutput {
 
 // MarkComplete signals that all browser state snapshots have been collected
 func (o *PdfInternalsTestOutput) MarkComplete() {
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	if o.complete != nil {
 		close(o.complete)
 	}
@@ -134,7 +134,7 @@ func (o *PdfInternalsTestOutput) MarkComplete() {
 
 // WaitForComplete waits for all snapshots to be collected, with a timeout
 func (o *PdfInternalsTestOutput) WaitForComplete(timeout time.Duration) bool {
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	if o.complete == nil {
 		return true // Already complete or no channel
 	}
@@ -147,7 +147,7 @@ func (o *PdfInternalsTestOutput) WaitForComplete(timeout time.Duration) bool {
 }
 
 func (o *PdfInternalsTestOutput) HadErrors() bool {
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	for _, state := range o.BrowserStates {
 		if state.ConsoleErrorLogs != 0 || state.BrowserErrors != 0 {
 			return true
@@ -157,18 +157,18 @@ func (o *PdfInternalsTestOutput) HadErrors() bool {
 }
 
 func (o *PdfInternalsTestOutput) String() string {
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	json, err := json.MarshalIndent(o, "", "  ")
-	assert.AssertWithMessage(err == nil, "Should be able to JSON serialize")
+	assert.That(err == nil, "Should be able to JSON serialize")
 	return string(json)
 }
 
 func (o *PdfInternalsTestOutput) SnapshotString() string {
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	copy := *o
 	copy.ID = "UUID"
 	json, err := json.MarshalIndent(copy, "", "  ")
-	assert.AssertWithMessage(err == nil, "Should be able to JSON serialize")
+	assert.That(err == nil, "Should be able to JSON serialize")
 	return string(json)
 }
 
@@ -177,23 +177,23 @@ var testOutputStore = concurrent.NewMap[string, *PdfInternalsTestOutput]()
 
 // StoreTestOutput stores a test output by ID (only in test internals mode)
 func StoreTestOutput(output *PdfInternalsTestOutput) {
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
-	assert.Assert(output != nil)
-	assert.AssertWithMessage(output.ID != "", "Test output ID is required")
+	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	assert.That(output != nil, "Test output should not be nil")
+	assert.That(output.ID != "", "Test output ID is required")
 	testOutputStore.Set(output.ID, output)
 }
 
 // GetTestOutput retrieves a test output by ID (only in test internals mode)
 func GetTestOutput(id string) (*PdfInternalsTestOutput, bool) {
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
-	assert.AssertWithMessage(id != "", "Test output ID is required")
+	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	assert.That(id != "", "Test output ID is required")
 	return testOutputStore.Get(id)
 }
 
 // UpdateTestOutput atomically updates a test output by ID (only in test internals mode)
 func UpdateTestOutput(id string, fn func(*PdfInternalsTestOutput)) bool {
-	assert.AssertWithMessage(runtime.IsTestInternalsMode, "Should only run as part of testing")
-	assert.AssertWithMessage(id != "", "Test output ID is required")
+	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	assert.That(id != "", "Test output ID is required")
 	return testOutputStore.Update(id, func(ptr **PdfInternalsTestOutput) {
 		fn(*ptr)
 	})

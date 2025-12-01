@@ -159,7 +159,6 @@ describe('FormComponentConfig', () => {
 
   it('should not render property if it is null', () => {
     renderFormComponentConfig({
-      hideUnsupported: true,
       schema: {
         ...InputSchema,
         properties: {
@@ -212,7 +211,6 @@ describe('FormComponentConfig', () => {
       editFormId: '',
       component: inputComponent,
       handleComponentUpdate: jest.fn(),
-      hideUnsupported: false,
     };
     return renderWithProviders(<FormComponentConfig {...defaultProps} {...props} />);
   };

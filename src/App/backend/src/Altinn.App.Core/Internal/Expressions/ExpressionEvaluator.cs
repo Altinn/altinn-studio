@@ -221,7 +221,7 @@ public static class ExpressionEvaluator
 
     private static async Task<ExpressionValue> DataModel(
         ModelBinding key,
-        DataElementIdentifier defaultDataElementIdentifier,
+        DataElementIdentifier? defaultDataElementIdentifier,
         int[]? indexes,
         LayoutEvaluatorState state
     )

@@ -1,0 +1,107 @@
+name: Runtime - deploy grafana manifests
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - infra/runtime/grafana-manifests/**
+      - .github/workflows/deploy-runtime-grafana-manifests.yaml
+  workflow_dispatch:
+    inputs:
+      rings:
+        description: 'Rings to tag the artifact with. Format of the input object is [{"ring": "tt_ring1", "environment": "runtime_tt_ring1"}].'
+        required: false
+        default: '[{"ring": "tt_ring1", "environment": "runtime_tt_ring1"}]'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  get-short-sha:
+    uses: ./.github/workflows/template-short-sha.yaml
+
+  construct-rings-array:
+    runs-on: ubuntu-latest
+    env:
+      default-rings: >-
+        [{"ring": "tt_ring1", "environment": "runtime_tt_ring1"},{"ring": "tt_ring2", "environment": "runtime_tt_ring2"},{"ring": "prod_ring1", "environment": "runtime_prod_ring1"},{"ring": "prod_ring2", "environment": "runtime_prod_ring2"}]
+    outputs:
+      ringsjson: ${{ steps.construct-rings.outputs.ringsjson }}
+    steps:
+      - name: Construct rings array
+        id: construct-rings
+        run: |
+          rings='${{ github.event.inputs.rings }}'
+          if [ -z "$rings" ]; then
+            rings='${{ env.default-rings }}'
+          fi
+          echo "Raw rings input: $rings"
+          echo "ringsjson=${rings}" >> $GITHUB_OUTPUT
+
+  push-grafana-manifests-artifact:
+    name: Push grafana manifests as OCI artifact
+    needs: get-short-sha
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      REGISTRY_NAME: altinncr
+      CONFIG_REPO: altinncr.azurecr.io/studio-apps/runtime-grafana-manifests-repo:${{ needs.get-short-sha.outputs.short-sha }}
+    outputs:
+      config-repo: altinncr.azurecr.io/studio-apps/runtime-grafana-manifests-repo:${{ needs.get-short-sha.outputs.short-sha }}
+    defaults:
+      run:
+        working-directory: infra/runtime/grafana-manifests
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name ${{ env.REGISTRY_NAME }}
+
+      - name: flux install
+        uses: fluxcd/flux2/action@06ed49dcd3f3ce2fc8d1988848245873a91550bc # v2.7.4
+
+      - name: push artifact
+        working-directory: infra/runtime/grafana-manifests
+        run: |
+          flux push artifact oci://${{ env.CONFIG_REPO }} \
+            --provider=azure \
+            --reproducible \
+            --path="." \
+            --source="$(git config --get remote.origin.url)" \
+            --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
+
+  tag-grafana-manifests:
+    name: Tag grafana manifests
+    needs: [push-grafana-manifests-artifact, construct-rings-array]
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.construct-rings-array.outputs.ringsjson) }}
+    steps:
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name altinncr
+
+      - name: flux install
+        uses: fluxcd/flux2/action@06ed49dcd3f3ce2fc8d1988848245873a91550bc # v2.7.4
+
+      - name: tag artifact
+        run: |
+          flux tag artifact oci://${{ needs.push-grafana-manifests-artifact.outputs.config-repo }} \
+            --tag ${{ matrix.ring }}

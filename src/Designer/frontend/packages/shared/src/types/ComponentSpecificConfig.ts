@@ -60,7 +60,7 @@ type DataModelBindingsPersonLookup = {
 
 type Option<T extends string | boolean | number = string | boolean | number> = {
   label: string;
-  value: T;
+  value?: T;
   description?: string;
   helpText?: string;
 };

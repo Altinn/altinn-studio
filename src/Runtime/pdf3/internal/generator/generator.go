@@ -11,6 +11,7 @@ import (
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/browser"
 	"altinn.studio/pdf3/internal/cdp"
+	"altinn.studio/pdf3/internal/config"
 	"altinn.studio/pdf3/internal/log"
 	"altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/testing"
@@ -68,14 +69,14 @@ func New() (*Custom, error) {
 	go func() {
 		defer func() {
 			r := recover()
-			assert.AssertWithMessage(r == nil, "Generator initialization panicked", "error", r)
+			assert.That(r == nil, "Generator initialization panicked", "error", r)
 		}()
 
 		logger.Info("Initializing Custom CDP")
 
 		// Get and set browser version
 		version, err := getBrowserVersion(logger)
-		assert.AssertWithMessage(err == nil, "Failed to get browser version", "error", err)
+		assert.That(err == nil, "Failed to get browser version", "error", err)
 
 		generator.browserVersion = version
 		logger.Info("Chrome version",
@@ -88,7 +89,7 @@ func New() (*Custom, error) {
 			logger.Info("Starting browser worker", "id", id)
 
 			session, err := newBrowserSession(logger, id)
-			assert.AssertWithMessage(err == nil, "Failed to create worker", "id", id, "error", err)
+			assert.That(err == nil, "Failed to create worker", "id", id, "error", err)
 
 			return session
 		}
@@ -109,8 +110,8 @@ func (g *Custom) IsReady() bool {
 
 func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types.PdfResult, *types.PDFError) {
 	session := g.activeSession.Load()
-	assert.AssertWithMessage(session != nil, "The worker should not call the generator unless it is ready", "url", request.URL)
-	assert.AssertWithMessage(request.Validate() == nil, "Invalid request passed through to worker", "url", request.URL)
+	assert.That(session != nil, "The worker should not call the generator unless it is ready", "url", request.URL)
+	assert.That(request.Validate() == nil, "Invalid request passed through to worker", "url", request.URL)
 
 	responder := make(chan workerResponse, 1)
 	req := workerRequest{
@@ -140,7 +141,7 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 	case <-ctx.Done():
 		return nil, types.NewPDFError(types.ErrClientDropped, "", ctx.Err())
 	case <-time.After(types.RequestTimeout()):
-		assert.AssertWithMessage(false, "generator failed to respond to request, something must be stuck", "url", request.URL)
+		assert.That(false, "generator failed to respond to request, something must be stuck", "url", request.URL)
 		return nil, types.NewPDFError(types.ErrGenerationFail, "internal request timeout", nil)
 	}
 }
@@ -158,7 +159,7 @@ func (g *Custom) periodicRestart() {
 	const recheckInterval = 1 * time.Minute // How often to recheck if restart is disabled
 
 	for {
-		interval := types.BrowserRestartInterval()
+		interval := config.ReadConfig().BrowserRestartInterval
 
 		// If interval is 0 or negative, periodic restart is disabled
 		if interval <= 0 {
@@ -219,7 +220,7 @@ func (r *workerRequest) tryGetTestModeInput() *testing.PdfInternalsTestInput {
 	}
 
 	value, ok := obj.(*testing.PdfInternalsTestInput)
-	assert.AssertWithMessage(ok, "Invalid type for test internals mode input on context")
+	assert.That(ok, "Invalid type for test internals mode input on context")
 	return value
 }
 

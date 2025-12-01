@@ -20,14 +20,9 @@ func TestNew_TestserverInBothVariants(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cachePath := filepath.Join(t.TempDir(), ".cache")
 
-			runtime, err := New(tt.variant, cachePath)
+			runtime, err := New(tt.variant, cachePath, DefaultOptions())
 			if err != nil {
 				t.Fatalf("New() error = %v", err)
-			}
-
-			// Verify testserver.yaml exists
-			if _, err := os.Stat(runtime.testserverPath); err != nil {
-				t.Fatalf("testserver.yaml not found for %s variant: %v", tt.name, err)
 			}
 
 			// Read and verify it has content

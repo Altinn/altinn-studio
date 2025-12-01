@@ -12,7 +12,7 @@ const area1: PolicyAccessPackageArea = {
   name: 'Area 1',
   urn: 'urn:area1',
   description: '',
-  icon: '',
+  iconUrl: '',
   packages: [
     {
       id: 'package1',
@@ -52,7 +52,7 @@ const area2: PolicyAccessPackageArea = {
   name: 'Area 2',
   urn: 'urn:area2',
   description: '',
-  icon: '',
+  iconUrl: '',
   packages: [
     {
       id: 'package4',

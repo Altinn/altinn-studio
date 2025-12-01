@@ -13,7 +13,9 @@ import (
 	"time"
 
 	"altinn.studio/pdf3/internal/assert"
+	"altinn.studio/pdf3/internal/config"
 	"altinn.studio/pdf3/internal/generator"
+	ihttp "altinn.studio/pdf3/internal/http"
 	"altinn.studio/pdf3/internal/log"
 	iruntime "altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/telemetry"
@@ -46,19 +48,19 @@ func main() {
 	defer host.Stop()
 
 	hostname, err := os.Hostname()
-	assert.AssertWithMessage(err == nil, "Could not read hostname", "error", err)
+	assert.That(err == nil, "Could not read hostname", "error", err)
 
 	workerId = hostname
 
-	// Get pod IP from environment variable (set by Kubernetes downward API)
-	workerIP = os.Getenv("POD_IP")
-	assert.AssertWithMessage(workerIP != "", "Worker IP should always be configured", "worker_id", workerId)
+	workerIP, err = discoverLocalIP()
+	assert.That(err == nil, "Failed to discover local IP", "error", err)
+	assert.That(workerIP != "", "Worker IP should be available", "worker_id", workerId)
 
 	// Create logger with worker context
 	logger := baseLogger.With("worker_id", workerId, "worker_ip", workerIP)
 
 	gen, err := generator.New()
-	assert.AssertWithMessage(err == nil, "Failed to create PDF generator", "error", err)
+	assert.That(err == nil, "Failed to create PDF generator", "error", err)
 	defer func() {
 		// Closing PDF generator during shutdown
 		if err := gen.Close(); err != nil {
@@ -100,7 +102,14 @@ func main() {
 		}
 	})
 
-	http.Handle("/generate", tel.WrapHandler("POST /generate", generatePdfHandler(logger, gen)))
+	cfg := config.ReadConfig()
+	// The localtest harness will run on all dev machines
+	// We can avoid some overhead by just running the single container
+	if cfg.Environment == "localtest" {
+		http.Handle("/pdf", tel.WrapHandler("POST /pdf", generateLocalPdfHandler(logger, gen)))
+	} else {
+		http.Handle("/generate", tel.WrapHandler("POST /generate", generatePdfHandler(logger, gen)))
+	}
 	http.Handle("/metrics", tel.Handler())
 
 	// Only register test output endpoint in test internals mode
@@ -144,6 +153,106 @@ func main() {
 	}
 
 	logger.Info("Server shut down gracefully")
+}
+
+func generateLocalPdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.HandlerFunc {
+	assert.That(!iruntime.IsTestInternalsMode, "Localtest env should not run internals test mode")
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			ihttp.WriteProblemDetails(logger, w, http.StatusMethodNotAllowed, ihttp.ProblemDetails{
+				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.5",
+				Title:  "Method Not Allowed",
+				Status: http.StatusMethodNotAllowed,
+				Detail: "Only POST method is allowed",
+			})
+			return
+		}
+
+		ct := strings.ToLower(r.Header.Get("Content-Type"))
+		if !strings.HasPrefix(ct, "application/json") {
+			ihttp.WriteProblemDetails(logger, w, http.StatusUnsupportedMediaType, ihttp.ProblemDetails{
+				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.13",
+				Title:  "Unsupported Media Type",
+				Status: http.StatusUnsupportedMediaType,
+				Detail: "Content-Type must be application/json",
+			})
+			return
+		}
+		const maxBodySize = 1024 * 64 // 64K should be plenty for the JSON request
+		if r.ContentLength > maxBodySize {
+			ihttp.WriteProblemDetails(logger, w, http.StatusRequestEntityTooLarge, ihttp.ProblemDetails{
+				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.11",
+				Title:  "Request Entity Too Large",
+				Status: http.StatusRequestEntityTooLarge,
+				Detail: fmt.Sprintf("Request body too large (max %d bytes)", maxBodySize),
+			})
+			return
+		}
+
+		r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
+		defer func() { _ = r.Body.Close() }()
+
+		var req types.PdfRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			ihttp.WriteProblemDetails(logger, w, http.StatusBadRequest, ihttp.ProblemDetails{
+				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+				Title:  "Bad Request",
+				Status: http.StatusBadRequest,
+				Detail: fmt.Sprintf("Invalid JSON payload: %v", err),
+			})
+			return
+		}
+
+		logger = logger.With("url", req.URL)
+
+		if err := req.Validate(); err != nil {
+			ihttp.WriteProblemDetails(logger, w, http.StatusBadRequest, ihttp.ProblemDetails{
+				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+				Title:  "Bad Request",
+				Status: http.StatusBadRequest,
+				Detail: fmt.Sprintf("Validation error: %v", err),
+			})
+			return
+		}
+
+		requestContext := r.Context()
+		result, pdfErr := gen.Generate(requestContext, req)
+
+		if pdfErr != nil {
+			errStr := pdfErr.Error()
+			errorCode := http.StatusInternalServerError
+
+			problemType := "https://tools.ietf.org/html/rfc7231#section-6.6.1"
+			problemTitle := "Internal Server Error"
+			if pdfErr.Is(types.ErrQueueFull) {
+				problemType = "https://tools.ietf.org/html/rfc6585#section-4"
+				problemTitle = "Too Many Requests"
+				errorCode = http.StatusTooManyRequests
+			}
+
+			ihttp.WriteProblemDetails(logger, w, errorCode, ihttp.ProblemDetails{
+				Type:   problemType,
+				Title:  problemTitle,
+				Status: errorCode,
+				Detail: errStr,
+			})
+			logger.Error(
+				"Error during generation",
+				"status_code", errorCode,
+				"detail", errStr,
+			)
+			return
+		}
+
+		// Success - return PDF bytes
+		w.Header().Set("Content-Type", "application/pdf")
+
+		w.WriteHeader(http.StatusOK)
+		if _, err := w.Write(result.Data); err != nil {
+			logger.Error("Failed to write PDF response", "error", err)
+		}
+	}
 }
 
 func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.HandlerFunc {
@@ -224,9 +333,28 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 	}
 }
 
+// discoverLocalIP finds the first non-loopback IPv4 address on this host.
+// This works in both Kubernetes and regular containers.
+func discoverLocalIP() (string, error) {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return "", err
+	}
+
+	for _, addr := range addrs {
+		if ipNet, ok := addr.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
+			if ipNet.IP.To4() != nil {
+				return ipNet.IP.String(), nil
+			}
+		}
+	}
+
+	return "", fmt.Errorf("no non-loopback IPv4 address found")
+}
+
 func getTestOutputHandler(logger *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		assert.AssertWithMessage(iruntime.IsTestInternalsMode, "Test output handler should only be registered in test internals mode")
+		assert.That(iruntime.IsTestInternalsMode, "Test output handler should only be registered in test internals mode")
 
 		if r.Method != http.MethodGet {
 			w.WriteHeader(http.StatusMethodNotAllowed)

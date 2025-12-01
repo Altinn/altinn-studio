@@ -68,32 +68,22 @@ func Test_Networking(t *testing.T) {
 	harness.Snapshot(t, []byte(content), "error", "txt")
 }
 
+// Test_CompareOldAndNew generates a PDF and saves snapshots.
+// Historical note: This test previously compared output from the old pdf-generator
+// against the new pdf3 generator. The old generator has been decommissioned, but
+// old snapshots are kept in _snapshots/ for manual reference if needed.
 func Test_CompareOldAndNew(t *testing.T) {
-	err := harness.Runtime.KubernetesClient.RolloutStatus("pdf-generator", "pdf", 2*time.Minute)
-	if err != nil {
-		t.Fatalf("Error waiting for old PDF generator: %v", err)
-	}
-
 	req := harness.GetDefaultPdfRequest(t)
 	req.URL = harness.TestServerURL + "/app/?render=light"
 
-	newResp, newErr := harness.RequestNewPDF(t, req)
-	oldResp, oldErr := harness.RequestOldPDF(t, req)
-	if newErr != nil {
-		t.Errorf("New PDF generator failure: %v", newErr)
-	}
-	if oldErr != nil {
-		t.Errorf("Old PDF generator failure: %v", oldErr)
-	}
-	if newErr != nil || oldErr != nil {
-		return
+	newResp, err := harness.RequestNewPDF(t, req)
+	if err != nil {
+		t.Fatalf("PDF generator failure: %v", err)
 	}
 
 	newPdf := harness.MakePdfDeterministic(t, newResp.Data)
-	oldPdf := harness.MakePdfDeterministic(t, oldResp.Data)
-	harness.Snapshot(t, oldPdf, "old", "pdf")
+
 	harness.Snapshot(t, newPdf, "new", "pdf")
-	harness.Snapshot(t, oldPdf, "old", "txt")
 	harness.Snapshot(t, newPdf, "new", "txt")
 
 	output, err := newResp.LoadOutput(t)
@@ -103,7 +93,7 @@ func Test_CompareOldAndNew(t *testing.T) {
 		harness.Snapshot(t, []byte(output.SnapshotString()), "testoutput", "json")
 	}
 
-	t.Logf("Generated PDF sizes: %d and %d bytes", len(newResp.Data), len(oldResp.Data))
+	t.Logf("Generated PDF size: %d bytes", len(newResp.Data))
 }
 
 func Test_WithConsoleErrors(t *testing.T) {
@@ -338,4 +328,46 @@ func Test_CookieIsolation(t *testing.T) {
 
 	// We now expect from these snapshots that there are just the single default cookie in this snapshot
 	harness.Snapshot(t, []byte(output2.SnapshotString()), "second_request", "json")
+}
+
+func Test_TADForm(t *testing.T) {
+	req := harness.GetDefaultPdfRequest(t)
+	req.URL = harness.TestServerURL + "/app/tad/eur1/"
+	req.WaitFor = nil // Nil here should still wait for 'load' event
+
+	resp, err := harness.RequestNewPDF(t, req)
+	if err != nil {
+		t.Fatalf("Failed to generate PDF: %v", err)
+	}
+
+	if !harness.IsPDF(resp.Data) {
+		t.Error("Response is not a valid PDF")
+	}
+
+	pdf := harness.MakePdfDeterministic(t, resp.Data)
+	harness.Snapshot(t, pdf, "output", "pdf")
+	harness.Snapshot(t, pdf, "output", "txt")
+
+	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
+}
+
+func Test_TADFormWaitFor(t *testing.T) {
+	req := harness.GetDefaultPdfRequest(t)
+	req.URL = harness.TestServerURL + "/app/tad/eur1/"
+	req.WaitFor = types.NewWaitForString("#readyForPrint")
+
+	resp, err := harness.RequestNewPDF(t, req)
+	if err != nil {
+		t.Fatalf("Failed to generate PDF: %v", err)
+	}
+
+	if !harness.IsPDF(resp.Data) {
+		t.Error("Response is not a valid PDF")
+	}
+
+	pdf := harness.MakePdfDeterministic(t, resp.Data)
+	harness.Snapshot(t, pdf, "output", "pdf")
+	harness.Snapshot(t, pdf, "output", "txt")
+
+	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
 }

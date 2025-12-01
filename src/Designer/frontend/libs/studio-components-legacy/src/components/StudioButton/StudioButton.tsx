@@ -1,6 +1,6 @@
 import { Button } from '@digdir/designsystemet-react';
 import type { ButtonProps } from '@digdir/designsystemet-react';
-import type { ElementType, ReactNode } from 'react';
+import type { ComponentProps, ComponentPropsWithoutRef, ElementType, ReactNode } from 'react';
 import React, { forwardRef } from 'react';
 import cn from 'classnames';
 import classes from './StudioButton.module.css';
@@ -23,7 +23,10 @@ export type StudioButtonProps = Override<
  * @deprecated use `StudioButton` from `@studio/components` instead
  */
 
-const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> = forwardRef(
+const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> = forwardRef<
+  ComponentProps<OverridableComponent<StudioButtonProps, HTMLButtonElement>>['ref'],
+  ComponentPropsWithoutRef<OverridableComponent<StudioButtonProps, HTMLButtonElement>>
+>(
   <As extends ElementType = 'button'>(
     {
       as,
