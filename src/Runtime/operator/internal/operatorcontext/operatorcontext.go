@@ -94,10 +94,10 @@ func Discover(ctx context.Context, environment string, orgRegistry *orgs.OrgRegi
 }
 
 func DiscoverOrDie(ctx context.Context, environment string, orgRegistry *orgs.OrgRegistry) *Context {
-	context, err := Discover(ctx, environment, orgRegistry)
+	opCtx, err := Discover(ctx, environment, orgRegistry)
 	assert.That(err == nil, "Discover failed", "error", err)
-	assert.That(context != nil, "Discover returned nil context without error")
-	return context
+	assert.That(opCtx != nil, "Discover returned nil context without error")
+	return opCtx
 }
 
 func (c *Context) StartSpan(

@@ -10,8 +10,8 @@ import (
 	"github.com/google/uuid"
 )
 
-var InvalidClientName = errors.New("invalid client ID")
-var ClientAlreadyExists = errors.New("client already exists")
+var ErrInvalidClientName = errors.New("invalid client ID")
+var ErrClientAlreadyExists = errors.New("client already exists")
 
 const SupplierOrgNo string = "991825827"
 
@@ -39,7 +39,7 @@ func (d *Db) Insert(
 	overrideClientId string,
 ) (*ClientRecord, error) {
 	if req.ClientName == nil || *req.ClientName == "" {
-		return nil, InvalidClientName
+		return nil, ErrInvalidClientName
 	}
 	var clientId string
 	if overrideClientId != "" {
@@ -49,7 +49,7 @@ func (d *Db) Insert(
 	}
 	_, ok := d.ClientIdIndex[clientId]
 	if ok {
-		return nil, ClientAlreadyExists
+		return nil, ErrClientAlreadyExists
 	}
 
 	supplierOrg := SupplierOrgNo

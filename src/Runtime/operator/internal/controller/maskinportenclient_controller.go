@@ -44,8 +44,8 @@ type MaskinportenClientReconciler struct {
 }
 
 func NewMaskinportenClientReconciler(
-	rt rt.Runtime,
-	client client.Client,
+	r rt.Runtime,
+	k8sClient client.Client,
 	scheme *runtime.Scheme,
 	random *rand.Rand,
 ) *MaskinportenClientReconciler {
@@ -53,9 +53,9 @@ func NewMaskinportenClientReconciler(
 		random = rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64()))
 	}
 	return &MaskinportenClientReconciler{
-		Client:  client,
+		Client:  k8sClient,
 		Scheme:  scheme,
-		runtime: rt,
+		runtime: r,
 		random:  random,
 	}
 }
@@ -78,9 +78,9 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 	)
 	defer span.End()
 
-	log := log.FromContext(ctx)
+	logger := log.FromContext(ctx)
 
-	log.Info("Reconciling MaskinportenClient")
+	logger.Info("Reconciling MaskinportenClient")
 
 	// Mechanics of `Reconcile`:
 	// * Returning errors requeues the request (exponential backoff)
@@ -107,15 +107,15 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 		if notFoundIgnored != nil {
 			span.SetStatus(codes.Error, "getInstance failed")
 			span.RecordError(err)
-			log.Error(err, "Reconciling MaskinportenClient errored")
+			logger.Error(err, "Reconciling MaskinportenClient errored")
 		} else {
-			log.Info("Reconciling MaskinportenClient skipped, was deleted (so we have removed finalizer)..")
+			logger.Info("Reconciling MaskinportenClient skipped, was deleted (so we have removed finalizer)..")
 			// TODO: we end up here with NotFound after having cleaned up and removed finalizer.. why?
 		}
 		return ctrl.Result{}, notFoundIgnored
 	}
 	instance := req.Instance
-	log.Info("Loaded info", "request_kind", req.Kind.String(), "generation", instance.GetGeneration())
+	logger.Info("Loaded info", "request_kind", req.Kind.String(), "generation", instance.GetGeneration())
 	span.SetAttributes(
 		attribute.String("request_kind", req.Kind.String()),
 		attribute.Int64("generation", instance.GetGeneration()),
@@ -125,7 +125,7 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 	if err != nil {
 		// Check if this is a missing secret error (expected/recoverable condition)
 		if _, ok := err.(*maskinporten.MissingSecretError); ok {
-			log.Info("App secret not found yet, will retry later", "app", req.AppId)
+			logger.Info("App secret not found yet, will retry later", "app", req.AppId)
 			// Requeue with a delay without logging as error
 			return ctrl.Result{RequeueAfter: r.getRequeueAfter(configValue)}, nil
 		}
@@ -140,7 +140,7 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 	}
 
 	if len(executedCommands) == 0 {
-		log.Info("No actions taken")
+		logger.Info("No actions taken")
 		span.SetStatus(codes.Ok, "reconciled successfully")
 		reason := "NoActionsNeeded"
 		message := "No actions needed"
@@ -151,7 +151,7 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 		if err != nil {
 			span.SetStatus(codes.Error, "updateStatus failed")
 			span.RecordError(err)
-			log.Error(err, "Failed to update MaskinportenClient status")
+			logger.Error(err, "Failed to update MaskinportenClient status")
 			return ctrl.Result{}, err
 		}
 		return ctrl.Result{}, nil
@@ -159,7 +159,7 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 
 	// After RemoveFinalizer, the object is deleted and we can't update status
 	if executedCommands.FinalizerRemoved() {
-		log.Info("Object deleted, skipping status update")
+		logger.Info("Object deleted, skipping status update")
 		span.SetStatus(codes.Ok, "object deleted")
 		return ctrl.Result{}, nil
 	}
@@ -170,11 +170,11 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 	if err != nil {
 		span.SetStatus(codes.Error, "updateStatus failed")
 		span.RecordError(err)
-		log.Error(err, "Failed to update MaskinportenClient status")
+		logger.Error(err, "Failed to update MaskinportenClient status")
 		return ctrl.Result{}, err
 	}
 
-	log.Info("Reconciled MaskinportenClient")
+	logger.Info("Reconciled MaskinportenClient")
 
 	span.SetStatus(codes.Ok, "reconciled successfully")
 	return ctrl.Result{RequeueAfter: r.getRequeueAfter(configValue)}, nil
@@ -202,7 +202,7 @@ func (r *MaskinportenClientReconciler) updateStatus(
 	ctx, span := r.runtime.Tracer().Start(ctx, "Reconcile.updateStatus")
 	defer span.End()
 
-	log := log.FromContext(ctx)
+	logger := log.FromContext(ctx)
 
 	timestamp := metav1.Now()
 	instance.Status.LastSynced = &timestamp
@@ -308,7 +308,7 @@ func (r *MaskinportenClientReconciler) updateStatus(
 	if err != nil {
 		span.SetStatus(codes.Error, "failed to update status")
 		span.RecordError(err)
-		log.Error(err, "Failed to update MaskinportenClient status")
+		logger.Error(err, "Failed to update MaskinportenClient status")
 	}
 
 	return err
@@ -322,8 +322,8 @@ func (r *MaskinportenClientReconciler) updateStatusWithError(
 	results maskinporten.CommandResultList,
 ) {
 	origSpan := trace.SpanFromContext(ctx)
-	log := log.FromContext(ctx)
-	log.Error(origError, "Reconciliation of MaskinportenClient failed", "failure", msg)
+	logger := log.FromContext(ctx)
+	logger.Error(origError, "Reconciliation of MaskinportenClient failed", "failure", msg)
 
 	origSpan.SetStatus(codes.Error, msg)
 	origSpan.RecordError(origError)
@@ -354,7 +354,7 @@ func (r *MaskinportenClientReconciler) updateStatusWithError(
 	})
 
 	if err := r.Status().Update(ctx, instance); err != nil {
-		log.Error(err, "Failed to update MaskinportenClient error status")
+		logger.Error(err, "Failed to update MaskinportenClient error status")
 	}
 }
 
@@ -367,82 +367,92 @@ func mapCommandResultsToActionRecords(results maskinporten.CommandResultList, tr
 			TraceId:   traceId,
 		}
 
+		const skipped = "skipped"
+		const failed = "failed"
+		const created = "created"
+		const updated = "updated"
+		const deleted = "deleted"
+		const cleared = "cleared"
+		const removed = "removed"
+		const added = "added"
+		const synced = "synced"
+
 		switch result := cmdResult.Result.(type) {
 		case *maskinporten.CreateClientInApiCommandResult:
 			if result.Err == maskinporten.ErrSkipped {
-				record.Result = "skipped"
+				record.Result = skipped
 			} else if result.Err != nil {
-				record.Result = "failed"
+				record.Result = failed
 				record.Details = result.Err.Error()
 			} else {
-				record.Result = "created"
+				record.Result = created
 				record.Details = fmt.Sprintf("clientId: %s, scopes: %d", result.ClientId, result.Scopes)
 			}
 		case *maskinporten.UpdateClientInApiCommandResult:
 			if result.Err == maskinporten.ErrSkipped {
-				record.Result = "skipped"
+				record.Result = skipped
 			} else if result.Err != nil {
-				record.Result = "failed"
+				record.Result = failed
 				record.Details = result.Err.Error()
 			} else {
-				record.Result = "updated"
+				record.Result = updated
 				record.Details = fmt.Sprintf("scopes: %d, jwks: %t", result.Scopes, result.HasJwks)
 			}
 		case *maskinporten.UpdateSecretContentCommandResult:
 			if result.Err == maskinporten.ErrSkipped {
-				record.Result = "skipped"
+				record.Result = skipped
 			} else if result.Err != nil {
-				record.Result = "failed"
+				record.Result = failed
 				record.Details = result.Err.Error()
 			} else {
-				record.Result = "synced"
+				record.Result = synced
 				record.Details = fmt.Sprintf("keys: %d", len(result.KeyIds))
 			}
 		case *maskinporten.DeleteClientInApiCommandResult:
 			if result.Err == maskinporten.ErrSkipped {
-				record.Result = "skipped"
+				record.Result = skipped
 			} else if result.Err != nil {
-				record.Result = "failed"
+				record.Result = failed
 				record.Details = result.Err.Error()
 			} else {
-				record.Result = "deleted"
+				record.Result = deleted
 				record.Details = fmt.Sprintf("clientId: %s", result.ClientId)
 			}
 		case *maskinporten.DeleteSecretContentCommandResult:
 			if result.Err == maskinporten.ErrSkipped {
-				record.Result = "skipped"
+				record.Result = skipped
 			} else if result.Err != nil {
-				record.Result = "failed"
+				record.Result = failed
 				record.Details = result.Err.Error()
 			} else {
-				record.Result = "cleared"
+				record.Result = cleared
 			}
 		case *maskinporten.RemoveRotateAnnotationCommandResult:
 			if result.Err == maskinporten.ErrSkipped {
-				record.Result = "skipped"
+				record.Result = skipped
 			} else if result.Err != nil {
-				record.Result = "failed"
+				record.Result = failed
 				record.Details = result.Err.Error()
 			} else {
-				record.Result = "removed"
+				record.Result = removed
 			}
 		case *maskinporten.AddFinalizerCommandResult:
 			if result.Err == maskinporten.ErrSkipped {
-				record.Result = "skipped"
+				record.Result = skipped
 			} else if result.Err != nil {
-				record.Result = "failed"
+				record.Result = failed
 				record.Details = result.Err.Error()
 			} else {
-				record.Result = "added"
+				record.Result = added
 			}
 		case *maskinporten.RemoveFinalizerCommandResult:
 			if result.Err == maskinporten.ErrSkipped {
-				record.Result = "skipped"
+				record.Result = skipped
 			} else if result.Err != nil {
-				record.Result = "failed"
+				record.Result = failed
 				record.Details = result.Err.Error()
 			} else {
-				record.Result = "removed"
+				record.Result = removed
 			}
 		}
 
@@ -465,7 +475,7 @@ func (r *MaskinportenClientReconciler) loadInstance(
 
 	req.Instance = instance
 
-	if instance.ObjectMeta.DeletionTimestamp.IsZero() {
+	if instance.DeletionTimestamp.IsZero() {
 		if !controllerutil.ContainsFinalizer(instance, maskinporten.FinalizerName) {
 			req.Kind = RequestCreateKind
 		} else {
@@ -506,7 +516,7 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 		}
 	}
 
-	var client *maskinporten.ClientResponse
+	var mpClient *maskinporten.ClientResponse
 	var jwks *crypto.Jwks
 	var secretStateContent *maskinporten.SecretStateContent
 
@@ -519,7 +529,7 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 
 	if secretStateContent != nil {
 		if secretStateContent.ClientId != "" {
-			client, jwks, err = apiClient.GetClient(ctx, secretStateContent.ClientId)
+			mpClient, jwks, err = apiClient.GetClient(ctx, secretStateContent.ClientId)
 			if err != nil {
 				if req.Kind == RequestDeleteKind && errors.Is(err, maskinporten.ErrClientNotFound) {
 					// During deletion, if the client is already gone, we can ignore this error
@@ -544,7 +554,7 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 		for _, c := range allClients {
 			if c.ClientName != nil && *c.ClientName == clientName {
 				logger.Info("Found preexisting matching client in Maskinporten API", "clientId", c.ClientId)
-				client, jwks, err = apiClient.GetClient(ctx, c.ClientId)
+				mpClient, jwks, err = apiClient.GetClient(ctx, c.ClientId)
 				if err != nil {
 					return nil, fmt.Errorf("fetchCurrentState: error getting client: %w", err)
 				}
@@ -553,7 +563,7 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 		}
 	}
 
-	clientState, err := maskinporten.NewClientState(req.Instance, client, jwks, secret, secretStateContent)
+	clientState, err := maskinporten.NewClientState(req.Instance, mpClient, jwks, secret, secretStateContent)
 	if err != nil {
 		return nil, fmt.Errorf("fetchCurrentState: error creating client state domain model: %w", err)
 	}
@@ -570,9 +580,10 @@ func (r *MaskinportenClientReconciler) reconcile(
 	defer span.End()
 
 	operatorCtx := r.runtime.GetOperatorContext()
-	crypto := r.runtime.GetCrypto()
+	cryptoService := r.runtime.GetCrypto()
 	clock := r.runtime.GetClock()
-	commands, err := currentState.Reconcile(operatorCtx, configValue, crypto, clock)
+
+	commands, err := currentState.Reconcile(operatorCtx, configValue, cryptoService, clock)
 	if err != nil {
 		return nil, fmt.Errorf("reconcile: error generating reconciliation commands: %w", err)
 	}

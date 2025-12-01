@@ -44,12 +44,12 @@ func NewRuntime(ctx context.Context, env string, log *logr.Logger) (rt.Runtime, 
 		)
 	}
 
-	config, err := config.GetConfig(ctx, environment, "")
+	configMonitor, err := config.GetConfig(ctx, environment, "")
 	if err != nil {
 		return nil, err
 	}
 
-	configValue := config.Get()
+	configValue := configMonitor.Get()
 
 	if log != nil {
 		log.Info(
@@ -82,28 +82,28 @@ func NewRuntime(ctx context.Context, env string, log *logr.Logger) (rt.Runtime, 
 
 	cryptoRand := crand.Reader
 
-	crypto := crypto.NewDefaultService(
+	cryptoService := crypto.NewDefaultService(
 		operatorContext,
 		clock,
 		cryptoRand,
 	)
 
-	maskinportenApiClient, err := maskinporten.NewHttpApiClient(config, operatorContext, clock)
+	maskinportenApiClient, err := maskinporten.NewHttpApiClient(configMonitor, operatorContext, clock)
 	if err != nil {
 		return nil, err
 	}
 
-	rt := &runtime{
-		config:                config,
+	r := &runtime{
+		config:                configMonitor,
 		operatorContext:       *operatorContext,
-		crypto:                *crypto,
+		crypto:                *cryptoService,
 		maskinportenApiClient: maskinportenApiClient,
 		tracer:                tracer,
 		meter:                 otel.Meter(telemetry.ServiceName),
 		clock:                 clock,
 	}
 
-	return rt, nil
+	return r, nil
 }
 
 func (r *runtime) GetConfigMonitor() *config.ConfigMonitor {

@@ -11,6 +11,9 @@ import (
 // Run e2e tests using the Ginkgo runner.
 func TestE2E(t *testing.T) {
 	RegisterFailHandler(Fail)
-	fmt.Fprintf(GinkgoWriter, "Starting altinn-studio-operator suite\n")
+	_, err := fmt.Fprintf(GinkgoWriter, "Starting altinn-studio-operator suite\n")
+	if err != nil {
+		t.Fatalf("Failed to write to GinkgoWriter: %v", err)
+	}
 	RunSpecs(t, "e2e suite")
 }

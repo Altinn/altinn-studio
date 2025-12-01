@@ -82,7 +82,10 @@ func loggingMiddleware(name string, next http.Handler) http.Handler {
 		next.ServeHTTP(rec, r)
 
 		duration := time.Since(start)
-		log.Printf("[%s] <-- %s %s %d (%s)%s", name, r.Method, r.URL.Path, rec.status, duration, summarizeBody(rec.body.Bytes()))
+		log.Printf(
+			"[%s] <-- %s %s %d (%s)%s",
+			name, r.Method, r.URL.Path, rec.status, duration, summarizeBody(rec.body.Bytes()),
+		)
 	})
 }
 
@@ -620,7 +623,11 @@ func handleOrgRegistry(w http.ResponseWriter, r *http.Request) {
 			OrgNr: "405003309", // NOTE: this matches the org nr in the registry testdata in localtest, keep in sync
 		},
 		"digdir": {
-			Name:  orgs.OrgName{En: "Norwegian Digitalisation Agency", Nb: "Digitaliseringsdirektoratet", Nn: "Digitaliseringsdirektoratet"},
+			Name: orgs.OrgName{
+				En: "Norwegian Digitalisation Agency",
+				Nb: "Digitaliseringsdirektoratet",
+				Nn: "Digitaliseringsdirektoratet",
+			},
 			OrgNr: "991825827",
 		},
 	}

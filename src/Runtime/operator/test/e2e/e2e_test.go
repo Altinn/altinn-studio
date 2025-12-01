@@ -23,7 +23,7 @@ import (
 )
 
 // createStateFetcher creates a FetchStateFunc for a given MaskinportenClient name and namespace
-func createStateFetcher(k8sClient *utils.K8sClient, name, secretName, ns string) FetchStateFunc {
+func createStateFetcher(k8sClient *utils.K8sClient, name, secretName, ns string) FetchStateFunc { //nolint:unparam
 	return func() (*resourcesv1alpha1.MaskinportenClient, *corev1.Secret, error) {
 		ctx := context.Background()
 
@@ -264,14 +264,25 @@ var _ = Describe("controller", Ordered, func() {
 			Eventually(func() error {
 				resp, err := FetchToken("altinn:serviceowner/instances.read")
 				if err != nil {
-					fmt.Fprintf(GinkgoWriter, "FetchToken error: %v\n", err)
+					_, err = fmt.Fprintf(GinkgoWriter, "FetchToken error: %v\n", err)
+					if err != nil {
+						return fmt.Errorf("failed to write to GinkgoWriter: %w", err)
+					}
 					return err
 				}
 				if !resp.Success {
-					fmt.Fprintf(GinkgoWriter, "Token request failed: %s\n", resp.Error)
+					_, err = fmt.Fprintf(GinkgoWriter, "Token request failed: %s\n", resp.Error)
+					if err != nil {
+						return fmt.Errorf("failed to write to GinkgoWriter: %w", err)
+					}
 					return fmt.Errorf("token request failed: %s", resp.Error)
 				}
-				fmt.Fprintf(GinkgoWriter, "Token request succeeded, clientId: %s, scopes: %v\n", resp.Claims.ClientId, resp.Claims.Scopes)
+				_, err = fmt.Fprintf(
+					GinkgoWriter, "Token request succeeded, clientId: %s, scopes: %v\n",
+					resp.Claims.ClientId, resp.Claims.Scopes)
+				if err != nil {
+					return fmt.Errorf("failed to write to GinkgoWriter: %w", err)
+				}
 				tokenResp = resp
 				return nil
 			}, time.Second*10, time.Second).Should(Succeed())

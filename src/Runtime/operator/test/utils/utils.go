@@ -10,7 +10,7 @@ import (
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal/config"
-	. "github.com/onsi/ginkgo/v2" //nolint:golint,revive
+	. "github.com/onsi/ginkgo/v2" //nolint:revive,staticcheck
 	"golang.org/x/exp/rand"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -32,12 +32,18 @@ func Run(cmd *exec.Cmd, dir string) ([]byte, error) {
 
 	cmd.Dir = dir
 	if err := os.Chdir(cmd.Dir); err != nil {
-		fmt.Fprintf(GinkgoWriter, "chdir dir: %s\n", err)
+		_, err = fmt.Fprintf(GinkgoWriter, "chdir dir: %s\n", err)
+		if err != nil {
+			return nil, fmt.Errorf("failed to write to GinkgoWriter: %w", err)
+		}
 	}
 
 	cmd.Env = append(os.Environ(), "GO111MODULE=on")
 	command := strings.Join(cmd.Args, " ")
-	fmt.Fprintf(GinkgoWriter, "running: %s\n", command)
+	_, err = fmt.Fprintf(GinkgoWriter, "running: %s\n", command)
+	if err != nil {
+		return nil, fmt.Errorf("failed to write to GinkgoWriter: %w", err)
+	}
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return output, fmt.Errorf("%s failed with error: (%v) %s", command, err, string(output))
@@ -71,7 +77,7 @@ type K8sClient struct {
 func CreateK8sClient(contextName string) (*K8sClient, error) {
 	kubeconfig := filepath.Join(homedir.HomeDir(), ".kube", "config")
 
-	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+	restConfig, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfig},
 		&clientcmd.ConfigOverrides{CurrentContext: contextName},
 	).ClientConfig()
@@ -87,8 +93,8 @@ func CreateK8sClient(contextName string) (*K8sClient, error) {
 	codecFactory := serializer.NewCodecFactory(scheme.Scheme)
 
 	// CRD client
-	crdConfig := *config
-	crdConfig.ContentConfig.GroupVersion = &schema.GroupVersion{
+	crdConfig := *restConfig
+	crdConfig.GroupVersion = &schema.GroupVersion{
 		Group:   resourcesv1alpha1.GroupVersion.Group,
 		Version: resourcesv1alpha1.GroupVersion.Version,
 	}
@@ -102,8 +108,8 @@ func CreateK8sClient(contextName string) (*K8sClient, error) {
 	}
 
 	// Core client
-	coreConfig := *config
-	coreConfig.ContentConfig.GroupVersion = &schema.GroupVersion{Group: "", Version: "v1"}
+	coreConfig := *restConfig
+	coreConfig.GroupVersion = &schema.GroupVersion{Group: "", Version: "v1"}
 	coreConfig.APIPath = "/api"
 	coreConfig.NegotiatedSerializer = codecFactory
 	coreConfig.UserAgent = rest.DefaultKubernetesUserAgent()

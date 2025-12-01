@@ -14,7 +14,6 @@ import (
 	"altinn.studio/operator/internal/operatorcontext"
 	"github.com/google/uuid"
 	"github.com/jonboulle/clockwork"
-	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
 )
 
@@ -25,14 +24,14 @@ type testApi struct {
 }
 
 func getMaskinportenApiFixture(
-	g *gomega.WithT,
+	g *WithT,
 	generateApis func(cfg *config.Config) (apis []testApi),
 ) (*httptest.Server, *config.ConfigMonitor, *operatorcontext.Context) {
 	ctx := context.Background()
 	environment := operatorcontext.EnvironmentLocal
 	configMonitor := config.GetConfigOrDie(ctx, environment, "")
 	configValue := configMonitor.Get()
-	operatorContext := operatorcontext.DiscoverOrDie(ctx, environment, nil)
+	opCtx := operatorcontext.DiscoverOrDie(ctx, environment, nil)
 
 	// Create modified config that will be updated with the server URL
 	modifiedConfigValue := *configValue
@@ -61,10 +60,10 @@ func getMaskinportenApiFixture(
 	modifiedConfigValue.MaskinportenApi.AuthorityUrl = server.URL
 	testConfigMonitor := config.NewConfigMonitorForTesting(&modifiedConfigValue)
 
-	return server, testConfigMonitor, operatorContext
+	return server, testConfigMonitor, opCtx
 }
 
-func okWellKnownHandler(g *gomega.WithT, cfg *config.Config) testApi {
+func okWellKnownHandler(g *WithT, cfg *config.Config) testApi {
 	tokenEndpoint, err := url.JoinPath(cfg.MaskinportenApi.AuthorityUrl, "/token")
 	g.Expect(err).NotTo(HaveOccurred())
 	jwksEndpoint, err := url.JoinPath(cfg.MaskinportenApi.AuthorityUrl, "/jwk")
@@ -80,7 +79,7 @@ func okWellKnownHandler(g *gomega.WithT, cfg *config.Config) testApi {
 }
 
 func getMaskinportenApiWellKnownFixture(
-	g *gomega.WithT,
+	g *WithT,
 	statusCode int,
 ) (*httptest.Server, *config.ConfigMonitor, *operatorcontext.Context) {
 	return getMaskinportenApiFixture(
@@ -114,16 +113,16 @@ func TestWellKnownConfigOk(t *testing.T) {
 	ctx := context.Background()
 	clock := clockwork.NewFakeClock()
 
-	server, config, opCtx := getMaskinportenApiWellKnownFixture(g, http.StatusOK)
+	server, configMonitor, opCtx := getMaskinportenApiWellKnownFixture(g, http.StatusOK)
 	defer server.Close()
 
-	apiClient, err := NewHttpApiClient(config, opCtx, clock)
+	apiClient, err := NewHttpApiClient(configMonitor, opCtx, clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	cfg, err := apiClient.GetWellKnownConfiguration(ctx)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cfg).NotTo(BeNil())
-	tokenEndpoint, err := url.JoinPath(config.Get().MaskinportenApi.AuthorityUrl, "/token")
+	tokenEndpoint, err := url.JoinPath(configMonitor.Get().MaskinportenApi.AuthorityUrl, "/token")
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(cfg.TokenEndpoint).To(Equal(tokenEndpoint))
 }
@@ -133,10 +132,10 @@ func TestWellKnownConfigNotFound(t *testing.T) {
 	ctx := context.Background()
 	clock := clockwork.NewFakeClock()
 
-	server, config, opCtx := getMaskinportenApiWellKnownFixture(g, http.StatusNotFound)
+	server, configMonitor, opCtx := getMaskinportenApiWellKnownFixture(g, http.StatusNotFound)
 	defer server.Close()
 
-	apiClient, err := NewHttpApiClient(config, opCtx, clock)
+	apiClient, err := NewHttpApiClient(configMonitor, opCtx, clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	cfg, err := apiClient.GetWellKnownConfiguration(ctx)
@@ -149,10 +148,10 @@ func TestWellKnownConfigCaches(t *testing.T) {
 	ctx := context.Background()
 	clock := clockwork.NewFakeClock()
 
-	server, config, opCtx := getMaskinportenApiWellKnownFixture(g, http.StatusOK)
+	server, configMonitor, opCtx := getMaskinportenApiWellKnownFixture(g, http.StatusOK)
 	defer server.Close()
 
-	apiClient, err := NewHttpApiClient(config, opCtx, clock)
+	apiClient, err := NewHttpApiClient(configMonitor, opCtx, clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	config1, err := apiClient.GetWellKnownConfiguration(ctx)
@@ -179,24 +178,24 @@ func TestCreateGrant(t *testing.T) {
 	ctx := context.Background()
 	clock := clockwork.NewFakeClock()
 
-	server, config, opCtx := getMaskinportenApiWellKnownFixture(g, http.StatusOK)
+	server, configMonitor, opCtx := getMaskinportenApiWellKnownFixture(g, http.StatusOK)
 	defer server.Close()
 
-	client, err := NewHttpApiClient(config, opCtx, clock)
+	apiClient, err := NewHttpApiClient(configMonitor, opCtx, clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	grant, err := client.createGrant(ctx)
+	grant, err := apiClient.createGrant(ctx)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(grant).NotTo(BeNil())
 }
 
 func getMaskinportenApiAccessTokenFixture(
-	g *gomega.WithT,
+	g *WithT,
 	statusCode int,
 ) (*httptest.Server, *config.ConfigMonitor, *operatorcontext.Context, string) {
 	accessToken := uuid.NewString()
 
-	server, config, opCtx := getMaskinportenApiFixture(
+	server, configMonitor, opCtx := getMaskinportenApiFixture(
 		g,
 		func(cfg *config.Config) (apis []testApi) {
 			var body string
@@ -213,7 +212,7 @@ func getMaskinportenApiAccessTokenFixture(
 		},
 	)
 
-	return server, config, opCtx, accessToken
+	return server, configMonitor, opCtx, accessToken
 }
 
 func TestFetchAccessToken(t *testing.T) {
@@ -221,13 +220,13 @@ func TestFetchAccessToken(t *testing.T) {
 	ctx := context.Background()
 	clock := clockwork.NewFakeClock()
 
-	server, config, opCtx, accessToken := getMaskinportenApiAccessTokenFixture(g, http.StatusOK)
+	server, configMonitor, opCtx, accessToken := getMaskinportenApiAccessTokenFixture(g, http.StatusOK)
 	defer server.Close()
 
-	client, err := NewHttpApiClient(config, opCtx, clock)
+	apiClient, err := NewHttpApiClient(configMonitor, opCtx, clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	token, err := client.accessTokenFetcher(ctx)
+	token, err := apiClient.accessTokenFetcher(ctx)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(token.AccessToken).To(Equal(accessToken))
 }
@@ -240,12 +239,12 @@ func TestFetchAccessTokenReal(t *testing.T) {
 	clock := clockwork.NewFakeClock()
 
 	environment := operatorcontext.EnvironmentLocal
-	config := config.GetConfigOrDie(ctx, environment, "")
-	operatorContext := operatorcontext.DiscoverOrDie(ctx, environment, nil)
-	client, err := NewHttpApiClient(config, operatorContext, clock)
+	configMonitor := config.GetConfigOrDie(ctx, environment, "")
+	opCtx := operatorcontext.DiscoverOrDie(ctx, environment, nil)
+	apiClient, err := NewHttpApiClient(configMonitor, opCtx, clock)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	tokenResponse, err := client.accessTokenFetcher(ctx)
+	tokenResponse, err := apiClient.accessTokenFetcher(ctx)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(tokenResponse).NotTo(BeNil())
 }
@@ -332,7 +331,7 @@ func TestCreateReq(t *testing.T) {
 	clock := clockwork.NewFakeClock()
 
 	accessToken := uuid.NewString()
-	client := &HttpApiClient{
+	apiClient := &HttpApiClient{
 		// Setup mock for accessToken with a custom retriever function.
 		// This Cached[tokenResponse] instance will return the mock token when Get is called.
 		accessToken: caching.NewCachedAtom(time.Minute*5, clock, func(ctx context.Context) (*TokenResponse, error) {
@@ -341,13 +340,13 @@ func TestCreateReq(t *testing.T) {
 		}),
 	}
 
-	var url = "http://example.com/api/endpoint"
+	testUrl := "http://example.com/api/endpoint"
 
-	req, err := client.createReq(ctx, url, "POST", nil)
+	req, err := apiClient.createReq(ctx, testUrl, "POST", nil)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(req).NotTo(BeNil())
 	g.Expect(req.Method).To(Equal("POST"))
-	g.Expect(req.URL.String()).To(Equal(url))
+	g.Expect(req.URL.String()).To(Equal(testUrl))
 	expectedHeader := fmt.Sprintf("Bearer %s", accessToken)
 	g.Expect(req.Header.Get("Authorization")).To(Equal(expectedHeader))
 }

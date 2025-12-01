@@ -26,6 +26,14 @@ type setupResult struct {
 	cryptoService *crypto.CryptoService
 }
 
+const (
+	subcommandClient      = "client"
+	subcommandToken       = "token"
+	subcommandClientToken = "client-token"
+	subcommandClients     = "clients"
+	subcommandJwk         = "jwk"
+)
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Fprintf(os.Stderr, "Usage: %s <command> [options]\n", os.Args[0])
@@ -50,11 +58,11 @@ func main() {
 
 		subcommand := os.Args[2]
 		switch subcommand {
-		case "token":
+		case subcommandToken:
 			getToken()
-		case "client-token":
+		case subcommandClientToken:
 			getClientToken()
-		case "clients":
+		case subcommandClients:
 			getClients()
 		default:
 			fmt.Fprintf(os.Stderr, "Unknown subcommand: %s\n", subcommand)
@@ -71,9 +79,9 @@ func main() {
 
 		subcommand := os.Args[2]
 		switch subcommand {
-		case "jwk":
+		case subcommandJwk:
 			createJwk()
-		case "client":
+		case subcommandClient:
 			createClient()
 		default:
 			fmt.Fprintf(os.Stderr, "Unknown subcommand: %s\n", subcommand)
@@ -89,7 +97,7 @@ func main() {
 
 		subcommand := os.Args[2]
 		switch subcommand {
-		case "client":
+		case subcommandClient:
 			deleteClient()
 		default:
 			fmt.Fprintf(os.Stderr, "Unknown subcommand: %s\n", subcommand)
@@ -105,7 +113,7 @@ func main() {
 
 		subcommand := os.Args[2]
 		switch subcommand {
-		case "client":
+		case subcommandClient:
 			updateClient()
 		default:
 			fmt.Fprintf(os.Stderr, "Unknown subcommand: %s\n", subcommand)
@@ -661,7 +669,10 @@ func setupMaskinportenClient(env, envFile string, withCrypto bool) (*setupResult
 
 	// Set service owner for operatorcontext.Discover
 	if os.Getenv("OPERATOR_SERVICEOWNER") == "" {
-		os.Setenv("OPERATOR_SERVICEOWNER", "ttd")
+		err := os.Setenv("OPERATOR_SERVICEOWNER", "ttd")
+		if err != nil {
+			return nil, fmt.Errorf("failed to set OPERATOR_SERVICEOWNER environment variable: %w", err)
+		}
 	}
 
 	cfg, err := config.GetConfig(ctx, environment, envFile)

@@ -64,8 +64,10 @@ func TestDefaultValues(t *testing.T) {
 	RegisterTestingT(t)
 
 	// Clear env vars
-	os.Unsetenv("OPERATOR_ENVIRONMENT")
-	os.Unsetenv("OPERATOR_SERVICEOWNER")
+	err := os.Unsetenv("OPERATOR_ENVIRONMENT")
+	Expect(err).NotTo(HaveOccurred())
+	err = os.Unsetenv("OPERATOR_SERVICEOWNER")
+	Expect(err).NotTo(HaveOccurred())
 
 	operatorContext, err := Discover(context.Background(), EnvironmentLocal, nil)
 	Expect(err).NotTo(HaveOccurred())
@@ -96,7 +98,8 @@ func TestResolveEnvironmentDefault(t *testing.T) {
 	RegisterTestingT(t)
 
 	// Falls back to localtest when no override and no env var
-	os.Unsetenv("OPERATOR_ENVIRONMENT")
+	err := os.Unsetenv("OPERATOR_ENVIRONMENT")
+	Expect(err).NotTo(HaveOccurred())
 	result := ResolveEnvironment("")
 	Expect(result).To(Equal(EnvironmentLocal))
 }

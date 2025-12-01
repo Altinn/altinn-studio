@@ -182,8 +182,8 @@ func (s *ClientState) getNotAfter(clock clockwork.Clock) time.Time {
 }
 
 func (s *ClientState) Reconcile(
-	context *operatorcontext.Context,
-	config *config.Config,
+	opCtx *operatorcontext.Context,
+	configValue *config.Config,
 	cryptoService *crypto.CryptoService,
 	clock clockwork.Clock,
 ) (CommandList, error) {
@@ -241,7 +241,7 @@ func (s *ClientState) Reconcile(
 		// There may be the case that the `api` resource is null,
 		// but the secret output exists, in which case we just overwrite it
 		// TODO: handle if someone deleted the API but the secret exists? I.e. blunder in self-service portal?
-		req := s.buildApiReq(context)
+		req := s.buildApiReq(opCtx)
 		jwks, err := cryptoService.CreateJwks(s.AppId, s.getNotAfter(clock))
 		if err != nil {
 			return nil, err
@@ -258,7 +258,7 @@ func (s *ClientState) Reconcile(
 		assert.That(len(jwks.Keys) > 0, "JWKS must have at least one key", "appId", s.AppId)
 		secretStateContent := &SecretStateContent{
 			ClientId:  "", // set via the callback below
-			Authority: config.MaskinportenApi.AuthorityUrl,
+			Authority: configValue.MaskinportenApi.AuthorityUrl,
 			Jwks:      jwks,
 			Jwk:       jwks.Keys[0],
 		}
@@ -293,13 +293,13 @@ func (s *ClientState) Reconcile(
 			assert.That(len(jwks.Keys) > 0, "JWKS must have at least one key", "appId", s.AppId)
 			secretStateContent := &SecretStateContent{
 				ClientId:  s.Api.ClientId,
-				Authority: config.MaskinportenApi.AuthorityUrl,
+				Authority: configValue.MaskinportenApi.AuthorityUrl,
 				Jwks:      jwks,
 				Jwk:       jwks.Keys[0],
 			}
 			commands = append(commands, NewUpdateSecretContentCommand(secretStateContent))
 		} else {
-			authorityChanged := config.MaskinportenApi.AuthorityUrl != s.Secret.Content.Authority
+			authorityChanged := configValue.MaskinportenApi.AuthorityUrl != s.Secret.Content.Authority
 			scopesChanged := !scopesEqual(s.Crd.Spec.Scopes, s.Api.Req.Scopes)
 			forceRotate := s.Crd.Annotations[AnnotationRotateJwk] == "true"
 			jwks, err := cryptoService.RotateIfNeeded(s.AppId, s.getNotAfter(clock), s.Secret.Content.Jwks, forceRotate)
@@ -343,7 +343,7 @@ func (s *ClientState) Reconcile(
 
 				var req *AddClientRequest
 				if scopesChanged {
-					req = s.buildApiReq(context)
+					req = s.buildApiReq(opCtx)
 				}
 
 				apiState := &ApiState{
@@ -364,7 +364,7 @@ func (s *ClientState) Reconcile(
 
 				secretStateContent := &SecretStateContent{
 					ClientId:  s.Api.ClientId,
-					Authority: config.MaskinportenApi.AuthorityUrl,
+					Authority: configValue.MaskinportenApi.AuthorityUrl,
 					Jwks:      jwks,
 					Jwk:       jwks.Keys[0],
 				}

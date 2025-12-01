@@ -5,16 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"time"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"k8s.io/client-go/rest"
 )
@@ -91,30 +86,30 @@ func newPropagator() propagation.TextMapPropagator {
 	)
 }
 
-func newTraceProvider(ctx context.Context, res *resource.Resource) (*trace.TracerProvider, error) {
-	traceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure())
-	if err != nil {
-		return nil, err
-	}
+// func newTraceProvider(ctx context.Context, res *resource.Resource) (*trace.TracerProvider, error) {
+// 	traceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure())
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	traceProvider := trace.NewTracerProvider(
-		trace.WithBatcher(traceExporter,
-			// Default is 5s. Set to 1s for demonstrative purposes.
-			trace.WithBatchTimeout(time.Second)), trace.WithResource(res),
-	)
-	return traceProvider, nil
-}
+// 	traceProvider := trace.NewTracerProvider(
+// 		trace.WithBatcher(traceExporter,
+// 			// Default is 5s. Set to 1s for demonstrative purposes.
+// 			trace.WithBatchTimeout(time.Second)), trace.WithResource(res),
+// 	)
+// 	return traceProvider, nil
+// }
 
-func newMeterProvider(ctx context.Context, res *resource.Resource) (*metric.MeterProvider, error) {
-	metricExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithInsecure())
-	if err != nil {
-		return nil, err
-	}
+// func newMeterProvider(ctx context.Context, res *resource.Resource) (*metric.MeterProvider, error) {
+// 	metricExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithInsecure())
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	meterProvider := metric.NewMeterProvider(
-		metric.WithReader(metric.NewPeriodicReader(metricExporter,
-			// Default is 1m. Set to 3s for demonstrative purposes.
-			metric.WithInterval(5*time.Second))), metric.WithResource(res),
-	)
-	return meterProvider, nil
-}
+// 	meterProvider := metric.NewMeterProvider(
+// 		metric.WithReader(metric.NewPeriodicReader(metricExporter,
+// 			// Default is 1m. Set to 3s for demonstrative purposes.
+// 			metric.WithInterval(5*time.Second))), metric.WithResource(res),
+// 	)
+// 	return meterProvider, nil
+// }

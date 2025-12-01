@@ -116,7 +116,10 @@ func BuildAndPushImage() (bool, error) {
 	LogDuration("Pushed image", start)
 
 	// Write new checksum
-	os.MkdirAll(filepath.Dir(cacheFile), 0755)
+	err = os.MkdirAll(filepath.Dir(cacheFile), 0755)
+	if err != nil {
+		return false, err
+	}
 	err = os.WriteFile(cacheFile, []byte(currentHash), 0644)
 	if err != nil {
 		return false, err
@@ -183,7 +186,10 @@ func BuildAndPushFakesImage() (bool, error) {
 	LogDuration("Pushed fakes image", start)
 
 	// Write new checksum
-	os.MkdirAll(filepath.Dir(cacheFile), 0755)
+	err = os.MkdirAll(filepath.Dir(cacheFile), 0755)
+	if err != nil {
+		return false, err
+	}
 	err = os.WriteFile(cacheFile, []byte(currentHash), 0644)
 	if err != nil {
 		return false, err
@@ -233,7 +239,10 @@ func PushKustomizeArtifact() (bool, error) {
 	LogDuration("Pushed kustomize artifact", start)
 
 	// Write new checksum
-	os.MkdirAll(filepath.Dir(cacheFile), 0755)
+	err = os.MkdirAll(filepath.Dir(cacheFile), 0755)
+	if err != nil {
+		return false, err
+	}
 	err = os.WriteFile(cacheFile, []byte(currentHash), 0644)
 	if err != nil {
 		return false, err
@@ -310,7 +319,10 @@ func DownloadAndPushDeploymentChart() (bool, error) {
 	fmt.Println("Packaging deployment chart...")
 	start = time.Now()
 	tmpDir := filepath.Join(projectRoot, ".cache", "helm-packages")
-	os.MkdirAll(tmpDir, 0755)
+	err = os.MkdirAll(tmpDir, 0755)
+	if err != nil {
+		return false, err
+	}
 
 	cmd := exec.Command(helmPath, "package", chartPath, "-d", tmpDir)
 	output, err := cmd.CombinedOutput()
@@ -337,10 +349,16 @@ func DownloadAndPushDeploymentChart() (bool, error) {
 	LogDuration("Pushed chart", start)
 
 	// Clean up packaged chart
-	os.Remove(chartFile)
+	err = os.Remove(chartFile)
+	if err != nil {
+		return false, err
+	}
 
 	// Write new checksum
-	os.MkdirAll(filepath.Dir(cacheFile), 0755)
+	err = os.MkdirAll(filepath.Dir(cacheFile), 0755)
+	if err != nil {
+		return false, err
+	}
 	err = os.WriteFile(cacheFile, []byte(currentHash), 0644)
 	if err != nil {
 		return false, err
@@ -401,7 +419,10 @@ func BuildAndPushLocaltestappImage() (bool, error) {
 	LogDuration("Pushed localtestapp image", start)
 
 	// Write new checksum
-	os.MkdirAll(filepath.Dir(cacheFile), 0755)
+	err = os.MkdirAll(filepath.Dir(cacheFile), 0755)
+	if err != nil {
+		return false, err
+	}
 	err = os.WriteFile(cacheFile, []byte(currentHash), 0644)
 	if err != nil {
 		return false, err

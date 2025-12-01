@@ -358,16 +358,23 @@ func SnapshotSecret(secret *corev1.Secret, name string) {
 
 // SnapshotState takes sanitized snapshots of MaskinportenClient, Secret, and fakes db
 // When client or secret is nil, it snapshots a placeholder indicating the resource doesn't exist
-func SnapshotState(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret, db []fakes.ClientRecord, stepName string) {
+func SnapshotState(
+	client *resourcesv1alpha1.MaskinportenClient,
+	secret *corev1.Secret,
+	db []fakes.ClientRecord,
+	stepName string,
+) {
 	if client != nil {
 		SnapshotMaskinportenClient(client, stepName+"-client")
 	} else {
-		snaps.WithConfig(snaps.Filename(stepName+"-client")).MatchJSON(ginkgo.GinkgoT(), []byte(`{"status": "does not exist"}`))
+		snaps.WithConfig(snaps.Filename(stepName+"-client")).
+			MatchJSON(ginkgo.GinkgoT(), []byte(`{"status": "does not exist"}`))
 	}
 	if secret != nil {
 		SnapshotSecret(secret, stepName+"-secret")
 	} else {
-		snaps.WithConfig(snaps.Filename(stepName+"-secret")).MatchJSON(ginkgo.GinkgoT(), []byte(`{"status": "does not exist"}`))
+		snaps.WithConfig(snaps.Filename(stepName+"-secret")).
+			MatchJSON(ginkgo.GinkgoT(), []byte(`{"status": "does not exist"}`))
 	}
 	SnapshotFakesDb(db, stepName+"-db")
 }
@@ -445,7 +452,7 @@ func SanitizeFakesDb(db []fakes.ClientRecord) any {
 		return map[string]any{"status": "empty"}
 	}
 
-	var allRecords []map[string]any
+	allRecords := make([]map[string]any, 0, len(db))
 
 	for i, record := range db {
 		// Convert record to map for sanitization
@@ -503,7 +510,9 @@ func FetchFakesDb() ([]fakes.ClientRecord, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch fakes db: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -524,7 +533,9 @@ func ResetFakesState() error {
 	if err != nil {
 		return fmt.Errorf("failed to reset fakes state: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -554,7 +565,9 @@ func FetchToken(scope string) (*TokenResponse, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch token: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

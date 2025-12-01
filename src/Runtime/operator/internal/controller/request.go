@@ -54,13 +54,13 @@ func (r *MaskinportenClientReconciler) mapRequest(
 	}
 	appId := nameSplit[1]
 
-	operatorContext := r.runtime.GetOperatorContext()
+	opCtx := r.runtime.GetOperatorContext()
 
 	return &maskinportenClientRequest{
 		NamespacedName: req.NamespacedName,
 		Name:           req.Name,
 		Namespace:      req.Namespace,
 		AppId:          appId,
-		AppLabel:       fmt.Sprintf("%s-%s-deployment", operatorContext.ServiceOwnerId, appId),
+		AppLabel:       fmt.Sprintf("%s-%s-deployment", opCtx.ServiceOwnerId, appId),
 	}, nil
 }

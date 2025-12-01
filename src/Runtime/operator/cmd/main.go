@@ -110,10 +110,10 @@ func main() {
 		TLSOpts: tlsOpts,
 	})
 
-	config := ctrl.GetConfigOrDie()
-	telemetry.WrapTransport(config)
+	restConfig := ctrl.GetConfigOrDie()
+	telemetry.WrapTransport(restConfig)
 	syncPeriod := time.Hour * 5
-	mgr, err := ctrl.NewManager(config, ctrl.Options{
+	mgr, err := ctrl.NewManager(restConfig, ctrl.Options{
 		Scheme: scheme,
 		Metrics: metricsserver.Options{
 			BindAddress:   metricsAddr,

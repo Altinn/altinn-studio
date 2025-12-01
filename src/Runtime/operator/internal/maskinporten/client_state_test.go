@@ -95,10 +95,10 @@ func WithScopes(scopes []string) CrdOption {
 	}
 }
 
-func createCrd(appId string, opts ...CrdOption) *resourcesv1alpha1.MaskinportenClient {
+func createCrd(opts ...CrdOption) *resourcesv1alpha1.MaskinportenClient {
 	crd := &resourcesv1alpha1.MaskinportenClient{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "ttd-" + appId,
+			Name:      "ttd-" + testAppId,
 			Namespace: "default",
 		},
 		Spec: resourcesv1alpha1.MaskinportenClientSpec{
@@ -205,7 +205,7 @@ func TestReconcile_FreshCreate(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	crd := createCrd(testAppId, WithFinalizer())
+	crd := createCrd(WithFinalizer())
 	secret := createSecret("ttd-" + testAppId)
 
 	state, err := NewClientState(crd, nil, nil, secret, nil)
@@ -226,7 +226,7 @@ func TestReconcile_ApiExistsSecretLost(t *testing.T) {
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	crd := createCrd(testAppId, WithFinalizer())
+	crd := createCrd(WithFinalizer())
 	secret := createSecret("ttd-" + testAppId)
 
 	state, err := NewClientState(crd, &ClientResponse{ClientId: testClientId, Scopes: testScopes}, publicJwks, secret, nil)
@@ -248,7 +248,7 @@ func TestReconcile_ScopesChanged(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	newScopes := []string{"altinn:new/scope.write"}
-	crd := createCrd(testAppId, WithFinalizer(), WithScopes(newScopes))
+	crd := createCrd(WithFinalizer(), WithScopes(newScopes))
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
@@ -275,7 +275,7 @@ func TestReconcile_AuthorityChanged(t *testing.T) {
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	crd := createCrd(testAppId, WithFinalizer())
+	crd := createCrd(WithFinalizer())
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
@@ -303,7 +303,7 @@ func TestReconcile_ScopesAndAuthorityChanged(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	newScopes := []string{"altinn:new/scope.write"}
-	crd := createCrd(testAppId, WithFinalizer(), WithScopes(newScopes))
+	crd := createCrd(WithFinalizer(), WithScopes(newScopes))
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
@@ -331,7 +331,7 @@ func TestReconcile_ScopesAndJwksRotation(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	newScopes := []string{"altinn:new/scope.write"}
-	crd := createCrd(testAppId, WithFinalizer(), WithScopes(newScopes))
+	crd := createCrd(WithFinalizer(), WithScopes(newScopes))
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
@@ -360,7 +360,7 @@ func TestReconcile_AuthorityAndJwksRotation(t *testing.T) {
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	crd := createCrd(testAppId, WithFinalizer())
+	crd := createCrd(WithFinalizer())
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
@@ -389,7 +389,7 @@ func TestReconcile_Deletion(t *testing.T) {
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	crd := createCrd(testAppId,
+	crd := createCrd(
 		WithFinalizer(),
 		WithDeletionTimestamp(deps.clock.Now()),
 	)
@@ -417,7 +417,7 @@ func TestReconcile_DeletionApiAlreadyGone(t *testing.T) {
 	jwks, err := deps.crypto.CreateJwks(testAppId, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 
-	crd := createCrd(testAppId,
+	crd := createCrd(
 		WithFinalizer(),
 		WithDeletionTimestamp(deps.clock.Now()),
 	)
@@ -447,7 +447,7 @@ func TestReconcile_DeletionNoSecretContent(t *testing.T) {
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	crd := createCrd(testAppId,
+	crd := createCrd(
 		WithFinalizer(),
 		WithDeletionTimestamp(deps.clock.Now()),
 	)
@@ -466,7 +466,7 @@ func TestReconcile_DeletionNoApiNoSecretContent(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	crd := createCrd(testAppId,
+	crd := createCrd(
 		WithFinalizer(),
 		WithDeletionTimestamp(deps.clock.Now()),
 	)
@@ -490,7 +490,7 @@ func TestForcedRotation_IgnoredDuringDeletion(t *testing.T) {
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	crd := createCrd(testAppId,
+	crd := createCrd(
 		WithFinalizer(),
 		WithDeletionTimestamp(deps.clock.Now()),
 		WithAnnotation(AnnotationRotateJwk, "true"),
@@ -521,7 +521,7 @@ func TestReconcile_NoChanges(t *testing.T) {
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	crd := createCrd(testAppId, WithFinalizer())
+	crd := createCrd(WithFinalizer())
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
@@ -552,7 +552,7 @@ func TestReconcile_ApiJwksMismatchSecret(t *testing.T) {
 	apiPublicJwks, err := apiJwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	crd := createCrd(testAppId, WithFinalizer())
+	crd := createCrd(WithFinalizer())
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
@@ -583,7 +583,7 @@ func TestJwkRotation_NotNeededYet(t *testing.T) {
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	crd := createCrd(testAppId, WithFinalizer())
+	crd := createCrd(WithFinalizer())
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
@@ -612,7 +612,7 @@ func TestJwkRotation_TriggeredAtThreshold(t *testing.T) {
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	crd := createCrd(testAppId, WithFinalizer())
+	crd := createCrd(WithFinalizer())
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
@@ -647,7 +647,7 @@ func TestJwkRotation_SecondRotation(t *testing.T) {
 	publicJwks, err := rotatedJwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	crd := createCrd(testAppId, WithFinalizer())
+	crd := createCrd(WithFinalizer())
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
@@ -680,7 +680,7 @@ func TestForcedRotation_ViaAnnotation(t *testing.T) {
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	crd := createCrd(testAppId,
+	crd := createCrd(
 		WithFinalizer(),
 		WithAnnotation(AnnotationRotateJwk, "true"),
 	)
@@ -710,7 +710,7 @@ func TestForcedRotation_AnnotationValueNotTrue(t *testing.T) {
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	crd := createCrd(testAppId,
+	crd := createCrd(
 		WithFinalizer(),
 		WithAnnotation(AnnotationRotateJwk, "false"),
 	)
@@ -738,7 +738,7 @@ func TestForcedRotation_AnnotationValueNotTrue(t *testing.T) {
 func TestNewClientState_MissingSecret(t *testing.T) {
 	g := NewWithT(t)
 
-	crd := createCrd(testAppId)
+	crd := createCrd()
 
 	_, err := NewClientState(crd, nil, nil, nil, nil)
 	g.Expect(err).To(HaveOccurred())
@@ -777,7 +777,7 @@ func TestNewClientState_MalformedCrdName(t *testing.T) {
 func TestNewClientState_EmptyClientIdFromApi(t *testing.T) {
 	g := NewWithT(t)
 
-	crd := createCrd(testAppId)
+	crd := createCrd()
 	secret := createSecret("ttd-" + testAppId)
 
 	// API response with empty ClientId
@@ -793,7 +793,7 @@ func TestNewClientState_ApiJwksWithoutApi(t *testing.T) {
 	jwks, err := deps.crypto.CreateJwks(testAppId, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 
-	crd := createCrd(testAppId)
+	crd := createCrd()
 	secret := createSecret("ttd-" + testAppId)
 
 	// JWKS without API response is invalid
@@ -811,7 +811,7 @@ func TestReconcile_EmptyScopes(t *testing.T) {
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	crd := createCrd(testAppId, WithFinalizer(), WithScopes([]string{}))
+	crd := createCrd(WithFinalizer(), WithScopes([]string{}))
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,
@@ -838,7 +838,7 @@ func TestReconcile_NilVsEmptyScopes(t *testing.T) {
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	crd := createCrd(testAppId, WithFinalizer())
+	crd := createCrd(WithFinalizer())
 	crd.Spec.Scopes = nil
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
@@ -882,7 +882,7 @@ func TestReconcile_AddsFinalizer(t *testing.T) {
 	deps := newFixture()
 
 	// CRD without finalizer
-	crd := createCrd(testAppId)
+	crd := createCrd()
 	secret := createSecret("ttd-" + testAppId)
 
 	state, err := NewClientState(crd, nil, nil, secret, nil)
@@ -904,7 +904,7 @@ func TestReconcile_AllChangesAtOnce(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	newScopes := []string{"altinn:new/scope.write"}
-	crd := createCrd(testAppId, WithFinalizer(), WithScopes(newScopes))
+	crd := createCrd(WithFinalizer(), WithScopes(newScopes))
 	secret := createSecret("ttd-" + testAppId)
 	secretContent := &SecretStateContent{
 		ClientId:  testClientId,

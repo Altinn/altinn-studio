@@ -177,7 +177,9 @@ func (r *OrgRegistry) fetch(ctx context.Context) error {
 		span.SetStatus(codes.Error, err.Error())
 		return fmt.Errorf("failed to fetch orgs: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	span.SetAttributes(attribute.Int("http.status_code", resp.StatusCode))
 

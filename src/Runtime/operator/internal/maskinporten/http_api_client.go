@@ -59,7 +59,7 @@ type HttpApiClient struct {
 
 func NewHttpApiClient(
 	configMonitor *config.ConfigMonitor,
-	context *operatorcontext.Context,
+	opCtx *operatorcontext.Context,
 	clock clockwork.Clock,
 ) (*HttpApiClient, error) {
 	// Validate initial config
@@ -69,21 +69,21 @@ func NewHttpApiClient(
 		return nil, err
 	}
 
-	client := &HttpApiClient{
+	apiClient := &HttpApiClient{
 		configMonitor: configMonitor,
-		context:       context,
+		context:       opCtx,
 		client:        http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)},
 		hydrated:      false,
 		tracer:        otel.Tracer(telemetry.ServiceName),
 		clock:         clock,
 
-		clientNamePrefix: getClientNamePrefix(context),
+		clientNamePrefix: getClientNamePrefix(opCtx),
 	}
 
-	client.wellKnown = caching.NewCachedAtom(5*time.Minute, clock, client.wellKnownFetcher)
-	client.accessToken = caching.NewCachedAtom(1*time.Minute, clock, client.accessTokenFetcher)
+	apiClient.wellKnown = caching.NewCachedAtom(5*time.Minute, clock, apiClient.wellKnownFetcher)
+	apiClient.accessToken = caching.NewCachedAtom(1*time.Minute, clock, apiClient.accessTokenFetcher)
 
-	return client, nil
+	return apiClient, nil
 }
 
 // getConfig returns the current MaskinportenApi config from the monitor.
@@ -103,7 +103,7 @@ func (c *HttpApiClient) getJwk() (*crypto.Jwk, error) {
 
 func (c *HttpApiClient) createReq(
 	ctx context.Context,
-	url string,
+	endpoint string,
 	method string,
 	body io.Reader,
 ) (*http.Request, error) {
@@ -114,7 +114,7 @@ func (c *HttpApiClient) createReq(
 	}
 
 	// Prepare the request.
-	req, err := http.NewRequestWithContext(ctx, method, url, body)
+	req, err := http.NewRequestWithContext(ctx, method, endpoint, body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new request: %w", err)
 	}
@@ -143,12 +143,12 @@ func (c *HttpApiClient) GetAllClients(ctx context.Context) ([]ClientResponse, er
 	ctx, span := c.tracer.Start(ctx, "GetAllClients")
 	defer span.End()
 
-	url, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients")
+	endpointUrl, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients")
 
 	if err != nil {
 		return nil, err
 	}
-	req, err := c.createReq(ctx, url, "GET", nil)
+	req, err := c.createReq(ctx, endpointUrl, "GET", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -240,12 +240,12 @@ func (c *HttpApiClient) getClientJwks(ctx context.Context, clientId string) (*cr
 		return nil, errors.New("missing ID on client info")
 	}
 
-	url, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId, "jwks")
+	endpointUrl, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId, "jwks")
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := c.createReq(ctx, url, "GET", nil)
+	req, err := c.createReq(ctx, endpointUrl, "GET", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +285,7 @@ func (c *HttpApiClient) CreateClient(
 		return nil, errors.New("can't create maskinporten client without JWKS initialized")
 	}
 
-	url, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients")
+	endpointUrl, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients")
 	if err != nil {
 		return nil, err
 	}
@@ -295,7 +295,7 @@ func (c *HttpApiClient) CreateClient(
 		return nil, err
 	}
 
-	req, err := c.createReq(ctx, url, "POST", bytes.NewReader(buf))
+	req, err := c.createReq(ctx, endpointUrl, "POST", bytes.NewReader(buf))
 	if err != nil {
 		return nil, err
 	}
@@ -346,7 +346,7 @@ func (c *HttpApiClient) UpdateClient(
 		)
 	}
 
-	url, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId)
+	endpointUrl, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId)
 	if err != nil {
 		return nil, err
 	}
@@ -356,7 +356,7 @@ func (c *HttpApiClient) UpdateClient(
 		return nil, err
 	}
 
-	req, err := c.createReq(ctx, url, "PUT", bytes.NewReader(buf))
+	req, err := c.createReq(ctx, endpointUrl, "PUT", bytes.NewReader(buf))
 	if err != nil {
 		return nil, err
 	}
@@ -397,7 +397,7 @@ func (c *HttpApiClient) CreateClientJwks(ctx context.Context, clientId string, j
 		}
 	}
 
-	url, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId, "jwks")
+	endpointUrl, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId, "jwks")
 	if err != nil {
 		return err
 	}
@@ -407,7 +407,7 @@ func (c *HttpApiClient) CreateClientJwks(ctx context.Context, clientId string, j
 		return err
 	}
 
-	req, err := c.createReq(ctx, url, "POST", bytes.NewReader(buf))
+	req, err := c.createReq(ctx, endpointUrl, "POST", bytes.NewReader(buf))
 	if err != nil {
 		return err
 	}
@@ -430,12 +430,12 @@ func (c *HttpApiClient) DeleteClient(ctx context.Context, clientId string) error
 	ctx, span := c.tracer.Start(ctx, "DeleteClient")
 	defer span.End()
 
-	url, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId)
+	endpointUrl, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId)
 	if err != nil {
 		return err
 	}
 
-	req, err := c.createReq(ctx, url, "DELETE", nil)
+	req, err := c.createReq(ctx, endpointUrl, "DELETE", nil)
 	if err != nil {
 		return err
 	}
@@ -491,19 +491,19 @@ func (c *HttpApiClient) accessTokenFetcher(ctx context.Context) (*TokenResponse,
 		return nil, err
 	}
 
-	endpoint, err := url.JoinPath(c.getConfig().AuthorityUrl, "/token")
+	endpointUrl, err := url.JoinPath(c.getConfig().AuthorityUrl, "/token")
 	if err != nil {
 		return nil, err
 	}
 
-	urlEncodedContent := url.Values{
+	queryParams := url.Values{
 		"grant_type": {"urn:ietf:params:oauth:grant-type:jwt-bearer"},
 		"assertion":  {*grant},
 	}
 
-	endpoint += "?" + urlEncodedContent.Encode()
+	endpointUrl += "?" + queryParams.Encode()
 
-	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, nil)
+	req, err := http.NewRequestWithContext(ctx, "POST", endpointUrl, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -535,12 +535,12 @@ type TokenResponse struct {
 }
 
 func (c *HttpApiClient) wellKnownFetcher(ctx context.Context) (*WellKnownResponse, error) {
-	endpoint, err := url.JoinPath(c.getConfig().AuthorityUrl, "/.well-known/oauth-authorization-server")
+	endpointUrl, err := url.JoinPath(c.getConfig().AuthorityUrl, "/.well-known/oauth-authorization-server")
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "GET", endpoint, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", endpointUrl, nil)
 	if err != nil {
 		return nil, err
 	}

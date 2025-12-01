@@ -26,10 +26,10 @@ func TestCreateJwks(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(jwks).NotTo(BeNil())
 
-	json, err := json.Marshal(jwks)
+	jsonData, err := json.Marshal(jwks)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(json).NotTo(BeNil())
-	snaps.MatchJSON(t, json)
+	g.Expect(jsonData).NotTo(BeNil())
+	snaps.MatchJSON(t, jsonData)
 }
 
 func TestRotateJwks(t *testing.T) {
@@ -130,10 +130,10 @@ func TestPublicJwksConversion(t *testing.T) {
 }
 
 func createService() (*CryptoService, *clockwork.FakeClock) {
-	operatorContext := operatorcontext.DiscoverOrDie(context.Background(), operatorcontext.EnvironmentLocal, nil)
+	opCtx := operatorcontext.DiscoverOrDie(context.Background(), operatorcontext.EnvironmentLocal, nil)
 	clock := clockwork.NewFakeClockAt(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC))
 	random := utils.NewDeterministicRand()
-	service := NewDefaultService(operatorContext, clock, random)
+	service := NewDefaultService(opCtx, clock, random)
 	return service, clock
 }
 
