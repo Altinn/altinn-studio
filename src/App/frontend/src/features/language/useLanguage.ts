@@ -168,6 +168,7 @@ export function useLanguageWithForcedPath(dataModelPath: IDataModelReference | u
   return useMemo(() => {
     const { textResources, language, selectedLanguage, ...dataSources } = sources || {};
     if (!textResources || !language || !selectedLanguage) {
+      debugger;
       throw new Error('useLanguage must be used inside a LangToolsStoreProvider');
     }
 
