@@ -1,6 +1,5 @@
 import React from 'react';
-import { StudioTextfield } from '@studio/components-legacy';
-import { StudioProperty, StudioSelect } from '@studio/components';
+import { StudioProperty, StudioSelect, StudioTextfield } from '@studio/components';
 import { LinkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './SubformDataModel.module.css';

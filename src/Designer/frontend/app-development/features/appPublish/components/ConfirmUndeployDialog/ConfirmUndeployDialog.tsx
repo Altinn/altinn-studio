@@ -1,12 +1,13 @@
 import type { ReactElement } from 'react';
 import React, { useRef, useState } from 'react';
-import { StudioTextfield, StudioAlert } from '@studio/components-legacy';
 import {
   StudioButton,
   StudioParagraph,
   StudioLink,
   StudioDialog,
   StudioHeading,
+  StudioTextfield,
+  StudioAlert,
 } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
 import classes from './ConfirmUndeployDialog.module.css';
@@ -70,7 +71,7 @@ export const ConfirmUndeployDialog = ({
           onChange={onAppNameInputChange}
         />
         {undeployError && (
-          <StudioAlert severity='danger' className={classes.errorContainer}>
+          <StudioAlert className={classes.errorContainer}>
             <StudioParagraph>
               <Trans
                 i18nKey={'app_deployment.error_unknown.message'}

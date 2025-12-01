@@ -37,38 +37,30 @@ describe('ArrayRestrictions', () => {
   it('should render minItems as a number field', async () => {
     const user = userEvent.setup();
     const props = {
-      restrictions: {
-        minItems: '1',
-      },
+      restrictions: {},
     };
     render(props);
     const minItems = screen.getByLabelText(textMock('schema_editor.' + ArrRestrictionKey.minItems));
-    await user.type(minItems, 'test 2');
-    await waitFor(() =>
-      expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
-        pathMock,
-        ArrRestrictionKey.minItems,
-        '100',
-      ),
+    await user.type(minItems, '5');
+    expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
+      pathMock,
+      ArrRestrictionKey.minItems,
+      '5',
     );
   });
 
   it('should render maxItems as a number field', async () => {
     const user = userEvent.setup();
     const props = {
-      restrictions: {
-        maxItems: '1',
-      },
+      restrictions: {},
     };
     render(props);
     const maxItems = screen.getByLabelText(textMock('schema_editor.' + ArrRestrictionKey.maxItems));
-    await user.type(maxItems, 'test 2');
-    await waitFor(() =>
-      expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
-        pathMock,
-        ArrRestrictionKey.maxItems,
-        '100',
-      ),
+    await user.type(maxItems, '5');
+    expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
+      pathMock,
+      ArrRestrictionKey.maxItems,
+      '5',
     );
   });
 
