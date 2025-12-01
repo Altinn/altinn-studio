@@ -144,34 +144,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new SearchResults<DeploymentEntity> { Results = deploymentEntities.Where(item => environmentNames.Contains(item.EnvName)).ToList() };
         }
 
-        /// <inheritdoc/>
-        public async Task UpdateAsync(string buildNumber, string appOwner, CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            DeploymentEntity deploymentEntity = await _deploymentRepository.Get(appOwner, buildNumber);
-
-            try
-            {
-                BuildEntity buildEntity = await _azureDevOpsBuildClient.Get(buildNumber);
-                DeploymentEntity deployment = new() { Build = buildEntity };
-
-                deploymentEntity.Build.Status = deployment.Build.Status;
-                deploymentEntity.Build.Result = deployment.Build.Result;
-                deploymentEntity.Build.Started = deployment.Build.Started;
-                deploymentEntity.Build.Finished = deployment.Build.Finished;
-
-                await _deploymentRepository.Update(deploymentEntity);
-            }
-            catch (HttpRequestException)
-            {
-                _logger.LogInformation("The requested build number {buildNumber} does not exist, updating it as failed in the database", buildNumber);
-                deploymentEntity.Build.Status = BuildStatus.Completed;
-                deploymentEntity.Build.Result = BuildResult.Failed;
-                deploymentEntity.Build.Finished = DateTime.UtcNow;
-                await _deploymentRepository.Update(deploymentEntity);
-            }
-        }
-
         public async Task UndeployAsync(AltinnRepoEditingContext editingContext, string env,
             CancellationToken cancellationToken = default)
         {

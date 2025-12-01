@@ -183,43 +183,6 @@ namespace Designer.Tests.Services
             _deploymentRepository.Verify(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()), Times.Once);
         }
 
-        [Fact]
-        public async Task UpdateAsync()
-        {
-            // Arrange
-            _deploymentRepository.Setup(r => r.Get(
-                It.IsAny<string>(),
-                It.IsAny<string>())).ReturnsAsync(GetDeployments("createdDeployment.json").First());
-
-            _deploymentRepository.Setup(r => r.Update(
-                It.IsAny<DeploymentEntity>())).Returns(Task.CompletedTask);
-
-            DeploymentService deploymentService = new(
-                GetAzureDevOpsSettings(),
-                _azureDevOpsBuildClient.Object,
-                _httpContextAccessor.Object,
-                _deploymentRepository.Object,
-                _releaseRepository.Object,
-                _environementsService.Object,
-                _applicationInformationService.Object,
-                _deploymentLogger.Object,
-                _mediatrMock.Object,
-                _generalSettings,
-                _fakeTimeProvider,
-                _gitOpsConfigurationManager.Object,
-                _featureManager.Object);
-
-            _azureDevOpsBuildClient.Setup(adob => adob.Get(It.IsAny<string>()))
-                .ReturnsAsync(GetReleases("createdRelease.json").First().Build);
-
-            // Act
-            await deploymentService.UpdateAsync(GetDeployments("createdDeployment.json").First().Build.Id, "ttd");
-
-            // Assert
-            _deploymentRepository.Verify(r => r.Get(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            _deploymentRepository.Verify(r => r.Update(It.IsAny<DeploymentEntity>()), Times.Once);
-        }
-
         [Theory]
         [InlineData("ttd", "test-app")]
         public async Task CreateAsync_WithGitOpsFeatureEnabled_AppDoesNotExist_ShouldAddAppToGitOps_AndSetPushSyncRootImageTrue(string org, string app)

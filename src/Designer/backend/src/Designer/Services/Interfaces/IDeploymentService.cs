@@ -35,14 +35,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         Task<SearchResults<DeploymentEntity>> GetAsync(string org, string app, DocumentQueryModel query, CancellationToken cancellationToken = default);
 
-        /// <summary>
-        /// Updates a deployment entity
-        /// </summary>
-        /// <param name="buildNumber">Azure DevOps build number</param>
-        /// <param name="appOwner">Application owner.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        Task UpdateAsync(string buildNumber, string appOwner, CancellationToken cancellationToken = default);
-
 
         /// <summary>
         /// Undeploys an application from a specified environment.
