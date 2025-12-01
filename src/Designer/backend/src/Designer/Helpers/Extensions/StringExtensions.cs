@@ -59,5 +59,17 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
             (char)21, (char)22, (char)23, (char)24, (char)25, (char)26, (char)27, (char)28, (char)29, (char)30,
             (char)31, ':', '*', '?', '\\', '/'
         };
+
+        public static string WithoutLeadingSlash(this string str)
+        {
+            return str.WithoutPrefix("/");
+        }
+
+        public static string WithoutPrefix(this string str, string prefix)
+        {
+            return str.StartsWith(prefix)
+                ? str.Substring(prefix.Length)
+                : str;
+        }
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
@@ -15,4 +16,7 @@ public interface ISharedContentClient
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The current version string of the published code list.</returns>
     Task<string> PublishCodeList(string orgName, string codeListId, CodeList codeList, CancellationToken cancellationToken = default);
+
+    Task<List<string>> GetPublishedResourcesForOrg(string orgName, string path, CancellationToken cancellationToken = default);
 }
+

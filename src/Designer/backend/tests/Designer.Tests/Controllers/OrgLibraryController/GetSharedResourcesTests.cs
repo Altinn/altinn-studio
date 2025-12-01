@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -22,6 +23,7 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
 {
     private readonly Mock<IGitea> _giteaClientMock = new();
     private readonly Mock<IUserOrganizationService> _userOrganizationServiceMock = new();
+    private readonly Mock<ISharedContentClient> _sharedContentClientMock = new();
 
     private const string Org = "ttd";
 
@@ -29,6 +31,7 @@ public class GetSharedResourcesTests(WebApplicationFactory<Program> factory) : D
     {
         services.AddSingleton(_ => _giteaClientMock.Object);
         services.AddSingleton(_ => _userOrganizationServiceMock.Object);
+        services.AddSingleton(_ => _sharedContentClientMock.Object);
     }
 
     [Fact]

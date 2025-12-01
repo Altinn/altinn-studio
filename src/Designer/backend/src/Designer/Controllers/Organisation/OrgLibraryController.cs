@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.OrgLibrary;
+using Altinn.Studio.Designer.Exceptions.SharedContent;
 using Altinn.Studio.Designer.Exceptions.SourceControl;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
@@ -121,6 +123,43 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error updating shared resources for {Org} by {Developer}.", org, developer);
+            throw;
+        }
+    }
+
+    /// <summary>Fetches a list of published resources.</summary>
+    /// <param name="org">Unique identifier of the organisation.</param>
+    /// <param name="path">Directory path in which to search.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    [HttpGet]
+    [Route("published")]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult> GetPublishedResources(string org, [FromQuery] string path = "", CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        try
+        {
+            List<string> resources = await orgLibraryService.GetPublishedResourcesForOrg(org, path, cancellationToken);
+            return Ok(resources);
+        }
+        catch (Exception ex) when (ex is SharedContentRequestException)
+        {
+            logger.LogWarning(ex, "A request error occured in the shared content client when fetching resources for {Org}.", org);
+            return BadRequest(
+                new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Error fetching published resources",
+                    Detail = ex.Message
+                }
+            );
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unexpected error fetching published resources for {Org}.", org);
             throw;
         }
     }

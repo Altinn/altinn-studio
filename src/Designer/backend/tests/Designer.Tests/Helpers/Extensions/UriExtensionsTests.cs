@@ -1,9 +1,9 @@
 ﻿using Altinn.Studio.Designer.Helpers.Extensions;
 using Xunit;
 
-namespace Designer.Tests.Helpers
+namespace Designer.Tests.Helpers.Extensions
 {
-    public class Extensions
+    public class UriExtensionsTests
     {
         [Theory]
         [InlineData("http://studio.localhost/repos", "http://studio.localhost/repos/ttd/testrepo.git", "ttd/testrepo.git")]

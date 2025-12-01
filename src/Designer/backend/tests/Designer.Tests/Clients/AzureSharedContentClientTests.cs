@@ -11,16 +11,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Implementations;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Exceptions.SharedContent;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.SharedContent;
+using Azure;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Moq.Language.Flow;
 using Moq.Protected;
 using VerifyXunit;
 using Xunit;
-
 
 
 namespace Designer.Tests.Clients;
@@ -711,6 +714,80 @@ public class AzureSharedContentClientTests
         containerClientMock.Verify(c => c.ExistsAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Fact]
+    public async Task GetPublishedResourcesForOrg_WithoutPath()
+    {
+        // Arrange
+        string orgName = "ttd";
+        string name1 = "blob1";
+        string name2 = "blob2";
+
+        List<BlobItem> blobItemsMock = new List<BlobItem>
+        {
+            BlobsModelFactory.BlobItem(orgName + "/" + name1),
+            BlobsModelFactory.BlobItem(orgName + "/" + name2)
+        };
+
+        Mock<BlobContainerClient> containerClientMock = new();
+        SetupContainerClientMock(containerClientMock, $"{orgName}/")
+            .Returns(AsyncPageable<BlobItem>.FromPages(
+                new[] { Page<BlobItem>.FromValues(blobItemsMock, null, Mock.Of<Response>()) }
+            ));
+        AzureSharedContentClient client = AzureClientWithContainerClient(containerClientMock);
+
+        // Act
+        List<string> publishedResources = await client.GetPublishedResourcesForOrg(orgName);
+
+        // Assert
+        Assert.Equal([name1, name2], publishedResources);
+    }
+
+    [Fact]
+    public async Task GetPublishedResourcesForOrg_WithPath()
+    {
+        // Arrange
+        string orgName = "ttd";
+        string path = "some/path";
+        string name1 = "blob1";
+        string name2 = "blob2";
+
+
+        List<BlobItem> blobItemsMock = new List<BlobItem>
+        {
+            BlobsModelFactory.BlobItem($"{orgName}/{path}/{name1}"),
+            BlobsModelFactory.BlobItem($"{orgName}/{path}/{name2}")
+        };
+
+        Mock<BlobContainerClient> containerClientMock = new();
+        SetupContainerClientMock(containerClientMock, $"{orgName}/{path}")
+            .Returns(() => AsyncPageable<BlobItem>.FromPages(
+                new[] { Page<BlobItem>.FromValues(blobItemsMock, null, Mock.Of<Response>()) }
+            ));
+        AzureSharedContentClient client = AzureClientWithContainerClient(containerClientMock);
+
+        // Act
+        List<string> publishedResources = await client.GetPublishedResourcesForOrg(orgName, path);
+
+        // Assert
+        Assert.Equal([name1, name2], publishedResources);
+    }
+
+    [Fact]
+    public async Task GetPublishedResourcesForOrg_ThrowsSharedContentRequestError()
+    {
+        // Arrange
+        string orgName = "ttd";
+        string errorMessage = "Lorem ipsum dolor sit amet.";
+
+        Mock<BlobContainerClient> containerClientMock = new();
+        SetupContainerClientMock(containerClientMock, orgName + "/")
+            .Throws(() => new RequestFailedException(errorMessage));
+        AzureSharedContentClient client = AzureClientWithContainerClient(containerClientMock);
+
+        // Act and assert
+        await Assert.ThrowsAsync<SharedContentRequestException>(async () => await client.GetPublishedResourcesForOrg(orgName));
+    }
+
     private static CodeList SetupCodeList()
     {
         Dictionary<string, string> label = new() { { "nb", "tekst" }, { "en", "text" } };
@@ -749,5 +826,29 @@ public class AzureSharedContentClientTests
         }
 
         return new AzureSharedContentClient(httpClient ?? httpClientMock.Object, logger.Object, settings, blobContainerClientFactory);
+    }
+
+    private static ISetup<BlobContainerClient, AsyncPageable<BlobItem>> SetupContainerClientMock(
+        Mock<BlobContainerClient> containerClientMock,
+        string prefix
+    )
+    {
+        return containerClientMock.Setup(
+            c => c.GetBlobsAsync(
+                It.IsAny<BlobTraits>(),
+                It.IsAny<BlobStates>(),
+                prefix,
+                It.IsAny<CancellationToken>()
+            )
+        );
+    }
+
+    private static AzureSharedContentClient AzureClientWithContainerClient(Mock<BlobContainerClient> containerClientMock)
+    {
+        Mock<IBlobContainerClientFactory> factoryMock = new();
+        factoryMock
+            .Setup(f => f.GetContainerClient())
+            .Returns(containerClientMock.Object);
+        return GetClientForTest(null, factoryMock.Object);
     }
 }
