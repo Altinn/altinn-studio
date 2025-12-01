@@ -401,8 +401,8 @@ const renderBase = async ({
   if (queryMocks.fetchTextResources) {
     try {
       const textResources = await queryMocks.fetchTextResources('nb');
-      if (textResources && window.AltinnAppData) {
-        window.AltinnAppData.textResources = textResources;
+      if (textResources && window.AltinnAppInstanceData) {
+        window.AltinnAppInstanceData.textResources = textResources;
       }
     } catch (_e) {
       // If the mock throws or returns invalid data, keep default text resources
@@ -414,8 +414,8 @@ const renderBase = async ({
   try {
     const { fetchApplicationMetadata } = await import('src/http-client/queries');
     const applicationMetadata = await fetchApplicationMetadata();
-    if (applicationMetadata && window.AltinnAppData) {
-      window.AltinnAppData.applicationMetadata = applicationMetadata;
+    if (applicationMetadata && window.AltinnAppGlobalData) {
+      window.AltinnAppGlobalData.applicationMetadata = applicationMetadata;
       // Also preload into query cache so ApplicationMetadataProvider can use it
       queryClient.setQueryData(['fetchApplicationMetadata'], applicationMetadata);
     }
@@ -427,8 +427,8 @@ const renderBase = async ({
   if (queryMocks.fetchApplicationSettings) {
     try {
       const applicationSettings = await queryMocks.fetchApplicationSettings();
-      if (applicationSettings && window.AltinnAppData) {
-        window.AltinnAppData.frontendSettings = applicationSettings;
+      if (applicationSettings && window.AltinnAppGlobalData) {
+        window.AltinnAppGlobalData.frontendSettings = applicationSettings;
       }
     } catch (_e) {
       // Keep default settings if query throws
@@ -439,8 +439,8 @@ const renderBase = async ({
   if (queryMocks.fetchLayoutSets) {
     try {
       const layoutSets = await queryMocks.fetchLayoutSets();
-      if (layoutSets && window.AltinnAppData) {
-        window.AltinnAppData.layoutSets = layoutSets;
+      if (layoutSets && window.AltinnAppInstanceData) {
+        window.AltinnAppInstanceData.layoutSets = layoutSets;
       }
     } catch (_e) {
       // Keep default layout sets if query throws
@@ -453,8 +453,8 @@ const renderBase = async ({
     if (jest.isMockFunction(fetchProcessState)) {
       try {
         const processState = await fetchProcessState('dummy-owner/dummy-guid');
-        if (processState && window.AltinnAppData) {
-          window.AltinnAppData.processState = processState;
+        if (processState && window.AltinnAppInstanceData) {
+          window.AltinnAppInstanceData.processState = processState;
         }
       } catch (_e) {
         // Mock might throw or return undefined - that's OK
@@ -471,8 +471,8 @@ const renderBase = async ({
       // and will be consumed later by the actual test
       try {
         const instanceData = await fetchInstanceData('dummy-owner', 'dummy-guid');
-        if (instanceData && window.AltinnAppData) {
-          window.AltinnAppData.instance = instanceData;
+        if (instanceData && window.AltinnAppInstanceData) {
+          window.AltinnAppInstanceData.instance = instanceData;
         }
         queryClient.setQueryData(
           instanceQueries.instanceData({ instanceOwnerPartyId: 'dummy-owner', instanceGuid: 'dummy-guid' }).queryKey,

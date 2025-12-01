@@ -90,13 +90,12 @@ document.getAnimations = () => [];
 // Use IDs that match the test router expectations (see renderWithProviders.tsx)
 const exampleGuid = '75154373-aed4-41f7-95b4-e5b5115c2edc';
 const examplePartyId = 512345;
-window.AltinnAppData = {
+window.AltinnAppInstanceData = {
   instance: getInstanceDataMock((instance) => {
     instance.id = `${examplePartyId}/${exampleGuid}`;
     instance.data[0].instanceGuid = exampleGuid;
   }, examplePartyId),
   processState: getProcessDataMock(),
-  userProfile: getProfileMock(),
   layoutSets: getLayoutSetsMock(),
   applicationMetadata: getIncomingApplicationMetadataMock(),
   footerLayout: null,
@@ -105,6 +104,14 @@ window.AltinnAppData = {
     language: 'nb',
     resources: getTextResourcesMock(),
   },
+  frontendSettings: {},
+};
+
+window.AltinnAppGlobalData = {
+  userProfile: getProfileMock(),
+  applicationMetadata: getIncomingApplicationMetadataMock(),
+  footerLayout: null,
+  availableLanguages: [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
   frontendSettings: {},
 };
 

@@ -44,7 +44,7 @@ const emptyArray: never[] = [];
 //   return <InstanceContext.Provider value={data}>{children}</InstanceContext.Provider>;
 // };
 
-export const useLaxInstanceId = () => window.AltinnAppData?.instance?.id;
+export const useLaxInstanceId = () => window.AltinnAppInstanceData?.instance?.id;
 
 export const useStrictInstanceId = () => {
   const instanceId = useLaxInstanceId();

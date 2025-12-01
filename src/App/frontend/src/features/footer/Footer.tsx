@@ -12,7 +12,7 @@ import classes from 'src/features/footer/Footer.module.css';
 import type { IFooterComponent, IFooterComponentMap } from 'src/features/footer/types';
 
 export const Footer = () => {
-  const data = window.AltinnAppData?.footerLayout;
+  const data = window.AltinnAppGlobalData?.footerLayout;
   const application = getApplicationMetadata();
 
   const shouldUseOrgLogo = application.logo != null;

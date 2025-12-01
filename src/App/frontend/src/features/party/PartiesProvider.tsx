@@ -4,7 +4,7 @@ import type { IParty } from 'src/types/shared';
 /**
  * Returns the current party from window.AltinnAppData.userProfile
  */
-export const useSelectedParty = (): IParty | undefined => window.AltinnAppData?.userProfile?.party;
+export const useSelectedParty = (): IParty | undefined => window.AltinnAppGlobalData?.userProfile?.party;
 /**
  * Returns true if a party is currently selected
  * @deprecated

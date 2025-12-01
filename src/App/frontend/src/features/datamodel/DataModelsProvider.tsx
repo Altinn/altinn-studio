@@ -175,7 +175,7 @@ function DataModelsLoader() {
     queryClient.getQueryData(
       instanceQueries.instanceData({ instanceOwnerPartyId, instanceGuid: instance?.id }).queryKey,
     )?.data ??
-    window.AltinnAppData?.instance?.data ??
+    window.AltinnAppInstanceData?.instance?.data ??
     emptyArray;
 
   const layoutSetId = useCurrentLayoutSetId();

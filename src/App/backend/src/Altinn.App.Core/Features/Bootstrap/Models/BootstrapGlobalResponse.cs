@@ -36,7 +36,4 @@ public class BootstrapGlobalResponse
     /// </summary>
     [JsonPropertyName("frontendSettings")]
     public FrontEndSettings? FrontEndSettings { get; set; }
-
-
-
 }

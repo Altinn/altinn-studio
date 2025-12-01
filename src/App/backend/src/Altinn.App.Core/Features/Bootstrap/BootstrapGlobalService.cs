@@ -126,6 +126,8 @@ internal sealed class BootstrapGlobalService : IBootstrapGlobalService
         var footerTask = GetFooterLayout(response);
         tasks.Add(footerTask);
 
+        // Set frontend settings
+        response.FrontEndSettings = _frontEndSettings;
         return response;
     }
 

@@ -6,29 +6,29 @@ import type { IAppLanguage, IApplicationSettings, IInstance, IProcess, IProfile 
 
 export {};
 
-export type AltinnAppData = {
-  instance: IInstance;
-  processState: IProcess;
-  userProfile: IProfile;
-  layoutSets: ILayoutSets;
-  applicationMetadata: ApplicationMetadata;
-  footerLayout: IFooterLayout | null;
-  availableLanguages: IAppLanguage[];
-  textResources: ITextResourceResult;
-  frontendSettings: IApplicationSettings;
-};
+// export type AltinnAppData = {
+//   instance: IInstance;
+//   processState: IProcess;
+//   userProfile: IProfile;
+//   layoutSets: ILayoutSets;
+//   applicationMetadata: ApplicationMetadata;
+//   footerLayout: IFooterLayout | null;
+//   availableLanguages: IAppLanguage[];
+//   textResources: ITextResourceResult;
+//   frontendSettings: IApplicationSettings;
+// };
 
 export type AltinnAppGlobalData = {
   userProfile: IProfile;
   applicationMetadata: ApplicationMetadata;
   footerLayout: IFooterLayout | null;
   availableLanguages: IAppLanguage[];
+  frontendSettings: IApplicationSettings;
 };
 
 export type AltinnAppInstanceData = {
   instance: IInstance;
   processState: IProcess;
-  userProfile: IProfile;
   layoutSets: ILayoutSets;
   applicationMetadata: ApplicationMetadata;
   footerLayout: IFooterLayout | null;
@@ -41,7 +41,5 @@ declare global {
   interface Window {
     AltinnAppGlobalData: AltinnAppGlobalData;
     AltinnAppInstanceData?: AltinnAppInstanceData;
-    CreateInstance?: boolean;
-    AltinnAppData: any;
   }
 }
