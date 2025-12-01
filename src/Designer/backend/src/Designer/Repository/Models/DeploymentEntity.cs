@@ -1,4 +1,6 @@
 #nullable disable
+using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Repository.Models
@@ -27,11 +29,53 @@ namespace Altinn.Studio.Designer.Repository.Models
         /// </summary>
         [JsonProperty("build")]
         public BuildEntity Build { get; set; }
+
+        /// <summary>
+        /// Events related to this deployment
+        /// </summary>
+        [JsonProperty("events")]
+        public List<DeployEvent> Events { get; set; } = new List<DeployEvent>();
     }
 
     public enum DeploymentType
     {
         Deploy = 0,
         Decommission = 1
+    }
+
+    /// <summary>
+    /// Deploy event entity
+    /// </summary>
+    public record DeployEvent
+    {
+        /// <summary>
+        /// A human-readable description of the event
+        /// </summary>
+        [JsonProperty("message")]
+        public string Message { get; init; }
+
+        /// <summary>
+        /// The timestamp when the event occurred
+        /// </summary>
+        [JsonProperty("timestamp")]
+        public DateTimeOffset Timestamp { get; init; }
+
+        /// <summary>
+        /// The type of deploy event
+        /// </summary>
+        [JsonProperty("eventType")]
+        public DeployEventType EventType { get; init; }
+    }
+
+    public enum DeployEventType
+    {
+        DeploymentCreated,
+        PipelineScheduled,
+        PipelineSucceeded,
+        PipelineFailed,
+        InstallSucceeded,
+        InstallFailed,
+        UpgradeSucceeded,
+        UpgradeFailed
     }
 }
