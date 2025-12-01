@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using System.Text.Json;
 
 namespace StudioGateway.Api.Tests;
 
@@ -25,6 +26,31 @@ public sealed class HealthEndpointIntegrationTests : IAsyncLifetime
     {
         _client.Dispose();
         return ValueTask.CompletedTask;
+    }
+
+    [Fact]
+    public async Task ForwardedHeaders_ProcessesXForwardedFor()
+    {
+        // Verifies that X-Forwarded-For header processing works correctly.
+        // Traefik is configured to pass through X-Forwarded-For headers (forwardedHeaders.insecure),
+        // and ASP.NET Core's ForwardedHeaders middleware should resolve it as RemoteIpAddress.
+        // This simulates what happens in production where Traefik sets these headers.
+        var ct = TestContext.Current.CancellationToken;
+        var clientIpEndpoint = new Uri("/runtime/gateway/api/v1/debug/clientip", UriKind.Relative);
+        var expectedClientIp = "203.0.113.195";
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, clientIpEndpoint);
+        request.Headers.Add("X-Forwarded-For", expectedClientIp);
+
+        var response = await _client.SendAsync(request, ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var content = await response.Content.ReadAsStringAsync(ct);
+        var json = JsonDocument.Parse(content);
+        var remoteIp = json.RootElement.GetProperty("remoteIp").GetString();
+
+        Assert.Equal(expectedClientIp, remoteIp);
     }
 
     [Fact]

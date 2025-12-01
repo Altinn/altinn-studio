@@ -17,14 +17,27 @@ internal static class HostingExtensions
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders = ForwardedHeaders.All;
+            options.ForwardLimit = 3;
             options.KnownIPNetworks.Clear();
+#pragma warning disable ASPDEPR005 // Type or member is obsolete
+            options.KnownNetworks.Clear();
+#pragma warning restore ASPDEPR005 // Type or member is obsolete
             options.KnownProxies.Clear();
 
-            // IP ranges used internally in the deployed clusters
-            // This makes sure we only trust the X-Forwarded-* headers for requests
-            // originating from these ranges.
-            options.KnownIPNetworks.Add(new System.Net.IPNetwork(IPAddress.Parse("10.240.0.0"), 16));
-            options.KnownIPNetworks.Add(new System.Net.IPNetwork(IPAddress.Parse("fd10:59f0:8c79:240::"), 64));
+            if (builder.Environment.IsEnvironment("local"))
+            {
+                // Running locally, let's just trust any network
+                options.KnownIPNetworks.Add(new System.Net.IPNetwork(IPAddress.Any, 0));
+                options.KnownIPNetworks.Add(new System.Net.IPNetwork(IPAddress.IPv6Any, 0));
+            }
+            else
+            {
+                // IP ranges used internally in the deployed clusters
+                // This makes sure we only trust the X-Forwarded-* headers for requests
+                // originating from these ranges.
+                options.KnownIPNetworks.Add(new System.Net.IPNetwork(IPAddress.Parse("10.240.0.0"), 16));
+                options.KnownIPNetworks.Add(new System.Net.IPNetwork(IPAddress.Parse("fd10:59f0:8c79:240::"), 64));
+            }
         });
 
         // Need to coordinate graceful shutdown (let's assume k8s as the scheduler/runtime):

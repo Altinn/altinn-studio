@@ -51,4 +51,28 @@ app.MapGet("/runtime/gateway/api/v1/health", () => Results.Ok(new HealthResponse
 
 app.MapFluxWebhookEndpoint();
 
+if (app.Environment.IsEnvironment("local"))
+{
+    // Diagnostic endpoint to verify X-Forwarded-For header processing
+    app.MapGet(
+            "/runtime/gateway/api/v1/debug/clientip",
+            (HttpContext ctx) =>
+            {
+                var headers = ctx.Request.Headers;
+                return Results.Ok(
+                    new ClientIpResponse(
+                        ctx.Connection.RemoteIpAddress?.ToString(),
+                        headers["X-Forwarded-For"].FirstOrDefault(),
+                        headers["X-Forwarded-Proto"].FirstOrDefault(),
+                        headers["X-Forwarded-Host"].FirstOrDefault()
+                    )
+                );
+            }
+        )
+        .RequirePublicPort()
+        .WithName("DebugClientIp")
+        .WithTags("Debug")
+        .ExcludeFromDescription();
+}
+
 await app.RunAsync();
