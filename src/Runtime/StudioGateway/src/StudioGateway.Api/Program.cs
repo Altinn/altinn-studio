@@ -1,18 +1,17 @@
-using StudioGateway.Api;
-using StudioGateway.Api.Flux;
-using StudioGateway.Api.Configuration;
-using StudioGateway.Api.Services.Alerts;
-using StudioGateway.Api.TypedHttpClients.AlertsClient;
-using StudioGateway.Api.TypedHttpClients.StudioClient;
-using StudioGateway.Api.TypedHttpClients.MetricsClient;
-using Azure.Monitor.Query;
 using Azure.Identity;
-using StudioGateway.Api.Services.Metrics;
+using Azure.Monitor.Query;
+using StudioGateway.Api;
+using StudioGateway.Api.Configuration;
+using StudioGateway.Api.Flux;
 using StudioGateway.Api.Hosting;
+using StudioGateway.Api.Services.Alerts;
+using StudioGateway.Api.Services.Metrics;
+using StudioGateway.Api.TypedHttpClients.AlertsClient;
+using StudioGateway.Api.TypedHttpClients.MetricsClient;
+using StudioGateway.Api.TypedHttpClients.StudioClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.Configure<GeneralSettings>(builder.Configuration.GetSection("GeneralSettings"));
 builder.Services.Configure<AlertsClientSettings>(builder.Configuration.GetSection("AlertsClientSettings"));
 builder.Services.Configure<StudioClientSettings>(builder.Configuration.GetSection("StudioClientSettings"));
 builder.Services.Configure<MetricsClientSettings>(builder.Configuration.GetSection("MetricsClientSettings"));

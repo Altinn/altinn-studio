@@ -6,14 +6,16 @@ namespace StudioGateway.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]
-public class MetricsController(
-    IMetricsService metricsService
-    ) : ControllerBase
+public class MetricsController(IMetricsService metricsService) : ControllerBase
 {
     private readonly IMetricsService _metricsService = metricsService;
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Metric>>> GetMetrics(string app, int time, CancellationToken cancellationToken)
+    public async Task<ActionResult<IEnumerable<Metric>>> GetMetrics(
+        string app,
+        int time,
+        CancellationToken cancellationToken
+    )
     {
         IEnumerable<Metric> metrics = await _metricsService.GetMetricsAsync(app, time, cancellationToken);
         return Ok(metrics);

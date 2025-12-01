@@ -6,14 +6,12 @@ namespace StudioGateway.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]
-public class AlertsController(
-    IAlertsService alertsService
-    ) : ControllerBase
+public class AlertsController(IAlertsService alertsService) : ControllerBase
 {
     private readonly IAlertsService _alertsService = alertsService;
 
     [HttpGet]
-    // TODO: Add authorization policy when maskinporten is implemented
+    // TODO: Add authorization policy
     public async Task<ActionResult<IEnumerable<Alert>>> GetFiringAlerts(CancellationToken cancellationToken)
     {
         IEnumerable<Alert> alerts = await _alertsService.GetFiringAlertsAsync(cancellationToken);
@@ -21,9 +19,8 @@ public class AlertsController(
     }
 
     [HttpPost]
-    public async Task<ActionResult> UpsertFiringAlert(
-        CancellationToken cancellationToken
-    )
+    // TODO: Add authorization policy
+    public async Task<ActionResult> UpsertFiringAlert(CancellationToken cancellationToken)
     {
         await _alertsService.UpsertFiringAlertsAsync(cancellationToken);
         return Ok();

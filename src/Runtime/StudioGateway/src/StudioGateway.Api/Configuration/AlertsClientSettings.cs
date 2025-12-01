@@ -5,7 +5,7 @@ namespace StudioGateway.Api.Configuration;
 /// </summary>
 public class AlertsClientSettings
 {
-    public string Provider { get; set; }
-    public string BaseUri { get; set; }
-    public string Token { get; set; }
+    public required string Provider { get; set; }
+    public required string BaseUri { get; set; }
+    public required string Token { get; set; }
 }

@@ -4,5 +4,9 @@ namespace StudioGateway.Api.TypedHttpClients.MetricsClient;
 
 public interface IMetricsClient
 {
-    public Task<IEnumerable<Metric>> GetMetricsAsync(string app, int time, CancellationToken cancellationToken = default);
+    public Task<IEnumerable<Metric>> GetMetricsAsync(
+        string app,
+        int time,
+        CancellationToken cancellationToken = default
+    );
 }
