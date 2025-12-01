@@ -27,6 +27,16 @@ import {
   isComponentTypeValidChild,
   moveLayoutItem,
 } from '../utils/formLayoutUtils';
+import { isContainer } from '../utils/formItemUtils';
+import { useValidDataModels } from '../hooks/useValidDataModels';
+import {
+  getDataModelFields,
+  getMaxOccursFromDataModelFields,
+  getMinOccursFromDataModelFields,
+  getXsdDataTypeFromDataModelFields,
+} from '../utils/dataModelUtils';
+import type { FormComponent } from '../types/FormComponent';
+import { ObjectUtils } from '@studio/pure-functions';
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
 import { Preview } from '../components/Preview';
@@ -54,6 +64,7 @@ export const FormDesigner = (): JSX.Element => {
     layoutSet,
   );
   const { handleEdit } = useFormItemContext();
+  const { dataModelMetadata, selectedDataModel } = useValidDataModels('');
   const [previewCollapsed, setPreviewCollapsed] = useLocalStorage<boolean>(
     `form-designer-main:previewCollapsed:${user.id}:${org}`,
     false,
@@ -97,22 +108,71 @@ export const FormDesigner = (): JSX.Element => {
     const triggerInvalidChildAlert = () => alert(t('schema_editor.error_invalid_child'));
     const layout = formLayouts[selectedFormLayoutName];
 
-    const addItem: HandleAdd<ComponentType> = (type, { parentId, index }) => {
+    const addItem: HandleAdd<ComponentType> = async (type, { parentId, index }) => {
       const newId = generateComponentId(type, formLayouts);
 
       if (!isComponentTypeValidChild(layout, parentId, type)) {
         triggerInvalidChildAlert();
         return;
       }
-      const updatedLayout = addItemOfType(layout, type, newId, parentId, index);
-      addItemToLayout(
-        { componentType: type, newId, parentId, index },
-        {
-          onSuccess: async () => {
-            await updateLayoutsForPreview(layoutSet);
+
+      let updatedLayout = addItemOfType(layout, type, newId, parentId, index);
+
+      const newComponent = getItem(updatedLayout, newId);
+      const shouldAutoBind =
+        !isContainer(newComponent) &&
+        dataModelMetadata &&
+        selectedDataModel &&
+        !newComponent.dataModelBindings?.simpleBinding?.field;
+
+      if (shouldAutoBind) {
+        const bindingKey = 'simpleBinding';
+        const dataModelFields = getDataModelFields({
+          componentType: type,
+          bindingKey,
+          dataModelMetadata,
+        });
+
+        const firstField = dataModelFields[0];
+        if (firstField?.value) {
+          const autoBinding = {
+            field: firstField.value,
+            dataType: selectedDataModel,
+          };
+          updatedLayout = ObjectUtils.deepCopy(updatedLayout);
+          const component = updatedLayout.components[newId] as FormComponent;
+          updatedLayout.components[newId] = {
+            ...component,
+            dataModelBindings: {
+              ...(component.dataModelBindings || {}),
+              [bindingKey]: autoBinding,
+            },
+            required: getMinOccursFromDataModelFields(firstField.value, dataModelMetadata),
+            timeStamp: getXsdDataTypeFromDataModelFields(type, firstField.value, dataModelMetadata),
+            maxCount: getMaxOccursFromDataModelFields(type, firstField.value, dataModelMetadata),
+          } as FormComponent;
+        }
+      }
+
+      if (shouldAutoBind) {
+        updateFormLayout(
+          { internalLayout: updatedLayout },
+          {
+            onSuccess: async () => {
+              await updateLayoutsForPreview(layoutSet);
+            },
           },
-        },
-      );
+        );
+      } else {
+        addItemToLayout(
+          { componentType: type, newId, parentId, index },
+          {
+            onSuccess: async () => {
+              await updateLayoutsForPreview(layoutSet);
+            },
+          },
+        );
+      }
       handleEdit(getItem(updatedLayout, newId));
       setSelectedItem({ type: ItemType.Component, id: newId });
     };
