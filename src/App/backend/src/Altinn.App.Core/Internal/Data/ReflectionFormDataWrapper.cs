@@ -236,7 +236,13 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
         var childModel = currentProp.GetValue(currentModel);
         if (childModel is null)
         {
-            return false;
+            // Create an instance of the property type if it's null
+            childModel = Activator.CreateInstance(currentProp.PropertyType);
+            if (childModel is null)
+            {
+                return false;
+            }
+            currentProp.SetValue(currentModel, childModel);
         }
 
         // Strings are enumerable in C#
@@ -259,7 +265,37 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
         var elementAt = GetElementAt(childModelList, currentGroupIndex.Value);
         if (elementAt is null)
         {
-            return false; // Error condition, no value at index
+            // Try to create the element at the specified index if it doesn't exist
+            if (childModelList is not System.Collections.IList list)
+            {
+                return false;
+            }
+
+            var elementType = list.GetType().GetGenericArguments().FirstOrDefault();
+            if (elementType is null)
+            {
+                return false;
+            }
+
+            // Ensure the list has enough elements by adding default instances
+            while (list.Count <= currentGroupIndex.Value)
+            {
+                try
+                {
+                    var newElement = Activator.CreateInstance(elementType);
+                    list.Add(newElement);
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            elementAt = list[currentGroupIndex.Value];
+            if (elementAt is null)
+            {
+                return false;
+            }
         }
 
         return SetModelDataRecursive(keys, index + 1, elementAt, value);
