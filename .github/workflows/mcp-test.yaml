@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - 'src/AI/mcp/**'
+  push:
+    branches:
+      - 'feat/mcp-unit-tests-workflow'
 
 jobs:
   test:
