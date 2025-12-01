@@ -3,7 +3,7 @@ import { useCallback, useMemo } from 'react';
 import type { JSONSchema7 } from 'json-schema';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
-import { useApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useApplicationMetadata, useIsStatelessApp } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import {
   getCurrentDataTypeForApplication,
   getCurrentTaskDataElementId,
@@ -94,7 +94,7 @@ function getDataModelUrl({
 
 export function useGetDataModelUrl() {
   const isAnonymous = useAllowAnonymous();
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useIsStatelessApp();
   const instanceId = useLaxInstanceId();
   const currentLanguage = useAsRef(useCurrentLanguage());
 
@@ -115,7 +115,7 @@ export function useGetDataModelUrl() {
 // We assume that the first data element of the correct type is the one we should use, same as isDataTypeWritable
 export function useDataModelUrl({ dataType, dataElementId, language, prefillFromQueryParams }: DataModelProps) {
   const isAnonymous = useAllowAnonymous();
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useIsStatelessApp();
   const instanceId = useLaxInstanceId();
   const currentLanguage = useAsRef(useCurrentLanguage());
 

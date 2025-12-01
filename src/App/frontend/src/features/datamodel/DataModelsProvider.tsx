@@ -162,7 +162,7 @@ function DataModelsLoader() {
   console.log('layouts', layouts);
 
   const defaultDataType = useCurrentDataModelName();
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useIsStatelessApp();
   const queryClient = useQueryClient();
   const instance = useInstanceDataQuery().data;
 

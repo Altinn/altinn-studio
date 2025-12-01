@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useParams, useSearchParams } from 'react-rout
 import type { NavigateOptions } from 'react-router-dom';
 
 import { SearchParams } from 'src/core/routing/types';
-import { useApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useIsStatelessApp } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
@@ -110,7 +110,7 @@ export const useStartUrl = (forcedTaskId?: string) => {
     useAllNavigationParams();
   const isSubformPage = !!mainPageKey;
   const taskType = useGetTaskTypeById()(taskId);
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useIsStatelessApp();
 
   return useMemo(() => {
     const firstPage = order?.[0];
@@ -201,7 +201,7 @@ export function useIsValidTaskId() {
 }
 
 export function useNavigatePage() {
-  const isStatelessApp = useApplicationMetadata().isStatelessApp;
+  const isStatelessApp = useIsStatelessApp();
   const navigate = useOurNavigate();
   const navParams = useAllNavigationParamsAsRef();
 

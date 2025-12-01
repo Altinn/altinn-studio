@@ -9,7 +9,7 @@ import type { AxiosRequestConfig } from 'axios';
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
-import { useApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useIsStatelessApp } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { useRuleConnections } from 'src/features/form/dynamics/DynamicsContext';
@@ -100,7 +100,7 @@ function useFormDataSaveMutation() {
   const dataModelsRef = useAsRef(useSelector((state) => state.dataModels));
   const saveFinished = useSelector((s) => s.saveFinished);
   const cancelSave = useSelector((s) => s.cancelSave);
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useIsStatelessApp();
   const debounce = useSelector((s) => s.debounce);
   const selectedPartyId = useSelectedParty()?.partyId;
   const waitFor = useWaitForState<
@@ -1241,7 +1241,7 @@ export const FD = {
 //   const dataModelsRef = useAsRef(useSelector((state) => state.dataModels));
 //   const saveFinished = useSelector((s) => s.saveFinished);
 //   const cancelSave = useSelector((s) => s.cancelSave);
-//   const isStateless = useApplicationMetadata().isStatelessApp;
+//   const isStateless = useIsStatelessApp();
 //   const debounce = useSelector((s) => s.debounce);
 //   const selectedPartyId = useSelectedParty()?.partyId;
 //   const waitFor = useWaitForState<

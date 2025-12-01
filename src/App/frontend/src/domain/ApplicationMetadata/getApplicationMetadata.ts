@@ -27,3 +27,19 @@ export const useApplicationMetadata = () => {
 };
 export const useLaxApplicationMetadata = () => useApplicationMetadata();
 export const useHasApplicationMetadata = () => true;
+
+export const getApplicationMetadata = () => window.AltinnAppGlobalData.applicationMetadata;
+
+function isStatelessApp2(hasInstanceGuid: boolean) {
+  // App can be setup as stateless but then go over to a stateful process task
+
+  const appMetadata = getApplicationMetadata();
+  const show = appMetadata.onEntry?.show;
+
+  return hasInstanceGuid ? false : !!show && !onEntryValuesThatHaveState.includes(show);
+}
+
+export const useIsStatelessApp = (): boolean => {
+  const instanceGuid = useNavigationParam('instanceGuid');
+  return isStatelessApp2(!!instanceGuid);
+};

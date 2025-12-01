@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { useApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useIsStatelessApp } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { BackendValidationSeverity, BuiltInValidationIssueSources, ValidationMask } from 'src/features/validation';
@@ -30,7 +30,7 @@ const severityMap: { [s in BackendValidationSeverity]: ValidationSeverity } = {
 export function useShouldValidateInitial(): boolean {
   const isCustomReceipt = useProcessTaskId() === TaskKeys.CustomReceipt;
   const isPDF = useIsPdf();
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useIsStatelessApp();
   const writableDataTypes = DataModels.useWritableDataTypes();
   return !isCustomReceipt && !isPDF && !isStateless && !!writableDataTypes?.length;
 }
