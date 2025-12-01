@@ -3,19 +3,21 @@ using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Core.Features.Testing;
 
 /// <summary>
 /// Implementation of IMockDataHelper for merging mock data with real service responses.
 /// </summary>
-public class MockDataHelper : IMockDataHelper
+public class MockDataHelper(Logger<MockDataHelper>? logger = null) : IMockDataHelper
 {
-    private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+    private readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
+    private readonly Logger<MockDataHelper>? _logger = logger;
 
     /// <inheritdoc />
     public UserProfile MergeUserProfile(UserProfile real, object? mockData)

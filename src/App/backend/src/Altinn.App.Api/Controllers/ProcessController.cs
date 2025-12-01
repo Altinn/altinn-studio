@@ -7,8 +7,6 @@ using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
-using Altinn.App.Core.Internal.Process.Elements;
-using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.Validation;
@@ -34,10 +32,10 @@ public class ProcessController : ControllerBase
     private readonly ILogger<ProcessController> _logger;
     private readonly IInstanceClient _instanceClient;
     private readonly IProcessClient _processClient;
-    private readonly IAuthorizationService _authorization;
     private readonly IProcessEngine _processEngine;
     private readonly IProcessReader _processReader;
     private readonly IProcessEngineAuthorizer _processEngineAuthorizer;
+    private readonly IProcessStateService _processStateService;
     private readonly IValidationService _validationService;
     private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
 
@@ -53,16 +51,17 @@ public class ProcessController : ControllerBase
         IProcessReader processReader,
         IProcessEngine processEngine,
         IServiceProvider serviceProvider,
-        IProcessEngineAuthorizer processEngineAuthorizer
+        IProcessEngineAuthorizer processEngineAuthorizer,
+        IProcessStateService processStateService
     )
     {
         _logger = logger;
         _instanceClient = instanceClient;
         _processClient = processClient;
-        _authorization = authorization;
         _processReader = processReader;
         _processEngine = processEngine;
         _processEngineAuthorizer = processEngineAuthorizer;
+        _processStateService = processStateService;
         _validationService = validationService;
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
     }
@@ -88,8 +87,13 @@ public class ProcessController : ControllerBase
     {
         try
         {
-            Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-            AppProcessState appProcessState = await ConvertAndAuthorizeActions(instance, instance.Process);
+            AppProcessState appProcessState = await _processStateService.GetProcessState(
+                org,
+                app,
+                instanceOwnerPartyId,
+                instanceGuid,
+                HttpContext.User
+            );
 
             return Ok(appProcessState);
         }
@@ -149,9 +153,10 @@ public class ProcessController : ControllerBase
 
             await _processEngine.HandleEventsAndUpdateStorage(instance, null, result.ProcessStateChange?.Events);
 
-            AppProcessState appProcessState = await ConvertAndAuthorizeActions(
+            AppProcessState appProcessState = await _processStateService.ConvertAndAuthorizeActions(
                 instance,
-                result.ProcessStateChange?.NewProcessState
+                result.ProcessStateChange?.NewProcessState,
+                HttpContext.User
             );
             return Ok(appProcessState);
         }
@@ -284,9 +289,10 @@ public class ProcessController : ControllerBase
                 return GetResultForError(result);
             }
 
-            AppProcessState appProcessState = await ConvertAndAuthorizeActions(
+            AppProcessState appProcessState = await _processStateService.ConvertAndAuthorizeActions(
                 instance,
-                result.ProcessStateChange.NewProcessState
+                result.ProcessStateChange.NewProcessState,
+                HttpContext.User
             );
 
             return Ok(appProcessState);
@@ -419,7 +425,11 @@ public class ProcessController : ControllerBase
             );
         }
 
-        AppProcessState appProcessState = await ConvertAndAuthorizeActions(instance, instance.Process);
+        AppProcessState appProcessState = await _processStateService.ConvertAndAuthorizeActions(
+            instance,
+            instance.Process,
+            HttpContext.User
+        );
         return Ok(appProcessState);
     }
 
@@ -461,48 +471,6 @@ public class ProcessController : ControllerBase
                 $"Unable to find retrieve process history for instance {instanceOwnerPartyId}/{instanceGuid}. Exception: {processException}"
             );
         }
-    }
-
-    private async Task<AppProcessState> ConvertAndAuthorizeActions(Instance instance, ProcessState? processState)
-    {
-        AppProcessState appProcessState = new AppProcessState(processState);
-        if (appProcessState.CurrentTask?.ElementId != null)
-        {
-            var flowElement = _processReader.GetFlowElement(appProcessState.CurrentTask.ElementId);
-            if (flowElement is ProcessTask processTask)
-            {
-                appProcessState.CurrentTask.Actions = new Dictionary<string, bool>();
-                List<AltinnAction> actions = new List<AltinnAction>() { new("read"), new("write") };
-                actions.AddRange(
-                    processTask.ExtensionElements?.TaskExtension?.AltinnActions ?? new List<AltinnAction>()
-                );
-                var authDecisions = await AuthorizeActions(actions, instance);
-                appProcessState.CurrentTask.Actions = authDecisions
-                    .Where(a => a.ActionType == ActionType.ProcessAction)
-                    .ToDictionary(a => a.Id, a => a.Authorized);
-                appProcessState.CurrentTask.HasReadAccess = authDecisions.Single(a => a.Id == "read").Authorized;
-                appProcessState.CurrentTask.HasWriteAccess = authDecisions.Single(a => a.Id == "write").Authorized;
-                appProcessState.CurrentTask.UserActions = authDecisions;
-                appProcessState.CurrentTask.ElementType = flowElement.ElementType();
-            }
-        }
-
-        var processTasks = new List<AppProcessTaskTypeInfo>();
-        foreach (ProcessTask processElement in _processReader.GetAllFlowElements().OfType<ProcessTask>())
-        {
-            processTasks.Add(
-                new AppProcessTaskTypeInfo
-                {
-                    ElementId = processElement.Id,
-                    ElementType = processElement.ElementType(),
-                    AltinnTaskType = processElement.ExtensionElements?.TaskExtension?.TaskType,
-                }
-            );
-        }
-
-        appProcessState.ProcessTasks = processTasks;
-
-        return appProcessState;
     }
 
     private ActionResult<AppProcessState> GetResultForError(ProcessChangeResult result)
@@ -639,11 +607,6 @@ public class ProcessController : ControllerBase
         }
 
         return null;
-    }
-
-    private async Task<List<UserAction>> AuthorizeActions(List<AltinnAction> actions, Instance instance)
-    {
-        return await _authorization.AuthorizeActions(instance, HttpContext.User, actions);
     }
 
     private ActionResult HandlePlatformHttpException(PlatformHttpException e, string defaultMessage)

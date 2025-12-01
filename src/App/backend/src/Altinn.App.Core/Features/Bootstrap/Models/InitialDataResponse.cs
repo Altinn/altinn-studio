@@ -11,8 +11,10 @@ namespace Altinn.App.Core.Features.Bootstrap.Models;
 /// <summary>
 /// Represents the aggregated initial data required for application bootstrap.
 /// </summary>
-public sealed class InitialDataResponse
+public class InitialDataResponse
 {
+    internal InitialDataResponse() { }
+
     /// <summary>
     /// Application metadata.
     /// </summary>
@@ -20,34 +22,28 @@ public sealed class InitialDataResponse
     public required ApplicationMetadata ApplicationMetadata { get; set; }
 
     /// <summary>
-    /// Current instance data if applicable.
-    /// </summary>
-    [JsonPropertyName("instance")]
-    public Instance? Instance { get; set; }
-
-    /// <summary>
-    /// User profile information.
-    /// </summary>
-    [JsonPropertyName("userProfile")]
-    public UserProfile? UserProfile { get; set; }
-
-    /// <summary>
-    /// Current party information.
-    /// </summary>
-    [JsonPropertyName("party")]
-    public Party? Party { get; set; }
-
-    /// <summary>
-    /// Whether the current party is allowed to instantiate new instances.
-    /// </summary>
-    [JsonPropertyName("canInstantiate")]
-    public required bool CanInstantiate { get; set; }
-
-    /// <summary>
     /// Text resources for the current language.
     /// </summary>
     [JsonPropertyName("textResources")]
     public TextResource? TextResources { get; set; }
+
+    /// <summary>
+    /// Current language code.
+    /// </summary>
+    [JsonPropertyName("language")]
+    public required string Language { get; set; }
+
+    /// <summary>
+    /// Available language options.
+    /// </summary>
+    [JsonPropertyName("availableLanguages")]
+    public required List<ApplicationLanguage> AvailableLanguages { get; set; }
+
+    /// <summary>
+    /// Footer layout configuration.
+    /// </summary>
+    [JsonPropertyName("footerLayout")]
+    public object? FooterLayout { get; set; }
 
     /// <summary>
     /// Layout sets if available.
@@ -68,28 +64,10 @@ public sealed class InitialDataResponse
     public object? LayoutSettings { get; set; }
 
     /// <summary>
-    /// Current language code.
-    /// </summary>
-    [JsonPropertyName("language")]
-    public required string Language { get; set; }
-
-    /// <summary>
-    /// Available language options.
-    /// </summary>
-    [JsonPropertyName("availableLanguages")]
-    public required List<ApplicationLanguage> AvailableLanguages { get; set; }
-
-    /// <summary>
     /// Frontend feature flags.
     /// </summary>
     [JsonPropertyName("featureFlags")]
     public required Dictionary<string, bool> FeatureFlags { get; set; }
-
-    /// <summary>
-    /// Application settings visible to frontend.
-    /// </summary>
-    [JsonPropertyName("appSettings")]
-    public FrontEndSettings? AppSettings { get; set; }
 
     /// <summary>
     /// Platform settings.
@@ -98,22 +76,46 @@ public sealed class InitialDataResponse
     public required FrontendPlatformSettings PlatformSettings { get; set; }
 
     /// <summary>
-    /// Process state information if instance is available.
-    /// </summary>
-    [JsonPropertyName("processState")]
-    public AppProcessState? ProcessState { get; set; }
-
-    /// <summary>
-    /// Footer layout configuration.
-    /// </summary>
-    [JsonPropertyName("footerLayout")]
-    public object? FooterLayout { get; set; }
-
-    /// <summary>
     /// Frontend settings
     /// </summary>
     [JsonPropertyName("frontendSettings")]
     public required FrontEndSettings FrontendSettings { get; set; }
+}
+
+/// <summary>
+/// Represents the aggregated initial data required for application bootstrap in an authenticated context.
+/// </summary>
+public sealed class InitialDataResponseAuthenticated : InitialDataResponse
+{
+    /// <summary>
+    /// User profile information.
+    /// </summary>
+    [JsonPropertyName("userProfile")]
+    public required UserProfile UserProfile { get; set; }
+
+    /// <summary>
+    /// Current party information.
+    /// </summary>
+    [JsonPropertyName("party")]
+    public required Party Party { get; set; }
+
+    /// <summary>
+    /// Whether the current party is allowed to instantiate new instances.
+    /// </summary>
+    [JsonPropertyName("canInstantiate")]
+    public required bool CanInstantiate { get; set; }
+
+    /// <summary>
+    /// Current instance data if applicable.
+    /// </summary>
+    [JsonPropertyName("instance")]
+    public required Instance? Instance { get; set; }
+
+    /// <summary>
+    /// Process state information if instance is available.
+    /// </summary>
+    [JsonPropertyName("processState")]
+    public required AppProcessState? ProcessState { get; set; }
 }
 
 /// <summary>

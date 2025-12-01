@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Features.Maskinporten.Constants;
@@ -45,6 +46,9 @@ public abstract class Authenticated
     /// </summary>
     public string Token { get; }
 
+    /// <summary>
+    /// The claims principal constructed from the JWT token
+    /// </summary>
     private Authenticated(ref ParseContext context)
     {
         TokenIssuer = context.TokenIssuer;
@@ -77,6 +81,18 @@ public abstract class Authenticated
             language = profile.ProfileSettingPreference.Language;
 
         return language;
+    }
+
+    /// <summary>
+    /// Get the claims principal constructed from the JWT token
+    /// </summary>
+    /// <returns>The claims principal</returns>
+    public ClaimsPrincipal GetClaimsPrincipal()
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var jwtToken = handler.ReadJwtToken(Token);
+        var identity = new ClaimsIdentity(jwtToken.Claims, "jwt");
+        return new(identity);
     }
 
     /// <summary>

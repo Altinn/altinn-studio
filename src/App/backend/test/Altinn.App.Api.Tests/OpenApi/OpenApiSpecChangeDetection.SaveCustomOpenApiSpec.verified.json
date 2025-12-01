@@ -3245,6 +3245,10 @@
               "type": "string"
             },
             "nullable": true
+          },
+          "promptForParty": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": {}

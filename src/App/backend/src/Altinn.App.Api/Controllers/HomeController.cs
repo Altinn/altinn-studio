@@ -1,14 +1,17 @@
 using System.Globalization;
+using System.Net;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap;
+using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Features.Testing;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Result;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
@@ -45,9 +48,7 @@ public class HomeController : Controller
     /// Initialize a new instance of the <see cref="HomeController"/> class.
     /// </summary>
     /// <param name="antiforgery">The anti forgery service.</param>
-    /// <param name="platformSettings">The platform settings.</param>
     /// <param name="env">The current environment.</param>
-    /// <param name="appSettings">The application settings</param>
     /// <param name="appResources">The application resources service</param>
     /// <param name="appMetadata">The application metadata service</param>
     /// <param name="initialDataService">The initial data service</param>
@@ -57,9 +58,7 @@ public class HomeController : Controller
     /// <param name="logger">The logger</param>
     public HomeController(
         IAntiforgery antiforgery,
-        IOptions<PlatformSettings> platformSettings,
         IWebHostEnvironment env,
-        IOptions<AppSettings> appSettings,
         IAppResources appResources,
         IAppMetadata appMetadata,
         IInitialDataService initialDataService,
@@ -91,7 +90,7 @@ public class HomeController : Controller
     public async Task<IActionResult> ErrorPage([FromRoute] string org, [FromRoute] string app)
     {
         var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
-        var initialData = await _initialDataService.GetInitialData(org, app, null, null, language);
+        var initialData = await _initialDataService.GetInitialData(org, app, language);
 
         var html = GenerateHtmlWithInitialData(org, app, initialData);
         return Content(html, "text/html; charset=utf-8");
@@ -113,48 +112,43 @@ public class HomeController : Controller
         [FromQuery] bool forceNewInstance = false
     )
     {
-        // Use InitialDataService to get ALL data with mock integration
+        // Use InitialDataService to get data with mock integration
         var initialData = await _initialDataService.GetInitialData(org, app);
         ApplicationMetadata appMetadata = initialData.ApplicationMetadata;
 
-        if (IsStatelessApp(appMetadata) && await AllowAnonymous())
+        if (UserCanSeeStatelessApp(appMetadata) && await AllowAnonymous())
         {
             var statelessAppHtml = GenerateHtmlWithInitialData(org, app, initialData);
             return Content(statelessAppHtml);
         }
 
-        Authenticated.User.Details realUserDetails = await GetUserDetails();
-        Authenticated.User.Details details = MergeDetailsWithMockData(realUserDetails);
-
-        var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
-        if (tokens.RequestToken is not null)
+        var validationResult = await ValidateUserAccessAsync();
+        if (!validationResult.Success)
         {
-            HttpContext.Response.Cookies.Append(
-                "XSRF-TOKEN",
-                tokens.RequestToken,
-                new CookieOptions
-                {
-                    HttpOnly = false, // Make this cookie readable by Javascript.
-                }
-            );
+            return validationResult.Error;
+        }
+        SetXsrfTokenCookie();
+
+        var (user, userDetails) = validationResult.Ok;
+
+        if (userDetails.PartiesAllowedToInstantiate.Count == 0)
+        {
+            return RedirectToErrorPage(org, app, HttpStatusCode.Forbidden);
         }
 
-        if (details.PartiesAllowedToInstantiate.Count == 0)
+        if (!userDetails.CanRepresentParty(userDetails.Profile.PartyId))
         {
-            return Redirect($"/{org}/{app}/error?statusCode=403");
+            return RedirectToErrorPage(org, app, HttpStatusCode.Forbidden);
         }
 
-        if (!details.CanRepresentParty(details.Profile.PartyId))
-        {
-            return Redirect($"/{org}/{app}/error?statusCode=403");
-        }
-
-        string layoutSetsString = _appResources.GetLayoutSets();
-        string layoutSetsJson = string.IsNullOrEmpty(layoutSetsString) ? "null" : layoutSetsString;
+        var layoutSets = GetLayoutSetsFromResources();
+        string layoutSetsJson = layoutSets is not null
+            ? JsonSerializer.Serialize(layoutSets, _jsonSerializerOptions)
+            : "null";
         var instanceCreationHtml = GenerateInstanceCreationHtml(
             org,
             app,
-            details.SelectedParty.PartyId,
+            userDetails.SelectedParty.PartyId,
             layoutSetsJson
         );
 
@@ -163,13 +157,13 @@ public class HomeController : Controller
             return Content(instanceCreationHtml, "text/html; charset=utf-8");
         }
 
-        if (details.PartiesAllowedToInstantiate.Count > 1 && !skipPartySelection)
+        if (userDetails.PartiesAllowedToInstantiate.Count > 1 && !skipPartySelection)
         {
             if (appMetadata.PromptForParty == "always")
             {
                 return Redirect($"/{org}/{app}/party-selection/explained");
             }
-            if (!details.Profile.ProfileSettingPreference.DoNotPromptForParty)
+            if (!userDetails.Profile.ProfileSettingPreference.DoNotPromptForParty)
             {
                 return Redirect($"/{org}/{app}/party-selection/explained");
             }
@@ -177,19 +171,24 @@ public class HomeController : Controller
 
         if (IsStatelessApp(appMetadata))
         {
+            if (!UserCanSeeStatelessApp(appMetadata))
+            {
+                return RedirectToErrorPage(org, app, HttpStatusCode.Forbidden);
+            }
+
             var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
-            var statelessAppData = await _initialDataService.GetInitialData(
+            var statelessAppData = await _initialDataService.GetInitialDataAuthenticated(
                 org,
                 app,
-                null,
-                details.UserParty.PartyId,
+                user,
+                userDetails,
                 language
             );
             var statelessAppHtml = GenerateHtmlWithInitialData(org, app, statelessAppData);
             return Content(statelessAppHtml, "text/html; charset=utf-8");
         }
 
-        var instances = await GetInstancesForParty(org, app, details.UserParty.PartyId);
+        var instances = await GetInstancesForParty(org, app, userDetails.UserParty.PartyId);
 
         if (instances.Count > 1 && appMetadata.OnEntry?.Show == "select-instance")
         {
@@ -206,23 +205,23 @@ public class HomeController : Controller
     [Route("{org}/{app}/party-selection")]
     public async Task<IActionResult> PartySelection([FromRoute] string org, [FromRoute] string app)
     {
-        Authenticated.User.Details details = await GetUserDetails();
-
-        var initialData = await _initialDataService.GetInitialData(org, app);
-        var appMetadata = initialData.ApplicationMetadata;
-
-        string layoutSetsString = _appResources.GetLayoutSets();
-        LayoutSets? layoutSets = null;
-        if (!string.IsNullOrEmpty(layoutSetsString))
+        var validationResult = await ValidateUserAccessAsync();
+        if (!validationResult.Success)
         {
-            layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions);
+            return validationResult.Error;
         }
+
+        var (user, userDetails) = validationResult.Ok;
+
+        var initialData = await _initialDataService.GetInitialDataAuthenticated(org, app, user, userDetails);
+        var appMetadata = initialData.ApplicationMetadata;
+        var layoutSets = GetLayoutSetsFromResources();
 
         var data = new
         {
             applicationMetadata = appMetadata,
-            userProfile = details.Profile,
-            partiesAllowedToInstantiate = details.PartiesAllowedToInstantiate,
+            userProfile = userDetails.Profile,
+            partiesAllowedToInstantiate = userDetails.PartiesAllowedToInstantiate,
             layoutSets,
         };
         var html = GenerateHtmlWithInitialData(org, app, initialData);
@@ -250,26 +249,17 @@ public class HomeController : Controller
     [Route("{org}/{app}/instance-selection")]
     public async Task<IActionResult> InstanceSelection([FromRoute] string org, [FromRoute] string app)
     {
-        Authenticated.User.Details realUserDetails = await GetUserDetails();
-        Authenticated.User.Details details = MergeDetailsWithMockData(realUserDetails);
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
-
-        string layoutSetsString = _appResources.GetLayoutSets();
-        LayoutSets? layoutSets = null;
-        if (!string.IsNullOrEmpty(layoutSetsString))
+        var validationResult = await ValidateUserAccessAsync();
+        if (!validationResult.Success)
         {
-            layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions);
+            return validationResult.Error;
         }
 
-        var data = new
-        {
-            applicationMetadata = application,
-            userProfile = details.Profile,
-            layoutSets,
-        };
+        var (user, userDetails) = validationResult.Ok;
+        var initialData = await _initialDataService.GetInitialDataAuthenticated(org, app, user, userDetails);
+        var dataJson = JsonSerializer.Serialize(initialData, _jsonSerializerOptions);
 
-        var dataJson = JsonSerializer.Serialize(data, _jsonSerializerOptions);
-        var html = GenerateHtmlWithJsonString(org, app, dataJson);
+        var html = GenerateHtmlWithInitialData(org, app, initialData);
         return Content(html, "text/html; charset=utf-8");
     }
 
@@ -283,9 +273,12 @@ public class HomeController : Controller
     [Route("{org}/{app}/instance/{partyId}")]
     public IActionResult InstanceByParty([FromRoute] string org, [FromRoute] string app, [FromRoute] int partyId)
     {
-        string layoutSetsString = _appResources.GetLayoutSets();
-        string layoutSetsJson = string.IsNullOrEmpty(layoutSetsString) ? "null" : layoutSetsString;
+        var layoutSets = GetLayoutSetsFromResources();
+        string layoutSetsJson = layoutSets is not null
+            ? JsonSerializer.Serialize(layoutSets, _jsonSerializerOptions)
+            : "null";
 
+        // FIXME: Generate new instance if there is already one? Depends on settings?
         var html = GenerateInstanceCreationHtml(org, app, partyId, layoutSetsJson);
         return Content(html, "text/html; charset=utf-8");
     }
@@ -364,24 +357,16 @@ public class HomeController : Controller
         [FromRoute] Guid instanceGuid
     )
     {
-        if (!await UserCanSeeStatelessApp())
+        var validationResult = await ValidateUserAccessAsync();
+        if (!validationResult.Success)
         {
-            return Unauthorized();
+            return validationResult.Error;
         }
 
+        var (user, userDetails) = validationResult.Ok;
+
         // Generate and set XSRF token cookie for frontend
-        var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
-        if (tokens.RequestToken is not null)
-        {
-            HttpContext.Response.Cookies.Append(
-                "XSRF-TOKEN",
-                tokens.RequestToken,
-                new CookieOptions
-                {
-                    HttpOnly = false, // Make this cookie readable by Javascript.
-                }
-            );
-        }
+        SetXsrfTokenCookie();
 
         string instanceId = $"{partyId}/{instanceGuid}";
         Instance instance = await _instanceClient.GetInstance(app, org, partyId, instanceGuid);
@@ -393,7 +378,14 @@ public class HomeController : Controller
         }
 
         var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
-        var initialData = await _initialDataService.GetInitialData(org, app, instanceId, partyId, language);
+        var initialData = await _initialDataService.GetInitialDataAuthenticated(
+            org,
+            app,
+            user,
+            userDetails,
+            instanceId,
+            language
+        );
 
         var html = GenerateHtmlWithInitialData(org, app, initialData);
         return Content(html, "text/html; charset=utf-8");
@@ -418,25 +410,17 @@ public class HomeController : Controller
         [FromRoute] string taskId
     )
     {
-        // Check authentication before proceeding
-        if (!await UserCanSeeStatelessApp())
+        // Check auth before proceeding
+        var validationResult = await ValidateUserAccessAsync();
+        if (!validationResult.Success)
         {
-            return Unauthorized();
+            return validationResult.Error;
         }
 
+        var (user, userDetails) = validationResult.Ok;
+
         // Generate and set XSRF token cookie for frontend
-        var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
-        if (tokens.RequestToken is not null)
-        {
-            HttpContext.Response.Cookies.Append(
-                "XSRF-TOKEN",
-                tokens.RequestToken,
-                new CookieOptions
-                {
-                    HttpOnly = false, // Make this cookie readable by Javascript.
-                }
-            );
-        }
+        SetXsrfTokenCookie();
 
         Instance instance = await _instanceClient.GetInstance(app, org, partyId, instanceGuid);
 
@@ -482,7 +466,14 @@ public class HomeController : Controller
         // Frontend will handle navigation appropriately
         string instanceId = $"{partyId}/{instanceGuid}";
         var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
-        var initialData = await _initialDataService.GetInitialData(org, app, instanceId, partyId, language);
+        var initialData = await _initialDataService.GetInitialDataAuthenticated(
+            org,
+            app,
+            user,
+            userDetails,
+            instanceId,
+            language
+        );
 
         var html = GenerateHtmlWithInitialData(org, app, initialData);
         return Content(html, "text/html; charset=utf-8");
@@ -508,33 +499,33 @@ public class HomeController : Controller
         [FromRoute] string pageId
     )
     {
-        if (await UserCanSeeStatelessApp())
+        var validationResult = await ValidateUserAccessAsync();
+        if (!validationResult.Success)
         {
-            // Generate and set XSRF token cookie for frontend
-            var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
-            if (tokens.RequestToken is not null)
-            {
-                HttpContext.Response.Cookies.Append(
-                    "XSRF-TOKEN",
-                    tokens.RequestToken,
-                    new CookieOptions
-                    {
-                        HttpOnly = false, // Make this cookie readable by Javascript.
-                    }
-                );
-            }
-
-            // Construct instance ID from route parameters if available
-            string instanceId = $"{partyId}/{instanceGuid}";
-
-            var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
-
-            var initialData = await _initialDataService.GetInitialData(org, app, instanceId, partyId, language);
-
-            var html = GenerateHtmlWithInitialData(org, app, initialData);
-            return Content(html, "text/html; charset=utf-8");
+            return validationResult.Error;
         }
-        return BadRequest();
+
+        var (user, userDetails) = validationResult.Ok;
+
+        // Generate and set XSRF token cookie for frontend
+        SetXsrfTokenCookie();
+
+        // Construct instance ID from route parameters if available
+        string instanceId = $"{partyId}/{instanceGuid}";
+
+        var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
+
+        var initialData = await _initialDataService.GetInitialDataAuthenticated(
+            org,
+            app,
+            user,
+            userDetails,
+            instanceId,
+            language
+        );
+
+        var html = GenerateHtmlWithInitialData(org, app, initialData);
+        return Content(html, "text/html; charset=utf-8");
     }
 
     /// <summary>
@@ -634,13 +625,26 @@ public class HomeController : Controller
         [FromRoute] string org,
         [FromRoute] string app,
         [FromQuery] string? instanceId = null,
-        [FromQuery] int? partyId = null,
         [FromQuery] string? language = null
     )
     {
+        var validationResult = await ValidateUserAccessAsync();
+        if (!validationResult.Success)
+        {
+            return validationResult.Error;
+        }
+
+        var (user, userDetails) = validationResult.Ok;
         try
         {
-            var initialData = await _initialDataService.GetInitialData(org, app, instanceId, partyId, language);
+            var initialData = await _initialDataService.GetInitialDataAuthenticated(
+                org,
+                app,
+                user,
+                userDetails,
+                instanceId,
+                language
+            );
             return Json(initialData);
         }
         catch (Exception ex)
@@ -679,20 +683,14 @@ public class HomeController : Controller
         return false;
     }
 
-    private async Task<bool> UserCanSeeStatelessApp()
+    private bool UserCanSeeStatelessApp(ApplicationMetadata appMetadata)
     {
-        if (User?.Identity?.IsAuthenticated == true)
-        {
-            return true;
-        }
-
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
-        if (!IsStatelessApp(application))
+        if (!IsStatelessApp(appMetadata))
         {
             return false;
         }
 
-        DataType? dataType = GetStatelessDataType(application);
+        DataType? dataType = GetStatelessDataType(appMetadata);
 
         if (dataType is not null && dataType.AppLogic.AllowAnonymousOnStateless)
         {
@@ -714,13 +712,12 @@ public class HomeController : Controller
 
     private DataType? GetStatelessDataType(ApplicationMetadata application)
     {
-        string layoutSetsString = _appResources.GetLayoutSets();
+        var layoutSets = GetLayoutSetsFromResources();
 
-        // Stateless apps only work with layousets
-        if (!string.IsNullOrEmpty(layoutSetsString))
+        // Stateless apps only work with layout sets
+        if (layoutSets is not null)
         {
-            LayoutSets? layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions);
-            string? dataTypeId = layoutSets?.Sets?.Find(set => set.Id == application.OnEntry?.Show)?.DataType;
+            string? dataTypeId = layoutSets.Sets?.Find(set => set.Id == application.OnEntry?.Show)?.DataType;
             return application.DataTypes.Find(d => d.Id == dataTypeId);
         }
 
@@ -749,11 +746,8 @@ public class HomeController : Controller
         return "nb"; // Default to Norwegian Bokmål
     }
 
-    private string GenerateHtmlWithInitialData(
-        string org,
-        string app,
-        Core.Features.Bootstrap.Models.InitialDataResponse initialData
-    )
+    private string GenerateHtmlWithInitialData<T>(string org, string app, T initialData)
+        where T : InitialDataResponse
     {
         // Serialize initial data to JSON
         var initialDataJson = JsonSerializer.Serialize(initialData, _jsonSerializerOptions);
@@ -761,8 +755,7 @@ public class HomeController : Controller
         return GenerateHtmlWithJsonString(org, app, initialDataJson);
     }
 
-    // TODO: Args needed?
-    private string? GetCustomCss(string org, string app)
+    private string? GetCustomCss()
     {
         try
         {
@@ -779,8 +772,7 @@ public class HomeController : Controller
         return null;
     }
 
-    // TODO: Args needed?
-    private string? GetCustomJs(string org, string app)
+    private string? GetCustomJs()
     {
         try
         {
@@ -797,16 +789,37 @@ public class HomeController : Controller
         return null;
     }
 
+    /// <summary>
+    /// Parses layout sets from app resources.
+    /// </summary>
+    /// <returns>Parsed LayoutSets object, or null if not available or parsing fails.</returns>
+    private LayoutSets? GetLayoutSetsFromResources()
+    {
+        string layoutSetsString = _appResources.GetLayoutSets();
+        if (string.IsNullOrEmpty(layoutSetsString))
+        {
+            return null;
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(ex, "Failed to deserialize layout sets");
+            return null;
+        }
+    }
+
     private static string GetEmbeddedJavaScript(string resourceName)
     {
         var assembly = Assembly.GetExecutingAssembly();
         var fullResourceName = $"Altinn.App.Api.Scripts.{resourceName}";
 
-        using var stream = assembly.GetManifestResourceStream(fullResourceName);
-        if (stream is null)
-        {
-            throw new InvalidOperationException($"Could not find embedded resource: {fullResourceName}");
-        }
+        using var stream =
+            assembly.GetManifestResourceStream(fullResourceName)
+            ?? throw new InvalidOperationException($"Could not find embedded resource: {fullResourceName}");
 
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
@@ -888,8 +901,8 @@ public class HomeController : Controller
         var appVersion = useCustomFrontendVersion ? "" : "4";
         var versionPath = string.IsNullOrEmpty(appVersion) ? "" : $"{appVersion}/";
 
-        var customCss = GetCustomCss(org, app);
-        var customJs = GetCustomJs(org, app);
+        var customCss = GetCustomCss();
+        var customJs = GetCustomJs();
 
         // Build optional sections
         var customCssTag = !string.IsNullOrEmpty(customCss) ? $"\n  <style>{customCss}</style>" : "";
@@ -921,51 +934,29 @@ public class HomeController : Controller
         return htmlContent;
     }
 
-    /// <summary>
-    /// Merges mock data with real user details for testing purposes.
-    /// Only active in development/test environments when mock data headers are present.
-    /// </summary>
-    private Authenticated.User.Details MergeDetailsWithMockData(Authenticated.User.Details realDetails)
+    private async Task<Authenticated.User.Details> GetUserDetails(Authenticated.User user)
     {
-        // Try to get mock data from HttpContext.Items first (set by MockDataMiddleware)
-        Dictionary<string, object>? mockData = null;
+        var details = await user.LoadDetails(validateSelectedParty: false);
 
-        if (
-            HttpContext.Items.TryGetValue("MockData", out var mockDataObj)
-            && mockDataObj is Dictionary<string, object> itemsMockData
-        )
-        {
-            mockData = itemsMockData;
-        }
-        // If not in Items, try to parse directly from header
-        else if (HttpContext.Request.Headers.TryGetValue("X-Mock-Data", out var headerValue))
-        {
-            try
-            {
-                mockData = JsonSerializer.Deserialize<Dictionary<string, object>>(headerValue.ToString());
-            }
-            catch (JsonException)
-            {
-                // Invalid JSON, ignore and return real details
-                return realDetails;
-            }
-        }
+        // Merge with mock data if available
+        var mockData = _initialDataService.GetMockData();
+        return MergeUserDetails(details, mockData);
+    }
 
-        if (mockData is null)
-        {
-            return realDetails; // No mock data available
-        }
-
+    private Authenticated.User.Details MergeUserDetails(
+        Authenticated.User.Details real,
+        Dictionary<string, object>? mockData
+    )
+    {
         // Check if there's userDetails mock data
-        if (!mockData.TryGetValue("userDetails", out var userDetailsMock))
+        if (mockData is null || !mockData.TryGetValue("userDetails", out var userDetailsMock))
         {
-            return realDetails; // No userDetails mock, return real details
+            return real;
         }
-
         try
         {
             var userDetailsJson = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(userDetailsMock));
-            var result = realDetails;
+            var result = real;
 
             // Apply simple property overrides using 'with' syntax
             if (userDetailsJson.TryGetProperty("representsSelf", out var rs))
@@ -979,7 +970,7 @@ public class HomeController : Controller
             }
 
             // Handle complex collections first (so we have the merged parties list)
-            var parties = realDetails.Parties.ToList();
+            var parties = real.Parties.ToList();
             if (mockData.TryGetValue("parties", out var partiesMock))
             {
                 parties = ParseMockParties(partiesMock, parties);
@@ -1010,14 +1001,13 @@ public class HomeController : Controller
             // Handle party ID overrides using the merged parties list
             if (userDetailsJson.TryGetProperty("selectedPartyId", out var spId))
             {
-                var selectedParty =
-                    parties.FirstOrDefault(p => p.PartyId == spId.GetInt32()) ?? realDetails.SelectedParty;
+                var selectedParty = parties.FirstOrDefault(p => p.PartyId == spId.GetInt32()) ?? real.SelectedParty;
                 result = result with { SelectedParty = selectedParty };
             }
 
             if (userDetailsJson.TryGetProperty("userPartyId", out var upId))
             {
-                var userParty = parties.FirstOrDefault(p => p.PartyId == upId.GetInt32()) ?? realDetails.UserParty;
+                var userParty = parties.FirstOrDefault(p => p.PartyId == upId.GetInt32()) ?? real.UserParty;
                 result = result with { UserParty = userParty };
             }
 
@@ -1026,18 +1016,8 @@ public class HomeController : Controller
         catch (Exception)
         {
             // If parsing fails, return real details to avoid breaking functionality
-            return realDetails;
+            return real;
         }
-    }
-
-    private async Task<Authenticated.User.Details> GetUserDetails()
-    {
-        Authenticated currentAuth = _authenticationContext.Current;
-        return currentAuth switch
-        {
-            Authenticated.User user => await user.LoadDetails(validateSelectedParty: false),
-            _ => throw new UnauthorizedAccessException("You need to be logged in to see this app."),
-        };
     }
 
     private static List<Platform.Register.Models.Party> ParseMockParties(
@@ -1082,5 +1062,52 @@ public class HomeController : Controller
         {
             return baseParties;
         }
+    }
+
+    /// <summary>
+    /// Sets the XSRF token cookie for frontend JavaScript consumption.
+    /// </summary>
+    private void SetXsrfTokenCookie()
+    {
+        var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
+        if (tokens.RequestToken is not null)
+        {
+            HttpContext.Response.Cookies.Append(
+                "XSRF-TOKEN",
+                tokens.RequestToken,
+                new CookieOptions
+                {
+                    HttpOnly = false, // Make this cookie readable by Javascript.
+                }
+            );
+        }
+    }
+
+    /// <summary>
+    /// Represents a successful user authentication result containing user and user details.
+    /// </summary>
+    /// <param name="User">The authenticated user</param>
+    /// <param name="UserDetails">The user details</param>
+    public record AuthenticatedUserData(Authenticated.User User, Authenticated.User.Details UserDetails);
+
+    /// <summary>
+    /// Validates user authentication and authorization for actions that require authenticated user access.
+    /// </summary>
+    /// <returns>ServiceResult containing authenticated user data on success, or IActionResult on failure.</returns>
+    private async Task<ServiceResult<AuthenticatedUserData, IActionResult>> ValidateUserAccessAsync()
+    {
+        var auth = _authenticationContext.Current;
+        if (auth is not Authenticated.User user)
+        {
+            return Forbid();
+        }
+
+        var userDetails = await GetUserDetails(user);
+        return new AuthenticatedUserData(user, userDetails);
+    }
+
+    private RedirectResult RedirectToErrorPage(string org, string app, HttpStatusCode statusCode)
+    {
+        return Redirect($"/{org}/{app}/error?statusCode={statusCode}");
     }
 }

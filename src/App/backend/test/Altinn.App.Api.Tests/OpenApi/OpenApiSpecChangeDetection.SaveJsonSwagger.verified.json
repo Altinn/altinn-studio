@@ -2486,12 +2486,197 @@
         }
       }
     },
+    "/{org}/{app}/error": {
+      "get": {
+        "tags": [
+          "Home"
+        ],
+        "summary": "Shows error page with appropriate status code.",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "description": "The application owner short name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "description": "The name of the app",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/{org}/{app}": {
       "get": {
         "tags": [
           "Home"
         ],
-        "summary": "Returns the index view with references to the React app.",
+        "summary": "Main entry point for the application. Handles authentication, party selection, and routing to appropriate views.",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "description": "The application owner short name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "description": "The name of the app",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skipPartySelection",
+            "in": "query",
+            "description": "If true, skips party selection prompt even when PromptForParty is 'always'.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "forceNewInstance",
+            "in": "query",
+            "description": "If true, forces creation of a new instance even when existing instances are found.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/{org}/{app}/party-selection": {
+      "get": {
+        "tags": [
+          "Home"
+        ],
+        "summary": "Shows party selection page with list of parties user can represent.",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/{org}/{app}/party-selection/{errorCode}": {
+      "get": {
+        "tags": [
+          "Home"
+        ],
+        "summary": "Shows party selection page with list of parties user can represent (with error code).",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "errorCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/{org}/{app}/instance-selection": {
+      "get": {
+        "tags": [
+          "Home"
+        ],
+        "summary": "Shows instance selection page with list of user's instances.",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/{org}/{app}/instance/{partyId}": {
+      "get": {
+        "tags": [
+          "Home"
+        ],
+        "summary": "Redirects from party-only URL to most recent instance for that party.",
         "parameters": [
           {
             "name": "org",
@@ -2519,43 +2704,6 @@
             "schema": {
               "type": "integer",
               "format": "int32"
-            }
-          },
-          {
-            "name": "instanceGuid",
-            "in": "path",
-            "description": "The instance GUID.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "taskId",
-            "in": "path",
-            "description": "The task identifier.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "pageId",
-            "in": "path",
-            "description": "The page identifier.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "dontChooseReportee",
-            "in": "query",
-            "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
-            "schema": {
-              "type": "boolean",
-              "default": false
             }
           }
         ],
@@ -2571,7 +2719,7 @@
         "tags": [
           "Home"
         ],
-        "summary": "Returns the index view with references to the React app.",
+        "summary": "Resolves the current task and redirects to the full instance URL with task and page information.",
         "parameters": [
           {
             "name": "org",
@@ -2610,32 +2758,58 @@
               "type": "string",
               "format": "uuid"
             }
-          },
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/{org}/{app}/instance/{partyId}/{instanceGuid}/ProcessEnd": {
+      "get": {
+        "tags": [
+          "Home"
+        ],
+        "summary": "Renders the receipt page when the process has ended.",
+        "parameters": [
           {
-            "name": "taskId",
+            "name": "org",
             "in": "path",
-            "description": "The task identifier.",
+            "description": "The application owner short name.",
             "required": true,
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "pageId",
+            "name": "app",
             "in": "path",
-            "description": "The page identifier.",
+            "description": "The name of the app",
             "required": true,
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "dontChooseReportee",
-            "in": "query",
-            "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
+            "name": "partyId",
+            "in": "path",
+            "description": "The party identifier.",
+            "required": true,
             "schema": {
-              "type": "boolean",
-              "default": false
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "instanceGuid",
+            "in": "path",
+            "description": "The instance GUID.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -2651,7 +2825,7 @@
         "tags": [
           "Home"
         ],
-        "summary": "Returns the index view with references to the React app.",
+        "summary": "Resolves instance with specific task. Redirects to first page if task is current,\notherwise renders app with full data (frontend will show \"not available\" UI).",
         "parameters": [
           {
             "name": "org",
@@ -2698,24 +2872,6 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "pageId",
-            "in": "path",
-            "description": "The page identifier.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "dontChooseReportee",
-            "in": "query",
-            "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
-            "schema": {
-              "type": "boolean",
-              "default": false
             }
           }
         ],
@@ -2731,7 +2887,7 @@
         "tags": [
           "Home"
         ],
-        "summary": "Returns the index view with references to the React app.",
+        "summary": "Renders the main application view for a specific instance, task, and page.",
         "parameters": [
           {
             "name": "org",
@@ -2787,255 +2943,6 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "dontChooseReportee",
-            "in": "query",
-            "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/{org}/{app}/{partyId}/{instanceGuid}": {
-      "get": {
-        "tags": [
-          "Home"
-        ],
-        "summary": "Returns the index view with references to the React app.",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "description": "The application owner short name.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "The name of the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "partyId",
-            "in": "path",
-            "description": "The party identifier.",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "instanceGuid",
-            "in": "path",
-            "description": "The instance GUID.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "taskId",
-            "in": "path",
-            "description": "The task identifier.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "pageId",
-            "in": "path",
-            "description": "The page identifier.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "dontChooseReportee",
-            "in": "query",
-            "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/{org}/{app}/{partyId}/{instanceGuid}/{taskId}": {
-      "get": {
-        "tags": [
-          "Home"
-        ],
-        "summary": "Returns the index view with references to the React app.",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "description": "The application owner short name.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "The name of the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "partyId",
-            "in": "path",
-            "description": "The party identifier.",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "instanceGuid",
-            "in": "path",
-            "description": "The instance GUID.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "taskId",
-            "in": "path",
-            "description": "The task identifier.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "pageId",
-            "in": "path",
-            "description": "The page identifier.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "dontChooseReportee",
-            "in": "query",
-            "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/{org}/{app}/{partyId}/{instanceGuid}/{taskId}/{pageId}": {
-      "get": {
-        "tags": [
-          "Home"
-        ],
-        "summary": "Returns the index view with references to the React app.",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "description": "The application owner short name.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "The name of the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "partyId",
-            "in": "path",
-            "description": "The party identifier.",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "instanceGuid",
-            "in": "path",
-            "description": "The instance GUID.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "taskId",
-            "in": "path",
-            "description": "The task identifier.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "pageId",
-            "in": "path",
-            "description": "The page identifier.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "dontChooseReportee",
-            "in": "query",
-            "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
-            "schema": {
-              "type": "boolean",
-              "default": false
             }
           }
         ],
@@ -3123,14 +3030,6 @@
             "in": "query",
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "partyId",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
             }
           },
           {
@@ -7937,6 +7836,10 @@
             "items": {
               "type": "string"
             },
+            "nullable": true
+          },
+          "promptForParty": {
+            "type": "string",
             "nullable": true
           }
         },
