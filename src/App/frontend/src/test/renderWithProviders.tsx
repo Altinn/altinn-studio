@@ -401,8 +401,8 @@ const renderBase = async ({
   if (queryMocks.fetchTextResources) {
     try {
       const textResources = await queryMocks.fetchTextResources('nb');
-      if (textResources && window.AltinnAppInstanceData) {
-        window.AltinnAppInstanceData.textResources = textResources;
+      if (textResources && window.AltinnAppGlobalData) {
+        window.AltinnAppGlobalData.textResources = textResources;
       }
     } catch (_e) {
       // If the mock throws or returns invalid data, keep default text resources

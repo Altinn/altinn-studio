@@ -24,6 +24,7 @@ export type AltinnAppGlobalData = {
   footerLayout: IFooterLayout | null;
   availableLanguages: IAppLanguage[];
   frontendSettings: IApplicationSettings;
+  textResources?: ITextResourceResult;
 };
 
 export type AltinnAppInstanceData = {
@@ -33,7 +34,6 @@ export type AltinnAppInstanceData = {
   applicationMetadata: ApplicationMetadata;
   footerLayout: IFooterLayout | null;
   availableLanguages: IAppLanguage[];
-  textResources: ITextResourceResult;
   frontendSettings: IApplicationSettings;
 };
 

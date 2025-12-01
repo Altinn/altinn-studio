@@ -100,10 +100,6 @@ window.AltinnAppInstanceData = {
   applicationMetadata: getIncomingApplicationMetadataMock(),
   footerLayout: null,
   availableLanguages: [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
-  textResources: {
-    language: 'nb',
-    resources: getTextResourcesMock(),
-  },
   frontendSettings: {},
 };
 
@@ -113,6 +109,10 @@ window.AltinnAppGlobalData = {
   footerLayout: null,
   availableLanguages: [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
   frontendSettings: {},
+  textResources: {
+    language: 'nb',
+    resources: getTextResourcesMock(),
+  },
 };
 
 jest.setTimeout(env.parsed?.JEST_TIMEOUT ? parseInt(env.parsed.JEST_TIMEOUT, 10) : 20000);

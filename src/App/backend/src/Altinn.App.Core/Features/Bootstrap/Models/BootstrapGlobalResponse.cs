@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Features.Bootstrap.Models;
 
@@ -36,4 +37,10 @@ public class BootstrapGlobalResponse
     /// </summary>
     [JsonPropertyName("frontendSettings")]
     public FrontEndSettings? FrontEndSettings { get; set; }
+
+    /// <summary>
+    /// Text resources for the current language.
+    /// </summary>
+    [JsonPropertyName("textResources")]
+    public TextResource? TextResources { get; set; }
 }

@@ -128,6 +128,14 @@ internal sealed class BootstrapGlobalService : IBootstrapGlobalService
 
         // Set frontend settings
         response.FrontEndSettings = _frontEndSettings;
+
+        // Get language and text resources
+        language ??= GetLanguageFromContext();
+        response.AvailableLanguages = await GetAvailableLanguages();
+
+        var textResourcesTask = GetTextResources(org, app, language, response);
+        tasks.Add(textResourcesTask);
+
         return response;
     }
 
@@ -322,5 +330,28 @@ internal sealed class BootstrapGlobalService : IBootstrapGlobalService
         {
             // Log error but don't fail the entire request
         }
+    }
+
+    private string GetLanguageFromContext()
+    {
+        var acceptLanguageHeader = _httpContextAccessor.HttpContext?.Request.Headers["Accept-Language"].ToString();
+        if (!string.IsNullOrEmpty(acceptLanguageHeader))
+        {
+            var languages = acceptLanguageHeader.Split(',');
+            foreach (var lang in languages)
+            {
+                var cleanLang = lang.Split(';')[0].Trim().Substring(0, 2).ToLower(CultureInfo.InvariantCulture);
+                if (_generalSettings.LanguageCodes?.Contains(cleanLang) == true)
+                {
+                    return cleanLang;
+                }
+            }
+        }
+        return "nb"; // Default to Norwegian Bokmål
+    }
+
+    private async Task GetTextResources(string org, string app, string language, BootstrapGlobalResponse response)
+    {
+        response.TextResources = await _appResources.GetTexts(org, app, language);
     }
 }
