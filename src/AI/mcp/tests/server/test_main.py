@@ -29,7 +29,7 @@ class TestInitializeDocumentationSearch:
 
 class TestMain:
     @pytest.fixture
-    def mock_mcp_instance(self, auto):
+    def mock_mcp_instance(self):
         return MagicMock()
 
     @pytest.fixture
@@ -71,6 +71,7 @@ class TestMain:
 
     def test_main_with_custom_port(self, mocker, mock_mcp_instance):
         mock_parse_args = mocker.patch('argparse.ArgumentParser.parse_args')
+        mock_init_doc = mocker.patch('server.main._initialize_documentation_search')
         mock_register_tools = mocker.patch('server.tools.register_all_tools')
         mock_init_mcp = mocker.patch('server.tools.initialize_mcp')
 
@@ -82,6 +83,7 @@ class TestMain:
 
         mock_init_mcp.assert_called_once_with(CUSTOM_PORT)
         mock_register_tools.assert_called_once()
+        mock_init_doc.assert_called_once_with(verbose=True)
         mock_mcp_instance.run.assert_called_once_with(transport=DEFAULT_TRANSPORT)
 
     def test_main_skip_doc_init(self, mocker, mock_mcp_instance):
@@ -101,7 +103,7 @@ class TestMain:
         mock_init_doc.assert_not_called()
         mock_mcp_instance.run.assert_called_once_with(transport=DEFAULT_TRANSPORT)
 
-    def test_main_doc_init_failure(self, mocker, mock_mcp_instance, default_args):
+    def test_main_doc_init_failure(self, mocker, mock_mcp_instance, default_args, capsys):
         mock_parse_args = mocker.patch('argparse.ArgumentParser.parse_args')
         mock_init_doc = mocker.patch('server.main._initialize_documentation_search')
         mock_register_tools = mocker.patch('server.tools.register_all_tools')
@@ -115,4 +117,6 @@ class TestMain:
 
         mock_init_mcp.assert_called_once_with(DEFAULT_PORT)
         mock_register_tools.assert_called_once()
+        mock_init_doc.assert_called_once_with(verbose=True)
+        assert "Failed to initialize documentation search" in capsys.readouterr().err
         mock_mcp_instance.run.assert_called_once_with(transport=DEFAULT_TRANSPORT)
