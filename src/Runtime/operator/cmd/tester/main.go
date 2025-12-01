@@ -339,6 +339,24 @@ func runStop() {
 		os.Exit(1)
 	}
 
+	// Stop docker/podman compose
+	containerClient, err := container.Detect()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to detect container runtime: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("Stopping %s compose...\n", containerClient.Name())
+	composeCmd := exec.Command(containerClient.Name(), "compose", "down")
+	composeCmd.Dir = projectRoot
+	composeCmd.Stdout = os.Stdout
+	composeCmd.Stderr = os.Stderr
+	if err := composeCmd.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to stop %s compose: %v\n", containerClient.Name(), err)
+		os.Exit(1)
+	}
+	fmt.Printf("✓ %s compose stopped\n", containerClient.Name())
+
 	// Load existing runtime
 	cachePath := filepath.Join(projectRoot, ".cache")
 	runtime, err := kind.LoadCurrent(cachePath)
