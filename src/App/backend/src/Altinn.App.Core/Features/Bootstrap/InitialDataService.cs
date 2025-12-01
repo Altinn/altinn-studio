@@ -1,7 +1,7 @@
 using System.Globalization;
+using System.Security.Claims;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Features.Testing;
@@ -9,11 +9,12 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Profile;
-using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Profile.Enums;
-using Altinn.Platform.Register.Enums;
+using Altinn.Platform.Profile.Models;
+using Altinn.Platform.Register.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
@@ -22,15 +23,13 @@ namespace Altinn.App.Core.Features.Bootstrap;
 /// <summary>
 /// Service responsible for aggregating all initial data required for application bootstrap.
 /// </summary>
-internal sealed class InitialDataService : IInitialDataService
+public sealed class InitialDataService : IInitialDataService
 {
     private readonly IAppMetadata _appMetadata;
     private readonly IAppResources _appResources;
     private readonly IInstanceClient _instanceClient;
     private readonly IProfileClient _profileClient;
-    private readonly IRegisterClient _registerClient;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IAuthenticationContext _authenticationContext;
     private readonly IProcessStateService _processStateService;
     private readonly IApplicationLanguage _applicationLanguage;
     private readonly IMockDataHelper? _mockDataHelper;
@@ -52,7 +51,6 @@ internal sealed class InitialDataService : IInitialDataService
         IAppResources appResources,
         IInstanceClient instanceClient,
         IProfileClient profileClient,
-        IRegisterClient registerClient,
         IHttpContextAccessor httpContextAccessor,
         IAuthenticationContext authenticationContext,
         IProcessStateService processStateService,
@@ -68,9 +66,7 @@ internal sealed class InitialDataService : IInitialDataService
         _appResources = appResources;
         _instanceClient = instanceClient;
         _profileClient = profileClient;
-        _registerClient = registerClient;
         _httpContextAccessor = httpContextAccessor;
-        _authenticationContext = authenticationContext;
         _processStateService = processStateService;
         _applicationLanguage = applicationLanguage;
         _mockDataHelper = mockDataHelper;
@@ -84,95 +80,38 @@ internal sealed class InitialDataService : IInitialDataService
     public async Task<InitialDataResponse> GetInitialData(
         string org,
         string app,
-        string? instanceId = null,
-        int? partyId = null,
         string? language = null,
         CancellationToken cancellationToken = default
     )
     {
-        var response = new InitialDataResponse();
+        language ??= GetLanguageFromContext();
         var tasks = new List<Task>();
 
-        // Get application metadata
-        var appMetadataTask = GetApplicationMetadata(response, cancellationToken);
+        Task<ApplicationMetadata> appMetadataTask = GetApplicationMetadata(cancellationToken);
         tasks.Add(appMetadataTask);
 
-        // Get language and text resources
-        language ??= GetLanguageFromContext();
-        response.Language = language;
-        response.AvailableLanguages = await GetAvailableLanguages();
-
-        var textResourcesTask = GetTextResources(org, app, language, response);
+        Task<TextResource?> textResourcesTask = GetTextResources(org, app, language);
         tasks.Add(textResourcesTask);
 
-        // Get user and party information if authenticated, or mock data if available
-        var user = _httpContextAccessor.HttpContext?.User;
-        var mockData = GetMockData();
+        Task<object?> footerLayoutTask = GetFooterLayout();
+        tasks.Add(footerLayoutTask);
 
-        if (user?.Identity?.IsAuthenticated == true)
-        {
-            var userId = user.GetUserIdAsInt();
-            if (userId.HasValue)
-            {
-                var userProfileTask = GetUserProfile(userId.Value, response);
-                tasks.Add(userProfileTask);
-            }
+        Task<List<Core.Models.ApplicationLanguage>> availableLanguagesTask =
+            _applicationLanguage.GetApplicationLanguages();
+        tasks.Add(availableLanguagesTask);
 
-            if (partyId.HasValue)
-            {
-                var partyTask = GetParty(partyId.Value, response);
-                tasks.Add(partyTask);
-            }
-        }
-        else if (_mockDataHelper != null && mockData != null)
-        {
-            // Even without authentication, create mock data if available
-            if (mockData.ContainsKey("userProfile"))
-            {
-                var mockUserProfileTask = GetMockUserProfile(response);
-                tasks.Add(mockUserProfileTask);
-            }
-
-            if (mockData.ContainsKey("parties") && partyId.HasValue)
-            {
-                var mockPartyTask = GetMockParty(partyId.Value, response);
-                tasks.Add(mockPartyTask);
-            }
-        }
-
-        // Get instance data if applicable
-        if (!string.IsNullOrEmpty(instanceId))
-        {
-            var instanceTask = GetInstance(org, app, instanceId, response);
-            tasks.Add(instanceTask);
-        }
-
-        // Get layout sets and initial layout
-        var layoutTask = GetLayoutData(org, app, response);
-        tasks.Add(layoutTask);
-
-        // Get footer layout
-        var footerTask = GetFooterLayout(response);
-        tasks.Add(footerTask);
-
-        // Wait for all tasks to complete
         await Task.WhenAll(tasks);
+        var applicationMetadata = await appMetadataTask;
+        var textResources = await textResourcesTask;
+        var footerLayout = await footerLayoutTask;
+        var availableLanguages = await availableLanguagesTask;
 
-        // Set frontend settings
-        FrontEndSettings frontEndSettings = _frontEndSettings;
-
-        // Adding key from _appSettings to be backwards compatible.
-        if (
-            !frontEndSettings.ContainsKey(nameof(_appSettings.AppOidcProvider))
-            && !string.IsNullOrEmpty(_appSettings.AppOidcProvider)
-        )
-        {
-            frontEndSettings.Add(nameof(_appSettings.AppOidcProvider), _appSettings.AppOidcProvider);
-        }
-
-        response.FrontendSettings = frontEndSettings;
-
-        response.PlatformSettings = new FrontendPlatformSettings
+        FrontEndSettings frontEndSettings = GetFrontendSettings();
+        LayoutSets? layoutSets = GetLayoutSets();
+        object? layout = GetLayout(layoutSets);
+        object? layoutSettings = GetLayoutSettings();
+        Dictionary<string, bool> featureFlags = GetFeatureFlags();
+        FrontendPlatformSettings frontendPlatformSettings = new()
         {
             ApiEndpoint = _platformSettings.ApiEndpoint,
             AuthenticationEndpoint = _platformSettings.ApiAuthenticationEndpoint,
@@ -181,172 +120,174 @@ internal sealed class InitialDataService : IInitialDataService
             AuthorizationApiEndpoint = _platformSettings.ApiAuthorizationEndpoint,
         };
 
-        // Set feature flags from frontend settings
-        response.FeatureFlags = GetFeatureFlags();
-
-        return response;
+        return new InitialDataResponse
+        {
+            ApplicationMetadata = applicationMetadata,
+            TextResources = textResources,
+            Language = language,
+            AvailableLanguages = availableLanguages,
+            FooterLayout = footerLayout,
+            LayoutSets = layoutSets,
+            Layout = layout,
+            LayoutSettings = layoutSettings,
+            FeatureFlags = featureFlags,
+            PlatformSettings = frontendPlatformSettings,
+            FrontendSettings = frontEndSettings,
+        };
     }
 
-    private async Task GetApplicationMetadata(InitialDataResponse response, CancellationToken cancellationToken)
+    /// <inheritdoc />
+    public async Task<InitialDataResponseAuthenticated> GetInitialDataAuthenticated(
+        string org,
+        string app,
+        Authenticated.User user,
+        Authenticated.User.Details userDetails,
+        string? instanceId = null,
+        string? language = null,
+        CancellationToken cancellationToken = default
+    )
     {
-        response.ApplicationMetadata = await _appMetadata.GetApplicationMetadata();
+        var tasks = new List<Task>();
+
+        Task<InitialDataResponse> initialDataResponseTask = GetInitialData(org, app, language, cancellationToken);
+        tasks.Add(initialDataResponseTask);
+
+        Task<UserProfile> userProfileTask = GetUserProfile(user.UserId);
+        tasks.Add(userProfileTask);
+
+        Task<Instance?> instanceTask = GetInstance(org, app, instanceId);
+        tasks.Add(instanceTask);
+
+        Task<AppProcessState?> appProcessStateTask = GetAppProcessState(() => instanceTask, user.GetClaimsPrincipal());
+        tasks.Add(appProcessStateTask);
+
+        // Wait for all tasks to complete
+        await Task.WhenAll(tasks);
+        var initialDataResponse = await initialDataResponseTask;
+        var userProfile = await userProfileTask;
+        var instance = await instanceTask;
+        var appProcessState = await appProcessStateTask;
+
+        bool canPartyInstantiate = userDetails.CanInstantiateAsParty(userDetails.UserParty.PartyId);
+        Party party = GetParty(userDetails);
+
+        return new InitialDataResponseAuthenticated
+        {
+            ApplicationMetadata = initialDataResponse.ApplicationMetadata,
+            TextResources = initialDataResponse.TextResources,
+            Language = initialDataResponse.Language,
+            AvailableLanguages = initialDataResponse.AvailableLanguages,
+            FooterLayout = initialDataResponse.FooterLayout,
+            LayoutSets = initialDataResponse.LayoutSets,
+            Layout = initialDataResponse.Layout,
+            LayoutSettings = initialDataResponse.LayoutSettings,
+            FeatureFlags = initialDataResponse.FeatureFlags,
+            PlatformSettings = initialDataResponse.PlatformSettings,
+            FrontendSettings = initialDataResponse.FrontendSettings,
+
+            CanInstantiate = canPartyInstantiate,
+            UserProfile = userProfile,
+            Party = party,
+            Instance = instance,
+            ProcessState = appProcessState,
+        };
+    }
+
+    private async Task<ApplicationMetadata> GetApplicationMetadata(CancellationToken cancellationToken)
+    {
+        ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
+
         // Merge with mock data if available
-        if (_mockDataHelper != null && response.ApplicationMetadata != null)
+        if (_mockDataHelper is not null)
         {
-            response.ApplicationMetadata = MergeWithMockData(
-                response.ApplicationMetadata,
-                "applicationMetadata",
-                _mockDataHelper.MergeApplicationMetadata
-            );
+            return MergeWithMockData(appMetadata, "applicationMetadata", _mockDataHelper.MergeApplicationMetadata);
         }
+
+        return appMetadata;
     }
 
-    private async Task GetTextResources(string org, string app, string language, InitialDataResponse response)
+    private async Task<TextResource?> GetTextResources(string org, string app, string language)
     {
-        response.TextResources = await _appResources.GetTexts(org, app, language);
+        return await _appResources.GetTexts(org, app, language);
     }
 
-    private async Task GetUserProfile(int userId, InitialDataResponse response)
+    private async Task<UserProfile> GetUserProfile(int userId)
     {
         try
         {
-            response.UserProfile = await _profileClient.GetUserProfile(userId);
-
             // Merge with mock data if available
-            if (_mockDataHelper != null && response.UserProfile != null)
             {
-                response.UserProfile = MergeWithMockData(
-                    response.UserProfile,
-                    "userProfile",
-                    _mockDataHelper.MergeUserProfile
-                );
+                var userProfile =
+                    await _profileClient.GetUserProfile(userId)
+                    ?? throw new Exception("Failed to get user profile information");
+
+                if (_mockDataHelper is null)
+                {
+                    return userProfile;
+                }
+
+                return MergeWithMockData(userProfile, "userProfile", _mockDataHelper.MergeUserProfile);
             }
         }
         catch
         {
-            // Log error but don't fail the entire request
+            throw new Exception("Failed to get user profile information");
         }
     }
 
-    private async Task GetParty(int partyId, InitialDataResponse response)
+    private Party GetParty(Authenticated.User.Details userDetails)
     {
         try
         {
-            response.Party = await _registerClient.GetPartyUnchecked(partyId, CancellationToken.None);
-
-            // Merge with mock data if available
-            if (_mockDataHelper != null && response.Party != null)
+            var party = userDetails.UserParty;
+            if (_mockDataHelper is null)
             {
-                var mockData = GetMockData();
-                if (mockData?.TryGetValue("parties", out var partiesMock) == true)
-                {
-                    // Create a temporary list with the real party, merge with mock data, then extract the result
-                    var tempList = new List<Altinn.Platform.Register.Models.Party> { response.Party };
-                    var mergedList = _mockDataHelper.MergeParties(tempList, partiesMock);
-
-                    // Find the merged party with the same ID
-                    var mergedParty = mergedList.FirstOrDefault(p => p.PartyId == partyId);
-                    if (mergedParty != null)
-                    {
-                        response.Party = mergedParty;
-                    }
-                }
+                return party;
             }
 
-            // Check if the party can instantiate using the authentication context
-            // Only check for regular users, other auth types will get null
-            var currentAuth = _authenticationContext.Current;
-            if (currentAuth is Authenticated.User)
-            {
-                response.CanInstantiate = await CanPartyInstantiate(partyId);
-            }
+            var mergedList = MergeWithMockData(new List<Party> { party }, "parties", _mockDataHelper.MergeParties);
+            var result = mergedList.FirstOrDefault(p => p.PartyId == party.PartyId) ?? party;
+            return result;
         }
         catch
         {
-            // Log error but don't fail the entire request
+            throw new Exception("Failed to get party information");
         }
     }
 
-    private async Task GetInstance(string org, string app, string instanceId, InitialDataResponse response)
+    private async Task<Instance?> GetInstance(string org, string app, string? instanceId)
     {
-        try
+        if (string.IsNullOrEmpty(instanceId))
         {
-            var instanceOwnerPartyId = ParseInstanceOwnerPartyId(instanceId);
-            var instanceGuid = ParseInstanceGuid(instanceId);
-
-            if (instanceOwnerPartyId.HasValue && instanceGuid.HasValue)
-            {
-                response.Instance = await _instanceClient.GetInstance(
-                    app,
-                    org,
-                    instanceOwnerPartyId.Value,
-                    instanceGuid.Value
-                );
-
-                // Get process state if instance has a process
-                if (response.Instance?.Process != null)
-                {
-                    var user = _httpContextAccessor.HttpContext?.User;
-                    if (user != null)
-                    {
-                        response.ProcessState = await _processStateService.GetAuthorizedProcessState(
-                            response.Instance,
-                            response.Instance.Process,
-                            user
-                        );
-                    }
-                }
-            }
+            return null;
         }
-        catch
+
+        var instanceOwnerPartyId = ParseInstanceOwnerPartyId(instanceId);
+        var instanceGuid = ParseInstanceGuid(instanceId);
+
+        if (!instanceOwnerPartyId.HasValue || !instanceGuid.HasValue)
         {
-            // Log error but don't fail the entire request
+            throw new ArgumentException("Invalid instance ID format");
         }
+
+        return await _instanceClient.GetInstance(app, org, instanceOwnerPartyId.Value, instanceGuid.Value);
     }
 
-    private Task GetLayoutData(string org, string app, InitialDataResponse response)
+    private async Task<AppProcessState?> GetAppProcessState(Func<Task<Instance?>> GetInstance, ClaimsPrincipal user)
     {
-        try
-        {
-            // Get layout sets
-            var layoutSetsJson = _appResources.GetLayoutSets();
-            if (!string.IsNullOrEmpty(layoutSetsJson))
-            {
-                response.LayoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsJson, _jsonSerializerOptions);
-            }
+        Instance? instance = await GetInstance();
 
-            // Get layout settings
-            var layoutSettingsJson = _appResources.GetLayoutSettingsString();
-            if (!string.IsNullOrEmpty(layoutSettingsJson))
-            {
-                response.LayoutSettings = JsonSerializer.Deserialize<object>(
-                    layoutSettingsJson,
-                    _jsonSerializerOptions
-                );
-            }
-
-            // Get initial layout if available
-            var initialLayoutSetId = response.LayoutSets?.Sets?.FirstOrDefault()?.Id;
-            if (!string.IsNullOrEmpty(initialLayoutSetId))
-            {
-                var layoutJson = _appResources.GetLayoutsForSet(initialLayoutSetId);
-                if (!string.IsNullOrEmpty(layoutJson))
-                {
-                    response.Layout = JsonSerializer.Deserialize<object>(layoutJson, _jsonSerializerOptions);
-                }
-            }
-        }
-        catch
+        if (instance is null)
         {
-            // Log error but don't fail the entire request
+            return null;
         }
 
-        return Task.CompletedTask;
+        return await _processStateService.ConvertAndAuthorizeActions(instance, instance.Process, user);
     }
 
     private string GetLanguageFromContext()
     {
-        var acceptLanguageHeader = _httpContextAccessor.HttpContext?.Request.Headers["Accept-Language"].ToString();
+        var acceptLanguageHeader = _httpContextAccessor.HttpContext?.Request.Headers.AcceptLanguage.ToString();
         if (!string.IsNullOrEmpty(acceptLanguageHeader))
         {
             var languages = acceptLanguageHeader.Split(',');
@@ -362,17 +303,12 @@ internal sealed class InitialDataService : IInitialDataService
         return "nb"; // Default to Norwegian Bokmål
     }
 
-    private async Task<List<Altinn.App.Core.Models.ApplicationLanguage>> GetAvailableLanguages()
-    {
-        return await _applicationLanguage.GetApplicationLanguages();
-    }
-
     private Dictionary<string, bool> GetFeatureFlags()
     {
         var flags = new Dictionary<string, bool>();
 
         // Add feature flags from FrontEndSettings
-        if (_frontEndSettings != null)
+        if (_frontEndSettings is not null)
         {
             // Add any frontend feature flags here
             // For example:
@@ -380,17 +316,6 @@ internal sealed class InitialDataService : IInitialDataService
         }
 
         return flags;
-    }
-
-    private static Task<bool> IsStatelessApp(ApplicationMetadata? applicationMetadata)
-    {
-        if (applicationMetadata?.OnEntry == null)
-        {
-            return Task.FromResult(false);
-        }
-
-        var onEntryWithInstance = new List<string> { "new-instance", "select-instance" };
-        return Task.FromResult(!onEntryWithInstance.Contains(applicationMetadata.OnEntry.Show));
     }
 
     private static int? ParseInstanceOwnerPartyId(string instanceId)
@@ -413,119 +338,72 @@ internal sealed class InitialDataService : IInitialDataService
         return null;
     }
 
-    private async Task<bool> CanPartyInstantiate(int partyId)
+    private LayoutSets? GetLayoutSets()
     {
-        var currentAuth = _authenticationContext.Current;
-
-        if (currentAuth is not Authenticated.User auth)
-        {
-            throw new UnauthorizedAccessException(
-                "User must be authenticated as a regular user to check instantiation permissions"
-            );
-        }
-
-        var details = await auth.LoadDetails(validateSelectedParty: false);
-        return details.CanInstantiateAsParty(partyId);
+        var layoutSetsJson = _appResources.GetLayoutSets();
+        return TryDeserialize<LayoutSets>(layoutSetsJson);
     }
 
-    private async Task GetFooterLayout(InitialDataResponse response)
+    private object? GetLayoutSettings()
     {
+        var layoutSettingsJson = _appResources.GetLayoutSettingsString();
+        return TryDeserialize<object>(layoutSettingsJson);
+    }
+
+    private object? GetLayout(LayoutSets? layoutSets)
+    {
+        var initialLayoutSetId = layoutSets?.Sets?.FirstOrDefault()?.Id;
+
+        var layoutJson = !string.IsNullOrEmpty(initialLayoutSetId)
+            ? _appResources.GetLayoutsForSet(initialLayoutSetId)
+            : null;
+
+        if (string.IsNullOrEmpty(layoutJson))
+        {
+            return null;
+        }
+        return TryDeserialize<object>(layoutJson);
+    }
+
+    private async Task<object?> GetFooterLayout()
+    {
+        var footerJson = await _appResources.GetFooter();
+        return TryDeserialize<object>(footerJson);
+    }
+
+    private static T? TryDeserialize<T>(string? json)
+        where T : class
+    {
+        if (string.IsNullOrEmpty(json))
+        {
+            return null;
+        }
+
         try
         {
-            var footerJson = await _appResources.GetFooter();
-            if (!string.IsNullOrEmpty(footerJson))
-            {
-                response.FooterLayout = JsonSerializer.Deserialize<object>(footerJson, _jsonSerializerOptions);
-            }
+            return JsonSerializer.Deserialize<T>(json, _jsonSerializerOptions);
         }
         catch
         {
-            // Log error but don't fail the entire request
+            // TODO: Log error
+            return null;
         }
     }
 
-    private Task GetMockUserProfile(InitialDataResponse response)
+    private FrontEndSettings GetFrontendSettings()
     {
-        try
-        {
-            // Create a minimal user profile that can be merged with mock data
-            var baseUserProfile = new Altinn.Platform.Profile.Models.UserProfile
-            {
-                UserId = 0, // Default placeholder
-                UserName = "",
-                Email = "",
-                PhoneNumber = "",
-                PartyId = 0,
-                UserType = UserType.SSNIdentified,
-                ProfileSettingPreference = new Altinn.Platform.Profile.Models.ProfileSettingPreference(),
-            };
+        FrontEndSettings frontEndSettings = _frontEndSettings;
 
-            // Merge with mock data
-            if (_mockDataHelper != null)
-            {
-                response.UserProfile = MergeWithMockData(
-                    baseUserProfile,
-                    "userProfile",
-                    _mockDataHelper.MergeUserProfile
-                );
-            }
-            else
-            {
-                response.UserProfile = baseUserProfile;
-            }
-        }
-        catch
+        // Adding key from _appSettings to be backwards compatible.
+        if (
+            !frontEndSettings.ContainsKey(nameof(_appSettings.AppOidcProvider))
+            && !string.IsNullOrEmpty(_appSettings.AppOidcProvider)
+        )
         {
-            // Log error but don't fail the entire request
+            frontEndSettings.Add(nameof(_appSettings.AppOidcProvider), _appSettings.AppOidcProvider);
         }
 
-        return Task.CompletedTask;
-    }
-
-    private Task GetMockParty(int partyId, InitialDataResponse response)
-    {
-        try
-        {
-            // Create a minimal party that can be merged with mock data
-            var baseParty = new Altinn.Platform.Register.Models.Party
-            {
-                PartyId = partyId,
-                Name = "",
-                PartyTypeName = PartyType.Person,
-                OrgNumber = null,
-                SSN = null,
-                UnitType = null,
-            };
-
-            // Merge with mock data
-            if (_mockDataHelper != null)
-            {
-                var mockData = GetMockData();
-                if (mockData?.TryGetValue("parties", out var partiesMock) == true)
-                {
-                    // Create a temporary list with the base party, merge with mock data, then extract the result
-                    var tempList = new List<Altinn.Platform.Register.Models.Party> { baseParty };
-                    var mergedList = _mockDataHelper.MergeParties(tempList, partiesMock);
-
-                    // Find the merged party with the same ID
-                    var mergedParty = mergedList.FirstOrDefault(p => p.PartyId == partyId);
-                    if (mergedParty != null)
-                    {
-                        response.Party = mergedParty;
-                    }
-                }
-            }
-            else
-            {
-                response.Party = baseParty;
-            }
-        }
-        catch
-        {
-            // Log error but don't fail the entire request
-        }
-
-        return Task.CompletedTask;
+        return frontEndSettings;
     }
 
     /// <summary>
@@ -536,10 +414,15 @@ internal sealed class InitialDataService : IInitialDataService
     /// <param name="mockDataKey">The key to look for in the mock data dictionary.</param>
     /// <param name="mergeFunction">The function to use for merging.</param>
     /// <returns>The merged object, or the original object if no mock data is available.</returns>
-    private T? MergeWithMockData<T>(T? realData, string mockDataKey, Func<T, object?, T>? mergeFunction)
+    private T MergeWithMockData<T>(T realData, string mockDataKey, Func<T, object?, T>? mergeFunction)
         where T : class
     {
-        if (realData == null || mergeFunction == null)
+        if (_mockDataHelper is null)
+        {
+            return realData;
+        }
+
+        if (mergeFunction is null)
             return realData;
 
         var mockData = GetMockData();
@@ -552,16 +435,31 @@ internal sealed class InitialDataService : IInitialDataService
     }
 
     /// <summary>
-    /// Retrieves mock data from the HTTP context if available.
+    /// Retrieves mock data from the HTTP context og X-Mock-Data header if available.
     /// </summary>
     /// <returns>A dictionary containing mock data, or null if no mock data is available.</returns>
-    private Dictionary<string, object>? GetMockData()
+    public Dictionary<string, object>? GetMockData()
     {
+        Dictionary<string, object>? mockData = null;
+
         var httpContext = _httpContextAccessor.HttpContext;
-        if (httpContext?.Items.TryGetValue("MockData", out var mockData) == true)
+        if (httpContext is null)
         {
-            return mockData as Dictionary<string, object>;
+            return null;
         }
-        return null;
+
+        if (
+            httpContext.Items.TryGetValue("MockData", out var mockDataObj)
+            && mockDataObj is Dictionary<string, object> itemsMockData
+        )
+        {
+            mockData = itemsMockData;
+        }
+        else if (httpContext.Request.Headers.TryGetValue("X-Mock-Data", out var mockDataHeader))
+        {
+            mockData = TryDeserialize<Dictionary<string, object>>(mockDataHeader);
+        }
+
+        return mockData;
     }
 }

@@ -325,6 +325,7 @@ namespace Altinn.App.Core.Features.Auth
         public string Token { get; }
         public bool TokenIsExchanged { get; }
         public Altinn.App.Core.Features.Auth.TokenIssuer TokenIssuer { get; }
+        public System.Security.Claims.ClaimsPrincipal GetClaimsPrincipal() { }
         public System.Threading.Tasks.Task<string> GetLanguage() { }
         public sealed class None : Altinn.App.Core.Features.Auth.Authenticated { }
         public sealed class Org : Altinn.App.Core.Features.Auth.Authenticated
@@ -439,27 +440,20 @@ namespace Altinn.App.Core.Features.Bootstrap
 {
     public interface IInitialDataService
     {
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.Bootstrap.Models.InitialDataResponse> GetInitialData(string org, string app, string? instanceId = null, int? partyId = default, string? language = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.Bootstrap.Models.InitialDataResponse> GetInitialData(string org, string app, string? language = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.Bootstrap.Models.InitialDataResponseAuthenticated> GetInitialDataAuthenticated(string org, string app, Altinn.App.Core.Features.Auth.Authenticated.User user, Altinn.App.Core.Features.Auth.Authenticated.User.Details userDetails, string? instanceId = null, string? language = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Collections.Generic.Dictionary<string, object>? GetMockData();
+    }
+    public sealed class InitialDataService : Altinn.App.Core.Features.Bootstrap.IInitialDataService
+    {
+        public InitialDataService(Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Internal.App.IAppResources appResources, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Profile.IProfileClient profileClient, Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, Altinn.App.Core.Internal.Process.IProcessStateService processStateService, Altinn.App.Core.Internal.Language.IApplicationLanguage applicationLanguage, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings> appSettings, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings> platformSettings, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.GeneralSettings> generalSettings, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.FrontEndSettings> frontEndSettings, Altinn.App.Core.Features.Testing.IMockDataHelper? mockDataHelper = null) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Features.Bootstrap.Models.InitialDataResponse> GetInitialData(string org, string app, string? language = null, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Features.Bootstrap.Models.InitialDataResponseAuthenticated> GetInitialDataAuthenticated(string org, string app, Altinn.App.Core.Features.Auth.Authenticated.User user, Altinn.App.Core.Features.Auth.Authenticated.User.Details userDetails, string? instanceId = null, string? language = null, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Collections.Generic.Dictionary<string, object>? GetMockData() { }
     }
 }
 namespace Altinn.App.Core.Features.Bootstrap.Models
 {
-    public sealed class FrontendAppSettings
-    {
-        public FrontendAppSettings() { }
-        [System.Text.Json.Serialization.JsonPropertyName("apiUrl")]
-        public string? ApiUrl { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("cdnUrl")]
-        public string? CdnUrl { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("currentPageId")]
-        public string? CurrentPageId { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("currentTaskId")]
-        public string? CurrentTaskId { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("isStateless")]
-        public bool IsStateless { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("oidcProvider")]
-        public string? OidcProvider { get; set; }
-    }
     public sealed class FrontendPlatformSettings
     {
         public FrontendPlatformSettings() { }
@@ -474,37 +468,44 @@ namespace Altinn.App.Core.Features.Bootstrap.Models
         [System.Text.Json.Serialization.JsonPropertyName("storageApiEndpoint")]
         public string? StorageApiEndpoint { get; set; }
     }
-    public sealed class InitialDataResponse
+    public class InitialDataResponse
     {
-        public InitialDataResponse() { }
-        [System.Text.Json.Serialization.JsonPropertyName("appSettings")]
-        public Altinn.App.Core.Features.Bootstrap.Models.FrontendAppSettings? AppSettings { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("applicationMetadata")]
-        public Altinn.App.Core.Models.ApplicationMetadata? ApplicationMetadata { get; set; }
+        public required Altinn.App.Core.Models.ApplicationMetadata ApplicationMetadata { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("availableLanguages")]
-        public System.Collections.Generic.List<string>? AvailableLanguages { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("canInstantiate")]
-        public bool? CanInstantiate { get; set; }
+        public required System.Collections.Generic.List<Altinn.App.Core.Models.ApplicationLanguage> AvailableLanguages { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("featureFlags")]
-        public System.Collections.Generic.Dictionary<string, bool>? FeatureFlags { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("instance")]
-        public Altinn.Platform.Storage.Interface.Models.Instance? Instance { get; set; }
+        public required System.Collections.Generic.Dictionary<string, bool> FeatureFlags { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("footerLayout")]
+        public object? FooterLayout { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("frontendSettings")]
+        public required Altinn.App.Core.Configuration.FrontEndSettings FrontendSettings { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("language")]
-        public string? Language { get; set; }
+        public required string Language { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("layout")]
         public object? Layout { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("layoutSets")]
         public Altinn.App.Core.Models.LayoutSets? LayoutSets { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("layoutSettings")]
         public object? LayoutSettings { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("party")]
-        public Altinn.Platform.Register.Models.Party? Party { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("platformSettings")]
-        public Altinn.App.Core.Features.Bootstrap.Models.FrontendPlatformSettings? PlatformSettings { get; set; }
+        public required Altinn.App.Core.Features.Bootstrap.Models.FrontendPlatformSettings PlatformSettings { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("textResources")]
-        public System.Collections.Generic.Dictionary<string, string>? TextResources { get; set; }
+        public Altinn.Platform.Storage.Interface.Models.TextResource? TextResources { get; set; }
+    }
+    public sealed class InitialDataResponseAuthenticated : Altinn.App.Core.Features.Bootstrap.Models.InitialDataResponse
+    {
+        public InitialDataResponseAuthenticated() { }
+        [System.Text.Json.Serialization.JsonPropertyName("canInstantiate")]
+        public required bool CanInstantiate { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("instance")]
+        public required Altinn.Platform.Storage.Interface.Models.Instance? Instance { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("party")]
+        public required Altinn.Platform.Register.Models.Party Party { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("processState")]
+        public required Altinn.App.Core.Internal.Process.Elements.AppProcessState? ProcessState { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("userProfile")]
-        public Altinn.Platform.Profile.Models.UserProfile? UserProfile { get; set; }
+        public required Altinn.Platform.Profile.Models.UserProfile UserProfile { get; set; }
     }
 }
 namespace Altinn.App.Core.Features.Correspondence.Builder
@@ -2075,6 +2076,28 @@ namespace Altinn.App.Core.Features.Signing
         [System.Text.Json.Serialization.JsonPropertyName("mobileNumber")]
         public string? MobileNumber { get; set; }
         public string Reference { get; set; }
+    }
+}
+namespace Altinn.App.Core.Features.Testing
+{
+    public interface IMockDataHelper
+    {
+        Altinn.App.Core.Models.ApplicationMetadata MergeApplicationMetadata(Altinn.App.Core.Models.ApplicationMetadata real, object? mockData);
+        System.Collections.Generic.List<Altinn.Platform.Storage.Interface.Models.Instance> MergeInstances(System.Collections.Generic.List<Altinn.Platform.Storage.Interface.Models.Instance> real, object? mockData);
+        T MergeObject<T>(T realObject, object? mockData)
+            where T :  class;
+        System.Collections.Generic.List<Altinn.Platform.Register.Models.Party> MergeParties(System.Collections.Generic.List<Altinn.Platform.Register.Models.Party> real, object? mockData);
+        Altinn.Platform.Profile.Models.UserProfile MergeUserProfile(Altinn.Platform.Profile.Models.UserProfile real, object? mockData);
+    }
+    public class MockDataHelper : Altinn.App.Core.Features.Testing.IMockDataHelper
+    {
+        public MockDataHelper(Microsoft.Extensions.Logging.Logger<Altinn.App.Core.Features.Testing.MockDataHelper>? logger = null) { }
+        public Altinn.App.Core.Models.ApplicationMetadata MergeApplicationMetadata(Altinn.App.Core.Models.ApplicationMetadata real, object? mockData) { }
+        public System.Collections.Generic.List<Altinn.Platform.Storage.Interface.Models.Instance> MergeInstances(System.Collections.Generic.List<Altinn.Platform.Storage.Interface.Models.Instance> real, object? mockData) { }
+        public T MergeObject<T>(T realObject, object? mockData)
+            where T :  class { }
+        public System.Collections.Generic.List<Altinn.Platform.Register.Models.Party> MergeParties(System.Collections.Generic.List<Altinn.Platform.Register.Models.Party> real, object? mockData) { }
+        public Altinn.Platform.Profile.Models.UserProfile MergeUserProfile(Altinn.Platform.Profile.Models.UserProfile real, object? mockData) { }
     }
 }
 namespace Altinn.App.Core.Features.Validation.Default
@@ -3745,6 +3768,11 @@ namespace Altinn.App.Core.Internal.Process
         bool IsProcessTask(string? elementId);
         bool IsStartEvent(string? elementId);
     }
+    public interface IProcessStateService
+    {
+        System.Threading.Tasks.Task<Altinn.App.Core.Internal.Process.Elements.AppProcessState> ConvertAndAuthorizeActions(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.ProcessState? processState, System.Security.Claims.ClaimsPrincipal user);
+        System.Threading.Tasks.Task<Altinn.App.Core.Internal.Process.Elements.AppProcessState> GetProcessState(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Security.Claims.ClaimsPrincipal user);
+    }
     public class ProcessEngine : Altinn.App.Core.Internal.Process.IProcessEngine
     {
         public ProcessEngine(Altinn.App.Core.Internal.Process.IProcessReader processReader, Altinn.App.Core.Internal.Process.IProcessNavigator processNavigator, Altinn.App.Core.Internal.Process.IProcessEventHandlerDelegator processEventsDelegator, Altinn.App.Core.Internal.Process.IProcessEventDispatcher processEventDispatcher, Altinn.App.Core.Features.Action.UserActionService userActionService, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, System.IServiceProvider serviceProvider, Altinn.App.Core.Internal.Process.IProcessEngineAuthorizer processEngineAuthorizer, Altinn.App.Core.Internal.Validation.IValidationService validationService, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Internal.Process.ProcessEngine> logger, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
@@ -3801,6 +3829,12 @@ namespace Altinn.App.Core.Internal.Process
         [System.Obsolete("Never used in our process engine code.")]
         AbandonCurrentReturnToNext = 1,
         AbandonCurrentMoveToNext = 2,
+    }
+    public sealed class ProcessStateService : Altinn.App.Core.Internal.Process.IProcessStateService
+    {
+        public ProcessStateService(Altinn.App.Core.Internal.Process.IProcessReader processReader, Altinn.App.Core.Internal.Auth.IAuthorizationService authorizationService, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Internal.Process.Elements.AppProcessState> ConvertAndAuthorizeActions(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.ProcessState? processState, System.Security.Claims.ClaimsPrincipal user) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Internal.Process.Elements.AppProcessState> GetProcessState(string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Security.Claims.ClaimsPrincipal user) { }
     }
 }
 namespace Altinn.App.Core.Internal.Process.ProcessTasks
@@ -4120,6 +4154,8 @@ namespace Altinn.App.Core.Models
         public Altinn.App.Core.Models.Logo? Logo { get; set; }
         [Newtonsoft.Json.JsonProperty(PropertyName="onEntry")]
         public new Altinn.App.Core.Models.OnEntry? OnEntry { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName="promptForParty")]
+        public string? PromptForParty { get; set; }
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.Dictionary<string, object>? UnmappedProperties { get; set; }
     }
