@@ -69,7 +69,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: studio-gateway
-          image: ""
+          image: ''
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
@@ -80,11 +80,12 @@ spec:
                 - ALL
           ports:
             - containerPort: 8080
-              name: http
+              name: http-internal
+              protocol: TCP
+            - containerPort: 8081
+              name: http-public
               protocol: TCP
           env:
-            - name: ASPNETCORE_HTTP_PORTS
-              value: "8080"
             - name: ASPNETCORE_ENVIRONMENT
               valueFrom:
                 # Configmap is created in syncroot

@@ -56,14 +56,12 @@ internal static class HostingExtensions
 
 // Based on guidance in:
 // https://github.com/dotnet/dotnet-docker/blob/2a6f35b9361d1aacb664b0ce09e529698b622d2b/samples/kubernetes/graceful-shutdown/graceful-shutdown.md
-#pragma warning disable CA1812 // Avoid uninstantiated internal classes
 internal sealed class AppHostLifetime(
     ILogger<AppHostLifetime> _logger,
     IHostEnvironment _environment,
     IHostApplicationLifetime _applicationLifetime,
     TimeSpan _delay
 ) : IHostLifetime, IDisposable
-#pragma warning restore CA1812 // Avoid uninstantiated internal classes
 {
     private IDisposable[]? _disposables;
 

@@ -9,6 +9,7 @@ spec:
   policyTypes:
     - Ingress
   ingress:
+    # Internal port - only accessible from flux-system namespace
     - from:
         - namespaceSelector:
             matchLabels:
@@ -16,3 +17,11 @@ spec:
       ports:
         - protocol: TCP
           port: 8080
+    # Public port - accessible from traefik ingress controller
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - protocol: TCP
+          port: 8081

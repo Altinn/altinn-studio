@@ -173,6 +173,10 @@ dotnet_diagnostic.CA2007.severity = none
 # CA1031: Do not catch general exception types
 dotnet_diagnostic.CA1031.severity = suggestion
 
+# CA1812: Avoid uninstantiated internal classes
+# False positive for classes instantiated via DI/reflection (e.g. AddEndpointFilter<T>)
+dotnet_diagnostic.CA1812.severity = none
+
 [*.{yml,yaml}]
 indent_size = 2
 end_of_line = lf

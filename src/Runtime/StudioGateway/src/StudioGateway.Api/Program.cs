@@ -5,6 +5,7 @@ using StudioGateway.Api.Hosting;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
+builder.ConfigureKestrelPorts();
 builder.AddHostingConfiguration();
 builder.AddMaskinportenAuthentication();
 
@@ -22,8 +23,15 @@ var app = builder.Build();
 app.UseHsts();
 app.UseForwardedHeaders();
 
-app.UseAuthentication();
-app.UseAuthorization();
+// Only run auth middleware on public port - internal port is secured by NetworkPolicy
+app.UseWhen(
+    ctx => ctx.Connection.LocalPort == PortConfiguration.PublicPort,
+    branch =>
+    {
+        branch.UseAuthentication();
+        branch.UseAuthorization();
+    }
+);
 
 app.MapOpenApi();
 app.UseSwaggerUI(options =>
@@ -31,7 +39,6 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint("/openapi/v1.json", "v1");
 });
 
-// Health check endpoints
 app.MapHealthChecks("/health/live");
 app.MapHealthChecks("/health/ready");
 

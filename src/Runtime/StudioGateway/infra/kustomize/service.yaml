@@ -1,12 +1,26 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: studio-gateway
+  name: studio-gateway-internal
 spec:
   type: ClusterIP
   ports:
     - port: 80
       targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: studio-gateway
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: studio-gateway
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8081
       protocol: TCP
       name: http
   selector:
