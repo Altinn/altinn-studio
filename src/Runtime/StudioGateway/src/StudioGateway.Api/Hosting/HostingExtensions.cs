@@ -20,8 +20,11 @@ internal static class HostingExtensions
             options.KnownIPNetworks.Clear();
             options.KnownProxies.Clear();
 
-            options.KnownIPNetworks.Add(new System.Net.IPNetwork(IPAddress.Any, 0));
-            options.KnownIPNetworks.Add(new System.Net.IPNetwork(IPAddress.IPv6Any, 0));
+            // IP ranges used internally in the deployed clusters
+            // This makes sure we only trust the X-Forwarded-* headers for requests
+            // originating from these ranges.
+            options.KnownIPNetworks.Add(new System.Net.IPNetwork(IPAddress.Parse("10.240.0.0"), 16));
+            options.KnownIPNetworks.Add(new System.Net.IPNetwork(IPAddress.Parse("fd10:59f0:8c79:240::"), 64));
         });
 
         // Need to coordinate graceful shutdown (let's assume k8s as the scheduler/runtime):
@@ -76,7 +79,7 @@ internal sealed class AppHostLifetime(
         {
 #pragma warning disable CA2000 // Dispose objects before losing scope
             // If we get an exception, we dispose below
-            // Otherwise ownership is trafferred to _disposables
+            // Otherwise ownership is transferred to _disposables
             // which is disposed in Dispose()
             sigint = PosixSignalRegistration.Create(PosixSignal.SIGINT, HandleSignal);
             sigquit = PosixSignalRegistration.Create(PosixSignal.SIGQUIT, HandleSignal);
