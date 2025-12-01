@@ -549,12 +549,7 @@ internal class CSharpCodeGenerator
 
                     // Try to convert to C#
                     // Pass empty dictionaries so that input params are treated as local variables
-                    // instead of generating wrapper.Get()/Set() calls throughout the function
-                    var converter = new StatementConverter(
-                        new Dictionary<string, string>(),
-                        "",
-                        useFormDataWrapper: false
-                    );
+                    var converter = new StatementConverter(new Dictionary<string, string>(), "");
 
                     // Generate local variable declarations for input parameters
                     // This allows the function body to treat them as local variables
@@ -563,15 +558,24 @@ internal class CSharpCodeGenerator
                     {
                         foreach (var inputParam in rule.InputParams)
                         {
-                            // Use addDefaultValue: true to automatically add ?? 0m for nullable decimals
-                            // This prevents type conflicts in arithmetic operations
+                            // Use addDefaultValue: true to automatically add ?? "" for strings, ?? 0m for decimals, etc.
+                            // This ensures variables are non-nullable and properly typed
                             var getCall = GenerateTypedGetCall(inputParam.Value, addDefaultValue: true);
                             code.AppendLine($"var {inputParam.Key} = {getCall};");
 
-                            // Mark the variable type so the converter knows if it's a string or numeric type
-                            var resolvedType = _typeResolver?.ResolveType(inputParam.Value);
-                            var isString = resolvedType == "string?" || resolvedType == "string";
-                            converter.MarkVariableType(inputParam.Key, isString);
+                            // Mark the variable type using THE SAME resolution logic
+                            // This ensures consistency between the generated code and type tracking
+                            var resolvedType = ResolveTypeWithFallback(inputParam.Value);
+
+                            // When we use addDefaultValue: true with ??, the variable becomes non-nullable
+                            // Strip the '?' from the type name to match C# type inference
+                            var trackedType = resolvedType;
+                            if (trackedType.EndsWith("?"))
+                            {
+                                trackedType = trackedType.Substring(0, trackedType.Length - 1);
+                            }
+
+                            converter.MarkVariableType(inputParam.Key, trackedType);
                         }
                         code.AppendLine();
                     }
@@ -810,42 +814,72 @@ internal class CSharpCodeGenerator
     /// <returns>The C# code for the Get call with cast if type is known</returns>
     private string GenerateTypedGetCall(string jsonPath, bool addDefaultValue = false)
     {
-        // Try to resolve the type for this path
-        var resolvedType = _typeResolver?.ResolveType(jsonPath);
+        // Always resolve to a type (with fallback)
+        var resolvedType = ResolveTypeWithFallback(jsonPath);
 
+        // Generate cast to the resolved type
+        var getCall = $"({resolvedType})wrapper.Get(\"{jsonPath}\")";
+
+        // If addDefaultValue is true, add appropriate default based on type
+        if (addDefaultValue)
+        {
+            if (resolvedType == "decimal?" || resolvedType == "decimal")
+            {
+                return $"{getCall} ?? 0m";
+            }
+            else if (resolvedType == "string?" || resolvedType == "string")
+            {
+                return $"{getCall} ?? \"\"";
+            }
+            else if (resolvedType == "bool?" || resolvedType == "bool")
+            {
+                return $"{getCall} ?? false";
+            }
+            else if (resolvedType == "int?" || resolvedType == "int")
+            {
+                return $"{getCall} ?? 0";
+            }
+        }
+
+        return getCall;
+    }
+
+    /// <summary>
+    /// Resolve the C# type for a JSON path, with fallback heuristics
+    /// </summary>
+    private string ResolveTypeWithFallback(string jsonPath)
+    {
+        // Try data model type resolution first
+        var resolvedType = _typeResolver?.ResolveType(jsonPath);
         if (resolvedType != null)
         {
-            // Generate cast to the resolved type
-            var getCall = $"({resolvedType})wrapper.Get(\"{jsonPath}\")";
-
-            // If addDefaultValue is true, add appropriate default based on type
-            if (addDefaultValue)
-            {
-                // For nullable decimal, append ?? 0m
-                // This ensures the variable is non-nullable decimal, avoiding type conflicts in arithmetic
-                if (resolvedType == "decimal?")
-                {
-                    return $"{getCall} ?? 0m";
-                }
-                // For nullable string, append ?? ""
-                // This ensures the variable is non-nullable string, avoiding null-check issues
-                else if (resolvedType == "string?")
-                {
-                    return $"{getCall} ?? \"\"";
-                }
-                // For nullable bool, append ?? false
-                else if (resolvedType == "bool?")
-                {
-                    return $"{getCall} ?? false";
-                }
-            }
-
-            return getCall;
+            return resolvedType;
         }
-        else
+
+        // Log that we're using fallback
+        Console.WriteLine($"Warning: Could not resolve type for path '{jsonPath}', using fallback heuristics");
+
+        // Fallback heuristics based on path patterns
+        // Most form data fields ending in .value are strings
+        if (jsonPath.EndsWith(".value"))
         {
-            // Fallback to untyped Get() call
-            return $"wrapper.Get(\"{jsonPath}\")";
+            return "string?";
         }
+
+        // Fields with specific naming patterns
+        var lowerPath = jsonPath.ToLowerInvariant();
+        if (lowerPath.Contains("amount") || lowerPath.Contains("count") || lowerPath.Contains("number"))
+        {
+            return "decimal?";
+        }
+
+        if (lowerPath.Contains("enabled") || lowerPath.Contains("checked") || lowerPath.Contains("selected"))
+        {
+            return "bool?";
+        }
+
+        // Default to string for unknown types
+        // String is the safest fallback for form data
+        return "string?";
     }
 }
