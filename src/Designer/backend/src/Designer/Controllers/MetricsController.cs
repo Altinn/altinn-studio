@@ -17,7 +17,7 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
 
     [HttpGet]
     [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
-    public async Task<ActionResult<IEnumerable<AppMetric>>> GetMetrics(
+    public async Task<ActionResult<IEnumerable<Metric>>> GetMetrics(
         string org,
         string env,
         string app,
@@ -25,21 +25,7 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        IEnumerable<AppMetric> metrics = await _metricsService.GetMetricsAsync(org, env, app, time, cancellationToken);
-        return Ok(metrics);
-    }
-
-    [HttpGet("process-next")]
-    [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
-    public async Task<ActionResult<IEnumerable<AppMetric>>> GetFailedProcessNextRequests(
-        string org,
-        string env,
-        string app,
-        int time,
-        CancellationToken cancellationToken
-    )
-    {
-        IEnumerable<AppMetric> metrics = await _metricsService.GetFailedProcessNextRequestsAsync(org, env, app, time, cancellationToken);
+        IEnumerable<Metric> metrics = await _metricsService.GetMetricsAsync(org, env, app, time, cancellationToken);
         return Ok(metrics);
     }
 }

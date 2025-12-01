@@ -12,7 +12,7 @@ public class MetricsService(
     ) : IMetricsService
 {
     /// <inheritdoc />
-    public async Task<IEnumerable<AppMetric>> GetMetricsAsync(
+    public async Task<IEnumerable<Metric>> GetMetricsAsync(
         string org,
         string env,
         string app,
@@ -21,17 +21,5 @@ public class MetricsService(
     )
     {
         return await studioGatewayClient.GetMetricsAsync(org, env, app, time, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public async Task<IEnumerable<AppMetric>> GetFailedProcessNextRequestsAsync(
-        string org,
-        string env,
-        string app,
-        int time,
-        CancellationToken cancellationToken
-    )
-    {
-        return await studioGatewayClient.GetFailedProcessNextRequestsAsync(org, env, app, time, cancellationToken);
     }
 }

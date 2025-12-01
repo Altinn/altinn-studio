@@ -25,10 +25,10 @@ export const AppsDetails = () => {
       <h1>
         {env} / {app}
       </h1>
+      <Metrics />
       <p>
         Gå til <Link to='instances'>instanser</Link>.
       </p>
-      <Metrics />
     </div>
   );
 };

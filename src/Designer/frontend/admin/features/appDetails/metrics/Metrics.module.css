@@ -21,6 +21,8 @@
 }
 
 .select {
+  display: flex;
+  flex-direction: row;
   font-size: 0.9rem;
   margin: 0 !important;
   width: 70px !important;

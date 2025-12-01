@@ -1,7 +1,7 @@
 export type Alert = {
-  alertId: string;
-  alertRuleId: string;
-  type: string;
+  id: string;
+  ruleId: string;
+  name: string;
   app: string;
   url: string;
 };

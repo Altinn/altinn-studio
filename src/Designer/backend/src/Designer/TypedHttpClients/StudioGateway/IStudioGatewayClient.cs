@@ -14,15 +14,7 @@ public interface IStudioGatewayClient
         CancellationToken cancellationToken = default
     );
 
-    public Task<IEnumerable<AppMetric>> GetMetricsAsync(
-        string org,
-        string env,
-        string app,
-        int time,
-        CancellationToken cancellationToken = default
-    );
-
-    public Task<IEnumerable<AppMetric>> GetFailedProcessNextRequestsAsync(
+    public Task<IEnumerable<Metric>> GetMetricsAsync(
         string org,
         string env,
         string app,

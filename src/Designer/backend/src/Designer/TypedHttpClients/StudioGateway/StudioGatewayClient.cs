@@ -43,7 +43,7 @@ public class StudioGatewayClient(
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<AppMetric>> GetMetricsAsync(
+    public async Task<IEnumerable<Metric>> GetMetricsAsync(
         string org,
         string env,
         string app,
@@ -64,31 +64,6 @@ public class StudioGatewayClient(
         HttpResponseMessage response = await httpClient.GetAsync(url, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<List<AppMetric>>(options, cancellationToken: cancellationToken) ?? [];
-    }
-
-    /// <inheritdoc />
-    public async Task<IEnumerable<AppMetric>> GetFailedProcessNextRequestsAsync(
-        string org,
-        string env,
-        string app,
-        int time,
-        CancellationToken cancellationToken
-    )
-    {
-        StudioGatewayEnvSettings studioGatewaySettings = _studioGatewaySettings.GetSettings(env);
-
-        string apiToken = studioGatewaySettings.Token;
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);
-
-        string baseUri = studioGatewaySettings.GetBaseUri(org);
-        string url = $"{baseUri}/api/v1/metrics/process-next?app={app}&time={time}";
-
-        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
-
-        HttpResponseMessage response = await httpClient.GetAsync(url, cancellationToken);
-        response.EnsureSuccessStatusCode();
-
-        return await response.Content.ReadFromJsonAsync<List<AppMetric>>(options, cancellationToken: cancellationToken) ?? [];
+        return await response.Content.ReadFromJsonAsync<List<Metric>>(options, cancellationToken: cancellationToken) ?? [];
     }
 }

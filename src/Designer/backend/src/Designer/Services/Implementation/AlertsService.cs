@@ -26,9 +26,9 @@ public class AlertsService(
 
         return alerts.Select(alert => new Alert
         {
-            AlertId = alert.AlertId,
-            AlertRuleId = alert.AlertRuleId,
-            Type = alert.Type,
+            Id = alert.Id,
+            RuleId = alert.RuleId,
+            Name = alert.Name,
             App = alert.App,
             Url = alert.Url
         });

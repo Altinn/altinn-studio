@@ -128,22 +128,12 @@ const getRandomColor = () => {
   };
 };
 
-const formatCount = (metric: Metric) => {
-  switch (metric.name) {
+const formatCount = (name: string, count: number) => {
+  switch (name) {
     case 'up':
-      return metric.count === 1 ? 'UP' : 'DOWN';
-    case 'slow_requests':
-      return `${metric.count} ms`;
-    case 'requests_rps':
-      return `${metric.count} req/s`; // requests / second
-    case 'error_ratio':
-      return `${metric.count} %`; // of total requests
-    case 'cpu_usage':
-      return `${metric.count} %`; // of requested CPU
-    case 'memory_usage':
-      return `${metric.count} %`; // of requested memory
+      return count === 1 ? 'UP' : 'DOWN';
     default:
-      return metric.count;
+      return count;
   }
 };
 
@@ -164,16 +154,6 @@ export const Metrics = () => {
   const handleTime = (value: number) => {
     setTime(value);
   };
-
-  const appMetric = metrics
-    ?.filter((e) => e.appName === app /*  app.app */)
-    .map((e) => {
-      return e.metrics;
-    })
-    .flat();
-
-  const systemMetrics = appMetric?.filter((item) => !item.name.startsWith('altinn_'));
-  const appMetrics = appMetric?.filter((item) => item.name.startsWith('altinn_'));
 
   return (
     <>
@@ -198,62 +178,36 @@ export const Metrics = () => {
         </StudioBreadcrumbs.List>
       </StudioBreadcrumbs>
       {/* <StudioHeading className={classes.heading}> */}
-      <h1 className={classes.heading}>
-        METRICS
-        <StudioSelect
-          label=''
-          // description={'Time'}
-          value={time}
-          onChange={(e) => handleTime(Number(e.target.value))}
-          className={classes.select}
-        >
-          <StudioSelect.Option value='5'>5m</StudioSelect.Option>
-          <StudioSelect.Option value='15'>15m</StudioSelect.Option>
-          <StudioSelect.Option value='30'>30m</StudioSelect.Option>
-          <StudioSelect.Option value='60'>1t</StudioSelect.Option>
-          <StudioSelect.Option value='360'>6t</StudioSelect.Option>
-          <StudioSelect.Option value='720'>12t</StudioSelect.Option>
-          <StudioSelect.Option value='1440'>1d</StudioSelect.Option>
-          <StudioSelect.Option value='4320'>3d</StudioSelect.Option>
-          <StudioSelect.Option value='10080'>7d</StudioSelect.Option>
-          <StudioSelect.Option value='43200'>30d</StudioSelect.Option>
-        </StudioSelect>
-        {/* </StudioHeading> */}
-      </h1>
-      <StudioHeading className={classes.h2}>{t('Application health')}</StudioHeading>
-      {getChart(options, t, systemMetrics)}
-      <StudioHeading className={classes.h2}>{t('Application metrics')}</StudioHeading>
-      <div className={classes.appMetrics}>
-        {getChart(
-          options,
-          t,
-          appMetrics?.filter((appM) => appM.name.startsWith('altinn_app_lib_instances')),
-        )}
-        {getChart(
-          options,
-          t,
-          appMetrics?.filter((appM) => appM.name.startsWith('altinn_app_lib_processes')),
-        )}
-        {getChart(
-          options,
-          t,
-          appMetrics?.filter(
-            (appM) =>
-              !appM.name.startsWith('altinn_app_lib_instances') &&
-              !appM.name.startsWith('altinn_app_lib_processes'),
-          ),
-        )}
-      </div>
+      <StudioSelect
+        label=''
+        // description={'Time'}
+        value={time}
+        onChange={(e) => handleTime(Number(e.target.value))}
+        className={classes.select}
+      >
+        <StudioSelect.Option value='5'>5m</StudioSelect.Option>
+        <StudioSelect.Option value='15'>15m</StudioSelect.Option>
+        <StudioSelect.Option value='30'>30m</StudioSelect.Option>
+        <StudioSelect.Option value='60'>1t</StudioSelect.Option>
+        <StudioSelect.Option value='360'>6t</StudioSelect.Option>
+        <StudioSelect.Option value='720'>12t</StudioSelect.Option>
+        <StudioSelect.Option value='1440'>1d</StudioSelect.Option>
+        <StudioSelect.Option value='4320'>3d</StudioSelect.Option>
+        <StudioSelect.Option value='10080'>7d</StudioSelect.Option>
+        <StudioSelect.Option value='43200'>30d</StudioSelect.Option>
+      </StudioSelect>
+      {/* </StudioHeading> */}
+      <div className={classes.appMetrics}>{getChart(options, t, metrics)}</div>
     </>
   );
 };
 
-const getChart = (options, t, metrics) => {
+const getChart = (options, t, metrics?: Metric[]) => {
   return (
     <div className={classes.metricsContainer}>
       {metrics?.map((metric) => {
         const isAppMetric = metric.name.startsWith('altinn_');
-        const isError = !isAppMetric && metric.isError;
+        const isError = !isAppMetric && metric.name === 'failed_process_next_requests';
         const color = getRandomColor();
         const metricsChartData = getChartData(
           metric.dataPoints,
@@ -280,26 +234,24 @@ const getChart = (options, t, metrics) => {
               }
             : options;
 
+        const count = metric.dataPoints.reduce((sum, item) => sum + item.count, 0);
+
         return (
           <StudioCard key={metric.name} data-color='neutral' className={classes.metric}>
             <div className={classes.title}>
               <StudioHeading level={3} className={classes.h3}>
                 {t(`admin.metrics.${metric.name}`)}
               </StudioHeading>
-              {metric.count !== undefined ? (
-                <div
-                  className={isError ? classes.errorDangerCount : classes.errorSuccessCount}
-                  style={{
-                    backgroundColor: isAppMetric && color.backgroundColor,
-                    color: isAppMetric && color.color,
-                    opacity: isAppMetric && 1,
-                  }}
-                >
-                  {formatCount(metric)}
-                </div>
-              ) : (
-                <StudioSpinner aria-label={t('general.loading')} />
-              )}
+              <div
+                className={isError ? classes.errorDangerCount : classes.errorSuccessCount}
+                style={{
+                  backgroundColor: isAppMetric && color.backgroundColor,
+                  color: isAppMetric && color.color,
+                  opacity: isAppMetric && 1,
+                }}
+              >
+                {formatCount(metric.name, count)}
+              </div>
             </div>
             <div className={classes.chart}>
               <Line options={customOptions} data={metricsChartData} />

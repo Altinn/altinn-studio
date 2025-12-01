@@ -17,7 +17,7 @@ import type { TFunction } from 'i18next';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 import { useAlertsQuery } from 'admin/hooks/queries/useAlertsQuery';
 
-type AppsTableProps = {
+export type AppsTableProps = {
   org: string;
 };
 
@@ -159,13 +159,13 @@ const AppsTableWithDataByEnv = ({
                     {app.alerts?.map((alert) => {
                       return (
                         <StudioAlert
-                          key={alert.alertId}
+                          key={alert.id}
                           data-color='danger'
                           data-size='xs'
                           className={classes.alert}
                         >
                           <span className={classes.alertText}>
-                            {t('admin.alerts.' + alert.type)}
+                            {t(`admin.alerts.${alert.ruleId}`, alert.name)}
                           </span>
                           <StudioLink
                             href={alert.url}
