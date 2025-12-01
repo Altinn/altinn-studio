@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
 
@@ -29,4 +30,13 @@ public class BootstrapGlobalResponse
     /// </summary>
     [JsonPropertyName("userProfile")]
     public UserProfile? UserProfile { get; set; }
+
+    /// <summary>
+    /// User profile information.
+    /// </summary>
+    [JsonPropertyName("frontendSettings")]
+    public FrontEndSettings? FrontEndSettings { get; set; }
+
+
+
 }

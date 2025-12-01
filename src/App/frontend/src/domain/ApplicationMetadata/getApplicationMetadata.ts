@@ -3,7 +3,6 @@ import { useNavigationParam } from 'src/hooks/navigation';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 
 export const getApplicationMetadata = (): ApplicationMetadata => window.AltinnAppGlobalData.applicationMetadata;
-export const useHasApplicationMetadata = () => true;
 
 export function isStatelessApp2(hasInstanceGuid: boolean) {
   const appMetadata = getApplicationMetadata();
