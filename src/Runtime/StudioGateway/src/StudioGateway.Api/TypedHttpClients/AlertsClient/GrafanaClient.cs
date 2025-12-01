@@ -34,7 +34,7 @@ public class GrafanaClient(
             return new Alert
             {
                 Id = alert.Fingerprint,
-                RuleId = alert.Labels.TryGetValue("RuleId", out string? ruleId) ? ruleId : "test",
+                RuleId = alert.Labels.TryGetValue("RuleId", out string? ruleId) ? ruleId : alert.Labels["__alert_rule_uid__"],
                 Name = alert.Labels["alertname"],
                 App = "ttd" + (alert.Labels.TryGetValue("__name__", out string? appName) ? appName : string.Empty),
                 // App = alert.Labels["cloud/rolename"],
