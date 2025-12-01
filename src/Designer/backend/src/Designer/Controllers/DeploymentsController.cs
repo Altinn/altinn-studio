@@ -17,6 +17,8 @@ using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Altinn.Studio.Designer.Constants;
+using Microsoft.FeatureManagement.Mvc;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -126,6 +128,28 @@ namespace Altinn.Studio.Designer.Controllers
             await _deploymentService.UndeployAsync(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, AuthenticationHelper.GetDeveloperUserName(HttpContext)), undeployRequest.Environment, cancellationToken);
 
             return Accepted();
+        }
+
+        /// <summary>
+        /// Webhook endpoint for receiving deploy events
+        /// </summary>
+        /// <param name="org">Organisation name</param>
+        /// <param name="app">Application name</param>
+        /// <param name="request">Deploy event details</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Ok response</returns>
+        [HttpPost("events")]
+        [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
+        [FeatureGate(StudioFeatureFlags.GitOpsDeploy)]
+        public async Task<IActionResult> ReceiveDeployEvent(string org, string app, [FromBody] DeployEventRequest request, CancellationToken cancellationToken)
+        {
+            await Task.CompletedTask;
+            // TODO: update db with final event
+            // notify frontend with websockets about final status
+            var editingContext = AltinnRepoContext.FromOrgRepo(org, app);
+
+            return Ok();
         }
 
     }

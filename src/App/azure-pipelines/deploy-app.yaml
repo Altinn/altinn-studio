@@ -93,7 +93,7 @@ steps:
         git clone https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$GITOPS_ORGANIZATION/$APP_OWNER$GITOPS_REPO_SUFFIX $GITOPS_REPO_CLONE_DIR
 
   - task: Bash@3
-    displayName: Set environment variables (ALTINN_HOST and RG_NAME) based on APP_ENVIRONMENT
+    displayName: Set environment variables (ALTINN_HOST, RG_NAME, STUDIO_ENVIRONMENT) based on APP_ENVIRONMENT
     inputs:
       targetType: inline
       script: |
@@ -114,6 +114,24 @@ steps:
         if [ "$APP_ENVIRONMENT" == "production" ]; then
             echo "##vso[task.setvariable variable=RG_NAME;]altinnapps-$APP_OWNER-prod-rg"
         fi
+
+        # Set STUDIO_ENVIRONMENT based on ALTINN_STUDIO_HOSTNAME
+        case "$ALTINN_STUDIO_HOSTNAME" in
+          "dev.altinn.studio")
+            STUDIO_ENV="dev"
+            ;;
+          "staging.altinn.studio")
+            STUDIO_ENV="staging"
+            ;;
+          "altinn.studio")
+            STUDIO_ENV="prod"
+            ;;
+          *)
+            echo "Unknown ALTINN_STUDIO_HOSTNAME: $ALTINN_STUDIO_HOSTNAME"
+            exit 1
+            ;;
+        esac
+        echo "##vso[task.setvariable variable=STUDIO_ENVIRONMENT;]$STUDIO_ENV"
       failOnStderr: true
 
   - task: Bash@3
@@ -366,6 +384,8 @@ steps:
           namespace: default
           labels:
             altinn.studio/managed-by: altinn-studio
+            altinn.studio/source-environment: ${STUDIO_ENVIRONMENT}
+            altinn.studio/build-id: "${BUILD_BUILDID}"
         spec:
           releaseName: ${RELEASE_NAME}
           targetNamespace: default
@@ -555,23 +575,6 @@ steps:
       scriptLocation: inlineScript
       inlineScript: |
         ACR_NAME="${APP_OWNER}altinnregistry01"
-
-        # Determine studio environment from ALTINN_STUDIO_HOSTNAME
-        case "$ALTINN_STUDIO_HOSTNAME" in
-          "dev.altinn.studio")
-            STUDIO_ENVIRONMENT="dev"
-            ;;
-          "staging.altinn.studio")
-            STUDIO_ENVIRONMENT="staging"
-            ;;
-          "altinn.studio")
-            STUDIO_ENVIRONMENT="prod"
-            ;;
-          *)
-            echo "Unknown ALTINN_STUDIO_HOSTNAME: $ALTINN_STUDIO_HOSTNAME"
-            exit 1
-            ;;
-        esac
 
         # Create temporary directory for sync-root content (only YAML files)
         SYNC_ROOT_DIR="$(pwd)/sync-root-temp"
