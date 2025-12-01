@@ -5,6 +5,7 @@ import 'core-js';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, Outlet, RouterProvider } from 'react-router-dom';
+import { Slide, ToastContainer } from 'react-toastify';
 
 import '@digdir/designsystemet-css';
 import '@digdir/designsystemet-theme';
@@ -21,7 +22,11 @@ import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ViewportWrapper } from 'src/components/ViewportWrapper';
 import { ComponentRouting, NavigateToStartUrl, ProcessWrapper } from 'src/components/wrappers/ProcessWrapper';
+import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
+import { ProcessingProvider } from 'src/core/contexts/processingContext';
+import { VersionErrorOrChildren } from 'src/features/applicationMetadata/VersionErrorOrChildren';
+import { createDynamicsLoader } from 'src/features/form/dynamics/dynamicsLoader';
 import { FormProvider } from 'src/features/form/FormContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { createInstanceLoader } from 'src/features/instance/instanceLoader';
@@ -75,25 +80,23 @@ document.addEventListener('DOMContentLoaded', () => {
                       queryClient: defaultQueryClient,
                     }),
                     element: (
-                      <>
-                        {/*<ErrorBoundary>*/}
-                        {/*  <VersionErrorOrChildren>*/}
-                        <OrgsProvider>
-                          {/*      <KeepAliveProvider>*/}
-                          {/*        <ProcessingProvider>*/}
-                          <Outlet />
-                          {/*        </ProcessingProvider>*/}
-                          {/*        <ToastContainer*/}
-                          {/*          position='top-center'*/}
-                          {/*          theme='colored'*/}
-                          {/*          transition={Slide}*/}
-                          {/*          draggable={false}*/}
-                          {/*        />*/}
-                          {/*      </KeepAliveProvider>*/}
-                        </OrgsProvider>
-                        {/*  </VersionErrorOrChildren>*/}
-                        {/*</ErrorBoundary>*/}
-                      </>
+                      <ErrorBoundary>
+                        <VersionErrorOrChildren>
+                          <OrgsProvider>
+                            <KeepAliveProvider>
+                              <ProcessingProvider>
+                                <Outlet />
+                              </ProcessingProvider>
+                              <ToastContainer
+                                position='top-center'
+                                theme='colored'
+                                transition={Slide}
+                                draggable={false}
+                              />
+                            </KeepAliveProvider>
+                          </OrgsProvider>
+                        </VersionErrorOrChildren>
+                      </ErrorBoundary>
                     ),
                     children: [
                       {
@@ -136,11 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
                           },
                           {
                             path: ':taskId',
-                            // loader: createDynamicsLoader({
-                            //   application: () => window.AltinnAppData?.applicationMetadata,
-                            //   layoutSets: () => window.AltinnAppData?.layoutSets,
-                            //   instanceId: () => window.AltinnAppData?.instance?.id,
-                            // }),
+                            loader: createDynamicsLoader(),
                             element: (
                               <FixWrongReceiptType>
                                 <ProcessWrapper>

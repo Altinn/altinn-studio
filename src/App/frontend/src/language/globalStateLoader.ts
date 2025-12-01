@@ -78,7 +78,6 @@ export function getLang(
   }
 
   // The app has not defined any languages, something is probably wrong
-
   window.logErrorOnce('When fetching app languages the app returned 0 languages');
 
   return 'nb';
@@ -86,12 +85,7 @@ export function getLang(
 
 export async function globalStateLoader({ context, params }: LanguageLoaderProps): Promise<unknown> {
   const { queryClient } = context;
-  console.log('params', params);
-
   const { org, app } = params;
-  // Seed available languages from window data
-  // queryClient.setQueryData(['fetchAppLanguages'], window.AltinnAppGlobalData.availableLanguages);
-
   const profile = window.AltinnAppGlobalData.userProfile;
 
   const bootstrapText = window.AltinnAppGlobalData.textResources;

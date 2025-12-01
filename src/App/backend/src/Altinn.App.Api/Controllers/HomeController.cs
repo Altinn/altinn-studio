@@ -1208,10 +1208,28 @@ public class HomeController : Controller
         [FromQuery] bool skipPartySelection = false
     )
     {
-        var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
-        var initialData = await _bootstrapGlobalService.GetGlobalState(org, app, null, null, language);
+        var currentAuth = _authenticationContext.Current;
+        Authenticated.User? auth = currentAuth as Authenticated.User;
 
-        var html = GenerateHtml(org, app, initialData);
+        if (auth == null)
+        {
+            throw new UnauthorizedAccessException("You need to be logged in to see this page.");
+        }
+
+        var realDetails = await auth.LoadDetails(validateSelectedParty: false);
+
+        var details = MergeDetailsWithMockData(realDetails);
+
+        var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
+        var globalState = await _bootstrapGlobalService.GetGlobalState(
+            org,
+            app,
+            null,
+            details.UserParty.PartyId,
+            language
+        );
+
+        var html = GenerateHtml(org, app, globalState);
         return Content(html, "text/html; charset=utf-8");
     }
 }

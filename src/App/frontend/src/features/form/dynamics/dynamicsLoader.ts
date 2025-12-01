@@ -1,19 +1,9 @@
 import { redirect } from 'react-router-dom';
 import type { LoaderFunctionArgs } from 'react-router-dom';
 
-import { isStatelessApp2 } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { getApplicationMetadata, isStatelessApp2 } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { getCurrentLayoutSet } from 'src/features/applicationMetadata/appMetadataUtils';
 import { fetchRuleHandler } from 'src/http-client/queries';
-import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
-import type { ILayoutSets } from 'src/layout/common.generated';
-
-interface DynamicsLoaderProps extends LoaderFunctionArgs {
-  context: {
-    application?: ApplicationMetadata | (() => ApplicationMetadata | undefined);
-    layoutSets?: ILayoutSets | (() => ILayoutSets | undefined);
-    instanceId: string | (() => string | undefined);
-  };
-}
 
 const RULES_SCRIPT_ID = 'rules-script';
 
@@ -28,19 +18,24 @@ function clearExistingRules() {
  * React Router loader for prefetching form dynamics data.
  * This works alongside the existing DynamicsContext to provide instant data availability.
  */
-export async function dynamicsLoader({ params, context }: DynamicsLoaderProps): Promise<unknown> {
-  const { application, layoutSets, instanceId } = context;
+export async function dynamicsLoader({ params }: LoaderFunctionArgs): Promise<unknown> {
+  // const { layoutSets, instanceId } = context;
+  const applicationMetadata = getApplicationMetadata();
 
+  const layoutSets = window.AltinnAppInstanceData?.layoutSets;
+
+  if (!layoutSets) {
+    throw new Error('layout sets not found');
+  }
+
+  const instance = window.AltinnAppInstanceData?.instance;
   const { org, app, taskId } = params;
+  const isStatelessApp = isStatelessApp2(!!instance?.id);
 
-  const resolvedApplication = typeof application === 'function' ? application() : application;
-  const resolvedLayoutSets = typeof layoutSets === 'function' ? layoutSets() : layoutSets;
-  const isStatelessApp = isStatelessApp2(!!instanceId);
-
-  const layoutSet = resolvedApplication
+  const layoutSet = applicationMetadata
     ? getCurrentLayoutSet({
-        application: resolvedApplication,
-        layoutSets: resolvedLayoutSets?.sets ?? [],
+        application: applicationMetadata,
+        layoutSets: layoutSets?.sets ?? [],
         taskId,
         isStatelessApp,
       })
@@ -72,6 +67,6 @@ export async function dynamicsLoader({ params, context }: DynamicsLoaderProps): 
  * Helper function to create the loader with access to the required context.
  * Use this in your router configuration.
  */
-export function createDynamicsLoader(context: DynamicsLoaderProps['context']) {
-  return (args: LoaderFunctionArgs) => dynamicsLoader({ ...args, context });
+export function createDynamicsLoader() {
+  return (args: LoaderFunctionArgs) => dynamicsLoader({ ...args });
 }
