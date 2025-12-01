@@ -14,15 +14,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class CopyAppTests : DesignerEndpointsTestsBase<CopyAppTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class CopyAppTests(WebApplicationFactory<Program> factory) : DesignerEndpointsTestsBase<CopyAppTests>(factory), IClassFixture<WebApplicationFactory<Program>>
     {
-        private readonly Mock<IRepository> _repositoryMock = new Mock<IRepository>();
+        private readonly Mock<IRepository> _repositoryMock = new();
         private const string UrlPrefix = "/designer/api/repos/repo/ttd";
         private const string ValidSourceRepo = "apps-test";
         private const string ValidTargetRepo = "cloned-app";
-        public CopyAppTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
 
         protected override void ConfigureTestServices(IServiceCollection services)
         {
@@ -42,7 +39,7 @@ namespace Designer.Tests.Controllers.RepositoryController
                 .Setup(r => r.CopyRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new Repository { RepositoryCreatedStatus = HttpStatusCode.Created, CloneUrl = "https://www.vg.no" });
 
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, uri);
 
             // Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -59,7 +56,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             string existingRepo = "existing-repo";
             string uri = $"{UrlPrefix}/copy-app?sourceRepository={ValidSourceRepo}&targetRepository={existingRepo}";
 
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, uri);
 
             // Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -81,10 +78,10 @@ namespace Designer.Tests.Controllers.RepositoryController
             _repositoryMock
                  .Setup(r => r.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()));
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, uri);
 
             // Act
-            HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
 
             // Assert
             _repositoryMock.VerifyAll();
@@ -104,7 +101,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             _repositoryMock
                  .Setup(r => r.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()));
 
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, uri);
 
             // Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -120,7 +117,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             // Arrange
             string uri = $"{UrlPrefix}/copy-app?sourceRepository={ValidSourceRepo}&targetRepository=2022-{ValidTargetRepo}";
 
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, uri);
 
             // Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -136,7 +133,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             string invalidSourceRepoName = "ddd.git?url={herkanmannåfrittgjøreting}";
             string uri = $"{UrlPrefix}/copy-app?sourceRepository={invalidSourceRepoName}&targetRepository={ValidTargetRepo}";
 
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, uri);
 
             // Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -154,7 +151,7 @@ namespace Designer.Tests.Controllers.RepositoryController
             string invalidTargetOrgName = "org*with#invalid+chars";
             string uri = $"{UrlPrefix}/copy-app?sourceRepository={ValidSourceRepo}&targetRepository={ValidTargetRepo}&targetOrg={invalidTargetOrgName}";
 
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, uri);
 
             // Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
