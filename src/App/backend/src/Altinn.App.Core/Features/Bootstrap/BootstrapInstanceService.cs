@@ -22,7 +22,7 @@ namespace Altinn.App.Core.Features.Bootstrap;
 /// <summary>
 /// Service responsible for aggregating all initial data required for application bootstrap.
 /// </summary>
-internal sealed class InitialDataService : IInitialDataService
+internal sealed class BootstrapInstanceService : IBootstrapInstanceService
 {
     private readonly IAppMetadata _appMetadata;
     private readonly IAppResources _appResources;
@@ -45,9 +45,9 @@ internal sealed class InitialDataService : IInitialDataService
     };
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="InitialDataService"/> class.
+    /// Initializes a new instance of the <see cref="BootstrapInstanceService"/> class.
     /// </summary>
-    public InitialDataService(
+    public BootstrapInstanceService(
         IAppMetadata appMetadata,
         IAppResources appResources,
         IInstanceClient instanceClient,
@@ -81,7 +81,7 @@ internal sealed class InitialDataService : IInitialDataService
     }
 
     /// <inheritdoc />
-    public async Task<InitialDataResponse> GetInitialData(
+    public async Task<BootstrapInstanceResponse> GetInitialData(
         string org,
         string app,
         string? instanceId = null,
@@ -90,7 +90,7 @@ internal sealed class InitialDataService : IInitialDataService
         CancellationToken cancellationToken = default
     )
     {
-        var response = new InitialDataResponse();
+        var response = new BootstrapInstanceResponse();
         var tasks = new List<Task>();
 
         // Get application metadata
@@ -187,7 +187,7 @@ internal sealed class InitialDataService : IInitialDataService
         return response;
     }
 
-    private async Task GetApplicationMetadata(InitialDataResponse response, CancellationToken cancellationToken)
+    private async Task GetApplicationMetadata(BootstrapInstanceResponse response, CancellationToken cancellationToken)
     {
         response.ApplicationMetadata = await _appMetadata.GetApplicationMetadata();
         // Merge with mock data if available
@@ -201,12 +201,12 @@ internal sealed class InitialDataService : IInitialDataService
         }
     }
 
-    private async Task GetTextResources(string org, string app, string language, InitialDataResponse response)
+    private async Task GetTextResources(string org, string app, string language, BootstrapInstanceResponse response)
     {
         response.TextResources = await _appResources.GetTexts(org, app, language);
     }
 
-    private async Task GetUserProfile(int userId, InitialDataResponse response)
+    private async Task GetUserProfile(int userId, BootstrapInstanceResponse response)
     {
         try
         {
@@ -228,7 +228,7 @@ internal sealed class InitialDataService : IInitialDataService
         }
     }
 
-    private async Task GetParty(int partyId, InitialDataResponse response)
+    private async Task GetParty(int partyId, BootstrapInstanceResponse response)
     {
         try
         {
@@ -267,7 +267,7 @@ internal sealed class InitialDataService : IInitialDataService
         }
     }
 
-    private async Task GetInstance(string org, string app, string instanceId, InitialDataResponse response)
+    private async Task GetInstance(string org, string app, string instanceId, BootstrapInstanceResponse response)
     {
         try
         {
@@ -304,7 +304,7 @@ internal sealed class InitialDataService : IInitialDataService
         }
     }
 
-    private Task GetLayoutData(string org, string app, InitialDataResponse response)
+    private Task GetLayoutData(string org, string app, BootstrapInstanceResponse response)
     {
         try
         {
@@ -428,7 +428,7 @@ internal sealed class InitialDataService : IInitialDataService
         return details.CanInstantiateAsParty(partyId);
     }
 
-    private async Task GetFooterLayout(InitialDataResponse response)
+    private async Task GetFooterLayout(BootstrapInstanceResponse response)
     {
         try
         {
@@ -444,7 +444,7 @@ internal sealed class InitialDataService : IInitialDataService
         }
     }
 
-    private Task GetMockUserProfile(InitialDataResponse response)
+    private Task GetMockUserProfile(BootstrapInstanceResponse response)
     {
         try
         {
@@ -482,7 +482,7 @@ internal sealed class InitialDataService : IInitialDataService
         return Task.CompletedTask;
     }
 
-    private Task GetMockParty(int partyId, InitialDataResponse response)
+    private Task GetMockParty(int partyId, BootstrapInstanceResponse response)
     {
         try
         {

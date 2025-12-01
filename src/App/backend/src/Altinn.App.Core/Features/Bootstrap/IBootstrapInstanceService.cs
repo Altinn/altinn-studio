@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Features.Bootstrap;
 /// <summary>
 /// Service responsible for aggregating all initial data required for application bootstrap.
 /// </summary>
-public interface IInitialDataService
+public interface IBootstrapInstanceService
 {
     /// <summary>
     /// Aggregates all initial data required for the application startup.
@@ -17,7 +17,7 @@ public interface IInitialDataService
     /// <param name="language">The language code for text resources.</param>
     /// <param name="cancellationToken">Cancellation token for the async operation.</param>
     /// <returns>A task that represents the asynchronous operation, containing the aggregated initial data.</returns>
-    Task<InitialDataResponse> GetInitialData(
+    Task<BootstrapInstanceResponse> GetInitialData(
         string org,
         string app,
         string? instanceId = null,

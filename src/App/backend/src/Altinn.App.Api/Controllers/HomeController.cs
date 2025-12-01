@@ -31,7 +31,8 @@ public class HomeController : Controller
     private readonly IWebHostEnvironment _env;
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
-    private readonly IInitialDataService _initialDataService;
+    private readonly IBootstrapInstanceService _bootstrapInstanceService;
+    private readonly IBootstrapGlobalService _bootstrapGlobalService;
     private readonly GeneralSettings _generalSettings;
     private readonly List<string> _onEntryWithInstance = new List<string> { "new-instance", "select-instance" };
     private readonly IAuthenticationContext _authenticationContext;
@@ -47,7 +48,7 @@ public class HomeController : Controller
     /// <param name="appSettings">The application settings</param>
     /// <param name="appResources">The application resources service</param>
     /// <param name="appMetadata">The application metadata service</param>
-    /// <param name="initialDataService">The initial data service</param>
+    /// <param name="bootstrapInstanceService">The initial data service</param>
     /// <param name="generalSettings">The general settings</param>
     /// <param name="authenticationContext">The authentication context service</param>
     /// <param name="instanceClient">The instance client service</param>
@@ -59,7 +60,8 @@ public class HomeController : Controller
         IOptions<AppSettings> appSettings,
         IAppResources appResources,
         IAppMetadata appMetadata,
-        IInitialDataService initialDataService,
+        IBootstrapInstanceService bootstrapInstanceService,
+        IBootstrapGlobalService bootstrapGlobalService,
         IOptions<GeneralSettings> generalSettings,
         IAuthenticationContext authenticationContext,
         IInstanceClient instanceClient,
@@ -70,26 +72,12 @@ public class HomeController : Controller
         _env = env;
         _appResources = appResources;
         _appMetadata = appMetadata;
-        _initialDataService = initialDataService;
+        _bootstrapInstanceService = bootstrapInstanceService;
         _generalSettings = generalSettings.Value;
         _authenticationContext = authenticationContext;
         _instanceClient = instanceClient;
         _logger = logger;
-    }
-
-    [HttpGet]
-    [Route("{org}/{app}/error")]
-    public async Task<IActionResult> ErrorPage(
-        [FromRoute] string org,
-        [FromRoute] string app,
-        [FromQuery] bool skipPartySelection = false
-    )
-    {
-        var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
-        var initialData = await _initialDataService.GetInitialData(org, app, null, null, language);
-
-        var html = GenerateHtml(org, app, initialData);
-        return Content(html, "text/html; charset=utf-8");
+        _bootstrapGlobalService = bootstrapGlobalService;
     }
 
     /// <summary>
@@ -109,7 +97,7 @@ public class HomeController : Controller
     )
     {
         // Use InitialDataService to get ALL data with mock integration
-        var initialData = await _initialDataService.GetInitialData(org, app);
+        var initialData = await _bootstrapGlobalService.GetGlobalState(org, app);
         ApplicationMetadata? application = initialData.ApplicationMetadata;
 
         if (application != null && IsStatelessApp(application) && await AllowAnonymous())
@@ -175,7 +163,7 @@ public class HomeController : Controller
         if (application != null && IsStatelessApp(application))
         {
             var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
-            var statelessAppData = await _initialDataService.GetInitialData(
+            var statelessAppData = await _bootstrapGlobalService.GetGlobalState(
                 org,
                 app,
                 null,
@@ -197,6 +185,36 @@ public class HomeController : Controller
     }
 
     /// <summary>
+    /// Shows instance selection page with list of user's instances.
+    /// </summary>
+    [HttpGet]
+    [Route("{org}/{app}/instance-selection")]
+    public async Task<IActionResult> InstanceSelection([FromRoute] string org, [FromRoute] string app)
+    {
+        var currentAuth = _authenticationContext.Current;
+        Authenticated.User? auth = currentAuth as Authenticated.User;
+
+        if (auth == null)
+        {
+            throw new UnauthorizedAccessException("You need to be logged in to see this page.");
+        }
+
+        var realDetails = await auth.LoadDetails(validateSelectedParty: false);
+        var details = MergeDetailsWithMockData(realDetails);
+        var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
+
+        var initialData = await _bootstrapGlobalService.GetGlobalState(
+            org,
+            app,
+            null,
+            details.Profile.PartyId,
+            language
+        );
+        var html = GenerateHtml(org, app, initialData);
+        return Content(html, "text/html; charset=utf-8");
+    }
+
+    /// <summary>
     /// Shows party selection page with list of parties user can represent.
     /// </summary>
     [HttpGet]
@@ -213,7 +231,7 @@ public class HomeController : Controller
 
         var realDetails = await auth.LoadDetails(validateSelectedParty: false);
         var details = MergeDetailsWithMockData(realDetails);
-        var initialData = await _initialDataService.GetInitialData(org, app);
+        var initialData = await _bootstrapGlobalService.GetGlobalState(org, app);
         var application = initialData.ApplicationMetadata;
 
         string layoutSetsString = _appResources.GetLayoutSets();
@@ -246,30 +264,6 @@ public class HomeController : Controller
     )
     {
         return await PartySelection(org, app);
-    }
-
-    /// <summary>
-    /// Shows instance selection page with list of user's instances.
-    /// </summary>
-    [HttpGet]
-    [Route("{org}/{app}/instance-selection")]
-    public async Task<IActionResult> InstanceSelection([FromRoute] string org, [FromRoute] string app)
-    {
-        var currentAuth = _authenticationContext.Current;
-        Authenticated.User? auth = currentAuth as Authenticated.User;
-
-        if (auth == null)
-        {
-            throw new UnauthorizedAccessException("You need to be logged in to see this page.");
-        }
-
-        var realDetails = await auth.LoadDetails(validateSelectedParty: false);
-        var details = MergeDetailsWithMockData(realDetails);
-        var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
-
-        var initialData = await _initialDataService.GetInitialData(org, app, null, details.Profile.PartyId, language);
-        var html = GenerateHtml(org, app, initialData);
-        return Content(html, "text/html; charset=utf-8");
     }
 
     /// <summary>
@@ -396,7 +390,7 @@ public class HomeController : Controller
         }
 
         var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
-        var initialData = await _initialDataService.GetInitialData(org, app, instanceId, partyId, language);
+        var initialData = await _bootstrapGlobalService.GetGlobalState(org, app, instanceId, partyId, language);
 
         var html = GenerateHtml(org, app, initialData);
         return Content(html, "text/html; charset=utf-8");
@@ -485,7 +479,7 @@ public class HomeController : Controller
         // Frontend will handle navigation appropriately
         string instanceId = $"{partyId}/{instanceGuid}";
         var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
-        var initialData = await _initialDataService.GetInitialData(org, app, instanceId, partyId, language);
+        var initialData = await _bootstrapGlobalService.GetGlobalState(org, app, instanceId, partyId, language);
 
         var html = GenerateHtml(org, app, initialData);
         return Content(html, "text/html; charset=utf-8");
@@ -532,7 +526,7 @@ public class HomeController : Controller
 
             var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
 
-            var initialData = await _initialDataService.GetInitialData(org, app, instanceId, partyId, language);
+            var initialData = await _bootstrapGlobalService.GetGlobalState(org, app, instanceId, partyId, language);
 
             var html = GenerateHtml(org, app, initialData);
             return Content(html, "text/html; charset=utf-8");
@@ -643,7 +637,7 @@ public class HomeController : Controller
     {
         try
         {
-            var initialData = await _initialDataService.GetInitialData(org, app, instanceId, partyId, language);
+            var initialData = await _bootstrapInstanceService.GetInitialData(org, app, instanceId, partyId, language);
             return Json(initialData);
         }
         catch (Exception ex)
@@ -755,7 +749,8 @@ public class HomeController : Controller
     private string GenerateHtml(
         string org,
         string app,
-        Altinn.App.Core.Features.Bootstrap.Models.InitialDataResponse initialData
+        Altinn.App.Core.Features.Bootstrap.Models.BootstrapGlobalResponse bootstrapGlobal,
+        Altinn.App.Core.Features.Bootstrap.Models.BootstrapInstanceResponse? bootstrapInstance = null
     )
     {
         // Check if frontendVersion cookie is set and use it as base URL
@@ -776,7 +771,10 @@ public class HomeController : Controller
         var versionPath = string.IsNullOrEmpty(appVersion) ? "" : $"{appVersion}/";
 
         // Serialize initial data to JSON
-        var initialDataJson = JsonSerializer.Serialize(initialData, _jsonSerializerOptions);
+        var initialGlobalDataJson = JsonSerializer.Serialize(bootstrapGlobal, _jsonSerializerOptions);
+
+        // Serialize initial data to JSON
+        var initialInstanceDataJson = JsonSerializer.Serialize(bootstrapInstance, _jsonSerializerOptions);
 
         var customCss = GetCustomCss(org, app);
         var customJs = GetCustomJs(org, app);
@@ -799,7 +797,8 @@ public class HomeController : Controller
             <body>
               <div id="root"></div>
               <script>
-                window.AltinnAppData = {{initialDataJson}};
+                window.AltinnAppGlobalData = {{initialGlobalDataJson}};
+                window.AltinnAppInstanceData = {{initialInstanceDataJson}};
                 window.org = '{{org}}';
                 window.app = '{{app}}';
               </script>
@@ -1178,5 +1177,20 @@ public class HomeController : Controller
         {
             return baseParties;
         }
+    }
+
+    [HttpGet]
+    [Route("{org}/{app}/error")]
+    public async Task<IActionResult> ErrorPage(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromQuery] bool skipPartySelection = false
+    )
+    {
+        var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
+        var initialData = await _bootstrapGlobalService.GetGlobalState(org, app, null, null, language);
+
+        var html = GenerateHtml(org, app, initialData);
+        return Content(html, "text/html; charset=utf-8");
     }
 }

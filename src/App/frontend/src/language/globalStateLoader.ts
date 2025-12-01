@@ -2,10 +2,7 @@ import type { LoaderFunctionArgs } from 'react-router-dom';
 
 import type { QueryClient } from '@tanstack/react-query';
 
-import { convertResult } from 'src/features/language/textResources/TextResourcesProvider';
-import { getLanguageFromUrl } from 'src/features/language/useAppLanguages';
-import { fetchTextResources } from 'src/http-client/queries';
-import type { TextResourceMap } from 'src/features/language/textResources';
+import { PROFILE_QUERY_KEY } from 'src/domain/User/userProfileQuery';
 
 interface LanguageLoaderProps extends LoaderFunctionArgs {
   context: {
@@ -84,44 +81,47 @@ export function getLang(
   return 'nb';
 }
 
-export async function languageLoader({ context, params }: LanguageLoaderProps): Promise<unknown> {
+export async function globalStateLoader({ context, params }: LanguageLoaderProps): Promise<unknown> {
   const { queryClient } = context;
 
   const { org, app } = params;
+  console.log({ org, app });
 
   // Seed available languages from window data
-  queryClient.setQueryData(['fetchAppLanguages'], window.AltinnAppData.availableLanguages);
+  queryClient.setQueryData(['fetchAppLanguages'], window.AltinnAppGlobalData.availableLanguages);
 
-  const profile = window.AltinnAppData.userProfile;
+  queryClient.setQueryData([PROFILE_QUERY_KEY], window.AltinnAppGlobalData.userProfile);
 
-  const bootstrapText = window.AltinnAppData.textResources;
-  const bootstrapLang = bootstrapText.language;
-  const languageFromUrl = getLanguageFromUrl();
-  const languageFromProfile = profile?.profileSettingPreference.language;
-  const raw = localStorage.getItem(`${org}/${app}/${profile.userId}/selectedLanguage`);
-  const languageFromSelector = raw ? JSON.parse(raw) : null;
-
-  const currentLangString = getLang(
-    window.AltinnAppData.availableLanguages.map((lang) => lang.language),
-    {
-      languageFromSelector,
-      languageFromUrl,
-      languageFromProfile,
-    },
-  );
-
-  queryClient.setQueryData<TextResourceMap>(['fetchTextResources', bootstrapLang], convertResult(bootstrapText));
-
-  if (currentLangString && currentLangString !== bootstrapLang) {
-    await queryClient.ensureQueryData<TextResourceMap>({
-      queryKey: ['fetchTextResources', currentLangString],
-      queryFn: async () => convertResult(await fetchTextResources(currentLangString)),
-    });
-  }
+  // const profile = window.AltinnAppGlobalData.userProfile;
+  //
+  // const bootstrapText = window.AltinnAppData.textResources;
+  // const bootstrapLang = bootstrapText.language;
+  // const languageFromUrl = getLanguageFromUrl();
+  // const languageFromProfile = profile?.profileSettingPreference.language;
+  // const raw = localStorage.getItem(`${org}/${app}/${profile.userId}/selectedLanguage`);
+  // const languageFromSelector = raw ? JSON.parse(raw) : null;
+  //
+  // const currentLangString = getLang(
+  //   window.AltinnAppData.availableLanguages.map((lang) => lang.language),
+  //   {
+  //     languageFromSelector,
+  //     languageFromUrl,
+  //     languageFromProfile,
+  //   },
+  // );
+  //
+  // queryClient.setQueryData<TextResourceMap>(['fetchTextResources', bootstrapLang], convertResult(bootstrapText));
+  //
+  // if (currentLangString && currentLangString !== bootstrapLang) {
+  //   await queryClient.ensureQueryData<TextResourceMap>({
+  //     queryKey: ['fetchTextResources', currentLangString],
+  //     queryFn: async () => convertResult(await fetchTextResources(currentLangString)),
+  //   });
+  // }
 
   return null;
 }
 
-export function createLanguageLoader(context: LanguageLoaderProps['context']) {
-  return (args: LoaderFunctionArgs) => languageLoader({ ...args, context });
+export function createGlobalDataLoader(context: LanguageLoaderProps['context']) {
+  return (args: LoaderFunctionArgs) => globalStateLoader({ ...args, context });
 }

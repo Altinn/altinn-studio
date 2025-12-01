@@ -1,4 +1,4 @@
-import { getLang } from 'src/language/languageLoader';
+import { getLang } from 'src/language/globalStateLoader';
 
 /**
  * Determines the current language based on the user's preferences and what the app has available

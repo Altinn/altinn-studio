@@ -38,5 +38,5 @@
 
 // export const ProfileProvider = Provider;
 
-export const useProfile = () => window.AltinnAppData.userProfile;
+//export const useProfile = () => window.AltinnAppData.userProfile;
 //export const useShouldFetchProfile = () => useIsAllowAnonymous(false);

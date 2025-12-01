@@ -175,7 +175,8 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IFrontendFeatures, FrontendFeatures>();
         services.TryAddSingleton<ITranslationService, TranslationService>();
         services.TryAddTransient<IAppEvents, DefaultAppEvents>();
-        services.TryAddTransient<IInitialDataService, InitialDataService>();
+        services.TryAddTransient<IBootstrapInstanceService, BootstrapInstanceService>();
+        services.TryAddTransient<IBootstrapGlobalService, BootstrapGlobalService>();
 #pragma warning disable CS0618, CS0612 // Type or member is obsolete
         services.TryAddTransient<IPageOrder, DefaultPageOrder>();
 #pragma warning restore CS0618, CS0612 // Type or member is obsolete

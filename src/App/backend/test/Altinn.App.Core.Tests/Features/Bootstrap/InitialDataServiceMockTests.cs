@@ -38,7 +38,7 @@ public class InitialDataServiceMockTests
     private readonly Mock<IOptions<GeneralSettings>> _generalSettingsMock = new();
     private readonly Mock<IOptions<FrontEndSettings>> _frontEndSettingsMock = new();
 
-    private readonly InitialDataService _sut;
+    private readonly BootstrapInstanceService _sut;
 
     public InitialDataServiceMockTests()
     {
@@ -53,7 +53,7 @@ public class InitialDataServiceMockTests
             .ReturnsAsync(new List<Altinn.App.Core.Models.ApplicationLanguage> { new() { Language = "nb" } });
 
         // Create service with MockDataHelper
-        _sut = new InitialDataService(
+        _sut = new BootstrapInstanceService(
             _appMetadataMock.Object,
             _appResourcesMock.Object,
             _instanceClientMock.Object,

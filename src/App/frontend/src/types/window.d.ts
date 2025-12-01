@@ -17,9 +17,31 @@ export type AltinnAppData = {
   textResources: ITextResourceResult;
   frontendSettings: IApplicationSettings;
 };
+
+export type AltinnAppGlobalData = {
+  userProfile: IProfile;
+  applicationMetadata: IncomingApplicationMetadata;
+  footerLayout: IFooterLayout | null;
+  availableLanguages: IAppLanguage[];
+};
+
+export type AltinnAppInstanceData = {
+  instance: IInstance;
+  processState: IProcess;
+  userProfile: IProfile;
+  layoutSets: ILayoutSets;
+  applicationMetadata: IncomingApplicationMetadata;
+  footerLayout: IFooterLayout | null;
+  availableLanguages: IAppLanguage[];
+  textResources: ITextResourceResult;
+  frontendSettings: IApplicationSettings;
+};
+
 declare global {
   interface Window {
-    AltinnAppData: AltinnAppData;
+    AltinnAppGlobalData: AltinnAppGlobalData;
+    AltinnAppInstanceData?: AltinnAppInstanceData;
     CreateInstance?: boolean;
+    AltinnAppData: any;
   }
 }

@@ -11,7 +11,7 @@ namespace Altinn.App.Core.Features.Bootstrap.Models;
 /// <summary>
 /// Represents the aggregated initial data required for application bootstrap.
 /// </summary>
-public sealed class InitialDataResponse
+public sealed class BootstrapInstanceResponse
 {
     /// <summary>
     /// Application metadata.
