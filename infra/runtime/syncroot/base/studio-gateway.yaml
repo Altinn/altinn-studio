@@ -3,6 +3,16 @@ kind: Namespace
 metadata:
   name: runtime-gateway
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: runtime-environment
+  namespace: runtime-gateway
+data:
+  upgrade_channel: ${UPGRADE_CHANNEL}
+  environment: ${ENVIRONMENT}
+  serviceowner: ${SERVICEOWNER_ID}
+---
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:

@@ -1,6 +1,7 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -247,7 +248,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 CreateServiceMetadata(metadata);
                 await _applicationMetadataService.CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
                 await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
-                await CreateRepositorySettings(org, serviceConfig.RepositoryName, developer);
+                await CreateAltinnStudioSettings(org, serviceConfig.RepositoryName, developer);
 
                 CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
 
@@ -257,10 +258,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return repository;
         }
 
-        private async Task CreateRepositorySettings(string org, string repository, string developer)
+        private async Task CreateAltinnStudioSettings(string org, string repository, string developer)
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
-            var settings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App };
+            var settings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App, UseNullableReferenceTypes = true };
             await altinnGitRepository.SaveAltinnStudioSettings(settings);
         }
 
@@ -429,8 +430,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 try
                 {
                     string fullPath = Path.Combine(repopath, resourceFile.Path);
-                    using var stream = File.OpenRead(fullPath);
-                    return await System.Text.Json.JsonSerializer.DeserializeAsync<ServiceResource>(stream, _serializerOptions, cancellationToken);
+
+                    var sw = Stopwatch.StartNew();
+                    try
+                    {
+                        using FileStream stream = File.OpenRead(fullPath);
+                        ServiceResource result = await System.Text.Json.JsonSerializer.DeserializeAsync<ServiceResource>(stream, _serializerOptions, cancellationToken);
+
+                        sw.Stop();
+                        // Structured log: file path, file name and elapsed ms
+                        _logger.LogInformation("Read resource file {ResourcePath} (name={ResourceName}) in {ElapsedMs} ms", resourceFile.Path, resourceFile.Name, sw.ElapsedMilliseconds);
+
+                        return result;
+                    }
+                    catch (Exception ex)
+                    {
+                        sw.Stop();
+                        _logger.LogError(ex, "Failed to read/deserialize resource file {ResourcePath} (name={ResourceName}) after {ElapsedMs} ms", resourceFile.Path, resourceFile.Name, sw.ElapsedMilliseconds);
+                        throw;
+                    }
                 }
                 finally
                 {
