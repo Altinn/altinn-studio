@@ -3,7 +3,7 @@ kind: Kustomization
 resources:
   - ../base
 patches:
-  # Set local image and pull policy
+  # Set local image and pull policy, and configure fake OIDC
   - target:
       kind: Deployment
       name: studio-gateway
@@ -20,6 +20,11 @@ patches:
       - op: replace
         path: /spec/replicas
         value: 1
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Maskinporten__MetadataAddress
+          value: "http://fake-oidc.default.svc.cluster.local/.well-known/oauth-authorization-server"
   # Delete PDB for local (single replica)
   - patch: |-
       $patch: delete

@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - ../../../../../../infra/runtime/syncroot/base/studio-gateway.yaml
   - ../../../../../../infra/runtime/syncroot/base/flux-notifications.yaml
+  - ../fake-oidc
 patches:
   # Use local OCI registry
   - patch: |-

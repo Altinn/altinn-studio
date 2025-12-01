@@ -14,11 +14,14 @@ internal static class MaskinportenAuthExtensions
             builder.Configuration["Maskinporten:MetadataAddress"]
             ?? throw new InvalidOperationException("Maskinporten:MetadataAddress configuration is required");
 
+        var requireHttpsMetadata = !metadataAddress.StartsWith("http://", StringComparison.OrdinalIgnoreCase);
+
         builder
             .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
                 options.MetadataAddress = metadataAddress;
+                options.RequireHttpsMetadata = requireHttpsMetadata;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,

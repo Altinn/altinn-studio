@@ -10,6 +10,7 @@ spec:
     - Ingress
   ingress:
     # Internal port - only accessible from flux-system namespace
+    # Linkerd proxy port 4143 required when source pod has linkerd sidecar
     - from:
         - namespaceSelector:
             matchLabels:
@@ -17,7 +18,10 @@ spec:
       ports:
         - protocol: TCP
           port: 8080
+        - protocol: TCP
+          port: 4143
     # Public port - accessible from traefik ingress controller
+    # Linkerd proxy port 4143 required when source pod has linkerd sidecar
     - from:
         - namespaceSelector:
             matchLabels:
@@ -25,3 +29,5 @@ spec:
       ports:
         - protocol: TCP
           port: 8081
+        - protocol: TCP
+          port: 4143

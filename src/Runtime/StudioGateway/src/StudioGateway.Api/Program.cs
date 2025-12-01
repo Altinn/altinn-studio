@@ -42,6 +42,13 @@ app.UseSwaggerUI(options =>
 app.MapHealthChecks("/health/live");
 app.MapHealthChecks("/health/ready");
 
+// Authenticated endpoint for runtime health status
+app.MapGet("/runtime/gateway/api/v1/health", () => Results.Ok(new HealthResponse("healthy")))
+    .RequirePublicPort()
+    .RequireAuthorization("MaskinportenScope")
+    .WithName("RuntimeHealth")
+    .WithTags("Health");
+
 app.MapFluxWebhookEndpoint();
 
 await app.RunAsync();
