@@ -21,7 +21,7 @@ export function useDisplayAppOwnerNameInHeader() {
 
 export function useAppLogoSize() {
   const application = useApplicationMetadata();
-  const size = application.logoOptions?.size;
+  const size = application.logo?.size;
 
   if (size !== 'small' && size !== 'medium' && size !== 'large') {
     return 'small';

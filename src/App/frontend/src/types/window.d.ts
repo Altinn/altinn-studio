@@ -1,4 +1,4 @@
-import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { ILayoutSets } from 'src/layout/common.generated';
@@ -11,7 +11,7 @@ export type AltinnAppData = {
   processState: IProcess;
   userProfile: IProfile;
   layoutSets: ILayoutSets;
-  applicationMetadata: IncomingApplicationMetadata;
+  applicationMetadata: ApplicationMetadata;
   footerLayout: IFooterLayout | null;
   availableLanguages: IAppLanguage[];
   textResources: ITextResourceResult;
@@ -20,7 +20,7 @@ export type AltinnAppData = {
 
 export type AltinnAppGlobalData = {
   userProfile: IProfile;
-  applicationMetadata: IncomingApplicationMetadata;
+  applicationMetadata: ApplicationMetadata;
   footerLayout: IFooterLayout | null;
   availableLanguages: IAppLanguage[];
 };
@@ -30,7 +30,7 @@ export type AltinnAppInstanceData = {
   processState: IProcess;
   userProfile: IProfile;
   layoutSets: ILayoutSets;
-  applicationMetadata: IncomingApplicationMetadata;
+  applicationMetadata: ApplicationMetadata;
   footerLayout: IFooterLayout | null;
   availableLanguages: IAppLanguage[];
   textResources: ITextResourceResult;

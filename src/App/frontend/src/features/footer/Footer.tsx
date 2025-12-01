@@ -3,7 +3,7 @@ import React from 'react';
 import cn from 'classnames';
 
 import { AltinnLogo, LogoColor } from 'src/components/logo/AltinnLogo';
-import { useLaxApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { FooterEmail } from 'src/features/footer/components/FooterEmail';
 import { FooterLink } from 'src/features/footer/components/FooterLink';
 import { FooterPhone } from 'src/features/footer/components/FooterPhone';
@@ -13,9 +13,9 @@ import type { IFooterComponent, IFooterComponentMap } from 'src/features/footer/
 
 export const Footer = () => {
   const data = window.AltinnAppData?.footerLayout;
-  const application = useLaxApplicationMetadata();
+  const application = getApplicationMetadata();
 
-  const shouldUseOrgLogo = application.logoOptions != null;
+  const shouldUseOrgLogo = application.logo != null;
 
   const footerElements = data?.footer;
   if (!footerElements && !shouldUseOrgLogo) {

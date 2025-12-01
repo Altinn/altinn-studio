@@ -7,9 +7,9 @@ import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplication
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
 import { fetchApplicationMetadata } from 'src/http-client/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 
-const render = async (logo: IncomingApplicationMetadata['logo']) => {
+const render = async (logo: ApplicationMetadata['logo']) => {
   jest.mocked(fetchApplicationMetadata).mockImplementation(async () => getIncomingApplicationMetadataMock({ logo }));
 
   return await renderWithInstanceAndLayout({

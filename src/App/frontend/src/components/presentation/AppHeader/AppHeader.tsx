@@ -57,6 +57,6 @@ const Logo = ({ color }: { color: LogoColor }) => {
 };
 
 const MaybeOrganisationLogo = ({ color }: { color: LogoColor }) => {
-  const enableOrgLogo = Boolean(useApplicationMetadata().logoOptions);
+  const enableOrgLogo = Boolean(useApplicationMetadata().logo);
   return enableOrgLogo ? <OrganisationLogo /> : <AltinnLogo color={color} />;
 };

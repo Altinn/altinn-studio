@@ -10,7 +10,7 @@ import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { useApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useApplicationMetadata, useIsStatelessApp } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { getFirstDataElementId } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useCustomValidationConfigQuery } from 'src/features/customValidation/useCustomValidationQuery';
 import { UpdateDataElementIdsForCypress } from 'src/features/datamodel/DataElementIdsForCypress';
@@ -322,10 +322,12 @@ function LoadInitialData({ dataType, overrideDataElement }: LoaderProps & { over
   const dataElementId = overrideDataElement ?? getFirstDataElementId(dataElements, dataType);
   const metaData = useApplicationMetadata();
 
+  const isStatelessApp = useIsStatelessApp();
+
   const url = useDataModelUrl({
     dataType,
     dataElementId,
-    prefillFromQueryParams: getValidPrefillDataFromQueryParams(metaData, dataType),
+    prefillFromQueryParams: getValidPrefillDataFromQueryParams(metaData, dataType, isStatelessApp),
   });
 
   const { data, error } = useFormDataQuery(url);

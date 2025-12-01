@@ -7,7 +7,7 @@ type ILogoOptions = {
   size?: 'small' | 'medium' | 'large';
 };
 
-export interface IncomingApplicationMetadata {
+export interface ApplicationMetadata {
   id: string;
   title: ITitle;
   org: string;
@@ -17,18 +17,17 @@ export interface IncomingApplicationMetadata {
   features?: Partial<IBackendFeaturesState>;
   promptForParty?: 'always' | 'never';
   externalApiIds?: string[];
-
   onEntry?: IOnEntry;
   altinnNugetVersion?: string;
   logo?: ILogoOptions;
 }
 
-export type ApplicationMetadata = Omit<IncomingApplicationMetadata, 'onEntry' | 'logo'> & {
-  onEntry: IOnEntry;
-  isValidVersion: boolean;
-  isStatelessApp: boolean;
-  logoOptions?: ILogoOptions;
-};
+// export type ApplicationMetadata = Omit<IncomingApplicationMetadata, 'onEntry' | 'logo'> & {
+//   onEntry: IOnEntry;
+//   isValidVersion: boolean;
+//   isStatelessApp: boolean;
+//   logoOptions?: ILogoOptions;
+// };
 
 export interface IOnEntry {
   show: ShowTypes;

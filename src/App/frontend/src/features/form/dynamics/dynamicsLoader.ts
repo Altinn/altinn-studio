@@ -1,15 +1,15 @@
 import { redirect } from 'react-router-dom';
 import type { LoaderFunctionArgs } from 'react-router-dom';
 
-import { processApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { isStatelessApp2 } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { getCurrentLayoutSet } from 'src/features/applicationMetadata/appMetadataUtils';
 import { fetchRuleHandler } from 'src/http-client/queries';
-import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { ILayoutSets } from 'src/layout/common.generated';
 
 interface DynamicsLoaderProps extends LoaderFunctionArgs {
   context: {
-    application?: IncomingApplicationMetadata | (() => IncomingApplicationMetadata | undefined);
+    application?: ApplicationMetadata | (() => ApplicationMetadata | undefined);
     layoutSets?: ILayoutSets | (() => ILayoutSets | undefined);
     instanceId: string | (() => string | undefined);
   };
@@ -33,15 +33,16 @@ export async function dynamicsLoader({ params, context }: DynamicsLoaderProps): 
 
   const { org, app, taskId } = params;
 
-  const resolvedInstanceId = typeof instanceId === 'function' ? instanceId() : instanceId;
   const resolvedApplication = typeof application === 'function' ? application() : application;
   const resolvedLayoutSets = typeof layoutSets === 'function' ? layoutSets() : layoutSets;
+  const isStatelessApp = isStatelessApp2(!!instanceId);
 
   const layoutSet = resolvedApplication
     ? getCurrentLayoutSet({
-        application: processApplicationMetadata(resolvedInstanceId, resolvedApplication),
+        application: resolvedApplication,
         layoutSets: resolvedLayoutSets?.sets ?? [],
         taskId,
+        isStatelessApp,
       })
     : undefined;
 

@@ -9,7 +9,7 @@ import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/get
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
-import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IFormDynamics } from 'src/features/form/dynamics';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { ILayoutFile, ILayoutSet, ILayoutSets, ILayoutSettings } from 'src/layout/common.generated';
@@ -122,8 +122,8 @@ export class ExternalApp {
     return this;
   }
 
-  getAppMetadata(): IncomingApplicationMetadata {
-    const appMetaData = this.readJson<IncomingApplicationMetadata>('/App/config/applicationmetadata.json');
+  getAppMetadata(): ApplicationMetadata {
+    const appMetaData = this.readJson<ApplicationMetadata>('/App/config/applicationmetadata.json');
     if (this.compat) {
       appMetaData.altinnNugetVersion = '8.5.0.157';
       appMetaData.partyTypesAllowed = {
