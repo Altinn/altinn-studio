@@ -24,16 +24,12 @@ namespace Altinn.App.Core.Features.Bootstrap;
 /// </summary>
 internal sealed class BootstrapInstanceService : IBootstrapInstanceService
 {
-    private readonly IAppMetadata _appMetadata;
     private readonly IAppResources _appResources;
     private readonly IInstanceClient _instanceClient;
-    private readonly IProfileClient _profileClient;
-    private readonly IRegisterClient _registerClient;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly IProcessStateService _processStateService;
     private readonly IApplicationLanguage _applicationLanguage;
-    private readonly IMockDataHelper? _mockDataHelper;
     private readonly AppSettings _appSettings;
     private readonly PlatformSettings _platformSettings;
     private readonly GeneralSettings _generalSettings;
@@ -61,19 +57,15 @@ internal sealed class BootstrapInstanceService : IBootstrapInstanceService
         IOptions<PlatformSettings> platformSettings,
         IOptions<GeneralSettings> generalSettings,
         IOptions<FrontEndSettings> frontEndSettings,
-        IMockDataHelper? mockDataHelper = null
+        IMockDataHelper mockDataHelper
     )
     {
-        _appMetadata = appMetadata;
         _appResources = appResources;
         _instanceClient = instanceClient;
-        _profileClient = profileClient;
-        _registerClient = registerClient;
         _httpContextAccessor = httpContextAccessor;
         _authenticationContext = authenticationContext;
         _processStateService = processStateService;
         _applicationLanguage = applicationLanguage;
-        _mockDataHelper = mockDataHelper;
         _appSettings = appSettings.Value;
         _platformSettings = platformSettings.Value;
         _generalSettings = generalSettings.Value;
@@ -92,53 +84,6 @@ internal sealed class BootstrapInstanceService : IBootstrapInstanceService
     {
         var response = new BootstrapInstanceResponse();
         var tasks = new List<Task>();
-
-        // Get application metadata
-        var appMetadataTask = GetApplicationMetadata(response, cancellationToken);
-        tasks.Add(appMetadataTask);
-
-        // Get language and text resources
-        language ??= GetLanguageFromContext();
-        response.Language = language;
-        response.AvailableLanguages = await GetAvailableLanguages();
-
-        var textResourcesTask = GetTextResources(org, app, language, response);
-        tasks.Add(textResourcesTask);
-
-        // Get user and party information if authenticated, or mock data if available
-        var user = _httpContextAccessor.HttpContext?.User;
-        var mockData = GetMockData();
-
-        if (user?.Identity?.IsAuthenticated == true)
-        {
-            var userId = user.GetUserIdAsInt();
-            if (userId.HasValue)
-            {
-                var userProfileTask = GetUserProfile(userId.Value, response);
-                tasks.Add(userProfileTask);
-            }
-
-            if (partyId.HasValue)
-            {
-                var partyTask = GetParty(partyId.Value, response);
-                tasks.Add(partyTask);
-            }
-        }
-        else if (_mockDataHelper != null && mockData != null)
-        {
-            // Even without authentication, create mock data if available
-            if (mockData.ContainsKey("userProfile"))
-            {
-                var mockUserProfileTask = GetMockUserProfile(response);
-                tasks.Add(mockUserProfileTask);
-            }
-
-            if (mockData.ContainsKey("parties") && partyId.HasValue)
-            {
-                var mockPartyTask = GetMockParty(partyId.Value, response);
-                tasks.Add(mockPartyTask);
-            }
-        }
 
         // Get instance data if applicable
         if (!string.IsNullOrEmpty(instanceId))
@@ -185,86 +130,6 @@ internal sealed class BootstrapInstanceService : IBootstrapInstanceService
         response.FeatureFlags = GetFeatureFlags();
 
         return response;
-    }
-
-    private async Task GetApplicationMetadata(BootstrapInstanceResponse response, CancellationToken cancellationToken)
-    {
-        response.ApplicationMetadata = await _appMetadata.GetApplicationMetadata();
-        // Merge with mock data if available
-        if (_mockDataHelper != null && response.ApplicationMetadata != null)
-        {
-            response.ApplicationMetadata = MergeWithMockData(
-                response.ApplicationMetadata,
-                "applicationMetadata",
-                _mockDataHelper.MergeApplicationMetadata
-            );
-        }
-    }
-
-    private async Task GetTextResources(string org, string app, string language, BootstrapInstanceResponse response)
-    {
-        response.TextResources = await _appResources.GetTexts(org, app, language);
-    }
-
-    private async Task GetUserProfile(int userId, BootstrapInstanceResponse response)
-    {
-        try
-        {
-            response.UserProfile = await _profileClient.GetUserProfile(userId);
-
-            // Merge with mock data if available
-            if (_mockDataHelper != null && response.UserProfile != null)
-            {
-                response.UserProfile = MergeWithMockData(
-                    response.UserProfile,
-                    "userProfile",
-                    _mockDataHelper.MergeUserProfile
-                );
-            }
-        }
-        catch
-        {
-            // Log error but don't fail the entire request
-        }
-    }
-
-    private async Task GetParty(int partyId, BootstrapInstanceResponse response)
-    {
-        try
-        {
-            response.Party = await _registerClient.GetPartyUnchecked(partyId, CancellationToken.None);
-
-            // Merge with mock data if available
-            if (_mockDataHelper != null && response.Party != null)
-            {
-                var mockData = GetMockData();
-                if (mockData?.TryGetValue("parties", out var partiesMock) == true)
-                {
-                    // Create a temporary list with the real party, merge with mock data, then extract the result
-                    var tempList = new List<Altinn.Platform.Register.Models.Party> { response.Party };
-                    var mergedList = _mockDataHelper.MergeParties(tempList, partiesMock);
-
-                    // Find the merged party with the same ID
-                    var mergedParty = mergedList.FirstOrDefault(p => p.PartyId == partyId);
-                    if (mergedParty != null)
-                    {
-                        response.Party = mergedParty;
-                    }
-                }
-            }
-
-            // Check if the party can instantiate using the authentication context
-            // Only check for regular users, other auth types will get null
-            var currentAuth = _authenticationContext.Current;
-            if (currentAuth is Authenticated.User)
-            {
-                response.CanInstantiate = await CanPartyInstantiate(partyId);
-            }
-        }
-        catch
-        {
-            // Log error but don't fail the entire request
-        }
     }
 
     private async Task GetInstance(string org, string app, string instanceId, BootstrapInstanceResponse response)
@@ -442,90 +307,6 @@ internal sealed class BootstrapInstanceService : IBootstrapInstanceService
         {
             // Log error but don't fail the entire request
         }
-    }
-
-    private Task GetMockUserProfile(BootstrapInstanceResponse response)
-    {
-        try
-        {
-            // Create a minimal user profile that can be merged with mock data
-            var baseUserProfile = new Altinn.Platform.Profile.Models.UserProfile
-            {
-                UserId = 0, // Default placeholder
-                UserName = "",
-                Email = "",
-                PhoneNumber = "",
-                PartyId = 0,
-                UserType = UserType.SSNIdentified,
-                ProfileSettingPreference = new Altinn.Platform.Profile.Models.ProfileSettingPreference(),
-            };
-
-            // Merge with mock data
-            if (_mockDataHelper != null)
-            {
-                response.UserProfile = MergeWithMockData(
-                    baseUserProfile,
-                    "userProfile",
-                    _mockDataHelper.MergeUserProfile
-                );
-            }
-            else
-            {
-                response.UserProfile = baseUserProfile;
-            }
-        }
-        catch
-        {
-            // Log error but don't fail the entire request
-        }
-
-        return Task.CompletedTask;
-    }
-
-    private Task GetMockParty(int partyId, BootstrapInstanceResponse response)
-    {
-        try
-        {
-            // Create a minimal party that can be merged with mock data
-            var baseParty = new Altinn.Platform.Register.Models.Party
-            {
-                PartyId = partyId,
-                Name = "",
-                PartyTypeName = PartyType.Person,
-                OrgNumber = null,
-                SSN = null,
-                UnitType = null,
-            };
-
-            // Merge with mock data
-            if (_mockDataHelper != null)
-            {
-                var mockData = GetMockData();
-                if (mockData?.TryGetValue("parties", out var partiesMock) == true)
-                {
-                    // Create a temporary list with the base party, merge with mock data, then extract the result
-                    var tempList = new List<Altinn.Platform.Register.Models.Party> { baseParty };
-                    var mergedList = _mockDataHelper.MergeParties(tempList, partiesMock);
-
-                    // Find the merged party with the same ID
-                    var mergedParty = mergedList.FirstOrDefault(p => p.PartyId == partyId);
-                    if (mergedParty != null)
-                    {
-                        response.Party = mergedParty;
-                    }
-                }
-            }
-            else
-            {
-                response.Party = baseParty;
-            }
-        }
-        catch
-        {
-            // Log error but don't fail the entire request
-        }
-
-        return Task.CompletedTask;
     }
 
     /// <summary>

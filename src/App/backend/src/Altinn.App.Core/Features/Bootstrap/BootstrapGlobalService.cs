@@ -270,52 +270,6 @@ internal sealed class BootstrapGlobalService : IBootstrapGlobalService
         return Task.CompletedTask;
     }
 
-    private Task GetMockParty(int partyId, BootstrapInstanceResponse response)
-    {
-        try
-        {
-            // Create a minimal party that can be merged with mock data
-            var baseParty = new Altinn.Platform.Register.Models.Party
-            {
-                PartyId = partyId,
-                Name = "",
-                PartyTypeName = PartyType.Person,
-                OrgNumber = null,
-                SSN = null,
-                UnitType = null,
-            };
-
-            // Merge with mock data
-            if (_mockDataHelper != null)
-            {
-                var mockData = GetMockData();
-                if (mockData?.TryGetValue("parties", out var partiesMock) == true)
-                {
-                    // Create a temporary list with the base party, merge with mock data, then extract the result
-                    var tempList = new List<Altinn.Platform.Register.Models.Party> { baseParty };
-                    var mergedList = _mockDataHelper.MergeParties(tempList, partiesMock);
-
-                    // Find the merged party with the same ID
-                    var mergedParty = mergedList.FirstOrDefault(p => p.PartyId == partyId);
-                    if (mergedParty != null)
-                    {
-                        response.Party = mergedParty;
-                    }
-                }
-            }
-            else
-            {
-                response.Party = baseParty;
-            }
-        }
-        catch
-        {
-            // Log error but don't fail the entire request
-        }
-
-        return Task.CompletedTask;
-    }
-
     private async Task GetFooterLayout(BootstrapGlobalResponse response)
     {
         try

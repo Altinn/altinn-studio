@@ -14,40 +14,10 @@ namespace Altinn.App.Core.Features.Bootstrap.Models;
 public sealed class BootstrapInstanceResponse
 {
     /// <summary>
-    /// Application metadata.
-    /// </summary>
-    [JsonPropertyName("applicationMetadata")]
-    public ApplicationMetadata? ApplicationMetadata { get; set; }
-
-    /// <summary>
     /// Current instance data if applicable.
     /// </summary>
     [JsonPropertyName("instance")]
     public Instance? Instance { get; set; }
-
-    /// <summary>
-    /// User profile information.
-    /// </summary>
-    [JsonPropertyName("userProfile")]
-    public UserProfile? UserProfile { get; set; }
-
-    /// <summary>
-    /// Current party information.
-    /// </summary>
-    [JsonPropertyName("party")]
-    public Party? Party { get; set; }
-
-    /// <summary>
-    /// Whether the current party is allowed to instantiate new instances.
-    /// </summary>
-    [JsonPropertyName("canInstantiate")]
-    public bool? CanInstantiate { get; set; }
-
-    /// <summary>
-    /// Text resources for the current language.
-    /// </summary>
-    [JsonPropertyName("textResources")]
-    public TextResource? TextResources { get; set; }
 
     /// <summary>
     /// Layout sets if available.
@@ -66,18 +36,6 @@ public sealed class BootstrapInstanceResponse
     /// </summary>
     [JsonPropertyName("layoutSettings")]
     public object? LayoutSettings { get; set; }
-
-    /// <summary>
-    /// Current language code.
-    /// </summary>
-    [JsonPropertyName("language")]
-    public string? Language { get; set; }
-
-    /// <summary>
-    /// Available language options.
-    /// </summary>
-    [JsonPropertyName("availableLanguages")]
-    public List<ApplicationLanguage>? AvailableLanguages { get; set; }
 
     /// <summary>
     /// Frontend feature flags.

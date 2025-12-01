@@ -8,12 +8,16 @@ import type { IInstance } from 'src/types/shared';
 interface InstanceLoaderProps extends LoaderFunctionArgs {
   context: {
     queryClient: QueryClient;
-    instance: IInstance;
+    instance?: IInstance;
   };
 }
 
 export async function instanceLoader(params: InstanceLoaderProps): Promise<unknown> {
   const { queryClient, instance } = params.context;
+
+  if (!instance) {
+    throw new Error('instance is required');
+  }
   queryClient.setQueryData(
     instanceDataQueryKey({
       instanceOwnerPartyId: instance.instanceOwner.partyId,
@@ -21,14 +25,6 @@ export async function instanceLoader(params: InstanceLoaderProps): Promise<unkno
     }),
     instance,
   );
-
-  // const temp = {
-  //   instanceOwnerPartyId: instance.instanceOwner.partyId,
-  //   instanceGuid: instance.id.split('/')[1],
-  // };
-  //
-  // debugger;
-
   return null;
 }
 

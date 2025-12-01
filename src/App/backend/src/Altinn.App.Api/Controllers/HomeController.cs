@@ -479,9 +479,16 @@ public class HomeController : Controller
         // Frontend will handle navigation appropriately
         string instanceId = $"{partyId}/{instanceGuid}";
         var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
-        var initialData = await _bootstrapGlobalService.GetGlobalState(org, app, instanceId, partyId, language);
+        var initialGlobalData = await _bootstrapGlobalService.GetGlobalState(org, app, instanceId, partyId, language);
+        var initialInstanceData = await _bootstrapInstanceService.GetInitialData(
+            org,
+            app,
+            instanceId,
+            partyId,
+            language
+        );
 
-        var html = GenerateHtml(org, app, initialData);
+        var html = GenerateHtml(org, app, initialGlobalData, initialInstanceData);
         return Content(html, "text/html; charset=utf-8");
     }
 
@@ -526,9 +533,23 @@ public class HomeController : Controller
 
             var language = Request.Query["lang"].FirstOrDefault() ?? GetLanguageFromHeader();
 
-            var initialData = await _bootstrapGlobalService.GetGlobalState(org, app, instanceId, partyId, language);
+            var initialGlobalData = await _bootstrapGlobalService.GetGlobalState(
+                org,
+                app,
+                instanceId,
+                partyId,
+                language
+            );
 
-            var html = GenerateHtml(org, app, initialData);
+            var initialInstanceData = await _bootstrapInstanceService.GetInitialData(
+                org,
+                app,
+                instanceId,
+                partyId,
+                language
+            );
+
+            var html = GenerateHtml(org, app, initialGlobalData, initialInstanceData);
             return Content(html, "text/html; charset=utf-8");
         }
         return BadRequest();
