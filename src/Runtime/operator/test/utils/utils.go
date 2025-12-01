@@ -8,10 +8,12 @@ import (
 	"path/filepath"
 	"strings"
 
+	"math/rand/v2"
+	"sync"
+
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal/config"
 	. "github.com/onsi/ginkgo/v2" //nolint:revive,staticcheck
-	"golang.org/x/exp/rand"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -124,11 +126,16 @@ func CreateK8sClient(contextName string) (*K8sClient, error) {
 
 type deterministicRand struct {
 	prng *rand.Rand
+	mu   sync.Mutex
 }
 
 func NewDeterministicRand() io.Reader {
+	// ChaCha8 with a fixed seed for deterministic output
+	var seed [32]byte
+	seed[0] = 0x13
+	seed[1] = 0x37
 	return &deterministicRand{
-		prng: rand.New(rand.NewSource(1337)),
+		prng: rand.New(rand.NewChaCha8(seed)),
 	}
 }
 
@@ -140,5 +147,10 @@ func (r *deterministicRand) Read(p []byte) (n int, err error) {
 		return 1, nil
 	}
 
-	return r.prng.Read(p)
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for i := range p {
+		p[i] = byte(r.prng.UintN(256))
+	}
+	return len(p), nil
 }
