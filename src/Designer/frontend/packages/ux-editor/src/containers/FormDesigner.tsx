@@ -56,8 +56,8 @@ export const FormDesigner = (): JSX.Element => {
   );
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, layoutSet);
   const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(org, app, layoutSet);
-  const { mutate: addItemToLayout } = useAddItemToLayoutMutation(org, app, layoutSet);
-  const { mutate: updateFormLayout } = useFormLayoutMutation(
+  const { mutateAsync: addItemToLayout } = useAddItemToLayoutMutation(org, app, layoutSet);
+  const { mutateAsync: updateFormLayout } = useFormLayoutMutation(
     org,
     app,
     selectedFormLayoutName,
@@ -155,7 +155,7 @@ export const FormDesigner = (): JSX.Element => {
       }
 
       if (shouldAutoBind) {
-        updateFormLayout(
+        await updateFormLayout(
           { internalLayout: updatedLayout },
           {
             onSuccess: async () => {
@@ -164,7 +164,7 @@ export const FormDesigner = (): JSX.Element => {
           },
         );
       } else {
-        addItemToLayout(
+        await addItemToLayout(
           { componentType: type, newId, parentId, index },
           {
             onSuccess: async () => {
