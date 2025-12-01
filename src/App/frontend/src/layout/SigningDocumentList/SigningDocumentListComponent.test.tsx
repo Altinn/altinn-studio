@@ -46,8 +46,8 @@ jest.mock('src/features/language/Lang', () => ({
   Lang: ({ id }: { id: string }) => id,
 }));
 
-jest.mock('src/features/applicationMetadata/useApplicationMetadata', () => ({
-  useApplicationMetadata: jest.fn(() => ({
+jest.mock('src/features/applicationMetadata/getApplicationMetadata', () => ({
+  getApplicationMetadata: jest.fn(() => ({
     dataTypes: [],
   })),
 }));

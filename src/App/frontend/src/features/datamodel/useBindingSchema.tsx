@@ -3,7 +3,7 @@ import { useCallback, useMemo } from 'react';
 import type { JSONSchema7 } from 'json-schema';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
-import { useApplicationMetadata, useIsStatelessApp } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { getApplicationMetadata, useIsStatelessApp } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import {
   getCurrentDataTypeForApplication,
   getCurrentTaskDataElementId,
@@ -30,11 +30,13 @@ export type AsSchema<T> = {
 };
 
 export function useCurrentDataModelDataElementId() {
-  const application = useApplicationMetadata();
+  const application = getApplicationMetadata();
   const layoutSets = useLayoutSets();
   const taskId = useProcessTaskId();
 
   const overriddenDataElementId = useTaskOverrides()?.dataModelElementId;
+
+  const isStatelessApp = useIsStatelessApp();
 
   // Instance data elements will update often (after each save), so we have to use a selector to make
   // sure components don't re-render too often.
@@ -44,7 +46,7 @@ export function useCurrentDataModelDataElementId() {
         return overriddenDataElementId;
       }
 
-      return getCurrentTaskDataElementId({ application, dataElements: data.data, taskId, layoutSets });
+      return getCurrentTaskDataElementId({ application, dataElements: data.data, taskId, layoutSets, isStatelessApp });
     },
   }).data;
 }
@@ -133,10 +135,11 @@ export function useDataModelUrl({ dataType, dataElementId, language, prefillFrom
 export function useCurrentDataModelName() {
   const overriddenDataModelType = useTaskOverrides()?.dataModelType;
 
-  const application = useApplicationMetadata();
+  const application = getApplicationMetadata();
   const layoutSets = useLayoutSets();
   const taskId = useProcessTaskId();
 
+  const isStatelessApp = useIsStatelessApp();
   if (overriddenDataModelType) {
     return overriddenDataModelType;
   }
@@ -145,18 +148,19 @@ export function useCurrentDataModelName() {
     application,
     layoutSets,
     taskId,
+    isStatelessApp,
   });
 }
 
 export function useCurrentDataModelType() {
   const name = useCurrentDataModelName();
-  const application = useApplicationMetadata();
+  const application = getApplicationMetadata();
 
   return application.dataTypes.find((dt) => dt.id === name);
 }
 
 export function useDataModelType(dataType: string) {
-  const application = useApplicationMetadata();
+  const application = getApplicationMetadata();
   return application.dataTypes.find((dt) => dt.id === dataType);
 }
 

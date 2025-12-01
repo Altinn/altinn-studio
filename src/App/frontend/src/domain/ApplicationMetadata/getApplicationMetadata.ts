@@ -2,10 +2,8 @@ import { onEntryValuesThatHaveState } from 'src/features/applicationMetadata/app
 import { useNavigationParam } from 'src/hooks/navigation';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 
-export const useApplicationMetadata = (): ApplicationMetadata => window.AltinnAppData.applicationMetadata;
+export const getApplicationMetadata = (): ApplicationMetadata => window.AltinnAppGlobalData.applicationMetadata;
 export const useHasApplicationMetadata = () => true;
-
-export const getApplicationMetadata = () => window.AltinnAppGlobalData.applicationMetadata;
 
 export function isStatelessApp2(hasInstanceGuid: boolean) {
   const appMetadata = getApplicationMetadata();

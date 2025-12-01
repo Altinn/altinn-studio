@@ -2,7 +2,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useMemo } from 'react';
 
-import { useApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayDataFor } from 'src/features/displayData/useDisplayData';
@@ -76,7 +76,7 @@ const directHooks = {
   dataModelNames: (isInGenerator) =>
     isInGenerator ? GeneratorData.useReadableDataTypes() : DataModels.useReadableDataTypes(),
   externalApis: (isInGenerator) =>
-    isInGenerator ? GeneratorData.useExternalApis() : useExternalApis(useApplicationMetadata().externalApiIds ?? []),
+    isInGenerator ? GeneratorData.useExternalApis() : useExternalApis(getApplicationMetadata().externalApiIds ?? []),
   langToolsSelector: (isInGenerator) =>
     useInnerLanguageWithForcedPathSelector(
       isInGenerator ? GeneratorData.useDefaultDataType() : DataModels.useDefaultDataType(),

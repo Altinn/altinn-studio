@@ -14,7 +14,7 @@ import { useAppMutations, useAppQueries } from 'src/core/contexts/AppQueriesProv
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { useApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import classes from 'src/features/instantiate/containers/PartySelection.module.css';
@@ -77,7 +77,7 @@ export const PartySelection = () => {
   const selectedParty = useSelectedParty();
   const [_userHasSelectedParty, setUserHasSelectedParty] = useReactState(false);
 
-  const appMetadata = useApplicationMetadata();
+  const appMetadata = getApplicationMetadata();
 
   const { langAsString } = useLanguage();
 
@@ -289,7 +289,7 @@ export const PartySelection = () => {
 };
 
 function TemplateErrorMessage({ selectedParty }: { selectedParty: IParty | undefined }) {
-  const appMetadata = useApplicationMetadata();
+  const appMetadata = getApplicationMetadata();
   const { langAsString } = useLanguage();
 
   return (

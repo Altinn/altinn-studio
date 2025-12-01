@@ -11,7 +11,7 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { useApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { useActiveInstancesQuery } from 'src/features/instantiate/selection/ActiveInstancesProvider';
 import classes from 'src/features/instantiate/selection/InstanceSelection.module.css';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
@@ -50,8 +50,8 @@ export function InstanceSelection() {
 
   const _instances = data ?? [];
 
-  const applicationMetadata = useApplicationMetadata();
-  const instanceSelectionOptions = applicationMetadata?.onEntry.instanceSelection;
+  const applicationMetadata = getApplicationMetadata();
+  const instanceSelectionOptions = applicationMetadata?.onEntry?.instanceSelection;
   const selectedIndex = instanceSelectionOptions?.defaultSelectedOption;
   const { langAsString } = useLanguage();
   const mobileView = useIsMobileOrTablet();

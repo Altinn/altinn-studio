@@ -10,7 +10,7 @@ import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { useApplicationMetadata, useIsStatelessApp } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { getApplicationMetadata, useIsStatelessApp } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { getFirstDataElementId } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useCustomValidationConfigQuery } from 'src/features/customValidation/useCustomValidationQuery';
 import { UpdateDataElementIdsForCypress } from 'src/features/datamodel/DataElementIdsForCypress';
@@ -150,7 +150,7 @@ export function DataModelsProvider({ children }: PropsWithChildren) {
 }
 
 function DataModelsLoader() {
-  const applicationMetadata = useApplicationMetadata();
+  const applicationMetadata = getApplicationMetadata();
   const setDataTypes = useSelector((state) => state.setDataTypes);
   const allDataTypes = useSelector((state) => state.allDataTypes);
 
@@ -320,7 +320,7 @@ function LoadInitialData({ dataType, overrideDataElement }: LoaderProps & { over
   const setError = useSelector((state) => state.setError);
   const dataElements = useInstanceDataElements(dataType);
   const dataElementId = overrideDataElement ?? getFirstDataElementId(dataElements, dataType);
-  const metaData = useApplicationMetadata();
+  const metaData = getApplicationMetadata();
 
   const isStatelessApp = useIsStatelessApp();
 

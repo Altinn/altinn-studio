@@ -2,7 +2,7 @@
 // import { Navigate, Outlet } from 'react-router-dom';
 //
 // import { Loader } from 'src/core/loading/Loader';
-// import { useApplicationMetadata } from 'src/features/applicationMetadata/useApplicationMetadata';
+// import { getApplicationMetadata } from 'src/features/applicationMetadata/getApplicationMetadata';
 // import { FormProvider } from 'src/features/form/FormContext';
 // import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 // import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
@@ -43,7 +43,7 @@
 //     onEntry: { show },
 //     isStatelessApp: isStateless,
 //     promptForParty,
-//   } = useApplicationMetadata();
+//   } = getApplicationMetadata();
 //   const profile = useProfile();
 //   //debugger;
 //   const validParties = useValidParties();

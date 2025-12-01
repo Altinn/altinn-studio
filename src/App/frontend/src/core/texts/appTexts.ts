@@ -1,5 +1,5 @@
 import {
-  useApplicationMetadata,
+  getApplicationMetadata,
   useHasApplicationMetadata,
 } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { useHasTextResources } from 'src/features/language/textResources/TextResourcesProvider';
@@ -27,7 +27,7 @@ export function useHasAppTextsYet() {
 }
 
 export function useAppName() {
-  const application = useApplicationMetadata();
+  const application = getApplicationMetadata();
 
   const appName = useTextResourceOr('appName', undefined);
   const oldAppName = useTextResourceOr('ServiceName', undefined);
@@ -38,19 +38,19 @@ export function useAppName() {
 }
 
 export function useAppOwner() {
-  const application = useApplicationMetadata();
+  const application = getApplicationMetadata();
   const fromMetaData = useOrgName(application.org);
   return useTextResourceOr('appOwner', fromMetaData);
 }
 
 export function useAppReceiver() {
-  const application = useApplicationMetadata();
+  const application = getApplicationMetadata();
   const fromMetaData = useOrgName(application.org);
   return useTextResourceOr('appReceiver', fromMetaData);
 }
 
 export function useAppLogoAltText() {
-  const application = useApplicationMetadata();
+  const application = getApplicationMetadata();
   const fromMetaData = useOrgName(application.org);
   return useTextResourceOr('appLogo.altText', fromMetaData);
 }

@@ -12,7 +12,7 @@ import classes from 'src/components/wrappers/ProcessWrapper.module.css';
 import { Loader } from 'src/core/loading/Loader';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { useApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { getProcessNextMutationKey, getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
@@ -76,7 +76,7 @@ export function NavigateToStartUrl({ forceCurrentTask = true }: { forceCurrentTa
   const navigate = useNavigate();
   const currentTaskId = getTargetTaskFromProcess(useProcessQuery().data);
   const startUrl = useStartUrl(forceCurrentTask ? currentTaskId : undefined);
-  const meta = useApplicationMetadata();
+  const meta = getApplicationMetadata();
 
   useEffect(() => {
     navigate(`/${meta.id}${startUrl}`, { replace: true });

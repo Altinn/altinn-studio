@@ -9,7 +9,7 @@ import { ReceiptComponentSimple } from 'src/components/organisms/AltinnReceiptSi
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppName, useAppOwner, useAppReceiver } from 'src/core/texts/appTexts';
-import { useApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -83,7 +83,7 @@ export function DefaultReceipt() {
 }
 
 export const ReceiptContainer = () => {
-  const applicationMetadata = useApplicationMetadata();
+  const applicationMetadata = getApplicationMetadata();
   const instance = useInstanceDataQuery().data;
   const { lastChanged, org: instanceOrg, instanceOwner, data: dataElements = [] } = instance ?? {};
 
