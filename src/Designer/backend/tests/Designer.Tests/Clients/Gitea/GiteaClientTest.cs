@@ -233,9 +233,9 @@ public class GiteaClientTest
         };
 
         GiteaClient giteaClient = GetServiceForTest(httpClient);
+        IList<Repository> starredRepos = await giteaClient.GetStarred();
 
-        await giteaClient.GetStarred();
-        Assert.Equal(10, repositories.Count);
+        Assert.Equal(10, starredRepos.Count);
         handlerMock.VerifyAll();
     }
 
