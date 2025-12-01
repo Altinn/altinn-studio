@@ -1,5 +1,5 @@
 import { createHookContext } from 'src/core/contexts/hookContext';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/useApplicationMetadata';
+import { useApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
 import { useInstanceDataSources } from 'src/features/instance/InstanceContext';

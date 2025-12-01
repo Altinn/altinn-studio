@@ -1,12 +1,11 @@
+import { useAppLanguages } from 'src/domain/Language/appLanguages';
+import { getUserProfile } from 'src/domain/User/getUserProfile';
 import { useResolveCurrentLanguage } from 'src/features/language/useResolveCurrentLanguage';
-import { useProfile } from 'src/features/profile/ProfileProvider';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
-
-export const useAppLanguages = () => window.AltinnAppData.availableLanguages.map((lang) => lang.language);
 
 export const useCurrentLanguage = () => {
   const appLanguages = useAppLanguages();
-  const profile = useProfile();
+  const profile = getUserProfile();
   const userId = profile?.userId;
   const languageFromProfile = profile?.profileSettingPreference.language;
   const languageFromUrl = getLanguageFromUrl();
@@ -27,7 +26,7 @@ export const useCurrentLanguage = () => {
 export const useIsCurrentLanguageResolved = () => true;
 
 export const useSetLanguageWithSelector = () => {
-  const profile = useProfile();
+  const profile = getUserProfile();
   const userId = profile?.userId;
   const [_, setWithLanguageSelector] = useLocalStorageState(['selectedLanguage', userId], null);
   return setWithLanguageSelector;

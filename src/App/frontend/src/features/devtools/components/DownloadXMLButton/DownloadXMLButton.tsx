@@ -6,7 +6,7 @@ import { DownloadIcon, UploadIcon } from '@navikt/aksel-icons';
 import axios from 'axios';
 
 import { Button } from 'src/app-components/Button/Button';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/useApplicationMetadata';
+import { useApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useIsInFormContext } from 'src/features/form/FormContext';
 import { FD } from 'src/features/formData/FormDataWrite';

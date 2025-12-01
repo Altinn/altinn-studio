@@ -2,8 +2,6 @@ import type { LoaderFunctionArgs } from 'react-router-dom';
 
 import type { QueryClient } from '@tanstack/react-query';
 
-import { PROFILE_QUERY_KEY } from 'src/domain/User/userProfileQuery';
-
 interface LanguageLoaderProps extends LoaderFunctionArgs {
   context: {
     queryClient: QueryClient;
@@ -83,14 +81,11 @@ export function getLang(
 
 export async function globalStateLoader({ context, params }: LanguageLoaderProps): Promise<unknown> {
   const { queryClient } = context;
+  console.log('params', params);
 
-  const { org, app } = params;
-  console.log({ org, app });
-
+  // const { org, app } = params;
   // Seed available languages from window data
-  queryClient.setQueryData(['fetchAppLanguages'], window.AltinnAppGlobalData.availableLanguages);
-
-  queryClient.setQueryData([PROFILE_QUERY_KEY], window.AltinnAppGlobalData.userProfile);
+  // queryClient.setQueryData(['fetchAppLanguages'], window.AltinnAppGlobalData.availableLanguages);
 
   // const profile = window.AltinnAppGlobalData.userProfile;
   //

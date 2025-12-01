@@ -3,8 +3,8 @@ import { useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
+import { getUserProfile } from 'src/domain/User/getUserProfile';
 import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
-import { useProfile } from 'src/features/profile/ProfileProvider';
 import { useBackendValidationQuery } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { doPerformAction } from 'src/http-client/queries';
 import { signingQueries, useSigneeList } from 'src/layout/SigneeList/api';
@@ -61,7 +61,7 @@ export function useUserSigneeParties() {
     instanceGuid!,
   );
 
-  const currentUserPartyId = useProfile()?.partyId;
+  const currentUserPartyId = getUserProfile()?.partyId;
 
   if (!signeeList || !currentUserPartyId) {
     return [];

@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import deepEqual from 'fast-deep-equal';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/useApplicationMetadata';
+import { useApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { isAttachmentUploaded } from 'src/features/attachments/index';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Label } from 'src/app-components/Label/Label';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/useApplicationMetadata';
+import { useApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { ImageCropper } from 'src/layout/ImageUpload/ImageCropper';
 import { getCropArea, IMAGE_TYPE, isAllowedContentTypesValid } from 'src/layout/ImageUpload/imageUploadUtils';

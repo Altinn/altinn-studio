@@ -10,6 +10,7 @@ const config = {
     '\\.(js|ts|tsx)$': ['ts-jest'],
     '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
       '<rootDir>/src/test/jestTools/transformFile.js',
+
     ...(enableJestPreview && {
       '\\.(s?css|less)$': 'jest-preview/transforms/css',
     }),
@@ -18,17 +19,7 @@ const config = {
     }),
   },
   transformIgnorePatterns: ['node_modules/(?!react-leaflet)/'],
-  reporters: [
-    'default',
-    'jest-junit',
-    [
-      '<rootDir>/src/test/jestTools/jest-yaml-reporter.js',
-      {
-        outputFile: '<rootDir>/reports/jest-failures.yml',
-        failuresOnly: true,
-      },
-    ],
-  ],
+  reporters: ['default', 'jest-junit'],
   moduleDirectories: ['<rootDir>', 'node_modules'],
   moduleNameMapper: {
     '^src/(.*)$': '<rootDir>/src/$1',
@@ -38,7 +29,9 @@ const config = {
   testRegex: '\\.test\\.(ts|tsx|js|jsx)$',
   setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
   collectCoverageFrom: ['src/**/*.{ts,tsx}'],
-  testEnvironmentOptions: { url: 'https://local.altinn.cloud/ttd/test' },
+  testEnvironmentOptions: {
+    url: 'https://local.altinn.cloud/ttd/test',
+  },
   testEnvironment: 'jsdom',
   globalSetup: './src/globalSetup.ts',
 };

@@ -1,6 +1,6 @@
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
+import { useLaxApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
 import { getCurrentLayoutSet } from 'src/features/applicationMetadata/appMetadataUtils';
-import { useLaxApplicationMetadata } from 'src/features/applicationMetadata/useApplicationMetadata';
 import { useLaxLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { useNavigationParam } from 'src/hooks/navigation';

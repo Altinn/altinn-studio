@@ -6,10 +6,10 @@ import cn from 'classnames';
 
 import { CircleIcon } from 'src/components/CircleIcon';
 import classes from 'src/components/presentation/AppHeader/AppHeaderMenu.module.css';
+import { getUserProfile } from 'src/domain/User/getUserProfile';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useInstanceOwnerParty, useSelectedParty } from 'src/features/party/PartiesProvider';
-import { useProfile } from 'src/features/profile/ProfileProvider';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { logoutUrlAltinn } from 'src/utils/urls/urlHelper';
 
@@ -21,7 +21,7 @@ export function AppHeaderMenu({ logoColor }: AppHeaderMenuProps) {
   const { langAsString } = useLanguage();
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
-  const userParty = useProfile()?.party;
+  const userParty = getUserProfile()?.party;
   const onBehalfOf = useGetOnBehalfOf();
 
   const displayName = userParty?.name + (onBehalfOf ? ` for ${onBehalfOf.name}` : '');
@@ -92,7 +92,7 @@ export function AppHeaderMenu({ logoColor }: AppHeaderMenuProps) {
 function useGetOnBehalfOf() {
   const instanceOwnerParty = useInstanceOwnerParty();
   const selectedParty = useSelectedParty();
-  const userParty = useProfile()?.party;
+  const userParty = getUserProfile()?.party;
 
   const onBehalfOfParty = instanceOwnerParty ?? selectedParty;
 
