@@ -13,6 +13,7 @@ public class AlertsController(
     private readonly IAlertsService _alertsService = alertsService;
 
     [HttpGet]
+    // TODO: Add authorization policy when maskinporten is implemented
     public async Task<ActionResult<IEnumerable<Alert>>> GetFiringAlerts(CancellationToken cancellationToken)
     {
         IEnumerable<Alert> alerts = await _alertsService.GetFiringAlertsAsync(cancellationToken);
@@ -21,12 +22,10 @@ public class AlertsController(
 
     [HttpPost]
     public async Task<ActionResult> UpsertFiringAlert(
-        string org,
-        string env,
         CancellationToken cancellationToken
     )
     {
-        await _alertsService.UpsertFiringAlertsAsync(org, env, cancellationToken);
+        await _alertsService.UpsertFiringAlertsAsync(cancellationToken);
         return Ok();
     }
 }

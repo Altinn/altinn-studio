@@ -14,10 +14,8 @@ public class AzureMonitorClient(
 {
     private readonly MetricsClientSettings _metricsClientSettings = metricsClientSettings.Value;
     /// <inheritdoc />
-    public async Task<IEnumerable<AppMetric>> GetMetricsAsync(IEnumerable<string>? apps, int time, CancellationToken cancellationToken)
+    public async Task<IEnumerable<Metric>> GetMetricsAsync(string app, int time, CancellationToken cancellationToken)
     {
-        var escapedApps = apps?.Where(a => !string.IsNullOrWhiteSpace(a)).Select(a => $"'{a.Replace("'", "''")}'");
-
         string logAnalyticsWorkspaceId = _metricsClientSettings.ApplicationLogAnalyticsWorkspaceId;
 
         if (string.IsNullOrWhiteSpace(logAnalyticsWorkspaceId))
@@ -25,123 +23,88 @@ public class AzureMonitorClient(
             throw new InvalidOperationException("Configuration value 'ApplicationLogAnalyticsWorkspaceId' is missing or empty.");
         }
 
-        IEnumerable<AppMetric> appMetrics = await GetAppMetricsAsync(apps, time, logAnalyticsWorkspaceId, cancellationToken);
-        IEnumerable<AppMetric> appFailedRequests = await GetAppFailedRequestsAsync(apps, time, logAnalyticsWorkspaceId, cancellationToken);
+        IEnumerable<Metric> appMetrics = await GetAppMetricsAsync(logAnalyticsWorkspaceId, app, time, cancellationToken);
+        IEnumerable<Metric> appFailedRequests = await GetAppFailedRequestsAsync(logAnalyticsWorkspaceId, app, time, cancellationToken);
 
         return appMetrics.Concat(appFailedRequests);
     }
 
-    private async Task<IEnumerable<AppMetric>> GetAppMetricsAsync(IEnumerable<string>? apps, int time, string logAnalyticsWorkspaceId, CancellationToken cancellationToken)
+    private async Task<IEnumerable<Metric>> GetAppMetricsAsync(string logAnalyticsWorkspaceId, string app, int time, CancellationToken cancellationToken)
     {
-        string appNameFilter = apps?.Count() > 0
-            ? $" | where AppRoleName in ({string.Join(",", apps)})"
-            : string.Empty;
-
         List<string> names = [
-            // "altinn_app_lib_instances_created",
-            // "altinn_app_lib_instances_completed",
-            // "altinn_app_lib_instances_deleted",
-            // "altinn_app_lib_instances_duration",
+            "up",
             "altinn_app_lib_processes_started",
-            // "altinn_app_lib_processes_ended",
-            // "altinn_app_lib_processes_duration",
-            // "altinn_app_lib_correspondence_orders",
-            // "altinn_app_lib_data_patched",
-            // "altinn_app_lib_maskinporten_token_requests",
-            // "altinn_app_lib_maskinporten_altinn_exchange_requests",
-            // "altinn_app_lib_notification_orders",
-            // "altinn_app_lib_signing_delegations",
-            // "altinn_app_lib_signing_delegation_revokes",
-            // "altinn_app_lib_singing_get_service_owner_party",
-            // "altinn_app_lib_signing_notify_signees"
         ];
 
         var query = $@"
-                AppMetrics{appNameFilter}
+                AppMetrics
+                | where AppRoleName == '{app.Replace("'", "''")}'
                 | where Name in ('{names.Select(name => name.Replace("'", "''")).Aggregate((a, b) => a + "','" + b)}')
                 | summarize Count = sum(Sum) by AppRoleName, Name, DateTimeOffset = bin(TimeGenerated, 1h)
                 | order by DateTimeOffset desc";
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(logAnalyticsWorkspaceId, query, new QueryTimeRange(TimeSpan.FromHours(time)), cancellationToken: cancellationToken);
 
-        return response.Value.Table.Rows
+        var metrics = response.Value.Table.Rows
         .Select(row =>
         {
             return new
             {
-                AppName = row.GetString("AppRoleName"),
                 Name = row.GetString("Name"),
                 DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset")!.Value,
                 Count = row.GetDouble("Count") ?? 0,
             };
         })
-        .GroupBy(row => row.AppName)
-        .Select(row =>
-        new AppMetric
-        {
-            AppName = row.Key,
-            Metrics = row.GroupBy(metric => metric.Name).Select(metric => new Metric
+        .GroupBy(row => row.Name)
+        .Select(
+            row =>
             {
-                Name = metric.Key,
-                DataPoints = metric.Select(e => new MetricDataPoint
+                return new Metric
                 {
-                    DateTimeOffset = e.DateTimeOffset,
-                    Count = e.Count
-                }),
-                Count = metric.Sum(e => e.Count),
-                IsError = false,
-            })
-        }
+                    Name = row.Key,
+                    DataPoints = row.Select(e => new MetricDataPoint
+                    {
+                        DateTimeOffset = e.DateTimeOffset,
+                        Count = e.Count
+                    }),
+                };
+            }
         );
+
+        return names.Select(name => metrics.FirstOrDefault(metric => metric.Name == name) ?? new Metric
+        {
+            Name = name,
+            DataPoints = [],
+        });
     }
 
-    private async Task<IEnumerable<AppMetric>> GetAppFailedRequestsAsync(IEnumerable<string>? apps, int time, string logAnalyticsWorkspaceId, CancellationToken cancellationToken)
+    private async Task<IEnumerable<Metric>> GetAppFailedRequestsAsync(string logAnalyticsWorkspaceId, string app, int time, CancellationToken cancellationToken)
     {
-        string appNameFilter = apps?.Count() > 0
-            ? $" | where AppRoleName in ({string.Join(",", apps)})"
-            : string.Empty;
-
         var query = $@"
                 AppRequests
                 | where Success == false
                 | where ClientType != 'Browser'
-                | where toint(ResultCode) >= 500{appNameFilter}
+                | where toint(ResultCode) >= 500
+                | where AppRoleName == '{app.Replace("'", "''")}'
                 | where Name has 'PUT Process/NextElement'
                 | summarize Count = sum(ItemCount) by AppRoleName, DateTimeOffset = bin(TimeGenerated, 1h)
                 | order by DateTimeOffset asc";
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(logAnalyticsWorkspaceId, query, new QueryTimeRange(TimeSpan.FromHours(time)), cancellationToken: cancellationToken);
 
-        return response.Value.Table.Rows
-        .Select(row => new
+        var metricDataPoints = response.Value.Table.Rows
+        .Select(row => new MetricDataPoint
         {
-            AppName = row.GetString("AppRoleName"),
-            Name = "failed_process_next_requests",
             DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset")!.Value,
             Count = row.GetDouble("Count") ?? 0
-        })
-        .GroupBy(row => row.AppName)
-        .Select(row =>
-            new AppMetric
-            {
-                AppName = row.Key,
-                Metrics = row.GroupBy(metric => metric.Name).Select(metric =>
-                {
-                    var total = metric.Sum(e => e.Count);
+        });
 
-                    return new Metric
-                    {
-                        Name = metric.Key,
-                        DataPoints = metric.Select(e => new MetricDataPoint
-                        {
-                            DateTimeOffset = e.DateTimeOffset,
-                            Count = e.Count,
-                        }),
-                        Count = total,
-                        IsError = total > 0,
-                    };
-                })
-            }
-        );
+        var total = metricDataPoints.Sum(e => e.Count);
+
+        return [new Metric
+        {
+            Name = "failed_process_next_requests",
+            DataPoints = metricDataPoints,
+        }];
     }
 }

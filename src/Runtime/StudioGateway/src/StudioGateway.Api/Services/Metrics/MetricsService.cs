@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Microsoft.Extensions.Options;
 using StudioGateway.Api.Configuration;
 using StudioGateway.Api.Models.Metrics;
@@ -14,11 +13,11 @@ public class MetricsService(
     private readonly MetricsClientSettings _metricsClientSettings = metricsClientSettings.Value;
 
     /// <inheritdoc />
-    public async Task<IEnumerable<AppMetric>> GetMetricsAsync(string app, int time, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Metric>> GetMetricsAsync(string app, int time, CancellationToken cancellationToken = default)
     {
         IMetricsClient client = serviceProvider.GetRequiredKeyedService<IMetricsClient>(_metricsClientSettings.Provider);
 
-        IEnumerable<AppMetric> metrics = await client.GetMetricsAsync([app], time, cancellationToken);
+        IEnumerable<Metric> metrics = await client.GetMetricsAsync(app, time, cancellationToken);
 
         return metrics;
     }

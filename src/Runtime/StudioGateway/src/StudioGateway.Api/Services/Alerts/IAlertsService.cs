@@ -7,8 +7,6 @@ public interface IAlertsService
     public Task<IEnumerable<Alert>> GetFiringAlertsAsync(CancellationToken cancellationToken = default);
 
     public Task UpsertFiringAlertsAsync(
-        string org,
-        string env,
         CancellationToken cancellationToken = default
     );
 }

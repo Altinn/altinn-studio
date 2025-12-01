@@ -25,8 +25,8 @@ public class AlertsService(
     }
 
     /// <inheritdoc />
-    public async Task UpsertFiringAlertsAsync(string org, string env, CancellationToken cancellationToken)
+    public async Task UpsertFiringAlertsAsync(CancellationToken cancellationToken)
     {
-        await studioClient.UpsertFiringAlertsAsync(org, env, cancellationToken);
+        await studioClient.UpsertFiringAlertsAsync(cancellationToken);
     }
 }

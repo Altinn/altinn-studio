@@ -11,6 +11,7 @@ using StudioGateway.Api.Services.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.Configure<GeneralSettings>(builder.Configuration.GetSection("GeneralSettings"));
 builder.Services.Configure<AlertsClientSettings>(builder.Configuration.GetSection("AlertsClientSettings"));
 builder.Services.Configure<StudioClientSettings>(builder.Configuration.GetSection("StudioClientSettings"));
 builder.Services.Configure<MetricsClientSettings>(builder.Configuration.GetSection("MetricsClientSettings"));

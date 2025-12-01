@@ -29,18 +29,18 @@ public class GrafanaClient(
 
         var alerts = await response.Content.ReadFromJsonAsync<List<GrafanaAlert>>(options, cancellationToken: cancellationToken);
 
-        return alerts.Select(alert =>
+        return alerts?.Select(alert =>
         {
             return new Alert
             {
-                AlertId = alert.Fingerprint,
-                AlertRuleId = alert.Labels["__alert_rule_uid__"],
-                Type = alert.Labels.TryGetValue("Type", out string type) ? type : string.Empty, // Text = alert.Annotations["summary"].Replace("'", ""),
-                App = "ttd" + alert.Labels["__name__"],
+                Id = alert.Fingerprint,
+                RuleId = alert.Labels.TryGetValue("RuleId", out string? ruleId) ? ruleId : "test",
+                Name = alert.Labels["alertname"],
+                App = "ttd" + (alert.Labels.TryGetValue("__name__", out string? appName) ? appName : string.Empty),
                 // App = alert.Labels["cloud/rolename"],
                 Url = BuildAlertLink(baseUri, alert)
             };
-        });
+        }) ?? [];
     }
 
     private static string BuildAlertLink(string baseUri, GrafanaAlert alert)
