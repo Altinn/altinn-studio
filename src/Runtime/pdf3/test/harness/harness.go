@@ -114,8 +114,8 @@ func (r *PdfResponse) LoadOutput(t *testing.T) (*ptesting.PdfInternalsTestOutput
 
 // getTestOutput fetches a test output from the proxy by ID (which forwards to worker)
 func getTestOutput(_ *testing.T, id string, workerIP string) (*ptesting.PdfInternalsTestOutput, error) {
-	assert.Assert(id != "")
-	assert.Assert(workerIP != "")
+	assert.That(id != "", "Test output ID is required")
+	assert.That(workerIP != "", "Worker IP should always be set in test internals mode")
 	url := JumpboxURL + "/testoutput/" + id
 
 	client := &http.Client{
@@ -163,11 +163,6 @@ func RequestNewPDF(t *testing.T, req *types.PdfRequest) (*PdfResponse, error) {
 // requestNewPDF sends a PDF generation request to the new PDF generator solution
 func RequestNewPDFWithTestInput(t *testing.T, req *types.PdfRequest, testInput *ptesting.PdfInternalsTestInput) (*PdfResponse, error) {
 	return RequestPDFWithHost(t, req, "pdf3-proxy.runtime-pdf3.svc.cluster.local", testInput)
-}
-
-// requestOldPDF sends a PDF generation request to the old PDF generator solution
-func RequestOldPDF(t *testing.T, req *types.PdfRequest) (*PdfResponse, error) {
-	return RequestPDFWithHost(t, req, "pdf-generator.pdf.svc.cluster.local", nil)
 }
 
 // requestPDF sends a PDF generation request to the proxy
@@ -280,6 +275,7 @@ func FindProjectRoot() (string, error) {
 // SetupCluster starts the Kind container runtime with all dependencies
 func SetupCluster(
 	variant kind.KindContainerRuntimeVariant,
+	options kind.KindContainerRuntimeOptions,
 	registryStartedEvent chan<- error,
 	ingressReadyEvent chan<- error,
 ) (*kind.KindContainerRuntime, error) {
@@ -296,7 +292,7 @@ func SetupCluster(
 	absoluteCachePath := filepath.Join(projectRoot, cachePath)
 
 	// Create Kind container runtime
-	Runtime, err = kind.New(variant, absoluteCachePath)
+	Runtime, err = kind.New(variant, absoluteCachePath, options)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kind runtime: %w", err)
 	}
@@ -414,6 +410,7 @@ func PushKustomizeArtifact() (bool, error) {
 	patterns := []string{
 		"infra/kustomize/**/*.yaml",
 		"infra/kustomize/**/*.yml",
+		"infra/kustomize/**/*.json",
 	}
 	currentHash, err := checksum.ComputeFilesChecksum(projectRoot, patterns)
 	if err != nil {

@@ -1,3 +1,4 @@
+#nullable disable
 using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.Helpers.JsonConverterHelpers;
 

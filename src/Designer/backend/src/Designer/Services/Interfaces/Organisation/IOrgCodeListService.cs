@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
@@ -104,4 +103,13 @@ public interface IOrgCodeListService
     /// <param name="codeListId">Name of the code list</param>
     /// <param name="newCodeListId">The new name of the code list</param>
     public void UpdateCodeListId(string org, string developer, string codeListId, string newCodeListId);
+
+    /// <summary>
+    /// Publishes a code list to shared content storage.
+    /// </summary>
+    /// <param name="org">Organisation</param>
+    /// <param name="request">The publish code list request</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>The current version string of the published code list.</returns>
+    Task<string> PublishCodeList(string org, PublishCodeListRequest request, CancellationToken cancellationToken = default);
 }

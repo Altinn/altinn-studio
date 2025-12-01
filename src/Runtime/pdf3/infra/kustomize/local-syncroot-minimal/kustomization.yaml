@@ -5,14 +5,14 @@ resources:
   - ../../../../../../infra/runtime/syncroot/base/pdf.yaml
   - ../../../../../../infra/runtime/syncroot/base/pdf3.yaml
 patches:
-  # pdf-generator minimal replicas configuration
+  # pdf-generator disabled (old generator decommissioned, but keep HelmRelease for infrastructure)
   - target:
       kind: HelmRelease
       name: pdf-generator
     patch: |-
       - op: replace
         path: /spec/values/replicaCount
-        value: 1
+        value: 0
       - op: replace
         path: /spec/values/environment
         value: local

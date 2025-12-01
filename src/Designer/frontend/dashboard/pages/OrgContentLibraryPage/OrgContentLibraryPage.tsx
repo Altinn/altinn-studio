@@ -2,10 +2,10 @@ import type { ReactElement } from 'react';
 import React, { useMemo, useCallback } from 'react';
 import { ResourceContentLibraryImpl } from '@studio/content-library';
 import type {
-  CodeListData,
   CodeListWithMetadata,
   PagesConfig,
   TextResourceWithLanguage,
+  CodeListData,
 } from '@studio/content-library';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import {
@@ -26,6 +26,8 @@ import { toast } from 'react-toastify';
 import type { AxiosError } from 'axios';
 import { useDeleteOrgCodeListMutation } from 'app-shared/hooks/mutations/useDeleteOrgCodeListMutation';
 import {
+  backendCodeListsToLibraryCodeLists,
+  libraryCodeListsToUpdatePayload,
   textResourcesWithLanguageToLibraryTextResources,
   textResourceWithLanguageToMutationArgs,
 } from './utils';
@@ -43,6 +45,10 @@ import { useUpdateOrgTextResourcesMutation } from 'app-shared/hooks/mutations/us
 import { useUpdateOrgCodeListIdMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListIdMutation';
 import { FeedbackForm } from './FeedbackForm';
 import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
+import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
+import { useOrgCodeListsNewQuery } from 'app-shared/hooks/queries/useOrgCodeListsNewQuery';
+import type { CodeListsNewResponse } from 'app-shared/types/api/CodeListsNewResponse';
+import { useOrgCodeListsMutation } from 'app-shared/hooks/mutations/useOrgCodeListsMutation';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -84,8 +90,14 @@ function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps
     orgName,
     DEFAULT_LANGUAGE,
   );
+  const { data: codeListDataListNew, status: codeListDataListNewStatus } =
+    useOrgCodeListsNewQuery(orgName);
 
-  const status = mergeQueryStatuses(codeListDataListStatus, textResourcesStatus);
+  const status = mergeQueryStatuses(
+    codeListDataListStatus,
+    textResourcesStatus,
+    codeListDataListNewStatus,
+  );
 
   switch (status) {
     case 'pending':
@@ -96,6 +108,7 @@ function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps
       return (
         <OrgContentLibraryWithContextAndData
           codeListDataList={codeListDataList}
+          codeListDataListNew={codeListDataListNew}
           orgName={orgName}
           textResources={textResources}
         />
@@ -104,7 +117,8 @@ function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps
 }
 
 type OrgContentLibraryWithContextAndDataProps = {
-  codeListDataList: CodeListData[];
+  codeListDataList: CodeListsResponse;
+  codeListDataListNew: CodeListsNewResponse;
   orgName: string;
   textResources: ITextResourcesWithLanguage;
 };
@@ -120,7 +134,7 @@ function OrgContentLibraryWithContextAndData({
   const { mutate: updateCodeListId } = useUpdateOrgCodeListIdMutation(orgName);
   const { mutate: updateTextResources } = useUpdateOrgTextResourcesMutation(orgName);
   const { t } = useTranslation();
-  const displayNewCodeListPage = useFeatureFlag(FeatureFlag.NewCodeLists);
+  const pagesFromFeatureFlags = usePagesFromFeatureFlags(orgName);
 
   const handleUpload = useUploadCodeList(orgName);
 
@@ -164,7 +178,7 @@ function OrgContentLibraryWithContextAndData({
           textResources,
         },
       },
-      ...pagesFromFeatureFlags(displayNewCodeListPage),
+      ...pagesFromFeatureFlags,
     },
   });
 
@@ -176,12 +190,37 @@ function OrgContentLibraryWithContextAndData({
   );
 }
 
-function pagesFromFeatureFlags(displayNewCodeListPage: boolean): Partial<PagesConfig> {
+function usePagesFromFeatureFlags(orgName: string): Partial<PagesConfig> {
+  const displayNewCodeListPage = useFeatureFlag(FeatureFlag.NewCodeLists);
+  const codeListsProps = useCodeListsProps(orgName);
+
   if (displayNewCodeListPage) {
-    return { codeLists: { props: {} } };
+    return { codeLists: { props: codeListsProps } };
   } else {
     return {};
   }
+}
+
+function useCodeListsProps(orgName: string): PagesConfig['codeLists']['props'] {
+  const { data } = useOrgCodeListsNewQuery(orgName);
+  const { mutate } = useOrgCodeListsMutation(orgName);
+  const { t } = useTranslation();
+
+  const libraryCodeLists = backendCodeListsToLibraryCodeLists(data);
+
+  const handleSave = useCallback(
+    (codeListDataList: CodeListData[]): void => {
+      const payload = libraryCodeListsToUpdatePayload(
+        data,
+        codeListDataList,
+        t('org_content_library.code_lists.commit_message_default'),
+      );
+      mutate(payload);
+    },
+    [data, mutate, t],
+  );
+
+  return { codeLists: libraryCodeLists, onSave: handleSave };
 }
 
 function ContextWithoutLibraryAccess(): ReactElement {

@@ -29,6 +29,11 @@
       "commitMessageSuffix": " (localtest)"
     },
     {
+      "matchFileNames": ["src/Runtime/pdf3/**"],
+      "additionalBranchPrefix": "pdf3/",
+      "commitMessageSuffix": " (pdf3)"
+    },
+    {
       "matchFileNames": ["src/App/**"],
       "matchPackageNames": [
         "@digdir/designsystemet-react",
@@ -66,16 +71,19 @@
         "Microsoft.CodeAnalysis.CSharp",
         "Microsoft.CodeAnalysis.Common"
       ]
+    },
+    {
+      "matchFileNames": [
+        "src/Altinn.Platform/**",
+        "src/test/**",
+        "src/Runtime/localtest/**",
+        "src/App/frontend/**",
+        "src/App/backend/**",
+        "src/App/fileanalyzers/**",
+        "src/App/codelists/**"
+      ],
+      "enabled": false
     }
-  ],
-  "ignorePaths": [
-    "src/Altinn.Platform/**",
-    "src/test/**",
-    "src/Runtime/localtest/**",
-    "src/App/frontend/**",
-    "src/App/backend/**",
-    "src/App/fileanalyzers/**",
-    "src/App/codelists/**"
   ],
   "customManagers": [
     {
@@ -85,8 +93,9 @@
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\n[^\\s]+\\s+(?<currentValue>\\S+)"
       ],
+      "extractVersionTemplate": "^(?<version>v.*)$",
       "versioningTemplate": "semver"
     }
   ],
-  "schedule": ["before 07:00 on Monday"]
+  "schedule": []
 }

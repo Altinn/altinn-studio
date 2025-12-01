@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>StudioGateway.Api</AssemblyName>
     <RootNamespace>StudioGateway.Api</RootNamespace>
     <Nullable>enable</Nullable>
@@ -14,6 +14,7 @@
     <PackageReference Include="Azure.Monitor.Query" />
     <PackageReference Include="KubernetesClient" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" />
   </ItemGroup>
 
 </Project>

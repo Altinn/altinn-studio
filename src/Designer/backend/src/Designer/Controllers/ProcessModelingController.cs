@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable disable
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Mime;
@@ -111,12 +112,12 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> AddDataTypeToApplicationMetadata(string org, string repo,
             [FromRoute] string dataTypeId, [FromQuery] string taskId,
             CancellationToken cancellationToken,
-            [FromBody][CanBeNull] List<string> allowedContributers)
+            [FromBody][CanBeNull] List<string> allowedContributors)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
             await _processModelingService.AddDataTypeToApplicationMetadataAsync(editingContext, dataTypeId, taskId,
-                allowedContributers, cancellationToken);
+                allowedContributors, cancellationToken);
             return Ok();
         }
 

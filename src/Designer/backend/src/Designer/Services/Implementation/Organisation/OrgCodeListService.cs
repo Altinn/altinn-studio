@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
@@ -8,9 +7,11 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Exceptions.CodeList;
 using Altinn.Studio.Designer.Exceptions.Options;
+using Altinn.Studio.Designer.Exceptions.OrgLibrary;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -25,8 +26,9 @@ namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 public class OrgCodeListService : IOrgCodeListService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
-    private readonly IGitea _gitea;
+    private readonly IGitea _giteaClient;
     private readonly ISourceControl _sourceControl;
+    private readonly ISharedContentClient _sharedContentClient;
 
     private const string DefaultCommitMessage = "Update code lists.";
     private const string Repo = "content";
@@ -44,13 +46,15 @@ public class OrgCodeListService : IOrgCodeListService
     /// Constructor
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-    /// <param name="gitea">IGitea</param>
+    /// <param name="giteaClient">IGitea</param>
     /// <param name="sourceControl">the source control</param>
-    public OrgCodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IGitea gitea, ISourceControl sourceControl)
+    /// <param name="sharedContentClient">the shared content client</param>
+    public OrgCodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IGitea giteaClient, ISourceControl sourceControl, ISharedContentClient sharedContentClient)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
-        _gitea = gitea;
+        _giteaClient = giteaClient;
         _sourceControl = sourceControl;
+        _sharedContentClient = sharedContentClient;
     }
 
     /// <inheritdoc />
@@ -87,13 +91,15 @@ public class OrgCodeListService : IOrgCodeListService
 
         return codeLists;
     }
-
     /// <inheritdoc />
     public async Task<GetCodeListResponse> GetCodeListsNew(string org, string? reference = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        Guard.AssertValidateOrganization(org);
+
         string repository = GetStaticContentRepo(org);
-        List<FileSystemObject> files = await _gitea.GetCodeListDirectoryContentAsync(org, repository, reference, cancellationToken);
-        string latestCommitSha = await _gitea.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
+        List<FileSystemObject> files = await _giteaClient.GetCodeListDirectoryContentAsync(org, repository, reference, cancellationToken);
+        string latestCommitSha = await _giteaClient.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
 
         List<CodeListWrapper> codeListWrappers = [];
         foreach (FileSystemObject file in files)
@@ -109,7 +115,6 @@ public class OrgCodeListService : IOrgCodeListService
         GetCodeListResponse response = new(codeListWrappers, latestCommitSha);
         return response;
     }
-
     /// <inheritdoc />
     public async Task<List<OptionListData>> CreateCodeList(string org, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
     {
@@ -139,13 +144,17 @@ public class OrgCodeListService : IOrgCodeListService
     /// <inheritdoc />
     public async Task UpdateCodeListsNew(string org, string developer, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        Guard.AssertValidateOrganization(org);
+
         ValidateCodeListTitles(request.CodeListWrappers);
         ValidateCommitMessage(request.CommitMessage);
         string repositoryName = GetStaticContentRepo(org);
+
         await _sourceControl.CloneIfNotExists(org, repositoryName);
         AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repositoryName, developer);
 
-        string latestCommitSha = await _gitea.GetLatestCommitOnBranch(org, repositoryName, General.DefaultBranch, cancellationToken);
+        string latestCommitSha = await _giteaClient.GetLatestCommitOnBranch(org, repositoryName, General.DefaultBranch, cancellationToken);
         if (latestCommitSha == request.BaseCommitSha)
         {
             await HandleCommit(editingContext, request, cancellationToken);
@@ -159,6 +168,22 @@ public class OrgCodeListService : IOrgCodeListService
         {
             throw new InvalidOperationException($"Push failed for {org}/{repositoryName}. Remote rejected the update.");
         }
+    }
+
+    /// <inheritdoc />
+    public async Task<string> PublishCodeList(string org, PublishCodeListRequest request, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Guard.AssertValidateOrganization(org);
+
+        string codeListId = request.Title;
+        CodeList codeList = request.CodeList;
+        if (InputValidator.IsInvalidCodeListTitle(codeListId))
+        {
+            throw new IllegalCodeListTitleException("The code list title contains invalid characters.");
+        }
+
+        return await _sharedContentClient.PublishCodeList(org, codeListId, codeList, cancellationToken);
     }
 
     internal async Task HandleCommit(AltinnRepoEditingContext editingContext, UpdateCodeListRequest request, CancellationToken cancellationToken = default)
@@ -203,7 +228,7 @@ public class OrgCodeListService : IOrgCodeListService
     {
         if (codeListWrappers.Exists(clw => InputValidator.IsInvalidCodeListTitle(clw.Title)))
         {
-            throw new IllegalFileNameException("One or more code list titles contains invalid characters. Allowed: letters, numbers, underscores (_), hyphens (-), and dots (.)");
+            throw new IllegalCodeListTitleException("One or more code list titles contains invalid characters.");
         }
     }
 
@@ -270,6 +295,7 @@ public class OrgCodeListService : IOrgCodeListService
         }
     }
 
+    /// <inheritdoc />
     public List<string> GetCodeListIds(string org, string developer, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -280,6 +306,7 @@ public class OrgCodeListService : IOrgCodeListService
         return codeListIds;
     }
 
+    /// <inheritdoc />
     public void UpdateCodeListId(string org, string developer, string codeListId, string newCodeListId)
     {
         string repo = GetStaticContentRepo(org);
@@ -315,10 +342,10 @@ public class OrgCodeListService : IOrgCodeListService
     /// <summary>
     /// Converts a <see cref="CodeList"/> to a <see cref="CodeListWrapper"/>
     /// </summary>
-    /// <param name="codeList"></param>
-    /// <param name="title"></param>
-    /// <param name="hasError"></param>
-    /// <returns><see cref="CodeListWrapper"/> </returns>
+    /// <param name="codeList">The code list</param>
+    /// <param name="title">The title of the code list</param>
+    /// <param name="hasError">Has error</param>
+    /// <returns><see cref="CodeListWrapper"/></returns>
     private static CodeListWrapper WrapCodeList(CodeList? codeList, string title, bool hasError)
     {
         return new CodeListWrapper(

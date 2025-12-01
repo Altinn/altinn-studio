@@ -62,7 +62,7 @@ public class ProcessReader : IProcessReader
     public List<ProcessTask> GetProcessTasks()
     {
         using var activity = _telemetry?.StartGetProcessTasksActivity();
-        return _definitions.Process.Tasks;
+        return [.. _definitions.Process.Tasks, .. _definitions.Process.ServiceTasks];
     }
 
     /// <inheritdoc />
@@ -135,19 +135,25 @@ public class ProcessReader : IProcessReader
         ArgumentNullException.ThrowIfNull(elementId);
 
         ProcessTask? task = _definitions.Process.Tasks.Find(t => t.Id == elementId);
-        if (task != null)
+        if (task is not null)
         {
             return task;
         }
 
+        ServiceTask? serviceTask = _definitions.Process.ServiceTasks?.Find(t => t.Id == elementId);
+        if (serviceTask is not null)
+        {
+            return serviceTask;
+        }
+
         EndEvent? endEvent = _definitions.Process.EndEvents.Find(e => e.Id == elementId);
-        if (endEvent != null)
+        if (endEvent is not null)
         {
             return endEvent;
         }
 
         StartEvent? startEvent = _definitions.Process.StartEvents.Find(e => e.Id == elementId);
-        if (startEvent != null)
+        if (startEvent is not null)
         {
             return startEvent;
         }

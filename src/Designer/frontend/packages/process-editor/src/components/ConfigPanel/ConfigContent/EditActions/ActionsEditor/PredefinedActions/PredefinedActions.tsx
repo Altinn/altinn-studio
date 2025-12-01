@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioNativeSelect } from '@studio/components-legacy';
+import { StudioSelect } from '@studio/components';
 import { useActionHandler } from '../hooks/useOnActionChange';
 import { useBpmnContext } from '../../../../../../contexts/BpmnContext';
 import { getPredefinedActions, isActionAvailable } from '../../../../../../utils/processActions';
@@ -32,9 +32,8 @@ export const PredefinedActions = ({
   };
 
   return (
-    <StudioNativeSelect
+    <StudioSelect
       id='predefined-action-select'
-      size='small'
       label={t('process_editor.configuration_panel_actions_action_selector_label')}
       onChange={handleOnActionChange}
       defaultValue={isPredefinedAction(actionElement.action) ? actionElement.action : ' '}
@@ -42,11 +41,11 @@ export const PredefinedActions = ({
       <option disabled value=' ' />
       {availablePredefinedActions.map(
         (action: string): React.ReactElement => (
-          <option key={action} value={action} disabled={shouldDisableAction(action)}>
+          <StudioSelect.Option key={action} value={action} disabled={shouldDisableAction(action)}>
             {action}
-          </option>
+          </StudioSelect.Option>
         ),
       )}
-    </StudioNativeSelect>
+    </StudioSelect>
   );
 };

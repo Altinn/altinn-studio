@@ -1,4 +1,4 @@
-.PHONY: help format lint build-local test test-loop logs loadtest run stop
+.PHONY: help format lint build-local test test-loop logs loadtest run run-monitoring stop
 .DEFAULT_GOAL := help
 
 CACHE_DIR := .cache
@@ -63,6 +63,12 @@ ifndef v
 endif
 	@go run ./cmd/tester start $(v)
 
+run-monitoring: ## Start the runtime with Prometheus/Grafana monitoring
+ifndef v
+	$(error v parameter is required. Usage: make run-monitoring v=minimal|standard)
+endif
+	@go run ./cmd/tester start $(v) --monitoring
+
 stop: ## Stop the runtime fixture/cluster
 	@go run ./cmd/tester stop
 
@@ -70,7 +76,7 @@ logs: ## Stream logs from pdf3 components
 	stern -l component=pdf3 -n runtime-pdf3 -E linkerd-init -E linkerd-proxy --tail -1
 
 loadtest-local: ## Run k6 load tests against local cluster (test-local.ts)
-	@go run ./cmd/tester loadtest-local
+	@go run ./cmd/tester loadtest-local --keep-running
 
 loadtest-env: ## Run k6 browser tests against remote environment (test-env.js)
 	@go run ./cmd/tester loadtest-env

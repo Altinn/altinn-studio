@@ -2,18 +2,22 @@ import { StudioButton, StudioSpinner, StudioTable, StudioError } from '@studio/c
 import classes from './InstancesTable.module.css';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
 import { useAppInstancesQuery } from 'admin/hooks/queries/useAppInstancesQuery';
 import type { SimpleInstance } from 'admin/types/InstancesResponse';
 import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
 import { useMutation } from '@tanstack/react-query';
+import { InstanceStatus } from './InstanceStatus';
 
 type InstancesTableProps = {
   org: string;
   env: string;
   app: string;
   currentTask?: string;
-  processIsComplete?: boolean;
+  isArchived?: boolean;
+  archiveReference?: string;
+  confirmed?: boolean;
+  isSoftDeleted?: boolean;
+  isHardDeleted?: boolean;
 };
 
 export const InstancesTable = ({
@@ -21,14 +25,22 @@ export const InstancesTable = ({
   env,
   app,
   currentTask,
-  processIsComplete,
+  isArchived,
+  archiveReference,
+  confirmed,
+  isSoftDeleted,
+  isHardDeleted,
 }: InstancesTableProps) => {
   const { data, status, fetchNextPage, hasNextPage } = useAppInstancesQuery(
     org,
     env,
     app,
     currentTask,
-    processIsComplete,
+    isArchived,
+    archiveReference,
+    confirmed,
+    isSoftDeleted,
+    isHardDeleted,
   );
   const { t } = useTranslation();
 
@@ -78,13 +90,16 @@ const InstancesTableWithData = ({
         {instances.map((instance) => (
           <StudioTable.Row key={instance.id}>
             <StudioTable.Cell>
-              <Link to={`${instance.id}`}>{instance.id}</Link>
+              {/* <Link to={`${instance.id}`}>{instance.id}</Link> */}
+              {instance.id}
             </StudioTable.Cell>
             <StudioTable.Cell>{formatDateAndTime(instance.createdAt)}</StudioTable.Cell>
             <StudioTable.Cell>
-              {instance.currentTaskName ?? instance.currentTaskId ?? 'Avsluttet'}
+              {instance.currentTaskName ?? instance.currentTaskId ?? '-'}
             </StudioTable.Cell>
-            <StudioTable.Cell>{getStatus(instance)}</StudioTable.Cell>
+            <StudioTable.Cell>
+              <InstanceStatus instance={instance} />
+            </StudioTable.Cell>
           </StudioTable.Row>
         ))}
       </StudioTable.Body>
@@ -103,20 +118,3 @@ const InstancesTableWithData = ({
     </StudioTable>
   );
 };
-
-// TODO: These may not be reducable to a single status?
-function getStatus(instance: SimpleInstance) {
-  switch (true) {
-    case instance.isSoftDeleted:
-    case instance.isHardDeleted:
-      return 'Slettet';
-    case instance.isConfirmed:
-      return 'Bekreftet';
-    case instance.isArchived:
-      return 'Arkivert';
-    case instance.isComplete:
-      return 'Levert';
-    default:
-      return 'Aktiv';
-  }
-}

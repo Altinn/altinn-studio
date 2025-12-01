@@ -1,3 +1,4 @@
+#nullable disable
 using System.Net;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -12,20 +13,20 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
     /// </summary>
     public class GiteaPushPermissionHandler : AuthorizationHandler<GiteaPushPermissionRequirement>
     {
-        private readonly IGitea _giteaApiWrapper;
+        private readonly IGitea _giteaClient;
         private readonly HttpContext _httpContext;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="giteaApiWrapper">IGitea</param>
+        /// <param name="giteaClient">IGitea</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         public GiteaPushPermissionHandler(
-            IGitea giteaApiWrapper,
+            IGitea giteaClient,
             IHttpContextAccessor httpContextAccessor)
         {
             _httpContext = httpContextAccessor.HttpContext;
-            _giteaApiWrapper = giteaApiWrapper;
+            _giteaClient = giteaClient;
         }
 
         /// <inheritdoc/>
@@ -48,7 +49,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                 return;
             }
 
-            RepositoryClient.Model.Repository repository = await _giteaApiWrapper.GetRepository(org, app);
+            RepositoryClient.Model.Repository repository = await _giteaClient.GetRepository(org, app);
             if (repository?.Permissions?.Push == true ||
                 repository?.Permissions?.Admin == true)
             {

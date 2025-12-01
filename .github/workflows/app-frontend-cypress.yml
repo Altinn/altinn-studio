@@ -4,15 +4,20 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
+      - 'src/App/backend/**'
+      - 'src/App/codelists/**'
+      - 'src/App/fileanalyzers/**'
+      - 'src/Runtime/localtest/**'
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/test/**'
       - 'src/App/frontend/yarn.lock'
+      - 'src/test/apps/**'
       - '.github/workflows/app-frontend-cypress.yml'
   workflow_dispatch:
 
 jobs:
   install:
-    name: Install
+    name: Install cypress, build frontend
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -21,13 +26,13 @@ jobs:
       image: cypress/browsers:node-22.13.1-chrome-133.0.6943.53-1-ff-135.0-edge-132.0.2957.140-1@sha256:914c9814a9567f32660203db7ecd610b8f8fede6e9103885728b3bd3f6dca4ff
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Install dependencies
         run: yarn --immutable
 
       - name: Cypress install
-        uses: cypress-io/github-action@v6
+        uses: cypress-io/github-action@7ef72e250a9e564efb4ed4c2433971ada4cc38b4 # v6
         with:
           working-directory: src/App/frontend/
           # Disable running of tests within install job
@@ -41,6 +46,27 @@ jobs:
           if-no-files-found: error
           path: src/App/frontend/dist
 
+  build-docker-images:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - name: Build docker images
+        working-directory: src/Runtime/localtest
+        run: docker compose --profile test-apps build
+
+      - name: Save docker images
+        run: docker save localtest-loadbalancer:latest localtest:latest localtest-altinn_test_apps -o /tmp/localtest-images.tar
+
+      - name: Upload docker images
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: localtest-docker-images
+          path: /tmp/localtest-images.tar
+          retention-days: 1
+
   cypress-run-internal:
     name: Cypress Run Internal
     if: |
@@ -48,10 +74,8 @@ jobs:
       (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
     runs-on: ubuntu-latest
-    container:
-      image: cypress/browsers:node-22.13.1-chrome-133.0.6943.53-1-ff-135.0-edge-132.0.2957.140-1@sha256:914c9814a9567f32660203db7ecd610b8f8fede6e9103885728b3bd3f6dca4ff
     timeout-minutes: 60
-    needs: install
+    needs: [install, build-docker-images]
     defaults:
       run:
         working-directory: src/App/frontend/
@@ -61,13 +85,26 @@ jobs:
         containers: [1, 2, 3, 4, 5, 6]
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Download the build folder
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: app-frontend-dist
           path: src/App/frontend/dist
+
+      - name: Download docker images
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: localtest-docker-images
+          path: /tmp
+
+      - name: Load docker images
+        run: docker load -i /tmp/localtest-images.tar
+
+      - name: Start localtest
+        working-directory: src/Runtime/localtest
+        run: docker compose --profile test-apps up -d
 
       - name: Set Percy command based on PR draft status or main branch
         shell: bash
@@ -87,7 +124,7 @@ jobs:
           PERCY_BRANCH: ${{ github.head_ref || github.ref_name }}
           PERCY_TARGET_BRANCH: ${{ github.base_ref || 'main' }}
           IS_PR_DRAFT: ${{ github.event.pull_request.draft }}
-        uses: cypress-io/github-action@v6
+        uses: cypress-io/github-action@7ef72e250a9e564efb4ed4c2433971ada4cc38b4 # v6
         with:
           # quote the url to be safe against YML parsing surprises
           working-directory: src/App/frontend/
@@ -101,13 +138,17 @@ jobs:
           browser: chrome
           ci-build-id: ${{ github.run_id }}-${{ github.run_attempt }}
           spec: test/e2e/integration
-          env: environment=tt02
+          env: environment=docker
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()
         with:
           name: app-frontend-logs
           path: src/App/frontend/test/logs/*
+
+      - name: Stop localtest
+        working-directory: src/Runtime/localtest
+        run: docker compose down
 
   cypress-run-external:
     name: Cypress Run External
@@ -116,16 +157,14 @@ jobs:
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true)
 
     runs-on: ubuntu-latest
-    container:
-      image: cypress/browsers:node-22.13.1-chrome-133.0.6943.53-1-ff-135.0-edge-132.0.2957.140-1@sha256:914c9814a9567f32660203db7ecd610b8f8fede6e9103885728b3bd3f6dca4ff
-    needs: install
+    needs: [install, build-docker-images]
     defaults:
       run:
         working-directory: src/App/frontend/
 
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Download the build folder
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
@@ -133,14 +172,27 @@ jobs:
           name: app-frontend-dist
           path: src/App/frontend/dist
 
+      - name: Download docker images
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: localtest-docker-images
+          path: /tmp
+
+      - name: Load docker images
+        run: docker load -i /tmp/localtest-images.tar
+
+      - name: Start localtest
+        working-directory: src/Runtime/localtest
+        run: docker compose --profile test-apps up -d
+
       - name: Cypress run
-        uses: cypress-io/github-action@v6
+        uses: cypress-io/github-action@7ef72e250a9e564efb4ed4c2433971ada4cc38b4 # v6
         with:
           working-directory: src/App/frontend/
           start: 'npx http-server dist --cors="*" -p 8080'
           browser: chrome
           spec: test/e2e/integration
-          env: environment=tt02
+          env: environment=docker
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()
@@ -150,3 +202,8 @@ jobs:
             src/App/frontend/test/logs/*
             src/App/frontend/test/screenshots/*
             src/App/frontend/test/videos/*
+
+      - name: Stop localtest
+        if: always()
+        working-directory: src/Runtime/localtest
+        run: docker compose down

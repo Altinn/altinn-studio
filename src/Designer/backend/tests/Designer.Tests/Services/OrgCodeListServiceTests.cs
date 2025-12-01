@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -5,8 +6,10 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Exceptions.CodeList;
+using Altinn.Studio.Designer.Exceptions.OrgLibrary;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -22,12 +25,12 @@ namespace Designer.Tests.Services;
 
 public class OrgCodeListServiceTests : IDisposable
 {
-    private string TargetOrg { get; set; }
+    private string? TargetOrg { get; set; }
 
     private const string Org = "ttd";
     private const string Repo = "org-content";
     private const string Developer = "testUser";
-    private readonly Mock<IGitea> _giteaMock = new();
+    private readonly Mock<IGitea> _giteaClientMock = new();
     private readonly Mock<ISourceControl> _sourceControlMock = new();
 
     [Fact]
@@ -60,7 +63,7 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Act
         var fetchedCodeLists = await service.GetCodeLists(TargetOrg, Developer);
-        List<Option> fetchedCodeListData = fetchedCodeLists.Find(e => e.Title == "codeListNumber").Data;
+        List<Option>? fetchedCodeListData = fetchedCodeLists.Find(e => e.Title == "codeListNumber")?.Data;
 
         // Assert
         Assert.Equal(expectedCodeList.Count, fetchedCodeListData?.Count);
@@ -112,7 +115,7 @@ public class OrgCodeListServiceTests : IDisposable
                 HasError: true
             )
         ];
-        _giteaMock
+        _giteaClientMock
             .Setup(service => service.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(remoteFiles);
 
@@ -123,7 +126,7 @@ public class OrgCodeListServiceTests : IDisposable
         // Assert
         Assert.NotEmpty(result.CodeListWrappers);
         Assert.Equal(expected, result.CodeListWrappers);
-        _giteaMock.Verify(gitea => gitea.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), null, It.IsAny<CancellationToken>()), Times.Once);
+        _giteaClientMock.Verify(gitea => gitea.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), null, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -144,7 +147,7 @@ public class OrgCodeListServiceTests : IDisposable
         string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
         await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg, targetRepository);
 
-        _giteaMock
+        _giteaClientMock
             .Setup(service => service.GetLatestCommitOnBranch(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Reference);
         _sourceControlMock.Setup(service => service.CloneIfNotExists(It.IsAny<string>(), It.IsAny<string>()))
@@ -167,7 +170,7 @@ public class OrgCodeListServiceTests : IDisposable
         // Assert
         AltinnRepoEditingContext expected = AltinnRepoEditingContext.FromOrgRepoDeveloper(TargetOrg, targetRepository, Developer);
 
-        _giteaMock.Verify(service => service.GetLatestCommitOnBranch(TargetOrg, targetRepository, General.DefaultBranch, CancellationToken.None), Times.Once);
+        _giteaClientMock.Verify(service => service.GetLatestCommitOnBranch(TargetOrg, targetRepository, General.DefaultBranch, CancellationToken.None), Times.Once);
         _sourceControlMock.Verify(service => service.CloneIfNotExists(TargetOrg, targetRepository), Times.Once);
         _sourceControlMock.Verify(service => service.CheckoutRepoOnBranch(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), "master"), Times.Once);
         _sourceControlMock.Verify(service => service.CommitToLocalRepo(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), GiteaCommitMessage), Times.Once);
@@ -193,7 +196,7 @@ public class OrgCodeListServiceTests : IDisposable
         string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
         await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg, targetRepository);
 
-        _giteaMock
+        _giteaClientMock
             .Setup(service => service.GetLatestCommitOnBranch(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(LatestCommitOnRemote);
         _sourceControlMock.Setup(service => service.CloneIfNotExists(It.IsAny<string>(), It.IsAny<string>()))
@@ -224,7 +227,7 @@ public class OrgCodeListServiceTests : IDisposable
         AltinnRepoEditingContext expected = AltinnRepoEditingContext.FromOrgRepoDeveloper(TargetOrg, targetRepository, Developer);
         string expectedFeatureBranchName = expected.Developer;
 
-        _giteaMock.Verify(service => service.GetLatestCommitOnBranch(TargetOrg, targetRepository, General.DefaultBranch, CancellationToken.None), Times.Once);
+        _giteaClientMock.Verify(service => service.GetLatestCommitOnBranch(TargetOrg, targetRepository, General.DefaultBranch, CancellationToken.None), Times.Once);
         _sourceControlMock.Verify(service => service.CloneIfNotExists(TargetOrg, targetRepository), Times.Once);
 
         _sourceControlMock.Verify(service => service.DeleteLocalBranchIfExists(It.Is<AltinnRepoEditingContext>(actual => expected.Equals(actual)), expectedFeatureBranchName), Times.Exactly(2));
@@ -346,7 +349,7 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Act
         var codeListData = await service.CreateCodeList(TargetOrg, Developer, CodeListId, newCodeList);
-        List<Option> codeList = codeListData.Find(e => e.Title == CodeListId).Data;
+        List<Option>? codeList = codeListData.Find(e => e.Title == CodeListId)?.Data;
 
         // Assert
         Assert.Equal(8, codeListData.Count);
@@ -381,7 +384,7 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Act
         var codeListData = await service.UpdateCodeList(TargetOrg, Developer, CodeListId, newCodeList);
-        List<Option> codeList = codeListData.Find(e => e.Title == CodeListId).Data;
+        List<Option>? codeList = codeListData.Find(e => e.Title == CodeListId)?.Data;
 
         // Assert
         Assert.Equal(7, codeListData.Count);
@@ -445,9 +448,9 @@ public class OrgCodeListServiceTests : IDisposable
         var service = GetOrgCodeListService();
 
         // Act
-        var codeListData = await service.UploadCodeList(TargetOrg, Developer, file);
+        List<OptionListData> codeListData = await service.UploadCodeList(TargetOrg, Developer, file);
         stream.Close();
-        List<Option> codeList = codeListData.Find(e => e.Title == CodeListId).Data;
+        List<Option>? codeList = codeListData.Find(e => e.Title == CodeListId)?.Data;
 
         // Assert
         Assert.Equal(8, codeListData.Count);
@@ -573,7 +576,7 @@ public class OrgCodeListServiceTests : IDisposable
             )
         ];
         // Act and Assert
-        Assert.Throws<IllegalFileNameException>(() => OrgCodeListService.ValidateCodeListTitles(wrappers));
+        Assert.Throws<IllegalCodeListTitleException>(() => OrgCodeListService.ValidateCodeListTitles(wrappers));
     }
 
     [Fact]
@@ -586,6 +589,31 @@ public class OrgCodeListServiceTests : IDisposable
         Assert.Throws<IllegalCommitMessageException>(() => OrgCodeListService.ValidateCommitMessage(invalidCommitMessage));
     }
 
+    [Fact]
+    public async Task PublishCodeList_DelegatesToClient()
+    {
+        // Arrange
+        const string OrgName = "ttd";
+        const string CodeListId = "myList";
+        const string PublishedVersion = "1";
+        Mock<ISharedContentClient> sharedContentClientMock = new();
+        sharedContentClientMock
+            .Setup(c => c.PublishCodeList(OrgName, CodeListId, It.IsAny<CodeList>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(PublishedVersion);
+
+        OrgCodeListService service = GetOrgCodeListService(sharedContentClientMock);
+
+        CodeList codeList = SetupCodeList();
+        PublishCodeListRequest req = new(Title: CodeListId, CodeList: codeList);
+
+        // Act
+        string result = await service.PublishCodeList(OrgName, req, CancellationToken.None);
+
+        // Assert
+        sharedContentClientMock.Verify(c => c.PublishCodeList(OrgName, CodeListId, codeList, It.IsAny<CancellationToken>()), Times.Once);
+        Assert.Equal("1", result);
+    }
+
     private static CodeList SetupCodeList()
     {
         Dictionary<string, string> label = new() { { "nb", "tekst" }, { "en", "text" } };
@@ -594,11 +622,11 @@ public class OrgCodeListServiceTests : IDisposable
         List<Code> listOfCodes =
         [
             new(
-                value: "value1",
-                label: label,
-                description: description,
-                helpText: helpText,
-                tags: ["test-data"]
+                Value: "value1",
+                Label: label,
+                Description: description,
+                HelpText: helpText,
+                Tags: ["test-data"]
             )
         ];
         CodeListSource source = new(Name: "test-data-files");
@@ -616,10 +644,11 @@ public class OrgCodeListServiceTests : IDisposable
         return Convert.ToBase64String(contentAsBytes);
     }
 
-    private OrgCodeListService GetOrgCodeListService()
+    private OrgCodeListService GetOrgCodeListService(Mock<ISharedContentClient>? mock = null)
     {
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        return new OrgCodeListService(altinnGitRepositoryFactory, _giteaMock.Object, _sourceControlMock.Object);
+        Mock<ISharedContentClient> contentClientMock = mock ?? new Mock<ISharedContentClient>();
+        return new OrgCodeListService(altinnGitRepositoryFactory, _giteaClientMock.Object, _sourceControlMock.Object, contentClientMock.Object);
     }
 
     public void Dispose()

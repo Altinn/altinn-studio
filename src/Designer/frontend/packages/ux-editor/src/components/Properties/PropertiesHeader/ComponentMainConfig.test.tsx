@@ -117,7 +117,7 @@ describe('ComponentMainConfig', () => {
   it('should render image upload config when the component type matches', () => {
     renderComponentMainConfig(mainConfigComponentMock(ComponentType.ImageUpload), true);
     const imageUploadConfigCropShape = screen.getByText(
-      textMock('ux_editor.component_properties.cropShape'),
+      textMock('ux_editor.component_properties.crop_shape'),
     );
     expect(imageUploadConfigCropShape).toBeInTheDocument();
   });
@@ -133,7 +133,7 @@ const renderComponentMainConfig = (component: FormItem, setSchemaData: boolean =
   const handleComponentChange = jest.fn();
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
-
+  queryClient.setQueryData([QueryKey.ImageFileNames, org, app], []);
   if (setSchemaData) {
     queryClient.setQueryData(
       [QueryKey.FormComponent, component.type],

@@ -653,7 +653,7 @@ Cypress.Commands.add(
     cy.getCurrentViewportSize().as('testPdfViewportSize');
 
     // Make sure instantiation is completed before we get the url
-    cy.location('hash', { log: false }).should('contain', '#/instance/');
+    cy.location('hash', { log: false }).should('contain', '#/instance/').as('hashBeforePdf');
 
     // Make sure we blur any selected component before reload to trigger save
     cy.get('body').click({ log: false });
@@ -734,9 +734,12 @@ Cypress.Commands.add(
       });
       cy.get('body').invoke('css', 'margin', '');
 
-      cy.location('href').then((href) => {
-        cy.visit(href.replace('?pdf=1', ''));
+      cy.get('@hashBeforePdf').then((hashBeforePdf) => {
+        cy.window().then((win) => {
+          win.location.hash = hashBeforePdf.toString();
+        });
       });
+
       cy.get('#readyForPrint').should('not.exist');
       cy.get('#finishedLoading').should('exist');
     }

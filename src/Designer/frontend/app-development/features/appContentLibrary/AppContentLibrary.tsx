@@ -1,5 +1,5 @@
 import type {
-  CodeListData,
+  CodeListDataWithTextResources,
   CodeListReference,
   CodeListWithMetadata,
   TextResourceWithLanguage,
@@ -38,7 +38,7 @@ import { useGetAvailableOrgResourcesQuery } from '../../hooks/queries/useGetAvai
 import { useImportCodeListFromOrgToAppMutation } from 'app-development/hooks/mutations/useImportCodeListFromOrgToAppMutation';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 
-export function AppContentLibrary(): React.ReactElement {
+export default function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const { data: optionListDataList, status: optionListDataListStatus } = useOptionListsQuery(
@@ -100,7 +100,8 @@ function AppContentLibraryWithData({
 
   const handleUpload = useUploadOptionList(org, app);
 
-  const codeListDataList: CodeListData[] = mapToCodeListDataList(optionListDataList);
+  const codeListDataList: CodeListDataWithTextResources[] =
+    mapToCodeListDataList(optionListDataList);
 
   const codeListsUsages: CodeListReference[] = mapToCodeListUsages(optionListUsages);
 

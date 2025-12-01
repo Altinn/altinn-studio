@@ -1,3 +1,4 @@
+#nullable disable
 using Altinn.Studio.Designer.Configuration.Marker;
 using Altinn.Studio.Designer.Services.Models;
 
@@ -13,6 +14,11 @@ namespace Altinn.Studio.Designer.Configuration
         /// The config value was needed for test purposes
         /// </summary>
         public string ApiStorageApplicationUri { get; set; }
+
+        /// <summary>
+        /// Uniform resource identifier for Platform.Storage Instances
+        /// </summary>
+        public string ApiStorageInstancesUri { get; set; }
 
         /// <summary>
         /// Uniform resource locator for Platform.Authorization policies

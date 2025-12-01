@@ -6,6 +6,7 @@ import type { FileRejection } from 'react-dropzone';
 import cn from 'classnames';
 
 import classes from 'src/app-components/Dropzone/Dropzone.module.css';
+import { RefsUtils } from 'src/utils/refs/mergeRefs';
 
 type MaxFileSize = {
   sizeInMB: number;
@@ -24,6 +25,7 @@ export type IDropzoneProps = {
   labelId?: string;
   describedBy?: string;
   className?: string;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
 } & Pick<HTMLAttributes<HTMLDivElement>, 'children'>;
 
 const bytesInOneMB = 1048576;
@@ -41,6 +43,7 @@ export function Dropzone({
   children,
   className,
   describedBy,
+  inputRef,
   ...rest
 }: IDropzoneProps): React.JSX.Element {
   const maxSizeLabelId = `file-upload-max-size-${id}`;
@@ -53,6 +56,10 @@ export function Dropzone({
     disabled: readOnly,
     accept: acceptedFiles,
   });
+
+  const inputProps = getInputProps();
+  const dropzoneRef = (inputProps as { ref?: React.Ref<HTMLInputElement> }).ref;
+  const combinedRef = React.useMemo(() => RefsUtils.merge(dropzoneRef, inputRef), [dropzoneRef, inputRef]);
 
   // set drag active state in parent component if callback is provided
   React.useEffect(() => {
@@ -89,7 +96,8 @@ export function Dropzone({
         aria-describedby={describedby}
       >
         <input
-          {...getInputProps()}
+          {...inputProps}
+          ref={combinedRef}
           id={id}
         />
         {children}

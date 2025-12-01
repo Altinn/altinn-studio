@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Altinn.Studio.Designer.Models.Dto
 {

@@ -1,3 +1,4 @@
+#nullable disable
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -18,20 +19,20 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
     /// </summary>
     public class GiteaDeployPermissionHandler : AuthorizationHandler<GiteaDeployPermissionRequirement>
     {
-        private readonly IGitea _giteaApiWrapper;
+        private readonly IGitea _giteaClient;
         private readonly HttpContext _httpContext;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="giteaApiWrapper">IGitea</param>
+        /// <param name="giteaClient">IGitea</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         public GiteaDeployPermissionHandler(
-            IGitea giteaApiWrapper,
+            IGitea giteaClient,
             IHttpContextAccessor httpContextAccessor)
         {
             _httpContext = httpContextAccessor.HttpContext;
-            _giteaApiWrapper = giteaApiWrapper;
+            _giteaClient = giteaClient;
         }
 
         /// <inheritdoc/>
@@ -93,7 +94,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             }
 
             string matchTeam = $"Deploy-{environment}";
-            List<Team> teams = await _giteaApiWrapper.GetTeams();
+            List<Team> teams = await _giteaClient.GetTeams();
 
             bool any = teams.Any(t => t.Organization.Username.Equals(
                 org, System.StringComparison.OrdinalIgnoreCase)

@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,7 +20,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.GitOps;
 /// GitOps configuration manager that uses git repositories to manage the configuration.
 /// </summary>
 public class GitRepoGitOpsConfigurationManager(
-    [FromKeyedServices("bot-auth")] IGitea giteaApi,
+    [FromKeyedServices("bot-auth")] IGitea giteaClient,
     IGitOpsManifestsRenderer gitOpsManifestsRenderer,
     ISourceControl sourceControl,
     IAltinnGitRepositoryFactory gitRepositoryFactory,
@@ -45,7 +46,7 @@ public class GitRepoGitOpsConfigurationManager(
     private async Task EnsureRemoteRepositoryExists(AltinnOrgEditingContext context)
     {
         // Check if remote repo exists
-        var repo = await giteaApi.GetRepository(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org));
+        var repo = await giteaClient.GetRepository(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org));
         if (repo is not null)
         {
             return;
@@ -59,7 +60,7 @@ public class GitRepoGitOpsConfigurationManager(
             makePrivate: false
         );
 
-        await giteaApi.CreateRepository(gitOpsSettings.GitOpsOrg, createOptions);
+        await giteaClient.CreateRepository(gitOpsSettings.GitOpsOrg, createOptions);
     }
 
     private async Task EnsureBaseManifests(AltinnOrgEditingContext context)

@@ -1,3 +1,4 @@
+#nullable disable
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Interfaces;
 
@@ -5,16 +6,16 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class UserOrganizationService : IUserOrganizationService
 {
-    private readonly IGitea _giteaService;
+    private readonly IGitea _giteaClient;
 
-    public UserOrganizationService(IGitea giteaService)
+    public UserOrganizationService(IGitea giteaClient)
     {
-        _giteaService = giteaService;
+        _giteaClient = giteaClient;
     }
 
     public async Task<bool> UserIsMemberOfAnyOrganization()
     {
-        var organizations = await _giteaService.GetUserOrganizations();
+        var organizations = await _giteaClient.GetUserOrganizations();
         if (organizations == null)
         {
             return false;
@@ -24,7 +25,7 @@ public class UserOrganizationService : IUserOrganizationService
 
     public async Task<bool> UserIsMemberOfOrganization(string org)
     {
-        var organizations = await _giteaService.GetUserOrganizations();
+        var organizations = await _giteaClient.GetUserOrganizations();
         if (organizations == null)
         {
             return false;

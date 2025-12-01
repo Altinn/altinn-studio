@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -46,7 +47,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "CloneRemoteRepository", org, repository);
+                LogError(ex, nameof(CloneRemoteRepository), org, repository);
                 throw;
             }
         }
@@ -60,7 +61,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "CloneRemoteRepository", org, repository, destinationPath, branchName);
+                LogError(ex, nameof(CloneRemoteRepository), org, repository, destinationPath, branchName);
                 throw;
             }
         }
@@ -74,7 +75,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "Commit", commitInfo.Org, commitInfo.Repository);
+                LogError(ex, nameof(Commit), commitInfo.Org, commitInfo.Repository);
                 throw;
             }
         }
@@ -88,7 +89,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "CommitAndPushChanges", org, repository);
+                LogError(ex, nameof(CommitAndPushChanges), org, repository);
                 throw;
             }
         }
@@ -102,7 +103,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "CreateBranch", org, repository);
+                LogError(ex, nameof(CreateBranch), org, repository);
                 throw;
             }
         }
@@ -116,7 +117,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "CreatePullRequest", org, repository);
+                LogError(ex, nameof(CreatePullRequest), org, repository);
                 throw;
             }
         }
@@ -130,7 +131,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "DeleteRepository", org, repository);
+                LogError(ex, nameof(DeleteRepository), org, repository);
                 throw;
             }
         }
@@ -144,7 +145,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "FetchRemoteChanges", org, repository);
+                LogError(ex, nameof(FetchRemoteChanges), org, repository);
                 throw;
             }
         }
@@ -158,7 +159,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "GetLatestCommitForCurrentUser", org, repository);
+                LogError(ex, nameof(GetLatestCommitForCurrentUser), org, repository);
                 throw;
             }
         }
@@ -172,7 +173,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "Log", org, repository);
+                LogError(ex, nameof(Log), org, repository);
                 throw;
             }
         }
@@ -186,7 +187,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "PullRemoteChanges", org, repository);
+                LogError(ex, nameof(PullRemoteChanges), org, repository);
                 throw;
             }
         }
@@ -200,7 +201,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "Push", org, repository);
+                LogError(ex, nameof(Push), org, repository);
                 throw;
             }
         }
@@ -214,7 +215,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "CheckRemoteUpdates", commitInfo.Org, commitInfo.Repository);
+                LogError(ex, nameof(PushChangesForRepository), commitInfo.Org, commitInfo.Repository);
                 throw;
             }
         }
@@ -228,7 +229,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "RepositoryStatus", org, repository);
+                LogError(ex, nameof(RepositoryStatus), org, repository);
                 throw;
             }
         }
@@ -242,7 +243,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "GetChangedContent", org, repository);
+                LogError(ex, nameof(GetChangedContent), org, repository);
                 throw;
             }
         }
@@ -256,7 +257,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "StageChange", org, repository);
+                LogError(ex, nameof(StageChange), org, repository);
                 throw;
             }
         }
@@ -270,7 +271,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "Status", org, repository);
+                LogError(ex, nameof(Status), org, repository);
                 throw;
             }
         }
@@ -284,7 +285,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "StoreAppTokenForUser");
+                LogError(ex, nameof(StoreAppTokenForUser));
                 throw;
             }
         }
@@ -298,7 +299,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "CloneIfNotExists", org, repository);
+                LogError(ex, nameof(CloneIfNotExists), org, repository);
                 throw;
             }
         }
@@ -312,7 +313,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "CheckoutRepoOnBranch", editingContext.Org, editingContext.Repo);
+                LogError(ex, nameof(CheckoutRepoOnBranch), editingContext.Org, editingContext.Repo);
                 throw;
             }
         }
@@ -326,21 +327,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "CommitToLocalRepo", editingContext.Org, editingContext.Repo);
+                LogError(ex, nameof(CommitToLocalRepo), editingContext.Org, editingContext.Repo);
                 throw;
             }
         }
 
         /// <inheritdoc/>
-        public void RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext)
+        public LibGit2Sharp.RebaseResult RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext)
         {
             try
             {
-                _decoratedService.RebaseOntoDefaultBranch(editingContext);
+                return _decoratedService.RebaseOntoDefaultBranch(editingContext);
             }
             catch (Exception ex)
             {
-                LogError(ex, "RebaseOntoDefaultBranch", editingContext.Org, editingContext.Repo);
+                LogError(ex, nameof(RebaseOntoDefaultBranch), editingContext.Org, editingContext.Repo);
                 throw;
             }
         }
@@ -354,7 +355,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "DeleteLocalBranchIfExists", editingContext.Org, editingContext.Repo);
+                LogError(ex, nameof(DeleteLocalBranchIfExists), editingContext.Org, editingContext.Repo);
                 throw;
             }
         }
@@ -368,7 +369,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "CreateLocalBranch", editingContext.Org, editingContext.Repo);
+                LogError(ex, nameof(CreateLocalBranch), editingContext.Org, editingContext.Repo);
                 throw;
             }
         }
@@ -382,7 +383,33 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, "MergeBranchIntoHead", editingContext.Org, editingContext.Repo);
+                LogError(ex, nameof(MergeBranchIntoHead), editingContext.Org, editingContext.Repo);
+                throw;
+            }
+        }
+
+        public async Task PublishBranch(AltinnRepoEditingContext editingContext, string branchName)
+        {
+            try
+            {
+                await _decoratedService.PublishBranch(editingContext, branchName);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, nameof(PublishBranch), editingContext.Org, editingContext.Repo);
+                throw;
+            }
+        }
+
+        public async Task DeleteRemoteBranchIfExists(AltinnRepoEditingContext editingContext, string branchName)
+        {
+            try
+            {
+                await _decoratedService.DeleteRemoteBranchIfExists(editingContext, branchName);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, nameof(DeleteRemoteBranchIfExists), editingContext.Org, editingContext.Repo);
                 throw;
             }
         }
@@ -399,9 +426,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private void LogError(Exception ex, string method, string org, string repository, string destinationPath, string branch)
         {
-            var developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
-            _logger.LogError(ex, $"Failed executing method {method} for user {developer} in org {org} / repository {repository}. Destination: {destinationPath}. Branch: {branch}.");
+            _logger.LogError(ex, "Failed executing method {Method} for user {Developer} in org {Org} / repository {Repository}. Destination: {DestinationPath}. Branch: {Branch}.", method, developer, org, repository, destinationPath, branch);
         }
     }
 }

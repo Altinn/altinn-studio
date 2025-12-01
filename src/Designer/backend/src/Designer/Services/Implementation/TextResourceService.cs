@@ -1,5 +1,7 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
@@ -20,22 +22,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// </summary>
     public class TextResourceService : ITextResourceService
     {
-        private readonly IGitea _giteaApiWrapper;
+        private readonly IGitea _giteaClient;
         private readonly ILogger<TextResourceService> _logger;
         private readonly IAltinnStorageTextResourceClient _storageTextResourceClient;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="giteaApiWrapper">IGitea</param>
+        /// <param name="giteaClient">IGitea</param>
         /// <param name="logger">ILogger of type TextResourceService</param>
         /// <param name="storageTextResourceClient">IAltinnStorageTextResourceClient</param>
         public TextResourceService(
-            IGitea giteaApiWrapper,
+            IGitea giteaClient,
             ILogger<TextResourceService> logger,
             IAltinnStorageTextResourceClient storageTextResourceClient)
         {
-            _giteaApiWrapper = giteaApiWrapper;
+            _giteaClient = giteaClient;
             _logger = logger;
             _storageTextResourceClient = storageTextResourceClient;
         }
@@ -45,8 +47,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             cancellationToken.ThrowIfCancellationRequested();
             string textResourcesPath = GetTextResourceDirectoryPath();
-            List<FileSystemObject> folder = await _giteaApiWrapper.GetDirectoryAsync(org, app, textResourcesPath, shortCommitId);
-            if (folder == null)
+
+            List<FileSystemObject> folder = [];
+            try
+            {
+                folder = await _giteaClient.GetDirectoryAsync(org, app, textResourcesPath, shortCommitId);
+            }
+            catch (DirectoryNotFoundException ex)
+            {
+                _logger.LogWarning(ex,
+                    $" // TextResourceService // UpdateTextResourcesAsync // No text resource folder found for {org}/{app} at commit {shortCommitId} ");
+            }
+
+            if (folder.Count == 0)
             {
                 return;
             }
@@ -59,7 +72,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 c.ThrowIfCancellationRequested();
                 FileSystemObject populatedFile =
-                    await _giteaApiWrapper.GetFileAsync(org, app, textResourceFromRepo.Path, shortCommitId);
+                    await _giteaClient.GetFileAsync(org, app, textResourceFromRepo.Path, shortCommitId);
                 byte[] data = Convert.FromBase64String(populatedFile.Content);
 
                 try
