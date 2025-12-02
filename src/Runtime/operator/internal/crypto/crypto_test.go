@@ -211,8 +211,6 @@ func TestPublicJwksConversion(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(jsonPayload).NotTo(BeNil())
 	snaps.MatchJSON(t, jsonPayload)
-
-	// TODO: assert that private key fields are not present in JWK
 }
 
 func createService() (*CryptoService, *clockwork.FakeClock) {

@@ -272,8 +272,6 @@ func (c *HttpApiClient) getClientJwks(ctx context.Context, clientId string) (*cr
 	if err != nil {
 		return nil, err
 	}
-	// TODO: what is the invariant here?
-	// assert.That(len(jwks.Keys) > 0, "getClientJwks: JWKS must have at least one key", "clientId", clientId)
 
 	return &jwks, nil
 }
@@ -592,8 +590,6 @@ func (c *HttpApiClient) wellKnownFetcher(ctx context.Context) (*WellKnownRespons
 }
 
 func deserialize[T any](resp *http.Response) (T, error) {
-	// TODO: accept `result` as a pointer from outside?
-
 	// There is not much to do about the error returned from closing the body
 	// apparently this should not happen for the Closer set to the response body
 	defer func() { _ = resp.Body.Close() }()
@@ -626,8 +622,6 @@ func (c *HttpApiClient) handleErrorResponse(resp *http.Response) error {
 func (c *HttpApiClient) retryableHTTPDo(req *http.Request) (*http.Response, error) {
 	var resp *http.Response
 	var err error
-
-	// TODO: different strategy??
 
 	operation := func() error {
 		// Reset body for retries - after the first attempt, req.Body is consumed

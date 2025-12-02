@@ -110,7 +110,6 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 			logger.Error(err, "Reconciling MaskinportenClient errored")
 		} else {
 			logger.Info("Reconciling MaskinportenClient skipped, was deleted (so we have removed finalizer)..")
-			// TODO: we end up here with NotFound after having cleaned up and removed finalizer.. why?
 		}
 		return ctrl.Result{}, notFoundIgnored
 	}
@@ -638,7 +637,6 @@ func (r *MaskinportenClientReconciler) reconcile(
 				}
 			}
 			if data.Api.Jwks != nil {
-				// TODO: verify assumed behavior of JWKS endpoints
 				if err := apiClient.CreateClientJwks(ctx, data.Api.ClientId, data.Api.Jwks); err != nil {
 					builders[i].WithUpdateClientInApiResult(&maskinporten.UpdateClientInApiCommandResult{Err: err})
 					firstErr = err
@@ -704,7 +702,6 @@ func (r *MaskinportenClientReconciler) reconcile(
 			updatedSecret := currentState.Secret.Manifest.DeepCopy()
 			maskinporten.DeleteSecretStateContent(updatedSecret)
 
-			// TODO: ownerreference?
 			if err := r.Update(ctx, updatedSecret); err != nil {
 				builders[i].WithDeleteSecretContentResult(&maskinporten.DeleteSecretContentCommandResult{Err: err})
 				firstErr = err

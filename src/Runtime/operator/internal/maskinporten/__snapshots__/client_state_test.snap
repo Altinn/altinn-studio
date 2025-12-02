@@ -144,3 +144,9 @@
  {"type":"UpdateSecretContent","clientId":"test-client-id-123","authority":"https://test.maskinporten.no","keyIds":["89a14f39-20fa-41ca-a24c-73c265b8f8c6.1","5d53f0c0-995d-4700-b5d1-069a4884de1d.0"]}
 ]
 ---
+
+[TestReconcile_ApiJwksEmpty - 1]
+[
+ {"type":"UpdateClientInApi","clientId":"test-client-id-123","keyIds":["5d53f0c0-995d-4700-b5d1-069a4884de1d.0"]}
+]
+---

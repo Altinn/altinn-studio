@@ -581,6 +581,35 @@ func TestReconcile_ApiJwksMismatchSecret(t *testing.T) {
 	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
 }
 
+func TestReconcile_ApiJwksEmpty(t *testing.T) {
+	g := NewWithT(t)
+	deps := newFixture()
+
+	secretJwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// API returns empty JWKS (e.g., keys deleted via self-service portal)
+	emptyApiJwks := &crypto.Jwks{Keys: []*crypto.Jwk{}}
+
+	crd := createCrd(WithFinalizer())
+	secret := createSecret("ttd-" + testAppId)
+	secretContent := &SecretStateContent{
+		ClientId:  testClientId,
+		Authority: testAuthority,
+		Jwks:      secretJwks,
+		Jwk:       secretJwks.Keys[0],
+	}
+
+	state, err := NewClientState(crd, &ClientResponse{ClientId: testClientId, Scopes: testScopes}, emptyApiJwks, secret, secretContent)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// Should detect drift and re-upload secret's JWKS to API
+	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
+}
+
 // =============================================================================
 // JWK Rotation Tests
 // =============================================================================
