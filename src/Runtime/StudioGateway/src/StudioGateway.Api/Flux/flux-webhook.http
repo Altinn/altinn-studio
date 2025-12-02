@@ -7,7 +7,7 @@ GET {{baseUrl}}/health/live
 GET {{baseUrl}}/health/ready
 
 ### Flux Webhook - HelmRelease Install Succeeded
-POST {{baseUrl}}/flux/webhook
+POST {{baseUrl}}/api/v1/flux/webhook
 Content-Type: application/json
 
 {
@@ -32,7 +32,7 @@ Content-Type: application/json
 }
 
 ### Flux Webhook - HelmRelease Upgrade Failed
-POST {{baseUrl}}/flux/webhook
+POST {{baseUrl}}/api/v1/flux/webhook
 Content-Type: application/json
 
 {
@@ -57,7 +57,7 @@ Content-Type: application/json
 }
 
 ### Flux Webhook - HelmRelease Upgrade Succeeded
-POST {{baseUrl}}/flux/webhook
+POST {{baseUrl}}/api/v1/flux/webhook
 Content-Type: application/json
 
 {

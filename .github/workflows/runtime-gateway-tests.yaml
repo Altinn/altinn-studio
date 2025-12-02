@@ -22,13 +22,13 @@ jobs:
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           dotnet-version: |
-            9.0.x
+            10.0.x
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysisd
       - name: Restore
-        run: dotnet restore StudioGateway.sln
+        run: dotnet restore
       - name: Build
-        run: dotnet build StudioGateway.sln --no-restore -v m
+        run: dotnet build --no-restore -v m
       - name: Test
-        run: dotnet test StudioGateway.sln --no-build
+        run: dotnet test --no-build
