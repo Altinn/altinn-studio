@@ -8,13 +8,25 @@ APP_PATH = "/fake/path/to/test-app"
 
 @pytest.fixture
 def client():
-    from frontend_api.main import app, app_manager
-    return TestClient(app), app_manager
+    from frontend_api.main import app
+    return TestClient(app)
+
+@pytest.fixture
+def startup_mocks(mocker):
+    mock_sink = Mock()
+    mock_sink.set_main_loop = Mock()
+    mocker.patch('agents.services.events.sink', mock_sink)
+
+    mock_check_mcp = mocker.patch('agents.services.mcp.check_mcp_server_startup', new_callable=AsyncMock)
+
+    return {
+        'sink': mock_sink,
+        'check_mcp': mock_check_mcp
+    }
 
 class TestFaviconEndpoint:
     def test_favicon_returns_empty_icon(self, client):
-        test_client, _ = client
-        response = test_client.get("/favicon.ico")
+        response = client.get("/favicon.ico")
 
         assert response.status_code == 200
         assert response.headers["content-type"] == "image/x-icon"
@@ -22,18 +34,16 @@ class TestFaviconEndpoint:
 
 class TestHealthEndpoint:
     def test_health_check_returns_ok(self, client):
-        test_client, _ = client
-        response = test_client.get("/health")
+        response = client.get("/health")
 
         assert response.status_code == 200
         assert response.json() == {"status": "ok"}
 
 class TestStatusEndpoint:
     def test_status_endpoint_with_no_current_app(self, client, mocker):
-        test_client, _ = client
         mocker.patch('frontend_api.main.app_manager.get_current_app', return_value=None)
 
-        response = test_client.get("/api/status")
+        response = client.get("/api/status")
 
         assert response.status_code == 200
         data = response.json()
@@ -43,8 +53,6 @@ class TestStatusEndpoint:
         assert data["current_app"] is None
 
     def test_status_endpoint_with_current_app(self, client, mocker):
-        test_client, _ = client
-
         mock_app_info = {
             "name": APP_NAME,
             "org": APP_ORG,
@@ -53,7 +61,7 @@ class TestStatusEndpoint:
         }
         mocker.patch('frontend_api.main.app_manager.get_current_app', return_value=mock_app_info)
 
-        response = test_client.get("/api/status")
+        response = client.get("/api/status")
 
         assert response.status_code == 200
         data = response.json()
@@ -66,14 +74,8 @@ class TestStatusEndpoint:
 
 class TestStartupEvent:
     @pytest.mark.asyncio
-    async def test_startup_configures_event_sink_and_checks_mcp_server(self, mocker):
+    async def test_startup_configures_event_sink_and_checks_mcp_server(self, startup_mocks, mocker):
         from frontend_api.main import startup_event
-
-        mock_sink = Mock()
-        mock_sink.set_main_loop = Mock()
-        mocker.patch('agents.services.events.sink', mock_sink)
-
-        mock_check_mcp = mocker.patch('agents.services.mcp.check_mcp_server_startup', new_callable=AsyncMock)
 
         mock_config = Mock()
         mock_config.LANGFUSE_ENABLED = False
@@ -81,17 +83,12 @@ class TestStartupEvent:
 
         await startup_event()
 
-        mock_check_mcp.assert_called_once()
-        mock_sink.set_main_loop.assert_called_once()
+        startup_mocks['check_mcp'].assert_called_once()
+        startup_mocks['sink'].set_main_loop.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_startup_initializes_langfuse_when_enabled(self, mocker, capsys):
+    async def test_startup_initializes_langfuse_when_enabled(self, startup_mocks, mocker, capsys):
         from frontend_api.main import startup_event
-
-        mock_sink = Mock()
-        mock_sink.set_main_loop = Mock()
-        mocker.patch('agents.services.events.sink', mock_sink)
-        mocker.patch('agents.services.mcp.check_mcp_server_startup', new_callable=AsyncMock)
 
         mock_config = Mock()
         mock_config.LANGFUSE_ENABLED = True
@@ -103,18 +100,12 @@ class TestStartupEvent:
         await startup_event()
 
         mock_init.assert_called_once()
-
         captured = capsys.readouterr()
         assert "Langfuse initialized" in captured.out
 
     @pytest.mark.asyncio
-    async def test_startup_handles_langfuse_init_failure(self, mocker, capsys):
+    async def test_startup_handles_langfuse_init_failure(self, startup_mocks, mocker, capsys):
         from frontend_api.main import startup_event
-
-        mock_sink = Mock()
-        mock_sink.set_main_loop = Mock()
-        mocker.patch('agents.services.events.sink', mock_sink)
-        mocker.patch('agents.services.mcp.check_mcp_server_startup', new_callable=AsyncMock)
 
         mock_config = Mock()
         mock_config.LANGFUSE_ENABLED = True
@@ -125,19 +116,13 @@ class TestStartupEvent:
 
         await startup_event()
 
-        mock_sink.set_main_loop.assert_called_once()
-
+        startup_mocks['sink'].set_main_loop.assert_called_once()
         captured = capsys.readouterr()
         assert "Failed to initialize Langfuse" in captured.out
 
     @pytest.mark.asyncio
-    async def test_startup_skips_langfuse_when_disabled(self, mocker):
+    async def test_startup_skips_langfuse_when_disabled(self, startup_mocks, mocker):
         from frontend_api.main import startup_event
-
-        mock_sink = Mock()
-        mock_sink.set_main_loop = Mock()
-        mocker.patch('agents.services.events.sink', mock_sink)
-        mocker.patch('agents.services.mcp.check_mcp_server_startup', new_callable=AsyncMock)
 
         mock_config = Mock()
         mock_config.LANGFUSE_ENABLED = False
