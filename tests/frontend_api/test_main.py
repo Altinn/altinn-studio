@@ -2,12 +2,14 @@ import pytest
 from unittest.mock import Mock, AsyncMock, patch
 from fastapi.testclient import TestClient
 
+APP_NAME = "test-app"
+APP_ORG = "test-org"
+APP_PATH = "/fake/path/to/test-app"
 
 @pytest.fixture
 def client():
     from frontend_api.main import app, app_manager
     return TestClient(app), app_manager
-
 
 class TestFaviconEndpoint:
     def test_favicon_returns_empty_icon(self, client):
@@ -18,7 +20,6 @@ class TestFaviconEndpoint:
         assert response.headers["content-type"] == "image/x-icon"
         assert response.content == b""
 
-
 class TestHealthEndpoint:
     def test_health_check_returns_ok(self, client):
         test_client, _ = client
@@ -27,9 +28,7 @@ class TestHealthEndpoint:
         assert response.status_code == 200
         assert response.json() == {"status": "ok"}
 
-
 class TestStatusEndpoint:
-    @pytest.mark.skip(reason="Pydantic model definition issue: StatusResponse requires AppInfo to be defined first")
     def test_status_endpoint_with_no_current_app(self, client, mocker):
         test_client, _ = client
         mocker.patch('frontend_api.main.app_manager.get_current_app', return_value=None)
@@ -43,14 +42,14 @@ class TestStatusEndpoint:
         assert data["active_sessions"] == 0
         assert data["current_app"] is None
 
-    @pytest.mark.skip(reason="Pydantic model definition issue: StatusResponse requires AppInfo to be defined first")
     def test_status_endpoint_with_current_app(self, client, mocker):
         test_client, _ = client
 
         mock_app_info = {
-            "name": "test-app",
-            "org": "test-org",
-            "status": "running"
+            "name": APP_NAME,
+            "org": APP_ORG,
+            "repo_name": APP_NAME,
+            "path": APP_PATH
         }
         mocker.patch('frontend_api.main.app_manager.get_current_app', return_value=mock_app_info)
 
@@ -59,8 +58,11 @@ class TestStatusEndpoint:
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "online"
-        assert data["current_app"] == mock_app_info
-
+        assert data["current_app"]["name"] == APP_NAME
+        assert data["current_app"]["org"] == APP_ORG
+        assert data["current_app"]["repo_name"] == APP_NAME
+        assert data["current_app"]["path"] == APP_PATH
+        assert data["current_app"]["description"] is None
 
 class TestStartupEvent:
     @pytest.mark.asyncio
@@ -147,7 +149,6 @@ class TestStartupEvent:
 
         mock_init.assert_not_called()
 
-
 class TestShutdownEvent:
     @pytest.mark.asyncio
     async def test_shutdown_logs_message(self, mocker):
@@ -158,7 +159,6 @@ class TestShutdownEvent:
 
         mock_logger.info.assert_called_once()
         assert "Shutting down" in mock_logger.info.call_args[0][0]
-
 
 class TestAppConfiguration:
     def test_app_has_correct_metadata(self):
