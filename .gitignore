@@ -10,6 +10,9 @@ __pycache__/
 *.pyd
 .Python
 
+# Pytest
+.coverage
+htmlcov/
 
 # Claude
 .claude
