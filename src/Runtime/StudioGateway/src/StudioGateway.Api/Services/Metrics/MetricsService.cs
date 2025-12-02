@@ -1,0 +1,46 @@
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Options;
+using StudioGateway.Api.Configuration;
+using StudioGateway.Api.Models.Metrics;
+using StudioGateway.Api.TypedHttpClients.AppClient;
+using StudioGateway.Api.TypedHttpClients.KubernetesClient;
+using StudioGateway.Api.TypedHttpClients.MetricsClient;
+
+namespace StudioGateway.Api.Services.Metrics;
+
+[SuppressMessage(
+    "Microsoft.Performance",
+    "CA1812:AvoidUninstantiatedInternalClasses",
+    Justification = "Class is instantiated via dependency injection"
+)]
+internal sealed class MetricsService(
+    IServiceProvider serviceProvider,
+    IOptions<MetricsClientSettings> metricsClientSettings,
+    IKubernetesClient kubernetesClient,
+    IAppClient appClient
+) : IMetricsService
+{
+    private readonly MetricsClientSettings _metricsClientSettings = metricsClientSettings.Value;
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<Metric>> GetMetricsAsync(string app, int time, CancellationToken cancellationToken)
+    {
+        IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
+            _metricsClientSettings.Provider
+        );
+
+        IEnumerable<Metric> metrics = await metricsClient.GetMetricsAsync(app, time, cancellationToken);
+
+        return metrics;
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<HealthMetric>> GetHealthMetricsAsync(string app, CancellationToken cancellationToken)
+    {
+        HealthMetric kubernetesReadiness = await kubernetesClient.GetReadinessAsync(app, cancellationToken);
+
+        HealthMetric appHealth = await appClient.GetHealthAsync(app, cancellationToken);
+
+        return [appHealth, kubernetesReadiness];
+    }
+}
