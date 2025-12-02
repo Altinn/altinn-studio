@@ -1,5 +1,16 @@
 namespace StudioGateway.Api.Hosting;
 
+internal enum PortScope
+{
+    Public,
+    Internal,
+}
+
+/// <summary>
+/// Marker metadata for OpenAPI document filtering.
+/// </summary>
+internal sealed record PortScopeMetadata(PortScope Scope);
+
 internal static class PortFilteringExtensions
 {
     /// <summary>
@@ -8,7 +19,7 @@ internal static class PortFilteringExtensions
     /// </summary>
     public static RouteHandlerBuilder RequireInternalPort(this RouteHandlerBuilder builder)
     {
-        return builder.AddEndpointFilter<InternalPortFilter>();
+        return builder.AddEndpointFilter<InternalPortFilter>().WithMetadata(new PortScopeMetadata(PortScope.Internal));
     }
 
     /// <summary>
@@ -17,7 +28,7 @@ internal static class PortFilteringExtensions
     /// </summary>
     public static RouteHandlerBuilder RequirePublicPort(this RouteHandlerBuilder builder)
     {
-        return builder.AddEndpointFilter<PublicPortFilter>();
+        return builder.AddEndpointFilter<PublicPortFilter>().WithMetadata(new PortScopeMetadata(PortScope.Public));
     }
 
     private sealed class InternalPortFilter : IEndpointFilter

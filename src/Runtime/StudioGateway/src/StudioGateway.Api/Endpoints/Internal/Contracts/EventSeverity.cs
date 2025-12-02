@@ -1,4 +1,4 @@
-namespace StudioGateway.Api.Flux.Contracts;
+namespace StudioGateway.Api.Endpoints.Internal.Contracts;
 
 /// <summary>
 /// Constants for Flux event severity levels.

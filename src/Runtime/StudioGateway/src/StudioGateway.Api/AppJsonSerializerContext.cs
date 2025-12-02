@@ -1,16 +1,9 @@
 using System.Text.Json.Serialization;
-using StudioGateway.Api.Flux.Contracts;
+using StudioGateway.Api.Endpoints.Internal.Contracts;
+using StudioGateway.Api.Endpoints.Local;
+using StudioGateway.Api.Endpoints.Public;
 
 namespace StudioGateway.Api;
-
-internal sealed record HealthResponse(string Status);
-
-internal sealed record ClientIpResponse(
-    string? RemoteIp,
-    string? XForwardedFor,
-    string? XForwardedProto,
-    string? XForwardedHost
-);
 
 [JsonSerializable(typeof(FluxEvent))]
 [JsonSerializable(typeof(ObjectReference))]

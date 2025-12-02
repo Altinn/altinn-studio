@@ -1,4 +1,4 @@
-namespace StudioGateway.Api.Flux.Contracts;
+namespace StudioGateway.Api.Endpoints.Internal.Contracts;
 
 /// <summary>
 /// FluxEvent represents a notification event from Flux CD.

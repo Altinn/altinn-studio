@@ -1,7 +1,7 @@
-using StudioGateway.Api.Flux.Contracts;
+using StudioGateway.Api.Endpoints.Internal.Contracts;
 using StudioGateway.Api.Hosting;
 
-namespace StudioGateway.Api.Flux;
+namespace StudioGateway.Api.Endpoints.Internal;
 
 internal static class FluxWebhookEndpoints
 {

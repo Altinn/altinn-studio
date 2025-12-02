@@ -1,6 +1,8 @@
 using StudioGateway.Api;
 using StudioGateway.Api.Authentication;
-using StudioGateway.Api.Flux;
+using StudioGateway.Api.Endpoints.Internal;
+using StudioGateway.Api.Endpoints.Local;
+using StudioGateway.Api.Endpoints.Public;
 using StudioGateway.Api.Hosting;
 
 var builder = WebApplication.CreateSlimBuilder(args);
@@ -16,7 +18,28 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 });
 builder.Services.AddHealthChecks();
-builder.Services.AddOpenApi("v1");
+builder.Services.AddOpenApi(
+    "public-v1",
+    options =>
+    {
+        options.ShouldInclude = (description) =>
+        {
+            var scope = description.ActionDescriptor.EndpointMetadata.OfType<PortScopeMetadata>().FirstOrDefault();
+            return scope?.Scope != PortScope.Internal;
+        };
+    }
+);
+builder.Services.AddOpenApi(
+    "internal-v1",
+    options =>
+    {
+        options.ShouldInclude = (description) =>
+        {
+            var scope = description.ActionDescriptor.EndpointMetadata.OfType<PortScopeMetadata>().FirstOrDefault();
+            return scope?.Scope != PortScope.Public;
+        };
+    }
+);
 
 var app = builder.Build();
 
@@ -36,43 +59,15 @@ app.UseWhen(
 app.MapOpenApi();
 app.UseSwaggerUI(options =>
 {
-    options.SwaggerEndpoint("/openapi/v1.json", "v1");
+    options.SwaggerEndpoint("/openapi/public-v1.json", "Public API v1");
+    options.SwaggerEndpoint("/openapi/internal-v1.json", "Internal API v1");
 });
 
 app.MapHealthChecks("/health/live");
 app.MapHealthChecks("/health/ready");
 
-// Authenticated endpoint for runtime health status
-app.MapGet("/runtime/gateway/api/v1/health", () => Results.Ok(new HealthResponse("healthy")))
-    .RequirePublicPort()
-    .RequireAuthorization("MaskinportenScope")
-    .WithName("RuntimeHealth")
-    .WithTags("Health");
-
-app.MapFluxWebhookEndpoint();
-
-if (app.Environment.IsEnvironment("local"))
-{
-    // Diagnostic endpoint to verify X-Forwarded-For header processing
-    app.MapGet(
-            "/runtime/gateway/api/v1/debug/clientip",
-            (HttpContext ctx) =>
-            {
-                var headers = ctx.Request.Headers;
-                return Results.Ok(
-                    new ClientIpResponse(
-                        ctx.Connection.RemoteIpAddress?.ToString(),
-                        headers["X-Forwarded-For"].FirstOrDefault(),
-                        headers["X-Forwarded-Proto"].FirstOrDefault(),
-                        headers["X-Forwarded-Host"].FirstOrDefault()
-                    )
-                );
-            }
-        )
-        .RequirePublicPort()
-        .WithName("DebugClientIp")
-        .WithTags("Debug")
-        .ExcludeFromDescription();
-}
+app.AddPublicApis();
+app.AddInternalApis();
+app.AddLocalApis();
 
 await app.RunAsync();
