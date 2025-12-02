@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Azure;
 using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;
@@ -7,8 +8,15 @@ using StudioGateway.Api.Models.Metrics;
 
 namespace StudioGateway.Api.TypedHttpClients.MetricsClient;
 
-public class AzureMonitorClient(IOptions<MetricsClientSettings> metricsClientSettings, LogsQueryClient logsQueryClient)
-    : IMetricsClient
+[SuppressMessage(
+    "Microsoft.Performance",
+    "CA1812:AvoidUninstantiatedInternalClasses",
+    Justification = "Class is instantiated via dependency injection"
+)]
+internal sealed class AzureMonitorClient(
+    IOptions<MetricsClientSettings> metricsClientSettings,
+    LogsQueryClient logsQueryClient
+) : IMetricsClient
 {
     private readonly MetricsClientSettings _metricsClientSettings = metricsClientSettings.Value;
 

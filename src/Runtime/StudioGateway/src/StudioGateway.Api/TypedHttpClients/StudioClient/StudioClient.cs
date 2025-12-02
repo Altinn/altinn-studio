@@ -1,10 +1,16 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
 using Microsoft.Extensions.Options;
 using StudioGateway.Api.Configuration;
 
 namespace StudioGateway.Api.TypedHttpClients.StudioClient;
 
-public class StudioClient(
+[SuppressMessage(
+    "Microsoft.Performance",
+    "CA1812:AvoidUninstantiatedInternalClasses",
+    Justification = "Class is instantiated via dependency injection"
+)]
+internal sealed class StudioClient(
     HttpClient httpClient,
     IConfiguration configuration,
     IOptions<StudioClientSettings> studioSettings

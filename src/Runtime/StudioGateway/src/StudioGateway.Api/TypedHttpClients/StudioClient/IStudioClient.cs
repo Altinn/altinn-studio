@@ -1,6 +1,6 @@
 namespace StudioGateway.Api.TypedHttpClients.StudioClient;
 
-public interface IStudioClient
+internal interface IStudioClient
 {
-    public Task UpsertFiringAlertsAsync(CancellationToken cancellationToken = default);
+    public Task UpsertFiringAlertsAsync(CancellationToken cancellationToken);
 }

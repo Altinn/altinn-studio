@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
@@ -6,7 +7,13 @@ using StudioGateway.Api.Models.Alerts;
 
 namespace StudioGateway.Api.TypedHttpClients.AlertsClient;
 
-public class GrafanaClient(HttpClient httpClient, IOptions<AlertsClientSettings> alertsClientSettings) : IAlertsClient
+[SuppressMessage(
+    "Microsoft.Performance",
+    "CA1812:AvoidUninstantiatedInternalClasses",
+    Justification = "Class is instantiated via dependency injection"
+)]
+internal sealed class GrafanaClient(HttpClient httpClient, IOptions<AlertsClientSettings> alertsClientSettings)
+    : IAlertsClient
 {
     private readonly AlertsClientSettings _alertsClientSettings = alertsClientSettings.Value;
 
@@ -38,7 +45,7 @@ public class GrafanaClient(HttpClient httpClient, IOptions<AlertsClientSettings>
                         ? ruleId
                         : alert.Labels["__alert_rule_uid__"],
                     Name = alert.Labels["alertname"],
-                    App = alert.Labels.TryGetValue("__name__", out string? appName) ? appName : string.Empty,
+                    App = "ttd" + (alert.Labels.TryGetValue("__name__", out string? appName) ? appName : string.Empty),
                     // App = alert.Labels["cloud/rolename"],
                     Url = BuildAlertLink(baseUri, alert),
                 };

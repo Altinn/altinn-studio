@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Mvc;
 using StudioGateway.Api.Models.Metrics;
 using StudioGateway.Api.Services.Metrics;
@@ -6,7 +7,12 @@ namespace StudioGateway.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]
-public class MetricsController(IMetricsService metricsService) : ControllerBase
+[SuppressMessage(
+    "Microsoft.Performance",
+    "CA1812:AvoidUninstantiatedInternalClasses",
+    Justification = "Class is instantiated via dependency injection"
+)]
+internal sealed class MetricsController(IMetricsService metricsService) : ControllerBase
 {
     private readonly IMetricsService _metricsService = metricsService;
 
