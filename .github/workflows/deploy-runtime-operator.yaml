@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - chore/migrate-altinn-operator
     paths:
       - src/Runtime/operator/**
       - .github/workflows/deploy-runtime-operator.yaml
