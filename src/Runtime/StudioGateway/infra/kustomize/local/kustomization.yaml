@@ -23,7 +23,7 @@ patches:
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
-          name: Maskinporten__MetadataAddress
+          name: Maskinporten__MetadataAddresses__0
           value: "http://fake-oidc.default.svc.cluster.local/.well-known/oauth-authorization-server"
   # Delete PDB for local (single replica)
   - patch: |-

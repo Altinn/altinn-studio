@@ -10,36 +10,53 @@ internal static class MaskinportenAuthExtensions
 
     public static WebApplicationBuilder AddMaskinportenAuthentication(this WebApplicationBuilder builder)
     {
-        var metadataAddress =
-            builder.Configuration["Maskinporten:MetadataAddress"]
-            ?? throw new InvalidOperationException("Maskinporten:MetadataAddress configuration is required");
+        var metadataAddresses =
+            builder.Configuration.GetSection("Maskinporten:MetadataAddresses").Get<string[]>()
+            ?? throw new InvalidOperationException("Maskinporten:MetadataAddresses configuration is required");
 
-        var requireHttpsMetadata = !metadataAddress.StartsWith("http://", StringComparison.OrdinalIgnoreCase);
+        if (metadataAddresses.Length == 0)
+            throw new InvalidOperationException("Maskinporten:MetadataAddresses must contain at least one address");
 
-        builder
-            .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
-            {
-                options.MetadataAddress = metadataAddress;
-                options.RequireHttpsMetadata = requireHttpsMetadata;
-                options.TokenValidationParameters = new TokenValidationParameters
+        var authBuilder = builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
+        var schemeNames = new List<string>(metadataAddresses.Length);
+
+        for (var i = 0; i < metadataAddresses.Length; i++)
+        {
+            var metadataAddress = metadataAddresses[i];
+            var schemeName = $"Maskinporten_{i}";
+            schemeNames.Add(schemeName);
+
+            var requireHttpsMetadata = !metadataAddress.StartsWith("http://", StringComparison.OrdinalIgnoreCase);
+
+            authBuilder.AddJwtBearer(
+                schemeName,
+                options =>
                 {
-                    ValidateIssuer = true,
+                    options.MetadataAddress = metadataAddress;
+                    options.RequireHttpsMetadata = requireHttpsMetadata;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
 #pragma warning disable CA5404 // Maskinporten tokens don't include audience claim
-                    ValidateAudience = false,
+                        ValidateAudience = false,
 #pragma warning restore CA5404
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ClockSkew = TimeSpan.FromSeconds(30),
-                };
-            });
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ClockSkew = TimeSpan.FromSeconds(30),
+                    };
+                }
+            );
+        }
 
+        // Authorization policy tries all schemes - if any succeeds, user is authenticated
+        var schemeNamesArray = schemeNames.ToArray();
         builder
             .Services.AddAuthorizationBuilder()
             .AddPolicy(
                 "MaskinportenScope",
                 policy =>
                 {
+                    policy.AddAuthenticationSchemes(schemeNamesArray);
                     policy.RequireAuthenticatedUser();
                     policy.RequireAssertion(context =>
                     {
