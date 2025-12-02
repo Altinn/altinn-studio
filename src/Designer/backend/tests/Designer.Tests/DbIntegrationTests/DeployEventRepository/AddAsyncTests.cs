@@ -28,8 +28,8 @@ public class AddAsyncTests : DbIntegrationTestsBase
         var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(DbFixture.DbContext);
         var deployEvent = new DeployEvent
         {
-            EventType = DeployEventType.DeploymentCreated,
-            Message = "Deployment created by user",
+            EventType = DeployEventType.PipelineScheduled,
+            Message = "Pipeline scheduled by user",
             Timestamp = _timeProvider.GetUtcNow()
         };
 
@@ -96,9 +96,9 @@ public class AddAsyncTests : DbIntegrationTestsBase
 
         var events = new[]
         {
-            new DeployEvent { EventType = DeployEventType.DeploymentCreated, Message = "Created", Timestamp = _timeProvider.GetUtcNow() },
-            new DeployEvent { EventType = DeployEventType.PipelineScheduled, Message = "Scheduled", Timestamp = _timeProvider.GetUtcNow().AddSeconds(1) },
-            new DeployEvent { EventType = DeployEventType.PipelineSucceeded, Message = "Succeeded", Timestamp = _timeProvider.GetUtcNow().AddSeconds(2) }
+            new DeployEvent { EventType = DeployEventType.PipelineScheduled, Message = "Scheduled", Timestamp = _timeProvider.GetUtcNow() },
+            new DeployEvent { EventType = DeployEventType.PipelineSucceeded, Message = "Succeeded", Timestamp = _timeProvider.GetUtcNow().AddSeconds(1) },
+            new DeployEvent { EventType = DeployEventType.InstallSucceeded, Message = "Installed", Timestamp = _timeProvider.GetUtcNow().AddSeconds(2) }
         };
 
         // Act
@@ -126,7 +126,7 @@ public class AddAsyncTests : DbIntegrationTestsBase
         var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(DbFixture.DbContext);
         var deployEvent = new DeployEvent
         {
-            EventType = DeployEventType.DeploymentCreated,
+            EventType = DeployEventType.PipelineScheduled,
             Message = "Test",
             Timestamp = _timeProvider.GetUtcNow()
         };

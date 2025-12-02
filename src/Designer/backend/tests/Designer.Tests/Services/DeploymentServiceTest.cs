@@ -37,6 +37,7 @@ namespace Designer.Tests.Services
     {
         private readonly Mock<IHttpContextAccessor> _httpContextAccessor;
         private readonly Mock<IDeploymentRepository> _deploymentRepository;
+        private readonly Mock<IDeployEventRepository> _deployEventRepository;
         private readonly Mock<ILogger<DeploymentService>> _deploymentLogger;
         private readonly Mock<IReleaseRepository> _releaseRepository;
         private readonly Mock<IApplicationInformationService> _applicationInformationService;
@@ -53,6 +54,7 @@ namespace Designer.Tests.Services
             _httpContextAccessor = AuthenticationUtil.GetAuthenticatedHttpContextAccessor();
             _deploymentLogger = new Mock<ILogger<DeploymentService>>();
             _deploymentRepository = new Mock<IDeploymentRepository>();
+            _deployEventRepository = new Mock<IDeployEventRepository>();
             _releaseRepository = new Mock<IReleaseRepository>();
             _environementsService = new Mock<IEnvironmentsService>();
             _azureDevOpsBuildClient = new Mock<IAzureDevOpsBuildClient>();
@@ -103,6 +105,7 @@ namespace Designer.Tests.Services
                 _azureDevOpsBuildClient.Object,
                 _httpContextAccessor.Object,
                 _deploymentRepository.Object,
+                _deployEventRepository.Object,
                 _releaseRepository.Object,
                 _environementsService.Object,
                 _applicationInformationService.Object,
@@ -164,6 +167,7 @@ namespace Designer.Tests.Services
                 _azureDevOpsBuildClient.Object,
                 _httpContextAccessor.Object,
                 _deploymentRepository.Object,
+                _deployEventRepository.Object,
                 _releaseRepository.Object,
                 _environementsService.Object,
                 _applicationInformationService.Object,
@@ -241,6 +245,7 @@ namespace Designer.Tests.Services
                 _azureDevOpsBuildClient.Object,
                 _httpContextAccessor.Object,
                 _deploymentRepository.Object,
+                _deployEventRepository.Object,
                 _releaseRepository.Object,
                 _environementsService.Object,
                 _applicationInformationService.Object,
@@ -329,6 +334,7 @@ namespace Designer.Tests.Services
                 _azureDevOpsBuildClient.Object,
                 _httpContextAccessor.Object,
                 _deploymentRepository.Object,
+                _deployEventRepository.Object,
                 _releaseRepository.Object,
                 _environementsService.Object,
                 _applicationInformationService.Object,
@@ -408,6 +414,7 @@ namespace Designer.Tests.Services
                 _azureDevOpsBuildClient.Object,
                 _httpContextAccessor.Object,
                 _deploymentRepository.Object,
+                _deployEventRepository.Object,
                 _releaseRepository.Object,
                 _environementsService.Object,
                 _applicationInformationService.Object,

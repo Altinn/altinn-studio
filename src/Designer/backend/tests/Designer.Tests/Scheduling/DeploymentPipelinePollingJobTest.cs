@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
@@ -95,16 +96,19 @@ public class DeploymentPipelinePollingJobTest
         {
             var mockStorageAppMetadataClient = new Mock<IAltinnStorageAppMetadataClient>();
             var mockDeploymentRepository = new Mock<IDeploymentRepository>();
+            var mockDeployEventRepository = new Mock<IDeployEventRepository>();
             var mockAzureDevOpsBuildClient = new Mock<IAzureDevOpsBuildClient>();
             var mockHubContext = MockHubContextFactory<EntityUpdatedHub, IEntityUpdateClient>();
 
             var service = new DeploymentPipelinePollingJob(
                 mockAzureDevOpsBuildClient.Object,
                 mockDeploymentRepository.Object,
+                mockDeployEventRepository.Object,
                 mockStorageAppMetadataClient.Object,
                 mockHubContext.Object,
                 Mock.Of<IPublisher>(),
-                NullLogger<DeploymentPipelinePollingJob>.Instance
+                NullLogger<DeploymentPipelinePollingJob>.Instance,
+                TimeProvider.System
             );
 
             return new Fixture(
