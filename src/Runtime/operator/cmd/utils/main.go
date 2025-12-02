@@ -15,6 +15,10 @@ import (
 	"altinn.studio/operator/internal/maskinporten"
 	"altinn.studio/operator/internal/operatorcontext"
 	"altinn.studio/operator/internal/orgs"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
+	"github.com/go-jose/go-jose/v4"
 	"github.com/jonboulle/clockwork"
 )
 
@@ -115,6 +119,22 @@ func main() {
 		switch subcommand {
 		case subcommandClient:
 			updateClient()
+		default:
+			fmt.Fprintf(os.Stderr, "Unknown subcommand: %s\n", subcommand)
+			os.Exit(1)
+		}
+	case "init":
+		if len(os.Args) < 3 {
+			fmt.Fprintf(os.Stderr, "Usage: %s init <subcommand> [options]\n", os.Args[0])
+			fmt.Fprintf(os.Stderr, "Subcommands:\n")
+			fmt.Fprintf(os.Stderr, "  env  Initialize Azure Key Vault secrets for an environment\n")
+			os.Exit(1)
+		}
+
+		subcommand := os.Args[2]
+		switch subcommand {
+		case "env":
+			initEnv()
 		default:
 			fmt.Fprintf(os.Stderr, "Unknown subcommand: %s\n", subcommand)
 			os.Exit(1)
@@ -346,8 +366,12 @@ func createClient() {
 
 	// Create JWKS
 	notAfter := time.Now().Add(time.Hour * 24 * 365)
-	certCommonName := maskinporten.GetClientName(setup.operatorCtx, appId)
-	jwks, err := setup.cryptoService.CreateJwks(certCommonName, notAfter)
+	certCommonName := maskinporten.GetFullClientName(setup.operatorCtx, appId)
+	jwks, err := setup.cryptoService.CreateJwks(
+		fmt.Sprintf("%s / %s", setup.operatorCtx.ServiceOwnerId, setup.operatorCtx.ServiceOwnerOrgNo),
+		certCommonName,
+		notAfter,
+	)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create JWKS: %v\n", err)
 		os.Exit(1)
@@ -357,9 +381,9 @@ func createClient() {
 	integrationType := maskinporten.IntegrationTypeMaskinporten
 	appType := maskinporten.ApplicationTypeWeb
 	tokenEndpointMethod := maskinporten.TokenEndpointAuthMethodPrivateKeyJwt
-	clientName := maskinporten.GetClientName(setup.operatorCtx, appId)
+	clientName := maskinporten.GetFullClientName(setup.operatorCtx, appId)
 	description := fmt.Sprintf(
-		"Altinn Operator managed client for %s/%s/%s",
+		"Altinn Studio Operator managed client for %s/%s/%s",
 		setup.operatorCtx.ServiceOwnerId,
 		setup.operatorCtx.Environment,
 		appId,
@@ -430,12 +454,12 @@ func createClient() {
 func createJwk() {
 	// Create a new flag set for the create jwk subcommand
 	fs := flag.NewFlagSet("create jwk", flag.ExitOnError)
-	var env string
+	var certSubject string
 	var certCommonName string
 	var notAfterStr string
 	var verbose bool
 	var pretty bool
-	fs.StringVar(&env, "env", "at22", "Environment name")
+	fs.StringVar(&certSubject, "cert-subject", "default-subject", "Subject for the certificate")
 	fs.StringVar(&certCommonName, "cert-common-name", "default-cert", "Common name for the certificate")
 	fs.StringVar(
 		&notAfterStr,
@@ -467,8 +491,7 @@ func createJwk() {
 		}
 	}
 
-	envFile := env + ".env"
-	setup, err := setupMaskinportenClient(env, envFile, true)
+	_, cryptoService := setupBaseServices()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
@@ -486,7 +509,7 @@ func createJwk() {
 	}
 
 	// Create JWKS
-	jwks, err := setup.cryptoService.CreateJwks(certCommonName, notAfter)
+	jwks, err := cryptoService.CreateJwks(certSubject, certCommonName, notAfter)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create JWKS: %v\n", err)
 		os.Exit(1)
@@ -663,6 +686,135 @@ func updateClient() {
 	fmt.Println(string(output))
 }
 
+func initEnv() {
+	fs := flag.NewFlagSet("init env", flag.ExitOnError)
+	var env string
+	var clientID string
+	var jwkStr string
+	var force bool
+	var verbose bool
+	fs.StringVar(&env, "env", "", "Environment name (required, e.g., at23)")
+	fs.StringVar(&clientID, "client-id", "", "Maskinporten client ID (required)")
+	fs.StringVar(&jwkStr, "jwk", "", "Private JWK as JSON string (required)")
+	fs.BoolVar(&force, "force", false, "Overwrite existing secrets")
+	fs.BoolVar(&verbose, "verbose", false, "Print verbose output")
+
+	err := fs.Parse(os.Args[3:])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to parse flags: %v\n", err)
+		os.Exit(1)
+	}
+
+	if env == "" {
+		fmt.Fprintf(os.Stderr, "--env flag is required\n")
+		fs.Usage()
+		os.Exit(1)
+	}
+
+	if clientID == "" {
+		fmt.Fprintf(os.Stderr, "--client-id flag is required\n")
+		fs.Usage()
+		os.Exit(1)
+	}
+
+	if jwkStr == "" {
+		fmt.Fprintf(os.Stderr, "--jwk flag is required\n")
+		fs.Usage()
+		os.Exit(1)
+	}
+
+	// Validate JWK
+	var jwk jose.JSONWebKey
+	if err := json.Unmarshal([]byte(jwkStr), &jwk); err != nil {
+		fmt.Fprintf(os.Stderr, "Invalid JWK: %v\n", err)
+		os.Exit(1)
+	}
+	if !jwk.Valid() {
+		fmt.Fprintf(os.Stderr, "Invalid JWK: key validation failed\n")
+		os.Exit(1)
+	}
+	if !jwk.IsPublic() {
+		// Good - it's a private key
+	} else {
+		fmt.Fprintf(os.Stderr, "Invalid JWK: must be a private key, not public\n")
+		os.Exit(1)
+	}
+
+	ctx := context.Background()
+	vaultURL := fmt.Sprintf("https://mpo-%s-kv.vault.azure.net/", env)
+
+	if verbose {
+		fmt.Fprintf(os.Stderr, "Key Vault URL: %s\n", vaultURL)
+		fmt.Fprintf(os.Stderr, "Client ID: %s\n", clientID)
+		fmt.Fprintf(os.Stderr, "---\n")
+	}
+
+	cred, err := azidentity.NewDefaultAzureCredential(nil)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to get Azure credentials: %v\n", err)
+		os.Exit(1)
+	}
+
+	client, err := azsecrets.NewClient(vaultURL, cred, nil)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to create Key Vault client: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Check for existing secrets if not forcing
+	if !force {
+		if secretExists(ctx, client, "MaskinportenApi--ClientId") {
+			fmt.Fprintf(os.Stderr, "Secret MaskinportenApi--ClientId already exists. Use --force to overwrite.\n")
+			os.Exit(1)
+		}
+		if secretExists(ctx, client, "MaskinportenApi--Jwk") {
+			fmt.Fprintf(os.Stderr, "Secret MaskinportenApi--Jwk already exists. Use --force to overwrite.\n")
+			os.Exit(1)
+		}
+	}
+
+	// Set secrets
+	if err := setSecret(ctx, client, "MaskinportenApi--ClientId", clientID); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to set MaskinportenApi--ClientId: %v\n", err)
+		os.Exit(1)
+	}
+	if verbose {
+		fmt.Fprintf(os.Stderr, "Set secret: MaskinportenApi--ClientId\n")
+	}
+
+	if err := setSecret(ctx, client, "MaskinportenApi--Jwk", jwkStr); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to set MaskinportenApi--Jwk: %v\n", err)
+		os.Exit(1)
+	}
+	if verbose {
+		fmt.Fprintf(os.Stderr, "Set secret: MaskinportenApi--Jwk\n")
+	}
+
+	fmt.Printf("Successfully initialized Key Vault secrets for environment %s\n", env)
+}
+
+func secretExists(ctx context.Context, client *azsecrets.Client, name string) bool {
+	_, err := client.GetSecret(ctx, name, "", nil)
+	if err != nil {
+		if respErr, ok := err.(*azcore.ResponseError); ok {
+			if respErr.StatusCode == 404 {
+				return false
+			}
+		}
+		// Treat other errors as "don't know" - let the set operation fail with a clear error
+		return false
+	}
+	return true
+}
+
+func setSecret(ctx context.Context, client *azsecrets.Client, name, value string) error {
+	params := azsecrets.SetSecretParameters{
+		Value: &value,
+	}
+	_, err := client.SetSecret(ctx, name, params, nil)
+	return err
+}
+
 func setupMaskinportenClient(env, envFile string, withCrypto bool) (*setupResult, error) {
 	ctx := context.Background()
 	environment := operatorcontext.ResolveEnvironment(env)
@@ -690,7 +842,7 @@ func setupMaskinportenClient(env, envFile string, withCrypto bool) (*setupResult
 		return nil, fmt.Errorf("failed to discover operator context: %w", err)
 	}
 
-	clock := clockwork.NewRealClock()
+	clock, cryptoService := setupBaseServices()
 	client, err := maskinporten.NewHttpApiClient(cfg, operatorCtx, clock)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Maskinporten client: %w", err)
@@ -704,8 +856,14 @@ func setupMaskinportenClient(env, envFile string, withCrypto bool) (*setupResult
 	}
 
 	if withCrypto {
-		result.cryptoService = crypto.NewDefaultService(operatorCtx, clock, rand.Reader)
+		result.cryptoService = cryptoService
 	}
 
 	return result, nil
+}
+
+func setupBaseServices() (clockwork.Clock, *crypto.CryptoService) {
+	clock := clockwork.NewRealClock()
+	cryptoService := crypto.NewDefaultService(clock, rand.Reader)
+	return clock, cryptoService
 }

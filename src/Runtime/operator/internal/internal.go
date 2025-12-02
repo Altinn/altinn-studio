@@ -83,7 +83,6 @@ func NewRuntime(ctx context.Context, env string, log *logr.Logger) (rt.Runtime, 
 	cryptoRand := crand.Reader
 
 	cryptoService := crypto.NewDefaultService(
-		operatorContext,
 		clock,
 		cryptoRand,
 	)

@@ -160,14 +160,14 @@ make manifests
 We can run the utility to generate JWK for the supplier client
 
 Process:
-1. Create client in Maskinporten self service UI
+1. Create client in Maskinporten self service UI (`altinn_apps_supplier_client`)
 2. Create JWK, add the public JWK to client in self service UI
 3. Put public+private JWK in Azure KV
 4. Put configuration in <env>.env file (URls and such, see the localtest one for reference. JWK and Client ID comes from AZ so they don't have to be filled in)
 
 To create a JWK (both the public+private and the public for self service UI input):
 ```
-go run cmd/utils/main.go create jwk -cert-common-name altinn_apps_supplier_client -not-after 2026-12-31T23:59:59Z -verbose -pretty
+go run cmd/utils/main.go create jwk -cert-subject Digdir -cert-common-name altinn_studio_operator_supplier_client -not-after 2026-12-31T23:59:59Z -verbose
 ```
 
 Update `MaskinportenApi--ClientId` and `MaskinportenApi--Jwk` in Azure KV, set expiry to e.g. 12/30/2026 6:00:00 PM in UTC.

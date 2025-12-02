@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"altinn.studio/operator/internal/assert"
-	"altinn.studio/operator/internal/operatorcontext"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/google/uuid"
 	"github.com/jonboulle/clockwork"
@@ -22,7 +21,6 @@ const DefaultX509SignatureAlgo x509.SignatureAlgorithm = x509.SHA512WithRSA
 const DefaultKeySizeBits int = 4096
 
 type CryptoService struct {
-	ctx               *operatorcontext.Context
 	clock             clockwork.Clock
 	random            io.Reader
 	signatureAlgo     jose.SignatureAlgorithm
@@ -31,7 +29,6 @@ type CryptoService struct {
 }
 
 func NewService(
-	ctx *operatorcontext.Context,
 	clock clockwork.Clock,
 	random io.Reader,
 	x509SignatureAlgo x509.SignatureAlgorithm,
@@ -44,7 +41,6 @@ func NewService(
 	assert.That(ok, "unsupported x509 signature algorithm", "algorithm", x509SignatureAlgo)
 
 	return &CryptoService{
-		ctx:               ctx,
 		clock:             clock,
 		random:            random,
 		signatureAlgo:     signatureAlgo,
@@ -54,18 +50,17 @@ func NewService(
 }
 
 func NewDefaultService(
-	ctx *operatorcontext.Context,
 	clock clockwork.Clock,
 	random io.Reader,
 ) *CryptoService {
-	return NewService(ctx, clock, random, DefaultX509SignatureAlgo, DefaultKeySizeBits)
+	return NewService(clock, random, DefaultX509SignatureAlgo, DefaultKeySizeBits)
 }
 
 // Creates a JWKS
 // Constructs the JWKS from the whole RSA private/public key pair
 // Uses SHA512 with RSA, 4096 bits for RSA
-func (s *CryptoService) CreateJwks(certCommonName string, notAfter time.Time) (*Jwks, error) {
-	cert, rsaKey, err := s.createCert(certCommonName, notAfter)
+func (s *CryptoService) CreateJwks(certSubject, certCommonName string, notAfter time.Time) (*Jwks, error) {
+	cert, rsaKey, err := s.createCert(certSubject, certCommonName, notAfter)
 	if err != nil {
 		return nil, fmt.Errorf("error creating JWKS cert: %w", err)
 	}
@@ -105,6 +100,7 @@ func (s *CryptoService) generateCertSerialNumber() (*big.Int, error) {
 }
 
 func (s *CryptoService) createCert(
+	certSubject string,
 	certCommonName string,
 	notAfter time.Time,
 ) (*x509.Certificate, *rsa.PrivateKey, error) {
@@ -126,7 +122,7 @@ func (s *CryptoService) createCert(
 	certTemplate := x509.Certificate{
 		SerialNumber: serial,
 		Subject: pkix.Name{
-			Organization: []string{s.ctx.ServiceOwnerId},
+			Organization: []string{certSubject},
 			CommonName:   certCommonName,
 		},
 		Issuer:                s.getIssuer(),
@@ -151,6 +147,7 @@ func (s *CryptoService) createCert(
 }
 
 func (s *CryptoService) RotateIfNeeded(
+	certSubject string,
 	certCommonName string,
 	notAfter time.Time,
 	currentJwks *Jwks,
@@ -202,7 +199,7 @@ func (s *CryptoService) RotateIfNeeded(
 		if err != nil {
 			return nil, fmt.Errorf("invalid key format: %s", activeKey.KeyID())
 		}
-		cert, rsaKey, err := s.createCert(certCommonName, notAfter)
+		cert, rsaKey, err := s.createCert(certSubject, certCommonName, notAfter)
 		if err != nil {
 			return nil, fmt.Errorf("error creating JWKS cert: %w", err)
 		}
@@ -219,7 +216,7 @@ func (s *CryptoService) RotateIfNeeded(
 func (s *CryptoService) getIssuer() pkix.Name {
 	return pkix.Name{
 		Organization: []string{"Digdir"},
-		CommonName:   "Altinn Operator",
+		CommonName:   "Altinn Studio Operator",
 	}
 }
 

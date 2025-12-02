@@ -54,7 +54,10 @@ type HttpApiClient struct {
 	tracer        trace.Tracer
 	clock         clockwork.Clock
 
-	clientNamePrefix string
+	// Service owner + environment
+	clientNameFullPrefix string
+	// Service owner only (e.g. ttd will have clients in the same environment)
+	clientNameServiceOwnerPrefix string
 }
 
 func NewHttpApiClient(
@@ -77,7 +80,8 @@ func NewHttpApiClient(
 		tracer:        otel.Tracer(telemetry.ServiceName),
 		clock:         clock,
 
-		clientNamePrefix: getClientNamePrefix(opCtx),
+		clientNameFullPrefix:         getClientNameFullPrefix(opCtx),
+		clientNameServiceOwnerPrefix: getClientNameServiceOwnerPrefix(opCtx),
 	}
 
 	apiClient.wellKnown = caching.NewCachedAtom(5*time.Minute, clock, apiClient.wellKnownFetcher)
@@ -186,9 +190,13 @@ func (c *HttpApiClient) GetAllClients(ctx context.Context) ([]ClientResponse, er
 		if cl.ClientName == nil {
 			return nil, fmt.Errorf("client with ID %s has no name", cl.ClientId)
 		}
-		clientName := strings.TrimPrefix(*cl.ClientName, c.clientNamePrefix)
-		if clientName == *cl.ClientName {
-			return nil, fmt.Errorf("client with ID %s has invalid name (expected our prefix): %s", cl.ClientId, *cl.ClientName)
+		if !strings.HasPrefix(*cl.ClientName, c.clientNameFullPrefix) {
+			if !strings.HasPrefix(*cl.ClientName, c.clientNameServiceOwnerPrefix) {
+				// Client for a completely different serviceowner, we need to error, something unexpected happened
+				return nil, fmt.Errorf("client with ID %s has invalid name (expected our prefix): %s", cl.ClientId, *cl.ClientName)
+			}
+			// Client for same serviceowner, different environment - skip (e.g. ttd at22, at23, at24 which use the same Maskinporten env)
+			continue
 		}
 
 		result = append(result, cl)
@@ -281,6 +289,16 @@ func (c *HttpApiClient) CreateClient(
 	ctx, span := c.tracer.Start(ctx, "CreateClient")
 	defer span.End()
 
+	if client.ClientName == nil || *client.ClientName == "" {
+		return nil, errors.New("CreateClient: client name must be provided")
+	}
+	if !strings.HasPrefix(*client.ClientName, c.clientNameFullPrefix) {
+		return nil, fmt.Errorf(
+			"CreateClient: client name must start with expected prefix: %s",
+			c.clientNameFullPrefix,
+		)
+	}
+
 	if jwks == nil {
 		return nil, errors.New("can't create maskinporten client without JWKS initialized")
 	}
@@ -343,6 +361,16 @@ func (c *HttpApiClient) UpdateClient(
 		return nil, fmt.Errorf(
 			"tried to update maskinporten client with empty ID for client name: %s",
 			clientName,
+		)
+	}
+
+	if client.ClientName == nil || *client.ClientName == "" {
+		return nil, errors.New("UpdateClient: client name must be provided")
+	}
+	if !strings.HasPrefix(*client.ClientName, c.clientNameFullPrefix) {
+		return nil, fmt.Errorf(
+			"UpdateClient: client name must start with expected prefix: %s",
+			c.clientNameFullPrefix,
 		)
 	}
 

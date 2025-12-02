@@ -550,7 +550,7 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 			return nil, fmt.Errorf("fetchCurrentState: error getting all clients: %w", err)
 		}
 
-		clientName := maskinporten.GetClientName(r.runtime.GetOperatorContext(), req.AppId)
+		clientName := maskinporten.GetFullClientName(r.runtime.GetOperatorContext(), req.AppId)
 		for _, c := range allClients {
 			if c.ClientName != nil && *c.ClientName == clientName {
 				logger.Info("Found preexisting matching client in Maskinporten API", "clientId", c.ClientId)

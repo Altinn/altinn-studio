@@ -1,18 +1,17 @@
 package crypto
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 	"time"
 
-	"altinn.studio/operator/internal/operatorcontext"
 	"altinn.studio/operator/test/utils"
 	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/jonboulle/clockwork"
 	. "github.com/onsi/gomega"
 )
 
+const subject string = "subject"
 const appId string = "app1"
 
 func TestCreateJwks(t *testing.T) {
@@ -41,19 +40,19 @@ func TestRotateJwks(t *testing.T) {
 
 	// We have only just created the cert
 	clock.Advance(time.Hour * 1)
-	newJwks, err := service.RotateIfNeeded(appId, getNotAfter(clock), jwks, false)
+	newJwks, err := service.RotateIfNeeded(subject, appId, getNotAfter(clock), jwks, false)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(newJwks).To(BeNil())
 
 	// This should be before the rotation threshold
 	clock.Advance(time.Hour * 24 * 18)
-	newJwks, err = service.RotateIfNeeded(appId, getNotAfter(clock), jwks, false)
+	newJwks, err = service.RotateIfNeeded(subject, appId, getNotAfter(clock), jwks, false)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(newJwks).To(BeNil())
 
 	// Now we've advanced past the treshold and should have rotated
 	clock.Advance(time.Hour * 24 * 7)
-	newJwks, err = service.RotateIfNeeded(appId, getNotAfter(clock), jwks, false)
+	newJwks, err = service.RotateIfNeeded(subject, appId, getNotAfter(clock), jwks, false)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(newJwks).NotTo(BeNil())
 	g.Expect(newJwks.Keys).To(HaveLen(2))
@@ -63,7 +62,7 @@ func TestRotateJwks(t *testing.T) {
 
 	// We should rotate again
 	clock.Advance(time.Hour * 24 * 25)
-	newerJwks, err := service.RotateIfNeeded(appId, getNotAfter(clock), newJwks, false)
+	newerJwks, err := service.RotateIfNeeded(subject, appId, getNotAfter(clock), newJwks, false)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(newerJwks).NotTo(BeNil())
 	g.Expect(newerJwks.Keys).To(HaveLen(2))
@@ -130,10 +129,9 @@ func TestPublicJwksConversion(t *testing.T) {
 }
 
 func createService() (*CryptoService, *clockwork.FakeClock) {
-	opCtx := operatorcontext.DiscoverOrDie(context.Background(), operatorcontext.EnvironmentLocal, nil)
 	clock := clockwork.NewFakeClockAt(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC))
 	random := utils.NewDeterministicRand()
-	service := NewDefaultService(opCtx, clock, random)
+	service := NewDefaultService(clock, random)
 	return service, clock
 }
 
@@ -144,7 +142,7 @@ func getNotAfter(clock clockwork.Clock) time.Time {
 func createTestJwks() (*Jwks, *CryptoService, *clockwork.FakeClock, error) {
 	service, clock := createService()
 
-	jwks, err := service.CreateJwks(appId, getNotAfter(clock))
+	jwks, err := service.CreateJwks(subject, appId, getNotAfter(clock))
 	if err != nil {
 		return nil, nil, nil, err
 	}

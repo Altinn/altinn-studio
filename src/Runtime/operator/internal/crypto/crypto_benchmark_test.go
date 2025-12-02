@@ -1,21 +1,19 @@
 package crypto
 
 import (
-	"context"
 	"crypto/x509"
 	"testing"
 	"time"
 
-	"altinn.studio/operator/internal/operatorcontext"
 	"altinn.studio/operator/test/utils"
 	"github.com/jonboulle/clockwork"
 )
 
 func benchmarkCreateJwks(b *testing.B, algo x509.SignatureAlgorithm, keySize int) {
-	operatorCtx := operatorcontext.DiscoverOrDie(context.Background(), operatorcontext.EnvironmentLocal, nil)
 	clock := clockwork.NewFakeClockAt(time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC))
 	random := utils.NewDeterministicRand()
-	service := NewService(operatorCtx, clock, random, algo, keySize)
+	service := NewService(clock, random, algo, keySize)
+	certSubject := "benchmark"
 	certCommonName := "benchmark"
 	notAfter := clock.Now().UTC().Add(30 * 24 * time.Hour)
 
@@ -23,7 +21,7 @@ func benchmarkCreateJwks(b *testing.B, algo x509.SignatureAlgorithm, keySize int
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		if _, err := service.CreateJwks(certCommonName, notAfter); err != nil {
+		if _, err := service.CreateJwks(certSubject, certCommonName, notAfter); err != nil {
 			b.Fatalf("CreateJwks: %v", err)
 		}
 	}

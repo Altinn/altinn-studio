@@ -181,6 +181,10 @@ func (s *ClientState) getNotAfter(clock clockwork.Clock) time.Time {
 	return clock.Now().UTC().Add(time.Hour * 24 * 30)
 }
 
+func (s *ClientState) getCertSubject(opCtx *operatorcontext.Context) string {
+	return fmt.Sprintf("%s / %s", opCtx.ServiceOwnerId, opCtx.ServiceOwnerOrgNo)
+}
+
 func (s *ClientState) Reconcile(
 	opCtx *operatorcontext.Context,
 	configValue *config.Config,
@@ -242,7 +246,7 @@ func (s *ClientState) Reconcile(
 		// but the secret output exists, in which case we just overwrite it
 		// TODO: handle if someone deleted the API but the secret exists? I.e. blunder in self-service portal?
 		req := s.buildApiReq(opCtx)
-		jwks, err := cryptoService.CreateJwks(s.AppId, s.getNotAfter(clock))
+		jwks, err := cryptoService.CreateJwks(s.getCertSubject(opCtx), s.AppId, s.getNotAfter(clock))
 		if err != nil {
 			return nil, err
 		}
@@ -276,7 +280,7 @@ func (s *ClientState) Reconcile(
 			// * Someone else created the API client
 
 			// Since the private JWKS is stored in the secret, it has been lost and we need to create a new one
-			jwks, err := cryptoService.CreateJwks(s.AppId, s.getNotAfter(clock))
+			jwks, err := cryptoService.CreateJwks(s.getCertSubject(opCtx), s.AppId, s.getNotAfter(clock))
 			if err != nil {
 				return nil, err
 			}
@@ -302,7 +306,7 @@ func (s *ClientState) Reconcile(
 			authorityChanged := configValue.MaskinportenApi.AuthorityUrl != s.Secret.Content.Authority
 			scopesChanged := !scopesEqual(s.Crd.Spec.Scopes, s.Api.Req.Scopes)
 			forceRotate := s.Crd.Annotations[AnnotationRotateJwk] == "true"
-			jwks, err := cryptoService.RotateIfNeeded(s.AppId, s.getNotAfter(clock), s.Secret.Content.Jwks, forceRotate)
+			jwks, err := cryptoService.RotateIfNeeded(s.getCertSubject(opCtx), s.AppId, s.getNotAfter(clock), s.Secret.Content.Jwks, forceRotate)
 			if err != nil {
 				return nil, err
 			}
@@ -412,21 +416,25 @@ func jwksEqual(a, b *crypto.Jwks) bool {
 	return true
 }
 
-func getClientNamePrefix(context *operatorcontext.Context) string {
-	return fmt.Sprintf("altinnoperator-%s-%s-", context.ServiceOwnerId, context.Environment)
+func getClientNameFullPrefix(context *operatorcontext.Context) string {
+	return fmt.Sprintf("altinnstudiooperator-%s-%s-", context.ServiceOwnerId, context.Environment)
 }
 
-func GetClientName(context *operatorcontext.Context, appId string) string {
-	return getClientNamePrefix(context) + appId
+func getClientNameServiceOwnerPrefix(context *operatorcontext.Context) string {
+	return fmt.Sprintf("altinnstudiooperator-%s-", context.ServiceOwnerId)
+}
+
+func GetFullClientName(context *operatorcontext.Context, appId string) string {
+	return getClientNameFullPrefix(context) + appId
 }
 
 func (s *ClientState) buildApiReq(context *operatorcontext.Context) *AddClientRequest {
 	integrationType := IntegrationTypeMaskinporten
 	appType := ApplicationTypeWeb
 	tokenEndpointMethod := TokenEndpointAuthMethodPrivateKeyJwt
-	clientName := GetClientName(context, s.AppId)
+	clientName := GetFullClientName(context, s.AppId)
 	description := fmt.Sprintf(
-		"Altinn Operator managed client for %s/%s/%s",
+		"Altinn Studio Operator managed client for %s/%s/%s",
 		context.ServiceOwnerId,
 		context.Environment,
 		s.AppId,

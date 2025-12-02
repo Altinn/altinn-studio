@@ -41,10 +41,10 @@
     "active": true,
     "application_type": "web",
     "client_id": "<client-id-1>",
-    "client_name": "altinnoperator-ttd-localtest-localtestapp",
+    "client_name": "altinnstudiooperator-ttd-localtest-localtestapp",
     "client_orgno": "405003309",
     "created": "2024-01-01T00:00:00Z",
-    "description": "Altinn Operator managed client for ttd/localtest/localtestapp",
+    "description": "Altinn Studio Operator managed client for ttd/localtest/localtestapp",
     "grant_types": [
      "urn:ietf:params:oauth:grant-type:jwt-bearer"
     ],
