@@ -1,5 +1,6 @@
 using Azure.Identity;
 using Azure.Monitor.Query;
+using k8s;
 using StudioGateway.Api;
 using StudioGateway.Api.Configuration;
 using StudioGateway.Api.Flux;
@@ -7,6 +8,7 @@ using StudioGateway.Api.Hosting;
 using StudioGateway.Api.Services.Alerts;
 using StudioGateway.Api.Services.Metrics;
 using StudioGateway.Api.TypedHttpClients.AlertsClient;
+using StudioGateway.Api.TypedHttpClients.KubernetesClient;
 using StudioGateway.Api.TypedHttpClients.MetricsClient;
 using StudioGateway.Api.TypedHttpClients.StudioClient;
 
@@ -26,6 +28,12 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 });
 builder.Services.AddHttpClient<IStudioClient, StudioClient>();
+builder.Services.AddSingleton(sp =>
+{
+    var config = KubernetesClientConfiguration.BuildDefaultConfig();
+    return new Kubernetes(config);
+});
+builder.Services.AddTransient<IKubernetesClient, KubernetesClient>();
 builder.Services.AddKeyedTransient<IAlertsClient, GrafanaClient>("grafana");
 builder.Services.AddKeyedTransient<IMetricsClient, AzureMonitorClient>("azuremonitor");
 builder.Services.AddTransient<IAlertsService, AlertsService>();
