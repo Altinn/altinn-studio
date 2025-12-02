@@ -3,9 +3,9 @@ package controller
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
+	"altinn.studio/operator/internal/resourcename"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
@@ -28,7 +28,7 @@ func (k requestKind) String() string {
 	if s, ok := requestKindToString[k]; ok {
 		return s
 	}
-	return UnkownStr
+	return UnknownStr
 }
 
 type maskinportenClientRequest struct {
@@ -48,11 +48,11 @@ func (r *MaskinportenClientReconciler) mapRequest(
 	_, span := r.runtime.Tracer().Start(ctx, "Reconcile.mapRequest")
 	defer span.End()
 
-	nameSplit := strings.Split(req.Name, "-")
-	if len(nameSplit) < 2 {
-		return nil, fmt.Errorf("mapRequest: unexpected name format for MaskinportenClient resource: %s", req.Name)
+	parsed, err := resourcename.ParseMaskinportenClientName(req.Name)
+	if err != nil {
+		return nil, fmt.Errorf("mapRequest: %w", err)
 	}
-	appId := nameSplit[1]
+	appId := parsed.AppId
 
 	opCtx := r.runtime.GetOperatorContext()
 

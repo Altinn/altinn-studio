@@ -49,12 +49,15 @@ func (a *azureKeyVaultClient) tryGetSecret(ctx context.Context, name string) (st
 	secretResp, err := a.client.GetSecret(ctx, name, "", nil)
 	if err != nil {
 		if respErr, ok := err.(*azcore.ResponseError); ok {
-			if respErr.StatusCode == 404 || respErr.StatusCode == 204 {
+			if respErr.StatusCode == 404 {
 				return "", nil
 			}
-			return "", fmt.Errorf("error getting secret %s: %w", name, err)
 		}
 		return "", fmt.Errorf("error getting secret %s: %w", name, err)
+	}
+
+	if secretResp.Value == nil {
+		return "", fmt.Errorf("secret value is nil for key %s", name)
 	}
 
 	return *secretResp.Value, nil

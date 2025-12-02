@@ -772,7 +772,7 @@ func TestNewClientState_MalformedCrdName(t *testing.T) {
 
 	_, err := NewClientState(crd, nil, nil, secret, nil)
 	g.Expect(err).To(HaveOccurred())
-	g.Expect(err.Error()).To(ContainSubstring("unexpected name format"))
+	g.Expect(err.Error()).To(ContainSubstring("invalid MaskinportenClient resource name"))
 }
 
 func TestNewClientState_EmptyClientIdFromApi(t *testing.T) {

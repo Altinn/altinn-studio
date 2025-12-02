@@ -338,7 +338,10 @@ func (c *HttpApiClient) CreateClient(
 
 	err = c.CreateClientJwks(ctx, result.ClientId, jwks)
 	if err != nil {
-		// TODO: hmm, delete client?
+		// If we fail here and it is OK to leave the client without JWK
+		// the reconcile iteration will fail and we try again later,
+		// at which point we will discover that the client already exists
+		// and try to upload the JWK again
 		return nil, fmt.Errorf("error creating client: %w, %w", ErrFailedToCreateJwks, err)
 	}
 
@@ -628,6 +631,14 @@ func (c *HttpApiClient) retryableHTTPDo(req *http.Request) (*http.Response, erro
 	// TODO: different strategy??
 
 	operation := func() error {
+		// Reset body for retries - after the first attempt, req.Body is consumed
+		if req.GetBody != nil {
+			req.Body, err = req.GetBody()
+			if err != nil {
+				return backoff.Permanent(err)
+			}
+		}
+
 		resp, err = c.client.Do(req)
 		if err != nil {
 			return err // Network error, retry.

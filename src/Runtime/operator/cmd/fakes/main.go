@@ -203,7 +203,20 @@ func runMaskinportenApi(ctx context.Context, wg *sync.WaitGroup) {
 			}
 			client := clients[0]
 
-			claims, err := jwt.DecodeClaims(client.Jwks.Keys[0])
+			var matchedKey *crypto.Jwk
+			for _, k := range client.Jwks.Keys {
+				if k.KeyID() == keyID {
+					matchedKey = k
+					break
+				}
+			}
+			if matchedKey == nil {
+				w.WriteHeader(400)
+				log.Printf("key not found in client jwks: %s\n", keyID)
+				return
+			}
+
+			claims, err := jwt.DecodeClaims(matchedKey)
 			if err != nil {
 				w.WriteHeader(400)
 				log.Printf("couldn't validate JWT: %v\n", err)

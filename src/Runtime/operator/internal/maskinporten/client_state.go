@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"strings"
 	"time"
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
@@ -12,6 +11,7 @@ import (
 	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/internal/crypto"
 	"altinn.studio/operator/internal/operatorcontext"
+	"altinn.studio/operator/internal/resourcename"
 	"github.com/jonboulle/clockwork"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -146,11 +146,11 @@ func NewClientState(
 		return nil, fmt.Errorf("unexpected condition, api resource was not created but api JWKS was")
 	}
 
-	nameSplit := strings.SplitN(crd.Name, "-", 2)
-	if len(nameSplit) < 2 {
-		return nil, fmt.Errorf("unexpected name format for MaskinportenClient resource: %s", crd.Name)
+	parsed, err := resourcename.ParseMaskinportenClientName(crd.Name)
+	if err != nil {
+		return nil, err
 	}
-	appId := nameSplit[1]
+	appId := parsed.AppId
 
 	state := &ClientState{
 		AppId: appId,
