@@ -44,10 +44,6 @@ export const EditBinding = ({
     internalBindingFormat?.dataType,
   );
 
-  React.useEffect(() => {
-    setBinding(internalBindingFormat);
-  }, [internalBindingFormat]);
-
   const handleBindingChange = (updatedBinding?: ExplicitDataModelBinding) => {
     const selectedDataFieldElement = updatedBinding?.field;
 
