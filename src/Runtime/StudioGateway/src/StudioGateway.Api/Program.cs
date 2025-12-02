@@ -1,6 +1,8 @@
 using StudioGateway.Api;
+using StudioGateway.Api.Designer;
 using StudioGateway.Api.Flux;
 using StudioGateway.Api.Hosting;
+using StudioGateway.Api.Kubernetes;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -14,6 +16,8 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 });
 builder.Services.AddHealthChecks();
 builder.Services.AddOpenApi("v1");
+builder.Services.AddDesignerClients(builder.Configuration);
+builder.Services.AddKubernetesServices();
 
 var app = builder.Build();
 
