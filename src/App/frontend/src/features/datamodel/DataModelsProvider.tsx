@@ -399,19 +399,8 @@ export const DataModels = {
     const { schemaLookup, allDataTypes } = useStaticSelector((state) => state);
 
     return useMemo(() => {
-      // if (allDataTypes && allDataTypes?.length > 0 && allDataTypes?.every((dt) => schemaLookup[dt])) {
-
-      const hasAllDataTypes = allDataTypes?.every((dt) => schemaLookup[dt]);
-
       if (allDataTypes?.every((dt) => schemaLookup[dt])) {
-        return (reference: IDataModelReference) =>
-          // if (!schemaLookup[reference.dataType]) {
-          //   console.log('hasAllDataTypes', hasAllDataTypes);
-          //   debugger;
-          //   // return false;
-          // }
-
-          schemaLookup[reference.dataType].getSchemaForPath(reference.field);
+        return (reference: IDataModelReference) => schemaLookup[reference.dataType].getSchemaForPath(reference.field);
       }
       return undefined;
     }, [allDataTypes, schemaLookup]);

@@ -3,13 +3,13 @@ import type { JSX, ReactNode } from 'react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { useInstanceDataSources } from 'src/domain/Instance/useInstanceQuery';
+import { useTextResources } from 'src/domain/Textresource/textResourceQuery';
 import { useLaxApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { DataModelReaders } from 'src/features/formData/FormDataReaders';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataModelReaders } from 'src/features/formData/SpecificDataModelFetcher';
 import { Lang } from 'src/features/language/Lang';
-import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { useStateDeepEqual } from 'src/hooks/useStateDeepEqual';
 // import { useLangToolsDataSources } from 'src/features/language/LangDataSourcesProvider';
@@ -32,7 +32,7 @@ export type LimitedTextResourceVariablesDataSources = Omit<
 >;
 
 export interface LangDataSources extends LimitedTextResourceVariablesDataSources {
-  textResources: TextResourceMap;
+  textResources?: TextResourceMap;
   selectedLanguage: string;
   language: FixedLanguageList;
 }
@@ -168,7 +168,7 @@ export function useLanguageWithForcedPath(dataModelPath: IDataModelReference | u
   return useMemo(() => {
     const { textResources, language, selectedLanguage, ...dataSources } = sources || {};
     if (!textResources || !language || !selectedLanguage) {
-      debugger;
+      // debugger;
       throw new Error('useLanguage must be used inside a LangToolsStoreProvider');
     }
 

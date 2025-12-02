@@ -16,6 +16,7 @@ export const useCurrentLanguage = () => {
     languageFromUrl,
     languageFromProfile,
   });
+  console.log('currentLangString', currentLangString);
 
   const currentLanguage = appLanguages.find((lang) => lang === currentLangString);
   if (!currentLanguage) {
@@ -23,11 +24,10 @@ export const useCurrentLanguage = () => {
   }
   return currentLanguage;
 };
-export const useIsCurrentLanguageResolved = () => true;
 
 export const useSetLanguageWithSelector = () => {
   const profile = getUserProfile();
-  const userId = profile?.userId;
+  const userId = profile.userId;
   const [_, setWithLanguageSelector] = useLocalStorageState(['selectedLanguage', userId], null);
   return setWithLanguageSelector;
 };
@@ -38,6 +38,6 @@ export const useSetLanguageWithSelector = () => {
  * if this query param changes after initial load.
  */
 export function getLanguageFromUrl() {
-  const params = new URLSearchParams(window.location.hash.split('?')[1]);
+  const params = new URLSearchParams(window.location.search.split('?')[1]);
   return params.get('lang');
 }

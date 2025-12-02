@@ -2,7 +2,8 @@ import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
-import { BlockUntilAllLoaded, LoadingRegistryProvider } from 'src/core/loading/LoadingRegistry';
+import { LoadingRegistryProvider } from 'src/core/loading/LoadingRegistry';
+// import { BlockUntilAllLoaded } from 'src/core/loading/LoadingRegistry';
 import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
 import { DynamicsProvider } from 'src/features/form/dynamics/DynamicsContext';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
@@ -43,7 +44,6 @@ export function FormProvider({ children, readOnly = false }: React.PropsWithChil
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
   const hasProcess = !!(instanceOwnerPartyId && instanceGuid);
-
   return (
     <LoadingRegistryProvider>
       <CodeListsProvider>
@@ -60,9 +60,7 @@ export function FormProvider({ children, readOnly = false }: React.PropsWithChil
                       <PaymentInformationProvider>
                         <OrderDetailsProvider>
                           <MaybePaymentProvider hasProcess={hasProcess}>
-                            <Provider value={{ readOnly }}>
-                              <BlockUntilAllLoaded>{children}</BlockUntilAllLoaded>
-                            </Provider>
+                            <Provider value={{ readOnly }}>{children}</Provider>
                           </MaybePaymentProvider>
                         </OrderDetailsProvider>
                       </PaymentInformationProvider>

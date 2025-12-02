@@ -54,7 +54,7 @@ const mockInstanceData = [
 // Mock the hooks and utilities
 jest.mock('src/utils/layout/useNodeItem');
 
-jest.mock('src/features/instance/InstanceContext', () => ({
+jest.mock('src/domain/instance/useInstanceQuery', () => ({
   useInstanceDataElements: jest.fn(() => mockInstanceData),
 }));
 

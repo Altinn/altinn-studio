@@ -86,9 +86,6 @@ export function NavigateToStartUrl({ forceCurrentTask = true }: { forceCurrentTa
 }
 
 export function ProcessWrapper({ children }: PropsWithChildren) {
-  // const { data: process } = useProcessQuery();
-  // const currentTaskId = process?.currentTask?.elementId;
-
   const taskId = useNavigationParam('taskId');
 
   const isWrongTask = useIsWrongTask(taskId);

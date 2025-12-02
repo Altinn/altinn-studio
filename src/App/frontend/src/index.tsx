@@ -21,7 +21,7 @@ import { ErrorPageContent } from 'src/components/ErrorPageContent';
 import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ViewportWrapper } from 'src/components/ViewportWrapper';
-import { ComponentRouting, NavigateToStartUrl, ProcessWrapper } from 'src/components/wrappers/ProcessWrapper';
+import { ComponentRouting, ProcessWrapper } from 'src/components/wrappers/ProcessWrapper';
 import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { ProcessingProvider } from 'src/core/contexts/processingContext';
@@ -30,7 +30,6 @@ import { createDynamicsLoader } from 'src/features/form/dynamics/dynamicsLoader'
 import { FormProvider } from 'src/features/form/FormContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { createInstanceLoader } from 'src/features/instance/instanceLoader';
-import { PartySelectionWrapper } from 'src/features/instantiate/containers/PartySelection';
 import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
@@ -103,16 +102,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         path: 'instance-selection',
                         element: <InstanceSelectionWrapper />,
                       },
-                      {
-                        path: 'party-selection',
-                        element: <PartySelectionWrapper />,
-                        children: [
-                          {
-                            path: ':errorCode',
-                            element: <PartySelectionWrapper />,
-                          },
-                        ],
-                      },
+                      // {
+                      //   path: 'party-selection',
+                      //   element: <PartySelectionWrapper />,
+                      //   children: [
+                      //     {
+                      //       path: ':errorCode',
+                      //       element: <PartySelectionWrapper />,
+                      //     },
+                      //   ],
+                      // },
                       {
                         path: 'error',
                         element: <ErrorPageContent />,
@@ -150,10 +149,6 @@ document.addEventListener('DOMContentLoaded', () => {
                               </FixWrongReceiptType>
                             ),
                             children: [
-                              {
-                                index: true,
-                                element: <NavigateToStartUrl forceCurrentTask={false} />,
-                              },
                               {
                                 path: ':pageKey',
                                 children: [

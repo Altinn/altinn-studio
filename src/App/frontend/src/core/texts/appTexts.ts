@@ -1,5 +1,5 @@
 import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
-import { useHasTextResources } from 'src/features/language/textResources/TextResourcesProvider';
+import { useHasTextResources } from 'src/domain/Textresource/textResourceQuery';
 import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useHasOrgs, useOrgs } from 'src/features/orgs/OrgsProvider';

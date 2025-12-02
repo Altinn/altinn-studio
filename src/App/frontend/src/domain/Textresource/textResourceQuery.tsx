@@ -3,8 +3,8 @@ import { useEffect } from 'react';
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { useQueryWithStaleData } from 'src/core/queries/useQueryWithStaleData';
 import { resourcesAsMap } from 'src/features/language/textResources/resourcesAsMap';
-import { useCurrentLanguage, useIsCurrentLanguageResolved } from 'src/features/language/useAppLanguages';
-import type { ITextResourceResult, TextResourceMap } from 'src/features/language/textResources/index';
+import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
+import type { ITextResourceResult, TextResourceMap } from 'src/features/language/textResources';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 export const convertResult = (result: ITextResourceResult): TextResourceMap => {
@@ -15,9 +15,10 @@ export const convertResult = (result: ITextResourceResult): TextResourceMap => {
 const useTextResourcesQuery = () => {
   const { fetchTextResources } = useAppQueries();
   const selectedLanguage = useCurrentLanguage();
+  console.log('selectedLanguage', selectedLanguage);
   // debugger;
   // This makes sure to await potential profile fetching before fetching text resources
-  const enabled = useIsCurrentLanguageResolved();
+  const enabled = true; //useIsCurrentLanguageResolved();
   const utils = {
     ...useQueryWithStaleData<TextResourceMap, HttpClientError>({
       enabled,
@@ -35,4 +36,5 @@ const useTextResourcesQuery = () => {
 };
 
 export const useTextResources = () => useTextResourcesQuery().data as TextResourceMap;
+export const useIsTextResourcesLoading = () => useTextResourcesQuery().isLoading;
 export const useHasTextResources = () => true;

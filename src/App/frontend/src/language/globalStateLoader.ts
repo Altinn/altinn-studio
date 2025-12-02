@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs } from 'react-router-dom';
 
 import type { QueryClient } from '@tanstack/react-query';
 
-import { convertResult } from 'src/features/language/textResources/TextResourcesProvider';
+import { convertResult } from 'src/domain/Textresource/textResourceQuery';
 import { getLanguageFromUrl } from 'src/features/language/useAppLanguages';
 import { fetchTextResources } from 'src/http-client/queries';
 import type { TextResourceMap } from 'src/features/language/textResources';

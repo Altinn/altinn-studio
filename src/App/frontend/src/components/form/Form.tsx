@@ -10,7 +10,7 @@ import { NavigateToStartUrl } from 'src/components/wrappers/ProcessWrapper';
 import { SearchParams } from 'src/core/routing/types';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
-import { useInstance, useLaxInstanceId } from 'src/domain/Instance/useInstanceQuery';
+import { useLaxInstanceId } from 'src/domain/Instance/useInstanceQuery';
 import { useAllAttachments } from 'src/features/attachments/hooks';
 import { FileScanResults } from 'src/features/attachments/types';
 import { useExpandedWidthLayouts, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
@@ -42,9 +42,6 @@ export function Form() {
   const [searchParams, setSearchParams] = useSearchParams();
   const shouldValidateFormPage = searchParams.get(SearchParams.Validate);
   const onFormSubmitValidation = useOnFormSubmitValidation();
-
-  const instance = useInstance();
-
   useEffect(() => {
     if (shouldValidateFormPage) {
       onFormSubmitValidation();
