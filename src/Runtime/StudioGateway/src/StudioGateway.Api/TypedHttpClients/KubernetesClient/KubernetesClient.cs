@@ -13,7 +13,7 @@ namespace StudioGateway.Api.TypedHttpClients.KubernetesClient;
 internal sealed class KubernetesClient(IConfiguration configuration, Kubernetes client) : IKubernetesClient
 {
     /// <inheritdoc/>
-    public async Task<IEnumerable<Metric>> GetReadinessAsync(string app, CancellationToken cancellationToken)
+    public async Task<HealthMetric> GetReadinessAsync(string app, CancellationToken cancellationToken)
     {
         string org =
             configuration["GATEWAY_SERVICEOWNER"]
@@ -41,15 +41,7 @@ internal sealed class KubernetesClient(IConfiguration configuration, Kubernetes 
                 pod.Status.ContainerStatuses.FirstOrDefault(s => s.Name == container.Name)?.Ready == true
             )
         );
-        int count = items.Any() ? readyPods / items.Count * 100 : 0;
 
-        return
-        [
-            new Metric()
-            {
-                Name = "readiness",
-                DataPoints = [new() { DateTimeOffset = DateTimeOffset.UtcNow, Count = count }],
-            },
-        ];
+        return new HealthMetric() { Name = "readiness", Value = items.Any() ? readyPods / items.Count * 100 : 0 };
     }
 }

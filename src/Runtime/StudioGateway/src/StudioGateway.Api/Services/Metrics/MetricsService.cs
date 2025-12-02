@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Options;
 using StudioGateway.Api.Configuration;
 using StudioGateway.Api.Models.Metrics;
+using StudioGateway.Api.TypedHttpClients.AppClient;
 using StudioGateway.Api.TypedHttpClients.KubernetesClient;
 using StudioGateway.Api.TypedHttpClients.MetricsClient;
 
@@ -15,7 +16,8 @@ namespace StudioGateway.Api.Services.Metrics;
 internal sealed class MetricsService(
     IServiceProvider serviceProvider,
     IOptions<MetricsClientSettings> metricsClientSettings,
-    IKubernetesClient kubernetesClient
+    IKubernetesClient kubernetesClient,
+    IAppClient appClient
 ) : IMetricsService
 {
     private readonly MetricsClientSettings _metricsClientSettings = metricsClientSettings.Value;
@@ -27,9 +29,18 @@ internal sealed class MetricsService(
             _metricsClientSettings.Provider
         );
 
-        IEnumerable<Metric> kubernetesReadiness = await kubernetesClient.GetReadinessAsync(app, cancellationToken);
         IEnumerable<Metric> metrics = await metricsClient.GetMetricsAsync(app, time, cancellationToken);
 
-        return kubernetesReadiness.Concat(metrics);
+        return metrics;
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<HealthMetric>> GetHealthMetricsAsync(string app, CancellationToken cancellationToken)
+    {
+        HealthMetric kubernetesReadiness = await kubernetesClient.GetReadinessAsync(app, cancellationToken);
+
+        HealthMetric appHealth = await appClient.GetHealthAsync(app, cancellationToken);
+
+        return [appHealth, kubernetesReadiness];
     }
 }

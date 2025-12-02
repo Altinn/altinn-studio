@@ -8,6 +8,7 @@ using StudioGateway.Api.Hosting;
 using StudioGateway.Api.Services.Alerts;
 using StudioGateway.Api.Services.Metrics;
 using StudioGateway.Api.TypedHttpClients.AlertsClient;
+using StudioGateway.Api.TypedHttpClients.AppClient;
 using StudioGateway.Api.TypedHttpClients.KubernetesClient;
 using StudioGateway.Api.TypedHttpClients.MetricsClient;
 using StudioGateway.Api.TypedHttpClients.StudioClient;
@@ -28,6 +29,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 });
 builder.Services.AddHttpClient<IStudioClient, StudioClient>();
+builder.Services.AddTransient<IAppClient, AppClient>();
 builder.Services.AddSingleton(sp =>
 {
     var config = KubernetesClientConfiguration.BuildDefaultConfig();

@@ -57,18 +57,20 @@ internal sealed class AzureMonitorClient(
     {
         List<string> names = ["altinn_app_lib_processes_started"];
 
+        var roundTo = time < 360 ? "5m" : "1h";
+
         var query =
             $@"
                 AppMetrics
                 | where AppRoleName == '{app.Replace("'", "''")}'
                 | where Name in ('{names.Aggregate((a, b) => a + "','" + b)}')
-                | summarize Count = sum(Sum) by AppRoleName, Name, DateTimeOffset = bin(TimeGenerated, 1h)
+                | summarize Value = sum(Sum) by AppRoleName, Name, DateTimeOffset = bin(TimeGenerated, {roundTo})
                 | order by DateTimeOffset desc";
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
             logAnalyticsWorkspaceId,
             query,
-            new QueryTimeRange(TimeSpan.FromHours(time)),
+            new QueryTimeRange(TimeSpan.FromMinutes(time)),
             cancellationToken: cancellationToken
         );
 
@@ -79,7 +81,7 @@ internal sealed class AzureMonitorClient(
                 {
                     Name = row.GetString("Name"),
                     DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset").GetValueOrDefault(),
-                    Count = row.GetDouble("Count") ?? 0,
+                    Value = row.GetDouble("Value") ?? 0,
                 };
             })
             .GroupBy(row => row.Name)
@@ -91,7 +93,7 @@ internal sealed class AzureMonitorClient(
                     DataPoints = row.Select(e => new MetricDataPoint
                     {
                         DateTimeOffset = e.DateTimeOffset,
-                        Count = e.Count,
+                        Value = e.Value,
                     }),
                 };
             });
@@ -108,6 +110,8 @@ internal sealed class AzureMonitorClient(
         CancellationToken cancellationToken
     )
     {
+        var roundTo = time < 360 ? "5m" : "1h";
+
         var query =
             $@"
                 AppRequests
@@ -116,20 +120,20 @@ internal sealed class AzureMonitorClient(
                 | where toint(ResultCode) >= 500
                 | where AppRoleName == '{app.Replace("'", "''")}'
                 | where Name has 'PUT Process/NextElement'
-                | summarize Count = sum(ItemCount) by AppRoleName, DateTimeOffset = bin(TimeGenerated, 1h)
+                | summarize Value = sum(ItemCount) by AppRoleName, DateTimeOffset = bin(TimeGenerated, {roundTo})
                 | order by DateTimeOffset asc";
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
             logAnalyticsWorkspaceId,
             query,
-            new QueryTimeRange(TimeSpan.FromHours(time)),
+            new QueryTimeRange(TimeSpan.FromMinutes(time)),
             cancellationToken: cancellationToken
         );
 
         var metricDataPoints = response.Value.Table.Rows.Select(row => new MetricDataPoint
         {
             DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset").GetValueOrDefault(),
-            Count = row.GetDouble("Count") ?? 0,
+            Value = row.GetDouble("Value") ?? 0,
         });
 
         return [new Metric { Name = "failed_process_next_requests", DataPoints = metricDataPoints }];

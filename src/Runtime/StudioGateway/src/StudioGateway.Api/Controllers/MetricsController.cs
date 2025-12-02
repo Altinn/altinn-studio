@@ -26,4 +26,14 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
         IEnumerable<Metric> metrics = await _metricsService.GetMetricsAsync(app, time, cancellationToken);
         return Ok(metrics);
     }
+
+    [HttpGet("health")]
+    public async Task<ActionResult<IEnumerable<Metric>>> GetHealthMetrics(
+        string app,
+        CancellationToken cancellationToken
+    )
+    {
+        IEnumerable<HealthMetric> metrics = await _metricsService.GetHealthMetricsAsync(app, cancellationToken);
+        return Ok(metrics);
+    }
 }

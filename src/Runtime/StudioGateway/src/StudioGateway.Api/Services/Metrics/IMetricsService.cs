@@ -11,4 +11,5 @@ namespace StudioGateway.Api.Services.Metrics;
 public interface IMetricsService
 {
     public Task<IEnumerable<Metric>> GetMetricsAsync(string app, int time, CancellationToken cancellationToken);
+    public Task<IEnumerable<HealthMetric>> GetHealthMetricsAsync(string app, CancellationToken cancellationToken);
 }
