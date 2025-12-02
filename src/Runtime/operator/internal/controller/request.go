@@ -52,15 +52,17 @@ func (r *MaskinportenClientReconciler) mapRequest(
 	if err != nil {
 		return nil, fmt.Errorf("mapRequest: %w", err)
 	}
-	appId := parsed.AppId
 
 	opCtx := r.runtime.GetOperatorContext()
+	if parsed.ServiceOwnerId != opCtx.ServiceOwner.Id {
+		return nil, fmt.Errorf("mapRequest: resource service owner %q does not match operator scope %q", parsed.ServiceOwnerId, opCtx.ServiceOwner.Id)
+	}
 
 	return &maskinportenClientRequest{
 		NamespacedName: req.NamespacedName,
 		Name:           req.Name,
 		Namespace:      req.Namespace,
-		AppId:          appId,
-		AppLabel:       fmt.Sprintf("%s-%s-deployment", opCtx.ServiceOwner.Id, appId),
+		AppId:          parsed.AppId,
+		AppLabel:       fmt.Sprintf("%s-%s-deployment", opCtx.ServiceOwner.Id, parsed.AppId),
 	}, nil
 }

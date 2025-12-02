@@ -1,8 +1,10 @@
 package maskinporten
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -349,4 +351,57 @@ func TestCreateReq(t *testing.T) {
 	g.Expect(req.URL.String()).To(Equal(testUrl))
 	expectedHeader := fmt.Sprintf("Bearer %s", accessToken)
 	g.Expect(req.Header.Get("Authorization")).To(Equal(expectedHeader))
+}
+
+func TestRetryableHTTPDoPreservesBodyOnRetry(t *testing.T) {
+	g := NewWithT(t)
+	clock := clockwork.NewFakeClock()
+
+	expectedBody := `{"test":"data"}`
+	attemptCount := 0
+	var bodiesReceived []string
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		attemptCount++
+		body, err := io.ReadAll(r.Body)
+		g.Expect(err).NotTo(HaveOccurred())
+		bodiesReceived = append(bodiesReceived, string(body))
+
+		if attemptCount == 1 {
+			// First attempt: return 500 to trigger retry
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		// Second attempt: return success
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	accessToken := uuid.NewString()
+	apiClient := &HttpApiClient{
+		client: http.Client{},
+		accessToken: caching.NewCachedAtom(time.Minute*5, clock, func(ctx context.Context) (*TokenResponse, error) {
+			return &TokenResponse{AccessToken: accessToken}, nil
+		}),
+	}
+
+	ctx := context.Background()
+	req, err := apiClient.createReq(ctx, server.URL, "POST", bytes.NewReader([]byte(expectedBody)))
+	g.Expect(err).NotTo(HaveOccurred())
+	req.Header.Set("Content-Type", "application/json")
+
+	// Go's http.NewRequestWithContext automatically sets GetBody for bytes.Reader
+	g.Expect(req.GetBody).NotTo(BeNil(), "bytes.NewReader should cause GetBody to be set by http.NewRequestWithContext")
+
+	resp, err := apiClient.retryableHTTPDo(req)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
+	defer resp.Body.Close()
+
+	// Should have 2 attempts
+	g.Expect(attemptCount).To(Equal(2))
+	// Both attempts should receive the full body
+	g.Expect(bodiesReceived).To(HaveLen(2))
+	g.Expect(bodiesReceived[0]).To(Equal(expectedBody), "First attempt should have body")
+	g.Expect(bodiesReceived[1]).To(Equal(expectedBody), "Retry attempt should have body")
 }

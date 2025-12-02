@@ -40,10 +40,13 @@ const (
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Usage: %s <command> [options]\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Usage: %s <command> <subcommand> [options]\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "Commands:\n")
-		fmt.Fprintf(os.Stderr, "  get     Get commands\n")
-		fmt.Fprintf(os.Stderr, "  create  Create commands\n")
+		fmt.Fprintf(os.Stderr, "  get     Get resources (token, client-token, clients)\n")
+		fmt.Fprintf(os.Stderr, "  create  Create resources (jwk, client)\n")
+		fmt.Fprintf(os.Stderr, "  update  Update resources (client)\n")
+		fmt.Fprintf(os.Stderr, "  delete  Delete resources (client)\n")
+		fmt.Fprintf(os.Stderr, "  init    Initialize resources (env)\n")
 		os.Exit(1)
 	}
 
@@ -494,10 +497,6 @@ func createJwk() {
 	}
 
 	_, cryptoService := setupBaseServices()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
-	}
 
 	certSubject := crypto.CertSubject{
 		Organization:       certOrg,

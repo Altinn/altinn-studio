@@ -176,7 +176,7 @@ func TestGenerateCertSerialNumber(t *testing.T) {
 
 	serial, err := service.generateCertSerialNumber()
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(serial.Sign()).ToNot(BeIdenticalTo(-1))
+	g.Expect(serial.Sign()).ToNot(Equal(-1))
 	g.Expect(serial.Bytes()).To(HaveLen(16))
 
 	snaps.MatchSnapshot(t, serial.String())
@@ -193,7 +193,7 @@ func TestPublicJwksConversion(t *testing.T) {
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(publicJwks).NotTo(BeNil())
-	// Certificates is marshalled as "x5c", which Maskinporten doens't want
+	// Certificates is marshalled as "x5c", which Maskinporten doesn't want
 	g.Expect(publicJwks.Keys[0].Certificates()).To(BeNil())
 	g.Expect(jwks.Keys[0].Certificates()).NotTo(BeNil())
 

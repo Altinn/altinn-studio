@@ -6,8 +6,8 @@ Here are some important resources:
 
 - [Team Apps Github board](https://github.com/orgs/Altinn/projects/39/views/2)
 - [Altinn Studio docs](https://docs.altinn.studio/)
-- Self service API docs: https://docs.digdir.no/docs/idporten/oidc/oidc_api_admin.html
-- Self service API dev Swagger UI: https://api.samarbeid.digdir.dev/swagger-ui/index.html?urls.primaryName=External%20OIDC
+- [Self service API docs](https://docs.digdir.no/docs/idporten/oidc/oidc_api_admin.html)
+- [Self service API dev Swagger UI](https://api.samarbeid.digdir.dev/swagger-ui/index.html?urls.primaryName=External%20OIDC)
 
 ## Reporting Issues
 
@@ -131,8 +131,8 @@ kubectl apply -f https://raw.githubusercontent.com/<org>/altinn-studio-operator/
 
 ### JSON schema -> Go structs
 
-The Swagger UI is at: https://api.samarbeid.digdir.dev/swagger-ui/index.html#/
-OpenAPI spec at: https://api.samarbeid.digdir.dev/v3/api-docs/altinn-admin
+The Swagger UI is at: <https://api.samarbeid.digdir.dev/swagger-ui/index.html#/>
+OpenAPI spec at: <https://api.samarbeid.digdir.dev/v3/api-docs/altinn-admin>
 
 Download to `schemas/spec.json`, tell AI to write the models, update the client and fakes.
 
@@ -170,7 +170,7 @@ Process:
 
 To create a JWK (both the public+private and the public for self service UI input):
 
-```
+```sh
 go run cmd/utils/main.go create jwk -cert-org Digdir -cert-cn altinn_studio_operator_supplier_client -not-after 2026-12-31T23:59:59Z -verbose
 ```
 
@@ -180,7 +180,7 @@ The rest of the config should come from <env>.env file.
 NOTE: using at22 below means you need to be logged in using an az account that has access to that environment
 Create the .env file, and then test the configuration:
 
-```
+```sh
 $ go run cmd/utils/main.go get clients -verbose -pretty -env at22
 ...
 $ go run cmd/utils/main.go create client -verbose -env at22 -app-id localtestapp -scopes altinn:instances.read,altinn:instances.write
