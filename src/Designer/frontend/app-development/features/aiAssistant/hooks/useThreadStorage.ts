@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { ChatThread } from '@studio/assistant';
+import { useOrgAppScopedStorage } from '@studio/hooks';
 
 const THREADS_STORAGE_KEY = 'ai-assistant-threads';
 
 /**
- * Hook for managing chat threads in localStorage
+ * Hook for managing chat threads in org/app scoped localStorage
  */
 export const useThreadStorage = () => {
+  const storage = useOrgAppScopedStorage({ storage: 'localStorage' });
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const threadsRef = useRef<ChatThread[]>([]);
   const isLoading = useRef(true);
@@ -14,18 +16,17 @@ export const useThreadStorage = () => {
   // Load threads from localStorage on mount
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(THREADS_STORAGE_KEY);
-      if (stored) {
-        const parsedThreads = JSON.parse(stored);
+      const stored = storage.getItem<ChatThread[]>(THREADS_STORAGE_KEY);
+      if (stored && Array.isArray(stored)) {
         // Convert timestamp strings back to Date objects
-        const threadsWithDates = parsedThreads.map((thread: any) => ({
+        const threadsWithDates: ChatThread[] = stored.map((thread) => ({
           ...thread,
-          messages: thread.messages.map((msg: any) => ({
+          messages: thread.messages.map((msg) => ({
             ...msg,
             timestamp: new Date(msg.timestamp),
           })),
-          createdAt: new Date(thread.createdAt),
-          updatedAt: new Date(thread.updatedAt),
+          createdAt: thread.createdAt,
+          updatedAt: thread.updatedAt,
         }));
         setThreads(threadsWithDates);
         threadsRef.current = threadsWithDates;
@@ -35,7 +36,7 @@ export const useThreadStorage = () => {
     } finally {
       isLoading.current = false;
     }
-  }, []);
+  }, [storage]);
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -46,12 +47,12 @@ export const useThreadStorage = () => {
   useEffect(() => {
     if (!isLoading.current) {
       try {
-        localStorage.setItem(THREADS_STORAGE_KEY, JSON.stringify(threads));
+        storage.setItem(THREADS_STORAGE_KEY, threads);
       } catch (error) {
         console.warn('Failed to save threads to localStorage:', error);
       }
     }
-  }, [threads]);
+  }, [threads, storage]);
 
   const addThread = useCallback((thread: ChatThread) => {
     setThreads((prev) => {

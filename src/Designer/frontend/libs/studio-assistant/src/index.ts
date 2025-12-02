@@ -1,4 +1,5 @@
 export type * from './types/AssistantConfig';
+export { ErrorMessages } from './types/AssistantConfig';
 export { ChatColumn } from './components/ChatColumn';
 export type { ChatColumnProps } from './components/ChatColumn';
 export { MessageAuthor } from './types/MessageAuthor';
