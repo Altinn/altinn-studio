@@ -74,9 +74,10 @@ public class AddAsyncTests : DbIntegrationTestsBase
 
         // Assert
         var deployment = await DbFixture.DbContext.Deployments
+            .Include(d => d.Build)
             .Include(d => d.Events)
             .AsNoTracking()
-            .FirstOrDefaultAsync(d => d.Org == org && d.Buildid == deploymentEntity.Build.Id);
+            .FirstOrDefaultAsync(d => d.Org == org && d.Build.ExternalId == deploymentEntity.Build.Id);
 
         Assert.NotNull(deployment);
         Assert.Single(deployment.Events);
@@ -108,9 +109,10 @@ public class AddAsyncTests : DbIntegrationTestsBase
 
         // Assert
         var deployment = await DbFixture.DbContext.Deployments
+            .Include(d => d.Build)
             .Include(d => d.Events)
             .AsNoTracking()
-            .FirstOrDefaultAsync(d => d.Org == org && d.Buildid == deploymentEntity.Build.Id);
+            .FirstOrDefaultAsync(d => d.Org == org && d.Build.ExternalId == deploymentEntity.Build.Id);
 
         Assert.NotNull(deployment);
         Assert.Equal(3, deployment.Events.Count);
