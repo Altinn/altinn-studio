@@ -39,16 +39,20 @@ internal static class MaskinportenAuthenticationExtensions
             .Get<string[]>();
 
         if (metadataAddresses is null || metadataAddresses.Length == 0)
+        {
             throw new InvalidOperationException(
                 "Maskinporten:MetadataAddresses configuration is required and must contain at least one address"
             );
+        }
 
         string? requiredScope = configuration.GetValue<string>("Maskinporten:RequiredScope");
 
         if (string.IsNullOrEmpty(requiredScope))
+        {
             throw new InvalidOperationException(
                 "Maskinporten:RequiredScope configuration is required"
             );
+        }
 
         var schemeNames = new List<string>(metadataAddresses.Length);
 
@@ -102,7 +106,9 @@ internal static class MaskinportenAuthenticationExtensions
                             MaskinportenConstants.ScopeClaimType
                         );
                         if (scopeClaim is null)
+                        {
                             return false;
+                        }
 
                         string[] scopes = scopeClaim.Value.Split(
                             ' ',
@@ -226,11 +232,15 @@ internal static class MaskinportenAuthenticationExtensions
             string.IsNullOrEmpty(headerValue)
             || !headerValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
         )
+        {
             return (false, null, null);
+        }
 
         string token = headerValue["Bearer ".Length..].Trim();
         if (string.IsNullOrEmpty(token))
+        {
             return (false, null, null);
+        }
 
         try
         {

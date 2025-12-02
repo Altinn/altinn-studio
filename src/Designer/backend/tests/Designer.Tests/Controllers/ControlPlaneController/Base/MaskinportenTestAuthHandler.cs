@@ -21,7 +21,9 @@ internal sealed class MaskinportenTestAuthHandler : AuthenticationHandler<Maskin
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         if (!Options.ShouldAuthenticate)
+        {
             return Task.FromResult(AuthenticateResult.NoResult());
+        }
 
         var claims = new[]
         {

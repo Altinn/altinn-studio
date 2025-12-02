@@ -65,7 +65,9 @@ public class HealthTests : ControlPlaneControllerTestsBase<HealthTests>, IClassF
                             {
                                 var scopeClaim = context.User.FindFirst(MaskinportenConstants.ScopeClaimType);
                                 if (scopeClaim is null)
+                                {
                                     return false;
+                                }
 
                                 string[] scopes = scopeClaim.Value.Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
                                 return scopes.Contains(RequiredScope);
