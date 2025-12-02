@@ -3,7 +3,7 @@ import React from 'react';
 import { AltinnContentLoader } from 'src/app-components/loading/AltinnContentLoader/AltinnContentLoader';
 import { useAppName } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
+import { useInstanceDataQuery } from 'src/domain/Instance/useInstanceQuery';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { ConfirmPage } from 'src/features/process/confirm/containers/ConfirmPage';
 

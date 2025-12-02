@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 
 import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useDataElementsSelectorProps, useInstanceDataSources } from 'src/domain/Instance/useInstanceQuery';
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayDataFor } from 'src/features/displayData/useDisplayData';
@@ -10,7 +11,6 @@ import { ExprFunctionDefinitions } from 'src/features/expressions/expression-fun
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { useDataElementsSelectorProps, useInstanceDataSources } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { useInnerLanguageWithForcedPathSelector } from 'src/features/language/useLanguage';

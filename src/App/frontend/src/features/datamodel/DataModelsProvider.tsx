@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { useMutationState, useQueryClient } from '@tanstack/react-query';
+import { useMutationState } from '@tanstack/react-query';
 import deepEqual from 'fast-deep-equal';
 import { createStore } from 'zustand';
 import type { JSONSchema7 } from 'json-schema';
@@ -11,6 +11,7 @@ import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { getApplicationMetadata, useIsStatelessApp } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useInstance, useInstanceDataElements } from 'src/domain/Instance/useInstanceQuery';
 import { getFirstDataElementId } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useCustomValidationConfigQuery } from 'src/features/customValidation/useCustomValidationQuery';
 import { UpdateDataElementIdsForCypress } from 'src/features/datamodel/DataElementIdsForCypress';
@@ -27,8 +28,6 @@ import {
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
-import { useInstanceDataElements, useInstanceDataQuery } from 'src/features/instance/InstanceContext';
-import { instanceQueries } from 'src/features/instance/instanceQuery';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { isAxiosError } from 'src/utils/isAxiosError';
@@ -153,30 +152,17 @@ function DataModelsLoader() {
   const applicationMetadata = getApplicationMetadata();
   const setDataTypes = useSelector((state) => state.setDataTypes);
   const allDataTypes = useSelector((state) => state.allDataTypes);
-
-  console.log('allDataTypes', allDataTypes);
-
   const writableDataTypes = useSelector((state) => state.writableDataTypes);
   const layouts = useLayouts();
-
-  console.log('layouts', layouts);
-
   const defaultDataType = useCurrentDataModelName();
   const isStateless = useIsStatelessApp();
-  const queryClient = useQueryClient();
-  const instance = useInstanceDataQuery().data;
+  const instance = useInstance(); //useInstanceDataQuery().data;
 
   if (!instance?.instanceOwner.partyId) {
     throw new Error('instanceOwnerParty is required at this point, something is wrong.');
   }
-  const instanceOwnerPartyId = `${instance.instanceOwner.partyId}`;
 
-  const dataElements =
-    queryClient.getQueryData(
-      instanceQueries.instanceData({ instanceOwnerPartyId, instanceGuid: instance?.id }).queryKey,
-    )?.data ??
-    window.AltinnAppInstanceData?.instance?.data ??
-    emptyArray;
+  const dataElements = instance.data ?? emptyArray;
 
   const layoutSetId = useCurrentLayoutSetId();
 

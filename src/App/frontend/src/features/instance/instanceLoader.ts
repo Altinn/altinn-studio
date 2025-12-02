@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs } from 'react-router-dom';
 
 import type { QueryClient } from '@tanstack/react-query';
 
-import { instanceDataQueryKey } from 'src/features/instance/instanceQuery';
+import { instanceDataQueryKey } from 'src/domain/Instance/useInstanceQuery';
 import type { IInstance } from 'src/types/shared';
 
 interface InstanceLoaderProps extends LoaderFunctionArgs {

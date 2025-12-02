@@ -7,10 +7,10 @@ import axios from 'axios';
 
 import { Button } from 'src/app-components/Button/Button';
 import { useIsStatelessApp } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useLaxInstanceId } from 'src/domain/Instance/useInstanceQuery';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useIsInFormContext } from 'src/features/form/FormContext';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import comboboxClasses from 'src/styles/combobox.module.css';
 import { optionFilter } from 'src/utils/options';
 import { getStatefulDataModelUrl } from 'src/utils/urls/appUrlHelper';

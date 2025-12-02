@@ -1,4 +1,4 @@
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
+import { useInstanceDataQuery } from 'src/domain/Instance/useInstanceQuery';
 import type { IParty } from 'src/types/shared';
 
 /**

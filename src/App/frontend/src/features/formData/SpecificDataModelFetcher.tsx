@@ -2,12 +2,12 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { PropsWithChildren } from 'react';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
+import { useInstanceDataElements } from 'src/domain/Instance/useInstanceQuery';
 import { getFirstDataElementId } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useAvailableDataModels } from 'src/features/datamodel/useAvailableDataModels';
 import { useDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { DataModelReader, DataModelReaders } from 'src/features/formData/FormDataReaders';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
-import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';

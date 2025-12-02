@@ -1,13 +1,16 @@
 import React, { useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
+import { skipToken, useQueries } from '@tanstack/react-query';
 import { createStore } from 'zustand';
 
+import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { useMarkAsLoading } from 'src/core/loading/LoadingRegistry';
+import { useLaxInstanceId } from 'src/domain/Instance/useInstanceQuery';
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
-import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
+import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
 import { useGetOptionsQuery } from 'src/features/options/useGetOptionsQuery';
 import { getOptionsUrl } from 'src/utils/urls/appUrlHelper';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
@@ -37,52 +40,6 @@ const { Provider, useDelayedSelectorProps, useStaticSelector } = createZustandCo
   initialCreateStore,
 });
 
-/**
- * Provider for fetching and storing code lists not directly tied to components. This provider fetches code lists
- * referenced in the `optionLabel` expression function and stores them for later use in those expressions. This
- * has to be done ahead of time, as the expression engine is currently not able to work asynchronously.
- */
-export function CodeListsProvider({ children }: PropsWithChildren) {
-  return (
-    <Provider>
-      {children}
-      <FindAndMaintainCodeLists />
-    </Provider>
-  );
-}
-
-const delayedSelectorProps = {
-  mode: 'simple' as const,
-  selector: (optionsId: string) => (state: CodeListsStore) => state.codeLists[optionsId],
-};
-
-export type CodeListSelector = (optionsId: string) => IOptionInternal[] | undefined | typeof CodeListPending;
-export const useCodeListSelectorProps = () => useDelayedSelectorProps(delayedSelectorProps);
-
-function FindAndMaintainCodeLists() {
-  const layouts = useLayouts();
-  const language = useCurrentLanguage();
-  const instanceId = useLaxInstanceId();
-  const toFetch = getAllReferencedCodeLists(layouts, language, instanceId);
-
-  return (
-    <>
-      {Array.from(toFetch.keys()).map((url) => (
-        <CodeListFetcher
-          key={url}
-          url={url}
-          {...toFetch.get(url)!}
-        />
-      ))}
-    </>
-  );
-}
-
-interface ToFetch {
-  optionsId: string;
-  storeInZustand: boolean;
-}
-
 function CodeListFetcher({ url, optionsId, storeInZustand }: { url: string } & ToFetch) {
   const updateCodeList = useStaticSelector((state) => state.updateCodeList);
   const { data, isPending, error } = useGetOptionsQuery(url);
@@ -106,6 +63,101 @@ function CodeListFetcher({ url, optionsId, storeInZustand }: { url: string } & T
   }, [data, error, optionsId, storeInZustand, updateCodeList]);
 
   return null;
+}
+
+function useCodeListQueries(urls: string[]) {
+  const { fetchOptions } = useAppQueries();
+
+  return useQueries({
+    queries: urls.map((url) => ({
+      queryKey: ['fetchOptions', url],
+      queryFn: url
+        ? async () => {
+            const result = await fetchOptions(url);
+            if (!result) {
+              return null;
+            }
+            return {
+              headers: result.headers,
+              data: castOptionsToStrings(result.data),
+            };
+          }
+        : skipToken,
+      enabled: !!url,
+    })),
+  });
+}
+
+// function useInstanceDataQueries(instances: Array<{ instance; OwnerPartyId: string; instanceGuid: string }>) {
+//   return useQueries({
+//     queries: instances.map((params) => instanceQueries.instanceData(params)),
+//   });
+// }
+
+/**
+ * Provider for fetching and storing code lists not directly tied to components. This provider fetches code lists
+ * referenced in the `optionLabel` expression function and stores them for later use in those expressions. This
+ * has to be done ahead of time, as the expression engine is currently not able to work asynchronously.
+ */
+export function CodeListsProvider({ children }: PropsWithChildren) {
+  const layouts = useLayouts();
+  const language = useCurrentLanguage();
+  const instanceId = useLaxInstanceId();
+  const toFetch = getAllReferencedCodeLists(layouts, language, instanceId);
+
+  const urls = Array.from(toFetch.keys());
+
+  const allCodeListQueries = useCodeListQueries(urls);
+
+  const isLoading = allCodeListQueries.some(({ isLoading }) => isLoading);
+
+  return (
+    <Provider>
+      {children}
+
+      {/*{Array.from(toFetch.keys()).map((url) => (*/}
+      {/*  <CodeListFetcher*/}
+      {/*    key={url}*/}
+      {/*    url={url}*/}
+      {/*    {...toFetch.get(url)!}*/}
+      {/*  />*/}
+      {/*))}*/}
+
+      {/*<FindAndMaintainCodeLists />*/}
+    </Provider>
+  );
+}
+
+const delayedSelectorProps = {
+  mode: 'simple' as const,
+  selector: (optionsId: string) => (state: CodeListsStore) => state.codeLists[optionsId],
+};
+
+export type CodeListSelector = (optionsId: string) => IOptionInternal[] | undefined | typeof CodeListPending;
+export const useCodeListSelectorProps = () => useDelayedSelectorProps(delayedSelectorProps);
+
+// function FindAndMaintainCodeLists() {
+//   const layouts = useLayouts();
+//   const language = useCurrentLanguage();
+//   const instanceId = useLaxInstanceId();
+//   const toFetch = getAllReferencedCodeLists(layouts, language, instanceId);
+//
+//   return (
+//     <>
+//       {Array.from(toFetch.keys()).map((url) => (
+//         <CodeListFetcher
+//           key={url}
+//           url={url}
+//           {...toFetch.get(url)!}
+//         />
+//       ))}
+//     </>
+//   );
+// }
+
+interface ToFetch {
+  optionsId: string;
+  storeInZustand: boolean;
 }
 
 /**

@@ -3,7 +3,7 @@ import React from 'react';
 import { Label, Paragraph } from '@digdir/designsystemet-react';
 
 import { Caption } from 'src/components/form/caption/Caption';
-import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceId } from 'src/domain/Instance/useInstanceQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { usePaymentInformation } from 'src/features/payment/PaymentInformationProvider';

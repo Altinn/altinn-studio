@@ -8,17 +8,17 @@ import type { AxiosError } from 'axios';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
+import {
+  useLaxInstanceId,
+  useOptimisticallyRemoveDataElement,
+  useOptimisticallyUpdateDataElement,
+} from 'src/domain/Instance/useInstanceQuery';
 import { isAttachmentUploaded, isDataPostError } from 'src/features/attachments/index';
 import { sortAttachmentsByName } from 'src/features/attachments/sortAttachments';
 import { attachmentSelector } from 'src/features/attachments/tools';
 import { FileScanResults } from 'src/features/attachments/types';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { dataModelPairsToObject } from 'src/features/formData/types';
-import {
-  useLaxInstanceId,
-  useOptimisticallyRemoveDataElement,
-  useOptimisticallyUpdateDataElement,
-} from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { backendValidationIssueGroupListToObject } from 'src/features/validation';

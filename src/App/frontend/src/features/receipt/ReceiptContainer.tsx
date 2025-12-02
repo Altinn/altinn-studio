@@ -10,7 +10,7 @@ import { PresentationComponent } from 'src/components/presentation/Presentation'
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppName, useAppOwner, useAppReceiver } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
+import { useInstanceDataQuery } from 'src/domain/Instance/useInstanceQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';

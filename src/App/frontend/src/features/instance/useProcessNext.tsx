@@ -4,8 +4,8 @@ import { toast } from 'react-toastify';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
+import { useHasPendingScans, useInstanceDataQuery, useLaxInstanceId } from 'src/domain/Instance/useInstanceQuery';
 import { invalidateFormDataQueries } from 'src/features/formData/useFormDataQuery';
-import { useHasPendingScans, useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
@@ -30,7 +30,7 @@ export function getProcessNextMutationKey(action?: IActionType) {
 }
 
 export function useProcessNext({ action }: ProcessNextProps = {}) {
-  const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;
+  const reFetchInstanceData = useInstanceDataQuery().refetch;
   const language = useCurrentLanguage();
   const { data: process, refetch: refetchProcessData } = useProcessQuery();
   const navigateToTask = useNavigateToTask();

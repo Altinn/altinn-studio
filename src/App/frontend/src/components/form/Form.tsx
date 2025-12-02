@@ -10,16 +10,16 @@ import { NavigateToStartUrl } from 'src/components/wrappers/ProcessWrapper';
 import { SearchParams } from 'src/core/routing/types';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useInstance, useLaxInstanceId } from 'src/domain/Instance/useInstanceQuery';
 import { useAllAttachments } from 'src/features/attachments/hooks';
 import { FileScanResults } from 'src/features/attachments/types';
 import { useExpandedWidthLayouts, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
-import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
-import { useQueryKey } from 'src/hooks/navigation';
+import { useNavigationParam, useQueryKey } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useCurrentView, useNavigatePage } from 'src/hooks/useNavigatePage';
 import { getComponentCapabilities } from 'src/layout';
@@ -37,15 +37,13 @@ interface FormState {
 }
 
 export function Form() {
-  const currentPageId = useCurrentView();
+  const currentPageId = useNavigationParam('pageKey');
 
-  return <FormPage currentPageId={currentPageId} />;
-}
-
-export function FormPage({ currentPageId }: { currentPageId: string | undefined }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const shouldValidateFormPage = searchParams.get(SearchParams.Validate);
   const onFormSubmitValidation = useOnFormSubmitValidation();
+
+  const instance = useInstance();
 
   useEffect(() => {
     if (shouldValidateFormPage) {

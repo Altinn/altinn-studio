@@ -3,7 +3,7 @@ import React from 'react';
 import { AltinnAttachments } from 'src/components/atoms/AltinnAttachments';
 import { AttachmentGroupings } from 'src/components/organisms/AttachmentGroupings';
 import { getApplicationMetadata } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
-import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
+import { useInstanceDataElements } from 'src/domain/Instance/useInstanceQuery';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';

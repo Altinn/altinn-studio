@@ -10,6 +10,7 @@ import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { useIsStatelessApp } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useLaxInstanceId, useOptimisticallyUpdateCachedInstance } from 'src/domain/Instance/useInstanceQuery';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { useRuleConnections } from 'src/features/form/dynamics/DynamicsContext';
@@ -19,7 +20,6 @@ import { createFormDataWriteStore } from 'src/features/formData/FormDataWriteSta
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { getFormDataQueryKey } from 'src/features/formData/useFormDataQuery';
-import { useLaxInstanceId, useOptimisticallyUpdateCachedInstance } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import {
@@ -33,6 +33,7 @@ import { useWaitForState } from 'src/hooks/useWaitForState';
 import { doPatchMultipleFormData } from 'src/http-client/queries';
 import { getMultiPatchUrl } from 'src/utils/urls/appUrlHelper';
 import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
+import type { ChangeInstanceData } from 'src/domain/Instance/useInstanceQuery';
 import type { SchemaLookupTool } from 'src/features/datamodel/useDataModelSchemaQuery';
 import type { IRuleConnections } from 'src/features/form/dynamics';
 import type { FormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
@@ -44,7 +45,6 @@ import type {
   UpdatedDataModel,
 } from 'src/features/formData/FormDataWriteStateMachine';
 import type { DebounceReason, IPatchListItem } from 'src/features/formData/types';
-import type { ChangeInstanceData } from 'src/features/instance/InstanceContext';
 import type { FormDataRowsSelector, FormDataSelector } from 'src/layout';
 import type { IDataModelReference, IMapping } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';

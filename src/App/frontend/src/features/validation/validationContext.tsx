@@ -8,10 +8,10 @@ import { immer } from 'zustand/middleware/immer';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { Loader } from 'src/core/loading/Loader';
+import { useInstance } from 'src/domain/Instance/useInstanceQuery';
 import { useHasPendingAttachments } from 'src/features/attachments/hooks';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import {
   type BaseValidation,
   type DataModelValidations,
@@ -269,9 +269,7 @@ function UpdateShowAllErrors() {
    * also check useLastSaveValidationIssues which will change on each patch.
    */
   const lastSaved = FD.useLastSaveValidationIssues();
-  const instanceDataChanges = useInstanceDataQuery({
-    select: (instance) => instance.data.map(({ id, lastChanged }) => ({ id, lastChanged })),
-  }).data;
+  const instanceDataChanges = useInstance()?.data.map(({ id, lastChanged }) => ({ id, lastChanged }));
 
   // Since process/next returns non-incremental validations, we need to also check these to see when they are removed
   const refetchInitialValidations = useRefetchInitialValidations(false);

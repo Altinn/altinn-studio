@@ -2,12 +2,12 @@ import { Children, isValidElement, useCallback, useEffect, useMemo } from 'react
 import type { JSX, ReactNode } from 'react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
+import { useInstanceDataSources } from 'src/domain/Instance/useInstanceQuery';
 import { useLaxApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { DataModelReaders } from 'src/features/formData/FormDataReaders';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataModelReaders } from 'src/features/formData/SpecificDataModelFetcher';
-import { useInstanceDataSources } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { useCurrentLanguage } from 'src/features/language/useAppLanguages';

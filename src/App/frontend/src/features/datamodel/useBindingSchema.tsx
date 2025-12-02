@@ -4,13 +4,13 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { getApplicationMetadata, useIsStatelessApp } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useInstance, useLaxInstanceId } from 'src/domain/Instance/useInstanceQuery';
 import {
   getCurrentDataTypeForApplication,
   getCurrentTaskDataElementId,
 } from 'src/features/applicationMetadata/appMetadataUtils';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { useCurrentLanguage } from 'src/features/language/useAppLanguages';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
@@ -38,17 +38,19 @@ export function useCurrentDataModelDataElementId() {
 
   const isStatelessApp = useIsStatelessApp();
 
-  // Instance data elements will update often (after each save), so we have to use a selector to make
-  // sure components don't re-render too often.
-  return useInstanceDataQuery({
-    select: (data) => {
-      if (overriddenDataElementId) {
-        return overriddenDataElementId;
-      }
+  const instance = useInstance();
 
-      return getCurrentTaskDataElementId({ application, dataElements: data.data, taskId, layoutSets, isStatelessApp });
-    },
-  }).data;
+  if (overriddenDataElementId) {
+    return overriddenDataElementId;
+  }
+
+  return getCurrentTaskDataElementId({
+    application,
+    dataElements: instance?.data ?? [],
+    taskId,
+    layoutSets,
+    isStatelessApp,
+  });
 }
 
 type DataModelDeps = {
