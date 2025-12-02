@@ -9,10 +9,10 @@ namespace StudioGateway.Api.Controllers;
 [Route("api/v1/[controller]")]
 [SuppressMessage(
     "Microsoft.Performance",
-    "CA1812:AvoidUninstantiatedInternalClasses",
-    Justification = "Class is instantiated via dependency injection"
+    "CA1515:AvoidUninstantiatedPublicTypes",
+    Justification = "Exposed externally"
 )]
-internal sealed class AlertsController(IAlertsService alertsService) : ControllerBase
+public class AlertsController(IAlertsService alertsService) : ControllerBase
 {
     private readonly IAlertsService _alertsService = alertsService;
 

@@ -1,8 +1,14 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace StudioGateway.Api.Models.Alerts;
 
-internal sealed class Alert
+[SuppressMessage(
+    "Microsoft.Performance",
+    "CA1515:AvoidUninstantiatedPublicTypes",
+    Justification = "Exposed externally"
+)]
+public class Alert
 {
     [JsonPropertyName("id")]
     public required string Id { get; set; }

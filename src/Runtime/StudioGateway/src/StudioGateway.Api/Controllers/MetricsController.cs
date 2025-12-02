@@ -9,10 +9,10 @@ namespace StudioGateway.Api.Controllers;
 [Route("api/v1/[controller]")]
 [SuppressMessage(
     "Microsoft.Performance",
-    "CA1812:AvoidUninstantiatedInternalClasses",
-    Justification = "Class is instantiated via dependency injection"
+    "CA1515:AvoidUninstantiatedPublicTypes",
+    Justification = "Exposed externally"
 )]
-internal sealed class MetricsController(IMetricsService metricsService) : ControllerBase
+public class MetricsController(IMetricsService metricsService) : ControllerBase
 {
     private readonly IMetricsService _metricsService = metricsService;
 
