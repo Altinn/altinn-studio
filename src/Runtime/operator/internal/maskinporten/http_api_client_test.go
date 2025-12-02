@@ -396,7 +396,10 @@ func TestRetryableHTTPDoPreservesBodyOnRetry(t *testing.T) {
 	resp, err := apiClient.retryableHTTPDo(req)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
-	defer resp.Body.Close()
+	defer func() {
+		err = resp.Body.Close()
+		g.Expect(err).NotTo(HaveOccurred())
+	}()
 
 	// Should have 2 attempts
 	g.Expect(attemptCount).To(Equal(2))
