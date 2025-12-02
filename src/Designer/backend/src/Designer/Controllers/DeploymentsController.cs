@@ -41,9 +41,6 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IHubContext<EntityUpdatedHub, IEntityUpdateClient> _entityUpdatedHubContext;
         private readonly IDeploymentRepository _deploymentRepository;
 
-        /// <param name="deployEventRepository">IDeployEventRepository</param>
-        /// <param name="entityUpdatedHubContext">IHubContext for SignalR</param>
-        /// <param name="deploymentRepository">IDeploymentRepository</param>
         public DeploymentsController(IDeploymentService deploymentService, IGiteaClient giteaClient, IKubernetesDeploymentsService kubernetesDeploymentsService, IDeployEventRepository deployEventRepository, IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext, IDeploymentRepository deploymentRepository)
         {
             _deploymentService = deploymentService;
@@ -155,6 +152,17 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest($"Invalid event type: {request.EventType}");
             }
 
+            var deployment = await _deploymentRepository.Get(org, request.BuildId);
+            if (deployment == null)
+            {
+                return NotFound($"Deployment with build ID {request.BuildId} not found");
+            }
+
+            if (deployment.HasFinalEvent)
+            {
+                return Ok();
+            }
+
             var deployEvent = new DeployEvent
             {
                 EventType = eventType,
@@ -164,7 +172,6 @@ namespace Altinn.Studio.Designer.Controllers
 
             await _deployEventRepository.AddAsync(org, request.BuildId, deployEvent, cancellationToken);
 
-            var deployment = await _deploymentRepository.Get(org, request.BuildId);
             await _entityUpdatedHubContext.Clients.Group(deployment.CreatedBy)
                 .EntityUpdated(new EntityUpdated(EntityConstants.Deployment));
 

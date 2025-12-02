@@ -1,6 +1,7 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Repository.Models
@@ -35,6 +36,20 @@ namespace Altinn.Studio.Designer.Repository.Models
         /// </summary>
         [JsonProperty("events")]
         public List<DeployEvent> Events { get; set; } = new List<DeployEvent>();
+
+        private static readonly DeployEventType[] s_finalEventTypes =
+        [
+            DeployEventType.InstallSucceeded,
+            DeployEventType.InstallFailed,
+            DeployEventType.UpgradeSucceeded,
+            DeployEventType.UpgradeFailed
+        ];
+
+        /// <summary>
+        /// Indicates whether this deployment has reached a final state (install/upgrade succeeded or failed)
+        /// </summary>
+        [JsonIgnore]
+        public bool HasFinalEvent => Events?.Any(e => s_finalEventTypes.Contains(e.EventType)) ?? false;
     }
 
     public enum DeploymentType
@@ -69,7 +84,6 @@ namespace Altinn.Studio.Designer.Repository.Models
 
     public enum DeployEventType
     {
-        DeploymentCreated,
         PipelineScheduled,
         PipelineSucceeded,
         PipelineFailed,

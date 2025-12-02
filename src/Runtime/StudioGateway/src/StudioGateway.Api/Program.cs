@@ -1,8 +1,11 @@
 using StudioGateway.Api;
 using StudioGateway.Api.Authentication;
+using StudioGateway.Api.Designer;
 using StudioGateway.Api.Endpoints.Internal;
 using StudioGateway.Api.Endpoints.Local;
 using StudioGateway.Api.Endpoints.Public;
+using StudioGateway.Api.GatewayK8s;
+using StudioGateway.Api.Hosting;
 using StudioGateway.Api.Hosting;
 using StudioGateway.Api.Settings;
 
@@ -49,6 +52,8 @@ builder.Services.AddOpenApi(
         };
     }
 );
+builder.Services.AddDesignerClients(builder.Configuration);
+builder.Services.AddKubernetesServices();
 
 var app = builder.Build();
 

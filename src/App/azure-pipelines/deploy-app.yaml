@@ -386,6 +386,8 @@ steps:
             altinn.studio/managed-by: altinn-studio
             altinn.studio/source-environment: ${STUDIO_ENVIRONMENT}
             altinn.studio/build-id: "${BUILD_BUILDID}"
+            altinn.studio/org: ${APP_OWNER}
+            altinn.studio/app: ${APP_REPO}
         spec:
           releaseName: ${RELEASE_NAME}
           targetNamespace: default

@@ -115,13 +115,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await _deployEventRepository.AddAsync(org, deploymentEntity.Build.Id, new DeployEvent
             {
-                EventType = DeployEventType.DeploymentCreated,
-                Message = $"Deployment to {deployment.EnvName} created by {deploymentEntity.CreatedBy}",
-                Timestamp = _timeProvider.GetUtcNow()
-            }, cancellationToken);
-
-            await _deployEventRepository.AddAsync(org, deploymentEntity.Build.Id, new DeployEvent
-            {
                 EventType = DeployEventType.PipelineScheduled,
                 Message = $"Pipeline {queuedBuild.Id} scheduled",
                 Timestamp = _timeProvider.GetUtcNow()
