@@ -558,22 +558,23 @@ internal class CSharpCodeGenerator
                     {
                         foreach (var inputParam in rule.InputParams)
                         {
-                            // Use addDefaultValue: true to automatically add ?? "" for strings, ?? 0m for decimals, etc.
-                            // This ensures variables are non-nullable and properly typed
-                            var getCall = GenerateTypedGetCall(inputParam.Value, addDefaultValue: true);
+                            // Don't add default values - let the original JavaScript logic handle nulls/undefined
+                            // This matches JavaScript semantics where variables can be null/undefined
+                            var getCall = GenerateTypedGetCall(inputParam.Value, defaultValue: null);
                             code.AppendLine($"var {inputParam.Key} = {getCall};");
 
-                            // Mark the variable type using THE SAME resolution logic
-                            // This ensures consistency between the generated code and type tracking
+                            // Mark the variable type as nullable since we're not providing defaults
                             var resolvedType = ResolveTypeWithFallback(inputParam.Value);
-
-                            // When we use addDefaultValue: true with ??, the variable becomes non-nullable
-                            // Strip the '?' from the type name to match C# type inference
-                            var trackedType = resolvedType;
-                            if (trackedType.EndsWith("?"))
+                            if (resolvedType == null)
                             {
-                                trackedType = trackedType.Substring(0, trackedType.Length - 1);
+                                throw new InvalidOperationException(
+                                    $"Failed to resolve type for input parameter '{inputParam.Key}' with path '{inputParam.Value}'. "
+                                        + "Ensure the data model file exists and has proper JsonPropertyName attributes."
+                                );
                             }
+
+                            // Ensure the tracked type is nullable to match the generated code
+                            var trackedType = resolvedType.EndsWith("?") ? resolvedType : resolvedType + "?";
 
                             converter.MarkVariableType(inputParam.Key, trackedType);
                         }
@@ -810,76 +811,53 @@ internal class CSharpCodeGenerator
     /// Generate a typed Get call for a JSON path, using type resolution if available
     /// </summary>
     /// <param name="jsonPath">The JSON path to get</param>
-    /// <param name="addDefaultValue">If true and the type is nullable numeric, add ?? 0m to default to zero</param>
+    /// <param name="defaultValue">Optional default value to use with null-coalescing operator. If null, no default is added.</param>
     /// <returns>The C# code for the Get call with cast if type is known</returns>
-    private string GenerateTypedGetCall(string jsonPath, bool addDefaultValue = false)
+    private string GenerateTypedGetCall(string jsonPath, string? defaultValue = null)
     {
-        // Always resolve to a type (with fallback)
+        // Resolve type using the data model
         var resolvedType = ResolveTypeWithFallback(jsonPath);
-
-        // Generate cast to the resolved type
-        var getCall = $"({resolvedType})wrapper.Get(\"{jsonPath}\")";
-
-        // If addDefaultValue is true, add appropriate default based on type
-        if (addDefaultValue)
+        if (resolvedType == null)
         {
-            if (resolvedType == "decimal?" || resolvedType == "decimal")
-            {
-                return $"{getCall} ?? 0m";
-            }
-            else if (resolvedType == "string?" || resolvedType == "string")
-            {
-                return $"{getCall} ?? \"\"";
-            }
-            else if (resolvedType == "bool?" || resolvedType == "bool")
-            {
-                return $"{getCall} ?? false";
-            }
-            else if (resolvedType == "int?" || resolvedType == "int")
-            {
-                return $"{getCall} ?? 0";
-            }
+            throw new InvalidOperationException(
+                $"Failed to resolve type for path '{jsonPath}'. "
+                    + "Ensure the data model file exists and has proper JsonPropertyName attributes."
+            );
         }
 
-        return getCall;
+        // If no default value is provided, just return a nullable cast
+        if (defaultValue == null)
+        {
+            // Ensure the type is nullable
+            var nullableType = resolvedType.EndsWith("?") ? resolvedType : resolvedType + "?";
+            return $"({nullableType})wrapper.Get(\"{jsonPath}\")";
+        }
+
+        // If a default value is provided, we need to handle nullable types carefully
+        // The pattern is: (Type)(wrapper.Get("path") ?? defaultValue)
+        // This casts the result of the null-coalescing to the target type
+
+        // Strip the nullable marker to get the base type for the outer cast
+        var baseType = resolvedType.EndsWith("?") ? resolvedType.Substring(0, resolvedType.Length - 1) : resolvedType;
+
+        // The inner expression needs to be nullable for ?? to work
+        return $"({baseType})(wrapper.Get(\"{jsonPath}\") ?? {defaultValue})";
     }
 
     /// <summary>
-    /// Resolve the C# type for a JSON path, with fallback heuristics
+    /// Resolve the C# type for a JSON path using the data model type resolver
     /// </summary>
-    private string ResolveTypeWithFallback(string jsonPath)
+    private string? ResolveTypeWithFallback(string jsonPath)
     {
-        // Try data model type resolution first
+        // Use the data model type resolver
         var resolvedType = _typeResolver?.ResolveType(jsonPath);
         if (resolvedType != null)
         {
             return resolvedType;
         }
 
-        // Log that we're using fallback
-        Console.WriteLine($"Warning: Could not resolve type for path '{jsonPath}', using fallback heuristics");
-
-        // Fallback heuristics based on path patterns
-        // Most form data fields ending in .value are strings
-        if (jsonPath.EndsWith(".value"))
-        {
-            return "string?";
-        }
-
-        // Fields with specific naming patterns
-        var lowerPath = jsonPath.ToLowerInvariant();
-        if (lowerPath.Contains("amount") || lowerPath.Contains("count") || lowerPath.Contains("number"))
-        {
-            return "decimal?";
-        }
-
-        if (lowerPath.Contains("enabled") || lowerPath.Contains("checked") || lowerPath.Contains("selected"))
-        {
-            return "bool?";
-        }
-
-        // Default to string for unknown types
-        // String is the safest fallback for form data
-        return "string?";
+        // If type resolution fails, log a warning and return null
+        Console.WriteLine($"Warning: Could not resolve type for path '{jsonPath}'");
+        return null;
     }
 }
