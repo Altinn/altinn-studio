@@ -3,6 +3,9 @@ using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Mime;
+using System.Text;
+using Altinn.ApiClients.Maskinporten.Extensions;
+using Altinn.ApiClients.Maskinporten.Services;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Services.Implementation;
@@ -37,9 +40,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients
         /// Sets up and registers all typed Http clients to DI container
         /// </summary>
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
+        /// <param name="logger">The Microsoft.Extensions.Logging.ILogger for logging.</param>
         /// <param name="config">The Microsoft.Extensions.Configuration.IConfiguration for </param>
         /// <returns>IServiceCollection</returns>
-        public static IServiceCollection RegisterTypedHttpClients(this IServiceCollection services, IConfiguration config)
+        public static IServiceCollection RegisterTypedHttpClients(this IServiceCollection services, ILogger logger, IConfiguration config)
         {
             services.AddHttpClient();
             services.AddTransient<AzureDevOpsTokenDelegatingHandler>();
@@ -68,7 +72,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddTransient<PlatformSubscriptionAuthDelegatingHandler>();
             services.AddMaskinportenHttpClient();
             services.AddSlackClient(config);
-            services.AddStudioGatewayClient();
+            services.AddStudioGatewayClient(logger, config);
 
             return services;
         }
@@ -191,8 +195,23 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             }).AddHttpMessageHandler<EnsureSuccessHandler>();
         }
 
-        private static IHttpClientBuilder AddStudioGatewayClient(this IServiceCollection services)
-        => services.AddHttpClient<IStudioGatewayClient, StudioGatewayClient>()
+        private static void AddStudioGatewayClient(this IServiceCollection services, ILogger logger, IConfiguration configuration)
+        {
+            var clientId = configuration["MaskinportenClientForRuntime:Test:ClientId"];
+            logger.LogInformation("// AddStudioGatewayClient // MaskinportenClientForRuntime:Test is configured with {ClientId}", clientId);
+
+            var jwkString = configuration["MaskinportenClientForRuntime:Test:Jwk"];
+            var scope = configuration["MaskinportenClientForRuntime:Test:Scope"];
+            var maskinportenClientForRuntimeTestSettings = new MaskinportenClientSettings()
+            {
+                ClientId = configuration["MaskinportenClientForRuntime:Test:ClientId"],
+                // Library expects base64 encoded JWK, but we store the raw JSON in Azure KV
+                EncodedJwk = !string.IsNullOrWhiteSpace(jwkString) ? Convert.ToBase64String(Encoding.UTF8.GetBytes(jwkString)) : null,
+                Scope = configuration["MaskinportenClientForRuntime:Test:Scope"]
+            };
+
+            services.AddMaskinportenHttpClient<SettingsJwkClientDefinition, IStudioGatewayClient, StudioGatewayClient>(maskinportenClientForRuntimeTestSettings)
                 .AddHttpMessageHandler<EnsureSuccessHandler>();
+        }
     }
 }
