@@ -123,7 +123,8 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 	currentState, err := r.fetchCurrentState(ctx, req)
 	if err != nil {
 		// Check if this is a missing secret error (expected/recoverable condition)
-		if _, ok := err.(*maskinporten.MissingSecretError); ok {
+		var missingSecretErr *maskinporten.MissingSecretError
+		if errors.As(err, &missingSecretErr) {
 			logger.Info("App secret not found yet, will retry later", "app", req.AppId)
 			// Requeue with a delay without logging as error
 			return ctrl.Result{RequeueAfter: r.getRequeueAfter(configValue)}, nil
