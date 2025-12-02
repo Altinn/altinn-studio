@@ -61,6 +61,6 @@ func (r *MaskinportenClientReconciler) mapRequest(
 		Name:           req.Name,
 		Namespace:      req.Namespace,
 		AppId:          appId,
-		AppLabel:       fmt.Sprintf("%s-%s-deployment", opCtx.ServiceOwnerId, appId),
+		AppLabel:       fmt.Sprintf("%s-%s-deployment", opCtx.ServiceOwner.Id, appId),
 	}, nil
 }

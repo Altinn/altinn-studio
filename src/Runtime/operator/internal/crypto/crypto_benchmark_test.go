@@ -13,15 +13,14 @@ func benchmarkCreateJwks(b *testing.B, algo x509.SignatureAlgorithm, keySize int
 	clock := clockwork.NewFakeClockAt(time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC))
 	random := utils.NewDeterministicRand()
 	service := NewService(clock, random, algo, keySize)
-	certSubject := "benchmark"
-	certCommonName := "benchmark"
+	subject := CertSubject{CommonName: "benchmark"}
 	notAfter := clock.Now().UTC().Add(30 * 24 * time.Hour)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		if _, err := service.CreateJwks(certSubject, certCommonName, notAfter); err != nil {
+		if _, err := service.CreateJwks(subject, notAfter); err != nil {
 			b.Fatalf("CreateJwks: %v", err)
 		}
 	}

@@ -25,11 +25,17 @@ import (
 const (
 	testClientId  = "test-client-id-123"
 	testAuthority = "https://test.maskinporten.no"
-	testSubject   = "subject"
 	testAppId     = "testapp"
 )
 
-var testScopes = []string{"altinn:test/scope.read"}
+var (
+	testScopes   = []string{"altinn:test/scope.read"}
+	testCertSubj = crypto.CertSubject{
+		Organization:       "Testdepartementet",
+		OrganizationalUnit: "ttd",
+		CommonName:         testAppId,
+	}
+)
 
 // --- Test Dependencies ---
 
@@ -226,7 +232,7 @@ func TestReconcile_ApiExistsSecretLost(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	jwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -247,7 +253,7 @@ func TestReconcile_ScopesChanged(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	jwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -275,7 +281,7 @@ func TestReconcile_AuthorityChanged(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	jwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -302,7 +308,7 @@ func TestReconcile_ScopesAndAuthorityChanged(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	jwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -330,7 +336,7 @@ func TestReconcile_ScopesAndJwksRotation(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	jwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -360,7 +366,7 @@ func TestReconcile_AuthorityAndJwksRotation(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	jwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -389,7 +395,7 @@ func TestReconcile_Deletion(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	jwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -419,7 +425,7 @@ func TestReconcile_DeletionApiAlreadyGone(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	jwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crd := createCrd(
@@ -447,7 +453,7 @@ func TestReconcile_DeletionNoSecretContent(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	jwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -490,7 +496,7 @@ func TestForcedRotation_IgnoredDuringDeletion(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	jwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -521,7 +527,7 @@ func TestReconcile_NoChanges(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	jwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -548,11 +554,11 @@ func TestReconcile_ApiJwksMismatchSecret(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	secretJwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	secretJwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	deps.clock.Advance(time.Second)
-	apiJwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	apiJwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 	apiPublicJwks, err := apiJwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -583,7 +589,7 @@ func TestJwkRotation_NotNeededYet(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	jwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -612,7 +618,7 @@ func TestJwkRotation_TriggeredAtThreshold(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	jwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -641,11 +647,11 @@ func TestJwkRotation_SecondRotation(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	jwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	deps.clock.Advance(time.Hour * 24 * 24)
-	rotatedJwks, err := deps.crypto.RotateJwks(testSubject, testAppId, deps.getNotAfter(), jwks)
+	rotatedJwks, err := deps.crypto.RotateJwks(testCertSubj, deps.getNotAfter(), jwks)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(rotatedJwks).NotTo(BeNil())
 
@@ -680,7 +686,7 @@ func TestForcedRotation_ViaAnnotation(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	jwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -710,7 +716,7 @@ func TestForcedRotation_AnnotationValueNotTrue(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	jwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -795,7 +801,7 @@ func TestNewClientState_ApiJwksWithoutApi(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	jwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	crd := createCrd()
@@ -811,7 +817,7 @@ func TestReconcile_EmptyScopes(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	jwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -838,7 +844,7 @@ func TestReconcile_NilVsEmptyScopes(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	jwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -903,7 +909,7 @@ func TestReconcile_AllChangesAtOnce(t *testing.T) {
 	g := NewWithT(t)
 	deps := newFixture()
 
-	jwks, err := deps.crypto.CreateJwks(testSubject, testAppId, deps.getNotAfter())
+	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
 	g.Expect(err).NotTo(HaveOccurred())
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())

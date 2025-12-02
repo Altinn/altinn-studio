@@ -3,6 +3,7 @@ package e2e
 import (
 	"bytes"
 	"context"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -247,8 +248,34 @@ func SanitizeActionRecord(action map[string]any) {
 	}
 }
 
+// decodedCertInfo contains human-readable certificate fields for snapshots
+type decodedCertInfo struct {
+	Subject  string `json:"subject"`
+	Validity string `json:"validity"`
+}
+
+// decodeCertificate parses a base64 DER certificate and extracts deterministic fields
+func decodeCertificate(b64Cert string) *decodedCertInfo {
+	der, err := base64.StdEncoding.DecodeString(b64Cert)
+	if err != nil {
+		return nil
+	}
+	cert, err := x509.ParseCertificate(der)
+	if err != nil {
+		return nil
+	}
+	validity := cert.NotAfter.Sub(cert.NotBefore)
+	// Round to nearest hour to avoid sub-second instability in snapshots
+	validity = validity.Round(time.Hour)
+	return &decodedCertInfo{
+		Subject:  cert.Subject.String(),
+		Validity: validity.String(),
+	}
+}
+
 // SanitizeJwk replaces non-deterministic JWK fields with placeholders.
 // Preserves the key suffix (e.g., .1, .2) from kid since it's deterministic.
+// Decodes x5c certificates to show human-readable cert info.
 func SanitizeJwk(keyMap map[string]any) {
 	if kid, ok := keyMap["kid"].(string); ok {
 		if idx, err := parseKeyIndex(kid); err == nil {
@@ -257,9 +284,23 @@ func SanitizeJwk(keyMap map[string]any) {
 			keyMap["kid"] = "<key-uuid>"
 		}
 	}
-	if keyMap["x5c"] != nil {
-		keyMap["x5c"] = []string{"<certificate>"}
+
+	// Decode x5c certificates to human-readable format
+	if x5c, ok := keyMap["x5c"].([]any); ok && len(x5c) > 0 {
+		decoded := make([]decodedCertInfo, 0, len(x5c))
+		for _, certAny := range x5c {
+			if certStr, ok := certAny.(string); ok {
+				if info := decodeCertificate(certStr); info != nil {
+					decoded = append(decoded, *info)
+				}
+			}
+		}
+		if len(decoded) > 0 {
+			keyMap["x5c_decoded"] = decoded
+		}
+		delete(keyMap, "x5c")
 	}
+
 	// Replace private key fields with placeholders (shows they exist)
 	for _, field := range []string{"d", "p", "q", "dp", "dq", "qi"} {
 		if keyMap[field] != nil {

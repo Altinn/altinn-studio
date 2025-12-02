@@ -28,11 +28,16 @@ func ResolveEnvironment(override string) string {
 	return environment
 }
 
+type ServiceOwner struct {
+	Id      string
+	OrgNo   string
+	OrgName string
+}
+
 type Context struct {
-	ServiceOwnerId    string
-	ServiceOwnerOrgNo string
-	Environment       string
-	RunId             string
+	ServiceOwner ServiceOwner
+	Environment  string
+	RunId        string
 	// Context which will be cancelled when the program is shut down
 	Context context.Context
 	tracer  trace.Tracer
@@ -67,9 +72,17 @@ func Discover(ctx context.Context, environment string, orgRegistry *orgs.OrgRegi
 	}
 
 	serviceOwnerOrgNo := ""
+	serviceOwnerOrgName := ""
 	if orgRegistry != nil {
 		if org, ok := orgRegistry.Get(serviceOwnerId); ok {
 			serviceOwnerOrgNo = org.OrgNr
+			serviceOwnerOrgName = org.Name.Nb
+			if serviceOwnerOrgName == "" {
+				serviceOwnerOrgName = org.Name.Nn
+			}
+			if serviceOwnerOrgName == "" {
+				serviceOwnerOrgName = org.Name.En
+			}
 		} else if serviceOwnerId == "ttd" && environment != EnvironmentLocal {
 			// The fake org registry has the env number set, but the altinn-orgs.json in CDN does not have org nr for ttd (it's not real)
 			serviceOwnerOrgNo = "405003309" // NOTE: this matches the org nr in the registry testdata in localtest, keep in sync
@@ -84,12 +97,15 @@ func Discover(ctx context.Context, environment string, orgRegistry *orgs.OrgRegi
 	}
 
 	return &Context{
-		ServiceOwnerId:    serviceOwnerId,
-		ServiceOwnerOrgNo: serviceOwnerOrgNo,
-		Environment:       environment,
-		RunId:             runId.String(),
-		Context:           ctx,
-		tracer:            otel.Tracer(telemetry.ServiceName),
+		ServiceOwner: ServiceOwner{
+			Id:      serviceOwnerId,
+			OrgNo:   serviceOwnerOrgNo,
+			OrgName: serviceOwnerOrgName,
+		},
+		Environment: environment,
+		RunId:       runId.String(),
+		Context:     ctx,
+		tracer:      otel.Tracer(telemetry.ServiceName),
 	}, nil
 }
 

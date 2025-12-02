@@ -72,8 +72,8 @@ func TestDefaultValues(t *testing.T) {
 	operatorContext, err := Discover(context.Background(), EnvironmentLocal, nil)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(operatorContext.Environment).To(Equal(EnvironmentLocal))
-	Expect(operatorContext.ServiceOwnerId).To(Equal("ttd"))
-	Expect(operatorContext.ServiceOwnerOrgNo).To(Equal(""))
+	Expect(operatorContext.ServiceOwner.Id).To(Equal("ttd"))
+	Expect(operatorContext.ServiceOwner.OrgNo).To(Equal(""))
 }
 
 func TestResolveEnvironmentWithOverride(t *testing.T) {
@@ -120,6 +120,6 @@ func TestEnvironmentVariables(t *testing.T) {
 	operatorContext, err := Discover(context.Background(), "tt02", orgRegistry)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(operatorContext.Environment).To(Equal("tt02"))
-	Expect(operatorContext.ServiceOwnerId).To(Equal("digdir"))
-	Expect(operatorContext.ServiceOwnerOrgNo).To(Equal("991825827"))
+	Expect(operatorContext.ServiceOwner.Id).To(Equal("digdir"))
+	Expect(operatorContext.ServiceOwner.OrgNo).To(Equal("991825827"))
 }

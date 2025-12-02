@@ -181,7 +181,7 @@ func (c *HttpApiClient) GetAllClients(ctx context.Context) ([]ClientResponse, er
 		if cl.ClientId == "" {
 			return nil, fmt.Errorf("found client with empty ID")
 		}
-		if c.context.ServiceOwnerId == "digdir" && cl.ClientId == c.getConfig().ClientId {
+		if c.context.ServiceOwner.Id == "digdir" && cl.ClientId == c.getConfig().ClientId {
 			// If this operator is running as digdir, the supplier client is also defined there
 			// so we need to skip it (we should never change or process the supplier client from here)
 			// TODO: unless we want to rotate JWKS automatically from the operator? o_O

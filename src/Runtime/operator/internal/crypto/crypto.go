@@ -56,11 +56,18 @@ func NewDefaultService(
 	return NewService(clock, random, DefaultX509SignatureAlgo, DefaultKeySizeBits)
 }
 
+// CertSubject contains the fields for the certificate subject
+type CertSubject struct {
+	Organization       string // e.g., "Testdepartementet"
+	OrganizationalUnit string // e.g., "ttd"
+	CommonName         string // e.g., "my-app"
+}
+
 // Creates a JWKS
 // Constructs the JWKS from the whole RSA private/public key pair
 // Uses SHA512 with RSA, 4096 bits for RSA
-func (s *CryptoService) CreateJwks(certSubject, certCommonName string, notAfter time.Time) (*Jwks, error) {
-	cert, rsaKey, err := s.createCert(certSubject, certCommonName, notAfter)
+func (s *CryptoService) CreateJwks(subject CertSubject, notAfter time.Time) (*Jwks, error) {
+	cert, rsaKey, err := s.createCert(subject, notAfter)
 	if err != nil {
 		return nil, fmt.Errorf("error creating JWKS cert: %w", err)
 	}
@@ -100,8 +107,7 @@ func (s *CryptoService) generateCertSerialNumber() (*big.Int, error) {
 }
 
 func (s *CryptoService) createCert(
-	certSubject string,
-	certCommonName string,
+	subject CertSubject,
 	notAfter time.Time,
 ) (*x509.Certificate, *rsa.PrivateKey, error) {
 	rsaKey, err := rsa.GenerateKey(s.random, s.keySizeBits)
@@ -119,13 +125,19 @@ func (s *CryptoService) createCert(
 		return nil, nil, fmt.Errorf("notAfter (%s) must be after current time (%s)", notAfter, now)
 	}
 
+	pkixName := pkix.Name{
+		CommonName: subject.CommonName,
+	}
+	if subject.Organization != "" {
+		pkixName.Organization = []string{subject.Organization}
+	}
+	if subject.OrganizationalUnit != "" {
+		pkixName.OrganizationalUnit = []string{subject.OrganizationalUnit}
+	}
+
 	certTemplate := x509.Certificate{
-		SerialNumber: serial,
-		Subject: pkix.Name{
-			Organization: []string{certSubject},
-			CommonName:   certCommonName,
-		},
-		Issuer:                s.getIssuer(),
+		SerialNumber:          serial,
+		Subject:               pkixName,
 		NotBefore:             now,
 		NotAfter:              notAfter,
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
@@ -150,8 +162,7 @@ func (s *CryptoService) createCert(
 // The caller is responsible for deciding when rotation is needed.
 // Returns the new JWKS with at most 2 keys (newest + previous).
 func (s *CryptoService) RotateJwks(
-	certSubject string,
-	certCommonName string,
+	subject CertSubject,
 	notAfter time.Time,
 	currentJwks *Jwks,
 ) (*Jwks, error) {
@@ -171,7 +182,7 @@ func (s *CryptoService) RotateJwks(
 		return nil, fmt.Errorf("invalid key format: %s", activeKey.KeyID())
 	}
 
-	cert, rsaKey, err := s.createCert(certSubject, certCommonName, notAfter)
+	cert, rsaKey, err := s.createCert(subject, notAfter)
 	if err != nil {
 		return nil, fmt.Errorf("error creating JWKS cert: %w", err)
 	}
@@ -210,13 +221,6 @@ func FindActiveKey(jwks *Jwks) (*Jwk, error) {
 		}
 	}
 	return activeKey, nil
-}
-
-func (s *CryptoService) getIssuer() pkix.Name {
-	return pkix.Name{
-		Organization: []string{"Digdir"},
-		CommonName:   "Altinn Studio Operator",
-	}
 }
 
 func SignatureAlgorithmNameFromX509(algo x509.SignatureAlgorithm) (string, bool) {

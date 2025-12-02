@@ -4,10 +4,10 @@ Developer documentation for Altinn 3 Kubernetes operators.
 
 Here are some important resources:
 
-* [Team Apps Github board](https://github.com/orgs/Altinn/projects/39/views/2)
-* [Altinn Studio docs](https://docs.altinn.studio/)
-* Self service API docs: https://docs.digdir.no/docs/idporten/oidc/oidc_api_admin.html
-* Self service API dev Swagger UI: https://api.samarbeid.digdir.dev/swagger-ui/index.html?urls.primaryName=External%20OIDC
+- [Team Apps Github board](https://github.com/orgs/Altinn/projects/39/views/2)
+- [Altinn Studio docs](https://docs.altinn.studio/)
+- Self service API docs: https://docs.digdir.no/docs/idporten/oidc/oidc_api_admin.html
+- Self service API dev Swagger UI: https://api.samarbeid.digdir.dev/swagger-ui/index.html?urls.primaryName=External%20OIDC
 
 ## Reporting Issues
 
@@ -21,6 +21,7 @@ Feel free to query existing issues before creating a new one.
 ### Local development
 
 #### Prerequisites
+
 - go version v1.22.0+
 - docker version 17.03+.
 - kubectl version v1.11.3+.
@@ -46,6 +47,7 @@ UPDATE_SNAPS=true make test
 ```
 
 #### To Deploy on the cluster
+
 **Build and push your image to the location specified by `IMG`:**
 
 ```sh
@@ -69,7 +71,7 @@ make deploy IMG=<some-registry>/altinn-studio-operator:tag
 ```
 
 > **NOTE**: If you encounter RBAC errors, you may need to grant yourself cluster-admin
-privileges or be logged in as admin.
+> privileges or be logged in as admin.
 
 **Create instances of your solution**
 You can apply the samples (examples) from the config/sample:
@@ -78,9 +80,10 @@ You can apply the samples (examples) from the config/sample:
 kubectl apply -k config/samples/
 ```
 
->**NOTE**: Ensure that the samples has default values to test it out.
+> **NOTE**: Ensure that the samples has default values to test it out.
 
 #### To Uninstall
+
 **Delete the instances (CRs) from the cluster:**
 
 ```sh
@@ -137,12 +140,12 @@ Download to `schemas/spec.json`, tell AI to write the models, update the client 
 
 If kubebuilder bumps major version, in some cases there is not much to do. Still, it might be worth it to
 
-* Upgrade kubebuilder CLI
-* Scaffold a new project
-* Generate some CRD that we use
-* Inspect diff with this repo
-* Case-insensitive search for `version` to make sure hardcoded versions are up to date
-* Run all builds, tests, lints etc.. 
+- Upgrade kubebuilder CLI
+- Scaffold a new project
+- Generate some CRD that we use
+- Inspect diff with this repo
+- Case-insensitive search for `version` to make sure hardcoded versions are up to date
+- Run all builds, tests, lints etc..
 
 That way we don't get stuck on old versions of the scaffold forever..
 Example for v3 -> v4 upgrade of CLI:
@@ -154,20 +157,21 @@ kubebuilder create api --group resources --version v1alpha1 --kind MaskinportenC
 make manifests
 ```
 
-
 ### Supplier client configuration
 
 We can run the utility to generate JWK for the supplier client
 
 Process:
+
 1. Create client in Maskinporten self service UI (`altinn_apps_supplier_client`)
 2. Create JWK, add the public JWK to client in self service UI
 3. Put public+private JWK in Azure KV
 4. Put configuration in <env>.env file (URls and such, see the localtest one for reference. JWK and Client ID comes from AZ so they don't have to be filled in)
 
 To create a JWK (both the public+private and the public for self service UI input):
+
 ```
-go run cmd/utils/main.go create jwk -cert-subject Digdir -cert-common-name altinn_studio_operator_supplier_client -not-after 2026-12-31T23:59:59Z -verbose
+go run cmd/utils/main.go create jwk -cert-org Digdir -cert-cn altinn_studio_operator_supplier_client -not-after 2026-12-31T23:59:59Z -verbose
 ```
 
 Update `MaskinportenApi--ClientId` and `MaskinportenApi--Jwk` in Azure KV, set expiry to e.g. 12/30/2026 6:00:00 PM in UTC.
@@ -175,6 +179,7 @@ The rest of the config should come from <env>.env file.
 
 NOTE: using at22 below means you need to be logged in using an az account that has access to that environment
 Create the .env file, and then test the configuration:
+
 ```
 $ go run cmd/utils/main.go get clients -verbose -pretty -env at22
 ...

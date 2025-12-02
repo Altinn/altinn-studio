@@ -72,8 +72,7 @@ func NewRuntime(ctx context.Context, env string, log *logr.Logger) (rt.Runtime, 
 		log.Info(
 			"Starting runtime - discovered operator context",
 			"Environment", environment,
-			"ServiceOwnerId", operatorContext.ServiceOwnerId,
-			"ServiceOwnerOrgNo", operatorContext.ServiceOwnerOrgNo,
+			"ServiceOwner", operatorContext.ServiceOwner,
 			"RunId", operatorContext.RunId,
 		)
 	}

@@ -11,8 +11,63 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-const subject string = "subject"
-const appId string = "app1"
+var testSubject = CertSubject{
+	Organization:       "Testdepartementet",
+	OrganizationalUnit: "ttd",
+	CommonName:         "test-app",
+}
+
+type certInfo struct {
+	CommonName         string `json:"commonName"`
+	Organization       string `json:"organization,omitempty"`
+	OrganizationalUnit string `json:"organizationalUnit,omitempty"`
+	SerialNumber       string `json:"serialNumber"`
+	NotBefore          string `json:"notBefore"`
+	NotAfter           string `json:"notAfter"`
+}
+
+// jwksToSnapshotJSON marshals JWKS to JSON, augmenting each key with decoded cert info.
+// Preserves all original JWK fields while adding human-readable x5c_decoded.
+func jwksToSnapshotJSON(jwks *Jwks) ([]byte, error) {
+	original, err := json.Marshal(jwks)
+	if err != nil {
+		return nil, err
+	}
+
+	var data map[string][]map[string]any
+	if err := json.Unmarshal(original, &data); err != nil {
+		return nil, err
+	}
+
+	for i, key := range jwks.Keys {
+		certs := key.Certificates()
+		if len(certs) == 0 {
+			continue
+		}
+
+		decoded := make([]certInfo, 0, len(certs))
+		for _, cert := range certs {
+			var org, ou string
+			if len(cert.Subject.Organization) > 0 {
+				org = cert.Subject.Organization[0]
+			}
+			if len(cert.Subject.OrganizationalUnit) > 0 {
+				ou = cert.Subject.OrganizationalUnit[0]
+			}
+			decoded = append(decoded, certInfo{
+				CommonName:         cert.Subject.CommonName,
+				Organization:       org,
+				OrganizationalUnit: ou,
+				SerialNumber:       cert.SerialNumber.String(),
+				NotBefore:          cert.NotBefore.Format(time.RFC3339),
+				NotAfter:           cert.NotAfter.Format(time.RFC3339),
+			})
+		}
+		data["keys"][i]["x5c_decoded"] = decoded
+	}
+
+	return json.Marshal(data)
+}
 
 func TestCreateJwks(t *testing.T) {
 	g := NewWithT(t)
@@ -25,9 +80,8 @@ func TestCreateJwks(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(jwks).NotTo(BeNil())
 
-	jsonData, err := json.Marshal(jwks)
+	jsonData, err := jwksToSnapshotJSON(jwks)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(jsonData).NotTo(BeNil())
 	snaps.MatchJSON(t, jsonData)
 }
 
@@ -40,7 +94,7 @@ func TestRotateJwks(t *testing.T) {
 
 	// Rotate once
 	clock.Advance(time.Hour * 24 * 25)
-	newJwks, err := service.RotateJwks(subject, appId, getNotAfter(clock), jwks)
+	newJwks, err := service.RotateJwks(testSubject, getNotAfter(clock), jwks)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(newJwks).NotTo(BeNil())
 	g.Expect(newJwks.Keys).To(HaveLen(2))
@@ -50,7 +104,7 @@ func TestRotateJwks(t *testing.T) {
 
 	// Rotate again - previous active key becomes the second key
 	clock.Advance(time.Hour * 24 * 25)
-	newerJwks, err := service.RotateJwks(subject, appId, getNotAfter(clock), newJwks)
+	newerJwks, err := service.RotateJwks(testSubject, getNotAfter(clock), newJwks)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(newerJwks).NotTo(BeNil())
 	g.Expect(newerJwks.Keys).To(HaveLen(2))
@@ -59,14 +113,12 @@ func TestRotateJwks(t *testing.T) {
 	g.Expect(newerCert.NotAfter.After(newCert.NotAfter)).To(BeTrue())
 
 	// Serialize the JWKS for snapshot testing
-	newJson, err := json.Marshal(newJwks)
+	newJson, err := jwksToSnapshotJSON(newJwks)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(newJson).NotTo(BeNil())
 	snaps.MatchJSON(t, newJson)
 
-	newerJson, err := json.Marshal(newerJwks)
+	newerJson, err := jwksToSnapshotJSON(newerJwks)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(newerJson).NotTo(BeNil())
 	snaps.MatchJSON(t, newerJson)
 }
 
@@ -83,7 +135,7 @@ func TestFindActiveKey(t *testing.T) {
 
 	// After rotation, newest key should be active
 	clock.Advance(time.Hour * 24 * 25)
-	rotatedJwks, err := service.RotateJwks(subject, appId, getNotAfter(clock), jwks)
+	rotatedJwks, err := service.RotateJwks(testSubject, getNotAfter(clock), jwks)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	activeKey, err = FindActiveKey(rotatedJwks)
@@ -112,7 +164,7 @@ func TestRotateJwks_NilCurrentJwks(t *testing.T) {
 	g := NewWithT(t)
 
 	service, clock := createService()
-	_, err := service.RotateJwks(subject, appId, getNotAfter(clock), nil)
+	_, err := service.RotateJwks(testSubject, getNotAfter(clock), nil)
 	g.Expect(err).To(HaveOccurred())
 	g.Expect(err.Error()).To(ContainSubstring("nil"))
 }
@@ -177,7 +229,7 @@ func getNotAfter(clock clockwork.Clock) time.Time {
 func createTestJwks() (*Jwks, *CryptoService, *clockwork.FakeClock, error) {
 	service, clock := createService()
 
-	jwks, err := service.CreateJwks(subject, appId, getNotAfter(clock))
+	jwks, err := service.CreateJwks(testSubject, getNotAfter(clock))
 	if err != nil {
 		return nil, nil, nil, err
 	}

@@ -356,8 +356,8 @@ func createClient() {
 	if verbose {
 		fmt.Fprintf(os.Stderr, "Configuration loaded from: %s\n", envFile)
 		fmt.Fprintf(os.Stderr, "Self Service URL: %s\n", setup.config.MaskinportenApi.SelfServiceUrl)
-		fmt.Fprintf(os.Stderr, "Service Owner ID: %s\n", setup.operatorCtx.ServiceOwnerId)
-		fmt.Fprintf(os.Stderr, "Service Owner Org No: %s\n", setup.operatorCtx.ServiceOwnerOrgNo)
+		fmt.Fprintf(os.Stderr, "Service Owner ID: %s\n", setup.operatorCtx.ServiceOwner.Id)
+		fmt.Fprintf(os.Stderr, "Service Owner Org No: %s\n", setup.operatorCtx.ServiceOwner.OrgNo)
 		fmt.Fprintf(os.Stderr, "Environment: %s\n", setup.operatorCtx.Environment)
 		fmt.Fprintf(os.Stderr, "App ID: %s\n", appId)
 		fmt.Fprintf(os.Stderr, "Scopes: %s\n", scopes)
@@ -366,12 +366,12 @@ func createClient() {
 
 	// Create JWKS
 	notAfter := time.Now().Add(time.Hour * 24 * 365)
-	certCommonName := maskinporten.GetFullClientName(setup.operatorCtx, appId)
-	jwks, err := setup.cryptoService.CreateJwks(
-		fmt.Sprintf("%s / %s", setup.operatorCtx.ServiceOwnerId, setup.operatorCtx.ServiceOwnerOrgNo),
-		certCommonName,
-		notAfter,
-	)
+	certSubject := crypto.CertSubject{
+		Organization:       setup.operatorCtx.ServiceOwner.OrgName,
+		OrganizationalUnit: setup.operatorCtx.ServiceOwner.Id,
+		CommonName:         appId,
+	}
+	jwks, err := setup.cryptoService.CreateJwks(certSubject, notAfter)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create JWKS: %v\n", err)
 		os.Exit(1)
@@ -384,7 +384,7 @@ func createClient() {
 	clientName := maskinporten.GetFullClientName(setup.operatorCtx, appId)
 	description := fmt.Sprintf(
 		"Altinn Studio Operator managed client for %s/%s/%s",
-		setup.operatorCtx.ServiceOwnerId,
+		setup.operatorCtx.ServiceOwner.Id,
 		setup.operatorCtx.Environment,
 		appId,
 	)
@@ -397,7 +397,7 @@ func createClient() {
 	req := &maskinporten.AddClientRequest{
 		ClientName:              &clientName,
 		Description:             &description,
-		ClientOrgno:             &setup.operatorCtx.ServiceOwnerOrgNo,
+		ClientOrgno:             &setup.operatorCtx.ServiceOwner.OrgNo,
 		GrantTypes:              []maskinporten.GrantType{maskinporten.GrantTypeJwtBearer},
 		Scopes:                  scopeList,
 		IntegrationType:         &integrationType,
@@ -454,13 +454,15 @@ func createClient() {
 func createJwk() {
 	// Create a new flag set for the create jwk subcommand
 	fs := flag.NewFlagSet("create jwk", flag.ExitOnError)
-	var certSubject string
-	var certCommonName string
+	var certOrg string
+	var certOU string
+	var certCN string
 	var notAfterStr string
 	var verbose bool
 	var pretty bool
-	fs.StringVar(&certSubject, "cert-subject", "default-subject", "Subject for the certificate")
-	fs.StringVar(&certCommonName, "cert-common-name", "default-cert", "Common name for the certificate")
+	fs.StringVar(&certOrg, "cert-org", "", "Organization for the certificate (O)")
+	fs.StringVar(&certOU, "cert-ou", "", "Organizational unit for the certificate (OU)")
+	fs.StringVar(&certCN, "cert-cn", "default-cert", "Common name for the certificate (CN)")
 	fs.StringVar(
 		&notAfterStr,
 		"not-after",
@@ -497,19 +499,25 @@ func createJwk() {
 		os.Exit(1)
 	}
 
+	certSubject := crypto.CertSubject{
+		Organization:       certOrg,
+		OrganizationalUnit: certOU,
+		CommonName:         certCN,
+	}
+
 	// Print crypto constants if verbose
 	if verbose {
 		fmt.Fprintf(os.Stderr, "Crypto configuration:\n")
 		fmt.Fprintf(os.Stderr, "Signature Algorithm: %s\n", crypto.DefaultSignatureAlgorithmName())
 		fmt.Fprintf(os.Stderr, "X.509 Signature Algorithm: %v\n", crypto.DefaultX509SignatureAlgo)
 		fmt.Fprintf(os.Stderr, "Key Size (bits): %d\n", crypto.DefaultKeySizeBits)
-		fmt.Fprintf(os.Stderr, "Certificate Common Name: %s\n", certCommonName)
+		fmt.Fprintf(os.Stderr, "Certificate Subject: O=%s, OU=%s, CN=%s\n", certOrg, certOU, certCN)
 		fmt.Fprintf(os.Stderr, "Certificate Not After: %s\n", notAfter.Format(time.RFC3339))
 		fmt.Fprintf(os.Stderr, "---\n")
 	}
 
 	// Create JWKS
-	jwks, err := cryptoService.CreateJwks(certSubject, certCommonName, notAfter)
+	jwks, err := cryptoService.CreateJwks(certSubject, notAfter)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create JWKS: %v\n", err)
 		os.Exit(1)

@@ -209,8 +209,12 @@ func shouldRotateJwk(clock clockwork.Clock, threshold time.Duration, jwks *crypt
 	return age >= threshold, nil
 }
 
-func (s *ClientState) getCertSubject(opCtx *operatorcontext.Context) string {
-	return fmt.Sprintf("%s / %s", opCtx.ServiceOwnerId, opCtx.ServiceOwnerOrgNo)
+func (s *ClientState) getCertSubject(opCtx *operatorcontext.Context) crypto.CertSubject {
+	return crypto.CertSubject{
+		Organization:       opCtx.ServiceOwner.OrgName,
+		OrganizationalUnit: opCtx.ServiceOwner.Id,
+		CommonName:         s.AppId,
+	}
 }
 
 func (s *ClientState) Reconcile(
@@ -274,7 +278,7 @@ func (s *ClientState) Reconcile(
 		// but the secret output exists, in which case we just overwrite it
 		// TODO: handle if someone deleted the API but the secret exists? I.e. blunder in self-service portal?
 		req := s.buildApiReq(opCtx)
-		jwks, err := cryptoService.CreateJwks(s.getCertSubject(opCtx), s.AppId, getNotAfter(clock, configValue.Controller.JwkExpiry))
+		jwks, err := cryptoService.CreateJwks(s.getCertSubject(opCtx), getNotAfter(clock, configValue.Controller.JwkExpiry))
 		if err != nil {
 			return nil, err
 		}
@@ -308,7 +312,7 @@ func (s *ClientState) Reconcile(
 			// * Someone else created the API client
 
 			// Since the private JWKS is stored in the secret, it has been lost and we need to create a new one
-			jwks, err := cryptoService.CreateJwks(s.getCertSubject(opCtx), s.AppId, getNotAfter(clock, configValue.Controller.JwkExpiry))
+			jwks, err := cryptoService.CreateJwks(s.getCertSubject(opCtx), getNotAfter(clock, configValue.Controller.JwkExpiry))
 			if err != nil {
 				return nil, err
 			}
@@ -342,7 +346,7 @@ func (s *ClientState) Reconcile(
 
 			var jwks *crypto.Jwks
 			if needsRotation {
-				jwks, err = cryptoService.RotateJwks(s.getCertSubject(opCtx), s.AppId, getNotAfter(clock, configValue.Controller.JwkExpiry), s.Secret.Content.Jwks)
+				jwks, err = cryptoService.RotateJwks(s.getCertSubject(opCtx), getNotAfter(clock, configValue.Controller.JwkExpiry), s.Secret.Content.Jwks)
 				if err != nil {
 					return nil, err
 				}
@@ -451,11 +455,11 @@ func jwksEqual(a, b *crypto.Jwks) bool {
 }
 
 func getClientNameFullPrefix(context *operatorcontext.Context) string {
-	return fmt.Sprintf("altinnstudiooperator-%s-%s-", context.ServiceOwnerId, context.Environment)
+	return fmt.Sprintf("altinnstudiooperator-%s-%s-", context.ServiceOwner.Id, context.Environment)
 }
 
 func getClientNameServiceOwnerPrefix(context *operatorcontext.Context) string {
-	return fmt.Sprintf("altinnstudiooperator-%s-", context.ServiceOwnerId)
+	return fmt.Sprintf("altinnstudiooperator-%s-", context.ServiceOwner.Id)
 }
 
 func GetFullClientName(context *operatorcontext.Context, appId string) string {
@@ -469,14 +473,14 @@ func (s *ClientState) buildApiReq(context *operatorcontext.Context) *AddClientRe
 	clientName := GetFullClientName(context, s.AppId)
 	description := fmt.Sprintf(
 		"Altinn Studio Operator managed client for %s/%s/%s",
-		context.ServiceOwnerId,
+		context.ServiceOwner.Id,
 		context.Environment,
 		s.AppId,
 	)
 	return &AddClientRequest{
 		ClientName:  &clientName,
 		Description: &description,
-		ClientOrgno: &context.ServiceOwnerOrgNo,
+		ClientOrgno: &context.ServiceOwner.OrgNo,
 		GrantTypes: []GrantType{
 			GrantTypeJwtBearer,
 		},
