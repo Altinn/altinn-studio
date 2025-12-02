@@ -37,17 +37,69 @@ internal class DataModelTypeResolver
             var tree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(File.ReadAllText(modelFile));
 
             // Create a compilation to get semantic information
+            // Add all necessary assembly references so Roslyn can resolve attribute constructor arguments
+            // We need to add core runtime assemblies for Roslyn to properly resolve types
+            var coreAssemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
+            var references = new List<MetadataReference>
+            {
+                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(System.Collections.Generic.List<>).Assembly.Location),
+                MetadataReference.CreateFromFile(
+                    typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute).Assembly.Location
+                ),
+            };
+
+            // Add System.Runtime - CRITICAL for resolving Attribute, Type, Enum, and other base classes
+            var systemRuntimePath = Path.Combine(coreAssemblyPath, "System.Runtime.dll");
+            if (File.Exists(systemRuntimePath))
+            {
+                references.Add(MetadataReference.CreateFromFile(systemRuntimePath));
+            }
+
+            // Add System.Linq for LINQ support
+            var systemLinqPath = Path.Combine(coreAssemblyPath, "System.Linq.dll");
+            if (File.Exists(systemLinqPath))
+            {
+                references.Add(MetadataReference.CreateFromFile(systemLinqPath));
+            }
+
+            // Add Newtonsoft.Json if available
+            try
+            {
+                var newtonsoftAssembly = typeof(Newtonsoft.Json.JsonPropertyAttribute).Assembly;
+                references.Add(MetadataReference.CreateFromFile(newtonsoftAssembly.Location));
+            }
+            catch
+            {
+                // Newtonsoft.Json not available, skip
+            }
+
+            // Add System.ComponentModel.DataAnnotations
+            try
+            {
+                var dataAnnotationsAssembly = typeof(System.ComponentModel.DataAnnotations.RangeAttribute).Assembly;
+                references.Add(MetadataReference.CreateFromFile(dataAnnotationsAssembly.Location));
+            }
+            catch
+            {
+                // DataAnnotations not available, skip
+            }
+
+            // Add System.Xml
+            try
+            {
+                var xmlAssembly = typeof(System.Xml.Serialization.XmlElementAttribute).Assembly;
+                references.Add(MetadataReference.CreateFromFile(xmlAssembly.Location));
+            }
+            catch
+            {
+                // System.Xml not available, skip
+            }
+
             var compilation = Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create(
                 "TempAssembly",
                 syntaxTrees: new[] { tree },
-                references: new[]
-                {
-                    MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-                    MetadataReference.CreateFromFile(typeof(System.Collections.Generic.List<>).Assembly.Location),
-                    MetadataReference.CreateFromFile(
-                        typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute).Assembly.Location
-                    ),
-                }
+                references: references
             );
 
             _semanticModel = compilation.GetSemanticModel(tree);
@@ -93,8 +145,10 @@ internal class DataModelTypeResolver
             var pathSegments = SplitJsonPath(jsonPath);
             ITypeSymbol? currentType = _rootDataModelType;
 
-            foreach (var segment in pathSegments)
+            for (int i = 0; i < pathSegments.Length; i++)
             {
+                var segment = pathSegments[i];
+
                 if (currentType == null)
                 {
                     return null;
@@ -122,7 +176,7 @@ internal class DataModelTypeResolver
             // Return the friendly type name
             return currentType != null ? GetFriendlyTypeName(currentType) : null;
         }
-        catch
+        catch (Exception)
         {
             return null;
         }

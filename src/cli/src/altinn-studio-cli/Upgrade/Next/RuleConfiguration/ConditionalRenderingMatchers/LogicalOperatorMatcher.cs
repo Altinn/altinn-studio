@@ -90,10 +90,107 @@ public class LogicalOperatorMatcher : IExpressionMatcher
             convertedOperands.Add(UnwrapNullValue(converted));
         }
 
+        // Try to optimize common patterns before building the result
+        if (exprFunction == "or")
+        {
+            var optimized = TryOptimizeOrExpression(convertedOperands, debugInfo);
+            if (optimized != null)
+            {
+                return optimized;
+            }
+        }
+
         // Build the expression array: ["or", operand1, operand2, operand3, ...]
         var result = new List<object?> { exprFunction };
         result.AddRange(convertedOperands);
         return result.ToArray();
+    }
+
+    /// <summary>
+    /// Try to optimize OR expressions for common patterns
+    /// Pattern: ["equals", X, null] OR ["notEquals", X, Y] => ["notEquals", X, Y]
+    /// Rationale: If X equals null OR X doesn't equal Y, this is logically equivalent to X != Y
+    /// because null != Y is already true (unless Y is also null, but that's edge case)
+    /// </summary>
+    private object? TryOptimizeOrExpression(List<object?> operands, List<string> debugInfo)
+    {
+        // Only optimize if we have exactly 2 operands
+        if (operands.Count != 2)
+            return null;
+
+        // Check for pattern: ["equals", X, null] OR ["notEquals", X, Y]
+        if (TryOptimizeNullCheckOrNotEquals(operands[0], operands[1], debugInfo, out var result))
+            return result;
+
+        // Check reversed: ["notEquals", X, Y] OR ["equals", X, null]
+        if (TryOptimizeNullCheckOrNotEquals(operands[1], operands[0], debugInfo, out result))
+            return result;
+
+        return null;
+    }
+
+    /// <summary>
+    /// Check if first operand is ["equals", X, null] and second is ["notEquals", X, Y]
+    /// If so, optimize to just ["notEquals", X, Y]
+    /// </summary>
+    private bool TryOptimizeNullCheckOrNotEquals(
+        object? first,
+        object? second,
+        List<string> debugInfo,
+        out object? result
+    )
+    {
+        result = null;
+
+        // Check if first is ["equals", X, null]
+        if (first is not object[] firstArray || firstArray.Length != 3)
+            return false;
+
+        if (firstArray[0] as string != "equals" || firstArray[2] != null)
+            return false;
+
+        // Check if second is ["notEquals", X, Y] where Y is not null
+        if (second is not object[] secondArray || secondArray.Length != 3)
+            return false;
+
+        if (secondArray[0] as string != "notEquals" || secondArray[2] == null)
+            return false;
+
+        // Check if both reference the same subject (X)
+        if (!ExpressionsEqual(firstArray[1], secondArray[1]))
+            return false;
+
+        debugInfo.Add("✅ Optimized pattern: [\"equals\", X, null] OR [\"notEquals\", X, Y] => [\"notEquals\", X, Y]");
+        result = second;
+        return true;
+    }
+
+    /// <summary>
+    /// Compare two expression objects for equality (deep comparison)
+    /// </summary>
+    private bool ExpressionsEqual(object? a, object? b)
+    {
+        if (a == null && b == null)
+            return true;
+        if (a == null || b == null)
+            return false;
+
+        // If both are arrays, compare element by element
+        if (a is object[] arrayA && b is object[] arrayB)
+        {
+            if (arrayA.Length != arrayB.Length)
+                return false;
+
+            for (int i = 0; i < arrayA.Length; i++)
+            {
+                if (!ExpressionsEqual(arrayA[i], arrayB[i]))
+                    return false;
+            }
+            return true;
+        }
+
+        // Otherwise, use standard equality
+        return Equals(a, b);
     }
 
     /// <summary>

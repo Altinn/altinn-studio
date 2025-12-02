@@ -347,20 +347,46 @@ internal class StatementConverter
             if (declarator.Id is Identifier identifier)
             {
                 var varName = identifier.Name;
-                _localVariables[varName] = varName; // Track local variable
+
+                // Check if variable is already declared (e.g., as an input parameter)
+                bool alreadyDeclared = _localVariables.ContainsKey(varName);
 
                 if (declarator.Init != null)
                 {
                     var initCode = ConvertExpression(declarator.Init);
-                    // Detect if this is a string type initialization
-                    var inferredType = IsExpressionStringType(declarator.Init) ? "string?" : "decimal?";
+
+                    // Use GetExpressionType to infer the correct type (handles bool, string, numeric)
+                    var inferredType = GetExpressionType(declarator.Init);
+
+                    // Fallback to legacy type detection if GetExpressionType returns null
+                    if (inferredType == null)
+                    {
+                        inferredType = IsExpressionStringType(declarator.Init) ? "string?" : "decimal?";
+                    }
+
                     _localVariableTypes[varName] = inferredType;
-                    code.AppendLine($"var {varName} = {initCode};");
+
+                    if (alreadyDeclared)
+                    {
+                        // Variable already exists (shadowing parameter) - use assignment instead of declaration
+                        code.AppendLine($"{varName} = {initCode};");
+                    }
+                    else
+                    {
+                        // New variable - declare it
+                        _localVariables[varName] = varName;
+                        code.AppendLine($"var {varName} = {initCode};");
+                    }
                 }
                 else
                 {
-                    code.AppendLine($"var {varName};");
-                    _localVariableTypes[varName] = "decimal?"; // Default to decimal
+                    if (!alreadyDeclared)
+                    {
+                        _localVariables[varName] = varName;
+                        code.AppendLine($"var {varName};");
+                        _localVariableTypes[varName] = "decimal?"; // Default to decimal
+                    }
+                    // If already declared and no initializer, skip entirely (no-op)
                 }
             }
         }

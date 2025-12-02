@@ -35,6 +35,24 @@ public class UnaryPlusMatcher : IExpressionMatcher
         // Handle logical negation (!)
         if (op == "!" || op == "LogicalNot")
         {
+            // Check if the argument is a simple property access (truthiness check)
+            // e.g., !obj.value should become ["equals", value, null]
+            if (TruthinessCheckMatcher.IsTruthinessCheck(unaryExpr.Argument))
+            {
+                debugInfo.Add("Converting ! of property access (truthiness check) to equals null");
+
+                var propertyValue = context.ConvertExpression(unaryExpr.Argument, debugInfo);
+                if (propertyValue == null)
+                {
+                    debugInfo.Add("❌ Failed to convert property in negated truthiness check");
+                    return null;
+                }
+
+                debugInfo.Add("✅ Successfully converted !property to equals null");
+                return new object[] { "equals", propertyValue, null };
+            }
+
+            // Otherwise, standard negation for boolean expressions
             debugInfo.Add("Converting unary ! (logical negation) to 'not'");
 
             var argument = context.ConvertExpression(unaryExpr.Argument, debugInfo);
