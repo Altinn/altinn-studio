@@ -43,7 +43,7 @@ internal static class FakeMaskinportenTokenGenerator
     /// <summary>
     /// Generates a token with the correct scope for StudioGateway.
     /// </summary>
-    public static string GenerateValidToken() => GenerateToken("altinn:studio-gateway");
+    public static string GenerateValidToken() => GenerateToken("altinn:studio/gateway");
 
     /// <summary>
     /// Generates a token with an incorrect scope.
@@ -53,5 +53,5 @@ internal static class FakeMaskinportenTokenGenerator
     /// <summary>
     /// Generates an expired token.
     /// </summary>
-    public static string GenerateExpiredToken() => GenerateToken("altinn:studio-gateway", TimeSpan.FromMinutes(-5));
+    public static string GenerateExpiredToken() => GenerateToken("altinn:studio/gateway", TimeSpan.FromMinutes(-5));
 }
