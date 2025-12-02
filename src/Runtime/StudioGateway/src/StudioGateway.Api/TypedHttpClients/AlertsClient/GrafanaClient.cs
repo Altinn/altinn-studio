@@ -46,7 +46,7 @@ internal sealed class GrafanaClient(HttpClient httpClient, IOptions<AlertsClient
                         ? ruleId
                         : alert.Labels["__alert_rule_uid__"],
                     Name = alert.Labels["alertname"],
-                    App = "ttd" + (alert.Labels.TryGetValue("__name__", out string? appName) ? appName : string.Empty),
+                    App = alert.Labels.TryGetValue("__name__", out string? appName) ? appName : string.Empty,
                     Url = new Uri(BuildAlertLink(baseUri, alert)),
                 };
             }) ?? [];
