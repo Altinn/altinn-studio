@@ -208,7 +208,11 @@ func (s *CryptoService) RotateIfNeeded(
 		if err != nil {
 			return nil, err
 		}
-		newJwks.Keys = append(newJwks.Keys, activeKey) // TODO: verify that app-lib reads latest key
+		newJwks.Keys = append(newJwks.Keys, activeKey)
+		// Keep max 2 keys (newest + previous) to avoid unbounded growth
+		if len(newJwks.Keys) > 2 {
+			newJwks.Keys = newJwks.Keys[:2]
+		}
 		return newJwks, nil
 	}
 }

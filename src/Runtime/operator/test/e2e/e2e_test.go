@@ -98,10 +98,11 @@ func stateIsDeleted(client *resourcesv1alpha1.MaskinportenClient, secret *corev1
 
 var _ = Describe("controller", Ordered, func() {
 	const (
-		namespace       = "runtime-operator"
-		clientName      = "ttd-localtestapp"
-		clientNamespace = "default"
-		secretName      = "ttd-localtestapp-deployment-secrets"
+		namespace        = "runtime-operator"
+		clientName       = "ttd-localtestapp"
+		clientNamespace  = "default"
+		secretName       = "ttd-localtestapp-deployment-secrets"
+		rotateJwkEnabled = "true"
 	)
 
 	var Runtime *kind.KindContainerRuntime
@@ -357,7 +358,7 @@ var _ = Describe("controller", Ordered, func() {
 			if mpClient.Annotations == nil {
 				mpClient.Annotations = make(map[string]string)
 			}
-			mpClient.Annotations[maskinporten.AnnotationRotateJwk] = "true"
+			mpClient.Annotations[maskinporten.AnnotationRotateJwk] = rotateJwkEnabled
 			err = k8sClient.CRD.Put().
 				Resource("maskinportenclients").
 				Namespace(clientNamespace).
@@ -372,7 +373,7 @@ var _ = Describe("controller", Ordered, func() {
 				createStateFetcher(k8sClient, clientName, secretName, clientNamespace),
 				FetchFakesDb,
 				func(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) error {
-					if client.Annotations[maskinporten.AnnotationRotateJwk] == "true" {
+					if client.Annotations[maskinporten.AnnotationRotateJwk] == rotateJwkEnabled {
 						return fmt.Errorf("annotation not removed yet")
 					}
 					return stateIsReconciled(client, secret)
@@ -380,6 +381,62 @@ var _ = Describe("controller", Ordered, func() {
 				time.Second*10,
 				time.Second,
 				"step2b-jwk-rotated",
+			)
+
+			By("triggering pod secret volume sync")
+			err = TriggerPodSecretSync(k8sClient, clientNamespace, "ttd-localtestapp-deployment")
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should handle second JWK rotation and trim to 2 keys", func() {
+			k8sClient := Client
+			Expect(k8sClient).NotTo(BeNil())
+
+			ctx := context.Background()
+
+			By("fetching current MaskinportenClient")
+			mpClient := &resourcesv1alpha1.MaskinportenClient{}
+			err := k8sClient.CRD.Get().
+				Resource("maskinportenclients").
+				Namespace(clientNamespace).
+				Name(clientName).
+				Do(ctx).
+				Into(mpClient)
+			Expect(err).To(Succeed())
+
+			By("adding rotate-jwk annotation for second rotation")
+			if mpClient.Annotations == nil {
+				mpClient.Annotations = make(map[string]string)
+			}
+			mpClient.Annotations[maskinporten.AnnotationRotateJwk] = rotateJwkEnabled
+			err = k8sClient.CRD.Put().
+				Resource("maskinportenclients").
+				Namespace(clientNamespace).
+				Name(clientName).
+				Body(mpClient).
+				Do(ctx).
+				Error()
+			Expect(err).To(Succeed())
+
+			By("waiting for rotation, annotation removal, and key trimming")
+			EventuallyWithSnapshot(
+				createStateFetcher(k8sClient, clientName, secretName, clientNamespace),
+				FetchFakesDb,
+				func(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) error {
+					if client.Annotations[maskinporten.AnnotationRotateJwk] == rotateJwkEnabled {
+						return fmt.Errorf("annotation not removed yet")
+					}
+					if err := stateIsReconciled(client, secret); err != nil {
+						return err
+					}
+					if len(client.Status.KeyIds) != 2 {
+						return fmt.Errorf("expected 2 keys after rotation, got %d", len(client.Status.KeyIds))
+					}
+					return nil
+				},
+				time.Second*10,
+				time.Second,
+				"step2c-jwk-rotated-again",
 			)
 
 			By("triggering pod secret volume sync")

@@ -73,8 +73,9 @@ func CaptureConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *co
 
 // AssertConsistency verifies key rotation invariants:
 // - ClientID never changes
-// - All previously seen keys are still present
-// - New keys can only be prepended with higher index suffix
+// - Max 2 keys (newest + previous)
+// - Keys ordered from newest to oldest (index 0 = newest)
+// - New keys have higher index suffix than previous max
 // - Secret matches CR state
 func AssertConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) {
 	if consistencyState == nil || client == nil {
@@ -85,42 +86,35 @@ func AssertConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *cor
 	gomega.Expect(client.Status.ClientId).To(gomega.Equal(consistencyState.ClientID),
 		"clientId changed unexpectedly - client may have been recreated")
 
-	// Build set of current keys for lookup
-	currentKeys := make(map[string]bool)
+	// Verify max 2 keys
+	gomega.Expect(len(client.Status.KeyIds)).To(gomega.BeNumerically("<=", 2),
+		"expected at most 2 keys, got %d", len(client.Status.KeyIds))
+
+	// Parse all current key indices and verify ordering (newest first)
+	currentIndices := make([]int, 0, len(client.Status.KeyIds))
 	for _, keyId := range client.Status.KeyIds {
-		currentKeys[keyId] = true
+		idx, err := parseKeyIndex(keyId)
+		gomega.Expect(err).NotTo(gomega.HaveOccurred(),
+			fmt.Sprintf("failed to parse key index from %s", keyId))
+		currentIndices = append(currentIndices, idx)
+	}
+	for i := 1; i < len(currentIndices); i++ {
+		gomega.Expect(currentIndices[i]).To(gomega.BeNumerically("<", currentIndices[i-1]),
+			"keys not ordered from newest to oldest: index %d should be < %d",
+			currentIndices[i], currentIndices[i-1])
 	}
 
-	// Verify all previously seen keys are still present
-	for _, expectedKeyId := range consistencyState.KeyIDs {
-		gomega.Expect(currentKeys).To(gomega.HaveKey(expectedKeyId),
-			fmt.Sprintf("previously seen key %s was removed", expectedKeyId))
-	}
-
-	// Verify new keys have higher index than previously seen max
+	// Verify new keys have higher index than previous max
 	newMaxIdx := consistencyState.MaxKeyIndex
-	for _, keyId := range client.Status.KeyIds {
-		alreadySeen := false
-		for _, seenKeyId := range consistencyState.KeyIDs {
-			if keyId == seenKeyId {
-				alreadySeen = true
-				break
-			}
-		}
-		if !alreadySeen {
-			idx, err := parseKeyIndex(keyId)
-			gomega.Expect(err).NotTo(gomega.HaveOccurred(),
-				fmt.Sprintf("failed to parse key index from %s", keyId))
-			gomega.Expect(idx).To(gomega.BeNumerically(">", consistencyState.MaxKeyIndex),
-				fmt.Sprintf("new key %s has index %d not greater than previous max %d",
-					keyId, idx, consistencyState.MaxKeyIndex))
+	for _, idx := range currentIndices {
+		if idx > consistencyState.MaxKeyIndex {
 			if idx > newMaxIdx {
 				newMaxIdx = idx
 			}
 		}
 	}
 
-	// Update state with newly seen keys
+	// Update state
 	consistencyState.KeyIDs = client.Status.KeyIds
 	consistencyState.MaxKeyIndex = newMaxIdx
 
