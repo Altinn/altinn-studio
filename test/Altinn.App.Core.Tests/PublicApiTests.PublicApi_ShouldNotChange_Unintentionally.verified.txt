@@ -367,6 +367,7 @@ namespace Altinn.App.Core.Features.Auth
                 public Altinn.Platform.Register.Models.Party Party { get; init; }
             }
         }
+        public sealed class Unknown : Altinn.App.Core.Features.Auth.Authenticated { }
         public sealed class User : Altinn.App.Core.Features.Auth.Authenticated
         {
             public int AuthenticationLevel { get; }
@@ -411,6 +412,7 @@ namespace Altinn.App.Core.Features.Auth
         public override bool Equals(object? obj) { }
         public Altinn.App.Core.Features.Auth.Scopes.ScopeEnumerator GetEnumerator() { }
         public override int GetHashCode() { }
+        public bool HasAltinnInstanceScope() { }
         public bool HasScope(string scopeToFind) { }
         public bool HasScopeWithPrefix(string scopePrefix) { }
         public override string ToString() { }
