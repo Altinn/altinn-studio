@@ -21,8 +21,8 @@ internal sealed class GrafanaClient(HttpClient httpClient, IOptions<AlertsClient
     public async Task<IEnumerable<Alert>> GetFiringAlertsAsync(CancellationToken cancellationToken)
     {
         string apiToken = _alertsClientSettings.Token;
-        string baseUri = _alertsClientSettings.BaseUri;
-        string url = $"{baseUri}/api/alertmanager/grafana/api/v2/alerts?active=true&silenced=false&inhibited=false";
+        string baseUrl = _alertsClientSettings.BaseUrl;
+        string url = $"{baseUrl}/api/alertmanager/grafana/api/v2/alerts?active=true&silenced=false&inhibited=false";
 
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
 
@@ -47,7 +47,7 @@ internal sealed class GrafanaClient(HttpClient httpClient, IOptions<AlertsClient
                         : alert.Labels["__alert_rule_uid__"],
                     Name = alert.Labels["alertname"],
                     App = alert.Labels.TryGetValue("__name__", out string? appName) ? appName : string.Empty,
-                    Url = new Uri(BuildAlertLink(baseUri, alert)),
+                    Url = new Uri(BuildAlertLink(baseUrl, alert)),
                 };
             }) ?? [];
     }

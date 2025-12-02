@@ -30,8 +30,8 @@ internal sealed class StudioClient(
             configuration["GATEWAY_ENVIRONMENT"]
             ?? throw new InvalidOperationException("Configuration value 'GATEWAY_ENVIRONMENT' is missing.");
 
-        string baseUri = _studioSettings.BaseUri;
-        string url = $"{baseUri}/admin/alerts/{org}/{env}";
+        string baseUrl = _studioSettings.BaseUrl;
+        string url = $"{baseUrl}/admin/alerts/{org}/{env}";
 
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);

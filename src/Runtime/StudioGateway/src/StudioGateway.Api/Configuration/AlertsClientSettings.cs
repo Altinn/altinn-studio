@@ -13,6 +13,6 @@ namespace StudioGateway.Api.Configuration;
 internal sealed class AlertsClientSettings
 {
     public required string Provider { get; set; }
-    public required string BaseUri { get; set; }
+    public required string BaseUrl { get; set; }
     public required string Token { get; set; }
 }
