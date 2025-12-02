@@ -1,0 +1,5 @@
+.metrics {
+  display: flex;
+  gap: var(--ds-size-12);
+  flex-wrap: wrap;
+}

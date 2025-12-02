@@ -21,4 +21,11 @@ public interface IStudioGatewayClient
         int time,
         CancellationToken cancellationToken = default
     );
+
+    public Task<IEnumerable<HealthMetric>> GetHealthMetricsAsync(
+        string org,
+        string env,
+        string app,
+        CancellationToken cancellationToken = default
+    );
 }

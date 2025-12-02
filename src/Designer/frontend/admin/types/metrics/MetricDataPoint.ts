@@ -1,4 +1,4 @@
 export type MetricDataPoint = {
   dateTimeOffset: string;
-  count: number;
+  value: number;
 };

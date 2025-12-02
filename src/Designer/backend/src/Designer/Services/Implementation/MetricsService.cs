@@ -22,4 +22,15 @@ public class MetricsService(
     {
         return await studioGatewayClient.GetMetricsAsync(org, env, app, time, cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<HealthMetric>> GetHealthMetricsAsync(
+        string org,
+        string env,
+        string app,
+        CancellationToken cancellationToken
+    )
+    {
+        return await studioGatewayClient.GetHealthMetricsAsync(org, env, app, cancellationToken);
+    }
 }

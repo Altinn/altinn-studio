@@ -29,14 +29,15 @@ public class StudioGatewayClient(
         StudioGatewayEnvSettings studioGatewaySettings = _studioGatewaySettings.GetSettings(env);
 
         string apiToken = studioGatewaySettings.Token;
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);
-
         string baseUri = studioGatewaySettings.GetBaseUri(org);
         string url = $"{baseUri}/api/v1/alerts";
 
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
 
-        HttpResponseMessage response = await httpClient.GetAsync(url, cancellationToken);
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);
+
+        HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadFromJsonAsync<List<StudioGatewayAlert>>(options, cancellationToken: cancellationToken) ?? [];
@@ -54,16 +55,42 @@ public class StudioGatewayClient(
         StudioGatewayEnvSettings studioGatewaySettings = _studioGatewaySettings.GetSettings(env);
 
         string apiToken = studioGatewaySettings.Token;
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);
-
         string baseUri = studioGatewaySettings.GetBaseUri(org);
         string url = $"{baseUri}/api/v1/metrics?app={app}&time={time}";
 
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
 
-        HttpResponseMessage response = await httpClient.GetAsync(url, cancellationToken);
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);
+
+        HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadFromJsonAsync<List<Metric>>(options, cancellationToken: cancellationToken) ?? [];
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<HealthMetric>> GetHealthMetricsAsync(
+        string org,
+        string env,
+        string app,
+        CancellationToken cancellationToken
+    )
+    {
+        StudioGatewayEnvSettings studioGatewaySettings = _studioGatewaySettings.GetSettings(env);
+
+        string apiToken = studioGatewaySettings.Token;
+        string baseUri = studioGatewaySettings.GetBaseUri(org);
+        string url = $"{baseUri}/api/v1/metrics/health?app={app}";
+
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);
+
+        HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<List<HealthMetric>>(options, cancellationToken: cancellationToken) ?? [];
     }
 }

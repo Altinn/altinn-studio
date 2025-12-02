@@ -1,6 +1,8 @@
 import { Link, useParams } from 'react-router-dom';
 import { StudioBreadcrumbs } from '@studio/components';
-import { Metrics } from './metrics/Metrics';
+import { AppHealthMetrics } from './components/AppHealthMetrics';
+import { AppMetrics } from './components/AppMetrics';
+import classes from './AppDetails.module.css';
 
 export const AppsDetails = () => {
   const { org, env, app } = useParams() as { org: string; env: string; app: string };
@@ -25,7 +27,10 @@ export const AppsDetails = () => {
       <h1>
         {env} / {app}
       </h1>
-      <Metrics />
+      <div className={classes.metrics}>
+        <AppHealthMetrics />
+        <AppMetrics />
+      </div>
       <p>
         Gå til <Link to='instances'>instanser</Link>.
       </p>

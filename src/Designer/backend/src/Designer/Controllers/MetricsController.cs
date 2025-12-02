@@ -28,4 +28,17 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
         IEnumerable<Metric> metrics = await _metricsService.GetMetricsAsync(org, env, app, time, cancellationToken);
         return Ok(metrics);
     }
+
+    [HttpGet("health")]
+    [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
+    public async Task<ActionResult<IEnumerable<HealthMetric>>> GetHealthMetrics(
+        string org,
+        string env,
+        string app,
+        CancellationToken cancellationToken
+    )
+    {
+        IEnumerable<HealthMetric> healthMetrics = await _metricsService.GetHealthMetricsAsync(org, env, app, cancellationToken);
+        return Ok(healthMetrics);
+    }
 }

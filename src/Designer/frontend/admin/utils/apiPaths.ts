@@ -1,8 +1,10 @@
 const adminApiBasePath = `/designer/api/admin`;
 
 export const alertsPath = (org: string, env: string) => `${adminApiBasePath}/alerts/${org}/${env}`; // Get, Post
+export const healthMetricsPath = (org: string, env: string, app: string) =>
+  `${adminApiBasePath}/metrics/${org}/${env}/health?app=${app}`; // Get
 export const metricsPath = (org: string, env: string, app: string, time: number) =>
-  `${adminApiBasePath}/metrics/${org}/${env}?app=${app}&time=${time}`; // Get, Post
+  `${adminApiBasePath}/metrics/${org}/${env}?app=${app}&time=${time}`; // Get
 export const processNextPath = (org: string, env: string, app: string, time: number) =>
   `${adminApiBasePath}/metrics/process-next/${org}/${env}?app=${app}&time=${time}`; // Get, Post
 export const runningAppsPath = (org: string) => `${adminApiBasePath}/applications/${org}`; // Get
