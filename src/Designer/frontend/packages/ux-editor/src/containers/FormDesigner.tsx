@@ -125,6 +125,8 @@ export const FormDesigner = (): JSX.Element => {
         selectedDataModel &&
         !newComponent.dataModelBindings?.simpleBinding?.field;
 
+      let bindingWasAdded = false;
+
       if (shouldAutoBind) {
         const bindingKey = 'simpleBinding';
         const dataModelFields = getDataModelFields({
@@ -151,10 +153,11 @@ export const FormDesigner = (): JSX.Element => {
             timeStamp: getXsdDataTypeFromDataModelFields(type, firstField.value, dataModelMetadata),
             maxCount: getMaxOccursFromDataModelFields(type, firstField.value, dataModelMetadata),
           } as FormComponent;
+          bindingWasAdded = true;
         }
       }
 
-      if (shouldAutoBind) {
+      if (bindingWasAdded) {
         await updateFormLayout(
           { internalLayout: updatedLayout },
           {
