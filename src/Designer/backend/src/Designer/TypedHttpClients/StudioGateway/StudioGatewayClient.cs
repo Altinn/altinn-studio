@@ -10,9 +10,9 @@ using Altinn.Studio.Designer.Models.Alerts;
 using Altinn.Studio.Designer.Models.Metrics;
 using Microsoft.Extensions.Options;
 
-namespace Altinn.Studio.Designer.TypedHttpClient.StudioGateway;
+namespace Altinn.Studio.Designer.TypedHttpClients.StudioGateway;
 
-public class StudioGatewayClient(
+internal sealed class StudioGatewayClient(
     HttpClient httpClient,
     IOptions<StudioGatewaySettings> studioGatewaySettings
     ) : IStudioGatewayClient

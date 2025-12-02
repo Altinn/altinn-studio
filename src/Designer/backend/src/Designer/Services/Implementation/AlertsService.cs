@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Hubs.AlertsUpdate;
 using Altinn.Studio.Designer.Models.Alerts;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpClient.StudioGateway;
+using Altinn.Studio.Designer.TypedHttpClients.StudioGateway;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
-public class AlertsService(
+internal sealed class AlertsService(
     IStudioGatewayClient studioGatewayClient,
     IHubContext<AlertsUpdatedHub, IAlertsUpdateClient> alertsUpdatedHubContext
     ) : IAlertsService

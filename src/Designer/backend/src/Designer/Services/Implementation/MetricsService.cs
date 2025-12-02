@@ -3,11 +3,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Metrics;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpClient.StudioGateway;
+using Altinn.Studio.Designer.TypedHttpClients.StudioGateway;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
-public class MetricsService(
+internal sealed class MetricsService(
     IStudioGatewayClient studioGatewayClient
     ) : IMetricsService
 {

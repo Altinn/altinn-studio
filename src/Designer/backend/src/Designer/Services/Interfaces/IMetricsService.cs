@@ -12,13 +12,13 @@ public interface IMetricsService
         string env,
         string app,
         int time,
-        CancellationToken cancellationToken = default
+        CancellationToken cancellationToken
     );
 
     public Task<IEnumerable<HealthMetric>> GetHealthMetricsAsync(
         string org,
         string env,
         string app,
-        CancellationToken cancellationToken = default
+        CancellationToken cancellationToken
     );
 }

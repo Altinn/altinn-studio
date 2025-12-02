@@ -10,12 +10,12 @@ public interface IAlertsService
     public Task<IEnumerable<Alert>> GetFiringAlertsAsync(
         string org,
         string env,
-        CancellationToken cancellationToken = default
+        CancellationToken cancellationToken
     );
 
     public Task UpsertFiringAlertsAsync(
         string org,
         string env,
-        CancellationToken cancellationToken = default
+        CancellationToken cancellationToken
     );
 }
