@@ -4,7 +4,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppContext } from '../../../../../hooks';
 import { useAddItemToLayoutMutation } from '../../../../../hooks/mutations/useAddItemToLayoutMutation';
 import { useFormLayoutMutation } from '../../../../../hooks/mutations/useFormLayoutMutation';
-import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType, type CustomComponentType } from 'app-shared/types/ComponentType';
 import { addItemOfType, getItem } from '../../../../../utils/formLayoutUtils';
 import { ItemType } from '../../../../../components/Properties/ItemType';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
@@ -46,8 +46,11 @@ export const useBaseAddComponentHandler = (layout: IInternalLayout) => {
     let updatedLayout = addItemOfType(layout, type, newId, parentId, index);
 
     const newComponent = getItem(updatedLayout, newId);
+    const isCustomComponent = !Object.values(ComponentType).includes(type as ComponentType);
+
     const shouldAutoBind =
       !isContainer(newComponent) &&
+      !isCustomComponent &&
       dataModelMetadata &&
       selectedDataModel &&
       !newComponent.dataModelBindings?.simpleBinding?.field;

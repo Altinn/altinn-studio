@@ -19,7 +19,7 @@ import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { HandleAdd, HandleMove } from 'app-shared/types/dndTypes';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { generateComponentId } from '../utils/generateId';
 import {
   addItemOfType,
@@ -119,8 +119,11 @@ export const FormDesigner = (): JSX.Element => {
       let updatedLayout = addItemOfType(layout, type, newId, parentId, index);
 
       const newComponent = getItem(updatedLayout, newId);
+      const isCustomComponent = !Object.values(ComponentType).includes(type as ComponentType);
+
       const shouldAutoBind =
         !isContainer(newComponent) &&
+        !isCustomComponent &&
         dataModelMetadata &&
         selectedDataModel &&
         !newComponent.dataModelBindings?.simpleBinding?.field;
