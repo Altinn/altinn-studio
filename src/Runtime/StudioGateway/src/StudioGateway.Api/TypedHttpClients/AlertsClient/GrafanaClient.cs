@@ -21,14 +21,15 @@ internal sealed class GrafanaClient(HttpClient httpClient, IOptions<AlertsClient
     public async Task<IEnumerable<Alert>> GetFiringAlertsAsync(CancellationToken cancellationToken)
     {
         string apiToken = _alertsClientSettings.Token;
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);
-
         string baseUri = _alertsClientSettings.BaseUri;
         string url = $"{baseUri}/api/alertmanager/grafana/api/v2/alerts?active=true&silenced=false&inhibited=false";
 
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
 
-        HttpResponseMessage response = await httpClient.GetAsync(url, cancellationToken);
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);
+
+        HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
         var alerts = await response.Content.ReadFromJsonAsync<List<GrafanaAlert>>(
@@ -46,8 +47,7 @@ internal sealed class GrafanaClient(HttpClient httpClient, IOptions<AlertsClient
                         : alert.Labels["__alert_rule_uid__"],
                     Name = alert.Labels["alertname"],
                     App = "ttd" + (alert.Labels.TryGetValue("__name__", out string? appName) ? appName : string.Empty),
-                    // App = alert.Labels["cloud/rolename"],
-                    Url = BuildAlertLink(baseUri, alert),
+                    Url = new Uri(BuildAlertLink(baseUri, alert)),
                 };
             }) ?? [];
     }
@@ -55,11 +55,11 @@ internal sealed class GrafanaClient(HttpClient httpClient, IOptions<AlertsClient
     private static string BuildAlertLink(string baseUri, GrafanaAlert alert)
     {
         if (
-            alert.Annotations.TryGetValue("__dashboardUid__", out string dashboardId)
+            alert.Annotations.TryGetValue("__dashboardUid__", out string? dashboardId)
             && !string.IsNullOrEmpty(dashboardId)
         )
         {
-            if (alert.Annotations.TryGetValue("__panelId__", out string panelId) && !string.IsNullOrEmpty(panelId))
+            if (alert.Annotations.TryGetValue("__panelId__", out string? panelId) && !string.IsNullOrEmpty(panelId))
             {
                 return $"{baseUri}/d/{dashboardId}/?viewPanel={panelId}";
             }

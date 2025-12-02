@@ -78,7 +78,7 @@ internal sealed class AzureMonitorClient(
                 return new
                 {
                     Name = row.GetString("Name"),
-                    DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset")!.Value,
+                    DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset").GetValueOrDefault(),
                     Count = row.GetDouble("Count") ?? 0,
                 };
             })
@@ -128,11 +128,9 @@ internal sealed class AzureMonitorClient(
 
         var metricDataPoints = response.Value.Table.Rows.Select(row => new MetricDataPoint
         {
-            DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset")!.Value,
+            DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset").GetValueOrDefault(),
             Count = row.GetDouble("Count") ?? 0,
         });
-
-        var total = metricDataPoints.Sum(e => e.Count);
 
         return [new Metric { Name = "failed_process_next_requests", DataPoints = metricDataPoints }];
     }

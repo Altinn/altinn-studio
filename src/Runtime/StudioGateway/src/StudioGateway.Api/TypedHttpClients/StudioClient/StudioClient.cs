@@ -23,8 +23,12 @@ internal sealed class StudioClient(
     {
         string apiToken = _studioSettings.Token;
 
-        string org = configuration["GATEWAY_SERVICEOWNER"];
-        string env = configuration["GATEWAY_ENVIRONMENT"];
+        string org =
+            configuration["GATEWAY_SERVICEOWNER"]
+            ?? throw new InvalidOperationException("Configuration value 'GATEWAY_SERVICEOWNER' is missing.");
+        string env =
+            configuration["GATEWAY_ENVIRONMENT"]
+            ?? throw new InvalidOperationException("Configuration value 'GATEWAY_ENVIRONMENT' is missing.");
 
         string baseUri = _studioSettings.BaseUri;
         string url = $"{baseUri}/admin/alerts/{org}/{env}";

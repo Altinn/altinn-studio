@@ -1,11 +1,16 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace StudioGateway.Api.Models.Alerts;
 
-public record GrafanaAlert
+[SuppressMessage(
+    "Microsoft.Performance",
+    "CA1812:AvoidUninstantiatedInternalClasses",
+    Justification = "Class is instantiated via dependency injection"
+)]
+internal sealed record GrafanaAlert
 {
-    public GrafanaAlert() { }
-
-    public Dictionary<string, string>? Labels { get; init; }
-    public Dictionary<string, string>? Annotations { get; init; }
-    public string? GeneratorURL { get; init; }
-    public string? Fingerprint { get; init; }
+    public required Dictionary<string, string> Labels { get; init; }
+    public required Dictionary<string, string> Annotations { get; init; }
+    public required string GeneratorURL { get; init; }
+    public required string Fingerprint { get; init; }
 }

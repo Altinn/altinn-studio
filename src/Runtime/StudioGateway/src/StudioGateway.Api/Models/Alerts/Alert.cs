@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace StudioGateway.Api.Models.Alerts;
 
-public class Alert
+internal sealed class Alert
 {
     [JsonPropertyName("id")]
     public required string Id { get; set; }
@@ -17,5 +17,5 @@ public class Alert
     public required string App { get; set; }
 
     [JsonPropertyName("url")]
-    public required string Url { get; set; }
+    public required Uri Url { get; set; }
 }
