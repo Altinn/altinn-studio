@@ -10,19 +10,12 @@ import type {
   ConnectionStatus,
   UserAttachment,
 } from '@studio/assistant';
-import { MessageAuthor } from '@studio/assistant';
+import { MessageAuthor, ErrorMessages } from '@studio/assistant';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useRepoCurrentBranchQuery } from 'app-shared/hooks/queries/useRepoCurrentBranchQuery';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useThreadStorage } from './useThreadStorage';
-
-const generateThreadId = (): string => {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-    return crypto.randomUUID();
-  }
-
-  return `thread-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-};
+import { useAltinityWebSocket } from './useAltinityWebSocket';
 
 export interface UseAltinityAssistantResult {
   // Connection state
@@ -45,15 +38,16 @@ export interface UseAltinityAssistantResult {
 }
 
 export const useAltinityAssistant = (): UseAltinityAssistantResult => {
-  // Altinity integration state
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowStatus>({ isActive: false });
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
-  const [wsConnection, setWsConnection] = useState<WebSocket | null>(null);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-  const wsRef = useRef<WebSocket | null>(null);
   const currentSessionIdRef = useRef<string | null>(null);
+  const {
+    connectionStatus,
+    sessionId: backendSessionId,
+    startWorkflow,
+    onAgentMessage,
+  } = useAltinityWebSocket();
 
-  // Thread storage for persistence
   const {
     threads: chatThreads,
     addThread,
@@ -73,79 +67,31 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     }
   }, [currentBranch]);
 
-  // Keep the ref in sync with currentSessionId
   useEffect(() => {
     currentSessionIdRef.current = currentSessionId;
   }, [currentSessionId]);
 
-  // Initialize WebSocket connection
   useEffect(() => {
-    const connectWebSocket = () => {
-      try {
-        setConnectionStatus('connecting');
-        const ws = new WebSocket('ws://localhost:8071/ws');
-        wsRef.current = ws;
+    onAgentMessage((event: WorkflowEvent) => {
+      const currentSession = currentSessionIdRef.current;
 
-        ws.onopen = () => {
-          setConnectionStatus('connected');
-          setWsConnection(ws);
-        };
-
-        ws.onmessage = (event) => {
-          try {
-            const agentEvent: WorkflowEvent & { session_id?: string } = JSON.parse(event.data);
-
-            // Use the latest currentSessionId from a ref to avoid stale closure issues
-            const currentSession = currentSessionIdRef.current;
-
-            // Check if this message is for the current session
-            if (agentEvent.session_id && agentEvent.session_id !== currentSession) {
-              return;
-            }
-
-            handleWorkflowEvent(agentEvent);
-          } catch (error) {
-            console.error('Failed to parse WebSocket message:', error);
-          }
-        };
-
-        ws.onclose = () => {
-          setConnectionStatus('disconnected');
-          setWsConnection(null);
-          // Attempt to reconnect after a delay
-          setTimeout(connectWebSocket, 5000);
-        };
-
-        ws.onerror = (error) => {
-          console.error('WebSocket error:', error);
-          setConnectionStatus('error');
-        };
-      } catch (error) {
-        console.error('Failed to connect to WebSocket:', error);
-        setConnectionStatus('error');
+      if (event.session_id && event.session_id !== currentSession) {
+        return;
       }
-    };
 
-    connectWebSocket();
-
-    return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-    };
-  }, []);
+      handleWorkflowEvent(event);
+    });
+  }, [onAgentMessage]);
 
   const addMessageToThread = useCallback(
     (threadId: string, message: UserMessage | AssistantMessage) => {
       const existingThread = getThread(threadId);
       if (existingThread) {
-        // Update existing thread
         const updatedMessages = [...existingThread.messages, message];
         updateThread(threadId, {
           messages: updatedMessages,
         });
       } else {
-        // Create new thread
         const newThread: ChatThread = {
           id: threadId,
           title:
@@ -168,26 +114,14 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
   }, []);
 
   const createNewThread = useCallback(() => {
-    const now = new Date().toISOString();
-    const newThreadId = generateThreadId();
-    const newThread: ChatThread = {
-      id: newThreadId,
-      title: 'Ny tråd',
-      messages: [],
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    addThread(newThread);
-    setCurrentSessionId(newThreadId);
-    currentSessionIdRef.current = newThreadId;
+    setCurrentSessionId(null);
+    currentSessionIdRef.current = null;
     setWorkflowStatus({ isActive: false });
-  }, [addThread]);
+  }, []);
 
   const deleteThread = useCallback(
     (threadId: string) => {
       deleteThreadFromStorage(threadId);
-      // If the deleted thread was the active one, clear the selection
       if (currentSessionId === threadId) {
         setCurrentSessionId(null);
         currentSessionIdRef.current = null;
@@ -199,15 +133,12 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
   const handleWorkflowEvent = useCallback(
     (event: WorkflowEvent) => {
       if (event.type === 'assistant_message') {
-        const assistantMessage = event.data as any;
-        // Backend sends 'response' or 'message' field, but we need 'content' for the frontend
+        const assistantMessage = event.data;
         const messageContent =
           assistantMessage.response || assistantMessage.message || assistantMessage.content || '';
 
-        // Convert backend timestamp (ISO string) to Date - handle null timestamp
         const messageTimestamp = new Date(assistantMessage.timestamp || Date.now());
 
-        // Update workflow status with completion info
         setWorkflowStatus((prev) => ({
           ...prev,
           currentStep: 'Completed',
@@ -217,19 +148,16 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
           filesChanged: assistantMessage.filesChanged || [],
         }));
 
-        // Replace or add the assistant message
         const currentSession = currentSessionIdRef.current;
 
         if (currentSession) {
           const existingThread = getThread(currentSession);
 
           if (existingThread) {
-            // Check if there's already an assistant message at the end
             const lastMessage = existingThread.messages[existingThread.messages.length - 1];
 
             if (lastMessage && lastMessage.author === MessageAuthor.Assistant) {
-              // Replace the existing assistant message (loading or previous)
-              const updatedMessages = [
+              const updatedMessages: Message[] = [
                 ...existingThread.messages.slice(0, -1),
                 {
                   ...lastMessage,
@@ -238,12 +166,11 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
                   filesChanged: assistantMessage.filesChanged || [],
                   sources: assistantMessage.sources || [],
                   isLoading: false,
-                },
+                } as AssistantMessage,
               ];
               updateThread(currentSession, { messages: updatedMessages });
             } else {
-              // Add the assistant message if there's no assistant message at the end
-              const updatedMessages = [
+              const updatedMessages: Message[] = [
                 ...existingThread.messages,
                 {
                   author: MessageAuthor.Assistant,
@@ -252,42 +179,37 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
                   filesChanged: assistantMessage.filesChanged || [],
                   sources: assistantMessage.sources || [],
                   isLoading: false,
-                },
+                } as AssistantMessage,
               ];
               updateThread(currentSession, { messages: updatedMessages });
             }
           }
         }
 
-        // Check if we should skip branch operations (chat mode or explicit flag)
-        const eventData = event.data as any;
-        const mode = eventData.mode;
-        const noBranchOps = eventData.no_branch_operations;
+        const mode = assistantMessage.mode;
+        const noBranchOps = assistantMessage.no_branch_operations;
         const shouldSkipBranchOps = mode === 'chat' || noBranchOps === true;
 
         if (!shouldSkipBranchOps) {
-          // Extract branch name from the session_id (not from message content)
-          // Backend logic: altinity_session_{session_id[8:16]}
-          const sessionId = (event as any).session_id || currentSession;
+          const sessionId = event.session_id || currentSession;
+          if (!sessionId) return;
+
           const uniqueId = sessionId.startsWith('session_')
             ? sessionId.substring(8, 16)
             : sessionId.substring(0, 8);
           const branch = `altinity_session_${uniqueId}`;
 
-          // Trigger repo reset to reclone the repository to dev location with the new branch
           const resetUrl = `/designer/api/repos/repo/${org}/${app}/reset${branch !== 'main' ? `?branch=${encodeURIComponent(branch)}` : ''}`;
           fetch(resetUrl, {
             method: 'GET',
             credentials: 'same-origin',
           })
             .then(() => {
-              // Trigger preview reload after successful reset
               console.log('Repository reset completed, triggering preview reload');
               currentBranchRef.current = branch;
               queryClient.invalidateQueries({
                 queryKey: [QueryKey.RepoCurrentBranch, org, app],
               });
-              // Dispatch custom event that preview components can listen for
               window.dispatchEvent(
                 new CustomEvent('altinity-repo-reset', {
                   detail: { branch, sessionId },
@@ -299,20 +221,17 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
             });
         }
       } else if (event.type === 'workflow_status') {
-        // Handle workflow status updates by updating the existing assistant message
         if (currentSessionId) {
           const existingThread = chatThreads.find((t) => t.id === currentSessionId);
           if (existingThread) {
-            // Find the last assistant message and update it with status
             const updatedMessages = existingThread.messages.map((msg, index) => {
               if (
                 msg.author === MessageAuthor.Assistant &&
                 index === existingThread.messages.length - 1
               ) {
-                // Update the last assistant message with current status
                 return {
                   ...msg,
-                  content: `${(event as any).message || 'Vent litt...'}`,
+                  content: `${event.data.message || 'Vent litt...'}`,
                 };
               }
               return msg;
@@ -331,31 +250,18 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     attachments?: UserAttachment[],
   ): Promise<AgentResponse> => {
     const branchToUse = currentBranch ?? currentBranchRef.current ?? 'main';
-    const response = await fetch('http://localhost:8071/api/agent/start', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        session_id: sessionId,
-        goal: goal,
-        repo_url: `http://studio.localhost/repos/${org}/${app}.git`,
-        branch: branchToUse,
-        allow_app_changes: allowAppChanges,
-        attachments,
-      }),
+
+    const result = await startWorkflow({
+      session_id: sessionId,
+      goal: goal,
+      org: org,
+      app: app,
+      branch: branchToUse,
+      allow_app_changes: allowAppChanges,
+      attachments,
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      // Throw the full error data so the caller can parse it
-      throw new Error(JSON.stringify(errorData));
-    }
-
-    const result: AgentResponse = await response.json();
-
     if (result.accepted) {
-      // Add initial agent response with loading indicator
       const initialAgentMessage: AssistantMessage = {
         author: MessageAuthor.Assistant,
         content: `\n\nVent litt...`,
@@ -364,22 +270,6 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
         isLoading: true,
       };
       addMessageToThread(sessionId, initialAgentMessage);
-
-      // Register for WebSocket events for this session
-      const registerSession = () => {
-        if (wsConnection && wsConnection.readyState === WebSocket.OPEN) {
-          wsConnection.send(
-            JSON.stringify({
-              type: 'session',
-              session_id: sessionId,
-            }),
-          );
-        } else {
-          console.log('WebSocket not ready for session registration, retrying in 200ms');
-          setTimeout(registerSession, 200);
-        }
-      };
-      registerSession();
 
       setWorkflowStatus({
         isActive: true,
@@ -396,7 +286,6 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     const trimmedContent = message.content?.trim();
     if (!trimmedContent) return;
 
-    // Always add user message first
     const userMessage: UserMessage = {
       ...message,
       content: trimmedContent,
@@ -406,7 +295,6 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     let sessionId: string;
 
     if (currentSessionId) {
-      // Continue with existing session
       sessionId = currentSessionId;
       addMessageToThread(sessionId, userMessage);
 
@@ -420,7 +308,7 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
         if (!result.accepted) {
           const rejectionMessage: AssistantMessage = {
             author: MessageAuthor.Assistant,
-            content: `❌ **Request Rejected**\n\n${result.message}\n\n${result.parsed_intent?.suggestions ? 'Suggestions:\n' + result.parsed_intent.suggestions.join('\n') : ''}`,
+            content: formatRejectionMessage(result),
             timestamp: new Date(),
             filesChanged: [],
           };
@@ -430,18 +318,21 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
         console.error('Failed to continue workflow:', error);
         const errorMessage: AssistantMessage = {
           author: MessageAuthor.Assistant,
-          content: `❌ **Request Failed**\n\n${error instanceof Error ? error.message : 'Unknown error occurred'}`,
+          content: formatErrorMessage(error),
           timestamp: new Date(),
           filesChanged: [],
         };
         addMessageToThread(sessionId, errorMessage);
       }
     } else {
-      // Create new session for new thread
-      sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      if (!backendSessionId) {
+        console.error('No backend session ID available - connection not established');
+        return;
+      }
+
+      sessionId = backendSessionId;
       selectThread(sessionId);
 
-      // Add user message to the new thread
       addMessageToThread(sessionId, userMessage);
 
       try {
@@ -584,3 +475,16 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     deleteThread,
   };
 };
+
+function formatRejectionMessage(result: AgentResponse): string {
+  const suggestions = result.parsed_intent?.suggestions
+    ? 'Suggestions:\n' + result.parsed_intent.suggestions.join('\n')
+    : '';
+
+  return `${ErrorMessages.REQUEST_REJECTED}\n\n${result.message}\n\n${suggestions}`;
+}
+
+function formatErrorMessage(error: unknown): string {
+  const errorMessage = error instanceof Error ? error.message : ErrorMessages.UNKNOWN_ERROR;
+  return `${ErrorMessages.REQUEST_FAILED}\n\n${errorMessage}`;
+}

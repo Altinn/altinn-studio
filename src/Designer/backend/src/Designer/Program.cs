@@ -15,6 +15,7 @@ using Altinn.Studio.Designer.Infrastructure.AnsattPorten;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
 using Altinn.Studio.Designer.Scheduling;
+using Altinn.Studio.Designer.Services.Altinity;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Tracing;
@@ -59,7 +60,6 @@ var app = builder.Build();
 
 void ConfigureSetupLogging()
 {
-    // Setup logging for the web host creation
     var logFactory = LoggerFactory.Create(builder =>
     {
         builder
@@ -136,39 +136,22 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
 
 void ConfigureLogging(ILoggingBuilder builder)
 {
-    // The default ASP.NET Core project templates call CreateDefaultBuilder, which adds the following logging providers:
-    // Console, Debug, EventSource
-    // https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/?view=aspnetcore-3.1
-
-    // Clear log providers
     builder.ClearProviders();
 
-    // Setup up application insight if ApplicationInsightsKey is available
     if (!string.IsNullOrEmpty(applicationInsightsConnectionString))
     {
-        // Add application insights https://docs.microsoft.com/en-us/azure/azure-monitor/app/ilogger
-        // Providing an instrumentation key here is required if you're using
-        // standalone package Microsoft.Extensions.Logging.ApplicationInsights
-        // or if you want to capture logs from early in the application startup
-        // pipeline from Startup.cs or Program.cs itself.
         builder.AddApplicationInsights(configureTelemetryConfiguration: config =>
         {
             config.ConnectionString = applicationInsightsConnectionString;
         },
         configureApplicationInsightsLoggerOptions: _ => { });
 
-        // Optional: Apply filters to control what logs are sent to Application Insights.
-        // The following configures LogLevel Information or above to be sent to
-        // Application Insights for all categories.
         builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(string.Empty, LogLevel.Warning);
 
-        // Adding the filter below to ensure logs of all severity from Program.cs
-        // is sent to ApplicationInsights.
         builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(typeof(Program).FullName, LogLevel.Trace);
     }
     else
     {
-        // If not application insight is available log to console
         builder.AddFilter("Microsoft", LogLevel.Warning);
         builder.AddFilter("System", LogLevel.Warning);
         builder.AddConsole();
@@ -188,6 +171,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.ConfigureMaskinportenIntegrationSettings(configuration.GetSection("MaskinportenClientSettings"));
 
     services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
+    services.Configure<AltinitySettings>(configuration.GetSection("AltinitySettings"));
+    services.AddSingleton<IAltinityWebSocketService, AltinityWebSocketService>();
     var maskinPortenClientName = "MaskinportenClient";
     services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(maskinPortenClientName, configuration.GetSection("MaskinportenClientSettings"));
     services.AddHttpClient<IResourceRegistry, ResourceRegistryService>();
@@ -197,7 +182,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.AddMaskinportenHttpClient<MaskinPortenClientDefinition>("MaskinportenHttpClient", maskinportenSettings);
 
-    // Add application insight telemetry
     if (!string.IsNullOrEmpty(applicationInsightsConnectionString))
     {
         services.AddApplicationInsightsTelemetry(options => { options.ConnectionString = applicationInsightsConnectionString; });
@@ -242,10 +226,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.AddOpenApi("v1");
 
-    // Auto register all settings classes
     services.RegisterSettingsByBaseType<ISettingsMarker>(configuration);
 
-    // Registers all handlers and the mediator
     services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
     services.AddTransient<IFileSyncHandlerExecutor, FileSyncHandlerExecutor>();
     services.AddFeatureManagement();
@@ -265,7 +247,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     if (!env.IsDevelopment())
     {
-        // https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/proxy-load-balancer?view=aspnetcore-8.0
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders =
