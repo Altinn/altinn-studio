@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"fmt"
 	"sync/atomic"
 	"time"
 
@@ -107,11 +108,41 @@ type MaskinportenApiConfig struct {
 }
 
 type ControllerConfig struct {
-	RequeueAfter time.Duration `koanf:"requeue_after" validate:"required,min=5s,max=72h"`
+	RequeueAfter         time.Duration `koanf:"requeue_after"          validate:"required,min=5s,max=72h"`
+	JwkRotationThreshold time.Duration `koanf:"jwk_rotation_threshold" validate:"required"`
+	JwkExpiry            time.Duration `koanf:"jwk_expiry"             validate:"required"`
 }
 
 type OrgRegistryConfig struct {
 	URL string `koanf:"url" validate:"required,http_url"`
+}
+
+// ValidateControllerConfig performs environment-aware validation on ControllerConfig.
+// Local environments have relaxed minimums for testing.
+func ValidateControllerConfig(c *ControllerConfig, isLocal bool) error {
+	var minThreshold, minExpiry time.Duration
+	if isLocal {
+		minThreshold = 30 * time.Second
+		minExpiry = 30 * time.Second
+	} else {
+		minThreshold = time.Hour
+		minExpiry = 24 * time.Hour
+	}
+	maxExpiry := 365 * 24 * time.Hour
+
+	if c.JwkRotationThreshold < minThreshold {
+		return fmt.Errorf("jwk_rotation_threshold must be at least %s", minThreshold)
+	}
+	if c.JwkExpiry < minExpiry {
+		return fmt.Errorf("jwk_expiry must be at least %s", minExpiry)
+	}
+	if c.JwkExpiry > maxExpiry {
+		return fmt.Errorf("jwk_expiry must be at most %s", maxExpiry)
+	}
+	if c.JwkExpiry <= c.JwkRotationThreshold {
+		return fmt.Errorf("jwk_expiry (%s) must be greater than jwk_rotation_threshold (%s)", c.JwkExpiry, c.JwkRotationThreshold)
+	}
+	return nil
 }
 
 // SafeLogValue returns a map representation of Config suitable for logging,
@@ -172,6 +203,11 @@ func GetConfig(ctx context.Context, environment string, configFilePath string) (
 
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	if err := validate.Struct(monitor.Get()); err != nil {
+		return nil, err
+	}
+
+	isLocal := environment == operatorcontext.EnvironmentLocal
+	if err := ValidateControllerConfig(&monitor.Get().Controller, isLocal); err != nil {
 		return nil, err
 	}
 

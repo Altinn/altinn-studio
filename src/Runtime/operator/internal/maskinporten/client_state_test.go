@@ -50,6 +50,10 @@ func newFixture() *fixture {
 		MaskinportenApi: config.MaskinportenApiConfig{
 			AuthorityUrl: testAuthority,
 		},
+		Controller: config.ControllerConfig{
+			JwkRotationThreshold: 23 * 24 * time.Hour, // 23 days
+			JwkExpiry:            30 * 24 * time.Hour, // 30 days
+		},
 	}
 
 	return &fixture{
@@ -641,7 +645,7 @@ func TestJwkRotation_SecondRotation(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	deps.clock.Advance(time.Hour * 24 * 24)
-	rotatedJwks, err := deps.crypto.RotateIfNeeded(testSubject, testAppId, deps.getNotAfter(), jwks, false)
+	rotatedJwks, err := deps.crypto.RotateJwks(testSubject, testAppId, deps.getNotAfter(), jwks)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(rotatedJwks).NotTo(BeNil())
 

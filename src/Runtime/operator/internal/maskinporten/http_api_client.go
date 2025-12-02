@@ -422,7 +422,6 @@ func (c *HttpApiClient) CreateClientJwks(ctx context.Context, clientId string, j
 		return errors.New("can't create maskinporten client without JWKS initialized")
 	}
 	for _, jwk := range jwks.Keys {
-		// jwk.Certificates
 		if !jwk.IsPublic() {
 			return fmt.Errorf("tried to upload private key JWKS to Maskinporten for: %s", clientId)
 		}

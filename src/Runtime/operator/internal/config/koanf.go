@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"reflect"
+	"time"
 
 	"altinn.studio/operator/internal/telemetry"
+	"github.com/go-viper/mapstructure/v2"
 	"github.com/knadh/koanf/parsers/dotenv"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
@@ -56,9 +59,38 @@ func loadFromKoanf(ctx context.Context, configFilePath string) (*Config, error) 
 
 	var cfg Config
 
-	if err := k.Unmarshal("", &cfg); err != nil {
+	unmarshalConf := koanf.UnmarshalConf{
+		DecoderConfig: &mapstructure.DecoderConfig{
+			DecodeHook: mapstructure.ComposeDecodeHookFunc(
+				durationDecodeHook(),
+			),
+			Metadata:         nil,
+			Result:           &cfg,
+			WeaklyTypedInput: true,
+		},
+	}
+
+	if err := k.UnmarshalWithConf("", &cfg, unmarshalConf); err != nil {
 		return nil, fmt.Errorf("error unmarshalling config '%s': %w", configFilePath, err)
 	}
 
 	return &cfg, nil
+}
+
+// durationDecodeHook returns a mapstructure decode hook that parses duration strings with day support.
+func durationDecodeHook() mapstructure.DecodeHookFunc {
+	return func(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
+		if t != reflect.TypeOf(time.Duration(0)) {
+			return data, nil
+		}
+
+		switch v := data.(type) {
+		case string:
+			return ParseDuration(v)
+		case time.Duration:
+			return v, nil
+		default:
+			return data, nil
+		}
+	}
 }

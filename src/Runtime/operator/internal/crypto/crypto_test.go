@@ -38,21 +38,9 @@ func TestRotateJwks(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(jwks).NotTo(BeNil())
 
-	// We have only just created the cert
-	clock.Advance(time.Hour * 1)
-	newJwks, err := service.RotateIfNeeded(subject, appId, getNotAfter(clock), jwks, false)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(newJwks).To(BeNil())
-
-	// This should be before the rotation threshold
-	clock.Advance(time.Hour * 24 * 18)
-	newJwks, err = service.RotateIfNeeded(subject, appId, getNotAfter(clock), jwks, false)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(newJwks).To(BeNil())
-
-	// Now we've advanced past the treshold and should have rotated
-	clock.Advance(time.Hour * 24 * 7)
-	newJwks, err = service.RotateIfNeeded(subject, appId, getNotAfter(clock), jwks, false)
+	// Rotate once
+	clock.Advance(time.Hour * 24 * 25)
+	newJwks, err := service.RotateJwks(subject, appId, getNotAfter(clock), jwks)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(newJwks).NotTo(BeNil())
 	g.Expect(newJwks.Keys).To(HaveLen(2))
@@ -60,9 +48,9 @@ func TestRotateJwks(t *testing.T) {
 	newCert := newJwks.Keys[0].Certificates()[0]
 	g.Expect(newCert.NotAfter.After(oldCert.NotAfter)).To(BeTrue())
 
-	// We should rotate again
+	// Rotate again - previous active key becomes the second key
 	clock.Advance(time.Hour * 24 * 25)
-	newerJwks, err := service.RotateIfNeeded(subject, appId, getNotAfter(clock), newJwks, false)
+	newerJwks, err := service.RotateJwks(subject, appId, getNotAfter(clock), newJwks)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(newerJwks).NotTo(BeNil())
 	g.Expect(newerJwks.Keys).To(HaveLen(2))
@@ -70,7 +58,7 @@ func TestRotateJwks(t *testing.T) {
 	g.Expect(newerJwks.Keys[1].Certificates()[0]).To(BeIdenticalTo(newCert))
 	g.Expect(newerCert.NotAfter.After(newCert.NotAfter)).To(BeTrue())
 
-	// Serialize the new JWKS
+	// Serialize the JWKS for snapshot testing
 	newJson, err := json.Marshal(newJwks)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(newJson).NotTo(BeNil())
@@ -80,6 +68,53 @@ func TestRotateJwks(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(newerJson).NotTo(BeNil())
 	snaps.MatchJSON(t, newerJson)
+}
+
+func TestFindActiveKey(t *testing.T) {
+	g := NewWithT(t)
+
+	jwks, service, clock, err := createTestJwks()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// Single key - should be active
+	activeKey, err := FindActiveKey(jwks)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(activeKey.KeyID()).To(Equal(jwks.Keys[0].KeyID()))
+
+	// After rotation, newest key should be active
+	clock.Advance(time.Hour * 24 * 25)
+	rotatedJwks, err := service.RotateJwks(subject, appId, getNotAfter(clock), jwks)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	activeKey, err = FindActiveKey(rotatedJwks)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(activeKey.KeyID()).To(Equal(rotatedJwks.Keys[0].KeyID()))
+	g.Expect(activeKey.Certificates()[0].NotAfter.After(rotatedJwks.Keys[1].Certificates()[0].NotAfter)).To(BeTrue())
+}
+
+func TestFindActiveKey_NilJwks(t *testing.T) {
+	g := NewWithT(t)
+
+	_, err := FindActiveKey(nil)
+	g.Expect(err).To(HaveOccurred())
+	g.Expect(err.Error()).To(ContainSubstring("no keys"))
+}
+
+func TestFindActiveKey_EmptyJwks(t *testing.T) {
+	g := NewWithT(t)
+
+	_, err := FindActiveKey(&Jwks{Keys: []*Jwk{}})
+	g.Expect(err).To(HaveOccurred())
+	g.Expect(err.Error()).To(ContainSubstring("no keys"))
+}
+
+func TestRotateJwks_NilCurrentJwks(t *testing.T) {
+	g := NewWithT(t)
+
+	service, clock := createService()
+	_, err := service.RotateJwks(subject, appId, getNotAfter(clock), nil)
+	g.Expect(err).To(HaveOccurred())
+	g.Expect(err.Error()).To(ContainSubstring("nil"))
 }
 
 func TestGenerateCertSerialNumber(t *testing.T) {

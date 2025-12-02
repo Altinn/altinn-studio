@@ -177,8 +177,36 @@ func NewClientState(
 	return state, nil
 }
 
-func (s *ClientState) getNotAfter(clock clockwork.Clock) time.Time {
-	return clock.Now().UTC().Add(time.Hour * 24 * 30)
+func getNotAfter(clock clockwork.Clock, expiry time.Duration) time.Time {
+	return clock.Now().UTC().Add(expiry)
+}
+
+// shouldRotateJwk determines if JWK rotation is needed.
+// Returns true if:
+// - force is true, OR
+// - the active key's certificate has been valid for longer than the threshold, OR
+// - the certificate expires within 24 hours
+func shouldRotateJwk(clock clockwork.Clock, threshold time.Duration, jwks *crypto.Jwks, force bool) (bool, error) {
+	if force {
+		return true, nil
+	}
+
+	activeKey, err := crypto.FindActiveKey(jwks)
+	if err != nil {
+		return false, err
+	}
+
+	cert := activeKey.Certificates()[0]
+	now := clock.Now().UTC()
+
+	// Safety net: always rotate if cert expires within 24 hours
+	timeUntilExpiry := cert.NotAfter.Sub(now)
+	if timeUntilExpiry <= 24*time.Hour {
+		return true, nil
+	}
+
+	age := now.Sub(cert.NotBefore)
+	return age >= threshold, nil
 }
 
 func (s *ClientState) getCertSubject(opCtx *operatorcontext.Context) string {
@@ -246,7 +274,7 @@ func (s *ClientState) Reconcile(
 		// but the secret output exists, in which case we just overwrite it
 		// TODO: handle if someone deleted the API but the secret exists? I.e. blunder in self-service portal?
 		req := s.buildApiReq(opCtx)
-		jwks, err := cryptoService.CreateJwks(s.getCertSubject(opCtx), s.AppId, s.getNotAfter(clock))
+		jwks, err := cryptoService.CreateJwks(s.getCertSubject(opCtx), s.AppId, getNotAfter(clock, configValue.Controller.JwkExpiry))
 		if err != nil {
 			return nil, err
 		}
@@ -280,7 +308,7 @@ func (s *ClientState) Reconcile(
 			// * Someone else created the API client
 
 			// Since the private JWKS is stored in the secret, it has been lost and we need to create a new one
-			jwks, err := cryptoService.CreateJwks(s.getCertSubject(opCtx), s.AppId, s.getNotAfter(clock))
+			jwks, err := cryptoService.CreateJwks(s.getCertSubject(opCtx), s.AppId, getNotAfter(clock, configValue.Controller.JwkExpiry))
 			if err != nil {
 				return nil, err
 			}
@@ -306,14 +334,20 @@ func (s *ClientState) Reconcile(
 			authorityChanged := configValue.MaskinportenApi.AuthorityUrl != s.Secret.Content.Authority
 			scopesChanged := !scopesEqual(s.Crd.Spec.Scopes, s.Api.Req.Scopes)
 			forceRotate := s.Crd.Annotations[AnnotationRotateJwk] == "true"
-			jwks, err := cryptoService.RotateIfNeeded(s.getCertSubject(opCtx), s.AppId, s.getNotAfter(clock), s.Secret.Content.Jwks, forceRotate)
+
+			needsRotation, err := shouldRotateJwk(clock, configValue.Controller.JwkRotationThreshold, s.Secret.Content.Jwks, forceRotate)
 			if err != nil {
 				return nil, err
 			}
-			jwksRotated := jwks != nil
-			if forceRotate {
-				assert.That(jwksRotated, "forced JWK rotation requested but no rotation occurred", "appId", s.AppId)
+
+			var jwks *crypto.Jwks
+			if needsRotation {
+				jwks, err = cryptoService.RotateJwks(s.getCertSubject(opCtx), s.AppId, getNotAfter(clock, configValue.Controller.JwkExpiry), s.Secret.Content.Jwks)
+				if err != nil {
+					return nil, err
+				}
 			}
+			jwksRotated := jwks != nil
 
 			// Check if self service API public JWKS drifted from what we have in secret
 			// (e.g., manual modification via self-service portal)

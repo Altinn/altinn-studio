@@ -146,75 +146,70 @@ func (s *CryptoService) createCert(
 	return cert, rsaKey, nil
 }
 
-func (s *CryptoService) RotateIfNeeded(
+// RotateJwks creates a new JWKS with a fresh key, retaining the previous active key.
+// The caller is responsible for deciding when rotation is needed.
+// Returns the new JWKS with at most 2 keys (newest + previous).
+func (s *CryptoService) RotateJwks(
 	certSubject string,
 	certCommonName string,
 	notAfter time.Time,
 	currentJwks *Jwks,
-	force bool,
 ) (*Jwks, error) {
 	if currentJwks == nil {
-		return nil, fmt.Errorf("cant rotate cert for JWKS, JWKS was null")
+		return nil, fmt.Errorf("cant rotate JWKS: currentJwks was nil")
+	}
+
+	activeKey, err := FindActiveKey(currentJwks)
+	if err != nil {
+		return nil, err
+	}
+
+	keyParts := strings.Split(activeKey.KeyID(), ".")
+	currentIndexStr := keyParts[len(keyParts)-1]
+	currentIndex, err := strconv.Atoi(currentIndexStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid key format: %s", activeKey.KeyID())
+	}
+
+	cert, rsaKey, err := s.createCert(certSubject, certCommonName, notAfter)
+	if err != nil {
+		return nil, fmt.Errorf("error creating JWKS cert: %w", err)
+	}
+
+	newJwks, err := s.createJWKS(cert, rsaKey, currentIndex+1)
+	if err != nil {
+		return nil, err
+	}
+	newJwks.Keys = append(newJwks.Keys, activeKey)
+	// Keep max 2 keys (newest + previous) to avoid unbounded growth
+	if len(newJwks.Keys) > 2 {
+		newJwks.Keys = newJwks.Keys[:2]
+	}
+	return newJwks, nil
+}
+
+// FindActiveKey returns the key with the latest NotAfter certificate from the JWKS.
+// Each key must have exactly one certificate.
+func FindActiveKey(jwks *Jwks) (*Jwk, error) {
+	if jwks == nil || len(jwks.Keys) == 0 {
+		return nil, fmt.Errorf("JWKS has no keys")
 	}
 
 	var activeKey *Jwk
+	for i := 0; i < len(jwks.Keys); i++ {
+		key := jwks.Keys[i]
+		certificates := key.Certificates()
+		if len(certificates) != 1 {
+			return nil, fmt.Errorf("unexpected number of certificates for key '%s': %d", key.KeyID(), len(certificates))
+		}
 
-	for i := 0; i < len(currentJwks.Keys); i++ {
 		if activeKey == nil {
-			activeKey = currentJwks.Keys[i]
-			certificateCount := len(activeKey.Certificates())
-			if certificateCount != 1 {
-				return nil, fmt.Errorf(
-					"unexpected number of certificates for key '%s': '%d'",
-					activeKey.KeyID(),
-					certificateCount,
-				)
-			}
-
-		} else {
-			key := currentJwks.Keys[i]
-
-			certificates := key.Certificates()
-			certificateCount := len(certificates)
-			if certificateCount != 1 {
-				return nil, fmt.Errorf("unexpected number of certificates for key '%s': '%d'", key.KeyID(), certificateCount)
-			}
-
-			cert := certificates[0]
-			activeCert := activeKey.Certificates()[0]
-
-			if cert.NotAfter.After(activeCert.NotAfter) {
-				activeKey = key
-			}
+			activeKey = key
+		} else if certificates[0].NotAfter.After(activeKey.Certificates()[0].NotAfter) {
+			activeKey = key
 		}
 	}
-
-	rotationThreshold := s.clock.Now().UTC().Add(time.Hour * 24 * 7)
-	if !force && activeKey.Certificates()[0].NotAfter.After(rotationThreshold) {
-		return nil, nil
-	} else {
-		keyParts := strings.Split(activeKey.KeyID(), ".")
-		currentIndexStr := keyParts[len(keyParts)-1]
-		currentIndex, err := strconv.Atoi(currentIndexStr)
-		if err != nil {
-			return nil, fmt.Errorf("invalid key format: %s", activeKey.KeyID())
-		}
-		cert, rsaKey, err := s.createCert(certSubject, certCommonName, notAfter)
-		if err != nil {
-			return nil, fmt.Errorf("error creating JWKS cert: %w", err)
-		}
-
-		newJwks, err := s.createJWKS(cert, rsaKey, currentIndex+1)
-		if err != nil {
-			return nil, err
-		}
-		newJwks.Keys = append(newJwks.Keys, activeKey)
-		// Keep max 2 keys (newest + previous) to avoid unbounded growth
-		if len(newJwks.Keys) > 2 {
-			newJwks.Keys = newJwks.Keys[:2]
-		}
-		return newJwks, nil
-	}
+	return activeKey, nil
 }
 
 func (s *CryptoService) getIssuer() pkix.Name {

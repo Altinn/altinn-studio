@@ -11,3 +11,5 @@ data:
     maskinporten_api.scope=idporten:dcr.altinn
     org_registry.url=http://fakes:8052/orgs/altinn-orgs.json
     controller.requeue_after=24h
+    controller.jwk_rotation_threshold=23d
+    controller.jwk_expiry=30d
