@@ -9,10 +9,13 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
+using Altinn.Studio.Designer.Hubs.EntityUpdate;
+using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
+using Microsoft.AspNetCore.SignalR;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
@@ -34,18 +37,21 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IDeploymentService _deploymentService;
         private readonly IGiteaClient _giteaClient;
         private readonly IKubernetesDeploymentsService _kubernetesDeploymentsService;
+        private readonly IDeployEventRepository _deployEventRepository;
+        private readonly IHubContext<EntityUpdatedHub, IEntityUpdateClient> _entityUpdatedHubContext;
+        private readonly IDeploymentRepository _deploymentRepository;
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="deploymentService">IDeploymentService</param>
-        /// <param name="giteaClient">IGiteaClient</param>
-        /// <param name="kubernetesDeploymentsService">IKubernetesDeploymentsService</param>
-        public DeploymentsController(IDeploymentService deploymentService, IGiteaClient giteaClient, IKubernetesDeploymentsService kubernetesDeploymentsService)
+        /// <param name="deployEventRepository">IDeployEventRepository</param>
+        /// <param name="entityUpdatedHubContext">IHubContext for SignalR</param>
+        /// <param name="deploymentRepository">IDeploymentRepository</param>
+        public DeploymentsController(IDeploymentService deploymentService, IGiteaClient giteaClient, IKubernetesDeploymentsService kubernetesDeploymentsService, IDeployEventRepository deployEventRepository, IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext, IDeploymentRepository deploymentRepository)
         {
             _deploymentService = deploymentService;
             _giteaClient = giteaClient;
             _kubernetesDeploymentsService = kubernetesDeploymentsService;
+            _deployEventRepository = deployEventRepository;
+            _entityUpdatedHubContext = entityUpdatedHubContext;
+            _deploymentRepository = deploymentRepository;
         }
 
         /// <summary>
@@ -144,10 +150,23 @@ namespace Altinn.Studio.Designer.Controllers
         [FeatureGate(StudioFeatureFlags.GitOpsDeploy)]
         public async Task<IActionResult> ReceiveDeployEvent(string org, string app, [FromBody] DeployEventRequest request, CancellationToken cancellationToken)
         {
-            await Task.CompletedTask;
-            // TODO: update db with final event
-            // notify frontend with websockets about final status
-            var editingContext = AltinnRepoContext.FromOrgRepo(org, app);
+            if (!Enum.TryParse<DeployEventType>(request.EventType, out var eventType))
+            {
+                return BadRequest($"Invalid event type: {request.EventType}");
+            }
+
+            var deployEvent = new DeployEvent
+            {
+                EventType = eventType,
+                Message = request.Message,
+                Timestamp = request.Timestamp
+            };
+
+            await _deployEventRepository.AddAsync(org, request.BuildId, deployEvent, cancellationToken);
+
+            var deployment = await _deploymentRepository.Get(org, request.BuildId);
+            await _entityUpdatedHubContext.Clients.Group(deployment.CreatedBy)
+                .EntityUpdated(new EntityUpdated(EntityConstants.Deployment));
 
             return Ok();
         }

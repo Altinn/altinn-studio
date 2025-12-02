@@ -35,6 +35,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     {
         private readonly IAzureDevOpsBuildClient _azureDevOpsBuildClient;
         private readonly IDeploymentRepository _deploymentRepository;
+        private readonly IDeployEventRepository _deployEventRepository;
         private readonly IReleaseRepository _releaseRepository;
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
         private readonly HttpContext _httpContext;
@@ -55,6 +56,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IAzureDevOpsBuildClient azureDevOpsBuildClient,
             IHttpContextAccessor httpContextAccessor,
             IDeploymentRepository deploymentRepository,
+            IDeployEventRepository deployEventRepository,
             IReleaseRepository releaseRepository,
             IEnvironmentsService environmentsService,
             IApplicationInformationService applicationInformationService,
@@ -64,6 +66,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
             _deploymentRepository = deploymentRepository;
+            _deployEventRepository = deployEventRepository;
             _releaseRepository = releaseRepository;
             _applicationInformationService = applicationInformationService;
             _environmentsService = environmentsService;
@@ -109,6 +112,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
 
             var createdEntity = await _deploymentRepository.Create(deploymentEntity);
+
+            await _deployEventRepository.AddAsync(org, deploymentEntity.Build.Id, new DeployEvent
+            {
+                EventType = DeployEventType.DeploymentCreated,
+                Message = $"Deployment to {deployment.EnvName} created by {deploymentEntity.CreatedBy}",
+                Timestamp = _timeProvider.GetUtcNow()
+            }, cancellationToken);
+
+            await _deployEventRepository.AddAsync(org, deploymentEntity.Build.Id, new DeployEvent
+            {
+                EventType = DeployEventType.PipelineScheduled,
+                Message = $"Pipeline {queuedBuild.Id} scheduled",
+                Timestamp = _timeProvider.GetUtcNow()
+            }, cancellationToken);
+
             await PublishDeploymentPipelineQueued(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, deploymentEntity.CreatedBy), queuedBuild, PipelineType.Deploy, deployment.EnvName, CancellationToken.None);
             return createdEntity;
         }
