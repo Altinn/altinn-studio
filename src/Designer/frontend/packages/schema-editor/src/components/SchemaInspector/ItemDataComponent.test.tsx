@@ -42,7 +42,7 @@ describe('ItemDataComponent', () => {
 
   test('"Multiple answers" checkbox should not appear if selected item is combination', async () => {
     renderItemDataComponent();
-    await screen.findByLabelText(textMock('schema_editor.name'));
+    await screen.findByRole('combobox', { name: textMock('schema_editor.type') });
     expect(screen.queryByLabelText(textMock('schema_editor.multiple_answers'))).toBeNull();
   });
 
@@ -120,7 +120,9 @@ describe('ItemDataComponent', () => {
 
   test('Does not render an error message when there is no change in text', async () => {
     renderItemDataComponent();
-    const inputField = screen.getByLabelText(textMock('schema_editor.name'));
+    const inputField = screen.getByRole('textbox', {
+      name: (accessibleName) => accessibleName.includes(textMock('schema_editor.name')),
+    });
     await user.type(inputField, 'test');
     fireEvent.blur(inputField);
     expect(screen.queryByText(textMock('schema_editor.nameError_alreadyInUse'))).toBeNull();

@@ -35,6 +35,7 @@ Example usage:
     )
 )
 def layout_properties_tool(
+    user_goal: str,
     component_type: str,
     schema_url: str
 ) -> Dict[str, Any]:

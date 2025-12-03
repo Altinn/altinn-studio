@@ -18,7 +18,7 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class GiteaContentLibraryService : IGiteaContentLibraryService
 {
-    private readonly IGitea _giteaApiWrapper;
+    private readonly IGitea _giteaClient;
     private readonly ILogger<GiteaContentLibraryService> _logger;
     private const string CodeListFolderPath = "CodeListsWithTextResources/";
     private const string TextResourceFolderPath = "Texts/";
@@ -29,9 +29,9 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
         PropertyNameCaseInsensitive = true
     };
 
-    public GiteaContentLibraryService(IGitea giteaApiWrapper, ILogger<GiteaContentLibraryService> logger)
+    public GiteaContentLibraryService(IGitea giteaClient, ILogger<GiteaContentLibraryService> logger)
     {
-        _giteaApiWrapper = giteaApiWrapper;
+        _giteaClient = giteaClient;
         _logger = logger;
     }
 
@@ -40,7 +40,7 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     {
         string contentRepositoryName = GetContentRepoName(orgName);
         SearchOptions searchOptions = new() { Keyword = contentRepositoryName };
-        SearchResults searchResults = await _giteaApiWrapper.SearchRepo(searchOptions);
+        SearchResults searchResults = await _giteaClient.SearchRepo(searchOptions);
         return searchResults.Data.Select(repository => repository.Name).Contains(contentRepositoryName);
     }
 
@@ -88,7 +88,7 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     {
         string repoName = GetContentRepoName(orgName);
         string filePath = CodeListUtils.FilePathWithTextResources(codeListId);
-        FileSystemObject file = await _giteaApiWrapper.GetFileAsync(orgName, repoName, filePath, string.Empty);
+        FileSystemObject file = await _giteaClient.GetFileAsync(orgName, repoName, filePath, string.Empty);
         return file.Sha ?? string.Empty;
     }
 
@@ -127,7 +127,7 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
         string repoName = GetContentRepoName(orgName);
         try
         {
-            return await _giteaApiWrapper.GetDirectoryAsync(orgName, repoName, directoryPath, string.Empty);
+            return await _giteaClient.GetDirectoryAsync(orgName, repoName, directoryPath, string.Empty);
         }
         catch (DirectoryNotFoundException ex)
         {
@@ -139,7 +139,7 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     private async Task<string> GetFileFromGitea(string orgName, string filePath)
     {
         string repoName = GetContentRepoName(orgName);
-        FileSystemObject file = await _giteaApiWrapper.GetFileAsync(orgName, repoName, filePath, string.Empty);
+        FileSystemObject file = await _giteaClient.GetFileAsync(orgName, repoName, filePath, string.Empty);
         if (string.IsNullOrEmpty(file?.Content))
         {
             return string.Empty;

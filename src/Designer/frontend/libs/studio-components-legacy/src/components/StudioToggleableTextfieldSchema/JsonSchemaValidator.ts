@@ -2,7 +2,7 @@ import Ajv, { type ErrorObject } from 'ajv';
 import { type JsonSchema } from '../../types/JSONSchema';
 
 export class JsonSchemaValidator {
-  private readonly layoutSchema: JsonSchema = null;
+  private readonly layoutSchema: JsonSchema | null = null;
 
   private JSONValidator: Ajv = new Ajv({
     allErrors: true,
@@ -36,7 +36,7 @@ export class JsonSchemaValidator {
   }
 
   private addSchemaToValidator(schema: JsonSchema): void {
-    const validate = this.JSONValidator.getSchema(schema?.$id);
+    const validate = schema?.$id && this.JSONValidator.getSchema(schema.$id);
     if (!validate) {
       this.JSONValidator.addSchema(schema);
     }
@@ -46,7 +46,7 @@ export class JsonSchemaValidator {
     return { ...path.split('/').reduce((o, p) => (o || {})[p], this.layoutSchema) };
   }
 
-  private validate(schemaId: string, data: unknown): ErrorObject[] | null {
+  private validate(schemaId: string, data: unknown): ErrorObject[] | null | undefined {
     const validateJsonSchema = this.JSONValidator.getSchema(schemaId);
     if (validateJsonSchema) {
       validateJsonSchema(data);

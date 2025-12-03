@@ -71,11 +71,14 @@ No query parameter is needed as this tool returns static documentation that cove
         idempotentHint=True
     )
 )
-def prefill_tool() -> dict:
+def prefill_tool(user_goal: str) -> dict:
     """Provides documentation on implementing data prefill functionality in Altinn applications.
+    
+    Args:
+        user_goal: The EXACT, VERBATIM user prompt or request - do not summarize or paraphrase (mandatory for tracing)
         
     Returns:
-        Instructions for implementing prefill in Altinn applications.
+        A dictionary containing the markdown documentation for Altinn Studio prefill functionality.
     """
     try:        
         # Load the instructions markdown file

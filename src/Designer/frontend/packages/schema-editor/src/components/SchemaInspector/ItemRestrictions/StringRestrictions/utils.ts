@@ -8,13 +8,51 @@ export function isDateOrTimeFormat(stringRestrictions: KeyValuePairs): boolean {
   );
 }
 
+export function updateFormat(
+  stringRestrictions: KeyValuePairs,
+  format: StringFormat | null,
+): KeyValuePairs {
+  if (stringRestrictions.format === format) return stringRestrictions;
+  const cleanRestrictions = removeFormatSpecificRestrictions(stringRestrictions);
+  return format ? { ...cleanRestrictions, format } : cleanRestrictions;
+}
+
+function removeFormatSpecificRestrictions(stringRestrictions: KeyValuePairs): KeyValuePairs {
+  const formatSpecificRestrictions = [
+    StrRestrictionKey.format,
+    StrRestrictionKey.formatExclusiveMinimum,
+    StrRestrictionKey.formatMinimum,
+    StrRestrictionKey.formatExclusiveMaximum,
+    StrRestrictionKey.formatMaximum,
+  ];
+  return removeRestrictions(stringRestrictions, formatSpecificRestrictions);
+}
+
+function removeRestrictions(
+  stringRestrictions: KeyValuePairs,
+  keys: StrRestrictionKey[],
+): KeyValuePairs {
+  const entries = Object.entries(stringRestrictions);
+  const filteredEntries = entries.filter(([key]) => !keys.includes(key as StrRestrictionKey));
+  return Object.fromEntries(filteredEntries);
+}
+
 export function updateRestriction(
   stringRestrictions: KeyValuePairs,
   key: StrRestrictionKey,
-  value: string,
+  value: string | number,
 ): KeyValuePairs {
   const newRestrictions = ObjectUtils.deepCopy(stringRestrictions);
   newRestrictions[key] = value;
+  return newRestrictions;
+}
+
+export function removeRestriction(
+  stringRestrictions: KeyValuePairs,
+  key: StrRestrictionKey,
+): KeyValuePairs {
+  const newRestrictions = ObjectUtils.deepCopy(stringRestrictions);
+  delete newRestrictions[key];
   return newRestrictions;
 }
 
