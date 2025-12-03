@@ -7,6 +7,7 @@ using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Exceptions.SharedContent;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +24,7 @@ public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory)
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {
+        services.AddSingleton<IGitea, IGiteaMock>();
         services.AddSingleton(_ => _sharedContentClientMock.Object);
         services.AddSingleton(_ => _userOrganizationServiceMock.Object);
     }
