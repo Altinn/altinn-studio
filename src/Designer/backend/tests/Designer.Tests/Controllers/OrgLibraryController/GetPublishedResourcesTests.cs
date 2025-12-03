@@ -16,7 +16,7 @@ using Xunit;
 namespace Designer.Tests.Controllers.OrgLibraryController;
 
 public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory)
-    : DesignerEndpointsTestsBase<UpdateSharedResourcesTests>(factory), IClassFixture<WebApplicationFactory<Program>>
+    : DesignerEndpointsTestsBase<GetPublishedResourcesTests>(factory), IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<ISharedContentClient> _sharedContentClientMock = new();
     private readonly Mock<IUserOrganizationService> _userOrganizationServiceMock = new();
