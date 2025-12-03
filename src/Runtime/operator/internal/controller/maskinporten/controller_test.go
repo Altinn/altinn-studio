@@ -1,4 +1,4 @@
-package controller
+package maskinporten
 
 import (
 	"context"
@@ -93,7 +93,7 @@ var _ = Describe("MaskinportenClient Controller", func() {
 			By("Reconciling the created resource")
 			rt, err := internal.NewRuntime(context.Background(), "", nil)
 			Expect(err).NotTo(HaveOccurred())
-			controllerReconciler := NewMaskinportenClientReconciler(
+			controllerReconciler := NewReconciler(
 				rt,
 				k8sClient,
 				k8sClient.Scheme(),

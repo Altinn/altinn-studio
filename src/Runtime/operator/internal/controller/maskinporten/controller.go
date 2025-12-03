@@ -1,4 +1,4 @@
-package controller
+package maskinporten
 
 import (
 	"context"
@@ -43,7 +43,7 @@ type MaskinportenClientReconciler struct {
 	random  *rand.Rand
 }
 
-func NewMaskinportenClientReconciler(
+func NewReconciler(
 	r rt.Runtime,
 	k8sClient client.Client,
 	scheme *runtime.Scheme,

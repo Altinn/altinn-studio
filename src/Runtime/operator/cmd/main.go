@@ -26,8 +26,8 @@ import (
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal"
-	"altinn.studio/operator/internal/controller"
 	"altinn.studio/operator/internal/controller/azurekeyvaultsync"
+	"altinn.studio/operator/internal/controller/maskinporten"
 	"altinn.studio/operator/internal/telemetry"
 	// +kubebuilder:scaffold:imports
 )
@@ -148,7 +148,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (controller.NewMaskinportenClientReconciler(
+	if err = (maskinporten.NewReconciler(
 		rt,
 		mgr.GetClient(),
 		mgr.GetScheme(),
