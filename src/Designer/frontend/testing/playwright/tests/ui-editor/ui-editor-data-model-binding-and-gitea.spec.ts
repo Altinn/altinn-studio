@@ -119,7 +119,7 @@ test('That it is possible to navigate back to ui-editor page and add the data mo
   await header.verifyNoGeneralErrorMessage();
   await header.clickOnNavigateToPageInTopMenuHeader('create');
   await uiEditorPage.clickOnUxEditorButton();
-  await uiEditorPage.verifyUiEditorPage(LAYOUT_SET);
+  await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, pageName);
   await uiEditorPage.clickOnPageAccordion(pageName);
   await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, pageName);
   await uiEditorPage.clickOnTreeItem(newInputLabel);
