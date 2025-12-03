@@ -78,6 +78,9 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     currentSessionIdRef.current = currentSessionId;
   }, [currentSessionId]);
 
+  // Ref to hold the handleWorkflowEvent function for use in WebSocket reconnect
+  const handleWorkflowEventRef = useRef<((event: WorkflowEvent) => void) | null>(null);
+
   // Initialize WebSocket connection
   useEffect(() => {
     const connectWebSocket = () => {
@@ -86,24 +89,126 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
         const ws = new WebSocket('ws://localhost:8071/ws');
         wsRef.current = ws;
 
-        ws.onopen = () => {
+        ws.onopen = async () => {
           setConnectionStatus('connected');
           setWsConnection(ws);
+
+          // On reconnect/page load, check if there's a session with a loading message
+          // This handles the case where user left the page while agent was running
+          const currentSession = currentSessionIdRef.current;
+
+          // Check if current thread has a loading assistant message
+          let hasLoadingMessage = false;
+          if (currentSession) {
+            const thread = getThread(currentSession);
+            if (thread && thread.messages.length > 0) {
+              const lastMessage = thread.messages[thread.messages.length - 1];
+              hasLoadingMessage =
+                lastMessage.author === MessageAuthor.Assistant &&
+                (lastMessage.isLoading === true ||
+                  lastMessage.content?.includes('Vent litt') ||
+                  lastMessage.content?.includes('...'));
+            }
+          }
+
+          // Poll status if we have a loading message from a previous session
+          // This handles the case where user left the page while agent was running
+          if (currentSession && hasLoadingMessage) {
+            console.log(
+              'WebSocket connected, polling status for session:',
+              currentSession,
+              'hasLoadingMessage:',
+              hasLoadingMessage,
+            );
+            try {
+              const response = await fetch(
+                `http://localhost:8071/api/agent/status/${currentSession}`,
+              );
+              if (response.ok) {
+                const status = await response.json();
+                console.log('Agent status response:', status);
+                if (status.status === 'done') {
+                  // Job finished while disconnected - update UI
+                  console.log('Agent job completed while disconnected:', status);
+                  // Use last_message.content from status endpoint, fallback to data.response
+                  const messageContent =
+                    status.last_message?.content ||
+                    status.data?.response ||
+                    'Agent completed while disconnected.';
+                  const filesChanged =
+                    status.last_message?.filesChanged || status.data?.filesChanged || [];
+                  // Create synthetic event matching backend format
+                  // Note: Backend sends 'response' field but type expects 'content' - handleWorkflowEvent handles this
+                  const syntheticEvent = {
+                    type: 'assistant_message',
+                    data: {
+                      response: messageContent,
+                      timestamp: status.completed_at || new Date().toISOString(),
+                      filesChanged: filesChanged,
+                      sources: status.last_message?.sources || status.data?.sources || [],
+                      mode: status.data?.mode,
+                      no_branch_operations: status.data?.no_branch_operations,
+                    },
+                  } as unknown as WorkflowEvent;
+                  if (handleWorkflowEventRef.current) {
+                    handleWorkflowEventRef.current(syntheticEvent);
+                  }
+                } else if (status.status === 'running') {
+                  console.log('Agent job still running for session:', currentSession);
+                  // Set workflow as active since it's still running
+                  setWorkflowStatus((prev) => ({ ...prev, isActive: true }));
+                } else if (status.status === 'not_found') {
+                  // Session not found - agent might have finished long ago or never started
+                  console.log('Session not found, clearing loading state');
+                  // Clear the loading state by updating the message
+                  if (hasLoadingMessage) {
+                    const thread = getThread(currentSession);
+                    if (thread) {
+                      const updatedMessages = thread.messages.map((msg, index) => {
+                        if (
+                          index === thread.messages.length - 1 &&
+                          msg.author === MessageAuthor.Assistant
+                        ) {
+                          return {
+                            ...msg,
+                            content: 'Session expired or not found. Please try again.',
+                            isLoading: false,
+                          };
+                        }
+                        return msg;
+                      });
+                      updateThread(currentSession, { messages: updatedMessages });
+                    }
+                  }
+                }
+              }
+            } catch (error) {
+              console.warn('Error polling agent status:', error);
+            }
+          }
         };
 
         ws.onmessage = (event) => {
           try {
-            const agentEvent: WorkflowEvent & { session_id?: string } = JSON.parse(event.data);
+            const agentEvent: WorkflowEvent & { session_id?: string; type: string } = JSON.parse(
+              event.data,
+            );
+
+            // Log all received WebSocket events for debugging
+            console.log('WebSocket received event:', agentEvent.type, agentEvent);
 
             // Use the latest currentSessionId from a ref to avoid stale closure issues
             const currentSession = currentSessionIdRef.current;
 
             // Check if this message is for the current session
             if (agentEvent.session_id && agentEvent.session_id !== currentSession) {
+              console.log('Ignoring event for different session:', agentEvent.session_id);
               return;
             }
 
-            handleWorkflowEvent(agentEvent);
+            if (handleWorkflowEventRef.current) {
+              handleWorkflowEventRef.current(agentEvent);
+            }
           } catch (error) {
             console.error('Failed to parse WebSocket message:', error);
           }
@@ -133,7 +238,11 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
         wsRef.current.close();
       }
     };
-  }, []);
+    // Note: We intentionally don't include workflowStatus.isActive in deps
+    // because we use refs to access current values, and we don't want to
+    // reconnect the WebSocket when workflow status changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getThread, updateThread]);
 
   const addMessageToThread = useCallback(
     (threadId: string, message: UserMessage | AssistantMessage) => {
@@ -320,10 +429,54 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
             updateThread(currentSessionId, { messages: updatedMessages });
           }
         }
+      } else if ((event as any).type === 'done') {
+        // Handle 'done' event - agent has completed
+        console.log('Received done event:', event);
+        const doneData = (event as any).data || (event as any);
+
+        // Update workflow status
+        setWorkflowStatus((prev) => ({
+          ...prev,
+          currentStep: 'Completed',
+          message: doneData.success
+            ? 'AI agent completed successfully'
+            : 'AI agent completed with errors',
+          isActive: false,
+          lastCompletedAt: new Date(doneData.completed_at || Date.now()),
+        }));
+
+        // If there's response data, update the assistant message
+        const currentSession = currentSessionIdRef.current;
+        if (currentSession && doneData.data?.response) {
+          const existingThread = getThread(currentSession);
+          if (existingThread) {
+            const lastMessage = existingThread.messages[existingThread.messages.length - 1];
+            if (lastMessage && lastMessage.author === MessageAuthor.Assistant) {
+              const updatedMessages = [
+                ...existingThread.messages.slice(0, -1),
+                {
+                  ...lastMessage,
+                  content: doneData.data.response,
+                  timestamp: new Date(doneData.completed_at || Date.now()),
+                  filesChanged: doneData.data.filesChanged || [],
+                  sources: doneData.data.sources || [],
+                  isLoading: false,
+                },
+              ];
+              updateThread(currentSession, { messages: updatedMessages });
+            }
+          }
+        }
       }
     },
     [currentSessionId, getThread],
   );
+
+  // Keep the ref in sync with handleWorkflowEvent
+  useEffect(() => {
+    handleWorkflowEventRef.current = handleWorkflowEvent;
+  }, [handleWorkflowEvent]);
+
   const startAgentWorkflow = async (
     sessionId: string,
     goal: string,

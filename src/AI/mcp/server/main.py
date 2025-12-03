@@ -3,7 +3,8 @@
 from server.tools import mcp  # noqa: F401 - imported for side effects
 # Import tool modules so they register themselves
 # from server.tools.logic_generator_tool.logic_generator import logic_generator_tool  # noqa: F401
-from server.tools.layout_components_tool.layout_components_tool import layout_components_tool  # noqa: F401
+# from server.tools.layout_components_tool.layout_components_tool import layout_components_tool  # noqa: F401 - Disabled, uses slow LLM filtering
+from server.tools.layout_components_tool.layout_components_tool_no_llm import layout_components_tool_no_llm  # noqa: F401
 from server.tools.dynamic_expression_tool.dynamic_expressions import dynamic_expression  # noqa: F401
 from server.tools.datamodel_tool.datamodel_tool import datamodel_tool  # noqa: F401
 from server.tools.resource_tool.resource_tool import resource_tool  # noqa: F401
@@ -65,11 +66,63 @@ def main() -> None:
     port = args.port if args.port else 8069
 
     # Initialize MCP with the correct port BEFORE importing tools
-    from server.tools import initialize_mcp, register_all_tools
+    from server.tools import initialize_mcp, register_all_tools, set_agent_mode
     mcp = initialize_mcp(port)
     
     # Now register all the tools with the initialized MCP instance
     register_all_tools()
+    
+    # Create a custom ASGI app that wraps FastMCP's SSE app with agent mode detection
+    from starlette.applications import Starlette
+    from starlette.routing import Mount
+    
+    # Get the SSE app from FastMCP (suppress deprecation warning)
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        sse_app = mcp.sse_app()
+    
+    # Pure ASGI middleware that sets agent mode - compatible with SSE streaming
+    class AgentModeASGIMiddleware:
+        def __init__(self, app):
+            self.app = app
+        
+        async def __call__(self, scope, receive, send):
+            if scope["type"] == "http":
+                path = scope.get("path", "")
+                is_agent = path.startswith("/agent")
+                set_agent_mode(is_agent)
+            return await self.app(scope, receive, send)
+    
+    # Create a new Starlette app that mounts the SSE app at both paths
+    app = Starlette(
+        routes=[
+            Mount('/agent', app=sse_app),  # Agent mode endpoint
+            Mount('/', app=sse_app),        # Standard endpoint
+        ],
+    )
+    
+    # Wrap with our ASGI middleware
+    app = AgentModeASGIMiddleware(app)
+    
+    # Replace mcp's run to use our custom app
+    original_run = mcp.run
+    def custom_run(transport="sse", **kwargs):
+        if transport == "sse":
+            import uvicorn
+            uvicorn.run(app, host="0.0.0.0", port=port)
+        else:
+            original_run(transport=transport, **kwargs)
+    mcp.run = custom_run
+    
+    import sys
+    print("""
+================================================================================
+MCP Server Endpoints:
+  - Standard (with tracing):  /sse
+  - Agent mode (no tracing):  /agent/sse
+================================================================================
+""", file=sys.stderr)
     
     transport = "stdio" if args.stdio else "sse"
     

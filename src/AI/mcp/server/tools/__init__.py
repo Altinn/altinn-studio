@@ -3,7 +3,14 @@ from mcp.types import (
     ToolAnnotations,
 )
 from typing import Set
+import functools
+import inspect
+from contextvars import ContextVar
 from server.tracing import trace_tool_call
+
+# Context variable to track if current request is in agent mode
+# Set by middleware based on request path (/sse vs /sse/agent)
+_agent_mode_var: ContextVar[bool] = ContextVar('agent_mode', default=False)
 # Instructions for the Altinity MCP Server
 ALTINITY_INSTRUCTIONS = """
 # Altinity MCP Server - Altinn Studio Assistant
@@ -119,26 +126,96 @@ def initialize_mcp(port: int = 8069):
 # Registry for dynamically loaded tools
 tool_registry = []
 
+def is_agent_mode() -> bool:
+    """Check if current request is in agent mode.
+    
+    Agent mode is enabled when connecting via /sse/agent endpoint.
+    In agent mode:
+    - Langfuse tracing is skipped
+    - user_goal parameter is optional (not required)
+    """
+    return _agent_mode_var.get()
+
+
+def set_agent_mode(value: bool) -> None:
+    """Set agent mode for the current request context."""
+    _agent_mode_var.set(value)
+
+
+def _make_user_goal_optional(func):
+    """Create a wrapper with user_goal as optional parameter.
+    
+    This modifies the function signature so that user_goal has a default value,
+    making it optional for MCP clients that don't provide it (agent mode).
+    user_goal is moved to the end of the parameter list to avoid 
+    'non-default argument follows default argument' error.
+    """
+    original_sig = inspect.signature(func)
+    
+    # Check if user_goal exists in parameters
+    if 'user_goal' not in original_sig.parameters:
+        return func
+    
+    # Separate user_goal from other params, then add it at the end with default
+    other_params = []
+    user_goal_param = None
+    
+    for param_name, param in original_sig.parameters.items():
+        if param_name == 'user_goal':
+            # Make user_goal optional with default None
+            user_goal_param = param.replace(default=None)
+        else:
+            other_params.append(param)
+    
+    # Add user_goal at the end (after all other params)
+    new_params = other_params + [user_goal_param]
+    new_sig = original_sig.replace(parameters=new_params)
+    
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        # Ensure user_goal has a value (even if None) for the original function
+        if 'user_goal' not in kwargs:
+            kwargs['user_goal'] = None
+        return func(*args, **kwargs)
+    
+    wrapper.__signature__ = new_sig
+    return wrapper
+
+
 def register_tool(name=None, description=None, title=None, annotations=None):
     """Decorator to register an MCP tool and store it in the registry.
     
     Automatically wraps the tool with tracing functionality to log all calls to Langfuse.
+    In agent mode (/agent endpoint), tracing is skipped and user_goal is optional.
     """
     def decorator(f):
-        # Apply tracing decorator first
-        traced_func = trace_tool_call(f)
+        # Make user_goal optional in the signature
+        f_optional = _make_user_goal_optional(f)
         
-        # Store the tool metadata on the traced function
-        traced_func._tool_name = name or f.__name__
-        traced_func._tool_description = description or f.__doc__ or ""
-        traced_func._tool_title = title
-        traced_func._tool_annotations = annotations
-        traced_func._original_func = f  # Keep reference to original
+        @functools.wraps(f_optional)
+        def wrapper(*args, **kwargs):
+            if is_agent_mode():
+                # Agent mode: skip tracing, call function directly
+                return f_optional(*args, **kwargs)
+            else:
+                # Normal mode: apply tracing
+                traced = trace_tool_call(f_optional)
+                return traced(*args, **kwargs)
+        
+        # Preserve the modified signature
+        wrapper.__signature__ = inspect.signature(f_optional)
+        
+        # Store the tool metadata on the wrapper function
+        wrapper._tool_name = name or f.__name__
+        wrapper._tool_description = description or f.__doc__ or ""
+        wrapper._tool_title = title
+        wrapper._tool_annotations = annotations
+        wrapper._original_func = f  # Keep reference to original
 
-        tool_registry.append(traced_func)
+        tool_registry.append(wrapper)
         # FastMCP.tool() doesn't accept 'title' parameter, only name and description
         # Tool will be registered when MCP is initialized
-        return traced_func
+        return wrapper
     return decorator
 
 def register_all_tools():
@@ -148,6 +225,7 @@ def register_all_tools():
         raise RuntimeError("MCP instance not initialized. Call initialize_mcp() first.")
 
     # Prefix to add to all tool descriptions for user_goal parameter guidance
+    # Only added in non-agent mode
     USER_GOAL_PREFIX = """⚠️ IMPORTANT: The 'user_goal' parameter MUST be the EXACT, VERBATIM user prompt/request. DO NOT summarize, paraphrase, or interpret - pass the original text exactly as the user typed it.
 
 """
@@ -157,7 +235,8 @@ def register_all_tools():
         name = getattr(tool_func, '_tool_name', tool_func.__name__)
         description = getattr(tool_func, '_tool_description', tool_func.__doc__ or "")
         
-        # Prepend user_goal guidance to description
+        # Always include user_goal prefix in description for standalone mode
+        # Agent mode clients can ignore it since they send X-Agent-Mode header
         full_description = USER_GOAL_PREFIX + description
 
         mcp.tool(name=name, description=full_description)(tool_func)
@@ -168,7 +247,8 @@ def register_all_tools():
 from .datamodel_tool import datamodel_tool
 from .dynamic_expression_tool import dynamic_expression
 # from .fastagent_tool import fastagent_tool  # Commented out - empty implementation
-from .layout_components_tool import layout_components_tool
+# from .layout_components_tool import layout_components_tool  # Disabled - uses slow LLM filtering
+from .layout_components_tool.layout_components_tool_no_llm import layout_components_tool_no_llm
 from .layout_properties_tool import layout_properties_tool
 from .planning_tool import planning_tool
 from .policy_summarization_tool import policy_summarization_tool
