@@ -25,23 +25,33 @@ import (
 )
 
 // KeyVaultSecretMapping defines which Azure Key Vault secrets map to a K8s secret.
-// Each secret name in Secrets becomes a key in the output JSON file.
 type KeyVaultSecretMapping struct {
 	Name      string   // K8s secret name
 	Namespace string   // K8s secret namespace
 	FileName  string   // Key name in the K8s secret (e.g., "secrets.json")
-	Secrets   []string // Azure Key Vault secret names → keys in JSON
+	Secrets   []string // Azure Key Vault secret names to fetch
+	// BuildOutput transforms resolved secrets into the JSON structure.
+	// If nil, secrets are serialized as map[string]string.
+	BuildOutput func(secrets map[string]string) any
 }
 
 func DefaultMappings() []KeyVaultSecretMapping {
 	return []KeyVaultSecretMapping{
 		{
-			Name:      "maskinporten-client-for-designer-test",
+			Name:      "maskinporten-client-for-designer",
 			Namespace: "runtime-gateway",
 			FileName:  "secrets.json",
 			Secrets: []string{
 				"Gateway--MaskinportenClientForDesigner--Test--ClientId",
 				"Gateway--MaskinportenClientForDesigner--Test--Jwk",
+			},
+			BuildOutput: func(secrets map[string]string) any {
+				return map[string]any{
+					"MaskinportenClientForDesigner": map[string]any{
+						"ClientId": secrets["Gateway--MaskinportenClientForDesigner--Test--ClientId"],
+						"Jwk":      secrets["Gateway--MaskinportenClientForDesigner--Test--Jwk"],
+					},
+				}
 			},
 		},
 	}
@@ -210,7 +220,12 @@ func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVa
 		secretData[kvSecretName] = value
 	}
 
-	jsonBytes, err := json.Marshal(secretData)
+	var output any = secretData
+	if mapping.BuildOutput != nil {
+		output = mapping.BuildOutput(secretData)
+	}
+
+	jsonBytes, err := json.Marshal(output)
 	if err != nil {
 		span.RecordError(err)
 		return fmt.Errorf("failed to marshal secrets to JSON: %w", err)
