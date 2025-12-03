@@ -32,6 +32,6 @@ func panicking(message string, userArgs ...any) {
 	}
 	args = append(args, userArgs...)
 	logger.Error("Assertion failed:", args...)
-	_, _ = fmt.Fprintln(os.Stdout, stackTrace)
+	_, _ = fmt.Fprintln(os.Stderr, stackTrace)
 	os.Exit(1)
 }
