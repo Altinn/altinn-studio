@@ -1,6 +1,7 @@
 import { usePrefetchQuery } from 'src/core/queries/usePrefetchQuery';
 import { useCurrentDataModelDataElementId, useCurrentDataModelName } from 'src/features/datamodel/useBindingSchema';
 import { useDynamicsQueryDef } from 'src/features/form/dynamics/DynamicsContext';
+import { useIsInFormContext } from 'src/features/form/FormContext';
 import { useLayoutQueryDef } from 'src/features/form/layout/LayoutsContext';
 import { useLayoutSetIdFromUrl } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { useLayoutSettingsQueryDef } from 'src/features/form/layoutSettings/LayoutSettingsContext';
@@ -24,8 +25,6 @@ export function FormPrefetcher() {
   // Prefetch layouts
   usePrefetchQuery(useLayoutQueryDef(true, dataTypeId, layoutSetId));
 
-  const dataElementId = useCurrentDataModelDataElementId();
-
   // Prefetch other layout related files
   usePrefetchQuery(useLayoutSettingsQueryDef(layoutSetId));
   usePrefetchQuery(useDynamicsQueryDef(layoutSetId));
@@ -35,8 +34,10 @@ export function FormPrefetcher() {
   usePrefetchQuery(usePaymentInformationQueryDef(useIsPayment(), instanceId));
   usePrefetchQuery(useOrderDetailsQueryDef(useHasPayment(), instanceId));
 
-  // Prefetch PDF format only if we are in PDF mode
-  usePrefetchQuery(usePdfFormatQueryDef(true, instanceId, dataElementId), isPDF);
+  // Prefetch PDF format only if we are in PDF mode and loading the main form
+  const dataElementId = useCurrentDataModelDataElementId();
+  const isEmbedded = useIsInFormContext();
+  usePrefetchQuery(usePdfFormatQueryDef(true, instanceId, dataElementId), isPDF && !isEmbedded);
 
   return null;
 }
