@@ -9,12 +9,11 @@ import (
 	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/internal/operatorcontext"
-	"altinn.studio/operator/internal/telemetry"
+	rt "altinn.studio/operator/internal/runtime"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
 	"github.com/go-logr/logr"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
@@ -34,17 +33,18 @@ type KeyVaultSecretMapping struct {
 	Secrets   []string // Azure Key Vault secret names → keys in JSON
 }
 
-// Mappings defines the Key Vault secrets to sync. Populate as needed.
-var Mappings = []KeyVaultSecretMapping{
-	{
-		Name:      "maskinporten-client-for-designer-test",
-		Namespace: "runtime-gateway",
-		FileName:  "secrets.json",
-		Secrets: []string{
-			"Gateway--MaskinportenClientForDesigner--Test--ClientId",
-			"Gateway--MaskinportenClientForDesigner--Test--Jwk",
+func DefaultMappings() []KeyVaultSecretMapping {
+	return []KeyVaultSecretMapping{
+		{
+			Name:      "maskinporten-client-for-designer-test",
+			Namespace: "runtime-gateway",
+			FileName:  "secrets.json",
+			Secrets: []string{
+				"Gateway--MaskinportenClientForDesigner--Test--ClientId",
+				"Gateway--MaskinportenClientForDesigner--Test--Jwk",
+			},
 		},
-	},
+	}
 }
 
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=create
@@ -52,28 +52,27 @@ var Mappings = []KeyVaultSecretMapping{
 // AzureKeyVaultReconciler polls Azure Key Vault and syncs secrets to Kubernetes.
 // Implements manager.Runnable.
 type AzureKeyVaultReconciler struct {
-	logger        logr.Logger
-	k8sClient     client.Client
-	kvClient      *azsecrets.Client
-	configMonitor *config.ConfigMonitor
-	tracer        trace.Tracer
-	environment   string
+	logger    logr.Logger
+	k8sClient client.Client
+	kvClient  KeyVaultSecretsClient
+	runtime   rt.Runtime
+	mappings  []KeyVaultSecretMapping
 }
 
 // NewReconciler creates a new KeyVaultSync controller.
 // Returns nil if running in local environment (no Key Vault access).
 func NewReconciler(
 	ctx context.Context,
+	runtime rt.Runtime,
 	k8sClient client.Client,
-	configMonitor *config.ConfigMonitor,
-	environment string,
 ) (*AzureKeyVaultReconciler, error) {
+	environment := runtime.GetOperatorContext().Environment
 	if environment == operatorcontext.EnvironmentLocal {
 		return nil, nil
 	}
 
-	tracer := otel.Tracer(telemetry.ServiceName)
-	_, span := tracer.Start(ctx, "keyvaultsync.NewController")
+	tracer := runtime.Tracer()
+	_, span := tracer.Start(ctx, "keyvaultsync.NewReconciler")
 	defer span.End()
 
 	cred, err := azidentity.NewDefaultAzureCredential(nil)
@@ -82,20 +81,34 @@ func NewReconciler(
 		return nil, fmt.Errorf("failed to get Azure credentials: %w", err)
 	}
 
-	kvClient, err := azsecrets.NewClient(config.KeyVaultURL(environment), cred, nil)
+	azClient, err := azsecrets.NewClient(config.KeyVaultURL(environment), cred, nil)
 	if err != nil {
 		span.RecordError(err)
 		return nil, fmt.Errorf("failed to create Key Vault client: %w", err)
 	}
 
 	return &AzureKeyVaultReconciler{
-		logger:        log.FromContext(ctx).WithName("keyvaultsync"),
-		k8sClient:     k8sClient,
-		kvClient:      kvClient,
-		configMonitor: configMonitor,
-		tracer:        tracer,
-		environment:   environment,
+		logger:    log.FromContext(ctx).WithName("keyvaultsync"),
+		k8sClient: k8sClient,
+		kvClient:  newAzureKeyVaultSecretsClient(azClient),
+		runtime:   runtime,
+		mappings:  DefaultMappings(),
 	}, nil
+}
+
+func NewReconcilerForTesting(
+	runtime rt.Runtime,
+	k8sClient client.Client,
+	kvClient KeyVaultSecretsClient,
+	mappings []KeyVaultSecretMapping,
+) *AzureKeyVaultReconciler {
+	return &AzureKeyVaultReconciler{
+		logger:    log.FromContext(context.Background()).WithName("keyvaultsync"),
+		k8sClient: k8sClient,
+		kvClient:  kvClient,
+		runtime:   runtime,
+		mappings:  mappings,
+	}
 }
 
 func (c *AzureKeyVaultReconciler) NeedLeaderElection() bool {
@@ -104,40 +117,42 @@ func (c *AzureKeyVaultReconciler) NeedLeaderElection() bool {
 
 // Start implements manager.Runnable. It runs the sync loop until ctx is cancelled.
 func (c *AzureKeyVaultReconciler) Start(ctx context.Context) error {
+	clock := c.runtime.GetClock()
+
 	defer func() {
-		c.logger.Info("shutting down KeyVaultSync controller")
-		assert.That(ctx.Err() != nil, "")
+		c.logger.Info("exiting KeyVaultSync controller")
+		assert.That(ctx.Err() != nil, "context should be cancelled when shutting down")
 	}()
-	currentPollInterval := c.configMonitor.Get().KeyVaultSyncController.PollInterval
+
+	currentPollInterval := c.runtime.GetConfigMonitor().Get().KeyVaultSyncController.PollInterval
 	c.logger.Info("starting KeyVaultSync controller",
 		"pollInterval", currentPollInterval,
-		"mappings", len(Mappings),
+		"mappings", len(c.mappings),
 	)
 
 	for range 10 {
-		if err := c.syncAll(ctx); err != nil {
+		if err := c.SyncAll(ctx); err != nil {
 			c.logger.Error(err, "initial sync failed")
-			time.Sleep(10 * time.Second)
+			clock.Sleep(10 * time.Second)
 		} else {
 			break
 		}
 	}
 
-	ticker := time.NewTicker(currentPollInterval)
+	ticker := clock.NewTicker(currentPollInterval)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ctx.Done():
-			c.logger.Info("shutting down KeyVaultSync controller")
 			return nil
-		case <-ticker.C:
-			if err := c.syncAll(ctx); err != nil {
+		case <-ticker.Chan():
+			if err := c.SyncAll(ctx); err != nil {
 				c.logger.Error(err, "sync failed")
 			}
 		}
 
-		nextPollInterval := c.configMonitor.Get().KeyVaultSyncController.PollInterval
+		nextPollInterval := c.runtime.GetConfigMonitor().Get().KeyVaultSyncController.PollInterval
 		if nextPollInterval != currentPollInterval {
 			c.logger.Info("poll interval changed, updating ticker",
 				"oldPollInterval", currentPollInterval,
@@ -149,21 +164,21 @@ func (c *AzureKeyVaultReconciler) Start(ctx context.Context) error {
 	}
 }
 
-func (c *AzureKeyVaultReconciler) syncAll(ctx context.Context) error {
-	ctx, span := c.tracer.Start(ctx, "keyvaultsync.syncAll",
-		trace.WithAttributes(attribute.Int("mappings", len(Mappings))),
+func (c *AzureKeyVaultReconciler) SyncAll(ctx context.Context) error {
+	tracer := c.runtime.Tracer()
+	ctx, span := tracer.Start(ctx, "keyvaultsync.SyncAll",
+		trace.WithAttributes(attribute.Int("mappings", len(c.mappings))),
 	)
 	defer span.End()
 
 	var lastErr error
-	for _, mapping := range Mappings {
+	for _, mapping := range c.mappings {
 		if err := c.syncMapping(ctx, mapping); err != nil {
 			c.logger.Error(err, "failed to sync mapping",
 				"secretName", mapping.Name,
 				"namespace", mapping.Namespace,
 			)
 			lastErr = err
-			// Continue with other mappings
 		}
 	}
 
@@ -175,7 +190,8 @@ func (c *AzureKeyVaultReconciler) syncAll(ctx context.Context) error {
 }
 
 func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVaultSecretMapping) error {
-	ctx, span := c.tracer.Start(ctx, "keyvaultsync.syncMapping",
+	tracer := c.runtime.Tracer()
+	ctx, span := tracer.Start(ctx, "keyvaultsync.syncMapping",
 		trace.WithAttributes(
 			attribute.String("secretName", mapping.Name),
 			attribute.String("namespace", mapping.Namespace),
@@ -194,7 +210,6 @@ func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVa
 		secretData[kvSecretName] = value
 	}
 
-	// Marshal to JSON
 	jsonBytes, err := json.Marshal(secretData)
 	if err != nil {
 		span.RecordError(err)
@@ -211,7 +226,7 @@ func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVa
 				Name:      mapping.Name,
 				Namespace: mapping.Namespace,
 				Labels: map[string]string{
-					"app.kubernetes.io/managed-by": "altinn-studio-operator-keyvaultsync",
+					"app.kubernetes.io/managed-by": "altinn.studio/operator",
 				},
 			},
 			Data: map[string][]byte{
@@ -252,12 +267,13 @@ func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVa
 }
 
 func (c *AzureKeyVaultReconciler) getSecret(ctx context.Context, name string) (string, error) {
-	ctx, span := c.tracer.Start(ctx, "keyvaultsync.getSecret",
+	tracer := c.runtime.Tracer()
+	ctx, span := tracer.Start(ctx, "keyvaultsync.getSecret",
 		trace.WithAttributes(attribute.String("secretName", name)),
 	)
 	defer span.End()
 
-	resp, err := c.kvClient.GetSecret(ctx, name, "", nil)
+	value, err := c.kvClient.GetSecret(ctx, name, "")
 	if err != nil {
 		if respErr, ok := err.(*azcore.ResponseError); ok {
 			if respErr.StatusCode == 404 {
@@ -269,9 +285,5 @@ func (c *AzureKeyVaultReconciler) getSecret(ctx context.Context, name string) (s
 		return "", err
 	}
 
-	if resp.Value == nil {
-		return "", fmt.Errorf("secret %q has nil value", name)
-	}
-
-	return *resp.Value, nil
+	return value, nil
 }

@@ -79,7 +79,7 @@ func main() {
 
 	ctx, span := otel.Tracer(telemetry.ServiceName).Start(ctx, "Main")
 
-	rt, err := internal.NewRuntime(ctx, "", &setupLog)
+	rt, err := internal.NewRuntime(ctx, internal.WithLogger(&setupLog))
 	if err != nil {
 		setupLog.Error(err, "unable to initialize runtime")
 		span.End()
@@ -162,9 +162,8 @@ func main() {
 
 	kvSyncController, err := azurekeyvaultsync.NewReconciler(
 		ctx,
+		rt,
 		mgr.GetClient(),
-		rt.GetConfigMonitor(),
-		rt.GetOperatorContext().Environment,
 	)
 	if err != nil {
 		setupLog.Error(err, "unable to create KeyVaultSync controller")

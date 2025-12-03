@@ -91,7 +91,7 @@ var _ = Describe("MaskinportenClient Controller", func() {
 		})
 		It("should successfully reconcile the resource", func() {
 			By("Reconciling the created resource")
-			rt, err := internal.NewRuntime(context.Background(), "", nil)
+			rt, err := internal.NewRuntime(context.Background())
 			Expect(err).NotTo(HaveOccurred())
 			controllerReconciler := NewReconciler(
 				rt,
