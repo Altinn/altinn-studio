@@ -1,0 +1,1 @@
+GRANT ALL ON TABLE designer.deploy_events TO designer;
