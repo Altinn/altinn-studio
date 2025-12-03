@@ -5,6 +5,8 @@ resources:
   - service.yaml
   - deployment.yaml
   - networkpolicy.yaml
+  - role.yaml
+  - rolebinding.yaml
 replacements:
 - source:
     kind: Deployment
