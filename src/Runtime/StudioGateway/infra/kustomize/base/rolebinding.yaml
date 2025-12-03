@@ -1,13 +1,12 @@
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
-  name: studio-gateway
-  namespace: default
+  name: studio-gateway-helmrelease-reader
 subjects:
   - kind: ServiceAccount
     name: studio-gateway
-    namespace: studio-gateway
+    namespace: runtime-gateway
 roleRef:
-  kind: Role
-  name: studio-gateway
+  kind: ClusterRole
+  name: studio-gateway-helmrelease-reader
   apiGroup: rbac.authorization.k8s.io
