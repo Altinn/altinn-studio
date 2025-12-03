@@ -457,6 +457,16 @@ const common = {
       ),
       new CG.prop('alignText', CG.common('ITableColumnsAlignText').optional()),
       new CG.prop('textOverflow', CG.common('ITableColumnsTextOverflow').optional()),
+      new CG.prop(
+        'hidden',
+        new CG.expr(ExprVal.Boolean)
+          .optional({ default: false })
+          .setTitle('Hidden column?')
+          .setDescription(
+            'Expression or boolean indicating whether each column should be hidden. An expression will be evaluated per ' +
+              'column, and if it evaluates to true, the column will be hidden.',
+          ),
+      ),
     )
       .setTitle('Column options')
       .setDescription('Options for the row/column')

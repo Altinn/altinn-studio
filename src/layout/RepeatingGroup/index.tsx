@@ -48,6 +48,12 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
   evalExpressions(props: ExprResolver<'RepeatingGroup'>): RepGroupInternal {
     const { item, evalBool } = props;
 
+    if (item.tableColumns) {
+      for (const column in item.tableColumns) {
+        item.tableColumns[column].hidden = evalBool(item.tableColumns[column].hidden, false);
+      }
+    }
+
     return {
       ...this.evalDefaultExpressions(props),
       edit: item.edit

@@ -43,7 +43,14 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
   const required = !!minCount && minCount > 0;
 
   const columnSettings = tableColumns ? structuredClone(tableColumns) : ({} as ITableColumnFormatting);
+
+  const hiddenColumns = Object.entries(columnSettings)
+    .filter(([_, settings]) => settings.hidden === true)
+    .map(([id]) => id);
+
   const tableIds = useTableComponentIds(baseComponentId);
+  const tableIdsWithoutHiddenColumns = tableIds.filter((id) => !hiddenColumns.includes(id));
+
   const numRows = rowsToDisplay.length;
   const firstRowId = numRows >= 1 ? rowsToDisplay[0].uuid : undefined;
 
@@ -116,7 +123,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
                 groupBinding={dataModelBindings.group}
                 rowIndex={0} // Force the header row to show texts as if it is in the first row
               >
-                {tableIds?.map((id) => (
+                {tableIdsWithoutHiddenColumns?.map((id) => (
                   <TitleCell
                     key={id}
                     baseComponentId={id}
@@ -151,7 +158,8 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
               uuid={row.uuid}
               displayDeleteColumn={displayDeleteColumn}
               displayEditColumn={displayEditColumn}
-              tableIds={tableIds}
+              tableIds={tableIdsWithoutHiddenColumns}
+              hiddenColumns={hiddenColumns}
             />
           ))}
         </Table.Body>
@@ -174,17 +182,18 @@ function RowToDisplay({
   index,
   uuid,
   tableIds,
+  hiddenColumns,
 }: {
   baseComponentId: string;
   dataModelBindings: IDataModelBindings<'RepeatingGroup'>;
   displayDeleteColumn: boolean;
   displayEditColumn: boolean;
   tableIds: string[];
+  hiddenColumns: string[];
 } & BaseRow) {
   const component = useExternalItem(baseComponentId, 'RepeatingGroup');
   const mobileView = useIsMobileOrTablet();
   const isEditingRow = RepGroupContext.useIsEditingRow(uuid);
-
   return (
     <DataModelLocationProvider
       groupBinding={group}
@@ -200,6 +209,7 @@ function RowToDisplay({
         mobileView={mobileView}
         displayDeleteColumn={displayDeleteColumn}
         displayEditColumn={displayEditColumn}
+        hiddenColumns={hiddenColumns}
       />
       {isEditingRow && (
         <Table.Row

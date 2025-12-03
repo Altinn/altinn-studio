@@ -43,6 +43,7 @@ export interface IRepeatingGroupTableRowProps {
   mobileView: boolean;
   displayEditColumn: boolean;
   displayDeleteColumn: boolean;
+  hiddenColumns: string[];
 }
 
 function getTableTitle(textResourceBindings: ITextResourceBindings) {
@@ -83,6 +84,7 @@ export function RepeatingGroupTableRow({
   mobileView,
   displayEditColumn,
   displayDeleteColumn,
+  hiddenColumns,
 }: IRepeatingGroupTableRowProps): JSX.Element | null {
   const mobileViewSmall = useIsMobile();
   const { refSetter } = useRepeatingGroupsFocusContext();
@@ -102,10 +104,12 @@ export function RepeatingGroupTableRow({
 
   const layoutLookups = useLayoutLookups();
   const rawTableIds = useTableComponentIds(baseComponentId);
-  const tableItems = rawTableIds.map((baseId) => ({
-    baseId,
-    type: layoutLookups.getComponent(baseId).type,
-  }));
+  const tableItems = rawTableIds
+    .filter((id) => !hiddenColumns.includes(id))
+    .map((baseId) => ({
+      baseId,
+      type: layoutLookups.getComponent(baseId).type,
+    }));
   const isEditingRow = RepGroupContext.useIsEditingRow(uuid);
   const isDeletingRow = RepGroupContext.useIsDeletingRow(uuid);
 
