@@ -1,0 +1,129 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: studio-gateway-pdb
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: studio-gateway
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: studio-gateway
+  annotations:
+    altinn.studio/image: studio-gateway:latest
+    altinn.studio/image-tag: latest
+spec:
+  minReadySeconds: 3
+  revisionHistoryLimit: 5
+  progressDeadlineSeconds: 60
+  replicas: 2
+  strategy:
+    # Rolling upgrade of pods
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: studio-gateway
+  template:
+    metadata:
+      labels:
+        app: studio-gateway
+      annotations:
+        # for mTLS mainly
+        linkerd.io/inject: enabled
+    spec:
+      topologySpreadConstraints:
+        # Try to spread across availability zones first (highest priority)
+        # A skew of 1 can result in 1 AZ being unused when AZs = 3 and replicas = 3
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          # ScheduleAnyway ensures progress even if distribution is imperfect
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: studio-gateway
+        # Try to spread across nodes within zones
+        # Prevents multiple replicas from running on the same node, improving fault tolerance
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: studio-gateway
+      serviceAccountName: studio-gateway
+      terminationGracePeriodSeconds: 30
+      # explicitly set security context to embedded .net non-root user (1654)
+      securityContext:
+        runAsUser: 1654
+        runAsGroup: 1654
+        fsGroup: 1654
+        runAsNonRoot: true
+        # Seccomp (secure computing mode) restricts syscalls the container can make
+        # RuntimeDefault uses the container runtime's default profile, blocking risky syscalls
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: studio-gateway
+          image: ''
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            privileged: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - containerPort: 8080
+              name: http-internal
+              protocol: TCP
+            - containerPort: 8081
+              name: http-public
+              protocol: TCP
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              valueFrom:
+                # Configmap is created in syncroot
+                configMapKeyRef:
+                  name: runtime-environment
+                  key: environment
+            - name: GATEWAY_UPGRADE_CHANNEL
+              valueFrom:
+                configMapKeyRef:
+                  name: runtime-environment
+                  key: upgrade_channel
+            - name: GATEWAY_ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: runtime-environment
+                  key: environment
+            - name: GATEWAY_SERVICEOWNER
+              valueFrom:
+                configMapKeyRef:
+                  name: runtime-environment
+                  key: serviceowner
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
