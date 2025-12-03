@@ -48,11 +48,8 @@ public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory, 
         HttpResponseMessage response = await HttpClient.GetAsync(url);
 
         // Assert
-        if (!response.IsSuccessStatusCode)
-        {
-            string content = await response.Content.ReadAsStringAsync();
-            output.WriteLine($"Response content: {content}");
-        }
+        string content = await response.Content.ReadAsStringAsync();
+        output.WriteLine($"Response content: {content}");
         response.EnsureSuccessStatusCode();
         List<string> result = await response.Content.ReadFromJsonAsync<List<string>>();
         Assert.Equal(names, result);
@@ -76,11 +73,8 @@ public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory, 
         HttpResponseMessage response = await HttpClient.GetAsync(url);
 
         // Assert
-        if (!response.IsSuccessStatusCode)
-        {
-            string content = await response.Content.ReadAsStringAsync();
-            output.WriteLine($"Response content: {content}");
-        }
+        string content = await response.Content.ReadAsStringAsync();
+        output.WriteLine($"Response content: {content}");
         response.EnsureSuccessStatusCode();
         List<string> result = await response.Content.ReadFromJsonAsync<List<string>>();
         Assert.Equal(names, result);
@@ -104,11 +98,8 @@ public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory, 
         HttpResponseMessage response = await HttpClient.GetAsync(url);
 
         // Assert
-        if (!response.IsSuccessStatusCode)
-        {
-            string content = await response.Content.ReadAsStringAsync();
-            output.WriteLine($"Response content: {content}");
-        }
+        string content = await response.Content.ReadAsStringAsync();
+        output.WriteLine($"Response content: {content}");
         Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
         ProblemDetails result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
         Assert.Equal(errorMessage, result.Detail);
