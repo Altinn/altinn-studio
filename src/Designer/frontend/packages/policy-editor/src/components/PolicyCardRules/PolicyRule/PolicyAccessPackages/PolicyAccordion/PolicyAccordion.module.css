@@ -12,6 +12,7 @@
   display: flex;
   gap: var(--fds-spacing-2);
   align-items: center;
+  color: var(--ds-color-text-default);
 }
 
 .accordionIcon {
@@ -31,7 +32,7 @@
 }
 
 .accordionSubTitle {
-  color: var(--fds-colors-grey-700);
+  color: var(--ds-color-text-subtle);
   font-size: var(--fds-sizing-3);
   font-weight: var(--ds-font-weight-regular);
 }
