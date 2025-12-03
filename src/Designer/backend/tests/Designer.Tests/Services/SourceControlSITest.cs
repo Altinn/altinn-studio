@@ -21,7 +21,7 @@ namespace Designer.Tests.Services
     {
 
         private Mock<IHttpContextAccessor> _httpContextAccessorMock;
-        private Mock<IGitea> _giteaMock;
+        private Mock<IGitea> _giteaClientMock;
         private Mock<ILogger<SourceControlSI>> _loggerMock;
         private ServiceRepositorySettings _settings;
         private Mock<HttpContext> _httpContextMock;
@@ -34,7 +34,7 @@ namespace Designer.Tests.Services
         {
             // Setup mocks
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            _giteaMock = new Mock<IGitea>();
+            _giteaClientMock = new Mock<IGitea>();
             _loggerMock = new Mock<ILogger<SourceControlSI>>();
             _httpContextMock = new Mock<HttpContext>();
             _httpContextMock.Setup(x => x.User).Returns(new ClaimsPrincipal(new ClaimsIdentity(
@@ -58,7 +58,7 @@ namespace Designer.Tests.Services
             _sourceControlService = new SourceControlSI(
                 _settings,
                 _httpContextAccessorMock.Object,
-                _giteaMock.Object,
+                _giteaClientMock.Object,
                 _loggerMock.Object
             );
         }

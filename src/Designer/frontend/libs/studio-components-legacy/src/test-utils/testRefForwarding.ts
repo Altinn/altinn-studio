@@ -16,7 +16,7 @@ function testObjectRefForwarding<Element extends HTMLElement>(
 ): void {
   const ref: RefObject<Element> = createRef<Element>();
   const { container, unmount } = renderComponent(ref);
-  expect(ref.current).toBe(getTargetElement(container));
+  expect(ref.current).toBe(getTargetElement?.(container));
   unmount();
 }
 
@@ -26,6 +26,6 @@ function testCallbackRefForwarding<Element extends HTMLElement>(
   const ref = jest.fn();
   const { container, unmount } = renderComponent(ref);
   expect(ref).toHaveBeenCalledTimes(1);
-  expect(ref).toHaveBeenCalledWith(getTargetElement(container));
+  expect(ref).toHaveBeenCalledWith(getTargetElement?.(container));
   unmount();
 }

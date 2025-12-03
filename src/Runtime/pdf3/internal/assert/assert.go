@@ -11,13 +11,7 @@ import (
 
 var logger *slog.Logger = log.NewComponent("assert")
 
-func Assert(condition bool) {
-	if !condition {
-		panicking("")
-	}
-}
-
-func AssertWithMessage(condition bool, message string, args ...any) {
+func That(condition bool, message string, args ...any) {
 	if !condition {
 		panicking(message, args...)
 	}
@@ -38,6 +32,6 @@ func panicking(message string, userArgs ...any) {
 	}
 	args = append(args, userArgs...)
 	logger.Error("Assertion failed:", args...)
-	_, _ = fmt.Fprintln(os.Stdout, stackTrace)
+	_, _ = fmt.Fprintln(os.Stderr, stackTrace)
 	os.Exit(1)
 }

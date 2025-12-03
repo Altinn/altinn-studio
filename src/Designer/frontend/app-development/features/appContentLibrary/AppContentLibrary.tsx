@@ -38,7 +38,7 @@ import { useGetAvailableOrgResourcesQuery } from '../../hooks/queries/useGetAvai
 import { useImportCodeListFromOrgToAppMutation } from 'app-development/hooks/mutations/useImportCodeListFromOrgToAppMutation';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 
-export function AppContentLibrary(): React.ReactElement {
+export default function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const { data: optionListDataList, status: optionListDataListStatus } = useOptionListsQuery(
