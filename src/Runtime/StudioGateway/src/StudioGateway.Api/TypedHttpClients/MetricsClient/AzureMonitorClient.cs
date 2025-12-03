@@ -112,6 +112,12 @@ internal sealed class AzureMonitorClient(
     {
         var roundTo = time < 360 ? "5m" : "1h";
 
+        IDictionary<string, string> names = new Dictionary<string, string>
+        {
+            { "POST Instances/Post [app/org]", "failed_processes_started_requests" },
+            { "PUT Process/NextElement [app/instanceGuid/instanceOwnerPartyId/org]", "failed_process_next_requests" },
+        };
+
         var query =
             $@"
                 AppRequests
@@ -119,8 +125,8 @@ internal sealed class AzureMonitorClient(
                 | where ClientType != 'Browser'
                 | where toint(ResultCode) >= 500
                 | where AppRoleName == '{app.Replace("'", "''")}'
-                | where Name has 'PUT Process/NextElement'
-                | summarize Value = sum(ItemCount) by AppRoleName, DateTimeOffset = bin(TimeGenerated, {roundTo})
+                | where Name in ('{names.Keys.Aggregate((a, b) => a + "','" + b)}')
+                | summarize Value = sum(ItemCount) by AppRoleName, Name, DateTimeOffset = bin(TimeGenerated, {roundTo})
                 | order by DateTimeOffset asc";
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(
@@ -130,12 +136,32 @@ internal sealed class AzureMonitorClient(
             cancellationToken: cancellationToken
         );
 
-        var metricDataPoints = response.Value.Table.Rows.Select(row => new MetricDataPoint
-        {
-            DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset").GetValueOrDefault(),
-            Value = row.GetDouble("Value") ?? 0,
-        });
+        var metrics = response
+            .Value.Table.Rows.Select(row =>
+            {
+                return new
+                {
+                    Name = names[row.GetString("Name")],
+                    DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset").GetValueOrDefault(),
+                    Value = row.GetDouble("Value") ?? 0,
+                };
+            })
+            .GroupBy(row => row.Name)
+            .Select(row =>
+            {
+                return new Metric
+                {
+                    Name = row.Key,
+                    DataPoints = row.Select(e => new MetricDataPoint
+                    {
+                        DateTimeOffset = e.DateTimeOffset,
+                        Value = e.Value,
+                    }),
+                };
+            });
 
-        return [new Metric { Name = "failed_process_next_requests", DataPoints = metricDataPoints }];
+        return names.Select(name =>
+            metrics.FirstOrDefault(metric => metric.Name == name.Value) ?? new Metric { Name = name.Value, DataPoints = [] }
+        );
     }
 }
