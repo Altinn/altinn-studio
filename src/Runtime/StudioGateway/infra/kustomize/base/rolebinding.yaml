@@ -6,7 +6,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: studio-gateway
-    namespace: flux-system
+    namespace: studio-gateway
 roleRef:
   kind: Role
   name: studio-gateway
