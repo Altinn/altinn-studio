@@ -129,10 +129,10 @@ public sealed class KubernetesNetworkPolicyTests : IAsyncLifetime
             timeoutSeconds: 10
         );
 
-        // curl returns exit code 28 for timeout, or connection refused results in empty/error output
+        // When blocked: curl outputs empty string or "000" (no HTTP response received)
         Assert.True(
-            result.ExitCode != 0 || result.Output.Trim() is "" or "000",
-            $"Expected connection to be blocked, but got exit={result.ExitCode}, output={result.Output}"
+            result.Output.Trim() is "" or "000",
+            $"Expected connection to be blocked, but got output={result.Output}"
         );
     }
 
@@ -146,9 +146,10 @@ public sealed class KubernetesNetworkPolicyTests : IAsyncLifetime
             timeoutSeconds: 10
         );
 
+        // When blocked: curl outputs empty string or "000" (no HTTP response received)
         Assert.True(
-            result.ExitCode != 0 || result.Output.Trim() is "" or "000",
-            $"Expected connection to be blocked, but got exit={result.ExitCode}, output={result.Output}"
+            result.Output.Trim() is "" or "000",
+            $"Expected connection to be blocked, but got output={result.Output}"
         );
     }
 
@@ -234,13 +235,13 @@ public sealed class KubernetesNetworkPolicyTests : IAsyncLifetime
             var stdOut = await stdOutReader.ReadToEndAsync(cts.Token);
             var stdErr = await stdErrReader.ReadToEndAsync(cts.Token);
 
-            return new CurlResult(0, stdOut, stdErr);
+            return new CurlResult(stdOut, stdErr);
         }
         catch (OperationCanceledException)
         {
-            return new CurlResult(-1, "", "Timeout");
+            return new CurlResult("", "Timeout");
         }
     }
 
-    private sealed record CurlResult(int ExitCode, string Output, string Error);
+    private sealed record CurlResult(string Output, string Error);
 }
