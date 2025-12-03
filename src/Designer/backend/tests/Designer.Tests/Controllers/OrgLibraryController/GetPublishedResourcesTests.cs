@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
@@ -12,10 +13,11 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Designer.Tests.Controllers.OrgLibraryController;
 
-public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory)
+public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory, ITestOutputHelper output)
     : DesignerEndpointsTestsBase<GetPublishedResourcesTests>(factory), IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<ISharedContentClient> _sharedContentClientMock = new();
@@ -46,6 +48,11 @@ public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory)
         HttpResponseMessage response = await HttpClient.GetAsync(url);
 
         // Assert
+        if (!response.IsSuccessStatusCode)
+        {
+            string content = await response.Content.ReadAsStringAsync();
+            output.WriteLine($"Response content: {content}");
+        }
         response.EnsureSuccessStatusCode();
         List<string> result = await response.Content.ReadFromJsonAsync<List<string>>();
         Assert.Equal(names, result);
@@ -69,6 +76,11 @@ public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory)
         HttpResponseMessage response = await HttpClient.GetAsync(url);
 
         // Assert
+        if (!response.IsSuccessStatusCode)
+        {
+            string content = await response.Content.ReadAsStringAsync();
+            output.WriteLine($"Response content: {content}");
+        }
         response.EnsureSuccessStatusCode();
         List<string> result = await response.Content.ReadFromJsonAsync<List<string>>();
         Assert.Equal(names, result);
@@ -92,6 +104,11 @@ public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory)
         HttpResponseMessage response = await HttpClient.GetAsync(url);
 
         // Assert
+        if (!response.IsSuccessStatusCode)
+        {
+            string content = await response.Content.ReadAsStringAsync();
+            output.WriteLine($"Response content: {content}");
+        }
         Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
         ProblemDetails result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
         Assert.Equal(errorMessage, result.Detail);
