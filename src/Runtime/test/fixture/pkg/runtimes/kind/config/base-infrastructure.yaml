@@ -262,5 +262,8 @@ spec:
         nodePort: 30002
         expose:
           default: true
+        # Enable forwarded headers so tests can verify X-Forwarded-For processing
+        forwardedHeaders:
+          insecure: true
     service:
       type: NodePort

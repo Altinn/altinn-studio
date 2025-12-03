@@ -1,0 +1,1822 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "API for Selvbetjening",
+    "description": "Dette APIet er sikret ved bruk av Ansattporten/Maskinporten. Det er kun tilgjengelig for Altinn Admin",
+    "contact": {
+      "name": "Team Kundetjenester på Slack",
+      "url": "https://digdir.slack.com/archives/C05QXPTF30W"
+    },
+    "version": "2025-09-10-1134-d493368c"
+  },
+  "servers": [
+    {
+      "url": "https://api.samarbeid.digdir.dev"
+    }
+  ],
+  "paths": {
+    "/api/v1/altinn/admin/clients/{clientId}": {
+      "put": {
+        "tags": [
+          "Clients"
+        ],
+        "summary": "Oppdater en klient",
+        "operationId": "update",
+        "parameters": [
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateClientRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Input ikke i korrekt format",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ressursen er ikke i riktig tilstand",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Autentisert bruker/system har ikke korrekte rettigheter til å utføre forespurt operasjon",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Nedstrøms tjeneste er ikke tilgjengelig",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Uventet feil",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Maskinporten Bearer Authentication": [
+              "idporten:dcr.altinn"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Clients"
+        ],
+        "summary": "Slett klient",
+        "operationId": "deleteClient",
+        "parameters": [
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Input ikke i korrekt format",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ressursen er ikke i riktig tilstand",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Autentisert bruker/system har ikke korrekte rettigheter til å utføre forespurt operasjon",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Nedstrøms tjeneste er ikke tilgjengelig",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Uventet feil",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Maskinporten Bearer Authentication": [
+              "idporten:dcr.altinn"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/v1/altinn/admin/clients/{clientId}/jwks/{kid}": {
+      "get": {
+        "tags": [
+          "JWKs"
+        ],
+        "summary": "Hent en enkelt Json Web Key",
+        "operationId": "getSingleKey",
+        "parameters": [
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Input ikke i korrekt format",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ressursen er ikke i riktig tilstand",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Autentisert bruker/system har ikke korrekte rettigheter til å utføre forespurt operasjon",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Nedstrøms tjeneste er ikke tilgjengelig",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Uventet feil",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonWebKey"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Maskinporten Bearer Authentication": [
+              "idporten:dcr.altinn"
+            ]
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "JWKs"
+        ],
+        "summary": "Legg til eller oppdater en enkelt Json Web Key",
+        "operationId": "addOrUpdateSingleKey",
+        "parameters": [
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JsonWebKey"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Input ikke i korrekt format",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ressursen er ikke i riktig tilstand",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Autentisert bruker/system har ikke korrekte rettigheter til å utføre forespurt operasjon",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Nedstrøms tjeneste er ikke tilgjengelig",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Uventet feil",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonWebKey"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Maskinporten Bearer Authentication": [
+              "idporten:dcr.altinn"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "JWKs"
+        ],
+        "summary": "Slett en enkelt Json Web Key",
+        "operationId": "deleteSingleKey",
+        "parameters": [
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Input ikke i korrekt format",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ressursen er ikke i riktig tilstand",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Autentisert bruker/system har ikke korrekte rettigheter til å utføre forespurt operasjon",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Nedstrøms tjeneste er ikke tilgjengelig",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Uventet feil",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "security": [
+          {
+            "Maskinporten Bearer Authentication": [
+              "idporten:dcr.altinn"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/v1/altinn/admin/clients": {
+      "get": {
+        "tags": [
+          "Clients"
+        ],
+        "summary": "Hent alle klienter",
+        "description": "Henter alle klienter som er opprettet gjennom ALTINN ADMIN API og av den autentiserte org",
+        "operationId": "list",
+        "responses": {
+          "400": {
+            "description": "Input ikke i korrekt format",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ressursen er ikke i riktig tilstand",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Autentisert bruker/system har ikke korrekte rettigheter til å utføre forespurt operasjon",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Nedstrøms tjeneste er ikke tilgjengelig",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Uventet feil",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ClientResponse"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Maskinporten Bearer Authentication": [
+              "idporten:dcr.altinn"
+            ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Clients"
+        ],
+        "summary": "Legg til klient",
+        "operationId": "create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddClientRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Input ikke i korrekt format",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ressursen er ikke i riktig tilstand",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Autentisert bruker/system har ikke korrekte rettigheter til å utføre forespurt operasjon",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Nedstrøms tjeneste er ikke tilgjengelig",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Uventet feil",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Maskinporten Bearer Authentication": [
+              "idporten:dcr.altinn"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/v1/altinn/admin/clients/{clientId}/secret": {
+      "post": {
+        "tags": [
+          "Clients"
+        ],
+        "summary": "Oppdater secret på en klient",
+        "operationId": "updateSecret",
+        "parameters": [
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Input ikke i korrekt format",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ressursen er ikke i riktig tilstand",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Autentisert bruker/system har ikke korrekte rettigheter til å utføre forespurt operasjon",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Nedstrøms tjeneste er ikke tilgjengelig",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Uventet feil",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Maskinporten Bearer Authentication": [
+              "idporten:dcr.altinn"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/v1/altinn/admin/clients/{clientId}/jwks": {
+      "get": {
+        "tags": [
+          "JWKs"
+        ],
+        "summary": "Hent Json Web Key Set (JWKs)",
+        "operationId": "get",
+        "parameters": [
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Input ikke i korrekt format",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ressursen er ikke i riktig tilstand",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Autentisert bruker/system har ikke korrekte rettigheter til å utføre forespurt operasjon",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Nedstrøms tjeneste er ikke tilgjengelig",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Uventet feil",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OidcJwksRequestResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Maskinporten Bearer Authentication": [
+              "idporten:dcr.altinn"
+            ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "JWKs"
+        ],
+        "summary": "Legg til Json Web Key Set (JWKs) (Erstatter alle andre JWKs)",
+        "operationId": "replace",
+        "parameters": [
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OidcJwksRequestResponse"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Input ikke i korrekt format",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict. Duplicate keys in request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Autentisert bruker/system har ikke korrekte rettigheter til å utføre forespurt operasjon",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Nedstrøms tjeneste er ikke tilgjengelig",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Uventet feil",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "New jwks created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Maskinporten Bearer Authentication": [
+              "idporten:dcr.altinn"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "JWKs"
+        ],
+        "summary": "Slett Json Web Key Set (JWKs)",
+        "operationId": "deleteJwks",
+        "parameters": [
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Input ikke i korrekt format",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ressursen er ikke i riktig tilstand",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Autentisert bruker/system har ikke korrekte rettigheter til å utføre forespurt operasjon",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Nedstrøms tjeneste er ikke tilgjengelig",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Uventet feil",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "security": [
+          {
+            "Maskinporten Bearer Authentication": [
+              "idporten:dcr.altinn"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiError": {
+        "type": "object",
+        "description": "A single specific error",
+        "properties": {
+          "errorMessage": {
+            "type": "string"
+          },
+          "isFieldError": {
+            "type": "boolean"
+          },
+          "objectName": {
+            "type": "string"
+          },
+          "fieldIdentifier": {
+            "type": "string"
+          }
+        }
+      },
+      "ApiErrorResponse": {
+        "type": "object",
+        "description": "A response containing information about errors from the API",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "correlation_id": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "array",
+            "description": "A list of specific errors",
+            "items": {
+              "$ref": "#/components/schemas/ApiError"
+            },
+            "uniqueItems": true
+          },
+          "error": {
+            "type": "string"
+          },
+          "error_description": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateClientRequest": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "description": "Id på klient som skal oppdateres"
+          },
+          "client_name": {
+            "type": "string",
+            "description": "Navn på klient, blir vist ved innlogging",
+            "example": "Min eksempelklient"
+          },
+          "client_orgno": {
+            "type": "string",
+            "description": "Klienten sitt organisasjonsnummer. Må stemme med autentisert avsender, eller avsender må være leverandør med scopet idporten:dcr.supplier."
+          },
+          "supplier_orgno": {
+            "type": "string",
+            "description": "Leverandøren sitt organisasjonsnummer. Skal kun settes hvis avsender har idporten:dcr.supplier og client_orgno er satt til noe annet enn avsenders orgno"
+          },
+          "description": {
+            "type": "string",
+            "description": "Beskrivelse av klienten, ikke synlig for innbyggere, men blir lagret i Digdirs støttesystemer",
+            "example": "Viser noen eksempelverdier"
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Angir om klienten er aktiv eller ikke. Inaktive klienter vil ikke bli synkronisert til ID-porten/maskinporten/ansattporten. Settes default til true"
+          },
+          "application_type": {
+            "type": "string",
+            "description": "Applikasjonstype",
+            "enum": [
+              "web",
+              "browser",
+              "native"
+            ],
+            "example": "web"
+          },
+          "integration_type": {
+            "type": "string",
+            "description": "Integrasjonstype",
+            "enum": [
+              "ansattporten",
+              "api_klient",
+              "eformidling",
+              "idporten",
+              "idporten_saml2",
+              "krr",
+              "maskinporten"
+            ],
+            "example": "idporten"
+          },
+          "scopes": {
+            "type": "array",
+            "description": "Liste over scopes som klienten kan forespørre. For OpenID Connect er aktuelle scopes openid og profile. For API-sikring, ta kontakt med oss",
+            "example": [
+              "openid",
+              "profile",
+              "idporten:dcr.read"
+            ],
+            "items": {
+              "type": "string",
+              "uniqueItems": true
+            },
+            "uniqueItems": true
+          },
+          "grant_types": {
+            "type": "array",
+            "description": "Tillatte Grant Types for klient. Implicit skal ikke tas i bruk av nye klienter(deprecated).",
+            "items": {
+              "type": "string",
+              "enum": [
+                "authorization_code",
+                "implicit",
+                "refresh_token",
+                "urn:ietf:params:oauth:grant-type:jwt-bearer"
+              ],
+              "uniqueItems": true
+            },
+            "uniqueItems": true
+          },
+          "token_endpoint_auth_method": {
+            "type": "string",
+            "description": "Autentiseringsmetode for klient. None anbefales for klienter som kjører i nettleser eller på mobil",
+            "enum": [
+              "client_secret_post",
+              "client_secret_basic",
+              "private_key_jwt",
+              "none"
+            ],
+            "example": "client_secret_basic"
+          },
+          "refresh_token_lifetime": {
+            "type": "integer",
+            "format": "int64",
+            "default": 600,
+            "description": "Levetid i sekunder for utstedt refresh_token."
+          },
+          "refresh_token_usage": {
+            "type": "string",
+            "description": "Ved REUSE kan refresh_token benyttes flere ganger.  Ved ONETIME kan refresh_token kun benyttes en gang.",
+            "enum": [
+              "REUSE",
+              "ONETIME"
+            ]
+          },
+          "access_token_lifetime": {
+            "type": "integer",
+            "format": "int64",
+            "default": 120,
+            "description": "Levetid i sekunder for utstedt access_token."
+          },
+          "authorization_lifetime": {
+            "type": "integer",
+            "format": "int64",
+            "default": 7200,
+            "description": "Levetid for registrert autorisasjon i sekunder. I en OpenID Connect sammenheng vil dette være tilgangen til userinfo-endepunktet."
+          },
+          "logo_uri": {
+            "type": "string"
+          },
+          "redirect_uris": {
+            "type": "array",
+            "description": "Liste over gyldige url’er som vi kan redirecte tilbake til etter vellykket autorisasjonsforespørsel",
+            "example": [
+              "http://localhost/myService"
+            ],
+            "items": {
+              "type": "string",
+              "uniqueItems": true
+            },
+            "uniqueItems": true
+          },
+          "post_logout_redirect_uris": {
+            "type": "array",
+            "description": "Liste over url’er som vi redirecter til etter fullført utlogging",
+            "example": [
+              "http://localhost/myService/loggedout"
+            ],
+            "items": {
+              "type": "string",
+              "uniqueItems": true
+            },
+            "uniqueItems": true
+          },
+          "frontchannel_logout_session_required": {
+            "type": "boolean",
+            "description": "Flagg som bestemmer om parameterne for issuer og sesjons-id skal sendes med frontchannel_logout_uri"
+          },
+          "frontchannel_logout_uri": {
+            "type": "string",
+            "description": "URL som vi sender request til ved utlogging trigget av annen klient i samme sesjon"
+          },
+          "sso_disabled": {
+            "type": "boolean",
+            "description": "Flagg for å disable sso. Dette vil gjøre at brukeren må logge inn på nytt for din klient. Dette er kun relevant for OpenID Connect. Om ikke satt, vil default være false for ID-porten og true for Ansattporten"
+          },
+          "code_challenge_method": {
+            "type": "string",
+            "description": "Code challenge method for PKCE. Gyldige verdier er none eller S256. Dette er kun relevant for OpenID Connect. Om ikke satt, vil default bli S256.",
+            "enum": [
+              "none",
+              "S256"
+            ]
+          }
+        }
+      },
+      "ClientOnBehalfOf": {
+        "type": "object",
+        "properties": {
+          "onbehalfof": {
+            "type": "string",
+            "description": "ID for onbehalfof klient. Fulle klient navn blir \u003Cclient_id\u003E::\u003Conbehalfof_verdi\u003E"
+          },
+          "name": {
+            "type": "string",
+            "description": "Navn på klient, blir vist ved innlogging"
+          },
+          "orgno": {
+            "type": "string",
+            "description": "Klienten sitt organisasjonsnummer"
+          },
+          "organization_name": {
+            "type": "string",
+            "description": "Organisasjonsnavnet som tilhører organisasjonsnummeret"
+          },
+          "description": {
+            "type": "string",
+            "description": "Beskrivelse av klienten, ikke synlig for innbyggere, men blir lagret i Digdir sine støttesystemer"
+          },
+          "logo_uri": {
+            "type": "string"
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "last_updated": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
+      },
+      "ClientResponse": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string"
+          },
+          "client_name": {
+            "type": "string",
+            "description": "Navn på klient, blir vist ved innlogging"
+          },
+          "client_orgno": {
+            "type": "string",
+            "description": "Klienten sitt organisasjonsnummer."
+          },
+          "supplier_orgno": {
+            "type": "string",
+            "description": "Leverandøren sitt organisasjonsnummer."
+          },
+          "description": {
+            "type": "string",
+            "description": "Beskrivelse av klienten, ikke synlig for innbyggere."
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last_updated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "application_type": {
+            "type": "string",
+            "description": "Applikasjonstype",
+            "enum": [
+              "web",
+              "browser",
+              "native"
+            ],
+            "example": "web"
+          },
+          "integration_type": {
+            "type": "string",
+            "description": "Integrasjonstype",
+            "enum": [
+              "ansattporten",
+              "api_klient",
+              "eformidling",
+              "idporten",
+              "idporten_saml2",
+              "krr",
+              "maskinporten"
+            ],
+            "example": "idporten"
+          },
+          "scopes": {
+            "type": "array",
+            "description": "Liste over scopes som klienten kan forespørre.",
+            "example": [
+              "openid",
+              "profile",
+              "idporten:dcr.read"
+            ],
+            "items": {
+              "type": "string",
+              "uniqueItems": true
+            },
+            "uniqueItems": true
+          },
+          "grant_types": {
+            "type": "array",
+            "description": "Tillatte Grant Types for klient.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "authorization_code",
+                "implicit",
+                "refresh_token",
+                "urn:ietf:params:oauth:grant-type:jwt-bearer"
+              ],
+              "uniqueItems": true
+            },
+            "uniqueItems": true
+          },
+          "token_endpoint_auth_method": {
+            "type": "string",
+            "description": "Autentiseringsmetode for klient.",
+            "enum": [
+              "client_secret_post",
+              "client_secret_basic",
+              "private_key_jwt",
+              "none"
+            ],
+            "example": "client_secret_basic"
+          },
+          "refresh_token_lifetime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Levetid i sekunder for utstedt refresh_token"
+          },
+          "refresh_token_usage": {
+            "type": "string",
+            "description": "Ved REUSE kan refresh_token benyttes flere ganger.  Ved ONETIME kan refresh_token kun benyttes en gang.",
+            "enum": [
+              "REUSE",
+              "ONETIME"
+            ]
+          },
+          "access_token_lifetime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Levetid i sekunder for utstedt access_token"
+          },
+          "authorization_lifetime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Levetid for registrert autorisasjon i sekunder. I en OpenID Connect sammenheng vil dette være tilgangen til userinfo-endepunktet."
+          },
+          "onbehalfof": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClientOnBehalfOf"
+            }
+          },
+          "client_secret": {
+            "type": "string",
+            "description": "Secret kan ikke settes direkte. Secret blir generert ved behov og dette feltet er kun for retur av secret"
+          },
+          "jwks": {
+            "$ref": "#/components/schemas/JsonWebKeyWrapper"
+          },
+          "jwks_uri": {
+            "type": "string",
+            "description": "Uri til JWKS om satt. Kan kun leses ut, ikke settes."
+          },
+          "logo_uri": {
+            "type": "string"
+          },
+          "redirect_uris": {
+            "type": "array",
+            "description": "Liste over gyldige url’er som vi kan redirecte tilbake til etter vellykket autorisasjonsforespørsel",
+            "example": [
+              "http://localhost/myService"
+            ],
+            "items": {
+              "type": "string",
+              "uniqueItems": true
+            },
+            "uniqueItems": true
+          },
+          "post_logout_redirect_uris": {
+            "type": "array",
+            "description": "Liste over url’er som vi redirecter til etter fullført utlogging",
+            "example": [
+              "http://localhost/myService/loggedout"
+            ],
+            "items": {
+              "type": "string",
+              "uniqueItems": true
+            },
+            "uniqueItems": true
+          },
+          "frontchannel_logout_session_required": {
+            "type": "boolean",
+            "description": "Flagg som bestemmer om parameterne for issuer og sesjons-id skal sendes med frontchannel_logout_uri"
+          },
+          "frontchannel_logout_uri": {
+            "type": "string",
+            "description": "URL som vi sender request til ved utlogging trigget av annen klient i samme sesjon"
+          },
+          "sso_disabled": {
+            "type": "boolean",
+            "description": "Flagg for å disable sso. Dette vil gjøre at brukeren må logge inn på nytt for din klient. Dette er kun relevant for OpenID Connect."
+          },
+          "code_challenge_method": {
+            "type": "string",
+            "description": "Code challenge method for PKCE. Gyldige verdier er none eller S256. Dette er kun relevant for OpenID Connect.",
+            "enum": [
+              "none",
+              "S256"
+            ]
+          }
+        }
+      },
+      "JsonWebKey": {
+        "type": "object",
+        "properties": {
+          "kty": {
+            "type": "string",
+            "enum": [
+              "RSA"
+            ]
+          },
+          "kid": {
+            "type": "string"
+          },
+          "use": {
+            "type": "string",
+            "enum": [
+              "sig"
+            ]
+          },
+          "alg": {
+            "type": "string",
+            "enum": [
+              "RS256",
+              "RS512"
+            ]
+          },
+          "n": {
+            "type": "string"
+          },
+          "e": {
+            "type": "string"
+          },
+          "x5c": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "exp": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last_updated": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "JsonWebKeyWrapper": {
+        "type": "object",
+        "properties": {
+          "keys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JsonWebKey"
+            }
+          }
+        }
+      },
+      "AddClientRequest": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "description": "Id på klient, må være unik. Blir autogenerert ved opprettelse av klient om den ikke er spesifikt satt"
+          },
+          "client_name": {
+            "type": "string",
+            "description": "Navn på klient, blir vist ved innlogging",
+            "example": "Min eksempelklient"
+          },
+          "client_orgno": {
+            "type": "string",
+            "description": "Klienten sitt organisasjonsnummer. Må stemme med autentisert avsender, eller avsender må være leverandør med scopet idporten:dcr.supplier."
+          },
+          "supplier_orgno": {
+            "type": "string",
+            "description": "Leverandøren sitt organisasjonsnummer. Skal kun settes hvis avsender har idporten:dcr.supplier og client_orgno er satt til noe annet enn avsenders orgno"
+          },
+          "description": {
+            "type": "string",
+            "description": "Beskrivelse av klienten, ikke synlig for innbyggere, men blir lagret i Digdirs støttesystemer",
+            "example": "Viser noen eksempelverdier"
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Angir om klienten er aktiv eller ikke. Inaktive klienter vil ikke bli synkronisert til ID-porten/maskinporten/ansattporten. Settes default til true"
+          },
+          "application_type": {
+            "type": "string",
+            "description": "Applikasjonstype",
+            "enum": [
+              "web",
+              "browser",
+              "native"
+            ],
+            "example": "web"
+          },
+          "integration_type": {
+            "type": "string",
+            "description": "Integrasjonstype",
+            "enum": [
+              "ansattporten",
+              "api_klient",
+              "eformidling",
+              "idporten",
+              "idporten_saml2",
+              "krr",
+              "maskinporten"
+            ],
+            "example": "idporten"
+          },
+          "scopes": {
+            "type": "array",
+            "description": "Liste over scopes som klienten kan forespørre. For OpenID Connect er aktuelle scopes openid og profile. For API-sikring, ta kontakt med oss",
+            "example": [
+              "openid",
+              "profile",
+              "idporten:dcr.read"
+            ],
+            "items": {
+              "type": "string",
+              "uniqueItems": true
+            },
+            "uniqueItems": true
+          },
+          "grant_types": {
+            "type": "array",
+            "description": "Tillatte Grant Types for klient. Implicit skal ikke tas i bruk av nye klienter(deprecated).",
+            "items": {
+              "type": "string",
+              "enum": [
+                "authorization_code",
+                "implicit",
+                "refresh_token",
+                "urn:ietf:params:oauth:grant-type:jwt-bearer"
+              ],
+              "uniqueItems": true
+            },
+            "uniqueItems": true
+          },
+          "token_endpoint_auth_method": {
+            "type": "string",
+            "description": "Autentiseringsmetode for klient. None anbefales for klienter som kjører i nettleser eller på mobil",
+            "enum": [
+              "client_secret_post",
+              "client_secret_basic",
+              "private_key_jwt",
+              "none"
+            ],
+            "example": "client_secret_basic"
+          },
+          "refresh_token_lifetime": {
+            "type": "integer",
+            "format": "int64",
+            "default": 600,
+            "description": "Levetid i sekunder for utstedt refresh_token."
+          },
+          "refresh_token_usage": {
+            "type": "string",
+            "description": "Ved REUSE kan refresh_token benyttes flere ganger.  Ved ONETIME kan refresh_token kun benyttes en gang.",
+            "enum": [
+              "REUSE",
+              "ONETIME"
+            ]
+          },
+          "access_token_lifetime": {
+            "type": "integer",
+            "format": "int64",
+            "default": 120,
+            "description": "Levetid i sekunder for utstedt access_token."
+          },
+          "authorization_lifetime": {
+            "type": "integer",
+            "format": "int64",
+            "default": 7200,
+            "description": "Levetid for registrert autorisasjon i sekunder. I en OpenID Connect sammenheng vil dette være tilgangen til userinfo-endepunktet."
+          },
+          "logo_uri": {
+            "type": "string"
+          },
+          "redirect_uris": {
+            "type": "array",
+            "description": "Liste over gyldige url’er som vi kan redirecte tilbake til etter vellykket autorisasjonsforespørsel",
+            "example": [
+              "http://localhost/myService"
+            ],
+            "items": {
+              "type": "string",
+              "uniqueItems": true
+            },
+            "uniqueItems": true
+          },
+          "post_logout_redirect_uris": {
+            "type": "array",
+            "description": "Liste over url’er som vi redirecter til etter fullført utlogging",
+            "example": [
+              "http://localhost/myService/loggedout"
+            ],
+            "items": {
+              "type": "string",
+              "uniqueItems": true
+            },
+            "uniqueItems": true
+          },
+          "frontchannel_logout_session_required": {
+            "type": "boolean",
+            "description": "Flagg som bestemmer om parameterne for issuer og sesjons-id skal sendes med frontchannel_logout_uri"
+          },
+          "frontchannel_logout_uri": {
+            "type": "string",
+            "description": "URL som vi sender request til ved utlogging trigget av annen klient i samme sesjon"
+          },
+          "sso_disabled": {
+            "type": "boolean",
+            "description": "Flagg for å disable sso. Dette vil gjøre at brukeren må logge inn på nytt for din klient. Dette er kun relevant for OpenID Connect. Om ikke satt, vil default være false for ID-porten og true for Ansattporten"
+          },
+          "code_challenge_method": {
+            "type": "string",
+            "description": "Code challenge method for PKCE. Gyldige verdier er none eller S256. Dette er kun relevant for OpenID Connect. Om ikke satt, vil default bli S256.",
+            "enum": [
+              "none",
+              "S256"
+            ]
+          }
+        }
+      },
+      "OidcJwksRequestResponse": {
+        "type": "object",
+        "properties": {
+          "keys": {
+            "type": "array",
+            "description": "jwks. Nøkkelsettet man ønsker å knytte til klienten. En unik nøkkel-id(kid) må oppgis for hver nøkkel. Maks 5 pr request.",
+            "example": [
+              {
+                "kid": "exampleKid",
+                "use": "sig",
+                "alg": "RS256",
+                "kty": "RSA",
+                "n": "exampleModulus",
+                "e": "AQAB",
+                "exp": 1234567890,
+                "x5c": [
+                  "exampleCertificate"
+                ]
+              }
+            ],
+            "items": {
+              "$ref": "#/components/schemas/JsonWebKey"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "Maskinporten Bearer Authentication": {
+        "type": "http",
+        "description": "Ett maskinporten token er nødvendig for autentisering",
+        "name": "Maskinporten Bearer Authentication",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
