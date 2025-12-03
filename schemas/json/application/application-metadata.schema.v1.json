@@ -459,6 +459,16 @@
           "title": "Auto delete on process end",
           "description": "A property indicating if data type should be automatically marked for hard deletion on process end."
         },
+        "disallowUserCreate":{
+          "type": "boolean",
+          "title": "Disallow user create",
+          "description": "A property indicating if user creation of data elements of this type is disallowed."
+        },
+        "disallowUserDelete":{
+          "type": "boolean",
+          "title": "Disallow user delete",
+          "description": "A property indicating if user deletion of data elements of this type is disallowed."
+        },
         "shadowFields": {
           "$ref": "#/definitions/shadowFields"
         },

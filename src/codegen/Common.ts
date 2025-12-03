@@ -371,7 +371,15 @@ const common = {
           .optional()
           .setDeprecated('Will be removed in the next major version. Use `queryParameters` with expressions instead.'),
       ),
-      new CG.prop('queryParameters', CG.common('IQueryParameters').optional()),
+      new CG.prop(
+        'queryParameters',
+        CG.common('IQueryParameters')
+          .optional()
+          .setTitle('Query parameters')
+          .setDescription(
+            'A mapping of query string parameters to values. Will be appended to the URL when fetching options.',
+          ),
+      ),
       new CG.prop(
         'options',
         new CG.arr(CG.common('IRawOption'))
