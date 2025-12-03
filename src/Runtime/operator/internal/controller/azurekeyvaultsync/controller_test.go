@@ -105,7 +105,7 @@ func TestReconciler_CreatesSecretOnSync(t *testing.T) {
 	g.Expect(parsed[mapping.Secrets[0]]).To(Equal("value-1"))
 	g.Expect(parsed[mapping.Secrets[1]]).To(Equal("value-2"))
 
-	g.Expect(secret.Labels["app.kubernetes.io/managed-by"]).To(Equal("altinn.studio/operator"))
+	g.Expect(secret.Labels["app.kubernetes.io/managed-by"]).To(Equal("altinn-studio-operator"))
 }
 
 func TestReconciler_UpdatesExistingSecret(t *testing.T) {

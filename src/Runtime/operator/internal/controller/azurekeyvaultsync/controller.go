@@ -226,7 +226,7 @@ func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVa
 				Name:      mapping.Name,
 				Namespace: mapping.Namespace,
 				Labels: map[string]string{
-					"app.kubernetes.io/managed-by": "altinn.studio/operator",
+					"app.kubernetes.io/managed-by": "altinn-studio-operator",
 				},
 			},
 			Data: map[string][]byte{
