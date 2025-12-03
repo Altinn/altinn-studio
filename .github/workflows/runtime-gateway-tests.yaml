@@ -5,6 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/Runtime/StudioGateway/**'
+      - 'src/Runtime/test/fixture/**'
       - '.github/workflows/runtime-gateway-tests.yaml'
   workflow_dispatch:
 
@@ -15,20 +16,36 @@ jobs:
     defaults:
       run:
         working-directory: src/Runtime/StudioGateway/
-    env:
-      DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:
+      - name: Checkout code
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+
       - name: Setup .NET
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           dotnet-version: |
-            9.0.x
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+            10.0.x
+
+      - name: Setup Go
+        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6
         with:
-          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysisd
-      - name: Restore
-        run: dotnet restore StudioGateway.sln
+          go-version-file: src/Runtime/StudioGateway/go.mod
+
+      - name: Cache CLI tools
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: src/Runtime/StudioGateway/.cache/bin
+          key: gateway-tools-${{ runner.os }}-${{ hashFiles('src/Runtime/test/fixture/pkg/tools/.tool-versions') }}
+          restore-keys: |
+            gateway-tools-${{ runner.os }}-
+
       - name: Build
-        run: dotnet build StudioGateway.sln --no-restore -v m
+        run: make build
+
+      - name: Run fixture
+        run: make run v=minimal
+
       - name: Test
-        run: dotnet test StudioGateway.sln --no-build
+        run: make test

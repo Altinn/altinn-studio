@@ -47,8 +47,9 @@ func (c *KubernetesClient) Get(resource, name, namespace string) error {
 	}
 
 	cmd := exec.Command(c.kubectlBin, args...)
-	if err := cmd.Run(); err != nil {
-		return err
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("kubectl get failed: %w\nOutput: %s", err, string(output))
 	}
 	return nil
 }
@@ -106,8 +107,9 @@ func (c *KubernetesClient) ConfigUseContext(contextName string) error {
 
 	// Context is different or couldn't be determined, set it
 	cmd := exec.Command(c.kubectlBin, "config", "use-context", contextName)
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to set kubectl context: %w", err)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to set kubectl context: %w\nOutput: %s", err, string(output))
 	}
 	return nil
 }
@@ -146,7 +148,7 @@ func (c *KubernetesClient) KustomizeRender(path string) (string, error) {
 	cmd.Dir = path
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("failed rendering kustomization at %s: %w", path, err)
+		return "", fmt.Errorf("failed rendering kustomization at %s: %w: %s", path, err, output)
 	}
 
 	return string(output), nil

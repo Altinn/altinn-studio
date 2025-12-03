@@ -67,7 +67,7 @@ jobs:
         run: az acr login --name ${{ env.REGISTRY_NAME }}
 
       - name: flux install
-        uses: fluxcd/flux2/action@6bf37f6a560fd84982d67f853162e4b3c2235edb # v2.6.4
+        uses: fluxcd/flux2/action@06ed49dcd3f3ce2fc8d1988848245873a91550bc # v2.7.4
 
       - name: push artifact
         working-directory: infra/runtime/grafana-manifests
@@ -99,7 +99,7 @@ jobs:
         run: az acr login --name altinncr
 
       - name: flux install
-        uses: fluxcd/flux2/action@6bf37f6a560fd84982d67f853162e4b3c2235edb # v2.6.4
+        uses: fluxcd/flux2/action@06ed49dcd3f3ce2fc8d1988848245873a91550bc # v2.7.4
 
       - name: tag artifact
         run: |
