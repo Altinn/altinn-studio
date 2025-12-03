@@ -435,7 +435,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     try
                     {
                         using FileStream stream = File.OpenRead(fullPath);
-                        ServiceResource result = await System.Text.Json.JsonSerializer.DeserializeAsync<ListviewServiceResource>(stream, _serializerOptions, cancellationToken);
+                        ListviewServiceResource result = await System.Text.Json.JsonSerializer.DeserializeAsync<ListviewServiceResource>(stream, _serializerOptions, cancellationToken);
 
                         sw.Stop();
                         // Structured log: file path, file name and elapsed ms
