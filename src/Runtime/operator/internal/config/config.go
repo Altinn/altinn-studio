@@ -91,10 +91,13 @@ func (m *ConfigMonitor) refresh(ctx context.Context) error {
 
 	oldCfg := m.current.Load()
 	if m.kvClient != nil {
-		if err := m.kvClient.loadSecrets(ctx, &cfg); err != nil {
+		tempCfg := cfg
+		if err := m.kvClient.loadSecrets(ctx, &tempCfg); err != nil {
 			span.RecordError(err)
 			copyOldSecrets(&cfg, oldCfg)
 			log.FromContext(ctx).Error(err, "failed to load secrets from Key Vault, using base config values and old secrets if available")
+		} else {
+			cfg = tempCfg
 		}
 	}
 

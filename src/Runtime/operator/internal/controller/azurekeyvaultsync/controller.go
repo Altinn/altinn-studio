@@ -47,7 +47,7 @@ func DefaultMappings() []KeyVaultSecretMapping {
 	}
 }
 
-// +kubebuilder:rbac:groups="",resources=secrets,verbs=create
+// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;create;update
 
 // AzureKeyVaultReconciler polls Azure Key Vault and syncs secrets to Kubernetes.
 // Implements manager.Runnable.
