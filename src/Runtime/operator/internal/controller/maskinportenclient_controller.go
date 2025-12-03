@@ -181,7 +181,7 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 }
 
 func (r *MaskinportenClientReconciler) getRequeueAfter(configValue *config.Config) time.Duration {
-	return r.randomizeDuration(configValue.Controller.RequeueAfter, 10.0)
+	return r.randomizeDuration(configValue.MaskinportenController.RequeueAfter, 10.0)
 }
 
 func (r *MaskinportenClientReconciler) randomizeDuration(d time.Duration, perc float64) time.Duration {

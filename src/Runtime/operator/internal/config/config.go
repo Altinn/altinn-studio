@@ -94,9 +94,10 @@ func (m *ConfigMonitor) refresh(ctx context.Context) error {
 }
 
 type Config struct {
-	MaskinportenApi MaskinportenApiConfig `koanf:"maskinporten_api" validate:"required"`
-	Controller      ControllerConfig      `koanf:"controller"       validate:"required"`
-	OrgRegistry     OrgRegistryConfig     `koanf:"org_registry"     validate:"required"`
+	MaskinportenApi        MaskinportenApiConfig        `koanf:"maskinporten_api"        validate:"required"`
+	MaskinportenController MaskinportenControllerConfig `koanf:"maskinporten_controller" validate:"required"`
+	KeyVaultSyncController KeyVaultSyncControllerConfig `koanf:"keyvault_sync_controller" validate:"required"`
+	OrgRegistry            OrgRegistryConfig            `koanf:"org_registry"            validate:"required"`
 }
 
 type MaskinportenApiConfig struct {
@@ -107,19 +108,29 @@ type MaskinportenApiConfig struct {
 	Scope          string `koanf:"scope"            validate:"required"`
 }
 
-type ControllerConfig struct {
+type MaskinportenControllerConfig struct {
 	RequeueAfter         time.Duration `koanf:"requeue_after"          validate:"required,min=5s,max=72h"`
 	JwkRotationThreshold time.Duration `koanf:"jwk_rotation_threshold" validate:"required"`
 	JwkExpiry            time.Duration `koanf:"jwk_expiry"             validate:"required"`
+}
+
+type KeyVaultSyncControllerConfig struct {
+	PollInterval time.Duration `koanf:"poll_interval" validate:"required,min=1m,max=24h"`
 }
 
 type OrgRegistryConfig struct {
 	URL string `koanf:"url" validate:"required,http_url"`
 }
 
-// ValidateControllerConfig performs environment-aware validation on ControllerConfig.
+// KeyVaultURL returns the Azure Key Vault URL for the given environment.
+// Later this may be configurable via the config file.
+func KeyVaultURL(environment string) string {
+	return fmt.Sprintf("https://mpo-%s-kv.vault.azure.net/", environment)
+}
+
+// ValidateMaskinportenControllerConfig performs environment-aware validation on MaskinportenControllerConfig.
 // Local environments have relaxed minimums for testing.
-func ValidateControllerConfig(c *ControllerConfig, isLocal bool) error {
+func ValidateMaskinportenControllerConfig(c *MaskinportenControllerConfig, isLocal bool) error {
 	var minThreshold, minExpiry time.Duration
 	if isLocal {
 		minThreshold = 30 * time.Second
@@ -149,9 +160,10 @@ func ValidateControllerConfig(c *ControllerConfig, isLocal bool) error {
 // with sensitive fields redacted.
 func (c *Config) SafeLogValue() map[string]any {
 	return map[string]any{
-		"maskinporten_api": c.MaskinportenApi.SafeLogValue(),
-		"controller":       c.Controller,
-		"org_registry":     c.OrgRegistry,
+		"maskinporten_api":         c.MaskinportenApi.SafeLogValue(),
+		"maskinporten_controller":  c.MaskinportenController,
+		"keyvault_sync_controller": c.KeyVaultSyncController,
+		"org_registry":             c.OrgRegistry,
 	}
 }
 
@@ -207,7 +219,7 @@ func GetConfig(ctx context.Context, environment string, configFilePath string) (
 	}
 
 	isLocal := environment == operatorcontext.EnvironmentLocal
-	if err := ValidateControllerConfig(&monitor.Get().Controller, isLocal); err != nil {
+	if err := ValidateMaskinportenControllerConfig(&monitor.Get().MaskinportenController, isLocal); err != nil {
 		return nil, err
 	}
 

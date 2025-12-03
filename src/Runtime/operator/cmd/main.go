@@ -27,6 +27,7 @@ import (
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal"
 	"altinn.studio/operator/internal/controller"
+	"altinn.studio/operator/internal/controller/azurekeyvaultsync"
 	"altinn.studio/operator/internal/telemetry"
 	// +kubebuilder:scaffold:imports
 )
@@ -158,6 +159,25 @@ func main() {
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder
+
+	kvSyncController, err := azurekeyvaultsync.NewReconciler(
+		ctx,
+		mgr.GetClient(),
+		rt.GetConfigMonitor(),
+		rt.GetOperatorContext().Environment,
+	)
+	if err != nil {
+		setupLog.Error(err, "unable to create KeyVaultSync controller")
+		span.End()
+		os.Exit(1)
+	}
+	if kvSyncController != nil {
+		if err = mgr.Add(kvSyncController); err != nil {
+			setupLog.Error(err, "unable to add KeyVaultSync controller to manager")
+			span.End()
+			os.Exit(1)
+		}
+	}
 
 	if err = mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")

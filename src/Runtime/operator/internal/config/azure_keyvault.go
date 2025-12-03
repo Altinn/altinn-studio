@@ -74,8 +74,7 @@ func NewAzureKeyVaultClient(ctx context.Context, environment string) (*azureKeyV
 		return nil, fmt.Errorf("error getting credentials for Azure Key Vault: %w", err)
 	}
 
-	url := fmt.Sprintf("https://mpo-%s-kv.vault.azure.net/", environment)
-	client, err := azsecrets.NewClient(url, cred, nil)
+	client, err := azsecrets.NewClient(KeyVaultURL(environment), cred, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error building client for Azure Key Vault: %w", err)
 	}
