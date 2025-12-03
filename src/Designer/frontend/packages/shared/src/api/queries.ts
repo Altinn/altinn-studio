@@ -73,6 +73,7 @@ import {
   orgTextLanguagesPath,
   canUseFeaturePath,
   orgCodeListsNewPath,
+  orgLibraryPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -205,6 +206,10 @@ export const getProcessTaskType = (org: string, app: string, taskId: string) => 
 export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());
 
 // Organisation library
+export const getSharedResources = async (org: string): Promise<any> => get(orgLibraryPath(org));
+export const getSharedResourcesByPath = async (org: string, path: string): Promise<any> => get(orgLibraryPath(org, path));
+export const getSharedResourcesByPathAndReference = async (org: string, path: string, reference: string): Promise<any> => get(orgLibraryPath(org, path, reference));
+
 export const getOrgCodeLists = (org: string) => get<CodeListsResponse>(orgCodeListsPath(org));
 export const getOrgCodeListsNew = (org: string) => get<CodeListsNewResponse>(orgCodeListsNewPath(org));
 export const getOrgTextLanguages = (org: string): Promise<string[] | null> => get<string[] | null>(orgTextLanguagesPath(org));

@@ -60,6 +60,7 @@ import {
   taskNavigationGroupPath,
   orgCodeListUpdateIdPath,
   orgCodeListsNewPath,
+  orgLibraryUpdatePath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -144,7 +145,6 @@ export const updateTranslationByLangCode = (org: string, app: string, language, 
 export const updateAppPolicy = (org: string, app: string, payload: Policy) => put(appPolicyPath(org, app), payload);
 export const updateAppMetadata = (org: string, app: string, payload: ApplicationMetadata) => put(appMetadataPath(org, app), payload);
 export const updateAppConfig = (org: string, app: string, payload: AppConfig) => post(serviceConfigPath(org, app), payload);
-export const updateOrgCodeLists = (org: string, payload: UpdateOrgCodeListsPayload) => put<void, UpdateOrgCodeListsPayload>(orgCodeListsNewPath(org), payload);
 export const uploadDataModel = (org: string, app: string, form: FormData) => post<void, FormData>(dataModelsUploadPath(org, app), form, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const updateDataType = (org: string, app: string, dataModelName: string, payload: DataType) => put<void>(dataTypePath(org, app, dataModelName), payload);
 export const uploadOptionList = (org: string, app: string, payload: FormData) => post<void, FormData>(optionListUploadPath(org, app), payload, { headers: { 'Content-Type': 'multipart/form-data' } });
@@ -197,9 +197,13 @@ export const updateProcessDataTypes = (org: string, app: string, dataTypesChange
 // Maskinporten
 export const updateSelectedMaskinportenScopes = (org: string, app: string, appScopesUpsertRequest: MaskinportenScopes) => put(selectedMaskinportenScopesPath(org, app), appScopesUpsertRequest);
 
+// Organisation library
+export const updateSharedResources = async (org: string, payload: any): Promise<void> => put(orgLibraryUpdatePath(org), payload);
+
 // Organisation library code lists:
 export const createOrgCodeList = async (org: string, codeListId: string, payload: CodeListWithTextResources): Promise<CodeListsResponse> => post(orgCodeListPath(org, codeListId), payload);
 export const updateOrgCodeList = async (org: string, codeListId: string, payload: CodeListWithTextResources): Promise<CodeListsResponse> => put(orgCodeListPath(org, codeListId), payload);
+export const updateOrgCodeLists = (org: string, payload: UpdateOrgCodeListsPayload) => put<void, UpdateOrgCodeListsPayload>(orgCodeListsNewPath(org), payload);
 export const updateOrgCodeListId = async (org: string, codeListId: string, payload: string): Promise<void> => put<void, string>(orgCodeListUpdateIdPath(org, codeListId), payload, { headers: { 'Content-Type': 'application/json' } });
 export const deleteOrgCodeList = async (org: string, codeListId: string): Promise<CodeListsResponse> => del(orgCodeListPath(org, codeListId));
 export const uploadOrgCodeList = async (org: string, payload: FormData): Promise<CodeListsResponse> => post(orgCodeListUploadPath(org), payload);
