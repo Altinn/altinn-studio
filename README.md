@@ -1,215 +1,114 @@
-# Altinity: AI Agent System for Altinn Studio Apps
+# Altinity: AI Agent for Altinn Studio
 
-An intelligent AI agent system that makes sophisticated code changes to Altinn Studio applications through natural language instructions.
+An AI agent that modifies Altinn Studio applications through natural language instructions.
 
-**Altinity** is a multi-agent system powered by LangGraph that understands Altinn Studio development patterns and can autonomously generate, validate, and apply code changes to your applications. It includes full Altinn app preview functionality and uses specialized AI agents working together to handle the complexity of Altinn Studio development while maintaining safety and reliability.
+## What is Altinity?
+
+Altinity is a multi-agent system powered by LangGraph that understands Altinn Studio development patterns. It can autonomously generate, validate, and apply code changes to your applications - or answer questions about Altinn concepts without making changes.
 
 ## Prerequisites
 
-- Azure OpenAI or OpenAI API access
-- **[Altinity MCP Server](https://github.com/Simenwai/altinity-mcp)** running in the background
+- Azure OpenAI API access (or OpenAI)
+- **[Altinity MCP Server](https://github.com/Simenwai/altinity-mcp)** running
 
-## Installation
+## Quick Start
 
-### Recommended: Docker Setup
+### Docker (Recommended)
 
-The easiest way to get started is using Docker, which works across all environments:
+```bash
+# 1. Clone and configure
+cp .env.example .env.docker
+# Edit .env.docker with your API keys
 
-**Prerequisites:**
+# 2. Start MCP server (separate terminal)
+# See: https://github.com/Simenwai/altinity-mcp
 
-- Docker and Docker Compose installed
+# 3. Start Altinity
+docker-compose up
+```
 
-**Quick Start:**
+### Local Python
 
-1. Clone this repository
+```bash
+# 1. Install dependencies
+pip install -r requirements.txt
 
-2. Copy `.env.example` to `.env.docker` and add your API keys and paths:
+# 2. Configure
+cp .env.example .env
+# Edit .env with your API keys
 
-   ```bash
-   cp .env.example .env.docker
-   ```
+# 3. Start MCP server (separate terminal)
+# See: https://github.com/Simenwai/altinity-mcp
 
-3. Start the Altinity MCP Server (required background service):
-   ```bash
-   # In a separate terminal, follow instructions at:
-   # https://github.com/Simenwai/altinity-mcp
-   ```
-
-3. Start the server:
-   ```bash
-   docker-compose up
-   ```
-
-The server will be available on port 8071 and automatically handle all dependencies.
-
-### Alternative: Local Python Setup
-
-If you prefer running without Docker:
-
-**Prerequisites**
-
-- Python 3.11+
-- Git
-
-1. Install dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-2. Copy `.env.example` to `.env` and add your API keys and paths::
-    ```bash
-    cp .env.example .env
-    ```
-
-3. Start the Altinity MCP Server (required background service):
-    ```bash
-    # In a separate terminal, follow instructions at:
-    # https://github.com/Simenwai/altinity-mcp
-    ```
-
-4. Start Altinity:
-    ```bash
-    python -m uvicorn frontend_api.main:app --host 0.0.0.0 --port 8071 --reload
-    ```
+# 4. Start Altinity
+python -m uvicorn api.main:app --host 0.0.0.0 --port 8071 --reload
+```
 
 ## Features
 
-- 🤖 **Intelligent Code Generation** - Generates Altinn-compliant code using specialized MCP tools
-- 🔍 **Semantic Documentation Search** - Finds relevant Altinn documentation automatically
-- 💬 **Chat Mode** - Ask questions about Altinn or your app without making changes
-- ✅ **Multi-Layer Validation** - Schema, business rules, and contract validation
-- 🔄 **Atomic Operations** - All-or-nothing changes with automatic rollback
-- 🌲 **Git Integration** - Session-based branches for clean change tracking
-- 📊 **Full Observability** - Langfuse integration for LLM call tracing and cost monitoring
-- 🔒 **Safety First** - Intent validation, dangerous keyword blocking, and comprehensive checks
-- 🌐 **Real-time Updates** - WebSocket support for live workflow progress
-- 🎯 **Context-Aware** - Scans your repository to understand existing structure
+- 🤖 **Code Generation** - Generates Altinn-compliant code using MCP tools
+- 💬 **Chat Mode** - Ask questions without making changes
+- ✅ **Validation** - Schema and business rule validation via MCP
+- 🔄 **Atomic Operations** - All-or-nothing changes with rollback
+- 🌲 **Git Integration** - Session-based branches for change tracking
+- 📊 **Observability** - Langfuse integration for tracing and cost monitoring
 
-## How It Works
+## API
 
-Altinity operates in two modes:
-
-### **Workflow Mode** (Default)
-
-Makes actual changes to your Altinn application through a **modular 7-stage LangGraph workflow**:
-
-1. **Intake** (`agents/workflows/intake/`) - Parses user goals and validates safety/intent
-2. **Repository Scan** - Discovers project structure and existing components
-3. **Planning Tool** (`agents/graph/nodes/planning_tool_node.py`) - Retrieves relevant Altinn documentation using semantic search
-4. **Planner** (`agents/graph/nodes/planner_node.py`) - Creates detailed implementation plans with tool selection
-5. **Actor** (`agents/workflows/actor/`) - Generates precise code changes using MCP tools and applies them
-6. **Verifier** (`agents/workflows/verifier/`) - Validates changes through MCP verification tools and contract checking
-7. **Reviewer** (`agents/workflows/reviewer/`) - Runs final tests and commits changes to session-based git branches
-
-Each stage delegates to focused workflow modules under `agents/workflows/` for maintainable, testable code.
-
-**Git Workflow:** Each session creates a dedicated feature branch (e.g., `altinity_session_abc12345`) where all changes for that session are committed. This ensures clean separation between different user requests while maintaining atomic commits.
-
-All operations are **atomic** - either all changes succeed or everything is rolled back.
-
-### **Chat Mode**
-
-Answer questions about Altinn concepts or your application without making changes. Set `"allow_app_changes": false` in your API request to enable chat mode. The system will:
-
-- Scan your repository for context
-- Select relevant MCP tools based on your question
-- Generate natural language responses with documentation and examples
-- Return information without modifying any files
-
-## API Reference
-
-### Start Agent Workflow
+### Start Workflow
 
 ```bash
 POST /api/agent/start
-```
+Content-Type: application/json
 
-**Workflow Mode Request (makes changes):**
-
-```json
 {
   "session_id": "unique-session-id",
-  "goal": "Add a numeric field 'totalWeight' to layout main bound to model.calculation.weight",
+  "repo_url": "http://gitea:3000/org/app.git",
+  "goal": "Add a date field for 'birthDate' after the name field",
   "allow_app_changes": true
 }
 ```
 
-**Chat Mode Request (Q&A only, no changes):**
+**Parameters:**
+
+- `session_id` - Unique identifier for this session
+- `repo_url` - Git URL of the Altinn app repository
+- `goal` - Natural language description of what to do
+- `allow_app_changes` - `true` for workflow mode, `false` for chat mode
+
+### Chat Mode (Q&A)
 
 ```json
 {
   "session_id": "unique-session-id",
+  "repo_url": "http://gitea:3000/org/app.git",
   "goal": "How do I use dynamic expressions to hide fields?",
   "allow_app_changes": false
 }
 ```
 
-**Response (Success):**
+### Check Session Status
 
-```json
-{
-  "accepted": true,
-  "session_id": "unique-session-id",
-  "message": "Agent workflow started",
-  "app_name": "MyAltinnApp",
-  "parsed_intent": {
-    "action": "add",
-    "component": "field",
-    "target": "totalWeight",
-    "confidence": 0.85,
-    "details": "numeric input field with validation"
-  }
-}
+```bash
+GET /api/agent/status/{session_id}
 ```
 
-**Response (Rejected - Unsafe):**
-
-```json
-{
-  "detail": {
-    "message": "Goal rejected: Contains potentially dangerous keyword: delete",
-    "suggestions": ["Add a text field 'customerName' to layout main", "Modify the existing 'amount' field validation"]
-  }
-}
-```
-
-**Response (Rejected - Unclear):**
-
-```json
-{
-  "detail": {
-    "message": "Goal is too unclear or ambiguous",
-    "suggestions": [
-      "Add a numeric field 'totalAmount' bound to model.amount",
-      "Add validation to the existing amount field"
-    ]
-  }
-}
-```
+Returns session status for reconnection scenarios.
 
 ### Other Endpoints
 
-| Method | Endpoint              | Description                    |
-| ------ | --------------------- | ------------------------------ |
-| `GET`  | `/apps/list`          | List available Altinn apps     |
-| `POST` | `/apps/select`        | Select an app for operations   |
-| `GET`  | `/api/files`          | List files in current app      |
-| `GET`  | `/api/files/content`  | Get file content               |
-| `GET`  | `/api/git/status`     | Get git status                 |
-| `POST` | `/api/git/commit`     | Create commit                  |
-| `GET`  | `/apps/{app}/preview` | Preview Altinn app in browser  |
-| `GET`  | `/health`             | Health check                   |
-| `WS`   | `/ws`                 | WebSocket for real-time events |
+| Method | Endpoint  | Description                    |
+| ------ | --------- | ------------------------------ |
+| `GET`  | `/health` | Health check                   |
+| `WS`   | `/ws`     | WebSocket for real-time events |
 
-## Frontend Integration
+## WebSocket Events
 
-Connect your frontend to receive real-time updates during agent workflow execution:
+Connect to receive real-time workflow updates:
 
 ```javascript
-// WebSocket connection
 const ws = new WebSocket('ws://localhost:8071/ws');
 
-// Register for events from your workflow session
 ws.onopen = () => {
   ws.send(
     JSON.stringify({
@@ -219,53 +118,21 @@ ws.onopen = () => {
   );
 };
 
-// Handle workflow events
 ws.onmessage = (event) => {
-  const agentEvent = JSON.parse(event.data);
+  const { type, data } = JSON.parse(event.data);
 
-  switch (agentEvent.type) {
-    case 'plan_proposed':
-      // Show the agent's implementation plan
-      displayPlan(agentEvent.data.plan);
-      break;
-
-    case 'patch_preview':
-      // Show what files will be changed
-      showChanges({
-        files: agentEvent.data.files,
-        changes: agentEvent.data.changes,
-      });
-      break;
-
-    case 'verified':
-      // Show verification results
-      showVerification({
-        passed: agentEvent.data.passed,
-        issues: agentEvent.data.issues,
-      });
-      break;
-
-    case 'commit_done':
-      // Changes were successfully committed
-      showSuccess({
-        branch: agentEvent.data.branch,
-        commit: agentEvent.data.commit,
-        reasoning: agentEvent.data.reasoning,
-      });
-      break;
-
-    case 'reverted':
-      // Changes were rolled back
-      showRollback(agentEvent.data.reason);
-      break;
-
+  switch (type) {
     case 'status':
-      // Final workflow status
-      handleComplete({
-        success: agentEvent.data.success,
-        status: agentEvent.data.status,
-        message: agentEvent.data.message,
-      });
+      // Workflow progress update
+      break;
+    case 'assistant_message':
+      // Final response from agent
+      break;
+    case 'done':
+      // Workflow completed
+      break;
+    case 'error':
+      // Error occurred
       break;
   }
 };
@@ -273,100 +140,67 @@ ws.onmessage = (event) => {
 
 ## Configuration
 
-Key settings in your `.env` file:
-
 ```env
-# Required: LLM Configuration
-AZURE_OPENAI_ENDPOINT=your-endpoint
-AZURE_OPENAI_API_KEY=your-key
+# Required: Azure OpenAI
+AZURE_API_KEY=your-key
+AZURE_OPENAI_ENDPOINT=https://your-endpoint.openai.azure.com/
 
-# Required: App Path (absolute path to your apps directory)
-ALTINN_STUDIO_APPS_PATH=/path/to/your/apps
+# Required: Gitea for branch pushes
+GITEA_LOCAL_TOKEN=your-token
+GITEA_BASE_URL=http://localhost:3000
 
-# Optional: Multi-model setup for optimal performance
-LLM_MODEL_PLANNER=gpt-4o          # Complex reasoning
-LLM_MODEL_ACTOR=gpt-4o-mini-2M-tps # Fast code generation
-LLM_MODEL_REVIEWER=gpt-4o-mini-2M-tps
-LLM_MODEL_VERIFIER=gpt-4o-mini-2M-tps
+# Required: MCP Server
+MCP_SERVER_URL=http://localhost:8069/sse
 
-# Langfuse Observability (Optional but Recommended)
-LANGFUSE_SECRET_KEY=sk-lf-...      # Get from https://cloud.langfuse.com
+# Optional: Multi-model setup
+LLM_MODEL_PLANNER=gpt-4o
+LLM_MODEL_ACTOR=claude-sonnet-4-5
+LLM_MODEL_REVIEWER=gpt-4o-mini
+
+# Optional: Langfuse observability
+LANGFUSE_SECRET_KEY=sk-lf-...
 LANGFUSE_PUBLIC_KEY=pk-lf-...
-LANGFUSE_HOST=https://cloud.langfuse.com
-LANGFUSE_ENABLED=true              # Set to false to disable tracing
+LANGFUSE_ENABLED=true
 ```
 
-## Safety Features
+## How It Works
 
-- **Intent Validation** - Dangerous keywords are blocked before processing with contextual suggestions
-- **Multi-layer Verification** - Syntax, business rules, contract validation, and MCP-based verification tools
-- **Branch Safety** - Prevents accidental commits to master/main branches with session-based feature branches
-- **Automatic Rollback** - Failed changes are automatically reverted with detailed error reporting
-- **Atomic Operations** - All-or-nothing approach to changes with comprehensive validation
-- **Git Integration** - All changes tracked with session-based branches and reversible commits
-- **MCP Verification** - Real-time validation using Altinn Studio-specific tools
+### Workflow Mode
 
-## Observability
+1. **Intake** - Validates goal safety and parses intent
+2. **Repository Scan** - Discovers project structure
+3. **Planning** - Retrieves Altinn documentation, plans tool usage
+4. **Actor** - Generates code changes using MCP tools
+5. **Verifier** - Validates changes via MCP verification tools
+6. **Reviewer** - Commits to session branch or rolls back
 
-Altinity uses **[Langfuse](https://langfuse.com)** for comprehensive LLM observability and tracing:
+All operations are atomic - changes either fully succeed or are rolled back.
 
-- **Trace Visualization** - See the complete execution flow of each workflow
-- **Token Tracking** - Automatic cost calculation and usage monitoring
-- **Performance Metrics** - Track latency and identify bottlenecks
-- **LLM Call Inspection** - View prompts, responses, and model parameters
-- **Session Grouping** - All operations for a user request grouped together
-- **Cloud or Self-Hosted** - Use Langfuse Cloud or deploy your own instance
+### Chat Mode
 
-**Getting Started:**
-
-1. Sign up at [cloud.langfuse.com](https://cloud.langfuse.com) (free tier available)
-2. Get your API keys from project settings
-3. Add them to your `.env` file
-4. View traces in real-time as workflows execute
-
-See `LANGFUSE_SETUP.md` for detailed setup instructions including self-hosted deployment.
-
-## Dependencies
-
-The system requires the **[Altinity MCP Server](https://github.com/Simenwai/altinity-mcp)** to be running as a background service. This provides Altinn Studio-specific tools and knowledge that the AI agents use to generate proper code changes.
-
-**Core Dependencies:**
-
-- FastAPI - Web framework
-- LangGraph - Agent workflow orchestration
-- LangChain - LLM integration
-- Langfuse - LLM observability and tracing
-- GitPython - Git operations
-- MCP Client - Altinn Studio tool integration
+Answers questions using MCP tools without modifying files. Scans your repository for context and generates responses with documentation examples.
 
 ## Project Structure
 
 ```
 altinity-agents/
-├── frontend_api/           # FastAPI web server
-│   ├── routes/            # API endpoints
+├── api/                  # FastAPI server
+│   ├── routes/           # API endpoints (agent, websocket)
 │   └── main.py           # Application entry point
-├── agents/               # AI agent system
-│   ├── graph/            # LangGraph workflow nodes
-│   │   ├── nodes/        # Individual workflow nodes
+├── agents/
+│   ├── graph/            # LangGraph workflow
+│   │   ├── nodes/        # Workflow nodes (intake, planner, actor, verifier, reviewer)
 │   │   └── runner.py     # Workflow orchestration
-│   ├── services/         # Modular service architecture
-│   │   ├── mcp/          # MCP client & verification tools
-│   │   ├── git/          # Git operations & safety
-│   │   ├── repo/         # Repository scanning & anchor resolution
-│   │   ├── patching/     # Patch validation & normalization
-│   │   ├── validation/   # Contract & runtime validation
-│   │   ├── llm/          # LLM client & intent parsing
-│   │   ├── events/       # Event handling & job management
-│   │   └── telemetry/    # Langfuse observability
-│   └── workflows/        # Pipeline-based workflow stages
-│       ├── intake/       # Goal parsing & safety validation
-│       ├── actor/        # Code generation pipeline
-│       ├── verifier/     # Multi-layer validation pipeline
-│       ├── reviewer/     # Final testing & commit pipeline
-│       └── shared/       # Cross-workflow utilities
-└── shared/              # Common utilities
-    ├── config/          # Configuration management
-    ├── models/          # Data models
-    └── utils/           # Logging, utilities
+│   ├── services/         # Core services
+│   │   ├── mcp/          # MCP client & verification
+│   │   ├── git/          # Git operations
+│   │   ├── llm/          # LLM client
+│   │   └── events/       # Event handling
+│   └── workflows/        # Pipeline stages
+└── shared/               # Config, models, utilities
 ```
+
+## Dependencies
+
+- **[Altinity MCP Server](https://github.com/Simenwai/altinity-mcp)** - Altinn-specific tools and documentation
+- FastAPI, LangGraph, LangChain, Langfuse, GitPython

@@ -64,7 +64,8 @@ def apply(patch: dict, repo_path: str = None):
         return
 
     # Reset to HEAD to ensure clean state before applying changes
-    if repo_path:
+    # Skip reset for incremental patches (e.g., auto-fix patches that build on existing changes)
+    if repo_path and not patch.get("skip_reset", False):
         try:
             import subprocess
             result = subprocess.run(["git", "reset", "--hard", "HEAD"], cwd=repo_path, capture_output=True, text=True, check=True)
@@ -114,9 +115,19 @@ def apply(patch: dict, repo_path: str = None):
                     # Navigate to the target object
                     target = data
                     for p in path:
-                        if p not in target:
-                            target[p] = {}
-                        target = target[p]
+                        if isinstance(target, list):
+                            # Handle array index navigation
+                            idx = int(p)
+                            if idx < len(target):
+                                target = target[idx]
+                            else:
+                                print(f"Warning: Array index {idx} out of bounds for path {path}")
+                                break
+                        else:
+                            # Handle object property navigation
+                            if p not in target:
+                                target[p] = {}
+                            target = target[p]
                     
                     # Special case: if target is a list and we're trying to set a property on it,
                     # this is likely a mistake - convert to array insertion

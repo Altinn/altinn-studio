@@ -23,16 +23,13 @@ class BaseConfig:
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
     LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
-    # Frontend API settings
-    FRONTEND_API_HOST = os.getenv("FRONTEND_API_HOST", "0.0.0.0")
-    FRONTEND_API_PORT = int(os.getenv("FRONTEND_API_PORT", "8071"))
+    # API server settings
+    API_HOST = os.getenv("API_HOST", "0.0.0.0")
+    API_PORT = int(os.getenv("API_PORT", "8071"))
 
-    # Altinn Studio integration
-    ALTINN_STUDIO_APPS_PATH = os.getenv("ALTINN_STUDIO_APPS_PATH", str(Path.home() / "Apps"))
-    GITEA_API_TOKEN = os.getenv("GITEA_API_TOKEN")
-    GITEA_LOCAL_TOKEN = os.getenv("GITEA_LOCAL_TOKEN")  # Token for local gitea operations
-    GITEA_URL = os.getenv("GITEA_URL", "https://altinn.studio/repos/api/v1")
-    GITEA_BASE_URL = os.getenv("GITEA_BASE_URL", "http://localhost:3000")  # Local gitea instance for agent pushes
+    # Gitea integration for agent branch pushes
+    GITEA_LOCAL_TOKEN = os.getenv("GITEA_LOCAL_TOKEN")
+    GITEA_BASE_URL = os.getenv("GITEA_BASE_URL", "http://localhost:3000")
 
     # CORS settings for frontend connections
     CORS_ORIGINS = [
@@ -59,32 +56,37 @@ class BaseConfig:
     LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.1"))
     
     # Multi-model configuration for different agent roles
-    # Use powerful models for complex reasoning, cheap models for simple tasks
-    LLM_MODEL_PLANNER = os.getenv("LLM_MODEL_PLANNER", os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-4o-mini-2M-tps"))
-    LLM_MODEL_TOOL_PLANNER = os.getenv("LLM_MODEL_TOOL_PLANNER", LLM_MODEL_PLANNER)
-    LLM_MODEL_ACTOR = os.getenv("LLM_MODEL_ACTOR", os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-4o-mini-2M-tps"))
-    LLM_MODEL_REVIEWER = os.getenv("LLM_MODEL_REVIEWER", "gpt-4o-mini-2M-tps")
-    LLM_MODEL_VERIFIER = os.getenv("LLM_MODEL_VERIFIER", "gpt-4o-mini-2M-tps")
-    LLM_MODEL_ASSISTANT = os.getenv("LLM_MODEL_ASSISTANT", "gpt-4o-mini-2M-tps")
+    # Planner: Complex reasoning, multi-step planning
+    LLM_MODEL_PLANNER = os.getenv("LLM_MODEL_PLANNER", "gpt-5")
+    LLM_VERSION_PLANNER = os.getenv("LLM_VERSION_PLANNER", "2025-08-07")
+    LLM_TEMPERATURE_PLANNER = os.getenv("LLM_TEMPERATURE_PLANNER")  # Use model default
     
-    # Model versions per role (optional, for Azure deployments with specific versions)
-    LLM_VERSION_PLANNER = os.getenv("LLM_VERSION_PLANNER")
-    LLM_VERSION_TOOL_PLANNER = os.getenv("LLM_VERSION_TOOL_PLANNER")
-    LLM_VERSION_ACTOR = os.getenv("LLM_VERSION_ACTOR")
-    LLM_VERSION_REVIEWER = os.getenv("LLM_VERSION_REVIEWER")
-    LLM_VERSION_VERIFIER = os.getenv("LLM_VERSION_VERIFIER")
-    LLM_VERSION_ASSISTANT = os.getenv("LLM_VERSION_ASSISTANT")
-    
-    # Temperature settings per role
-    LLM_TEMPERATURE_PLANNER = os.getenv("LLM_TEMPERATURE_PLANNER")  # Higher for creativity
+    # Tool Planner: Tool selection and query generation
+    LLM_MODEL_TOOL_PLANNER = os.getenv("LLM_MODEL_TOOL_PLANNER", "gpt-4o-2M-tps")
+    LLM_VERSION_TOOL_PLANNER = os.getenv("LLM_VERSION_TOOL_PLANNER", "2025-09-15")
     LLM_TEMPERATURE_TOOL_PLANNER = os.getenv("LLM_TEMPERATURE_TOOL_PLANNER")
-    LLM_TEMPERATURE_ACTOR = float(os.getenv("LLM_TEMPERATURE_ACTOR", "0.1"))  # Lower for precision
-    LLM_TEMPERATURE_REVIEWER = float(os.getenv("LLM_TEMPERATURE_REVIEWER", "0.2"))
-    LLM_TEMPERATURE_VERIFIER = float(os.getenv("LLM_TEMPERATURE_VERIFIER", "0.0"))  # Deterministic
-    LLM_TEMPERATURE_ASSISTANT = os.getenv("LLM_TEMPERATURE_ASSISTANT")  # Optional - some models don't support custom temperature
-
     LLM_TOOL_PLANNER_USE_COMPLETIONS = os.getenv("LLM_TOOL_PLANNER_USE_COMPLETIONS", "false").lower() == "true"
     LLM_TOOL_PLANNER_USE_RESPONSES = os.getenv("LLM_TOOL_PLANNER_USE_RESPONSES", "false").lower() == "true"
+    
+    # Actor: Precise code generation (Claude recommended)
+    LLM_MODEL_ACTOR = os.getenv("LLM_MODEL_ACTOR", "claude-sonnet-4-5")
+    LLM_VERSION_ACTOR = os.getenv("LLM_VERSION_ACTOR", "2025-04-14")
+    LLM_TEMPERATURE_ACTOR = float(os.getenv("LLM_TEMPERATURE_ACTOR", "0.1"))
+    
+    # Reviewer: Code review and validation
+    LLM_MODEL_REVIEWER = os.getenv("LLM_MODEL_REVIEWER", "gpt-4o-2M-tps")
+    LLM_VERSION_REVIEWER = os.getenv("LLM_VERSION_REVIEWER", "2024-11-20")
+    LLM_TEMPERATURE_REVIEWER = float(os.getenv("LLM_TEMPERATURE_REVIEWER", "0.0"))
+    
+    # Verifier: Deterministic checks
+    LLM_MODEL_VERIFIER = os.getenv("LLM_MODEL_VERIFIER", "gpt-4o-mini-2M-tps")
+    LLM_VERSION_VERIFIER = os.getenv("LLM_VERSION_VERIFIER", "2024-07-18")
+    LLM_TEMPERATURE_VERIFIER = float(os.getenv("LLM_TEMPERATURE_VERIFIER", "0.0"))
+    
+    # Assistant: Q&A chat
+    LLM_MODEL_ASSISTANT = os.getenv("LLM_MODEL_ASSISTANT", "o3")
+    LLM_VERSION_ASSISTANT = os.getenv("LLM_VERSION_ASSISTANT")
+    LLM_TEMPERATURE_ASSISTANT = os.getenv("LLM_TEMPERATURE_ASSISTANT")  # Some models don't support custom temperature
 
     # Attachment storage
     _DEFAULT_ATTACHMENTS_PATH = Path(tempfile.gettempdir()) / "altinity_agent_attachments"
