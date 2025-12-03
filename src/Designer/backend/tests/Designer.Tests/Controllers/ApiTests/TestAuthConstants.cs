@@ -1,4 +1,4 @@
-﻿namespace Designer.Tests.Controllers.ApiTests;
+namespace Designer.Tests.Controllers.ApiTests;
 
 public static class TestAuthConstants
 {
