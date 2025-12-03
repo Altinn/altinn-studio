@@ -136,7 +136,7 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> GetPublishedResources(string org, [FromQuery] string path = "", CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<string>>> GetPublishedResources(string org, [FromQuery] string path = "", CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 

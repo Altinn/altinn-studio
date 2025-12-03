@@ -67,7 +67,7 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
 
         public static string WithoutPrefix(this string str, string prefix)
         {
-            return str.StartsWith(prefix)
+            return str.StartsWith(prefix, StringComparison.Ordinal)
                 ? str.Substring(prefix.Length)
                 : str;
         }

@@ -3,10 +3,10 @@ using Xunit;
 
 namespace Designer.Tests.Helpers.Extensions;
 
-public class StringExtenionsTests
+public class StringExtensionsTests
 {
     [Fact]
-    public void WithoutPrefixPrefix_WhenStringStartsWithGivenPrefix_ReturnsWithoutPrefix()
+    public void WithoutPrefix_WhenStringStartsWithGivenPrefix_ReturnsWithoutPrefix()
     {
         string original = "Lorem ipsum";
         string result = original.WithoutPrefix("Lorem");
@@ -14,7 +14,7 @@ public class StringExtenionsTests
     }
 
     [Fact]
-    public void WithoutPrefixPrefix_WhenStringDoesNotStartWithGivenPrefix_ReturnsOriginalString()
+    public void WithoutPrefix_WhenStringDoesNotStartWithGivenPrefix_ReturnsOriginalString()
     {
         string original = "Lorem ipsum";
         string result = original.WithoutPrefix("ipsum");

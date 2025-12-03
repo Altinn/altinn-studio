@@ -17,6 +17,6 @@ public interface ISharedContentClient
     /// <returns>The current version string of the published code list.</returns>
     Task<string> PublishCodeList(string orgName, string codeListId, CodeList codeList, CancellationToken cancellationToken = default);
 
-    Task<List<string>> GetPublishedResourcesForOrg(string orgName, string path, CancellationToken cancellationToken = default);
+    Task<List<string>> GetPublishedResourcesForOrg(string orgName, string path = "", CancellationToken cancellationToken = default);
 }
 

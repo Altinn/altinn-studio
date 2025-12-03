@@ -326,24 +326,29 @@ public class AzureSharedContentClient : ISharedContentClient
 
     private async Task<List<BlobItem>> GetBlobsWithPrefix(string prefix, CancellationToken cancellationToken)
     {
-        AsyncPageable<BlobItem> blobs = GetBlobs(prefix, cancellationToken);
-        List<BlobItem> blobItemList = [];
-        await foreach (BlobItem b in blobs) { blobItemList.Add(b); }
-        return blobItemList;
-    }
-
-    private AsyncPageable<BlobItem> GetBlobs(string prefix, CancellationToken cancellationToken)
-    {
         try
         {
-            BlobContainerClient containerClient = _blobContainerClientFactory.GetContainerClient();
-            return containerClient.GetBlobsAsync(BlobTraits.None, BlobStates.None, prefix, cancellationToken);
+            AsyncPageable<BlobItem> blobs = GetPageableBlobsWithPrefix(prefix, cancellationToken);
+            return await EnumerateBlobs(blobs);
         }
         catch (Exception ex) when (ex is RequestFailedException or AggregateException)
         {
             _logger.LogError(ex, "Error fetching blobs with prefix {Prefix} in {Class}", prefix, nameof(AzureSharedContentClient));
             throw new SharedContentRequestException(ex.Message);
         }
+    }
+
+    private AsyncPageable<BlobItem> GetPageableBlobsWithPrefix(string prefix, CancellationToken cancellationToken)
+    {
+        BlobContainerClient containerClient = _blobContainerClientFactory.GetContainerClient();
+        return containerClient.GetBlobsAsync(BlobTraits.None, BlobStates.None, prefix, cancellationToken);
+    }
+
+    private static async Task<List<BlobItem>> EnumerateBlobs(AsyncPageable<BlobItem> enumerableBlobs)
+    {
+        List<BlobItem> blobItemList = [];
+        await foreach (BlobItem b in enumerableBlobs) { blobItemList.Add(b); }
+        return blobItemList;
     }
 
     private static string RemovePrefixAndLeadingSlash(string str, string prefix)
