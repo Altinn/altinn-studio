@@ -55,7 +55,7 @@ internal sealed class AzureMonitorClient(
         CancellationToken cancellationToken
     )
     {
-        List<string> names = ["altinn_app_lib_processes_started"];
+        List<string> names = ["altinn_app_lib_processes_started", "altinn_app_lib_processes_completed"];
 
         var roundTo = time < 360 ? "5m" : "1h";
 
