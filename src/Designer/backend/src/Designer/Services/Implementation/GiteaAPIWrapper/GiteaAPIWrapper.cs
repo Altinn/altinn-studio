@@ -215,9 +215,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ListviewServiceResource listviewResource, CancellationToken cancellationToken)
+        public async Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource, CancellationToken cancellationToken)
         {
-            HttpResponseMessage fileResponse = await _httpClient.GetAsync($"repos/{org}/{repo}/commits?path={listviewResource.Identifier}&stat=false&verification=false&files=false", cancellationToken);
+            ListviewServiceResource listviewResource = new ListviewServiceResource
+            {
+                Identifier = serviceResource.Identifier,
+                Title = serviceResource.Title,
+            };
+
+            string resourceFolder = serviceResource.Identifier;
+
+            HttpResponseMessage fileResponse = await _httpClient.GetAsync($"repos/{org}/{repo}/commits?path={resourceFolder}&stat=false&verification=false&files=false", cancellationToken);
 
             if (fileResponse.StatusCode == HttpStatusCode.OK)
             {
