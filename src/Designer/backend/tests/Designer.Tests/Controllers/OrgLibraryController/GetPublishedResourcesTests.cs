@@ -33,7 +33,7 @@ public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory)
         // Arrange
         string orgName = "ttd";
         string path = "some/path";
-        List<string> names = ["blob1", "blob2"];
+        List<string> names = ["blob1", "blob2", "blob3"];
         string url = $"/designer/api/{orgName}/shared-resources/published?path={path}";
 
         SetupOrg(orgName);
