@@ -101,8 +101,9 @@ def register_websocket_routes(app: FastAPI):
                                 if session_id == event.session_id:
                                     try:
                                         await websocket.send_json(event.model_dump())
-                                    except Exception as e:
-                                        logger.error(f"Failed to send agent event: {e}")
+                                    except Exception:
+                                        # WebSocket closed - agent continues running, just can't send updates
+                                        pass
 
                             sink.subscribe(session_id, event_handler)
 

@@ -48,7 +48,8 @@ class BaseConfig:
 
     # LLM configuration - Azure OpenAI preferred
     AZURE_API_KEY = os.getenv("AZURE_API_KEY")
-    AZURE_ENDPOINT = os.getenv("AZURE_ENDPOINT", "https://rndlabaidemoss0618689180.openai.azure.com/")
+    AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "https://rndlabaidemoss0618689180.openai.azure.com/")
+    AZURE_ANTHROPIC_ENDPOINT = os.getenv("AZURE_ANTHROPIC_ENDPOINT", "https://rndlabaidemoss0618689180.services.ai.azure.com/anthropic/")
     AZURE_API_VERSION = os.getenv("AZURE_API_VERSION", "2025-03-01-preview")
     AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-4o-mini-2M-tps")
 
@@ -92,7 +93,7 @@ class BaseConfig:
     # Langfuse configuration
     LANGFUSE_SECRET_KEY = os.getenv("LANGFUSE_SECRET_KEY")
     LANGFUSE_PUBLIC_KEY = os.getenv("LANGFUSE_PUBLIC_KEY")
-    LANGFUSE_HOST = os.getenv("LANGFUSE_HOST", "https://cloud.langfuse.com")  # Use cloud by default, or self-hosted URL
+    LANGFUSE_HOST = os.getenv("LANGFUSE_BASE_URL", "https://cloud.langfuse.com")  # Use cloud by default, or self-hosted URL
     LANGFUSE_ENABLED = os.getenv("LANGFUSE_ENABLED", "true").lower() == "true"
     LANGFUSE_RELEASE = os.getenv("LANGFUSE_RELEASE", "altinity-agents-v1")  # Version/release tag for traces
     LANGFUSE_ENVIRONMENT = os.getenv("LANGFUSE_ENVIRONMENT", ENVIRONMENT)  # Inherit from general environment

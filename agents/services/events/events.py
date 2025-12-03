@@ -11,7 +11,8 @@ class AgentEvent(BaseModel):
         "blocked",
         "error",
         "status",
-        "assistant_message"
+        "assistant_message",
+        "done"
     ]
     session_id: str
     data: Dict[str, Any]

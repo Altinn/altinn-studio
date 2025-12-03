@@ -186,6 +186,19 @@ async def handle(state: AgentState) -> AgentState:
             )
         )
         log.info(f"✅ Assistant message sent successfully")
+        
+        # Send completion event to signal frontend that workflow is done
+        sink.send(
+            AgentEvent(
+                type="done",
+                session_id=state.session_id,
+                data={
+                    "success": state.tests_passed if state.tests_passed is not None else True,
+                    "changed_files": changed_files,
+                },
+            )
+        )
+        log.info(f"✅ Workflow complete - sent done event")
 
     except Exception as e:
         log.error(f"Reviewer workflow failed: {e}", exc_info=True)
@@ -202,6 +215,18 @@ async def handle(state: AgentState) -> AgentState:
                     "content": f"## Error\n\nAn error occurred during processing: {str(e)}",
                     "timestamp": state.session_start_time.isoformat() if hasattr(state, 'session_start_time') else None,
                     "filesChanged": [],
+                },
+            )
+        )
+        
+        # Send done event even on error so frontend stops loading
+        sink.send(
+            AgentEvent(
+                type="done",
+                session_id=state.session_id,
+                data={
+                    "success": False,
+                    "error": str(e),
                 },
             )
         )

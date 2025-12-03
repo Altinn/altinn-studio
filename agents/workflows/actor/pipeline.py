@@ -6,7 +6,7 @@ import json
 import re
 from langfuse import get_client
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 from textwrap import dedent
 
 from shared.utils.logging_utils import get_logger
@@ -17,6 +17,137 @@ from agents.services.telemetry import is_json
 from agents.services.repo import ensure_text_resources_in_patch
 
 log = get_logger(__name__)
+
+
+
+def extract_tool_text(result: Any) -> str:
+    """Extract text content from MCP tool response."""
+    # Handle CallToolResult objects (newer MCP versions)
+    if hasattr(result, 'structured_content') and result.structured_content:
+        return str(result.structured_content)
+    elif hasattr(result, 'content'):
+        content = result.content
+        if isinstance(content, str):
+            return content
+        elif isinstance(content, list) and content:
+            first_item = content[0]
+            if hasattr(first_item, 'text'):
+                text_content = first_item.text
+                try:
+                    parsed = json.loads(text_content)
+                    if isinstance(parsed, dict) and "content" in parsed:
+                        return parsed["content"]
+                except json.JSONDecodeError:
+                    pass
+                return text_content
+            return str(first_item)
+        return str(content)
+
+    # Handle list responses (legacy format)
+    if isinstance(result, list) and result:
+        first = result[0]
+        if hasattr(first, "text"):
+            text_content = first.text
+            try:
+                parsed = json.loads(text_content)
+                if isinstance(parsed, dict) and "content" in parsed:
+                    return parsed["content"]
+            except json.JSONDecodeError:
+                pass
+            return text_content
+        return str(first)
+    
+    return str(result)
+
+
+def extract_component_types_from_tool_results(tool_results: List[Dict[str, Any]]) -> Set[str]:
+    """Extract component types from layout_components_tool results.
+    
+    Only looks at actual component types found in layout files via "type": "ComponentName" pattern.
+    This is the only reliable source for component types.
+    """
+    component_types: Set[str] = set()
+    
+    for result in tool_results:
+        tool_name = result.get("tool", "")
+        if tool_name == "layout_components_tool":
+            # Extract from the tool result text
+            result_text = str(result.get("result", ""))
+            # Find "type": "ComponentName" patterns
+            type_pattern = r'"type"\s*:\s*"([A-Z][a-zA-Z0-9]+)"'
+            matches = re.findall(type_pattern, result_text)
+            component_types.update(matches)
+    
+    return component_types
+
+
+def get_looked_up_component_types(tool_results: List[Dict[str, Any]]) -> Set[str]:
+    """Extract component types that have already been looked up via layout_properties_tool."""
+    looked_up: Set[str] = set()
+    
+    for result in tool_results:
+        if result.get("tool") == "layout_properties_tool":
+            # Extract component_type from arguments
+            args = result.get("arguments", {})
+            comp_type = args.get("component_type")
+            if comp_type:
+                looked_up.add(comp_type)
+    
+    return looked_up
+
+
+async def ensure_component_schemas_looked_up(
+    mcp_client,
+    tool_results: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Ensure all component types found in layout files have their schemas looked up.
+    
+    Only looks at actual component types from layout_components_tool results.
+    Returns updated tool_results with any additional schema lookups.
+    """
+    needed_types = extract_component_types_from_tool_results(tool_results)
+    looked_up_types = get_looked_up_component_types(tool_results)
+    
+    missing_types = needed_types - looked_up_types
+    
+    if not missing_types:
+        log.info("✅ All component types have been looked up")
+        return tool_results
+    
+    log.warning(f"🚨 Missing schema lookups for component types: {missing_types}")
+    log.info(f"📋 Auto-fetching schemas for: {missing_types}")
+    
+    schema_url = "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json"
+    
+    for comp_type in missing_types:
+        try:
+            log.info(f"🔍 Looking up schema for {comp_type}...")
+            result = await mcp_client.call_tool(
+                "layout_properties_tool",
+                {
+                    "component_type": comp_type,
+                    "schema_url": schema_url,
+                }
+            )
+            
+            # Extract text from result
+            result_text = extract_tool_text(result)
+            
+            tool_results.append({
+                "tool": "layout_properties_tool",
+                "objective": f"Auto-fetched schema for {comp_type} (was missing)",
+                "arguments": {
+                    "component_type": comp_type,
+                    "schema_url": schema_url,
+                },
+                "result": result_text,
+            })
+            log.info(f"✅ Fetched schema for {comp_type}")
+            
+        except Exception as e:
+            log.error(f"❌ Failed to fetch schema for {comp_type}: {e}")
+    
+    return tool_results
 
 
 async def run_actor_pipeline(
@@ -49,12 +180,20 @@ async def run_actor_pipeline(
         tool_results = await execute_tool_plan(
             mcp_client, repository_path, user_goal, repo_facts, tool_plan, planner_step, general_plan
         )
-    implementation_plan = (
-        implementation_plan_override
-        or await create_implementation_plan(
-            mcp_client, user_goal, repo_facts, tool_results, general_plan, planner_step, attachments=attachments
-        )
+    
+    # 🚨 CRITICAL: Ensure all component types found in layout files have their schemas looked up
+    # This prevents issues like Datepicker defaulting to timeStamp=true when data model expects date format
+    # Only looks at actual component types from layout_components_tool results
+    tool_results = await ensure_component_schemas_looked_up(
+        mcp_client,
+        tool_results,
     )
+    
+    # Skip the separate implementation_planning_llm step - it was taking ~99s and only
+    # passing truncated data anyway. patch_synthesis now handles planning inline with
+    # full tool results context.
+    implementation_plan = implementation_plan_override or {}
+    
     patch = await synthesize_patch(
         user_goal,
         repo_facts,
@@ -328,10 +467,10 @@ async def execute_tool_plan(
             arguments = entry.get("arguments")
             if arguments is None:
                 query = entry.get("query")
-                if query and tool_name not in {"layout_properties_tool", "datamodel_tool", "prefill_tool", "dynamic_expression"}:
+                if query and tool_name not in {"layout_properties_tool", "layout_components_tool", "datamodel_tool", "prefill_tool", "dynamic_expression", "resource_tool"}:
                     arguments = {"query": query}
-            # Special handling for documentation tools - they take NO parameters
-            if tool_name in {"datamodel_tool", "prefill_tool", "dynamic_expression"}:
+            # Documentation tools take no parameters
+            if tool_name in {"datamodel_tool", "prefill_tool", "dynamic_expression", "resource_tool"}:
                 arguments = {}
             elif arguments is None:
                 arguments = build_tool_arguments(
@@ -387,39 +526,68 @@ async def execute_tool_plan(
                     }
                 )
 
-                if (
-                    tool_name == "layout_components_tool"
-                    and json_payload
-                    and isinstance(json_payload, dict)
-                ):
+                # Auto-enqueue layout_properties_tool after layout_components_tool
+                if tool_name == "layout_components_tool":
+                    log.info(f"🔍 layout_components_tool returned, checking for components to enqueue properties...")
                     component_ids = []
                     components_data = []
-                    for key in ("components", "items", "results"):
-                        if key in json_payload and isinstance(json_payload[key], list):
-                            for component in json_payload[key]:
-                                if not isinstance(component, dict):
-                                    continue
+                    
+                    # Try to extract components from JSON payload
+                    if json_payload and isinstance(json_payload, dict):
+                        for key in ("components", "items", "results"):
+                            if key in json_payload and isinstance(json_payload[key], list):
+                                for component in json_payload[key]:
+                                    if not isinstance(component, dict):
+                                        continue
 
-                                content = component.get("content")
-                                if isinstance(content, dict) and content:
-                                    component_data = dict(content)
-                                    component_data.setdefault("id", component.get("id") or component.get("componentId") or component.get("name"))
-                                    component_data.setdefault("type", component.get("type") or content.get("componentType"))
-                                else:
-                                    component_data = dict(component)
+                                    content = component.get("content")
+                                    if isinstance(content, dict) and content:
+                                        component_data = dict(content)
+                                        component_data.setdefault("id", component.get("id") or component.get("componentId") or component.get("name"))
+                                        component_data.setdefault("type", component.get("type") or content.get("componentType"))
+                                    else:
+                                        component_data = dict(component)
 
-                                component_id = component_data.get("id") or component_data.get("componentId") or component.get("name")
-                                if not component_id and "name" in component:
-                                    component_id = component["name"]
-                                if not component_id:
-                                    continue
+                                    component_id = component_data.get("id") or component_data.get("componentId") or component.get("name")
+                                    if not component_id and "name" in component:
+                                        component_id = component["name"]
+                                    if not component_id:
+                                        continue
 
-                                component_data["id"] = component_id
-                                component_data.setdefault("type", component_data.get("componentType"))
+                                    component_data["id"] = component_id
+                                    component_data.setdefault("type", component_data.get("componentType"))
 
-                                component_ids.append(component_id)
-                                components_data.append(component_data)
+                                    component_ids.append(component_id)
+                                    components_data.append(component_data)
+                    
+                    # If no JSON structure found, try to extract component types from the result text
+                    # The MCP tool might return markdown/text with component examples
+                    if not component_ids and result_text:
+                        log.info(f"🔍 No JSON components found, extracting component types from text...")
+                        # Common component types to look for
+                        component_types_to_check = ["Datepicker", "Input", "RadioButtons", "Checkboxes", "Dropdown", "Header", "Paragraph", "TextArea"]
+                        for comp_type in component_types_to_check:
+                            # Check if this component type is relevant to the user goal
+                            if comp_type.lower() in user_goal.lower() or comp_type in result_text:
+                                normalized_type = comp_type.lower()
+                                if normalized_type not in properties_enqueued_ids:
+                                    properties_enqueued_ids.add(normalized_type)
+                                    schema_url = "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json"
+                                    log.info(f"📋 Auto-enqueuing layout_properties_tool for component type: {comp_type}")
+                                    pending_entries.insert(
+                                        0,
+                                        {
+                                            "tool": "layout_properties_tool",
+                                            "objective": f"Retrieve schema and allowed props for {comp_type} component",
+                                            "arguments": {
+                                                "component_type": comp_type,
+                                                "schema_url": schema_url,
+                                                "user_goal": user_goal,
+                                            },
+                                        },
+                                    )
 
+                    # Process components found from JSON
                     unique_ids = sorted({cid for cid in component_ids if cid})[:10]
                     for component_id in unique_ids:
                         normalized_id = str(component_id).strip().lower()
@@ -441,6 +609,7 @@ async def execute_tool_plan(
                             or "Input"
                         )
                         schema_url = "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json"
+                        log.info(f"📋 Auto-enqueuing layout_properties_tool for component: {component_id} (type: {component_type})")
                         pending_entries.insert(
                             0,
                             {
@@ -450,24 +619,18 @@ async def execute_tool_plan(
                                     "component_id": component_id,
                                     "component_type": component_type,
                                     "schema_url": schema_url,
+                                    "user_goal": user_goal,
                                 },
                             },
                         )
 
-                    for component in components_data:
-                        bindings = component.get("dataModelBindings")
-                        if not isinstance(bindings, dict):
-                            bindings = component.get("bindings", {}).get("dataModelBindings") if isinstance(component.get("bindings"), dict) else None
-                        if not isinstance(bindings, dict):
-                            continue
-                        # No longer auto-enqueue datamodel_tool for individual bindings
-                        # The datamodel_tool returns static documentation only, not binding-specific info
-                        # If datamodel context is needed, it should be called once at the start
-                        pass
-
     return results
 
 
+# DEPRECATED: This function is no longer called in the main pipeline.
+# It was taking ~99s and only passing truncated data to the LLM.
+# patch_synthesis now handles planning inline with full tool results context.
+# Kept for backward compatibility if needed for testing or alternative workflows.
 async def create_implementation_plan(
     mcp_client,
     user_goal: str,
@@ -478,41 +641,40 @@ async def create_implementation_plan(
     *,
     attachments: Optional[List[AgentAttachment]] = None,
 ) -> Dict[str, Any]:
-    payload = {
-        "user_goal": user_goal,
-        "general_plan": general_plan,
-        "tool_results": tool_results,
-        "repository_facts": repo_facts,
-        "planner_step": planner_step,
-    }
+    """DEPRECATED: This function is no longer used in the main pipeline.
+    TODO: Remove this
+    The implementation_planning_llm step was eliminated because:
+    1. It took ~99s (1m40s) for a redundant planning step
+    2. It only passed truncated data (100 chars per tool, 3000 chars docs)
+    3. patch_synthesis already receives full tool results and can plan inline
+    
+    Kept for backward compatibility and testing purposes.
+    """
+    # Use planner_step (planning guidance from planning_tool_node) as documentation input
+    # to the local LLM that generates a structured implementation plan.
+    documentation = planner_step or ""
+    if documentation:
+        log.info("Using planner_step guidance as implementation planning documentation (%d chars)", len(documentation))
+    else:
+        log.info("No planner_step guidance provided; generating implementation plan from general_plan and tool_results only")
 
     langfuse = get_client()
     with langfuse.start_as_current_span(
-        name="implementation_planning_tool",
+        name="implementation_planning_llm",
         input={
-            "payload_keys": list(payload.keys()),
+            "has_planner_step": bool(planner_step),
             "files_known": len(repo_facts.get("files", [])) if isinstance(repo_facts, dict) else 0,
         },
-        metadata={"span_type": "TOOL"}
+        metadata={"span_type": "LLM"}
     ) as span:
-        planning_result = await mcp_client.call_tool("planning_tool", payload)
-        if isinstance(planning_result, dict) and "error" in planning_result:
-            error_message = planning_result["error"]
-            span.update(output={"success": False, "error": error_message})
-            raise Exception(f"planning_tool failed: {error_message}")
-
-        planning_text = extract_tool_text(planning_result)
-        log.info(f"Planning tool result type: {type(planning_result)}")
-        log.info(f"Planning text length: {len(planning_text)}")
-        log.info(f"Planning text preview: {planning_text[:200]}")
-
-        # Check if planning_text is markdown documentation instead of JSON
-        if planning_text.strip().startswith("#") or not planning_text.strip().startswith("{"):
-            log.info("Planning tool returned documentation, generating implementation plan from documentation")
-            planning_text = await generate_implementation_plan_from_docs(
-                planning_text, user_goal, repo_facts, tool_results, general_plan, attachments=attachments
-            )
-
+        planning_text = await generate_implementation_plan_from_docs(
+            documentation,
+            user_goal,
+            repo_facts,
+            tool_results,
+            general_plan,
+            attachments=attachments,
+        )
         span.update(output={"result": planning_text[:5000]})
 
     return parse_json_response(planning_text, "implementation plan")
@@ -576,31 +738,37 @@ async def synthesize_patch(
     client = LLMClient(role="actor")
     system_prompt = get_prompt_content("patch_synthesis")
 
-    # Documentation tools (datamodel_tool, prefill_tool, etc.) need full content preserved
-    documentation_tools = {"datamodel_tool", "prefill_tool", "planning_tool", "dynamic_expression"}
+    # Documentation tools need full content preserved
+    documentation_tools = {"datamodel_tool", "prefill_tool", "planning_tool", "dynamic_expression", "resource_tool"}
+    # Schema tools are critical for implementation - preserve their results
+    schema_tools = {"layout_properties_tool", "layout_components_tool"}
     
     serializable_tools = []
+    max_result_size = 15000  # Increased limit for schema tools
+    
     for result in tool_results:
         tool_name = result.get("tool", "")
         if tool_name in documentation_tools:
             # Preserve full content for documentation tools - they contain critical implementation guidance
             serializable_tools.append(result)
+        elif tool_name in schema_tools:
+            # Schema tools are critical - truncate but don't remove
+            result_copy = dict(result)
+            if "result" in result_copy and len(str(result_copy["result"])) > max_result_size:
+                result_copy["result"] = str(result_copy["result"])[:max_result_size] + "\n... [truncated]"
+            serializable_tools.append(result_copy)
         else:
-            # For other tools, limit result content to avoid token overflow
-            serializable_tools.append({
-                k: v for k, v in result.items() 
-                if k != "result" or len(str(v)) < 10000
-            })
+            # For other tools, truncate large results
+            result_copy = dict(result)
+            if "result" in result_copy and len(str(result_copy["result"])) > 10000:
+                result_copy["result"] = str(result_copy["result"])[:10000] + "\n... [truncated]"
+            serializable_tools.append(result_copy)
     repo_summary = {
         "layouts": repo_facts.get("layouts", []),
         "resources": repo_facts.get("resources", []),
         "models": repo_facts.get("models", []),
         "schemas": repo_facts.get("schemas", []),
     }
-
-    # Filter implementation_plan to remove irrelevant fields for patch synthesis
-    filtered_implementation_plan = {k: v for k, v in implementation_plan.items() 
-                                   if k not in ["notes_for_team", "risks", "suggested_subtasks"]}
     
     # Get current layout content to help with component placement
     current_layout_content = ""
@@ -633,7 +801,6 @@ async def synthesize_patch(
         "patch_synthesis_user",
         user_goal=user_goal,
         general_plan=json.dumps(general_plan, indent=2),
-        implementation_plan=json.dumps(filtered_implementation_plan, indent=2),
         tool_results=json.dumps(serializable_tools, indent=2) if serializable_tools else "[]",
         current_layout_content=current_layout_content[:3000] if current_layout_content else "Not available",
         current_model_content=current_model_content[:3000] if current_model_content else "Not available",
@@ -646,7 +813,7 @@ async def synthesize_patch(
         as_type="generation",
         model=client.model,
         input={
-            "implementation_plan_keys": list(implementation_plan.keys()),
+            "general_plan_keys": list(general_plan.keys()) if general_plan else [],
             "planner_step_present": bool(planner_step),
         },
         metadata={**client.get_model_metadata(), "tool_results_count": len(tool_results)}
@@ -721,49 +888,6 @@ def validate_patch_operations(patch: Dict[str, Any], repo_facts: Dict[str, Any],
     return errors
 
 
-def extract_tool_text(result: Any) -> str:
-    """Extract text content from MCP tool response."""
-    # Handle CallToolResult objects (newer MCP versions)
-    if hasattr(result, 'structured_content') and result.structured_content:
-        # Some CallToolResult objects have pre-parsed structured content
-        return str(result.structured_content)
-    elif hasattr(result, 'content'):
-        content = result.content
-        if isinstance(content, str):
-            return content
-        elif isinstance(content, list) and content:
-            first_item = content[0]
-            if hasattr(first_item, 'text'):
-                text_content = first_item.text
-                # Check if this is a JSON wrapper with content field
-                try:
-                    parsed = json.loads(text_content)
-                    if isinstance(parsed, dict) and "content" in parsed:
-                        return parsed["content"]
-                except json.JSONDecodeError:
-                    pass  # Not JSON, use as-is
-                return text_content
-            return str(first_item)
-        return str(content)
-
-    # Handle list responses (legacy format)
-    if isinstance(result, list) and result:
-        first = result[0]
-        if hasattr(first, "text"):
-            text_content = first.text
-            # Check if this is a JSON wrapper with content field
-            try:
-                parsed = json.loads(text_content)
-                if isinstance(parsed, dict) and "content" in parsed:
-                    return parsed["content"]
-            except json.JSONDecodeError:
-                pass  # Not JSON, use as-is
-            return text_content
-        return str(first)
-    
-    return str(result)
-
-
 def parse_json_response(response: str, context: str) -> Dict[str, Any]:
     clean = response.strip()
     
@@ -798,6 +922,30 @@ def parse_json_response(response: str, context: str) -> Dict[str, Any]:
     except json.JSONDecodeError as exc:
         log.error("Failed to parse %s: %s", context, exc)
         log.error("Response snippet: %s", clean[:500])
+
+        # Fallback: try to salvage by trimming to the last closing brace/bracket.
+        # General planning sometimes returns almost-correct JSON with trailing garbage.
+        for closing in ('}', ']'):
+            idx = clean.rfind(closing)
+            if idx == -1:
+                continue
+            candidate = clean[: idx + 1]
+            try:
+                salvaged = json.loads(candidate)
+                log.warning(
+                    "Salvaged %s JSON by trimming to last '%s' at position %d",
+                    context,
+                    closing,
+                    idx,
+                )
+                if isinstance(salvaged, dict):
+                    return salvaged
+                if isinstance(salvaged, list):
+                    return {"items": salvaged}
+            except json.JSONDecodeError:
+                continue
+
+        # If salvage also failed, surface the original error
         raise Exception(f"{context} parsing failed: {exc}")
 
     if isinstance(parsed, dict):
@@ -825,27 +973,10 @@ def build_tool_arguments(
     model_files = repo_facts.get("models", [])
 
     if tool_name == "layout_components_tool":
-        # Get the tool query from tool_plan
-        tool_query = ""
-        if tool_plan:
-            for entry in tool_plan:
-                if entry.get("tool") == "layout_components_tool":
-                    tool_query = entry.get("query", "")
-                    break
-        
-        # If no specific query, try to use goal_summary from general_plan
-        if not tool_query and general_plan:
-            goal_summary = general_plan.get("goal_summary", "")
-            if goal_summary:
-                tool_query = goal_summary
-        
-        # Use the specified query or fallback
-        if tool_query:
-            query = tool_query
-        else:
-            query = "available layout components"
-        
-        return {"query": query}
+        # layout_components_tool does NOT accept a query parameter.
+        # It returns ALL available component examples from the library.
+        # Only user_goal is required (verbatim user request).
+        return {"user_goal": user_goal}
 
     if tool_name == "resource_tool":
         # Get the tool query from tool_plan
@@ -856,86 +987,49 @@ def build_tool_arguments(
                     tool_query = entry.get("query", "")
                     break
         
-        # Use the specified query or fallback
+        # If the planner provided an explicit query, use it.
+        # Otherwise, respect that decision and call the tool with only the user_goal,
+        # letting the MCP-side implementation interpret the goal.
         if tool_query:
-            query = tool_query
-        else:
-            query = "text resources for form field labels"
-        
-        return {"query": query}
+            return {"query": tool_query, "user_goal": user_goal}
+
+        return {"user_goal": user_goal}
 
     if tool_name in {"datamodel_tool", "prefill_tool", "dynamic_expression"}:
-        # Documentation tools take NO parameters - they return static documentation
-        return {}
+        # Documentation tools now require user_goal parameter
+        return {"user_goal": user_goal}
 
     if tool_name == "layout_properties_tool":
-        # Get the tool query from tool_plan
-        tool_query = ""
-        if tool_plan:
-            for entry in tool_plan:
-                if entry.get("tool") == "layout_properties_tool":
-                    tool_query = entry.get("query", "")
-                    break
-        
-        # Try to determine component type from layout_components_tool results
-        component_type = "Input"  # default fallback
-        
-        if tool_results:
-            # Look for layout_components_tool results
-            for result in tool_results:
-                if result.get("tool") == "layout_components_tool":
-                    try:
-                        result_data = json.loads(result.get("result", "{}"))
-                        components = result_data.get("components", [])
-                        
-                        # Find most relevant component for the user goal
-                        # TODO: Find a better way to determine component type
-                        if "input" in user_goal.lower() or "number" in user_goal.lower() or "numeric" in user_goal.lower():
-                            # Look for Input components
-                            for comp in components:
-                                if comp.get("content", {}).get("type") == "Input":
-                                    component_type = "Input"
-                                    break
-                        elif "button" in user_goal.lower():
-                            component_type = "Button"
-                        elif "text" in user_goal.lower() and "area" in user_goal.lower():
-                            component_type = "Textarea"
-                        # Add more component type detection logic as needed
-                        
-                    except (json.JSONDecodeError, KeyError):
-                        pass  # Fall back to default
-        
-        # If we couldn't determine from tool results, use goal-based detection
-        if component_type == "Input":  # Still default, try goal detection
-            if "button" in user_goal.lower():
-                component_type = "Button"
-            elif "text" in user_goal.lower() and "area" in user_goal.lower():
-                component_type = "Textarea"
-            # Keep Input as default
-
-        # Use the correct Altinn layout schema URL
-        schema_url = "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json"
-
-        # Use the specified query or generate simple one
-        if tool_query:
-            query = tool_query
-        else:
-            query = f"properties for {component_type} component"
-
-        return {
-            "component_type": component_type,
-            "schema_url": schema_url,
-            "query": query
-        }
+        # layout_properties_tool has a strict MCP schema (component_id, component_type, schema_url)
+        # and does NOT accept a free-form `query` argument. We normally enqueue it with
+        # fully-specified arguments right after layout_components_tool has discovered
+        # concrete component IDs:
+        #
+        #     {
+        #         "tool": "layout_properties_tool",
+        #         "arguments": {
+        #             "component_id": ...,
+        #             "component_type": ...,
+        #             "schema_url": ...,
+        #         },
+        #     }
+        #
+        # If we get here, there were no explicit arguments on the plan entry, and trying
+        # to synthesize them from a textual `query` would produce invalid MCP calls
+        # (and Pydantic errors about unexpected keyword argument `query`).
+        #
+        # To keep runs robust, we skip such calls and rely solely on the auto-enqueued
+        # layout_properties_tool invocations that already have proper arguments.
+        return None
 
     if tool_name == "planning_tool":
-        return {}
+        return {"user_goal": user_goal}
 
     if tool_name == "scan_repository":
-        return {"repository_path": repository_path}
+        return {"repository_path": repository_path, "user_goal": user_goal}
 
     if tool_name in {"schema_validator_tool", "resource_validator_tool", "policy_validation_tool"}:
         return None
 
     # Default: use goal-based query
-    return {"query": user_goal[:120]}
+    return {"query": user_goal[:120], "user_goal": user_goal}

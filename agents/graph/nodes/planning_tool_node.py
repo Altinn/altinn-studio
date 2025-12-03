@@ -125,20 +125,38 @@ async def handle(state: AgentState) -> AgentState:
                 # The query enables TF-IDF semantic search in planning_tool
                 tool_input = {
                     "query": semantic_query,  # Use generated focused query
-                    "repository_facts": state.repo_facts or {}
                 }
                 
                 log.info(f"🔍 Calling planning_tool with semantic search query: {semantic_query}")
                 
                 # Call planning_tool with enhanced semantic search
                 # Without query: Returns standard planning context
-                # With query: Returns TF-IDF semantic search results (top 5 relevant docs)
+                # With query: Returns TF-IDF semantic search results (top 5 most relevant docs)
                 planning_result = await client.call_tool('planning_tool', tool_input)
+                
+                # Debug: Log what we received
+                log.info(f"🔍 Planning tool result type: {type(planning_result)}")
+                # log.info(f"🔍 Planning tool result: {planning_result}")
                 
                 # Extract planning guidance using robust extraction
                 planning_guidance = None
-                if planning_result:
-                    # Handle CallToolResult objects (MCP client returns these)
+                
+                # New: MCPClient.call_tool may already return a structured dict (structured_content)
+                if isinstance(planning_result, dict):
+                    # Check if it's an error response
+                    if "error" in planning_result:
+                        log.error(f"❌ Planning tool returned error: {planning_result['error']}")
+                        planning_guidance = ""
+                    else:
+                        # Serialize dict to JSON string so downstream consumers can treat it uniformly
+                        try:
+                            planning_guidance = json.dumps(planning_result, ensure_ascii=False)
+                            log.info(f"✅ Serialized planning_result dict to JSON string ({len(planning_guidance)} chars)")
+                        except Exception as e:
+                            log.error(f"❌ Failed to serialize planning_result dict to JSON: {e}")
+                            planning_guidance = str(planning_result)
+                elif planning_result:
+                    # Handle CallToolResult objects (older MCP client behaviour)
                     if hasattr(planning_result, 'content'):
                         content = planning_result.content
                         if isinstance(content, str):

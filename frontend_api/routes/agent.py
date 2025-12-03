@@ -121,8 +121,9 @@ async def start_agent(req: StartReq):
                         }
                     ))
             
-            # Create background task - API returns immediately
+            # Mark session as started and create background task - API returns immediately
             import asyncio
+            sink.mark_session_started(req.session_id)
             asyncio.create_task(_run_chat())
         else:
             # Normal workflow mode - make changes
@@ -161,7 +162,8 @@ async def start_agent(req: StartReq):
                 attachments=saved_attachments
             )
 
-            # Start workflow in background
+            # Mark session as started and start workflow in background
+            sink.mark_session_started(req.session_id)
             run_in_background(state, sink)
 
             log.info(f"Started agent workflow for session {req.session_id}, goal: {req.goal}")
@@ -204,3 +206,12 @@ async def start_agent(req: StartReq):
     except Exception as e:
         log.error(f"Failed to start agent workflow: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/api/agent/status/{session_id}")
+async def get_session_status(session_id: str):
+    """Get the status of a session. Used by frontend to check if job completed while disconnected."""
+    status = sink.get_session_status(session_id)
+    if status is None:
+        return {"session_id": session_id, "status": "unknown"}
+    return {"session_id": session_id, **status}

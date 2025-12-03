@@ -245,21 +245,31 @@ class MCPClient:
                     "Ensure planning_tool_node executes successfully before planner_node. "
                     "This is a required step in the workflow."
                 )
-            
+
             # Extract the planning guidance from task_context
             log.info("✅ Planning guidance found in task_context (from planning_tool_node)")
             parts = task_context.split("PLANNING GUIDANCE:")
             if len(parts) > 1:
                 planning_guidance = parts[1].strip()
-            
+
             if not planning_guidance:
                 log.error("❌ Planning guidance section exists but is empty!")
                 raise Exception("Planning guidance section is empty - planning_tool_node may have failed")
-            
+
             log.info(f"ℹ️ Using planning guidance ({len(planning_guidance)} chars)")
-            
-            log.info(f"✅ Planning guidance section complete, planning_guidance={'SET (%d chars)' % len(planning_guidance) if planning_guidance else 'NOT SET'}")
-            
+            log.info(
+                f"✅ Planning guidance section complete, planning_guidance={'SET (%d chars)' % len(planning_guidance) if planning_guidance else 'NOT SET'}"
+            )
+
+            # Derive a concise user_goal for the actor pipeline (exclude plan/guidance blocks)
+            user_goal_for_pipeline = task_context
+            if "\n\nHIGH-LEVEL PLAN:" in task_context:
+                user_goal_for_pipeline = task_context.split("\n\nHIGH-LEVEL PLAN:")[0].strip()
+            log.info(
+                f"ℹ️ Derived user_goal_for_pipeline length: {len(user_goal_for_pipeline)} "
+                f"(full task_context length: {len(task_context)})"
+            )
+
             # Step 4: Use actor workflow pipeline to produce patch and intermediates
             try:
                 log.info("🔧 Starting patch generation...")
@@ -274,10 +284,10 @@ class MCPClient:
 
             try:
                 patch_data = await generator.generate_patch(
-                    task_context,
+                    user_goal_for_pipeline,
                     repo_facts_with_context,
                     planner_step=planning_guidance,
-                    attachments=attachments
+                    attachments=attachments,
                 )
                 
                 if not patch_data:

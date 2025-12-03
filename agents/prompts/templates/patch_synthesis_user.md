@@ -1,13 +1,10 @@
 USER GOAL:
 {user_goal}
 
-GENERAL PLAN:
+GENERAL PLAN (high-level approach):
 {general_plan}
 
-IMPLEMENTATION PLAN:
-{implementation_plan}
-
-TOOL RESULTS:
+TOOL RESULTS (use these to understand component schemas, data model patterns, and Altinn conventions):
 {tool_results}
 
 CURRENT LAYOUT CONTENT (for component placement reference):
@@ -23,6 +20,7 @@ CRITICAL: Generate the patch JSON with EXACTLY these keys: "files" (array of str
 
 🚨 CRITICAL: TEXT RESOURCE LOCALE HANDLING 🚨
 ONLY use text resource files that ACTUALLY EXIST in the repository.
+
 - Check REPOSITORY FACTS SUMMARY → "resources" array for the EXACT list of resource files
 - DO NOT assume any locales (e.g., do NOT add resource.en.json if it doesn't exist)
 - DO NOT hardcode locales - use ONLY what you see in the resources array
@@ -32,23 +30,24 @@ For every value referenced in textResourceBindings, ensure the patch includes an
 
 🚨 CRITICAL: TEXT RESOURCE INSERT OPERATION 🚨
 Text resource files have a nested structure with "resources" array. When inserting text resources:
+
 - Operation: insert_json_array_item
 - Path: Use ["resources"] (points to the resources array inside the root object)
 - Item: Use "item" key (NOT "value"!) with the resource object
 - Example operation:
-{{
-  "file": "App/config/texts/resource.nb.json",
-  "op": "insert_json_array_item",
-  "path": ["resources"],
-  "item": {{"id": "app.field.projectType", "value": "Prosjekttype"}}
-}}
+  {{
+    "file": "App/config/texts/resource.nb.json",
+    "op": "insert_json_array_item",
+    "path": ["resources"],
+    "item": {{"id": "app.field.projectType", "value": "Prosjekttype"}}
+  }}
 
 Text resource file structure:
 {{
   "language": "nb",
   "resources": [
     {{"id": "app.field.something", "value": "Text"}}
-  ]
+]
 }}
 
 CRITICAL: The operation expects "item" key, not "value"! The resource object itself has an "id" and "value".
@@ -63,11 +62,13 @@ IMPORTANT: For Altinn datamodels, you should ONLY update the .schema.json file. 
 IMPORTANT: Never leave a textResourceBindings reference without a matching resource entry across locales. Create them in the same patch.
 
 CRITICAL: DYNAMIC EXPRESSIONS FORMAT
+
 - When using dynamic expressions for properties like 'hidden', 'required', etc., you MUST use the ARRAY-BASED expression format
 - NEVER use raw JavaScript strings like "data.field !== 'value'" - this will cause validation errors
 - Altinn expressions use an array-based functional syntax
 
 Expression format rules:
+
 1. All expressions are arrays with a function name as first element
 2. Function arguments follow as subsequent elements
 3. Data model references use ["dataModel", "fieldName"] format
@@ -95,19 +96,20 @@ Check if field is greater than value:
 
 Complex AND condition (both must be true):
 "hidden": [
-  "and",
-  ["equals", ["dataModel", "type"], "specific"],
-  ["greaterThan", ["dataModel", "amount"], 0]
+"and",
+["equals", ["dataModel", "type"], "specific"],
+["greaterThan", ["dataModel", "amount"], 0]
 ]
 
 Complex OR condition (at least one must be true):
 "hidden": [
-  "or",
-  ["equals", ["dataModel", "status"], "approved"],
-  ["equals", ["dataModel", "status"], "completed"]
+"or",
+["equals", ["dataModel", "status"], "approved"],
+["equals", ["dataModel", "status"], "completed"]
 ]
 
 Common functions:
+
 - "equals": Check equality
 - "notEquals": Check inequality
 - "greaterThan", "greaterThanEq": Numeric comparisons
@@ -117,12 +119,14 @@ Common functions:
 - "dataModel": Reference to data model field
 
 CRITICAL: PREFILL IMPLEMENTATION
+
 - If the TOOL RESULTS contain prefill_tool documentation AND the user goal mentions prefilling or prepopulating data, you MUST implement prefill configuration
 - Create a [dataModelName].prefill.json file in App/models/ directory using the insert_json_property operations
 - Follow the prefill documentation structure exactly: include $schema, allowOverwrite, and data source mappings (ER, DSF, UserProfile, QueryParameters)
 - Pay attention to which data source is appropriate: UserProfile (submitter info, always available), ER (organization data), DSF (person data)
 
 CRITICAL: ALL PREFILL MAPPINGS MUST USE Model. PREFIX
+
 - Every single target field mapping in the prefill configuration MUST start with "Model."
 - This is NOT optional - it's required by Altinn's prefill system
 - WRONG: "Name": "applicantName"
@@ -137,7 +141,7 @@ Prefill mapping examples (FOLLOW THIS EXACT PATTERN):
     "MailingAddress": "Model.address.street",
     "EMailAddress": "Model.applicantEmail"
   }},
-  "UserProfile": {{
+"UserProfile": {{
     "PhoneNumber": "Model.contact.phone",
     "Email": "Model.contact.email",
     "ProfileSettingPreference.Language": "Model.preferredLanguage"
@@ -151,6 +155,7 @@ When placing components "after" another field, use the CURRENT LAYOUT CONTENT to
 IMPORTANT: Review the CURRENT LAYOUT CONTENT to see what component IDs already exist. When creating new components that will be children of or reference existing components, use the EXACT IDs you see in the current layout. DO NOT change the casing or format of existing component IDs.
 
 Each change object MUST have these exact fields:
+
 - "file": relative path string (e.g., "App/ui/form/layouts/1.json")
 - "op": operation name (one of: "insert_json_array_item", "insert_json_property", "insert_text_at_pattern", "replace_text")
 
@@ -170,8 +175,8 @@ For insert_json_array_item:
   "file": "path/to/file.json",
   "op": "insert_json_array_item",
   "path": ["data", "layout"],  // array of strings pointing to array
-  "value": {{"id": "component_id", "type": "Input"}},  // object to insert
-  "insert_after_index": 2     // optional number
+  "value": {{"id": "component_id", "type": "Input"}}, // object to insert
+"insert_after_index": 2 // optional number
 }}
 
 For insert_text_at_pattern:
@@ -192,6 +197,7 @@ For replace_text:
 }}
 
 RULES:
+
 - All paths must be valid JSON paths (arrays of strings)
 - All required fields must be present
 - Values can be strings, numbers, booleans, objects, or arrays
@@ -232,6 +238,11 @@ If YES → Continue
 Q: Do ANY of my component IDs end with a hyphen followed by 1-5 digits (e.g., -41, -42, -1, -999)?
 If YES → STOP! Either remove the hyphen (e.g., 'component41') OR use descriptive suffix (e.g., 'component-boligsosiale')
 If NO → Continue
+
+✓ COMPONENT SCHEMA CHECK:
+Q: Did I check the layout_properties_tool results for EVERY component type I'm using?
+If NO → STOP! You MUST use the schema information to configure components correctly
+If YES → Continue - use the schema to set correct defaults and required properties
 
 If you passed all checks above, proceed with generating the patch JSON.
 If you failed any check, DO NOT generate a patch - fix your approach first.
