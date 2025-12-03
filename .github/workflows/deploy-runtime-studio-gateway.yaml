@@ -88,7 +88,7 @@ jobs:
         run: docker push ${{ env.IMAGE_REPO }}
 
       - name: patch base with image tag
-        working-directory: src/Runtime/StudioGateway/infra/kustomize
+        working-directory: src/Runtime/StudioGateway/infra/kustomize/base
         run: |
           export IMAGE="${{ env.IMAGE_REPO }}"
           export IMAGE_TAG="${{ needs.get-short-sha.outputs.short-sha }}"
