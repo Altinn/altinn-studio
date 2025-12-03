@@ -23,7 +23,6 @@ async def plan_atomic_step(user_goal, facts):
         # Create planning tool input for high-level guidance
         tool_input = {
             "user_goal": user_goal,
-            "repository_facts": facts,
             "guidance_type": "high_level"  # Request high-level guidance only
         }
         

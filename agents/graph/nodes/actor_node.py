@@ -135,12 +135,12 @@ async def handle(state: AgentState) -> AgentState:
         log.info(f"🔧 Applying patch with {len(normalized_patch_data.get('changes', []))} changes to {len(normalized_patch_data.get('files', []))} files")
         git_ops.apply(normalized_patch_data, state.repo_path)
         
-        # Check for Source of Truth files that need sync
-        modified_sot_files = []
-        for change in normalized_patch_data.get("changes", []):
-            file_path = change.get("file", "")
-            if file_path.endswith(".schema.json"):
-                modified_sot_files.append(file_path)
+        # Check for Source of Truth files that need sync (deduplicated)
+        modified_sot_files = list(set(
+            change.get("file", "")
+            for change in normalized_patch_data.get("changes", [])
+            if change.get("file", "").endswith(".schema.json")
+        ))
         
         # Sync artifacts if Source of Truth files were modified
         generated_files = []
@@ -154,6 +154,7 @@ async def handle(state: AgentState) -> AgentState:
                 
                 log.info("🔄 Starting artifact sync...")
                 all_sync_results = []
+                sync_had_error = False
                 
                 for sot_file in modified_sot_files:
                     try:
@@ -161,10 +162,15 @@ async def handle(state: AgentState) -> AgentState:
                             sot_file=sot_file,
                             repo_path=state.repo_path,
                             mcp_client=mcp_client,
-                            check_only=False
+                            check_only=False,
                         )
                         all_sync_results.append(sync_result)
-                        log.info(f"✅ Synced {sot_file}: {sync_result.get('status', 'unknown')}")
+                        status = sync_result.get("status", "unknown")
+                        if status == "error":
+                            sync_had_error = True
+                            log.error(f"❌ Sync failed for {sot_file}: {sync_result.get('errors') or sync_result}")
+                        else:
+                            log.info(f"✅ Synced {sot_file}: {status}")
                         
                         # Collect generated files
                         for generated in sync_result.get("generated", []):
@@ -186,7 +192,22 @@ async def handle(state: AgentState) -> AgentState:
                             "error": str(e)
                         })
                 
-                log.info(f"✅ Artifact sync completed for {len(modified_sot_files)} files, generated {len(generated_files)} files")
+                if sync_had_error:
+                    log.error(
+                        f"⚠️ Artifact sync completed with errors for {len(modified_sot_files)} files, "
+                        f"generated {len(generated_files)} files"
+                    )
+                    # Mark verification as failed so reviewer will revert and summary will reflect failure
+                    state.tests_passed = False
+                    state.verify_notes = (state.verify_notes or []) + [
+                        "Artifact synchronization failed for one or more datamodel files. "
+                        "See logs for datamodel_sync errors.",
+                    ]
+                else:
+                    log.info(
+                        f"✅ Artifact sync completed for {len(modified_sot_files)} files, "
+                        f"generated {len(generated_files)} files"
+                    )
                 
             except Exception as e:
                 log.error(f"❌ Artifact sync failed: {e}")

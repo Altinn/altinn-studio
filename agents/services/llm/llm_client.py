@@ -19,6 +19,14 @@ from agents.prompts import get_prompt_content
 log = get_logger(__name__)
 config = get_config()
 
+
+def _is_claude_model(model_name: Optional[str]) -> bool:
+    """Check if model name indicates a Claude/Anthropic model"""
+    if not model_name:
+        return False
+    model_lower = model_name.lower()
+    return model_lower.startswith("claude") or "anthropic" in model_lower
+
 class LLMClient:
     """Client for LLM operations with role-based model selection"""
 
@@ -125,16 +133,24 @@ class LLMClient:
         self.model_version = model_version
         self.model = model
         self.temperature = temperature if temperature is not None else config.LLM_TEMPERATURE
+        self.use_anthropic = False
+        self.anthropic_client = None
 
+        # Check if this is a Claude model - use Anthropic SDK instead of OpenAI
+        if _is_claude_model(model):
+            self._init_anthropic_client(role, model, temperature)
+            # Disable OpenAI-specific modes for Claude
+            self.use_completions = False
+            self.use_responses = False
         # Prefer Azure OpenAI if available
-        if config.AZURE_API_KEY:
+        elif config.AZURE_API_KEY:
             version_info = f", version={model_version}" if model_version else ""
             log.info(
                 f"Using Azure OpenAI for LLM operations (role={role}, model={model}{version_info}, temperature={temperature if temperature is not None else 'default'})"
             )
 
             llm_params = {
-                "azure_endpoint": config.AZURE_ENDPOINT,
+                "azure_endpoint": config.AZURE_OPENAI_ENDPOINT,
                 "api_key": config.AZURE_API_KEY,
                 "api_version": config.AZURE_API_VERSION,
                 "deployment_name": model,
@@ -146,7 +162,7 @@ class LLMClient:
             if self.use_responses:
                 try:
                     self.responses_client = AzureResponsesClient(
-                        azure_endpoint=config.AZURE_ENDPOINT,
+                        azure_endpoint=config.AZURE_OPENAI_ENDPOINT,
                         api_key=config.AZURE_API_KEY,
                         api_version=config.AZURE_API_VERSION,
                     )
@@ -183,7 +199,44 @@ class LLMClient:
             log.warning("No LLM API key configured - LLM features will be limited")
             self.llm = None
 
-        self.supports_vision: bool = getattr(config, "LLM_SUPPORTS_VISION", True) and not (self.use_completions or self.use_responses)
+        self.supports_vision: bool = getattr(config, "LLM_SUPPORTS_VISION", True) and not (self.use_completions or self.use_responses or self.use_anthropic)
+
+    def _init_anthropic_client(self, role: str, model: str, temperature: Optional[float]) -> None:
+        """Initialize Anthropic/Claude client for Azure AI Foundry or direct Anthropic API"""
+        try:
+            from anthropic import Anthropic
+        except ImportError:
+            raise ImportError(
+                "anthropic package not installed. Install with: pip install anthropic"
+            )
+
+        # Check if we should use Azure AI Foundry or direct Anthropic
+        if config.AZURE_ANTHROPIC_ENDPOINT and config.AZURE_API_KEY:
+            # Azure AI Foundry - use Anthropic client with custom base_url
+            log.info(
+                f"Using Anthropic via Azure AI Foundry for LLM operations "
+                f"(role={role}, model={model}, endpoint={config.AZURE_ANTHROPIC_ENDPOINT}, "
+                f"temperature={temperature if temperature is not None else 'default'})"
+            )
+            self.anthropic_client = Anthropic(
+                api_key=config.AZURE_API_KEY,
+                base_url=config.AZURE_ANTHROPIC_ENDPOINT,
+            )
+        elif config.ANTHROPIC_API_KEY:
+            # Direct Anthropic API
+            log.info(
+                f"Using direct Anthropic API for LLM operations "
+                f"(role={role}, model={model}, temperature={temperature if temperature is not None else 'default'})"
+            )
+            self.anthropic_client = Anthropic(api_key=config.ANTHROPIC_API_KEY)
+        else:
+            raise ValueError(
+                "No API key configured for Anthropic/Claude. "
+                "Set AZURE_API_KEY + AZURE_ANTHROPIC_ENDPOINT (for Azure AI Foundry) or ANTHROPIC_API_KEY (for direct Anthropic)."
+            )
+
+        self.use_anthropic = True
+        self.llm = None  # Not using LangChain for Anthropic
 
     def _format_completion_prompt(self, system_prompt: str, user_prompt: str) -> str:
         if system_prompt.strip():
@@ -227,6 +280,26 @@ class LLMClient:
 
         return str(response)
 
+    def _extract_anthropic_text(self, response: Any) -> str:
+        """Extract text content from Anthropic API response"""
+        if response is None:
+            return ""
+        
+        # Anthropic response has content array with text blocks
+        content = getattr(response, "content", None)
+        if content:
+            text_parts = []
+            for block in content:
+                if getattr(block, "type", None) == "text":
+                    text = getattr(block, "text", "")
+                    if text:
+                        text_parts.append(text)
+            if text_parts:
+                return "\n".join(text_parts).strip()
+        
+        # Fallback to string representation
+        return str(response)
+
     def _build_human_message(self, user_prompt: str, attachments: Optional[List[AgentAttachment]] = None) -> HumanMessage:
         if attachments and not self.supports_vision:
             log.warning(
@@ -252,12 +325,29 @@ class LLMClient:
             attachments: Optional list of attachments
             timeout: Timeout in seconds (default: 300s / 5 minutes)
         """
-        if self.llm is None and not self.use_responses:
-            raise ValueError("LLM not configured - please set OPENAI_API_KEY")
+        if self.llm is None and not self.use_responses and not self.use_anthropic:
+            raise ValueError("LLM not configured - please set OPENAI_API_KEY or configure Anthropic")
 
         try:
             loop = asyncio.get_event_loop()
-            if self.use_responses:
+            if self.use_anthropic:
+                if attachments:
+                    log.warning("Attachments provided but Anthropic model does not support them in this implementation; ignoring attachments")
+                
+                def _call_anthropic():
+                    return self.anthropic_client.messages.create(
+                        model=self.model,
+                        system=system_prompt.strip() if system_prompt else "",
+                        messages=[{"role": "user", "content": user_prompt.strip()}],
+                        max_tokens=8192,
+                    )
+
+                response = await asyncio.wait_for(
+                    loop.run_in_executor(None, _call_anthropic),
+                    timeout=timeout
+                )
+                return self._extract_anthropic_text(response)
+            elif self.use_responses:
                 if attachments:
                     log.warning("Attachments provided but responses model does not support them; ignoring attachments")
                 input_messages = self._build_responses_input(system_prompt, user_prompt)
@@ -366,7 +456,17 @@ class LLMClient:
         ) as span:
 
             try:
-                if self.use_responses:
+                if self.use_anthropic:
+                    if attachments:
+                        log.warning("Attachments provided but Anthropic model does not support them in this implementation; ignoring attachments")
+                    response = self.anthropic_client.messages.create(
+                        model=self.model,
+                        system=system_message.strip() if system_message else "",
+                        messages=[{"role": "user", "content": user_message.strip()}],
+                        max_tokens=8192,
+                    )
+                    response_text = self._extract_anthropic_text(response)
+                elif self.use_responses:
                     if attachments:
                         log.warning("Attachments provided but responses model does not support them; ignoring attachments")
                     input_messages = self._build_responses_input(system_message, user_message)
@@ -375,7 +475,7 @@ class LLMClient:
                         input=input_messages,
                     )
                     response_text = self._extract_responses_text(response)
-                elif self.llm is None:
+                elif self.llm is None and not self.use_anthropic:
                     raise ValueError("LLM client not initialized")
                 elif self.use_completions:
                     if attachments:
@@ -404,7 +504,15 @@ class LLMClient:
                 
                 # Set outputs and usage details
                 usage_details = {}
-                if self.use_responses:
+                if self.use_anthropic:
+                    usage = getattr(response, "usage", None)
+                    if usage:
+                        usage_details = {
+                            "input_tokens": getattr(usage, "input_tokens", 0),
+                            "output_tokens": getattr(usage, "output_tokens", 0),
+                            "total_tokens": getattr(usage, "input_tokens", 0) + getattr(usage, "output_tokens", 0)
+                        }
+                elif self.use_responses:
                     usage = getattr(response, "usage", None)
                     if usage:
                         usage_details = {

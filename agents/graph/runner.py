@@ -1,7 +1,8 @@
 """LangGraph runner for agent workflow"""
 from langgraph.graph import StateGraph, END
 from .state import AgentState
-from .nodes.intake_node import handle as intake_node, scan_repository as scan_node
+from .nodes.intake_node import handle as intake_node
+from .nodes.intake_node import scan_repository as scan_node
 from .nodes.planning_tool_node import handle as planning_tool_node
 from .nodes.planner_node import handle as planner_node
 from .nodes.actor_node import handle as actor_node

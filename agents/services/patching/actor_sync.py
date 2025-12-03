@@ -107,9 +107,9 @@ async def _sync_single_file(
     sot_file: str,
     repo_path: str,
     mcp_client,
-    check_only: bool
+    check_only: bool,
 ) -> Dict[str, Any]:
-    """Sync artifacts for a single Source of Truth file"""
+    """Sync artifacts for a single Source of Truth file."""
     
     from pathlib import Path
     
@@ -125,12 +125,27 @@ async def _sync_single_file(
     if not check_only:
         log.info(f"📦 Generating artifacts on branch: {current_branch}")
     
-    # Prepare simplified sync request - only schema path needed
-    # Use full absolute path since MCP server has no knowledge of repo location
-    full_schema_path = str((Path(repo_path) / sot_file).resolve())
+    # Prepare sync request
+    # Read schema file content since MCP server is remote and doesn't have file access
+    full_schema_path = Path(repo_path) / sot_file
+    try:
+        with open(full_schema_path, 'r', encoding='utf-8') as f:
+            schema_content = f.read()
+    except Exception as e:
+        log.error(f"Failed to read schema file {full_schema_path}: {e}")
+        return {
+            "status": "error",
+            "generated": [],
+            "warnings": [],
+            "errors": [f"Failed to read schema file: {e}"]
+        }
+    
+    # Extract just the filename for the MCP tool
+    schema_filename = full_schema_path.name
+    
     sync_request = {
-        "schema_file_path": full_schema_path,
-        "check_only": check_only
+        "schema_content": schema_content,
+        "schema_filename": schema_filename,
     }
     
     log.debug(f"Calling datamodel_sync with: {sync_request}")

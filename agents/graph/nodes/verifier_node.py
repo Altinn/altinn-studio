@@ -57,18 +57,26 @@ async def handle(state: AgentState) -> AgentState:
             
             if result.passed:
                 log.info("✅ Verification passed")
-                state.tests_passed = True
-                state.verify_notes = ["All validations passed"]
-                if fix_attempt > 0:
-                    state.verify_notes.append(f"Auto-fixed after {fix_attempt} attempt(s)")
+                # If tests_passed was already False (e.g., artifact sync failure),
+                # keep the overall failure state but record that verification passed.
+                if state.tests_passed is False:
+                    state.verify_notes = (state.verify_notes or []) + [
+                        "MCP verification passed, but earlier workflow errors remain (see logs).",
+                    ]
+                else:
+                    state.tests_passed = True
+                    state.verify_notes = (state.verify_notes or []) + ["All validations passed"]
+                    if fix_attempt > 0:
+                        state.verify_notes.append(f"Auto-fixed after {fix_attempt} attempt(s)")
                 break
             
             # Validation failed - attempt auto-fix if this isn't the last attempt
             fix_attempt += 1
             if fix_attempt >= max_fix_attempts:
                 log.warning(f"❌ Validation failed after {max_fix_attempts} attempts")
-                state.tests_passed = False
-                state.verify_notes = [str(error) for error in result.errors]
+                if state.tests_passed is not False:  # Only set to False if not already False
+                    state.tests_passed = False
+                state.verify_notes = (state.verify_notes or []) + [str(error) for error in result.errors]
                 break
             
             log.warning(f"⚠️ Validation failed (attempt {fix_attempt}/{max_fix_attempts}), attempting auto-fix...")
@@ -79,7 +87,7 @@ async def handle(state: AgentState) -> AgentState:
             if not fix_applied:
                 log.warning("Could not generate auto-fix, stopping attempts")
                 state.tests_passed = False
-                state.verify_notes = [str(error) for error in result.errors]
+                state.verify_notes = (state.verify_notes or []) + [str(error) for error in result.errors]
                 break
             
             log.info("✅ Auto-fix applied, re-running verification...")
