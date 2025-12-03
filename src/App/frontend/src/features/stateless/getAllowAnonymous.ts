@@ -1,6 +1,6 @@
 import { getApplicationMetadata, useIsStatelessApp } from 'src/domain/ApplicationMetadata/getApplicationMetadata';
+import { useLayoutSetsQuery } from 'src/domain/Layout/layoutSetsQuery';
 import { getDataTypeByLayoutSetId } from 'src/features/applicationMetadata/appMetadataUtils';
-import { useLayoutSetsQuery } from 'src/http-client/api-client/layoutSetsQuery';
 
 export const useAllowAnonymous = () => {
   const application = getApplicationMetadata();

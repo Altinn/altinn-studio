@@ -1,6 +1,6 @@
+import { useLayoutQuery } from 'src/domain/Layout/layoutQuery';
 import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { useLayoutQuery } from 'src/http-client/api-client/layoutQuery';
 import type { ILayouts } from 'src/layout/layout';
 import type { IHiddenLayoutsExternal } from 'src/types';
 

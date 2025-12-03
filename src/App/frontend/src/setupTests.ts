@@ -101,6 +101,7 @@ window.AltinnAppInstanceData = {
   footerLayout: null,
   availableLanguages: [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
   frontendSettings: {},
+  layout: {},
 };
 
 window.AltinnAppGlobalData = {

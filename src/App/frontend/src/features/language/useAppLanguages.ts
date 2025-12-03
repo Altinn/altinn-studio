@@ -16,8 +16,6 @@ export const useCurrentLanguage = () => {
     languageFromUrl,
     languageFromProfile,
   });
-  console.log('currentLangString', currentLangString);
-
   const currentLanguage = appLanguages.find((lang) => lang === currentLangString);
   if (!currentLanguage) {
     throw new Error('current language not found, this should never happen');

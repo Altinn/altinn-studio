@@ -4,8 +4,6 @@ import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { ILayoutSets } from 'src/layout/common.generated';
 import type { IAppLanguage, IApplicationSettings, IInstance, IProcess, IProfile } from 'src/types/shared';
 
-export {};
-
 // export type AltinnAppData = {
 //   instance: IInstance;
 //   processState: IProcess;
@@ -35,6 +33,7 @@ export type AltinnAppInstanceData = {
   footerLayout: IFooterLayout | null;
   availableLanguages: IAppLanguage[];
   frontendSettings: IApplicationSettings;
+  layout: ILayoutCollection;
 };
 
 declare global {

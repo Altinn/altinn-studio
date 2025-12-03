@@ -1,4 +1,4 @@
-import { useLayoutSetsQuery } from 'src/http-client/api-client/layoutSetsQuery';
+import { useLayoutSetsQuery } from 'src/domain/Layout/layoutSetsQuery';
 
 export const useLayoutSets = () => useLayoutSetsQuery().data?.sets || [];
 

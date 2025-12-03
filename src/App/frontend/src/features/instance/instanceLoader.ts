@@ -3,6 +3,7 @@ import type { LoaderFunctionArgs } from 'react-router-dom';
 import type { QueryClient } from '@tanstack/react-query';
 
 import { instanceDataQueryKey } from 'src/domain/Instance/useInstanceQuery';
+import { getLayoutQueryKey, processLayouts } from 'src/domain/Layout/layoutQuery';
 import type { IInstance } from 'src/types/shared';
 
 interface InstanceLoaderProps extends LoaderFunctionArgs {
@@ -12,8 +13,15 @@ interface InstanceLoaderProps extends LoaderFunctionArgs {
   };
 }
 
-export async function instanceLoader(params: InstanceLoaderProps): Promise<unknown> {
-  const { queryClient, instance } = params.context;
+export async function instanceLoader({ context, params }: InstanceLoaderProps): Promise<unknown> {
+  const { queryClient, instance } = context;
+
+  const { app, instanceGuid, instanceOwnerPartyId, org, pageKey, taskId } = params;
+  console.log({ app, instanceGuid, instanceOwnerPartyId, org, pageKey, taskId });
+  console.log('window.AltinnAppInstanceData', window.AltinnAppInstanceData);
+  console.log('params', params);
+
+  // set current layout in query data, based on what task we are on
 
   if (!instance) {
     throw new Error('instance is required');
@@ -25,6 +33,16 @@ export async function instanceLoader(params: InstanceLoaderProps): Promise<unkno
     }),
     instance,
   );
+  if (window.AltinnAppInstanceData?.layout && taskId && pageKey) {
+    const currentLayoutSet = window.AltinnAppInstanceData?.layoutSets.sets.find((layoutSet) =>
+      layoutSet.tasks?.includes(taskId),
+    );
+    if (currentLayoutSet) {
+      const processedLayouts = processLayouts(window.AltinnAppInstanceData?.layout, pageKey, currentLayoutSet.dataType);
+      queryClient.setQueryData(getLayoutQueryKey(currentLayoutSet.id), processedLayouts);
+    }
+  }
+
   return null;
 }
 

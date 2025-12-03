@@ -15,8 +15,6 @@ export const convertResult = (result: ITextResourceResult): TextResourceMap => {
 const useTextResourcesQuery = () => {
   const { fetchTextResources } = useAppQueries();
   const selectedLanguage = useCurrentLanguage();
-  console.log('selectedLanguage', selectedLanguage);
-  // debugger;
   // This makes sure to await potential profile fetching before fetching text resources
   const enabled = true; //useIsCurrentLanguageResolved();
   const utils = {

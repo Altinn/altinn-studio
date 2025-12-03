@@ -22,6 +22,8 @@ export interface LayoutValue {
   expandedWidthLayouts: IExpandedWidthLayouts;
 }
 
+export const getLayoutQueryKey = (layoutSetId?: string) => ['formLayouts', layoutSetId];
+
 export function useLayoutQueryDef(
   enabled: boolean,
   defaultDataModelType: string,
@@ -29,7 +31,7 @@ export function useLayoutQueryDef(
 ): QueryDefinition<LayoutValue> {
   const { fetchLayouts } = useAppQueries();
   return {
-    queryKey: ['formLayouts', layoutSetId, enabled],
+    queryKey: getLayoutQueryKey(layoutSetId),
     queryFn: layoutSetId
       ? () => fetchLayouts(layoutSetId).then((layouts) => processLayouts(layouts, layoutSetId, defaultDataModelType))
       : skipToken,
@@ -128,7 +130,7 @@ function addLikertItemToLayout(layouts: ILayouts) {
   }
 }
 
-function processLayouts(input: ILayoutCollection, layoutSetId: string, dataModelType: string): LayoutValue {
+export function processLayouts(input: ILayoutCollection, layoutSetId: string, dataModelType: string): LayoutValue {
   const layouts: ILayouts = {};
   const hiddenLayoutsExpressions: IHiddenLayoutsExternal = {};
   const expandedWidthLayouts: IExpandedWidthLayouts = {};
