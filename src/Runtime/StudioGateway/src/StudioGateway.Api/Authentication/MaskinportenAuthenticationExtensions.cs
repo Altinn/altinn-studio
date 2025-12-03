@@ -22,6 +22,10 @@ internal static class MaskinportenAuthenticationExtensions
             builder.Configuration["Maskinporten:RequiredScope"]
             ?? throw new InvalidOperationException("Maskinporten:RequiredScope configuration is required");
 
+        builder.Services.AddHttpClient();
+        builder.Services.AddSingleton<IssuerSchemeCache>();
+        builder.Services.AddHostedService<IssuerSchemeCacheInitializer>();
+
         var authBuilder = builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
         var schemeNames = new List<string>(metadataAddresses.Length);
 
@@ -48,6 +52,20 @@ internal static class MaskinportenAuthenticationExtensions
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
                         ClockSkew = TimeSpan.FromSeconds(30),
+                    };
+
+                    // Route to correct scheme based on token issuer to avoid validation attempts against wrong issuers
+                    var defaultForwardSelector = options.ForwardDefaultSelector;
+                    options.ForwardDefaultSelector = context =>
+                    {
+                        var issuerCache = context.RequestServices.GetRequiredService<IssuerSchemeCache>();
+                        var tokenIssuer = ExtractIssuerFromToken(context.Request.Headers.Authorization);
+                        if (tokenIssuer is not null && issuerCache.TryGetScheme(tokenIssuer, out var targetScheme))
+                            return targetScheme;
+
+                        if (defaultForwardSelector is not null)
+                            return defaultForwardSelector(context);
+                        return null;
                     };
 
                     options.Events = new JwtBearerEvents
@@ -191,5 +209,23 @@ internal static class MaskinportenAuthenticationExtensions
         }
 
         return (true, null, null);
+    }
+
+    private static string? ExtractIssuerFromToken(StringValues authorizationHeaderValues)
+    {
+        var headerValue = authorizationHeaderValues.Count == 0 ? null : authorizationHeaderValues[0];
+        if (string.IsNullOrEmpty(headerValue) || !headerValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        var token = headerValue["Bearer ".Length..].Trim();
+        if (string.IsNullOrEmpty(token))
+            return null;
+
+        var handler = new JwtSecurityTokenHandler();
+        if (!handler.CanReadToken(token))
+            return null;
+
+        var jwt = handler.ReadJwtToken(token);
+        return jwt.Issuer;
     }
 }
