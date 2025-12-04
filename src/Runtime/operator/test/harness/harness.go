@@ -261,31 +261,42 @@ func DownloadAndPushDeploymentChart() (bool, error) {
 
 	chartsDir := filepath.Join(projectRoot, ".cache", "altinn-studio-charts")
 	chartPath := filepath.Join(chartsDir, "charts", "deployment")
-	chartsBranch := "feature/maskinporten-integration"
+	chartsBranch := "main"
 
 	// Clone or update the charts repo
 	fmt.Println("Downloading altinn-studio-charts...")
 	start := time.Now()
 
-	if _, err := os.Stat(chartsDir); os.IsNotExist(err) {
-		// Clone the repo
+	cloneRepo := func() error {
 		cmd := exec.Command("git", "clone", "--depth", "1", "--branch", chartsBranch,
 			"https://github.com/Altinn/altinn-studio-charts.git", chartsDir)
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			return false, fmt.Errorf("failed to clone altinn-studio-charts: %w\nOutput: %s", err, string(output))
+			return fmt.Errorf("failed to clone altinn-studio-charts: %w\nOutput: %s", err, string(output))
+		}
+		return nil
+	}
+
+	if _, err := os.Stat(chartsDir); os.IsNotExist(err) {
+		if err := cloneRepo(); err != nil {
+			return false, err
 		}
 	} else {
 		// Update existing repo
 		cmd := exec.Command("git", "-C", chartsDir, "fetch", "origin", chartsBranch)
 		output, err := cmd.CombinedOutput()
-		if err != nil {
-			return false, fmt.Errorf("failed to fetch altinn-studio-charts: %w\nOutput: %s", err, string(output))
+		if err == nil {
+			cmd = exec.Command("git", "-C", chartsDir, "reset", "--hard", "origin/"+chartsBranch)
+			output, err = cmd.CombinedOutput()
 		}
-		cmd = exec.Command("git", "-C", chartsDir, "reset", "--hard", "origin/"+chartsBranch)
-		output, err = cmd.CombinedOutput()
 		if err != nil {
-			return false, fmt.Errorf("failed to reset altinn-studio-charts: %w\nOutput: %s", err, string(output))
+			// Fetch or reset failed, delete and re-clone
+			if removeErr := os.RemoveAll(chartsDir); removeErr != nil {
+				return false, fmt.Errorf("failed to reinstall altinn-studio-charts: %w (original error: %s)", removeErr, string(output))
+			}
+			if err := cloneRepo(); err != nil {
+				return false, err
+			}
 		}
 	}
 	LogDuration("Downloaded altinn-studio-charts", start)
