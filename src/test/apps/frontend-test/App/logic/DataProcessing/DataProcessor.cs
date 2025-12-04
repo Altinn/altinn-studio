@@ -19,7 +19,7 @@ namespace Altinn.App.logic.DataProcessing
 
         public Task ProcessDataWrite(Instance instance, Guid? dataId, object data, object? previous, string? language)
         {
- 
+
             if (data.GetType() == typeof(NestedGroup))
             {
                 NestedGroup model = (NestedGroup)data;
@@ -32,6 +32,11 @@ namespace Altinn.App.logic.DataProcessing
 
                 // Server-side computed values for prefilling values in a group
                 // See https://github.com/Altinn/app-frontend-react/issues/319
+                if (!model.PrefillValuesEnabled)
+                {
+                    model.PrefillValuesShadow = model.PrefillValues;
+                }
+
                 if (!string.IsNullOrEmpty(model.PrefillValues) || model.PrefillValues != model.PrefillValuesShadow)
                 {
                     model.Endringsmeldinggrp9786 ??= new Endringsmeldinggrp9786();
@@ -170,7 +175,7 @@ namespace Altinn.App.logic.DataProcessing
                 {
                     model.ColorsLabelsVerify = null;
                 }
-                
+
                 if (model.ColorsLabels?.Count  > 0)
                 {
                     /*
@@ -182,7 +187,7 @@ namespace Altinn.App.logic.DataProcessing
                     var stringToSave = string.Join(",", model.ColorsLabels);
                     model.ColorsLabelsVerify = stringToSave;
                 }
-                
+
                 if (model?.NyttNavngrp9313?.NyttNavngrp9314?.PersonFornavnNyttdatadef34758?.value == "TriggerCalculation")
                 {
                     model.NyttNavngrp9313.NyttNavngrp9314.PersonMellomnavnNyttdatadef34759 ??= new PersonMellomnavnNyttdatadef34759();
@@ -237,7 +242,7 @@ namespace Altinn.App.logic.DataProcessing
                         }
                     }
                 }
-                
+
                 if (model?.FilteredOptions?.Ingredients != null)
                 {
                     var usedTypes = new HashSet<decimal?>();

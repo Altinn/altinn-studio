@@ -42,7 +42,6 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     services.AddTransient<IUserAction, GeneratePetsAction>();
     services.AddMimeTypeValidation();
     services.AddTransient<IDataWriteProcessor, ChangenameDataProcessor>();
-    services.AddTransient<IDataWriteProcessor, GroupDataProcessor>();
 }
 
 // ###########################################################################
