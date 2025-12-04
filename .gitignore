@@ -9,6 +9,7 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+.venv
 
 # Pytest
 .coverage
@@ -17,3 +18,6 @@ htmlcov/
 
 # Claude
 .claude
+
+# IDE
+.vscode/
