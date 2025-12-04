@@ -43,7 +43,7 @@ const repoStatusQueryKey: string[] = [QueryKey.RepoStatus, orgName, repositoryNa
 const orgCodeListsQueryKey: string[] = [QueryKey.OrgCodeLists, orgName];
 const orgTextResourcesQueryKey: string[] = [QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE];
 const sharedResourcesByPathQueryKey: string[] = [
-  QueryKey.SharedResourcesByPath,
+  QueryKey.GetSharedResourcesByPath,
   orgName,
   'CodeLists',
 ];
