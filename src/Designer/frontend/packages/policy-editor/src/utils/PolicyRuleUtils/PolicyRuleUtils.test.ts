@@ -124,13 +124,26 @@ describe('PolicyRuleUtils', () => {
         code: 'sys-altinn2',
       },
     },
+    {
+      id: 'e16ab886-1e1e-4f45-8f79-46f06f720f3e',
+      name: 'Selvregistrert bruker',
+      description: 'Selvregistrert bruker',
+      urn: 'urn:altinn:role:selvregistrert',
+      legacyRoleCode: 'SELN',
+      legacyUrn: 'urn:altinn:rolecode:SELN',
+      provider: {
+        id: '0195ea92-2080-777d-8626-69c91ea2a05d',
+        name: 'Altinn 2',
+        code: 'sys-altinn2',
+      },
+    },
     policySubjectOrg,
   ];
   describe('getCcrSubjects', () => {
     it('should return ccr subjects', () => {
       const ccrSubjects = getCcrSubjects(testSubjects);
 
-      expect(ccrSubjects.map((x) => x.legacyUrn)).toBe(['urn:altinn:rolecode:INNH']);
+      expect(ccrSubjects.map((x) => x.legacyUrn)).toEqual(['urn:altinn:rolecode:INNH']);
     });
   });
 
@@ -138,7 +151,7 @@ describe('PolicyRuleUtils', () => {
     it('should return ccr subjects', () => {
       const ccrSubjects = getAltinnSubjects(testSubjects);
 
-      expect(ccrSubjects.map((x) => x.legacyUrn)).toBe(['urn:altinn:rolecode:UILUF']);
+      expect(ccrSubjects.map((x) => x.legacyUrn)).toEqual(['urn:altinn:rolecode:UILUF']);
     });
   });
 
@@ -146,8 +159,9 @@ describe('PolicyRuleUtils', () => {
     it('should return ccr subjects', () => {
       const ccrSubjects = getOtherSubjects(testSubjects);
 
-      expect(ccrSubjects.map((x) => x.legacyUrn)).toBe([
+      expect(ccrSubjects.map((x) => x.legacyUrn)).toEqual([
         'urn:altinn:rolecode:PRIV',
+        'urn:altinn:rolecode:SELN',
         policySubjectOrg.urn,
       ]);
     });
