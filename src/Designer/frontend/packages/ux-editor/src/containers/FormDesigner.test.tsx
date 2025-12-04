@@ -20,6 +20,8 @@ import { appContextMock } from '../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
 import userEvent from '@testing-library/user-event';
 import { user as userMock } from 'app-shared/mocks/mocks';
+import { dataModelMetadataMock } from '../testing/dataModelMock';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 jest.mock('app-shared/api/mutations', () => ({
   createPreviewInstance: jest.fn().mockReturnValue(Promise.resolve({ id: 1 })),
@@ -32,7 +34,7 @@ const defaultTexts: ITextResources = {
 const dataModelName = undefined;
 const user = userEvent.setup();
 
-const render = () => {
+const render = (withDataModel?: { dataModelName: string; dataModelMetadata: any }) => {
   const queryClient = createQueryClientMock();
   const queries = {
     getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock)),
@@ -41,13 +43,42 @@ const render = () => {
       .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
     getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('test')),
     getPages: jest.fn().mockImplementation(() => Promise.resolve(pagesModelMock)),
+    ...(withDataModel && {
+      getAppMetadataModelIds: jest
+        .fn()
+        .mockImplementation(() => Promise.resolve([withDataModel.dataModelName])),
+      getDataModelMetadata: jest.fn().mockImplementation(() =>
+        Promise.resolve({
+          elements: Object.fromEntries(
+            withDataModel.dataModelMetadata.map((field: any) => [field.id, field]),
+          ),
+        }),
+      ),
+    }),
   };
+  queryClient.setQueryData([QueryKey.LayoutSets, org, app], {
+    sets: [
+      {
+        id: 'test-layout-set',
+        dataType: withDataModel?.dataModelName ?? 'data-model',
+        tasks: ['Task_1'],
+      },
+    ],
+  });
   queryClient.setQueryData(
-    [QueryKey.DataModelMetadata, org, app, 'test-layout-set', dataModelName],
-    [],
+    [
+      QueryKey.DataModelMetadata,
+      org,
+      app,
+      'test-layout-set',
+      withDataModel?.dataModelName ?? dataModelName,
+    ],
+    withDataModel?.dataModelMetadata ?? [],
   );
+
   queryClient.setQueryData([QueryKey.TextResources, org, app], defaultTexts);
   queryClient.setQueryData([QueryKey.CurrentUser], [userMock]);
+
   return renderWithProviders(
     <FormItemContext.Provider
       value={{
@@ -178,5 +209,51 @@ describe('FormDesigner', () => {
     expect(
       screen.getByRole('button', { name: textMock('ux_editor.close_preview') }),
     ).toBeInTheDocument();
+  });
+
+  it('should auto-bind data model field when dragging a component with available data model', async () => {
+    await waitForData();
+    const testDataModelName = 'testModel';
+    render({
+      dataModelName: testDataModelName,
+      dataModelMetadata: dataModelMetadataMock,
+    });
+    const component = await screen.findAllByText(textMock('ux_editor.component_title.Input'));
+    const tree = await screen.findByRole('tree');
+    dragAndDrop(component[0], tree);
+    await waitFor(() => expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1));
+    const mockFn = queriesMock.saveFormLayout as jest.Mock;
+    const callArgs = mockFn.mock.calls[0];
+    const savedPayload = callArgs[4] as any;
+    const layoutComponents = savedPayload.layout.data.layout;
+    const newInputComponent = layoutComponents.find(
+      (comp: any) =>
+        comp.type === ComponentType.Input && comp.id.startsWith('Input-') && comp.id !== 'Input',
+    );
+    expect(newInputComponent).toBeDefined();
+    expect(newInputComponent.dataModelBindings).toBeDefined();
+    expect(newInputComponent.dataModelBindings.simpleBinding).toEqual({
+      field: 'field1',
+      dataType: testDataModelName,
+    });
+  });
+
+  it('should not auto-bind when no data model exists', async () => {
+    await waitForData();
+    render();
+    const component = await screen.findAllByText(textMock('ux_editor.component_title.Input'));
+    const tree = await screen.findByRole('tree');
+    dragAndDrop(component[0], tree);
+    await waitFor(() => expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1));
+    const mockFn = queriesMock.saveFormLayout as jest.Mock;
+    const callArgs = mockFn.mock.calls[0];
+    const savedPayload = callArgs[4] as any;
+    const layoutComponents = savedPayload.layout.data.layout;
+    const newInputComponent = layoutComponents.find(
+      (comp: any) =>
+        comp.type === ComponentType.Input && comp.id.startsWith('Input-') && comp.id !== 'Input',
+    );
+    expect(newInputComponent).toBeDefined();
+    expect(newInputComponent.dataModelBindings?.simpleBinding).toBe('');
   });
 });
