@@ -9,7 +9,15 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+.venv
 
+# Pytest
+.coverage
+htmlcov/
+.pytest_cache/
 
 # Claude
 .claude
+
+# IDE
+.vscode/
