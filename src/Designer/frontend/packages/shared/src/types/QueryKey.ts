@@ -36,7 +36,6 @@ export enum QueryKey {
   OrgCodeLists = 'OrgCodeLists',
   OrgCodeListsNew = 'OrgCodeListsNew',
   OrgTextLanguages = 'OrgTextLanguages',
-  SharedResourcesByPath = 'SharedResourcesByPath',
   GetSharedResourcesByPath = 'GetSharedResourcesByPath',
   GetSharedResourcesByPathAndReference = 'GetSharedResourcesByPathAndReference',
   OrgTextResources = 'OrgTextResources',

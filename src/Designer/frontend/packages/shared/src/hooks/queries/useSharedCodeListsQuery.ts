@@ -12,7 +12,7 @@ export function useSharedCodeListsQuery(
 ): UseQueryResult<GetSharedResourcesResponse> {
   const { getSharedResourcesByPath } = useServicesContext();
   return useQuery<GetSharedResourcesResponse>({
-    queryKey: [QueryKey.SharedResourcesByPath, orgName, path],
+    queryKey: [QueryKey.GetSharedResourcesByPath, orgName, path],
     queryFn: () => getSharedResourcesByPath(orgName, path),
   });
 }

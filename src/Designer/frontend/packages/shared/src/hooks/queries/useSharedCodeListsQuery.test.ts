@@ -40,7 +40,7 @@ describe('useSharedCodeListsQuery', () => {
     const client = createQueryClientMock();
     const { result } = renderUseSharedCodeListsQuery(client);
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(client.getQueryData([QueryKey.SharedResourcesByPath, orgName, path])).toEqual(
+    expect(client.getQueryData([QueryKey.GetSharedResourcesByPath, orgName, path])).toEqual(
       getSharedResourcesResponse,
     );
   });
@@ -48,7 +48,7 @@ describe('useSharedCodeListsQuery', () => {
   it('Returns the correct data from the cache', () => {
     const client = createQueryClientMock();
     client.setQueryData(
-      [QueryKey.SharedResourcesByPath, orgName, path],
+      [QueryKey.GetSharedResourcesByPath, orgName, path],
       getSharedResourcesResponse,
     );
     const { result } = renderUseSharedCodeListsQuery(client);

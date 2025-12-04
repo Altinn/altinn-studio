@@ -12,6 +12,6 @@ export function useUpdateSharedResourcesMutation(
   return useMutation<void, DefaultError, UpdateSharedResourcesRequest>({
     mutationFn: (payload) => updateSharedResources(orgName, payload),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: [QueryKey.SharedResourcesByPath, orgName] }),
+      queryClient.invalidateQueries({ queryKey: [QueryKey.GetSharedResourcesByPath, orgName] }),
   });
 }

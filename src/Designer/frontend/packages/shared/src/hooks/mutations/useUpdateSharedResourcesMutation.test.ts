@@ -42,7 +42,7 @@ describe('useUpdateSharedResourcesMutation', () => {
 
     expect(invalidateQueries).toHaveBeenCalledTimes(1);
     expect(invalidateQueries).toHaveBeenCalledWith({
-      queryKey: [QueryKey.SharedResourcesByPath, orgName],
+      queryKey: [QueryKey.GetSharedResourcesByPath, orgName],
     });
   });
 });
