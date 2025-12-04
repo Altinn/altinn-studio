@@ -18,13 +18,14 @@ internal static class FluxWebhookEndpoints
         return app;
     }
 
-    private static IResult HandleFluxWebhook(
+    private static async Task<IResult> HandleFluxWebhook(
         FluxEvent fluxEvent,
         ILogger<Program> logger,
-        MaskinportenClient maskinportenClient
+        MaskinportenClient maskinportenClient,
+        CancellationToken cancellationToken
     )
     {
-        var token = maskinportenClient.CurrentToken;
+        var token = await maskinportenClient.GetToken(cancellationToken);
         logger.LogInformation(
             "Received Flux event: Event={FluxEvent}, HasToken={HasToken}",
             fluxEvent,

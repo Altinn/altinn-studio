@@ -11,80 +11,106 @@ internal sealed class MaskinportenClient(
     IOptionsMonitor<MaskinportenSettings> _settings,
     IOptionsMonitor<MaskinportenClientSettings> _clientSettings,
     IHostApplicationLifetime _lifetime
-) : IHostedService
+) : IDisposable
 {
     private static readonly HttpClient _httpClient = new HttpClient(
         new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(10) }
     );
+
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
+
+    public void Dispose() => _semaphore.Dispose();
 
     private Uri? _metadataAddress;
     private Uri? _tokenEndpoint;
     private string? _audience;
 
     private MaskinportenTokenResponse? _currentToken;
+    private DateTimeOffset _refreshAt;
+    private DateTimeOffset _expiresAt;
+    private int _refreshing;
 
-    public string CurrentToken
+    public ValueTask<string> GetToken(CancellationToken cancellationToken)
     {
-        get
+        var token = Volatile.Read(ref _currentToken);
+        var now = DateTimeOffset.UtcNow;
+
+        if (token is not null && now < _expiresAt)
         {
-            var token = Volatile.Read(ref _currentToken);
-            return token?.AccessToken ?? throw new InvalidOperationException("Maskinporten token not yet acquired");
+            if (now >= _refreshAt && Interlocked.CompareExchange(ref _refreshing, 1, 0) == 0)
+                _ = Task.Run(() => RefreshInBackground(), CancellationToken.None);
+            return new ValueTask<string>(token.AccessToken);
         }
-    }
 
-    public Task StartAsync(CancellationToken cancellationToken)
-    {
-        var firstTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        _lifetime.ApplicationStopping.Register(() => firstTcs.TrySetCanceled());
-        _ = Task.Run(() => Run(firstTcs, cancellationToken), cancellationToken);
-        return firstTcs.Task;
-    }
+        return GetTokenAsync(cancellationToken);
 
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-
-    private async Task Run(TaskCompletionSource first, CancellationToken cancellationToken)
-    {
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(
-            cancellationToken,
-            _lifetime.ApplicationStopping
-        );
-        cancellationToken = cts.Token;
-
-        _logger.LogInformation("MaskinportenClient started");
-
-        while (!cancellationToken.IsCancellationRequested)
+        async ValueTask<string> GetTokenAsync(CancellationToken cancellationToken)
         {
+            await _semaphore.WaitAsync(cancellationToken);
             try
             {
-                var token = await GetToken(cancellationToken);
-                Volatile.Write(ref _currentToken, token);
-                _logger.LogInformation("Acquired new Maskinporten token");
-                first.TrySetResult();
+                token = Volatile.Read(ref _currentToken);
+                if (token is not null && DateTimeOffset.UtcNow < _expiresAt)
+                    return token.AccessToken;
 
-                var delay = token.ExpiresIn - 60;
-                await Task.Delay(TimeSpan.FromSeconds(delay), cancellationToken);
+                token = await GetTokenInternal(cancellationToken);
+                UpdateTokenState(token);
+                _logger.LogInformation("Acquired new Maskinporten token");
+                return token.AccessToken;
             }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            finally
             {
-                break;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error acquiring Maskinporten token");
-                await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+                _semaphore.Release();
             }
         }
-
-        _logger.LogInformation("MaskinportenClient stopping");
     }
 
-    private async Task<MaskinportenTokenResponse> GetToken(CancellationToken cancellationToken = default)
+    private void UpdateTokenState(MaskinportenTokenResponse token)
+    {
+        var now = DateTimeOffset.UtcNow;
+        _refreshAt = now.AddSeconds(token.ExpiresIn - 60);
+        _expiresAt = now.AddSeconds(token.ExpiresIn - 5);
+        Volatile.Write(ref _currentToken, token);
+    }
+
+    private async Task RefreshInBackground()
+    {
+        var cancellationToken = _lifetime.ApplicationStopping;
+        try
+        {
+            await _semaphore.WaitAsync(cancellationToken);
+            try
+            {
+                var token = await GetTokenInternal(cancellationToken);
+                UpdateTokenState(token);
+                _logger.LogInformation("Background refresh: acquired new Maskinporten token");
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // Application is shutting down, ignore
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Background refresh failed, will retry on next request");
+        }
+        finally
+        {
+            Volatile.Write(ref _refreshing, 0);
+        }
+    }
+
+    private async Task<MaskinportenTokenResponse> GetTokenInternal(CancellationToken cancellationToken)
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         cts.CancelAfter(TimeSpan.FromSeconds(10));
         cancellationToken = cts.Token;
 
-        await EnsureMetadataLoadedAsync(cancellationToken);
+        await EnsureMetadataLoaded(cancellationToken);
         Debug.Assert(_tokenEndpoint is not null);
         Debug.Assert(_audience is not null);
 
@@ -159,7 +185,7 @@ internal sealed class MaskinportenClient(
         return handler.WriteToken(token);
     }
 
-    private async ValueTask EnsureMetadataLoadedAsync(CancellationToken cancellationToken)
+    private async ValueTask EnsureMetadataLoaded(CancellationToken cancellationToken)
     {
         var settings = _settings.CurrentValue;
         var currentMetadataAddressUri = new Uri(settings.ClientMetadataAddress);
