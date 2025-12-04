@@ -22,7 +22,7 @@ metadata:
   name: grafana-manifests
   namespace: runtime-grafana
 spec:
-  targetNamespace: runtime-grafana
+  targetNamespace: grafana
   interval: 5m
   retryInterval: 5m
   timeout: 1m
