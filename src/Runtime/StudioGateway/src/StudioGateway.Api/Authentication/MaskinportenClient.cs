@@ -108,7 +108,19 @@ internal sealed class MaskinportenClient(
     {
         var now = DateTimeOffset.UtcNow;
         var clientSettings = _clientSettings.CurrentValue;
-        var jwk = new JsonWebKey(clientSettings.Jwk);
+
+        if (string.IsNullOrWhiteSpace(clientSettings.Jwk))
+        {
+            throw new InvalidOperationException(
+                "MaskinportenClientForDesigner:Jwk is not configured. Ensure the secret is mounted correctly."
+            );
+        }
+
+        // JsonSerializer.Deserialize properly initializes RSA key internals, unlike new JsonWebKey(string)
+        var jwk =
+            JsonSerializer.Deserialize(clientSettings.Jwk, MaskinportenJsonSerializerContext.Default.JsonWebKey)
+            ?? throw new InvalidOperationException("Failed to deserialize JWK");
+
         var signingCredentials = new SigningCredentials(jwk, jwk.Alg);
         var header = new JwtHeader(signingCredentials);
 
