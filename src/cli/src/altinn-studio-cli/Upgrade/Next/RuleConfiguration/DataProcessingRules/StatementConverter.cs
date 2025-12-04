@@ -405,7 +405,7 @@ internal class StatementConverter
         }
         else if (IsStringType(conditionType))
         {
-            condition = $"{condition} != \"\"";
+            condition = $"!string.IsNullOrEmpty({condition})";
         }
         else if (IsNumericType(conditionType) || TestNeedsBooleanConversion(ifStmt.Test))
         {
@@ -468,7 +468,7 @@ internal class StatementConverter
                 }
                 else if (IsStringType(elseIfConditionType))
                 {
-                    elseIfCondition = $"{elseIfCondition} != \"\"";
+                    elseIfCondition = $"!string.IsNullOrEmpty({elseIfCondition})";
                 }
                 else if (IsNumericType(elseIfConditionType) || TestNeedsBooleanConversion(elseIf.Test))
                 {
@@ -595,6 +595,8 @@ internal class StatementConverter
         {
             Literal lit => lit.Value is string,
             TemplateLiteral => true,
+            Identifier id => IsIdentifierStringType(id),
+            MemberExpression member => IsMemberExpressionStringType(member),
             CallExpression call
                 when call.Callee is MemberExpression member && member.Property is Identifier methodName =>
                 methodName.Name is "toString" or "toUpperCase" or "toLowerCase" or "trim" or "split",
@@ -1155,7 +1157,18 @@ internal class StatementConverter
             if (!alternate.Trim().StartsWith("\""))
             {
                 // It's not already a string literal
-                alternate = $"({alternate}?.ToString() ?? \"\")";
+                // Check if this is a simple identifier or member expression that could be null
+                if (conditional.Alternate is Identifier || conditional.Alternate is MemberExpression)
+                {
+                    // For identifiers and member expressions, use null-conditional operator
+                    alternate = $"({alternate}?.ToString() ?? \"\")";
+                }
+                else
+                {
+                    // For complex expressions (binary operations, etc.), the result is a value type
+                    // that can't be null, so just call ToString() without ?.
+                    alternate = $"({alternate}).ToString()";
+                }
             }
         }
         else if (!consequentIsString && alternateIsString)
@@ -1164,7 +1177,18 @@ internal class StatementConverter
             if (!consequent.Trim().StartsWith("\""))
             {
                 // It's not already a string literal
-                consequent = $"({consequent}?.ToString() ?? \"\")";
+                // Check if this is a simple identifier or member expression that could be null
+                if (conditional.Consequent is Identifier || conditional.Consequent is MemberExpression)
+                {
+                    // For identifiers and member expressions, use null-conditional operator
+                    consequent = $"({consequent}?.ToString() ?? \"\")";
+                }
+                else
+                {
+                    // For complex expressions (binary operations, etc.), the result is a value type
+                    // that can't be null, so just call ToString() without ?.
+                    consequent = $"({consequent}).ToString()";
+                }
             }
         }
 
@@ -1177,7 +1201,7 @@ internal class StatementConverter
         }
         else if (IsStringType(testType))
         {
-            test = $"{test} != \"\"";
+            test = $"!string.IsNullOrEmpty({test})";
         }
         else if (IsNumericType(testType) || TestNeedsBooleanConversion(conditional.Test))
         {
