@@ -12,7 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"altinn.studio/pdf3/test/harness"
+	localharness "altinn.studio/pdf3/test/harness"
+	"altinn.studio/runtime-fixture/pkg/harness"
 	"altinn.studio/runtime-fixture/pkg/kubernetes"
 	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
 	"altinn.studio/runtime-fixture/pkg/tools"
@@ -73,87 +74,46 @@ func printUsage() {
 
 // setupRuntime sets up the Kind cluster, builds images, and deploys pdf3
 func setupRuntime(variant kind.KindContainerRuntimeVariant, options kind.KindContainerRuntimeOptions) (*kind.KindContainerRuntime, error) {
-	fmt.Println("=== Setting Up Runtime ===")
-
-	// Step 1: Setup cluster
-	// We run this asynchronously as bootstrapping a full kind cluster takes some time.
-	// As long as the registry is started, we can start building stuff on our side
-	registryStartedEvent := make(chan error, 1)
-	ingressReadyEvent := make(chan error, 1)
-	runtimeResult := make(chan Result[*kind.KindContainerRuntime], 1)
-	go func() {
-		runtime, err := harness.SetupCluster(variant, options, registryStartedEvent, ingressReadyEvent)
-		runtimeResult <- NewResult(runtime, err)
-	}()
-
-	// As soon as the registry is started, we can start building and pushing
-	// Use select to handle early failures and avoid deadlock
-	var runtimeResultValue *Result[*kind.KindContainerRuntime]
-	select {
-	case <-registryStartedEvent:
-		// Normal path - registry started, continue to build/push
-	case result := <-runtimeResult:
-		// Early failure - SetupCluster failed before registry started
-		runtimeResultValue = &result
-		if _, err := result.Unwrap(); err != nil {
-			return nil, fmt.Errorf("failed to setup cluster: %w", err)
-		}
-		return nil, fmt.Errorf("got runtime result but no registry event, invalid state")
-	case <-time.After(5 * time.Minute):
-		return nil, fmt.Errorf("timeout waiting for registry to start")
-	}
-
-	// Step 2: Build and push images
-	buildResult := make(chan error, 1)
-	go func() {
-		buildResult <- harness.BuildAndPushImages()
-	}()
-
-	// Step 3: Push kustomize artifact
-	pushResult := make(chan error, 1)
-	go func() {
-		pushResult <- harness.PushKustomizeArtifact()
-	}()
-
-	// Now let's wait for the runtime to be fully built
-	// Check if we already consumed runtimeResult earlier (in case of early completion/failure)
-	var runtime *kind.KindContainerRuntime
-	var err error
-	if runtimeResultValue != nil {
-		// We already consumed runtimeResult earlier in the select
-		runtime, err = runtimeResultValue.Unwrap()
-	} else {
-		// Normal path - read from channel
-		runtime, err = (<-runtimeResult).Unwrap()
-	}
+	root, err := localharness.FindProjectRoot()
 	if err != nil {
-		return nil, fmt.Errorf("failed to setup cluster: %w", err)
+		return nil, err
 	}
 
-	if err := <-buildResult; err != nil {
-		return nil, fmt.Errorf("failed to build and push images: %w", err)
+	variantName := "minimal"
+	if variant == kind.KindContainerRuntimeVariantStandard {
+		variantName = "standard"
 	}
 
-	if err := <-pushResult; err != nil {
-		return nil, fmt.Errorf("failed to push kustomize artifact: %w", err)
+	cfg := harness.Config{
+		ProjectRoot:    root,
+		Variant:        variant,
+		ClusterOptions: options,
+		Images: []harness.Image{
+			{Name: "proxy", Dockerfile: "Dockerfile.proxy", Tag: "localhost:5001/runtime-pdf3-proxy:latest"},
+			{Name: "worker", Dockerfile: "Dockerfile.worker", Tag: "localhost:5001/runtime-pdf3-worker:latest"},
+		},
+		Artifacts: []harness.Artifact{
+			{Name: "kustomize", URL: "oci://localhost:5001/runtime-pdf3-repo:local", Path: "infra/kustomize"},
+		},
+		Deployments: []harness.Deployment{{
+			Name: "pdf3",
+			Kustomize: &harness.KustomizeDeploy{
+				SyncRootDir:       fmt.Sprintf("infra/kustomize/local-syncroot-%s", variantName),
+				KustomizationName: "pdf3-app",
+				Namespace:         "runtime-pdf3",
+				Rollouts: []harness.Rollout{
+					{Deployment: "pdf3-proxy", Namespace: "runtime-pdf3"},
+					{Deployment: "pdf3-worker", Namespace: "runtime-pdf3"},
+				},
+			},
+		}},
 	}
 
-	// Step 4: Deploy pdf3 via Flux
-	if err := harness.DeployPdf3ViaFlux(variant); err != nil {
-		return nil, fmt.Errorf("failed to deploy pdf3: %w", err)
-	}
-
-	// Step 5: let's wait for ingress
-	fmt.Printf("Waiting for ingress...\n")
-	start := time.Now()
-	err = <-ingressReadyEvent
-	harness.LogDuration("Waited for ingress", start)
+	result, err := harness.Run(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to wait for ingress: %w", err)
+		return nil, err
 	}
-
-	fmt.Println("✓ Runtime setup complete")
-	return runtime, nil
+	return result.Runtime, nil
 }
 
 func runStart() {
@@ -205,23 +165,19 @@ func runStart() {
 func runStop() {
 	fmt.Println("=== PDF3 Runtime Stop ===")
 
-	// Find project root
-	projectRoot, err := harness.FindProjectRoot()
+	root, err := localharness.FindProjectRoot()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		os.Exit(1)
 	}
 
-	// Load existing runtime
-	cachePath := filepath.Join(projectRoot, ".cache")
-	runtime, err := kind.LoadCurrent(cachePath)
+	result, err := harness.LoadExisting(filepath.Join(root, ".cache"))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load runtime: %v\n", err)
 		os.Exit(1)
 	}
 
-	// Stop the runtime
-	if err := runtime.Stop(); err != nil {
+	if err := result.Runtime.Stop(); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to stop runtime: %v\n", err)
 		os.Exit(1)
 	}
@@ -247,7 +203,7 @@ func runTest() {
 	runBoth := !*runSmoke && !*runSimple
 
 	// Find project root for logs directory
-	projectRoot, err := harness.FindProjectRoot()
+	projectRoot, err := localharness.FindProjectRoot()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		os.Exit(1)
@@ -257,7 +213,7 @@ func runTest() {
 
 	// Setup runtime
 	var runtime *kind.KindContainerRuntime
-	if harness.IsCI {
+	if localharness.IsCI {
 		// For CI, we run `make run v=...` in a separate step, so just expect everything to be up
 		// it also runs `setupRuntime` like below
 		runtime, err = kind.LoadCurrent(filepath.Join(projectRoot, ".cache"))
@@ -461,7 +417,7 @@ func findChromePath(projectRoot string) (string, error) {
 
 func runLoadtestEnv() {
 	// Find project root
-	projectRoot, err := harness.FindProjectRoot()
+	projectRoot, err := localharness.FindProjectRoot()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		os.Exit(1)
@@ -580,7 +536,7 @@ func runLoadtestLocal() {
 	}
 
 	// Find project root
-	projectRoot, err := harness.FindProjectRoot()
+	projectRoot, err := localharness.FindProjectRoot()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
 		os.Exit(1)
@@ -590,7 +546,7 @@ func runLoadtestLocal() {
 
 	// Setup runtime
 	var runtime *kind.KindContainerRuntime
-	if harness.IsCI {
+	if localharness.IsCI {
 		// For CI, we run `make run v=...` in a separate step, so just expect everything to be up
 		// it also runs `setupRuntime` like below
 		runtime, err = kind.LoadCurrent(filepath.Join(projectRoot, ".cache"))
@@ -682,20 +638,4 @@ func runLoadtestLocal() {
 	}
 
 	fmt.Println("\n=== Load Test Completed ===")
-}
-
-type Result[T any] struct {
-	Value T
-	Err   error
-}
-
-func NewResult[T any](value T, err error) Result[T] {
-	return Result[T]{
-		Value: value,
-		Err:   err,
-	}
-}
-
-func (r Result[T]) Unwrap() (T, error) {
-	return r.Value, r.Err
 }
