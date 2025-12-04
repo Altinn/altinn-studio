@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
@@ -182,6 +183,28 @@ internal static class MaskinportenAuthenticationExtensions
             );
 
         return builder;
+    }
+
+    public static IHttpClientBuilder UseMaskinportenAuth(this IHttpClientBuilder httpClientBuilder)
+    {
+        httpClientBuilder.AddHttpMessageHandler<MaskinportenHttpMessageHandler>();
+        return httpClientBuilder;
+    }
+
+    private sealed class MaskinportenHttpMessageHandler(MaskinportenClient _maskinportenClient) : DelegatingHandler
+    {
+        protected override HttpResponseMessage Send(HttpRequestMessage request, CancellationToken cancellationToken) =>
+            throw new InvalidOperationException("Synchronous Send is not supported. Use SendAsync instead.");
+
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken
+        )
+        {
+            var token = await _maskinportenClient.GetToken(cancellationToken);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            return await base.SendAsync(request, cancellationToken);
+        }
     }
 
     private static (bool TokenPresent, string? Issuer, DateTime? ExpiresUtc) ExtractTokenInfo(
