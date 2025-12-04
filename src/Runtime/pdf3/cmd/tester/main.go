@@ -104,17 +104,15 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant, options kind.KindCon
 	}
 
 	// Step 2: Build and push images
-	buildResult := make(chan Result[bool], 1)
+	buildResult := make(chan error, 1)
 	go func() {
-		imagesChanged, err := harness.BuildAndPushImages()
-		buildResult <- NewResult(imagesChanged, err)
+		buildResult <- harness.BuildAndPushImages()
 	}()
 
 	// Step 3: Push kustomize artifact
-	pushResult := make(chan Result[bool], 1)
+	pushResult := make(chan error, 1)
 	go func() {
-		kustomizeChanged, err := harness.PushKustomizeArtifact()
-		pushResult <- NewResult(kustomizeChanged, err)
+		pushResult <- harness.PushKustomizeArtifact()
 	}()
 
 	// Now let's wait for the runtime to be fully built
@@ -132,19 +130,16 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant, options kind.KindCon
 		return nil, fmt.Errorf("failed to setup cluster: %w", err)
 	}
 
-	imagesChanged, err := (<-buildResult).Unwrap()
-	if err != nil {
+	if err := <-buildResult; err != nil {
 		return nil, fmt.Errorf("failed to build and push images: %w", err)
 	}
 
-	kustomizeChanged, err := (<-pushResult).Unwrap()
-	if err != nil {
+	if err := <-pushResult; err != nil {
 		return nil, fmt.Errorf("failed to push kustomize artifact: %w", err)
 	}
 
 	// Step 4: Deploy pdf3 via Flux
-	_, err = harness.DeployPdf3ViaFlux(variant, imagesChanged, kustomizeChanged)
-	if err != nil {
+	if err := harness.DeployPdf3ViaFlux(variant); err != nil {
 		return nil, fmt.Errorf("failed to deploy pdf3: %w", err)
 	}
 

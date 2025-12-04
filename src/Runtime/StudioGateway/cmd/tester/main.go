@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"altinn.studio/runtime-fixture/pkg/checksum"
 	"altinn.studio/runtime-fixture/pkg/flux"
 	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
 )
@@ -153,29 +152,25 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainer
 	}
 
 	// Build and push in parallel
-	buildResult := make(chan result[bool], 1)
+	buildResult := make(chan error, 1)
 	go func() {
-		changed, err := buildAndPushImage()
-		buildResult <- result[bool]{value: changed, err: err}
+		buildResult <- buildAndPushImage()
 	}()
 
-	pushResult := make(chan result[bool], 1)
+	pushResult := make(chan error, 1)
 	go func() {
-		changed, err := pushKustomizeArtifact()
-		pushResult <- result[bool]{value: changed, err: err}
+		pushResult <- pushKustomizeArtifact()
 	}()
 
-	buildRes := <-buildResult
-	if buildRes.err != nil {
-		return nil, fmt.Errorf("failed to build image: %w", buildRes.err)
+	if err := <-buildResult; err != nil {
+		return nil, fmt.Errorf("failed to build image: %w", err)
 	}
 
-	pushRes := <-pushResult
-	if pushRes.err != nil {
-		return nil, fmt.Errorf("failed to push kustomize: %w", pushRes.err)
+	if err := <-pushResult; err != nil {
+		return nil, fmt.Errorf("failed to push kustomize: %w", err)
 	}
 
-	if err := deployViaFlux(buildRes.value, pushRes.value); err != nil {
+	if err := deployViaFlux(); err != nil {
 		return nil, fmt.Errorf("failed to deploy: %w", err)
 	}
 
@@ -211,71 +206,37 @@ func setupCluster(variant kind.KindContainerRuntimeVariant) (*kind.KindContainer
 	return r, nil
 }
 
-func buildAndPushImage() (bool, error) {
+func buildAndPushImage() error {
 	fmt.Println("=== Building and pushing Docker image ===")
 	start := time.Now()
 
 	root, err := findProjectRoot()
 	if err != nil {
-		return false, err
-	}
-
-	patterns := []string{
-		"src/**/*.cs",
-		"src/**/*.csproj",
-		"Directory.Build.props",
-		"Directory.Packages.props",
-		"Dockerfile",
-	}
-	currentHash, err := checksum.ComputeFilesChecksum(root, patterns)
-	if err != nil {
-		return false, err
-	}
-
-	cachedHash, _ := readCachedChecksum(root, "docker-image")
-	if cachedHash == currentHash {
-		fmt.Println("No source changes, skipping image rebuild")
-		return false, nil
+		return err
 	}
 
 	fmt.Println("Building image...")
 	if err := runtime.ContainerClient.Build(root, "Dockerfile", "localhost:5001/studio-gateway:latest"); err != nil {
-		return false, err
+		return err
 	}
 
 	fmt.Println("Pushing image...")
 	if err := runtime.ContainerClient.Push("localhost:5001/studio-gateway:latest"); err != nil {
-		return false, err
+		return err
 	}
-
-	_ = writeCachedChecksum(root, "docker-image", currentHash)
 
 	fmt.Println("✓ Image built and pushed")
 	logDuration("Build and push image", start)
-	return true, nil
+	return nil
 }
 
-func pushKustomizeArtifact() (bool, error) {
+func pushKustomizeArtifact() error {
 	fmt.Println("=== Pushing kustomize artifact ===")
 	start := time.Now()
 
 	root, err := findProjectRoot()
 	if err != nil {
-		return false, err
-	}
-
-	patterns := []string{
-		"infra/kustomize/**/*.yaml",
-	}
-	currentHash, err := checksum.ComputeFilesChecksum(root, patterns)
-	if err != nil {
-		return false, err
-	}
-
-	cachedHash, _ := readCachedChecksum(root, "kustomize")
-	if cachedHash == currentHash {
-		fmt.Println("No kustomize changes, skipping push")
-		return false, nil
+		return err
 	}
 
 	kustomizePath := filepath.Join(root, "infra", "kustomize")
@@ -285,24 +246,17 @@ func pushKustomizeArtifact() (bool, error) {
 		"local",
 		"local",
 	); err != nil {
-		return false, err
+		return err
 	}
-
-	_ = writeCachedChecksum(root, "kustomize", currentHash)
 
 	fmt.Println("✓ Kustomize artifact pushed")
 	logDuration("Push kustomize artifact", start)
-	return true, nil
+	return nil
 }
 
-func deployViaFlux(imageChanged, kustomizeChanged bool) error {
+func deployViaFlux() error {
 	fmt.Println("=== Deploying studio-gateway via Flux ===")
 	start := time.Now()
-
-	if !imageChanged && !kustomizeChanged && deploymentExists() {
-		fmt.Println("No changes and deployment exists, skipping")
-		return nil
-	}
 
 	root, err := findProjectRoot()
 	if err != nil {
@@ -333,10 +287,6 @@ func deployViaFlux(imageChanged, kustomizeChanged bool) error {
 	fmt.Println("✓ studio-gateway deployed")
 	logDuration("Deploy via Flux", start)
 	return nil
-}
-
-func deploymentExists() bool {
-	return runtime.KubernetesClient.Get("deployment", "studio-gateway", "runtime-gateway") == nil
 }
 
 // Helpers
@@ -380,20 +330,6 @@ func parseVariant(s string) (kind.KindContainerRuntimeVariant, error) {
 
 func logDuration(name string, start time.Time) {
 	fmt.Printf("  [%s took %s]\n", name, time.Since(start))
-}
-
-func readCachedChecksum(root, name string) (string, error) {
-	data, err := os.ReadFile(filepath.Join(root, cachePath, "checksums", name+".txt"))
-	if err != nil {
-		return "", err
-	}
-	return string(data), nil
-}
-
-func writeCachedChecksum(root, name, hash string) error {
-	dir := filepath.Join(root, cachePath, "checksums")
-	_ = os.MkdirAll(dir, 0755)
-	return os.WriteFile(filepath.Join(dir, name+".txt"), []byte(hash), 0644)
 }
 
 type result[T any] struct {

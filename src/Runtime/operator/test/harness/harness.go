@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"altinn.studio/operator/internal/config"
-	"altinn.studio/runtime-fixture/pkg/checksum"
 	"altinn.studio/runtime-fixture/pkg/flux"
 	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
 )
@@ -64,36 +63,12 @@ func SetupCluster(
 }
 
 // BuildAndPushImage builds the operator controller image and pushes it to the local registry
-// Returns true if image was rebuilt, false if skipped due to no changes
-func BuildAndPushImage() (bool, error) {
+func BuildAndPushImage() error {
 	projectRoot, err := config.TryFindProjectRootByGoMod()
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	// Compute checksum
-	patterns := []string{
-		"cmd/**/*.go",
-		"api/**/*.go",
-		"internal/**/*.go",
-		"go.mod",
-		"go.sum",
-		"Dockerfile",
-	}
-	currentHash, err := checksum.ComputeFilesChecksum(projectRoot, patterns)
-	if err != nil {
-		return false, fmt.Errorf("failed to compute checksum: %w", err)
-	}
-
-	// Check cached checksum
-	cacheFile := filepath.Join(projectRoot, ".cache", "checksums", "docker-image.txt")
-	cachedHash, _ := os.ReadFile(cacheFile)
-	if string(cachedHash) == currentHash {
-		fmt.Println("✓ Docker image unchanged (cached)")
-		return false, nil
-	}
-
-	// Build image
 	fmt.Println("Building operator controller image...")
 	start := time.Now()
 	err = Runtime.ContainerClient.Build(
@@ -102,68 +77,28 @@ func BuildAndPushImage() (bool, error) {
 		"localhost:5001/runtime-operator-controller:latest",
 	)
 	if err != nil {
-		return false, err
+		return err
 	}
 	LogDuration("Built image", start)
 
-	// Push image
 	fmt.Println("Pushing image to registry...")
 	start = time.Now()
 	err = Runtime.ContainerClient.Push("localhost:5001/runtime-operator-controller:latest")
 	if err != nil {
-		return false, err
+		return err
 	}
 	LogDuration("Pushed image", start)
 
-	// Write new checksum
-	err = os.MkdirAll(filepath.Dir(cacheFile), 0755)
-	if err != nil {
-		return false, err
-	}
-	err = os.WriteFile(cacheFile, []byte(currentHash), 0644)
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
+	return nil
 }
 
 // BuildAndPushFakesImage builds the fakes image and pushes it to the local registry
-// Returns true if image was rebuilt, false if skipped due to no changes
-func BuildAndPushFakesImage() (bool, error) {
+func BuildAndPushFakesImage() error {
 	projectRoot, err := config.TryFindProjectRootByGoMod()
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	// Compute checksum
-	patterns := []string{
-		"cmd/fakes/**/*.go",
-		"internal/fakes/**/*.go",
-		"internal/config/**/*.go",
-		"internal/crypto/**/*.go",
-		"internal/maskinporten/**/*.go",
-		"internal/operatorcontext/**/*.go",
-		"internal/orgs/**/*.go",
-		"go.mod",
-		"go.sum",
-		"Dockerfile.fakes",
-		"localtest.env",
-	}
-	currentHash, err := checksum.ComputeFilesChecksum(projectRoot, patterns)
-	if err != nil {
-		return false, fmt.Errorf("failed to compute checksum: %w", err)
-	}
-
-	// Check cached checksum
-	cacheFile := filepath.Join(projectRoot, ".cache", "checksums", "docker-fakes-image.txt")
-	cachedHash, _ := os.ReadFile(cacheFile)
-	if string(cachedHash) == currentHash {
-		fmt.Println("✓ Fakes docker image unchanged (cached)")
-		return false, nil
-	}
-
-	// Build image
 	fmt.Println("Building fakes image...")
 	start := time.Now()
 	err = Runtime.ContainerClient.Build(
@@ -172,59 +107,28 @@ func BuildAndPushFakesImage() (bool, error) {
 		"localhost:5001/runtime-operator-fakes:latest",
 	)
 	if err != nil {
-		return false, err
+		return err
 	}
 	LogDuration("Built fakes image", start)
 
-	// Push image
 	fmt.Println("Pushing fakes image to registry...")
 	start = time.Now()
 	err = Runtime.ContainerClient.Push("localhost:5001/runtime-operator-fakes:latest")
 	if err != nil {
-		return false, err
+		return err
 	}
 	LogDuration("Pushed fakes image", start)
 
-	// Write new checksum
-	err = os.MkdirAll(filepath.Dir(cacheFile), 0755)
-	if err != nil {
-		return false, err
-	}
-	err = os.WriteFile(cacheFile, []byte(currentHash), 0644)
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
+	return nil
 }
 
 // PushKustomizeArtifact pushes the kustomize directory as an OCI artifact
-// Returns true if artifact was pushed, false if skipped due to no changes
-func PushKustomizeArtifact() (bool, error) {
+func PushKustomizeArtifact() error {
 	projectRoot, err := config.TryFindProjectRootByGoMod()
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	// Compute checksum
-	patterns := []string{
-		"config/**/*.yaml",
-		"config/**/*.yml",
-	}
-	currentHash, err := checksum.ComputeFilesChecksum(projectRoot, patterns)
-	if err != nil {
-		return false, fmt.Errorf("failed to compute checksum: %w", err)
-	}
-
-	// Check cached checksum
-	cacheFile := filepath.Join(projectRoot, ".cache", "checksums", "kustomize.txt")
-	cachedHash, _ := os.ReadFile(cacheFile)
-	if string(cachedHash) == currentHash {
-		fmt.Println("✓ Kustomize artifact unchanged (cached)")
-		return false, nil
-	}
-
-	// Push artifact
 	fmt.Println("Pushing kustomize artifact to OCI registry...")
 	start := time.Now()
 	err = Runtime.FluxClient.PushArtifact(
@@ -234,36 +138,24 @@ func PushKustomizeArtifact() (bool, error) {
 		"local",
 	)
 	if err != nil {
-		return false, err
+		return err
 	}
 	LogDuration("Pushed kustomize artifact", start)
 
-	// Write new checksum
-	err = os.MkdirAll(filepath.Dir(cacheFile), 0755)
-	if err != nil {
-		return false, err
-	}
-	err = os.WriteFile(cacheFile, []byte(currentHash), 0644)
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
+	return nil
 }
 
 // DownloadAndPushDeploymentChart clones altinn-studio-charts and pushes the deployment chart to OCI registry
-// Returns true if chart was pushed, false if skipped due to no changes
-func DownloadAndPushDeploymentChart() (bool, error) {
+func DownloadAndPushDeploymentChart() error {
 	projectRoot, err := config.TryFindProjectRootByGoMod()
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	chartsDir := filepath.Join(projectRoot, ".cache", "altinn-studio-charts")
 	chartPath := filepath.Join(chartsDir, "charts", "deployment")
 	chartsBranch := "main"
 
-	// Clone or update the charts repo
 	fmt.Println("Downloading altinn-studio-charts...")
 	start := time.Now()
 
@@ -279,7 +171,7 @@ func DownloadAndPushDeploymentChart() (bool, error) {
 
 	if _, err := os.Stat(chartsDir); os.IsNotExist(err) {
 		if err := cloneRepo(); err != nil {
-			return false, err
+			return err
 		}
 	} else {
 		// Update existing repo
@@ -292,125 +184,70 @@ func DownloadAndPushDeploymentChart() (bool, error) {
 		if err != nil {
 			// Fetch or reset failed, delete and re-clone
 			if removeErr := os.RemoveAll(chartsDir); removeErr != nil {
-				return false, fmt.Errorf(
+				return fmt.Errorf(
 					"failed to reinstall altinn-studio-charts: %w (original error: %s)",
 					removeErr,
 					string(output),
 				)
 			}
 			if err := cloneRepo(); err != nil {
-				return false, err
+				return err
 			}
 		}
 	}
 	LogDuration("Downloaded altinn-studio-charts", start)
 
-	// Compute checksum of the chart directory
-	patterns := []string{
-		".cache/altinn-studio-charts/charts/deployment/**/*.yaml",
-		".cache/altinn-studio-charts/charts/deployment/**/*.tpl",
-	}
-	currentHash, err := checksum.ComputeFilesChecksum(projectRoot, patterns)
-	if err != nil {
-		return false, fmt.Errorf("failed to compute checksum: %w", err)
-	}
-
-	// Check cached checksum
-	cacheFile := filepath.Join(projectRoot, ".cache", "checksums", "deployment-chart.txt")
-	cachedHash, _ := os.ReadFile(cacheFile)
-	if string(cachedHash) == currentHash {
-		fmt.Println("✓ Deployment chart unchanged (cached)")
-		return false, nil
-	}
-
-	// Get helm binary path
 	helmInfo, err := Runtime.Installer.GetToolInfo("helm")
 	if err != nil {
-		return false, fmt.Errorf("failed to get helm tool info: %w", err)
+		return fmt.Errorf("failed to get helm tool info: %w", err)
 	}
 	helmPath := helmInfo.Path
 
-	// Package the chart
 	fmt.Println("Packaging deployment chart...")
 	start = time.Now()
 	tmpDir := filepath.Join(projectRoot, ".cache", "helm-packages")
 	err = os.MkdirAll(tmpDir, 0755)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	cmd := exec.Command(helmPath, "package", chartPath, "-d", tmpDir)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return false, fmt.Errorf("failed to package chart: %w\nOutput: %s", err, string(output))
+		return fmt.Errorf("failed to package chart: %w\nOutput: %s", err, string(output))
 	}
 	LogDuration("Packaged chart", start)
 
-	// Find the packaged chart file
 	files, err := filepath.Glob(filepath.Join(tmpDir, "deployment-*.tgz"))
 	if err != nil || len(files) == 0 {
-		return false, fmt.Errorf("failed to find packaged chart")
+		return fmt.Errorf("failed to find packaged chart")
 	}
 	chartFile := files[0]
 
-	// Push to OCI registry
 	fmt.Println("Pushing deployment chart to OCI registry...")
 	start = time.Now()
 	cmd = exec.Command(helmPath, "push", chartFile, "oci://localhost:5001")
 	output, err = cmd.CombinedOutput()
 	if err != nil {
-		return false, fmt.Errorf("failed to push chart: %w\nOutput: %s", err, string(output))
+		return fmt.Errorf("failed to push chart: %w\nOutput: %s", err, string(output))
 	}
 	LogDuration("Pushed chart", start)
 
-	// Clean up packaged chart
 	err = os.Remove(chartFile)
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	// Write new checksum
-	err = os.MkdirAll(filepath.Dir(cacheFile), 0755)
-	if err != nil {
-		return false, err
-	}
-	err = os.WriteFile(cacheFile, []byte(currentHash), 0644)
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
+	return nil
 }
 
 // BuildAndPushLocaltestappImage builds the localtestapp image and pushes it to the local registry
-// Returns true if image was rebuilt, false if skipped due to no changes
-func BuildAndPushLocaltestappImage() (bool, error) {
+func BuildAndPushLocaltestappImage() error {
 	projectRoot, err := config.TryFindProjectRootByGoMod()
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	// Compute checksum
-	patterns := []string{
-		"test/app/App/**/*.cs",
-		"test/app/App/**/*.csproj",
-		"test/app/App/**/*.json",
-		"test/app/Dockerfile",
-	}
-	currentHash, err := checksum.ComputeFilesChecksum(projectRoot, patterns)
-	if err != nil {
-		return false, fmt.Errorf("failed to compute checksum: %w", err)
-	}
-
-	// Check cached checksum
-	cacheFile := filepath.Join(projectRoot, ".cache", "checksums", "localtestapp-image.txt")
-	cachedHash, _ := os.ReadFile(cacheFile)
-	if string(cachedHash) == currentHash {
-		fmt.Println("✓ Localtestapp image unchanged (cached)")
-		return false, nil
-	}
-
-	// Build image
 	fmt.Println("Building localtestapp image...")
 	start := time.Now()
 	appDir := filepath.Join(projectRoot, "test", "app")
@@ -420,43 +257,26 @@ func BuildAndPushLocaltestappImage() (bool, error) {
 		"localhost:5001/runtime-operator-localtestapp:latest",
 	)
 	if err != nil {
-		return false, err
+		return err
 	}
 	LogDuration("Built localtestapp image", start)
 
-	// Push image
 	fmt.Println("Pushing localtestapp image to registry...")
 	start = time.Now()
 	err = Runtime.ContainerClient.Push("localhost:5001/runtime-operator-localtestapp:latest")
 	if err != nil {
-		return false, err
+		return err
 	}
 	LogDuration("Pushed localtestapp image", start)
 
-	// Write new checksum
-	err = os.MkdirAll(filepath.Dir(cacheFile), 0755)
-	if err != nil {
-		return false, err
-	}
-	err = os.WriteFile(cacheFile, []byte(currentHash), 0644)
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
+	return nil
 }
 
 // DeployLocaltestappViaFlux deploys the localtestapp using Flux HelmRelease
-func DeployLocaltestappViaFlux(imageChanged, chartChanged bool) error {
+func DeployLocaltestappViaFlux() error {
 	projectRoot, err := config.TryFindProjectRootByGoMod()
 	if err != nil {
 		return err
-	}
-
-	// Skip if no changes
-	if !imageChanged && !chartChanged {
-		fmt.Println("✓ No localtestapp changes detected, skipping Flux reconciliation")
-		return nil
 	}
 
 	fmt.Println("Deploying localtestapp via Flux...")
@@ -509,16 +329,10 @@ func DeployLocaltestappViaFlux(imageChanged, chartChanged bool) error {
 }
 
 // DeployOperatorViaFlux deploys the operator using Flux
-func DeployOperatorViaFlux(imagesChanged, kustomizeChanged bool) error {
+func DeployOperatorViaFlux() error {
 	projectRoot, err := config.TryFindProjectRootByGoMod()
 	if err != nil {
 		return err
-	}
-
-	// Skip if no changes
-	if !imagesChanged && !kustomizeChanged {
-		fmt.Println("✓ No changes detected, skipping Flux reconciliation")
-		return nil
 	}
 
 	fmt.Println("Deploying operator via Flux...")
