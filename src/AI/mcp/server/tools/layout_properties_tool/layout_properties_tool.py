@@ -12,22 +12,54 @@ from mcp.types import (
 @register_tool(
     name="layout_properties_tool",
     description="""
-This tool retrieves schema information for Altinn Studio layout component types.
-It analyzes the layout schema to provide information about available properties,
-required properties, and detailed property specifications for a given component type.
+⚠️ MANDATORY before creating any layout component - retrieves the valid properties schema.
 
-Use this tool when you need to understand what properties are available for
-specific Altinn Studio component types or when building component configurations.
+## Purpose
+Get the allowed properties, required properties, and specifications for a component type.
+**You MUST call this for EACH component type you plan to use in your layout.**
 
-The tool returns schema information including:
-- List of allowed properties for the component type
-- List of required properties
-- Detailed property schema information (title, description, type, enum values, etc.)
+## Required Parameters
+- `component_type`: The component type name (e.g., "Input", "Datepicker", "NavigationButtons")
+- `schema_url`: URL to the layout schema (MUST be from altinncdn.no domain)
 
-Example usage:
-- Get all available properties for an Input component
-- Check which properties are required for a Button component
-- Understand property types and constraints for form components
+## Valid schema_url
+✅ `https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json`
+
+## Invalid schema_url Examples  
+❌ `https://example.com/schema.json` - Wrong domain
+❌ `http://altinncdn.no/...` - Must use HTTPS
+❌ `layout.schema.v1.json` - Must be full URL
+
+## Returns
+- `allowed_properties`: List of all valid properties for the component
+- `required_properties`: Properties that MUST be specified
+- `property_details`: Type, description, enum values for each property
+
+## ⚠️ MANDATORY: Call for Each Component Type
+If your layout uses Input, Datepicker, and NavigationButtons, you MUST call this 3 times:
+```
+layout_properties_tool(component_type="Input", schema_url="...")
+layout_properties_tool(component_type="Datepicker", schema_url="...")
+layout_properties_tool(component_type="NavigationButtons", schema_url="...")
+```
+Without these calls, you will use invalid properties and create broken layouts.
+
+## When to Use
+✅ REQUIRED for every component type before creating layout JSON
+✅ After `layout_components_tool` to get schemas for components you'll use
+✅ When validation fails to understand what properties are valid
+
+## When NOT to Use
+❌ To find component examples (use `layout_components_tool` first)
+❌ To validate existing JSON (use `schema_validator_tool` instead)
+
+## Position in Workflow
+```
+1. layout_components_tool()           ← Discover components (call once)
+2. layout_properties_tool() × N       ← YOU ARE HERE - call for each component type
+3. [Create layout JSON]
+4. schema_validator_tool()            ← Validate your layout
+```
 """,
     annotations=ToolAnnotations(
         title="Layout Component Schema Tool",
@@ -67,10 +99,15 @@ def layout_properties_tool(
         if not component_def:
             return {
                 "status": "error",
-                "message": f"Component type '{component_type}' not found in schema",
+                "error_code": "COMPONENT_NOT_FOUND",
+                "message": f"Component type '{component_type}' not found in schema. "
+                           f"Verify the component_type is spelled correctly with proper casing (e.g., 'Input' not 'input'). "
+                           f"Common component types: Input, Checkboxes, RadioButtons, Dropdown, Datepicker, TextArea, Header, Paragraph, Button. "
+                           f"DO NOT RETRY with the same component_type - use layout_components_tool to discover valid component types.",
                 "allowed_properties": [],
                 "required_properties": [],
-                "property_details": {}
+                "property_details": {},
+                "hint": "Use layout_components_tool first to see all available component types and their exact names."
             }
         
         # Extract schema metadata
@@ -289,11 +326,19 @@ def load_layout_schema_from_url(schema_url: str) -> Dict[str, Any]:
         # Validate that the URL is from altinncdn.no domain for security
         parsed_url = urlparse(schema_url)
         if parsed_url.netloc != 'altinncdn.no':
-            raise Exception(f"Schema URL must be from altinncdn.no domain, got: {parsed_url.netloc}")
+            raise Exception(
+                f"INVALID_DOMAIN: Schema URL must be from altinncdn.no domain, got: '{parsed_url.netloc}'. "
+                f"Use a valid URL like: https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json. "
+                f"DO NOT RETRY with the same URL - this error is not recoverable without changing the schema_url parameter."
+            )
         
         # Ensure HTTPS for security
         if parsed_url.scheme != 'https':
-            raise Exception(f"Schema URL must use HTTPS, got: {parsed_url.scheme}")
+            raise Exception(
+                f"INVALID_PROTOCOL: Schema URL must use HTTPS, got: '{parsed_url.scheme}'. "
+                f"Change the URL to use https:// instead of {parsed_url.scheme}://. "
+                f"DO NOT RETRY with the same URL."
+            )
         
         # Fetch the schema from the URL
         response = requests.get(schema_url)

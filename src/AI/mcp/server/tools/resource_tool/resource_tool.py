@@ -5,15 +5,41 @@ from mcp.types import ToolAnnotations
 @register_tool(
     name="resource_tool",
     description="""
-This tool provides documentation on implementing text resources and translations in Altinn applications.
-Use this tool when you need to work with text resources, implement multi-language support, or understand resource file structure in Altinn Studio.
+Returns static documentation on text resources and translations in Altinn applications.
 
-The tool returns comprehensive documentation covering resource file formats, implementation strategies, and best practices for localization.
-Resources must match component IDs created with the layout_components_tool and can reference data which require the datamodel_tool.
+## Purpose
+Understand how to create and manage text resources for labels, messages, and translations.
 
-Resource files are located in App/config/texts/ within the Altinn Studio application. This is the standard location where all text resources for the application are stored and managed.
+## No Parameters Required
+Returns comprehensive static documentation - call ONCE per session.
 
-No query parameter is needed as this tool returns static documentation that covers all aspects of Altinn resources.
+## Documentation Covers
+- Resource file format (resource.nb.json, resource.en.json)
+- Text resource ID naming conventions
+- Variable interpolation in text
+- Multi-language support (nb, nn, en)
+- textResourceBindings in layout components
+
+## File Location
+Text resources are stored in: `App/config/texts/`
+- `resource.nb.json` - Norwegian Bokmål
+- `resource.nn.json` - Norwegian Nynorsk  
+- `resource.en.json` - English
+
+## When to Use
+✅ To understand text resource format and structure
+✅ When creating labels for form components
+✅ When implementing multi-language support
+✅ Before using `resource_validator_tool`
+
+## When NOT to Use
+❌ To validate existing resources (use `resource_validator_tool` instead)
+❌ Multiple times in same session (returns identical static content)
+
+## Related Tools
+- `resource_validator_tool`: Validate text resource files
+- `layout_components_tool`: Components use textResourceBindings
+- `datamodel_tool`: Resources can reference data fields
 """,
     title="Resource Tool",
     annotations=ToolAnnotations(
