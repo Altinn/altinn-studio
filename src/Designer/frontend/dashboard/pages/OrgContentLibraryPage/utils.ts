@@ -36,20 +36,25 @@ export function backendCodeListsToLibraryCodeLists(
   if (!response) return [];
 
   return response.files
-    .filter((file) => file.content && !file.problem)
+    .filter((file) => file.content)
     .flatMap((file) => {
+      const fileName = file.path.split('/').pop()?.replace('.json', '') || 'unknown';
       try {
-        const fileName = file.path.split('/').pop()?.replace('.json', '') || 'unknown';
         const codeList = JSON.parse(atobUTF8(file.content!));
-        const codes = codeList.codes || codeList;
         return [
           {
             name: fileName,
-            codes: Array.isArray(codes) ? codes : [],
+            codes: codeList.codes,
           },
         ];
       } catch {
-        return [];
+        // TODO: We should show the user that a codelist is corrupted
+        return [
+          {
+            name: fileName,
+            codes: [],
+          },
+        ];
       }
     });
 }

@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import React, { useMemo, useCallback, useEffect, useRef } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { ResourceContentLibraryImpl } from '@studio/content-library';
 import type {
   CodeListWithMetadata,
@@ -30,7 +30,6 @@ import {
   libraryCodeListsToUpdatePayload,
   textResourcesWithLanguageToLibraryTextResources,
   textResourceWithLanguageToMutationArgs,
-  getFilesWithProblems,
 } from './utils';
 import { isOrg } from '../../utils/orgUtils';
 import { useOrgCodeListsQuery } from 'app-shared/hooks/queries/useOrgCodeListsQuery';
@@ -51,7 +50,6 @@ import { useOrgCodeListsNewQuery } from 'app-shared/hooks/queries/useOrgCodeList
 import type { CodeListsNewResponse } from 'app-shared/types/api/CodeListsNewResponse';
 import { useSharedCodeListsQuery } from 'app-shared/hooks/queries/useSharedResourcesQuery';
 import { useUpdateSharedResourcesMutation } from 'app-shared/hooks/mutations/useUpdateSharedResourcesMutation';
-import type { LibraryFile } from 'app-shared/types/api/GetSharedResourcesResponse';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -209,22 +207,6 @@ function useCodeListsProps(orgName: string): PagesConfig['codeLists']['props'] {
   const { mutate } = useUpdateSharedResourcesMutation(orgName);
   const { t } = useTranslation();
 
-  const filesWithProblems = getFilesWithProblems(data);
-  const displayedProblemsRef = useRef<string>('');
-
-  // This is probably not the most efficient way to handle this, but it ensures that
-  // we only display each problem once, even if the component re-renders multiple times.
-  useEffect(() => {
-    if (filesWithProblems.length > 0) {
-      const problemsKey = filesWithProblems.map((f) => f.path).join(',');
-
-      if (displayedProblemsRef.current !== problemsKey) {
-        displayAndLogProblems(filesWithProblems);
-        displayedProblemsRef.current = problemsKey;
-      }
-    }
-  }, [filesWithProblems]);
-
   const libraryCodeLists = backendCodeListsToLibraryCodeLists(data);
 
   const handleSave = useCallback(
@@ -240,30 +222,6 @@ function useCodeListsProps(orgName: string): PagesConfig['codeLists']['props'] {
   );
 
   return { codeLists: libraryCodeLists, onSave: handleSave };
-}
-
-function displayAndLogProblems(filesWithProblems: LibraryFile[]) {
-  // TODO: How to best surface these errors to the user and debugging?
-  filesWithProblems.forEach((file) => {
-    console.warn(
-      `Problem loading file ${file.path}: ${file.problem?.title || 'Unknown error'}`,
-      file.problem,
-    );
-  });
-
-  const fileNameAndProblem = filesWithProblems.map((file) => {
-    const name = file.path.split('/').pop()?.replace('.json', '') || file.path;
-    const reason = file.problem?.title || file.problem?.detail || 'Unknown error';
-    return `${name}: ${reason}`;
-  });
-
-  if (filesWithProblems.length === 1) {
-    toast.error(`Could not load code list: ${fileNameAndProblem[0]}`);
-  } else {
-    toast.error(
-      `Could not load ${filesWithProblems.length} code lists:\n${fileNameAndProblem.join('\n')}`,
-    );
-  }
 }
 
 function ContextWithoutLibraryAccess(): ReactElement {
