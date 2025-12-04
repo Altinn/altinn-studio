@@ -7,9 +7,10 @@ using Microsoft.IdentityModel.Tokens;
 namespace StudioGateway.Api.Authentication;
 
 internal sealed class MaskinportenClient(
+    ILogger<MaskinportenClient> _logger,
     IOptionsMonitor<MaskinportenSettings> _settings,
     IOptionsMonitor<MaskinportenClientSettings> _clientSettings,
-    ILogger<MaskinportenClient> _logger
+    IHostApplicationLifetime _lifetime
 ) : IHostedService
 {
     private static readonly HttpClient _httpClient = new HttpClient(
@@ -34,39 +35,54 @@ internal sealed class MaskinportenClient(
     public Task StartAsync(CancellationToken cancellationToken)
     {
         var firstTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _lifetime.ApplicationStopping.Register(() => firstTcs.TrySetCanceled());
         _ = Task.Run(() => Run(firstTcs, cancellationToken), cancellationToken);
         return firstTcs.Task;
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-    private async Task Run(TaskCompletionSource first, CancellationToken stoppingToken)
+    private async Task Run(TaskCompletionSource first, CancellationToken cancellationToken)
     {
-        while (!stoppingToken.IsCancellationRequested)
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken,
+            _lifetime.ApplicationStopping
+        );
+        cancellationToken = cts.Token;
+
+        _logger.LogInformation("MaskinportenClient started");
+
+        while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
-                var token = await GetToken(stoppingToken);
+                var token = await GetToken(cancellationToken);
                 Volatile.Write(ref _currentToken, token);
                 _logger.LogInformation("Acquired new Maskinporten token");
                 first.TrySetResult();
 
-                await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+                await Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
             }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                return;
+                break;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error acquiring Maskinporten token");
-                await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
             }
         }
+
+        _logger.LogInformation("MaskinportenClient stopping");
     }
 
     private async Task<string> GetToken(CancellationToken cancellationToken = default)
     {
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cts.CancelAfter(TimeSpan.FromSeconds(30));
+        cancellationToken = cts.Token;
+
         await EnsureMetadataLoadedAsync(cancellationToken);
         Debug.Assert(_tokenEndpoint is not null);
         Debug.Assert(_audience is not null);
@@ -120,6 +136,9 @@ internal sealed class MaskinportenClient(
         var jwk =
             JsonSerializer.Deserialize(clientSettings.Jwk, MaskinportenJsonSerializerContext.Default.JsonWebKey)
             ?? throw new InvalidOperationException("Failed to deserialize JWK");
+
+        if (!jwk.HasPrivateKey)
+            throw new InvalidOperationException("The provided JWK does not contain a private key");
 
         var signingCredentials = new SigningCredentials(jwk, jwk.Alg);
         var header = new JwtHeader(signingCredentials);
