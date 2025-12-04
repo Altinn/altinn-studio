@@ -12,11 +12,11 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY agents/ ./agents/
-COPY frontend_api/ ./frontend_api/
+COPY api/ ./api/
 COPY shared/ ./shared/
 
 EXPOSE 8071
 
 ENV PYTHONUNBUFFERED=1
 
-CMD ["uvicorn", "frontend_api.main:app", "--host", "0.0.0.0", "--port", "8071"]
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8071"]

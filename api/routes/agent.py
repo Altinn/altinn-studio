@@ -18,8 +18,6 @@ router = APIRouter()
 log = get_logger(__name__)
 config = get_config()
 
-# State persistence
-APP_STATE_FILE = Path(__file__).parent.parent / "app_state.json"
 
 class StartReq(BaseModel):
     session_id: str

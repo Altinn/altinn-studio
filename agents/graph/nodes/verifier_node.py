@@ -188,6 +188,14 @@ async def _attempt_auto_fix(state: AgentState, verification_result) -> bool:
         # Apply the fix patch
         from agents.services.git import git_ops
         
+        # Normalize "op" to "operation" for git_ops.apply compatibility
+        for change in fix_patch.get("changes", []):
+            if "op" in change and "operation" not in change:
+                change["operation"] = change.pop("op")
+        
+        # Skip reset for auto-fix - we want to build on existing changes, not wipe them
+        fix_patch["skip_reset"] = True
+        
         log.info(f"Applying auto-fix patch with {len(fix_patch['changes'])} changes")
         git_ops.apply(fix_patch, state.repo_path)
         

@@ -273,13 +273,19 @@ async def create_tool_plan(
     }
 
     # Extract tool names from available_tools (which may be dicts with name/description)
+    # Tools that should NOT be shown to the tool planner (internal/validation tools)
+    hidden_tools = {"schema_validator_tool", "resource_validator_tool", "policy_validation_tool", "layout_validator_tool"}
+    
     if available_tools:
         if isinstance(available_tools[0], dict):
-            # Available tools are in dict format: [{"name": "...", "description": "..."}]
-            available_tools_list = [tool["name"] for tool in available_tools if "name" in tool]
+            # Available tools are list of dicts with 'name' key - filter out hidden tools
+            available_tools_list = [
+                tool.get("name") for tool in available_tools 
+                if tool.get("name") and tool.get("name") not in hidden_tools and "validator" not in tool.get("name", "").lower()
+            ]
         else:
-            # Available tools are already a list of strings
-            available_tools_list = available_tools
+            # Available tools are already a list of strings - filter out hidden tools
+            available_tools_list = [t for t in available_tools if t not in hidden_tools and "validator" not in t.lower()]
     else:
         # Fallback to hardcoded list if no tools provided
         available_tools_list = [
@@ -314,11 +320,15 @@ async def create_tool_plan(
     ).strip()
 
     tool_catalog = "- None provided"
+    # Reuse hidden_tools defined above for filtering tool catalog
     if available_tools and isinstance(available_tools[0], dict):
         tool_catalog_lines: List[str] = []
         for tool in available_tools:
             name = tool.get("name")
             if not name:
+                continue
+            # Skip validation/internal tools - they should not be in the tool plan
+            if name in hidden_tools or "validator" in name.lower():
                 continue
             description = tool.get("description", "") or "No description provided."
             tool_catalog_lines.append(f"- {name}: {description}")
@@ -464,7 +474,22 @@ async def execute_tool_plan(
             if not tool_name:
                 continue
 
+            # DEBUG: Log every tool being processed
+            log.info(f"🔧 Processing tool: '{tool_name}' (type: {type(tool_name).__name__})")
+
             arguments = entry.get("arguments")
+            
+            # Skip validation tools - they require specific file content, not queries
+            validation_tools = {"schema_validator_tool", "resource_validator_tool", "policy_validation_tool"}
+            if tool_name in validation_tools:
+                log.info("Skipping %s (validation tools are called by verifier, not tool planner)", tool_name)
+                continue
+            
+            # Extra safety check for any tool containing "validator"
+            if "validator" in tool_name.lower():
+                log.warning(f"⚠️ Skipping unexpected validator tool: {tool_name}")
+                continue
+            
             if arguments is None:
                 query = entry.get("query")
                 if query and tool_name not in {"layout_properties_tool", "layout_components_tool", "datamodel_tool", "prefill_tool", "dynamic_expression", "resource_tool"}:
@@ -625,103 +650,6 @@ async def execute_tool_plan(
                         )
 
     return results
-
-
-# DEPRECATED: This function is no longer called in the main pipeline.
-# It was taking ~99s and only passing truncated data to the LLM.
-# patch_synthesis now handles planning inline with full tool results context.
-# Kept for backward compatibility if needed for testing or alternative workflows.
-async def create_implementation_plan(
-    mcp_client,
-    user_goal: str,
-    repo_facts: Dict[str, Any],
-    tool_results: List[Dict[str, Any]],
-    general_plan: Dict[str, Any],
-    planner_step: Optional[str] = None,
-    *,
-    attachments: Optional[List[AgentAttachment]] = None,
-) -> Dict[str, Any]:
-    """DEPRECATED: This function is no longer used in the main pipeline.
-    TODO: Remove this
-    The implementation_planning_llm step was eliminated because:
-    1. It took ~99s (1m40s) for a redundant planning step
-    2. It only passed truncated data (100 chars per tool, 3000 chars docs)
-    3. patch_synthesis already receives full tool results and can plan inline
-    
-    Kept for backward compatibility and testing purposes.
-    """
-    # Use planner_step (planning guidance from planning_tool_node) as documentation input
-    # to the local LLM that generates a structured implementation plan.
-    documentation = planner_step or ""
-    if documentation:
-        log.info("Using planner_step guidance as implementation planning documentation (%d chars)", len(documentation))
-    else:
-        log.info("No planner_step guidance provided; generating implementation plan from general_plan and tool_results only")
-
-    langfuse = get_client()
-    with langfuse.start_as_current_span(
-        name="implementation_planning_llm",
-        input={
-            "has_planner_step": bool(planner_step),
-            "files_known": len(repo_facts.get("files", [])) if isinstance(repo_facts, dict) else 0,
-        },
-        metadata={"span_type": "LLM"}
-    ) as span:
-        planning_text = await generate_implementation_plan_from_docs(
-            documentation,
-            user_goal,
-            repo_facts,
-            tool_results,
-            general_plan,
-            attachments=attachments,
-        )
-        span.update(output={"result": planning_text[:5000]})
-
-    return parse_json_response(planning_text, "implementation plan")
-
-
-async def generate_implementation_plan_from_docs(
-    documentation: str,
-    user_goal: str,
-    repo_facts: Dict[str, Any],
-    tool_results: List[Dict[str, Any]],
-    general_plan: Dict[str, Any],
-    *,
-    attachments: Optional[List[AgentAttachment]] = None,
-) -> str:
-    """Generate a structured implementation plan from MCP documentation using LLM."""
-    
-    client = LLMClient(role="actor")
-    
-    # Get summary of available tools
-    tool_summary = "\n".join([
-        f"- {result.get('tool', 'unknown')}: {result.get('result', '')[:100]}..."
-        for result in tool_results[:5]  # Limit to first 5 tools
-    ]) if tool_results else "No tools used yet"
-    
-    prompt = render_template(
-        "implementation_plan_user",
-        user_goal=user_goal,
-        documentation=documentation[:3000],
-        general_plan=json.dumps(general_plan, indent=2),
-        tool_summary=tool_summary,
-        layouts_count=len(repo_facts.get('layouts', [])),
-        models_count=len(repo_facts.get('models', [])),
-        resources_count=len(repo_facts.get('resources', []))
-    )
-
-    try:
-        system_prompt = get_prompt_content("detailed_planning")
-        response = await client.call_async(
-            system_prompt=system_prompt,
-            user_prompt=prompt,
-            attachments=attachments,
-        )
-        return response.strip()
-    except Exception as e:
-        log.error(f"Failed to generate implementation plan from docs: {e}")
-        # Don't provide a generic fallback - if planning fails, let the user know
-        raise Exception(f"Failed to generate implementation plan from MCP documentation: {e}. The planning tool returned unusable documentation.")
 
 
 async def synthesize_patch(

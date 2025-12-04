@@ -1,17 +1,28 @@
+# Web framework
 fastapi>=0.115.14
 uvicorn>=0.35.0
-httpx>=0.28.1
-httpx-sse>=0.4.1
 websockets>=15.0.1
 pydantic>=2.11.7
+
+# HTTP client
+httpx>=0.28.1
+httpx-sse>=0.4.1
+
+# Configuration
 python-dotenv>=1.1.1
+
+# Git operations
 GitPython>=3.1.43
+
+# LLM & Agent framework
 langgraph>=0.6.8
 langchain-core>=0.3.78
 langchain-openai>=0.3.35
 openai>=1.57.2
 anthropic>=0.40.0
-langchain-community>=0.3.7
-langfuse>=3.0.0
-mlflow>=3.4.0
+
+# MCP client
 fastmcp>=2.0.0
+
+# Observability
+langfuse>=3.0.0
