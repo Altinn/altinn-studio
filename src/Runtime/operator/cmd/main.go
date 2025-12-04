@@ -28,6 +28,7 @@ import (
 	"altinn.studio/operator/internal"
 	"altinn.studio/operator/internal/controller/azurekeyvaultsync"
 	"altinn.studio/operator/internal/controller/maskinporten"
+	"altinn.studio/operator/internal/controller/secretsync"
 	"altinn.studio/operator/internal/telemetry"
 	// +kubebuilder:scaffold:imports
 )
@@ -155,6 +156,12 @@ func main() {
 		nil,
 	)).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "MaskinportenClient")
+		span.End()
+		os.Exit(1)
+	}
+
+	if err = secretsync.NewReconciler(rt, mgr.GetClient()).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "SecretSync")
 		span.End()
 		os.Exit(1)
 	}
