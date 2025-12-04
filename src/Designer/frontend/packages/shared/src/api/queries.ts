@@ -72,7 +72,6 @@ import {
   allAccessListsPath,
   orgTextLanguagesPath,
   canUseFeaturePath,
-  orgCodeListsNewPath,
   orgLibraryPath,
 } from './paths';
 
