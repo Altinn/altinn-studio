@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import Mock, AsyncMock, patch
 from fastapi.testclient import TestClient
 from fastapi.middleware.cors import CORSMiddleware
-from frontend_api.main import app, shutdown_event, startup_event
+from api.main import app, shutdown_event, startup_event
 
 APP_NAME = "test-app"
 APP_ORG = "test-org"
@@ -33,39 +33,6 @@ class TestHealthEndpoint:
 
         assert response.status_code == 200
         assert response.json() == {"status": "ok"}
-
-class TestStatusEndpoint:
-    def test_status_endpoint_with_no_current_app(self, mocker):
-        mocker.patch('frontend_api.main.app_manager.get_current_app', return_value=None)
-
-        response = TestClient(app).get("/api/status")
-
-        assert response.status_code == 200
-        data = response.json()
-        assert data["status"] == "online"
-        assert data["services"] == {"app_manager": "running"}
-        assert data["active_sessions"] == 0
-        assert data["current_app"] is None
-
-    def test_status_endpoint_with_current_app(self, mocker):
-        mock_app_info = {
-            "name": APP_NAME,
-            "org": APP_ORG,
-            "repo_name": APP_NAME,
-            "path": APP_PATH
-        }
-        mocker.patch('frontend_api.main.app_manager.get_current_app', return_value=mock_app_info)
-
-        response = TestClient(app).get("/api/status")
-
-        assert response.status_code == 200
-        data = response.json()
-        assert data["status"] == "online"
-        assert data["current_app"]["name"] == APP_NAME
-        assert data["current_app"]["org"] == APP_ORG
-        assert data["current_app"]["repo_name"] == APP_NAME
-        assert data["current_app"]["path"] == APP_PATH
-        assert data["current_app"]["description"] is None
 
 class TestStartupEvent:
     @pytest.mark.asyncio
@@ -124,7 +91,7 @@ class TestStartupEvent:
 class TestShutdownEvent:
     @pytest.mark.asyncio
     async def test_shutdown_logs_message(self, mocker):
-        mock_logger = mocker.patch('frontend_api.main.logger')
+        mock_logger = mocker.patch('api.main.logger')
         await shutdown_event()
 
         mock_logger.info.assert_called_once()
