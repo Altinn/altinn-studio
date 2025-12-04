@@ -16,43 +16,46 @@ import (
 	"go.opentelemetry.io/otel"
 )
 
-var (
-	k      = koanf.New(".")
-	parser = dotenv.ParserEnv("", ".", func(s string) string { return s })
-)
+var parser = dotenv.ParserEnv("", ".", func(s string) string { return s })
+
+// resolveConfigFilePath resolves the config file path from:
+// 1. The provided configFilePath parameter if non-empty
+// 2. The OPERATOR_CONFIG_FILE environment variable if set
+// 3. Falls back to "localtest.env" in the project root (for local development)
+func resolveConfigFilePath(configFilePath string) (string, error) {
+	if configFilePath != "" {
+		return configFilePath, nil
+	}
+
+	// Env var is set from Dockerfile, k8s manifests
+	if envPath := os.Getenv("OPERATOR_CONFIG_FILE"); envPath != "" {
+		return envPath, nil
+	}
+
+	// If we are running locally, try to find project root
+	rootDir, err := TryFindProjectRootByGoMod()
+	if err != nil {
+		return "", fmt.Errorf("error resolving config file path: %w", err)
+	}
+	if rootDir != "" {
+		return path.Join(rootDir, "localtest.env"), nil
+	}
+
+	return "", fmt.Errorf("no config file path provided and OPERATOR_CONFIG_FILE not set")
+}
 
 // loadFromKoanf loads configuration from a .env file.
-// The file path is determined by:
-// 1. The configFilePath parameter if provided
-// 2. The OPERATOR_CONFIG_FILE environment variable if set
-// 3. Falls back to "{environment}.env" in the project root (for local development)
+// The configFilePath must be a resolved absolute path.
 func loadFromKoanf(ctx context.Context, configFilePath string) (*Config, error) {
 	tracer := otel.Tracer(telemetry.ServiceName)
-	_, span := tracer.Start(ctx, "GetConfig.Koanf")
+	_, span := tracer.Start(ctx, "loadFromKoanf")
 	defer span.End()
-
-	if configFilePath == "" {
-		// Env var is set from Dockerfile, k8s manifests
-		if envPath := os.Getenv("OPERATOR_CONFIG_FILE"); envPath != "" {
-			configFilePath = envPath
-		} else {
-			// If we are running locally, try to find project root
-			rootDir, err := TryFindProjectRootByGoMod()
-			if err != nil {
-				return nil, fmt.Errorf("error loading config from koanf: %w", err)
-			}
-			if rootDir != "" {
-				configFilePath = path.Join(rootDir, "localtest.env")
-			} else {
-				return nil, fmt.Errorf("no config file path provided and OPERATOR_CONFIG_FILE not set")
-			}
-		}
-	}
 
 	if _, err := os.Stat(configFilePath); os.IsNotExist(err) {
 		return nil, fmt.Errorf("config file does not exist: '%s'", configFilePath)
 	}
 
+	k := koanf.New(".")
 	if err := k.Load(file.Provider(configFilePath), parser); err != nil {
 		return nil, fmt.Errorf("error loading config '%s': %w", configFilePath, err)
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/telemetry"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
@@ -17,10 +18,8 @@ type azureKeyVaultClient struct {
 	client *azsecrets.Client
 }
 
-// LoadSecrets loads sensitive configuration (client_id, jwk) from Azure Key Vault
-// and overlays them onto the provided config.
-func (a *azureKeyVaultClient) LoadSecrets(ctx context.Context, cfg *Config) error {
-	ctx, span := a.tracer.Start(ctx, "AzureKeyVaultClient.LoadSecrets")
+func (a *azureKeyVaultClient) loadSecrets(ctx context.Context, cfg *Config) error {
+	ctx, span := a.tracer.Start(ctx, "AzureKeyVaultClient.loadSecrets")
 	defer span.End()
 
 	clientId, err := a.tryGetSecret(ctx, "MaskinportenApi--ClientId")
@@ -40,6 +39,15 @@ func (a *azureKeyVaultClient) LoadSecrets(ctx context.Context, cfg *Config) erro
 	}
 
 	return nil
+}
+
+func copyOldSecrets(dest *Config, src *Config) {
+	assert.That(dest != nil, "Destination must be non-nil")
+	if src == nil {
+		return
+	}
+	dest.MaskinportenApi.ClientId = src.MaskinportenApi.ClientId
+	dest.MaskinportenApi.Jwk = src.MaskinportenApi.Jwk
 }
 
 func (a *azureKeyVaultClient) tryGetSecret(ctx context.Context, name string) (string, error) {
@@ -63,7 +71,7 @@ func (a *azureKeyVaultClient) tryGetSecret(ctx context.Context, name string) (st
 	return *secretResp.Value, nil
 }
 
-func NewAzureKeyVaultClient(ctx context.Context, environment string) (*azureKeyVaultClient, error) {
+func newAzureKeyVaultClient(ctx context.Context, environment string) (*azureKeyVaultClient, error) {
 	tracer := otel.Tracer(telemetry.ServiceName)
 	_, span := tracer.Start(ctx, "NewAzureKeyVaultClient")
 	defer span.End()
@@ -74,8 +82,7 @@ func NewAzureKeyVaultClient(ctx context.Context, environment string) (*azureKeyV
 		return nil, fmt.Errorf("error getting credentials for Azure Key Vault: %w", err)
 	}
 
-	url := fmt.Sprintf("https://mpo-%s-kv.vault.azure.net/", environment)
-	client, err := azsecrets.NewClient(url, cred, nil)
+	client, err := azsecrets.NewClient(KeyVaultURL(environment), cred, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error building client for Azure Key Vault: %w", err)
 	}

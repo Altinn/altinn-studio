@@ -748,7 +748,7 @@ func initEnv() {
 	}
 
 	ctx := context.Background()
-	vaultURL := fmt.Sprintf("https://mpo-%s-kv.vault.azure.net/", env)
+	vaultURL := config.KeyVaultURL(env)
 
 	if verbose {
 		fmt.Fprintf(os.Stderr, "Key Vault URL: %s\n", vaultURL)
