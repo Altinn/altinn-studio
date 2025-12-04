@@ -26,7 +26,16 @@ export const useResourcePolicySubjectsQuery = (
     queryKey: [QueryKey.ResourcePolicySubjects, org, repo],
     queryFn: () => getPolicySubjects(org, repo),
     select: (policySubjects) => {
-      const list = policySubjects ?? [];
+      const list =
+        policySubjects?.map((x) => {
+          if (
+            x.legacyUrn === 'urn:altinn:rolecode:PRIV' ||
+            x.legacyUrn === 'urn:altinn:rolecode:SELN'
+          ) {
+            return { ...x, provider: { ...x.provider, code: 'sys-internal' } };
+          }
+          return x;
+        }) ?? [];
       return addOrgToList && !list.some((d) => d.urn === policySubjectOrg.urn)
         ? [...list, policySubjectOrg]
         : list;
