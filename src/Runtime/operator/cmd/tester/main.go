@@ -211,35 +211,30 @@ func setupRuntime() (*kind.KindContainerRuntime, error) {
 	}
 
 	// Step 2: Build and push in parallel
-	buildResult := make(chan Result[bool], 1)
-	buildFakesResult := make(chan Result[bool], 1)
-	pushResult := make(chan Result[bool], 1)
-	chartResult := make(chan Result[bool], 1)
-	localtestappResult := make(chan Result[bool], 1)
+	buildResult := make(chan error, 1)
+	buildFakesResult := make(chan error, 1)
+	pushResult := make(chan error, 1)
+	chartResult := make(chan error, 1)
+	localtestappResult := make(chan error, 1)
 
 	go func() {
-		imagesChanged, err := harness.BuildAndPushImage()
-		buildResult <- NewResult(imagesChanged, err)
+		buildResult <- harness.BuildAndPushImage()
 	}()
 
 	go func() {
-		fakesChanged, err := harness.BuildAndPushFakesImage()
-		buildFakesResult <- NewResult(fakesChanged, err)
+		buildFakesResult <- harness.BuildAndPushFakesImage()
 	}()
 
 	go func() {
-		kustomizeChanged, err := harness.PushKustomizeArtifact()
-		pushResult <- NewResult(kustomizeChanged, err)
+		pushResult <- harness.PushKustomizeArtifact()
 	}()
 
 	go func() {
-		chartChanged, err := harness.DownloadAndPushDeploymentChart()
-		chartResult <- NewResult(chartChanged, err)
+		chartResult <- harness.DownloadAndPushDeploymentChart()
 	}()
 
 	go func() {
-		imageChanged, err := harness.BuildAndPushLocaltestappImage()
-		localtestappResult <- NewResult(imageChanged, err)
+		localtestappResult <- harness.BuildAndPushLocaltestappImage()
 	}()
 
 	// Step 3: Wait for runtime
@@ -254,40 +249,33 @@ func setupRuntime() (*kind.KindContainerRuntime, error) {
 		return nil, fmt.Errorf("failed to setup cluster: %w", err)
 	}
 
-	imagesChanged, err := (<-buildResult).Unwrap()
-	if err != nil {
+	if err := <-buildResult; err != nil {
 		return nil, fmt.Errorf("failed to build and push image: %w", err)
 	}
 
-	_, err = (<-buildFakesResult).Unwrap()
-	if err != nil {
+	if err := <-buildFakesResult; err != nil {
 		return nil, fmt.Errorf("failed to build and push fakes image: %w", err)
 	}
 
-	kustomizeChanged, err := (<-pushResult).Unwrap()
-	if err != nil {
+	if err := <-pushResult; err != nil {
 		return nil, fmt.Errorf("failed to push kustomize artifact: %w", err)
 	}
 
-	chartChanged, err := (<-chartResult).Unwrap()
-	if err != nil {
+	if err := <-chartResult; err != nil {
 		return nil, fmt.Errorf("failed to download and push deployment chart: %w", err)
 	}
 
-	localtestappImageChanged, err := (<-localtestappResult).Unwrap()
-	if err != nil {
+	if err := <-localtestappResult; err != nil {
 		return nil, fmt.Errorf("failed to build and push localtestapp image: %w", err)
 	}
 
 	// Step 4: Deploy via Flux
-	err = harness.DeployOperatorViaFlux(imagesChanged, kustomizeChanged)
-	if err != nil {
+	if err := harness.DeployOperatorViaFlux(); err != nil {
 		return nil, fmt.Errorf("failed to deploy operator: %w", err)
 	}
 
 	// Step 4b: Deploy localtestapp via Flux
-	err = harness.DeployLocaltestappViaFlux(localtestappImageChanged, chartChanged)
-	if err != nil {
+	if err := harness.DeployLocaltestappViaFlux(); err != nil {
 		return nil, fmt.Errorf("failed to deploy localtestapp: %w", err)
 	}
 
