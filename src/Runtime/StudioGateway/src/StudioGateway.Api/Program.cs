@@ -7,6 +7,12 @@ using StudioGateway.Api.Hosting;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
+builder.Configuration.AddJsonFile(
+    "/app/secrets/maskinporten-client-for-designer.json",
+    optional: true,
+    reloadOnChange: true
+);
+
 builder.ConfigureKestrelPorts();
 builder.AddHostingConfiguration();
 builder.AddMaskinportenAuthentication();
