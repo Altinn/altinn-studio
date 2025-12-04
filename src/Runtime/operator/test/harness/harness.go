@@ -292,7 +292,11 @@ func DownloadAndPushDeploymentChart() (bool, error) {
 		if err != nil {
 			// Fetch or reset failed, delete and re-clone
 			if removeErr := os.RemoveAll(chartsDir); removeErr != nil {
-				return false, fmt.Errorf("failed to reinstall altinn-studio-charts: %w (original error: %s)", removeErr, string(output))
+				return false, fmt.Errorf(
+					"failed to reinstall altinn-studio-charts: %w (original error: %s)",
+					removeErr,
+					string(output),
+				)
 			}
 			if err := cloneRepo(); err != nil {
 				return false, err
