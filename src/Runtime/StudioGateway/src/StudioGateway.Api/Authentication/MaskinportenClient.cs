@@ -21,14 +21,14 @@ internal sealed class MaskinportenClient(
     private Uri? _tokenEndpoint;
     private string? _audience;
 
-    private string? _currentToken;
+    private MaskinportenTokenResponse? _currentToken;
 
     public string CurrentToken
     {
         get
         {
             var token = Volatile.Read(ref _currentToken);
-            return token ?? throw new InvalidOperationException("Maskinporten token not yet acquired");
+            return token?.AccessToken ?? throw new InvalidOperationException("Maskinporten token not yet acquired");
         }
     }
 
@@ -61,7 +61,8 @@ internal sealed class MaskinportenClient(
                 _logger.LogInformation("Acquired new Maskinporten token");
                 first.TrySetResult();
 
-                await Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
+                var delay = token.ExpiresIn - 60;
+                await Task.Delay(TimeSpan.FromSeconds(delay), cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -77,10 +78,10 @@ internal sealed class MaskinportenClient(
         _logger.LogInformation("MaskinportenClient stopping");
     }
 
-    private async Task<string> GetToken(CancellationToken cancellationToken = default)
+    private async Task<MaskinportenTokenResponse> GetToken(CancellationToken cancellationToken = default)
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        cts.CancelAfter(TimeSpan.FromSeconds(30));
+        cts.CancelAfter(TimeSpan.FromSeconds(10));
         cancellationToken = cts.Token;
 
         await EnsureMetadataLoadedAsync(cancellationToken);
@@ -117,7 +118,7 @@ internal sealed class MaskinportenClient(
                 cancellationToken
             ) ?? throw new InvalidOperationException("Failed to deserialize Maskinporten token response");
 
-        return tokenResponse.AccessToken;
+        return tokenResponse;
     }
 
     private string CreateClientAssertion()
