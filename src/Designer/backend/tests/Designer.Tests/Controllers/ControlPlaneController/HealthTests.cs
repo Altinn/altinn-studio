@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Mvc.Testing.Handlers;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Xunit;
 
 namespace Designer.Tests.Controllers.ControlPlaneController;
@@ -44,6 +46,15 @@ public class HealthTests : ControlPlaneControllerTestsBase<HealthTests>, IClassF
             builder.ConfigureTestServices(ConfigureTestServices);
             builder.ConfigureTestServices(services =>
             {
+                // Remove the IssuerSchemeCacheInitializer to avoid HTTP calls during test startup
+                ServiceDescriptor initializerDescriptor = services.FirstOrDefault(
+                    d => d.ImplementationType == typeof(IssuerSchemeCacheInitializer)
+                );
+                if (initializerDescriptor is not null)
+                {
+                    services.Remove(initializerDescriptor);
+                }
+
                 services.AddAuthentication(MaskinportenTestScheme)
                     .AddScheme<MaskinportenTestAuthOptions, MaskinportenTestAuthHandler>(
                         MaskinportenTestScheme,
