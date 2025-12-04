@@ -54,6 +54,10 @@ internal static class MaskinportenAuthenticationExtensions
             );
         }
 
+        services.AddHttpClient();
+        services.AddSingleton<IssuerSchemeCache>();
+        services.AddHostedService<IssuerSchemeCacheInitializer>();
+
         var schemeNames = new List<string>(metadataAddresses.Length);
 
         for (int i = 0; i < metadataAddresses.Length; i++)
@@ -84,6 +88,26 @@ internal static class MaskinportenAuthenticationExtensions
                             ValidateLifetime = true,
                             ValidateIssuerSigningKey = true,
                             ClockSkew = TimeSpan.FromSeconds(30),
+                        };
+
+                        // Route to correct scheme based on token issuer to avoid validation attempts against wrong issuers
+                        var defaultForwardSelector = options.ForwardDefaultSelector;
+                        options.ForwardDefaultSelector = context =>
+                        {
+                            var issuerCache =
+                                context.RequestServices.GetRequiredService<IssuerSchemeCache>();
+                            string? tokenIssuer = ExtractIssuerFromToken(
+                                context.Request.Headers.Authorization
+                            );
+                            if (
+                                tokenIssuer is not null
+                                && issuerCache.TryGetScheme(tokenIssuer, out string? targetScheme)
+                            )
+                            {
+                                return targetScheme;
+                            }
+
+                            return defaultForwardSelector?.Invoke(context);
                         };
 
                         options.Events = CreateJwtBearerEvents(schemeName);
@@ -257,5 +281,33 @@ internal static class MaskinportenAuthenticationExtensions
         }
 
         return (true, null, null);
+    }
+
+    private static string? ExtractIssuerFromToken(StringValues authorizationHeaderValues)
+    {
+        string headerValue =
+            authorizationHeaderValues.Count == 0 ? "" : authorizationHeaderValues[0] ?? "";
+        if (
+            string.IsNullOrEmpty(headerValue)
+            || !headerValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            return null;
+        }
+
+        string token = headerValue["Bearer ".Length..].Trim();
+        if (string.IsNullOrEmpty(token))
+        {
+            return null;
+        }
+
+        var handler = new JwtSecurityTokenHandler();
+        if (!handler.CanReadToken(token))
+        {
+            return null;
+        }
+
+        JwtSecurityToken jwt = handler.ReadJwtToken(token);
+        return jwt.Issuer;
     }
 }
