@@ -78,6 +78,7 @@ import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { emptyTextResourceListMock } from 'app-shared/mocks/emptyTextResourceListMock';
 import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 import type { CodeListsNewResponse } from 'app-shared/types/api/CodeListsNewResponse';
+import type { GetSharedResourcesResponse } from 'app-shared/types/api/GetSharedResourcesResponse';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -138,6 +139,24 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() =>
       Promise.resolve<ITextResourcesWithLanguage>(textResourcesWithLanguage),
     ),
+  getSharedResources: jest.fn().mockImplementation(() =>
+    Promise.resolve<GetSharedResourcesResponse>({
+      files: [],
+      commitSha: '',
+    }),
+  ),
+  getSharedResourcesByPath: jest.fn().mockImplementation(() =>
+    Promise.resolve<GetSharedResourcesResponse>({
+      files: [],
+      commitSha: '',
+    }),
+  ),
+  getSharedResourcesByPathAndReference: jest.fn().mockImplementation(() =>
+    Promise.resolve<GetSharedResourcesResponse>({
+      files: [],
+      commitSha: '',
+    }),
+  ),
   getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
   getRepoPull: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
   getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
@@ -323,4 +342,7 @@ export const queriesMock: ServicesContextProps = {
   // Mutations - ProcessEditor
   updateBpmnXml: jest.fn().mockImplementation(() => Promise.resolve()),
   updateProcessDataTypes: jest.fn().mockImplementation(() => Promise.resolve()),
+
+  // Mutations - Shared Resources
+  updateSharedResources: jest.fn().mockImplementation(() => Promise.resolve()),
 };

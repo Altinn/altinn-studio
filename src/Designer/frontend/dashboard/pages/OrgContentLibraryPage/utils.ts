@@ -6,10 +6,14 @@ import type {
 import type { UpdateOrgTextResourcesMutationArgs } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import type { CodeListsNewResponse } from 'app-shared/types/api/CodeListsNewResponse';
-import type { CodeListDataNew } from 'app-shared/types/CodeListDataNew';
-import type { UpdateOrgCodeListsPayload } from 'app-shared/types/api/UpdateOrgCodeListsPayload';
-import type { DeletableCodeListData } from 'app-shared/types/DeletableCodeListData';
+import type {
+  GetSharedResourcesResponse,
+  LibraryFile,
+} from 'app-shared/types/api/GetSharedResourcesResponse';
+import type {
+  UpdateSharedResourcesRequest,
+  FileMetadata,
+} from 'app-shared/types/api/UpdateSharedResourcesRequest';
 
 export function textResourceWithLanguageToMutationArgs({
   language,
@@ -27,48 +31,86 @@ export function textResourcesWithLanguageToLibraryTextResources({
 }
 
 export function backendCodeListsToLibraryCodeLists(
-  codeLists: CodeListsNewResponse,
+  response: GetSharedResourcesResponse | undefined,
 ): LibraryCodeListData[] {
-  return codeLists.codeListWrappers.filter(isWithoutError).map(({ codeList, title }) => ({
-    name: title,
-    codes: codeList.codes,
-  }));
+  if (!response) return [];
+
+  return response.files
+    .filter((file) => file.content && !file.problem)
+    .flatMap((file) => {
+      try {
+        const fileName = file.path.split('/').pop()?.replace('.json', '') || 'unknown';
+        const codeList = JSON.parse(atobUTF8(file.content!));
+        const codes = codeList.codes || codeList;
+        return [
+          {
+            name: fileName,
+            codes: Array.isArray(codes) ? codes : [],
+          },
+        ];
+      } catch {
+        return [];
+      }
+    });
 }
 
-function isWithoutError(codeListData: CodeListDataNew): codeListData is ValidCodeListData {
-  return codeListData.codeList && !codeListData.hasError;
+function atobUTF8(data: string) {
+  const decodedData = atob(data);
+  const utf8data = new Uint8Array(decodedData.length);
+  const decoder = new TextDecoder('utf-8');
+  for (let i = 0; i < decodedData.length; i++) {
+    utf8data[i] = decodedData.charCodeAt(i);
+  }
+  return decoder.decode(utf8data);
 }
 
-type ValidCodeListData = Required<Omit<CodeListDataNew, 'hasError'>>;
+export function btoaUTF8(data: string) {
+  const encoder = new TextEncoder();
+  const utf8data = encoder.encode(data);
+  let binary = '';
+  for (let i = 0; i < utf8data.length; i++) {
+    binary += String.fromCharCode(utf8data[i]);
+  }
+  return btoa(binary);
+}
+
+export function getFilesWithProblems(
+  response: GetSharedResourcesResponse | undefined,
+): LibraryFile[] {
+  if (!response) return [];
+  return response.files.filter((file) => file.problem);
+}
 
 export function libraryCodeListsToUpdatePayload(
-  currentData: CodeListsNewResponse,
+  currentData: GetSharedResourcesResponse | undefined,
   updatedCodeLists: LibraryCodeListData[],
   commitMessage: string,
-): UpdateOrgCodeListsPayload {
-  const updatedLists = mapUpdatedLists(updatedCodeLists);
-  const deletedLists = extractDeletedLists(currentData.codeListWrappers, updatedCodeLists);
+): UpdateSharedResourcesRequest {
+  if (!currentData) {
+    throw new Error('Current data is required to create update payload');
+  }
+
+  const files: FileMetadata[] = updatedCodeLists.map((codeList) => ({
+    path: `CodeLists/${codeList.name}.json`,
+    content: JSON.stringify({ codes: codeList.codes }, null, 2),
+  }));
+
+  // Add files with empty content for deleted code lists
+  const updatedNames = new Set(updatedCodeLists.map((cl) => cl.name));
+  const deletedFiles = currentData.files
+    .filter((file) => !file.problem)
+    .filter((file) => {
+      const fileName = file.path.split('/').pop()?.replace('.json', '');
+      return fileName && !updatedNames.has(fileName);
+    })
+    .map((file) => ({
+      path: file.path,
+      content: '',
+    }));
+
   return {
-    codeListWrappers: updatedLists.concat(deletedLists),
+    files: [...files, ...deletedFiles],
     baseCommitSha: currentData.commitSha,
     commitMessage,
   };
-}
-
-function mapUpdatedLists(updatedCodeLists: LibraryCodeListData[]): DeletableCodeListData[] {
-  return updatedCodeLists.map(({ name, codes }) => ({
-    title: name,
-    codeList: { codes },
-  }));
-}
-
-function extractDeletedLists(
-  currentCodeLists: CodeListDataNew[],
-  updatedCodeLists: LibraryCodeListData[],
-): DeletableCodeListData[] {
-  const updatedTitles = updatedCodeLists.map((cl) => cl.name);
-  return currentCodeLists
-    .filter(isWithoutError)
-    .filter((cl) => !updatedTitles.includes(cl.title))
-    .map((cl) => ({ title: cl.title, codeList: null }));
 }

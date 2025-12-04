@@ -119,6 +119,7 @@ import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 import type { FeatureName } from 'app-shared/enums/CanUseFeature';
 import type { CodeListsNewResponse } from 'app-shared/types/api/CodeListsNewResponse';
+import type { GetSharedResourcesResponse } from 'app-shared/types/api/GetSharedResourcesResponse';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -206,9 +207,9 @@ export const getProcessTaskType = (org: string, app: string, taskId: string) => 
 export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());
 
 // Organisation library
-export const getSharedResources = async (org: string): Promise<any> => get(orgLibraryPath(org));
-export const getSharedResourcesByPath = async (org: string, path: string): Promise<any> => get(orgLibraryPath(org, path));
-export const getSharedResourcesByPathAndReference = async (org: string, path: string, reference: string): Promise<any> => get(orgLibraryPath(org, path, reference));
+export const getSharedResources = async (org: string): Promise<GetSharedResourcesResponse> => get(orgLibraryPath(org));
+export const getSharedResourcesByPath = async (org: string, path: string): Promise<GetSharedResourcesResponse> => get(orgLibraryPath(org, path));
+export const getSharedResourcesByPathAndReference = async (org: string, path: string, reference: string): Promise<GetSharedResourcesResponse> => get(orgLibraryPath(org, path, reference));
 
 export const getOrgCodeLists = (org: string) => get<CodeListsResponse>(orgCodeListsPath(org));
 export const getOrgCodeListsNew = (org: string) => get<CodeListsNewResponse>(orgCodeListsNewPath(org));

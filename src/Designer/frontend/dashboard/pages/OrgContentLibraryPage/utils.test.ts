@@ -3,6 +3,7 @@ import {
   libraryCodeListsToUpdatePayload,
   textResourcesWithLanguageToLibraryTextResources,
   textResourceWithLanguageToMutationArgs,
+  btoaUTF8,
 } from './utils';
 import type {
   TextResource,
@@ -12,10 +13,13 @@ import type {
 } from '@studio/content-library';
 import type { UpdateOrgTextResourcesMutationArgs } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
 import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
-import { codeListsNewResponse } from './test-data/codeListsNewResponse';
+import {
+  sharedResourcesResponse,
+  sharedResourcesResponseWithProblem,
+  sharedResourcesResponseWithInvalidFormat,
+} from './test-data/sharedResourcesResponse';
 import { codeLists } from './test-data/codeLists';
-import type { CodeListsNewResponse } from 'app-shared/types/api/CodeListsNewResponse';
-import type { UpdateOrgCodeListsPayload } from 'app-shared/types/api/UpdateOrgCodeListsPayload';
+import type { UpdateSharedResourcesRequest } from 'app-shared/types/api/UpdateSharedResourcesRequest';
 
 describe('utils', () => {
   describe('textResourceWithLanguageToMutationArgs', () => {
@@ -55,7 +59,7 @@ describe('utils', () => {
 
   describe('backendCodeListsToLibraryCodeLists', () => {
     it('Converts backend code lists to library code lists', () => {
-      const result = backendCodeListsToLibraryCodeLists(codeListsNewResponse);
+      const result = backendCodeListsToLibraryCodeLists(sharedResourcesResponse);
       const expectedResult: CodeListData[] = [
         { name: 'animals', codes: codeLists.animals },
         { name: 'vehicles', codes: codeLists.vehicles },
@@ -63,17 +67,24 @@ describe('utils', () => {
       expect(result).toEqual(expectedResult);
     });
 
-    it('Ignores code lists with errors', () => {
-      const backendCodeLists: CodeListsNewResponse = {
-        ...codeListsNewResponse,
-        codeListWrappers: [
-          { title: 'animals', codeList: { codes: codeLists.animals }, hasError: false },
-          { title: 'vehicles', codeList: null, hasError: true },
-        ],
-      };
-      const result = backendCodeListsToLibraryCodeLists(backendCodeLists);
+    it('Ignores code lists with problems', () => {
+      const result = backendCodeListsToLibraryCodeLists(sharedResourcesResponseWithProblem);
       const expectedResult: CodeListData[] = [{ name: 'animals', codes: codeLists.animals }];
       expect(result).toEqual(expectedResult);
+    });
+
+    it('Returns empty array for invalid code list format', () => {
+      const result = backendCodeListsToLibraryCodeLists(sharedResourcesResponseWithInvalidFormat);
+      const expectedResult: CodeListData[] = [
+        { name: 'animals', codes: codeLists.animals },
+        { name: 'invalid', codes: [] },
+      ];
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('Returns empty array when response is undefined', () => {
+      const result = backendCodeListsToLibraryCodeLists(undefined);
+      expect(result).toEqual([]);
     });
   });
 
@@ -85,57 +96,116 @@ describe('utils', () => {
       ];
       const commitMessage = 'Lorem ipsum';
       const result = libraryCodeListsToUpdatePayload(
-        codeListsNewResponse,
+        sharedResourcesResponse,
         updatedCodeLists,
         commitMessage,
       );
-      const expectedResult: UpdateOrgCodeListsPayload = {
-        codeListWrappers: [
-          { title: 'animals', codeList: { codes: codeLists.animals } },
-          { title: 'vehicles', codeList: { codes: codeLists.vehicles } },
+      const expectedResult: UpdateSharedResourcesRequest = {
+        files: [
+          {
+            path: 'CodeLists/animals.json',
+            content: JSON.stringify({ codes: codeLists.animals }, null, 2),
+          },
+          {
+            path: 'CodeLists/vehicles.json',
+            content: JSON.stringify({ codes: codeLists.vehicles }, null, 2),
+          },
         ],
-        baseCommitSha: codeListsNewResponse.commitSha,
+        baseCommitSha: sharedResourcesResponse.commitSha,
         commitMessage,
       };
       expect(result).toEqual(expectedResult);
     });
 
-    it('Sets codeList to null for deleted code lists', () => {
+    it('Marks deleted code lists with empty content', () => {
       const updatedCodeLists: CodeListData[] = [{ name: 'animals', codes: codeLists.animals }];
       const commitMessage = 'Lorem ipsum';
       const result = libraryCodeListsToUpdatePayload(
-        codeListsNewResponse,
+        sharedResourcesResponse,
         updatedCodeLists,
         commitMessage,
       );
-      const expectedResult: UpdateOrgCodeListsPayload = {
-        codeListWrappers: [
-          { title: 'animals', codeList: { codes: codeLists.animals } },
-          { title: 'vehicles', codeList: null },
+      const expectedResult: UpdateSharedResourcesRequest = {
+        files: [
+          {
+            path: 'CodeLists/animals.json',
+            content: JSON.stringify({ codes: codeLists.animals }, null, 2),
+          },
+          { path: 'CodeLists/vehicles.json', content: '' },
         ],
-        baseCommitSha: codeListsNewResponse.commitSha,
+        baseCommitSha: sharedResourcesResponse.commitSha,
         commitMessage,
       };
       expect(result).toEqual(expectedResult);
     });
 
-    it('Ignores code lists with errors in the original data', () => {
-      const originalData: CodeListsNewResponse = {
-        ...codeListsNewResponse,
-        codeListWrappers: [
-          { title: 'animals', codeList: { codes: codeLists.animals }, hasError: false },
-          { title: 'vehicles', codeList: null, hasError: true },
-        ],
-      };
+    it('Ignores code lists with problems in the original data', () => {
       const updatedCodeLists: CodeListData[] = [{ name: 'animals', codes: codeLists.animals }];
       const commitMessage = 'Lorem ipsum';
-      const result = libraryCodeListsToUpdatePayload(originalData, updatedCodeLists, commitMessage);
-      const expectedResult: UpdateOrgCodeListsPayload = {
-        codeListWrappers: [{ title: 'animals', codeList: { codes: codeLists.animals } }],
-        baseCommitSha: originalData.commitSha,
+      const result = libraryCodeListsToUpdatePayload(
+        sharedResourcesResponseWithProblem,
+        updatedCodeLists,
+        commitMessage,
+      );
+      const expectedResult: UpdateSharedResourcesRequest = {
+        files: [
+          {
+            path: 'CodeLists/animals.json',
+            content: JSON.stringify({ codes: codeLists.animals }, null, 2),
+          },
+        ],
+        baseCommitSha: sharedResourcesResponseWithProblem.commitSha,
         commitMessage,
       };
       expect(result).toEqual(expectedResult);
+    });
+
+    it('Throws error when current data is undefined', () => {
+      const updatedCodeLists: CodeListData[] = [{ name: 'animals', codes: codeLists.animals }];
+      const commitMessage = 'Lorem ipsum';
+      expect(() =>
+        libraryCodeListsToUpdatePayload(undefined, updatedCodeLists, commitMessage),
+      ).toThrow('Current data is required to create update payload');
+    });
+  });
+
+  describe('btoaUTF8', () => {
+    it('Encodes ASCII strings correctly', () => {
+      const input = 'Hello World';
+      const result = btoaUTF8(input);
+      expect(result).toBe(btoa(input));
+    });
+
+    it('Encodes UTF-8 strings with Norwegian characters correctly', () => {
+      const input = 'Båt';
+      const result = btoaUTF8(input);
+      // Decode it back to verify it works correctly
+      const decoded = atob(result);
+      const bytes = new Uint8Array(decoded.length);
+      for (let i = 0; i < decoded.length; i++) {
+        bytes[i] = decoded.charCodeAt(i);
+      }
+      const decodedString = new TextDecoder('utf-8').decode(bytes);
+      expect(decodedString).toBe(input);
+    });
+
+    it('Encodes JSON with UTF-8 characters correctly', () => {
+      const input = JSON.stringify({ label: { nb: 'Båt', en: 'Boat' } });
+      const result = btoaUTF8(input);
+      // Decode it back to verify it works correctly
+      const decoded = atob(result);
+      const bytes = new Uint8Array(decoded.length);
+      for (let i = 0; i < decoded.length; i++) {
+        bytes[i] = decoded.charCodeAt(i);
+      }
+      const decodedString = new TextDecoder('utf-8').decode(bytes);
+      expect(decodedString).toBe(input);
+    });
+
+    it('Handles empty strings', () => {
+      const input = '';
+      const result = btoaUTF8(input);
+      expect(result).toBe(btoa(''));
     });
   });
 });
