@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
@@ -88,7 +89,7 @@ public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory)
 
         _sharedContentClientMock
             .Setup(c => c.GetPublishedResourcesForOrg(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .Throws(new SharedContentRequestException(errorMessage));
+            .Throws(new SharedContentRequestException(errorMessage, new Exception("Some inner exception")));
 
         // Act
         HttpResponseMessage response = await HttpClient.GetAsync(url);
