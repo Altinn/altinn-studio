@@ -12,12 +12,10 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 
 	"altinn.studio/pdf3/internal/assert"
 	ptesting "altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
-	"altinn.studio/runtime-fixture/pkg/flux"
 	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
 )
 
@@ -29,12 +27,6 @@ var (
 	Runtime       *kind.KindContainerRuntime
 	cachePath     = ".cache"
 )
-
-// LogDuration logs the duration of an operation
-// Usage: defer LogDuration("Operation name", time.Now())
-func LogDuration(stepName string, start time.Time) {
-	fmt.Printf("  [%s took %s]\n", stepName, time.Since(start))
-}
 
 func Init() {
 	TestServerURL = "http://testserver.default.svc.cluster.local"
@@ -269,174 +261,4 @@ func FindProjectRoot() (string, error) {
 	}
 
 	return "", errors.New("exceeded maximum iterations searching for go.mod")
-}
-
-// SetupCluster starts the Kind container runtime with all dependencies
-func SetupCluster(
-	variant kind.KindContainerRuntimeVariant,
-	options kind.KindContainerRuntimeOptions,
-	registryStartedEvent chan<- error,
-	ingressReadyEvent chan<- error,
-) (*kind.KindContainerRuntime, error) {
-	fmt.Println("=== Setting up Kind cluster ===")
-	overallStart := time.Now()
-
-	// Find project root to resolve relative paths
-	projectRoot, err := FindProjectRoot()
-	if err != nil {
-		return nil, fmt.Errorf("failed to find project root: %w", err)
-	}
-
-	// Create absolute cache path
-	absoluteCachePath := filepath.Join(projectRoot, cachePath)
-
-	// Create Kind container runtime
-	Runtime, err = kind.New(variant, absoluteCachePath, options)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create kind runtime: %w", err)
-	}
-	Runtime.RegistryStartedEvent = registryStartedEvent
-	Runtime.IngressReadyEvent = ingressReadyEvent
-
-	// Run the runtime (idempotent)
-	start := time.Now()
-	if err := Runtime.Run(); err != nil {
-		return nil, fmt.Errorf("failed to run kind runtime: %w", err)
-	}
-	LogDuration("Run Kind runtime", start)
-
-	fmt.Println("✓ Kind cluster ready")
-	LogDuration("Setup Kind cluster (total)", overallStart)
-	return Runtime, nil
-}
-
-// BuildAndPushImages builds Docker images and pushes them to the local registry
-func BuildAndPushImages() error {
-	fmt.Println("=== Building and pushing Docker images ===")
-	overallStart := time.Now()
-
-	projectRoot, err := FindProjectRoot()
-	if err != nil {
-		return fmt.Errorf("failed to find project root: %w", err)
-	}
-
-	// Build proxy image
-	fmt.Println("Building proxy image...")
-	start := time.Now()
-	if err := Runtime.ContainerClient.Build(projectRoot, "Dockerfile.proxy", "localhost:5001/runtime-pdf3-proxy:latest"); err != nil {
-		return err
-	}
-	LogDuration("Build proxy image", start)
-
-	// Build worker image
-	fmt.Println("Building worker image...")
-	start = time.Now()
-	if err := Runtime.ContainerClient.Build(projectRoot, "Dockerfile.worker", "localhost:5001/runtime-pdf3-worker:latest"); err != nil {
-		return err
-	}
-	LogDuration("Build worker image", start)
-
-	// Push images to registry
-	fmt.Println("Pushing images to registry...")
-	start = time.Now()
-	if err := Runtime.ContainerClient.Push("localhost:5001/runtime-pdf3-proxy:latest"); err != nil {
-		return err
-	}
-	if err := Runtime.ContainerClient.Push("localhost:5001/runtime-pdf3-worker:latest"); err != nil {
-		return err
-	}
-	LogDuration("Push images to registry", start)
-
-	fmt.Println("✓ Images built and pushed")
-	LogDuration("Build and push images (total)", overallStart)
-	return nil
-}
-
-// PushKustomizeArtifact pushes the kustomize directory as an OCI artifact
-func PushKustomizeArtifact() error {
-	fmt.Println("=== Pushing kustomize artifact ===")
-	overallStart := time.Now()
-
-	projectRoot, err := FindProjectRoot()
-	if err != nil {
-		return fmt.Errorf("failed to find project root: %w", err)
-	}
-
-	kustomizePath := filepath.Join(projectRoot, "infra", "kustomize")
-
-	start := time.Now()
-	if err := Runtime.FluxClient.PushArtifact(
-		"oci://localhost:5001/runtime-pdf3-repo:local",
-		kustomizePath,
-		"local",
-		"local",
-	); err != nil {
-		return err
-	}
-	LogDuration("Push artifact to OCI registry", start)
-
-	fmt.Println("✓ Kustomize artifact pushed")
-	LogDuration("Push kustomize artifact (total)", overallStart)
-	return nil
-}
-
-// DeployPdf3ViaFlux deploys pdf3 using Flux
-func DeployPdf3ViaFlux(variant kind.KindContainerRuntimeVariant) error {
-	fmt.Println("=== Deploying pdf3 via Flux ===")
-	overallStart := time.Now()
-
-	projectRoot, err := FindProjectRoot()
-	if err != nil {
-		return fmt.Errorf("failed to find project root: %w", err)
-	}
-
-	var variantName string
-	switch variant {
-	case kind.KindContainerRuntimeVariantMinimal:
-		variantName = "minimal"
-	case kind.KindContainerRuntimeVariantStandard:
-		variantName = "standard"
-	}
-
-	syncRootDir := filepath.Join(projectRoot, "infra", "kustomize", fmt.Sprintf("local-syncroot-%s", variantName))
-	manifest, err := Runtime.KubernetesClient.KustomizeRender(syncRootDir)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("Applying pdf3 manifest...")
-	start := time.Now()
-	if _, err := Runtime.KubernetesClient.ApplyManifest(manifest); err != nil {
-		return fmt.Errorf("failed to apply manifest: %w", err)
-	}
-	LogDuration("Apply pdf3 manifest", start)
-
-	reconcileOpts := flux.DefaultReconcileOptions()
-
-	fmt.Println("Triggering Kustomization reconciliation...")
-	start = time.Now()
-	if err := Runtime.FluxClient.ReconcileKustomization("pdf3-app", "runtime-pdf3", true, reconcileOpts); err != nil {
-		return fmt.Errorf("failed to reconcile Kustomization: %w", err)
-	}
-	LogDuration("Reconcile Kustomization", start)
-
-	fmt.Println("✓ Flux reconciliation complete")
-
-	fmt.Println("Waiting for pdf3-proxy deployment...")
-	start = time.Now()
-	if err := Runtime.KubernetesClient.RolloutStatus("pdf3-proxy", "runtime-pdf3", 2*time.Minute); err != nil {
-		return fmt.Errorf("failed waiting for pdf3-proxy: %w", err)
-	}
-	LogDuration("Wait for pdf3-proxy deployment", start)
-
-	fmt.Println("Waiting for pdf3-worker deployment...")
-	start = time.Now()
-	if err := Runtime.KubernetesClient.RolloutStatus("pdf3-worker", "runtime-pdf3", 2*time.Minute); err != nil {
-		return fmt.Errorf("failed waiting for pdf3-worker: %w", err)
-	}
-	LogDuration("Wait for pdf3-worker deployment", start)
-
-	fmt.Println("✓ pdf3 deployed via Flux")
-	LogDuration("Deploy pdf3 via Flux (total)", overallStart)
-	return nil
 }
