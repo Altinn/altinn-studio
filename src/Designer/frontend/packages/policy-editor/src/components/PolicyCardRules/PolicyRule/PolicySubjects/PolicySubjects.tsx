@@ -1,6 +1,11 @@
 import React, { useMemo } from 'react';
 import { StudioTabs } from '@studio/components';
-import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
+import {
+  getAltinnSubjects,
+  getCcrSubjects,
+  getOtherSubjects,
+  getUpdatedRules,
+} from '../../../../utils/PolicyRuleUtils';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicySubjects.module.css';
@@ -29,6 +34,16 @@ export const PolicySubjects = () => {
   const accessPackageList = useMemo(() => {
     return accessPackages.flatMap((a) => a.areas).flatMap((a) => a.packages);
   }, [accessPackages]);
+
+  const ccrSubjects = useMemo(() => {
+    return getCcrSubjects(subjects);
+  }, [subjects]);
+  const altinnSubjects = useMemo(() => {
+    return getAltinnSubjects(subjects);
+  }, [subjects]);
+  const otherSubjects = useMemo(() => {
+    return getOtherSubjects(subjects);
+  }, [subjects]);
 
   const handleSubjectChange = (subjectUrn: string, subjectLegacyUrn?: string): void => {
     const updatedSubjects = hasSubject(policyRule.subject, subjectUrn, subjectLegacyUrn)
@@ -143,16 +158,14 @@ export const PolicySubjects = () => {
           <StudioTabs.Tab value={TabId.AltinnRoles}>
             {t('policy_editor.rule_card_subjects_altinn_roles')}
           </StudioTabs.Tab>
-          {subjects.some((s) => s.provider?.code === 'sys-internal') && (
-            <StudioTabs.Tab value={TabId.Other}>
-              {t('policy_editor.rule_card_subjects_other_roles')}
-            </StudioTabs.Tab>
-          )}
+          <StudioTabs.Tab value={TabId.Other}>
+            {t('policy_editor.rule_card_subjects_other_roles')}
+          </StudioTabs.Tab>
         </StudioTabs.List>
         <StudioTabs.Panel value={TabId.ErRoles}>
           <RoleList
             selectedSubjects={policyRule.subject}
-            subjects={subjects.filter((s) => s.provider?.code === 'sys-ccr')}
+            subjects={ccrSubjects}
             heading={t('policy_editor.rule_card_subjects_ccr_roles')}
             handleChange={handleSubjectChange}
           />
@@ -163,9 +176,7 @@ export const PolicySubjects = () => {
         <StudioTabs.Panel value={TabId.AltinnRoles}>
           <RoleList
             selectedSubjects={policyRule.subject}
-            subjects={subjects.filter(
-              (s) => s.provider?.code === 'sys-altinn2' || s.provider?.code === 'sys-altinn3',
-            )}
+            subjects={altinnSubjects}
             heading={t('policy_editor.rule_card_subjects_altinn_roles')}
             handleChange={handleSubjectChange}
           />
@@ -173,7 +184,7 @@ export const PolicySubjects = () => {
         <StudioTabs.Panel value={TabId.Other}>
           <RoleList
             selectedSubjects={policyRule.subject}
-            subjects={subjects.filter((s) => s.provider?.code === 'sys-internal')}
+            subjects={otherSubjects}
             heading={t('policy_editor.rule_card_subjects_other_roles')}
             handleChange={handleSubjectChange}
           />
