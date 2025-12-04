@@ -1,6 +1,7 @@
 .pageWrapper {
-  padding-inline: 10%;
-  padding-block: var(--ds-size-5);
+  padding: var(--ds-size-5) var(--ds-size-4);
+  margin: 0 auto;
+  max-width: 1600px;
   flex-grow: 1;
 }
 

@@ -216,17 +216,9 @@ public class GiteaClient(
     }
 
     /// <inheritdoc/>
-    public async Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource, CancellationToken cancellationToken)
+    public async Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ListviewServiceResource listviewResource, CancellationToken cancellationToken)
     {
-        ListviewServiceResource listviewResource = new()
-        {
-            Identifier = serviceResource.Identifier,
-            Title = serviceResource.Title,
-        };
-
-        string resourceFolder = serviceResource.Identifier;
-
-        HttpResponseMessage fileResponse = await httpClient.GetAsync($"repos/{org}/{repo}/commits?path={resourceFolder}&stat=false&verification=false&files=false", cancellationToken);
+        HttpResponseMessage fileResponse = await httpClient.GetAsync($"repos/{org}/{repo}/commits?path={listviewResource.Identifier}&stat=false&verification=false&files=false", cancellationToken);
 
         if (fileResponse.StatusCode == HttpStatusCode.OK)
         {
@@ -256,7 +248,7 @@ public class GiteaClient(
         else
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
-            logger.LogError("User {Developer}, method {MethodName} failed with statuscode {StatusCode} for {Org}/{Repo} and resource folder {ResourceFolder}", developer, nameof(MapServiceResourceToListViewResource), fileResponse.StatusCode, org, repo, resourceFolder);
+            logger.LogError("User {Developer}, method {MethodName} failed with statuscode {StatusCode} for {Org}/{Repo} and resource folder {ResourceFolder}", developer, nameof(MapServiceResourceToListViewResource), fileResponse.StatusCode, org, repo, listviewResource.Identifier);
         }
 
         return listviewResource;

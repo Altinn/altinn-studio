@@ -227,7 +227,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string repository = GetRepositoryName(org);
             IEnumerable<ListviewServiceResource> resources;
-            List<ServiceResource> repositoryResourceList;
+            List<ListviewServiceResource> repositoryResourceList;
             List<ListviewServiceResource> listviewServiceResources = new List<ListviewServiceResource>();
 
             if (skipParseJson)
@@ -235,7 +235,7 @@ namespace Altinn.Studio.Designer.Controllers
                 List<FileSystemObject> resourceFiles = _repository.GetContents(org, repository);
                 repositoryResourceList = resourceFiles.Where(file => file.Type.Equals("Dir") && !file.Name.StartsWith(".")).Select(file =>
                 {
-                    return new ServiceResource
+                    return new ListviewServiceResource
                     {
                         Identifier = file.Name,
                         Title = new Dictionary<string, string>()
@@ -259,7 +259,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 using SemaphoreSlim semaphore = new(25); // Limit to 25 concurrent requests
 
-                async Task<ListviewServiceResource> ProcessResourceAsync(ServiceResource resource)
+                async Task<ListviewServiceResource> ProcessResourceAsync(ListviewServiceResource resource)
                 {
                     await semaphore.WaitAsync(cancellationToken);
                     try
@@ -272,14 +272,13 @@ namespace Altinn.Studio.Designer.Controllers
                     }
                 }
                 IEnumerable<Task<ListviewServiceResource>> tasks = repositoryResourceList.Select(resource => ProcessResourceAsync(resource));
-                resources = await Task.WhenAll(tasks);
+                await Task.WhenAll(tasks);
             }
 
-            foreach (ListviewServiceResource listviewResource in resources)
+            foreach (ListviewServiceResource listviewResource in repositoryResourceList)
             {
                 listviewResource.HasPolicy = true;
                 listviewResource.Environments = ["gitea"];
-                listviewServiceResources.Add(listviewResource);
             }
 
             if (includeEnvResources)
@@ -312,7 +311,7 @@ namespace Altinn.Studio.Designer.Controllers
 
                     foreach (ServiceResource resource in environmentResourcesForOrg)
                     {
-                        ListviewServiceResource listResource = listviewServiceResources.FirstOrDefault(x => x.Identifier == resource.Identifier);
+                        ListviewServiceResource listResource = repositoryResourceList.FirstOrDefault(x => x.Identifier == resource.Identifier);
                         if (listResource == null)
                         {
                             listResource = new ListviewServiceResource
@@ -320,17 +319,18 @@ namespace Altinn.Studio.Designer.Controllers
                                 Identifier = resource.Identifier,
                                 Title = resource.Title,
                                 CreatedBy = "",
+                                ResourceType = resource.ResourceType,
                                 LastChanged = null,
                                 Environments = []
                             };
-                            listviewServiceResources.Add(listResource);
+                            repositoryResourceList.Add(listResource);
                         }
                         listResource.Environments.Add(environment);
                     }
                 }
             }
 
-            return listviewServiceResources;
+            return repositoryResourceList;
         }
 
         [HttpGet]

@@ -69,7 +69,7 @@ const mockConsentResource: Resource = {
 const consentTemplates = testConsentTemplates;
 
 const mockResourceType: ResourceTypeOption = textMock(
-  'resourceadm.about_resource_resource_type_generic_access_resource',
+  'dashboard.resource_type_generic_access_resource',
 ) as ResourceTypeOption;
 const mockStatus: ResourceStatusOption = 'Deprecated';
 
@@ -128,7 +128,7 @@ describe('AboutResourcePage', () => {
     render(<AboutResourcePage {...defaultProps} />);
 
     expect(
-      screen.queryByLabelText(textMock('resourceadm.about_resource_resource_type_system_resource')),
+      screen.queryByLabelText(textMock('dashboard.resource_type_system_resource')),
     ).not.toBeInTheDocument();
   });
 
@@ -141,7 +141,7 @@ describe('AboutResourcePage', () => {
     render(<AboutResourcePage {...defaultProps} />);
 
     const resourceTypeRadio = screen.getByLabelText(
-      textMock('resourceadm.about_resource_resource_type_system_resource'),
+      textMock('dashboard.resource_type_system_resource'),
     );
     await user.click(resourceTypeRadio);
 
