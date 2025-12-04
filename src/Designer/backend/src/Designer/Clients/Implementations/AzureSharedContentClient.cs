@@ -329,7 +329,7 @@ public class AzureSharedContentClient : ISharedContentClient
         try
         {
             AsyncPageable<BlobItem> blobs = GetPageableBlobsWithPrefix(prefix, cancellationToken);
-            return await EnumerateBlobs(blobs);
+            return await EnumerateBlobs(blobs, cancellationToken);
         }
         catch (Exception ex) when (ex is RequestFailedException or AggregateException)
         {
@@ -344,10 +344,13 @@ public class AzureSharedContentClient : ISharedContentClient
         return containerClient.GetBlobsAsync(BlobTraits.None, BlobStates.None, prefix, cancellationToken);
     }
 
-    private static async Task<List<BlobItem>> EnumerateBlobs(AsyncPageable<BlobItem> enumerableBlobs)
+    private static async Task<List<BlobItem>> EnumerateBlobs(
+        AsyncPageable<BlobItem> enumerableBlobs,
+        CancellationToken cancellationToken
+    )
     {
         List<BlobItem> blobItemList = [];
-        await foreach (BlobItem b in enumerableBlobs) { blobItemList.Add(b); }
+        await foreach (BlobItem b in enumerableBlobs.WithCancellation(cancellationToken)) { blobItemList.Add(b); }
         return blobItemList;
     }
 
