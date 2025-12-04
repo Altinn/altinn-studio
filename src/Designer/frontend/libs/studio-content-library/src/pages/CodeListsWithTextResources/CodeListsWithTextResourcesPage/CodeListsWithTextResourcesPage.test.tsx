@@ -135,6 +135,9 @@ describe('CodeListsWithTextResourcesPage', () => {
     );
     const codeListIdButton = within(details).getByRole('button', { name: idButtonLabel });
     await user.click(codeListIdButton);
+
+    const codeListIdInput = within(details).getByRole('textbox', { name: idButtonLabel });
+    await user.click(codeListIdInput);
     await user.keyboard(additionalChars);
     await user.tab();
 

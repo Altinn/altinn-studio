@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: operator-config
+data:
+  config.env: |
+    maskinporten_api.authority_url=https://maskinporten.no
+    maskinporten_api.self_service_url=https://api.samarbeid.digdir.no
+    maskinporten_api.scope=idporten:dcr.altinn
+    org_registry.url=https://altinncdn.no/orgs/altinn-orgs.json
+    controller.requeue_after=24h
+    controller.jwk_rotation_threshold=23d
+    controller.jwk_expiry=30d
