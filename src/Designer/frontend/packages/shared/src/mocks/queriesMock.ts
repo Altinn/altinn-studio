@@ -139,12 +139,6 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() =>
       Promise.resolve<ITextResourcesWithLanguage>(textResourcesWithLanguage),
     ),
-  getSharedResources: jest.fn().mockImplementation(() =>
-    Promise.resolve<GetSharedResourcesResponse>({
-      files: [],
-      commitSha: '',
-    }),
-  ),
   getSharedResourcesByPath: jest.fn().mockImplementation(() =>
     Promise.resolve<GetSharedResourcesResponse>({
       files: [],
