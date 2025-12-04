@@ -32,9 +32,9 @@ export const sharedResourcesResponseWithProblem: GetSharedResourcesResponse = {
       path: 'CodeLists/vehicles.json',
       contentType: 'application/json',
       problem: {
-        title: 'Invalid JSON',
-        detail: 'Could not parse JSON content',
-        status: 400,
+        title: 'Error retrieving file',
+        detail: 'An error occurred when trying to retrieve the file.',
+        status: 500,
       },
     },
   ],

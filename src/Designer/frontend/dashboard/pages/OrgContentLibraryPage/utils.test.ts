@@ -3,7 +3,6 @@ import {
   libraryCodeListsToUpdatePayload,
   textResourcesWithLanguageToLibraryTextResources,
   textResourceWithLanguageToMutationArgs,
-  btoaUTF8,
 } from './utils';
 import type {
   TextResource,
@@ -67,9 +66,12 @@ describe('utils', () => {
       expect(result).toEqual(expectedResult);
     });
 
-    it('Ignores code lists with problems', () => {
+    it('Returns empty array for code lists with problems', () => {
       const result = backendCodeListsToLibraryCodeLists(sharedResourcesResponseWithProblem);
-      const expectedResult: CodeListData[] = [{ name: 'animals', codes: codeLists.animals }];
+      const expectedResult: CodeListData[] = [
+        { name: 'animals', codes: codeLists.animals },
+        { name: 'vehicles', codes: [] },
+      ];
       expect(result).toEqual(expectedResult);
     });
 
@@ -166,46 +168,6 @@ describe('utils', () => {
       expect(() =>
         libraryCodeListsToUpdatePayload(undefined, updatedCodeLists, commitMessage),
       ).toThrow('Current data is required to create update payload');
-    });
-  });
-
-  describe('btoaUTF8', () => {
-    it('Encodes ASCII strings correctly', () => {
-      const input = 'Hello World';
-      const result = btoaUTF8(input);
-      expect(result).toBe(btoa(input));
-    });
-
-    it('Encodes UTF-8 strings with Norwegian characters correctly', () => {
-      const input = 'Båt';
-      const result = btoaUTF8(input);
-      // Decode it back to verify it works correctly
-      const decoded = atob(result);
-      const bytes = new Uint8Array(decoded.length);
-      for (let i = 0; i < decoded.length; i++) {
-        bytes[i] = decoded.charCodeAt(i);
-      }
-      const decodedString = new TextDecoder('utf-8').decode(bytes);
-      expect(decodedString).toBe(input);
-    });
-
-    it('Encodes JSON with UTF-8 characters correctly', () => {
-      const input = JSON.stringify({ label: { nb: 'Båt', en: 'Boat' } });
-      const result = btoaUTF8(input);
-      // Decode it back to verify it works correctly
-      const decoded = atob(result);
-      const bytes = new Uint8Array(decoded.length);
-      for (let i = 0; i < decoded.length; i++) {
-        bytes[i] = decoded.charCodeAt(i);
-      }
-      const decodedString = new TextDecoder('utf-8').decode(bytes);
-      expect(decodedString).toBe(input);
-    });
-
-    it('Handles empty strings', () => {
-      const input = '';
-      const result = btoaUTF8(input);
-      expect(result).toBe(btoa(''));
     });
   });
 });
