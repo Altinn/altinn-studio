@@ -300,7 +300,9 @@ Cypress.Commands.add('clearSelectionAndWait', (viewport) => {
   });
 });
 
-Cypress.Commands.add('getCurrentPageId', () => cy.location('hash').then((hash) => hash.split('/').slice(-1)[0]));
+Cypress.Commands.add('getCurrentPageId', () =>
+  cy.location('pathname').then((pathname) => pathname.split('/').slice(-1)[0]),
+);
 
 const defaultSnapshotOptions: SnapshotOptions = {
   wcag: true,
@@ -653,7 +655,7 @@ Cypress.Commands.add(
     cy.getCurrentViewportSize().as('testPdfViewportSize');
 
     // Make sure instantiation is completed before we get the url
-    cy.location('hash', { log: false }).should('contain', '#/instance/').as('hashBeforePdf');
+    cy.location('pathname', { log: false }).should('contain', '/instance/');
 
     // Make sure we blur any selected component before reload to trigger save
     cy.get('body').click({ log: false });
@@ -734,12 +736,9 @@ Cypress.Commands.add(
       });
       cy.get('body').invoke('css', 'margin', '');
 
-      cy.get('@hashBeforePdf').then((hashBeforePdf) => {
-        cy.window().then((win) => {
-          win.location.hash = hashBeforePdf.toString();
-        });
+      cy.location('href').then((href) => {
+        cy.visit(href.replace('?pdf=1', ''));
       });
-
       cy.get('#readyForPrint').should('not.exist');
       cy.get('#finishedLoading').should('exist');
     }

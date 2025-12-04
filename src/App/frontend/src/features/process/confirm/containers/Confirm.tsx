@@ -4,17 +4,16 @@ import { AltinnContentLoader } from 'src/app-components/loading/AltinnContentLoa
 import { useAppName } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
-import { useInstanceOwnerParty, usePartiesAllowedToInstantiate } from 'src/features/party/PartiesProvider';
+import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { ConfirmPage } from 'src/features/process/confirm/containers/ConfirmPage';
 
 export const Confirm = () => {
   const instance = useInstanceDataQuery().data;
-  const parties = usePartiesAllowedToInstantiate();
   const instanceOwnerParty = useInstanceOwnerParty();
 
   const applicationMetadata = useApplicationMetadata();
 
-  const missingRequirement = !instance ? 'instance' : !parties ? 'parties' : undefined;
+  const missingRequirement = !instance ? 'instance' : undefined;
 
   const appName = useAppName();
   return (
