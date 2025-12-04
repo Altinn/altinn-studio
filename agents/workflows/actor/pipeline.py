@@ -273,13 +273,19 @@ async def create_tool_plan(
     }
 
     # Extract tool names from available_tools (which may be dicts with name/description)
+    # Tools that should NOT be shown to the tool planner (internal/validation tools)
+    hidden_tools = {"schema_validator_tool", "resource_validator_tool", "policy_validation_tool", "layout_validator_tool"}
+    
     if available_tools:
         if isinstance(available_tools[0], dict):
-            # Available tools are in dict format: [{"name": "...", "description": "..."}]
-            available_tools_list = [tool["name"] for tool in available_tools if "name" in tool]
+            # Available tools are list of dicts with 'name' key - filter out hidden tools
+            available_tools_list = [
+                tool.get("name") for tool in available_tools 
+                if tool.get("name") and tool.get("name") not in hidden_tools and "validator" not in tool.get("name", "").lower()
+            ]
         else:
-            # Available tools are already a list of strings
-            available_tools_list = available_tools
+            # Available tools are already a list of strings - filter out hidden tools
+            available_tools_list = [t for t in available_tools if t not in hidden_tools and "validator" not in t.lower()]
     else:
         # Fallback to hardcoded list if no tools provided
         available_tools_list = [
@@ -314,11 +320,15 @@ async def create_tool_plan(
     ).strip()
 
     tool_catalog = "- None provided"
+    # Reuse hidden_tools defined above for filtering tool catalog
     if available_tools and isinstance(available_tools[0], dict):
         tool_catalog_lines: List[str] = []
         for tool in available_tools:
             name = tool.get("name")
             if not name:
+                continue
+            # Skip validation/internal tools - they should not be in the tool plan
+            if name in hidden_tools or "validator" in name.lower():
                 continue
             description = tool.get("description", "") or "No description provided."
             tool_catalog_lines.append(f"- {name}: {description}")
@@ -464,11 +474,20 @@ async def execute_tool_plan(
             if not tool_name:
                 continue
 
+            # DEBUG: Log every tool being processed
+            log.info(f"🔧 Processing tool: '{tool_name}' (type: {type(tool_name).__name__})")
+
             arguments = entry.get("arguments")
             
             # Skip validation tools - they require specific file content, not queries
-            if tool_name in {"schema_validator_tool", "resource_validator_tool", "policy_validation_tool"}:
+            validation_tools = {"schema_validator_tool", "resource_validator_tool", "policy_validation_tool"}
+            if tool_name in validation_tools:
                 log.info("Skipping %s (validation tools are called by verifier, not tool planner)", tool_name)
+                continue
+            
+            # Extra safety check for any tool containing "validator"
+            if "validator" in tool_name.lower():
+                log.warning(f"⚠️ Skipping unexpected validator tool: {tool_name}")
                 continue
             
             if arguments is None:

@@ -302,6 +302,12 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
             tool_name = tool_spec.get("tool")
             query = tool_spec.get("query", "")
             objective = tool_spec.get("objective", "")
+            
+            # Skip validation tools - they require specific file content, not queries
+            if tool_name and ("validator" in tool_name.lower() or tool_name in {"schema_validator_tool", "resource_validator_tool", "policy_validation_tool"}):
+                log.warning(f"Skipping {tool_name} - validation tools not available in chat mode")
+                continue
+            
             # Prepare arguments based on tool type
             if tool_name in {"datamodel_tool", "prefill_tool", "dynamic_expression", "policy_tool"}:
                 # Documentation tools - no parameters
