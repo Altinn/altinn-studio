@@ -30,7 +30,6 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import userEvent from '@testing-library/user-event';
 import { FeatureFlag } from '@studio/feature-flags';
-import { codeListsNewResponse } from './test-data/codeListsNewResponse';
 import { sharedResourcesResponse } from './test-data/sharedResourcesResponse';
 
 // Test data:
@@ -43,7 +42,6 @@ const repositoryName = `${orgName}-content`;
 const repoStatusQueryKey: string[] = [QueryKey.RepoStatus, orgName, repositoryName];
 const orgCodeListsQueryKey: string[] = [QueryKey.OrgCodeLists, orgName];
 const orgTextResourcesQueryKey: string[] = [QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE];
-const orgCodeListsNewQueryKey: string[] = [QueryKey.OrgCodeListsNew, orgName];
 const sharedResourcesByPathQueryKey: string[] = [
   QueryKey.SharedResourcesByPath,
   orgName,
@@ -312,7 +310,7 @@ describe('OrgContentLibraryPage', () => {
     renderOrgContentLibraryWithData({ featureFlags: [FeatureFlag.NewCodeLists] });
     const pagesConfig = retrievePagesConfig();
     const { codeLists } = pagesConfig.codeLists.props;
-    expect(codeLists).toHaveLength(codeListsNewResponse.codeListWrappers.length);
+    expect(codeLists).toHaveLength(sharedResourcesResponse.files.length);
   });
 
   it('Calls updateOrgCodeLists with correct data when code list saving is triggered on the new code list page', async () => {
@@ -365,7 +363,6 @@ function createQueryClientWithData(): QueryClient {
   queryClient.setQueryData(orgCodeListsQueryKey, codeListDataList);
   queryClient.setQueryData(orgTextResourcesQueryKey, textResourcesWithLanguage);
   queryClient.setQueryData(repoStatusQueryKey, repoStatus);
-  queryClient.setQueryData(orgCodeListsNewQueryKey, codeListsNewResponse);
   queryClient.setQueryData(sharedResourcesByPathQueryKey, sharedResourcesResponse);
   return queryClient;
 }
@@ -380,7 +377,6 @@ function createQueryClientWithMissingTextResources(): QueryClient {
   queryClient.setQueryData(orgCodeListsQueryKey, codeListDataList);
   queryClient.setQueryData(orgTextResourcesQueryKey, null);
   queryClient.setQueryData(repoStatusQueryKey, repoStatus);
-  queryClient.setQueryData(orgCodeListsNewQueryKey, codeListsNewResponse);
   queryClient.setQueryData(sharedResourcesByPathQueryKey, sharedResourcesResponse);
   return queryClient;
 }

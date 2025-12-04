@@ -118,7 +118,6 @@ import type { LibraryContentType } from 'app-shared/enums/LibraryContentType';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 import type { FeatureName } from 'app-shared/enums/CanUseFeature';
-import type { CodeListsNewResponse } from 'app-shared/types/api/CodeListsNewResponse';
 import type { GetSharedResourcesResponse } from 'app-shared/types/api/GetSharedResourcesResponse';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
@@ -211,6 +210,5 @@ export const getSharedResourcesByPath = async (org: string, path: string): Promi
 export const getSharedResourcesByPathAndReference = async (org: string, path: string, reference: string): Promise<GetSharedResourcesResponse> => get(orgLibraryPath(org, path, reference));
 
 export const getOrgCodeLists = (org: string) => get<CodeListsResponse>(orgCodeListsPath(org));
-export const getOrgCodeListsNew = (org: string) => get<CodeListsNewResponse>(orgCodeListsNewPath(org));
 export const getOrgTextLanguages = (org: string): Promise<string[] | null> => get<string[] | null>(orgTextLanguagesPath(org));
 export const getOrgTextResources = (org: string, language: string): Promise<ITextResourcesWithLanguage | null> => get<ITextResourcesWithLanguage | null>(orgTextResourcesPath(org, language));
