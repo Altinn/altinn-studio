@@ -20,7 +20,15 @@
         "largeGroup": true,
         "grid": {
           "xs": 6
-        }
+        },
+        "hidden": [
+          "greaterThan",
+          [
+            "dataModel",
+            "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[0].SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value"
+          ],
+          10
+        ]
       },
       {
         "id": "summary2",
@@ -28,7 +36,15 @@
         "componentRef": "sendersName",
         "grid": {
           "xs": 6
-        }
+        },
+        "hidden": [
+          "greaterThan",
+          [
+            "dataModel",
+            "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[0].SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value"
+          ],
+          10
+        ]
       },
       {
         "id": "startAgain",
@@ -47,4 +63,3 @@
     ]
   }
 }
-
