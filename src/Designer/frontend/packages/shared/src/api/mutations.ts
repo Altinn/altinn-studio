@@ -59,7 +59,6 @@ import {
   layoutConvertToPageOrderPath,
   taskNavigationGroupPath,
   orgCodeListUpdateIdPath,
-  orgCodeListsNewPath,
   orgLibraryUpdatePath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
@@ -94,7 +93,6 @@ import type { PagesModel } from '../types/api/dto/PagesModel';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import type { ImportCodeListResponse } from 'app-shared/types/api/ImportCodeListResponse';
-import type { UpdateOrgCodeListsPayload } from 'app-shared/types/api/UpdateOrgCodeListsPayload';
 import type { UpdateSharedResourcesRequest } from 'app-shared/types/api/UpdateSharedResourcesRequest';
 
 const headers = {
@@ -204,7 +202,6 @@ export const updateSharedResources = async (org: string, payload: UpdateSharedRe
 // Organisation library code lists:
 export const createOrgCodeList = async (org: string, codeListId: string, payload: CodeListWithTextResources): Promise<CodeListsResponse> => post(orgCodeListPath(org, codeListId), payload);
 export const updateOrgCodeList = async (org: string, codeListId: string, payload: CodeListWithTextResources): Promise<CodeListsResponse> => put(orgCodeListPath(org, codeListId), payload);
-export const updateOrgCodeLists = (org: string, payload: UpdateOrgCodeListsPayload) => put<void, UpdateOrgCodeListsPayload>(orgCodeListsNewPath(org), payload);
 export const updateOrgCodeListId = async (org: string, codeListId: string, payload: string): Promise<void> => put<void, string>(orgCodeListUpdateIdPath(org, codeListId), payload, { headers: { 'Content-Type': 'application/json' } });
 export const deleteOrgCodeList = async (org: string, codeListId: string): Promise<CodeListsResponse> => del(orgCodeListPath(org, codeListId));
 export const uploadOrgCodeList = async (org: string, payload: FormData): Promise<CodeListsResponse> => post(orgCodeListUploadPath(org), payload);
