@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioCard, StudioHeading, StudioParagraph } from '@studio/components';
@@ -34,10 +34,6 @@ export function CodeListsPage({ codeLists, onSave }: CodeListsPageProps): ReactE
     },
     [codeListMap, setCodeListMap],
   );
-
-  useEffect(() => {
-    setCodeListMap(createCodeListMap(codeLists));
-  }, [codeLists]);
 
   const handleAddCodeList = useCallback((): void => {
     const newCodeListMap = addCodeListToMap(codeListMap);
