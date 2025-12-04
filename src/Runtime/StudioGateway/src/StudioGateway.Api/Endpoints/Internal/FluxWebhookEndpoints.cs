@@ -1,3 +1,4 @@
+using StudioGateway.Api.Authentication;
 using StudioGateway.Api.Endpoints.Internal.Contracts;
 using StudioGateway.Api.Hosting;
 
@@ -17,9 +18,18 @@ internal static class FluxWebhookEndpoints
         return app;
     }
 
-    private static IResult HandleFluxWebhook(FluxEvent fluxEvent, ILogger<Program> logger)
+    private static IResult HandleFluxWebhook(
+        FluxEvent fluxEvent,
+        ILogger<Program> logger,
+        MaskinportenClient maskinportenClient
+    )
     {
-        logger.LogInformation("Received Flux event: {FluxEvent}", fluxEvent);
+        var token = maskinportenClient.CurrentToken;
+        logger.LogInformation(
+            "Received Flux event: Event={FluxEvent}, HasToken={HasToken}",
+            fluxEvent,
+            token is not null
+        );
         return Results.Ok();
     }
 }

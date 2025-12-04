@@ -11,27 +11,31 @@ internal static class MaskinportenAuthenticationExtensions
 
     public static WebApplicationBuilder AddMaskinportenAuthentication(this WebApplicationBuilder builder)
     {
-        var metadataAddresses =
-            builder.Configuration.GetSection("Maskinporten:MetadataAddresses").Get<string[]>()
-            ?? throw new InvalidOperationException("Maskinporten:MetadataAddresses configuration is required");
+        builder.Services.Configure<MaskinportenSettings>(builder.Configuration.GetSection("Maskinporten"));
+        builder.Services.Configure<MaskinportenClientSettings>(
+            builder.Configuration.GetSection("MaskinportenClientForDesigner")
+        );
 
-        if (metadataAddresses.Length == 0)
+        var settings =
+            builder.Configuration.GetSection("Maskinporten").Get<MaskinportenSettings>()
+            ?? throw new InvalidOperationException("Maskinporten configuration section is required");
+
+        if (settings.MetadataAddresses.Length == 0)
             throw new InvalidOperationException("Maskinporten:MetadataAddresses must contain at least one address");
-
-        var requiredScope =
-            builder.Configuration["Maskinporten:RequiredScope"]
-            ?? throw new InvalidOperationException("Maskinporten:RequiredScope configuration is required");
 
         builder.Services.AddHttpClient();
         builder.Services.AddSingleton<IssuerSchemeCache>();
         builder.Services.AddHostedService<IssuerSchemeCacheInitializer>();
 
-        var authBuilder = builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
-        var schemeNames = new List<string>(metadataAddresses.Length);
+        builder.Services.AddSingleton<MaskinportenClient>();
+        builder.Services.AddHostedService(sp => sp.GetRequiredService<MaskinportenClient>());
 
-        for (var i = 0; i < metadataAddresses.Length; i++)
+        var authBuilder = builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
+        var schemeNames = new List<string>(settings.MetadataAddresses.Length);
+
+        for (var i = 0; i < settings.MetadataAddresses.Length; i++)
         {
-            var metadataAddress = metadataAddresses[i];
+            var metadataAddress = settings.MetadataAddresses[i];
             var schemeName = $"Maskinporten_{i}";
             schemeNames.Add(schemeName);
 
@@ -146,7 +150,7 @@ internal static class MaskinportenAuthenticationExtensions
                                 schemeName,
                                 issuer,
                                 scope,
-                                requiredScope
+                                settings.RequiredScope
                             );
 
                             return Task.CompletedTask;
@@ -173,7 +177,7 @@ internal static class MaskinportenAuthenticationExtensions
                             return false;
 
                         var scopes = scopeClaim.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                        return scopes.Contains(requiredScope);
+                        return scopes.Contains(settings.RequiredScope);
                     });
                 }
             );
