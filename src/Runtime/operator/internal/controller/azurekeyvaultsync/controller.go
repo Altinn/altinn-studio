@@ -143,7 +143,12 @@ func (c *AzureKeyVaultReconciler) Start(ctx context.Context) error {
 	for range 10 {
 		if err := c.SyncAll(ctx); err != nil {
 			c.logger.Error(err, "initial sync failed")
-			clock.Sleep(10 * time.Second)
+			select {
+			case <-ctx.Done():
+				return nil
+			case <-clock.After(10 * time.Second):
+				break
+			}
 		} else {
 			break
 		}
