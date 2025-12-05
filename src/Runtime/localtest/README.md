@@ -21,22 +21,22 @@ These are some of the required steps, tips, and tricks when it comes to running 
 1. .NET SDK matching your service (the latest App Template uses [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0), older versions may also require [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0))
 2. Newest [Git](https://git-scm.com/downloads)
 3. A code editor - we like [Visual Studio Code](https://code.visualstudio.com/Download)
-    - Also
-      install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (
-      f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp))
+   - Also
+     install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (
+     f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp))
 4. Tooling to run containers:
-    - [Podman](https://podman.io)* (optionally with [Podman Desktop](https://podman-desktop.io))
-    - [Docker Desktop](https://www.docker.com/products/docker-desktop) (Windows and Mac) This might require you to purchase a license.
-    - Linux/WSL users can also use native Docker.
+   - [Podman](https://podman.io)\* (optionally with [Podman Desktop](https://podman-desktop.io))
+   - [Docker Desktop](https://www.docker.com/products/docker-desktop) (Windows and Mac) This might require you to purchase a license.
+   - Linux/WSL users can also use native Docker.
 
- > [!NOTE]
- > On Mac with Apple silicone (M-series CPU), [vfkit](https://github.com/crc-org/vfkit?tab=readme-ov-file#installation) might be needed - consult the install guide/requirements for your container toolkit
-
+> [!NOTE]
+> On Mac with Apple silicone (M-series CPU), [vfkit](https://github.com/crc-org/vfkit?tab=readme-ov-file#installation) might be needed - consult the install guide/requirements for your container toolkit
 
 > [!WARNING]
-> *Podman on Windows/WSL2 can be tricky. If faced with the same issue as described in https://github.com/Altinn/app-localtest/issues/84, please apply the following (tested on Podman 4.9.2 and 5.1.1):
-> * Install the Podman Machine with "user-mode networking" enabled (the setting for root/rootless seems not to have an impact)
-> * Apply local updates to `podman-compose.yml` and `src\appsettings.Podman.json` replacing `host.docker.internal` with `<your-hostname>.local` (obtained by running `hostname` in the windows host commandline).
+> \*Podman on Windows/WSL2 can be tricky. If faced with the same issue as described in https://github.com/Altinn/app-localtest/issues/84, please apply the following (tested on Podman 4.9.2 and 5.1.1):
+>
+> - Install the Podman Machine with "user-mode networking" enabled (the setting for root/rootless seems not to have an impact)
+> - Apply local updates to `podman-compose.yml` and `src\appsettings.Podman.json` replacing `host.docker.internal` with `<your-hostname>.local` (obtained by running `hostname` in the windows host commandline).
 >   e.g. in `src\appsettings.Podman.json` the config `"LocalAppUrl": "http://host.docker.internal:5005",` becomes `"LocalAppUrl": "http://AAD-123456789.local:5005",` if your hostname is `AAD-123456789`
 >
 > If you have special networking needs (VPN), additional settings might be needed in WSL2/Podman. Please consult their respective doc/forums. https://learn.microsoft.com/en-us/windows/wsl/wsl-config#wslconfig and https://github.com/containers/podman/blob/main/docs/tutorials/basic_networking.md are good starting-ponts.
@@ -48,7 +48,7 @@ These are some of the required steps, tips, and tricks when it comes to running 
 ```shell
 git clone https://github.com/Altinn/app-localtest
 cd app-localtest
- ```
+```
 
 #### Option A: Start the containers using podman
 
@@ -156,6 +156,7 @@ Optionally, if you want access to Grafana and a local monitoring setup based on 
 If the localtest setup is already running, it will restart.
 
 To stop localtest
+
 ```shell
 ./run.cmd stop
 ```
@@ -174,8 +175,8 @@ cd C:\my_applications\my-awasome-app\App
 
 Run the application:
 
- ```shell
- dotnet run
+```shell
+dotnet run
 ```
 
 The app and local platform services are now running locally. The app can be accessed on <http://local.altinn.cloud>.
@@ -240,16 +241,16 @@ User secrets is a set of developer specific settings that will overwrite values 
 the application is started in developer "mode". The alternative is to edit the `appsettings.json` file directly. Just be
 careful not to commit developer specific changes back to the repository.
 
-- Define a user secret with the following command:  (make sure you are in the LocalTest folder)
-   ```bash
-   dotnet user-secrets set "LocalPlatformSettings:AppRepositoryBasePath" "C:\Repos"
-   ```
+- Define a user secret with the following command: (make sure you are in the LocalTest folder)
+  ```bash
+  dotnet user-secrets set "LocalPlatformSettings:AppRepositoryBasePath" "C:\Repos"
+  ```
   Run the command for each setting you want to change.
 - Alternatively edit the appsettings.json file directly:
-    - Open `appsettings.json` in the `LocalTest` folder in an editor, for example in Visual Studio Code
-    - Change the setting `"AppRepsitoryBasePath"` to the full path to your app on the disk.
-    - Change other settings as needed.
-    - Save the file.
+  - Open `appsettings.json` in the `LocalTest` folder in an editor, for example in Visual Studio Code
+  - Change the setting `"AppRepsitoryBasePath"` to the full path to your app on the disk.
+  - Change other settings as needed.
+  - Save the file.
 
 Finally, start the local platform services (make sure you are in the `/src` folder)
 
@@ -274,12 +275,12 @@ This would be required if your app requires a role which none of the test users 
    to `User_{userID}\party_{partyId}\roles.json`
 3. Add a new entry in the list for the role you require
 
-  ```
-  {
-    "Type": "altinn",
-    "value": "[Insert role code here]"
-  }
-  ```
+```
+{
+  "Type": "altinn",
+  "value": "[Insert role code here]"
+}
+```
 
 4. Save and close the file
 5. Restart LocalTest
