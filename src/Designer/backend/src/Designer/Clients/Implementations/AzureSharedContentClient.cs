@@ -312,7 +312,7 @@ public class AzureSharedContentClient : ISharedContentClient
 
     public async Task<List<string>> GetPublishedResourcesForOrg(string orgName, string path = "", CancellationToken cancellationToken = default)
     {
-        string prefix = orgName + "/" + path;
+        string prefix = $"{orgName}/{path}";
         return await GetPublishedResourcesWithPrefix(prefix, cancellationToken);
     }
 
@@ -333,7 +333,12 @@ public class AzureSharedContentClient : ISharedContentClient
         }
         catch (Exception ex) when (ex is RequestFailedException or AggregateException)
         {
-            _logger.LogError(ex, "Error fetching blobs with prefix {Prefix} in {Class}", prefix, nameof(AzureSharedContentClient));
+            _logger.LogError(
+                ex,
+                "Error fetching blobs with prefix {Prefix} in {Class}",
+                prefix.WithoutLineBreaks(),
+                nameof(AzureSharedContentClient)
+            );
             throw new SharedContentRequestException($"Error fetching blobs with prefix {prefix}", ex);
         }
     }
@@ -350,7 +355,10 @@ public class AzureSharedContentClient : ISharedContentClient
     )
     {
         List<BlobItem> blobItemList = [];
-        await foreach (BlobItem b in enumerableBlobs.WithCancellation(cancellationToken)) { blobItemList.Add(b); }
+        await foreach (BlobItem b in enumerableBlobs.WithCancellation(cancellationToken))
+        {
+            blobItemList.Add(b);
+        }
         return blobItemList;
     }
 

@@ -30,54 +30,99 @@ type runtime struct {
 
 var _ rt.Runtime = (*runtime)(nil)
 
-func NewRuntime(ctx context.Context, env string, log *logr.Logger) (rt.Runtime, error) {
+type runtimeOptions struct {
+	clock           clockwork.Clock
+	configMonitor   *config.ConfigMonitor
+	operatorContext *operatorcontext.Context
+	env             string
+	logger          *logr.Logger
+}
+
+type RuntimeOption func(*runtimeOptions)
+
+func WithClock(c clockwork.Clock) RuntimeOption {
+	return func(o *runtimeOptions) { o.clock = c }
+}
+
+func WithConfigMonitor(m *config.ConfigMonitor) RuntimeOption {
+	return func(o *runtimeOptions) { o.configMonitor = m }
+}
+
+func WithOperatorContext(c *operatorcontext.Context) RuntimeOption {
+	return func(o *runtimeOptions) { o.operatorContext = c }
+}
+
+func WithEnv(env string) RuntimeOption {
+	return func(o *runtimeOptions) { o.env = env }
+}
+
+func WithLogger(l *logr.Logger) RuntimeOption {
+	return func(o *runtimeOptions) { o.logger = l }
+}
+
+func NewRuntime(ctx context.Context, opts ...RuntimeOption) (rt.Runtime, error) {
+	options := &runtimeOptions{}
+	for _, opt := range opts {
+		opt(options)
+	}
+
 	tracer := otel.Tracer(telemetry.ServiceName)
 	ctx, span := tracer.Start(ctx, "NewRuntime")
 	defer span.End()
 
-	environment := operatorcontext.ResolveEnvironment(env)
+	environment := operatorcontext.ResolveEnvironment(options.env)
 
-	if log != nil {
-		log.Info(
+	if options.logger != nil {
+		options.logger.Info(
 			"Starting runtime - resolved environment",
 			"Environment", environment,
 		)
 	}
 
-	configMonitor, err := config.GetConfig(ctx, environment, "")
-	if err != nil {
-		return nil, err
+	configMonitor := options.configMonitor
+	if configMonitor == nil {
+		var err error
+		configMonitor, err = config.GetConfig(ctx, environment, "")
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	configValue := configMonitor.Get()
 
-	if log != nil {
-		log.Info(
+	if options.logger != nil {
+		options.logger.Info(
 			"Starting runtime - configuration loaded",
 			"Config", configValue.SafeLogValue(),
 		)
 	}
 
-	orgRegistry, err := orgs.NewOrgRegistry(ctx, configValue.OrgRegistry.URL)
-	if err != nil {
-		return nil, err
+	operatorCtx := options.operatorContext
+	if operatorCtx == nil {
+		orgRegistry, err := orgs.NewOrgRegistry(ctx, configValue.OrgRegistry.URL)
+		if err != nil {
+			return nil, err
+		}
+
+		operatorCtx, err = operatorcontext.Discover(ctx, environment, orgRegistry)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	operatorContext, err := operatorcontext.Discover(ctx, environment, orgRegistry)
-	if err != nil {
-		return nil, err
-	}
-
-	if log != nil {
-		log.Info(
+	if options.logger != nil {
+		options.logger.Info(
 			"Starting runtime - discovered operator context",
 			"Environment", environment,
-			"ServiceOwner", operatorContext.ServiceOwner,
-			"RunId", operatorContext.RunId,
+			"ServiceOwner", operatorCtx.ServiceOwner,
+			"RunId", operatorCtx.RunId,
 		)
 	}
 
-	clock := clockwork.NewRealClock()
+	clock := options.clock
+	if clock == nil {
+		clock = clockwork.NewRealClock()
+	}
 
 	cryptoRand := crand.Reader
 
@@ -86,14 +131,14 @@ func NewRuntime(ctx context.Context, env string, log *logr.Logger) (rt.Runtime, 
 		cryptoRand,
 	)
 
-	maskinportenApiClient, err := maskinporten.NewHttpApiClient(configMonitor, operatorContext, clock)
+	maskinportenApiClient, err := maskinporten.NewHttpApiClient(configMonitor, operatorCtx, clock)
 	if err != nil {
 		return nil, err
 	}
 
 	r := &runtime{
 		config:                configMonitor,
-		operatorContext:       *operatorContext,
+		operatorContext:       *operatorCtx,
 		crypto:                *cryptoService,
 		maskinportenApiClient: maskinportenApiClient,
 		tracer:                tracer,

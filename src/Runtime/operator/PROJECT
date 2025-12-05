@@ -10,7 +10,7 @@ layout:
 plugins:
   autoupdate.kubebuilder.io/v1-alpha: {}
 projectName: operator
-repo: github.com/Altinn/altinn-studio
+repo: altinn.studio/operator
 resources:
 - api:
     crdVersion: v1

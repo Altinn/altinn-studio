@@ -78,6 +78,15 @@ data:
             default_type application/json;
         }
         
+        # Fake token endpoint for local testing - returns static token response
+        location = /token {
+            limit_except POST {
+                deny all;
+            }
+            default_type application/json;
+            return 200 '{"access_token":"fake-local-token-for-testing","token_type":"Bearer","expires_in":120,"scope":"altinn:studio/designer"}';
+        }
+        
         location /health {
             return 200 'ok';
             add_header Content-Type text/plain;

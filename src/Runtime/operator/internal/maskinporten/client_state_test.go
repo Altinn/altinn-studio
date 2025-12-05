@@ -56,7 +56,7 @@ func newFixture() *fixture {
 		MaskinportenApi: config.MaskinportenApiConfig{
 			AuthorityUrl: testAuthority,
 		},
-		Controller: config.ControllerConfig{
+		MaskinportenController: config.MaskinportenControllerConfig{
 			JwkRotationThreshold: 23 * 24 * time.Hour, // 23 days
 			JwkExpiry:            30 * 24 * time.Hour, // 30 days
 		},

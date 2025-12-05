@@ -719,27 +719,26 @@ public class AzureSharedContentClientTests
     {
         // Arrange
         string orgName = "ttd";
-        string name1 = "blob1";
-        string name2 = "blob2";
+        string blobName1 = "blob1";
+        string blobName2 = "blob2";
 
-        List<BlobItem> blobItemsMock = new List<BlobItem>
-        {
-            BlobsModelFactory.BlobItem(orgName + "/" + name1),
-            BlobsModelFactory.BlobItem(orgName + "/" + name2)
-        };
+        List<BlobItem> blobItemsMock = [
+            BlobsModelFactory.BlobItem($"{orgName}/{blobName1}"),
+            BlobsModelFactory.BlobItem($"{orgName}/{blobName2}")
+        ];
 
         Mock<BlobContainerClient> containerClientMock = new();
-        SetupContainerClientMock(containerClientMock, $"{orgName}/")
-            .Returns(AsyncPageable<BlobItem>.FromPages(
-                new[] { Page<BlobItem>.FromValues(blobItemsMock, null, Mock.Of<Response>()) }
-            ));
+        containerClientMock
+            .SetupGetBlobsAsync($"{orgName}/")
+            .ReturnsPageableFrom(blobItemsMock);
         AzureSharedContentClient client = AzureClientWithContainerClient(containerClientMock);
 
         // Act
         List<string> publishedResources = await client.GetPublishedResourcesForOrg(orgName);
 
         // Assert
-        Assert.Equal([name1, name2], publishedResources);
+        Assert.Equal([blobName1, blobName2], publishedResources);
+        containerClientMock.VerifyGetBlobsAsyncWasCalledOnce();
     }
 
     [Fact]
@@ -748,28 +747,27 @@ public class AzureSharedContentClientTests
         // Arrange
         string orgName = "ttd";
         string path = "some/path";
-        string name1 = "blob1";
-        string name2 = "blob2";
+        string blobName1 = "blob1";
+        string blobName2 = "blob2";
 
 
-        List<BlobItem> blobItemsMock = new List<BlobItem>
-        {
-            BlobsModelFactory.BlobItem($"{orgName}/{path}/{name1}"),
-            BlobsModelFactory.BlobItem($"{orgName}/{path}/{name2}")
-        };
+        List<BlobItem> blobItemsMock = [
+            BlobsModelFactory.BlobItem($"{orgName}/{path}/{blobName1}"),
+            BlobsModelFactory.BlobItem($"{orgName}/{path}/{blobName2}")
+        ];
 
         Mock<BlobContainerClient> containerClientMock = new();
-        SetupContainerClientMock(containerClientMock, $"{orgName}/{path}")
-            .Returns(() => AsyncPageable<BlobItem>.FromPages(
-                new[] { Page<BlobItem>.FromValues(blobItemsMock, null, Mock.Of<Response>()) }
-            ));
+        containerClientMock
+            .SetupGetBlobsAsync($"{orgName}/{path}")
+            .ReturnsPageableFrom(blobItemsMock);
         AzureSharedContentClient client = AzureClientWithContainerClient(containerClientMock);
 
         // Act
         List<string> publishedResources = await client.GetPublishedResourcesForOrg(orgName, path);
 
         // Assert
-        Assert.Equal([name1, name2], publishedResources);
+        Assert.Equal([blobName1, blobName2], publishedResources);
+        containerClientMock.VerifyGetBlobsAsyncWasCalledOnce();
     }
 
     [Fact]
@@ -780,12 +778,18 @@ public class AzureSharedContentClientTests
         string errorMessage = "Lorem ipsum dolor sit amet.";
 
         Mock<BlobContainerClient> containerClientMock = new();
-        SetupContainerClientMock(containerClientMock, orgName + "/")
+        containerClientMock
+            .SetupGetBlobsAsync(orgName + "/")
             .Throws(() => new RequestFailedException(errorMessage));
         AzureSharedContentClient client = AzureClientWithContainerClient(containerClientMock);
 
         // Act and assert
-        await Assert.ThrowsAsync<SharedContentRequestException>(async () => await client.GetPublishedResourcesForOrg(orgName));
+        SharedContentRequestException exception = await Assert.ThrowsAsync<SharedContentRequestException>(
+            async () => await client.GetPublishedResourcesForOrg(orgName)
+        );
+        Assert.NotNull(exception.InnerException);
+        Assert.IsType<RequestFailedException>(exception.InnerException);
+        Assert.Contains(orgName, exception.Message);
     }
 
     private static CodeList SetupCodeList()
@@ -828,8 +832,20 @@ public class AzureSharedContentClientTests
         return new AzureSharedContentClient(httpClient ?? httpClientMock.Object, logger.Object, settings, blobContainerClientFactory);
     }
 
-    private static ISetup<BlobContainerClient, AsyncPageable<BlobItem>> SetupContainerClientMock(
-        Mock<BlobContainerClient> containerClientMock,
+    private static AzureSharedContentClient AzureClientWithContainerClient(Mock<BlobContainerClient> containerClientMock)
+    {
+        Mock<IBlobContainerClientFactory> factoryMock = new();
+        factoryMock
+            .Setup(f => f.GetContainerClient())
+            .Returns(containerClientMock.Object);
+        return GetClientForTest(null, factoryMock.Object);
+    }
+}
+
+internal static class ContainerClientMockExtensions
+{
+    public static ISetup<BlobContainerClient, AsyncPageable<BlobItem>> SetupGetBlobsAsync(
+        this Mock<BlobContainerClient> containerClientMock,
         string prefix
     )
     {
@@ -843,12 +859,26 @@ public class AzureSharedContentClientTests
         );
     }
 
-    private static AzureSharedContentClient AzureClientWithContainerClient(Mock<BlobContainerClient> containerClientMock)
+    public static void ReturnsPageableFrom(
+        this ISetup<BlobContainerClient, AsyncPageable<BlobItem>> setup,
+        List<BlobItem> blobItems
+    )
     {
-        Mock<IBlobContainerClientFactory> factoryMock = new();
-        factoryMock
-            .Setup(f => f.GetContainerClient())
-            .Returns(containerClientMock.Object);
-        return GetClientForTest(null, factoryMock.Object);
+        setup.Returns(() => AsyncPageable<BlobItem>.FromPages(
+            [Page<BlobItem>.FromValues(blobItems, null, Mock.Of<Response>())]
+        ));
+    }
+
+    public static void VerifyGetBlobsAsyncWasCalledOnce(this Mock<BlobContainerClient> containerClientMock)
+    {
+        containerClientMock.Verify(
+            c => c.GetBlobsAsync(
+                It.IsAny<BlobTraits>(),
+                It.IsAny<BlobStates>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()
+            ),
+            Times.Once
+        );
     }
 }

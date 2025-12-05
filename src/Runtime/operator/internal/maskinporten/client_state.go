@@ -278,7 +278,7 @@ func (s *ClientState) Reconcile(
 		// but the secret output exists, in which case we just overwrite it
 		// TODO: handle if someone deleted the API but the secret exists? I.e. blunder in self-service portal?
 		req := s.buildApiReq(opCtx)
-		jwks, err := cryptoService.CreateJwks(s.getCertSubject(opCtx), getNotAfter(clock, configValue.Controller.JwkExpiry))
+		jwks, err := cryptoService.CreateJwks(s.getCertSubject(opCtx), getNotAfter(clock, configValue.MaskinportenController.JwkExpiry))
 		if err != nil {
 			return nil, err
 		}
@@ -312,7 +312,7 @@ func (s *ClientState) Reconcile(
 			// * Someone else created the API client
 
 			// Since the private JWKS is stored in the secret, it has been lost and we need to create a new one
-			jwks, err := cryptoService.CreateJwks(s.getCertSubject(opCtx), getNotAfter(clock, configValue.Controller.JwkExpiry))
+			jwks, err := cryptoService.CreateJwks(s.getCertSubject(opCtx), getNotAfter(clock, configValue.MaskinportenController.JwkExpiry))
 			if err != nil {
 				return nil, err
 			}
@@ -339,14 +339,14 @@ func (s *ClientState) Reconcile(
 			scopesChanged := !scopesEqual(s.Crd.Spec.Scopes, s.Api.Req.Scopes)
 			forceRotate := s.Crd.Annotations[AnnotationRotateJwk] == "true"
 
-			needsRotation, err := shouldRotateJwk(clock, configValue.Controller.JwkRotationThreshold, s.Secret.Content.Jwks, forceRotate)
+			needsRotation, err := shouldRotateJwk(clock, configValue.MaskinportenController.JwkRotationThreshold, s.Secret.Content.Jwks, forceRotate)
 			if err != nil {
 				return nil, err
 			}
 
 			var jwks *crypto.Jwks
 			if needsRotation {
-				jwks, err = cryptoService.RotateJwks(s.getCertSubject(opCtx), getNotAfter(clock, configValue.Controller.JwkExpiry), s.Secret.Content.Jwks)
+				jwks, err = cryptoService.RotateJwks(s.getCertSubject(opCtx), getNotAfter(clock, configValue.MaskinportenController.JwkExpiry), s.Secret.Content.Jwks)
 				if err != nil {
 					return nil, err
 				}

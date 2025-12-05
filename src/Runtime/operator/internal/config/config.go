@@ -3,12 +3,17 @@ package config
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
+	"reflect"
 	"sync/atomic"
+	"syscall"
 	"time"
 
 	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/operatorcontext"
 	"altinn.studio/operator/internal/telemetry"
+	"github.com/go-logr/logr"
 	"github.com/go-playground/validator/v10"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
@@ -16,11 +21,12 @@ import (
 )
 
 type ConfigMonitor struct {
-	current     atomic.Pointer[Config]
-	environment string
-	kvClient    *azureKeyVaultClient // nil for local
-	baseConfig  *Config              // file-based config (non-secret fields)
-	tracer      trace.Tracer
+	current        atomic.Pointer[Config]
+	environment    string
+	configFilePath string
+	kvClient       *azureKeyVaultClient // nil for local
+	baseConfig     *Config              // file-based config (non-secret fields)
+	tracer         trace.Tracer
 }
 
 // Get returns the current configuration atomically.
@@ -28,14 +34,13 @@ func (m *ConfigMonitor) Get() *Config {
 	return m.current.Load()
 }
 
-// start begins the background refresh loop. Called automatically by GetConfig.
 func (m *ConfigMonitor) start(ctx context.Context) {
-	// For local environment, nothing to refresh
-	if m.kvClient == nil {
-		return
-	}
+	sighup := make(chan os.Signal, 1)
+	signal.Notify(sighup, syscall.SIGHUP)
 
 	go func() {
+		defer signal.Stop(sighup)
+
 		ticker := time.NewTicker(5 * time.Minute)
 		defer ticker.Stop()
 		logger := log.FromContext(ctx)
@@ -50,53 +55,82 @@ func (m *ConfigMonitor) start(ctx context.Context) {
 			select {
 			case <-ctx.Done():
 				return
+			case <-sighup:
+				logger.Info("received SIGHUP, reloading config")
+				m.doRefresh(ctx, logger)
 			case <-ticker.C:
-				if err := m.refresh(ctx); err != nil {
-					logger.Error(err, "ConfigMonitor refresh failed, continuing with previous config",
-						"environment", m.environment,
-					)
-				} else {
-					logger.Info("ConfigMonitor refresh succeeded",
-						"environment", m.environment,
-					)
-				}
+				m.doRefresh(ctx, logger)
 			}
 		}
 	}()
 }
 
-// refresh loads secrets from Key Vault, merges with base config, validates, and stores atomically.
+func (m *ConfigMonitor) doRefresh(ctx context.Context, logger logr.Logger) {
+	if err := m.refresh(ctx); err != nil {
+		logger.Error(err, "ConfigMonitor refresh failed, continuing with previous config",
+			"environment", m.environment,
+		)
+	} else {
+		logger.Info("ConfigMonitor refresh succeeded",
+			"environment", m.environment,
+		)
+	}
+}
+
 func (m *ConfigMonitor) refresh(ctx context.Context) error {
 	ctx, span := m.tracer.Start(ctx, "ConfigMonitor.refresh")
 	defer span.End()
 
-	// Create a copy of base config to overlay secrets onto
-	cfg := *m.baseConfig
-
-	// Load secrets from Key Vault
-	if err := m.kvClient.LoadSecrets(ctx, &cfg); err != nil {
+	newBaseConfig, err := loadFromKoanf(ctx, m.configFilePath)
+	if err != nil {
 		span.RecordError(err)
-		// Keep serving previous config on error
-		return err
+		return fmt.Errorf("failed to reload config file: %w", err)
 	}
 
-	// Validate before storing
+	cfg := *newBaseConfig
+
+	oldCfg := m.current.Load()
+	if m.kvClient != nil {
+		tempCfg := cfg
+		if err := m.kvClient.loadSecrets(ctx, &tempCfg); err != nil {
+			span.RecordError(err)
+			copyOldSecrets(&cfg, oldCfg)
+			log.FromContext(ctx).Error(err, "failed to load secrets from Key Vault, using base config values and old secrets if available")
+		} else {
+			cfg = tempCfg
+		}
+	}
+
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	if err := validate.Struct(&cfg); err != nil {
 		span.RecordError(err)
-		// Keep serving previous config on error
-		return err
+		return fmt.Errorf("config validation failed: %w", err)
 	}
 
-	// Store atomically
+	isLocal := m.environment == operatorcontext.EnvironmentLocal
+	if err := ValidateMaskinportenControllerConfig(&cfg.MaskinportenController, isLocal); err != nil {
+		span.RecordError(err)
+		return fmt.Errorf("maskinporten controller config validation failed: %w", err)
+	}
+
+	if oldCfg != nil && !configEqual(oldCfg, &cfg) {
+		log.FromContext(ctx).Info("config changed", "config", cfg.SafeLogValue())
+	}
+
+	m.baseConfig = newBaseConfig
 	m.current.Store(&cfg)
 	return nil
 }
 
+func configEqual(a, b *Config) bool {
+	return reflect.DeepEqual(a, b)
+}
+
 type Config struct {
-	MaskinportenApi MaskinportenApiConfig `koanf:"maskinporten_api" validate:"required"`
-	Controller      ControllerConfig      `koanf:"controller"       validate:"required"`
-	OrgRegistry     OrgRegistryConfig     `koanf:"org_registry"     validate:"required"`
+	MaskinportenApi        MaskinportenApiConfig        `koanf:"maskinporten_api"        validate:"required"`
+	MaskinportenController MaskinportenControllerConfig `koanf:"maskinporten_controller" validate:"required"`
+	KeyVaultSyncController KeyVaultSyncControllerConfig `koanf:"keyvault_sync_controller" validate:"required"`
+	OrgRegistry            OrgRegistryConfig            `koanf:"org_registry"            validate:"required"`
 }
 
 type MaskinportenApiConfig struct {
@@ -107,19 +141,27 @@ type MaskinportenApiConfig struct {
 	Scope          string `koanf:"scope"            validate:"required"`
 }
 
-type ControllerConfig struct {
+type MaskinportenControllerConfig struct {
 	RequeueAfter         time.Duration `koanf:"requeue_after"          validate:"required,min=5s,max=72h"`
 	JwkRotationThreshold time.Duration `koanf:"jwk_rotation_threshold" validate:"required"`
 	JwkExpiry            time.Duration `koanf:"jwk_expiry"             validate:"required"`
+}
+
+type KeyVaultSyncControllerConfig struct {
+	PollInterval time.Duration `koanf:"poll_interval" validate:"required,min=1m,max=24h"`
 }
 
 type OrgRegistryConfig struct {
 	URL string `koanf:"url" validate:"required,http_url"`
 }
 
-// ValidateControllerConfig performs environment-aware validation on ControllerConfig.
+func KeyVaultURL(environment string) string {
+	return fmt.Sprintf("https://mpo-%s-kv.vault.azure.net/", environment)
+}
+
+// ValidateMaskinportenControllerConfig performs environment-aware validation on MaskinportenControllerConfig.
 // Local environments have relaxed minimums for testing.
-func ValidateControllerConfig(c *ControllerConfig, isLocal bool) error {
+func ValidateMaskinportenControllerConfig(c *MaskinportenControllerConfig, isLocal bool) error {
 	var minThreshold, minExpiry time.Duration
 	if isLocal {
 		minThreshold = 30 * time.Second
@@ -149,9 +191,10 @@ func ValidateControllerConfig(c *ControllerConfig, isLocal bool) error {
 // with sensitive fields redacted.
 func (c *Config) SafeLogValue() map[string]any {
 	return map[string]any{
-		"maskinporten_api": c.MaskinportenApi.SafeLogValue(),
-		"controller":       c.Controller,
-		"org_registry":     c.OrgRegistry,
+		"maskinporten_api":         c.MaskinportenApi.SafeLogValue(),
+		"maskinporten_controller":  c.MaskinportenController,
+		"keyvault_sync_controller": c.KeyVaultSyncController,
+		"org_registry":             c.OrgRegistry,
 	}
 }
 
@@ -170,25 +213,32 @@ func (m *MaskinportenApiConfig) SafeLogValue() map[string]any {
 // GetConfig loads configuration from a file and optionally overlays secrets from Azure Key Vault.
 // For local environment, all config comes from the file.
 // For non-local environments, secrets (client_id, jwk) are loaded from Azure Key Vault.
-// The returned ConfigMonitor automatically starts background refresh for non-local environments.
+// The returned ConfigMonitor automatically starts background refresh.
+// Send SIGHUP to the process to trigger an immediate config reload.
 func GetConfig(ctx context.Context, environment string, configFilePath string) (*ConfigMonitor, error) {
 	tracer := otel.Tracer(telemetry.ServiceName)
 	ctx, span := tracer.Start(ctx, "GetConfig")
 	defer span.End()
 
-	cfg, err := loadFromKoanf(ctx, configFilePath)
+	resolvedPath, err := resolveConfigFilePath(configFilePath)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg, err := loadFromKoanf(ctx, resolvedPath)
 	if err != nil {
 		return nil, err
 	}
 
 	monitor := &ConfigMonitor{
-		environment: environment,
-		baseConfig:  cfg,
-		tracer:      tracer,
+		environment:    environment,
+		configFilePath: resolvedPath,
+		baseConfig:     cfg,
+		tracer:         tracer,
 	}
 
 	if environment != operatorcontext.EnvironmentLocal {
-		kvClient, err := NewAzureKeyVaultClient(ctx, environment)
+		kvClient, err := newAzureKeyVaultClient(ctx, environment)
 		if err != nil {
 			return nil, err
 		}
@@ -207,7 +257,7 @@ func GetConfig(ctx context.Context, environment string, configFilePath string) (
 	}
 
 	isLocal := environment == operatorcontext.EnvironmentLocal
-	if err := ValidateControllerConfig(&monitor.Get().Controller, isLocal); err != nil {
+	if err := ValidateMaskinportenControllerConfig(&monitor.Get().MaskinportenController, isLocal); err != nil {
 		return nil, err
 	}
 
