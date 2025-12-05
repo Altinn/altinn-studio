@@ -1,4 +1,4 @@
-import type { PolicyAction, PolicyRuleCard } from '../../types';
+import type { PolicyAction, PolicyRuleCard, PolicySubject } from '../../types';
 
 /**
  * Function to update the fields inside the rule object in the rule array.
@@ -51,4 +51,25 @@ export const getActionOptions = (actions: PolicyAction[], policyRule: PolicyRule
  */
 export const getPolicyRuleIdString = (policyRule: PolicyRuleCard) => {
   return policyRule.ruleId.toString();
+};
+
+const isPersonSubject = (subjectUrn: string) => {
+  return subjectUrn === 'urn:altinn:rolecode:PRIV' || subjectUrn === 'urn:altinn:rolecode:SELN';
+};
+export const getCcrSubjects = (subjects: PolicySubject[]) => {
+  return subjects.filter((s) => s.provider?.code === 'sys-ccr');
+};
+export const getAltinnSubjects = (subjects: PolicySubject[]) => {
+  return subjects.filter((s) => {
+    const isAltinn = s.provider?.code === 'sys-altinn2' || s.provider?.code === 'sys-altinn3';
+    const isPersonRole = isPersonSubject(s.legacyUrn);
+    return isAltinn && !isPersonRole;
+  });
+};
+export const getOtherSubjects = (subjects: PolicySubject[]) => {
+  return subjects.filter((s) => {
+    const isOther = s.provider?.code === 'sys-internal';
+    const isPersonRole = isPersonSubject(s.legacyUrn);
+    return isOther || isPersonRole;
+  });
 };

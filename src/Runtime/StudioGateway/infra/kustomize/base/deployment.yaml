@@ -107,6 +107,10 @@ spec:
                 configMapKeyRef:
                   name: runtime-environment
                   key: serviceowner
+          volumeMounts:
+            - name: maskinporten-secrets
+              mountPath: /app/secrets
+              readOnly: true
           livenessProbe:
             httpGet:
               path: /health/live
@@ -127,3 +131,10 @@ spec:
             requests:
               cpu: 10m
               memory: 64Mi
+      volumes:
+        - name: maskinporten-secrets
+          secret:
+            secretName: maskinporten-client-for-designer
+            items:
+              - key: secrets.json
+                path: maskinporten-client-for-designer.json

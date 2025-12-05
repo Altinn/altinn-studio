@@ -6,6 +6,7 @@ data:
   config.env: |
     maskinporten_api.scope=idporten:dcr.altinn
     org_registry.url=https://altinncdn.no/orgs/altinn-orgs.json
-    controller.requeue_after=24h
-    controller.jwk_rotation_threshold=23d
-    controller.jwk_expiry=30d
+    maskinporten_controller.requeue_after=24h
+    maskinporten_controller.jwk_rotation_threshold=23d
+    maskinporten_controller.jwk_expiry=30d
+    keyvault_sync_controller.poll_interval=5m

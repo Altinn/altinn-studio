@@ -26,7 +26,9 @@ import (
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal"
-	"altinn.studio/operator/internal/controller"
+	"altinn.studio/operator/internal/controller/azurekeyvaultsync"
+	"altinn.studio/operator/internal/controller/maskinporten"
+	"altinn.studio/operator/internal/controller/secretsync"
 	"altinn.studio/operator/internal/telemetry"
 	// +kubebuilder:scaffold:imports
 )
@@ -78,7 +80,7 @@ func main() {
 
 	ctx, span := otel.Tracer(telemetry.ServiceName).Start(ctx, "Main")
 
-	rt, err := internal.NewRuntime(ctx, "", &setupLog)
+	rt, err := internal.NewRuntime(ctx, internal.WithLogger(&setupLog))
 	if err != nil {
 		setupLog.Error(err, "unable to initialize runtime")
 		span.End()
@@ -147,7 +149,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (controller.NewMaskinportenClientReconciler(
+	if err = (maskinporten.NewReconciler(
 		rt,
 		mgr.GetClient(),
 		mgr.GetScheme(),
@@ -157,7 +159,31 @@ func main() {
 		span.End()
 		os.Exit(1)
 	}
+
+	if err = secretsync.NewReconciler(rt, mgr.GetClient()).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "SecretSync")
+		span.End()
+		os.Exit(1)
+	}
 	// +kubebuilder:scaffold:builder
+
+	kvSyncController, err := azurekeyvaultsync.NewReconciler(
+		ctx,
+		rt,
+		mgr.GetClient(),
+	)
+	if err != nil {
+		setupLog.Error(err, "unable to create KeyVaultSync controller")
+		span.End()
+		os.Exit(1)
+	}
+	if kvSyncController != nil {
+		if err = mgr.Add(kvSyncController); err != nil {
+			setupLog.Error(err, "unable to add KeyVaultSync controller to manager")
+			span.End()
+			os.Exit(1)
+		}
+	}
 
 	if err = mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")
