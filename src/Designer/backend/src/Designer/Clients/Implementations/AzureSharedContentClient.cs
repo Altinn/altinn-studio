@@ -350,7 +350,10 @@ public class AzureSharedContentClient : ISharedContentClient
     )
     {
         List<BlobItem> blobItemList = [];
-        await foreach (BlobItem b in enumerableBlobs.WithCancellation(cancellationToken)) { blobItemList.Add(b); }
+        await foreach (BlobItem b in enumerableBlobs.WithCancellation(cancellationToken))
+        {
+            blobItemList.Add(b);
+        }
         return blobItemList;
     }
 
